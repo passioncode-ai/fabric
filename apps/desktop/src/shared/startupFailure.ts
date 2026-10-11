@@ -27,6 +27,7 @@ export type StartupCause =
   | 'schema-missing'
   | 'schema-not-ready'
   | 'active-estate-unreadable'
+  | 'identity-refused'
   | 'database-unreachable'
   | 'unknown'
 
@@ -92,6 +93,18 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       detail
     }
 
+  // The identity boundary refused (FA-07): the database does not list the person Fabric runs as. Named rather than
+  // left to "unknown" (0.3.4 i1 UX-1): bootstrap appends the seed repair's reason, so the details say what it found.
+  // Only the boundary's own refusal: a read that failed ("could not be resolved", a timeout, a refused connection)
+  // falls to the causes below, as it did before 0.3.4 (i2 ER-1, UX-2).
+  if (/^identity could not be established: that person (?:is not a member|does not exist|may not act)/.test(detail))
+    return {
+      cause: 'identity-refused',
+      title: 'Fabric does not have access to the Estate it was opening.',
+      remedy: 'Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric never makes itself the owner of an Estate, except an untouched one it set up itself; the details below say what it read. If they say something could not be read, retry first; otherwise copy them and report them at https://github.com/passioncode-ai/Fabric/issues. Fabric has changed nothing in the Estate.',
+      detail
+    }
+
   if (code === 'FABRIC_SCHEMA_NOT_READY')
     return {
       cause: 'schema-not-ready',
@@ -150,7 +163,7 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       cause: 'schema-missing',
       title: 'The database is running, but Fabric’s tables are not there.',
       remedy:
-        'The migrations have never been applied to this database. Run `supabase migration up --local` in Fabric’s stack folder (~/Library/Application Support/Fabric/stack for the installed app, the repository when running from source), then retry. Saying “the database failed” would send you to the wrong place: it is answering, it is simply empty.',
+        'The migrations have never been applied to this database. Run `supabase migration up --local` in Fabric’s stack folder (~/Library/Application Support/@fabric/desktop/stack for the installed app, the repository when running from source), then retry. Saying “the database failed” would send you to the wrong place: it is answering, it is simply empty.',
       detail
     }
 
@@ -164,7 +177,7 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       cause: 'database-unreachable',
       title: 'The database is not answering at the address Fabric was given.',
       remedy:
-        'The local stack is most likely stopped. Run `supabase start` in Fabric’s stack folder (~/Library/Application Support/Fabric/stack for the installed app, the repository when running from source) and retry. If SUPABASE_URL is set in this environment, check that it points at a stack that is actually running — an explicit address is used as given and is never second-guessed.',
+        'The local stack is most likely stopped. Run `supabase start` in Fabric’s stack folder (~/Library/Application Support/@fabric/desktop/stack for the installed app, the repository when running from source) and retry. If SUPABASE_URL is set in this environment, check that it points at a stack that is actually running — an explicit address is used as given and is never second-guessed.',
       detail
     }
 

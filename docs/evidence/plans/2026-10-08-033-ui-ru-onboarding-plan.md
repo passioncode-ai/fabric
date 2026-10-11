@@ -54,3 +54,11 @@ agent/co198-rehearse-upgrade `2932fbbd066b`, agent/readme-20261005 `c73c5ca76246
 agent/release-032-candidate `6d02b0b6d240`, agent/release-032-land `bbc691033055`, agent/release-032-work `c35432275618`,
 agent/release-032-close-20261008 `1190e261`); 6 865 stale `$TMPDIR/fabric-*` test folders. Restore a branch with
 `git push origin <sha>:refs/heads/<name>`.
+
+## State update — 2026-10-08, 0.3.3 verification iteration 1 (PL-5)
+
+The status line and row Z above are as written at the time. Since then: R1, R2 and R3a are done; R3b is
+CO-227 and R3c is P-13 (after 0.3.3, ADR-0123 amendment 1); the onboarding grew into the four actions
+([brief](2026-10-08-onboarding-four-actions.md), [ADR-0129](../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md)).
+Row Z's release runs as P-14 in its [ledger](2026-10-08-release-033-verification.md), with the operator's scope D4:
+**without P-12** (self-update moves after 0.3.3). R1's boot check on the wiped database is CO-228.

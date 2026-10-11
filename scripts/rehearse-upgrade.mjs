@@ -16,7 +16,9 @@
 // never a row of data. The stack is removed afterwards unless --keep.
 //
 // --make-fixture builds a synthetic dump shaped like an older release: a disposable stack with only the
-// first N migrations, the seed's estate and a few journal events. It is how this rehearsal is itself tested.
+// first N migrations, the seed's estate and a few journal events. It is how this rehearsal is itself tested. The seed
+// is this checkout's, so since 0.3.4 the fixture's estate is owned by the app's person: it rehearses the upgrade's
+// counts, not CO-241 (that is apps/desktop/test/first-install-db.test.mjs, 0.3.4 verification, iteration 3, DA-2).
 import { spawnSync, execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { chmodSync, cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs'

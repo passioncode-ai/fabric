@@ -1,0 +1,150 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "fa9cdf6b7d3b8d05a9dc264f965241c672b10ee1",
+  "report": "docs/evidence/reviews/0.3.3/iteration-3/2026-10-08-errors.md",
+  "reportSha256": "f76ee8afeb1b72c06cdab2176502922cdf49bd3b1ead64161db7d90d72846175",
+  "reviewerRun": "release-033-i3-errors-20261009",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the attempt in flight is kept (`KeptCreate.flight`) and a screen mounted meanwhile shows it working and takes its end; writes go only to their own attempt (`keepFor`); `StartPaths.test.tsx` \"leaving mid-request and coming back shows the attempt working\" and \"an older attempt finishing late does not overwrite a newer one\" (watched: planted no-flight failed both); rechecked by its reviewer at the final candidate"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "ER-2, UX-7, DA-2 (part)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Start over is not offered while the attempt's session runs, and `abandon` never cancels a task with a session; the unresolved-run case of «Use another coding agent» is ruled CO-236"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `abandon` returns the refusal and the screen says `start.abandoned.notCancelled` (Create and Adapt); the note says the first task is cancelled \"unless its session is already running\""
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a flight in progress shows the screen working with the fields locked (V3-1's test asserts the Name field disabled and no Start over)"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `projectDiscovery.ts#clip` cuts by code point; `project-discovery.test.mjs` emoji case (watched: planted code-unit cut failed)"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "ER-6, DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `refuseSetupWithoutSurface(runner, surfaceUp)` refuses with `task-refused:setup-surface-down`, and the walk passes over every runner for a `needsSurface` launch while the surface is down; `task-retry.test.mjs` and `runnerRoute.test.ts` \"with the agent surface not listening\""
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "ER-7, DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `taskRetry.ts#readbackFallbackRow` claims only what was journalled and `backlog`; `task-retry.test.mjs` read-back case"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `adapterSkills.ts#claudePlugin` names a settings file that reads but does not parse, as it names an unreadable one; `adapter-skills.test.mjs` \"an invalid settings file is named\" (watched; the recheck found the first commit had not fixed it)"
+      ]
+    },
+    {
+      "id": "V3-36",
+      "source": "ER (recheck N-1, blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `create` records the agent on the attempt at the press; `StartPaths.test.tsx` \"the agent chosen at the press is the attempt's\" (watched); rechecked at the final candidate"
+      ]
+    },
+    {
+      "id": "V3-37",
+      "source": "ER (recheck N-2)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the refusal is kept for the attempt and said by a screen mounted meanwhile; `StartPaths.test.tsx` \"a folder-exists refusal that arrives while the person is away\" (watched)"
+      ]
+    },
+    {
+      "id": "V3-38",
+      "source": "ER (recheck N-3)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `abandon` reads the board's \"that task no longer exists\" as nothing to cancel"
+      ]
+    },
+    {
+      "id": "V3-40",
+      "source": "ER (final recheck NB-1, blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the kept attempt takes the press's name, sentence and place (`keepFor`); `StartPaths.test.tsx` \"after a refused name is changed, a later failure and a return keep the NEW name\" (watched against the old merge); rechecked at the final candidate"
+      ]
+    },
+    {
+      "id": "V3-42",
+      "source": "ER (NB-1 recheck, non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-239: the same class as V3-41 in the board's move handler; it predates this candidate and is outside its change"
+      ]
+    },
+    {
+      "id": "V3-43",
+      "source": "ER (NB-1 recheck, non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-240: what the screen says is true; keeping an unpressed edit and placing the returned refusal under the field belong to the next pass on SCR-74"
+      ]
+    },
+    {
+      "id": "V3-44",
+      "source": "ER (NB-1 recheck, non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-225: named in the release notes («Russian»)"
+      ]
+    },
+    {
+      "id": "V3-45",
+      "source": "ER (NB-1 recheck, non-blocking)",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the create handler finishes a repeat of the same create instead of making a sibling (`main/index.ts`, `projectsCreate`: \"A repeat of the SAME create finishes it\"), and the repository attach runs again by design"
+      ]
+    },
+    {
+      "id": "V3-41",
+      "source": "ER (final recheck, N-3 residual)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `tasks.close` says a failed read as itself"
+      ]
+    }
+  ]
+}

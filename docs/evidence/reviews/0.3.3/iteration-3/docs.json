@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "fa9cdf6b7d3b8d05a9dc264f965241c672b10ee1",
+  "report": "docs/evidence/reviews/0.3.3/iteration-3/2026-10-08-docs.md",
+  "reportSha256": "35b14a1d9cb5d246a6ee0eb454b3eff779caa76b985192f5d9f0fc1e4af3e827",
+  "reviewerRun": "release-033-i3-docs-20261009",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-4",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-134 step 1 names the upgrader's sentence; rechecked by its reviewer"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "UX-8, DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-136, SCN-131 and SCR-74 say it is cancelled — by Use another coding agent and by Start over — unless its session runs, and that a refused cancel is said"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "UX-9, DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0129 §5, SCN-131/136 step 4, SCR-74 `idle` and `start.builder.orderUnread` state the code's rule (order, then connected, then found)"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "UX-10, DO-7 (part)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both say \"the one switch every PassionCode.ai app on this Mac reads … in the settings\"; `analytics.notice.nothingYet` has its registry row"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-134 alt path, ADR-0127 amendment 2 and the `analytics.test.mjs` title say it holds while the shared switch stays off"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0125 amendment 1; SCN-135 alt path"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "DO-6, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"may already have sent\" in CHANGELOG and SCR-52; ANALYTICS says the note says what is counted"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each corrected; `adapter-skills-view` region; `check-regions.mjs` PASS"
+      ]
+    },
+    {
+      "id": "V3-35",
+      "source": "DO (note)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `repin-provider-builds.mjs` → 0.162.0, rows unverified; `check-provider-capability.mjs` PASS"
+      ]
+    }
+  ]
+}

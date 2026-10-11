@@ -19,12 +19,14 @@ export function UsageCountsNotice(): React.JSX.Element | null {
   const [share, setShare] = useState(true)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  // An install from 0.3.2 already sent counts from its first start; for it "nothing has been sent yet" is false.
+  const [sentBefore, setSentBefore] = useState(false)
   const continueRef = useRef<HTMLButtonElement | null>(null)
   const read = useCallback(() => {
     // A status that cannot be read — or a host without the analytics API — shows no notice: the main process still
     // sends nothing until it is answered.
     try {
-      window.fabric.analytics.status().then((s) => setPending(s.availability === 'pending-disclosure'), () => setPending(false))
+      window.fabric.analytics.status().then((s) => { setPending(s.availability === 'pending-disclosure'); setSentBefore(s.sentBefore === true) }, () => setPending(false))
     } catch { setPending(false) }
   }, [])
   useEffect(() => {
@@ -40,7 +42,14 @@ export function UsageCountsNotice(): React.JSX.Element | null {
     try {
       const s = await window.fabric.analytics.setEnabled(share)
       if (s.availability === 'pending-disclosure') setFailed(true)
-      else announceAnalytics(s.availability)
+      else {
+        announceAnalytics(s.availability)
+        // The notice goes away: focus moves to the screen's heading, not to the page (iteration 3, UX-5).
+        requestAnimationFrame(() => {
+          const heading = document.querySelector<HTMLElement>('main h1, main h2, h1, h2')
+          if (heading) { if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1'); heading.focus() }
+        })
+      }
     } catch { setFailed(true) } finally { setBusy(false) }
   }
   return (
@@ -58,7 +67,7 @@ export function UsageCountsNotice(): React.JSX.Element | null {
     >
       <strong>{t('analytics.notice.title')}</strong>
       <p>{t('analytics.note')}</p>
-      <p>{t('analytics.notice.nothingYet')}</p>
+      <p>{t(sentBefore ? 'analytics.notice.sentBefore' : 'analytics.notice.nothingYet')}</p>
       {failed && <p>{t('analytics.notice.failed')}</p>}
     </Banner>
   )

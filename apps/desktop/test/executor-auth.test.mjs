@@ -17,7 +17,7 @@ const env = { PATH: '/usr/bin:/bin', HOME: bin, CLAUDE_CONFIG_DIR: path.join(bin
 try {
   fixture(`echo invoked > '${path.join(bin, 'initial-invoked')}'; echo '{"loggedIn":true,"authMethod":"claude.ai","email":"private@example.invalid","token":"SECRET_SENTINEL"}'`)
   const [row] = await detectExecutors([{ id: 'claude-code', label: 'Claude Code', program: 'claude', connected: false }], { env: { ...env, PATH: bin }, authTimeoutMs: 5000 })
-  const supportedRuntime = process.platform === 'darwin' && process.arch === 'arm64'
+  const supportedRuntime = process.platform === 'darwin' && (process.arch === 'arm64' || process.arch === 'x64')
   assert.equal(row.authentication?.state, supportedRuntime ? 'authenticated' : 'unsupported', 'actual detection never certifies an unobserved runtime')
   if (!supportedRuntime) assert.throws(() => readFileSync(path.join(bin, 'initial-invoked')), { code: 'ENOENT' }, 'unverified runtime never runs status')
   assert.equal(row.connected, false, 'authentication never grants Fabric tool connectivity')
@@ -50,7 +50,8 @@ try {
   assert.equal((await observe({ id: 'unknown-vendor' })).state, 'unsupported')
   assert.equal((await observe({ platform: 'win32' })).state, 'unsupported')
   assert.equal((await observe({ platform: 'linux' })).state, 'unsupported')
-  assert.equal((await observe({ arch: 'x64' })).state, 'unsupported')
+  assert.equal((await observe({ arch: 'ia32' })).state, 'unsupported')
+  assert.equal((await observe({ arch: 'arm' })).state, 'unsupported')
   assert.throws(() => readFileSync(path.join(bin, 'invoked')), { code: 'ENOENT' }, 'unsupported builds never invoke a guessed command')
   assert.equal((await observe({ file: path.join(bin, 'absent') })).reason, 'unavailable')
   fixture(`[ "$CLAUDE_CONFIG_DIR" = '${env.CLAUDE_CONFIG_DIR}' ] || exit 2; echo '{"loggedIn":true,"authMethod":"oauth_token"}'`)

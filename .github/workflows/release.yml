@@ -1,4 +1,4 @@
-# The release: Fabric for macOS as one DMG for Apple silicon, signed with the organization's CI
+# The release: Fabric for macOS as one universal DMG (Apple silicon and Intel, from 0.3.4), signed with the organization's CI
 # Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
 # GPG-signed, and published as a release of this repository. Signing happens only here, in the
 # protected `release` environment: approved by a person from release-approvers, who may be whoever
@@ -93,7 +93,7 @@ jobs:
         run: |
           version=$(node -p 'require("./apps/desktop/package.json").version')
           mkdir -p release
-          cp "apps/desktop/dist/Fabric-$version-arm64.dmg" "docs/releases/fabric-$version-mac.json" release/
+          cp "apps/desktop/dist/Fabric-$version-universal.dmg" "docs/releases/fabric-$version-mac.json" release/
           ls -l release
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

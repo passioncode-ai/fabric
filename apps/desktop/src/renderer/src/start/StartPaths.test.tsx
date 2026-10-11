@@ -7,9 +7,10 @@ import { en } from '../i18n/en'
 import { PersonaProvider } from '../launch/persona'
 import { FirstRun, firstRunDue } from './FirstRun'
 import { StartScreen, explainError, type StartPath } from './StartPaths'
+import { forgetAgentAttempts } from './AgentPaths'
 import type { CandidateView, ExecutorRow, FolderView, ScanView } from '../../../shared/startPaths.ts'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); forgetAgentAttempts() })
 
 const repo = (over: Partial<CandidateView>): CandidateView => ({
   path: '/w/a', name: 'a', git: true, kind: 'repository', parent: null, branch: 'main', remote: null,
@@ -34,7 +35,7 @@ function bridge(over: Record<string, unknown> = {}) {
     },
     projects: { create: vi.fn(async (input: { id: string; name: string; repoPaths?: string[] }) => ({ id: input.id, name: input.name })) },
     settings: { read: vi.fn(async () => ({ runnerFallback: { order: [] } })) },
-    tasks: { start: vi.fn(async (_input: unknown) => ({ session: { sessionId: "s1" } })) },
+    tasks: { start: vi.fn(async (_input: unknown) => ({ session: { sessionId: "s1" } })), close: vi.fn(async () => ({ ok: true })) },
     windows: { openSession: vi.fn(async () => undefined) },
     ...over
   }
@@ -238,7 +239,7 @@ describe('a scanned project arrives with its own description as its purpose', ()
   const scan: ScanView = {
     root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-08T00:00:00Z',
     candidates: [
-      repo({ path: '/w/a', name: 'a', group: '/w/a', summary: 'A ledger for agent teams' }),
+      repo({ path: '/w/a', name: 'a', group: '/w/a', summary: 'A ledger for agent teams', summaryFile: 'package.json' }),
       repo({ path: '/w/c', name: 'c', group: '/w/c', summary: null })
     ]
   }
@@ -254,7 +255,7 @@ describe('a scanned project arrives with its own description as its purpose', ()
     fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '2') }))
     await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledTimes(2))
     const calls = fabric.projects.create.mock.calls.map((c) => c[0] as { name: string; purpose?: string })
-    expect(calls.find((c) => c.name === 'a')?.purpose).toBe('A ledger for agent teams')
+    expect(calls.find((c) => c.name === 'a')?.purpose).toBe('From package.json: A ledger for agent teams')
     expect(calls.find((c) => c.name === 'c')?.purpose, 'no description is no purpose, never an invented one').toBeUndefined()
   })
 })
@@ -270,7 +271,7 @@ describe('after a scan: set the first one up with the agent (plan R3a)', () => {
     fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
     fireEvent.click(within((await screen.findByText('a', { selector: 'b' })).closest('label') as HTMLElement).getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
-    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.setUpFirst'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.setUpFirst'].replace('{name}', 'a') }))
     expect(onSetUp).toHaveBeenCalledTimes(1)
     expect(typeof onSetUp.mock.calls[0][0]).toBe('string')
     expect(handlers.onCreated, 'setting up is not merely opening').not.toHaveBeenCalled()
@@ -432,20 +433,295 @@ describe('create an ecosystem agent (SCN-136, REQ-02)', () => {
   })
 })
 
+describe('0.3.3 verification, iteration 1: the agent paths', () => {
+  const fill = async (name = 'support-desk', purpose = 'Reads support mail and drafts replies') => {
+    fireEvent.change(await screen.findByLabelText(en['start.createAgent.name'], { exact: false }), { target: { value: name } })
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.purpose'], { exact: false }), { target: { value: purpose } })
+    fireEvent.click(screen.getByRole('button', { name: en['start.createAgent.whereChoose'] }))
+    await screen.findByText('/w/' + name)
+  }
+  const createBtn = () => screen.getByRole('button', { name: new RegExp('^(' + [en['start.createAgent.create'], en['start.createAgent.retry']].join('|') + ')$') })
+  const ready = () => waitFor(() => expect(createBtn().getAttribute('aria-disabled')).toBe('false'))
+
+  it('leaving the screen after the folder was made and coming back continues the same attempt (ER-4, DA-6)', async () => {
+    const fabric = bridge({ projects: { create: vi.fn().mockRejectedValueOnce(new Error('stack down')).mockImplementation(async (i: { id: string; name: string }) => ({ id: i.id, name: i.name })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/stack down/)
+    expect(screen.getByText(en['start.createAgent.madeKeptFolder'].replace('{path}', '/w/new-thing')), 'no Project was made: the copy says only the folder').toBeTruthy()
+    cleanup()
+    start('agent')
+    expect(await screen.findByText(/stack down/), 'the failure is still said on return').toBeTruthy()
+    expect((screen.getByLabelText(en['start.createAgent.name']) as HTMLInputElement).value).toBe('support-desk')
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s1'))
+    expect(fabric.start.createFolder, 'never a second folder').toHaveBeenCalledTimes(1)
+    const ids = fabric.projects.create.mock.calls.map((c) => (c[0] as { id: string }).id)
+    expect(new Set(ids).size).toBe(1)
+  })
+
+  it('a coding agent that failed to start can be swapped: a new task in the same Project (ER-3)', async () => {
+    const begin = vi.fn().mockRejectedValueOnce(new Error('spawn failed')).mockResolvedValue({ session: { sessionId: 's9' } })
+    const fabric = bridge({ tasks: { start: begin } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/spawn failed/)
+    expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: en['start.builder.another'] }))
+    expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).disabled).toBe(false)
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s9'))
+    const calls = begin.mock.calls.map((c) => c[0] as { projectId: string; taskId: string })
+    expect(calls[0].projectId).toBe(calls[1].projectId)
+    expect(calls[0].taskId).not.toBe(calls[1].taskId)
+  })
+
+  it('a session that started but whose console did not open is not called "not created" (UX-5)', async () => {
+    bridge({ windows: { openSession: vi.fn().mockRejectedValueOnce(new Error('window refused.')).mockResolvedValue(undefined) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    expect(await screen.findByText(en['start.consoleNotOpened'].replace('{reason}', 'window refused').replace('{retry}', en['start.createAgent.retry']))).toBeTruthy()
+    expect(screen.queryByText(/The agent was not created/)).toBeNull()
+  })
+
+  it('a press that cannot go says what is missing (UX-3)', async () => {
+    const skills = vi.fn(async () => ({ ready: false, where: 'none', version: null, found: { 'creating-fabric-agents': false, 'adapting-projects-to-fabric': false }, command: 'npx @passioncode-ai/passioncode@latest update', launcherCovers: true }))
+    bridge({ start: { ...bridge().start, adapterSkills: skills } })
+    start('agent')
+    await fill()
+    await screen.findByText('npx @passioncode-ai/passioncode@latest update')
+    fireEvent.click(createBtn())
+    expect(await screen.findByText(en['start.blocked.skills'])).toBeTruthy()
+  })
+
+  it('a failed read of the coding agents says so in words and can be tried again (UX-4)', async () => {
+    const executors = vi.fn().mockRejectedValueOnce(new Error('probe crashed')).mockResolvedValue([{ id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2', path: '/bin/claude', install: null }])
+    bridge({ start: { ...bridge().start, executors } })
+    start('agent')
+    expect(await screen.findByText(en['start.builder.failed'].replace('{reason}', 'probe crashed'))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['start.createAgent.retry'] }))
+    expect(await screen.findByLabelText(en['start.builder.label'])).toBeTruthy()
+  })
+
+  it('a folder picker that fails is said, not swallowed (ER-8)', async () => {
+    bridge({ start: { ...bridge().start, chooseFolder: vi.fn(async () => { throw new Error('dialog busy') }) } })
+    start('agent')
+    fireEvent.click(await screen.findByRole('button', { name: en['start.createAgent.whereChoose'] }))
+    expect(await screen.findByText(en['start.pickFailed'].replace('{reason}', 'dialog busy'))).toBeTruthy()
+  })
+
+  it('the hint says how the coding agent was chosen: the fallback order, or the first found (UX-1)', async () => {
+    bridge()
+    start('agent')
+    expect(await screen.findByText(new RegExp(en['start.builder.fromFound'].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))).toBeTruthy()
+    cleanup()
+    bridge({ settings: { read: vi.fn(async () => ({ runnerFallback: { order: [{ runner: 'claude-code', session: 'new' }] } })) } })
+    start('agent')
+    expect(await screen.findByText(new RegExp(en['start.builder.fromOrder'].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))).toBeTruthy()
+  })
+})
+
+describe('0.3.3 verification, iteration 2: the agent paths', () => {
+  const two = vi.fn(async () => [
+    { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2', path: '/bin/claude', install: null },
+    { id: 'codex', label: 'Codex', connected: false, state: 'found', version: '1', path: '/bin/codex', install: null }
+  ])
+  const fill = async () => {
+    fireEvent.change(await screen.findByLabelText(en['start.createAgent.name'], { exact: false }), { target: { value: 'support-desk' } })
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.purpose'], { exact: false }), { target: { value: 'Reads support mail' } })
+    fireEvent.click(screen.getByRole('button', { name: en['start.createAgent.whereChoose'] }))
+    await screen.findByText('/w/support-desk')
+  }
+  const createBtn = () => screen.getByRole('button', { name: new RegExp('^(' + [en['start.createAgent.create'], en['start.createAgent.retry']].join('|') + ')$') })
+  const ready = () => waitFor(() => expect(createBtn().getAttribute('aria-disabled')).toBe('false'))
+
+  it('coming back after a failed launch shows the coding agent the task was started with (DO-3, UX-1, ER-4)', async () => {
+    bridge({ start: { ...bridge().start, executors: two }, tasks: { start: vi.fn().mockRejectedValue(new Error('spawn failed')), close: vi.fn(async () => ({ ok: true })) } })
+    start('agent')
+    await fill()
+    fireEvent.change(await screen.findByLabelText(en['start.builder.label']), { target: { value: 'codex' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/spawn failed/)
+    cleanup()
+    start('agent')
+    await waitFor(() => expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).value).toBe('codex'))
+    expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).disabled).toBe(true)
+  })
+
+  it('the same folder chosen again in Adapt brings back its coding agent and its failure (ER-4)', async () => {
+    const fabric = bridge({ start: { ...bridge().start, executors: two, inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/old-bot', name: 'old-bot' }) })) },
+      tasks: { start: vi.fn().mockRejectedValue(new Error('spawn failed')), close: vi.fn(async () => ({ ok: true })) } })
+    start('convert')
+    fireEvent.click(screen.getByRole('button', { name: en['start.convert.choose'] }))
+    fireEvent.change(await screen.findByLabelText(en['start.builder.label']), { target: { value: 'codex' } })
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.convert.start'] }).getAttribute('aria-disabled')).toBe('false'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.convert.start'] }))
+    await screen.findByText(/spawn failed/)
+    cleanup()
+    start('convert')
+    fireEvent.click(screen.getByRole('button', { name: en['start.convert.choose'] }))
+    expect(await screen.findByText(/spawn failed/), 'the failure is said again').toBeTruthy()
+    expect(screen.getByRole('button', { name: en['start.builder.another'] })).toBeTruthy()
+    await waitFor(() => expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).value).toBe('codex'))
+    expect(fabric.projects.create).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaving mid-request and coming back shows the attempt working; its end is this screen\'s, never a second folder (ER-6; iteration 3 ER-1, ER-4)', async () => {
+    let finish: (v: unknown) => void = () => undefined
+    const createFolder = vi.fn(() => new Promise((r) => { finish = r }))
+    const fabric = bridge({ start: { ...bridge().start, createFolder } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(createFolder).toHaveBeenCalledTimes(1))
+    cleanup()
+    const h = start('agent')
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.createAgent.creating'] }).getAttribute('aria-busy')).toBe('true'))
+    expect((screen.getByLabelText(en['start.createAgent.name']) as HTMLInputElement).disabled, 'nothing is edited under a request in flight').toBe(true)
+    expect(screen.queryByRole('button', { name: en['start.createAgent.startOver'] }), 'nothing is started over under it').toBeNull()
+    finish({ ok: true, path: '/w/support-desk' })
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(h.onCreated).toHaveBeenCalledTimes(1))
+    expect(createFolder, 'never a second folder').toHaveBeenCalledTimes(1)
+  })
+
+  it('an older attempt finishing late does not overwrite a newer one (iteration 3, ER-1)', async () => {
+    let failFirst: (e: unknown) => void = () => undefined
+    const begin = vi.fn()
+      .mockImplementationOnce(() => Promise.reject(new Error('spawn failed')))
+      .mockImplementationOnce(() => new Promise((_r, j) => { failFirst = j }))
+      .mockResolvedValue({ session: { sessionId: 's7' } })
+    const fabric = bridge({ tasks: { start: begin, close: vi.fn(async () => ({ ok: true })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/spawn failed/)
+    fireEvent.click(createBtn()) // Try again: the second launch hangs
+    await waitFor(() => expect(begin).toHaveBeenCalledTimes(2))
+    cleanup()
+    start('agent')
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.createAgent.creating'] }).getAttribute('aria-busy')).toBe('true'))
+    failFirst(new Error('late failure'))
+    expect(await screen.findByText(/late failure/), 'the late end of the same attempt is said here').toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['start.createAgent.startOver'] }))
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.name']), { target: { value: 'other-desk' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s7'))
+    const projects = fabric.projects.create.mock.calls.map((c) => c[0] as { id: string; repoPaths: string[] })
+    const last = projects[projects.length - 1]
+    expect(projects.filter((p) => p.id === last.id).every((p) => p.repoPaths[0] === last.repoPaths[0]), 'the new folder goes to the new Project only').toBe(true)
+    expect(new Set(projects.map((p) => p.id)).size).toBe(2)
+  })
+
+  it('after the folder-exists refusal, focus is back on the Name field (iteration 3, UX-2)', async () => {
+    bridge({ start: { ...bridge().start, createFolder: vi.fn(async () => ({ ok: false, reason: 'exists', detail: '/w/support-desk' })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(en['start.createAgent.name'])))
+  })
+
+  it('the agent chosen at the press is the attempt\'s: leaving before the first launch and coming back shows it (recheck N-1)', async () => {
+    let finish: (v: unknown) => void = () => undefined
+    const createFolder = vi.fn(() => new Promise((r) => { finish = r }))
+    const executors = vi.fn(async () => [
+      { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2', path: '/bin/claude', install: null },
+      { id: 'codex', label: 'Codex', connected: false, state: 'found', version: '1', path: '/bin/codex', install: null }
+    ])
+    bridge({ start: { ...bridge().start, createFolder, executors } })
+    start('agent')
+    await fill()
+    fireEvent.change(await screen.findByLabelText(en['start.builder.label']), { target: { value: 'codex' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(createFolder).toHaveBeenCalledTimes(1))
+    cleanup()
+    start('agent')
+    await waitFor(() => expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).value).toBe('codex'))
+    finish({ ok: true, path: '/w/support-desk' })
+  })
+
+  it('a folder-exists refusal that arrives while the person is away is said on return (recheck N-2)', async () => {
+    let finish: (v: unknown) => void = () => undefined
+    bridge({ start: { ...bridge().start, createFolder: vi.fn(() => new Promise((r) => { finish = r })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    cleanup()
+    start('agent')
+    finish({ ok: false, reason: 'exists', detail: '/w/support-desk' })
+    expect(await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))).toBeTruthy()
+  })
+
+  it('after a refused name is changed, a later failure and a return keep the NEW name for the new folder (final recheck NB-1)', async () => {
+    const createFolder = vi.fn()
+      .mockResolvedValueOnce({ ok: false, reason: 'exists', detail: '/w/support-desk' })
+      .mockResolvedValue({ ok: true, path: '/w/support-desk-2' })
+    const fabric = bridge({ start: { ...bridge().start, createFolder }, projects: { create: vi.fn().mockRejectedValueOnce(new Error('stack down')).mockImplementation(async (i: { id: string; name: string }) => ({ id: i.id, name: i.name })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.name']), { target: { value: 'support-desk-2' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/stack down/)
+    cleanup()
+    start('agent')
+    await waitFor(() => expect((screen.getByLabelText(en['start.createAgent.name']) as HTMLInputElement).value).toBe('support-desk-2'))
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalled())
+    const last = fabric.projects.create.mock.calls.at(-1)![0] as { name: string; repoPaths: string[] }
+    expect([last.name, last.repoPaths[0]]).toEqual(['support-desk-2', '/w/support-desk-2'])
+  })
+
+  it('a task the person walks away from is cancelled on the board (DA-5)', async () => {
+    const begin = vi.fn().mockRejectedValueOnce(new Error('spawn failed')).mockResolvedValue({ session: { sessionId: 's8' } })
+    const close = vi.fn(async () => ({ ok: true }))
+    bridge({ tasks: { start: begin, close } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/spawn failed/)
+    fireEvent.click(screen.getByRole('button', { name: en['start.builder.another'] }))
+    const first = (begin.mock.calls[0][0] as { taskId: string }).taskId
+    expect(close).toHaveBeenCalledWith(first, 'cancelled', en['start.abandoned.anotherAgent'])
+  })
+})
+
 describe('adapt an existing agent (SCN-131, REQ-03)', () => {
   it('reads the folder, adapts it in the Project that already holds it, and opens the console with the adapt instruction', async () => {
     const fabric = bridge({ start: { ...bridge().start, inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/old-bot', name: 'old-bot' }), importedBy: [{ id: 'p9', name: 'Old bot' }] })) } })
     const h = start('convert')
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.choose'] }))
     await screen.findByText(en['start.convert.already'].replace('{name}', 'Old bot'))
-    await waitFor(() => expect((screen.getByRole('button', { name: en['start.convert.start'] }) as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.convert.start'] }).getAttribute('aria-disabled')).toBe('false'))
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.start'] }))
     await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s1'))
     expect(fabric.projects.create, 'no second Project for a folder already held').not.toHaveBeenCalled()
     const run = fabric.tasks.start.mock.calls[0][0] as { projectId: string; instruction: string; preset: string }
     expect([run.projectId, run.preset]).toEqual(['p9', 'adapt-agent'])
     expect(run.instruction).toMatch(/adapting-projects-to-fabric/)
-    expect(run.instruction, 'the original state is committed before any change').toMatch(/commit everything as it is/)
+    expect(run.instruction, 'the original state is committed before any change').toMatch(/first commit of the folder as it is/)
+    expect(run.instruction, 'secrets stay out of that commit and are named (DA-7)').toMatch(/looks like a secret[\s\S]*\.gitignore/)
     expect(run.instruction, 'the branch comes off the current one, never main by name').toMatch(/from the current branch/)
     expect(run.instruction).not.toMatch(/\bmain\b/)
     expect(h.onCreated).toHaveBeenCalledWith('p9')
@@ -459,12 +735,12 @@ describe('adapt an existing agent (SCN-131, REQ-03)', () => {
     })
     start('convert')
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.choose'] }))
-    await waitFor(() => expect((screen.getByRole('button', { name: en['start.convert.start'] }) as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.convert.start'] }).getAttribute('aria-disabled')).toBe('false'))
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.start'] }))
     await screen.findByText(/spawn failed/)
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.other'] }))
     await screen.findByText('/w/bot-2')
-    await waitFor(() => expect((screen.getByRole('button', { name: en['start.convert.start'] }) as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.convert.start'] }).getAttribute('aria-disabled')).toBe('false'))
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.start'] }))
     await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s4'))
     const ids = fabric.projects.create.mock.calls.map((c) => (c[0] as { id: string }).id)
@@ -475,12 +751,12 @@ describe('adapt an existing agent (SCN-131, REQ-03)', () => {
   })
 
   it('a folder not yet held becomes a Project named after it, with what it says it is as the purpose', async () => {
-    const fabric = bridge({ start: { ...bridge().start, inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/mail-bot', name: 'mail-bot', summary: 'Sorts mail' }) })) } })
+    const fabric = bridge({ start: { ...bridge().start, inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/mail-bot', name: 'mail-bot', summary: 'Sorts mail', summaryFile: 'README.md' }) })) } })
     start('convert')
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.choose'] }))
-    await waitFor(() => expect((screen.getByRole('button', { name: en['start.convert.start'] }) as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.convert.start'] }).getAttribute('aria-disabled')).toBe('false'))
     fireEvent.click(screen.getByRole('button', { name: en['start.convert.start'] }))
-    await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'mail-bot', purpose: 'Sorts mail', repoPaths: ['/w/mail-bot'] })))
+    await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'mail-bot', purpose: 'From README.md: Sorts mail', repoPaths: ['/w/mail-bot'] })))
   })
 })
 

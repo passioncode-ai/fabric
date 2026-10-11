@@ -50,14 +50,14 @@ export function StackExposureNotice(): React.JSX.Element | null {
         <li>
           <b>{t('diagnostics.exposure.orbstack')}</b>
           <code>{t('diagnostics.exposure.orbstackCommand')}</code>
-          <CopyButton text={t('diagnostics.exposure.orbstackCommand')} />
+          <CopyButton text={t('diagnostics.exposure.orbstackCommand')} what={t('diagnostics.exposure.orbstack')} />
           <span>{t('diagnostics.exposure.orbstackAfter')}</span>
         </li>
         <li>
           <b>{t('diagnostics.exposure.docker')}</b>
           <span>{t('diagnostics.exposure.dockerBefore')}</span>
           <code>{t('diagnostics.exposure.dockerSetting')}</code>
-          <CopyButton text={t('diagnostics.exposure.dockerSetting')} />
+          <CopyButton text={t('diagnostics.exposure.dockerSetting')} what={t('diagnostics.exposure.docker')} />
           <span>{t('diagnostics.exposure.dockerAfter')}</span>
         </li>
       </ul>

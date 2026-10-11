@@ -192,9 +192,21 @@ and becomes an Agent only when bound into a project. Detection never verifies it
 (the persona, a preference that grants nothing), the coding agents on this machine, and the start
 paths. Finished or skipped, it is stamped in `settings.firstRun` and reopened from Help. ADR-0100.
 
-**Start path** — one way a project or an agent comes into Fabric: add a project (one folder), scan a
-projects folder, new project, new agent (inside a project), convert an agent (designed, not built).
-ADR-0100.
+**Start path** — one of the four start actions, in two pairs: *Agent* — create an agent, adapt an existing agent;
+*Project* — open a project (one folder, or a scan of a projects folder), create a project. ADR-0100, amended by
+ADR-0129 (the role agent inside a project is made from its Team, not from the start).
+
+**Ecosystem agent** — an agent with a repository of its own, built or adapted to the Fabric Agent Contract in a
+coding agent's console (`creating-fabric-agents`, `adapting-projects-to-fabric`). Not the same as an *Agent* in
+this glossary until it is bound into a project; not *admitted* until its conformance report passes and the
+registry admits it (AR-7, AR-11). ADR-0129.
+
+**Fabric Agent Adapter** — the published skill set (`creating-fabric-agents`, `adapting-projects-to-fabric`) that
+builds or adapts an ecosystem agent; Fabric checks it is where the chosen coding agent reads skills and installs
+nothing. ADR-0129.
+
+**Fallback order** — the operator's device-local list of coding agents a launch may walk, each with whether to
+start a new session or use an open one; a host order, never a route revision. ADR-0125.
 
 **Candidate** — a repository a scan found and listed, not yet a Project. Only a tick turns it into
 one; a worktree or nested repository is a *part* of its product's candidate group. A kept scan lists

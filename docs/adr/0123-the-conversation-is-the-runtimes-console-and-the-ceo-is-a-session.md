@@ -46,3 +46,22 @@ rule: its side panel becomes an embedded terminal running the runtime's CLI in t
   launch and monitoring in P-13, through the UX chain.
 - No conflict with ADR-0119 (runners are consoles), the vision's principle 1 or its anti-vision ("a multi-chat
   cockpit"): the operating unit stays the Project, and sessions are its execution surface.
+
+## Amendments
+
+### Amendment 1 — 2026-10-08: the retirement moves after 0.3.3
+
+The operator set 0.3.3's scope on 2026-10-08 (decision D4 of the
+[onboarding brief](../evidence/plans/2026-10-08-onboarding-four-actions.md)): what is done since 0.3.2 plus the
+four onboarding actions ([ADR-0129](0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md)).
+Retiring `CeoChat` (P-13) was not in it, so "the release after 0.3.2" becomes **the release after 0.3.3**. 0.3.3
+applies this decision to the new agent actions — they run in the coding agent's console — and still ships the CEO
+chat, reached from «Discuss with Fabric ↗» on the launch screens as the prototype draws it. Found by the 0.3.3
+verification, iteration 1 (PL-1): the plan still dated the retirement to 0.3.3.
+
+### Amendment 2 — 2026-10-10: the retirement moves after 0.3.4
+
+The release after 0.3.3 is 0.3.4, the fresh-install fix with universal macOS (the operator's call, 2026-10-10;
+[ADR-0131](0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). Retiring `CeoChat`
+(P-13) is not in it, so the retirement becomes **the release after 0.3.4**, its order with 0.3.5 (Windows and Linux,
+CO-238) not decided; 0.3.4 ships the CEO chat unchanged. Found by the 0.3.4 verification, iteration 3 (PL-1).

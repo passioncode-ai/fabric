@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "2e04073125db85d1fe3763267cd85c3d78fabaf2",
+  "report": "docs/evidence/reviews/0.3.4/iteration-3/2026-10-10-data.md",
+  "reportSha256": "8129d7ea5b6a172659e2f9f8163a760b6745cfbab669f44768e929053c6b064c",
+  "reviewerRun": "release-034-i3-data-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "DA-1, ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `EVENT_READ_LIMIT` 999; `seed-repair.test.mjs` reads `max_rows` from `supabase/config.toml` and refuses a limit whose read exceeds it (watched: with 1000 it fails, \"reads 1001 rows, more than the API returns (1000)\"); ADR-0131 §2 says why"
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the script's header says the fixture rehearses the upgrade's counts with this checkout's seed and that CO-241 is `first-install-db.test.mjs`'s; the upgrade-then-repair path was measured by iteration 3's UX reviewer on its own databases, and read from the migrations by the data reviewer (recheck DAR-1)"
+      ]
+    },
+    {
+      "id": "V3-18",
+      "source": "DA (recheck DAR-1)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V3-10's cell says who measured and who read"
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ change.
 product and CEO AI agent: it plans, coordinates agents, runs Projects and works with their data,
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
 Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS on
-Apple silicon**: each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
+Apple silicon and Intel Macs** (one universal DMG from 0.3.4): each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
 with its notes, checksums and attestation, and the newest one is [downloadable from its product page](https://passioncode.ai/fabric/#download).
 Releases are built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
 [`CHANGELOG.md`](CHANGELOG.md) ([procedure](docs/launch/release-mac.md),
@@ -104,7 +104,7 @@ plan survives as org #1 and builds first.
 
 ## Quick start for a new teammate
 
-- **Install:** the signed, notarized preview for macOS on Apple silicon from
+- **Install:** the signed, notarized preview for macOS (Apple silicon and Intel, from 0.3.4) from
   [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos); it needs
   Docker and the Supabase CLI for its local stack (below).
 - **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
@@ -268,10 +268,10 @@ The probes that need only PostgreSQL, not the whole stack, run on clusters of th
 `apps/desktop/test/run-*-db.mjs` runner (and `run-ceo-host-sql.mjs`) `initdb`s a temporary cluster
 on a Unix socket, applies the migration chain, runs its suite and removes the cluster. They need
 PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default Homebrew's `postgresql@17`); without them a runner
-exits 2, NOT_RUN. `ci.sh fast` runs four of them (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
+exits 2, NOT_RUN. `ci.sh fast` runs five of them (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
 fail the fast tier — the hosted fast runner has no PostgreSQL — but is printed beside the runner and
-again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those four
+again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those five
 in the same step and every other runner after it, the same way, and fails on NOT_RUN.
 
 The full tier runs every package's test suites through
@@ -286,10 +286,10 @@ is running, prints the list so far with the number of suites it never reached, a
 with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
 ended by a signal exits 128 plus that signal's number.
 
-Seventeen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+Eighteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
-`/opt/homebrew/opt/postgresql@17/bin`). Four (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
+`/opt/homebrew/opt/postgresql@17/bin`). Five (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database
@@ -316,11 +316,13 @@ node scripts/residue-report.mjs --json     # machine-readable
 
 ## Usage analytics
 
-A release build of Fabric sends usage counts, on by default from its first start: installs, days of use, and how
-many projects, products and agents are connected. Every event carries the app version, the OS name, a session id
+Usage counts are on by default, but a release build of Fabric sends nothing until you have answered the switch
+once — on the notice at the top of the window at first start, or in Settings
+([ADR-0127](docs/adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md)). What is counted:
+installs, days of use, and how many projects, products and agents are connected. Every event carries the app version, the OS name, a session id
 and a random installation id that every PassionCode app on the Mac shares, so one person using several apps counts
-once. It never sends names, paths or content. One switch, Settings → *Share usage counts*, turns this off for
-every PassionCode app on the Mac. Source builds send nothing. What is sent, where and how:
+once. It never sends names, paths or content. One switch — on that notice or in Settings → *Share usage counts* —
+turns this off for every PassionCode app on the Mac. Source builds send nothing. What is sent, where and how:
 [docs/ANALYTICS.md](docs/ANALYTICS.md).
 
 ## License

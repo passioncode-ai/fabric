@@ -10,6 +10,7 @@ import { loadInto, type TaskDraft } from '../../shared/taskDraft.ts'
 import type { CreatedAgent, LaunchOption, ProjectRow, TaskRow } from '../../shared/types'
 import { resolvePresets, type PresetInput, type TaskPreset } from '../../shared/presets.ts'
 import { Banner, Button, Panel, Toolbar } from './components'
+import { explainError } from './start/startParts'
 import { useT } from './i18n'
 import { runnerLabel } from './runnerLabel'
 
@@ -198,8 +199,13 @@ export function Tasks({
     setMode(chosen?.defaultMode ?? null)
   }, [agent, options.length])
 
+  // The setup preset records through Fabric's tools (memory, questions, tasks); an agent that does not connect to
+  // the surface could record nothing of it, so it is not offered to one, and a loaded setup does not run on one
+  // (0.3.3 verification DA-3). The fallback order is resolved at launch and is not judged here.
+  const noSurface = chosen !== undefined && !chosen.connectsToSurface
+  const setupBlocked = preset === 'setup' && noSurface
   const run = async (): Promise<void> => {
-    if (!instruction.trim() || busy) return
+    if (!instruction.trim() || busy || setupBlocked) return
     setBusy(true)
     try {
       const { session } = await window.fabric.tasks.start({
@@ -216,7 +222,8 @@ export function Tasks({
       await onStarted()
       await window.fabric.windows.openSession(session.sessionId)
     } catch (e) {
-      onError(String(e))
+      // Refusals main sends as codes (a task id, a read-back) are said in the window's language (0.3.3 PL-2).
+      onError(explainError(e, t))
     } finally {
       setBusy(false)
     }
@@ -294,7 +301,11 @@ export function Tasks({
         {chosenMode?.warnKey && (
           <span className="muted">{t(chosenMode.warnKey as 'agent.mode.bypassWarn')}</span>
         )}
-        <Button onClick={() => void run()} disabled={!instruction.trim() || busy}>
+        {setupBlocked && <span className="field-problem" role="status">{t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' })}</span>}
+        {/* The reason the setup shortcut is unavailable is said on the page, not only in a disabled button's title
+            (iteration 3, UX-13). */}
+        {noSurface && !setupBlocked && <span className="muted" id="tasks-setup-why">{t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' })}</span>}
+        <Button onClick={() => void run()} disabled={!instruction.trim() || busy || setupBlocked}>
           {busy ? t('tasks.starting') : t('tasks.run')}
         </Button>
         {(sourcesFor.state === 'failed' || madeFor.state === 'failed') && (
@@ -309,6 +320,9 @@ export function Tasks({
             <Button
               key={p.id}
               tone="quiet"
+              disabled={p.id === 'setup' && noSurface}
+              title={p.id === 'setup' && noSurface ? t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' }) : undefined}
+              aria-describedby={p.id === 'setup' && noSurface ? 'tasks-setup-why' : undefined}
               onClick={() => {
                 const text = t(p.instructionKey as Parameters<typeof t>[0], p.vars)
                 const load = loadInto(draft ?? undefined, { text, presetId: p.id })

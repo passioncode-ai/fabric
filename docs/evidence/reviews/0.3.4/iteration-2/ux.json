@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "a0ab055c4483b9f4589e68e3a9d876af8ff08e37",
+  "report": "docs/evidence/reviews/0.3.4/iteration-2/2026-10-10-ux.md",
+  "reportSha256": "1af00409844b9143ce6488166c1f9f6b8568840e30cc3e7e0886a89b837b6af0",
+  "reviewerRun": "release-034-i2-ux-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1, DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/stackFolder.ts#STACK_FOLDER`, used by `schemaReadiness.ts`; `startupFailure.ts`, en/ru remedies and `release-mac.md` say `@fabric/desktop/stack`; `test/stack-folder.test.mjs` derives it from `package.json` and refuses the old path anywhere (watched: one old path in `en.ts` fails it); in the fast tier. No `productName` added: it would move every install's data"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "ER-2, UX-3, DA-2, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the whole identity gate — read, repair, read again, refusal — runs before `pastRetryPoint` and `startHub` (`index.ts` region `seed-repair-wiring`); `seed-repair.test.mjs` asserts the refusal's place (watched: the gate moved after the hub fails); ADR-0131 §3 rewritten"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "ER-1, UX-2, DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cause matches only the boundary's own refusal (\"that person is not a member / does not exist / may not act\"); a failed read keeps `database-unreachable` or `unknown`; `startupFailure.test.ts` cases; the remedy says what Fabric never does and names where to report (https://github.com/passioncode-ai/Fabric/issues)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "DO-8, UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"stays a member in the database beside you; nobody signs in as it, and no screen shows it\""
+      ]
+    }
+  ]
+}

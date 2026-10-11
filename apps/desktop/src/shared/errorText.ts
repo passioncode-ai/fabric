@@ -82,6 +82,7 @@ export function humaniseError(e: unknown): OperatorMessage {
   if (/ could not start in /.test(detail)) return { kind: 'session-would-not-start', detail }
 
   const cause = classifyStartupFailure({ message: detail }).cause
-  // Both code-only causes are unreachable from a message alone; they are never an operator kind.
-  return { kind: cause === 'unknown' || cause === 'schema-not-ready' || cause === 'active-estate-unreadable' ? null : cause, detail }
+  // Both code-only causes are unreachable from a message alone; they are never an operator kind. Nor is the identity
+  // refusal (0.3.4): it stops startup and has no IPC call to fail.
+  return { kind: cause === 'unknown' || cause === 'schema-not-ready' || cause === 'active-estate-unreadable' || cause === 'identity-refused' ? null : cause, detail }
 }

@@ -5,6 +5,9 @@ directories:
 files:
   - out/**
   - package.json
+  # Only macOS's node-pty prebuilds ship in the Mac app (after-pack-universal.mjs checks it).
+  - "!**/node_modules/node-pty/prebuilds/win32-*/**"
+  - "!**/node_modules/node-pty/prebuilds/linux-*/**"
 asarUnpack:
   - "**/node_modules/node-pty/**"
 # M116 — the mark ships with the bundle. `build/icon.png` is STAGED from the
@@ -32,6 +35,10 @@ extraResources:
       - seed.sql
       - migrations/*.sql
 npmRebuild: false
+# Universal macOS (operator decision 2026-10-09): node-pty's thin per-arch prebuilds become one
+# universal file in both folders, other platforms' prebuilds are dropped, and the joined app is
+# refused if any Mach-O lacks a slice (scripts/lib/universal-mac.mjs).
+afterPack: ../../scripts/after-pack-universal.mjs
 mac:
   target:
     - dir

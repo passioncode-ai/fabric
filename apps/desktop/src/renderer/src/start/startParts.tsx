@@ -4,7 +4,7 @@
 
 import { humaniseError } from '../../../shared/errorText'
 import { useEffect, useRef, useState } from 'react'
-import type { CandidateView, FolderView } from '../../../shared/startPaths.ts'
+import { purposeFromRepository, type CandidateView, type FolderView } from '../../../shared/startPaths.ts'
 import type { Translate } from '../i18n'
 import { useT } from '../i18n'
 
@@ -26,10 +26,19 @@ export function explainError(e: unknown, t: Translate): string {
   if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
   const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
   if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
+  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|setup-needs-surface|setup-surface-down)(?:: ([\s\S]*))?$/.exec(text)
+  if (task) return t(`start.taskRefused.${task[1]}` as 'start.taskRefused.not-an-id', { detail: task[2] ?? '' })
   const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
   if (agent) return t('agents.nameTaken', { name: agent[1] })
   return text
 }
+
+/** The purpose a Project made from this folder gets: the repository's words, saying whose they are (ER-5). */
+export const purposeFrom = (f: { summary?: string | null; summaryFile?: string | null }, t: Translate): string | undefined =>
+  purposeFromRepository(f, (file, text) => t('start.purposeFromRepo', { file, text }))
+
+/** A refusal said as a sentence, without its own closing full stop, for templates that continue after it. */
+export const reasonOf = (e: unknown, t: Translate): string => explainError(e, t).replace(/\.\s*$/, '')
 
 /** A commit time as the operator reads it: a date in their locale, never a raw ISO string. */
 export function shortDate(iso: string | null | undefined, locale: string): string {
@@ -74,12 +83,13 @@ export function FolderFactsList({ f, t, locale }: { f: FolderView | CandidateVie
 }
 
 /** Copy a command; says Copied only when the clipboard took it. */
-export function CopyButton({ text }: { text: string }): React.JSX.Element {
+/** `what` names the copied thing for a screen reader when two copy buttons share a screen (iteration 2, UX-9). */
+export function CopyButton({ text, what }: { text: string; what?: string }): React.JSX.Element {
   const t = useT()
   // A copy that fails says so: the command stays selectable on screen (iteration 2: a refused clipboard was silent).
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
   return (
-    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
+    <button type="button" className="lp-button" aria-label={what && state === 'idle' ? t('first.exec.copyWhat', { what }) : undefined} onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
       {state === 'copied' ? t('first.exec.copied') : state === 'failed' ? t('first.exec.copyFailed') : t('first.exec.copy')}
     </button>
   )

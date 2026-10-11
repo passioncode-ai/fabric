@@ -97,6 +97,23 @@ describe('why the app would not start', () => {
     ).toBe('database-unreachable')
   })
 
+  it('names the identity refusal, and keeps the repair\'s reason in the details (0.3.4 i1 UX-1)', () => {
+    // Before 0.3.4 this landed in "unknown": every fresh install showed "could not work out why" for a cause the
+    // app had already named (CO-241). The repair's reason travels in the message, so the details carry it.
+    const said = 'identity could not be established: that person is not a member of this estate' +
+      ' — the repair for a database only the old seed touched did not apply: the estate has history after its creation'
+    const f = classifyStartupFailure(new Error(said))
+    expect(f.cause).toBe('identity-refused')
+    expect(f.title).toBe('Fabric does not have access to the Estate it was opening.')
+    expect(f.detail).toContain('the estate has history after its creation')
+    expect(classifyStartupFailure({ message: 'the identity of this build could not be established' }).cause).not.toBe('identity-refused')
+    // A read that failed is not a refusal: before 0.3.4 a dead database here said "database unreachable", and it
+    // still does (0.3.4 i2 ER-1, UX-2).
+    expect(classifyStartupFailure(new Error('identity could not be established: identity could not be resolved: TypeError: fetch failed')).cause)
+      .toBe('database-unreachable')
+    expect(classifyStartupFailure(new Error('identity could not be established: the identity command returned no verdict')).cause).toBe('unknown')
+  })
+
   it('an unrecognised failure is UNKNOWN and says so, rather than guessing', () => {
     // A wrong diagnosis costs more than an honest "we do not know": the
     // operator follows the remedy, it does not help, and they conclude the
@@ -204,7 +221,7 @@ import { ru as ruRegistry } from '../renderer/src/i18n/ru.ts'
 
 describe('every startup cause has its words in both registries', () => {
   // A Record over the union, so a cause added to StartupCause without words fails to COMPILE here first.
-  const every: Record<StartupCause, true> = { 'supabase-cli-missing': true, 'stack-start-timed-out': true, 'stack-would-not-start': true, 'stack-up-but-silent': true, 'repository-not-found': true, 'schema-missing': true, 'schema-not-ready': true, 'active-estate-unreadable': true, 'database-unreachable': true, unknown: true }
+  const every: Record<StartupCause, true> = { 'supabase-cli-missing': true, 'stack-start-timed-out': true, 'stack-would-not-start': true, 'stack-up-but-silent': true, 'repository-not-found': true, 'schema-missing': true, 'schema-not-ready': true, 'active-estate-unreadable': true, 'identity-refused': true, 'database-unreachable': true, unknown: true }
   for (const cause of Object.keys(every))
     it(cause, () => {
       for (const part of ['title', 'remedy'])

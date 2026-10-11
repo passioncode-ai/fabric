@@ -116,6 +116,13 @@ button:disabled { opacity: .4; cursor: default; }
   border-bottom: 1px solid var(--app-line); background: var(--app-panel);
 }
 .settings-usage { display: flex; flex-direction: column; gap: var(--space-1); max-width: 42ch; }
+/* The fallback order (ADR-0125): heading, note, then one aligned row per agent (0.3.3 verification UX-7). */
+.settings-fallback { display: flex; flex-direction: column; gap: var(--space-2); max-width: 64ch; }
+.settings-fallback ol { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.settings-fallback li { display: grid; grid-template-columns: minmax(10ch, 14ch) minmax(0, 1fr) auto auto auto; gap: var(--space-2); align-items: center; }
+.settings-fallback li select, .settings-fallback-add select { min-width: 0; font: inherit; }
+.settings-fallback-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-fallback-add { display: flex; gap: var(--space-2); align-items: center; }
 .settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
 .settings-bar label { display: flex; gap: var(--space-2); align-items: center; color: var(--app-muted); }
 

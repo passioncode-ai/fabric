@@ -1,7 +1,7 @@
 // #region fabric-strip — docs: docs/ux/screens.md#launch-chrome
 // The line under the scope bar that says who is speaking and how fresh the screen is: Fabric's face, its
-// name, the last thing recorded in this scope, and the way to Pulse. One component, so the eight screens
-// that carry it (board, pulse, releases, plan, project, agent) cannot drift into eight spellings of it.
+// name, the last thing recorded in this scope, and the way to Pulse. One component, so the screens that
+// carry it (board, pulse, releases, plan, project, agent) cannot drift into several spellings of it.
 // The prototype draws it on every launch view but Home and "Your Fabric" (scripts/product/launch.mjs).
 
 import type { FeedEvent } from '../../../shared/types'

@@ -1697,7 +1697,7 @@ FLW-18/32: результат этапа записывает прогресс �
 *(Amended 2026-10-03 by [ADR-0100](../adr/0100-first-run-and-start-paths.md): the first run is FLW-69 — name and look first, then coding agents, then the start paths; a parent folder is FLW-71's checklist, each ticked repository its own Project. The "one Project with related sources" and "no personalisation form" lines below are superseded where they differ.)*
 - **Traces:** ST-001, ST-022, ST-031; SCN-095, SCN-059 (JTBD-01, JTBD-02)
 - **Goal:** First useful sourced insight from the user's selected project, with minimal operator input.
-- **Before entry:** Verify exact build/schema compatibility before workspace services or recovery. Unknown/out-of-range → native startup error → fresh schema Retry, or reinstall/restart for an artifact failure. No automatic migration, no false read-only ahead mode.
+- **Before entry:** Verify exact build/schema compatibility before workspace services or recovery. Unknown/out-of-range → native startup error → fresh schema Retry, or reinstall/restart for an artifact failure. No automatic migration, no false read-only ahead mode. *(Amended 2026-10-10 by [ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md), 0.3.4: after the schema check the operator's identity is established; a default Estate only the old seed has touched is first granted to the local operator, and any other identity refusal is the native startup error's own cause, `identity-refused`, with the reason in its details.)*
 - **Entry points:** First launch; New project; restored source draft; launch-start/onboarding aliases; CEO add-project intent.
 - **Success exit:** SCR-30 r0-home and SCR-31 r0-project with source receipts and one next action. A folder-scan checklist creates one Project per ticked repository, in selection order; existing primary identities open their own Project and are never merged.
 - **Task analysis:** Accept or customise CEO defaults; choose a ready executor; choose source with picker/URL; let CEO discover; inspect sourced insight and next action.
@@ -2215,20 +2215,20 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-74 Create an agent | idle, invalid-name, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, started |
+  | SCR-74 Create an agent | idle, invalid-name, no-purpose, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, failed-after-folder, started |
 
 
-### FLW-74: Turn an existing agent into an ecosystem agent
+### FLW-74: Adapt an existing agent into an ecosystem agent
 - **Traces:** ST-050; SCN-131 (JTBD-05)
 - **Goal:** An agent built elsewhere, adapted to the Fabric contract on its own branch, in a coding agent's console.
-- **Entry points:** Start menu → Agent → Turn an existing agent into an ecosystem agent; first run step 3.
+- **Entry points:** Start menu → Agent → Adapt an existing agent; first run step 3.
 - **Success exit:** the coding agent's console window, its session inspecting without running and showing its plan.
 - **Task analysis:** Choose folder; read facts; see the four steps; skills ready; coding agent; start.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-75 Turn an agent] -->|choose folder| R[Read without running: facts, already-in]
+ A[Screen: SCR-75 Adapt an existing agent] -->|choose folder| R[Read without running: facts, already-in]
  R --> C{Skills installed for the chosen agent?}
  C -->|no| S[Install command, Copy, Check again] --> C
  C -->|yes| K[Start the adaptation]
@@ -2240,7 +2240,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-75 Turn an existing agent | idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started |
+  | SCR-75 Adapt an existing agent | idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started |
 
 
 ### FLW-75: An external agent asks for access

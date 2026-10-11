@@ -831,7 +831,11 @@ export type CeoChatReply =
 export interface HistoryExport { name: string }
 export interface HistoryArchiveSummary { token: string; taken_at: string; events: number; companion: { conversations: number; messages: number; mine: boolean } | null }
 /** `pending-disclosure`: on, but nothing is sent until the person answers the switch once (A7-012, ADR-0127). */
-export interface AnalyticsStatus { availability: 'on' | 'off' | 'pending-disclosure' | 'unavailable-no-key' | 'unavailable-file' }
+export interface AnalyticsStatus {
+  availability: 'on' | 'off' | 'pending-disclosure' | 'unavailable-no-key' | 'unavailable-file'
+  /** This app already sent counts from this Mac (an install from 0.3.2, which sent from its first start). */
+  sentBefore?: boolean
+}
 export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean; opened: false }
 export type HistoryReply<T> = ({ ok: true } & T) | { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 

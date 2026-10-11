@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "2e04073125db85d1fe3763267cd85c3d78fabaf2",
+  "report": "docs/evidence/reviews/0.3.4/iteration-3/2026-10-10-ux.md",
+  "reportSha256": "6a3aaa93f4df4a00d574ad8266327389e672fa391083f090fcb36e82ff72390f",
+  "reviewerRun": "release-034-i3-ux-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-2",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"the Estate it was opening\" / «которое он открывал» (en, ru, classifier, `strings.md`)"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"If they say something could not be read, retry first\" (en, ru, classifier); the refusal is retryable since V2-3. The restored-Estate case the reviewer noted is unreachable today (no restore path opens a non-default estate at startup): not a defect"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "UX (recheck UXR-1)",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the refusal is thrown before the retry point, so the dialog offers Retry for every one of these (`startupFailure.ts#startupDialog`, retryable); the sentence names the commonest case"
+      ]
+    }
+  ]
+}

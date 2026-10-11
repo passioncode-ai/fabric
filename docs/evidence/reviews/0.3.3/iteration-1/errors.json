@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "ece987975a1b2a491f86f5e528f96920b04aa4c5",
+  "report": "docs/evidence/plans/2026-10-08-release-033-verification/iteration-1/2026-10-08-errors.md",
+  "reportSha256": "e26ba603d0c6b7baacaaae2e566a90a0ad42cce67eb2f6b9c98ffa04a42ea8dd",
+  "reviewerRun": "release-033-i1-errors-20261008",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "DA-1, ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `taskRetry.ts#liveSessionOf` answers only a session still running (`ptys.get(id)?.running`), newest first; `task-retry.test.mjs` \"the newest RUNNING session of the task, never an ended one\" (watched: planted lookup without the running check failed)"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `pty.ts` discards the bundle when `beforeSpawn` throws; `pty-launch-failure.test.mjs` ER-1 case (watched: planted unwrapped call failed)"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Use another coding agent» (`AgentPaths.tsx#anotherAgent`): a new task in the same Project; `StartPaths.test.tsx` \"a coding agent that failed to start can be swapped\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "ER-4, DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `keptCreate` / `keptConvert` keep the attempt for the window's life; a late success does not navigate away; `StartPaths.test.tsx` \"leaving the screen after the folder was made and coming back\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "ER-5, DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/startPaths.ts#purposeFromRepository`: «From README.md: …» with the file named (`summaryFile`); `project-discovery.test.mjs` summaryFile, `StartPaths.test.tsx` purpose expectations"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `projectDiscovery.ts#readHead` reads at most 64 KiB; `project-discovery.test.mjs` 8 MiB README read by a bounded head (watched)"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `adapterSkills.ts`: regular-file and size check before reading, 3 s per read, `unreadable` named on screen, `Object.hasOwn`; `adapter-skills.test.mjs` FIFO, mode 000 and prototype ids (watched both)"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: pickers and the settings read say what failed (`start.pickFailed`, `start.builder.orderUnread`); `StartPaths.test.tsx` \"a folder picker that fails is said\" (watched); the gate's scope is ruled CO-230"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "ER-9 (low)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-229: reached only by two windows launching within one walk; before the fallback order attaches for chains or routines"
+      ]
+    }
+  ]
+}

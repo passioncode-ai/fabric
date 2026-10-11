@@ -18,10 +18,10 @@ one person using several PassionCode apps counts once. Events go to the self-hos
 
 A release build sends **no event until the person has answered the switch once** ([ADR-0127](adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md), audit finding A7-012). Until then the status is `pending-disclosure` and nothing is queued, `app_installed` included. The answer comes from either:
 
-- the **first-run notice** at the top of the window ([`UsageCountsNotice.tsx`](../apps/desktop/src/renderer/src/UsageCountsNotice.tsx)): what is counted, that nothing has been sent yet, the switch (on) and *Continue*;
-- **Settings → *Share usage counts*** (SCR-52), whose note says the same.
+- the **first-run notice** at the top of the window ([`UsageCountsNotice.tsx`](../apps/desktop/src/renderer/src/UsageCountsNotice.tsx)): what is counted; that nothing has been sent yet — or, for an install whose earlier version already sent counts (its state has `installed_at`), that an earlier version may already have sent them; the switch (on) and *Continue*;
+- **Settings → *Share usage counts*** (SCR-52), whose note says what is counted.
 
-The answer is kept per app as `disclosed_at` in `<userData>/analytics-state.json`; another PassionCode app's disclosure does not disclose Fabric. The start that waited is reported after the answer with its launch kind, and today's `app_active` follows. Off at the notice sends nothing, ever. An install from 0.3.2 sees the notice once and is not counted again; a state file that cannot be read asks again. Tests: the four `A7-012:` tests in `apps/desktop/test/analytics.test.mjs`, `UsageCountsNotice.test.tsx`.
+The answer is kept per app as `disclosed_at` in `<userData>/analytics-state.json`; another PassionCode app's disclosure does not disclose Fabric. The start that waited is reported after the answer with its launch kind, and today's `app_active` follows. Off at the notice sends nothing while the shared switch stays off; the switch is the one every PassionCode app on the Mac reads, so turning it back on — here or in another PassionCode app — sends again from then on. An install from 0.3.2 sees the notice once and is not counted again; a state file that cannot be read asks again. Tests: the four `A7-012:` tests in `apps/desktop/test/analytics.test.mjs`, `UsageCountsNotice.test.tsx`.
 
 ## What is sent
 

@@ -2,7 +2,7 @@
 
 **Status:** proposed · 2026-10-06 · operator request 2026-10-06 («автообновление должно срабатывать на все мои
 продукты passioncode»), relayed by the fabric-switchboard session with a survey of the organization's
-installed products · plan row P-12 · target release 0.3.3
+installed products · plan row P-12 · target release after 0.3.4 (amendments 1, 2)
 
 ## Context
 
@@ -44,3 +44,21 @@ its entry in `SHA256SUMS`); the workflow change and its rehearsal belong to P-12
 `desktop/updater.cjs` and Fabric Dashboards' ADR-0015 are the working Electron precedents to read before
 building. Acceptance: an installed build updates itself to the next release on this Mac, a planted unsigned
 artifact is refused, and a planted schema step stops at the notice.
+
+## Amendments
+
+### Amendment 1 — 2026-10-08: the target moves after 0.3.3
+
+The operator set 0.3.3's scope on 2026-10-08 (decision D4 of the
+[onboarding brief](../evidence/plans/2026-10-08-onboarding-four-actions.md)): what is done since 0.3.2 plus the
+four onboarding actions, without this record. The target release becomes **the release after 0.3.3**, and the
+copies that need one manual update are those up to and including **0.3.3**. Found by the 0.3.3 verification,
+iteration 1 (PL-5).
+
+### Amendment 2 — 2026-10-10: the target moves after 0.3.4
+
+The release after 0.3.3 is 0.3.4, and the operator made it the fresh-install fix
+([ADR-0131](0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md), CO-241) together
+with universal macOS (fabric#27), without this record. The target release becomes **the release after 0.3.4**, its
+order with 0.3.5 (the Windows/Linux port, CO-238) not decided, and the copies that need one manual update are those
+up to and including **0.3.4**. Found by the 0.3.4 verification, iteration 3 (PL-1).

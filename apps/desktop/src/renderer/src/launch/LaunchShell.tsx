@@ -22,25 +22,46 @@ export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
  * step 2). It waits for the element rather than a fixed timer, and scrolls only the nearest scrolling
  * container — `scrollIntoView` scrolled the whole shell and cut the tab bar off (iteration 2).
  */
-export function revealSection(anchor: string, deadlineMs = 2000): void {
+export function revealSection(anchor: string, deadlineMs = 2000, settleMs = 1500): void {
   const started = performance.now()
-  const step = (): void => {
-    const el = document.getElementById(anchor)
-    if (!el) {
-      if (performance.now() - started < deadlineMs) requestAnimationFrame(step)
-      return
-    }
+  let alignedAt: number | null = null
+  // The page above the section keeps growing while its reads settle, so the section is re-aligned for a short
+  // while after it first appears — until the person scrolls or types themselves (0.3.3 verification, iteration 2,
+  // UX-6: the setup draft opened at the top of the page, its field out of view).
+  let moved = false
+  const stop = (): void => { moved = true }
+  const events = ['wheel', 'keydown', 'pointerdown', 'touchstart'] as const
+  for (const e of events) window.addEventListener(e, stop, { passive: true, once: true })
+  const done = (): void => { for (const e of events) window.removeEventListener(e, stop) }
+  const align = (el: HTMLElement): void => {
     let box: HTMLElement | null = el.parentElement
     while (box && box !== document.body) {
       const { overflowY } = getComputedStyle(box)
       if ((overflowY === 'auto' || overflowY === 'scroll') && box.scrollHeight > box.clientHeight) break
       box = box.parentElement
     }
-    if (box && box !== document.body) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top
-    else el.scrollIntoView({ block: 'start' })
-    const heading = el.querySelector<HTMLElement>('h2, h3') ?? el
-    if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1')
-    heading.focus({ preventScroll: true })
+    if (box && box !== document.body) {
+      const off = el.getBoundingClientRect().top - box.getBoundingClientRect().top
+      if (Math.abs(off) > 2) box.scrollTop += off
+    } else el.scrollIntoView({ block: 'start' })
+  }
+  const step = (): void => {
+    const el = document.getElementById(anchor)
+    if (!el) {
+      if (performance.now() - started < deadlineMs) requestAnimationFrame(step)
+      else done()
+      return
+    }
+    if (moved) { done(); return }
+    align(el)
+    if (alignedAt === null) {
+      alignedAt = performance.now()
+      const heading = el.querySelector<HTMLElement>('h2, h3') ?? el
+      if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1')
+      heading.focus({ preventScroll: true })
+    }
+    if (performance.now() - alignedAt < settleMs) requestAnimationFrame(step)
+    else done()
   }
   requestAnimationFrame(step)
 }

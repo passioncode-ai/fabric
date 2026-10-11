@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "2e04073125db85d1fe3763267cd85c3d78fabaf2",
+  "report": "docs/evidence/reviews/0.3.4/iteration-3/2026-10-10-plan.md",
+  "reportSha256": "50e024bf35bcd0fba47c0bc25f9b5aad6ab57af02f08718d10ea7b21648b9267",
+  "reviewerRun": "release-034-i3-plan-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-5",
+      "source": "DO-2, ER-2, PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the two exit lines; *Release close* item 1 names the fifteen receipts and the exit lines, written in the release commit"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "DO-3, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"only the old seed (0.2.0, 0.3.0–0.3.3)\", iterations 1–2 closed and 3 at its final candidate; lane 2 names P-14's 0.3.3 release"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendments 2 to both (after 0.3.4, order with 0.3.5 undecided; copies ≤ 0.3.4); ADR index rows"
+      ]
+    },
+    {
+      "id": "V3-12",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in *Release close* item 5 by name (the knowledge base is updated after publication)"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-243: a known-issue line, a site notice or nothing until 0.3.4 is the operator's call; closed by item 4's redirect receipt"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-238's latest-decision cell says it"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-15 names it as out of 0.3.4's scope, left to its own PR"
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: item 3 covers the start, the window and the repair; the chat's save and its cold-restart read-back go undone in this release"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "ER (recheck ERR-1), PL (recheck PLR-1)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: item 1 names `2e040731` in full; the recheck reports are `docs/handoffs/2026-10-10-release-034-i3-recheck-*.md`, declared in `releaseMetadata`"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "PL (recheck PLR-2)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: item 5 names only the status line, updated in the close commit (an ADR is not release metadata, so the release commit cannot carry it)"
+      ]
+    }
+  ]
+}

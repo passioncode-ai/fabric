@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "a0ab055c4483b9f4589e68e3a9d876af8ff08e37",
+  "report": "docs/evidence/reviews/0.3.4/iteration-2/2026-10-10-docs.md",
+  "reportSha256": "4784d11d9d0c691ece1d98ac8ad9497964d16a696539a33fb898e2a3953e8128",
+  "reviewerRun": "release-034-i2-docs-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1, DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/stackFolder.ts#STACK_FOLDER`, used by `schemaReadiness.ts`; `startupFailure.ts`, en/ru remedies and `release-mac.md` say `@fabric/desktop/stack`; `test/stack-folder.test.mjs` derives it from `package.json` and refuses the old path anywhere (watched: one old path in `en.ts` fails it); in the fast tier. No `productName` added: it would move every install's data"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "ER-2, UX-3, DA-2, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the whole identity gate — read, repair, read again, refusal — runs before `pastRetryPoint` and `startHub` (`index.ts` region `seed-repair-wiring`); `seed-repair.test.mjs` asserts the refusal's place (watched: the gate moved after the hub fails); ADR-0131 §3 rewritten"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "ER-1, UX-2, DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cause matches only the boundary's own refusal (\"that person is not a member / does not exist / may not act\"); a failed read keeps `database-unreachable` or `unknown`; `startupFailure.test.ts` cases; the remedy says what Fabric never does and names where to report (https://github.com/passioncode-ai/Fabric/issues)"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "DA-1, DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `EVENT_READ_LIMIT` 1000, its comment counts events in all; ADR-0131 states the bound. Item 3 of *Release close* read the operator's dump: one event"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "DO-4, PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"since 0.2.0\" in each; CO-241 says `node scripts/test-stack.mjs up <dir>`"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: five, `run-first-install-db` named, \"those five\" in the full tier"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "DO-6, PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1–7 in order; item 7 says the Playwright smoke launches the enrolled app, which the lifecycle rule forbids, and item 3's broker start stands in"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "DO-8, UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"stays a member in the database beside you; nobody signs in as it, and no screen shows it\""
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the scope names every module, test and document of the branch"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the notes claim only what `checks.md` measured — the Intel runtime under Rosetta — with its link, and that the app has not yet run on an Intel Mac"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an explicit `id=\"intel-x86_64-runtimes--2026-10-09\"` before the heading, the GitHub slug; the region cites it"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "DO-12, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"this run's design, held by the 0.3.4 iterations; the operator decided the release\""
+      ]
+    }
+  ]
+}

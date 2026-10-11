@@ -379,12 +379,18 @@ export class PtyManager {
       )
     // Asked before the spawn and outside its catch: a changed authority is a refused request, not a
     // spawn that failed — a fallback walk must never retry it on another runner (ADR-0125 §4).
-    if (beforeSpawn && !await beforeSpawn()) {
-      if (bundle) {
-        try { this.bundles?.discard(sessionId) }
-        catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
-      }
-      throw new LaunchAuthorityChanged(sessionId)
+    // A check that THROWS (the launch receipt could not be read, the identity guard failed) takes the
+    // credential back too: it was minted with the bundle, and nothing after this line will hear of the
+    // session (0.3.3 verification ER-1 — 0.3.2 discarded it, inside the spawn's catch).
+    const discardBundle = (): void => {
+      if (!bundle) return
+      try { this.bundles?.discard(sessionId) }
+      catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
+    }
+    if (beforeSpawn) {
+      let allowed: boolean
+      try { allowed = await beforeSpawn() } catch (e) { discardBundle(); throw e }
+      if (!allowed) { discardBundle(); throw new LaunchAuthorityChanged(sessionId) }
     }
     let pty: IPty
     try {
@@ -405,10 +411,7 @@ export class PtyManager {
       // The bundle was written and its credential minted before spawn was even
       // attempted. Nothing downstream will ever hear about this session, so this
       // is the only place that can take them back.
-      if (bundle) {
-        try { this.bundles?.discard(sessionId) }
-        catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
-      }
+      discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
     }
     const now = Date.now()

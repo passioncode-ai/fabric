@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem } from '../lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem, workspacePinProblem } from '../lib/release-mac.mjs'
 
 test('a release requires exactly one finalized changelog entry for its exact version', () => {
   assert.equal(changelogProblem({ version: '0.3.1', text: '# Changelog\n\n## 0.3.1\n\nDelivered hub.\n\n## 0.3.0\nPrevious.\n' }), null)
@@ -213,4 +213,18 @@ test('I3 N-3: other unreleased spellings and process wording are refused too', (
   assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('## 0.3.0', '## 0.3.1 — unreleased\n\n- stale\n\n## 0.3.0') }) ?? '', /unreleased/)
   for (const line of ['This version has not been released.', 'The release pull request renames this heading to `## 0.3.1`.'])
     assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('- The hub.', line + '\n\n- The hub.') }) ?? '', /not released|process/i, line)
+})
+
+test('the released commit pins the workspace snapshot its receipt names (0.3.4 verification, iteration 2, PL-1)', () => {
+  const W = 'b'.repeat(40), OLD = 'c'.repeat(40)
+  const runner = ({ link = W, receipt = { schema: 1, workspace_commit: W } } = {}) => (args) => {
+    if (args[0] === 'ls-tree') return link ? `160000 commit ${link}\tworkspace\n` : ''
+    if (args[0] === 'show') return JSON.stringify(receipt)
+    throw new Error('unexpected ' + args.join(' '))
+  }
+  assert.equal(workspacePinProblem(runner()), null)
+  assert.match(workspacePinProblem(runner({ link: OLD })), /pins workspace c{12}.*receipt names b{12}/,
+    'a merge that took a stale submodule checkout reverts the pin while the receipt still names main\'s')
+  assert.match(workspacePinProblem(runner({ link: '' })), /not a submodule pin/)
+  assert.match(workspacePinProblem(runner({ receipt: { schema: 1 } })), /receipt/)
 })

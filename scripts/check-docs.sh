@@ -108,7 +108,9 @@ for source in files:
             continue
         if in_fence:
             continue
-        for raw in pattern.findall(line):
+        # Inline code is text, not a link: a review that quotes `[a](` as an input it tried must not read as a
+        # broken link (0.3.3 verification, iteration 3 report). Code spans are removed before matching.
+        for raw in pattern.findall(re.sub(r"`[^`]*`", "", line)):
             target = raw.strip().split()[0].strip("<>")
             if not target or target.startswith(("#", "http://", "https://", "mailto:")):
                 continue

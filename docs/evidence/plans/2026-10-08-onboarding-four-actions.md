@@ -117,3 +117,24 @@ dials 5/2/7) and the start cards; no new visual decision. Copy goes through `cop
 
 Found on the way and fixed: hints inside `<label>` gave the fields long accessible names («Имя Это же имя получит
 папка.»); the seeded estate name `org #1` showed in the tab bar of a fresh install — now «Моё пространство».
+
+## State — 2026-10-08, after the 0.3.3 verification's iteration 1 (PL-12)
+
+The Modules table and "Exact next task" above are as written at stage 2. **M1–M5 are built and landed on `main`**
+(`710c0d38`), with the verifier passes recorded above; iteration 1's findings on them are fixed in the 0.3.3
+candidate (ledger [`2026-10-08-release-033-verification.md`](2026-10-08-release-033-verification.md), rows V1-n).
+The decisions D1–D4 are recorded as [ADR-0129](../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md).
+
+- **REQ-08's receipt** is not a separate `ux-audit` run: the scenarios-against-code audit of SCN-126 step 3, SCN-131
+  and SCN-136 (with `file:line` evidence, ru and en walks at 1024, 1280 and 1440) is each iteration's UX review in the
+  ledger, and the runtime walks of this run (`onb-probe.mjs`, ru 1280: menu, Create → the console window and a folder
+  holding only `.git`, Adapt → the console window, overflow 0, no console errors). Screenshots stay outside git (the
+  operator's media rule); the ledger names where.
+- **REQ-09's knowledge base** is the release close: the fabric-workspace PR for the roadmap (0.3.3 as the onboarding
+  release, self-update after it) and the workspace publication.
+- **Exact next task:** the 0.3.3 ledger's next open iteration (M6).
+- **REQ-08, narrowed (2026-10-09, 0.3.3 verification iteration 2 PL-6):** "no English in the Russian window" holds for
+  every renderer string the start screens own; messages written by the main process (and the feed's verification
+  tooltips) can still reach those screens in English. The release notes name this, and CO-225 carries it. This is the
+  run's reading of REQ-08 against the operator's scope D4 ("everything done plus the four actions"), recorded for the
+  operator's review at the release, not a decision the operator has made.

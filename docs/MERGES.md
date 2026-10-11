@@ -4,6 +4,46 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-10 · `release-034-close` · agent/release-034-close → main
+- run: r-9a7a12bb5; base: origin/main 8cf054db; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: the 0.3.4 ledger's *Release close — state*, P-15 done, CO-241 and CO-243 resolved, ADR-0121's status line, `docs/brand/facts.md`, the overview guides (en, ru), the design map's family section, the handoff
+- summary: v0.3.4 published and closed; the operator's database repaired by the installed app; passioncode.ai serves the universal DMG (site PR #86).
+
+### 2026-10-10 · `fix-fresh-install-034` · agent/fix-fresh-install-034 → main
+- run: r-9a7a12bb5; base: origin/main 9ef939e6 (rebased over fabric#27 before candidate 1), then origin/main merged in (`6fdf8fcc`, not rebased, so the candidates stay one ancestry chain); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: `supabase/seed.sql`; `apps/desktop/src/main/seedRepair.ts` (region `seed-repair`) and `apps/desktop/src/main/index.ts#bootstrapReady` (region `seed-repair-wiring`: the identity gate before the retry point and the hub); `shared/startupFailure.ts` cause `identity-refused` (en/ru, `docs/brand/strings.md`); `shared/stackFolder.ts` (the stack folder every remedy names); `scripts/lib/release-mac.mjs#workspacePinProblem`; `scripts/lib/universal-mac.mjs#thinMachO` (unreadable and 64-bit fat Mach-O); tests `first-install-db`, `seed-repair`, `stack-folder`, `startupFailure`, `universal-mac`, `release-mac` in the fast tier; walk fixture and residue report; ADR-0131, CO-239…CO-242, P-15, CHANGELOG `0.3.4 (unreleased)`, `docs/launch/release-mac.md`, SCN-095/FLW-55/SCR-36, the 0.3.4 ledger, the design map
+- summary: every fresh install since 0.2.0 stopped at "identity could not be established" (CO-241, measured on a disposable stack); the seed now names the app's own person, and a database only the old seed touched is granted to it at start. No schema change (79). The operator's calls 2026-10-10: this is 0.3.4, with universal macOS (fabric#27, landed first); the Windows/Linux port is 0.3.5. Released as 0.3.4: three iterations (candidates `41c2b62c`, `a0ab055c`, `06c5234c`; verified `2e040731`), the release commit carries the gate and fifteen receipts.
+
+### 2026-10-10 · `universal-mac` · agent/platform-matrix-20261009 → main (fabric#27)
+- run: fabric-switchboard-93's; merge commit 9ef939e6 (a GitHub merge, written here afterwards by the 0.3.4 run, iteration 1 DO-5)
+- scope: one universal macOS DMG (`scripts/after-pack-universal.mjs`, `scripts/lib/universal-mac.mjs`, `electron-builder*.yml`, `.github/workflows/release.yml`), x86_64 runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`, `executorAuth.ts`), `docs/launch/release-mac.md#universal-macos`, `docs/launch/harness-r0/checks.md`; CO-237, CO-238
+- summary: Fabric ships for Apple silicon and Intel Macs as one DMG; first released in 0.3.4 (the operator's call 2026-10-10).
+
+### 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main
+- run: r-d8d027823; base: origin/main 1404dffe (rebased); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: `scripts/workspace-release.mjs` (region `workspace-deploy`: App Platform API probe, Observatory-only credentials), `scripts/workspace.mjs` (no heroku remote/push; credentials checked before the gates; fast-forward when the workspace is behind), `scripts/workspace-snapshot.mjs` (receipt `platform`/`do_app`/`deployment`, Heroku receipt kept as history), `workspace.config.json` (`do_app`), `scripts/install-workspace-sync.sh`, tests, `docs/architecture/report-workspace.md`, DOCMAP, living map; separate commit: `providerCapabilityMatrix.ts` re-pin
+- summary: the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed. Carries the provider-matrix re-pin to Claude Code 2.1.296 and Codex CLI 0.162.1 (`scripts/repin-provider-builds.mjs`), which the gate required on this machine.
+
+### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 3 (V3-1…V3-45, receipts in `docs/evidence/reviews/0.3.3/iteration-3/`, rechecks at `f891954c`, `d2c20705`, `fa9cdf6b`), the release commit: `apps/desktop/package.json` 0.3.3, `## 0.3.3`, `docs/launch/release-gate.json`, the handoff `docs/handoffs/2026-10-09-release-033-handoff.md` and the NB-1 recheck report as release metadata.
+- summary: Fabric 0.3.3, the onboarding release, cleared by three iterations; the tag and the protected approvals follow.
+
+### 2026-10-09 · `release-0.3.3-iteration-2` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 2 `6d6d039d`); integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 2's 44 findings, ledger rows V2-1…V2-38 and five receipts (`docs/evidence/reviews/0.3.3/iteration-2/`); `shared/runnerRoute.ts` (`needsSurface`), `main/taskRetry.ts` (`refuseSetupWithoutSurface`, running-only bring-forward), `main/index.ts` (setup guard, read-back keeps the session, menu rebuild apart), `main/projectDiscovery.ts` (bounded stripping), `main/adapterSkills.ts` (unreadable settings named), `start/AgentPaths.tsx` (attempt keeps its agent and failure, in-flight folder, abandoned tasks cancelled), `renderer/src/launch/LaunchShell.tsx` (`revealSection`), `FallbackOrderSetting.tsx`, `StackExposureNotice.tsx`, `App.tsx`, CSS, en/ru; ADR-0100, ADR-0127 amendments, ADR-0129 boundary; CO-177/178/196/197/221/225/227/231 updated, CO-232, CO-233; plan header and P-14; ledger *Release close*; CHANGELOG, ANALYTICS, runbook; fabric-workspace PR #81 extended (`ad6c1f7`).
+- summary: iteration 2 closed; the next candidate goes to iteration 3.
+
+### 2026-10-09 · `release-0.3.3-iteration-1` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 1 `ece98797`); integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 1's 58 findings, ledger rows V1-1…V1-49 and five receipts (`docs/evidence/reviews/0.3.3/iteration-1/`); `main/taskRetry.ts` (`liveSessionOf`, `createKeyedQueue`), `main/pty.ts` (ER-1), `main/projectDiscovery.ts` (bounded head, `summaryFile`), `main/adapterSkills.ts` (regular files, timeouts, `unreadable`, `CLAUDE_CONFIG_DIR`), `main/analytics.ts` (`sentBefore`), `start/AgentPaths.tsx` (kept attempts, another coding agent, blocked reasons), `start/StartPaths.tsx`, `start/startParts.tsx`, `Tasks.tsx` (setup gated by surface), `UsageCountsNotice.tsx`, `FallbackOrderSetting.tsx`, CSS, en/ru; ADR-0129, ADR-0121 and ADR-0123 amendments, CO-218 resolved, CO-227…CO-231; plan lanes; CHANGELOG, README, CONTEXT, AGENTS lifecycle row, runbook; `test/audit_regressions/fix-pf-07.01.py`; `.gitignore`. Completes the four-actions entry below, which did not list `taskRetry.ts`, the PF-07.01 regression or the preload/`shared/types.ts` IPC additions (DO-15).
+- summary: iteration 1 closed; the next candidate goes to iteration 2.
+
+### 2026-10-08 · `release-0.3.3-candidate` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `CHANGELOG.md` §0.3.3 (unreleased), plan row P-14 and P-12 moved after 0.3.3 (decision D4), the 0.3.3 ledger `docs/evidence/plans/2026-10-08-release-033-verification.md`, the release runbook's ledger list
+- summary: the onboarding release goes into its three verification iterations; no version bump until iteration 3 closes.
+
 ### 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main
 - run: r-9a7a12bb5; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `start/AgentPaths.tsx` (new: Create an agent, Adapt an existing agent), `start/startParts.tsx` (new: shared start pieces), `start/StartPaths.tsx` (the menu in two pairs; the role agent left the menu), `start/start.css`, `main/adapterSkills.ts` + IPC `start.adapterSkills`, `shared/builderChoice.ts`, the seeded estate name shown as «My workspace»; tests; SCN-126/127/128/130/131/136, FLW-73/74, SCR-70/74/75, the prototype's start views, strings, brief `docs/evidence/plans/2026-10-08-onboarding-four-actions.md`

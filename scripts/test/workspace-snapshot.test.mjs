@@ -55,6 +55,20 @@ test('mutable source refs and incomplete deployment receipts fail before source 
   write(root,receiptPath,JSON.stringify({...valid,...patch}));assert.throws(()=>checkReceipt(root),/Invalid workspace receipt/)
  }
 })
+test('an App Platform receipt names its app and deployment; a Heroku receipt stays valid only as history',()=>{
+ const APP='3283cfc0-7d5f-498b-8dac-cab351ab4409',DEP='af85ca04-1dcf-45a4-b1a7-7e0585bb413c'
+ const {root}=fixture();write(root,'workspace.config.json',JSON.stringify({do_app:APP}));const ref=commit(root,'config')
+ const s=snapshot(root,ref),child=repo();write(child,'README.md','host');const ws=commit(child)
+ const valid={schema:1,source_commit:ref,workspace_commit:ws,content_digest:s.manifest.content_digest,platform:'digitalocean',do_app:APP,deployment:DEP}
+ mkdirSync(path.join(root,'workspace'));git(root,'update-index','--add','--cacheinfo','160000,'+ws+',workspace')
+ write(root,receiptPath,JSON.stringify(valid));commit(root,'pin');assert.equal(checkReceipt(root).source,ref)
+ // A Heroku receipt left from before the move still checks while the configuration names no Heroku app.
+ write(root,receiptPath,JSON.stringify({schema:1,source_commit:ref,workspace_commit:ws,content_digest:s.manifest.content_digest,heroku_app:'passioncode-fabric-workspace',release:169}));commit(root,'legacy');assert.equal(checkReceipt(root).source,ref)
+ write(root,receiptPath,JSON.stringify({...valid,do_app:'139b640c-4d2f-42ef-9be4-dbe6f4267c0f'}));commit(root,'other app');assert.throws(()=>checkReceipt(root),/different App Platform app/)
+ for(const patch of [{deployment:'v12'},{deployment:undefined},{do_app:'passioncode-fabric-workspace'},{platform:'heroku'},{heroku_app:'passioncode-fabric-workspace'},{release:169}]){
+  write(root,receiptPath,JSON.stringify({...valid,...patch}));assert.throws(()=>checkReceipt(root),/Invalid workspace receipt/,JSON.stringify(patch))
+ }
+})
 test('ignored historical logs cannot disappear between local validation and the published Git commit',()=>{
  const {root}=fixture();write(root,'docs/audit/proof.log','historical evidence');commit(root)
  const target=repo();write(target,'.gitignore','*.log\n');writeSnapshot(target,snapshot(root));commit(target)

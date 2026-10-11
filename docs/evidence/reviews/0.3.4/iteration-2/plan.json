@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "a0ab055c4483b9f4589e68e3a9d876af8ff08e37",
+  "report": "docs/evidence/reviews/0.3.4/iteration-2/2026-10-10-plan.md",
+  "reportSha256": "d6c837ed356fcabeb82a8f61ab8510939edc55b1dd36db939f5e06f5adf986d5",
+  "reviewerRun": "release-034-i2-plan-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-2",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the gitlink is main's `5a0ddc57`; `scripts/lib/release-mac.mjs#workspacePinProblem`, run by the release preflight, refuses a pin the receipt does not name; `release-mac.test.mjs` case (watched: on candidate 2's commit it answers \"HEAD pins workspace a5dd292ffa74 but its receipt names 5a0ddc578181\")"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "DO-4, PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"since 0.2.0\" in each; CO-241 says `node scripts/test-stack.mjs up <dir>`"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "DO-6, PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1–7 in order; item 7 says the Playwright smoke launches the enrolled app, which the lifecycle rule forbids, and item 3's broker start stands in"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "DO-12, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"this run's design, held by the 0.3.4 iterations; the operator decided the release\""
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "PL-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-243: the ledger's *The website meanwhile* — every release since 0.2.0 has the defect, so no `hold` helps; taking the download down is the operator's call, told in the run's report; 0.3.4 is the remedy"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-14 \"done — released 2026-10-09\", out of lane 1"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both re-dated to 0.3.4"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the dated state section says no explicit answer was given and the reading stays the operator's to reject"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace [PR #92](https://github.com/passioncode-ai/fabric-workspace/pull/92), merged `8639492c` — roadmap and plans name 0.3.3 released and 0.3.4 in verification (`npm test` 66 pass)"
+      ]
+    }
+  ]
+}

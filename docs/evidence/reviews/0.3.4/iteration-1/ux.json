@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "41c2b62ca9ee3ce8307a4b58dd0235035d4eec8b",
+  "report": "docs/evidence/reviews/0.3.4/iteration-1/2026-10-10-ux.md",
+  "reportSha256": "56e5462d7e95648943eda46f11e21ecd41230c0008a19fc3fb62376b00c8513b",
+  "reviewerRun": "release-034-i1-ux-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-2",
+      "source": "UX-1, ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: startup cause `identity-refused` (`shared/startupFailure.ts`, en/ru `startup.identity-refused.*`, `docs/brand/strings.md`); the thrown message carries the repair's reason, so the dialog's details and `startup-failure.log` say it; `startupFailure.test.ts` identity case (watched: failed before the cause existed)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-2, DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, ADR-0131 §5, the runbook's *Upgrading* section and CO-241 say \"since 0.2.0\" and that a 75/78/69 database takes the upgrade first; an **Upgrading** line; the runbook names the shorter way (`supabase stop --no-backup`, only for a database Fabric never opened, flag checked with `supabase stop --help`)"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "UX-3, DO-7, UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-242: no screen shows members today; decided before any person or member surface; the CHANGELOG says the old first owner stays listed"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "UX-5, DO-8, PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one user-facing bullet, \"measured on Apple silicon, natively and under Rosetta; not yet run on an Intel Mac\", mechanics left to the runbook's *Universal macOS*; ledger *Release close* item 6 records that no Intel Mac is on hand"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment lines on SCN-095 *Preconditions*, FLW-55 *Before entry*, SCR-36 *Startup boundary* (ADR-0131); `docs/ux/lint.py` exit 0"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "UX-7, DA-4, PL-6, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-238 says 0.3.4; `checks.md` §Intel (x86_64) gains a dated amendment, its measurement unchanged"
+      ]
+    }
+  ]
+}
