@@ -319,7 +319,7 @@ session and the one tool catalogue (`shared/surfaceTools.ts`), with the work jou
 `fabric-mcp` it asks `fabric.session.enroll` with its folder; the folder is resolved to a
 Project and, on the operator's standing consent per (runtime, Project), it is served the
 session tools of that one Project (ADR-0134). An enrolled session is a session in every other
-respect.
+respect but one: until 0.4.0's wave 2 it is not listed among the Project's running sessions (CO-256).
 
 **Session handoff** — the context a session is handed before its first turn, in the shared
 format `session-handoff/1` (files in user data, never the repository; a preamble naming one
