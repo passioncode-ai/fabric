@@ -195,7 +195,7 @@ type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: 
 
 /** The system's own `security`, by absolute path: a PATH lookup let a `security` earlier on the session PATH
  *  answer for the Keychain (audit 2026-10-05 A7-027). */
-export const SECURITY_BIN = '/usr/bin/security'
+const SECURITY_BIN = '/usr/bin/security'
 
 /** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
 const KEYCHAIN_TIMEOUT_MS = 5_000
@@ -458,5 +458,5 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   }
 }
 
-export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, personReturned, readToken, KEYCHAIN_TIMEOUT_MS }
+export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, personReturned, readToken, KEYCHAIN_TIMEOUT_MS, SECURITY_BIN }
 export type { KeychainOutcome }

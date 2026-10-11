@@ -25,6 +25,7 @@ import { checkAuthorityTarget, redactAuthorityPayload } from '../shared/authorit
 import { containmentFor } from '../shared/agents.ts'
 import { flooredEffectAllowed } from '../shared/containment.ts'
 import { describeRedactions } from '../shared/redact.ts'
+import { createScopedStore } from './scopedStore.ts'
 
 /**
  * A stable id for one logical attempt, when the caller did not bring one.
@@ -51,6 +52,8 @@ export const FLOOR_CLASSES: readonly FloorClass[] = ['money', 'deletion', 'publi
 export const isFloorClass = (v: unknown): v is FloorClass => typeof v === 'string' && (FLOOR_CLASSES as readonly string[]).includes(v)
 /** How many live grants for one act `findGrantFor` reads before it looks for an unheld one. */
 const GRANT_CANDIDATES = 50
+/** A reservation in one of these states holds its grant (A7-016). */
+const HOLDING_STATES = new Set(['reserved', 'consumed', 'revoked'])
 
 export interface EffectRequest {
   estateId: string
@@ -234,14 +237,11 @@ export class Policy {
     if (fits.length === 0) return null
     // A grant another command already holds is not available (A7-016): `reserve_effect` reserves exactly the
     // grant presented, so presenting a held one would be refused while an unheld one sits beside it.
-    const { data: held, error: heldError } = await this.db
-      .from('grant_reservations')
-      .select('grant_id')
-      .eq('estate_id', input.estateId)
-      .in('grant_id', fits.map((g) => g.id))
-      .in('state', ['reserved', 'consumed', 'revoked'])
-    if (heldError) return null
-    const taken = new Set((held ?? []).map((r) => r.grant_id as string))
+    // Read through the scoped store's chunked `selectIn` (the list-read rule): a refused read is no grant, never "none held".
+    const held = await createScopedStore(this.db, { kind: 'estate', estateId: input.estateId })
+      .selectIn('grant_reservations', 'grant_id,state', 'grant_id', fits.map((g) => g.id))
+    if (held.failed) return null
+    const taken = new Set(held.rows.filter((r) => HOLDING_STATES.has(r.state as string)).map((r) => r.grant_id as string))
     return fits.find((g) => !taken.has(g.id))?.id ?? null
   }
 

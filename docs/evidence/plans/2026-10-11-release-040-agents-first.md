@@ -463,6 +463,17 @@ and the 44 audit findings of the wave: 31 fixed, 7 stale with receipts, A7-016 a
 pipeline's reserved migrations moved to 92/93 and its ADR to 0143. Electron's fuses are on with run-as-node kept
 (fabric-mcp and the helpers need it); the first packaged build must show the app starts with asar integrity on.
 
+**Wave 1's fix round, 2026-10-11 — the blind reviews' findings closed.** The three readers failed wave 1; the fix
+round closed every finding: a revocation ends enrolled sessions, the folder is Fabric's fact, the enroll loop is bounded,
+a client error keeps the session (ADR-0134 amendment 2); the enrollment is said in words on every surface, en and ru;
+the fused packaged app starts — `fabric-mcp`, the MCP bridge, the ACP shell and the app — and a release refuses a bundle
+whose `fabric-mcp` does not answer MCP (runbook step 5 and 7; the binary staying a Node interpreter is CO-259). The
+first-run agent choice (REQ-40) is fixed ahead of wave 3; the operator's evening additions (REQ-38…REQ-44) are planned,
+their scenarios written (SCN-138…SCN-142, FLW-78…FLW-82, SCR-77…SCR-80) and the Figma track started (REQ-43);
+ADR-0144 decided the delegation model and every owning agent filed its row; release approval moved to checks
+(fabric#28, ADR-0145), so the pipeline's reserved ADR is now 0146. Carried: CO-256 (enrolled sessions not yet listed),
+CO-257 (enrollment files after an uninstall), CO-259.
+
 **The rest of the board — the program after 0.4.0.** 504 of the 701 items do not close in 0.4.0: they are umbrella
 milestones, unbuilt scenarios and multi-packet plans (memory and context, MEM-P0…P7; the board's COM-06…14 and
 Telegram; estate domains BL-* and the cost ledger CL-*; the UX28/AX/UXAC cards beyond the clusters above; the agent
