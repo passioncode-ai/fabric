@@ -12,7 +12,7 @@ import type { ProposalDecideResult } from '../../../shared/types'
 import type { EntityRef } from '../../../shared/entityRef'
 import { destinationOf } from '../../../shared/entityRef.ts'
 import type { HubActResult, PendingRequestFacts } from '../../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayFloor, sayIncremental, sayOrigin, shownName } from '../../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayConnectDetail, sayConnectProblem, sayDecided, sayRequest, shownName } from '../../../shared/accessWords'
 import { humaniseError } from '../../../shared/errorText'
 import { useLocale, useT } from '../i18n'
 
@@ -205,16 +205,19 @@ function AccessActs({ access, onError, reload, onDecided }: {
         {saw && <span className="lp-meta">{saw}</span>}
       </div>
     )
+  // The native prompt's facts in its order (`sayRequest`), the same as the card in Settings → Agent access: for an
+  // enrollment (ADR-0134) the folder is Fabric's own line and the floor is said of the name it asked under.
+  const said = sayRequest(t, access)
   return (
     <>
       <div className="lp-access-facts">
-        <p className="lp-meta">{sayOrigin(t, access.agent)}</p>
-        <ul className="lp-facts-asks">{access.ask.map((l, i) => <li key={i}>{sayAsk(t, l)}</li>)}</ul>
-        <p className="lp-meta">{t('access.pending.reason', { reason: access.reason })}</p>
-        <p className="lp-meta">{sayFloor(t)}</p>
-        {access.incremental && <p className="lp-meta">{sayIncremental(t)}</p>}
-        <p className="lp-meta">{t('access.lasts')}</p>
-        <p className="lp-meta">{t('access.denyStands')}</p>
+        <p className="lp-meta">{said.origin}</p>
+        {said.folder && <p className="lp-meta">{said.folder}</p>}
+        <ul className="lp-facts-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
+        {said.what && <p className="lp-meta">{said.what}</p>}
+        <p className="lp-meta">{said.reason}</p>
+        <p className="lp-meta">{said.floor}</p>
+        {said.notes.map((note, i) => <p key={i} className="lp-meta">{note}</p>)}
       </div>
       <div className="lp-actions">
         <button type="button" className="lp-button" aria-label={t('access.denyFor', { name })} aria-disabled={state === 'deciding' ? true : undefined} onClick={() => void decide('denied')}>{t('access.deny')}</button>

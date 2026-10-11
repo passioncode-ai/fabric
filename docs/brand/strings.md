@@ -720,3 +720,45 @@ is in the details, which keep the English a report is read in. Written through `
 |---|---|---|---|---|
 | `startup.identity-refused.title` | Fabric does not have access to the Estate it was opening | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
 | `startup.identity-refused.remedy` | Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric never makes itself the owner of an Estate, except an untouched one it set up itself; the details below say what it read. If they say something could not be read, retry first; otherwise copy them and report them at https://github.com/passioncode-ai/Fabric/issues. Fabric has changed nothing in the Estate. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
+
+## A coding agent enrolls into a project · 2026-10-11 (ADR-0134)
+
+The consent a coding agent opened outside Fabric asks to work in one project: the native prompt, the attention-queue
+row, the request card, the grant and the denial in Settings → Agent access (SCR-76), and the feed. Fixed after the
+0.4.0 wave 1 blind reviews: no surface shows `session.enroll`, `project:<uuid>`, "registered as" or "connect" — an
+enrollment's Allow is only Allow, because Fabric itself has no connect flow; the agent is "a coding agent", never a
+registry id; the folder is Fabric's own line, apart from the agent's quoted reason; the same-user floor is said of the
+name the agent asked under, without the registry-install claim of `access.floor`, which no enrollment ever checks; and
+how long the grant lasts is said. Facts phrased by `shared/accessWords.ts#sayRequest`, the same for the card and the
+queue; the prompt by `accessWords.ts#consentPrompt`. Russian: «агент для кода», «вы», the project's name in «».
+Humanization: on — own pass (copywriting, consent register: no humour, one action one name, no decorative full stop on
+labels); each line states one fact or one consequence. The scenario id is provisional until the enrollment scenario
+lands beside SCN-132.
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `access.enroll.title` | Let {name} work in {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1005 | SCN-132 (enrollment) | proposed |
+| `access.enroll.message` | {name}, opened outside Fabric, asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1006 | SCN-132 (enrollment) | proposed |
+| `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1007 | SCN-132 (enrollment) | proposed |
+| `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1008 | SCN-132 (enrollment) | proposed |
+| `access.enroll.thisProject` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1009 | SCN-132 (enrollment) | proposed |
+| `access.enroll.floor` | Fabric cannot prove this is {name}: any program running as you can ask under that name. | apps/desktop/src/renderer/src/i18n/en.ts:1010 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folder` | In the folder {root} | apps/desktop/src/renderer/src/i18n/en.ts:1011 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folderInside` | In a folder inside {root} | apps/desktop/src/renderer/src/i18n/en.ts:1012 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folderWorktree` | In a worktree of the repository {root} | apps/desktop/src/renderer/src/i18n/en.ts:1013 | SCN-132 (enrollment) | proposed |
+| `access.origin.coding` | A coding agent: {name} | apps/desktop/src/renderer/src/i18n/en.ts:1014 | SCN-132 (enrollment) | proposed |
+| `access.ask.enroll` | work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1015 | SCN-132 (enrollment) | proposed |
+| `access.ask.enrollThis` | work in this project | apps/desktop/src/renderer/src/i18n/en.ts:1016 | SCN-132 (enrollment) | proposed |
+| `access.grant.enroll` | works in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1017 | SCN-132 (enrollment) | proposed |
+| `access.grant.enrollGone` | works in a project that is no longer in your list | apps/desktop/src/renderer/src/i18n/en.ts:1018 | SCN-132 (enrollment) | proposed |
+| `access.grant.enrollUnread` | works in a project whose name could not be read | apps/desktop/src/renderer/src/i18n/en.ts:1019 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrollTitle` | {name} asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1128 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1126 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1127 | SCN-132 (enrollment) | proposed |
+| `event.session.enrolled@1` | a coding agent opened outside Fabric joined the project | apps/desktop/src/renderer/src/i18n/en.ts:1204 | SCN-132 (enrollment) | proposed |
+
+The existing `access.allow`, `access.allowFor`, `access.deny`, `access.denyFor`, `access.denials.asked`,
+`access.agents.until`, `access.revokeFor`, `access.prompt.reasonLead`, `access.prompt.quoted`, `access.pending.reason`
+and `access.denyStands` rows above carry an enrollment unchanged. Changed in Russian only: `access.enroll.thisProject`
+is «без названия», because every Russian enrollment sentence quotes the name («в проекте «{project}»»), and
+`event.session.enrolled@1` says «присоединился», not «подключился».

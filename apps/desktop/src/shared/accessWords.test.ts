@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { agentFacts, askLines, normaliseAccessRequest, SENDS_MAIL, KNOWN_CAPABILITIES } from './access'
+import { agentFacts, askLines, normaliseAccessRequest, pendingFacts, shortFolder, SENDS_MAIL, KNOWN_CAPABILITIES } from './access'
 import {
   consentPrompt,
   sayActRefusal,
+  sayAllow,
   sayAllowFor,
+  sayGrant,
+  sayRequest,
   sayAsk,
   sayCapability,
   sayConnectDetail,
@@ -155,25 +158,133 @@ describe('iteration 2 — the words say what is true, in one language at a time'
   })
 })
 
-// ADR-0134: a coding agent's enrollment is asked in the operator's words — the agent, the project, what it gets,
-// how to revoke — and never shows the machine's ids (session.enroll, project:<uuid>).
-describe('the enrollment prompt', () => {
-  const claude = agentFacts('claude-code', { name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null })
-  const enroll = { ...base, agent: claude, product: 'Fabric', ask: [], reason: 'This coding agent, opened in the folder site, asks to work in the project site through Fabric.', enroll: { projectName: 'site' } }
-  it('names the agent and the project, in en and ru, with Allow and Deny', () => {
-    const e = consentPrompt(tEn, enroll)
-    expect(e.title).toBe('Let Claude Code work in site?')
-    expect(e.buttons).toEqual(['Deny', 'Allow'])
-    expect(e.detail).toContain('Settings → Agent access')
-    const r = consentPrompt(tRu, enroll)
-    expect(r.title).toBe('Разрешить Claude Code работать в проекте «site»?')
-    expect(r.buttons).toEqual(['Отказать', 'Разрешить'])
+// ADR-0134: a coding agent's enrollment is asked in the operator's words — the agent, the folder, the project, what it
+// gets, how long, how to revoke — and never shows the machine's ids (session.enroll, project:<uuid>) or a product's
+// words ("connect", "registered as"). THE FIXTURES GO THROUGH pendingFacts(row, false), the way main sends them: the
+// hub holds no connection for callee 'fabric', so main passes connected=false (index.ts, the queue and the overview).
+const PROJECT = '6f1c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+const enrollRow = (project: Record<string, unknown> | null = { id: PROJECT, name: 'Atlas', root: '/Users/someone/code/atlas', how: 'exact' }, over: Record<string, unknown> = {}) => ({
+  id: 'r-enroll', agent_id: 'claude-code', callee: 'fabric', capabilities: ['session.enroll'], resources: [`project:${PROJECT}`],
+  reason: 'This coding agent, opened in the folder atlas, asks to work in the project Atlas through Fabric.', asked_by_binding: null as string | null,
+  requested_at: '2026-10-11T10:00:00Z', expires_at: '2026-10-11T10:10:00Z',
+  // What accessService writes for a runner (region session-enroll-request), its English installed_by included.
+  registry: { key: 'claude-code', kind: 'runner', name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null, summary: null, ...(project ? { project } : {}) },
+  ...over
+})
+const enrolling = (project?: Record<string, unknown> | null, over?: Record<string, unknown>) => pendingFacts(enrollRow(project, over), false)
+const MACHINE_WORDS = /session\.enroll|project:|registered as|зарегистрирован|connect|подключ|installed by|установил/i
+const everyWord = (t: typeof tEn, f: ReturnType<typeof enrolling>): string[] => {
+  const p = consentPrompt(t, f)
+  const r = sayRequest(t, f)
+  return [p.title, p.message, p.statement, p.detail, ...p.buttons, sayAllow(t, f), sayAllowFor(t, f, 'Claude Code'),
+    r.origin, r.folder ?? '', ...r.asks, r.what ?? '', r.reason, r.floor, ...r.notes,
+    sayQueueTitle(t, f), sayDecided(t, f, 'allowed'), sayDecided(t, f, 'denied')]
+}
+
+describe('an enrollment, as main sends it (ADR-0134)', () => {
+  it('Fabric itself is never "not connected": pendingFacts says connected, so Allow is plain Allow', () => {
+    const f = enrolling()
+    expect(f.connected).toBe(true)
+    expect(sayAllow(tEn, f)).toBe('Allow')
+    expect(sayAllowFor(tEn, f, 'Claude Code')).toBe('Allow Claude Code')
+    expect(sayAllow(tRu, f)).toBe('Разрешить')
+    // Defence in depth: even facts that say "not connected" never offer to connect Fabric.
+    expect(sayAllow(tEn, { ...f, connected: false })).toBe('Allow')
+    expect(sayAllowFor(tEn, { ...f, connected: false }, 'Claude Code')).toBe('Allow Claude Code')
+    const p = consentPrompt(tEn, { ...f, connected: false })
+    expect(p.buttons).toEqual(['Deny', 'Allow'])
+    expect([p.defaultId, p.cancelId]).toEqual([0, 0])
+    expect(consentPrompt(tRu, f).buttons).toEqual(['Отказать', 'Разрешить'])
   })
-  it('shows no machine id', () => {
-    for (const t of [tEn, tRu]) {
-      const p = consentPrompt(t, enroll)
-      const all = [p.title, p.message, p.statement, p.detail].join('\n')
-      expect(all).not.toMatch(/session\.enroll|project:[0-9a-f]/)
+  it('names the agent and the project in the question, en and ru', () => {
+    expect(consentPrompt(tEn, enrolling()).title).toBe('Let Claude Code work in Atlas?')
+    expect(consentPrompt(tRu, enrolling()).title).toBe('Разрешить Claude Code работать в проекте «Atlas»?')
+  })
+  it('the origin is a coding agent by its name, never "an agent registered as" its id', () => {
+    const f = enrolling()
+    expect(sayOrigin(tEn, f.agent)).toBe('A coding agent: Claude Code')
+    expect(sayOrigin(tRu, f.agent)).toBe('Агент для кода: Claude Code')
+    expect(consentPrompt(tEn, f).detail.split('\n')[0]).toBe('A coding agent: Claude Code')
+  })
+  it('the ask is "work in <project>", in the card, the queue, a denial (askLines(row), as main builds it) and the prompt', () => {
+    const f = enrolling()
+    expect(sayRequest(tEn, f).asks).toEqual(['work in Atlas'])
+    expect(sayAsk(tEn, askLines(enrollRow())[0])).toBe('work in Atlas')
+    expect(tEn('access.denials.asked', { asks: sayAsk(tEn, askLines(enrollRow())[0]) })).toBe('asked to work in Atlas')
+    expect(sayAsk(tRu, askLines(enrollRow())[0])).toBe('работать в проекте «Atlas»')
+  })
+  it('a grant says "works in <project>", named from the project list when main sends only the resource', () => {
+    // index.ts builds a grant's line from the grant alone: askLines({ capabilities, resources })[0].
+    const line = askLines({ capabilities: ['session.enroll'], resources: [`project:${PROJECT}`] })[0]
+    expect(sayGrant(tEn, line, (id) => (id === PROJECT ? 'Atlas' : null))).toBe('works in Atlas')
+    expect(sayGrant(tRu, line, () => 'Atlas')).toBe('работает в проекте «Atlas»')
+    expect(sayGrant(tEn, line, () => null)).toBe('works in a project that is no longer in your list')
+    expect(sayGrant(tEn, line, () => undefined)).toBe('works in a project whose name could not be read')
+    expect(sayGrant(tEn, line)).toBe('works in a project whose name could not be read')
+    // A product grant is said as before.
+    expect(sayGrant(tEn, asked(['read_message'])[0])).toBe('read mail in news@example.com')
+  })
+  it('the folder is Fabric\'s own line, apart from the agent\'s quoted reason; home is ~', () => {
+    const p = consentPrompt(tEn, enrolling())
+    const lines = p.detail.split('\n')
+    const folder = lines.indexOf('In the folder ~/code/atlas')
+    const quoted = lines.findIndex((l) => l.startsWith('“'))
+    expect(folder).toBeGreaterThanOrEqual(0)
+    expect(quoted).toBeGreaterThan(folder)
+    expect(lines[folder]).not.toContain('“')
+    expect(sayRequest(tEn, enrolling()).folder).toBe('In the folder ~/code/atlas')
+    expect(sayRequest(tRu, enrolling()).folder).toBe('В папке ~/code/atlas')
+    expect(sayRequest(tEn, enrolling({ id: PROJECT, name: 'Atlas', root: '/Users/someone/code/atlas', how: 'ancestor' })).folder).toBe('In a folder inside ~/code/atlas')
+    expect(sayRequest(tEn, enrolling({ id: PROJECT, name: 'Atlas', root: '/Users/someone/code/atlas', how: 'worktree' })).folder).toBe('In a worktree of the repository ~/code/atlas')
+  })
+  it('without root or how it degrades: no folder line, and nothing else changes', () => {
+    for (const project of [{ id: PROJECT, name: 'Atlas' }, null]) {
+      expect(consentPrompt(tEn, enrolling(project)).detail).not.toContain('In the folder')
+      expect(sayRequest(tEn, enrolling(project)).folder).toBeNull()
     }
+    expect(sayRequest(tEn, enrolling({ id: PROJECT, name: 'Atlas', root: '/Volumes/work/atlas' })).folder).toBe('In the folder /Volumes/work/atlas')
+    // A row without a project name: "this project" — in ru never quoted as if it were the name.
+    expect(consentPrompt(tEn, enrolling(null)).title).toBe('Let Claude Code work in this project?')
+    expect(consentPrompt(tRu, enrolling(null)).title).not.toContain('«этот проект»')
+  })
+  it('the same-user floor is said for an enrollment, and the registry-install claim is not', () => {
+    const f = enrolling()
+    const floor = 'Fabric cannot prove this is Claude Code: any program running as you can ask under that name.'
+    expect(consentPrompt(tEn, f).detail).toContain(floor)
+    expect(sayRequest(tEn, f).floor).toBe(floor)
+    expect(consentPrompt(tEn, f).detail).not.toContain('Fabric checked that an agent with this id is installed')
+    expect(sayRequest(tRu, f).floor).toBe('Fabric не может доказать, что это Claude Code: любая программа, запущенная от вашего имени, может попросить под этим именем.')
+    // A product request keeps its own floor.
+    expect(sayRequest(tEn, pendingFacts({ ...enrollRow(), callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['cloudflare:news@example.com'], registry }, true)).floor).toBe(en['access.floor'])
+  })
+  it('says how long it lasts — a year, unless revoked — in the prompt and on the card', () => {
+    const f = enrolling()
+    expect(consentPrompt(tEn, f).detail).toContain('for a year, unless you revoke it')
+    expect(sayRequest(tEn, f).notes.join(' ')).toContain('for a year, unless you revoke it')
+    expect(consentPrompt(tRu, f).detail).toContain('в течение года, если вы не отзовёте')
+  })
+  it('no machine id, no "registered as", no "connect" — anywhere, en and ru', () => {
+    for (const t of [tEn, tRu]) for (const f of [enrolling(), enrolling(null), enrolling(undefined, { asked_by_binding: 'b1' })]) {
+      const bad = everyWord(t, f).filter((w) => MACHINE_WORDS.test(w) || /[0-9a-f]{8}-[0-9a-f]{4}/.test(w))
+      expect(bad).toEqual([])
+    }
+  })
+  it('in ru nothing is English but the names', () => {
+    const left = everyWord(tRu, enrolling()).join('\n')
+      .split(enrollRow().reason).join(' ').split('~/code/atlas').join(' ')
+      .split('Claude Code').join(' ').split('Atlas').join(' ').split('Fabric').join(' ')
+    expect(left.match(/[A-Za-z]{3,}/g) ?? []).toEqual([])
+  })
+})
+
+describe('shortFolder', () => {
+  it('home is ~, a long path keeps its start and its last two folders, anything else is as it is', () => {
+    expect(shortFolder('/Users/someone/code/atlas')).toBe('~/code/atlas')
+    expect(shortFolder('/home/someone/code/atlas')).toBe('~/code/atlas')
+    expect(shortFolder('/Users/someone')).toBe('~')
+    expect(shortFolder('/Volumes/work/atlas')).toBe('/Volumes/work/atlas')
+    const long = shortFolder('/Users/someone/' + 'very-long-folder-name/'.repeat(6) + 'client/atlas')
+    expect(long).toBe('~/…/client/atlas')
+    expect(shortFolder('/Users/someone/code/atlas', '/Users/someone/code')).toBe('~/atlas')
   })
 })
