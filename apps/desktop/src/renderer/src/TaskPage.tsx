@@ -31,7 +31,7 @@ import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
 import { since } from './duration'
 import { DecisionsSection } from './DecisionsSection'
-import { ConsoleDetails, ContextTab, RunCallout, useRunStatus } from './launch/AgentWorkspace'
+import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
 import { ProjectStrip } from './launch/FabricStrip'
 import { runnerLabel } from './runnerLabel'
 
@@ -238,7 +238,7 @@ export function TaskPage({
           <div className="lp-divider" />
           <small>{t('launch.agent.rail.task')}</small><b>{task.id.slice(0, 8)}</b>
           <small>{t('launch.agent.rail.run')}</small>
-          <b>{run.view?.data?.ordinal ? t('launch.agent.rail.runOf', { n: run.view.data.ordinal, state: run.view.data.runState ?? '—' }) : task.session_id ? t('estate.reading') : '—'}</b>
+          <b>{run.view?.data?.ordinal ? t('launch.agent.rail.runOf', { n: run.view.data.ordinal, state: runStateWord(run.view.data, t) }) : task.session_id ? (run.failed ? t('launch.agent.rail.runUnreadable') : t('estate.reading')) : '—'}</b>
           <small>{t('launch.agent.rail.session')}</small><b className="mono">{task.session_id ? task.session_id.slice(0, 12) : '—'}</b>
           <small>{t('launch.agent.rail.held')}</small>
           <b>{detail.lease ? t('task.held', { who: detail.lease.owner_session.slice(0, 8), until: since(detail.lease.expires_at, t) }) : t('task.free')}</b>

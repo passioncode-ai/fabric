@@ -39,6 +39,19 @@ interface SwitchFile {
 
 const EMPTY: SwitchFile = { schema: 'SwitchOperations@1', operations: [] }
 
+// #region switch-retention — docs: docs/ux/scenarios.md#scn-085-восстановить-разговор-после-сбоя-смены
+/** How long a finished operation is kept for a person to read (audit A4-016). A live one is never pruned. */
+export const SWITCH_RETENTION_MS = 30 * 24 * 3_600_000
+/** Receipt segments kept: the plan line and the latest phases, so a hold/recover loop cannot grow it forever. */
+export const RECEIPT_SEGMENTS = 20
+
+/** The receipt with one more segment, bounded to its first line and the latest `RECEIPT_SEGMENTS - 1`. */
+export function appendReceipt(receipt: string, segment: string): string {
+  const parts = [...receipt.split(' | '), segment]
+  return parts.length <= RECEIPT_SEGMENTS ? parts.join(' | ') : [parts[0], ...parts.slice(-(RECEIPT_SEGMENTS - 1))].join(' | ')
+}
+// #endregion switch-retention
+
 function validate(parsed: unknown): SwitchFile | null {
   if (!parsed || typeof parsed !== 'object') return null
   const o = parsed as Partial<SwitchFile>
@@ -86,16 +99,13 @@ export function createSwitchCoordinator(deps: CoordinatorDeps) {
   const persist = (next: SwitchOperation): { ok: boolean; reason: string } => {
     const file = read()
     const exists = file.operations.some((o) => o.switchId === next.switchId)
-    const written = writeLocal(
-      spec,
-      {
-        ...file,
-        operations: exists
-          ? file.operations.map((o) => (o.switchId === next.switchId ? next : o))
-          : [...file.operations, next]
-      },
-      readLocal(spec).revision
-    )
+    const stamped: SwitchOperation = isTerminal(next.phase) && next.endedAt === undefined ? { ...next, endedAt: now() } : next
+    const operations = exists
+      ? file.operations.map((o) => (o.switchId === stamped.switchId ? stamped : o))
+      : [...file.operations, stamped]
+    // A finished operation past its retention goes on the next write; an unfinished one stays whatever its age.
+    const kept = operations.filter((o) => !isTerminal(o.phase) || o.endedAt === undefined || now() - o.endedAt < SWITCH_RETENTION_MS)
+    const written = writeLocal(spec, { ...file, operations: kept }, readLocal(spec).revision)
     if (written.status === 'committed') return { ok: true, reason: `phase ${next.phase}` }
     return {
       ok: false,
@@ -209,7 +219,7 @@ export function createSwitchCoordinator(deps: CoordinatorDeps) {
         ...operation,
         phase: input.to,
         checkpointRef: input.checkpointRef === undefined ? operation.checkpointRef : input.checkpointRef,
-        receipt: `${operation.receipt} | ${input.to} at ${new Date(now()).toISOString()}${input.says ? `: ${input.says}` : ''}`
+        receipt: appendReceipt(operation.receipt, `${input.to} at ${new Date(now()).toISOString()}${input.says ? `: ${input.says}` : ''}`)
       }
       const written = persist(next)
       return written.ok ? { ok: true, reason: written.reason, operation: next } : written
@@ -246,21 +256,44 @@ export function createSwitchCoordinator(deps: CoordinatorDeps) {
         const held: SwitchOperation = {
           ...operation,
           phase: 'needs_reconciliation',
-          receipt: `${operation.receipt} | held at ${new Date(now()).toISOString()}: ${verdict.reason}`
+          receipt: appendReceipt(operation.receipt, `held at ${new Date(now()).toISOString()}: ${verdict.reason}`)
         }
-        persist(held)
+        // The hold is handed back only once it is on disk (audit A4-016): an operation the caller
+        // believes is held, but the log still says resuming, is two truths about one switch.
+        const written = persist(held)
+        if (!written.ok) return { ok: false, reason: `${verdict.reason}; and ${written.reason}` }
         return { ok: false, reason: verdict.reason, operation: held }
       }
       const committed: SwitchOperation = {
         ...operation,
         phase: 'committed',
-        receipt: `${operation.receipt} | committed at ${new Date(now()).toISOString()}: ${verdict.reason}`
+        receipt: appendReceipt(operation.receipt, `committed at ${new Date(now()).toISOString()}: ${verdict.reason}`)
       }
       const written = persist(committed)
       return written.ok
         ? { ok: true, reason: verdict.reason, operation: committed }
         : { ok: false, reason: written.reason }
     },
+
+    // #region switch-cancel — docs: docs/ux/scenarios.md#scn-084-дождаться-безопасной-остановки-или-отменить-переход
+    /**
+     * Cancel a switch before anything stopped (audit A4-009). Only `preparing` and `waiting_boundary`
+     * may be cancelled — `mayAdvance` refuses the rest, because past the stop only recovery is left.
+     */
+    cancel(idempotencyKey: string, why?: string): { ok: boolean; reason: string; operation?: SwitchOperation } {
+      const operation = byKey(idempotencyKey)
+      if (!operation) return { ok: false, reason: 'no such operation' }
+      const move = mayAdvance(operation.phase, 'cancelled')
+      if (!move.ok) return { ok: false, reason: move.reason }
+      const next: SwitchOperation = {
+        ...operation,
+        phase: 'cancelled',
+        receipt: appendReceipt(operation.receipt, `cancelled at ${new Date(now()).toISOString()}${why ? `: ${why}` : ''}`)
+      }
+      const written = persist(next)
+      return written.ok ? { ok: true, reason: 'cancelled before anything stopped', operation: next } : written
+    },
+    // #endregion switch-cancel
 
     /** What the old run becomes: `cancelled` only where the stop was observed. */
     outcomeOfOldRun: oldRunOutcome,

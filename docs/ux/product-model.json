@@ -30932,7 +30932,7 @@
       "screen_refs": [
         "SCR-51"
       ],
-      "coverage": "none yet",
+      "coverage": "`apps/desktop/src/shared/quotaReading.ts#readQuotaReading`, `apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectStatusBar` (a failed quota read is a muted «quota unreadable: …» cell, never hidden as «no quota»; audit A4-020), `apps/desktop/src/shared/quotaReading.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. The unified usage/capacity/cost view is not built.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Различать доступную квоту провайдера, ёмкость автоматизаций, записанные расходы и подписку Estate.",
@@ -31671,7 +31671,7 @@
         "SCR-09",
         "SCR-64"
       ],
-      "coverage": "none yet",
+      "coverage": "`apps/desktop/src/renderer/src/launch/AgentWorkspace.tsx#useRunStatus` (read again every 5 s until the run is read as ended), `#RunCallout` (an ended run names its outcome; `outcome_unknown` offers Check again, which reads the run's record again), `apps/desktop/src/renderer/src/TaskPage.tsx` (the rail names the state or outcome in words and says «unreadable» when the status read fails; audit A5-018); `apps/desktop/src/renderer/src/launch/AgentWorkspace.test.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`. Retry and «choose another agent» from the run are not built.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Failures are named and recoverable; unknown outcomes are resolved, not duplicated.",

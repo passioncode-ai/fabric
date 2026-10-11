@@ -21,7 +21,7 @@
  * how a conversation ends up neither running nor resumable.
  */
 
-/** The eight phases, in the order the card names them. */
+/** The eight phases, in the order the card names them, and `cancelled` (audit A4-009). */
 export const SWITCH_PHASES = [
   'preparing',
   'waiting_boundary',
@@ -30,7 +30,8 @@ export const SWITCH_PHASES = [
   'committed',
   'recovering',
   'restored',
-  'needs_reconciliation'
+  'needs_reconciliation',
+  'cancelled'
 ] as const
 export type SwitchPhase = (typeof SWITCH_PHASES)[number]
 
@@ -50,13 +51,20 @@ export interface SwitchOperation {
   oldGeneration: number
   newGeneration: number
   receipt: string
+  /** When it reached a terminal phase, so a finished operation can be pruned (audit A4-016). */
+  endedAt?: number
 }
 
 const NEXT: Readonly<Record<SwitchPhase, readonly SwitchPhase[]>> = {
   // Feasibility is decided here. Everything below it has already stopped
   // something, which is why nothing may skip back into `preparing`.
-  preparing: ['waiting_boundary', 'needs_reconciliation'],
-  waiting_boundary: ['stopping', 'needs_reconciliation'],
+  // #region switch-cancel — docs: docs/ux/scenarios.md#scn-084-дождаться-безопасной-остановки-или-отменить-переход
+  // Cancel removes only the request, so it is reachable only while nothing has stopped (SCN-084, audit
+  // A4-009). It is terminal: a cancelled switch no longer blocks a new one of the same conversation.
+  preparing: ['waiting_boundary', 'needs_reconciliation', 'cancelled'],
+  waiting_boundary: ['stopping', 'needs_reconciliation', 'cancelled'],
+  cancelled: [],
+  // #endregion switch-cancel
   stopping: ['resuming', 'recovering', 'needs_reconciliation'],
   // `committed` is reachable only through `resuming`, and only with both
   // acknowledgements — see `mayCommit`.

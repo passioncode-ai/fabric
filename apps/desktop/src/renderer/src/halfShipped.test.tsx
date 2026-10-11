@@ -117,7 +117,7 @@ const stats = (over: Partial<ProjectStats> = {}): ProjectStats => ({
 
 describe('M56 — the last commit, measured since 2026-09-01 and rendered nowhere', () => {
   const bar = (r: RepoState[] | null, s = stats()): void =>
-    wrap(<ProjectStatusBar stats={s} repos={r} quota={null} running={0} />)
+    wrap(<ProjectStatusBar stats={s} repos={r} quota={{ read: false }} running={0} />)
 
   it('shows its age', () => {
     bar([repo()])
@@ -142,7 +142,7 @@ describe('M56 — the last commit, measured since 2026-09-01 and rendered nowher
 
 describe('M57 — numbers about the code, not about our own storage', () => {
   const bar = (s: ProjectStats): void =>
-    wrap(<ProjectStatusBar stats={s} repos={[repo()]} quota={null} running={0} />)
+    wrap(<ProjectStatusBar stats={s} repos={[repo()]} quota={{ read: false }} running={0} />)
 
   it('shows commits WITH the window they were counted over', () => {
     // "162 commits" is not a fact without the window.
@@ -297,5 +297,40 @@ describe('the favourites threshold, the limit, and what the operator is asked (U
     await waitFor(() => expect(replace).toHaveBeenCalledTimes(1))
     // ONE write, and it names both halves of the swap.
     expect(replace.mock.calls[0]).toHaveLength(2)
+  })
+})
+
+// Audit A4-020: the project status bar turned a FAILED quota read into null and hid the cell, so a read that
+// could not even ask looked like "no quota / not signed in" — the exact defect `quotaReading.ts` records.
+describe('A4-020 — the project status bar keeps a failed quota read apart from no quota', () => {
+  const bar = (quota: React.ComponentProps<typeof ProjectStatusBar>['quota']): void =>
+    wrap(<ProjectStatusBar stats={null} repos={null} quota={quota} running={0} />)
+
+  it('a failed read says the quota could not be read, and why', () => {
+    bar({ read: true, failed: 'the main process did not answer' })
+    expect(screen.getByText(/quota unreadable: the main process did not answer/)).toBeTruthy()
+  })
+
+  it('no reading yet and an account with no quota both show no cell', () => {
+    bar({ read: false })
+    expect(screen.queryByText(/quota unreadable/)).toBeNull()
+    cleanup()
+    bar({ read: true, quota: null })
+    expect(screen.queryByText(/quota unreadable/)).toBeNull()
+    expect(screen.queryByText(/^5h /)).toBeNull()
+  })
+
+  it('a reading still shows its windows', () => {
+    const quota: Quota = {
+      fiveHour: { utilization: 41.6, resetsAt: new Date(Date.now() + 3_600_000).toISOString() },
+      sevenDay: null,
+      byModel: {},
+      readAt: new Date().toISOString(),
+      ageSeconds: 3,
+      problem: null,
+      account: null
+    }
+    bar({ read: true, quota })
+    expect(screen.getByText('5h 42%')).toBeTruthy()
   })
 })
