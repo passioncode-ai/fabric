@@ -18,7 +18,7 @@
 // the generic, so a scoped read is typed exactly as the unscoped one was.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { scopeFilters, scopeOwnership, type Scope } from '../shared/scope.ts'
+import { scopeFilters, type Scope } from '../shared/scope.ts'
 
 /** A project id that is not the one this store is scoped to. Refused rather
  *  than widened: an id arriving from a renderer or an agent payload names what
@@ -157,29 +157,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       return { rows, failed: null }
     },
     // #endregion bounded-reads
-
-    /** Fills the scope columns rather than trusting the caller to. A row whose
-     *  own values disagreed with the scope would be written and then invisible
-     *  to every read — the empty-table failure, one layer down. */
-    insert(table: string, row: Record<string, unknown>) {
-      const owned: Record<string, unknown> = { ...row }
-      for (const [column, value] of scopeOwnership(table, scope)) owned[column] = value
-      return db.from(table).insert(owned)
-    },
-
-    update(table: string, patch: Record<string, unknown>) {
-      const filters = scopeFilters(table, scope)
-      let q = db.from(table).update(patch)
-      for (const [column, value] of filters) q = q.eq(column, value)
-      return q
-    },
-
-    delete(table: string) {
-      const filters = scopeFilters(table, scope)
-      let q = db.from(table).delete()
-      for (const [column, value] of filters) q = q.eq(column, value)
-      return q
-    }
+    // NO WRITES (audit 2026-10-05 A7-023). insert/update/delete lived here with no caller: an API that invites
+    // a write around the journal, where every register is a projection (ADR-0014). A write is an event through
+    // append_event, or a named host command; this store only reads.
   }
 }
 
