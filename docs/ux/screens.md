@@ -1710,7 +1710,7 @@ results always pair text with an icon — colour is never the only signal.
 ### SCR-70: First run
 - **Used by:** FLW-69; FLW-82 (a request waiting for the first run)
 - **Purpose:** Meet Fabric once, in the operator's order (REQ-39): name, language and look → the folder where projects live → the projects found, imported → the first action → the family's own agents → Home.
-- **Elements:** five-step progress (Fabric and you · Projects folder · Your projects · First action · Family agents); **step 1** — the one-sentence lede (what Fabric is, ADR-0133), language choice preselected from the system, name field (hint, 40 characters), one row of characters with the live greeting and face; **step 2** — the folder field showing the chosen path with «Choose folder…» / «Change…» (the system picker, opening at the last folder chosen in Fabric), «Scan this folder» (primary), «I have no projects yet»; **step 3** — SCR-72 inside the first run (scan, checklist, «Import N as projects»); **step 4** — the four actions with **Create an agent** primary, Convert an agent, Open a project, Create a project, «Next: …» with Change, «Decide later»; **step 5** — SCR-77 inside the first run; Back, Skip, Continue on every step.
+- **Elements:** five-step progress (Fabric and you · Projects folder · Your projects · First action · Family agents); **step 1** — the one-sentence lede (what Fabric is, ADR-0133), language choice preselected from the system, name field (hint, 40 characters), one row of characters with the live greeting and face; **step 2** — the folder field showing the chosen path with «Choose folder…» / «Change…» (the system picker, opening at the last folder chosen in Fabric), «Scan this folder» (primary), «I have no projects yet»; **step 3** — SCR-72 inside the first run (scan, checklist, «Import N as projects»); **step 4** — the four actions with **Create an agent** primary, Convert an agent, Open a project, Create a project, «Next: …» with Change, «Decide later»; **step 5** — SCR-77 inside the first run: the coding agents as a radiogroup of native radios (every installed agent that answered pickable whatever its sign-in state; not installed or not answering disabled with why and what to do), the pick saved at Continue as the head of the fallback order, then the two family products and «Set up with <coding agent>»; Back, Skip, Continue on every step — on step 5 Continue reads "Continue without an agent" only when no agent can be picked, and stays usable while the check is pending (REQ-40).
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -1724,13 +1724,15 @@ results always pair text with an icon — colour is never the only signal.
   | no-projects-yet | «I have no projects yet» | none | step 4 says nothing was imported and keeps all four actions |
   | choose-action | step 4 | none | the four actions, Create an agent primary, «Decide later» |
   | action-chosen | one action picked | none | «Next: <action>» with Change; Continue goes to step 5 |
+  | choose-agent | step 5 (in the code's current order, step 2), agents read | none | a radiogroup: every installed agent that answered is pickable signed in or not (its sign-in line is its description); not installed or not answering is disabled and says why and what to do; Check again re-reads with the latest-request fence; an untouched default writes nothing at Continue (REQ-40) |
+  | choice-not-saved | saving the pick as the head of the fallback order was refused | none | the reason and Continue without saving; the order stays as it was |
   | finishing | step 5 left (verified or skipped) | none | Continue busy while the finish is recorded |
   | finish-failed | the finish could not be recorded | none | "it will open again next time" with Try again; Home is still reached |
   | resumed | Fabric restarted mid-run | none | the first run reopens at the step it was left on, the folder, the imports and the observations kept |
   | skipped | the first run ended with nothing chosen | none | first run marked finished; Home; Help → Walk through the first run again reopens it |
   | long-content | a long name, a long folder path, a long product description | none | the path wraps in full with its last segment visible; the name is cut at 40 characters by the field |
 - **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
-- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps; the 0.4.0 order is designed, not built)
+- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps, with the REQ-40 agent choice in region `first-run-agent-choice` and apps/desktop/src/shared/builderChoice.ts; the 0.4.0 order is designed, not built)
 - **Scenarios:** SCN-126, SCN-128, SCN-138, SCN-142
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md), [ADR-0129](../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md), [ADR-0135](../adr/0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md); the 0.4.0 plan REQ-09…REQ-12, REQ-39, REQ-40.
 - **Implementation tasks:** P-01; 0.4.0 REQ-39 (wave 3)
@@ -1897,9 +1899,10 @@ frames; the visual layer is the recorded style pack's tokens.
   | first-run | shown as the first run's step 5 | none | inside SCR-70's frame: the coding agents and the two family products only; Continue when both are verified or skipped |
   | loading | observations being read | none | the rows keep their places with "checking"; no state is guessed |
   | checking | Check again pressed | none | a busy line; the previous observations stay greyed with their age |
-  | agents-read | the coding agents observed | none | one honest line per agent; the preselected row and the hint naming the rule that chose it |
-  | agent-disabled | an agent cannot run setup | none | its row stays visible and disabled with the reason in one line (not installed + install command and Copy; did not answer `--version`; no measured sign-in reader) |
-  | not-signed-in | the agent's sign-in status says signed out | none | "Sign in to <agent> in its own window, then Check again"; the console never starts on it |
+  | agents-read | the coding agents observed | none | one honest line per agent as a radio; the preselected row (the head of the fallback order when pickable) and the hint naming the rule that chose it; the pick is saved at Continue as the head of the fallback order, an untouched default writes nothing (REQ-40) |
+  | agent-disabled | an agent is not installed or did not answer | none | its row stays visible and disabled with why and what to do in one line (not installed + install command and Copy; did not answer `--version` — run it once, then Check again) |
+  | not-signed-in | the picked agent's sign-in status says signed out | none | the row stays pickable; «Set up with <agent>» says "Sign in to <agent> in its own window, then Check again" instead of starting — the console never starts on it (ADR-0135 §5) |
+  | choice-not-saved | saving the pick as the head of the fallback order was refused | none | the reason and Continue without saving |
   | no-agent | no coding agent can run setup | none | "Setup runs in a coding agent, and none on this Mac can start", each agent with its reason; Skip for now |
   | check-failed | detection itself failed | none | the reason and Check again; never "not installed" |
   | ready | an agent chosen | none | «Set up with <agent>» enabled as the one primary |

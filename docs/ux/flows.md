@@ -2157,7 +2157,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-70 First run | first-visit, language-system, saving, not-saved, folder-unset, picker-cancel, folder-chosen, no-projects-yet, choose-action, action-chosen, finishing, finish-failed, resumed, skipped |
+  | SCR-70 First run | first-visit, language-system, saving, not-saved, folder-unset, picker-cancel, folder-chosen, no-projects-yet, choose-action, action-chosen, choose-agent, choice-not-saved, finishing, finish-failed, resumed, skipped |
   | SCR-72 Scan a projects folder | first-run, scanning, slow, cancelled, denied, results, empty, no-repositories, plain-folder, duplicate, importing, partial, imported |
   | SCR-77 Setup: coding agents and products | first-run, checking, agents-read, agent-disabled, ready, console-open, verified, skip-asked, skipped |
   | SCR-30 Estate home | default |
@@ -2410,7 +2410,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-77 Setup: coding agents and products | first-run, checking, agents-read, agent-disabled, not-signed-in, no-agent, check-failed, ready, console-open, step-observed, step-reported, not-confirmed, refused-unverified, failed, verified, skip-asked, skipped |
+  | SCR-77 Setup: coding agents and products | first-run, checking, agents-read, agent-disabled, not-signed-in, choice-not-saved, no-agent, check-failed, ready, console-open, step-observed, step-reported, not-confirmed, refused-unverified, failed, verified, skip-asked, skipped |
   | SCR-25 Session window | setup |
   | SCR-30 Estate home | finish-setting-up |
 
