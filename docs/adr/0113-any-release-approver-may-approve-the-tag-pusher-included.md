@@ -33,3 +33,7 @@ The environments already carry `prevent_self_review: false`, set by `passioncode
   [`docs/evidence/backlog.md`](../evidence/backlog.md) state the amended rule; the dated handoff
   [`2026-10-03-onboarding-and-plan.md`](../handoffs/2026-10-03-onboarding-and-plan.md) carries a one-line note.
 - Reverting to four eyes is the organization's change in `products.json`, followed by a new record here.
+
+## Superseded in part
+
+2026-10-11: [ADR-0145](0145-fabric-releases-are-approved-by-checks-and-pushing-the-tag-is-the-decision.md) — the checks approve a release and the `release` environment has no reviewers; pushing the `v*` tag (team `release-approvers` only) is the release decision. The rest of this record stands.
