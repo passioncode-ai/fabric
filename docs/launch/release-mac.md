@@ -135,6 +135,18 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `vX.Y.Z/Fabric-X.Y.Z-universal.dmg`. Download the asset anonymously and check its SHA-256 and
    `spctl -a -t open --context context:primary-signature` before pointing anything at it. This repository does not
    write to the website.
+10. **Publish and pin the workspace from the release commit.** After the tag, from a clean `main`:
+    `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child`; record the
+    source commit, the workspace digest and the parent pin together in the release's verification ledger
+    ([publication contract](../architecture/report-workspace.md)). A hosted identity readback is a separate
+    acceptance. Done for 0.3.4: `check --require-child` PASS at source `22807eb7`, workspace `d132bb1f`
+    (0.3.4 ledger, *Release close — state on 2026-10-10*). This step was CO-197's recurring item until 2026-10-11.
+11. **Keep the knowledge base current.** In `fabric-workspace` (`workspace/knowledge/`): Fabric's row and the
+    released column of the roadmap, `products.md` and `plans.md`, and every RM track the release served — by a
+    fabric-workspace pull request merged **before the tag** when the roadmap names the release as coming, and
+    after publication for the released column. A dated checkpoint in those pages stays as it is. Done for
+    0.3.4: fabric-workspace PR #92 (`8639492c`) before the tag, the pages after publication (0.3.4 ledger
+    *Release close* item 5). This step was CO-196's recurring item until 2026-10-11.
 
 ### Rehearsal
 

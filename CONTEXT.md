@@ -310,6 +310,36 @@ reaches a connected product (ADR-0115). It is the agent surface itself, on one s
 port, published while Fabric runs in `hub.json`; it is not a second server, not a gateway and
 not a relay. A session Fabric starts reaches the same server with its one-shot bearer.
 
+**Harness** — everything Fabric gives a coding agent working in a Project, whichever way the
+session was opened: the Project's context pack, its tasks, board and memory, the rules of the
+session and the one tool catalogue (`shared/surfaceTools.ts`), with the work journalled
+(ADR-0133, ADR-0134). Not a runtime of its own: the coding agent stays the person's.
+
+**Enrollment** — how a coding agent Fabric did not launch joins the harness: through
+`fabric-mcp` it asks `fabric.session.enroll` with its folder; the folder is resolved to a
+Project and, on the operator's standing consent per (runtime, Project), it is served the
+session tools of that one Project (ADR-0134). An enrolled session is a session in every other
+respect.
+
+**Session handoff** — the context a session is handed before its first turn, in the shared
+format `session-handoff/1` (files in user data, never the repository; a preamble naming one
+first tool) — the same for a session Fabric starts and for one another product's console
+starts (ADR-0140). Fabric's `execution-packet/1` is the integrity manifest underneath it.
+
+**Setup console** — the person's coding agent, opened by Fabric with a setup brief, doing the
+machine's setup on the person's consent step by step — skills, Fabric's MCP entry in each
+coding agent, the family's products — while Fabric shows what it observes (ADR-0135).
+
+**Workflow** — a versioned graph of agent steps in one Project: a step is a session of a named
+agent or runner, or a call to a registered service; a run materialises tasks and `follows`
+links (ADR-0137). Composed and revised by a coding agent; a revision takes effect when the
+operator approves it. **Chain** is the run-time shape a workflow run takes (tasks linked by
+`follows`).
+
+**Schedule** — what starts a workflow on time or on an event; the shipped Routine is a
+schedule of a one-step workflow (ADR-0137). The labels «Automations», «Cycles» and «Rhythm of
+work» are retired.
+
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
 `fabric.access.status` and nothing else, and it may be reused; it is never a grant. Through the

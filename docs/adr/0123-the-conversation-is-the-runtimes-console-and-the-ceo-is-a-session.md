@@ -65,3 +65,10 @@ The release after 0.3.3 is 0.3.4, the fresh-install fix with universal macOS (th
 [ADR-0131](0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). Retiring `CeoChat`
 (P-13) is not in it, so the retirement becomes **the release after 0.3.4**, its order with 0.3.5 (Windows and Linux,
 CO-238) not decided; 0.3.4 ships the CEO chat unchanged. Found by the 0.3.4 verification, iteration 3 (PL-1).
+
+### Amendment 3 — 2026-10-11: the retirement lands in 0.4.0
+
+The operator set 0.4.0's scope on 2026-10-11 (decision D-02 of the
+[0.4.0 plan](../evidence/plans/2026-10-11-release-040-agents-first.md#decisions)): the CEO chat and its host retire in
+**0.4.0** (P-13), and «Discuss with Fabric» opens the CEO as a session with an estate scope in the person's coding
+agent (canvas C8). The private archive stays readable and exportable.

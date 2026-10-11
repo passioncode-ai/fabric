@@ -11,7 +11,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "resolved 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: ADR-0031 decided Electron end to end; it ships (apps/desktop/package.json electron ^44.0.0, apps/desktop/src/main/pty.ts)"
  },
  {
   "id": "CO-003",
@@ -1080,7 +1081,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "resolved 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: repoRoot.ts#chooseRepoRoot returns the bundled stack first when packaged (bundledStack.ts#materializeStack, electron-builder.yml ships stack/supabase)"
  },
  {
   "id": "CO-089",
@@ -1471,7 +1473,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "narrowedInWave0": "narrowed 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: toolchain.lock.json exists and build-manifest reads it; on node 26.10.0 the verification is unverified (lock pins 26.8.2), digest null; reproducibility not established"
  },
  {
   "id": "CO-116",
@@ -2242,7 +2245,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "resolved 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: released as agent-sync v1.21.2 (6c100d4, PR #24); installed 1.21.6 hooks/_lib.sh#agent_sync_owner"
  },
  {
   "id": "CO-164",
@@ -2256,7 +2260,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: graphify-out/graph.json in the main checkout is dated 2026-09-01 (1580 nodes, 1992 links — the zero-edge claim was already corrected by CO-165); a rebuild is its own change"
  },
  {
   "id": "CO-165",
@@ -2349,7 +2354,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: no script under scripts/ measures branch consolidation; writing it is code, not register hygiene"
  },
  {
   "id": "CO-173",
@@ -2363,7 +2369,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: node scripts/repin-public-history.mjs --summary still counts 149 claim-changed, 48 claim-ambiguous, 15 file-gone, 113 bytes-changed"
  },
  {
   "id": "CO-175",
@@ -2377,7 +2384,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: scripts/product/integrations.mjs PINS.contract is still 1eeb5a30…"
  },
  {
   "id": "CO-176",
@@ -2468,7 +2476,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: chat-activation-native.test.mjs and handshake-e2e.test.mjs run only by hand (package.json test:chat-native, test:e2e) against the live stack"
  },
  {
   "id": "CO-183",
@@ -2535,7 +2544,8 @@
   ],
   "node": "C5",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: receipts/AD02.json is blocked (native-acceptance-pending); the acceptance needs the operator's Computer Use permission"
  },
  {
   "id": "CO-188",
@@ -2565,7 +2575,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: docs/backlog-sources.json declares no adoption-packet, MEM-P or L3c table"
  },
  {
   "id": "CO-190",
@@ -2642,7 +2653,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "recorded 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: the recurring step is step 11 of docs/launch/release-mac.md; last done for 0.3.4 (fabric-workspace PR #92, 8639492c)"
  },
  {
   "id": "CO-197",
@@ -2658,7 +2670,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "recorded 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: the recurring step is step 10 of docs/launch/release-mac.md; last done for 0.3.4 (check --require-child PASS, source 22807eb7, workspace d132bb1f)"
  },
  {
   "id": "CO-198",
@@ -2746,7 +2759,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "not stale — a code fix: productConnect.ts still fails the pending attempt on a state-less POST (invalid() on 415); belongs to wave 1"
  },
  {
   "id": "CO-204",
@@ -2774,7 +2788,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "not stale — a code fix: accessService refreshes the whole registry on every request, agentRegistry.ts readdirSync has no cap; belongs to wave 1 (with AR-2)"
  },
  {
   "id": "CO-206",
@@ -2788,7 +2803,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "not stale — a code fix: accessStore has no AbortSignal deadline; needs the stalled-database probe; wave 1"
  },
  {
   "id": "CO-207",
@@ -2802,7 +2818,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "not stale — a UX fix: AgentAccessPanel afterAllow returns null for a plain Allow, Deny has none; wave 6"
  },
  {
   "id": "CO-210",
@@ -2816,7 +2833,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "resolved 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: decided 2026-10-08 in a208c68b — graceful teardown kept, quit.test.mjs#GRACEFUL_BOUND_MS 180 s; the 15 s reaper tested separately"
  },
  {
   "id": "CO-211",
@@ -2830,7 +2848,8 @@
   "register": "carry-over",
   "node": "C11",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still open by its own terms: the cause is not established and the row waits for the bounded helper's next hang report"
  },
  {
   "id": "CO-212",
@@ -2877,7 +2896,9 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W6",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "expandedInto": "docs/evidence/plans/2026-10-11-release-040-co215-216.json",
+  "narrowedInWave0": "narrowed 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: one entry per deferred finding under its audit id, with node and wave"
  },
  {
   "id": "CO-216",
@@ -2891,7 +2912,9 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W6",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "expandedInto": "docs/evidence/plans/2026-10-11-release-040-co215-216.json",
+  "narrowedInWave0": "narrowed 2026-10-11 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md: one entry per deferred finding under its audit id, with node and wave"
  },
  {
   "id": "CO-217",
@@ -3072,7 +3095,8 @@
   "register": "carry-over",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "still true: scripts/check-ops.mjs MAIN is apps/desktop/src/main only"
  },
  {
   "id": "CO-231",
@@ -3131,7 +3155,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "keptInWave0": "not stale — a code fix: useFallbackChoice calls terminal.fallback(projectId, kind, null), no preset; wave 1 or 6"
  },
  {
   "id": "CO-235",
@@ -3625,7 +3650,8 @@
   "register": "backlog",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "narrowedInWave0": "partly shipped in docs/evidence/backlog.md: vision, ontology, decisions kept; REQ-001…005 name pnpm registry:verify / collect:repos, which no package.json defines; REQ-005 waits on a human step"
  },
  {
   "id": "M1",
@@ -3683,7 +3709,8 @@
   "register": "backlog",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "closed in docs/evidence/backlog.md (dependency-map row): closed 2026-09-10 by FA-08 per its Group C row; scrollback.ts#createBoundedScrollback"
  },
  {
   "id": "M11",
@@ -3961,7 +3988,8 @@
   "register": "backlog",
   "node": "C1",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "narrowedInWave0": "partly shipped in docs/evidence/backlog.md: the hosted, typeable terminal shipped with slice 1 (pty.ts#PtyManager, TerminalView.tsx); the CEO reading it as an observation is the manager node (C8)"
  },
  {
   "id": "M160",
@@ -5372,7 +5400,8 @@
   "register": "backlog",
   "node": "C5",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "done in docs/evidence/backlog.md: accepted by P-02's three iterations, released in 0.3.0 (P-03); sign-in stays CO-176; removed from lane 1"
  },
  {
   "id": "P-06",
@@ -5482,7 +5511,8 @@
   "register": "backlog",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "shipped in docs/evidence/backlog.md (dependency-map row): ADR-0090 (2026-09-29) supersedes ADR-0018's product claim; productName Fabric, appId kept; narrative and brand gates pass; residue: the ADR index row of ADR-0018"
  },
  {
   "id": "S2",
@@ -7313,7 +7343,8 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "dated note under the status line of docs/launch/adoption/packets/AD01.md: receipts/AD01.json passed (375b18db); the line and plan.json keep the planning state"
  },
  {
   "id": "MEM-P0",
@@ -7597,7 +7628,9 @@
   "blockedBy": [],
   "node": "C8",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "CO-248",
+  "newIdNote": "new carry-over row"
  },
  {
   "id": "NOID-02",
@@ -7611,7 +7644,9 @@
   "blockedBy": [],
   "node": "C2",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "CO-249",
+  "newIdNote": "new carry-over row, narrowed: the board (ADR-0035) and the CEO (ADR-0123) are decided; one repository or two and the mascot level remain"
  },
  {
   "id": "NOID-03",
@@ -7625,7 +7660,9 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "CO-113",
+  "newIdNote": "existing owner: the final-audit corrections and activation packets; each remainder row already has its verification id (four of the nine lease-blocked closed in wave 0 in docs/ux/scenarios.md)"
  },
  {
   "id": "NOID-04",
@@ -7642,7 +7679,9 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "newId": "CO-250",
+  "newIdNote": "new carry-over row"
  },
  {
   "id": "NOID-05",
@@ -7659,7 +7698,9 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "newId": "CO-251",
+  "newIdNote": "new carry-over row"
  },
  {
   "id": "NOID-06",
@@ -7673,7 +7714,9 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "CO-107",
+  "newIdNote": "existing owner: the 2026-09-05 audit remediation package; its W01–W06 item ids stay in the dated plan"
  },
  {
   "id": "NOID-07",
@@ -7687,7 +7730,9 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "CO-165",
+  "newIdNote": "existing owners: CO-165 (context-audit packets P01–P12, launch P0–P6, D01) and CO-166 (OX-01…12), with V1-M1…M7 for T-01…T-21"
  },
  {
   "id": "NOID-08",
@@ -7701,7 +7746,9 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "after-0.4.0",
-  "release": "program"
+  "release": "program",
+  "newId": "P-01",
+  "newIdNote": "no work: the 0.3.0 run brief is a dated record and stays as written; P-01 (now done) and P-03 (released 0.3.0) hold the current state"
  },
  {
   "id": "NOID-09",
@@ -7715,7 +7762,10 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "newId": "CO-252",
+  "newIdNote": "new carry-over row for the gate gap; P-09 stays in lane 9 because its own row keeps the production receipt open (fabric#12 open, 2026-10-11)",
+  "closedInWave0": "given CO-252 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md"
  },
  {
   "id": "NOID-10",
@@ -7729,7 +7779,10 @@
   "blockedBy": [],
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "newId": "CO-253",
+  "newIdNote": "new carry-over row",
+  "closedInWave0": "given CO-253 in docs/evidence/specs/2026-08-16-software-fabric-carryover.md"
  },
  {
   "id": "SCN-001",
@@ -10224,7 +10277,8 @@
   "register": "verification never",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "docs/ux/scenarios.md: SCN-068..078 index verdicts (2026-09-09, from docs/audit/2026-09-09-final/scenarios-050-078.json) and owners corrected (SCN-071 drops M152, SCN-077 adds M75, SCN-078 M76 for M75); docs/evidence/verification.md is another run's lease and still says never"
  },
  {
   "id": "AX17-REQ-005",
@@ -10579,7 +10633,8 @@
   "register": "verification never",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "docs/ux/scenarios.md: SCN-006, SCN-007, SCN-026, SCN-027 amended with what each surface says about a partial read; verification.md row not edited (another run's lease)"
  },
  {
   "id": "UXAC02-REQ-008",
@@ -10621,7 +10676,8 @@
   "register": "verification never",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "docs/ux/scenarios.md: SCN-011 amended with what each workspace act says at the action; verification.md row not edited (another run's lease)"
  },
  {
   "id": "UXAC03-REQ-008",
@@ -10677,7 +10733,8 @@
   "register": "verification never",
   "node": "C12",
   "wave": "W0",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave0": "docs/ux/scenarios.md: SCN-025 amended with what the session window says while a read refuses; verification.md row not edited (another run's lease)"
  },
  {
   "id": "UXAC05-REQ-005",

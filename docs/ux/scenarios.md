@@ -77,17 +77,17 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-065 | Restore an archive into a fresh Estate and open it | Backup/recovery | P-01, P-02 | ST-001, ST-028, ST-033, FLW-36 | draft | 2026-09-09 FAIL |
 | SCN-066 | Return from authentication to the same invitation with current membership | Membership | P-02, P-03 | ST-008, ST-009, FLW-06 | draft | 2026-09-09 FAIL |
 | SCN-067 | Record a first task and distinguish admission from delivery acknowledgement | Task admission | P-01 | ST-023, ST-024, ST-034, ST-037, FLW-32 | draft | 2026-09-09 FAIL |
-| SCN-068 | Маршрут работы | Маршрут работы | P-01 | FLW-37; SCR-49 | draft | unobserved |
-| SCN-069 | Цели и приёмка | Цели и приёмка | P-01 | FLW-38; SCR-50 | draft | unobserved |
-| SCN-070 | Квоты и использование | Квоты и использование | P-01 | FLW-39; SCR-51 | draft | unobserved |
-| SCN-071 | Настройки рабочего пространства | Настройки рабочего пространства | P-01 | FLW-40; SCR-52 | draft | unobserved |
-| SCN-072 | Уведомления и маршруты | Уведомления и маршруты | P-01 | FLW-41; SCR-53 | draft | unobserved |
+| SCN-068 | Маршрут работы | Маршрут работы | P-01 | FLW-37; SCR-49 | draft | 2026-09-09 FAIL |
+| SCN-069 | Цели и приёмка | Цели и приёмка | P-01 | FLW-38; SCR-50 | draft | 2026-09-09 PARTIAL |
+| SCN-070 | Квоты и использование | Квоты и использование | P-01 | FLW-39; SCR-51 | draft | 2026-09-09 PARTIAL |
+| SCN-071 | Настройки рабочего пространства | Настройки рабочего пространства | P-01 | FLW-40; SCR-52 | draft | 2026-09-09 PARTIAL |
+| SCN-072 | Уведомления и маршруты | Уведомления и маршруты | P-01 | FLW-41; SCR-53 | draft | 2026-09-09 FAIL |
 | SCN-073 | Диагностика | Диагностика | P-01 | FLW-42; SCR-54 | draft | 2026-10-08 PARTIAL |
-| SCN-074 | Архив и удаление | Архив и удаление | P-01 | FLW-43; SCR-55 | draft | unobserved |
-| SCN-075 | Редактор цикла | Редактор цикла | P-01 | FLW-44; SCR-56 | draft | unobserved |
-| SCN-076 | Сервисные терминалы | Сервисные терминалы | P-01 | FLW-45; SCR-57 | draft | unobserved |
-| SCN-077 | Встроенный браузер | Встроенный браузер | P-01 | FLW-46; SCR-58 | draft | unobserved |
-| SCN-078 | Предпросмотр медиа | Предпросмотр медиа | P-01 | FLW-47; SCR-59 | draft | unobserved |
+| SCN-074 | Архив и удаление | Архив и удаление | P-01 | FLW-43; SCR-55 | draft | 2026-09-09 FAIL |
+| SCN-075 | Редактор цикла | Редактор цикла | P-01 | FLW-44; SCR-56 | draft | 2026-09-09 PARTIAL |
+| SCN-076 | Сервисные терминалы | Сервисные терминалы | P-01 | FLW-45; SCR-57 | draft | 2026-09-09 FAIL |
+| SCN-077 | Встроенный браузер | Встроенный браузер | P-01 | FLW-46; SCR-58 | draft | 2026-09-09 FAIL |
+| SCN-078 | Предпросмотр медиа | Предпросмотр медиа | P-01 | FLW-47; SCR-59 | draft | 2026-09-09 FAIL |
 | SCN-079 | Diff выбранного файла | Diff выбранного файла | P-01 | FLW-48; SCR-60 | draft | unobserved |
 | SCN-080 | Документ и происхождение задач | Документ и происхождение задач | P-01 | FLW-49; SCR-61 | draft | unobserved |
 | SCN-090 | Catch up on a project you left, and lose nothing by looking | Digest | P-01 | FLW-21, SCR-31 | draft | unobserved |
@@ -287,6 +287,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **States covered:** loading, empty, error, success
 - **Errors & recovery:** projector failure keeps last data as stale with retry; one source failure affects only its dimension.
 - **Telemetry:** `estate_projects_viewed` with project_count, attention_total, stale_dimension_count
+- **Amended 2026-10-11 (UXAC01-REQ-004, UXAC02-REQ-007):** what is waiting is one reading for every card, said once above them rather than as a chip on each. A source that refused, or a refusal window that was cut, keeps the counts that did arrive and says "Part of what needs you did not arrive: {reason}. The counts below are real and are not totals." A read that answered nothing says "What needs you could not be read: {reason}. The cards below carry no counts — that is missing, not zero." and the cards show no counts. A complete read adds nothing, and a read not yet made shows nothing rather than a zero (`apps/desktop/src/shared/attention.ts#waitingProblem`, `apps/desktop/src/shared/attention.ts#waitingCounts`, `apps/desktop/src/renderer/src/EstateHome.tsx#EstateHome`, checked by `apps/desktop/src/renderer/src/attentionHonesty.test.tsx`).
 - **Status:** validated
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -314,6 +315,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   marked Allowed once with its "until" in the app's language, without Waiting or Next time, until the person
   closes it or picks another (0.3.2 verification UX-3, UX-4).
 - **Telemetry:** `attention_item_opened` with project_id, dimension, receipt_kind
+- **Amended 2026-10-11 (UXAC02-REQ-007):** every surface that lists what needs the person — the home's board, the project page and the Board — says a partial read the same way: "Part of this could not be read ({sources}), so this list is incomplete.", naming each source that did not answer, while the items that did answer stay listed and actionable; a read that failed outright says "The board could not be read: {reason}" and lists nothing as clear. Every source consulted is named in the receipts, answered or not, so one refusal cannot hide the projects it did not touch (`apps/desktop/src/shared/attention.ts#obligationReceipts`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`). The project card's count follows SCN-006's reading.
 - **Status:** validated
 - **Coverage:** `apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/src/shared/attention.test.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.test.tsx`
 - **Product:** unobserved
@@ -409,6 +411,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   a resolution before it is committed, `supersede` is not among the product's declared decisions (`accepted`, `declined` only), and no
   cross-project view links to a resolution. The scenario is AHEAD of the code here rather than stale — the first card of this cycle where the
   right answer was neither "fix the code" nor "fix the document", but "keep both and say which half is which".
+- **Amended 2026-10-11 (UXAC03-REQ-007) — the workspace half:** each workspace act on the estate home says what it did, at the action, outside the question's own banner (which disappears once answered). Adopting says "Adopted: {projects} project(s) and {agents} agent binding(s) came in, keeping their own ids."; a refused adoption says "That workspace was not adopted: {reason}."; a folder written without version control says "The folder is written and it is NOT under version control: {reason}. …"; an act that threw says "That did not go through: {reason}. Look at the answer above before trying again." and the state is read again. A closed dialog says nothing, and a folder that became a repository needs no sentence because the question goes away (`apps/desktop/src/shared/workspaceAct.ts#saidOfAdopt`, `apps/desktop/src/shared/workspaceAct.ts#saidOfChoose`, `apps/desktop/src/shared/workspaceAct.ts#saidOfThrow`, checked by `apps/desktop/src/shared/workspaceAct.test.ts` and `apps/desktop/src/renderer/src/workspaceHonesty.test.tsx`).
 - **Status:** validated
 - **Coverage:** the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.
 - **Product:** unobserved
@@ -727,6 +730,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** spawn failure names the cwd and binary checked and offers retry without journalling an open; a killed PTY marks the tab ended, never silently blank.
 - **Amended 2026-10-06 (audit A2-001):** resizing the window of an ended session is a no-op on both sides — the view does not send it, and `PtyManager.resize` returns unless the session is running — rather than an `ioctl EBADF` throw inside a raw listener.
 - **Telemetry:** `terminal_session_opened` with project_id, cwd_bound, reattach:boolean — no keystroke content, no transcript body
+- **Amended 2026-10-11 (UXAC04-REQ-008):** while a read refuses, the session window says which of four things it is. Before any answer, a refused read says "This session could not be read: {reason}. That says nothing about the session itself — it is about the read."; with the terminal already on screen, a refused refresh keeps it and says "This reading is not current: {reason}. What is below is the last answer, not the latest one."; a session the estate no longer has says "This session is gone. You can close the window."; the next read that answers clears the caveat, and an answer for another session or a closed window is dropped (`apps/desktop/src/shared/sessionReading.ts#sessionSays`, `apps/desktop/src/renderer/src/SessionWindow.tsx#SessionWindow`, checked by `apps/desktop/src/renderer/src/SessionWindow.test.tsx` and `apps/desktop/src/shared/sessionReading.test.ts`).
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`
 - **Product:** unobserved
@@ -751,6 +755,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **States covered:** empty, loading, error, success
 - **Errors & recovery:** a Realtime outage degrades to on-demand replay with a stale banner; the feed never invents order — it shows the table's. An event with no sentence falls back to the RAW TYPE and never to the lookup key: a missing key renders as itself, and `event.task.moved@1` on screen is the identifier plus a prefix that means nothing.
 - **Telemetry:** `feed_replayed` with from_seq, event_count, reconnect:boolean
+- **Amended 2026-10-11 (UXAC02-REQ-007):** the feed is its own read, apart from what is waiting. Before it is read it says "reading the journal…", never "The journal is empty"; a partial reading of what is waiting is said once above the project cards (SCN-006), not inside the feed; and a read position that cannot be used is said above the feed instead of marking anything read (`apps/desktop/src/renderer/src/Feed.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx#EstateHome`).
 - **Status:** draft
 - **Coverage:** step 3 and its fallback — `apps/desktop/src/renderer/src/Feed.test.tsx`; every registered event type has a sentence, both directions — `scripts/check-design.mjs`. Replay, ordering and reconnection (steps 1, 2, 5): none yet
 - **Product:** unobserved
@@ -775,6 +780,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **States covered:** empty, loading, error, success
 - **Errors & recovery:** a resolution that fails to persist retries without double-resuming the node (idempotent by question id); policy `indeterminate` is shown as a denial with diagnostics, never as pending.
 - **Telemetry:** `question_resolved` with question_id, verdict, action_class, waited_seconds, floored:boolean — no payload content
+- **Amended 2026-10-11 (UXAC02-REQ-007):** the queue this scenario names is, in the product today, the Board's list of what needs the person. A partial read says "Part of this could not be read ({sources}), so this list is incomplete." above the list; a failed read says "The board could not be read: {reason}"; neither is ever shown as an empty, clear queue (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx`). The escalation itself stays unbuilt, as Coverage says.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/test/policy.test.mjs` — the grant policy and the attention acts only. The escalation itself is not built: no blocking `canUseTool`, no `node.asked@1`, no Refuse-with-reason that fails a node as resumable, no 30-minute expiry, no resume after a grant (audit 2026-10-05 A2-005, CO-217 in `docs/evidence/specs/2026-08-16-software-fabric-carryover.md`).
 - **Product:** unobserved
@@ -1873,8 +1879,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** stage-edit, validation-error, version-preview, committed, old-version-pinned. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M18
+- **Implementation tasks:** M18, M188
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-pipeline).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners corrected — M188 added. Its gap as the audit read it: No production versioned pipeline editor; route union has no destination. New scenario lacks index row, lowering discoverability.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -1891,8 +1898,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** draft, task-linked, ready-for-review, rejected, accepted, superseded. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M144
+- **Implementation tasks:** M144, M190
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-goals).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M190 added. Its gap as the audit read it: No criterion versions, explicit result acceptance/rejection, autonomy limits or supersession route. Task completion remains distinct from goal acceptance only in target design.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -1909,8 +1917,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** measured, unavailable, quota-limited, reset-pending, capacity-paused, terms-open. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M83, M94
+- **Implementation tasks:** M83, M94, M171
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-usage).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M171 added. Its gap as the audit read it: No unified usage/capacity/cost/source detail; unreadable quota can disappear instead of explain. Manager cost is unmeasured, subscription terms remain open.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -1927,8 +1936,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** inherited, overridden, validation-error, saved, read-only. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M72, M73, M152
+- **Implementation tasks:** M72, M73, S14
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-estate-settings).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M152 removed as an owner, which the audit found wrong; S14 added. Its gap as the audit read it: No integrated settings screen for storage/inherited project override/revision checks; scenario references M152 (answer lifecycle) as settings owner, which is incorrect.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -1945,8 +1955,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** unbound, challenge, bound, route-review, muted, consent-required, delivery-unknown. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M159, M160, M161, M162, M163, M164, M165
+- **Implementation tasks:** M159, M160, M161, M162, M163, M164, M165, M185
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-notifications).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners corrected — M185 added. Its gap as the audit read it: No bound identity challenge/channel route/consent/delivery receipt UI. Needs-you obligations must stay with Board; cannot create second task store to implement notification read state.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -1964,8 +1975,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
 - **Amended 2026-10-06 (audit A7-001; wording corrected by 0.3.2 verification DO-18, UX-9):** after the local stack starts, and again whenever the last check is more than five minutes old, Fabric tries each stack port on every non-loopback IPv4 address of this Mac. If one answers, a warning stands above every screen, naming the ports and interfaces (never the addresses), why it matters (the stack's default password) and the remedy, which belongs to the container engine and is the person's to apply (CO-219); the check is recorded as `stack.exposed-on-network`. Nothing answering shows nothing.
-- **Implementation tasks:** M81
+- **Implementation tasks:** M81, S05
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-diagnostics).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — S05 added. Its gap as the audit read it: No export selection/preview/redacted export surface. Successful refresh does not clear prior problem; metadata failure swallowed. Diagnostic log is rotating evidence, not archived agent trajectory.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
@@ -1982,8 +1994,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** active, blocked-running, archived, restore, purge-review, purged. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M77
+- **Implementation tasks:** M77, S12, S09
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-archive).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners corrected — S12, S09 added. Its gap as the audit read it: No operator archive/restore/purge review UI or exact-object command path; generic confirmation is insufficient. Purge must be designed separately from journal-replayable archival.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -2000,8 +2013,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** draft, invalid-cycle, revision-preview, saved, paused, missing-input, empty-input, stale-input, bounded, reconciled. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M66, M67, M68, M90
+- **Implementation tasks:** M66, M67, M68, M90, S04, S15
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-routine-editor).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — S04, S15 added. Its gap as the audit read it: No versioned typed DAG editor/event inputs/missing-empty-stale policies or run pinned config. Parent owns additional runtime chain admission defects.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -2020,6 +2034,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
 - **Implementation tasks:** M10
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-service-terminal).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners confirmed as they were. Its gap as the audit read it: No service terminal generation/probe/healthy-unknown lifecycle for gateway and Claude Swap. Do not reuse agent admission as service readiness.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -2036,8 +2051,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** pending, loaded, invalid-url, source-missing, popup-blocked, external-request. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M74
+- **Implementation tasks:** M74, M75
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-internal-browser).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners corrected — M75 added. Its gap as the audit read it: No isolated browser production surface. Scenario lists only M74 but sandbox/browser owner is M75; fix trace before assigning agents.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
@@ -2054,8 +2070,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** image, pdf-page-1, pdf-page-2, source-missing, no-loader, reveal-request. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Implementation tasks:** M75
+- **Implementation tasks:** M74, M76
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-media-preview).
+- **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: failed against the target; owners corrected — M75 removed as an owner, which the audit found wrong; M74, M76 added. Its gap as the audit read it: No image/PDF production preview. Scenario points to M75 (browser), actual preview owner M76; assigning by scenario would implement wrong module.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved

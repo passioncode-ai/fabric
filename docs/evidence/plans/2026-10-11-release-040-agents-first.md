@@ -334,22 +334,21 @@ the adapter PR (`working-with-fabric`, the hook pack), the walk harness refreshe
 <a id="adrs"></a>
 ## ADRs this release writes
 
-Ids are reserved from the counter (`agent_sync.py reserve ADR`) when written; the pipeline reservation (ADR-0132,
-migrations 82/83) moves past them in the same change (`fix-pf-06.03.py`).
+Ids reserved from the counter 2026-10-11 (keys `release-040-adr-*`); written in wave 0.
 
-1. **The vision: agents are created, composed and fixed in Fabric; Fabric is the harness every coding agent reaches**
+1. **[ADR-0133](../../adr/0133-agents-are-created-composed-and-fixed-in-fabric-and-fabric-is-the-harness-every-coding-agent-reaches.md) — the vision: agents are created, composed and fixed in Fabric; Fabric is the harness every coding agent reaches**
    (D-01) — amends `docs/ux/vision.md` §1/§3/§7, CONTEXT.md (Harness, Workflow, Schedule, Ecosystem agent, Setup
    console, Session handoff, Enrollment), R-001 propagation.
-2. **Any coding agent enrolls into a project through the hub, on consent** (D-03) — beside ADR-0115: the third
+2. **[ADR-0134](../../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md) — any coding agent enrolls into a project through the hub, on consent** (D-03) — beside ADR-0115: the third
    principal, the standing grant, `fabric-mcp`, CO-194's product servers in sessions.
-3. **Setup runs in the person's coding agent; Fabric observes the result** (D-04) — refines ADR-0129 §4 and ADR-0119
+3. **[ADR-0135](../../adr/0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md) — setup runs in the person's coding agent; Fabric observes the result** (D-04) — refines ADR-0129 §4 and ADR-0119
    §2 (the registration is the agent's own consented, reversible act).
-4. **A folder joins a project by a pick or by consent** (R-05) — amends ADR-0100 §7; the resolver.
-5. **Workflows are versioned graphs of agent steps; a schedule starts them** (R-02, R-03).
-6. **The agent registry: built, conformance, admitted** (C6).
-7. **Fabric is a service: descriptor, well-known document, viewer scope** (R-04).
-8. **`session-handoff/1`** (R-01) — with the contract repository and Dashboards.
-9. ADR-0121 accepted with an amendment for Windows/Linux feeds; ADR-0123 amendment: P-13 lands in 0.4.0.
+4. **[ADR-0136](../../adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md) — a folder joins a project by a pick or by consent** (R-05) — amends ADR-0100 §7; the resolver.
+5. **[ADR-0137](../../adr/0137-workflows-are-versioned-graphs-of-agent-steps-and-a-schedule-starts-them.md) — workflows are versioned graphs of agent steps; a schedule starts them** (R-02, R-03).
+6. **[ADR-0138](../../adr/0138-the-agent-registry-records-what-was-built-what-conformed-and-what-the-operator-admitted.md) — the agent registry: built, conformance, admitted** (C6).
+7. **[ADR-0139](../../adr/0139-fabric-is-a-service-its-descriptor-its-well-known-document-and-a-read-only-viewer.md) — Fabric is a service: descriptor, well-known document, viewer scope** (R-04).
+8. **[ADR-0140](../../adr/0140-a-session-is-handed-its-context-in-one-format-session-handoff-1.md) — `session-handoff/1`** (R-01) — with the contract repository and Dashboards.
+9. Amendments written 2026-10-11: ADR-0100 (2, §7 by consent), ADR-0115 (37, the enrolled principal), ADR-0119 (5, the config write is the agent's act), ADR-0121 (3, target 0.4.0 with a feed per OS), ADR-0123 (3, P-13 in 0.4.0), ADR-0129 (1, §4). The pipeline reservation moved to ADR-0141; next free ADR-0142.
 
 <a id="req-table"></a>
 ## REQ table

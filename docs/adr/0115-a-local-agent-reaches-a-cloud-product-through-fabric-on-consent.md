@@ -448,3 +448,11 @@ These amendments record what the record got wrong and what the code now does.
 36. **ADR-0105's hop is this record's hop (docs D-5).** Observatory as a hub callee will be a connected product in
     this record's sense: a standing connection whose credential Fabric holds and presents, narrowed by a product
     header, not a credential minted per call. ADR-0105 carries the matching amendment.
+
+## Amendments — 0.4.0, agents first (2026-10-11)
+
+37. **A third principal, the enrolled session ([ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).**
+    The door gains one tool, `fabric.session.enroll`; on the operator's consent per (runtime, project) it admits a
+    coding agent opened outside Fabric to a session server of its own kind, built from the session tool catalogue and
+    scoped to one Project. §1's rule that only registered agents reach the door's prompt is widened to coding agents
+    that enroll by folder; the door itself still serves no session tool. Operator decision D-03 of the 0.4.0 plan.
