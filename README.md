@@ -27,7 +27,7 @@ product and CEO AI agent: it plans, coordinates agents, runs Projects and works 
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
 Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS,
 Windows and Linux**: each release on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases) carries a
-signed and notarized universal DMG for Apple silicon and Intel Macs (from 0.3.4), signed Windows installers for x64
+signed and notarized universal DMG for Apple silicon and Intel Macs (from 0.3.4), Authenticode-signed Windows installers for x64
 and arm64, and an AppImage and a `.deb` for Linux x64 and arm64 (from 0.3.5), with its notes, checksums and
 attestation; the newest Mac build is also [downloadable from its product page](https://passioncode.ai/fabric/#download).
 Releases are built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
@@ -118,7 +118,8 @@ plan survives as org #1 and builds first.
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
   nothing is registered by hand. A coding agent you open yourself reaches the same harness through
   `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`,
-  or `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex`);
+  or `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex`; on Windows through
+  `cmd /c "<Fabric>\resources\bin\fabric-mcp.cmd" --runner …`, not yet tried on a Windows machine, CO-267);
   `<Fabric>/bin` is `Fabric.app/Contents/Resources/bin` on macOS and the install folder's `resources/bin` on Windows
   (`fabric-mcp.cmd`) and Linux — on Linux from the `.deb`, since an AppImage mounts at a new path each start;
   Fabric asks you once per agent and project ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)). Fabric

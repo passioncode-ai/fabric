@@ -130,7 +130,13 @@ export function WhereWorkScreen({
             {read.view.unowned.length === 0 ? (
               <p className="muted">{t('work.where.unownedNone')}</p>
             ) : (
-              read.view.unowned.map((s) => <Row key={s.sessionId}>{sessionLine(s, t, now)}</Row>)
+              // SCN-141 / SCR-78: the folder it works in, and Open when Fabric holds its console (0.3.5 i2 UX-3).
+              read.view.unowned.map((s) => (
+                <Row key={s.sessionId} onClick={s.console ? () => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}>
+                  {sessionLine(s, t, now)}
+                  <span className="muted">{' · '}{s.folder ? t('work.where.folder', { folder: s.folder }) : t('work.where.folderUnknown')}</span>
+                </Row>
+              ))
             )}
           </Panel>
           <p className="muted">{t('work.where.readAt', { at: new Date(read.view.readAt).toLocaleTimeString() })}</p>

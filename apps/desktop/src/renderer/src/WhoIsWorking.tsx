@@ -9,7 +9,7 @@
  * «Open session» is offered only for a session Fabric holds a console for; an agent enrolled from its own terminal or
  * reaching Fabric through the hub has none, and the row says where it runs instead (0.3.5 review UX-3).
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { LeaseReadCode, ProjectWorkView, RelatedWhy, WorkClaimView, CameIn } from '../../shared/workClaims.ts'
 import type { Translate } from './i18n'
 import { Button, Panel, Row, StateChip, Toolbar } from './components'
@@ -65,13 +65,17 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
   const [menu, setMenu] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<WorkClaimView | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  // The project now on screen: a reading that comes back for another project is dropped (0.3.5 i2 UX-10 — the old
+  // guard compared the closure's projectId with itself).
+  const current = useRef(projectId)
+  current.current = projectId
   const load = async (): Promise<void> => {
     const at = projectId
     try {
       const view = await window.fabric.work.project(at)
-      if (at === projectId) setRead({ state: 'read', view })
+      if (at === current.current) setRead({ state: 'read', view })
     } catch (e) {
-      setRead({ state: 'unreadable', detail: explainError(e, t) })
+      if (at === current.current) setRead({ state: 'unreadable', detail: explainError(e, t) })
     }
   }
   useEffect(() => {
@@ -82,6 +86,15 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
   useEffect(() => {
     void load()
   }, [projectId, feedMark])
+  // A session starting or ending, and a sign of life ageing, journal nothing this view listens to: the reading is taken
+  // again each minute, as «Where work is» does (0.3.5 i2 UX-1).
+  useEffect(() => {
+    const every = setInterval(() => {
+      if (document.visibilityState === 'visible') void load()
+    }, 60_000)
+    return () => clearInterval(every)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
 
   const release = async (c: WorkClaimView): Promise<void> => {
     setConfirm(null)

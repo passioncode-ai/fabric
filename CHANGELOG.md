@@ -15,7 +15,9 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
 - **Fabric opens from a product's Fabric button.** A `fabric://` link from Fabric Dashboards or any product now opens Fabric in that product's project (found from the product's repository), or says why it could not; before, macOS answered that Fabric was not installed, because Fabric did not register the scheme. A link that starts Fabric is not lost while the window opens, and one that arrives during the first run waits for it to end.
 - **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
   `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`, or
-  `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex` — with no key in it. The first
+  `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex` — with no key in it (on Windows:
+  `claude mcp add --scope user fabric -- cmd /c "<Fabric>\resources\bin\fabric-mcp.cmd" --runner claude-code`, not yet
+  tried on a Windows machine). The first
   time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
   a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
   Settings → Agent access ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).
@@ -36,6 +38,9 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   by the [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database) before 0.3.5 opens it.
 - **"Running for N days" counts from the day Fabric could first open your Estate**, not from an install that failed
   to start (CO-242).
+- **The old first owner leaves a repaired Estate.** On a database the 0.3.4 repair gave to you, 0.3.5 revokes the old
+  seed's second owner at its first start — through the membership door, recorded, never a delete — while that member is
+  still the seed's own and nobody signs in as it (CO-242).
 - **A database Fabric refuses at start says what to do in your language**: the schema it found and the one it needs,
   or that the stack did not answer — the copied details stay in English, for a report.
 - **Codex and Kimi Code connect to Fabric's surface.** Sessions of both get the project-board tools
@@ -52,9 +57,10 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   that does not answer says so, never an empty list. Read-only by design; the read goes through two new SQL
   functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
 - **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
-  and `-arm64-setup.exe`, signed with the organization's Authenticode certificate (Azure Artifact Signing). Terminals
+  and `-arm64-setup.exe`, Authenticode-signed through Azure Artifact Signing. Terminals
   open PowerShell; the local stack needs Docker Desktop (WSL2) and the Supabase CLI (`scoop install supabase`).
-- **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
+- **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI. Install
+  the `.deb` to open `fabric://` links and to register `fabric-mcp`: it registers the scheme and keeps one path.
 - **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244).
   **Not yet on Windows:** connecting a cloud product's secret through Project Observatory (CO-245); Agent access says
   so when you press Connect, before the product is opened.

@@ -28,9 +28,17 @@ try {
   execFileSync(process.execPath, [new URL('./backend-stop-db.test.mjs', import.meta.url).pathname], {
     stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
   })
-  execFileSync(process.execPath, ['--experimental-strip-types', new URL('./backend-stop-native-db.test.mjs', import.meta.url).pathname], {
-    stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
-  })
+  // The native Stop suite runs only on a measured runtime (runtimeAdmission.ts#isMeasuredRuntime, darwin today): elsewhere
+  // it exits 2, NOT_RUN, which is said here and not counted as a failure of the suites above (CO-251; the hosted full
+  // tier runs on Linux — 0.3.5 verification, iteration 2).
+  try {
+    execFileSync(process.execPath, ['--experimental-strip-types', new URL('./backend-stop-native-db.test.mjs', import.meta.url).pathname], {
+      stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
+    })
+  } catch (e) {
+    if (e?.status !== 2) throw e
+    console.log('NOT_RUN backend-stop-native-db: unmeasured runtime on this platform (CO-251); the other suites ran')
+  }
   console.log('PASS full migration chain, managed stop lifecycle and backend exit receipts on isolated PostgreSQL')
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'fast', '-w', 'stop'])

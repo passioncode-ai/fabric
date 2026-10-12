@@ -65,7 +65,7 @@ export function BoardPanel({
   const unread = (view?.sources ?? []).filter((s) => s.status !== 'ok')
 
   return (
-    <Panel id="sec-board" title={t('needsYou.title')}>
+    <Panel id="sec-needs-you" title={t('needsYou.title')}>
       <p className="muted">{t('needsYou.lede')}</p>
 
       {problem && <Banner tone="error">{t('needsYou.unreadable', { reason: problem })}</Banner>}

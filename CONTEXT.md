@@ -325,7 +325,8 @@ the Agents grid's running sessions or in `fabric_agents_list`, which read Fabric
 **Session handoff** — the context a session is handed before its first turn, in the shared
 format `session-handoff/1` (files in user data, never the repository; a preamble naming one
 first tool) — the same for a session Fabric starts and for one another product's console
-starts (ADR-0140). Fabric's `execution-packet/1` is the integrity manifest underneath it.
+starts (ADR-0140). Fabric's `execution-packet/1` is the integrity manifest underneath it. Planned for 0.4.0
+(wave 2, P2): 0.3.5 hands a session the bundle it had before `session-handoff/1`.
 
 **Claim** — an agent's statement on its project's board that it is working on one task now (REQ-38, SCN-140): taken
 before work starts, released when it ends or the session closes, journalled. A claim warns other agents of related work;
@@ -341,7 +342,8 @@ and says the conversation is not built yet (`shared/linkRoute.ts#routeForLink`);
 
 **Setup console** — the person's coding agent, opened by Fabric with a setup brief, doing the
 machine's setup on the person's consent step by step — skills, Fabric's MCP entry in each
-coding agent, the family's products — while Fabric shows what it observes (ADR-0135).
+coding agent, the family's products — while Fabric shows what it observes (ADR-0135). Planned for 0.4.0 (RM-09): 0.3.5 ships no
+Setup console; the first run lists the coding agents and their install commands.
 
 **Workflow** — a versioned graph of agent steps in one Project: a step is a session of a named
 agent or runner, or a call to a registered service; a run materialises tasks and `follows`

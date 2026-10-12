@@ -1,2 +1,4 @@
 # scripts/check-project-schemas.py uses Draft202012Validator and FormatChecker.
 jsonschema==4.26.0
+# scripts/check-workflows.py parses every GitHub workflow.
+PyYAML==6.0.3

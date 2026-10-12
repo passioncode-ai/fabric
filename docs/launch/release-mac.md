@@ -119,9 +119,10 @@ build signed anywhere but the `release` environment is a debug build that is nev
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
    keychain is deleted on every path.
-6. **`windows` and `linux`, then `publish`.** `windows` and `linux` build natively on their runners (x64 and arm64 each), install the result, start it once
-   in SMOKE mode with `--mcp` (the packaged `fabric-mcp` check above), uninstall it, and upload the installers with
-   their receipts. Windows signs through Azure Artifact Signing when the release environment's
+6. **`windows` and `linux`, then `publish`.** `windows` and `linux` build natively on their runners (x64 and arm64 each)
+   and upload the installers with their receipts. `windows` installs the NSIS build, starts it once in SMOKE mode with
+   `--mcp` (the packaged `fabric-mcp` check above) and uninstalls it; `linux` installs the `.deb` and starts it the same
+   way — the AppImage is built and published, not started. Windows signs through Azure Artifact Signing when the release environment's
    `AZURE_SIGNING_ENABLED` is `true` (passioncode-ai/.github `release-signing/products.json`); otherwise the
    receipt says `windows_authenticode: NOT_SIGNED` and the job refuses release notes that do not say so
    (`.github/workflows/release.yml`, the windows job's notes check). Linux packages are not code-signed; the
@@ -264,9 +265,10 @@ At start, 0.3.5 also retires the old seed's second owner `…0002` from a databa
 operator — a revoke through the membership door (`desktop-bootstrap:seed-retire`, compare-and-set at the revision read),
 never a delete, and only while that membership is still the seed's own and its person has no sign-in — and the
 profile's "Running for N days" counts from the repair, not from the failed install (CO-242, `seedRepair.ts#retireSeedOwner`).
-Grants an agent was given before migration 91 (`grants_from_the_journal`) carry no project, and after the upgrade they
-still serve every project until they expire or are spent (91's own note; no journal event names them, so a restore
-never recreates them). Revoke an agent you no longer trust in Settings → Agent access before or after upgrading.
+Floor grants (the short-lived grants for money, deletion and publication effects, at most an hour) written before
+migration 91 (`grants_from_the_journal`) carry no project, and after the upgrade they still serve every project until
+they expire or are spent (91's own note; no journal event names them, so a restore never recreates them). Nothing
+revokes them; upgrade at least an hour after the last such grant, or let them expire.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

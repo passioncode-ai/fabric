@@ -469,7 +469,6 @@ in waves 2–7, and 508 carried after 0.4.0 with an id and a reason. Carry-over:
    database, reset Fabric's local data, and the first run walked on a clean install.
 Operator questions are batched at the end; today there is one: the Figma folder «PassionCode».
 
-<a id="waves"></a>
 <a id="decision-2026-10-12-0-3-5"></a>
 ## Decision, 2026-10-12: what is on `main` ships as 0.3.5
 
@@ -485,8 +484,13 @@ is **0.3.5**, not 0.4.0. This amends D-02 ("everything, as 0.4.0") and the statu
 - **0.4.0** keeps everything else in this plan: the rest of wave 2 (P2 `session-handoff/1`, P4 runner probes and
   product MCP under a grant), waves 3–8, self-update (P-12, REQ-26), the manager session (P-13, REQ-16/REQ-42's
   second half) and the per-OS sign-in readers and runtime tuples (CO-244, CO-251).
+- **The clean first run moves to 0.3.5.** The operator's order of 2026-10-11 («новая сборка выпущена, переустановлена на
+  этом компьютере, локальные данные Fabric очищены, чтобы протестировать с нуля») is carried out at 0.3.5's release close:
+  the database dumped, upgraded 79 → 84, the app installed, then the local data reset for a fresh first run. Strategy
+  step 5's wave-8 walk stays, on 0.4.0.
 
 
+<a id="waves"></a>
 ## Waves
 
 Cut from the canvas: each wave closes in one pass and leaves the product working. After each wave: verify (full

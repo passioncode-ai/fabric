@@ -872,6 +872,8 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.where.idle` | More projects with nothing in flight: {count} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-141 | proposed |
 | `work.where.unowned` | Sessions with no project | apps/desktop/src/renderer/src/i18n/en.ts:2211 | SCN-141 | proposed |
 | `work.where.unownedNone` | none | apps/desktop/src/renderer/src/i18n/en.ts:2212 | SCN-141 | proposed |
+| `work.where.folder` | in {folder} | apps/desktop/src/renderer/src/i18n/en.ts:2314 | SCN-141 | proposed |
+| `work.where.folderUnknown` | its folder is not shared with Fabric | apps/desktop/src/renderer/src/i18n/en.ts:2315 | SCN-141 | proposed |
 | `work.where.readAt` | Read at {at} | apps/desktop/src/renderer/src/i18n/en.ts:2213 | SCN-141 | proposed |
 
 ### The 0.3.5 release review, iteration 1 · 2026-10-12 (UX-1, UX-10, UX-11, UX-12, UX-13, ER-10)

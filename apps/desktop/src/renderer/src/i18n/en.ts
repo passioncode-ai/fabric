@@ -2311,6 +2311,8 @@ export const en = {
   'work.where.idle': "More projects with nothing in flight: {count}",
   'work.where.unowned': "Sessions with no project",
   'work.where.unownedNone': "none",
+  'work.where.folder': "in {folder}",
+  'work.where.folderUnknown': "its folder is not shared with Fabric",
   'work.where.readAt': "Read at {at}",
 } as const
 

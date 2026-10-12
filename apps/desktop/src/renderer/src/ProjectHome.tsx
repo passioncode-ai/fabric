@@ -373,7 +373,7 @@ export function ProjectHome({
       {!openTask && (
         <section className="lp">
           {/* SCR-31 «Who is working on what» (SCN-140): claims follow the work and agent families. */}
-          <WhoIsWorking projectId={project.id} feedMark={markOf(marks, ['work', 'task', 'agent'])} onError={onError} />
+          <WhoIsWorking projectId={project.id} feedMark={markOf(marks, ['work', 'task', 'agent', 'session', 'terminal'])} onError={onError} />
         </section>
       )}
       {!openTask && (

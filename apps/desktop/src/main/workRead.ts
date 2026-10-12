@@ -136,6 +136,8 @@ export interface HeldSession {
   cameIn: CameIn
   /** Fabric runs a terminal for it (a PTY); an enrolled or hub session has none (0.3.5 review UX-3). */
   console?: boolean
+  /** The folder it works in, when Fabric knows it (its own terminals); an enrolled agent's folder is not shared. */
+  folder?: string | null
   startedAt: number
   lastSignAt: number | null
 }
@@ -147,6 +149,7 @@ export function sessionView(s: HeldSession, now: number): WorkSessionView {
     agent: s.agent,
     cameIn: s.cameIn,
     console: s.console === true,
+    folder: s.folder ?? null,
     startedAt: new Date(s.startedAt).toISOString(),
     lastSignAt: s.lastSignAt ? new Date(s.lastSignAt).toISOString() : null,
     stale: sessionStale(s.lastSignAt, s.startedAt, now)

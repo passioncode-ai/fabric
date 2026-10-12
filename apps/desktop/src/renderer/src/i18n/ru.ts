@@ -2181,5 +2181,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'work.where.idle': "Ещё проектов без текущей работы: {count}",
   'work.where.unowned': "Сессии без проекта",
   'work.where.unownedNone': "нет",
+  'work.where.folder': "в папке {folder}",
+  'work.where.folderUnknown': "папку Fabric не сообщили",
   'work.where.readAt': "Прочитано в {at}",
 }

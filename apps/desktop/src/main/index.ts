@@ -1203,8 +1203,8 @@ function heldSessions(projectId?: string): HeldSession[] {
     const held = out.get(p.sessionId)
     // A running terminal is a console Fabric holds: «Open session» opens it (0.3.5 review UX-3).
     out.set(p.sessionId, held
-      ? { ...held, agent: held.agent ?? p.optionId, console: true, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
-      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, startedAt: Date.parse(p.startedAt), lastSignAt: at })
+      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at })
   }
   return [...out.values()]
 }

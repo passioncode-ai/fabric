@@ -74,6 +74,29 @@ describe('Who is working on what', () => {
     expect(screen.getAllByText(/untitled task/).length).toBeGreaterThanOrEqual(2)
   })
 
+  it('reads again each minute, so a session that started since the last reading shows (0.3.5 i2 UX-1)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const project = vi.fn(async () => view())
+    stub({ work: { project } })
+    show(<WhoIsWorking projectId="p1" feedMark={0} onError={() => {}} />)
+    await waitFor(() => expect(project).toHaveBeenCalledTimes(1))
+    await vi.advanceTimersByTimeAsync(60_000)
+    await waitFor(() => expect(project).toHaveBeenCalledTimes(2))
+    vi.useRealTimers()
+  })
+
+  it("a reading that answers for the previous project never shows on the current one (0.3.5 i2 UX-10)", async () => {
+    let answerP1: (v: ProjectWorkView) => void = () => {}
+    const project = vi.fn((id: string) => id === 'p1' ? new Promise<ProjectWorkView>((r) => { answerP1 = r }) : Promise.resolve(view()))
+    stub({ work: { project } })
+    const r = show(<WhoIsWorking projectId="p1" feedMark={0} onError={() => {}} />)
+    r.rerender(<I18nProvider locale="en"><WhoIsWorking projectId="p2" feedMark={0} onError={() => {}} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(en['work.who.none'])).toBeTruthy())
+    answerP1(view({ claims: [claim({ title: 'Stale from p1' })] }))
+    await new Promise((res) => setTimeout(res, 20))
+    expect(screen.queryByText('Stale from p1')).toBeNull()
+  })
+
   it('Release… asks first, names the agent and the task, and Cancel releases nothing', async () => {
     const release = vi.fn(async () => ({ released: true, claimId: 'c1' }))
     stub({ work: { project: vi.fn(async () => view({ claims: [claim({})] })), release } })
@@ -201,6 +224,23 @@ describe('Where work is', () => {
     expect(screen.getByText(en['work.task.untitled'])).toBeTruthy()
     fireEvent.click(screen.getByText(en['work.where.active']))
     await waitFor(() => expect(onError).toHaveBeenCalledWith('the session has ended'))
+  })
+
+  it('a session with no project names its folder and opens when Fabric holds its console (0.3.5 i2 UX-3)', async () => {
+    const openSession = vi.fn(async () => {})
+    const now = new Date().toISOString()
+    stub({
+      work: { estate: vi.fn(async () => where({ unowned: [
+        { sessionId: 'sx', projectId: null, agent: 'claude-code', cameIn: 'launched' as const, console: true, folder: '/work/scratch', startedAt: now, lastSignAt: now, stale: false },
+        { sessionId: 'sy', projectId: null, agent: 'codex', cameIn: 'enrolled' as const, console: false, folder: null, startedAt: now, lastSignAt: now, stale: false }
+      ] })) },
+      windows: { openSession }
+    })
+    show(<WhereWorkScreen feedMark={0} onProject={() => {}} onTask={() => {}} onReview={() => {}} onError={() => {}} />)
+    await waitFor(() => expect(screen.getByText(/in \/work\/scratch/)).toBeTruthy())
+    expect(screen.getByText(/its folder is not shared with Fabric/)).toBeTruthy()
+    fireEvent.click(screen.getByText(/in \/work\/scratch/))
+    expect(openSession).toHaveBeenCalledWith('sx')
   })
 
   it('a quiet session reads its silence, an unread review queue says so, and a claim opens its task', async () => {

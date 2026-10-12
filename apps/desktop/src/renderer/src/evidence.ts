@@ -38,6 +38,7 @@ export const EVIDENCE_ANCHORS = [
   'sec-memory',
   'sec-memory-misses',
   'sec-memory-overview',
+  'sec-needs-you',
   'sec-plan',
   'sec-profile',
   'sec-repos',

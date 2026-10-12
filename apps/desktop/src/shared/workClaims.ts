@@ -308,6 +308,8 @@ export interface WorkSessionView {
   /** Fabric holds a console (a terminal it runs) for this session. False for an agent enrolled from its own terminal
    *  or reaching Fabric through the hub: «Open session» would only say "This session is gone" (0.3.5 review UX-3). */
   console: boolean
+  /** The folder the session works in, when Fabric knows it (its own terminals; 0.3.5 i2 UX-3, SCN-141). */
+  folder?: string | null
   startedAt: string
   lastSignAt: string | null
   stale: boolean

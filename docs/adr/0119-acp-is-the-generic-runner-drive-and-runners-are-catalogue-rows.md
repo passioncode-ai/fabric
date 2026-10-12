@@ -232,3 +232,9 @@ over ACP with HTTP MCP (`surfaceAdapter: 'acp-session'`) and Codex through an is
 (`surfaceAdapter: 'codex-config-home'`), both in `apps/desktop/src/shared/agents.ts`; both ship in 0.3.5. Cline stays
 without one (its ACP `session/new` demands a sign-in no probe has passed) and reaches Fabric through `fabric-mcp`.
 Found by the 0.3.5 verification, iteration 1 (DO-14).
+
+### Amendment 7 — 2026-10-12: the Setup console is 0.4.0's
+
+Amendment 5 describes setup "in the Setup console" ([ADR-0135](0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md));
+that console is planned for 0.4.0 (RM-09) and does not ship in 0.3.5, where the person registers `fabric-mcp` with
+their coding agent's own CLI as the release notes say. Found by the 0.3.5 verification, iteration 2 (DO-6).
