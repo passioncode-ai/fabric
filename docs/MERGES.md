@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12T13:50:00Z · `—` · agent/absences-words → main · fast-forward
+- run: 249d0762eddd
+- files: 7
+- conflicts: none
+- summary: The home screen's folder banner names what a folder will not bring back in locale words (workspace.entity.*, Intl.ListFormat) instead of interpolating the storage contract's English sentence with table ids — seen in Russian on the operator's 0.3.5 first run. Tests hold every NOT REBUILDABLE table to a word in en and ru.
+
 ### 2026-10-12T13:28:41Z · `—` · agent/comms-filters → main · `5af32ed4`
 - run: r-64b69ed3a
 - files: 94 (94 files changed, 370 insertions(+), 25 deletions(-))

@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
+  questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
 - **The database moves to schema 85** (from 84): one migration — the project board's thread aggregates (the kinds a
   thread holds, its open requests) that back the Comms filters. An existing database is upgraded by the
   [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database).
