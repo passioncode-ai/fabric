@@ -925,3 +925,29 @@ Humanization: on — own pass (copywriting, notice register: plain, no humour, s
 | `startup.repository-not-found.remedy.linux` | Set FABRIC_REPO to a checkout of the Fabric repository, then open Fabric again. Fabric installed from its AppImage or .deb package carries its own stack and needs no checkout. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
 | `links.offer.body` | A product's Fabric button was pressed while the first run was open. It waited for you. | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-142 | proposed |
 | `links.offer.open` | Open it | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-142 | proposed |
+
+## Russian copy pass — the whole ru registry reviewed (2026-10-12)
+
+Written through `copywriting` (Edit mode: the seven sweeps, then the humanization pass) against `voice.md`
+(peer-builder), `terminology.md` and `locales/ru.md` («вы», neutral form). Operator request, 2026-10-12: the
+Russian interface read as machine translation. 447 Russian strings changed in `ru.ts`; English, keys and
+placeholders unchanged. What was fixed: calques and log-register phrasing («обеспечено принудительно», «ваше
+хозяйство», «поверхность агентов», «Нечем читать»), jargon («залогинен», «билд», «грант»), a Latin «Estate» with
+feminine agreement on the restore screens, «исполнитель» where terminology.md rules out "executor" for a coding
+agent, the banned «экосистема», one name per action, and number agreement around count placeholders («после
+{visited} папок» → «просмотрено папок — {visited}»). Russian words this pass settles, pending a terminology row:
+the agent surface is «сервер Fabric для агентов»; an Effect is «внешнее действие»; skills are «скиллы»; the
+workspace folder is «папка пространства»; a run is «запуск»; "receipts" are «квитанции»; a task held by a claim
+is «занята». Humanization: on — own pass; 82 of the 447 strings changed by more than half, almost all short labels.
+
+Proposed Russian rows (Status: proposed for each; English primaries unchanged):
+
+- `harness.strict` — «Ровно один, и это ограничение строгое: сессии запускаются со строгой конфигурацией MCP, поэтому остальные серверы, настроенные на этом компьютере, изнутри не видны.» · apps/desktop/src/renderer/src/i18n/ru.ts:1606 · SCN-031 · proposed
+- `harness.noServer` — «Сервер Fabric для агентов не запущен, поэтому у сессии здесь не было бы никаких инструментов.» · apps/desktop/src/renderer/src/i18n/ru.ts:1607 · SCN-031 · proposed
+- `start.skills.plugin` — «Скиллы Fabric Agent Adapter установлены для {agent} ({version}).» · apps/desktop/src/renderer/src/i18n/ru.ts:1911 · SCN-136 · proposed
+- `history.restore.what` — «История из архива восстанавливается в новое пространство, владельцем которого будете вы. Текущее пространство и его работа не меняются.» · apps/desktop/src/renderer/src/i18n/ru.ts:748 · SCN-065 · proposed
+- `history.name` — «Название нового пространства» · apps/desktop/src/renderer/src/i18n/ru.ts:756 · SCN-065 · proposed
+- `launch.guide.step.agent` — «Для проекта настроен агент» · apps/desktop/src/renderer/src/i18n/ru.ts:861 · SCN-067 · proposed
+- `estate.quotaNoCredential` — «Нет учётных данных для чтения квоты: на этом компьютере не выполнен вход в Claude Code.» · apps/desktop/src/renderer/src/i18n/ru.ts:66 · SCN-030 · proposed
+- `agents.historyEarlier` — «Показаны последние события: {count}. Более ранние события этой сессии в список не вошли.» · apps/desktop/src/renderer/src/i18n/ru.ts:1570 · SCN-130 · proposed
+- `launch.comms.request.effect` — «Внешнее действие» · apps/desktop/src/renderer/src/i18n/ru.ts:1248 · SCN-143 · proposed

@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12 · `ru-copy-pass` · agent/ru-copy-pass → main · fast-forward
+- run: none (a single-agent copy pass; no coordination run)
+- summary: the whole Russian registry reviewed (PR #30): 447 strings in apps/desktop/src/renderer/src/i18n/ru.ts rewritten — calques, log register, «Estate»/«исполнитель»/«экосистема», one name per action, number agreement; English, keys and placeholders unchanged; docs/brand/strings.md section (Status: proposed); design-map iteration 2026-10-12-ru-copy-pass.
+
 ### 2026-10-12 · `release-040-wave1-b4` · agent/rv3-final, agent/release-035 → main · fast-forward
 - run: r-249d0762eddd
 - summary: Fabric 0.3.5's final candidate (89718e92: the project page's Codex and Kimi Code words, the nightly gates, three full-tier tests caught up, docs, CO-270…CO-273) and the release commit (version 0.3.5, the CHANGELOG finalized, the release gate with three iterations — 67, 52 and 45 findings, all disposed — and five rechecks).
