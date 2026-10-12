@@ -4,7 +4,13 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-12T13:50:00Z · `—` · agent/absences-words → main · fast-forward
+### 2026-10-12T16:17:29Z · `—` · agent/comms-unread → main · `d22b4d58`
+- run: r-64b69ed3a
+- files: 110 (110 files changed, 247 insertions(+), 36 deletions(-))
+- conflicts: none
+- summary: Comms unread (COM-07 slice): a thread newer than the operator's read mark carries New and the rail's Comms item counts such threads — the board is watchable without opening it. Opening marks read through last seq, live arrivals move the mark, mark-all clears in one act; commsReadThrough is machine-local settings (AX-07 pattern), field-scoped patches; a silent board keeps the badge's last confirmed count. SCN-143 amended first (COM-06). Mockup + previews + completeness re-pinned; ci.sh fast green.
+
+### 2026-10-12T13:50:00Z · `—` · agent/absences-words → main · `fast-forward`
 - run: 249d0762eddd
 - files: 7
 - conflicts: none
