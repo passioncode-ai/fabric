@@ -6,6 +6,7 @@ import { quotaHasNumbers, quotaOf, quotaProblemKey, type QuotaReading } from '..
 import { EmptyState, Panel, Row, StateChip } from '../components'
 import { until } from '../duration'
 import { useT } from '../i18n'
+import { MachineDetail } from '../OperatorError'
 
 export function QuotaPanel({ quota }: { quota: QuotaReading }): React.JSX.Element {
   const t = useT()
@@ -21,7 +22,10 @@ export function QuotaPanel({ quota }: { quota: QuotaReading }): React.JSX.Elemen
           {t('estate.quotaUnread')}
         </EmptyState>
       ) : 'failed' in quota ? (
-        <EmptyState read>{t('estate.quotaUnavailable', { reason: quota.failed })}</EmptyState>
+        <>
+          <EmptyState read>{t('estate.quotaUnavailable')}</EmptyState>
+          <MachineDetail text={quota.failed} />
+        </>
       ) : !reading ? (
         // NOT "not signed in". The reader never answers null since the
         // 2026-10-03 release review — a signed-out account is `no-credential`

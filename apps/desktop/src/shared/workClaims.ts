@@ -305,6 +305,9 @@ export interface WorkSessionView {
   projectId: string | null
   agent: string | null
   cameIn: CameIn
+  /** Fabric holds a console (a terminal it runs) for this session. False for an agent enrolled from its own terminal
+   *  or reaching Fabric through the hub: «Open session» would only say "This session is gone" (0.3.5 review UX-3). */
+  console: boolean
   startedAt: string
   lastSignAt: string | null
   stale: boolean
@@ -320,6 +323,8 @@ export interface WorkClaimView {
   sessionId: string
   agent: string | null
   cameIn: CameIn
+  /** Fabric holds a console for the claim's session (see `WorkSessionView.console`). */
+  console: boolean
   touches: string[]
   since: string
   until: string
@@ -336,15 +341,20 @@ export interface WorkHeldView {
   until: string
 }
 
+/** Why agent-sync's leases were not read, as a code each window says in its own language (0.3.5 review UX-5).
+ *  `not-used`: the repository carries no `.claude/agent-sync.json`, so no remote is read and no block is shown. */
+export type LeaseReadCode = 'not-used' | 'no-origin' | 'not-listable' | 'remote-unreadable' | 'timeout' | 'too-large' | 'refused'
+
 export type WorkLeasesView =
   | { read: true; repository: string; readAt: string; leases: Array<{ key: string }>; truncated: boolean }
-  | { read: false; reason: string }
+  | { read: false; code: Exclude<LeaseReadCode, 'not-used'> }
 
 export interface ProjectWorkView {
   claims: WorkClaimView[]
   held: WorkHeldView[]
   sessions: WorkSessionView[]
-  /** agent-sync's leases on the primary repository, read-only; null when the project has no repository. */
+  /** agent-sync's leases on the primary repository, read-only; null when the project has no repository or its
+   *  repository does not use agent-sync. */
   leases: WorkLeasesView | null
   readAt: string
 }

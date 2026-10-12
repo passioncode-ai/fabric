@@ -13,18 +13,21 @@ import { Button, Panel, Row, StateChip, Toolbar } from '../components'
 import { useT, type Translate } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
-import { cameInLabel, lifeLabel, taskLabel, whyLabel } from '../WhoIsWorking'
+import { cameInLabel, lifeLabel, outsideLabel, taskLabel, whyLabel } from '../WhoIsWorking'
+import { MachineDetail } from '../OperatorError'
 import { explainError } from '../start/startParts'
 
-type Read = { state: 'reading' } | { state: 'read'; view: WhereWorkView } | { state: 'unreadable'; reason: string }
+type Read = { state: 'reading' } | { state: 'read'; view: WhereWorkView } | { state: 'unreadable'; detail: string }
 
+/** A session in words; one Fabric holds no console for says where it runs, since it opens no window (UX-3). */
 function sessionLine(s: WorkSessionView, t: Translate, now: number): string {
   const who = t('work.who.by', { agent: runnerLabel(s.agent, t), how: cameInLabel(s.cameIn, t) })
+  const where = s.console ? '' : ` · ${outsideLabel(s.cameIn, t)}`
   if (s.stale) {
     const at = Date.parse(s.lastSignAt ?? s.startedAt)
-    return `${who} · ${t('work.where.stale', { minutes: Math.max(1, Math.round((now - at) / 60_000)) })}`
+    return `${who} · ${t('work.where.stale', { minutes: Math.max(1, Math.round((now - at) / 60_000)) })}${where}`
   }
-  return `${who} · ${t('work.who.since', { ago: since(s.startedAt, t) })}`
+  return `${who} · ${t('work.who.since', { ago: since(s.startedAt, t) })}${where}`
 }
 
 export function WhereWorkScreen({
@@ -47,7 +50,7 @@ export function WhereWorkScreen({
     try {
       setRead({ state: 'read', view: await window.fabric.work.estate() })
     } catch (e) {
-      setRead({ state: 'unreadable', reason: explainError(e, t) })
+      setRead({ state: 'unreadable', detail: explainError(e, t) })
     }
   }
   useEffect(() => {
@@ -75,9 +78,10 @@ export function WhereWorkScreen({
       {read.state === 'unreadable' && (
         <Panel>
           <Toolbar>
-            <span className="muted">{t('work.where.unreadable', { reason: read.reason })}</span>
+            <span className="muted">{t('work.where.unreadable')}</span>
             <Button tone="ghost" onClick={() => void load()}>{t('common.retry')}</Button>
           </Toolbar>
+          <MachineDetail text={read.detail} />
         </Panel>
       )}
       {read.state === 'read' && (
@@ -91,7 +95,7 @@ export function WhereWorkScreen({
             >
               <p className="lp-kicker">{t('work.where.sessions')}</p>
               {r.sessions.length === 0 ? <p className="muted">{t('work.where.noneCol')}</p> : r.sessions.map((s) => (
-                <Row key={s.sessionId} onClick={() => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t)))}
+                <Row key={s.sessionId} onClick={s.console ? () => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}
                   lead={<StateChip tone={s.stale ? 'warn' : 'good'} dot>{s.stale ? t('work.where.quiet') : t('work.where.active')}</StateChip>}>
                   {sessionLine(s, t, now)}
                 </Row>

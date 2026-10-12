@@ -306,9 +306,11 @@ describe('A4-020 — the project status bar keeps a failed quota read apart from
   const bar = (quota: React.ComponentProps<typeof ProjectStatusBar>['quota']): void =>
     wrap(<ProjectStatusBar stats={null} repos={null} quota={quota} running={0} />)
 
-  it('a failed read says the quota could not be read, and why', () => {
+  it('a failed read says the quota could not be read, in words, and keeps why behind the cell (UX-10)', () => {
     bar({ read: true, failed: 'the main process did not answer' })
-    expect(screen.getByText(/quota unreadable: the main process did not answer/)).toBeTruthy()
+    const cell = screen.getByText(en['status.quotaUnreadable'])
+    expect(cell.closest('[title]')?.getAttribute('title')).toBe('the main process did not answer')
+    expect(screen.queryByText(/the main process did not answer/), 'the machine words are not the cell text').toBeNull()
   })
 
   it('no reading yet and an account with no quota both show no cell', () => {

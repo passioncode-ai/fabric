@@ -140,7 +140,8 @@ export interface ExecutorAuthentication {
   state: 'authenticated' | 'not-authenticated' | 'unsupported' | 'unknown'
   /** Whitelisted method only, never an account id, address or credential. */
   method: string | null
-  reason: 'unverified-build' | 'unavailable' | 'timeout' | 'output-limit' | 'invalid-response' | null
+  /** `unsupported-os`: Fabric reads no sign-in on this system (only macOS was measured) — never the agent's version. */
+  reason: 'unverified-build' | 'unsupported-os' | 'unavailable' | 'timeout' | 'output-limit' | 'invalid-response' | null
 }
 // #endregion executor-auth-contract
 export interface ExecutorRow {

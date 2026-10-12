@@ -972,9 +972,10 @@ export function ProjectStatusBar({
       {/* Absent, not zero, when there is no source: CO-096 established that no
           per-project cost exists, and an account not signed in has no quota.
           A read that FAILED is neither, and says so (audit A4-020). */}
+      {/* Our words in the cell; the machine's words behind it, on hover — never the cell's text (0.3.5 review UX-10). */}
       {quotaFailed !== null && (
-        <StatusCell quiet>
-          <Tick muted>{t('status.quotaUnreadable', { why: quotaFailed })}</Tick>
+        <StatusCell quiet title={quotaFailed}>
+          <Tick muted>{t('status.quotaUnreadable')}</Tick>
         </StatusCell>
       )}
       {shown?.fiveHour && (

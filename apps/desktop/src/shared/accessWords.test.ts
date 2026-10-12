@@ -200,6 +200,20 @@ describe('an enrollment, as main sends it (ADR-0134)', () => {
     expect(consentPrompt(tEn, enrolling()).title).toBe('Let Claude Code work in Atlas?')
     expect(consentPrompt(tRu, enrolling()).title).toBe('Разрешить Claude Code работать в проекте «Atlas»?')
   })
+  it('a project whose name is not known is "this project" in Russian too, never «без названия» (0.3.5 review UX-12)', () => {
+    const named = enrolling()
+    const unnamed = { ...named, enroll: { ...named.enroll!, projectName: '' } }
+    const p = consentPrompt(tRu, unnamed)
+    expect(p.title).toBe('Разрешить Claude Code работать в этом проекте?')
+    expect(p.statement).toBe('Claude Code, открытый вне Fabric, просит работать в этом проекте')
+    const said = [p.title, p.statement, p.detail, sayQueueTitle(tRu, unnamed), sayDecided(tRu, unnamed, 'allowed'), sayDecided(tRu, unnamed, 'denied')].join('\n')
+    expect(said).not.toMatch(/без названия|«»/)
+    expect(sayDecided(tRu, unnamed, 'allowed')).toBe('Claude Code: работа в этом проекте разрешена.')
+    expect(consentPrompt(tEn, unnamed).title).toBe('Let Claude Code work in this project?')
+    // A named project still reads as before, in both languages.
+    expect(sayDecided(tRu, named, 'denied')).toBe('Claude Code: работать в проекте «Atlas» не разрешено.')
+    expect(sayQueueTitle(tEn, named)).toBe('Claude Code asks to work in Atlas')
+  })
   it('the origin is a coding agent by its name, never "an agent registered as" its id', () => {
     const f = enrolling()
     expect(sayOrigin(tEn, f.agent)).toBe('A coding agent: Claude Code')

@@ -141,7 +141,7 @@ describe('agent-sync lease refs are parsed, decoded and bounded', () => {
 })
 
 describe('Where work is: rows in flight, the idle counted, the unowned always kept apart', () => {
-  const s = (over: Partial<WorkSessionView>): WorkSessionView => ({ sessionId: 's', projectId: 'p1', agent: 'claude-code', cameIn: 'enrolled', startedAt: '2026-10-11T10:00:00.000Z', lastSignAt: null, stale: false, ...over })
+  const s = (over: Partial<WorkSessionView>): WorkSessionView => ({ sessionId: 's', projectId: 'p1', agent: 'claude-code', cameIn: 'enrolled', console: false, startedAt: '2026-10-11T10:00:00.000Z', lastSignAt: null, stale: false, ...over })
   const c = { claimId: 'c', projectId: 'p2', taskId: 't', lastSignAt: '2026-10-11T10:05:00.000Z' } as WorkClaimView
   it('a project with a session, a claim or a review is in flight; the rest are counted', () => {
     const out = whereWorkRows({

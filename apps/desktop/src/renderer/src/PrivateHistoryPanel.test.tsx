@@ -14,8 +14,9 @@ function stub(over: Record<string, unknown> = {}) {
   const history = { list: vi.fn(async () => []), export: vi.fn(async () => ({ ok: true, archive_id: 'a', name: '2026-09-28-export', conversations: 1, messages: 2 })),
     choose: vi.fn(async () => archive()), restore: vi.fn(async () => restored), check: vi.fn(async () => restored), open: vi.fn(async () => ({ ok: true, reason: null })),
     pending: vi.fn(async () => []), restored: vi.fn(async () => []), ...over }
-  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { history } }))
-  return history
+  const ops = { rendererError: vi.fn() }
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { history, ops } }))
+  return Object.assign(history, { ops })
 }
 const show = () => render(<I18nProvider locale="en"><PrivateHistoryPanel onClose={() => {}} /></I18nProvider>)
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((x, [k, val]) => x.replace(`{${k}}`, String(val)), s)
@@ -169,4 +170,25 @@ describe('SCR-48 restores that outlive the panel', () => {
       expect(screen.queryByText(en['history.fact.noPrivate'])).toBeNull()
       expect(screen.getByRole('button', { name: en['history.open'] })).toBeTruthy()
     })
+})
+
+describe('ER-10 — an unreadable list of waiting restores is unknown, never "nothing waiting"', () => {
+  it('says the lists could not be read, logs it, and Check again reads them anew', async () => {
+    const h = stub({ pending: vi.fn(async () => { throw new Error('ipc') }), restored: vi.fn(async () => { throw new Error('ipc') }) }); show()
+    await screen.findByText(en['history.pending.unread'])
+    expect(screen.getByText(en['history.restoredList.unread'])).toBeTruthy()
+    await waitFor(() => expect(h.ops.rendererError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('ipc') })))
+    h.pending.mockResolvedValue([{ operation_id: OP, name: 'Waiting' }] as never)
+    h.restored.mockResolvedValue([] as never)
+    fireEvent.click(screen.getByRole('button', { name: en['history.checkAgain'] }))
+    await screen.findByText(fill(en['history.pending.item'], { name: 'Waiting' }))
+    expect(screen.queryByText(en['history.pending.unread'])).toBeNull()
+    expect(screen.queryByText(en['history.restoredList.unread'])).toBeNull()
+  })
+  it('a read list with nothing in it still shows nothing extra', async () => {
+    stub(); show()
+    await screen.findByText(en['history.none'])
+    expect(screen.queryByText(en['history.pending.unread'])).toBeNull()
+    expect(screen.queryByText(en['history.pending.title'])).toBeNull()
+  })
 })

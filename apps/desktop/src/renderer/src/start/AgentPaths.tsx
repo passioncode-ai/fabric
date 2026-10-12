@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { defaultBuilder, mayPick } from '../../../shared/builderChoice.ts'
 import { folderNameProblem, type AdapterSkillsView, type ExecutorRow, type FolderView } from '../../../shared/startPaths.ts'
 import { useLocale, useT, type Translate } from '../i18n'
-import { CopyButton, FolderFactsList, Heading, errorText, explainError, purposeFrom, reasonOf } from './startParts'
+import { CopyButton, FolderFactsList, Heading, errorText, explainError, programOf, purposeFrom, reasonOf } from './startParts'
 
 const newId = (): string => crypto.randomUUID()
 
@@ -150,10 +150,10 @@ function BuilderFixes({ id, blocked, disabled, retry }: { id: string; blocked: E
           <li key={r.id}>
             {r.state === 'missing'
               ? <>
-                  <span>{t('start.builder.fixMissing', { name: r.label })}</span>
+                  <span>{t(r.install ? 'start.builder.fixMissing' : 'start.builder.fixMissingNoCommand', { name: r.label })}</span>
                   {r.install && <span className="st-install"><code>{r.install}</code><CopyButton text={r.install} what={r.label} /></span>}
                 </>
-              : <span>{t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}</span>}
+              : <span>{t('first.exec.unresponsive', { program: programOf(r.path, r.label) })}</span>}
           </li>
         ))}
       </ul>

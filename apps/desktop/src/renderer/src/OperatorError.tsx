@@ -31,6 +31,12 @@ const KEYS: Record<ErrorKind, StringKey> = {
   'database-unreachable': 'error.database-unreachable'
 }
 
+/** A failure's machine words as a secondary line under a sentence in the operator's language — never the sentence
+ *  itself, and never hidden (0.3.5 review UX-10: Comms, the work screens and the quota said raw English). */
+export function MachineDetail({ text }: { text: string | null | undefined }): React.JSX.Element | null {
+  return text ? <p className="muted mono error-detail">{text}</p> : null
+}
+
 export function OperatorError({ raw }: { raw: string }): React.JSX.Element {
   const t = useT()
   const message = humaniseError(raw)

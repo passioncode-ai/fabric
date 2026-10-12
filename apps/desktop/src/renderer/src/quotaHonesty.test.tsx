@@ -84,7 +84,9 @@ describe('the quota panel says which question it is answering', () => {
     // the account, produced by our own outage.
     stub()
     show({ read: true, failed: 'the bridge is not answering' })
-    await waitFor(() => expect(screen.getByText(/could not be read|not answering/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/could not be read/i)).toBeTruthy())
+    // UX-10: the machine's words are a secondary line, never inside our sentence.
+    expect(screen.getByText('the bridge is not answering').className).toContain('error-detail')
     expect(screen.queryByText(/not signed in/i)).toBeNull()
   })
 
