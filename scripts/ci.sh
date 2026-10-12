@@ -24,6 +24,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# A Mac outside hosted CI keeps its display awake for the run: quit.test.mjs's real-Electron dialog case does not
+# finish within its bound while the display sleeps (measured 2026-10-12: fails asleep, passes awake; CO-210). Once,
+# never in a loop: FABRIC_CI_AWAKE marks the re-executed run.
+if [ "$(uname -s)" = Darwin ] && [ -z "${CI:-}${GITHUB_ACTIONS:-}${FABRIC_CI_AWAKE:-}" ] && command -v caffeinate >/dev/null 2>&1; then
+  FABRIC_CI_AWAKE=1 exec caffeinate -d -i bash "$0" "$@"
+fi
+
 TIER="${1:-fast}"
 step() { printf '\n\033[1m── %s\033[0m\n' "$1"; }
 

@@ -3,11 +3,19 @@ import contract from '../shared/schemaContract.json' with { type: 'json' }
 import { readManifest, type ManifestRead } from '../shared/buildManifest.ts'
 import { STACK_FOLDER } from '../shared/stackFolder.ts'
 
+/** Which check refused, so the dialog can say what to do in the operator's language (`startup.schema-not-ready.<why>`);
+ *  the message stays English, for the copied details and the log. */
+export type SchemaWhy = 'contract-invalid' | 'build-mismatch' | 'unverified' | 'behind' | 'ahead'
+
 export class SchemaReadinessError extends Error {
   readonly code = 'FABRIC_SCHEMA_NOT_READY'
-  constructor(reason: string) {
+  readonly why: SchemaWhy
+  readonly facts: { found?: number; min?: number; max?: number }
+  constructor(reason: string, why: SchemaWhy = 'unverified', facts: { found?: number; min?: number; max?: number } = {}) {
     super(reason)
     this.name = 'SchemaReadinessError'
+    this.why = why
+    this.facts = facts
   }
 }
 
@@ -45,20 +53,20 @@ export async function withSchemaReadiness<T>(input: {
 }, start: () => T | Promise<T>): Promise<T> {
   if (contract.schema !== 'FabricSchemaContract@1' || !positiveInteger(contract.minimum) ||
       !positiveInteger(contract.maximum) || contract.minimum > contract.maximum)
-    throw new SchemaReadinessError('The compiled database schema contract is invalid. Install a verified build.')
+    throw new SchemaReadinessError('The compiled database schema contract is invalid. Install a verified build.', 'contract-invalid')
   if (!input.manifest.ok) {
     if (input.packaged || input.manifest.why !== 'absent')
-      throw new SchemaReadinessError('The build manifest is missing or unreadable. Install a verified build, then restart Fabric.')
+      throw new SchemaReadinessError('The build manifest is missing or unreadable. Install a verified build, then restart Fabric.', 'build-mismatch')
     // Only an unpackaged source run with NO artifact manifest may use the
     // compiled contract. A present stale/malformed manifest is never ignored.
   } else {
     const { schemaMin, schemaMax } = input.manifest.manifest
     if (schemaMin !== contract.minimum || schemaMax !== contract.maximum)
-      throw new SchemaReadinessError('The build manifest does not match the compiled database schema contract. Rebuild or install a verified build, then restart Fabric.')
+      throw new SchemaReadinessError('The build manifest does not match the compiled database schema contract. Rebuild or install a verified build, then restart Fabric.', 'build-mismatch')
   }
   const timeout = input.timeoutMs ?? 10_000
   if (!positiveInteger(timeout) || timeout > 60_000)
-    throw new SchemaReadinessError('The database schema check deadline is invalid.')
+    throw new SchemaReadinessError('The database schema check deadline is invalid.', 'contract-invalid')
   const deadline = performance.now() + timeout
   const controller = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -83,8 +91,8 @@ export async function withSchemaReadiness<T>(input: {
   if (performance.now() >= deadline || !response || response.error != null || !positiveInteger(response.data))
     throw new SchemaReadinessError('The database schema could not be verified. Check the local stack and retry.')
   if (response.data < contract.minimum)
-    throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. ${schemaBehindRecovery.replace('{stackPath}', stackPath)}`)
+    throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. ${schemaBehindRecovery.replace('{stackPath}', stackPath)}`, 'behind', { found: response.data, min: contract.minimum, max: contract.maximum })
   if (response.data > contract.maximum)
-    throw new SchemaReadinessError(`The database schema is ${response.data}; this build supports ${contract.minimum}–${contract.maximum}. Install a compatible build, then retry. Fabric has not started its workspace services.`)
+    throw new SchemaReadinessError(`The database schema is ${response.data}; this build supports ${contract.minimum}–${contract.maximum}. Install a compatible build, then retry. Fabric has not started its workspace services.`, 'ahead', { found: response.data, min: contract.minimum, max: contract.maximum })
   return start()
 }

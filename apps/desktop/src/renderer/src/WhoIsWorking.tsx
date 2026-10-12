@@ -12,14 +12,26 @@ import { Button, Panel, Row, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
 import { since } from './duration'
 import { runnerLabel } from './runnerLabel'
+import { explainError } from './start/startParts'
 
 export function cameInLabel(c: CameIn, t: Translate): string {
   return t(`work.cameIn.${c}`)
 }
 
+const RELS = new Set(['blocks', 'follows', 'spawned'])
+/** A task link's relation in words, read from this task's side; one the app does not know reads as "linked". */
+export function relLabel(rel: string, direction: 'from' | 'to', t: Translate): string {
+  return RELS.has(rel) ? t(`work.rel.${rel}.${direction}` as 'work.rel.blocks.from') : t('work.rel.other')
+}
+
+/** A task with no title is "untitled task" in words, never a slice of its id. */
+export function taskLabel(title: string | null | undefined, t: Translate): string {
+  return title?.trim() ? title : t('work.task.untitled')
+}
+
 export function whyLabel(w: RelatedWhy, t: Translate): string {
   if (w.kind === 'same-row') return t('work.why.sameRow', { row: w.row })
-  if (w.kind === 'linked') return t('work.why.linked', { rel: w.rel })
+  if (w.kind === 'linked') return t('work.why.linked', { rel: relLabel(w.rel, w.direction, t) })
   return t('work.why.overlap', { mine: w.mine, theirs: w.theirs })
 }
 
@@ -44,7 +56,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
       const view = await window.fabric.work.project(at)
       if (at === projectId) setRead({ state: 'read', view })
     } catch (e) {
-      setRead({ state: 'unreadable', reason: String(e) })
+      setRead({ state: 'unreadable', reason: explainError(e, t) })
     }
   }
   useEffect(() => {
@@ -63,12 +75,12 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
       const r = await window.fabric.work.release(c.claimId)
       if (!r.released) setFailure(t(`work.release.failed.${r.reason}`))
     } catch (e) {
-      onError(String(e))
+      onError(explainError(e, t))
     }
     await load()
   }
 
-  const titleOf = (c: Pick<WorkClaimView, 'title' | 'taskId'>): string => c.title || c.taskId.slice(0, 8)
+  const titleOf = (c: Pick<WorkClaimView, 'title' | 'taskId'>): string => taskLabel(c.title, t)
   return (
     <Panel id="sec-who" title={t('work.who.title')}>
       {read.state === 'reading' && <p className="muted">{t('work.who.reading')}</p>}
@@ -88,7 +100,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
                 trail={
                   <Toolbar>
                     {c.life !== 'lapsed' && (
-                      <Button tone="ghost" onClick={() => window.fabric.windows.openSession(c.sessionId).catch((e: unknown) => onError(String(e)))}>
+                      <Button tone="ghost" onClick={() => window.fabric.windows.openSession(c.sessionId).catch((e: unknown) => onError(explainError(e, t)))}>
                         {t('work.who.open')}
                       </Button>
                     )}
@@ -111,7 +123,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
               </Row>
               {c.related.map((r) => (
                 <Row key={r.claimId} quiet lead={<StateChip tone="warn">{t('work.who.related')}</StateChip>}>
-                  {t('work.who.relatedTo', { task: r.title || r.taskId.slice(0, 8), why: r.why.map((w) => whyLabel(w, t)).join('; ') })}
+                  {t('work.who.relatedTo', { task: taskLabel(r.title, t), why: r.why.map((w) => whyLabel(w, t)).join('; ') })}
                 </Row>
               ))}
               {confirm?.claimId === c.claimId && (
@@ -128,7 +140,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
           ))}
           {read.view.held.map((h) => (
             <Row key={h.taskId} quiet lead={<StateChip tone="info">{t('work.who.heldChip')}</StateChip>}>
-              {t('work.who.held', { task: h.title || h.taskId.slice(0, 8) })}
+              {t('work.who.held', { task: taskLabel(h.title, t) })}
             </Row>
           ))}
           {failure && <p role="status" className="muted">{failure}</p>}

@@ -220,11 +220,11 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
 | `chat.notActivated.note` | Sending is off: private history recovery is not available yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
-| `chat.saved` | Saved on this Mac | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
+| `chat.saved` | Saved on this computer | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.pending` | Saved, no reply yet | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.unknown` | The send result is unknown. Fabric will not send it again; check this same send. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.checkAgain` | Check again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
-| `chat.recovery.body` | This is not an empty conversation: messages on this Mac are not deleted, but they cannot be opened right now. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
+| `chat.recovery.body` | This is not an empty conversation: messages on this computer are not deleted, but they cannot be opened right now. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.unsupported` | This version works with no project or one project. “All projects” is not applied. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.unknownNotDiscardable` | A send with an unknown result cannot be removed until it is checked. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
 | `chat.conflict` | The draft changed in another window. The newer text is kept. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-042 | shipped behind a closed gate |
@@ -251,11 +251,11 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.persona.notSaved` | The look was not saved: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.persona.continueAnyway` | Continue without saving | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.title` | Which coding agents can work here | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.lede` | Fabric does not write code itself: it hands work to a coding agent on this Mac and keeps the record. It looked for the ones it can run. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.lede` | Fabric does not write code itself: it hands work to a coding agent on this computer and keeps the record. It looked for the ones it can run. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.checking` | Looking for coding agents… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.failed` | The check did not run: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.found` | Version {version} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.unresponsive` | {program} is on this Mac, but “{program} --version” did not answer. Run {program} once in a terminal to finish its setup, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.unresponsive` | {program} is on this computer, but “{program} --version” did not answer. Run {program} once in a terminal to finish its setup, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.missing` | Not installed. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.state.found` | Ready | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.state.unresponsive` | Needs setup | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -334,7 +334,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.exec.notSaved` | Your choice was not saved: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
 | `start.builder.fixMissing` | {name} is not installed. To pick it, install it with this command, then press “Check agents again”: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.recheck` | Check agents again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `onboarding.unavailableHint` | A greyed-out coding agent is not installed on this Mac. Install it, then open this again: “Fabric help” → “Walk through the first run again” shows each install command. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | proposed |
+| `onboarding.unavailableHint` | A greyed-out coding agent is not installed on this computer. Install it, then open this again: “Fabric help” → “Walk through the first run again” shows each install command. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | proposed |
 | `start.scan.stopped` | The scan was stopped. Nothing was added. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.unreadable` | Folders that could not be read (permissions or an unavailable disk): {count}. Repositories under them may be missing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importedAll` | Added: {ok}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -439,7 +439,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `settings.agentAccess` | Agent access | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.title` | Agent access | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.close` | Close | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.what` | Agents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.what` | Agents registered on this computer can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.loading` | Reading agent access… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.unreadable` | Agent access could not be read. This is not a list with nothing in it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -487,7 +487,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.lasts` | Access lasts a year unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.denyStands` | Deny keeps refusing this same request until you clear the denial in the list of denied requests under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.denials.note` | Fabric refuses a denied request by itself each time the same agent asks for the same access again. Clearing the denial lets that agent ask you again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
-| `access.floor` | Fabric checked that an agent with this id is installed on this Mac. Fabric cannot prove which program sent the request: any program running as you could use that id. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.floor` | Fabric checked that an agent with this id is installed on this computer. Fabric cannot prove which program sent the request: any program running as you could use that id. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.incremental` | This agent already has access through Fabric; this adds to it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.origin.plain` | An agent registered as {id} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.origin.by` | An agent registered as {id} (installed by {by}) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -684,7 +684,7 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.createAgent.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.createAgent.startOver` | Start over | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.createAgent.failed` | The agent was not created: {reason}. Try again: what this attempt already made is reused, never made twice. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.builder.noneReady` | No coding agent on this Mac can start right now: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.noneReady` | No coding agent on this computer can start right now: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.skills.notCovered` | The command does not install them for {agent}: put the skills where {agent} reads them, or choose another coding agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.convert.notGit` | This folder is not a git repository yet: the coding agent makes it one and commits it as it is before changing anything, keeping anything that looks like a secret out of the commit, so the original can be restored. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
 | `start.builder.fromOrder` | Chosen: the first one in your fallback order. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
@@ -704,7 +704,7 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.taskRefused.read-failed` | The task could not be read before starting it: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.purposeFromRepo` | From {file}: {text} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
 | `tasks.presetNeedsSurface` | {agent} has no connection to the tools of Fabric, so it could record nothing of this setup. Choose an agent that has one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
-| `analytics.notice.sentBefore` | An earlier version may already have sent these counts from this Mac, from its first start. Nothing more is sent until you answer. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
+| `analytics.notice.sentBefore` | An earlier version may already have sent these counts from this computer, from its first start. Nothing more is sent until you answer. Your choice is the one switch every PassionCode.ai app on this computer reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
 | `settings.fallback.upFor` | Move {agent} up | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
 | `settings.fallback.downFor` | Move {agent} down | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
 | `settings.fallback.removeFor` | Remove {agent} from the order | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
@@ -714,7 +714,7 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `first.exec.copyWhat` | Copy for {what} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `start.taskRefused.setup-surface-down` | This setup records through the tools of Fabric, and the agent surface that gives them is not running. Start it in the settings, then try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
 | `start.abandoned.notCancelled` | The earlier task could not be cancelled on the board: {reason}. Close it there by hand. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `analytics.notice.nothingYet` | Nothing has been sent yet. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
+| `analytics.notice.nothingYet` | Nothing has been sent yet. Your choice is the one switch every PassionCode.ai app on this computer reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
 
 ## 0.3.4 — the identity refusal at startup (2026-10-10)
 
@@ -799,7 +799,15 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.cameIn.hub` | through the hub | apps/desktop/src/renderer/src/i18n/en.ts:2160 | SCN-140 | proposed |
 | `work.cameIn.unknown` | came in by an unknown way | apps/desktop/src/renderer/src/i18n/en.ts:2161 | SCN-140 | proposed |
 | `work.why.sameRow` | the same backlog row, {row} | apps/desktop/src/renderer/src/i18n/en.ts:2162 | SCN-140 | proposed |
-| `work.why.linked` | linked tasks ({rel}) | apps/desktop/src/renderer/src/i18n/en.ts:2163 | SCN-140 | proposed |
+| `work.why.linked` | linked: {rel} | apps/desktop/src/renderer/src/i18n/en.ts:2221 | SCN-140 | proposed |
+| `work.rel.blocks.from` | this task blocks it | apps/desktop/src/renderer/src/i18n/en.ts:2222 | SCN-140 | proposed |
+| `work.rel.blocks.to` | it blocks this task | apps/desktop/src/renderer/src/i18n/en.ts:2223 | SCN-140 | proposed |
+| `work.rel.follows.from` | this task follows it | apps/desktop/src/renderer/src/i18n/en.ts:2224 | SCN-140 | proposed |
+| `work.rel.follows.to` | it follows this task | apps/desktop/src/renderer/src/i18n/en.ts:2225 | SCN-140 | proposed |
+| `work.rel.spawned.from` | this task started it | apps/desktop/src/renderer/src/i18n/en.ts:2226 | SCN-140 | proposed |
+| `work.rel.spawned.to` | it started this task | apps/desktop/src/renderer/src/i18n/en.ts:2227 | SCN-140 | proposed |
+| `work.rel.other` | linked | apps/desktop/src/renderer/src/i18n/en.ts:2228 | SCN-140 | proposed |
+| `work.task.untitled` | untitled task | apps/desktop/src/renderer/src/i18n/en.ts:2229 | SCN-140 | proposed |
 | `work.why.overlap` | {mine} overlaps {theirs} | apps/desktop/src/renderer/src/i18n/en.ts:2164 | SCN-140 | proposed |
 | `work.who.title` | Who is working on what | apps/desktop/src/renderer/src/i18n/en.ts:2165 | SCN-140 | proposed |
 | `work.who.reading` | Reading who is working here… | apps/desktop/src/renderer/src/i18n/en.ts:2166 | SCN-140 | proposed |
@@ -842,7 +850,6 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.where.active` | active | apps/desktop/src/renderer/src/i18n/en.ts:2203 | SCN-141 | proposed |
 | `work.where.quiet` | quiet | apps/desktop/src/renderer/src/i18n/en.ts:2204 | SCN-141 | proposed |
 | `work.where.stale` | no sign for {minutes} min | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-141 | proposed |
-| `work.where.noSession` | held, no session, until {until} | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-141 | proposed |
 | `work.where.review` | In review | apps/desktop/src/renderer/src/i18n/en.ts:2207 | SCN-141 | proposed |
 | `work.where.reviewUnread` | not read | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-141 | proposed |
 | `work.where.reviewCount` | {count} in review | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-141 | proposed |
@@ -857,10 +864,12 @@ Humanization: on — own pass (copywriting, notice register: plain, no humour, s
 
 | Key | English | Location | Scenario | Status |
 |---|---|---|---|---|
-| `links.notice.conversation-soon` | Opened from a product's Fabric button. The conversation with Fabric about this product comes in 0.4.0; until then, start a session here. | apps/desktop/src/renderer/src/i18n/en.ts:2201 | SCN-142 | proposed |
+| `links.notice.conversation-soon` | Opened from a product's Fabric button. The conversation with Fabric about this product is not built yet; until then, start a session here. | apps/desktop/src/renderer/src/i18n/en.ts:2201 | SCN-142 | proposed |
 | `links.notice.start-session` | Opened from a product's Fabric button to start a session in this project. Choose a coding agent and start it here. | apps/desktop/src/renderer/src/i18n/en.ts:2202 | SCN-142 | proposed |
 | `links.notice.link-refused` | A Fabric link was not opened: it was not one Fabric reads, or it carried something a link never carries. | apps/desktop/src/renderer/src/i18n/en.ts:2203 | SCN-142 | proposed |
 | `links.notice.project-unknown` | A Fabric link named a project that is not in your list. Open or add it, then follow the link again. | apps/desktop/src/renderer/src/i18n/en.ts:2204 | SCN-142 | proposed |
-| `links.notice.service-unknown` | A Fabric link came from a product that is not registered on this Mac, so Fabric could not find its project. | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-142 | proposed |
+| `links.notice.service-unknown` | A Fabric link came from a product that is not registered on this computer, so Fabric could not find its project. | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-142 | proposed |
 | `links.notice.service-in-no-project` | A Fabric link came from a product whose repository is in none of your projects. Add its repository to a project, then follow the link again. | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-142 | proposed |
 | `links.notice.service-in-many-projects` | A Fabric link came from a product whose repository is in more than one project, so Fabric did not guess. Open the project you meant from the list. | apps/desktop/src/renderer/src/i18n/en.ts:2207 | SCN-142 | proposed |
+| `links.offer.body` | A product's Fabric button was pressed while the first run was open. It waited for you. | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-142 | proposed |
+| `links.offer.open` | Open it | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-142 | proposed |

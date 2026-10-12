@@ -52,6 +52,22 @@ describe('Who is working on what', () => {
     expect(screen.getAllByText(/backlog row CO-901 in docs\/backlog\.md/)).toHaveLength(2)
   })
 
+  it("an IPC failure is the main process's sentence, never Electron's wrapper", async () => {
+    stub({ work: { project: vi.fn(async () => { throw new Error("Error invoking remote method 'work:project': Error: the local stack is not answering") }) } })
+    show(<WhoIsWorking projectId="p1" feedMark={0} onError={() => {}} />)
+    await waitFor(() => expect(screen.getByText(/the local stack is not answering/)).toBeTruthy())
+    expect(screen.queryByText(/invoking remote method/)).toBeNull()
+  })
+
+  it('a linked pair says the relation in words, and an untitled task is never an id', async () => {
+    const a = claim({ claimId: 'a', related: [{ claimId: 'b', taskId: 'f3a9c2d1-0000', title: '', why: [{ kind: 'linked', rel: 'blocks', direction: 'from' }] }] })
+    stub({ work: { project: vi.fn(async () => view({ claims: [a], held: [{ projectId: 'p1', taskId: '77e1b0aa-1111', title: '', sessionId: 's9', until: new Date(Date.now() + 600_000).toISOString() }] })) } })
+    show(<WhoIsWorking projectId="p1" feedMark={0} onError={() => {}} />)
+    await waitFor(() => expect(screen.getByText(/linked: this task blocks it/)).toBeTruthy())
+    expect(screen.queryByText(/\(blocks\)|f3a9c2d1|77e1b0aa/)).toBeNull()
+    expect(screen.getAllByText(/untitled task/).length).toBeGreaterThanOrEqual(2)
+  })
+
   it('Release… asks first, names the agent and the task, and Cancel releases nothing', async () => {
     const release = vi.fn(async () => ({ released: true, claimId: 'c1' }))
     stub({ work: { project: vi.fn(async () => view({ claims: [claim({})] })), release } })
@@ -78,7 +94,7 @@ describe('Who is working on what', () => {
 
 describe('Where work is', () => {
   const where = (over: Partial<WhereWorkView> = {}): WhereWorkView => ({ rows: [], idle: 0, unowned: [], reviewUnread: null, readAt: new Date().toISOString(), ...over })
-  const screenWith = () => <WhereWorkScreen feedMark={0} onProject={() => {}} onTask={() => {}} onReview={() => {}} />
+  const screenWith = () => <WhereWorkScreen feedMark={0} onProject={() => {}} onTask={() => {}} onReview={() => {}} onError={() => {}} />
 
   it('nothing in flight still shows the last row, «Sessions with no project», with "none"', async () => {
     stub({ work: { estate: vi.fn(async () => where({ idle: 3 })) } })
@@ -95,11 +111,25 @@ describe('Where work is', () => {
     expect(screen.queryByText(en['work.where.nothing'])).toBeNull()
   })
 
+  it('a claim whose session ended reads the same as on the project screen, and a session that will not open is said', async () => {
+    const onError = vi.fn()
+    const live = { sessionId: 's1', projectId: 'p1', agent: 'codex', cameIn: 'enrolled' as const, startedAt: new Date().toISOString(), lastSignAt: new Date().toISOString(), stale: false }
+    stub({
+      work: { estate: vi.fn(async () => where({ rows: [{ projectId: 'p1', name: 'Atlas', sessions: [live], claims: [claim({ life: 'lapsed', title: '' })], review: null, lastSignAt: new Date().toISOString() }] })) },
+      windows: { openSession: vi.fn(async () => { throw new Error("Error invoking remote method 'windows:open-session': Error: the session has ended") }) }
+    })
+    show(<WhereWorkScreen feedMark={0} onProject={() => {}} onTask={() => {}} onReview={() => {}} onError={onError} />)
+    await waitFor(() => expect(screen.getByText(en['work.who.lapsed'])).toBeTruthy())
+    expect(screen.getByText(en['work.task.untitled'])).toBeTruthy()
+    fireEvent.click(screen.getByText(en['work.where.active']))
+    await waitFor(() => expect(onError).toHaveBeenCalledWith('the session has ended'))
+  })
+
   it('a quiet session reads its silence, an unread review queue says so, and a claim opens its task', async () => {
     const onTask = vi.fn()
     const stale = { sessionId: 's1', projectId: 'p1', agent: 'codex', cameIn: 'enrolled' as const, startedAt: new Date(Date.now() - 3600_000).toISOString(), lastSignAt: new Date(Date.now() - 25 * 60_000).toISOString(), stale: true }
     stub({ work: { estate: vi.fn(async () => where({ rows: [{ projectId: 'p1', name: 'Atlas', sessions: [stale], claims: [claim({})], review: null, lastSignAt: new Date().toISOString() }], reviewUnread: 'x' })) } })
-    show(<WhereWorkScreen feedMark={0} onProject={() => {}} onTask={onTask} onReview={() => {}} />)
+    show(<WhereWorkScreen feedMark={0} onProject={() => {}} onTask={onTask} onReview={() => {}} onError={() => {}} />)
     await waitFor(() => expect(screen.getByText(/no sign for 25 min/)).toBeTruthy())
     expect(screen.getByText(en['work.where.reviewUnread'])).toBeTruthy()
     fireEvent.click(screen.getByText('Login form'))

@@ -163,7 +163,7 @@ credential item for the quota once per token lifetime (held in memory until five
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
 `~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
 
-**On Windows and Linux (0.4.0, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
+**On Windows and Linux (0.3.5, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
 The installer is per-user NSIS on Windows (`%LOCALAPPDATA%\Programs\<package name>`, its own uninstaller) and an
 AppImage or a `.deb` on Linux (`/opt/Fabric`, `/usr/bin/passioncode-fabric`). The app's data folder is Electron's
 `userData`: `%APPDATA%\@fabric\desktop` on Windows, `~/.config/@fabric/desktop` on Linux — a deliberate deviation from

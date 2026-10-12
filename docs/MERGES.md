@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12 · `release-040-wave1-b4` · agent/fx-wave (on agent/w2-fabric-links) → main · fast-forward
+- run: r-249d0762eddd
+- summary: fabric:// links (Fabric registers the scheme; a product's button opens its project), the 0.3.5 bug-fix wave (links on cold start and during the first run, the work screens' errors and words, platform words, the schema refusal in the operator's language, guard on every release job, the analytics agent counts), the CHANGELOG as 0.3.5, the public workspace sources without the closed module; CO-262 and CO-263 opened. ci.sh fast ran with quit.test.mjs alone (its real-Electron dialog case is display-sensitive, CO-210; ci.sh now keeps the display awake).
+
 ### 2026-10-11T18:53:54Z · `—` · agent/comms-all-agents-board-screen → main · `5223723f`
 - run: r-64b69ed3a
 - files: 149 (149 files changed, 2390 insertions(+), 319 deletions(-))

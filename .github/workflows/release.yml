@@ -1,6 +1,6 @@
 # The release (platforms.md PL-10): Fabric for macOS as one universal DMG (Apple silicon and Intel, from 0.3.4), signed with the organization's CI
 # Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
-# GPG-signed, and published as a release of this repository. From 0.4.0 also Windows (NSIS, x64 and arm64) and Linux
+# GPG-signed, and published as a release of this repository. From 0.3.5 also Windows (NSIS, x64 and arm64) and Linux
 # (AppImage and .deb, x64 and arm64), each built on its own runner (jobs `windows`, `linux`; CO-238). Signing happens only here, in the
 # protected `release` environment, approved by checks: the `guard` job passes only a tag on main whose
 # commit passed ci.yml, and pushing a v* tag (team release-approvers only) is the release decision
@@ -124,7 +124,7 @@ jobs:
     # Signed through Azure Artifact Signing once this repository's release environment holds AZURE_SIGNING_ENABLED
     # "true" and its OIDC identity (passioncode-ai/.github release-signing); until then the receipt and the notes say
     # windows_authenticode: NOT_SIGNED.
-    needs: [preflight]
+    needs: [guard, preflight]
     strategy:
       fail-fast: false
       matrix:
@@ -203,7 +203,7 @@ jobs:
   linux:
     # PL-10: x64 and arm64, each on its own runner (node-pty has no Linux prebuild and is built here); an AppImage and
     # a .deb. Not code-signed; the published SHA256SUMS is GPG-signed and every file is attested.
-    needs: [preflight]
+    needs: [guard, preflight]
     strategy:
       fail-fast: false
       matrix:

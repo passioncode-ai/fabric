@@ -254,3 +254,28 @@ test('a built app whose fuse wire differs from the declaration is refused, fuse 
   const { 4: _dropped, ...missing } = wireOf(RELEASE_FUSES)
   assert.match(fuseProblems(missing).join('\n'), /enableEmbeddedAsarIntegrityValidation .*not in this binary/)
 })
+
+// ADR-0145: approval is by checks — the tag must be on main with CI green on its commit, and `guard` checks that.
+// Every job that holds the release environment's keys must therefore wait for guard; one that does not can sign and
+// upload before the check has said yes (the windows and linux jobs did, until 0.3.5).
+export function jobsMissingGuard(workflow) {
+  const body = workflow.slice(workflow.search(/^jobs:\s*$/m))
+  const starts = [...body.matchAll(/^ {2}([A-Za-z0-9_-]+):\s*$/gm)]
+  const missing = []
+  starts.forEach((m, i) => {
+    const block = body.slice(m.index, i + 1 < starts.length ? starts[i + 1].index : body.length)
+    if (!/^ {4}environment:\s*(?:release\b|\n\s+name:\s*release\b)/m.test(block)) return
+    const needs = /^ {4}needs:\s*(?:\[([^\]]*)\]|(\S+))/m.exec(block)
+    const list = needs ? (needs[1] ?? needs[2]).split(',').map((s) => s.trim()) : []
+    if (!list.includes('guard')) missing.push(m[1])
+  })
+  return missing
+}
+
+test('every job holding the release environment needs guard (ADR-0145)', () => {
+  const workflow = readFileSync(path.join(import.meta.dirname, '../../.github/workflows/release.yml'), 'utf8')
+  assert.match(workflow, /^ {2}guard:\s*$/m, 'the guard job exists')
+  assert.deepEqual(jobsMissingGuard(workflow), [])
+  // The check itself: a job with the environment and no guard is named.
+  assert.deepEqual(jobsMissingGuard('jobs:\n  guard:\n    runs-on: x\n  win:\n    needs: [preflight]\n    environment: release\n  mac:\n    needs: [guard, preflight]\n    environment: release\n'), ['win'])
+})

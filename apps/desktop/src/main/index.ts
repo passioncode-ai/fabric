@@ -24,7 +24,8 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
-import { routeForLink } from '../shared/linkRoute.ts'
+import { routeForLink, type LinkRoute } from '../shared/linkRoute.ts'
+import { createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
@@ -159,7 +160,7 @@ import { type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
-import { createAnalytics, installationPath, type Analytics } from './analytics'
+import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
@@ -433,6 +434,8 @@ let linkRegistry: AgentRegistry | null = null
 let linkWindowReady = false
 const pendingLinks: string[] = []
 const isFabricLink = (s: string): boolean => /^fabric:\/\//i.test(s)
+/** A resolved link waits until the page says it listens (`links:pending`), so a cold start does not lose it. */
+const linkOutbox = createLinkOutbox<LinkRoute>((result) => mainWindow?.webContents.send(IPC.linksOpen, result))
 function acceptLink(url: string): void {
   if (!isFabricLink(url)) return
   if (!linkWindowReady || !mainWindow) {
@@ -459,7 +462,7 @@ async function openLink(url: string): Promise<void> {
     if (mainWindow.isMinimized()) mainWindow.restore()
     mainWindow.show()
     mainWindow.focus()
-    mainWindow.webContents.send(IPC.linksOpen, result)
+    linkOutbox.deliver(result)
   } catch (e) {
     ops.failed('link.open', e)
   }
@@ -960,13 +963,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
       }
     }
-    const [projects, products, agents] = await Promise.all([
+    // Live grants, callee and agent only: `agentCounts` keeps a coding agent's enrollment apart from product access.
+    const agents = async (): Promise<ReturnType<typeof agentCounts> | null> => {
+      try {
+        const r = await db.from('access_grants').select('agent_id,callee').eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null).gt('expires_at', new Date().toISOString()).limit(10_000)
+        return r.error ? null : agentCounts((r.data ?? []) as Array<{ agent_id: string; callee: string }>)
+      } catch (e) {
+        ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
+      }
+    }
+    const [projects, products, agentsNow] = await Promise.all([
       count(db.from('projects').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')),
       count(db.from('product_connections').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('removed_at', null)),
-      count(db.from('access_bindings').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null))
+      agents()
     ])
     // An unreadable count is absent, never a zero (an unknown stays unknown).
-    return Object.fromEntries(Object.entries({ projects, products_connected: products, agents_with_access: agents }).filter(([, v]) => v !== null)) as Record<string, number>
+    return Object.fromEntries(Object.entries({ projects, products_connected: products, ...(agentsNow ?? {}) }).filter(([, v]) => v !== null)) as Record<string, number>
   }
   analyticsCounts = usageCounts
   // Held by `analytics.ts` until the person answers the disclosure (A7-012): nothing leaves before that.
@@ -1469,6 +1481,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   /** The host window both the observer and `runs.status` judge against. */
   const hostWindow = (): HostWindow => ({ watchingSince, suspended: suspendedIntervals, sourceHealthy: true })
 
+  handle(IPC.linksPending, async (): Promise<Returns<FabricApi['links']['pending']>> => linkOutbox.claim())
   handle(IPC.metaInfo, async (e): Promise<Returns<FabricApi['meta']['info']>> => {
     // Which window this is comes from the one record the bridge is authorised by (CO-091), so the
     // window a renderer draws and the calls it is allowed cannot disagree.
@@ -4735,6 +4748,8 @@ function createWindow(): void {
     revokeWindowRoots(contentsId)
     mainWindow = null
   })
+  // A new page listens only once it has claimed what waited (`links:pending`).
+  mainWindow.webContents.on('did-start-loading', () => linkOutbox.reset())
   mainWindow.webContents.once('did-finish-load', linksWindowReady)
   if (devServer()) void mainWindow.loadURL(devServer()!)
   else void mainWindow.loadFile(path.join(import.meta.dirname, '../renderer/index.html'))

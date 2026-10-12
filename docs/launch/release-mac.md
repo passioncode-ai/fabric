@@ -95,8 +95,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
 4. **Approval by checks** ([ADR-0145](../adr/0145-fabric-releases-are-approved-by-checks-and-pushing-the-tag-is-the-decision.md)).
    The `guard` job (`passioncode-ai/.github/actions/release-guard@v1`) passes the tag only when `main` contains the
    tagged commit and `ci.yml` passed on that commit — with no run it starts one on the tag and waits; otherwise it
-   refuses with the reason and the run's link. `macos` and `publish` need it; the `release` environment has no
-   reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
+   refuses with the reason and the run's link. Every job that holds the `release` environment — `macos`,
+   `windows`, `linux` — needs it, and `publish` needs those (`scripts/test/release-mac.test.mjs` checks the first);
+   the environment has no reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
    `release-approvers` may push a `v*` tag (ruleset `release-tags`).
 5. **`macos`** builds on `macos-latest`: `passioncode-ai/.github/actions/apple-signing@v1` makes a throwaway
    keychain with the CI Developer ID and names it; `release-mac.mjs --tag vX.Y.Z` gets that identity in
@@ -177,8 +178,8 @@ build signed anywhere but the `release` environment is a debug build that is nev
 ### Rehearsal
 
 Push `vX.Y.Z-rc.N` on a commit of main (the push trigger ignores `-rc` tags; never reuse or move a tag),
-then `gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false`. Every job runs and waits for the same
-approvals; the signed, attested and summed set is kept as the workflow artifact
+then `gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false`. Every job runs behind the same `guard`
+as a release (no reviewers, nothing to approve); the signed, attested and summed set is kept as the workflow artifact
 `signed-release-vX.Y.Z-rc.N` for 14 days, and no release is created. The release gate applies to a
 rehearsal too: a version whose gate is not clear stops at `preflight`.
 
@@ -232,7 +233,7 @@ order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, th
 the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
 opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
 
-**0.4.0 (in development) admits schema 84** — five migrations past 0.3.4's 79, applied in order:
+**0.3.5 (in development) admits schema 84** — five migrations past 0.3.4's 79, applied in order:
 `20261011000082_write_rules_at_the_door.sql` moves the hub's write rules out of replay (CO-201) and registers the
 refusal summary (CO-200); `20261011000090_session_enrollment.sql` registers `session.enrolled@1`, the event of a coding
 agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the hub's
@@ -242,7 +243,7 @@ tasks link to (`task_sources`), and registers `task.source.linked@1`, `work.hand
 79 + 5 = **84**, whatever the suffixes say. The procedure is the same with 84 in place of 79. A
 database at 79 upgrades in order (82 sorts after 81), which `scripts/check-migration-order.mjs` holds for every
 later migration (CO-199): no new filename may sort below the newest one recorded in `supabase/migration-ledger.json`.
-At start, 0.4.0 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
+At start, 0.3.5 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
 operator — a revoke through the membership door (`desktop-bootstrap:seed-retire`, compare-and-set at the revision read),
 never a delete, and only while that membership is still the seed's own and its person has no sign-in — and the
 profile's "Running for N days" counts from the repair, not from the failed install (CO-242, `seedRepair.ts#retireSeedOwner`).

@@ -107,13 +107,15 @@ plan survives as org #1 and builds first.
 - **Install:** the signed, notarized preview for macOS (Apple silicon and Intel, from 0.3.4) from
   [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos); it needs
   Docker and the Supabase CLI for its local stack (below).
-- **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
+- **Configure:** Fabric uses the Claude Code and Codex logins already on the computer; no key is typed
   into Fabric. Coordination in this repository needs your own Notion token in `.env.agent-sync`
   (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling), visible to members of the passioncode-ai organization).
 - **MCP:** every agent session Fabric starts is given Fabric's agent surface automatically — a
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
   nothing is registered by hand. A coding agent you open yourself reaches the same harness through
   `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`);
+  `<Fabric>/bin` is `Fabric.app/Contents/Resources/bin` on macOS and the install folder's `resources/bin` on Windows
+  (`fabric-mcp.cmd`) and Linux — on Linux from the `.deb`, since an AppImage mounts at a new path each start;
   Fabric asks you once per agent and project ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)). Fabric
   drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md), members only).
 - **Contribute:** read the organization's [CONTRIBUTING.md](https://github.com/passioncode-ai/.github/blob/main/CONTRIBUTING.md)

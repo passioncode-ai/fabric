@@ -1501,6 +1501,8 @@ export interface FabricApi {
   /** `fabric://` links (DEC-0040): where one opened, and why if it opened home. */
   links: {
     onOpen(cb: (route: import('./linkRoute.ts').LinkRoute) => void): () => void
+    /** Called once the page listens: the links that opened before it did, oldest first (a cold start). */
+    pending(): Promise<import('./linkRoute.ts').LinkRoute[]>
   }
   work: {
     project(projectId: string): Promise<ProjectWorkView>
@@ -1605,6 +1607,8 @@ export const IPC = {
   projectsRepoChanged: 'projects:repo-changed',
   /** Main → the main window: a `fabric://` link opened (contract DEC-0040, SCN-142). */
   linksOpen: 'links:open',
+  /** The page is listening: what opened before it did (SCN-142, a cold start). */
+  linksPending: 'links:pending',
   quotaRead: 'quota:read',
   runsStatus: 'runs:status',
   memoryPreview: 'memory:preview',

@@ -8,7 +8,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import {
   createAnalytics, readOrCreateInstallation, writeAnalyticsSwitch, installationPath, cleanProps,
-  BATCH_MAX, QUEUE_MAX, RETRY_DELAYS_MS, environmentFor
+  BATCH_MAX, QUEUE_MAX, RETRY_DELAYS_MS, environmentFor, agentCounts
 } from '../src/main/analytics.ts'
 
 const dir = () => mkdtempSync(path.join(tmpdir(), 'fabric-analytics-'))
@@ -258,3 +258,12 @@ test('A7-012: a state file that cannot be read asks again rather than sending', 
   rmSync(d, { recursive: true, force: true })
 })
 // #endregion usage-analytics
+
+test('a coding agent enrolled in projects is not an agent with access to a product; each agent counts once', () => {
+  const grants = [
+    { agent_id: 'claude-code', callee: 'fabric' }, { agent_id: 'claude-code', callee: 'fabric' }, { agent_id: 'codex', callee: 'fabric' },
+    { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'claude-code', callee: 'copylot' }
+  ]
+  assert.deepEqual(agentCounts(grants), { agents_with_access: 2, coding_agents_enrolled: 2 })
+  assert.deepEqual(agentCounts([]), { agents_with_access: 0, coding_agents_enrolled: 0 })
+})

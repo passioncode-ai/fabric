@@ -228,3 +228,29 @@ describe('every startup cause has its words in both registries', () => {
         for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[`startup.${cause}.${part}`], `${cause}.${part}`).toBeTruthy()
     })
 })
+
+import { withSchemaReadiness } from '../main/schemaReadiness.ts'
+import contract from './schemaContract.json' with { type: 'json' }
+import { readManifest } from './buildManifest.ts'
+
+describe('a schema refusal says what to do in the operator’s language, with its numbers', () => {
+  const sayRu = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
+  const refused = async (found: number): Promise<unknown> => {
+    try {
+      await withSchemaReadiness({ packaged: false, manifest: readManifest(null), readSchema: async () => ({ data: found, error: null }) }, () => 'started')
+    } catch (e) { return e }
+    throw new Error('admitted')
+  }
+  it('behind: the Russian remedy names the schema found and the one needed; the copied details stay English', async () => {
+    const d = startupDialog(classifyStartupFailure(await refused(contract.minimum - 1)), { retryable: true, logPath: '/l', say: sayRu })
+    expect(d.detail).toContain(`База данных на схеме ${contract.minimum - 1}, а этой сборке нужна`)
+    expect(d.detail).toContain(`${contract.minimum}–${contract.maximum}`)
+    expect(d.detail).toContain('The database schema is')
+  })
+  it('ahead and unverified have their own words, never the generic "follow the details"', async () => {
+    const ahead = startupDialog(classifyStartupFailure(await refused(contract.maximum + 1)), { retryable: true, logPath: '/l', say: sayRu })
+    expect(ahead.detail).toContain('Установите более новый Fabric')
+    const generic = translator('ru')('startup.schema-not-ready.remedy' as StringKey)
+    expect(ahead.detail).not.toContain(generic)
+  })
+})

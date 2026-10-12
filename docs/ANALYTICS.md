@@ -47,7 +47,7 @@ Nothing else identifies the machine or the person.
 |---|---|---|
 | `app_installed` | first start of Fabric on this machine, sent once the person has answered the disclosure (once, kept in `<userData>/analytics-state.json`) | the counts below; `first_passioncode_app`: no PassionCode app had run here before |
 | `app_started` | every start | `launch`: `ordinary`, or `background` (`--background`, the lifecycle broker) |
-| `app_active` | once per UTC day while Fabric runs, window open or not | `projects` (active projects of the estate), `products_connected`, `agents_with_access` (live access bindings) |
+| `app_active` | once per UTC day while Fabric runs, window open or not | `projects` (active projects of the estate), `products_connected`, `agents_with_access` (distinct agents holding a live grant on a connected product), `coding_agents_enrolled` (distinct coding agents holding a live enrollment grant on Fabric itself, [ADR-0134](adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md); until 0.3.5 both were one count of live bindings) |
 
 A count Fabric cannot read is left out of the event, never sent as zero.
 

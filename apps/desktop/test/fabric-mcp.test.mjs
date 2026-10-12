@@ -81,6 +81,16 @@ test('Fabric not running (or its hub closed): one tool, an error that says both,
   assert.equal(h.calls.length, 0)
 })
 
+test('while the operator is asked, the agent is not told the prompt is on their screen: Fabric may be in the background', async () => {
+  const h = harness()
+  // The state the run loop sets while a request waits (set directly: the loop itself polls until it is decided).
+  h.proxy.state = { kind: 'waiting', projectName: 'site' }
+  const text = (await h.proxy.call(WAITING_TOOL, {})).content[0].text
+  assert.match(text, /^Waiting for the operator to allow this coding agent in Fabric to work in the project site/)
+  assert.match(text, /a notification when Fabric is in the background/)
+  assert.doesNotMatch(text, /on their screen/)
+})
+
 test('first start: the door names the project, the operator is asked once with the folder, Allow stores the credential, the session opens', async () => {
   const h = harness()
   const s = await h.proxy.connectOnce()

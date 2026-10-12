@@ -41,7 +41,12 @@ export interface StartupFailure {
   remedy: string
   /** The machine's own words, kept whole so they can be copied and searched. */
   detail: string
+  /** A remedy more precise than the cause's own, in the registry (with `vars`), when the failure says which one. */
+  remedyKey?: string
+  vars?: Record<string, string | number>
 }
+
+const SCHEMA_WHYS = new Set(['contract-invalid', 'build-mismatch', 'unverified', 'behind', 'ahead'])
 
 function textOf(e: unknown): string {
   if (e === null || e === undefined) return ''
@@ -112,13 +117,20 @@ function classifyCause(e: unknown): StartupFailure {
       detail
     }
 
-  if (code === 'FABRIC_SCHEMA_NOT_READY')
+  if (code === 'FABRIC_SCHEMA_NOT_READY') {
+    // The refusal says which check failed (main/schemaReadiness.ts#SchemaWhy): the remedy is that one's, translated.
+    const why = (e as { why?: unknown }).why
+    const facts = (e as { facts?: Record<string, unknown> }).facts ?? {}
+    const vars: Record<string, number> = {}
+    for (const k of ['found', 'min', 'max']) if (typeof facts[k] === 'number') vars[k] = facts[k] as number
     return {
       cause: 'schema-not-ready',
       title: 'Fabric could not verify database compatibility.',
       remedy: 'Follow the details below, then retry. Workspace services have not started; Fabric will not migrate the database automatically.',
-      detail
+      detail,
+      ...(typeof why === 'string' && SCHEMA_WHYS.has(why) ? { remedyKey: `startup.schema-not-ready.${why}`, vars } : {})
     }
+  }
 
   if (code === 'ENOENT' || /spawnSync \S+ ENOENT/.test(detail))
     return {
@@ -245,6 +257,10 @@ export function startupDialog(
   // The cause's own title and remedy in the operator's language when the registry has them; the copied
   // details and the log keep the English, which is what a report is read in.
   const own = (part: 'title' | 'remedy'): string => {
+    if (part === 'remedy' && failure.remedyKey) {
+      const said = opts.say?.(failure.remedyKey, { ...vars, ...failure.vars })
+      if (said !== undefined && said !== failure.remedyKey) return said
+    }
     const key = `startup.${failure.cause}.${part}`
     const said = opts.say?.(key, vars)
     return said !== undefined && said !== key ? said : failure[part]

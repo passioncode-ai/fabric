@@ -238,7 +238,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
         const listener = (_e: unknown, route: Parameters<typeof cb>[0]): void => cb(route)
         ipc.on(IPC.linksOpen, listener)
         return () => ipc.removeListener(IPC.linksOpen, listener)
-      }
+      },
+      pending: () => ipc.invoke(IPC.linksPending)
     },
     work: {
       project: (projectId) => ipc.invoke(IPC.workProject, projectId),

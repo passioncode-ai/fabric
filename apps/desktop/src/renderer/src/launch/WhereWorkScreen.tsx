@@ -13,7 +13,8 @@ import { Button, Panel, Row, StateChip, Toolbar } from '../components'
 import { useT, type Translate } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
-import { cameInLabel, lifeLabel, whyLabel } from '../WhoIsWorking'
+import { cameInLabel, lifeLabel, taskLabel, whyLabel } from '../WhoIsWorking'
+import { explainError } from '../start/startParts'
 
 type Read = { state: 'reading' } | { state: 'read'; view: WhereWorkView } | { state: 'unreadable'; reason: string }
 
@@ -30,9 +31,12 @@ export function WhereWorkScreen({
   feedMark,
   onProject,
   onTask,
-  onReview
+  onReview,
+  onError
 }: {
   feedMark: number
+  /** A session that would not open is said, never swallowed. */
+  onError(message: string): void
   onProject(projectId: string): void
   onTask(projectId: string, taskId: string): void
   onReview(projectId: string): void
@@ -43,7 +47,7 @@ export function WhereWorkScreen({
     try {
       setRead({ state: 'read', view: await window.fabric.work.estate() })
     } catch (e) {
-      setRead({ state: 'unreadable', reason: String(e) })
+      setRead({ state: 'unreadable', reason: explainError(e, t) })
     }
   }
   useEffect(() => {
@@ -87,7 +91,7 @@ export function WhereWorkScreen({
             >
               <p className="lp-kicker">{t('work.where.sessions')}</p>
               {r.sessions.length === 0 ? <p className="muted">{t('work.where.noneCol')}</p> : r.sessions.map((s) => (
-                <Row key={s.sessionId} onClick={() => void window.fabric.windows.openSession(s.sessionId).catch(() => undefined)}
+                <Row key={s.sessionId} onClick={() => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t)))}
                   lead={<StateChip tone={s.stale ? 'warn' : 'good'} dot>{s.stale ? t('work.where.quiet') : t('work.where.active')}</StateChip>}>
                   {sessionLine(s, t, now)}
                 </Row>
@@ -96,14 +100,14 @@ export function WhereWorkScreen({
               {r.claims.length === 0 ? <p className="muted">{t('work.where.noneCol')}</p> : r.claims.map((c) => (
                 <Row key={c.claimId} onClick={() => onTask(r.projectId, c.taskId)}
                   lead={c.related.length ? <StateChip tone="warn">{t('work.who.related')}</StateChip> : undefined}
-                  trail={<span className="muted">{c.life === 'lapsed' ? t('work.where.noSession', { until: new Date(c.until).toLocaleTimeString() }) : lifeLabel(c, t)}</span>}>
-                  <strong>{c.title || c.taskId.slice(0, 8)}</strong>
+                  trail={<span className="muted">{lifeLabel(c, t)}</span>}>
+                  <strong>{taskLabel(c.title, t)}</strong>
                   {' · '}
                   {t('work.who.by', { agent: runnerLabel(c.agent, t), how: cameInLabel(c.cameIn, t) })}
                   {' · '}
                   {t('work.who.since', { ago: since(c.since, t) })}
                   {c.related.length > 0 && (
-                    <span className="muted">{' · '}{c.related.map((x) => t('work.who.relatedTo', { task: x.title || x.taskId.slice(0, 8), why: x.why.map((w) => whyLabel(w, t)).join('; ') })).join(' · ')}</span>
+                    <span className="muted">{' · '}{c.related.map((x) => t('work.who.relatedTo', { task: taskLabel(x.title, t), why: x.why.map((w) => whyLabel(w, t)).join('; ') })).join(' · ')}</span>
                   )}
                 </Row>
               ))}
