@@ -8,6 +8,10 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: none (a single-agent copy pass; no coordination run)
 - summary: the whole Russian registry reviewed (PR #30): 447 strings in apps/desktop/src/renderer/src/i18n/ru.ts rewritten — calques, log register, «Estate»/«исполнитель»/«экосистема», one name per action, number agreement; English, keys and placeholders unchanged; docs/brand/strings.md section (Status: proposed); design-map iteration 2026-10-12-ru-copy-pass.
 
+### 2026-10-12 · `release-040-wave1-b4` · agent/release-035-done → main · fast-forward
+- run: r-249d0762eddd
+- summary: Fabric v0.3.5 released (run 38244634190); the close: P-17 done, CO-238 resolved, the Now line, facts.md and the overview guides name 0.3.5 on macOS, Windows and Linux, the handoff and the ledger's release close.
+
 ### 2026-10-12 · `release-040-wave1-b4` · agent/release-035-fix2, agent/release-035-b → main · fast-forward
 - run: r-249d0762eddd
 - summary: the rehearsal v0.3.5-rc.1 failed both Windows builds (the signing publisher split by cmd.exe); the final candidate 816d2284 fixes it (cmdArg) with CO-275's pointers, CO-274…CO-276, ADR-0144 amendment 5 and the audit correction; a second recheck at all five levels; the release commit names 816d2284 as verifiedCommit.

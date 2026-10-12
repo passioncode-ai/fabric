@@ -246,9 +246,9 @@ What 0.3.5's release has to do besides the gate. Each line is checked off with i
    `816d22844ff6bef41c27a2d028d35b22ee09a811`, three receipt groups, the fix-wave handoff and the five recheck reports
    in `releaseMetadata`), the fifteen receipts under `docs/evidence/reviews/0.3.5/`, the map's entry and the
    `docs/MERGES.md` entry; landed on `main` by fast-forward.
-2. The rehearsal on the release commit — `v0.3.5-rc.1` on `cae773ff` failed both Windows builds (above); `v0.3.5-rc.2`: preflight, guard, the macOS, Windows and Linux
+2. **Done 2026-10-12.** The rehearsal on the release commit — `v0.3.5-rc.1` on `cae773ff` failed both Windows builds (above); `v0.3.5-rc.2` on `eee9190f` (run 38242615349) green, both Windows builds signed and verified: preflight, guard, the macOS, Windows and Linux
    builds, the Windows Authenticode signature (the first signed Windows build) and the signed set kept as an artifact.
-3. The tag `v0.3.5`; the run watched to publication; the downloads checked (`SHA256SUMS`, its GPG signature, `spctl`,
+3. **Done 2026-10-12** (run 38244634190; [v0.3.5](https://github.com/passioncode-ai/fabric/releases/tag/v0.3.5); the DMG: SHA256SUMS OK, GPG good, `spctl` Notarized Developer ID, staple valid). The tag `v0.3.5`; the run watched to publication; the downloads checked (`SHA256SUMS`, its GPG signature, `spctl`,
    the attestation, the Windows signature).
 4. The operator's database (dumped before anything, `pre-0.3.5-2026-10-12.dump`, rehearsed PASS): Fabric quit through
    the lifecycle broker, upgraded 79 → 84 by the runbook, 0.3.5 installed and started, the estate verified; then dumped

@@ -23,6 +23,17 @@ agents-first plan ([plan](../evidence/plans/2026-10-11-release-040-agents-first.
 - The public workspace config no longer names the closed module; `relay` joins it. No private source list is needed
   while the closed modules stay out of the snapshot (fabric-workspace-91 agreed).
 
+**Released (2026-10-12):** [Fabric v0.3.5](https://github.com/passioncode-ai/fabric/releases/tag/v0.3.5), release run
+38244634190 green (guard, preflight, macOS, both Windows signed and verified, both Linux, publish), tag on the release
+commit `eee9190f`, verified commit `816d2284`. The downloaded DMG checked: `SHA256SUMS` OK, GPG "Good signature",
+`spctl` "Notarized Developer ID", staple valid. The rehearsal v0.3.5-rc.1 found the Windows signing argument split by
+cmd.exe (fixed in `816d2284`); v0.3.5-rc.2 was green. The close commit marks P-17 done, CO-238 resolved, and updates
+`docs/brand/facts.md` and the overview guides.
+
+**Open after the release:** the operator's database upgrade and the install (open work step 6: Fabric was running,
+started outside the broker, so quitting it is the operator's step), the knowledge base PR (step 7), the workspace
+publication, and 0.4.0 (P-16).
+
 **Status at the release commit (2026-10-12):** the final candidate `89718e92` is `main` and `verifiedCommit`; the
 hosted `ci` is green on it, fast and full (run 38219258686 — the earlier dispatch 38216066979 failed on an install-step
 rate limit and three stale tests, fixed in `89718e92`); the five rechecks passed; the release gate is clear. Next: the
@@ -73,4 +84,4 @@ the remedy is translated per refusal.
 test was watched failing on a planted defect (outbox 3/3, arrival 2 plants, work screens 5 plants, platform words 1,
 `fabric-mcp` 1, schema remedy 2, release guard on the old workflow, analytics 1).
 
-**Next task:** step 4 of the open work above — the rehearsal on the release commit.
+**Next task:** step 6 of the open work above — the operator's database and the install, once Fabric is quit.
