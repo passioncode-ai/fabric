@@ -7,6 +7,15 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **The database moves to schema 85** (from 84): one migration — the project board's thread aggregates (the kinds a
+  thread holds, its open requests) that back the Comms filters. An existing database is upgraded by the
+  [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database).
+- **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
+  thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
+  narrowing says so in words with one press to clear.
+
 ## 0.3.5
 
 Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238); a coding agent you open

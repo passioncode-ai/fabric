@@ -56,7 +56,18 @@ function threadOf(v: unknown): CommsThread | null {
   const lastSeq = asNum(v.lastSeq)
   const subject = v.subject
   const lastAt = v.lastAt
+  const openRequests = asNum(v.openRequests)
   if (!id || createdBy === null || createdSeq === null || messageCount === null || lastSeq === null) return null
+  // The aggregates are REQUIRED (SCN-143's filter slice): a row without them comes from a database the
+  // aggregate migration has not reached, and answering with a zero would silently read as "no open
+  // requests" — unavailable is the honest answer, never an invented one.
+  if (openRequests === null) return null
+  if (!Array.isArray(v.kinds)) return null
+  const kinds: string[] = []
+  for (const k of v.kinds) {
+    if (typeof k !== 'string') return null
+    kinds.push(k)
+  }
   if (!(subject === null || typeof subject === 'string')) return null
   if (!(lastAt === null || lastAt === undefined || typeof lastAt === 'string')) return null
   if (!Array.isArray(v.participants)) return null
@@ -65,7 +76,7 @@ function threadOf(v: unknown): CommsThread | null {
     if (typeof p !== 'string') return null
     participants.push(p)
   }
-  return { id, subject, participants, createdBy, createdSeq, messageCount, lastSeq, lastAt: lastAt ?? null }
+  return { id, subject, participants, createdBy, createdSeq, messageCount, lastSeq, lastAt: lastAt ?? null, kinds, openRequests }
 }
 
 function principalOf(v: unknown): CommsPrincipal | null {

@@ -403,3 +403,13 @@ stays at **0146**. No pipeline file exists at either number. Receipt:
 `python3 test/audit_regressions/fix-pf-06.03.py`.
 
 **2026-10-11, 0.4.0 wave 2 (claims):** slot 95 is taken by the executed migration `20261011000095_work_claims.sql` (REQ-38, REQ-08: `work_claims` and `task_sources`, projected from the journal; migration 84 by count) — written as 92, it was renumbered at the merge with main because main had recorded 94 first and no new file may sort below the newest recorded. Under the same collision rule the unexecuted pipeline migration reservations move from 95/96 to **96/97**: `20261011000096_pipeline_definitions.sql` and `20261011000097_graph_version_pins.sql`. The reserved ADR moves to **0148** (ADR-0147 was written past 0146). No pipeline file exists at either number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-11, the same day (the board's thread aggregates, SCN-143's filter slice, COM-07):** slot 100 is
+taken by the executed migration `20261011000100_project_board_thread_aggregates.sql` — migration 85 by count
+(`kinds` and `openRequests` on the operator's thread list, so the filters narrow the answered list and never
+re-query the board); written as 97, it was renumbered at this merge because wave 2 had reserved 96/97 in
+prose. Under the same collision rule the unexecuted pipeline migration reservations move from 96/97 to
+**101/102**: `20261011000101_pipeline_definitions.sql` and `20261011000102_graph_version_pins.sql`. The
+reserved ADR stays at **0148**. No pipeline file exists at either number. Receipt:
+`python3 test/audit_regressions/fix-pf-06.03.py`.
+

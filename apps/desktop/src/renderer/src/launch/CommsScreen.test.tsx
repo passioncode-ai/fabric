@@ -33,7 +33,23 @@ const THREAD = {
   createdSeq: 3,
   messageCount: 12,
   lastSeq: 40,
-  lastAt: '2026-10-11T08:00:00.000Z'
+  lastAt: '2026-10-11T08:00:00.000Z',
+  kinds: ['message', 'request'],
+  openRequests: 1
+}
+
+/** A second thread, disjoint on every filter axis: other participant set, another kind, no open request. */
+const THREAD_B = {
+  id: '79000000-0000-4000-8000-0000000000d2',
+  subject: 'Retention digest',
+  participants: ['p2'],
+  createdBy: 'p2',
+  createdSeq: 5,
+  messageCount: 3,
+  lastSeq: 41,
+  lastAt: '2026-10-11T09:00:00.000Z',
+  kinds: ['finding'],
+  openRequests: 0
 }
 
 function stub(reply: CommsThreadsReply | (() => Promise<CommsThreadsReply>)) {
@@ -93,6 +109,61 @@ describe('the thread list', () => {
     show()
     await screen.findByRole('alert')
     await waitFor(() => expect(screen.queryByText(en['launch.comms.empty'])).toBeNull())
+  })
+})
+
+// SCN-143, amended 2026-10-11 (COM-07, the filter slice): three filters, AND-combined, each "all"
+// by default. They narrow the list the board already answered — a filter NEVER re-queries the board,
+// so it can never make an unanswered board look empty; and a matchless narrowing says so in words
+// with the way back, which is neither the estate's empty answer nor the board's silence.
+describe('the filters narrow the list the board already answered, never re-querying it', () => {
+  const two = () => stub({ ok: true, threads: [THREAD, THREAD_B] })
+
+  it('by participant project', async () => {
+    const { threads } = two()
+    show()
+    await screen.findByText('Cutover plan')
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.project']), { target: { value: 'p1' } })
+    expect(screen.queryByText('Retention digest')).toBeNull()
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+    await waitFor(() => expect(threads).toHaveBeenCalledTimes(1), { timeout: 300 })
+  })
+
+  it('by kind a thread HOLDS, and only threads with an open request', async () => {
+    two()
+    show()
+    await screen.findByText('Cutover plan')
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.kind']), { target: { value: 'request' } })
+    expect(screen.queryByText('Retention digest')).toBeNull()
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.kind']), { target: { value: '' } })
+    expect(screen.getByText('Retention digest')).toBeTruthy()
+    fireEvent.click(screen.getByRole('checkbox', { name: en['launch.comms.filters.openRequests'] }))
+    expect(screen.queryByText('Retention digest')).toBeNull()
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+  })
+
+  it('a matchless narrowing says so in words with a way back, and clearing returns the full list', async () => {
+    two()
+    show()
+    await screen.findByText('Cutover plan')
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.kind']), { target: { value: 'announcement' } })
+    await screen.findByText(en['launch.comms.filters.noMatch'])
+    expect(screen.queryByText(en['launch.comms.empty'])).toBeNull()
+    expect(screen.queryByRole('alert')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.filters.clear'] }))
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+    expect(screen.getByText('Retention digest')).toBeTruthy()
+  })
+
+  it('a selection the filter excludes is closed with the filter change', async () => {
+    two()
+    show()
+    await screen.findByText('Retention digest')
+    fireEvent.click(screen.getByText('Retention digest'))
+    await screen.findByText(en['launch.comms.threadEmpty'])
+    fireEvent.click(screen.getByRole('checkbox', { name: en['launch.comms.filters.openRequests'] }))
+    await waitFor(() => expect(screen.queryByText(en['launch.comms.threadEmpty'])).toBeNull())
+    expect(screen.getByText(en['launch.comms.aside.title'])).toBeTruthy()
   })
 })
 

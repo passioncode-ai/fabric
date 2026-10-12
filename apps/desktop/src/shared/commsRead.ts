@@ -23,6 +23,11 @@ export interface CommsThread {
   messageCount: number
   lastSeq: number
   lastAt: string | null
+  /** The message kinds the thread HOLDS, sorted and distinct — the kind filter matches on this,
+   *  not on the last message (SCN-143, amended 2026-10-11; migration 84). */
+  kinds: string[]
+  /** Requests of this thread outside the contract's terminal set; outcome_unknown counts as open. */
+  openRequests: number
 }
 
 /** The principal of a sender, as the board holds it (jsonb): who acted, and whether that

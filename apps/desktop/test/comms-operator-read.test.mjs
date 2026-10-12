@@ -32,7 +32,9 @@ const threadRow = {
   createdSeq: 3,
   messageCount: 2,
   lastSeq: 9,
-  lastAt: '2026-10-11T08:00:00.000Z'
+  lastAt: '2026-10-11T08:00:00.000Z',
+  kinds: ['message', 'request'],
+  openRequests: 1
 }
 
 const messageRow = {
@@ -128,6 +130,18 @@ test('threads and messages in a shape this build cannot read are unavailable, no
   const page = await read.list(ESTATE, THREAD, 0, 50)
   assert.equal(page.ok, false)
   assert.equal(page.error.code, 'unavailable')
+})
+
+test('a thread row without the aggregates is unavailable — never read as zero open requests (SCN-143, filter slice)', async () => {
+  const withoutAggregates = { ...threadRow }
+  delete withoutAggregates.kinds
+  delete withoutAggregates.openRequests
+  const read = createCommsOperatorRead(fake({
+    board_threads_operator: { data: { ok: true, threads: [withoutAggregates] }, error: null }
+  }))
+  const reply = await read.threads(ESTATE)
+  assert.equal(reply.ok, false)
+  assert.equal(reply.error.code, 'unavailable')
 })
 
 test('a redacted message keeps its place, id and digest, and says its body was removed', async () => {

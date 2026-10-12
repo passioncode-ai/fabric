@@ -337,6 +337,10 @@
     {
       "file": "20261011000095_work_claims.sql",
       "sha256": "722f4880e8417ecf468213c4750a5849aec379b3f8af70fb23d0ad5255f15ab2"
+    },
+    {
+      "file": "20261011000100_project_board_thread_aggregates.sql",
+      "sha256": "7b2b906ae5acdbe64ebb948cfc87781c613eac543c06cb7617ddad9923a82280"
     }
   ]
 }

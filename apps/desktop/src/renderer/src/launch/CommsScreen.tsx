@@ -58,6 +58,24 @@ const firstWordsOf = (text: string): string => {
   return text.trim().split(/\s+/).length > FIRST_WORDS ? `${words}…` : words
 }
 
+/** The contract's five message kinds, in the order the filter offers them (SCN-143, amended
+ *  2026-10-11: a thread matches a kind filter when it HOLDS a message of that kind). */
+const THREAD_KINDS = ['message', 'request', 'reply', 'finding', 'announcement'] as const
+
+/** The filter slice: three filters, each "all" by default, combining as AND. They narrow the
+ *  list the board already answered and NEVER re-query it — so a filter can never make an
+ *  unanswered board look empty. */
+interface ThreadFilters {
+  project: string | null
+  kind: string | null
+  openOnly: boolean
+}
+const ALL_THREADS: ThreadFilters = { project: null, kind: null, openOnly: false }
+const matchesFilters = (thread: CommsThread, f: ThreadFilters): boolean =>
+  (f.project === null || thread.participants.includes(f.project)) &&
+  (f.kind === null || thread.kinds.includes(f.kind)) &&
+  (!f.openOnly || thread.openRequests > 0)
+
 export function CommsScreen({ projects, onPulse }: {
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
@@ -73,6 +91,7 @@ export function CommsScreen({ projects, onPulse }: {
   const [threadsConfirmedAt, setThreadsConfirmedAt] = useState<string | null>(null)
   const [threadsStale, setThreadsStale] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
+  const [filters, setFilters] = useState<ThreadFilters>(ALL_THREADS)
   /** First words of untitled threads, filled lazily one bounded read per thread. */
   const [firstWords, setFirstWords] = useState<Record<string, string>>({})
   const confirmed = useRef(false)
@@ -123,6 +142,14 @@ export function CommsScreen({ projects, onPulse }: {
   }, [threads, firstWords])
 
   const titleOf = (thread: CommsThread): string => thread.subject ?? firstWords[thread.id] ?? t('launch.comms.untitled', { id: shortId(thread.id) })
+  // A narrowed list hides the rows outside it; a detail of an invisible row would be a second
+  // truth beside the filter, so a selection the filter excludes is closed with the filter change.
+  useEffect(() => {
+    if (selected !== null && threads && !threads.some((thread) => thread.id === selected && matchesFilters(thread, filters))) {
+      setSelected(null)
+    }
+  }, [filters, threads, selected])
+  const shown = threads?.filter((thread) => matchesFilters(thread, filters)) ?? null
   const chosen = threads?.find((thread) => thread.id === selected) ?? null
   const observed = threadsConfirmedAt
     ? new Date(threadsConfirmedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -160,7 +187,41 @@ export function CommsScreen({ projects, onPulse }: {
                 <p>{t('launch.comms.emptyBody')}</p>
               </div>
             )}
-            {threads?.map((thread) => (
+            {threads !== null && threads.length > 0 && (
+              <div className="lp-filters" role="group" aria-label={t('launch.comms.filters.label')}>
+                <label>
+                  {t('launch.comms.filters.project')}
+                  <select value={filters.project ?? ''} onChange={(e) => setFilters((f) => ({ ...f, project: e.target.value || null }))}>
+                    <option value="">{t('launch.comms.filters.allProjects')}</option>
+                    {(projects ?? []).filter((p) => p.status !== 'archived').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </label>
+                <label>
+                  {t('launch.comms.filters.kind')}
+                  <select value={filters.kind ?? ''} onChange={(e) => setFilters((f) => ({ ...f, kind: e.target.value || null }))}>
+                    <option value="">{t('launch.comms.filters.allKinds')}</option>
+                    {THREAD_KINDS.map((k) => <option key={k} value={k}>{contractWord(t, 'kind', k)}</option>)}
+                  </select>
+                </label>
+                <label className="lp-filters-check">
+                  <input type="checkbox" checked={filters.openOnly} onChange={(e) => setFilters((f) => ({ ...f, openOnly: e.target.checked }))} />
+                  {t('launch.comms.filters.openRequests')}
+                </label>
+              </div>
+            )}
+            {shown !== null && shown.length === 0 && threads !== null && threads.length > 0 && (
+              // A narrowed list with no match is said in words with the way back — it is the
+              // filter's answer, and it must never read as the estate's (empty) or the board's
+              // silence (unavailable).
+              <div className="lp-empty">
+                <h3>{t('launch.comms.filters.noMatch')}</h3>
+                <p>{t('launch.comms.filters.noMatchBody')}</p>
+                <div className="lp-actions">
+                  <button type="button" className="lp-button" onClick={() => setFilters(ALL_THREADS)}>{t('launch.comms.filters.clear')}</button>
+                </div>
+              </div>
+            )}
+            {shown?.map((thread) => (
               <button key={thread.id} type="button" className="lp-topic" aria-expanded={selected === thread.id}
                 onClick={() => setSelected(selected === thread.id ? null : thread.id)}>
                 <span>
