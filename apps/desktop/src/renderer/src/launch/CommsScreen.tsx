@@ -62,19 +62,28 @@ const firstWordsOf = (text: string): string => {
  *  2026-10-11: a thread matches a kind filter when it HOLDS a message of that kind). */
 const THREAD_KINDS = ['message', 'request', 'reply', 'finding', 'announcement'] as const
 
-/** The filter slice: three filters, each "all" by default, combining as AND. They narrow the
- *  list the board already answered and NEVER re-query it — so a filter can never make an
+/** The filter slice: four filters, each at its widest by default, combining as AND. They narrow
+ *  the list the board already answered and NEVER re-query it — so a filter can never make an
  *  unanswered board look empty. */
 interface ThreadFilters {
   project: string | null
   kind: string | null
   openOnly: boolean
+  /** Last-activity window (SCN-143, the time-filter slice): read from `lastAt`, a fact the
+   *  board already answered with. An undated thread (no messages yet) matches only 'all' —
+   *  it is not "old", and a window must not pretend otherwise. */
+  activity: 'all' | 'day' | 'week'
 }
-const ALL_THREADS: ThreadFilters = { project: null, kind: null, openOnly: false }
+const ALL_THREADS: ThreadFilters = { project: null, kind: null, openOnly: false, activity: 'all' }
+const ACTIVITY_WINDOW_MS = { day: 24 * 3_600_000, week: 7 * 24 * 3_600_000 } as const
+/** A select's value, narrowed: anything that is not a known window is the widest one. */
+const activityOf = (value: string): ThreadFilters['activity'] => (value === 'day' || value === 'week' ? value : 'all')
 const matchesFilters = (thread: CommsThread, f: ThreadFilters): boolean =>
   (f.project === null || thread.participants.includes(f.project)) &&
   (f.kind === null || thread.kinds.includes(f.kind)) &&
-  (!f.openOnly || thread.openRequests > 0)
+  (!f.openOnly || thread.openRequests > 0) &&
+  (f.activity === 'all' ||
+    (thread.lastAt !== null && Date.now() - Date.parse(thread.lastAt) <= ACTIVITY_WINDOW_MS[f.activity]))
 
 export function CommsScreen({ projects, onPulse, seen, onRead }: {
   /** Participant names resolve through this list; null while unread, and an id the
@@ -232,6 +241,14 @@ export function CommsScreen({ projects, onPulse, seen, onRead }: {
                   <select value={filters.kind ?? ''} onChange={(e) => setFilters((f) => ({ ...f, kind: e.target.value || null }))}>
                     <option value="">{t('launch.comms.filters.allKinds')}</option>
                     {THREAD_KINDS.map((k) => <option key={k} value={k}>{contractWord(t, 'kind', k)}</option>)}
+                  </select>
+                </label>
+                <label>
+                  {t('launch.comms.filters.activity')}
+                  <select value={filters.activity} onChange={(e) => setFilters((f) => ({ ...f, activity: activityOf(e.target.value) }))}>
+                    <option value="all">{t('launch.comms.filters.allTime')}</option>
+                    <option value="day">{t('launch.comms.filters.today')}</option>
+                    <option value="week">{t('launch.comms.filters.week')}</option>
                   </select>
                 </label>
                 <label className="lp-filters-check">

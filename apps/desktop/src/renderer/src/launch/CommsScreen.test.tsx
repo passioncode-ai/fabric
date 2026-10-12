@@ -295,3 +295,50 @@ describe("the operator's own unread marks", () => {
     expect(screen.queryByRole('button', { name: en['launch.comms.markAllRead'] })).toBeNull()
   })
 })
+
+// SCN-143, amended 2026-10-12 (COM-07, the time-filter slice): the window reads `lastAt` — a fact
+// the board already answered with — so it narrows the answered list and never re-queries it; an
+// undated thread (no messages yet) is not "old" and matches only "all time".
+describe('the activity filter narrows by last write, never re-querying', () => {
+  const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString()
+  const recent = { ...THREAD, lastAt: ago(2) }
+  const stale = { ...THREAD_B, lastAt: ago(72) }
+  const undated = { ...THREAD_B, id: '79000000-0000-4000-8000-0000000000d3', subject: 'Empty start', lastAt: null, messageCount: 0 }
+
+  it('today keeps what was written today and hides what was not, without asking the board again', async () => {
+    const { threads } = stub({ ok: true, threads: [recent, stale] })
+    show()
+    await screen.findByText('Cutover plan')
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    expect(screen.queryByText('Retention digest')).toBeNull()
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+    await waitFor(() => expect(threads).toHaveBeenCalledTimes(1), { timeout: 300 })
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'week' } })
+    expect(screen.getByText('Retention digest')).toBeTruthy()
+  })
+
+  it('an undated thread is not "old": it matches only all time', async () => {
+    stub({ ok: true, threads: [recent, undated] })
+    show()
+    await screen.findByText('Cutover plan')
+    expect(screen.getByText('Empty start')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    expect(screen.queryByText('Empty start')).toBeNull()
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'all' } })
+    expect(screen.getByText('Empty start')).toBeTruthy()
+  })
+
+  it('combines with the other filters as AND', async () => {
+    stub({ ok: true, threads: [recent, stale] })
+    show()
+    await screen.findByText('Cutover plan')
+    // The only thread HOLDING a finding is the stale one, and it is outside the day window: nothing matches.
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.kind']), { target: { value: 'finding' } })
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    await screen.findByText(en['launch.comms.filters.noMatch'])
+    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'week' } })
+    expect(screen.getByText('Retention digest')).toBeTruthy()
+    expect(screen.queryByText('Cutover plan')).toBeNull()
+  })
+})
