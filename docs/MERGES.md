@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12T16:40:00Z · `—` · agent/ct19-adoption → main · fast-forward
+- run: 249d0762eddd
+- files: 7
+- conflicts: none
+- summary: Carry-over CO-277 (supabase db reset refuses the stack Fabric started on CLI 2.114; the operator's clean-first-run reset was done by hand) and CO-278 (contract wave 4, CT-19: DEC-0054, 0057, 0060–0063 for Fabric to adopt in 0.4.0), CO-279 (RM-28 Fabric packets CX-FAB-01…12, accepted for modelling), CO-280 (spend-policy projection, Observatory P21), CO-281 (two load-sensitive tests; the codex deadline count bounded) — all in lane 12; recount 215 of 281.
+
 ### 2026-10-12T16:17:29Z · `—` · agent/comms-unread → main · `d22b4d58`
 - run: r-64b69ed3a
 - files: 110 (110 files changed, 247 insertions(+), 36 deletions(-))

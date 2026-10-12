@@ -124,8 +124,11 @@ for(const fence of [()=>1,()=>({}),()=>Promise.resolve(true),()=>Promise.reject(
  resolve(reply({}));await sleep(1);await f.control.requestStop(command,()=>true);assert.equal(f.calls.length,1)
 }
 {
+ // The claim is the deadline. Whether the port was reached at all before a 5 ms
+ // deadline is the scheduler's (at load 72 it was not: calls 0, 2026-10-12), so
+ // the count is bounded rather than fixed.
  const f=fixture({timeoutMs:5,request:()=>{const until=performance.now()+20;while(performance.now()<until){}return Promise.resolve(reply({}))}})
- assert.equal((await f.control.requestStop(command,()=>true)).reasonCode,'deadline');assert.equal(f.calls.length,1)
+ assert.equal((await f.control.requestStop(command,()=>true)).reasonCode,'deadline');assert.ok(f.calls.length<=1)
 }
 {
  const f=fixture({timeoutMs:5});const r=await f.control.requestStop(command,()=>{const until=performance.now()+20;while(performance.now()<until){}return true})
