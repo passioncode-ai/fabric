@@ -10433,7 +10433,7 @@
       "canonical_surface": "where_work",
       "alias_of": null,
       "horizon": "near",
-      "current_status": "Спроектировано 2026-10-11 (0.4.0 REQ-17, REQ-38); не построено.",
+      "current_status": "Построено в 0.3.5 (REQ-17, REQ-38; `launch/WhereWorkScreen.tsx`); согласие на запись сессии в проект ещё не построено.",
       "task_ids": [],
       "scenario_ids": [
         "SCN-141",

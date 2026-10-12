@@ -357,8 +357,8 @@ work» are to be retired (ADR-0137); the 0.3.5 screens still show them until the
 
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
-`fabric.access.status` — and, from 0.3.5, `fabric.session.enroll`, which only asks to join a Project and is
-answered by the operator's consent (ADR-0134) — and nothing else; it may be reused; it is never a grant. Through the
+`fabric.access.status` — and, from 0.3.5, `fabric.session.enroll`, which through the door only names the Project
+and answers `needs-grant`; the ask itself is `fabric.access.request` (ADR-0134) — and nothing else; it may be reused; it is never a grant. Through the
 door, reading a request's status also needs that request's **poll secret**.
 
 **Poll secret** — a per-request secret (32 random bytes) the hub returns only in the answer that

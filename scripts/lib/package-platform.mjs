@@ -37,6 +37,17 @@ export function signingOptions(env) {
   return { endpoint, codeSigningAccountName: account, certificateProfileName: profile, publisherName: WINDOWS_PUBLISHER }
 }
 
+/**
+ * One argument as cmd.exe reads it. `pnpm` runs through the shell on Windows (a `.cmd` cannot start without it), and the
+ * shell splits on spaces: the publisher name "Siarhei Sheleh" became two arguments and electron-builder refused the
+ * build (0.3.5 rehearsal v0.3.5-rc.1, run 38235005334, "Unknown argument: Sheleh"). An argument with a space, a tab or
+ * a quote is wrapped in double quotes, inner quotes doubled; one without is passed as it is.
+ */
+export function cmdArg(arg) {
+  const s = String(arg)
+  return /[\s"]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
 export function builderArgs({ platform, arch, version, signing }) {
   const names = artifactNames({ platform, arch, version })
   const ext = '${ext}'

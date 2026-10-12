@@ -225,6 +225,11 @@ Estate total: $1,000/month (`authority.md:50`). Enforced by nobody (OBS-56 open)
 - **cmo:** `approval_required, approval_reused, authorization_revoked, confirmation_expired, cap_below_plan_budget, validity_too_long, …`.
 - **research-agent:** `approval-required`.
 - **Prose or HTTP status only:** fabric-inbox, fabric-dashboards, asset-foundry (plus budget pause causes), prowl (`daily_spend_limit` and similar as text).
+  - *Correction, 2026-10-12 (from asset-foundry-00, its W-022; this record is otherwise as of 2026-10-11):* Asset
+    Foundry no longer belongs here. Since its wave 1 (release 0.2.0-98da9aeb812c, main `5f3f76f`), every code a caller
+    can receive over MCP is listed in its caller skill's `references/errors.md` — 123 codes, held by
+    `tests/test_errors.py`; the Fabric-tool codes are kebab-case (`unknown-job`, `store-corrupt`, `job-failed`,
+    `tool-error`, `refused`).
 
 ### 4.6 Scope / level vocabularies ("level" means at least eight things)
 

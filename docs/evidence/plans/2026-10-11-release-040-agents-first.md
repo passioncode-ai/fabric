@@ -478,7 +478,8 @@ is **0.3.5**, not 0.4.0. This amends D-02 ("everything, as 0.4.0") and the statu
 - **0.3.5** ([P-17](../backlog.md#general-development-plan), [ledger](2026-10-12-release-035-verification.md)) ships
   waves 0 and 1 and wave 2's packet P1 as landed — `fabric-mcp` and enrollment (REQ-05, ADR-0134), claims and the
   work screens (REQ-38, REQ-08), the first-run agent choice (REQ-40), CO-254 and CO-242 — with Windows and Linux
-  (CO-238, REQ-25 without the updater), the operator's board (COM-06/07) and the `fabric://` handler (wave 5's link
+  (CO-238, REQ-25 without the updater), the operator's read-only Comms screen over the project board (COM-06/07 open
+  beyond it) and the `fabric://` handler (wave 5's link
   handling, REQ-42's first half). Windows installers are signed (`AZURE_SIGNING_ENABLED` switched on 2026-10-12,
   passioncode-ai/.github #41).
 - **0.4.0** keeps everything else in this plan: the rest of wave 2 (P2 `session-handoff/1`, P4 runner probes and
@@ -486,7 +487,8 @@ is **0.3.5**, not 0.4.0. This amends D-02 ("everything, as 0.4.0") and the statu
   second half) and the per-OS sign-in readers and runtime tuples (CO-244, CO-251).
 - **The clean first run moves to 0.3.5.** The operator's order of 2026-10-11 («новая сборка выпущена, переустановлена на
   этом компьютере, локальные данные Fabric очищены, чтобы протестировать с нуля») is carried out at 0.3.5's release close:
-  the database dumped, upgraded 79 → 84, the app installed, then the local data reset for a fresh first run. Strategy
+  the database dumped first, upgraded 79 → 84, the app installed and the estate verified, then dumped again and the
+  local data reset for a fresh first run. Strategy
   step 5's wave-8 walk stays, on 0.4.0.
 
 

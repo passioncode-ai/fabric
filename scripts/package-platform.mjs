@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { artifactNames, builderArgs, parsePlatformArgs, signingOptions } from './lib/package-platform.mjs'
+import { artifactNames, builderArgs, cmdArg, parsePlatformArgs, signingOptions } from './lib/package-platform.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DESKTOP = path.join(ROOT, 'apps/desktop')
@@ -37,7 +37,9 @@ run(process.execPath, [path.join(ROOT, 'scripts/build-manifest.mjs')], DESKTOP)
 const env = { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: 'false' }
 // The Windows arm64 installer otherwise drops every .exe and .dll from its payload (platforms.md, lessons: nsis7z).
 if (args.platform === 'win32' && args.arch === 'arm64') env.ELECTRON_BUILDER_7Z_FILTER = 'BCJ'
-pnpm(['exec', 'electron-builder', '--config', 'electron-builder.yml', ...builderArgs({ ...args, version, signing })], env)
+// Through the shell on Windows, so each argument is quoted as cmd.exe reads it (lib/package-platform.mjs#cmdArg).
+const builder = builderArgs({ ...args, version, signing })
+pnpm(['exec', 'electron-builder', '--config', 'electron-builder.yml', ...(process.platform === 'win32' ? builder.map(cmdArg) : builder)], env)
 
 const files = artifactNames({ ...args, version }).map((name) => {
   const file = path.join(DESKTOP, 'dist', name)

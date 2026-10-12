@@ -1,7 +1,7 @@
 // #region hub-tools — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-2-clarifications--2026-10-04
 // The tools an EXTERNAL agent sees (ADR-0115 §1–§2, §5). What a principal may do is decided by which
-// server it is given, not by checks inside a shared one: the door token's server has exactly two
-// tools, a binding's has four, and neither has any `fabric_*` session tool — so a tool added to the
+// server it is given, not by checks inside a shared one: the door token's server has exactly three
+// tools, a binding's has five, and neither has any `fabric_*` session tool — so a tool added to the
 // session surface tomorrow is not reachable from outside by accident.
 //
 //   door token  → fabric.access.request, fabric.access.status, fabric.session.enroll (names the project only)
