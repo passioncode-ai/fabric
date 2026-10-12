@@ -4,33 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-12 · `ru-copy-pass` · agent/ru-copy-pass → main · fast-forward
-- run: none (a single-agent copy pass; no coordination run)
-- summary: the whole Russian registry reviewed (PR #30): 447 strings in apps/desktop/src/renderer/src/i18n/ru.ts rewritten — calques, log register, «Estate»/«исполнитель»/«экосистема», one name per action, number agreement; English, keys and placeholders unchanged; docs/brand/strings.md section (Status: proposed); design-map iteration 2026-10-12-ru-copy-pass.
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/release-035-done → main · fast-forward
-- run: r-249d0762eddd
-- summary: Fabric v0.3.5 released (run 38244634190); the close: P-17 done, CO-238 resolved, the Now line, facts.md and the overview guides name 0.3.5 on macOS, Windows and Linux, the handoff and the ledger's release close.
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/release-035-fix2, agent/release-035-b → main · fast-forward
-- run: r-249d0762eddd
-- summary: the rehearsal v0.3.5-rc.1 failed both Windows builds (the signing publisher split by cmd.exe); the final candidate 816d2284 fixes it (cmdArg) with CO-275's pointers, CO-274…CO-276, ADR-0144 amendment 5 and the audit correction; a second recheck at all five levels; the release commit names 816d2284 as verifiedCommit.
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/rv3-final, agent/release-035 → main · fast-forward
-- run: r-249d0762eddd
-- summary: Fabric 0.3.5's final candidate (89718e92: the project page's Codex and Kimi Code words, the nightly gates, three full-tier tests caught up, docs, CO-270…CO-273) and the release commit (version 0.3.5, the CHANGELOG finalized, the release gate with three iterations — 67, 52 and 45 findings, all disposed — and five rechecks).
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/rv2-fixes + agent/rv2-errors → main · fast-forward
-- run: r-249d0762eddd
-- summary: the 0.3.5 verification's iteration 2 (52 findings, 10 blocking, all disposed): release.yml parses again with a workflow-parse gate, the hosted Linux fast tier green, the work screens current, the errors level (schema refusal cause, fabric-mcp refusals keep the session, eviction by activity and DELETE on leave, link drops said, async Windows stop), ADR-0134 amendment 4, docs and plan; CO-269.
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/rv1-fixes → main · fast-forward
-- run: r-249d0762eddd
-- summary: the 0.3.5 verification's iteration 1 (67 findings, 13 blocking, all disposed in docs/evidence/plans/2026-10-12-release-035-verification.md): renderer fixes (agent/rv1-ux), main-process and platform fixes (agent/rv1-main), the hosted Linux fast tier, the MCP version, docs and plan for 0.3.5 (P-17), CO-264…CO-268, the private archive's 83/84 record; Windows signing switched on; the 79 → 84 upgrade rehearsed on the operator's dump.
-
-### 2026-10-12 · `release-040-wave1-b4` · agent/fx-wave (on agent/w2-fabric-links) → main · fast-forward
-- run: r-249d0762eddd
-- summary: fabric:// links (Fabric registers the scheme; a product's button opens its project), the 0.3.5 bug-fix wave (links on cold start and during the first run, the work screens' errors and words, platform words, the schema refusal in the operator's language, guard on every release job, the analytics agent counts), the CHANGELOG as 0.3.5, the public workspace sources without the closed module; CO-262 and CO-263 opened. ci.sh fast ran with quit.test.mjs alone (its real-Electron dialog case is display-sensitive, CO-210; ci.sh now keeps the display awake).
+### 2026-10-12T13:28:41Z · `—` · agent/comms-filters → main · `5af32ed4`
+- run: r-64b69ed3a
+- files: 94 (94 files changed, 370 insertions(+), 25 deletions(-))
+- conflicts: none
+- summary: Comms filters (COM-07 slice): thread list narrows by participant project / message kind / open-request — client-side over the board's complete answer, never re-querying; aggregates from migration 85 (suffix 100: kinds + openRequests on board_threads_operator). SCN-143 amended first (COM-06 order). Merged over wave 2 and the 0.3.5 release (conflicts resolved as union; codec test's unqualified-schema probe moved 85 to 86); ci.sh fast green.
 
 ### 2026-10-11T18:53:54Z · `—` · agent/comms-all-agents-board-screen → main · `5223723f`
 - run: r-64b69ed3a
@@ -40,6 +18,13 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ## Compacted
 
+- 2026-10-12 · `ru-copy-pass` · agent/ru-copy-pass → main · `fast-forward` · the whole Russian registry reviewed (PR #30): 447 strings in apps/desktop/src/renderer/src/i18n/ru.ts rewritten — calques, log register, «Estate»/«исполнитель»/«экосистема», one name per action, number agreement; English, keys and placeholders unchanged; docs/brand/strings.md section (Status: proposed); design-map iteration 2026-10-12-ru-copy-pass.
+- 2026-10-12 · `release-040-wave1-b4` · agent/release-035-done → main · `fast-forward` · Fabric v0.3.5 released (run 38244634190); the close: P-17 done, CO-238 resolved, the Now line, facts.md and the overview guides name 0.3.5 on macOS, Windows and Linux, the handoff and the ledger's release close.
+- 2026-10-12 · `release-040-wave1-b4` · agent/release-035-fix2, agent/release-035-b → main · `fast-forward` · the rehearsal v0.3.5-rc.1 failed both Windows builds (the signing publisher split by cmd.exe); the final candidate 816d2284 fixes it (cmdArg) with CO-275's pointers, CO-274…CO-276, ADR-0144 amendment 5 and the audit correction; a second recheck at all five levels; the release commit names 816d2284 as verifiedCommit.
+- 2026-10-12 · `release-040-wave1-b4` · agent/rv3-final, agent/release-035 → main · `fast-forward` · Fabric 0.3.5's final candidate (89718e92: the project page's Codex and Kimi Code words, the nightly gates, three full-tier tests caught up, docs, CO-270…CO-273) and the release commit (version 0.3.5, the CHANGELOG finalized, the release gate with three iterations — 67, 52 and 45 findings, all disposed — and five rechecks).
+- 2026-10-12 · `release-040-wave1-b4` · agent/rv2-fixes + agent/rv2-errors → main · `fast-forward` · the 0.3.5 verification's iteration 2 (52 findings, 10 blocking, all disposed): release.yml parses again with a workflow-parse gate, the hosted Linux fast tier green, the work screens current, the errors level (schema refusal cause, fabric-mcp refusals keep the session, eviction by activity and DELETE on leave, link drops said, async Windows stop), ADR-0134 amendment 4, docs and plan; CO-269.
+- 2026-10-12 · `release-040-wave1-b4` · agent/rv1-fixes → main · `fast-forward` · the 0.3.5 verification's iteration 1 (67 findings, 13 blocking, all disposed in docs/evidence/plans/2026-10-12-release-035-verification.md): renderer fixes (agent/rv1-ux), main-process and platform fixes (agent/rv1-main), the hosted Linux fast tier, the MCP version, docs and plan for 0.3.5 (P-17), CO-264…CO-268, the private archive's 83/84 record; Windows signing switched on; the 79 → 84 upgrade rehearsed on the operator's dump.
+- 2026-10-12 · `release-040-wave1-b4` · agent/fx-wave (on agent/w2-fabric-links) → main · `fast-forward` · fabric:// links (Fabric registers the scheme; a product's button opens its project), the 0.3.5 bug-fix wave (links on cold start and during the first run, the work screens' errors and words, platform words, the schema refusal in the operator's language, guard on every release job, the analytics agent counts), the CHANGELOG as 0.3.5, the public workspace sources without the closed module; CO-262 and CO-263 opened. ci.sh fast ran with quit.test.mjs alone (its real-Electron dialog case is display-sensitive, CO-210; ci.sh now keeps the display awake).
 - 2026-10-11 · `release-040-wave1` · agent/release-040-wave1 → main · `?` · a coding agent in any console reaches Fabric through fabric-mcp and enrolls into a project on one consent — proven with a real MCP client; the hub path that never ran live (CO-254) is fixed; CO-091 and the data-integrity rows closed. Fix round (runs r-22786ba16, r-249d0762eddd; leases release-040-wave1-hook, release-040-wave1-b4): enrollment revocation, folder fact and bounded loop (ADR-0134 amendment 2); enrollment words; the fused packaged build and the release's fabric-mcp check; the first-run agent choice (REQ-40); the 0.4.0 UX additions (SCN-137…SCN-142, FLW-77…FLW-82, SCR-77…SCR-80); ADR-0144 delegation with its audit and plan; main's fabric#28 (ADR-0145) merged in; CO-256…CO-259 carried.
 - 2026-10-11 · `release-guard` · agent/release-guard → main (fabric#28) · `?` · release approval by checks across PassionCode products (operator 2026-10-11): the release runs only from a tag on main with `ci.yml` green on its commit; the environment's reviewers go once this lands.
 - 2026-10-11 · `release-040-plan` · agent/release-040-plan → main · `?` · Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed. Wave 0 in the same landing: ADR-0133…ADR-0140, amendments to ADR-0100/0115/0119/0121/0123/0129, the pipeline reservation at ADR-0141, the vision §1/§3/§7 and six glossary terms, register hygiene (21 closed or narrowed, CO-248…CO-253, the CO-215/216 expansion), release runbook steps 10–11 (CO-196, CO-197 recorded).
