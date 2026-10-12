@@ -412,7 +412,14 @@ export const en = {
     'Fabric can keep your estate — projects, their settings and the agents in them — as files in a folder you own, so you can read them, diff them and carry them to another machine. It is not a backup: most of what this estate holds is rebuilt from the journal, and some of it these files do not carry at all. You can change this later.',
   /** Composed from the coverage rather than written, so it cannot drift from
    *  what the mirror actually carries (AX-12). */
-  'workspace.absences': 'What a folder will not bring back: {says}',
+  'workspace.absences':
+    'What a folder will not bring back: {list}. These files hold your projects and agents; carrying them to another machine will not bring the rest back.',
+  /** One word per table the contract marks NOT REBUILDABLE: the banner names
+   *  them in the reader's words, never by table id (0.3.5 first run). */
+  'workspace.entity.goals': 'goals',
+  'workspace.entity.project_tasks': 'tasks',
+  'workspace.entity.questions': 'questions',
+  'workspace.entity.routines': 'routines',
   'workspace.choose': 'Choose a folder',
   'workspace.adopt': 'I already have one',
   'workspace.decline': 'Not now',

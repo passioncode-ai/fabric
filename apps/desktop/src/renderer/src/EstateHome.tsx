@@ -20,6 +20,7 @@ import {
 } from '../../shared/workspaceAct.ts'
 import { ProfileSection } from './ProfileSection'
 import { describeEvent, useLocale, useT } from './i18n'
+import { en, type StringKey } from './i18n/en'
 import { declaredCoverage, restorability } from '../../shared/storageContract.ts'
 import { cursorFor } from '../../shared/inbox.ts'
 import type { EntityRef } from '../../shared/entityRef'
@@ -89,6 +90,17 @@ export function EstateHome({
   /** Computed from the DECLARED coverage, so a table that stops being carried
    *  changes this sentence without anyone remembering to. */
   const mirror = restorability(declaredCoverage())
+  // #region workspace-absences — docs: docs/ux/flows.md#flw-36-inspect-storage-import-declared-data-and-restore-an-archive
+  // The ids are the contract's; the words are the locale's. `says` stays the
+  // contract's own English for diagnostics: interpolated on screen it put
+  // «project_tasks» into a Russian sentence (0.3.5 first run).
+  const absences = new Intl.ListFormat(locale, { type: 'conjunction' }).format(
+    mirror.missing.map((id) => {
+      const key = `workspace.entity.${id}`
+      return key in en ? t(key as StringKey) : id
+    })
+  )
+  // #endregion workspace-absences
   /**
    * The read position this build may actually use (AX-07).
    *
@@ -327,7 +339,7 @@ export function EstateHome({
               the absences" was true of no screen. Beside the decision it
               informs, and only while that decision is open — a caveat printed
               for ever becomes furniture. */}
-          <p className="muted">{t('workspace.absences', { says: mirror.says })}</p>
+          <p className="muted">{t('workspace.absences', { list: absences })}</p>
         </Banner>
       )}
       {/* WHAT IS WAITING IS LESS THAN EVERYTHING (UXA-C01, UXA-C02). Above the

@@ -27,6 +27,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { EstateHome } from './EstateHome'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
+import { ru } from './i18n/ru'
 import { declaredCoverage, restorability } from '../../shared/storageContract'
 import { NO_MARKS } from '../../shared/feedMarks'
 import { whole } from '../../../test/envelopes'
@@ -54,9 +55,9 @@ function stub(git: 'yes' | 'declined' | 'unanswered' = 'unanswered') {
   )
 }
 
-const show = () =>
+const show = (locale: 'en' | 'ru' = 'en') =>
   render(
-    <I18nProvider locale="en">
+    <I18nProvider locale={locale}>
       <EstateHome
         projects={[]}
         sessions={[]}
@@ -95,7 +96,32 @@ describe('the question about a folder does not promise a backup', () => {
     const verdict = restorability(declaredCoverage())
     expect(verdict.restorable, 'the fixture must be an estate that is NOT fully restorable').toBe(false)
     expect(verdict.missing.length, 'and it must have absences to name').toBeGreaterThan(0)
-    await waitFor(() => expect(screen.getByText(new RegExp(verdict.missing[0]))).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/What a folder will not bring back: goals/)).toBeTruthy())
+  })
+
+  it('names the absences in the reader\'s words, never as table ids (0.3.5 first run, ru)', async () => {
+    // Seen on the operator's screen after the 0.3.5 install: the Russian banner
+    // read «Чего папка не вернёт: these files hold … goals, project_tasks,
+    // questions, routines» — an English sentence with machine ids in it,
+    // because `says` is the contract's own English and was interpolated as is.
+    stub()
+    const { container } = show('ru')
+    const verdict = restorability(declaredCoverage())
+    await waitFor(() => expect(screen.getByText(/Чего папка не вернёт/)).toBeTruthy())
+    const line = screen.getByText(/Чего папка не вернёт/).textContent ?? ''
+    for (const id of verdict.missing) expect(line, `the table id ${id} reached the screen`).not.toContain(id)
+    expect(line).not.toMatch(/these files hold/)
+    expect(line).toMatch(/цели/)
+    expect(container.textContent).not.toMatch(/project_tasks/)
+  })
+
+  it('every absence the contract can name has a word in both locales', () => {
+    // A table that becomes NOT REBUILDABLE without a word would fall back to
+    // its id on screen; this is where that is caught, not on the operator's.
+    for (const id of restorability(declaredCoverage()).missing) {
+      expect(en[`workspace.entity.${id}` as keyof typeof en], `en word for ${id}`).toBeTruthy()
+      expect(ru[`workspace.entity.${id}` as keyof typeof ru], `ru word for ${id}`).toBeTruthy()
+    }
   })
 
   it('and says it only while the question is open', async () => {
