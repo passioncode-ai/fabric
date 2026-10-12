@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "89718e92704981809f7dc5a7d7e2c4cc64de7bf3",
+  "report": "docs/evidence/reviews/0.3.5/iteration-3/2026-10-12-data.md",
+  "reportSha256": "0d52b88920fb316cb3e55246de87cf865535e36b0f51e1cd912c806a495a509b",
+  "reviewerRun": "release-035-i3-data-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-30",
+      "source": "DA-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-273"
+      ]
+    },
+    {
+      "id": "V3-31",
+      "source": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-273"
+      ]
+    },
+    {
+      "id": "V3-32",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the runbook says migration 91 projects the floor's `grants` (money, deletion and publication effects)"
+      ]
+    },
+    {
+      "id": "V3-33",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-273"
+      ]
+    },
+    {
+      "id": "V3-34",
+      "source": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-273"
+      ]
+    },
+    {
+      "id": "V3-35",
+      "source": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270 (the eviction test asserts no release)"
+      ]
+    },
+    {
+      "id": "V3-36",
+      "source": "DA-7",
+      "status": "not-recoverable",
+      "evidence": [
+        "not recoverable: migration 82's header bytes are frozen by the migration ledger; its conclusion holds, as the finding says"
+      ]
+    }
+  ]
+}

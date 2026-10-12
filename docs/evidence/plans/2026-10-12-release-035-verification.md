@@ -170,4 +170,78 @@ Exit for iteration 2: 52 findings dispositioned (37 fixed, 12 ruled, 3 not a def
 
 ## Iteration 3
 
-_Not started._
+Five fresh reviewers, 2026-10-12, against `01783787` (`01783787665f400a8a7b7f2ec804ad5b6be9c87e`), read-only in a detached checkout. Reports: [scenarios/UX/UI](../reviews/0.3.5/iteration-3/2026-10-12-ux.md) (UX-n, 1 blocking + 10), [errors and boundaries](../reviews/0.3.5/iteration-3/2026-10-12-errors.md) (ER-n, 0 blocking + 11), [code ↔ documents](../reviews/0.3.5/iteration-3/2026-10-12-docs.md) (DO-n, 0 blocking + 7), [data, memory, orchestration, harness](../reviews/0.3.5/iteration-3/2026-10-12-data.md) (DA-n, 0 blocking + 7), [plan and roadmap](../reviews/0.3.5/iteration-3/2026-10-12-plan.md) (PL-n, 0 blocking + 9).
+
+45 findings, 1 blocking (UX-1). The fixes below in code and tests make the **final candidate** `89718e92` (`89718e92704981809f7dc5a7d7e2c4cc64de7bf3`): the project page's words for Codex and Kimi Code, the nightly gates, the release test in the chain, docs, and three full-tier tests that had fallen behind the code (found by the first full tier on a candidate). On it the hosted `ci` is green, fast and full (run 38219258686), and `platforms` built, installed and started all four native builds on `01783787` (run 38216064295; the delta since touches no packaging). Five fresh reviewers rechecked the final candidate level by level, read-only: every row above holds there and the delta regressed nothing at a blocking level ([ux](../../handoffs/2026-10-12-release-035-i3-recheck-ux.md), [errors](../../handoffs/2026-10-12-release-035-i3-recheck-errors.md), [docs](../../handoffs/2026-10-12-release-035-i3-recheck-docs.md), [data](../../handoffs/2026-10-12-release-035-i3-recheck-data.md), [plan](../../handoffs/2026-10-12-release-035-i3-recheck-plan.md); committed with the release as release metadata). Their non-blocking findings are ruled: CO-274 (the nightly gates on the two nights the clocks change, a later run cancelling the nightly, the gate test reading text — the rows are written after the tag, since the carry-over ledger may not change after `verifiedCommit`), CO-275 (two region pointers in `seedRepair.ts`, the *Door token* sentence, a `hubTools.ts` comment, SCR-78 in `product-model.json` — after the tag), CO-273 (the analytics grant read past 1000 rows); the CHANGELOG wording points are taken in the release commit.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | UX-1 (blocking) | The project page says Codex and Kimi Code are not connected to Fabric, contradicting the 0.3.5 claim "Codex and Kimi Code connect to Fabric's surface. | fixed: `harness.agent.codex` and `harness.agent.kimi-code` (en, ru) say connected; `harnessAgentWords.test.ts` holds each agent's words to its surface adapter (watched: the old strings → codex, kimi-code) |
+| V3-2 | UX-2 | harness.strict, shown under "Servers a session can reach", says "Exactly one, and that is enforced: sessions launch with strict MCP config, so whatever else this machine has configured is invisible from inside." Since 0. | ruled CO-272 |
+| V3-3 | UX-3 | On Windows, the product-access consent promises a connect it then refuses, and the after-Allow note contradicts itself. | ruled CO-272 |
+| V3-4 | UX-4 | The feed says "an agent released a task" («агент отпустил задачу») for every work.released@1. | ruled CO-272 |
+| V3-5 | UX-5 | After a release that could not be confirmed, «Who is working on what» says "The release could not be confirmed. | fixed: "The list above is read again" (en, ru, strings.md) |
+| V3-6 | UX-6 | The link-read failure says "Fabric could not read your projects to open this link. | ruled CO-271 |
+| V3-7 | UX-7 | links.notice.dropped reads "{count} earlier Fabric link(s) waited while Fabric was starting…". | ruled CO-271 |
+| V3-8 | UX-8 | A database refused for its schema shows the title "Fabric could not verify database compatibility" («Fabric не смог проверить совместимость…») for behind and ahead too. | ruled CO-272 |
+| V3-9 | UX-9 | «Where work is» shows a long-silent session as "no sign for 4320 min", minutes only. | ruled CO-272 |
+| V3-10 | UX-10 | Comms shows contract identifiers raw. | ruled CO-272 |
+| V3-11 | UX-11 | Docs: SCR-78 «Where work is» is "designed" with implementation "none yet" in the screens index and in its record's Status. | fixed: SCR-78 is built in `docs/ux/screens.md`, covered by `launch/WhereWorkScreen.tsx` |
+| V3-12 | ER-1 | The per-binding cap becomes a rotation. | ruled CO-270 |
+| V3-13 | ER-2 | fabric-mcp leaves its session only on stdin EOF. | ruled CO-270 |
+| V3-14 | ER-3 | Overlapping session-hook rejoins revoke each other. | ruled CO-270 |
+| V3-15 | ER-4 | Eviction happens before the new session is known to stand. | ruled CO-270 |
+| V3-16 | ER-5 | A transport drop orphans the old session and its claims (the residue of iteration 2 ER-3(c)). | ruled CO-270 |
+| V3-17 | ER-6 | A failed git remote read is said to a link as "in none of your projects", and cached for 5 minutes. | ruled CO-271 |
+| V3-18 | ER-7 | A link that names a project by a name two projects share is answered "not in your list. | ruled CO-271 |
+| V3-19 | ER-8 | The ER-8 fixes of both iterations are in a test that no gate runs. | fixed: `test/work-release-session.test.mjs` joins the desktop test chain (`apps/desktop/package.json` test); it ran in the hosted full tier on the final candidate (run 38219258686) |
+| V3-20 | ER-9 | A hook's observe end ends the session with no reason, and a coding agent that goes on re-enrolls with a stale runtime id. | ruled CO-270 |
+| V3-21 | ER-10 | The words for an enrollment failure say Fabric could not be reached. | ruled CO-270 |
+| V3-22 | ER-11 | The eviction notice says the claims were released before they are. | ruled CO-270 |
+| V3-23 | DO-1 | No Windows or Linux build of anything near this candidate has ever been built, installed or started. | fixed by the native builds and the rc: `platforms.yml` dispatched on `01783787` installed and started all four builds (run 38216064295, success); the 0.3.5 rc rehearsal on the release commit proves the Windows signature before the tag (release close) |
+| V3-24 | DO-2 | On Windows, <Fabric> means two different folders, and no document names the install folder. | fixed: the CHANGELOG and README name the install folder under `%LOCALAPPDATA%\Programs\` for `fabric-mcp.cmd` |
+| V3-25 | DO-3 | A Codex session Fabric launches no longer uses the person's Codex configuration, and it runs on a per-session copy of their Codex sign-in. | fixed: the CHANGELOG says a Codex session Fabric starts does not read the person's `~/.codex/config.toml` or `AGENTS.md` and signs in with a copy of their login, removed with the session |
+| V3-26 | DO-4 | The glossary's hub terms still describe a door with two tools and only registered agents. | fixed: CONTEXT.md *Door token* and *Binding credential*, and AGENTS.md, include `fabric.session.enroll` (ADR-0134) |
+| V3-27 | DO-5 | The canonical facts and the overview guide say 0.3.4 is the current preview, for Mac only. | fixed as a release-close item: `docs/brand/facts.md` and the overview guides name 0.3.5 after publication (handoff step 7) |
+| V3-28 | DO-6 | README: "every agent session Fabric starts is given Fabric's agent surface automatically" is still not true for every runner. | fixed: README says which runners get the agent surface (Cline and a plain terminal do not) |
+| V3-29 | DO-7 | The seed-retire region points at a heading that does not describe it. | fixed: `seedRepair.ts` region `seed-retire` points at ADR-0131 `#amendments` |
+| V3-30 | DA-1 | A claim refused as held still rewrites the held task's backlog link. | ruled CO-273 |
+| V3-31 | DA-2 | The false unresolved-run answer has a second trigger, which CO-264 (1) does not name. | ruled CO-273 |
+| V3-32 | DA-3 | V2-33's fix is partial: the runbook still says migration 91 "projects the hub's grants from the journal". | fixed: the runbook says migration 91 projects the floor's `grants` (money, deletion and publication effects) |
+| V3-33 | DA-4 | agents_with_access counts grants on products that are no longer connected, while the documentation says "on a connected product". | ruled CO-273 |
+| V3-34 | DA-5 | «Where work is» presents capped reads as complete. | ruled CO-273 |
+| V3-35 | DA-6 | The eviction's claim release is not tested. | ruled CO-270 (the eviction test asserts no release) |
+| V3-36 | DA-7 | Migration 82's header premise is false, though its conclusion holds. | not recoverable: migration 82's header bytes are frozen by the migration ledger; its conclusion holds, as the finding says |
+| V3-37 | PL-1 | The nightly CI batch never runs. | fixed: the nightly gates of `ci.yml` and `platforms.yml` choose by `github.event.schedule` and Warsaw's offset; `release-mac.test.mjs` holds it (watched: the old ci.yml fails it) |
+| V3-38 | PL-2 | No green full tier and no native Windows/Linux build exists for any 0.3.5 candidate, so the first native run will be the rc, after verifiedCommit. | fixed: `platforms.yml` (run 38216064295, all four builds) on `01783787` and the full tier (run 38219258686, green) on the final candidate |
+| V3-39 | PL-3 | Iteration 2's PL-1 disposition (V2-38) gives a failed run as its receipt. | fixed: iteration 2's PL-1 disposition names the job, not the run, and the green `ci` on `8af4b08f` |
+| V3-40 | PL-4 | P-17 and the 0.4.0 Decision say 0.3.5 ships "the operator's board (COM-06/07)", but the board's owning register says COM-06 and COM-07 are open. | fixed: P-17 says the read-only Comms screen, COM-06/07 open beyond it |
+| V3-41 | PL-5 | The handoff is stale at the candidate for the third iteration running (after V1-65 and V2-42). | fixed: the handoff's status at 09:15 and its open work |
+| V3-42 | PL-6 | The release-commit recipe is incomplete, and nothing says what happens to iteration-3 findings that need a non-metadata edit. | fixed: the handoff's step 3 lists every file of the release commit, and the recheck path for a source fix after iteration 3 |
+| V3-43 | PL-7 | The Windows operator question's default rests on a smoke that does not test what CO-267 covers. | fixed: the operator question says the native smoke covers starting the app, not CO-267's paths |
+| V3-44 | PL-8 | The clean-first-run sequence has two wordings, so it is unclear which dump is the copy kept before the reset. | fixed: one order for the clean first run in the handoff and the 0.4.0 plan's decision |
+| V3-45 | PL-9 | Knowledge-base and plan rows that become false at the tag. | fixed as a release-close item: the knowledge base rows (RM-05, RM-13, RM-25, the released column) after publication (handoff step 7) |
+
+Exit for iteration 3: 45 findings dispositioned; the final candidate `89718e92704981809f7dc5a7d7e2c4cc64de7bf3` is `verifiedCommit`. Blocking findings open: none.
+
+## Release close
+
+What 0.3.5's release has to do besides the gate. Each line is checked off with its receipt when it is done.
+
+1. The release commit: `apps/desktop/package.json` 0.3.5 (nothing else in that file), `## 0.3.5` finalized in
+   `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the final candidate
+   `89718e92704981809f7dc5a7d7e2c4cc64de7bf3`, three receipt groups, the fix-wave handoff and the five recheck reports
+   in `releaseMetadata`), the fifteen receipts under `docs/evidence/reviews/0.3.5/`, the map's entry and the
+   `docs/MERGES.md` entry; landed on `main` by fast-forward.
+2. The rehearsal `v0.3.5-rc.1` (`publish=false`) on the release commit: preflight, guard, the macOS, Windows and Linux
+   builds, the Windows Authenticode signature (the first signed Windows build) and the signed set kept as an artifact.
+3. The tag `v0.3.5`; the run watched to publication; the downloads checked (`SHA256SUMS`, its GPG signature, `spctl`,
+   the attestation, the Windows signature).
+4. The operator's database (dumped before anything, `pre-0.3.5-2026-10-12.dump`, rehearsed PASS): Fabric quit through
+   the lifecycle broker, upgraded 79 → 84 by the runbook, 0.3.5 installed and started, the estate verified; then dumped
+   again and the local Fabric data reset for a clean first run (the operator's order of 2026-10-11).
+5. After the tag, in one close commit: the carry-over rows CO-274 and CO-275 (reserved), CO-238 resolved, P-17 done
+   with the release, the plan's Now line and lane 2, the 0.4.0 plan's *Decision* (the Comms wording and both dumps),
+   ADR-0144 amendment 5 (webpilot's BL-015 answers), the roll-call audit's dated correction for Asset Foundry,
+   `docs/brand/facts.md` and the overview guides, CO-275's fixes; the knowledge base (roadmap released column,
+   RM-05, RM-13, RM-25, `plans.md`) by a fabric-workspace PR; `workspace.mjs publish`.

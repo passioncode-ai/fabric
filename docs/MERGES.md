@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12 · `release-040-wave1-b4` · agent/rv3-final, agent/release-035 → main · fast-forward
+- run: r-249d0762eddd
+- summary: Fabric 0.3.5's final candidate (89718e92: the project page's Codex and Kimi Code words, the nightly gates, three full-tier tests caught up, docs, CO-270…CO-273) and the release commit (version 0.3.5, the CHANGELOG finalized, the release gate with three iterations — 67, 52 and 45 findings, all disposed — and five rechecks).
+
 ### 2026-10-12 · `release-040-wave1-b4` · agent/rv2-fixes + agent/rv2-errors → main · fast-forward
 - run: r-249d0762eddd
 - summary: the 0.3.5 verification's iteration 2 (52 findings, 10 blocking, all disposed): release.yml parses again with a workflow-parse gate, the hosted Linux fast tier green, the work screens current, the errors level (schema refusal cause, fabric-mcp refusals keep the session, eviction by activity and DELETE on leave, link drops said, async Windows stop), ADR-0134 amendment 4, docs and plan; CO-269.

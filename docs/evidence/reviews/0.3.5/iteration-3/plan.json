@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "89718e92704981809f7dc5a7d7e2c4cc64de7bf3",
+  "report": "docs/evidence/reviews/0.3.5/iteration-3/2026-10-12-plan.md",
+  "reportSha256": "11513a18b6127923e8bd8fc73cac9771f951358eae7d74a8027b65ebd6f13f4e",
+  "reviewerRun": "release-035-i3-plan-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-37",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the nightly gates of `ci.yml` and `platforms.yml` choose by `github.event.schedule` and Warsaw's offset; `release-mac.test.mjs` holds it (watched: the old ci.yml fails it)"
+      ]
+    },
+    {
+      "id": "V3-38",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platforms.yml` (run 38216064295, all four builds) on `01783787` and the full tier (run 38219258686, green) on the final candidate"
+      ]
+    },
+    {
+      "id": "V3-39",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: iteration 2's PL-1 disposition names the job, not the run, and the green `ci` on `8af4b08f`"
+      ]
+    },
+    {
+      "id": "V3-40",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-17 says the read-only Comms screen, COM-06/07 open beyond it"
+      ]
+    },
+    {
+      "id": "V3-41",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff's status at 09:15 and its open work"
+      ]
+    },
+    {
+      "id": "V3-42",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff's step 3 lists every file of the release commit, and the recheck path for a source fix after iteration 3"
+      ]
+    },
+    {
+      "id": "V3-43",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the operator question says the native smoke covers starting the app, not CO-267's paths"
+      ]
+    },
+    {
+      "id": "V3-44",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one order for the clean first run in the handoff and the 0.4.0 plan's decision"
+      ]
+    },
+    {
+      "id": "V3-45",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed as a release-close item: the knowledge base rows (RM-05, RM-13, RM-25, the released column) after publication (handoff step 7)"
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.5 (unreleased)
+## 0.3.5
 
 Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238); a coding agent you open
 yourself in a terminal can work in your project through Fabric; and Fabric shows which agent works on what.
@@ -16,8 +16,8 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
 - **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
   `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`, or
   `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex` — with no key in it (on Windows:
-  `claude mcp add --scope user fabric -- cmd /c "<install folder>\resources\bin\fabric-mcp.cmd" --runner claude-code`, where the install
-  folder is `%LOCALAPPDATA%\Programs\` and the app's folder there; not yet
+  `claude mcp add --scope user fabric -- cmd /c "<install folder>\resources\bin\fabric-mcp.cmd" --runner claude-code`, with the install folder under
+  `%LOCALAPPDATA%\Programs\`; not yet
   tried on a Windows machine). The first
   time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
   a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
@@ -49,8 +49,9 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   Agent before them — each through the way its own probe verified ([report](docs/reports/2026-10-11-codex-kimi-surface-probes/README.md)):
   Kimi Code over ACP with HTTP MCP (no bridge), Codex through an isolated per-session `CODEX_HOME` whose server
   name and token variable are random per session, because a project `.codex/config.toml` shadows any name it
-  knows. So a Codex session Fabric starts does not read your own `~/.codex/config.toml` or `AGENTS.md`;
-  it signs in with a copy of your Codex login, removed when the session ends. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
+  knows. So a Codex session Fabric starts does not read your own `~/.codex/config.toml` or `~/.codex/AGENTS.md`
+  (a project's own `AGENTS.md` still applies); when you are signed in to Codex it uses a copy of that login, removed
+  when the session ends, and otherwise Codex asks you to sign in for that session. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
   add MCP servers of its own — as it already could before Codex connected. Cline stays unconnected: its ACP
   `session/new` demands a sign-in no probe has passed.
 - **The project board is visible to the operator: the Comms screen** (SCR-81, SCN-143). The left rail gains

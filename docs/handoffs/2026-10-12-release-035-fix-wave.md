@@ -23,6 +23,11 @@ agents-first plan ([plan](../evidence/plans/2026-10-11-release-040-agents-first.
 - The public workspace config no longer names the closed module; `relay` joins it. No private source list is needed
   while the closed modules stay out of the snapshot (fabric-workspace-91 agreed).
 
+**Status at the release commit (2026-10-12):** the final candidate `89718e92` is `main` and `verifiedCommit`; the
+hosted `ci` is green on it, fast and full (run 38219258686 — the earlier dispatch 38216066979 failed on an install-step
+rate limit and three stale tests, fixed in `89718e92`); the five rechecks passed; the release gate is clear. Next: the
+`v0.3.5-rc.1` rehearsal on the release commit, then the tag (open work steps 4–5).
+
 **Status at 2026-10-12 09:15 (iteration 3 closing):**
 - Iterations 1 and 2 are closed and on `main` (`01783787`): 67 and 52 findings, every one disposed in the
   [ledger](../evidence/plans/2026-10-12-release-035-verification.md). The hosted `ci` fast tier is green on it
@@ -68,4 +73,4 @@ the remedy is translated per refusal.
 test was watched failing on a planted defect (outbox 3/3, arrival 2 plants, work screens 5 plants, platform words 1,
 `fabric-mcp` 1, schema remedy 2, release guard on the old workflow, analytics 1).
 
-**Next task:** step 1 of the open work above.
+**Next task:** step 4 of the open work above — the rehearsal on the release commit.
