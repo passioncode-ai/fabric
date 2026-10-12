@@ -91,7 +91,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-75 | Adapt an existing agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
 | SCR-77 | Setup: coding agents and products | FLW-78, FLW-79, FLW-69 | none — text spec | designed | none yet |
-| SCR-78 | Where work is | FLW-81, FLW-80 | none — text spec | designed | none yet |
+| SCR-78 | Where work is | FLW-81, FLW-80 | none — text spec | built | apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx |
 | SCR-79 | Fabric button in a product | FLW-82 | none — text spec | blocked | none yet |
 | SCR-80 | Start a working session | FLW-82 | none — text spec | designed | none yet |
 | SCR-81 | Project comms | FLW-83 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |

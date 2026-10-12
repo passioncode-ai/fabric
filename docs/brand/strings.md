@@ -842,7 +842,7 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.release.confirm` | Release | apps/desktop/src/renderer/src/i18n/en.ts:2185 | SCN-140 | proposed |
 | `work.release.failed.not-found` | That claim is no longer there. | apps/desktop/src/renderer/src/i18n/en.ts:2186 | SCN-140 | proposed |
 | `work.release.failed.already-released` | That claim was already released. | apps/desktop/src/renderer/src/i18n/en.ts:2187 | SCN-140 | proposed |
-| `work.release.failed.unconfirmed` | The release could not be confirmed. The list below is read again. | apps/desktop/src/renderer/src/i18n/en.ts:2188 | SCN-140 | proposed |
+| `work.release.failed.unconfirmed` | The release could not be confirmed. The list above is read again. | apps/desktop/src/renderer/src/i18n/en.ts:2188 | SCN-140 | proposed |
 | `work.leases.title` | agent-sync leases on this repository, read-only | apps/desktop/src/renderer/src/i18n/en.ts:2189 | SCN-140 | proposed |
 | `work.leases.unread` | agent-sync leases could not be read: {reason}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-140 | proposed |
 | `work.leases.noOrigin` | This repository has no remote, so it carries no agent-sync leases. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-140 | proposed |

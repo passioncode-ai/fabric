@@ -279,3 +279,15 @@ test('every job holding the release environment needs guard (ADR-0145)', () => {
   // The check itself: a job with the environment and no guard is named.
   assert.deepEqual(jobsMissingGuard('jobs:\n  guard:\n    runs-on: x\n  win:\n    needs: [preflight]\n    environment: release\n  mac:\n    needs: [guard, preflight]\n    environment: release\n'), ['win'])
 })
+
+// 0.3.5 verification, iteration 3, PL-1: the nightly gates chose by the hour the job started, and GitHub starts scheduled
+// runs one to three hours late, so no nightly batch ran. They choose by the cron that fired and Warsaw's offset.
+test('the nightly gates choose by the cron that fired, never by the hour the job started', () => {
+  for (const name of ['ci.yml', 'platforms.yml']) {
+    const workflow = readFileSync(path.join(import.meta.dirname, '../../.github/workflows', name), 'utf8')
+    assert.doesNotMatch(workflow, /date \+%H/, `${name} reads the start hour`)
+    assert.match(workflow, /github\.event\.schedule/, `${name} reads the cron that fired`)
+    const crons = [...workflow.matchAll(/- cron: '([^']+)'/g)].map((m) => m[1])
+    for (const c of crons) assert.ok(workflow.includes(`"${c}"`), `${name}: the gate names cron ${c}`)
+  }
+})

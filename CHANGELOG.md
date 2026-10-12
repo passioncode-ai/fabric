@@ -16,7 +16,8 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
 - **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
   `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`, or
   `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex` — with no key in it (on Windows:
-  `claude mcp add --scope user fabric -- cmd /c "<Fabric>\resources\bin\fabric-mcp.cmd" --runner claude-code`, not yet
+  `claude mcp add --scope user fabric -- cmd /c "<install folder>\resources\bin\fabric-mcp.cmd" --runner claude-code`, where the install
+  folder is `%LOCALAPPDATA%\Programs\` and the app's folder there; not yet
   tried on a Windows machine). The first
   time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
   a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
@@ -48,7 +49,8 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   Agent before them — each through the way its own probe verified ([report](docs/reports/2026-10-11-codex-kimi-surface-probes/README.md)):
   Kimi Code over ACP with HTTP MCP (no bridge), Codex through an isolated per-session `CODEX_HOME` whose server
   name and token variable are random per session, because a project `.codex/config.toml` shadows any name it
-  knows. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
+  knows. So a Codex session Fabric starts does not read your own `~/.codex/config.toml` or `AGENTS.md`;
+  it signs in with a copy of your Codex login, removed when the session ends. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
   add MCP servers of its own — as it already could before Codex connected. Cline stays unconnected: its ACP
   `session/new` demands a sign-in no probe has passed.
 - **The project board is visible to the operator: the Comms screen** (SCR-81, SCN-143). The left rail gains

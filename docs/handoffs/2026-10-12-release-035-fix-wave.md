@@ -23,38 +23,41 @@ agents-first plan ([plan](../evidence/plans/2026-10-11-release-040-agents-first.
 - The public workspace config no longer names the closed module; `relay` joins it. No private source list is needed
   while the closed modules stay out of the snapshot (fabric-workspace-91 agreed).
 
-**Status at 2026-10-12 07:40 (iteration 2 under way):**
-- Iteration 1 closed and landed: `main` at `3570f116` (67 findings, 13 blocking, all disposed in the
-  [ledger](../evidence/plans/2026-10-12-release-035-verification.md#iteration-1)). The workspace pin `df3eeb92` by the
-  scheduled sync was merged in.
-- Iteration 2 ran on `3570f116` (four of five reviewers; the errors reviewer stopped at an API session limit and is
-  re-run). Its blocking findings are fixed on `agent/rv2-fixes`: `release.yml` did not parse (DO-1; every release.yml run
-  since `c98a0817` had no jobs) — fixed, and `scripts/check-workflows.py` now parses every workflow in `ci.sh`; the
-  hosted Linux fast tier (PL-1; two startup-dialog tests read the host platform) — the tests name darwin, and the
-  branch's hosted fast tier passed; «Who is working» re-reads each minute (UX-1); the review count reaches the board
-  (UX-2); sessions with no project show their folder and open (UX-3). The replay corruption DA-1 reaches only the repair
-  tool and is ruled into CO-265.
-- The hosted full tier's `run-managed-stop-db` failed on Linux because the native Stop suite runs only on a measured
-  runtime (CO-251); it now reports NOT_RUN for that suite and runs the rest.
+**Status at 2026-10-12 09:15 (iteration 3 closing):**
+- Iterations 1 and 2 are closed and on `main` (`01783787`): 67 and 52 findings, every one disposed in the
+  [ledger](../evidence/plans/2026-10-12-release-035-verification.md). The hosted `ci` fast tier is green on it
+  (run 38214741453); the dispatched full tier and the native platform builds were started on it (runs 38216066979,
+  38216064295).
+- Iteration 3 read `01783787` (five fresh reviewers): one blocking finding (UX-1, the project page called Codex and
+  Kimi Code not connected). Its fix and the cheap non-blocking ones make the final candidate on `agent/rv3-final`; the
+  rest are CO-270…CO-273. Five fresh reviewers recheck the final candidate's delta, as 0.3.4 did; their reports go in
+  `docs/handoffs/2026-10-12-release-035-i3-recheck-*.md`, declared as release metadata.
+- The nightly gates now choose by the cron that fired (iteration 3 PL-1): no nightly batch had run since 2026-10-02.
 
 **Open work, in order:**
-1. Land `agent/rv2-fixes` after `bash scripts/ci.sh fast`; the hosted `ci` run on that commit must be green (the guard).
-2. Iteration 3 on that commit, five fresh reviewers; its candidate becomes `verifiedCommit`.
-3. The release commit: `apps/desktop/package.json` 0.3.5, `## 0.3.5` finalized, `docs/launch/release-gate.json` for
-   0.3.5 with the three receipt groups. Then the rehearsal `v0.3.5-rc.1` (`publish=false`) on that commit — it can run only
-   once the gate is clear and the changelog final (iteration 2, PL-2) — proving the Windows signature and the native
-   installs; then the tag `v0.3.5` and the run watched to publication.
-4. The operator's database upgraded 79 → 84 by the runbook (the rehearsal on its dump passed), the app installed
-   through the lifecycle broker, the data dumped and the local Fabric data reset for a clean first run (decided: at
-   0.3.5, the operator's order of 2026-10-11; the 0.4.0 plan's *Decision, 2026-10-12* records it).
-5. After the release: `workspace/knowledge/` (the roadmap's released column; RM-05, RM-13, RM-19, RM-25; `plans.md`'s
-   Now line; `platforms.md`'s signing wording) by a fabric-workspace PR; `workspace.mjs publish`.
-6. Unfinished wave-2 packets for 0.4.0: P4 `agent/w2-runners` (`ff08f02c`), P2 `agent/w2-handoff` (`29c8de91`).
+1. Land the final candidate after `bash scripts/ci.sh fast`; the hosted `ci` on it green.
+2. The five rechecks on the final candidate; the ledger's iteration 3 section and receipts name it; it is `verifiedCommit`.
+3. The release commit (only release metadata after `verifiedCommit`): `apps/desktop/package.json` 0.3.5, `## 0.3.5`
+   finalized, `docs/launch/release-gate.json` (version, ledger, `verifiedCommit`, three receipt groups, the recheck
+   reports in `releaseMetadata`), the ledger's release-close section, `docs/MERGES.md`, the map's entry and refresh.
+4. The rehearsal `v0.3.5-rc.1` (`publish=false`) on the release commit: the first signed Windows build, the native
+   installs and the guard. A failure that needs a source change makes a new candidate.
+5. The tag `v0.3.5` on the release commit; the run watched to publication; the downloads checked (SHA256SUMS, GPG,
+   `spctl`, the Authenticode signature).
+6. The operator's database: it was dumped before anything (`pre-0.3.5-2026-10-12.dump`, rehearsed PASS); quit the
+   running Fabric through the lifecycle broker, upgrade 79 → 84 by the runbook, install 0.3.5, start it and verify the
+   estate; then — the operator's order of 2026-10-11 — dump it again and reset the local Fabric data for a clean first
+   run (the 0.4.0 plan's *Decision, 2026-10-12* says the same order).
+7. After the release: `docs/brand/facts.md` and the overview guides name 0.3.5 and its platforms (iteration 3 DO-5);
+   `workspace/knowledge/` (roadmap's released column, RM-05, RM-13, RM-25; `plans.md`) by a fabric-workspace PR;
+   `workspace.mjs publish`.
+8. Unfinished wave-2 packets for 0.4.0: P4 `agent/w2-runners` (`ff08f02c`), P2 `agent/w2-handoff` (`29c8de91`).
 
 **Questions for the operator (none blocks the release):**
 - Windows ships with fixes proven off-host (CO-267: the quit guard's filter, the Stop order, `.cmd` quoting, a spaced
   user name, the up-front Connect refusal). Release them now with CO-267, or hold Windows until a Windows PC smoke?
-  The default taken: release, since the release jobs install and start each Windows build natively.
+  The default taken: release, since the release jobs install and start each Windows build natively — which covers
+  starting the app, not the CO-267 paths (iteration 3 PL-7).
 - The Figma folder «PassionCode» in team SSHLG and moving the file «Fabric» into it.
 
 **Decisions.** The release is 0.3.5, not 0.4.0. A claim whose session ended reads «lapsed: the session ended» on both

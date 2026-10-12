@@ -29,8 +29,10 @@ jobs:
     steps:
       - id: hour
         run: |
-          h=$(TZ=Europe/Warsaw date +%H)
-          if [ "$h" = 23 ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "not 23:xx in Warsaw ($h); skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; fi
+          # By the cron that fired and Warsaw's offset, not by the hour the job starts: GitHub starts scheduled runs one
+          # to three hours late, so the hour was never 23 and no nightly batch ran (0.3.5 verification, iteration 3, PL-1).
+          off=$(TZ=Europe/Warsaw date +%z); want="30 22 * * *"; [ "$off" = "+0200" ] && want="30 21 * * *"
+          if [ "${{ github.event.schedule }}" = "$want" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "the 23:30 Warsaw cron is \"$want\" at offset $off, this one is \"${{ github.event.schedule }}\"; skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; fi
 
   windows:
     needs: clock

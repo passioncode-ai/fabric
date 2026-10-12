@@ -357,7 +357,8 @@ work» are to be retired (ADR-0137); the 0.3.5 screens still show them until the
 
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
-`fabric.access.status` and nothing else, and it may be reused; it is never a grant. Through the
+`fabric.access.status` — and, from 0.3.5, `fabric.session.enroll`, which only asks to join a Project and is
+answered by the operator's consent (ADR-0134) — and nothing else; it may be reused; it is never a grant. Through the
 door, reading a request's status also needs that request's **poll secret**.
 
 **Poll secret** — a per-request secret (32 random bytes) the hub returns only in the answer that
@@ -368,7 +369,8 @@ cannot read its answer or collect its credential (ADR-0115 amendment 11).
 **Binding credential** — the long-lived, revocable credential an agent receives once, on the first
 status read after the operator allows its request — within 10 minutes of the decision; after that it
 is never issued and the agent asks again; Fabric keeps only its sha256. It identifies
-one registered agent and reaches `agent.call` within that agent's access grants.
+one registered agent and reaches `agent.call` within that agent's access grants, and — for a coding agent
+enrolled through `fabric-mcp` — `fabric.session.enroll` into the Projects its grant names (ADR-0134).
 
 **Access grant** — one standing permission of one binding: one capability (the product's tool
 name) on one resource (e.g. `cloudflare:news@example.com`) of one callee, decided by the

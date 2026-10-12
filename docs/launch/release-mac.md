@@ -254,8 +254,8 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
 **0.3.5 admits schema 84** — five migrations past 0.3.4's 79, applied in order:
 `20261011000082_write_rules_at_the_door.sql` moves the hub's write rules out of replay (CO-201) and registers the
 refusal summary (CO-200); `20261011000090_session_enrollment.sql` registers `session.enrolled@1`, the event of a coding
-agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the hub's
-grants from the journal; `20261011000094_project_board_operator_read.sql` lets the operator read the project board (COM-06/COM-07); `20261011000095_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
+agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the floor's
+`grants` (money, deletion and publication effects) from the journal; `20261011000094_project_board_operator_read.sql` lets the operator read the project board (COM-06/COM-07); `20261011000095_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
 tasks link to (`task_sources`), and registers `task.source.linked@1`, `work.handover.requested@1` and
 `session.turn.observed@1` (REQ-38, REQ-08, the session hooks' D4). `schema_version()` counts applied migrations, so
 79 + 5 = **84**, whatever the suffixes say. The procedure is the same with 84 in place of 79. A

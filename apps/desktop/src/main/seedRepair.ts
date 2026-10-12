@@ -1,4 +1,4 @@
-// #region seed-repair — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#decision
+// #region seed-repair — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#amendments
 /**
  * A database a fresh install of 0.2.0 or 0.3.0–0.3.3 made is opened (CO-241, ADR-0131).
  *
