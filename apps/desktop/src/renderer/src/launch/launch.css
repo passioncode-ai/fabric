@@ -61,6 +61,7 @@
 .app-main .lp-panel{box-shadow:none}
 .app-main .notice[role=alert]{border-left:3px solid var(--app-accent)}
 @media(max-width:768px){.app-nav>.calm-main-nav,.app-nav>.calm-help-nav{display:none}.calm-principles,.calm-atlas,.calm-filter{grid-template-columns:1fr}.calm-principles{gap:8px;margin:12px 0}.calm-principles>div{padding:12px}.calm-filter .field{margin:8px 0}}
+.app-nav .nav-badge{display:inline-block;min-width:18px;text-align:center;font-size:10px;font-weight:600;line-height:1.5;border-radius:9px;border:1px solid var(--app-line-strong);color:var(--app-ink);background:var(--app-panel-quiet);margin-left:6px;padding:0 5px;vertical-align:1px}
 .lp{color:var(--app-ink);font-size:var(--app-fs-body);line-height:1.5;max-width:1500px;margin:auto;padding:var(--space-4)}
 .lp *{box-sizing:border-box}
 .lp h2,.lp h3,.lp h4,.lp p{margin:0}

@@ -12,6 +12,8 @@ describe('validateSettings', () => {
       // A saved read position must survive validation unchanged, or marking
       // things read would not outlive a restart (AX-07).
       readThroughSeq: 42,
+      // Per-thread board marks survive the same way (SCN-143, the unread slice).
+      commsReadThrough: { '79000000-0000-4000-8000-0000000000d1': 40 },
       firstRun: { completedAt: '2026-10-03T10:00:00.000Z' },
       runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] }
     }
@@ -114,6 +116,14 @@ describe('a read position is normalised on the way in', () => {
     }
   })
 
+  it('keeps per-thread comms read marks, and reads an unusable one as nothing seen (SCN-143)', () => {
+    expect(validateSettings({ commsReadThrough: { t1: 40, t2: 0 } })?.commsReadThrough).toEqual({ t1: 40, t2: 0 })
+    for (const bad of [undefined, null, [], 'read', { t1: -1 }, { t1: 1.5 }, { t1: 'forty' }]) {
+      const got = validateSettings({ commsReadThrough: bad })
+      expect(got?.commsReadThrough, String(JSON.stringify(bad))).toEqual({})
+    }
+  })
+
   it('keeps a fallback order of known runners only, each once, never the shell (ADR-0125)', () => {
     const read = validateSettings({ runnerFallback: { order: [
       { runner: 'claude-code', session: 'attach-only' }, { runner: 'shell', session: 'spawn' },
@@ -129,6 +139,7 @@ describe('settingsPatch', () => {
   it('accepts each key a window may change, as sent', () => {
     const patch = {
       theme: 'light', locale: 'ru', keepAwake: 'always', readThroughSeq: 7,
+      commsReadThrough: { '79000000-0000-4000-8000-0000000000d1': 40 },
       firstRun: { completedAt: '2026-10-11T10:00:00.000Z' },
       runnerFallback: { order: [{ runner: 'claude-code', session: 'spawn' }] }
     }
@@ -150,6 +161,7 @@ describe('settingsPatch', () => {
     expect(settingsPatch({ readThroughSeq: -1 }).ok).toBe(false)
     expect(settingsPatch({ locale: 'xx' }).ok).toBe(false)
     expect(settingsPatch({ firstRun: { completedAt: 'soon' } }).ok).toBe(false)
+    expect(settingsPatch({ commsReadThrough: { t1: -1 } }).ok).toBe(false)
   })
 
   it('refuses what is not an object', () => {

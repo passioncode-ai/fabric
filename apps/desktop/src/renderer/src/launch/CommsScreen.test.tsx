@@ -59,10 +59,10 @@ function stub(reply: CommsThreadsReply | (() => Promise<CommsThreadsReply>)) {
   return { threads, list }
 }
 
-const show = () =>
+const show = (seen: Record<string, number> = {}, onRead: (marks: Record<string, number>) => void = () => {}) =>
   render(
     <I18nProvider locale="en">
-      <CommsScreen projects={PROJECTS} />
+      <CommsScreen projects={PROJECTS} seen={seen} onRead={onRead} />
     </I18nProvider>
   )
 
@@ -236,5 +236,62 @@ describe('the thread view', () => {
 describe('the Russian words', () => {
   it('say «пространство», never the English "estate" (UX-12)', () => {
     for (const key of Object.keys(ru).filter((k) => k.startsWith('launch.comms.'))) expect(ru[key as keyof typeof ru], key).not.toMatch(/estate/i)
+  })
+})
+
+// SCN-143, amended 2026-10-12 (COM-07, the unread slice): a thread whose last message is newer
+// than this operator's read mark carries "New"; opening a thread marks it read through its last
+// seq (and messages arriving while it is open move the mark by the same effect, on the next list
+// poll); "mark all read" clears the board in one act. The marks are the operator's own and
+// machine-local — the board never learns them, and a failed settings write never zeroes them.
+describe("the operator's own unread marks", () => {
+  const two = () => stub({ ok: true, threads: [THREAD, THREAD_B] })
+  const rowOf = (title: string) => {
+    // The row's title, never the open thread's heading, which repeats the same words.
+    const row = screen.getByText(title, { selector: '.lp-topic-title' }).closest('button')
+    if (!row) throw new Error(`no row for ${title}`)
+    return row
+  }
+
+  it('a thread newer than the mark carries "New"; a read one does not; a never-opened one is unread', async () => {
+    two()
+    show({ [THREAD.id]: THREAD.lastSeq })
+    await screen.findByText('Cutover plan')
+    expect(rowOf('Cutover plan').textContent).not.toContain(en['launch.comms.new'])
+    expect(rowOf('Retention digest').textContent).toContain(en['launch.comms.new'])
+  })
+
+  it('opening a thread marks it read through its last seq, once, and the marker clears at once', async () => {
+    const onRead = vi.fn()
+    two()
+    show({}, onRead)
+    await screen.findByText('Cutover plan')
+    expect(rowOf('Cutover plan').textContent).toContain(en['launch.comms.new'])
+    fireEvent.click(screen.getByText('Cutover plan', { selector: '.lp-topic-title' }))
+    await screen.findByText(en['launch.comms.threadEmpty'])
+    await waitFor(() => expect(onRead).toHaveBeenCalledWith({ [THREAD.id]: THREAD.lastSeq }))
+    expect(onRead).toHaveBeenCalledTimes(1)
+    expect(rowOf('Cutover plan').textContent).not.toContain(en['launch.comms.new'])
+    expect(rowOf('Retention digest').textContent).toContain(en['launch.comms.new'])
+  })
+
+  it('mark all read writes one merged mark map and clears every marker; hidden when nothing is unread', async () => {
+    const onRead = vi.fn()
+    two()
+    show({}, onRead)
+    await screen.findByText('Cutover plan')
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.markAllRead'] }))
+    await waitFor(() => expect(onRead).toHaveBeenCalledWith({ [THREAD.id]: THREAD.lastSeq, [THREAD_B.id]: THREAD_B.lastSeq }))
+    expect(onRead).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText(en['launch.comms.new'])).toBeNull()
+    expect(screen.queryByRole('button', { name: en['launch.comms.markAllRead'] })).toBeNull()
+  })
+
+  it('nothing unread means no "mark all read" control at all', async () => {
+    two()
+    show({ [THREAD.id]: THREAD.lastSeq, [THREAD_B.id]: THREAD_B.lastSeq })
+    await screen.findByText('Cutover plan')
+    expect(screen.queryByText(en['launch.comms.new'])).toBeNull()
+    expect(screen.queryByRole('button', { name: en['launch.comms.markAllRead'] })).toBeNull()
   })
 })

@@ -396,6 +396,15 @@ export interface AppSettings {
    */
   readThroughSeq: number
   /**
+   * How far this operator has read each project-board thread — thread id to the
+   * last seq seen (SCN-143, the COM-07 unread slice). Local for the AX-07 reason
+   * `readThroughSeq` states: it is what THIS person on THIS machine has looked at,
+   * not a fact about the estate — the board itself never learns it, and a carried
+   * estate arrives without it. A missing entry is "never opened", which reads as
+   * unread; that is the honest answer for a thread this operator has not seen.
+   */
+  commsReadThrough: Record<string, number>
+  /**
    * Whether this operator finished the first run (ADR-0100, SCN-126). Local for
    * the same reason as the fields above: it is what THIS person on THIS machine
    * has been through. `null` is "not finished", which shows the first run only
@@ -420,7 +429,7 @@ export interface AppSettings {
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'firstRun' | 'runnerFallback'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback'>>
 // #endregion settings-patch
 
 /**
@@ -437,6 +446,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   // Nothing read, which is the only honest default: a fresh install has not
   // seen the history, and starting at the head would hide it.
   readThroughSeq: 0,
+  // No thread seen, the same honest default as above: a fresh install has not
+  // read the board, and starting every thread "read" would hide it.
+  commsReadThrough: {},
   firstRun: { completedAt: null },
   runnerFallback: { order: [] }
 }

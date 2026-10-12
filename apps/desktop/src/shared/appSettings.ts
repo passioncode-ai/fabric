@@ -20,7 +20,10 @@ export { APP_SETTINGS_DEFAULTS }
 
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
 /** The keys `settings.write` takes from a window (`types.ts#SettingsPatch`); main keeps the rest. */
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'firstRun', 'runnerFallback']
+/** How many per-thread read marks the settings file holds (SCN-143, the unread slice). */
+const COMMS_READ_THROUGH_MAX = 4096
+
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -120,6 +123,17 @@ export function validateSettings(parsed: unknown): AppSettings | null {
       raw.readThroughSeq >= 0
         ? raw.readThroughSeq
         : APP_SETTINGS_DEFAULTS.readThroughSeq,
+    // Thread id -> last seq this operator has seen (SCN-143, the unread slice). The same
+    // direction rule as readThroughSeq: a mark that is not a non-negative whole number, or a
+    // shape that is not a plain record of them, reads as NOTHING seen — never as everything,
+    // because that direction hides the board. Bounded so a hand-edited or runaway file cannot
+    // grow without limit; past the bound the marks read as nothing rather than half-kept.
+    commsReadThrough:
+      raw.commsReadThrough !== null && typeof raw.commsReadThrough === 'object' && !Array.isArray(raw.commsReadThrough) &&
+      Object.keys(raw.commsReadThrough).length <= COMMS_READ_THROUGH_MAX &&
+      Object.values(raw.commsReadThrough as Record<string, unknown>).every((v) => typeof v === 'number' && Number.isInteger(v) && v >= 0)
+        ? { ...(raw.commsReadThrough as Record<string, number>) }
+        : APP_SETTINGS_DEFAULTS.commsReadThrough,
     // A completion stamp is an ISO timestamp or nothing; anything else reads as
     // "not finished", which at worst shows the first run to an empty estate again.
     runnerFallback: runnerFallback(raw.runnerFallback),
