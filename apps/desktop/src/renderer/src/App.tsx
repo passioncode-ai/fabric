@@ -447,6 +447,8 @@ function Shell({
   // It waits while the first run is undecided or on screen (linkArrival.ts), and the page claims what opened before it
   // listened, so a link that started Fabric cold is not lost.
   const [linkNotice, setLinkNotice] = useState<LinkNotice | null>(null)
+  /** Links that waited past the limit and were not opened, said beside the notice (0.3.5 review i2 ER-7). */
+  const [linksDropped, setLinksDropped] = useState(0)
   const [linkOffer, setLinkOffer] = useState<LinkRoute | null>(null)
   const heldLink = useRef<LinkRoute | null>(null)
   const linkDecided = useRef(false)
@@ -455,6 +457,7 @@ function Shell({
   const applyLink = (r: LinkRoute): void => {
     goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
     setLinkNotice(r.notice)
+    setLinksDropped(r.dropped ?? 0)
     setLinkOffer(null)
   }
   const applyLinkRef = useRef(applyLink)
@@ -761,12 +764,13 @@ function Shell({
       {linkNotice && (
         <Banner
           actions={
-            <Button tone="ghost" onClick={() => setLinkNotice(null)}>
+            <Button tone="ghost" onClick={() => { setLinkNotice(null); setLinksDropped(0) }}>
               {t('common.dismiss')}
             </Button>
           }
         >
           {t(LINK_NOTICE_KEY[linkNotice])}
+          {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
         </Banner>
       )}
       {linkOffer && (

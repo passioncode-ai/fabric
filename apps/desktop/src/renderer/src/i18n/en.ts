@@ -2232,6 +2232,7 @@ export const en = {
   'links.notice.service-in-no-project': "A Fabric link came from a product whose repository is in none of your projects. Add its repository to a project, then follow the link again.",
   'links.notice.service-in-many-projects': "A Fabric link came from a product whose repository is in more than one project, so Fabric did not guess. Open the project you meant from the list.",
   'links.notice.link-unreadable': "Fabric could not read your projects to open this link. Try again.",
+  'links.notice.dropped': "{count} earlier Fabric link(s) waited while Fabric was starting and were not opened: only the latest were kept. Press their buttons again if you still need them.",
   'links.offer.body': "A product's Fabric button was pressed while the first run was open. It waited for you.",
   'links.offer.open': "Open it",
   'glyph.more': "…",

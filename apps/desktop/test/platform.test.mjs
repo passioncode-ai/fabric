@@ -1,6 +1,6 @@
 // What Fabric runs, per OS, where a POSIX tool used to be assumed (0.3.5, CO-238, REQ-08…REQ-11).
 import assert from 'node:assert/strict'
-import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation, executableCandidates, launchFor, cmdCommandLine, stopWindowsTree, killPty } from '../src/main/platform.ts'
+import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation, executableCandidates, launchFor, cmdCommandLine, stopWindowsTree, killPty, windowsAclAccount, spawnHelper } from '../src/main/platform.ts'
 
 // REQ-08: the OS's own shell.
 assert.equal(defaultShell('darwin', { SHELL: '/bin/bash' }), '/bin/bash')
@@ -72,6 +72,24 @@ assert.throws(() => protectedAclInvocation('x', 'a\nb'), /user/, 'a control char
 // A Windows account name with a space is common and icacls takes it as one argument (0.3.5 review ER-6).
 assert.deepEqual(protectedAclInvocation('C:\\t.tmp', 'John Smith').args, ['C:\\t.tmp', '/inheritance:r', '/grant:r', 'John Smith:(F)', '*S-1-5-18:(F)', '*S-1-5-32-544:(F)'])
 
+// 0.3.5 review i2 ER-9: on an Azure AD-joined or domain machine icacls needs the account qualified (AzureAD\name,
+// DOMAIN\name); a bare name may not resolve, and then no hub file is ever published. The grant names the logon domain
+// Windows sets for the session (%USERDOMAIN%) before the user name; without one, or with one icacls would misread, the
+// bare name stays.
+assert.equal(windowsAclAccount({ USERDOMAIN: 'AzureAD' }, 'JohnSmith'), 'AzureAD\\JohnSmith')
+assert.equal(windowsAclAccount({ USERDOMAIN: 'CORP' }, 'John Smith'), 'CORP\\John Smith')
+assert.equal(windowsAclAccount({ USERDOMAIN: 'DESKTOP-1A2B3C' }, 'alice'), 'DESKTOP-1A2B3C\\alice', 'a local account: the computer is its domain')
+assert.equal(windowsAclAccount({}, 'alice'), 'alice')
+assert.equal(windowsAclAccount({ USERDOMAIN: '  ' }, 'alice'), 'alice')
+assert.equal(windowsAclAccount({ USERDOMAIN: 'a:b' }, 'alice'), 'alice', 'a domain icacls would read as a grant is not used')
+assert.equal(windowsAclAccount({ USERDOMAIN: 'CORP' }, 'CORP\\alice'), 'CORP\\alice', 'never qualified twice')
+assert.equal(protectedAclInvocation('C:\\t.tmp', windowsAclAccount({ USERDOMAIN: 'AzureAD' }, 'John Smith')).args[3], 'AzureAD\\John Smith:(F)')
+{
+  const { readFileSync } = await import('node:fs')
+  const hubSource = readFileSync(new URL('../src/main/hub.ts', import.meta.url), 'utf8')
+  assert.match(hubSource, /windowsAclAccount\(process\.env, userInfo\(\)\.username\)/, 'the hub grants the qualified account')
+}
+
 // REQ-09: a program's file names on PATH — Windows adds the extensions installers use (the native installer's .exe,
 // npm's .cmd shim), in PATHEXT's order of preference.
 assert.deepEqual(executableCandidates('claude', 'linux'), ['claude'])
@@ -103,31 +121,48 @@ assert.deepEqual(launchFor('C:\\a\\claude.exe', ['--append-system-prompt', 'a\nb
 // signal, so a Stop never falls back to it there. A graceful taskkill that is refused is followed by a forced one,
 // then by closing the pseudo-console (kill with no signal); the outcome is said.
 {
+  // Asynchronous since 0.3.5 review i2 ER-6: each taskkill step is awaited, so a Stop never blocks the main thread
+  // (the quit deadline is a timer there, and so is every window). `run` answers a promise; a refusal rejects it.
   const runs = []
   let closed = 0
-  const run = (fail) => (how) => { runs.push(how.args.join(' ')); if (fail(how)) throw new Error('refused') }
+  const run = (fail) => async (how) => { runs.push(how.args.join(' ')); await new Promise((r) => setTimeout(r, 1)); if (fail(how)) throw new Error('refused') }
   const close = () => { closed++ }
-  assert.deepEqual(stopWindowsTree(4321, 'SIGTERM', run(() => false), close), { outcome: 'stopped', failures: [] })
+  assert.deepEqual(await stopWindowsTree(4321, 'SIGTERM', run(() => false), close), { outcome: 'stopped', failures: [] })
   assert.deepEqual(runs.splice(0), ['/PID 4321 /T'])
-  const forced = stopWindowsTree(4321, 'SIGTERM', run((h) => !h.args.includes('/F')), close)
+  const forced = await stopWindowsTree(4321, 'SIGTERM', run((h) => !h.args.includes('/F')), close)
   assert.equal(forced.outcome, 'forced')
   assert.equal(forced.failures.length, 1)
   assert.deepEqual(runs.splice(0), ['/PID 4321 /T', '/PID 4321 /T /F'], 'a refused graceful stop is followed by a forced one')
-  const closedPty = stopWindowsTree(4321, 'SIGTERM', run(() => true), close)
+  const closedPty = await stopWindowsTree(4321, 'SIGTERM', run(() => true), close)
   assert.equal(closedPty.outcome, 'pty-closed')
   assert.equal(closed, 1, 'the pseudo-console is closed when taskkill cannot end the tree')
   runs.length = 0
-  assert.equal(stopWindowsTree(4321, 'SIGKILL', run(() => false), close).outcome, 'forced')
+  assert.equal((await stopWindowsTree(4321, 'SIGKILL', run(() => false), close)).outcome, 'forced')
   assert.deepEqual(runs.splice(0), ['/PID 4321 /T /F'], 'a forced Stop goes straight to /F')
-  const none = stopWindowsTree(4321, 'SIGTERM', run(() => true), () => { throw new Error('gone') })
+  const none = await stopWindowsTree(4321, 'SIGTERM', run(() => true), () => { throw new Error('gone') })
   assert.equal(none.outcome, 'not-stopped')
   assert.equal(none.failures.length, 3)
   runs.length = 0
   // Not allowed any more (the root's exit was observed meanwhile): nothing further is sent.
   let allowed = true
-  const later = stopWindowsTree(4321, 'SIGTERM', (how) => { runs.push(how.args.join(' ')); allowed = false; throw new Error('refused') }, close, () => allowed)
+  const later = await stopWindowsTree(4321, 'SIGTERM', async (how) => { runs.push(how.args.join(' ')); allowed = false; throw new Error('refused') }, close, () => allowed)
   assert.equal(later.outcome, 'not-stopped')
   assert.deepEqual(runs.splice(0), ['/PID 4321 /T'])
+  // The main thread goes on while a taskkill runs: a timer fires before the Stop answers.
+  let ticked = false
+  setTimeout(() => { ticked = true }, 0)
+  let release
+  const pending = stopWindowsTree(4321, 'SIGTERM', () => new Promise((r) => { release = r }), close)
+  assert.ok(pending instanceof Promise, 'a Stop answers a promise')
+  await new Promise((r) => setTimeout(r, 5))
+  assert.equal(ticked, true, 'the event loop ran while taskkill was out')
+  release()
+  assert.equal((await pending).outcome, 'stopped')
+  // The PTY's Windows Stop runs taskkill asynchronously, with its own bound, never execFileSync on the main thread.
+  const { readFileSync } = await import('node:fs')
+  const pty = readFileSync(new URL('../src/main/pty.ts', import.meta.url), 'utf8')
+  assert.doesNotMatch(pty, /execFileSync/)
+  assert.match(pty, /stopWindowsTree\([^]*?runBounded\(how\.file, how\.args, 5000\)/)
 }
 {
   const seen = []
@@ -147,6 +182,35 @@ assert.deepEqual(launchFor('C:\\a\\claude.exe', ['--append-system-prompt', 'a\nb
   assert.match(src('executorDetect.ts'), /windowsVerbatimArguments: how\.verbatim === true/)
   // ER-4: no PTY of a Windows session is killed with a signal, on the Stop path or the launch-failure path.
   assert.doesNotMatch(src('pty.ts'), /pty\.kill\('SIGTERM'\)/)
+}
+
+// 0.3.5 review i2 ER-10: a helper Fabric starts on Windows (the version probe's taskkill, the quit reaper's cmd.exe)
+// that cannot start (ENOENT on an unusual PATH, EMFILE) emits 'error' on its ChildProcess; with no listener that is an
+// uncaught exception in the main process. spawnHelper attaches the listener before anything can emit, reports the
+// failure, and answers null for a spawn that threw at once.
+{
+  const { EventEmitter } = await import('node:events')
+  const seen = []
+  const failing = () => {
+    const c = new EventEmitter()
+    c.unref = () => c
+    queueMicrotask(() => c.emit('error', Object.assign(new Error('spawn taskkill.exe ENOENT'), { code: 'ENOENT' })))
+    return c
+  }
+  const child = spawnHelper(failing, { file: 'taskkill.exe', args: ['/PID', '1', '/T', '/F'] }, { stdio: 'ignore' }, (e) => seen.push(e.code))
+  assert.ok(child, 'the child is handed back')
+  await new Promise((r) => setTimeout(r, 5))
+  assert.deepEqual(seen, ['ENOENT'], 'reported, not thrown')
+  const none = spawnHelper(() => { throw new Error('spawn EMFILE') }, { file: 'cmd.exe', args: [] }, {}, (e) => seen.push(e.message))
+  assert.equal(none, null)
+  assert.deepEqual(seen, ['ENOENT', 'spawn EMFILE'])
+  const passed = []
+  spawnHelper((file, args, options) => { passed.push([file, args, options]); const c = new EventEmitter(); return c }, { file: 'cmd.exe', args: ['/c', 'x'], verbatim: true }, { detached: true }, () => {})
+  assert.deepEqual(passed, [['cmd.exe', ['/c', 'x'], { detached: true }]])
+  const { readFileSync } = await import('node:fs')
+  const read = (f) => readFileSync(new URL(`../src/main/${f}`, import.meta.url), 'utf8')
+  assert.match(read('executorDetect.ts'), /spawnHelper\(spawn, stop, \{ stdio: 'ignore', windowsHide: true \},/)
+  assert.match(read('quit.ts'), /spawnHelper\(spawn, how, \{ detached: true,/)
 }
 
 console.log('platform: all green')

@@ -8,7 +8,7 @@ import type { TranscriptStore } from './transcripts'
 import type { TerminalTermination } from '../shared/stop.ts'
 import { randomUUID } from 'node:crypto'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
-import { execFileSync } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -110,6 +110,13 @@ export class LaunchPlaceMissing extends Error {
   }
 }
 
+/** A helper program run off the main thread with a deadline (`execFile`'s `timeout` kills it): it resolves on exit 0
+ *  and rejects with the cause otherwise, so a Windows Stop's taskkill never blocks the app (0.3.5 review i2 ER-6). */
+function runBounded(file: string, args: string[], timeoutMs: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, { timeout: timeoutMs, windowsHide: true }, (e) => (e ? reject(e) : resolve()))
+  })
+}
 const isFolder = (p: string): Promise<boolean> => stat(p).then((s) => s.isDirectory(), () => false)
 // #endregion launch-place-missing
 
@@ -722,8 +729,8 @@ export class PtyManager {
     // outcome is said (0.3.5 review ER-4).
     if (process.platform === 'win32') {
       if (!(s.running && stillAllowed())) return
-      const r = stopWindowsTree(s.pty.pid, signal,
-        (how) => { execFileSync(how.file, how.args, { timeout: 5000, windowsHide: true, stdio: 'ignore' }) },
+      const r = await stopWindowsTree(s.pty.pid, signal,
+        (how) => runBounded(how.file, how.args, 5000),
         () => killPty(s.pty, 'win32', signal),
         () => s.running && stillAllowed())
       if (r.outcome === 'not-stopped')

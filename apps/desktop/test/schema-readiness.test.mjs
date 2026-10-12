@@ -102,6 +102,42 @@ await test('an unverified schema keeps its typed cause, so the remedy and the lo
   }
   assert.deepEqual(effects,[])
 })
+await test('the real client resolves a connection failure as {error, status: 0}: transport, never backend-error (0.3.5 review i2 ER-2)',async()=>{
+  // postgrest-js never throws on a transport failure (shouldThrowOnError is off): its catch resolves the answer with
+  // status 0 and the fetch error's name in the message. Only an HTTP answer from the database is backend-error.
+  const shapes=[
+    [{data:null,error:{message:'TypeError: fetch failed',details:'TypeError: fetch failed\n\nCaused by: Error: connect ECONNREFUSED 127.0.0.1:54321 (ECONNREFUSED)',hint:'',code:''},status:0,statusText:''},'transport'],
+    [{data:null,error:{message:'FetchError: request to http://127.0.0.1:54321 failed',details:'',hint:'',code:''},status:0,statusText:''},'transport'],
+    [{data:null,error:{message:'AbortError: This operation was aborted',details:'',hint:'Request was aborted (timeout or manual cancellation)',code:''},status:0,statusText:''},'timeout'],
+    // The stack's gateway answered, but nothing behind it did: the database was not reached either.
+    [{data:null,error:{message:'An invalid response was received from the upstream server'},status:502,statusText:'Bad Gateway'},'transport'],
+    [{data:null,error:{message:'name resolution failed'},status:503,statusText:'Service Unavailable'},'transport'],
+    [{data:null,error:{message:'upstream timed out'},status:504,statusText:'Gateway Timeout'},'transport'],
+    // PostgREST answered for the database: the function is missing, which is what an older schema looks like.
+    [{data:null,error:{code:'PGRST202',message:'Could not find the function public.schema_version without parameters'},status:404,statusText:'Not Found'},'backend-error'],
+    [{data:null,error:{code:'42501',message:'permission denied for function schema_version'},status:401,statusText:'Unauthorized'},'backend-error']
+  ]
+  for(const [answer,check] of shapes){
+    await assert.rejects(withSchemaReadiness({...input(),readSchema:async()=>answer},start),error=>{
+      assert.equal(error.check,check,`${answer.status} ${answer.error.message} → ${check}`)
+      assert.equal(classifyStartupFailure(error).remedyKey,`startup.schema-not-ready.unverified.${check}`)
+      assert.ok(!String(error).includes('ECONNREFUSED'),'the client\'s own text stays out')
+      return true
+    })
+  }
+  // The real client, against a port nothing listens on.
+  const { createRequire } = await import('node:module')
+  const { createServer } = await import('node:net')
+  const { createClient } = createRequire(new URL('../package.json', import.meta.url))('@supabase/supabase-js')
+  const port = await new Promise((resolve)=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p))})})
+  const db = createClient(`http://127.0.0.1:${port}`,'anon-key',{auth:{persistSession:false,autoRefreshToken:false}})
+  await assert.rejects(withSchemaReadiness({...input(),readSchema:(signal)=>db.rpc('schema_version').abortSignal(signal)},start),error=>{
+    assert.equal(error.check,'transport','a stopped stack is "check Docker and the stack", never "back up and migrate"')
+    assert.equal(classifyStartupFailure(error).remedyKey,'startup.schema-not-ready.unverified.transport')
+    return true
+  })
+  assert.deepEqual(effects,[])
+})
 await test('hung and late replies never start, deadline aborts, retry is fresh',async()=>{
   let finish,signal
   const p=withSchemaReadiness({...input(),timeoutMs:5,readSchema:s=>{signal=s;return new Promise(resolve=>{finish=resolve})}},start)

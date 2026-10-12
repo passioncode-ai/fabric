@@ -38,13 +38,13 @@ export interface EnrollDeps extends FolderDeps {
   liveGrants(binding: BindingRow): Promise<GrantRow[]>
   projectName(projectId: string): Promise<string | null>
   /** The same mint a launched session gets (`AgentSurface.mint`), told it is an enrollment and by which runner. */
-  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null }): { token: string }
+  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true }): { token: string }
   /** The enrolled sessions this process minted, by binding and grant: what a revocation ends. */
   sessions: EnrolledSessions
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
   stillLive(bindingId: string, grantId: string): Promise<boolean>
   journal(type: 'session.enrolled@1', projectId: string, payload: Record<string, unknown>): Promise<unknown>
-  /** Live enrolled sessions one binding may hold; a further enrollment ends the oldest. Default 8. */
+  /** Live enrolled sessions one binding may hold; a further enrollment ends the least recently active. Default 8. */
   maxSessionsPerBinding?: number
   now?: () => number
 }
@@ -52,6 +52,11 @@ export interface EnrollDeps extends FolderDeps {
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
 /** Several terminals of one coding agent in one project are ordinary; a loop is not. */
 export const MAX_ENROLLED_PER_BINDING = 8
+
+/** What an evicted session's next call is told (0.3.5 review iteration 2, ER-4): the true reason, and that its claims
+ *  went with it — never "Fabric restarted", which would let it go on as if it still held its task. */
+export const evictedReason = (cap: number): string =>
+  `this session was ended to make room: this coding agent's access reached its limit of ${cap} enrolled sessions, and this one was the least recently active. Its claims were released — read fabric_work_list before you go on`
 
 export const NO_PROJECT_MESSAGE =
   'This folder is not a project in Fabric yet. Open it in Fabric (+ Project → Open a project), then start the agent again.'
@@ -82,6 +87,8 @@ export interface EnrolledSession {
   mintedAt: number
   /** The coding agent's own session id it enrolled with (D1), or null. */
   runtimeSessionId?: string | null
+  /** The one bearer the session hooks' rejoins (D2) hold for this session, or none (0.3.5 review iteration 2, ER-5). */
+  rejoinBearer?: string | null
 }
 
 /**
@@ -91,12 +98,24 @@ export interface EnrolledSession {
  */
 export class EnrolledSessions {
   private rows = new Map<string, EnrolledSession>()
-  private end: (sessionId: string) => void
+  private end: (sessionId: string, reason?: string) => void
   private state: (bearer: string) => CredentialState
+  private lastSign: (sessionId: string) => number | null
+  private drop: (bearer: string) => void
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
-  constructor(opts: { end(sessionId: string): void; state(bearer: string): CredentialState }) {
+  constructor(opts: {
+    /** Ends a session at the surface; `reason` is what its next call is told (AgentSurface.revokeSession). */
+    end(sessionId: string, reason?: string): void
+    state(bearer: string): CredentialState
+    /** The session's last call, or null (AgentSurface.sessionSign): what the cap evicts by. Absent: the mint time. */
+    lastSign?(sessionId: string): number | null
+    /** Revokes one bearer and nothing else (AgentSurface.revokeCredential): a rejoin bearer that was replaced. */
+    drop?(bearer: string): void
+  }) {
     this.end = opts.end
     this.state = opts.state
+    this.lastSign = opts.lastSign ?? (() => null)
+    this.drop = opts.drop ?? (() => {})
   }
 
   add(row: EnrolledSession): void {
@@ -104,10 +123,34 @@ export class EnrolledSessions {
   }
 
   /** Ends one session: its bearer is revoked at the surface and the row goes. */
-  endSession(sessionId: string): void {
+  endSession(sessionId: string, reason?: string): void {
     this.rows.delete(sessionId)
-    this.end(sessionId)
+    if (reason === undefined) this.end(sessionId)
+    else this.end(sessionId, reason)
   }
+
+  /** When a session last showed a sign of life: its last call, else its mint. */
+  activityOf(row: EnrolledSession): number {
+    return Math.max(row.mintedAt, this.lastSign(row.sessionId) ?? 0)
+  }
+
+  // #region session-rejoin-bearer — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+  /**
+   * The bearer a rejoin hands out for a session (0.3.5 review iteration 2, ER-5): the one already minted while no client
+   * has spent it, else a new one that replaces the spent one, so the hooks of a long session hold one bearer, not one
+   * per turn. `mint` makes the new one; null when the session is not this process's.
+   */
+  rejoinBearer(sessionId: string, mint: () => string): string | null {
+    const row = this.rows.get(sessionId)
+    if (!row) return null
+    const prev = row.rejoinBearer ?? null
+    if (prev && this.state(prev) === 'unclaimed') return prev
+    if (prev) this.drop(prev)
+    const bearer = mint()
+    row.rejoinBearer = bearer
+    return bearer
+  }
+  // #endregion session-rejoin-bearer
 
   /** Ends every session minted under a binding; returns their ids. */
   endForBinding(bindingId: string): string[] {
@@ -162,7 +205,9 @@ export async function enrollSession(binding: BindingRow | null, args: { cwd: unk
     if (binding === null || runtimeSessionId === null) return refuse
     const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
     if (!held || !(await deps.stillLive(binding.id, held.grantId))) return refuse
-    const { token } = deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId })
+    const token = deps.sessions.rejoinBearer(held.sessionId, () =>
+      deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true }).token)
+    if (!token) return refuse
     return { ok: true, session: { bearer: token, sessionId: held.sessionId, projectId: folder.projectId, projectName, how: folder.how } }
   }
   // #endregion session-rejoin
@@ -180,14 +225,17 @@ export async function enrollSession(binding: BindingRow | null, args: { cwd: unk
 
   // #region session-enroll-bound — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // An enrollment in a loop must not grow the surface or the journal: a bearer minted for this binding and project
-  // that no client has spent yet is handed out again, and past the cap the oldest session of the binding ends.
+  // that no client has spent yet is handed out again, and past the cap the binding's LEAST RECENTLY ACTIVE session
+  // ends (0.3.5 review iteration 2, ER-4): by its last call, not its mint, so a long-running agent at work outlives the
+  // short ones that already exited, and the one evicted is told why on its next call.
   const live = deps.sessions.liveOf(binding.id)
   const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === folder.projectId && s.grantId === grant.id)
   if (spare) return session(spare.bearer, spare.sessionId)
   const cap = Math.max(1, deps.maxSessionsPerBinding ?? MAX_ENROLLED_PER_BINDING)
-  for (const old of live.slice(0, Math.max(0, live.length - cap + 1))) {
-    deps.sessions.endSession(old.sessionId)
-    ops.record({ op: 'hub.session.enroll-evicted', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: old.sessionId, cap }, ctx: { correlationId: ops.correlate() } })
+  const byActivity = live.map((s) => ({ s, at: deps.sessions.activityOf(s) })).sort((a, b) => a.at - b.at)
+  for (const { s: old, at } of byActivity.slice(0, Math.max(0, live.length - cap + 1))) {
+    deps.sessions.endSession(old.sessionId, evictedReason(cap))
+    ops.record({ op: 'hub.session.enroll-evicted', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: old.sessionId, cap, idle_s: Math.max(0, Math.round((now - at) / 1000)) }, ctx: { correlationId: ops.correlate() } })
   }
   // #endregion session-enroll-bound
 

@@ -31,6 +31,8 @@ export type LinkNotice =
 export interface LinkRoute {
   route: { kind: 'home' } | { kind: 'project'; projectId: string }
   notice: LinkNotice
+  /** How many earlier links waited past the limit and were not opened (0.3.5 review i2 ER-7); said beside the notice. */
+  dropped?: number
 }
 
 /** One repository however it is written: host and path, lower-case, without `.git` or a trailing slash; null if not one. */

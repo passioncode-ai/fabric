@@ -55,6 +55,20 @@ const UNVERIFIED: Record<SchemaUnverified, string> = {
 }
 const unverified = (check: SchemaUnverified): SchemaReadinessError => new SchemaReadinessError(UNVERIFIED[check], 'unverified', {}, check)
 
+/**
+ * Whether an answer with an error came from the database or never reached it (0.3.5 review iteration 2, ER-2). The
+ * real client (postgrest-js) does not throw on a transport failure: it resolves `{ error, status: 0 }` with the fetch
+ * error's name heading the message (`TypeError: fetch failed`, `FetchError: …`, `AbortError: …`). The stack's gateway
+ * answering 502/503/504 means nothing behind it answered either. Only another HTTP answer is the database's own error.
+ * A fake client with no status keeps the old reading: an error is the backend's.
+ */
+export function unansweredCause(response: { status?: unknown; error: unknown }): SchemaUnverified | null {
+  const message = String((response.error as { message?: unknown } | null)?.message ?? '')
+  if (response.status === 0) return /^AbortError\b/.test(message) ? 'timeout' : 'transport'
+  if (response.status === 502 || response.status === 503 || response.status === 504) return 'transport'
+  return null
+}
+
 const positiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value > 0
 
@@ -64,7 +78,8 @@ const positiveInteger = (value: unknown): value is number =>
 export async function withSchemaReadiness<T>(input: {
   packaged: boolean
   manifest: ManifestRead
-  readSchema: (signal: AbortSignal) => PromiseLike<{ data: unknown; error: unknown }>
+  /** The client's answer; `status` is the HTTP status, 0 when nothing answered (postgrest-js). */
+  readSchema: (signal: AbortSignal) => PromiseLike<{ data: unknown; error: unknown; status?: number }>
   timeoutMs?: number
 }, start: () => T | Promise<T>): Promise<T> {
   if (contract.schema !== 'FabricSchemaContract@1' || !positiveInteger(contract.minimum) ||
@@ -86,7 +101,7 @@ export async function withSchemaReadiness<T>(input: {
   const deadline = performance.now() + timeout
   const controller = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined
-  let response: { data: unknown; error: unknown }
+  let response: { data: unknown; error: unknown; status?: number }
   let timedOut = false
   try {
     response = await Promise.race([
@@ -109,7 +124,7 @@ export async function withSchemaReadiness<T>(input: {
   // Timers may be starved by synchronous work; a late answer grants nothing.
   if (performance.now() >= deadline) throw unverified('timeout')
   if (!response) throw unverified('not-an-integer')
-  if (response.error != null) throw unverified('backend-error')
+  if (response.error != null) throw unverified(unansweredCause(response) ?? 'backend-error')
   if (!positiveInteger(response.data)) throw unverified('not-an-integer')
   if (response.data < contract.minimum)
     throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. ${schemaBehindRecovery.replace('{stackPath}', stackPath)}`, 'behind', { found: response.data, min: contract.minimum, max: contract.maximum })

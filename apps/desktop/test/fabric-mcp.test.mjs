@@ -296,6 +296,45 @@ test('an McpError on the tool list keeps the session and is thrown, not answered
   assert.equal(h.proxy.state.kind, 'connected')
 })
 
+test('Fabric\'s own refusals (429 call budget, 413, 408, 400) are passed on as Fabric\'s: the session stays, nothing was done, no new enrollment (0.3.5 review i2 ER-3)', async () => {
+  const { createRequire } = await import('node:module')
+  const sdk = createRequire(import.meta.url).resolve('@modelcontextprotocol/sdk/client/streamableHttp.js')
+  const { StreamableHTTPError } = await import(sdk)
+  const cases = [
+    [429, 'call budget exhausted: 120 calls per 60s. Retry in 30s.'],
+    [429, 'too many concurrent requests'],
+    [413, 'request body too large'],
+    [408, 'request body deadline exceeded'],
+    [400, 'JSON-RPC batches are not accepted']
+  ]
+  for (const [status, reason] of cases) {
+    // The SDK's own error, as the HTTP client throws it for a non-2xx answer: the status as code, the body in the message.
+    const e = new StreamableHTTPError(status, `Error POSTing to endpoint: ${JSON.stringify({ error: reason })}`)
+    assert.deepEqual(classifyFailure(e), { drop: false, mayHaveRun: false, refusal: { status, reason } }, `${status}`)
+    const h = harness({ store: memCreds([CRED]) })
+    await h.proxy.connectOnce()
+    const real = h.link.callTool
+    h.link.callTool = async () => { throw e }
+    const a = await h.proxy.call('fabric_work_list', {})
+    assert.equal(a.isError, true)
+    assert.match(a.content[0].text, new RegExp(`Fabric refused fabric_work_list \\(HTTP ${status}: ${reason.replace(/[.()]/g, '\\$&')}\\)`))
+    assert.match(a.content[0].text, /Nothing of this call was done/)
+    assert.match(a.content[0].text, /The session stays open/)
+    assert.doesNotMatch(a.content[0].text, /outcome is unknown|connection to Fabric broke|reconnecting/)
+    assert.equal(h.proxy.state.kind, 'connected', 'the session is kept')
+    assert.equal(h.changed, 1, 'the tools did not change')
+    assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+    assert.equal(h.calls.filter((c) => c.tool === 'fabric.session.enroll').length, 1, 'no second enrollment: a fresh budget is never minted')
+    assert.equal(h.opened.length, 1)
+    h.link.callTool = real
+    assert.equal((await h.proxy.call('fabric_work_list', {})).content[0].text, 'real fabric_work_list', 'and still serves')
+    // The tool list under a refusal: thrown, the session kept.
+    h.link.listTools = async () => { throw e }
+    await assert.rejects(() => h.proxy.tools(), (thrown) => thrown === e)
+    assert.equal(h.proxy.state.kind, 'connected')
+  }
+})
+
 test('classifyFailure: what drops the session and what may have run', () => {
   assert.deepEqual(classifyFailure(Object.assign(new Error('x'), { name: 'McpError', code: -32001 })), { drop: false, mayHaveRun: true })
   assert.deepEqual(classifyFailure(Object.assign(new Error('x'), { name: 'McpError', code: -32000 })), { drop: true, mayHaveRun: true })
@@ -385,6 +424,38 @@ test('the session link keeps the SDK\'s own close handling: a request waiting wh
   const outcome = await Promise.race([waiting.then(() => 'answered', (e) => `failed: ${e.message}`), new Promise((r) => setTimeout(() => r('HUNG'), 1000))])
   assert.match(outcome, /^failed: .*[Cc]onnection closed/)
   assert.equal(told, 1)
+})
+
+test('fabric-mcp leaving says so: the session link ends its HTTP session (DELETE) before it closes, and the proxy leaves that way (0.3.5 review i2 ER-4)', async () => {
+  const { McpServer } = await import('@modelcontextprotocol/sdk/server/mcp.js')
+  const { InMemoryTransport } = await import('@modelcontextprotocol/sdk/inMemory.js')
+  const server = new McpServer({ name: 's', version: '1' })
+  const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
+  await server.connect(serverSide)
+  const order = []
+  // The HTTP transport's terminateSession is the DELETE; the in-memory pair stands in for it.
+  clientSide.terminateSession = async () => { order.push('terminate') }
+  const realClose = clientSide.close.bind(clientSide)
+  clientSide.close = async () => { order.push('close'); await realClose() }
+  const link = await openSessionLink('mem://', 'bearer', () => clientSide)
+  await link.leave()
+  assert.equal(order[0], 'terminate', 'Fabric is told first')
+  assert.ok(order.slice(1).length > 0 && order.slice(1).every((x) => x === 'close'), 'then the transport closes')
+  // A Fabric that is gone cannot be told: the leave still closes, and never hangs the exit.
+  const [c2, s2] = InMemoryTransport.createLinkedPair()
+  await new McpServer({ name: 's', version: '1' }).connect(s2)
+  c2.terminateSession = () => new Promise(() => {})
+  const link2 = await openSessionLink('mem://', 'bearer', () => c2, { leaveMs: 20 })
+  const outcome = await Promise.race([link2.leave().then(() => 'left'), new Promise((r) => setTimeout(() => r('HUNG'), 1000))])
+  assert.equal(outcome, 'left')
+  // The proxy, on stdin's end, leaves through the link.
+  const h = harness({ store: memCreds([CRED]) })
+  await h.proxy.connectOnce()
+  const seen = []
+  h.link.leave = async () => { seen.push('leave') }
+  h.link.close = async () => { seen.push('close') }
+  await h.proxy.close()
+  assert.deepEqual(seen, ['leave'])
 })
 
 // D1/D2 (fabric-agent-adapter#53): the runtime session id travels with every enrollment; a rejoin asks nothing.

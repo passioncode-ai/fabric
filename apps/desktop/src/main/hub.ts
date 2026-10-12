@@ -32,7 +32,7 @@ import path from 'node:path'
 import { ops } from './opsSink.ts'
 import { userInfo } from 'node:os'
 import { execFileSync } from 'node:child_process'
-import { protectedAclInvocation } from './platform.ts'
+import { protectedAclInvocation, windowsAclAccount } from './platform.ts'
 
 export const HUB_PROTOCOL = 'fabric-hub/0.1'
 /** Chosen to sit apart from the ports agent services on this machine commonly take; `FABRIC_HUB_PORT` overrides. */
@@ -106,7 +106,7 @@ export function writeAtomic(file: string, contents: string, o: {
     // Windows ignores modes: the token files get DEC-0033's protected ACL instead, before they are published
     // (0.3.5, REQ-13). A file whose ACL could not be set is not published.
     if ((o.platform ?? process.platform) === 'win32') {
-      const how = protectedAclInvocation(tmp, (o.user ?? (() => userInfo().username))())
+      const how = protectedAclInvocation(tmp, (o.user ?? (() => windowsAclAccount(process.env, userInfo().username)))())
       const exec = o.exec ?? ((f: string, args: string[]) => { execFileSync(f, args, { timeout: 15_000, windowsHide: true, stdio: 'ignore' }) })
       try { exec(how.file, how.args) } catch (e) {
         throw new Error(`the hub file's ACL could not be set: ${e instanceof Error ? e.message : String(e)}`)

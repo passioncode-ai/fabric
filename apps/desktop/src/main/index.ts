@@ -25,7 +25,7 @@ import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
-import { createLinkOutbox } from '../shared/linkOutbox.ts'
+import { createLinkHold, createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
@@ -434,22 +434,29 @@ let mainWindow: BrowserWindow | null = null
 let linkRegistry: AgentRegistry | null = null
 /** Set where startup sets `windowReady` (that `let` is declared further down, after the argv read below runs). */
 let linkStartupDone = false
-const pendingLinks: string[] = []
+/** Past eight waiting links the oldest goes, and never in silence (0.3.5 review i2 ER-7): the drop is logged (not the
+ *  link) and the window that opens them says how many were not opened. */
+const linkDropped = (where: 'before-window' | 'before-page'): void =>
+  ops.record({ op: 'link.dropped', outcome: 'ok', level: 'warn', detail: { where, limit: 8, note: 'the oldest waiting link was not opened; the window says so' }, ctx: { correlationId: ops.correlate() } })
+const pendingLinks = createLinkHold<string>(8, () => linkDropped('before-window'))
 const isFabricLink = (s: string): boolean => /^fabric:\/\//i.test(s)
 /** A resolved link waits until the page says it listens (`links:pending`), so a cold start does not lose it. */
-const linkOutbox = createLinkOutbox<LinkRoute>((result) => mainWindow?.webContents.send(IPC.linksOpen, result))
+const linkOutbox = createLinkOutbox<LinkRoute>((result) => mainWindow?.webContents.send(IPC.linksOpen, result), 8, {
+  onDrop: () => linkDropped('before-page'),
+  mark: (newest, dropped) => ({ ...newest, dropped: (newest.dropped ?? 0) + dropped })
+})
 function acceptLink(url: string): void {
   if (!isFabricLink(url)) return
   const plan = linkWindowPlan({ startupDone: linkStartupDone, hasWindow: mainWindow !== null })
   if (plan === 'open') { void openLink(url); return }
-  if (pendingLinks.length < 8) pendingLinks.push(url)
+  pendingLinks.hold(url)
   // The new window's first load opens what waited (`linksWindowReady`).
   if (plan === 'hold-and-open-window') createWindow()
 }
 function linksStartupDone(): void {
   linkStartupDone = true
 }
-async function openLink(url: string): Promise<void> {
+async function openLink(url: string, dropped = 0): Promise<void> {
   // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
   const result = await resolveLink(url, {
     projects: async () => {
@@ -469,10 +476,14 @@ async function openLink(url: string): Promise<void> {
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.show()
   mainWindow.focus()
-  linkOutbox.deliver(result)
+  linkOutbox.deliver(dropped > 0 ? { ...result, dropped } : result)
 }
 function linksWindowReady(): void {
-  for (const url of pendingLinks.splice(0)) void openLink(url)
+  const { links, dropped } = pendingLinks.take()
+  // In the order they came, so the newest is shown last and carries how many were dropped before it.
+  void (async () => {
+    for (const [i, url] of links.entries()) await openLink(url, i === links.length - 1 ? dropped : 0)
+  })().catch((e) => ops.failed('link.open', e, { note: 'the waiting links were not all opened' }))
 }
 // macOS: delivered before or after `ready`, so registered at once.
 app.on('open-url', (event, url) => {
@@ -863,7 +874,14 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     }
   }
   // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
-  const enrolled = new EnrolledSessions({ end: (sessionId) => surface.revokeSession(sessionId), state: (token) => surface.credentialState(token) })
+  // The cap evicts by last call, and an evicted session's next call is told why (0.3.5 review i2 ER-4); a rejoin's
+  // replaced bearer goes alone (ER-5).
+  const enrolled = new EnrolledSessions({
+    end: (sessionId, reason) => surface.revokeSession(sessionId, reason),
+    state: (token) => surface.credentialState(token),
+    lastSign: (sessionId) => surface.sessionSign(sessionId)?.lastSignAt ?? null,
+    drop: (token) => surface.revokeCredential(token)
+  })
   access = new AccessService({
     store: accessStore,
     registry,
@@ -4870,7 +4888,7 @@ async function startOrExplain(): Promise<void> {
     windowReady = true
     linksStartupDone()
     // A link that arrived during a background launch is a person's act: it opens the window as activation does.
-    if (!BACKGROUND_LAUNCH || activatedDuringStartup || pendingLinks.length > 0) createWindow()
+    if (!BACKGROUND_LAUNCH || activatedDuringStartup || pendingLinks.size > 0) createWindow()
   } catch (e) {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log

@@ -39,6 +39,9 @@ export interface SessionLink {
   listTools(): Promise<unknown[]>
   callTool(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>>
   close(): Promise<void>
+  /** Leaves the session for good, telling Fabric first (the HTTP session's DELETE), then closes; bounded, never
+   *  throws. Fabric ends an enrolled session whose agent left, so its claims do not outlive it (0.3.5 review i2 ER-4). */
+  leave?(): Promise<void>
   /** Set by the proxy: called once when the session ends (Fabric quit, the bearer revoked). */
   onclose?: () => void
 }
@@ -94,12 +97,42 @@ export const RUNTIME_SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
  * enrolls again; an `McpError` raised in the client (the SDK's own request timeout, an answer that does not match
  * the tool's output schema) keeps the session: Fabric is there, the call may well have run. Only a refusal before
  * the call was handled (HTTP 401/403/404, a connection that was never made) lets the answer say nothing was done.
+ *
+ * Fabric's own refusals of a call it would not take (0.3.5 review iteration 2, ER-3) — 429 (the call budget, too many
+ * at once), 413 (a body too large), 408 (a body too slow), 400 (a batch) — are answered before any tool runs, and the
+ * session is healthy: they keep the session and are passed on as Fabric's refusal, in its words. Dropping the session
+ * on them made the agent read "the outcome is unknown" and enrolled a new session with a fresh call budget, which
+ * turned the loop guard into a loop and left the old session holding its claims.
  */
 export interface CallFailure {
   /** Whether the session is gone and the proxy must enroll again. */
   drop: boolean
   /** Whether the call can have reached Fabric. */
   mayHaveRun: boolean
+  /** Fabric refused the call before any tool ran: its HTTP status and its reason, for the agent. */
+  refusal?: { status: number; reason: string }
+}
+
+/** HTTP statuses Fabric's surface answers before any tool runs, on a session that stays valid (`agentSurface.ts#handle`). */
+const REFUSED_BEFORE_ANY_TOOL = new Set([400, 408, 413, 429])
+
+/** The reason Fabric gave in its refusal body (`{"error": "…"}`, or a JSON-RPC error's message), read from the SDK's
+ *  `Error POSTing to endpoint: <body>`; null when there is none. Bounded and one line: it is shown to the agent. */
+export function surfaceReason(e: unknown): string | null {
+  const message = e instanceof Error ? e.message : typeof e === 'string' ? e : ''
+  const at = message.indexOf('{')
+  if (at < 0) return null
+  let body: unknown
+  try {
+    body = JSON.parse(message.slice(at))
+  } catch {
+    // Not Fabric's JSON body (a proxy's page, a truncated answer): no reason to pass on, and the status still says it.
+    return null
+  }
+  const error = (body as { error?: unknown } | null)?.error
+  const said = typeof error === 'string' ? error : typeof (error as { message?: unknown } | null)?.message === 'string' ? (error as { message: string }).message : null
+  // eslint-disable-next-line no-control-regex
+  return said ? said.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) || null : null
 }
 
 /** JSON-RPC code of the SDK's ConnectionClosed: the transport closed under the request. */
@@ -109,7 +142,10 @@ const NOT_CONNECTED = new Set(['ECONNREFUSED', 'ENOENT', 'EHOSTUNREACH', 'ENETUN
 export function classifyFailure(e: unknown): CallFailure {
   const err = e as { name?: unknown; code?: unknown; cause?: { code?: unknown } } | null
   if (err?.name === 'McpError') return { drop: err.code === CONNECTION_CLOSED, mayHaveRun: true }
-  // StreamableHTTPError carries the HTTP status as its code: refused before any tool ran.
+  // StreamableHTTPError carries the HTTP status as its code. Fabric refused this one call; the session is kept.
+  if (typeof err?.code === 'number' && REFUSED_BEFORE_ANY_TOOL.has(err.code))
+    return { drop: false, mayHaveRun: false, refusal: { status: err.code, reason: surfaceReason(e) ?? 'no reason given' } }
+  // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
   // fetch's TypeError: a connection that was never made sent nothing.
   if (typeof err?.cause?.code === 'string' && NOT_CONNECTED.has(err.cause.code)) return { drop: true, mayHaveRun: false }
@@ -213,10 +249,17 @@ export class FabricMcpProxy {
         const f = classifyFailure(e)
         const cause = e instanceof Error ? e.message : String(e)
         this.deps.log(`fabric-mcp: ${name} failed (${cause})`)
+        if (f.refusal) {
+          const { status, reason } = f.refusal
+          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 ? '; wait before you call again' : ''}.`)
+        }
         if (!f.drop) return text(`${name} failed in the client before its answer arrived (${cause}). The session stays open. The outcome is unknown — check its effect before you act again.`)
         this.dropSession(link, e)
-        return f.mayHaveRun
-          ? text(`The connection to Fabric broke during ${name} (${cause}); reconnecting. The outcome is unknown — check its effect before you act again.`)
+        if (f.mayHaveRun) return text(`The connection to Fabric broke during ${name} (${cause}); reconnecting. The outcome is unknown — check its effect before you act again.`)
+        // Fabric's own reason when it gave one (a session it ended, and why); otherwise a restart is the likely cause.
+        const why = surfaceReason(e)
+        return why
+          ? text(`Fabric closed this session before ${name} reached it: ${why}. Reconnecting. Nothing of this call was done — call it again in a moment.`)
           : text(`Fabric restarted or closed this session before ${name} reached it; reconnecting. Nothing of this call was done — call it again in a moment.`)
       }
     }
@@ -438,10 +481,11 @@ export class FabricMcpProxy {
     }
   }
 
+  /** The agent is gone (stdin ended): leave the session, so Fabric ends it and releases its claims. */
   async close(): Promise<void> {
     const s = this.session
     this.session = null
-    if (s) await s.close()
+    if (s) await (s.leave ? s.leave() : s.close())
   }
 }
 // #endregion fabric-mcp

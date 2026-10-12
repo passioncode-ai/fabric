@@ -18,7 +18,8 @@
  *  - a hard deadline ends the process if shutdown or Electron's own teardown stalls.
  */
 import { spawn } from 'node:child_process'
-import { quitReaperInvocation } from './platform.ts'
+import { quitReaperInvocation, spawnHelper } from './platform.ts'
+import { ops } from './opsSink.ts'
 
 export interface QuitApp {
   quit(): void
@@ -66,7 +67,9 @@ export const QUIT_REAPER_MS = 15_000
 export function spawnQuitReaper(afterMs: number): void {
   const seconds = Math.ceil(afterMs / 1000)
   const how = quitReaperInvocation(process.platform, process.pid, seconds, process.execPath)
-  spawn(how.file, how.args, { detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: how.verbatim === true }).unref()
+  // A reaper that cannot start is reported, never an uncaught 'error' (ER-10): the in-process deadline still ends the quit.
+  spawnHelper(spawn, how, { detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: how.verbatim === true }, (e) =>
+    ops.failed('quit.reaper-spawn', e, { note: 'no outside guard for this quit; the in-process deadline still ends it' }))?.unref()
 }
 
 export interface QuitCoordinator {

@@ -128,6 +128,15 @@ describe('the main process opens links through these two (ER-1, ER-2)', () => {
     const at = src.indexOf("app.on('second-instance'")
     const second = src.slice(at, src.indexOf('app.whenReady()', at))
     expect(second).toMatch(/else if \(linkStartupDone && !process\.env\.SMOKE\) createWindow\(\)/)
-    expect(src).toMatch(/linksStartupDone\(\)\n.*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.length > 0\) createWindow\(\)/)
+    expect(src).toMatch(/linksStartupDone\(\)\n.*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.size > 0\) createWindow\(\)/)
+  })
+  it('a ninth waiting link is never dropped in silence: the hold and the outbox report it and the window is told (0.3.5 review i2 ER-7)', () => {
+    expect(region).not.toMatch(/pendingLinks\.length < 8/)
+    // Every link that is not opened at once is held — the hold, not a condition here, decides what is dropped.
+    expect(region).toMatch(/if \(plan === 'open'\) \{ void openLink\(url\); return \}\n\s*pendingLinks\.hold\(url\)\n/)
+    expect(region).toMatch(/const pendingLinks = createLinkHold<string>\(8, \(\) => linkDropped\('before-window'\)\)/)
+    expect(region).toMatch(/onDrop: \(\) => linkDropped\('before-page'\)/)
+    expect(region).toMatch(/op: 'link\.dropped'/)
+    expect(region).toMatch(/openLink\(url, i === links\.length - 1 \? dropped : 0\)/)
   })
 })
