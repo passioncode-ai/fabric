@@ -240,7 +240,9 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
       if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) op.board_history = 'missing'
       else {
         const text = readOpFile(op, BOARD_ARCHIVE_FILE); if (!text.ok) return text
-        const b = readBoardArchive(text.text, (JSON.parse(readFileSync(path.join(op.dir, MANIFEST), 'utf8')) as { digest: string }).digest, sha256)
+        const manifestText = readOpFile(op, MANIFEST); if (!manifestText.ok) return manifestText
+        const manifest = parsed(op, manifestText.text); if (!manifest.ok) return manifest
+        const b = readBoardArchive(text.text, String(manifest.value.digest), sha256)
         if (!b.ok) op.board_history = b.why === 'corrupt' ? 'integrity_mismatch' : 'invalid_archive'
         else {
           // Its own codes (not the archive's): `already_restored` after a lost reply means the first call landed.

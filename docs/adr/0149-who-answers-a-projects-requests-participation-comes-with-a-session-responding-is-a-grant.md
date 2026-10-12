@@ -104,7 +104,12 @@ pass writes nothing.
   transactional outbox with compare-and-swap consumer cursors; `board_tick` on the app's 60-second cycle; the
   private-archive schema list through 86 (A7-045). The service answers a lost write as "may have been stored",
   maps SQLSTATE class 22 to `invalid_arguments` (A7-035, the A7-017 residual) and registers every board tool,
-  answering `unsupported_capability` for one the vendored contract pin does not carry yet (A7-039).
+  answering `unsupported_capability` for one the vendored contract pin does not carry yet (A7-039). What contract
+  DEC-0073 fixes for the tools already served holds before the repin: a stored receipt of migration 81's shape is
+  replayed in the new one (CT-41); a second `com.read_ack` of a message answers `repeated: true` with the first
+  mark's `at`, and `com.read_ack` takes no idempotency key; `com.status` naming another Project answers as an
+  unknown one does (`not_authorized`), and a viewer principal is never told an epoch; a `com.submit` of kind
+  `reply` outside `replyTo`'s own thread is `invalid_arguments`.
 - **COM-03** (migration 87, the responders) builds §2–§4 and §6's restore settle: the `board.respond` ask and its
   words, the responder slots, enrollments and attempts, the fence, the responder transitions, `fabric.board.join`,
   release on session end and on revocation, and `com.status` responders.

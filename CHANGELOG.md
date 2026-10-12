@@ -17,6 +17,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **Board receipts changed shape (agents, take note).** A `com.submit` or `com.read_ack` receipt no longer carries the
   estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
   `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.
+  Per contract DEC-0073: a `com.read_ack` receipt carries the time of the mark as `at`, and marking the same message
+  again answers `repeated: true` with the first mark's time; `com.read_ack` takes no idempotency key; `com.status`
+  takes an optional `project` (your own; another Project answers `not_authorized`, as an unknown one does); a
+  `com.submit` of kind `reply` whose thread is not `replyTo`'s own is refused `invalid_arguments`.
 - **Requests can be cancelled and expire; replies are threaded** (COM-02.3): the requester's Project may cancel a
   request (work that had begun becomes "may have happened" until reconciled), a passed deadline expires a queued
   request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply` and `com.cancel`

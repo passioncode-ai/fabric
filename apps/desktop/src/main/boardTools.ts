@@ -37,7 +37,7 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
       'fabric-project-comms/0.1 com.submit. Arguments (comms-submit.schema.json): idempotency {epoch: the one com.status names, key: 8–128 of [A-Za-z0-9._:-]}; ' +
       'thread {id} of a thread you take part in, or {new: {participants: [Project ids, at most 16], subject?}}; ' +
       'kind message|request|reply|finding|announcement; body {text: at most 65,536 UTF-8 bytes, format?: text/plain|text/markdown}; ' +
-      'request {target: a participant Project, capability, deadline?} only for kind request; replyTo: a message of the same thread, required for kind reply; ' +
+      'request {target: a participant Project, capability, deadline?} only for kind request; replyTo: a message of the same thread, required for kind reply (another thread\'s message is invalid_arguments; com.reply takes the thread from replyTo); ' +
       'artifacts: at most 8 {id: uri, contentHash: sha256:<hex>}. Your Project and identity are taken from this session, never from the arguments. ' +
       'Retrying with the same key and the same message returns the same receipt; another message under that key is idempotency_conflict. ' +
       'An answer that did not arrive may still have been stored: send it again with the same key to learn which.',
@@ -61,7 +61,7 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
 
   server.registerTool('com.read_ack', {
     title: 'Mark a board message read',
-    description: 'fabric-project-comms/0.1 com.read_ack. Arguments: message (its id). Explicit and idempotent: marking it again returns the same receipt.',
+    description: 'fabric-project-comms/0.1 com.read_ack. Arguments: message (its id); no idempotency key. Explicit and idempotent: the first mark answers repeated: false and its time as at; marking it again changes nothing and answers repeated: true with the first mark\'s at.',
     inputSchema: open
   }, gate('com.read_ack', (c, a) => board.readAck(c, a)))
 
@@ -84,7 +84,8 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
   server.registerTool('com.status', {
     title: 'Board health for your Project',
     description:
-      'fabric-project-comms/0.1 com.status (comms-status.schema.json): whether the board is ready, your unread count, your responders and the mirror (off). ' +
+      'fabric-project-comms/0.1 com.status (comms-status.schema.json). Arguments: project? (omit it, or name your own Project; another Project answers not_authorized, as an unknown one does). ' +
+      'Answers whether the board is ready, your unread count, your responders and the mirror (off). ' +
       'A responder that is stale has let its lease lapse — not that it failed or succeeded. Reads no message.',
     inputSchema: open
   }, gate('com.status', (c, a) => board.status(c, a)))

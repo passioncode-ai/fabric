@@ -404,11 +404,11 @@ the contract names is registered; one outside `PINNED_COMMS_OPERATIONS` (the ven
 
 | Tool | Does | Journals | Served |
 |---|---|---|---|
-| `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt | `comms.message_submitted@1` (ids and digest, never the body) | yes |
+| `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt; a reply must be in `replyTo`'s own thread (contract DEC-0073) | `comms.message_submitted@1` (ids and digest, never the body) | yes |
 | `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter, participation and run | — (read) | yes |
 | `com.get` | one message; an absent one and another Project's read alike | — (read) | yes |
-| `com.read_ack` | an explicit read mark; reading alone marks nothing | `comms.read_acked@1` | yes |
-| `com.status` | whether the board can be read, the unread count, the Project's responders (none before COM-03), mirror off | — (read) | yes |
+| `com.read_ack` | an explicit read mark, without an idempotency key; reading alone marks nothing; a second mark answers `repeated: true` with the first mark's time (contract DEC-0073) | `comms.read_acked@1` | yes |
+| `com.status` | whether the board can be read, the unread count, the Project's responders (none before COM-03), mirror off; `project` may name only the session's own Project (contract DEC-0073) | — (read) | yes |
 | `com.reply` | a participant's reply in the thread of the message it answers; a reply is not a completion | `comms.message_submitted@1` (`operation: com.reply`) | after the repin to contract DEC-0073 |
 | `com.cancel` | the requester's cancel: queued, claimed or accepted → cancelled; in progress → outcome_unknown | `comms.request_transitioned@1` | after the repin |
 | `com.enroll`, `com.claim`, `com.renew`, `com.accept`, `com.progress`, `com.effect_begin`, `com.complete`, `com.reconcile`, `com.responder_replace` | the responder tools | `comms.request_transitioned@1` and the responder events (COM-03) | with COM-03 |

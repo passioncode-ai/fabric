@@ -576,9 +576,12 @@ begin
   return jsonb_build_object('ok', true, 'message', board_message_json(m));
 end $$;
 
+-- Contract DEC-0073: `com.read_ack` takes no idempotency key and stores no receipt — marking read twice is one
+-- mark. The first mark answers `repeated: false` and its time as `at`; a second mark changes nothing and answers
+-- `repeated: true` with the FIRST mark's `at` (the journal time of the event the mark projects).
 create or replace function board_read_ack(p_estate_id uuid, p_reader uuid, p_principal jsonb, p_message uuid) returns jsonb
 language plpgsql security definer set search_path = public set lock_timeout = '3s' as $$
-declare m board_messages; prior board_read_marks;
+declare m board_messages; prior board_read_marks; j journal;
 begin
   if not board_principal_valid(p_principal) then return board_refusal('invalid_arguments', 'The principal is not valid.'); end if;
   if not board_is_project(p_estate_id, p_reader) then return board_refusal('not_authorized', 'This Project may not read the board.'); end if;
@@ -587,11 +590,14 @@ begin
    where bm.id = p_message and bm.estate_id = p_estate_id and p_reader = any (t.participants);
   if not found then return board_refusal('not_authorized', 'This Project cannot read that message.'); end if;
   select * into prior from board_read_marks where estate_id = p_estate_id and reader_project = p_reader and message_id = p_message;
-  if found then return jsonb_build_object('ok', true, 'repeated', true, 'message', p_message); end if;
-  perform board_append(p_estate_id, 'comms.read_acked@1',
+  if found then
+    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'repeated', true, 'message', p_message,
+      'at', (select board_at(e.occurred_at) from journal e where e.estate_id = p_estate_id and e.seq = prior.seq)));
+  end if;
+  j := board_append(p_estate_id, 'comms.read_acked@1',
     jsonb_build_object('kind', case when p_principal->>'kind' = 'agent' then 'agent' else 'person' end, 'id', p_principal->>'id'),
     jsonb_build_object('reader_project_id', p_reader, 'message_id', p_message, 'principal', p_principal));
-  return jsonb_build_object('ok', true, 'repeated', false, 'message', p_message);
+  return jsonb_build_object('ok', true, 'repeated', false, 'message', p_message, 'at', board_at(j.occurred_at));
 end $$;
 
 drop function board_unread(uuid, uuid);

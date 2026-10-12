@@ -90,6 +90,23 @@ export async function run(h) {
     assert.deepEqual(again, { ...first, repeated: true }, 'the repeat is not the first mark')
   })
 
+  await test('contract DEC-0073: a com.submit of kind reply posts to replyTo\'s own thread, or it is refused invalid_arguments', () => {
+    const other = submit(A, PA1, request(PA2, [PA2]), digest(1080))
+    const before = events(A, 'comms.message_submitted@1')
+    const refusals = [
+      submit(A, PA2, message(rqThread, { kind: 'reply', replyTo: other.message }), digest(1081)),   // another thread's message
+      submit(A, PA2, { idempotency: idem(1), thread: { new: { participants: [PA1] } }, kind: 'reply', body: { text: 'x' }, replyTo: rq }, digest(1082)),   // a new thread
+      submit(A, PA2, message(rqThread, { kind: 'reply', replyTo: id(9998) }), digest(1083)),   // no such message
+      submit(A, PA2, message(rqThread, { kind: 'reply', replyTo: 'abcdefgh' }), digest(1084))   // no board id at all, refused without a cast
+    ]
+    for (const r of refusals) assert.equal(r.error?.code, 'invalid_arguments', JSON.stringify(r))
+    assert.equal(events(A, 'comms.message_submitted@1'), before, 'a refused reply was stored')
+    const own = submit(A, PA2, message(rqThread, { kind: 'reply', replyTo: rq }), digest(1085))
+    assert.equal(own.ok, true, JSON.stringify(own)); assert.equal(own.thread, rqThread)
+    // A foreign thread is still not_authorized first: whether its messages exist is not this Project's to learn.
+    assert.equal(submit(A, PA3, message(rqThread, { kind: 'reply', replyTo: rq }), digest(1086)).error.code, 'not_authorized')
+  })
+
   await test('com.reply: a reply lands in the thread of what it answers; the same key repeats; a foreign or absent message is refused alike', () => {
     const body = { idempotency: idem(1), replyTo: rq, body: { text: 'the numbers are attached', format: 'text/markdown' } }
     const first = reply(A, PA2, body, digest(1020))

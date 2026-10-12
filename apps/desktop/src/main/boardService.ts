@@ -248,11 +248,11 @@ export function createBoard(deps: BoardDeps) {
       const lowerUuid = (id: string): string => (BOARD_ID.test(id) ? id.toLowerCase() : id)
       if ('new' in parsed.data.thread) parsed.data.thread = { new: { ...parsed.data.thread.new, participants: parsed.data.thread.new.participants.map(lowerUuid) } }
       if (parsed.data.request) parsed.data.request = { ...parsed.data.request, target: lowerUuid(parsed.data.request.target) }
-      if (parsed.data.replyTo !== undefined) {
-        const replyTo = boardId(parsed.data.replyTo)
-        if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
-        parsed.data.replyTo = replyTo
-      }
+      // Contract DEC-0073: a reply's thread must be replyTo's own, else invalid_arguments. The board decides the
+      // thread first (a thread this Project is not in is not_authorized, whatever replyTo says), so an id that
+      // is no board id is passed as given — the board refuses it by its shape, without a cast — and a board id of
+      // any case is sent lower-cased.
+      if (parsed.data.replyTo !== undefined) parsed.data.replyTo = boardId(parsed.data.replyTo) ?? parsed.data.replyTo
       const digest = idempotencyDigest('com.submit', parsed.data)
       if (typeof digest !== 'string') return digest
       return receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))

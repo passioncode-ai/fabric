@@ -274,6 +274,22 @@ test('DEC-0073 com.status: a session omits its Project or names its own; another
   assert.equal((await board.status(caller, 'x')).error.code, 'invalid_arguments')
 })
 
+test('DEC-0073 com.submit of kind reply: its thread must be replyTo\'s own — a replyTo no message of the thread can have is invalid_arguments, the board\'s answer', async () => {
+  const wrongThread = { data: { error: { code: 'invalid_arguments', message: 'A reply names a message of the same thread.', retryable: false } }, error: null }
+  const { rpc, calls } = fake({ board_submit: wrongThread })
+  const board = createBoard({ rpc })
+  const { request: _r, ...plain } = submitRequest
+  const reply = { ...plain, thread: { id: T1 }, kind: 'reply', replyTo: 'abcdefgh' }
+  const r = await board.submit(caller, reply)
+  // Not "not_authorized": that is the answer for a thread this Project does not take part in, which the board decides first.
+  assert.equal(r.error?.code, 'invalid_arguments', JSON.stringify(r))
+  assert.equal(calls.length, 1, 'the board decides the thread before the reply')
+  assert.equal(calls[0].args.p_submit.replyTo, 'abcdefgh', 'an id that is no board id is passed as given; the board refuses it without a cast')
+  assert.equal(calls[0].args.p_digest, commsDigest('com.submit', reply))
+  await board.submit(caller, { ...reply, replyTo: M1.toUpperCase() })
+  assert.equal(calls[1].args.p_submit.replyTo, M1, 'a board id of any case is sent lower-cased')
+})
+
 test('DEC-0073 com.status: the idempotency epoch is a session\'s — a viewer principal never reads it', async () => {
   const rpc = fake({ board_status: { data: { ok: true, unread: 0, epoch: 4, responders: [] }, error: null } }).rpc
   // Once the pin's comms-status carries `idempotency` (the repin flips STATUS_CARRIES_EPOCH): a session reads its epoch.
