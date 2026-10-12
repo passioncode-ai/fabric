@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "895302f19c7f3a132f043c23a9e1f7a5662c99d0",
+  "report": "docs/evidence/reviews/0.3.5/iteration-1/2026-10-12-data.md",
+  "reportSha256": "444edee2db360c4359170218af79558c82ac03cd1c4b85d6bae8f8442fae596a",
+  "reviewerRun": "release-035-i1-data-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-45",
+      "source": "DA-0 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `scripts/rehearse-upgrade.mjs` on the operator's dump (schema 79, journal 1917): PASS 79 → 84, journal 1917 → 1917, event_types 101 → 106; receipt beside the dump, mode 600, candidate `4b86e817` (migrations unchanged since)"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "DA-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-264 (the claims' lifecycle; a second call recovers), 0.4.0 wave 3"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-264, 0.4.0 wave 3"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-264, 0.4.0 wave 3"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-265 (a restore-and-compare probe)"
+      ]
+    },
+    {
+      "id": "V1-50",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook *Upgrading* says pre-91 grants still serve every project and how to revoke"
+      ]
+    },
+    {
+      "id": "V1-51",
+      "source": "DA-6",
+      "status": "not-recoverable",
+      "evidence": [
+        "not recoverable: the migration ledger freezes those header bytes; the real counts are in the runbook (79 + 5 = 84) and in this row"
+      ]
+    },
+    {
+      "id": "V1-52",
+      "source": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-266, before archives are shared beyond their owner"
+      ]
+    },
+    {
+      "id": "V1-53",
+      "source": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed with DO-16: the archive type derived from `PRIVATE_ARCHIVE_LIMITS.sourceSchemas`"
+      ]
+    },
+    {
+      "id": "V1-54",
+      "source": "DA-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-265"
+      ]
+    }
+  ]
+}

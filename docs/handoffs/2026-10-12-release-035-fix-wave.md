@@ -23,23 +23,31 @@ agents-first plan ([plan](../evidence/plans/2026-10-11-release-040-agents-first.
 - The public workspace config no longer names the closed module; `relay` joins it. No private source list is needed
   while the closed modules stay out of the snapshot (fabric-workspace-91 agreed).
 
+**Status at 2026-10-12 06:30 (after the 0.3.5 verification's iteration 1):**
+- Step 1 below is **done**: `main` at `895302f1` is "Pin published Fabric workspace 9c31660d63b6", and
+  `node scripts/workspace.mjs check --require-child` passed (org-index #62 gave `passioncode-platform` its
+  `snapshot_reason`; fabric-workspace #155 names 0.3.5 in the roadmap and products).
+- Iteration 1 ran on `895302f1`: 67 findings, 13 blocking, every one disposed in the
+  [ledger](../evidence/plans/2026-10-12-release-035-verification.md#iteration-1); the fixes are on `agent/rv1-fixes`.
+- Windows signing is on (passioncode-ai/.github #41; `AZURE_SIGNING_ENABLED` true in Fabric's release environment).
+- The 79 → 84 upgrade was rehearsed on the operator's database dump (`pre-0.3.5-2026-10-12.dump`): PASS.
+
 **Open work, in order:**
-1. `node scripts/workspace.mjs publish` after this landing (the hosted workspace check has been red since
-   2026-10-11 18:54 because no publish followed the landings), then `node scripts/workspace.mjs check --require-child`.
-2. Release verification of 0.3.5: three iterations by independent reviewers (ux, errors, docs, data, plan), each with
-   reports and receipts under `docs/evidence/reviews/0.3.5/`, then `docs/launch/release-gate.json` for 0.3.5
-   (`scripts/test/release-gate.test.mjs` shows the shape). It needs subagents; they were cut off by the API session
-   limit at 03:30 (resets 08:00 Europe/Warsaw).
-3. The release: version bump in `apps/desktop/package.json` to 0.3.5, `## 0.3.5` (drop "unreleased"), the release PR,
-   the tag `v0.3.5` on main (approval by checks, ADR-0145), the run watched to publication.
-4. The operator's database (schema 79) upgraded to 84 by the runbook (dump, rehearsal on a copy), the app installed
-   through the lifecycle broker, then — per the operator's original order — the data dumped and the local Fabric data
-   reset for a clean first run.
-5. Docs after the release: `workspace/knowledge/` (roadmap's released column, products, plans) by a fabric-workspace
-   PR; the wiki by `workspace.mjs sync`.
-6. Unfinished wave-2 packets: P4 `agent/w2-runners` (`ff08f02c`, WIP: REQ-03, REQ-04 with the gateway removed per
-   SH-9, CO-233), P2 `agent/w2-handoff` (`29c8de91`, WIP: vendor DEC-0042 from `213e5a3`). Their worktrees were removed
-   to free disk; the branches are on origin.
+1. Land `agent/rv1-fixes` on `main` after `bash scripts/ci.sh fast`; read the hosted `ci` run on that commit (it was
+   red on Linux since `812876cf`, PL-1).
+2. A `v0.3.5-rc.1` rehearsal (`publish=false`) once the version is 0.3.5 on a commit of main: proves the Windows
+   signature, the native installs and the guard.
+3. Iterations 2 and 3 on fresh candidates, five fresh reviewers each; then `docs/launch/release-gate.json` for 0.3.5.
+4. The release commit (version 0.3.5, `## 0.3.5` finalized), the tag, the run watched to publication.
+5. The operator's database upgraded 79 → 84 by the runbook, the app installed through the lifecycle broker, the
+   data dumped and reset for a clean first run (the operator's original order).
+6. After the release: `workspace/knowledge/` (roadmap's released column, RM-05/RM-13/RM-25 rows, plans' Now line) by a
+   fabric-workspace PR; `workspace.mjs publish`.
+7. Unfinished wave-2 packets for 0.4.0: P4 `agent/w2-runners` (`ff08f02c`), P2 `agent/w2-handoff` (`29c8de91`).
+
+**Questions for the operator (none blocks the release):** the Figma folder «PassionCode» in team SSHLG and moving the
+file «Fabric» into it; whether to reset the local Fabric data right after installing 0.3.5 (planned, per the
+original order; the dump is kept).
 
 **Decisions.** The release is 0.3.5, not 0.4.0. A claim whose session ended reads «lapsed: the session ended» on both
 work screens. The feed keeps one sentence per event type (CO-262). The startup dialog's copied details stay English;
@@ -49,4 +57,4 @@ the remedy is translated per refusal.
 test was watched failing on a planted defect (outbox 3/3, arrival 2 plants, work screens 5 plants, platform words 1,
 `fabric-mcp` 1, schema remedy 2, release guard on the old workflow, analytics 1).
 
-**Next task:** step 1 above, then step 2 once subagents are available.
+**Next task:** step 1 of the open work above.

@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12 · `release-040-wave1-b4` · agent/rv1-fixes → main · fast-forward
+- run: r-249d0762eddd
+- summary: the 0.3.5 verification's iteration 1 (67 findings, 13 blocking, all disposed in docs/evidence/plans/2026-10-12-release-035-verification.md): renderer fixes (agent/rv1-ux), main-process and platform fixes (agent/rv1-main), the hosted Linux fast tier, the MCP version, docs and plan for 0.3.5 (P-17), CO-264…CO-268, the private archive's 83/84 record; Windows signing switched on; the 79 → 84 upgrade rehearsed on the operator's dump.
+
 ### 2026-10-12 · `release-040-wave1-b4` · agent/fx-wave (on agent/w2-fabric-links) → main · fast-forward
 - run: r-249d0762eddd
 - summary: fabric:// links (Fabric registers the scheme; a product's button opens its project), the 0.3.5 bug-fix wave (links on cold start and during the first run, the work screens' errors and words, platform words, the schema refusal in the operator's language, guard on every release job, the analytics agent counts), the CHANGELOG as 0.3.5, the public workspace sources without the closed module; CO-262 and CO-263 opened. ci.sh fast ran with quit.test.mjs alone (its real-Electron dialog case is display-sensitive, CO-210; ci.sh now keeps the display awake).

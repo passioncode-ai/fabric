@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "895302f19c7f3a132f043c23a9e1f7a5662c99d0",
+  "report": "docs/evidence/reviews/0.3.5/iteration-1/2026-10-12-errors.md",
+  "reportSha256": "0f41e7649e532bf728c31ed92d343ffd926ab385d674ddd0a5f238b7c58caa2c",
+  "reviewerRun": "release-035-i1-errors-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-16",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed with UX-14: `linkRoute.ts#resolveLink` and `index.ts` region `fabric-link-handler`; `linkRoute.test.ts` (watched: 4 failed)"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `linkRoute.ts#linkWindowPlan` opens a window for a link that finds none (macOS after the last window, `--background`, a second instance); `background-launch.test.mjs`"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#quitReaperInvocation` — POSIX checks the pid's start time and command before `kill -9`; Windows filters `taskkill` by Fabric's image name; `quit.test.mjs` real process that becomes another program survives (watched: 1 failed); the Windows residue and the on-host proof are CO-267"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#stopWindowsTree` (graceful `/T`, then `/T /F`, then closing the PTY with no signal), `#killPty`; `platform.test.mjs` (watched: 2 plants caught); on-host proof CO-267"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#cmdCommandLine` with the outer quote pair, refusing newlines and inner quotes; the brief goes by `--append-system-prompt-file` on Windows (`sessionBundle.ts`); `platform.test.mjs`, `session-bundle.test.mjs` (watched); on-host proof CO-267"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `protectedAclInvocation` accepts spaced names; `hub.ts#writeAtomic` removes the temp file on every path; `hub-files.test.mjs` (watched: 1 failed); on-host proof CO-267"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabricMcp.ts#moved` re-reads hub.json and the pid before each credential, the request and every poll; `fabric-mcp.test.mjs` 2 new tests (watched: 2 failed)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `workTools.ts#releaseEveryOwnClaim` reads back and answers released/unconfirmed/partial; `test/work-release-session.test.mjs` (watched: no read-back → 3 failed)"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `schemaReadiness.ts#SchemaUnverified` keeps a typed check (timeout, transport, backend-error, not-an-integer), with per-check remedies en/ru (watched)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `PrivateHistoryPanel.tsx` keeps unknown as null and says which list could not be read, with Check again (watched: 1 failed)"
+      ]
+    }
+  ]
+}
