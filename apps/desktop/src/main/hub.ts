@@ -82,8 +82,13 @@ export function hubPaths(root: string): { hubFile: string; doorTokenFile: string
   return { hubFile: path.join(root, 'hub.json'), doorTokenFile: path.join(root, 'hub-door-token') }
 }
 
-/** Write a secret file 0600 atomically (temporary file, fsync, rename; the owner-only ACL on Windows). */
-export function writeAtomic(file: string, contents: string): void {
+/** Write a secret file 0600 atomically (temporary file, fsync, rename; the owner-only ACL on Windows). `platform`,
+ *  `user` and `exec` are this process's own unless a test supplies them. */
+export function writeAtomic(file: string, contents: string, o: {
+  platform?: NodeJS.Platform
+  user?: () => string
+  exec?: (file: string, args: string[]) => void
+} = {}): void {
   const tmp = `${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`
   const fd = openSync(tmp, 'wx', 0o600)
   try {
@@ -92,19 +97,26 @@ export function writeAtomic(file: string, contents: string): void {
   } finally {
     closeSync(fd)
   }
-  // The umask cannot widen a file created 0600, but a rename onto an existing file keeps the new
-  // inode's mode — stated again so the property does not depend on how the file was first made.
-  chmodSync(tmp, 0o600)
-  // Windows ignores modes: the token files get DEC-0033's protected ACL instead, before they are published
-  // (0.3.5, REQ-13). A file whose ACL could not be set is not published.
-  if (process.platform === 'win32') {
-    const how = protectedAclInvocation(tmp, userInfo().username)
-    try { execFileSync(how.file, how.args, { timeout: 15_000, windowsHide: true, stdio: 'ignore' }) } catch (e) {
-      rmSync(tmp, { force: true })
-      throw new Error(`the hub file's ACL could not be set: ${e instanceof Error ? e.message : String(e)}`)
+  // From here the temporary file holds the secret: every path that does not publish it removes it (0.3.5 review ER-6:
+  // a refused user name threw before the removal and left a fresh door token on disk with the folder's inherited ACL).
+  try {
+    // The umask cannot widen a file created 0600, but a rename onto an existing file keeps the new
+    // inode's mode — stated again so the property does not depend on how the file was first made.
+    chmodSync(tmp, 0o600)
+    // Windows ignores modes: the token files get DEC-0033's protected ACL instead, before they are published
+    // (0.3.5, REQ-13). A file whose ACL could not be set is not published.
+    if ((o.platform ?? process.platform) === 'win32') {
+      const how = protectedAclInvocation(tmp, (o.user ?? (() => userInfo().username))())
+      const exec = o.exec ?? ((f: string, args: string[]) => { execFileSync(f, args, { timeout: 15_000, windowsHide: true, stdio: 'ignore' }) })
+      try { exec(how.file, how.args) } catch (e) {
+        throw new Error(`the hub file's ACL could not be set: ${e instanceof Error ? e.message : String(e)}`)
+      }
     }
+    renameSync(tmp, file)
+  } catch (e) {
+    rmSync(tmp, { force: true })
+    throw e
   }
-  renameSync(tmp, file)
 }
 
 /**

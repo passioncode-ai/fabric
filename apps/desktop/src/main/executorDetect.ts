@@ -195,7 +195,7 @@ function versionOf(file: string, env: Record<string, string>, timeoutMs: number)
     // through cmd.exe, and its tree is ended by taskkill (0.3.5, REQ-09, REQ-11).
     const windows = process.platform === 'win32'
     const how = launchFor(file, ['--version'], process.platform)
-    const child = spawn(how.file, how.args, { env, detached: !windows, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] })
+    const child = spawn(how.file, how.args, { env, detached: !windows, windowsHide: true, windowsVerbatimArguments: how.verbatim === true, stdio: ['ignore', 'pipe', 'ignore'] })
     let out = ''
     let done = false
     let drain: NodeJS.Timeout | undefined

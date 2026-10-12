@@ -22,7 +22,7 @@ import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
 import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts'
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
-import { defaultShell, launchFor, processTreeStopInvocation } from './platform.ts'
+import { defaultShell, killPty, launchFor, stopWindowsTree } from './platform.ts'
 import { findOnPath } from './executorDetect.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
@@ -185,11 +185,15 @@ export interface PtyEvents {
 /** What node-pty starts (0.3.5, REQ-08, REQ-09). On Windows ConPTY's CreateProcess needs a file, not a bare name,
  *  and cannot start npm's .cmd shims: the name is resolved on PATH in PATHEXT order (the same asynchronous walk the
  *  launch menu uses, A6-009) and a .cmd runs through cmd.exe. Elsewhere the program and its arguments pass unchanged. */
-async function programForPty(program: string, args: string[]): Promise<{ file: string; args: string[] }> {
+async function programForPty(program: string, args: string[]): Promise<{ file: string; args: string[] | string }> {
   if (process.platform !== 'win32') return { file: program, args }
   // Not on PATH: the spawn below fails with node-pty's own error, which the launch reports.
   const file = /[\\/]/.test(program) ? program : ((await runners.locate(program)) ?? program)
-  return launchFor(file, args, 'win32')
+  // A .cmd's line is already quoted for cmd.exe (platform.ts#cmdCommandLine): node-pty takes a string as the command
+  // line as written, where an array would be quoted again its own way (0.3.5 review ER-5). An argument cmd cannot
+  // carry throws here, and the launch reports it.
+  const how = launchFor(file, args, 'win32')
+  return { file: how.file, args: how.verbatim ? how.args.join(' ') : how.args }
 }
 
 // #region runner-availability — docs: docs/ux/scenarios.md#scn-025-work-in-a-projects-hosted-terminal
@@ -598,7 +602,8 @@ export class PtyManager {
       session.inputHalted = true
       try { if (bundle) this.bundles?.discard(sessionId) }
       catch (e) { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId, cause: causeOf(e) }) }
-      try { if (session.running) pty.kill('SIGTERM') }
+      // No signal on Windows: node-pty throws for one there (0.3.5 review ER-4).
+      try { if (session.running) killPty(pty, process.platform, 'SIGTERM') }
       catch { ops.failed('pty.launch-stop', new Error('session termination could not be requested'), { sessionId }) }
       throw new PtyLaunchFailure(sessionId)
     }
@@ -712,13 +717,20 @@ export class PtyManager {
     if (!s) return
     if (s.process) { await this.processBoundary.signal(s.process, signal, stillAllowed); return }
     // Windows has no process groups (PL-07): the session's tree is stopped from its root, and only while that root's
-    // exit has not been observed, so the pid is still the session's own (REQ-11).
-    if (process.platform === 'win32' && s.running && stillAllowed()) {
-      try {
-        const how = processTreeStopInvocation(s.pty.pid, signal)
-        execFileSync(how.file, how.args, { timeout: 5000, windowsHide: true, stdio: 'ignore' })
-        return
-      } catch (e) { ops.failed('pty.tree-stop', e) /* Falls back to the PTY's own kill below. */ }
+    // exit has not been observed, so the pid is still the session's own (REQ-11). node-pty refuses every signal there,
+    // so a refused graceful stop goes on to /F and then to closing the pseudo-console, never to kill(signal), and the
+    // outcome is said (0.3.5 review ER-4).
+    if (process.platform === 'win32') {
+      if (!(s.running && stillAllowed())) return
+      const r = stopWindowsTree(s.pty.pid, signal,
+        (how) => { execFileSync(how.file, how.args, { timeout: 5000, windowsHide: true, stdio: 'ignore' }) },
+        () => killPty(s.pty, 'win32', signal),
+        () => s.running && stillAllowed())
+      if (r.outcome === 'not-stopped')
+        ops.failed('pty.tree-stop', new Error('the session tree could not be stopped'), { sessionId, signal, failures: r.failures })
+      else
+        ops.record({ op: 'pty.tree-stop', outcome: 'ok', level: r.failures.length ? 'warn' : 'info', detail: { sessionId, signal, how: r.outcome, failures: r.failures }, ctx: { correlationId: ops.correlate() } })
+      return
     }
     // We can still request that the owned PTY stop. Without its captured group
     // identity, observeProcess deliberately cannot prove whole-tree quiescence.

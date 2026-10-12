@@ -46,6 +46,9 @@ export interface VaultPort {
   put(slot: SecretSlot, value: string): Promise<VaultAnswer>
   /** `signal`: the caller that wanted the value has gone; a read still waiting for its turn gives up. */
   read(slot: SecretSlot, options?: { signal?: AbortSignal }): Promise<VaultAnswer<{ value: string }>>
+  /** Why this vault cannot keep anything on this computer at all, known before any attempt; null when it may be tried.
+   *  A connect is refused up front on it, so a product never mints a key Fabric would have to refuse (UX-6). */
+  unavailable?(): string | null
 }
 
 interface Engine {
@@ -105,15 +108,18 @@ export function createObservatoryVault(opts: {
   launcher?: string
   env?: NodeJS.ProcessEnv
   timeoutMs?: number
+  /** The OS (default: this process's); tests name Windows on any host. */
+  platform?: NodeJS.Platform
 } = {}): VaultPort {
   const env = opts.env ?? process.env
   const timeoutMs = opts.timeoutMs ?? 7000
+  const platform = opts.platform ?? process.platform
+  const WINDOWS = 'Project Observatory\'s vault is not available on Windows yet: it hands a secret over a POSIX pipe'
 
   async function resolveEngine(): Promise<VaultAnswer<{ engine: Engine }>> {
     // Windows (0.3.5, CO-238): the vault hands a secret over a POSIX FIFO through `/bin/sh`, neither of which Windows
     // has. Said as unavailable, never attempted, so a connected product's secret stays where it is.
-    if (process.platform === 'win32')
-      return { ok: false, reason: 'Project Observatory\'s vault is not available on Windows yet: it hands a secret over a POSIX pipe' }
+    if (platform === 'win32') return { ok: false, reason: WINDOWS }
     const launcher = opts.launcher ?? 'project-observatory'
     const found = await new Promise<{ path: string | null; reason?: string }>((resolve) =>
       execFile(launcher, ['full-path'], { env, timeout: 5000 }, (e, stdout) => {
@@ -198,6 +204,7 @@ export function createObservatoryVault(opts: {
   }
 
   return {
+    unavailable: () => (platform === 'win32' ? WINDOWS : null),
     async put(slot, value) {
       const bad = checkSlot(slot)
       if (bad) return { ok: false, reason: bad }

@@ -47,6 +47,8 @@ export interface StartupFailure {
 }
 
 const SCHEMA_WHYS = new Set(['contract-invalid', 'build-mismatch', 'unverified', 'behind', 'ahead'])
+/** main/schemaReadiness.ts#SchemaUnverified: an unverified check's own remedy (0.3.5 review ER-9). */
+const SCHEMA_UNVERIFIED = new Set(['timeout', 'transport', 'backend-error', 'not-an-integer'])
 
 function textOf(e: unknown): string {
   if (e === null || e === undefined) return ''
@@ -89,8 +91,39 @@ function wasKilled(e: unknown): boolean {
  * the exact defect this module exists to end.
  */
 export function classifyStartupFailure(e: unknown, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform): StartupFailure {
-  const f = classifyCause(e)
+  const f = forPlatform(classifyCause(e), platform)
   return { ...f, remedy: f.remedy.replace('{stackFolder}', stackFolderFor(platform)) }
+}
+
+/**
+ * The remedies that differ by OS (0.3.5 review UX-2): how the Supabase CLI is installed, which Docker runs the stack,
+ * and what an installed Fabric came from. The causes' own sentences are macOS's; on Windows and Linux these replace
+ * them, in English here and through `startup.<cause>.remedy.<platform>` in the registry, so no Windows or Linux user is
+ * told to run brew, start OrbStack or open a DMG.
+ */
+const PER_OS: Partial<Record<StartupCause, Record<'win32' | 'linux', string>>> = {
+  'supabase-cli-missing': {
+    win32: 'Install it with scoop (`scoop bucket add supabase https://github.com/supabase/scoop-bucket.git`, then `scoop install supabase`), then open Fabric again. If it is already installed, it lives somewhere this app does not look — start Fabric from a terminal to confirm.',
+    linux: 'Install it from the Supabase CLI releases (a .deb, .rpm or .apk package at https://github.com/supabase/cli/releases), then open Fabric again. If it is already installed, it lives somewhere this app does not look — start Fabric from a terminal to confirm.'
+  },
+  'stack-start-timed-out': {
+    win32: 'This is almost always Docker: check that Docker Desktop is running with its WSL 2 engine and has finished starting, then retry. A first-ever start also has images to download, and that can genuinely take longer.',
+    linux: 'This is almost always Docker: check that Docker Engine is running (`systemctl status docker`) and that your user may use it, then retry. A first-ever start also has images to download, and that can genuinely take longer.'
+  },
+  'stack-would-not-start': {
+    win32: 'The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Desktop and retry; if a port is taken, `supabase stop` releases it.',
+    linux: 'The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Engine (`sudo systemctl start docker`) and retry; if a port is taken, `supabase stop` releases it.'
+  },
+  'repository-not-found': {
+    win32: 'Set FABRIC_REPO to a checkout of the Fabric repository, then open Fabric again. Fabric installed with its Windows installer carries its own stack and needs no checkout.',
+    linux: 'Set FABRIC_REPO to a checkout of the Fabric repository, then open Fabric again. Fabric installed from its AppImage or .deb package carries its own stack and needs no checkout.'
+  }
+}
+
+function forPlatform(f: StartupFailure, platform: string): StartupFailure {
+  if (platform !== 'win32' && platform !== 'linux') return f
+  const own = PER_OS[f.cause]?.[platform]
+  return own ? { ...f, remedy: own, remedyKey: `startup.${f.cause}.remedy.${platform}` } : f
 }
 
 function classifyCause(e: unknown): StartupFailure {
@@ -120,6 +153,7 @@ function classifyCause(e: unknown): StartupFailure {
   if (code === 'FABRIC_SCHEMA_NOT_READY') {
     // The refusal says which check failed (main/schemaReadiness.ts#SchemaWhy): the remedy is that one's, translated.
     const why = (e as { why?: unknown }).why
+    const check = (e as { check?: unknown }).check
     const facts = (e as { facts?: Record<string, unknown> }).facts ?? {}
     const vars: Record<string, number> = {}
     for (const k of ['found', 'min', 'max']) if (typeof facts[k] === 'number') vars[k] = facts[k] as number
@@ -128,7 +162,9 @@ function classifyCause(e: unknown): StartupFailure {
       title: 'Fabric could not verify database compatibility.',
       remedy: 'Follow the details below, then retry. Workspace services have not started; Fabric will not migrate the database automatically.',
       detail,
-      ...(typeof why === 'string' && SCHEMA_WHYS.has(why) ? { remedyKey: `startup.schema-not-ready.${why}`, vars } : {})
+      ...(typeof why === 'string' && SCHEMA_WHYS.has(why)
+        ? { remedyKey: why === 'unverified' && typeof check === 'string' && SCHEMA_UNVERIFIED.has(check) ? `startup.schema-not-ready.unverified.${check}` : `startup.schema-not-ready.${why}`, vars }
+        : {})
     }
   }
 

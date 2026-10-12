@@ -63,3 +63,71 @@ describe('routeForLink', () => {
     expect(routeForLink('fabric://chat?service=atlas-agent.default', d)).toEqual({ route: { kind: 'home' }, notice: 'service-in-many-projects' })
   })
 })
+
+import { linkWindowPlan, resolveLink } from './linkRoute.ts'
+
+// 0.3.5 review ER-1 / UX-14: a project list that could not be read is never an empty one. Routing against [] told the
+// person the project was not in their list (or the repository in none of their projects) and pushed them toward a
+// duplicate; a read that threw only logged, and the click did nothing.
+describe('resolveLink: a failed read says so, never routes against an empty list', () => {
+  const services = () => deps().services
+  const ok = { projects: async () => deps().projects.map(({ id, name }) => ({ id, name })), remotes: async (id: string) => deps().projects.find((p) => p.id === id)?.remotes ?? [], services }
+  it('reads the projects and their repositories, then routes', async () => {
+    const failed: unknown[] = []
+    expect(await resolveLink('fabric://chat?service=atlas-agent.default', { ...ok, failed: (e) => failed.push(e) })).toEqual({ route: { kind: 'project', projectId: 'p-atlas' }, notice: 'conversation-soon' })
+    expect(failed).toEqual([])
+  })
+  for (const [what, broken] of [
+    ['the projects read fails', { projects: async () => { throw new Error('projects could not be read: fetch failed') } }],
+    ['a repositories read fails', { remotes: async () => { throw new Error("the project's repositories could not be read") } }],
+    ['the registry throws', { services: () => { throw new Error('registry unreadable') } }]
+  ] as const)
+    it(`${what}: link-unreadable, at home, and the failure goes to the log`, async () => {
+      const failed: unknown[] = []
+      for (const url of ['fabric://chat?project=p-site', 'fabric://chat?service=atlas-agent.default', 'fabric://session/new?project=atlas']) {
+        expect(await resolveLink(url, { ...ok, ...broken, failed: (e) => failed.push(e) })).toEqual({ route: { kind: 'home' }, notice: 'link-unreadable' })
+      }
+      expect(failed).toHaveLength(3)
+    })
+  it('a link Fabric refuses is refused without reading anything', async () => {
+    let reads = 0
+    const counting = { ...ok, projects: async () => { reads++; return [] }, failed: () => {} }
+    expect(await resolveLink('fabric://chat?service=x&prompt=rm', counting)).toEqual({ route: { kind: 'home' }, notice: 'link-refused' })
+    expect(reads).toBe(0)
+  })
+})
+
+// 0.3.5 review ER-2: a link that arrives with no window (macOS after the last window closed, a `--background` launch,
+// a second instance on Windows/Linux) opens one, the way the consent presenter does; it waits for it, then opens.
+describe('linkWindowPlan', () => {
+  it('before startup has finished, the link waits (startup opens the window and then the link)', () => {
+    expect(linkWindowPlan({ startupDone: false, hasWindow: false })).toBe('hold')
+    expect(linkWindowPlan({ startupDone: false, hasWindow: true })).toBe('hold')
+  })
+  it('with no window, it waits for the one it opens', () => {
+    expect(linkWindowPlan({ startupDone: true, hasWindow: false })).toBe('hold-and-open-window')
+  })
+  it('with a window, it opens', () => {
+    expect(linkWindowPlan({ startupDone: true, hasWindow: true })).toBe('open')
+  })
+})
+
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
+describe('the main process opens links through these two (ER-1, ER-2)', () => {
+  const src = readFileSync(path.join(__dirname, '..', 'main', 'index.ts'), 'utf8')
+  const region = src.slice(src.indexOf('// #region fabric-link-handler'), src.indexOf('// #endregion fabric-link-handler'))
+  it('reads through resolveLink, with the projects read throwing on its error', () => {
+    expect(region).toMatch(/await resolveLink\(url, \{/)
+    expect(region).toMatch(/if \(error\) throw new Error\(`the projects could not be read/)
+    expect(region).not.toMatch(/routeForLink\(/)
+  })
+  it('a link that finds no window opens one; a second instance with none open opens one', () => {
+    expect(region).toMatch(/if \(plan === 'hold-and-open-window'\) createWindow\(\)/)
+    const at = src.indexOf("app.on('second-instance'")
+    const second = src.slice(at, src.indexOf('app.whenReady()', at))
+    expect(second).toMatch(/else if \(linkStartupDone && !process\.env\.SMOKE\) createWindow\(\)/)
+    expect(src).toMatch(/linksStartupDone\(\)\n.*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.length > 0\) createWindow\(\)/)
+  })
+})

@@ -53,10 +53,11 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
 - **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
   and `-arm64-setup.exe`, signed with the organization's Authenticode certificate (Azure Artifact Signing). Terminals
-  open PowerShell; the local stack needs Docker Desktop (WSL2) and the Supabase CLI.
+  open PowerShell; the local stack needs Docker Desktop (WSL2) and the Supabase CLI (`scoop install supabase`).
 - **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
 - **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244).
-  **Not yet on Windows:** connecting a cloud product's secret through Project Observatory (CO-245).
+  **Not yet on Windows:** connecting a cloud product's secret through Project Observatory (CO-245); Agent access says
+  so when you press Connect, before the product is opened.
 - **Windows and Linux are offered on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)**; the
   download page on passioncode.ai offers the Mac build until its own change.
 - **Usage counts** (only after you answer the switch): `agents_with_access` counts agents with access to a connected

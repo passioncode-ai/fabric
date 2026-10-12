@@ -254,3 +254,50 @@ describe('a schema refusal says what to do in the operator’s language, with it
     expect(ahead.detail).not.toContain(generic)
   })
 })
+
+// 0.3.5 review UX-2: the same causes on Windows and Linux. A Windows user with no Supabase CLI was told to run brew; a
+// Linux user whose Docker would not start was sent to OrbStack; the repository remedy named a DMG. Each OS gets its
+// own remedy, in both registries and in the English the log keeps.
+describe('startup remedies are each OS’s own', () => {
+  const sayIn = (locale: 'en' | 'ru') => (key: string, vars?: Record<string, string | number>) => translator(locale)(key as StringKey, vars)
+  const repository = { message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }
+  const shapes = { enoent, timedOut, startFailed, repository }
+  const macOnly = /\bbrew\b|Homebrew|OrbStack|\bDMG\b|\bMac\b|macOS/i
+  for (const platform of ['win32', 'linux'] as const)
+    for (const locale of ['en', 'ru', 'none'] as const)
+      it(`${platform}, ${locale}: no remedy names brew, Homebrew, OrbStack or a DMG`, () => {
+        for (const [name, shape] of Object.entries(shapes)) {
+          const f = classifyStartupFailure(shape, platform)
+          expect(f.remedy, `${name} English remedy`).not.toMatch(macOnly)
+          const d = startupDialog(f, { retryable: true, logPath: '/l', platform, ...(locale === 'none' ? {} : { say: sayIn(locale) }) })
+          const shown = `${d.message}\n${d.detail.replace(f.detail, '')}`
+          expect(shown, `${name} dialog`).not.toMatch(macOnly)
+        }
+      })
+  it('Windows names scoop and Docker Desktop; Linux names Docker Engine; macOS keeps brew', () => {
+    expect(classifyStartupFailure(enoent, 'win32').remedy).toMatch(/scoop/)
+    expect(classifyStartupFailure(timedOut, 'win32').remedy).toMatch(/Docker Desktop/)
+    expect(classifyStartupFailure(timedOut, 'linux').remedy).toMatch(/Docker Engine/)
+    expect(classifyStartupFailure(enoent, 'darwin').remedy).toMatch(/brew install supabase/)
+    expect(classifyStartupFailure(enoent, 'darwin').remedyKey).toBeUndefined()
+  })
+  it('every per-OS remedy key is in both registries', () => {
+    for (const platform of ['win32', 'linux'] as const)
+      for (const shape of Object.values(shapes)) {
+        const key = classifyStartupFailure(shape, platform).remedyKey
+        expect(key, JSON.stringify(shape)).toBeTruthy()
+        for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[key as string], key).toBeTruthy()
+      }
+  })
+})
+
+// 0.3.5 review ER-9: an unverified schema check names its own cause, in both registries.
+describe('an unverified schema check says which way it failed', () => {
+  for (const check of ['timeout', 'transport', 'backend-error', 'not-an-integer'])
+    it(check, () => {
+      for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[`startup.schema-not-ready.unverified.${check}`], check).toBeTruthy()
+    })
+  it('a database that answered with an error is not told to start Docker', () => {
+    expect(en['startup.schema-not-ready.unverified.backend-error' as StringKey]).not.toMatch(/Docker/)
+  })
+})

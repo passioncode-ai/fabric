@@ -157,6 +157,25 @@ test('a stop that blocks the main thread is still ended by the outside guard arm
   assert.equal(ended, 'SIGKILL', 'a stop blocking the main thread outlived the outside guard')
 })
 
+test('the outside guard leaves alone a pid that has become another process (0.3.5 review ER-3)', { skip: process.platform === 'win32' }, async () => {
+  // PID reuse in miniature: the guard is armed for a process that then becomes something else under the same pid
+  // (a shell that execs `sleep`), the way a freed pid comes to name another program. The guard must not kill it.
+  const { quitReaperInvocation } = await import(path.join(import.meta.dirname, '../src/main/platform.ts'))
+  const other = spawn('/bin/sh', ['-c', 'sleep 1; exec sleep 30'], { stdio: 'ignore' })
+  const how = quitReaperInvocation(process.platform, other.pid, 2, process.execPath)
+  spawn(how.file, how.args, { detached: true, stdio: 'ignore' }).unref()
+  const ended = await new Promise((resolve) => { const t = setTimeout(() => resolve('alive'), 4500); other.on('exit', (code, signal) => { clearTimeout(t); resolve(signal ?? code) }) })
+  if (ended === 'alive') other.kill('SIGKILL')
+  assert.equal(ended, 'alive', 'the guard killed a process that was no longer the one it was armed for')
+})
+
+test('the default guard is armed for this executable, its arguments passed as written on Windows', async () => {
+  const source = (await import('node:fs')).readFileSync(path.join(import.meta.dirname, '../src/main/quit.ts'), 'utf8')
+  const body = source.slice(source.indexOf('export function spawnQuitReaper'), source.indexOf('export interface QuitCoordinator'))
+  assert.match(body, /quitReaperInvocation\(process\.platform, process\.pid, seconds, process\.execPath\)/)
+  assert.match(body, /windowsVerbatimArguments: how\.verbatim === true/)
+})
+
 test('a failing shutdown still lets the quit through', async () => {
   const calls = []
   const q = createQuitCoordinator({ app: { quit: () => calls.push('quit'), exit() {} }, ready: () => true, shutdown: async () => { throw new Error('drain failed') }, setTimer: () => ({}) })

@@ -6,7 +6,10 @@
  */
 
 type Env = Record<string, string | undefined>
-export interface Invocation { file: string; args: string[] }
+/** `verbatim`: the arguments are a command line already quoted for cmd.exe, passed as written (`execFile`'s
+ *  `windowsVerbatimArguments`, node-pty's string form); Node's own quoting escapes an inner quote as `\"`, which cmd
+ *  does not read. */
+export interface Invocation { file: string; args: string[]; verbatim?: true }
 
 /** REQ-08: the shell a terminal session starts. Windows starts PowerShell, present on every supported Windows; a
  *  POSIX `SHELL` left in the environment by a developer tool would name a program Windows cannot start. */
@@ -26,19 +29,76 @@ function pidOf(pid: number): string {
   return String(pid)
 }
 
+/** The file name of an executable path, either OS's separators: what Windows' task list calls its image. */
+function imageName(executable: string): string {
+  const name = executable.split(/[\\/]/).pop() ?? ''
+  // Inside taskkill's quoted filter on a cmd line: nothing that ends the quoting or that cmd expands.
+  if (!/^[A-Za-z0-9 ._()-]+\.exe$/i.test(name)) throw new Error(`not an image name the quit guard can filter by: ${JSON.stringify(name)}`)
+  return name
+}
+
 /** REQ-10: the outside guard that ends this process if quitting outlives its deadline. Detached and shell-less on
- *  Windows (`cmd /c` with numbers only): `ping -n N+1` waits about N seconds where `timeout` needs a console. */
-export function quitReaperInvocation(platform: NodeJS.Platform, pid: number, seconds: number): Invocation {
+ *  Windows (`cmd /c` with numbers and a validated image name only): `ping -n N+1` waits about N seconds where
+ *  `timeout` needs a console.
+ *
+ *  It never ends a process that is not this Fabric (0.3.5 review ER-3): by the time it fires the pid may have been
+ *  freed and reused, quickly so on Windows. On POSIX the pid's identity — its start time and command, read by `ps`
+ *  while the guard is being armed by the process itself — is read again before `kill -9`, and a pid that names
+ *  anything else is left alone. On Windows taskkill is filtered by this executable's image name. */
+export function quitReaperInvocation(platform: NodeJS.Platform, pid: number, seconds: number, executable: string): Invocation {
   const p = pidOf(pid)
   const s = Math.max(1, Math.ceil(seconds))
-  if (platform === 'win32') return { file: 'cmd.exe', args: ['/d', '/c', `ping -n ${s + 1} 127.0.0.1 >nul & taskkill /F /PID ${p} >nul 2>&1`] }
-  return { file: '/bin/sh', args: ['-c', `sleep ${s}; kill -9 ${p} 2>/dev/null`] }
+  if (platform === 'win32')
+    return { file: 'cmd.exe', args: ['/d', '/s', '/c', `"ping -n ${s + 1} 127.0.0.1 >nul & taskkill /F /FI "IMAGENAME eq ${imageName(executable)}" /PID ${p} >nul 2>&1"`], verbatim: true }
+  const identity = `ps -o lstart= -o command= -p ${p} 2>/dev/null`
+  return { file: '/bin/sh', args: ['-c', `id=$(${identity}); [ -n "$id" ] || exit 0; sleep ${s}; [ "$(${identity})" = "$id" ] && kill -9 ${p} 2>/dev/null`] }
 }
 
 /** REQ-11: stopping a Windows session's whole tree from its root (PL-07: Windows has no process groups). The caller
  *  sends it only while the root's exit has not been observed, so the pid is still the session's own. */
 export function processTreeStopInvocation(pid: number, signal: 'SIGTERM' | 'SIGKILL'): Invocation {
   return { file: 'taskkill.exe', args: ['/PID', pidOf(pid), '/T', ...(signal === 'SIGKILL' ? ['/F'] : [])] }
+}
+
+/** How a Windows session's tree was stopped, said to the log: `stopped` by a graceful taskkill, `forced` by `/F`,
+ *  `pty-closed` by closing the pseudo-console (which ends its console tree), `not-stopped` when none of them could. */
+export type WindowsStopOutcome = 'stopped' | 'forced' | 'pty-closed' | 'not-stopped'
+
+/** REQ-11 on Windows (0.3.5 review ER-4). A console process under ConPTY usually refuses a taskkill without `/F`, and
+ *  node-pty throws "Signals not supported on windows" whenever `kill` is given a signal, so a Stop never falls back to
+ *  `pty.kill(signal)` there: a refused graceful stop is followed by a forced one, then by closing the pseudo-console.
+ *  `still` is asked before every step: once the root's exit is observed the pid is no longer the session's. */
+export function stopWindowsTree(
+  pid: number,
+  signal: 'SIGTERM' | 'SIGKILL',
+  run: (how: Invocation) => void,
+  closePty: () => void,
+  still: () => boolean = () => true
+): { outcome: WindowsStopOutcome; failures: string[] } {
+  const failures: string[] = []
+  const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+  const steps: Array<[WindowsStopOutcome, () => void]> = [
+    ...(signal === 'SIGTERM' ? [['stopped', () => run(processTreeStopInvocation(pid, 'SIGTERM'))] as [WindowsStopOutcome, () => void]] : []),
+    ['forced', () => run(processTreeStopInvocation(pid, 'SIGKILL'))],
+    ['pty-closed', closePty]
+  ]
+  for (const [outcome, step] of steps) {
+    if (!still()) break
+    try {
+      step()
+      return { outcome, failures }
+    } catch (e) {
+      failures.push(`${outcome}: ${said(e)}`)
+    }
+  }
+  return { outcome: 'not-stopped', failures }
+}
+
+/** A PTY's own kill: with the signal on POSIX, with none on Windows, where node-pty refuses every signal and closing
+ *  the pseudo-console is the only stop it has (0.3.5 review ER-4). */
+export function killPty(pty: { kill(signal?: string): void }, platform: NodeJS.Platform, signal: 'SIGTERM' | 'SIGKILL'): void {
+  if (platform === 'win32') pty.kill()
+  else pty.kill(signal)
 }
 /** REQ-05: folders installers put `supabase`, `docker` and the coding agents in, appended to the PATH an app
  *  launched from the Dock, the Start menu or a desktop file inherits. Joined with the OS's own separator by the caller. */
@@ -57,7 +117,10 @@ export function pathAdditions(platform: NodeJS.Platform, env: Env, home: string)
  *  user, SYSTEM (S-1-5-18) and Administrators (S-1-5-32-544), nobody else. Applied to the temporary file before it is
  *  renamed into place, so the published file never has a wider ACL for a moment. */
 export function protectedAclInvocation(file: string, user: string): Invocation {
-  if (!user || /[:,()\s*]/.test(user)) throw new Error(`not a user name icacls can grant: ${JSON.stringify(user)}`)
+  // A name with a space is an ordinary Windows account and travels as one argument (0.3.5 review ER-6); refused are
+  // only the characters icacls would read as another grant or permission, and control characters.
+  // eslint-disable-next-line no-control-regex
+  if (!user.trim() || /[:,()*\x00-\x1f\x7f]/.test(user)) throw new Error(`not a user name icacls can grant: ${JSON.stringify(user)}`)
   return { file: 'icacls.exe', args: [file, '/inheritance:r', '/grant:r', `${user}:(F)`, '*S-1-5-18:(F)', '*S-1-5-32-544:(F)'] }
 }
 /** REQ-09: the file names a program can have on PATH. Windows tries the extensions its installers use, in
@@ -68,9 +131,29 @@ export function executableCandidates(program: string, platform: NodeJS.Platform)
 }
 
 /** How to start a found program: CreateProcess cannot start a .cmd or .bat, so those run through cmd.exe
- *  (`/d` no AutoRun, `/s /c` the rest as one command); everything else runs directly. */
+ *  (`/d` no AutoRun, `/v:off` no `!` expansion, `/s /c` the rest as one command), on a command line built for cmd
+ *  (`cmdCommandLine`) and passed as written; everything else runs directly. */
 export function launchFor(file: string, args: string[], platform: NodeJS.Platform): Invocation {
-  if (platform === 'win32' && /\.(?:cmd|bat)$/i.test(file)) return { file: 'cmd.exe', args: ['/d', '/s', '/c', file, ...args] }
+  if (platform === 'win32' && /\.(?:cmd|bat)$/i.test(file)) return { file: 'cmd.exe', args: ['/d', '/v:off', '/s', '/c', cmdCommandLine(file, args)], verbatim: true }
   return { file, args }
+}
+
+/** An argument cmd.exe passes on unread: no space, no metacharacter, no delimiter. */
+const CMD_BARE = /^[A-Za-z0-9_\-.:/\\+@]+$/
+
+/** The line `cmd /s /c` runs, wrapped in the outer quote pair `/s` strips (0.3.5 review ER-5): the file quoted, so a
+ *  path with a space stays one path; every other argument bare when cmd would leave it alone, else quoted, with each
+ *  `%` escaped outside the quotes (cmd expands `%…%` even inside them). Refused loudly rather than cut: a line break,
+ *  which ends cmd's line and would drop everything after it, and an inner quote, which cmd reads as the end of the
+ *  quoting that keeps `&` and `|` inert. */
+export function cmdCommandLine(file: string, args: string[]): string {
+  const check = (s: string, what: string): void => {
+    if (/[\r\n\0]/.test(s)) throw new Error(`${what} has a line break, which cmd.exe cannot carry: it would be cut there; launch the program's .exe instead of its .cmd shim`)
+    if (s.includes('"')) throw new Error(`${what} has a double quote, which cmd.exe cannot carry safely; launch the program's .exe instead of its .cmd shim`)
+  }
+  check(file, 'the program path')
+  const quoted = (a: string): string => `"${a.split('%').join('"^%"')}"`
+  const parts = [`"${file}"`, ...args.map((a, i) => { check(a, `argument ${i + 1}`); return CMD_BARE.test(a) ? a : quoted(a) })]
+  return `"${parts.join(' ')}"`
 }
 // #endregion platform-invocations

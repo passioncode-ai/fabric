@@ -232,6 +232,10 @@ export class ProductConnector {
     const name = productName(spec.product)
     const refuse = (code: ConnectProblemCode, reason: string, detail?: string): BeginAnswer => ({ ok: false, problem: detail ? { code, detail } : { code }, reason })
     if (!this.deps.origin()) return refuse('hub-off', `the hub is not listening, so ${name} would have nowhere to deliver its key`)
+    // Before the product is opened (0.3.5 review UX-6): where the vault cannot keep a key at all (Windows, CO-245), a
+    // consent would only mint a key Fabric must refuse on delivery and leave it behind in the product.
+    const down = this.deps.vault.unavailable?.() ?? null
+    if (down) return refuse('vault-unavailable', `${name} cannot be connected here: ${down}`)
     this.prune(this.now())
     if (this.starting.has(spec.product) || this.processing.has(spec.product) || [...this.pending.values()].some(p => p.spec.product === spec.product))
       return refuse('busy', `a connection to ${name} is already waiting for its answer`)

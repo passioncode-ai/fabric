@@ -152,6 +152,30 @@ test('several credentials that all need the grant: one incremental ask, with the
   assert.equal(h.calls.some((c) => c.bearer === 'door'), false, 'the door is not asked while a credential can ask for more')
 })
 
+// 0.3.5 review ER-7: the hub contract is "re-read hub.json and check its pid before sending a binding credential".
+// A poll that went on sending the credential to the origin located once would hand it to whatever took the port.
+test('a binding credential is never sent to a hub that is no longer the one located: every poll re-reads hub.json first', async () => {
+  for (const after of [{ ...LIVE, pid: 2 }, { ok: false, code: 'not-running', reason: 'the pid in hub.json is not alive' }]) {
+    let restarted = false
+    const h = harness({ store: memCreds([CRED]), enroll: (b) => (b === CRED ? 'needs-grant' : 'ok'), statuses: ['pending', 'pending', 'denied'], extra: { locate: () => (restarted ? after : LIVE) } })
+    const call = h.proxy.deps.hubCall
+    h.proxy.deps.hubCall = async (...a) => { const r = await call(...a); if (a[2] === 'fabric.access.status') restarted = true; return r }
+    const s = await h.proxy.connectOnce()
+    assert.equal(s.kind, 'not-running')
+    assert.equal(h.calls.filter((c) => c.tool === 'fabric.access.status').length, 1, 'no poll after the hub changed')
+    assert.equal(h.store.list().length, 1, 'the credential is kept: it was not refused, the hub went away')
+  }
+})
+
+test('the same check runs before each held credential is tried', async () => {
+  let restarted = false
+  const h = harness({ store: memCreds([CRED, CRED2]), enroll: (b) => (b === CRED ? 'needs-grant' : 'ok'), extra: { locate: () => (restarted ? { ...LIVE, origin: 'http://127.0.0.1:47071', mcpUrl: 'http://127.0.0.1:47071/mcp' } : LIVE) } })
+  const call = h.proxy.deps.hubCall
+  h.proxy.deps.hubCall = async (...a) => { const r = await call(...a); restarted = true; return r }
+  assert.equal((await h.proxy.connectOnce()).kind, 'not-running')
+  assert.deepEqual(trail(h), ['cred:fabric.session.enroll'], 'the second credential is not sent to the moved hub')
+})
+
 test('one consent across processes: a restarted fabric-mcp polls the request already with the operator instead of asking again', async () => {
   const store = memCreds()
   const a = harness({ store, statuses: ['pending'] })

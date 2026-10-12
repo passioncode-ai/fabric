@@ -252,6 +252,8 @@ export class FabricMcpProxy {
       const none = (why: string): ProxyState => this.set({ kind: 'not-enrolled', message: `Not enrolled: ${why}. A rejoin asks nothing and starts no session.` })
       if (!runtime) return none('no runtime session id was given')
       for (const { credential } of store.list()) {
+        const gone = this.moved(hub)
+        if (gone) return gone
         // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
         const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
         if (r.unauthorized) continue
@@ -264,6 +266,9 @@ export class FabricMcpProxy {
     // Every credential this runner holds, one per binding: the first that enrolls wins; a revoked one is forgotten.
     let need: { data: Record<string, unknown>; bearer: string; via: string } | null = null
     for (const { id, credential } of store.list()) {
+      // Each credential leaves only for the hub hub.json names now, with its pid alive (ER-7).
+      const gone = this.moved(hub)
+      if (gone) return gone
       const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
       if (r.unauthorized) {
         // Revoked, or minted by another Fabric: forget this one; the others (or the door) are tried next.
@@ -278,17 +283,32 @@ export class FabricMcpProxy {
       need ??= { data: errorData(r.value), bearer: credential, via: id }
     }
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
-    if (need) return this.ask(hub.mcpUrl, need.bearer, need.data, need.via)
+    if (need) return this.ask(hub, need.bearer, need.data, need.via)
 
     const r = await this.deps.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })
     if (code !== 'needs-grant') return this.set({ kind: 'failed', reason: `the door answered ${code ?? 'a session, which it never should'}` })
-    return this.ask(hub.mcpUrl, hub.doorToken, errorData(r.value), 'door')
+    return this.ask(hub, hub.doorToken, errorData(r.value), 'door')
   }
 
-  private async ask(url: string, bearer: string, need: Record<string, unknown>, via: string): Promise<ProxyState> {
+  /**
+   * hub.json read again before a credential is sent (0.3.5 review ER-7; the contract in hub.ts's header): null while it
+   * still names the hub this pass located, with its pid alive; otherwise the state to stop in. A request that waits
+   * with the operator is polled every few seconds for up to ten minutes, and in that time Fabric can quit and another
+   * program can take its port: the credential must not follow the old origin there.
+   */
+  private moved(hub: { origin: string; pid: number }): ProxyState | null {
+    const now = this.deps.locate()
+    if (!now.ok) return this.set({ kind: now.code, reason: now.reason })
+    if (now.origin !== hub.origin || now.pid !== hub.pid)
+      return this.set({ kind: 'not-running', reason: 'the Fabric hub changed since this pass found it (Fabric quit or restarted); it is looked for again' })
+    return null
+  }
+
+  private async ask(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, need: Record<string, unknown>, via: string): Promise<ProxyState> {
+    const url = hub.mcpUrl
     const projectName = typeof need.projectName === 'string' ? need.projectName : 'this project'
     const resource = typeof need.resource === 'string' ? need.resource : ''
     const store = this.deps.store
@@ -299,9 +319,11 @@ export class FabricMcpProxy {
     const kept = store.pending(resource)
     if (kept && kept.via === via) {
       this.set({ kind: 'waiting', projectName })
-      return this.poll(url, bearer, resource, projectName, kept)
+      return this.poll(hub, bearer, resource, projectName, kept)
     }
 
+    const stale = this.moved(hub)
+    if (stale) return stale
     const asked = await this.deps.hubCall(url, bearer, 'fabric.access.request', {
       agentId: this.deps.runner,
       callee: 'fabric',
@@ -327,10 +349,11 @@ export class FabricMcpProxy {
       // Not fatal: this process keeps polling; only another start would ask again.
       this.deps.log(`fabric-mcp: the waiting request could not be kept on disk (${e instanceof Error ? e.message : String(e)}); a restart will ask again`)
     }
-    return this.poll(url, bearer, resource, projectName, request)
+    return this.poll(hub, bearer, resource, projectName, request)
   }
 
-  private async poll(url: string, bearer: string, resource: string, projectName: string, request: PendingRequest): Promise<ProxyState> {
+  private async poll(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, resource: string, projectName: string, request: PendingRequest): Promise<ProxyState> {
+    const url = hub.mcpUrl
     const store = this.deps.store
     const door = request.via === 'door'
     const done = (): void => {
@@ -343,6 +366,8 @@ export class FabricMcpProxy {
     }
     for (;;) {
       await this.deps.sleep(this.deps.pollMs ?? 3000)
+      const gone = this.moved(hub)
+      if (gone) return gone
       const st = await this.deps.hubCall(url, bearer, 'fabric.access.status', { requestId: request.requestId, ...(request.pollSecret ? { pollSecret: request.pollSecret } : {}) })
       if (st.unauthorized) return this.set({ kind: 'failed', reason: 'the request could not be read' })
       if (st.isError) {

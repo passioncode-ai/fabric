@@ -18,10 +18,12 @@ export function receiveLink(gate: LinkGate, held: LinkRoute | null, link: LinkRo
 
 /**
  * The gate opens. With no first run due, or a first run the person ended without choosing where to go, the held link
- * opens; a first run that ended with a chosen next step keeps that step, and the link is offered beside it.
+ * opens; a first run that ended with a chosen next step keeps that step, and the link is offered beside it. A first
+ * run left by another route — the rail stays visible during it — is a place the person chose too: the link is offered
+ * there, never dropped (0.3.5 review UX-14).
  */
-export function releaseLink(held: LinkRoute | null, how: 'no-first-run' | 'first-run-home' | 'first-run-chose'): { apply: LinkRoute | null; offer: LinkRoute | null } {
+export function releaseLink(held: LinkRoute | null, how: 'no-first-run' | 'first-run-home' | 'first-run-chose' | 'first-run-left'): { apply: LinkRoute | null; offer: LinkRoute | null } {
   if (!held) return { apply: null, offer: null }
-  return how === 'first-run-chose' ? { apply: null, offer: held } : { apply: held, offer: null }
+  return how === 'first-run-chose' || how === 'first-run-left' ? { apply: null, offer: held } : { apply: held, offer: null }
 }
 // #endregion fabric-link-arrival

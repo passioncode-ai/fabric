@@ -84,6 +84,43 @@ export interface WorkToolDeps {
   now(): number
 }
 
+/**
+ * `fabric_work_release {claims: "session"}` (D5), READ BACK like the single-claim branch (0.3.5 review ER-8): every
+ * live claim is released, then the live claims are read again. `released` only when none of them is still live;
+ * a release the projection ignored is `unconfirmed`; an append that throws stops the walk and the answer says which
+ * were released (confirmed by the read-back) and which are still live or were not tried (`partial`).
+ */
+export async function releaseEveryOwnClaim(
+  readLive: () => Promise<Array<{ id: string; work_id: string }>>,
+  release: (c: { id: string; work_id: string }) => Promise<number>
+): Promise<Record<string, unknown>> {
+  const rows = await readLive()
+  if (rows.length === 0) return { released: true, claims: [], note: 'this session holds no live claim' }
+  let stopped: string | null = null
+  for (const c of rows) {
+    try {
+      await release(c)
+    } catch (e) {
+      stopped = e instanceof Error ? e.message : String(e)
+      break
+    }
+  }
+  let still: Set<string>
+  try {
+    still = new Set((await readLive()).map((c) => c.id))
+  } catch {
+    // Unread is not released: nothing is claimed as done.
+    still = new Set(rows.map((c) => c.id))
+  }
+  const claims = rows.filter((c) => !still.has(c.id)).map((c) => c.id)
+  const unconfirmed = rows.filter((c) => still.has(c.id)).map((c) => c.id)
+  if (stopped !== null)
+    return { released: false, code: 'partial', claims, unconfirmed, reason: `a release failed (${stopped}); the claims listed as unconfirmed are still live or were not tried — read fabric_work_list before acting again` }
+  if (unconfirmed.length)
+    return { released: false, code: 'unconfirmed', claims, unconfirmed, reason: 'some releases could not be confirmed; read fabric_work_list before acting again' }
+  return { released: true, claims }
+}
+
 const reply = (value: Record<string, unknown>) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const KEY = z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/)
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
@@ -392,15 +429,12 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         })).seq
 
       if (claims === 'session') {
-        const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
-        if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
-        const rows = (live.data ?? []) as Array<{ id: string; work_id: string }>
-        const released: string[] = []
-        for (const c of rows) {
-          await release(c)
-          released.push(c.id)
+        const readLive = async (): Promise<Array<{ id: string; work_id: string }>> => {
+          const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
+          if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
+          return (live.data ?? []) as Array<{ id: string; work_id: string }>
         }
-        return reply({ released: true, claims: released, ...(rows.length ? {} : { note: 'this session holds no live claim' }) })
+        return reply(await releaseEveryOwnClaim(readLive, (c) => release(c)))
       }
       if (!claimId && !taskId) return reply({ released: false, code: 'bad-input', reason: 'name the claim: claimId, taskId, or claims: "session"' })
       let row: Record<string, unknown> | null = claimId ? await claimById(claimId) : null

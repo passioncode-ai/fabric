@@ -11,7 +11,8 @@ const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
   'project-unknown': 'links.notice.project-unknown',
   'service-unknown': 'links.notice.service-unknown',
   'service-in-no-project': 'links.notice.service-in-no-project',
-  'service-in-many-projects': 'links.notice.service-in-many-projects'
+  'service-in-many-projects': 'links.notice.service-in-many-projects',
+  'link-unreadable': 'links.notice.link-unreadable'
 }
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
@@ -477,6 +478,14 @@ function Shell({
     // Subscribing once is the point; what changes is read through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // The first run left by any route — the rail stays visible during it — offers what waited (UX-14). Finishing it
+  // releases first (its own onFinish), so this finds nothing held then.
+  useEffect(() => {
+    if (!linkDecided.current || active.kind === 'welcome' || !heldLink.current) return
+    releaseHeld('first-run-left')
+    // Only a change of place matters; the rest is read through refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active.kind])
   // #endregion fabric-link-open
 
   // ADR-0100: the first run is shown ONCE, to an estate with no project, and only after both the
