@@ -355,7 +355,10 @@ const USAGE = {
   await until(() => {
     writeFileSync(join(repo, '.git', 'HEAD'), `ref: refs/heads/other-${beats++}\n`)
     return seen.length > 0
-  })
+    // 20 s, not the default 4: a positive wait costs only what delivery takes,
+    // and fsevents on a loaded machine (load 72, 2026-10-12) delivered later
+    // than 4 s, which read as "inert" — the expensive false answer (CO-281).
+  }, 20000)
   if (seen.length === 0) fail('a change under .git notified nobody — the watch is inert')
   else ok('a change under .git names the repository that moved')
   if (seen[0] !== repo) fail(`the callback named ${seen[0]}, not the repository`)

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12T19:45:00Z · `—` · agent/load-tests → main · fast-forward
+- run: 249d0762eddd
+- files: 10
+- conflicts: none
+- summary: CO-281's two load-sensitive tests: quit.test's settle waits a timer then an immediate, so the coordinator's setImmediate re-quit is never read before it ran; repo-quota's .git watch probe waits up to 20 s for a positive event. The carry-over header names CO-282 as next free; CO-281 open for the real-Electron SIGTERM case at load 380; CO-261, CO-226, CO-192 and one backlog sentence redacted under ADR-0096 (private agents' names, repositories and paths in a public repository); the session's handoff docs/handoffs/2026-10-12-after-035-first-run.md.
+
 ### 2026-10-12T16:40:00Z · `—` · agent/ct19-adoption → main · fast-forward
 - run: 249d0762eddd
 - files: 7

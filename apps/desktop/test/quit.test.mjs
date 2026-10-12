@@ -47,7 +47,13 @@ function modelElectron() {
   return { app, state }
 }
 
-const settle = () => new Promise((r) => setTimeout(r, 20))
+// A timer, THEN an immediate. The coordinator's re-quit runs on `setImmediate`;
+// a bare 20 ms timer fires before it whenever the process was descheduled for
+// longer than that (load 338, 2026-10-12: the CO-191 case read willQuit false),
+// because the timers phase precedes the check phase. An immediate queued from
+// the timer runs after every immediate already queued, so the wait is ordered,
+// not timed.
+const settle = () => new Promise((r) => setTimeout(() => setImmediate(r), 20))
 
 test('an idle quit whose shutdown settles at once reaches will-quit (the CO-191 case)', async () => {
   const { app, state } = modelElectron()
