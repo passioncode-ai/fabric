@@ -137,18 +137,19 @@ describe('why the app would not start', () => {
     expect(classifyStartupFailure('plain string').detail).toContain('plain string')
   })
 })
+// These cases read the macOS words; the platform is named, so the hosted Linux runner reads the same ones (0.3.5).
 
 import { startupDialog, type StartupCause } from './startupFailure.ts'
 
 describe('what the operator is actually shown', () => {
-  const f = classifyStartupFailure(enoent)
+  const f = classifyStartupFailure(enoent, 'darwin')
 
   it('leads with which precondition failed, not with a stack trace', () => {
-    expect(startupDialog(f, { retryable: true, logPath: '/l/startup.log' }).message).toBe(f.title)
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l/startup.log' }).message).toBe(f.title)
   })
 
   it('carries the remedy, the machine’s own words, and where the log is', () => {
-    const d = startupDialog(f, { retryable: true, logPath: '/l/startup.log' })
+    const d = startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l/startup.log' })
     expect(d.detail).toContain(f.remedy)
     expect(d.detail).toContain('spawnSync supabase ENOENT')
     expect(d.detail).toContain('/l/startup.log')
@@ -159,18 +160,18 @@ describe('what the operator is actually shown', () => {
     // every IPC handler twice. The boundary is observed as bootstrap crosses
     // it, never inferred from the error — a failure we cannot place is a
     // failure we must not offer to repeat.
-    expect(startupDialog(f, { retryable: true, logPath: '/l' }).buttons).toContain('Retry')
-    expect(startupDialog(f, { retryable: false, logPath: '/l' }).buttons).not.toContain('Retry')
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l' }).buttons).toContain('Retry')
+    expect(startupDialog(f, { platform: 'darwin', retryable: false, logPath: '/l' }).buttons).not.toContain('Retry')
   })
 
   it('when a retry is unsafe it says so rather than leaving a silent gap', () => {
-    const d = startupDialog(f, { retryable: false, logPath: '/l' })
+    const d = startupDialog(f, { platform: 'darwin', retryable: false, logPath: '/l' })
     expect(d.detail.toLowerCase()).toContain('reopen')
   })
 
   it('always offers a way out and a way to copy', () => {
     for (const retryable of [true, false]) {
-      const d = startupDialog(f, { retryable, logPath: '/l' })
+      const d = startupDialog(f, { platform: 'darwin', retryable, logPath: '/l' })
       expect(d.buttons).toContain('Quit')
       expect(d.buttons.some((b) => /copy/i.test(b))).toBe(true)
       expect(d.defaultId).toBeGreaterThanOrEqual(0)
@@ -183,11 +184,11 @@ import { translator } from '../renderer/src/i18n/translate.ts'
 import type { StringKey } from '../renderer/src/i18n/en.ts'
 
 describe('the dialog in the operator’s language (0.3.3)', () => {
-  const f = classifyStartupFailure(enoent)
+  const f = classifyStartupFailure(enoent, 'darwin')
   const ru = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
 
   it('speaks Russian when asked, title, remedy and buttons alike', () => {
-    const d = startupDialog(f, { retryable: true, logPath: '/l', say: ru })
+    const d = startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l', say: ru })
     expect(d.message).toBe(ru('startup.supabase-cli-missing.title'))
     expect(d.detail).toContain(ru('startup.supabase-cli-missing.remedy'))
     expect(d.detail).toContain(ru('startup.machineSaid'))
@@ -196,12 +197,12 @@ describe('the dialog in the operator’s language (0.3.3)', () => {
   })
 
   it('still carries the machine’s own words untranslated, because that is what a report is read in', () => {
-    expect(startupDialog(f, { retryable: true, logPath: '/l', say: ru }).detail).toContain('spawnSync supabase ENOENT')
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l', say: ru }).detail).toContain('spawnSync supabase ENOENT')
   })
 
   it('names what each button DOES index for index, so a translated label retries exactly as Retry did', () => {
     for (const retryable of [true, false]) {
-      const d = startupDialog(f, { retryable, logPath: '/l', say: ru })
+      const d = startupDialog(f, { platform: 'darwin', retryable, logPath: '/l', say: ru })
       expect(d.actions).toHaveLength(d.buttons.length)
       expect(d.actions).toEqual(retryable ? ['retry', 'copy', 'quit'] : ['copy', 'quit'])
       expect(d.actions[d.defaultId]).toBe(retryable ? 'retry' : 'quit')
@@ -210,7 +211,7 @@ describe('the dialog in the operator’s language (0.3.3)', () => {
 
   it('falls back to the cause’s own English for a cause the registry has no words for', () => {
     const odd = { ...f, cause: 'not-a-cause' as typeof f.cause, title: 'Own title', remedy: 'Own remedy' }
-    const d = startupDialog(odd, { retryable: true, logPath: '/l', say: ru })
+    const d = startupDialog(odd, { platform: 'darwin', retryable: true, logPath: '/l', say: ru })
     expect(d.message).toBe('Own title')
     expect(d.detail).toContain('Own remedy')
   })
