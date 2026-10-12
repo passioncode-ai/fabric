@@ -38,6 +38,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { versionAtLeast } from '../shared/access.ts'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 export interface ForwardRequest {
   mcpUrl: string
@@ -153,7 +154,7 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     // The caller hanging up ends the race at once, as the deadline does.
     req.signal?.addEventListener('abort', () => reject(new Error('cancelled')), { once: true })
   })
-  const client = new Client({ name: 'fabric-hub', version: '0.1.0' })
+  const client = new Client({ name: 'fabric-hub', version: APP_VERSION })
   const transport = new StreamableHTTPClientTransport(new URL(req.mcpUrl), {
     requestInit: { headers, redirect: 'error' },
     fetch: guardedFetch

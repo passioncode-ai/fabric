@@ -83,6 +83,7 @@ import { registerWorkTools, type LiveSession } from './workTools.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
 import { CLAIM_DEFAULT_MINUTES, type CameIn } from '../shared/workClaims.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -1116,7 +1117,7 @@ export class AgentSurface {
       estateId: scope.estateId,
       projectId: scope.projectId
     })
-    const server = new McpServer({ name: 'fabric', version: '0.1.0' })
+    const server = new McpServer({ name: 'fabric', version: APP_VERSION })
 
     server.registerTool(
       'fabric_whoami',

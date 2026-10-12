@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { withSchemaReadiness, readBuildManifestCandidates } from '../src/main/schemaReadiness.ts'
 import { readManifest } from '../src/shared/buildManifest.ts'
 import { classifyStartupFailure, startupDialog } from '../src/shared/startupFailure.ts'
+import { STACK_FOLDER, stackFolderFor } from '../src/shared/stackFolder.ts'
 // The admitted window comes from the compiled contract the readiness check compares against, so
 // admitting a new schema does not leave this fixture describing the previous one.
 const admitted=JSON.parse(readFileSync(new URL('../src/shared/schemaContract.json',import.meta.url),'utf8'))
@@ -31,13 +32,19 @@ await test('old, new, unknown and malformed schemas have zero domain effects',as
 await test('a schema behind names the actual bundled-stack upgrade command and runbook',async()=>{
   await assert.rejects(withSchemaReadiness(input(N-1),start),error=>{
     assert.match(error.message,/supabase migration up --local/)
-    assert.match(error.message,/Library\/Application Support\/@fabric\/desktop\/stack/)
+    // This OS's stack folder (the hosted fast tier runs on Linux): the one the installed app on this OS uses.
+    assert.ok(error.message.includes(STACK_FOLDER),`names ${STACK_FOLDER}`)
     // An absolute link: a DMG user has no checkout to open a repository path in (I3 D-1).
     assert.match(error.message,/https:\/\/github\.com\/passioncode-ai\/Fabric\/blob\/main\/docs\/launch\/release-mac\.md#upgrading-an-existing-database/)
     assert.match(error.message,/backup/i)
     return true
   })
   assert.deepEqual(effects,[])
+})
+await test('the stack folder the refusal names is each OS\'s own',async()=>{
+  assert.equal(stackFolderFor('darwin'),'~/Library/Application Support/@fabric/desktop/stack')
+  assert.equal(stackFolderFor('linux'),'~/.config/@fabric/desktop/stack')
+  assert.equal(stackFolderFor('win32'),'%APPDATA%\\@fabric\\desktop\\stack')
 })
 await test('missing packaged, malformed and stale present manifests never query or start',async()=>{
   for(const manifest of [readManifest(null),readManifest({}),readManifest(fixture({schemaMin:53})),

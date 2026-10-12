@@ -20,6 +20,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { readHubDocument, writeAtomic } from './hub.ts'
 import type { CredentialStore, HubCall, PendingRequest, SessionLink } from './fabricMcp.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
 const CREDENTIAL_FILE = /^([0-9a-f]{8})\.credential$/
@@ -131,7 +132,7 @@ export const httpTransport: TransportFactory = (url, bearer) =>
 
 async function connect(url: string, bearer: string, transportOf: TransportFactory): Promise<{ client: Client; transport: Transport }> {
   const transport = transportOf(url, bearer)
-  const client = new Client({ name: 'fabric-mcp', version: '0.4.0' })
+  const client = new Client({ name: 'fabric-mcp', version: APP_VERSION })
   await client.connect(transport)
   return { client, transport }
 }

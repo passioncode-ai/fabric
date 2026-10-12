@@ -27,6 +27,7 @@ import type { AccessService, HubPrincipal } from './accessService.ts'
 import type { BindingRow } from './accessStore.ts'
 import { ops } from './opsSink.ts'
 import type { EnrollAnswer } from './sessionEnroll.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 export interface ToolAnswer {
   [key: string]: unknown
@@ -98,7 +99,7 @@ const callSchema = z
   .strict()
 
 export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpServer {
-  const server = new McpServer({ name: 'fabric-hub', version: '0.1.0' })
+  const server = new McpServer({ name: 'fabric-hub', version: APP_VERSION })
   const guard = async (op: string, fn: () => Promise<ToolAnswer>): Promise<ToolAnswer> => {
     try {
       return await fn()
