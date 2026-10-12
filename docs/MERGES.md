@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T00:00:00Z · `—` · agent/com-02.3-lifecycle → main · fast-forward
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: The project board's lifecycle, COM-02.3 (ADR-0149; ADR-0117 Amendment 2, ADR-0134 Amendment 5). Migration 86 (suffix 103): board_requests keyed by (estate, message) (A7-024); the active-Project check on get/read_ack/status (A7-018); receipts without seq, stored ones rewritten and translated on replay (C3); board_epochs and one idempotency gate, rotation and retention (A7-019); board_reply, board_cancel, deadline expiry; board_status replaces board_unread; board_deliveries; a transactional outbox with CAS cursors; board_tick on the 60 s cycle; board.json history in the estate archive, restored after the private import (CO-212, SCN-146); the private-archive list through 86 (A7-045). Service: a lost write says it may have been stored, SQLSTATE 22 is invalid_arguments (A7-035), all 17 board tools registered behind PINNED_COMMS_OPERATIONS (A7-039). Pipeline reservations moved to 105/106 and ADR-0150. Left for COM-03: migration 104, responders, the restore settle (epoch rotation on restore), the repin to contract DEC-0073 (pending merge).
+
 ### 2026-10-12T20:29:59Z · `—` · agent/comms-time-filters-land → main · fast-forward
 - run: r-faa9aae98a19 (slice by r-64b69ed3a)
 - files: 93

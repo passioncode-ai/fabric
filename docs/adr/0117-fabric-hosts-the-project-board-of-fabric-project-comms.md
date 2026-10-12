@@ -98,3 +98,27 @@ The app already calls its task board «Доска» (`launch.nav.board`). The gl
 (COM-06, scenarios first). The feed sentences for `comms.*` events speak of messages between
 projects. The table names (`board_*`) and the event names stay as §5 reserved them.
 
+
+### 2. Amendment 2 — 2026-10-12: the lifecycle, the clock, the store as built, the pin (COM-02.3)
+
+- **The lifecycle** is decided in [ADR-0149](0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md):
+  who takes part (§1), who answers (§2–§4), how a restore treats the board (§6, which replaces §6 here: the texts now
+  travel in the archive's `board.json`; authority still does not), and idempotency epochs and retention (§7).
+- **The clock (§4).** "Database time (`now()` in the transition)" means `clock_timestamp()` at the check: `now()` is
+  the transaction's start and goes stale behind a lock wait. Migration 86
+  (`supabase/migrations/20261012000103_project_board_lifecycle.sql`) compares deadlines and epoch ages that way.
+- **The store as built (§1).** "No second store holds message or request state" holds for request state, which is a
+  projection of `comms.*` events. Threads, messages, bodies, idempotency receipts and request outcomes are **primary
+  rows** written in the same transaction as the event that records them, which carries ids and the digest, never a
+  body — the CEO conversation pattern, so that a body can be redacted (`CONTEXT.md`, **Project board**). Migration 86
+  adds projections (`board_deliveries`, `board_epochs`' states) and operational rows (`board_epochs.keys`, the outbox
+  and its cursors); §5's table list is extended, not renamed.
+- **The pin (§2).** The vendored fixtures are at fabric-agent-contract `623bf613`
+  (`apps/desktop/test/contract-consumer-fixtures.mjs`, `CURRENT_COMMIT`), not `d4c8831`: the comms files are byte-identical
+  between the two. The next pin is the merge of contract DEC-0073 (pending merge); until it lands, the tools whose
+  argument shapes only DEC-0073 fixes answer `unsupported_capability` (`PINNED_COMMS_OPERATIONS`).
+- **"ADR-0117 D3".** Migration 83's header, `commsRead.ts`, `types.ts`, SCN-143, the product model and the board's DB
+  test cite "ADR-0117 D3". This record has no section D3: the citation names the operator's decision D3 of
+  2026-10-05, carried in the Consequences above — whether an admin reads agent content is decided for the enterprise
+  release, not for the local board. That decision is what leaves the local operator's read of the local estate's board
+  open; SCN-143 (COM-06/07) is what sanctions and builds it.

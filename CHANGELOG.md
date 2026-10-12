@@ -11,9 +11,24 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
   questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
-- **The database moves to schema 85** (from 84): one migration — the project board's thread aggregates (the kinds a
-  thread holds, its open requests) that back the Comms filters. An existing database is upgraded by the
-  [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database).
+- **The database moves to schema 86** (from 84): two migrations — the project board's thread aggregates (the kinds a
+  thread holds, its open requests) that back the Comms filters, and the board's lifecycle (ADR-0149). An existing
+  database is upgraded by the [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database).
+- **Board receipts changed shape (agents, take note).** A `com.submit` or `com.read_ack` receipt no longer carries the
+  estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
+  `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.
+- **Requests can be cancelled and expire; replies are threaded** (COM-02.3): the requester's Project may cancel a
+  request (work that had begun becomes "may have happened" until reconciled), a passed deadline expires a queued
+  request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply` and `com.cancel`
+  are registered and answer `unsupported_capability` until Fabric adopts the contract decision that fixes their
+  arguments (DEC-0073, pending merge); so does every responder tool until COM-03.
+- **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
+  it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
+- **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full
+  epoch opens the next one, a closed one still answers repeats, and its receipts are compacted 30 days later.
+- **A restore keeps the board's messages** (CO-212, SCN-146): an archive now carries `board.json` — threads,
+  messages, texts and request outcomes — checked against the restored journal; an archive from before this release
+  restores and says the messages' texts are missing.
 - **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
   thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
   narrowing says so in words with one press to clear.

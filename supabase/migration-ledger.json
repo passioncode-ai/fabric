@@ -341,6 +341,10 @@
     {
       "file": "20261011000100_project_board_thread_aggregates.sql",
       "sha256": "7b2b906ae5acdbe64ebb948cfc87781c613eac543c06cb7617ddad9923a82280"
+    },
+    {
+      "file": "20261012000103_project_board_lifecycle.sql",
+      "sha256": "06a861748faebd585446be2adc4b098da1c4f85c33425537e6cec95850a0cdab"
     }
   ]
 }

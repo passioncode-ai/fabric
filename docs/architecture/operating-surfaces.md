@@ -395,30 +395,45 @@ every test written here and delivered nothing.
 
 ## 10. Messaging between projects — the participant tools (COM-02.2, ADR-0117)
 
-A session's surface also carries the participant half of `fabric-project-comms/0.1`. It is registered by
+A session's surface also carries the project board of `fabric-project-comms/0.1`. It is registered by
 `apps/desktop/src/main/boardTools.ts#registerBoardTools` and served by
-`apps/desktop/src/main/boardService.ts#createBoard`, over the SQL commands of migration 79
-(`20261005000081_project_board.sql`).
+`apps/desktop/src/main/boardService.ts#createBoard`, over the SQL commands of migrations 79 and 86
+(`20261005000081_project_board.sql`, `20261012000103_project_board_lifecycle.sql`; ADR-0117, ADR-0149). Every tool
+the contract names is registered; one outside `PINNED_COMMS_OPERATIONS` (the vendored contract pin) answers
+`unsupported_capability` before anything is read or stored.
 
-| Tool | Does | Journals |
-|---|---|---|
-| `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt | `comms.message_submitted@1` (ids and digest, never the body) |
-| `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter and run | — (read) |
-| `com.get` | one message; an absent one and another Project's read alike | — (read) |
-| `com.read_ack` | an explicit read mark; reading alone marks nothing | `comms.read_acked@1` |
-| `com.status` | whether the board can be read and the unread count; no responders until COM-03, mirror off | — (read) |
+| Tool | Does | Journals | Served |
+|---|---|---|---|
+| `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt | `comms.message_submitted@1` (ids and digest, never the body) | yes |
+| `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter, participation and run | — (read) | yes |
+| `com.get` | one message; an absent one and another Project's read alike | — (read) | yes |
+| `com.read_ack` | an explicit read mark; reading alone marks nothing | `comms.read_acked@1` | yes |
+| `com.status` | whether the board can be read, the unread count, the Project's responders (none before COM-03), mirror off | — (read) | yes |
+| `com.reply` | a participant's reply in the thread of the message it answers; a reply is not a completion | `comms.message_submitted@1` (`operation: com.reply`) | after the repin to contract DEC-0073 |
+| `com.cancel` | the requester's cancel: queued, claimed or accepted → cancelled; in progress → outcome_unknown | `comms.request_transitioned@1` | after the repin |
+| `com.enroll`, `com.claim`, `com.renew`, `com.accept`, `com.progress`, `com.effect_begin`, `com.complete`, `com.reconcile`, `com.responder_replace` | the responder tools | `comms.request_transitioned@1` and the responder events (COM-03) | with COM-03 |
+| `com.directory` | which Projects of the estate a session can address (contract DEC-0073) | — (read) | after the repin |
+
+The board's own upkeep is not a tool: `board_tick`, on the app's 60-second cycle, expires requests whose deadline
+passed (`comms.request_transitioned@1`, cause `deadline`), rotates idempotency epochs (`comms.epoch_rotated@1`) and
+retires closed ones (`comms.retention_applied@1`).
 
 - **Identity comes from the scope.** The session's Project is the sender or reader, and its principal is the
   session itself, `trusted`. The SDK is handed an open input schema on purpose. The service validates every
   call against the contract's shapes and answers a refusal in the contract's form. An undeclared field such
   as a forged `estate_id` is refused, not silently stripped.
-- **Unreadable is not empty.** A board that cannot be read answers `not_available` (`com.list`, `com.get`,
-  `com.submit`) or `board.state: unavailable` (`com.status`), never an empty page.
-- **Not built yet:**
-  - `com.reply` and `com.cancel` (COM-02.3);
-  - the responder tools (COM-03);
-  - enrollment of agents Fabric did not start (ADR-0117 §3);
-  - any screen (COM-06/07).
+- **Unreadable is not empty.** A board that cannot be read answers `not_available` (`com.list`, `com.get`) or
+  `board.state: unavailable` (`com.status`), never an empty page. A write whose answer was lost answers
+  `not_available` saying it may have been stored; the same idempotency key, sent again, tells which. A value the
+  database cannot take (SQLSTATE class 22) is `invalid_arguments`.
+- **No estate seq reaches an agent.** A receipt passes only after a strict check against the contract's receipt
+  shape; one carrying `seq` or any other unnamed key is Fabric's defect, logged and answered `not_available` (C3).
+- **Refusals** a caller meets here: `invalid_arguments`, `body_too_large`, `not_authorized` (absent, foreign and
+  archived alike), `idempotency_conflict`, `idempotency_window_expired`, `capacity_exceeded` (retryable),
+  `revision_conflict`, `invalid_transition`, `reconcile_required`, `cursor_reset_required`, `not_available`,
+  `unsupported_capability`.
+- **Not built yet:** the responder tools and the board session for service agents (COM-03, ADR-0149 §2–§4); any
+  operator write control (COM-06, a later wave).
 
   `scripts/check-surface-tools.mjs` keeps `apps/desktop/src/shared/surfaceTools.ts` equal to what both
   modules register.

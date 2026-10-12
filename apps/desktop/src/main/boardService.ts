@@ -1,7 +1,7 @@
 // #region project-board-service — docs: docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md#3-who-may-take-part-is-a-separate-grant-from-who-may-call-a-product
 /**
- * The participant half of the project board (COM-02.2, ADR-0117 §2–§3): what a session's `com.*` tools do
- * between the MCP call and the board's SQL commands (migration 79).
+ * The participant half of the project board (COM-02.2/02.3, ADR-0117 §2–§3, ADR-0149): what a session's `com.*`
+ * tools do between the MCP call and the board's SQL commands (migrations 79 and 86).
  *
  * - The caller's estate, Project and principal come from the authenticated scope, never from the input; the
  *   input schemas below are the contract's (`comms-submit.schema.json` …) and refuse any field they do not
@@ -11,7 +11,10 @@
  * - A cursor is an `opaqueId`: the last seq read plus a MAC binding it to this estate, reader, filter and grant.
  *   Any other reader, filter or a key from another run reads `cursor_reset_required`, never a silent change of
  *   audience (C3).
- * - A board that cannot be read answers `not_available`, never an empty page (COM-02 acceptance).
+ * - A board that cannot be read answers `not_available`, never an empty page (COM-02 acceptance). A WRITE whose
+ *   answer was lost says so: it may have been stored, and the same idempotency key tells which (A7-035).
+ * - Receipts pass only through a strict check against the contract receipt's shape: an estate seq or any other
+ *   key it does not name is Fabric's defect, answered `not_available` and logged, never handed to an agent (C3).
  */
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
@@ -31,6 +34,29 @@ export const isRefusal = (v: unknown): v is Refusal =>
   !!v && typeof v === 'object' && 'error' in v && typeof (v as Refusal).error?.code === 'string'
 
 export class CommsCanonicalError extends Error {}
+
+/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (pending merge) adds. Every one
+ *  is registered (A7-039); the gate decides which are served. */
+export const COMMS_OPERATIONS = [
+  'com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.reply', 'com.cancel', 'com.status',
+  'com.enroll', 'com.claim', 'com.renew', 'com.accept', 'com.progress', 'com.effect_begin', 'com.complete',
+  'com.reconcile', 'com.responder_replace', 'com.directory'
+] as const
+export type CommsOperation = (typeof COMMS_OPERATIONS)[number]
+
+// #region comms-pinned-operations — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#decision
+/**
+ * The operations Fabric serves under the contract pin it vendors (spec §1.3). `com.submit` and `com.status` have
+ * their schemas in the pin; `com.list`, `com.get` and `com.read_ack` take the shapes Fabric has served since 0.3.2,
+ * which contract DEC-0073 (pending merge) adopts (`comms-list`, `comms-message-ref`; `com.read_ack` takes no
+ * idempotency key there). `com.reply`, `com.cancel`, `com.directory` and the responder tools have no argument schema
+ * in the pin yet: they answer `unsupported_capability` until the repin (COM02.3-01) adds their names here. `board-service.test.mjs` fails when the vendored pin gains a schema this set does not serve, so
+ * the repin cannot land without this line.
+ */
+export const PINNED_COMMS_OPERATIONS: ReadonlySet<CommsOperation> = new Set<CommsOperation>(['com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.status'])
+/** Whether the pinned `comms-status` carries `idempotency.epoch` (DEC-0073 adds it; the pin refuses it today). */
+export const STATUS_CARRIES_EPOCH = false
+// #endregion comms-pinned-operations
 
 /** The contract's canonical JSON. Throws on anything it does not admit rather than guessing a spelling. */
 export function commsCanonical(value: unknown): string {
@@ -89,11 +115,35 @@ export const commsSubmitSchema = z.strictObject({
 export type CommsSubmit = z.infer<typeof commsSubmitSchema>
 export const commsListSchema = z.strictObject({ thread: opaqueId.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional() })
 export const commsMessageRefSchema = z.strictObject({ message: opaqueId })
+const idempotency = z.strictObject({ epoch: z.number().int().min(1).max(2147483647), key: z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/) })
+const body = z.strictObject({ text: z.string().min(1).max(BODY_MAX_BYTES), format: z.enum(['text/plain', 'text/markdown']).optional() })
+/** `com.reply`, a participant's form (spec §1.2, Fabric's proposal; the responder's fenced form is COM-03's). */
+export const commsReplySchema = z.strictObject({ idempotency, replyTo: opaqueId, body, artifacts: z.array(artifactRef).max(8).optional() })
+/** `com.cancel` (spec §1.2): only the requester's Project may cancel. */
+export const commsCancelSchema = z.strictObject({
+  idempotency, request: opaqueId, expectedRevision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER).optional(), reason: z.string().min(1).max(300).optional()
+})
+const timestamp = z.iso.datetime({ offset: true })
+const requestState = z.enum(['queued', 'claimed', 'accepted', 'in_progress', 'completed', 'failed_known', 'cancelled', 'expired', 'outcome_unknown'])
+const effectState = z.enum(['not_started', 'started', 'succeeded_observed', 'failed_observed', 'unknown'])
+/** The receipt of every successful mutation (spec §1.2, `comms-receipt`): no field it does not name, so no seq (C3). */
+export const commsReceiptSchema = z.strictObject({
+  ok: z.literal(true),
+  repeated: z.boolean(),
+  message: opaqueId.optional(),
+  thread: opaqueId.optional(),
+  at: timestamp.optional(),
+  request: z.strictObject({ id: opaqueId, state: requestState, effect: effectState, revision: z.number().int().min(1) }).optional(),
+  slot: z.strictObject({ project: projectId, capability: capabilityName, generation: z.number().int().min(1), leaseExpiresAt: timestamp }).optional(),
+  attempt: z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp }).optional()
+})
 
 export interface BoardCaller {
   estateId: string
   projectId: string
   principal: { kind: 'agent' | 'person' | 'operator'; id: string; label?: string; provenance: 'trusted' | 'asserted' }
+  /** What the session takes part under (C3: a cursor is bound to it): how it came in today, its grant with COM-03. */
+  participationGrant?: string
 }
 /** The SQL door: `db.rpc` in the app, a fake in tests. */
 export type BoardRpc = (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>
@@ -106,13 +156,17 @@ export interface BoardDeps {
 }
 
 const UNAVAILABLE = refusal('not_available', 'The board cannot be read right now; nothing was changed.', true)
+/** A write whose answer was lost may have committed (A7-035): the same key, sent again, tells which. */
+const UNCONFIRMED = refusal('not_available', 'The board did not confirm this; it may have been stored. Send it again with the same idempotency key to learn which.', true)
+const SQLSTATE = /^[0-9A-Z]{5}$/
+type Kind = 'read' | 'write'
 
 export function createBoard(deps: BoardDeps) {
   const key = deps.cursorKey ?? randomBytes(32)
   const now = deps.now ?? (() => new Date())
 
   const mac = (caller: BoardCaller, thread: string | null, seq: number): string =>
-    createHmac('sha256', key).update(commsCanonical({ e: caller.estateId, g: 'participant', r: caller.projectId, s: seq, t: thread })).digest('base64url').slice(0, 22)
+    createHmac('sha256', key).update(commsCanonical({ e: caller.estateId, g: 'participant', r: caller.projectId, s: seq, t: thread, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
   const cursorFor = (caller: BoardCaller, thread: string | null, seq: number): string => `c${seq.toString(36)}_${mac(caller, thread, seq)}`
   const seqFrom = (caller: BoardCaller, thread: string | null, cursor: string): number | null => {
     const m = /^c([0-9a-z]{1,11})_([A-Za-z0-9_-]{22})$/.exec(cursor)
@@ -123,17 +177,46 @@ export function createBoard(deps: BoardDeps) {
     return want.length === got.length && timingSafeEqual(want, got) ? seq : null
   }
 
-  const call = async (fn: string, args: Record<string, unknown>): Promise<Record<string, unknown> | Refusal> => {
+  /**
+   * One board command. A7-035 and the A7-017 residual: a thrown error or an error without a SQLSTATE never reached
+   * a verdict — a read changed nothing, a write may have committed; a SQLSTATE of class 22 is the caller's value the
+   * database could not take; any other SQLSTATE rolled the statement back, so nothing changed.
+   */
+  const call = async (fn: string, args: Record<string, unknown>, kind: Kind): Promise<Record<string, unknown> | Refusal> => {
     let res: { data: unknown; error: unknown }
     try { res = await deps.rpc(fn, args) } catch (e) {
-      ops.failed('board.rpc-threw', e, { note: `the board command ${fn} could not be reached; the caller was told not_available` })
-      return UNAVAILABLE
+      ops.failed('board.rpc-threw', e, { note: `the board command ${fn} could not be reached; the caller was told not_available (${kind})` })
+      return kind === 'write' ? UNCONFIRMED : UNAVAILABLE
     }
-    if (res.error || res.data === null || typeof res.data !== 'object') {
-      ops.failed('board.rpc-unreadable', res.error ?? new Error('no object answer'), { note: `the board command ${fn} gave no readable answer; the caller was told not_available` })
-      return UNAVAILABLE
+    if (res.error) {
+      const code = typeof (res.error as { code?: unknown }).code === 'string' ? (res.error as { code: string }).code : ''
+      if (SQLSTATE.test(code) && code.startsWith('22')) return refusal('invalid_arguments', 'The board could not take a value in these arguments.')
+      ops.failed('board.rpc-unreadable', res.error, { note: `the board command ${fn} failed (${code || 'no SQLSTATE'}); the caller was told not_available (${kind})` })
+      return SQLSTATE.test(code) || kind === 'read' ? UNAVAILABLE : UNCONFIRMED
+    }
+    if (res.data === null || typeof res.data !== 'object') {
+      ops.failed('board.rpc-unreadable', new Error('no object answer'), { note: `the board command ${fn} gave no readable answer; the caller was told not_available (${kind})` })
+      return kind === 'write' ? UNCONFIRMED : UNAVAILABLE
     }
     return res.data as Record<string, unknown>
+  }
+
+  /** A write's answer, passed on only as the contract's receipt (or the board's own refusal). */
+  const receipt = (fn: string, data: Record<string, unknown> | Refusal): Record<string, unknown> | Refusal => {
+    if (isRefusal(data)) return data
+    const checked = commsReceiptSchema.safeParse(data)
+    if (checked.success) return checked.data
+    ops.failed('board.receipt-shape', new Error(checked.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.code}`).join('; ')),
+      { note: `the board command ${fn} answered a receipt the contract does not name; the caller was told not_available` })
+    return UNCONFIRMED
+  }
+
+  /** A board id for a message, thread or request: an id that cannot exist here is refused as unknown, before the door. */
+  const idempotencyDigest = (operation: CommsOperation, value: unknown): string | Refusal => {
+    try { return commsDigest(operation, value) } catch {
+      // Silence is right: the refusal names the cause, and the input is the caller's, not a fault of Fabric's.
+      return refusal('invalid_arguments', 'The call cannot be put in canonical form.')
+    }
   }
 
   return {
@@ -162,13 +245,39 @@ export function createBoard(deps: BoardDeps) {
         if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
         parsed.data.replyTo = replyTo
       }
-      let digest: string
-      try { digest = commsDigest('com.submit', parsed.data) } catch {
-        // Silence is right: the refusal names the cause (a value canonical JSON does not admit), and the
-        // input is the caller's, not a fault of Fabric's to record.
-        return refusal('invalid_arguments', 'The submission cannot be put in canonical form.')
+      const digest = idempotencyDigest('com.submit', parsed.data)
+      if (typeof digest !== 'string') return digest
+      return receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
+    },
+
+    /** `com.reply`, a participant's form. The responder's fenced form arrives with the responder tools (COM-03). */
+    async reply(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      if (input && typeof input === 'object' && 'fence' in input)
+        return refusal('unsupported_capability', 'A responder\'s reply arrives with the responder tools; this board does not serve it yet.')
+      const parsed = commsReplySchema.safeParse(input)
+      if (!parsed.success) {
+        const big = parsed.error.issues.some((i) => i.path.join('.') === 'body.text' && i.code === 'too_big')
+        return big ? refusal('body_too_large', 'The message body is larger than 65,536 bytes.') : refusal('invalid_arguments', 'The reply does not match the board\'s reply shape.')
       }
-      return call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest })
+      if (Buffer.byteLength(parsed.data.body.text, 'utf8') > BODY_MAX_BYTES) return refusal('body_too_large', 'The message body is larger than 65,536 bytes.')
+      const replyTo = boardId(parsed.data.replyTo)
+      if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
+      parsed.data.replyTo = replyTo
+      const digest = idempotencyDigest('com.reply', parsed.data)
+      if (typeof digest !== 'string') return digest
+      return receipt('board_reply', await call('board_reply', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_reply: parsed.data, p_digest: digest }, 'write'))
+    },
+
+    /** `com.cancel`: only the Project that sent the request. */
+    async cancel(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      const parsed = commsCancelSchema.safeParse(input)
+      if (!parsed.success) return refusal('invalid_arguments', 'The cancellation does not match the board\'s cancel shape.')
+      const request = boardId(parsed.data.request)
+      if (request === null) return refusal('not_authorized', 'This Project cannot cancel that request.')
+      parsed.data.request = request
+      const digest = idempotencyDigest('com.cancel', parsed.data)
+      if (typeof digest !== 'string') return digest
+      return receipt('board_cancel', await call('board_cancel', { p_estate_id: caller.estateId, p_caller: caller.projectId, p_principal: caller.principal, p_cancel: parsed.data, p_digest: digest }, 'write'))
     },
 
     async list(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
@@ -183,7 +292,7 @@ export function createBoard(deps: BoardDeps) {
         if (seq === null) return refusal('cursor_reset_required', 'This cursor does not belong to this reader and filter; read again from the start.')
         after = seq
       }
-      const data = await call('board_list', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_thread: thread, p_after_seq: after, p_limit: parsed.data.limit ?? 50 })
+      const data = await call('board_list', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_thread: thread, p_after_seq: after, p_limit: parsed.data.limit ?? 50 }, 'read')
       if (isRefusal(data)) return data
       if (data.ok !== true || !Array.isArray(data.messages) || typeof data.last_seq !== 'number') return UNAVAILABLE
       return {
@@ -200,7 +309,7 @@ export function createBoard(deps: BoardDeps) {
       if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
       const message = boardId(parsed.data.message)
       if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
-      const data = await call('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message })
+      const data = await call('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message }, 'read')
       if (isRefusal(data)) return data
       return data.ok === true && data.message ? (data.message as Record<string, unknown>) : UNAVAILABLE
     },
@@ -210,25 +319,55 @@ export function createBoard(deps: BoardDeps) {
       if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
       const message = boardId(parsed.data.message)
       if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
-      return call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message })
+      return receipt('board_read_ack', await call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message }, 'write'))
     },
 
-    /** `comms-status.schema.json`: health without reading any message. COM-02 has no responders and no mirror. */
-    async status(caller: BoardCaller): Promise<Record<string, unknown>> {
-      let unread: unknown = null
-      try {
-        const res = await deps.rpc('board_unread', { p_estate_id: caller.estateId, p_reader: caller.projectId })
-        if (!res.error) unread = res.data
-      } catch (e) {
-        ops.failed('board.status-unreadable', e, { note: 'the unread count could not be read; status says unavailable' })
-        unread = null
+    /**
+     * `comms-status.schema.json`: health without reading any message (migration 86's `board_status`). A board that
+     * cannot be read is `unavailable`, never an empty board; an archived Project is refused, as every read is.
+     */
+    async status(caller: BoardCaller, input?: unknown): Promise<Record<string, unknown> | Refusal> {
+      if (input !== undefined && input !== null && (typeof input !== 'object' || Object.keys(input).length > 0))
+        // DEC-0073 (pending merge) refuses a session naming another Project; until the repin no argument is taken at all.
+        return refusal('invalid_arguments', 'com.status takes no arguments here: your Project is this session\'s.')
+      const down = { protocol: COMMS_PROTOCOL, board: { state: 'unavailable', reason: 'The board could not be read.' }, project: caller.projectId, responders: [], transport: { telegram: 'off' } }
+      const data = await call('board_status', { p_estate_id: caller.estateId, p_reader: caller.projectId }, 'read')
+      if (isRefusal(data)) return data.error.code === 'not_available' ? down : data
+      const unread = data.unread, responders = data.responders, epoch = data.epoch
+      if (data.ok !== true || typeof unread !== 'number' || !Number.isSafeInteger(unread) || unread < 0 || !Array.isArray(responders)
+          || typeof epoch !== 'number' || !Number.isSafeInteger(epoch) || epoch < 1) {
+        ops.failed('board.status-unreadable', new Error('board_status answered an unexpected shape'), { note: 'status says unavailable' })
+        return down
       }
-      // A board it cannot reach is shown as unreachable, never as an empty board (contract "host health").
-      if (typeof unread !== 'number' || !Number.isSafeInteger(unread) || unread < 0)
-        return { protocol: COMMS_PROTOCOL, board: { state: 'unavailable', reason: 'The board could not be read.' }, project: caller.projectId, responders: [], transport: { telegram: 'off' } }
-      return { protocol: COMMS_PROTOCOL, board: { state: 'ready' }, project: caller.projectId, responders: [], transport: { telegram: 'off' }, unread }
+      return {
+        protocol: COMMS_PROTOCOL, board: { state: 'ready' }, project: caller.projectId, responders, transport: { telegram: 'off' }, unread,
+        // The epoch is a session's: the caller here is always a session. A viewer principal (Dashboards, C9) reads
+        // com.status without `idempotency` — it submits nothing (contract DEC-0073, pending merge).
+        ...(STATUS_CARRIES_EPOCH ? { idempotency: { epoch } } : {})
+      }
     }
   }
 }
 export type Board = ReturnType<typeof createBoard>
+
+export interface BoardTickResult { expired: number; rotated: number; retired: number; receipts_compacted: number; outbox_compacted: number }
+/**
+ * One pass of the board's own upkeep for one estate (migration 86's `board_tick`), from the app's 60 s cycle:
+ * deadline expiry, epoch rotation, receipt and outbox retention. It never throws into the cycle; a pass that
+ * fails is logged and the next one tries again — every step is idempotent, and an idle pass writes nothing.
+ */
+export async function tickBoard(rpc: BoardRpc, estateId: string): Promise<BoardTickResult | null> {
+  try {
+    const { data, error } = await rpc('board_tick', { p_estate_id: estateId })
+    const d = data as Record<string, unknown> | null
+    if (error || !d || d.ok !== true) {
+      ops.failed('board.tick', error ?? new Error(JSON.stringify(d)), { note: 'the board upkeep pass did not run; the next cycle tries again' })
+      return null
+    }
+    return { expired: Number(d.expired), rotated: Number(d.rotated), retired: Number(d.retired), receipts_compacted: Number(d.receipts_compacted), outbox_compacted: Number(d.outbox_compacted) }
+  } catch (e) {
+    ops.failed('board.tick', e, { note: 'the board upkeep pass could not reach the database; the next cycle tries again' })
+    return null
+  }
+}
 // #endregion project-board-service

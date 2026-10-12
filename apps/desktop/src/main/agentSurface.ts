@@ -2559,7 +2559,9 @@ export class AgentSurface {
     registerBoardTools(server, this.board, () => ({
       estateId: scope.estateId,
       projectId: scope.projectId,
-      principal: { kind: 'agent', id: scope.sessionId, provenance: 'trusted' }
+      principal: { kind: 'agent', id: scope.sessionId, provenance: 'trusted' },
+      // C3: a cursor is bound to what the session takes part under — how it came in, its grant with COM-03.
+      participationGrant: scope.cameIn
     }))
 
     return server

@@ -868,7 +868,11 @@ export interface AnalyticsStatus {
 /** `private_history_skipped`: why the archive's private history was NOT imported although it carried one —
  *  `not_your_history` (another Person's, never sent) or the import's refusal code — else null (A5-011, A5-012). */
 export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean
-  private_history_skipped: string | null; opened: false }
+  private_history_skipped: string | null
+  /** The project board's texts (ADR-0149 §6): `restored`, `missing` (an archive from before they travelled), or the
+   *  restore's refusal code; null for an operation recorded before board history travelled. */
+  board_history?: string | null
+  opened: false }
 /** A restore whose result is not known yet, read from main's operation file (A5-014). */
 export interface HistoryPending { operation_id: string; name: string }
 /** An Estate this Mac restored for the held Person, other than the one open (A3-005). */
