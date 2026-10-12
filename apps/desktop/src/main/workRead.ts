@@ -134,6 +134,8 @@ export interface HeldSession {
   projectId: string | null
   agent: string | null
   cameIn: CameIn
+  /** Fabric runs a terminal for it (a PTY); an enrolled or hub session has none (0.3.5 review UX-3). */
+  console?: boolean
   startedAt: number
   lastSignAt: number | null
 }
@@ -144,13 +146,17 @@ export function sessionView(s: HeldSession, now: number): WorkSessionView {
     projectId: s.projectId,
     agent: s.agent,
     cameIn: s.cameIn,
+    console: s.console === true,
     startedAt: new Date(s.startedAt).toISOString(),
     lastSignAt: s.lastSignAt ? new Date(s.lastSignAt).toISOString() : null,
     stale: sessionStale(s.lastSignAt, s.startedAt, now)
   }
 }
 
-export function claimView(c: ClaimView, titles: ReadonlyMap<string, string>): WorkClaimView {
+/** The sessions Fabric holds a console for: a claim's «Open session» is offered only for one of these. */
+export const consolesOf = (sessions: readonly HeldSession[]): ReadonlySet<string> => new Set(sessions.filter((s) => s.console === true).map((s) => s.sessionId))
+
+export function claimView(c: ClaimView, titles: ReadonlyMap<string, string>, consoles: ReadonlySet<string> = new Set()): WorkClaimView {
   return {
     claimId: c.id,
     projectId: c.project_id,
@@ -161,6 +167,7 @@ export function claimView(c: ClaimView, titles: ReadonlyMap<string, string>): Wo
     sessionId: c.owner_session,
     agent: c.agent,
     cameIn: c.came_in,
+    console: consoles.has(c.owner_session),
     touches: c.touches,
     since: c.claimed_at,
     until: c.expires_at,
@@ -177,8 +184,9 @@ export async function readProjectWork(
 ): Promise<ProjectWorkView> {
   const [snap, refs] = await Promise.all([readWork(store, opts), opts.leases()])
   const titles = new Map(snap.claims.map((c) => [c.work_id, c.task.title]))
+  const consoles = consolesOf(opts.sessions)
   return {
-    claims: snap.claims.map((c) => claimView(c, titles)),
+    claims: snap.claims.map((c) => claimView(c, titles, consoles)),
     held: snap.held.map((h) => ({ projectId: h.project_id, taskId: h.task.id, title: h.task.title, sessionId: h.owner_session, until: h.expires_at })),
     sessions: opts.sessions.map((s) => sessionView(s, opts.now)),
     leases: refs === null ? null : leasesView(refs),
@@ -186,10 +194,11 @@ export async function readProjectWork(
   }
 }
 
-export function leasesView(refs: LeaseRefsRead & { repository: string }): WorkLeasesView {
-  return refs.read
-    ? { read: true, repository: refs.repository, readAt: refs.readAt, leases: refs.leases.map((l) => ({ key: l.key })), truncated: refs.truncated }
-    : { read: false, reason: refs.reason }
+/** The screens' view of the lease read: null for a repository that does not use agent-sync (no block at all), and an
+ *  unread list as its code alone — each window says it in its own language (0.3.5 review UX-5). */
+export function leasesView(refs: LeaseRefsRead & { repository: string }): WorkLeasesView | null {
+  if (refs.read) return { read: true, repository: refs.repository, readAt: refs.readAt, leases: refs.leases.map((l) => ({ key: l.key })), truncated: refs.truncated }
+  return refs.code === 'not-used' ? null : { read: false, code: refs.code }
 }
 
 /** SCR-78 «Where work is»: every project's sessions, claims and review queue, from one estate-scoped reading. */
@@ -203,10 +212,11 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
   const counts = review.error ? null : new Map<string, number>()
   for (const r of (review.data ?? []) as Array<{ project_id: string }>) counts?.set(r.project_id, (counts.get(r.project_id) ?? 0) + 1)
   const titles = new Map(snap.claims.map((c) => [c.work_id, c.task.title]))
+  const consoles = consolesOf(opts.sessions)
   const built = whereWorkRows({
     projects: (projects.data ?? []) as Array<{ id: string; name: string }>,
     sessions: opts.sessions.map((s) => sessionView(s, opts.now)),
-    claims: snap.claims.map((c) => claimView(c, titles)),
+    claims: snap.claims.map((c) => claimView(c, titles, consoles)),
     review: counts
   })
   return { ...built, reviewUnread: review.error ? `the review queue could not be read: ${review.error.message}` : null, readAt: snap.readAt }

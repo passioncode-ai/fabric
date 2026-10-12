@@ -33,6 +33,11 @@ export function explainError(e: unknown, t: Translate): string {
   return text
 }
 
+/** A program's name from its path on any system: the last segment after `/` or `\`, without a Windows executable
+ *  extension — `C:\…\npm\claude.cmd` is "claude", never the whole path (0.3.5 review UX-9). */
+export const programOf = (path: string | null | undefined, fallback: string): string =>
+  path?.split(/[\\/]/).filter(Boolean).pop()?.replace(/\.(exe|cmd|bat|ps1)$/i, '') || fallback
+
 /** The purpose a Project made from this folder gets: the repository's words, saying whose they are (ER-5). */
 export const purposeFrom = (f: { summary?: string | null; summaryFile?: string | null }, t: Translate): string | undefined =>
   purposeFromRepository(f, (file, text) => t('start.purposeFromRepo', { file, text }))

@@ -76,10 +76,15 @@ export const sayFloor = (t: Say, x?: { agent: AgentFacts; enroll?: EnrollFacts }
   x?.enroll ? t('access.enroll.floor', { name: shownName(x.agent) }) : t('access.floor')
 export const sayIncremental = (t: Say): string => t('access.incremental')
 
+/** The project an enrollment names, as the slot `{project}` of the enrollment sentences takes it: "Atlas" / "this
+ *  project" in English, «в проекте «Atlas»» / «в этом проекте» in Russian — so a project whose name is not known reads
+ *  as this project in both, never «без названия» (0.3.5 review UX-12). */
+const projectWords = (t: Say, name: string): string => (name ? t('access.enroll.projectNamed', { name }) : t('access.enroll.thisProject'))
+
 /** The queue row's title: "<name> asks to use <product>", or for an enrollment (ADR-0134) "<name> asks to work in <project>". */
 export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }): string =>
   x.enroll
-    ? t('access.queue.enrollTitle', { name: shownName(x.agent), project: x.enroll.projectName || t('access.enroll.thisProject') })
+    ? t('access.queue.enrollTitle', { name: shownName(x.agent), project: projectWords(t, x.enroll.projectName) })
     : t('access.queue.title', { name: shownName(x.agent), product: x.product })
 
 /**
@@ -89,7 +94,7 @@ export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; e
 export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }, decision: 'allowed' | 'denied'): string {
   const name = shownName(x.agent)
   if (x.enroll) {
-    const project = x.enroll.projectName || t('access.enroll.thisProject')
+    const project = projectWords(t, x.enroll.projectName)
     return t(decision === 'allowed' ? 'access.queue.enrolled' : 'access.queue.enrollDenied', { name, project })
   }
   return t(decision === 'allowed' ? 'access.queue.allowed' : 'access.queue.denied', { name, product: x.product })
@@ -114,7 +119,7 @@ const FOLDER_KEY: Record<FolderHow, 'access.enroll.folder' | 'access.enroll.fold
 }
 /** Fabric's own line about where the agent works: the folder it resolved the project by (never the agent's words). */
 export const sayFolder = (t: Say, folder: NonNullable<EnrollFacts['folder']>): string => t(FOLDER_KEY[folder.how ?? 'exact'], { root: folder.root })
-const projectOf = (t: Say, enroll: EnrollFacts): string => enroll.projectName || t('access.enroll.thisProject')
+const projectOf = (t: Say, enroll: EnrollFacts): string => projectWords(t, enroll.projectName)
 // #endregion enroll-words
 
 /**

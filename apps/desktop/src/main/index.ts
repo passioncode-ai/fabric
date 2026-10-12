@@ -1193,14 +1193,15 @@ async function projectLeaseRefs(projectId: string) {
 function heldSessions(projectId?: string): HeldSession[] {
   const out = new Map<string, HeldSession>()
   for (const s of surface?.heldSessions(projectId) ?? [])
-    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
+    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
     const at = Date.parse(p.lastActivityAt)
     const held = out.get(p.sessionId)
+    // A running terminal is a console Fabric holds: «Open session» opens it (0.3.5 review UX-3).
     out.set(p.sessionId, held
-      ? { ...held, agent: held.agent ?? p.optionId, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
-      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', startedAt: Date.parse(p.startedAt), lastSignAt: at })
+      ? { ...held, agent: held.agent ?? p.optionId, console: true, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, startedAt: Date.parse(p.startedAt), lastSignAt: at })
   }
   return [...out.values()]
 }

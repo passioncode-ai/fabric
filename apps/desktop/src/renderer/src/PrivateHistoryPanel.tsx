@@ -25,8 +25,10 @@ export function PrivateHistoryPanel({ onClose }: { onClose: () => void }): React
   const [exp, setExp] = useState<ExportView>({ kind: 'idle' })
   const [rst, setRst] = useState<RestoreView>({ kind: 'empty' })
   const [opening, setOpening] = useState<OpenView>({ kind: 'idle' })
-  const [pending, setPending] = useState<HistoryPending[]>([])
-  const [restoredEstates, setRestoredEstates] = useState<HistoryRestoredEstate[]>([])
+  /** Null until read, and null again when a read fails: unknown, never "nothing waiting" (0.3.5 review ER-10). */
+  const [pending, setPending] = useState<HistoryPending[] | null>(null)
+  const [restoredEstates, setRestoredEstates] = useState<HistoryRestoredEstate[] | null>(null)
+  const [opsUnread, setOpsUnread] = useState(false)
   const [name, setName] = useState('')
   const reason = (code: string): string => t(`history.reason.${(REASONS as readonly string[]).includes(code) ? code : 'unavailable'}` as 'history.reason.unavailable')
   const openReason = (code: string): string => t(`history.openReason.${(OPEN_REASONS as readonly string[]).includes(code) ? code : 'unavailable'}` as 'history.openReason.unavailable')
@@ -36,11 +38,20 @@ export function PrivateHistoryPanel({ onClose }: { onClose: () => void }): React
   }
   // #region private-history-panel-operations — docs: docs/ux/scenarios.md#scn-065-restore-an-archive-into-a-fresh-estate-and-open-it
   // What waits for a result and what can still be opened are main's operation files (A5-014, A3-005), read again
-  // after every restore step, so closing the panel or a restart loses neither. An unreadable list shows nothing
-  // extra; the restore in front of the operator keeps its own controls.
+  // after every restore step, so closing the panel or a restart loses neither. An unreadable list is said as unread,
+  // with Check again, and logged — after a restart there is no step in view to stand in for it (0.3.5 review ER-10).
   const refreshOperations = async (): Promise<void> => {
-    try { setPending(await window.fabric.history.pending()) } catch { /* Not silence: the step in view keeps its own Check again. */ setPending([]) }
-    try { setRestoredEstates(await window.fabric.history.restored()) } catch { /* Not silence: an Estate just restored keeps its own Open. */ setRestoredEstates([]) }
+    const unread = (what: string, e: unknown): null => {
+      window.fabric.ops?.rendererError({ message: `history.${what} could not be read: ${e instanceof Error ? e.message : String(e)}`, component: 'PrivateHistoryPanel.refreshOperations' })
+      return null
+    }
+    const [p, r] = await Promise.all([
+      window.fabric.history.pending().catch((e: unknown) => unread('pending', e)),
+      window.fabric.history.restored().catch((e: unknown) => unread('restored', e))
+    ])
+    setPending(p)
+    setRestoredEstates(r)
+    setOpsUnread(p === null || r === null)
   }
   useEffect(() => { void refresh(); void refreshOperations() }, [])
 
@@ -88,8 +99,8 @@ export function PrivateHistoryPanel({ onClose }: { onClose: () => void }): React
   }
   // The step in view keeps its own controls; the lists below do not repeat it.
   const inView = rst.kind === 'unknown' || rst.kind === 'refused' ? rst.operationId : undefined
-  const waiting = pending.filter(p => p.operation_id !== inView)
-  const openable = restoredEstates.filter(e => rst.kind !== 'restored' || rst.result.target_estate_id !== e.target_estate_id)
+  const waiting = (pending ?? []).filter(p => p.operation_id !== inView)
+  const openable = (restoredEstates ?? []).filter(e => rst.kind !== 'restored' || rst.result.target_estate_id !== e.target_estate_id)
   // #endregion private-history-panel-operations
 
   return (
@@ -163,6 +174,13 @@ export function PrivateHistoryPanel({ onClose }: { onClose: () => void }): React
         {opening.kind === 'opening' && <p className="muted" role="status">{t('history.opening')}</p>}
         {opening.kind === 'failed' && <Banner tone="warn">{t('history.openFailed', { reason: openReason(opening.reason) })}</Banner>}
 
+        {/* ER-10: a list that could not be read is said, with Check again — never shown as nothing waiting. */}
+        {opsUnread && (
+          <Banner tone="warn" actions={<Button tone="ghost" onClick={() => void refreshOperations()}>{t('history.checkAgain')}</Button>}>
+            {pending === null && <p>{t('history.pending.unread')}</p>}
+            {restoredEstates === null && <p>{t('history.restoredList.unread')}</p>}
+          </Banner>
+        )}
         {/* A5-014: a restore left waiting outlives the panel and a restart; it is checked by its own operation. */}
         {waiting.length > 0 && (
           <>

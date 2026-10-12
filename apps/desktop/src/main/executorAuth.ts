@@ -48,7 +48,10 @@ export function observeExecutorAuth(input: {
   timeoutMs?: number; platform?: string; arch?: string
 }): Promise<ExecutorAuthentication> {
   const reader = READERS[input.id]
-  if (!reader || reader.version !== input.version || (input.platform ?? process.platform) !== 'darwin' || !MEASURED_ARCHS.has(input.arch ?? process.arch)) {
+  // The system first: on Windows and Linux no version of any agent would be read, so blaming the version is wrong
+  // (0.3.5 review UX-7).
+  if ((input.platform ?? process.platform) !== 'darwin') return Promise.resolve({ state: 'unsupported', method: null, reason: 'unsupported-os' })
+  if (!reader || reader.version !== input.version || !MEASURED_ARCHS.has(input.arch ?? process.arch)) {
     return Promise.resolve({ state: 'unsupported', method: null, reason: 'unverified-build' })
   }
   return new Promise((resolve) => {

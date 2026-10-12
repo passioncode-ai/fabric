@@ -14,22 +14,39 @@
  * with the reason — is kept for a minute, so a list that is called on every agent's start costs one remote read.
  */
 import { execFile } from 'node:child_process'
+import { access } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { promisify } from 'node:util'
 import { gitRun, hardenedGitEnv } from './gitRun.ts'
-import { isListableRemote, parseLeaseRefs, LEASE_REF_PREFIX, type LeaseRef } from '../shared/workClaims.ts'
+import { isListableRemote, parseLeaseRefs, LEASE_REF_PREFIX, type LeaseReadCode, type LeaseRef } from '../shared/workClaims.ts'
 
 const exec = promisify(execFile)
 
+/** An unread list carries a `code` the screens translate (0.3.5 review UX-5) and the `reason` in English for the
+ *  agents' `fabric_work_list`, which reads words, not codes. The reason never repeats a prefix a screen adds. */
 export type LeaseRefsRead =
   | { read: true; remote: string; readAt: string; leases: LeaseRef[]; truncated: boolean }
-  | { read: false; reason: string; readAt: string }
+  | { read: false; code: LeaseReadCode; reason: string; readAt: string }
+
+/** Whether a repository uses agent-sync: its coordination config is committed at `.claude/agent-sync.json`
+ *  (`npx @ssheleg/agent-sync install` writes it). Only such a repository's remote is asked for leases. */
+export async function usesAgentSync(repoPath: string): Promise<boolean> {
+  try {
+    await access(path.join(repoPath, '.claude', 'agent-sync.json'))
+    return true
+  } catch {
+    return false
+  }
+}
 
 export interface LeaseRefDeps {
   /** The repository's `origin` URL, or null when it has none. */
   remoteOf(repoPath: string): Promise<string | null>
   /** `git ls-remote` of a checked URL; resolves to its stdout. */
   lsRemote(url: string): Promise<string>
+  /** Whether the repository uses agent-sync; default `usesAgentSync` (its config file is there). */
+  usesAgentSync?(repoPath: string): Promise<boolean>
   now?: () => number
   /** How long an answer (or a failure) is kept. Default one minute. */
   ttlMs?: number
@@ -72,26 +89,28 @@ export function createLeaseRefReader(deps: LeaseRefDeps = { remoteOf: originOf, 
   const ttl = deps.ttlMs ?? 60_000
   const cache = new Map<string, { at: number; value: Promise<LeaseRefsRead> }>()
 
+  const uses = deps.usesAgentSync ?? usesAgentSync
   async function readOnce(repoPath: string): Promise<LeaseRefsRead> {
     const readAt = new Date(now()).toISOString()
+    const unread = (code: LeaseReadCode, reason: string): LeaseRefsRead => ({ read: false, code, reason, readAt })
+    // A repository that does not use agent-sync is not asked: no remote read, and no block on its project page.
+    if (!(await uses(repoPath).catch(() => false))) return unread('not-used', 'this repository does not use agent-sync (no .claude/agent-sync.json)')
     let remote: string | null
     try {
       remote = await deps.remoteOf(repoPath)
     } catch (e) {
-      return { read: false, reason: `the repository's remote could not be read (${e instanceof Error ? e.message : String(e)})`, readAt }
+      return unread('remote-unreadable', `the repository's remote could not be read (${e instanceof Error ? e.message : String(e)})`)
     }
-    if (!remote) return { read: false, reason: 'the repository has no origin remote, so it carries no agent-sync leases', readAt }
-    if (!isListableRemote(remote))
-      return { read: false, reason: 'the origin remote is not an https or ssh URL, and Fabric reads no other kind', readAt }
+    if (!remote) return unread('no-origin', 'the repository has no origin remote, so it carries no agent-sync leases')
+    if (!isListableRemote(remote)) return unread('not-listable', 'the origin remote is not an https or ssh URL, and Fabric reads no other kind')
     try {
       const { leases, truncated } = parseLeaseRefs(await deps.lsRemote(remote))
       return { read: true, remote, readAt, leases, truncated }
     } catch (e) {
       const err = e as { killed?: boolean; signal?: string; code?: unknown; message?: string }
-      const why = err.killed || err.signal === 'SIGTERM' ? `no answer within ${LS_REMOTE_TIMEOUT_MS / 1000} s`
-        : err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' ? 'the answer was larger than Fabric reads'
-        : 'the remote refused or could not be reached'
-      return { read: false, reason: `agent-sync's leases could not be read: ${why}`, readAt }
+      if (err.killed || err.signal === 'SIGTERM') return unread('timeout', `no answer within ${LS_REMOTE_TIMEOUT_MS / 1000} s`)
+      if (err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') return unread('too-large', 'the answer was larger than Fabric reads')
+      return unread('refused', 'the remote refused or could not be reached')
     }
   }
 
