@@ -2198,6 +2198,13 @@ export const en = {
   'agents.fallback.optionPending': "Fallback order — checking the coding agents…",
   // Claims and «Where work is» (REQ-38, SCN-140, SCN-141)
   'launch.nav.where': "Where work is",
+  'links.notice.conversation-soon': "Opened from a product's Fabric button. The conversation with Fabric about this product comes in 0.4.0; until then, start a session here.",
+  'links.notice.start-session': "Opened from a product's Fabric button to start a session in this project. Choose a coding agent and start it here.",
+  'links.notice.link-refused': "A Fabric link was not opened: it was not one Fabric reads, or it carried something a link never carries.",
+  'links.notice.project-unknown': "A Fabric link named a project that is not in your list. Open or add it, then follow the link again.",
+  'links.notice.service-unknown': "A Fabric link came from a product that is not registered on this Mac, so Fabric could not find its project.",
+  'links.notice.service-in-no-project': "A Fabric link came from a product whose repository is in none of your projects. Add its repository to a project, then follow the link again.",
+  'links.notice.service-in-many-projects': "A Fabric link came from a product whose repository is in more than one project, so Fabric did not guess. Open the project you meant from the list.",
   'glyph.more': "…",
   'harness.tool.fabric_work_list': "Who is working on what in this project: claims, sessions, open tasks, agent-sync leases",
   'harness.tool.fabric_work_claim': "Claim your task before you start, and hear about related work others hold",

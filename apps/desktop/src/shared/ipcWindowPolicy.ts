@@ -81,6 +81,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   contextPast: MAIN_ONLY,
   projectsRepoStates: MAIN_ONLY,
   projectsRepoChanged: MAIN_ONLY,
+  linksOpen: MAIN_ONLY,
   quotaRead: MAIN_ONLY,
   runsStatus: MAIN_ONLY,
   memoryPreview: MAIN_ONLY,

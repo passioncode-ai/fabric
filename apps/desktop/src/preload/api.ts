@@ -233,6 +233,13 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       search: (projectId, query, includeSuperseded, category) =>
         ipc.invoke(IPC.memorySearch, projectId, query, includeSuperseded, category)
     },
+    links: {
+      onOpen: (cb) => {
+        const listener = (_e: unknown, route: Parameters<typeof cb>[0]): void => cb(route)
+        ipc.on(IPC.linksOpen, listener)
+        return () => ipc.removeListener(IPC.linksOpen, listener)
+      }
+    },
     work: {
       project: (projectId) => ipc.invoke(IPC.workProject, projectId),
       estate: () => ipc.invoke(IPC.workEstate),

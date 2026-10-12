@@ -850,3 +850,17 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.where.unowned` | Sessions with no project | apps/desktop/src/renderer/src/i18n/en.ts:2211 | SCN-141 | proposed |
 | `work.where.unownedNone` | none | apps/desktop/src/renderer/src/i18n/en.ts:2212 | SCN-141 | proposed |
 | `work.where.readAt` | Read at {at} | apps/desktop/src/renderer/src/i18n/en.ts:2213 | SCN-141 | proposed |
+
+### A `fabric://` link opened from a product's Fabric button · 2026-10-12 (SCN-142, contract DEC-0040)
+
+Humanization: on — own pass (copywriting, notice register: plain, no humour, says what happened and the next step).
+
+| Key | English | Location | Scenario | Status |
+|---|---|---|---|---|
+| `links.notice.conversation-soon` | Opened from a product's Fabric button. The conversation with Fabric about this product comes in 0.4.0; until then, start a session here. | apps/desktop/src/renderer/src/i18n/en.ts:2201 | SCN-142 | proposed |
+| `links.notice.start-session` | Opened from a product's Fabric button to start a session in this project. Choose a coding agent and start it here. | apps/desktop/src/renderer/src/i18n/en.ts:2202 | SCN-142 | proposed |
+| `links.notice.link-refused` | A Fabric link was not opened: it was not one Fabric reads, or it carried something a link never carries. | apps/desktop/src/renderer/src/i18n/en.ts:2203 | SCN-142 | proposed |
+| `links.notice.project-unknown` | A Fabric link named a project that is not in your list. Open or add it, then follow the link again. | apps/desktop/src/renderer/src/i18n/en.ts:2204 | SCN-142 | proposed |
+| `links.notice.service-unknown` | A Fabric link came from a product that is not registered on this Mac, so Fabric could not find its project. | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-142 | proposed |
+| `links.notice.service-in-no-project` | A Fabric link came from a product whose repository is in none of your projects. Add its repository to a project, then follow the link again. | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-142 | proposed |
+| `links.notice.service-in-many-projects` | A Fabric link came from a product whose repository is in more than one project, so Fabric did not guess. Open the project you meant from the list. | apps/desktop/src/renderer/src/i18n/en.ts:2207 | SCN-142 | proposed |

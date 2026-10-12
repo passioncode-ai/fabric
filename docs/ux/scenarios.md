@@ -3538,7 +3538,7 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Design rationale:** ADR-0123: the conversation is the coding agent's console and the CEO is a session; the button is a launcher into that session, never a chat drawn inside a product — so it adds no cockpit (anti-vision) and keeps the Project the unit: the session is scoped to the product's project. One component from the contract's service kit, so every product shows the same button. A link only opens and asks; a fresh session needs the person's press, so no web page can start agents through a link.
 - **Telemetry:** journal `terminal.opened@1` with the manager scope and its `route`; planned: the `service` the request came from.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** partly — `apps/desktop/src/shared/linkRoute.ts#routeForLink` (the project by the link's id or name, else by the service's registered repository against the projects' remotes; one match only, never a guess), `apps/desktop/src/main/index.ts` region `fabric-link-handler` (the `fabric://` scheme registered, `open-url` and a second instance's argv, links held until the window exists), `App.tsx` region `fabric-link-open` (the notice); the parser is the contract's, vendored (`apps/desktop/src/shared/contract/fabricLinks.ts`). Until the manager's conversation (REQ-16/REQ-42, wave 5) a chat link opens the project with a notice that the conversation is coming; a session link opens the project to start one
 - **Product:** unobserved
 
 ## Project communications · 2026-10-11 (COM-06)

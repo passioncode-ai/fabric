@@ -24,6 +24,7 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
+import { routeForLink } from '../shared/linkRoute.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
@@ -420,6 +421,61 @@ let hub: {
   downFact: string | undefined
 } | null = null
 let mainWindow: BrowserWindow | null = null
+
+// #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
+/**
+ * `fabric://` links (contract DEC-0040): a product's Fabric button opens one; macOS hands it to `open-url`, Windows and
+ * Linux to a second instance's argv (or this process's argv at a cold start). Links that arrive before the main
+ * window exists wait for it. The link itself is never logged: it is the operator's, and a refused one may carry
+ * anything; the notice is.
+ */
+let linkRegistry: AgentRegistry | null = null
+let linkWindowReady = false
+const pendingLinks: string[] = []
+const isFabricLink = (s: string): boolean => /^fabric:\/\//i.test(s)
+function acceptLink(url: string): void {
+  if (!isFabricLink(url)) return
+  if (!linkWindowReady || !mainWindow) {
+    if (pendingLinks.length < 8) pendingLinks.push(url)
+    return
+  }
+  void openLink(url)
+}
+async function openLink(url: string): Promise<void> {
+  try {
+    const { data } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+    const rows = (data ?? []) as Array<{ id: string; name: string }>
+    const projects = await Promise.all(rows.map(async (p) => ({
+      id: p.id,
+      name: p.name,
+      remotes: (await projectReposWithRemotes(p.id)).map((r) => r.remote)
+    })))
+    const services = (linkRegistry?.snapshot().entries ?? [])
+      .filter((e) => e.kind === 'service')
+      .map((e) => ({ key: e.key, id: e.id, repository: e.repository }))
+    const result = routeForLink(url, { projects, services })
+    ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+    if (!mainWindow) return
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+    mainWindow.webContents.send(IPC.linksOpen, result)
+  } catch (e) {
+    ops.failed('link.open', e)
+  }
+}
+function linksWindowReady(): void {
+  linkWindowReady = true
+  for (const url of pendingLinks.splice(0)) void openLink(url)
+}
+// macOS: delivered before or after `ready`, so registered at once.
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  acceptLink(url)
+})
+// Windows and Linux: a cold start carries the link in argv.
+for (const arg of process.argv.slice(1)) if (isFabricLink(arg)) acceptLink(arg)
+// #endregion fabric-link-handler
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
 // macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
 // hard deadline ends the process if anything stalls.
@@ -739,6 +795,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const dirs = registryDirs()
   const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
   registry.refresh()
+  linkRegistry = registry
   const stopWatching = registry.watch()
   quit.onQuit(stopWatching)
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
@@ -4678,6 +4735,7 @@ function createWindow(): void {
     revokeWindowRoots(contentsId)
     mainWindow = null
   })
+  mainWindow.webContents.once('did-finish-load', linksWindowReady)
   if (devServer()) void mainWindow.loadURL(devServer()!)
   else void mainWindow.loadFile(path.join(import.meta.dirname, '../renderer/index.html'))
 }
@@ -4715,7 +4773,8 @@ if (!isPrimary) {
   })
   app.quit()
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
     // Someone tried to open Fabric again. Show them the one they have rather
     // than doing nothing, which reads as the application being broken.
     const [existing] = BrowserWindow.getAllWindows()
@@ -4738,6 +4797,13 @@ app.whenReady().then(async () => {
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
   installMenu(readSettings().locale, windowKinds)
+  // The fabric:// scheme (DEC-0040): a development run registers the electron binary with this app's entry.
+  try {
+    if (process.defaultApp && process.argv[1]) app.setAsDefaultProtocolClient('fabric', process.execPath, [path.resolve(process.argv[1])])
+    else app.setAsDefaultProtocolClient('fabric')
+  } catch (e) {
+    ops.failed('link.register', e)
+  }
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()

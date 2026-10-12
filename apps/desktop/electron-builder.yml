@@ -62,6 +62,12 @@ electronFuses:
 # universal file in both folders, other platforms' prebuilds are dropped, and the joined app is
 # refused if any Mach-O lacks a slice (scripts/lib/universal-mac.mjs).
 afterPack: build-hooks/after-pack.mjs
+# fabric:// (contract DEC-0040, SCN-142): a product's Fabric button opens Fabric in its project. electron-builder writes
+# CFBundleURLTypes on macOS, the desktop file's MimeType on Linux and the URL protocol keys on Windows.
+protocols:
+  - name: Fabric
+    schemes: [fabric]
+
 mac:
   target:
     - dir

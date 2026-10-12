@@ -1,4 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { LinkNotice } from '../../shared/linkRoute.ts'
+import type { StringKey } from './i18n/en.ts'
+
+/** What a `fabric://` link's notice says (SCN-142). */
+const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
+  'conversation-soon': 'links.notice.conversation-soon',
+  'start-session': 'links.notice.start-session',
+  'link-refused': 'links.notice.link-refused',
+  'project-unknown': 'links.notice.project-unknown',
+  'service-unknown': 'links.notice.service-unknown',
+  'service-in-no-project': 'links.notice.service-in-no-project',
+  'service-in-many-projects': 'links.notice.service-in-many-projects'
+}
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
 import type { AppSettings, FeedEvent, ProjectRow, Quota, SettingsPatch, TerminalSession } from '../../shared/types'
@@ -466,6 +479,20 @@ function Shell({
     setHonoured(null)
   }
 
+  // #region fabric-link-open — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
+  // A `fabric://` link from a product's button (DEC-0040): main resolved where it opens; the notice says what happened.
+  const [linkNotice, setLinkNotice] = useState<LinkNotice | null>(null)
+  useEffect(() => {
+    const off = window.fabric.links?.onOpen((r) => {
+      goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
+      setLinkNotice(r.notice)
+    })
+    return () => off?.()
+    // goTo is stable in behaviour (it only sets state); subscribing once is the point.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // #endregion fabric-link-open
+
   /** Open the exact thing, not the project it happens to live in. */
   const openEntity = (projectId: string, ref: EntityRef): void => {
     // BUILT THROUGH THE RESOLVER. `routeToEntity` refuses an address no surface
@@ -691,6 +718,18 @@ function Shell({
 
       {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
       <UsageCountsNotice />
+
+      {linkNotice && (
+        <Banner
+          actions={
+            <Button tone="ghost" onClick={() => setLinkNotice(null)}>
+              {t('common.dismiss')}
+            </Button>
+          }
+        >
+          {t(LINK_NOTICE_KEY[linkNotice])}
+        </Banner>
+      )}
 
       {error && (
         <Banner

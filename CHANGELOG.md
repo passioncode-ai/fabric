@@ -12,6 +12,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238), and a coding agent you open
 yourself in a terminal can work in your project through Fabric.
 
+- **Fabric opens from a product's Fabric button.** A `fabric://` link from Fabric Dashboards or any product now opens Fabric in that product's project (found from the product's repository), or says why it could not; before, macOS answered that Fabric was not installed, because Fabric did not register the scheme.
 - **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
   `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code` — with no key in it. The first
   time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what

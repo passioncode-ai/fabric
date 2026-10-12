@@ -33269,7 +33269,7 @@
         "SCR-71",
         "SCR-77"
       ],
-      "coverage": "none yet",
+      "coverage": "partly — `apps/desktop/src/shared/linkRoute.ts#routeForLink` (the project by the link's id or name, else by the service's registered repository against the projects' remotes; one match only, never a guess), `apps/desktop/src/main/index.ts` region `fabric-link-handler` (the `fabric://` scheme registered, `open-url` and a second instance's argv, links held until the window exists), `App.tsx` region `fabric-link-open` (the notice); the parser is the contract's, vendored (`apps/desktop/src/shared/contract/fabricLinks.ts`). Until the manager's conversation (REQ-16/REQ-42, wave 5) a chat link opens the project with a notice that the conversation is coming; a session link opens the project to start one",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "From any product's page, one press reaches Fabric in that product's project, one more starts or continues the conversation in the person's coding agent, the work goes on in a working session in that project, and the way back to the page is one press.",

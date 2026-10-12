@@ -2068,6 +2068,13 @@ export const ru: Partial<Record<StringKey, string>> = {
   'agents.fallback.optionPending': "Очерёдность агентов — проверяем агентов для кода…",
   // Claims and «Where work is» (REQ-38, SCN-140, SCN-141)
   'launch.nav.where': "Где идёт работа",
+  'links.notice.conversation-soon': "Открыто кнопкой Fabric из продукта. Разговор с Fabric об этом продукте появится в 0.4.0, а пока начните сессию здесь.",
+  'links.notice.start-session': "Открыто кнопкой Fabric из продукта, чтобы начать сессию в этом проекте. Выберите агента для кода и начните её здесь.",
+  'links.notice.link-refused': "Ссылка Fabric не открыта: Fabric таких не читает, или в ней было то, чего в ссылке не бывает.",
+  'links.notice.project-unknown': "Ссылка Fabric назвала проект, которого нет в вашем списке. Откройте или добавьте его и перейдите по ссылке снова.",
+  'links.notice.service-unknown': "Ссылка Fabric пришла из продукта, который не зарегистрирован на этом Mac, поэтому Fabric не нашёл его проект.",
+  'links.notice.service-in-no-project': "Ссылка Fabric пришла из продукта, репозитория которого нет ни в одном вашем проекте. Добавьте репозиторий в проект и перейдите по ссылке снова.",
+  'links.notice.service-in-many-projects': "Ссылка Fabric пришла из продукта, репозиторий которого есть в нескольких проектах, и Fabric не стал угадывать. Откройте нужный проект из списка.",
   'glyph.more': "…",
   'harness.tool.fabric_work_list': "Кто над чем работает в этом проекте: заявки, сессии, свободные задачи, аренды agent-sync",
   'harness.tool.fabric_work_claim': "Заявить свою задачу до начала работы и узнать о связанной работе других",
