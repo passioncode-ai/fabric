@@ -36,6 +36,7 @@ export async function usesAgentSync(repoPath: string): Promise<boolean> {
     await access(path.join(repoPath, '.claude', 'agent-sync.json'))
     return true
   } catch {
+    // No config file is the answer "this repository does not use agent-sync", not a failure to report.
     return false
   }
 }
@@ -99,6 +100,7 @@ export function createLeaseRefReader(deps: LeaseRefDeps = { remoteOf: originOf, 
     try {
       remote = await deps.remoteOf(repoPath)
     } catch (e) {
+      // Not silent: the reason goes back to the caller as a typed `remote-unreadable` reading.
       return unread('remote-unreadable', `the repository's remote could not be read (${e instanceof Error ? e.message : String(e)})`)
     }
     if (!remote) return unread('no-origin', 'the repository has no origin remote, so it carries no agent-sync leases')
@@ -107,6 +109,7 @@ export function createLeaseRefReader(deps: LeaseRefDeps = { remoteOf: originOf, 
       const { leases, truncated } = parseLeaseRefs(await deps.lsRemote(remote))
       return { read: true, remote, readAt, leases, truncated }
     } catch (e) {
+      // Not silent: every branch below returns a typed reading with its reason.
       const err = e as { killed?: boolean; signal?: string; code?: unknown; message?: string }
       if (err.killed || err.signal === 'SIGTERM') return unread('timeout', `no answer within ${LS_REMOTE_TIMEOUT_MS / 1000} s`)
       if (err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') return unread('too-large', 'the answer was larger than Fabric reads')

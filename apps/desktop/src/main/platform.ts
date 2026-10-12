@@ -88,6 +88,7 @@ export function stopWindowsTree(
       step()
       return { outcome, failures }
     } catch (e) {
+      // Kept, not dropped: each failed step is returned in `failures` and the caller logs the outcome.
       failures.push(`${outcome}: ${said(e)}`)
     }
   }

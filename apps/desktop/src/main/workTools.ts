@@ -101,6 +101,7 @@ export async function releaseEveryOwnClaim(
     try {
       await release(c)
     } catch (e) {
+      // Not silent: the reason is returned to the agent as `partial`, with the ids released so far.
       stopped = e instanceof Error ? e.message : String(e)
       break
     }
