@@ -172,7 +172,20 @@ Exit for iteration 2: 52 findings dispositioned (37 fixed, 12 ruled, 3 not a def
 
 Five fresh reviewers, 2026-10-12, against `01783787` (`01783787665f400a8a7b7f2ec804ad5b6be9c87e`), read-only in a detached checkout. Reports: [scenarios/UX/UI](../reviews/0.3.5/iteration-3/2026-10-12-ux.md) (UX-n, 1 blocking + 10), [errors and boundaries](../reviews/0.3.5/iteration-3/2026-10-12-errors.md) (ER-n, 0 blocking + 11), [code ↔ documents](../reviews/0.3.5/iteration-3/2026-10-12-docs.md) (DO-n, 0 blocking + 7), [data, memory, orchestration, harness](../reviews/0.3.5/iteration-3/2026-10-12-data.md) (DA-n, 0 blocking + 7), [plan and roadmap](../reviews/0.3.5/iteration-3/2026-10-12-plan.md) (PL-n, 0 blocking + 9).
 
-45 findings, 1 blocking (UX-1). The fixes below in code and tests make the **final candidate** `89718e92` (`89718e92704981809f7dc5a7d7e2c4cc64de7bf3`): the project page's words for Codex and Kimi Code, the nightly gates, the release test in the chain, docs, and three full-tier tests that had fallen behind the code (found by the first full tier on a candidate). On it the hosted `ci` is green, fast and full (run 38219258686), and `platforms` built, installed and started all four native builds on `01783787` (run 38216064295; the delta since touches no packaging). Five fresh reviewers rechecked the final candidate level by level, read-only: every row above holds there and the delta regressed nothing at a blocking level ([ux](../../handoffs/2026-10-12-release-035-i3-recheck-ux.md), [errors](../../handoffs/2026-10-12-release-035-i3-recheck-errors.md), [docs](../../handoffs/2026-10-12-release-035-i3-recheck-docs.md), [data](../../handoffs/2026-10-12-release-035-i3-recheck-data.md), [plan](../../handoffs/2026-10-12-release-035-i3-recheck-plan.md); committed with the release as release metadata). Their non-blocking findings are ruled: CO-274 (the nightly gates on the two nights the clocks change, a later run cancelling the nightly, the gate test reading text — the rows are written after the tag, since the carry-over ledger may not change after `verifiedCommit`), CO-275 (two region pointers in `seedRepair.ts`, the *Door token* sentence, a `hubTools.ts` comment, SCR-78 in `product-model.json` — after the tag), CO-273 (the analytics grant read past 1000 rows); the CHANGELOG wording points are taken in the release commit.
+45 findings, 1 blocking (UX-1). The fixes below in code and tests made the first final candidate `89718e92` (`89718e92704981809f7dc5a7d7e2c4cc64de7bf3`): the project page's words for Codex and Kimi Code, the nightly gates, the release test in the chain, docs, and three full-tier tests that had fallen behind the code (found by the first full tier on a candidate). On it the hosted `ci` is green, fast and full (run 38219258686), and `platforms` built, installed and started all four native builds on `01783787` (run 38216064295; the delta since touches no packaging). Five fresh reviewers rechecked the final candidate level by level, read-only: every row above holds there and the delta regressed nothing at a blocking level ([ux](../../handoffs/2026-10-12-release-035-i3-recheck-ux.md), [errors](../../handoffs/2026-10-12-release-035-i3-recheck-errors.md), [docs](../../handoffs/2026-10-12-release-035-i3-recheck-docs.md), [data](../../handoffs/2026-10-12-release-035-i3-recheck-data.md), [plan](../../handoffs/2026-10-12-release-035-i3-recheck-plan.md); committed with the release as release metadata). Their non-blocking findings are ruled: CO-274 (the nightly gates on the two nights the clocks change, a later run cancelling the nightly, the gate test reading text — the rows are written after the tag, since the carry-over ledger may not change after `verifiedCommit`), CO-275 (two region pointers in `seedRepair.ts`, the *Door token* sentence, a `hubTools.ts` comment, SCR-78 in `product-model.json` — after the tag), CO-273 (the analytics grant read past 1000 rows); the CHANGELOG wording points are taken in the release commit.
+
+**The rehearsal and the second final candidate.** The release commit `cae773ff` named `89718e92` as `verifiedCommit`; its
+rehearsal `v0.3.5-rc.1` (run 38235005334) passed guard, preflight, macOS and both Linux builds and failed both Windows
+builds: through cmd.exe the signing publisher name split into two arguments and electron-builder refused the build
+("Unknown argument: Sheleh") — the first signed Windows build, signing being switched on the same day. The fix
+(`scripts/lib/package-platform.mjs#cmdArg`, its test reading the line back as cmd.exe does), CO-275's pointer fixes,
+the rows CO-274…CO-276, ADR-0144 amendment 5 and the roll-call audit's dated correction make the **final candidate**
+`816d2284` (`816d22844ff6bef41c27a2d028d35b22ee09a811`); the hosted `ci` is green on it, fast and full (run 38239225525). One fresh reviewer rechecked that
+delta at all five levels, read-only ([recheck 2](../../handoffs/2026-10-12-release-035-i3-recheck-2.md)): no blocking
+finding; its three non-blocking ones are `cmdArg` not escaping `% ^ & | < >` (none in today's arguments; with CO-267),
+the test simulating cmd.exe rather than running it (the rehearsal `v0.3.5-rc.2` on the release commit is the proof),
+and SCR-78's «Log under a project…» not built yet (its coverage line says so). The receipts of this iteration name
+`816d2284`.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -222,7 +235,7 @@ Five fresh reviewers, 2026-10-12, against `01783787` (`01783787665f400a8a7b7f2ec
 | V3-44 | PL-8 | The clean-first-run sequence has two wordings, so it is unclear which dump is the copy kept before the reset. | fixed: one order for the clean first run in the handoff and the 0.4.0 plan's decision |
 | V3-45 | PL-9 | Knowledge-base and plan rows that become false at the tag. | fixed as a release-close item: the knowledge base rows (RM-05, RM-13, RM-25, the released column) after publication (handoff step 7) |
 
-Exit for iteration 3: 45 findings dispositioned; the final candidate `89718e92704981809f7dc5a7d7e2c4cc64de7bf3` is `verifiedCommit`. Blocking findings open: none.
+Exit for iteration 3: 45 findings dispositioned; the final candidate `816d22844ff6bef41c27a2d028d35b22ee09a811` is `verifiedCommit`. Blocking findings open: none.
 
 ## Release close
 
@@ -230,17 +243,18 @@ What 0.3.5's release has to do besides the gate. Each line is checked off with i
 
 1. The release commit: `apps/desktop/package.json` 0.3.5 (nothing else in that file), `## 0.3.5` finalized in
    `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the final candidate
-   `89718e92704981809f7dc5a7d7e2c4cc64de7bf3`, three receipt groups, the fix-wave handoff and the five recheck reports
+   `816d22844ff6bef41c27a2d028d35b22ee09a811`, three receipt groups, the fix-wave handoff and the five recheck reports
    in `releaseMetadata`), the fifteen receipts under `docs/evidence/reviews/0.3.5/`, the map's entry and the
    `docs/MERGES.md` entry; landed on `main` by fast-forward.
-2. The rehearsal `v0.3.5-rc.1` (`publish=false`) on the release commit: preflight, guard, the macOS, Windows and Linux
+2. The rehearsal on the release commit — `v0.3.5-rc.1` on `cae773ff` failed both Windows builds (above); `v0.3.5-rc.2`: preflight, guard, the macOS, Windows and Linux
    builds, the Windows Authenticode signature (the first signed Windows build) and the signed set kept as an artifact.
 3. The tag `v0.3.5`; the run watched to publication; the downloads checked (`SHA256SUMS`, its GPG signature, `spctl`,
    the attestation, the Windows signature).
 4. The operator's database (dumped before anything, `pre-0.3.5-2026-10-12.dump`, rehearsed PASS): Fabric quit through
    the lifecycle broker, upgraded 79 → 84 by the runbook, 0.3.5 installed and started, the estate verified; then dumped
    again and the local Fabric data reset for a clean first run (the operator's order of 2026-10-11).
-5. After the tag, in one close commit: the carry-over rows CO-274 and CO-275 (reserved), CO-238 resolved, P-17 done
+5. After the tag, in one close commit (CO-274…CO-276, CO-275's fixes, ADR-0144 amendment 5 and the audit correction
+   already landed in the final candidate): CO-238 resolved, P-17 done
    with the release, the plan's Now line and lane 2, the 0.4.0 plan's *Decision* (the Comms wording and both dumps),
    ADR-0144 amendment 5 (webpilot's BL-015 answers), the roll-call audit's dated correction for Asset Foundry,
    `docs/brand/facts.md` and the overview guides, CO-275's fixes; the knowledge base (roadmap released column,

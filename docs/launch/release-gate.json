@@ -1,14 +1,15 @@
 {
   "version": "0.3.5",
   "ledger": "docs/evidence/plans/2026-10-12-release-035-verification.md",
-  "verifiedCommit": "89718e92704981809f7dc5a7d7e2c4cc64de7bf3",
+  "verifiedCommit": "816d22844ff6bef41c27a2d028d35b22ee09a811",
   "releaseMetadata": [
     "docs/handoffs/2026-10-12-release-035-fix-wave.md",
     "docs/handoffs/2026-10-12-release-035-i3-recheck-ux.md",
     "docs/handoffs/2026-10-12-release-035-i3-recheck-errors.md",
     "docs/handoffs/2026-10-12-release-035-i3-recheck-docs.md",
     "docs/handoffs/2026-10-12-release-035-i3-recheck-data.md",
-    "docs/handoffs/2026-10-12-release-035-i3-recheck-plan.md"
+    "docs/handoffs/2026-10-12-release-035-i3-recheck-plan.md",
+    "docs/handoffs/2026-10-12-release-035-i3-recheck-2.md"
   ],
   "reviewReceipts": {
     "schema": "fabric-release-reviews/1",
@@ -77,7 +78,7 @@
       },
       {
         "iteration": 3,
-        "candidateCommit": "89718e92704981809f7dc5a7d7e2c4cc64de7bf3",
+        "candidateCommit": "816d22844ff6bef41c27a2d028d35b22ee09a811",
         "reviews": [
           {
             "level": "ux",
