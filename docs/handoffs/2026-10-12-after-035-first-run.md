@@ -41,3 +41,15 @@ failed only `quit.test.mjs`'s idle-quit case, which this branch fixes); on this 
 real-Electron SIGTERM case failed at load 380 (CO-281 open); register, plan-id, region and design-map gates on every change.
 
 **Next task.** Retry the workspace publication at a low load; then read the operator's report of the first run.
+
+## Update — 2026-10-13, 00:30
+
+- The workspace was published at `bde534f2` (https://wiki.passioncode.ai, child `0c397afd`; its pin is commit
+  `b1839252` on branch `agent/load-tests`, superseded by the next publication). A publication for `e09ad8fb`
+  left its child `ea325a4a` on the workspace's main but failed its final gate on the `.git` watch probe: the
+  20 s wait of `bde534f2` queued echoes that broke the probe's negative cases. Fixed on `agent/watch-drain`.
+- DEC-0069 (CO-263) and DEC-0072 (CO-278, ADR-0109's amendment) are pinned; RM-21's DV-FAB-01/02 are in CO-279.
+- Open: ADR register row for ADR-0109 ("amended 2026-10-13") — `docs/adr/README.md` is leased by another run.
+
+**Next task.** Publish from `main` after this lands (`node scripts/workspace.mjs publish`, which resumes from
+`ea325a4a` or supersedes it), then `node scripts/workspace.mjs check --require-child`.

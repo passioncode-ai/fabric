@@ -72,3 +72,14 @@ would fix them.
   proposals; the adapter documents the retrospective an agent should return.
 - The work is planned as P-06 (the learning loop) and P-07 (Fix in Fabric) in lane 8 of the
   [general plan](../evidence/backlog.md#general-development-plan).
+
+## Amendment — the learning proposal's wire is `learning-note/1` (2026-10-13)
+
+Consequences, first bullet: `memory/0.1` `learning propose` is no longer a capability anyone serves.
+fabric-agent-contract DEC-0072 (CON-OE-05, merged `fc4dda0`) withdraws DEC-0023's reserve for it: an
+outside observer — Project Observatory first — sends a `learning-note/1` to Fabric and gets back
+`accepted {proposalId}`, `duplicate {proposalId}` or `rejected {reason}`. Fabric's own object is
+`fabric-proposal/1`, with the types and statuses §§3–6 imply (`fix` for §6, `merged` and `superseded` from
+ADR-0029 §1, `retired` from §4–5). A rule is approved only by `{role: operator}`; any other kind is
+approved by a person's role or a recorded `{policy}`, never by an agent. A proposal about a private agent
+(§7) is refused at submit and at export. The decision above is unchanged; this records where its wire went.

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T00:30:00Z · `—` · agent/watch-drain → main · fast-forward
+- run: 249d0762eddd
+- files: 10
+- conflicts: none
+- summary: ADR-0109 amended (the learning proposal's wire is learning-note/1, DEC-0072 fc4dda0); CO-263 agreed as DEC-0069 (fee53a2, pinned), the descriptor write is Fabric's; CO-278 pins DEC-0072; CO-279 gains RM-21's DV-FAB-01/02. repo-quota's .git probe writes every ~500 ms and drains until quiet — the 20 s wait of the day before queued echoes that failed its negative cases at load. The ADR register's 0109 row waits for its lease (held by another run).
+
 ### 2026-10-12T20:29:59Z · `—` · agent/comms-time-filters-land → main · fast-forward
 - run: r-faa9aae98a19 (slice by r-64b69ed3a)
 - files: 93

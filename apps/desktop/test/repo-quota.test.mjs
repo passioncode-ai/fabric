@@ -351,9 +351,12 @@ const USAGE = {
   // under test is that a change under `.git` REACHES the callback, not how long
   // the kernel takes to arm a watcher — the production reader compensates for
   // exactly that unreliability with its TTL, which is why the poll exists.
-  let beats = 0
+  // One write every ~500 ms, not every poll: under load (2026-10-12) a write per
+  // 25 ms tick queued hundreds of events before the first arrived, and their
+  // echoes outlived the drain below and failed the two NEGATIVE cases.
+  let beats = 0, tick = 0
   await until(() => {
-    writeFileSync(join(repo, '.git', 'HEAD'), `ref: refs/heads/other-${beats++}\n`)
+    if (tick++ % 20 === 0) writeFileSync(join(repo, '.git', 'HEAD'), `ref: refs/heads/other-${beats++}\n`)
     return seen.length > 0
     // 20 s, not the default 4: a positive wait costs only what delivery takes,
     // and fsevents on a loaded machine (load 72, 2026-10-12) delivered later
@@ -369,7 +372,13 @@ const USAGE = {
   // assertions read THIS case's echoes and report a watch that fires on a
   // working-tree edit and a stopped watcher that still speaks — both false, and
   // both of them looked like real findings for a minute.
-  await settle()
+  // Drained until QUIET, not for a fixed time: a settle that ends with no new
+  // echo is the proof the loop's events are spent (at most 10 rounds, ~6 s).
+  for (let round = 0; round < 10; round++) {
+    const echoes = seen.length
+    await settle()
+    if (seen.length === echoes) break
+  }
   seen.length = 0
 
   // THE MEASURED FACT THAT JUSTIFIES THE INTERVAL. `.git` is watched
