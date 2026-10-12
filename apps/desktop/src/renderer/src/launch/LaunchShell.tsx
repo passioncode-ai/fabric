@@ -82,6 +82,9 @@ export interface LaunchShellProps {
   onHome(): void
   onBoard(): void
   onComms(): void
+  /** Threads with messages newer than the operator's read mark (SCN-143, the unread slice);
+   *  0 while the board has never answered — no badge is a non-claim, not "all read". */
+  commsBadge?: number
   onPlan(): void
   onHelp(): void
   onQuota(): void
@@ -107,6 +110,7 @@ export interface LaunchShellProps {
 export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const t = useT()
   const { at, projects } = props
+  const commsBadge = props.commsBadge ?? 0
   const [chatActive, setChatActive] = useState<boolean | null>(null)
   useEffect(() => {
     let live = true
@@ -132,7 +136,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <div className="calm-main-nav">
             <a href="#" {...current(at.kind === 'home')} onClick={e => { e.preventDefault(); props.onHome() }}>{t('launch.nav.fabric')}</a>
             <a href="#" {...current(at.kind === 'board')} onClick={e => { e.preventDefault(); props.onBoard() }}>{t('launch.nav.board')}</a>
-            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}</a>
+            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}{commsBadge > 0 && <span className="nav-badge" aria-label={t('launch.comms.unreadBadge', { count: commsBadge })}>{commsBadge}</span>}</a>
             <a href="#" {...current(at.kind === 'plan')} onClick={e => { e.preventDefault(); props.onPlan() }}>{t('launch.nav.plan')}</a>
             <a href="#" {...current(at.kind === 'draft' || at.kind === 'start')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
           </div>

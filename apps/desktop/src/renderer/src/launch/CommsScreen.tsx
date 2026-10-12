@@ -76,11 +76,16 @@ const matchesFilters = (thread: CommsThread, f: ThreadFilters): boolean =>
   (f.kind === null || thread.kinds.includes(f.kind)) &&
   (!f.openOnly || thread.openRequests > 0)
 
-export function CommsScreen({ projects, onPulse }: {
+export function CommsScreen({ projects, onPulse, seen, onRead }: {
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
   projects: ProjectRow[] | null
   onPulse?: () => void
+  /** This operator's read marks — thread id to the last seq seen, machine-local
+   *  settings, never a fact about the estate (SCN-143, the unread slice). */
+  seen: Record<string, number>
+  /** Merge new marks; the parent persists them field-scoped, never as a whole-settings write. */
+  onRead: (marks: Record<string, number>) => void
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
@@ -92,6 +97,31 @@ export function CommsScreen({ projects, onPulse }: {
   const [threadsStale, setThreadsStale] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [filters, setFilters] = useState<ThreadFilters>(ALL_THREADS)
+  /** Marks reported this mount, over the persisted ones: the marker clears on the act of
+   *  opening, not when the settings write round-trips back. A persisted mark always wins
+   *  over a smaller local one — the max is the truth in both directions. */
+  const [seenLocal, setSeenLocal] = useState<Record<string, number>>({})
+  const seenOf = (id: string): number => Math.max(seen[id] ?? 0, seenLocal[id] ?? 0)
+  /** Mark threads read through the given seqs. Only marks that MOVE anything are written:
+   *  a poll that changes nothing writes nothing, so the settings file is not churned. */
+  const mark = (marks: Record<string, number>): void => {
+    const fresh = Object.fromEntries(Object.entries(marks).filter(([id, seq]) => seq > seenOf(id)))
+    if (Object.keys(fresh).length === 0) return
+    setSeenLocal((m) => {
+      const next = { ...m }
+      for (const [id, seq] of Object.entries(fresh)) next[id] = Math.max(next[id] ?? 0, seq)
+      return next
+    })
+    onRead(fresh)
+  }
+  /** An open thread is being looked at: it is read through its last seq, and messages that
+   *  arrive while it is open move the mark with them (SCN-143, the unread slice). */
+  const openThread = threads?.find((thread) => thread.id === selected) ?? null
+  useEffect(() => {
+    if (openThread) mark({ [openThread.id]: openThread.lastSeq })
+    // mark reads the latest seen/seenLocal; it is stable enough for this effect's purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, threads])
   /** First words of untitled threads, filled lazily one bounded read per thread. */
   const [firstWords, setFirstWords] = useState<Record<string, string>>({})
   const confirmed = useRef(false)
@@ -150,7 +180,8 @@ export function CommsScreen({ projects, onPulse }: {
     }
   }, [filters, threads, selected])
   const shown = threads?.filter((thread) => matchesFilters(thread, filters)) ?? null
-  const chosen = threads?.find((thread) => thread.id === selected) ?? null
+  const anyUnread = (threads ?? []).some((thread) => thread.lastSeq > seenOf(thread.id))
+  const chosen = openThread
   const observed = threadsConfirmedAt
     ? new Date(threadsConfirmedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     : null
@@ -207,6 +238,13 @@ export function CommsScreen({ projects, onPulse }: {
                   <input type="checkbox" checked={filters.openOnly} onChange={(e) => setFilters((f) => ({ ...f, openOnly: e.target.checked }))} />
                   {t('launch.comms.filters.openRequests')}
                 </label>
+                {/* The first run of the slice shows every thread unread; one act clears the
+                    list instead of punishing a long board with a click per thread (SCN-143). */}
+                {anyUnread && (
+                  <button type="button" className="lp-button" onClick={() => mark(Object.fromEntries((threads ?? []).map((thread) => [thread.id, thread.lastSeq])))}>
+                    {t('launch.comms.markAllRead')}
+                  </button>
+                )}
               </div>
             )}
             {shown !== null && shown.length === 0 && threads !== null && threads.length > 0 && (
@@ -221,7 +259,9 @@ export function CommsScreen({ projects, onPulse }: {
                 </div>
               </div>
             )}
-            {shown?.map((thread) => (
+            {shown?.map((thread) => {
+              const unread = thread.lastSeq > seenOf(thread.id)
+              return (
               <button key={thread.id} type="button" className="lp-topic" aria-expanded={selected === thread.id}
                 onClick={() => setSelected(selected === thread.id ? null : thread.id)}>
                 <span>
@@ -229,12 +269,14 @@ export function CommsScreen({ projects, onPulse }: {
                   <span className="lp-meta">{thread.participants.map(nameOf).join(', ')}</span>
                 </span>
                 <span className="lp-topic-end">
+                  {unread && <span className="lp-pill attention">{t('launch.comms.new')}</span>}
                   <span className="lp-pill">{t('launch.comms.messageCount', { count: thread.messageCount })}</span>
                   <small>{thread.lastAt ? since(thread.lastAt, t) : t('launch.comms.noMessages')}</small>
                 </span>
                 <span aria-hidden="true">{t('glyph.open')}</span>
               </button>
-            ))}
+              )
+            })}
           </section>
           {chosen ? (
             <ThreadView key={chosen.id} thread={chosen} title={titleOf(chosen)} nameOf={nameOf} onClose={() => setSelected(null)} />

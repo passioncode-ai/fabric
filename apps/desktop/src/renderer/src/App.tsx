@@ -17,6 +17,7 @@ const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
 import type { AppSettings, FeedEvent, ProjectRow, Quota, SettingsPatch, TerminalSession } from '../../shared/types'
+import type { CommsThread } from '../../shared/commsRead.ts'
 import { restoreTabs, toPersist } from '../../shared/tabs.ts'
 import {
   addressKey,
@@ -71,6 +72,9 @@ import { Workspace } from './Workspace'
 const FEED_POLL_MS = 2000 // ADR-0027: the table is the record; polling replay is the v1 wake-up
 const SESSION_POLL_MS = 3000
 const QUOTA_POLL_MS = 60_000
+/** The rail badge's own clock (SCN-143, the unread slice): slower than the screen's poll —
+ *  the badge says "something new is there", the screen itself reads live once open. */
+const COMMS_BADGE_POLL_MS = 5000
 
 /** An onboarding draft. It lives in the shell rather than in the form, so
  *  switching tabs and coming back finds the work still there — a draft is lost
@@ -176,6 +180,10 @@ function Shell({
    *  measurement, and it was the value every launch started with. */
   const [sessions, setSessions] = useState<TerminalSession[] | null>(null)
   const [feed, setFeed] = useState<FeedEvent[] | null>(null)
+  /** The board's threads for the rail badge. Null until the first confirmed answer;
+   *  a failed poll keeps the last confirmed list — the badge keeps its count rather
+   *  than zeroing, because zero is a true answer and silence is not (SCN-143). */
+  const [commsThreads, setCommsThreads] = useState<CommsThread[] | null>(null)
   /** M83 via M113 — the account's windows, which are an ESTATE fact. Null when
    *  there is nothing to say: not signed in is an answer, not an error. */
   /**
@@ -404,6 +412,46 @@ function Shell({
       clearInterval(h)
     }
   }, [sessionWindowId, refreshProjects, refreshSessions])
+
+  // #region comms-unread — docs: docs/ux/screens.md#scr-81-project-comms
+  // The Comms rail badge: one bounded read on its own clock, whether or not the screen
+  // is open — "the operator sees that agents wrote" must not require opening Comms first.
+  useEffect(() => {
+    let alive = true
+    const tick = async (): Promise<void> => {
+      try {
+        const reply = await window.fabric.comms.threads()
+        if (alive && reply.ok) setCommsThreads(reply.threads)
+      } catch {
+        // keep the last confirmed list; the badge doctrine above
+      }
+    }
+    void tick()
+    const h = setInterval(() => void tick(), COMMS_BADGE_POLL_MS)
+    return () => { alive = false; clearInterval(h) }
+  }, [])
+
+  /** Threads with a message newer than this operator's read mark (SCN-143, the unread
+   *  slice). Null while the board has never answered — no badge is shown then, because
+   *  a badge is a claim and an unanswered board makes none. */
+  const commsUnread = commsThreads === null
+    ? null
+    : commsThreads.filter((thread) => thread.lastSeq > (settings.commsReadThrough[thread.id] ?? 0)).length
+
+  /** Merge read marks from Comms, field-scoped — the A7-008 rule the feed's onRead states:
+   *  a window writes the one field it owns, never a whole-settings copy read at start. */
+  const onCommsRead = async (marks: Record<string, number>) => {
+    const written = await window.fabric.settings
+      .write({ commsReadThrough: { ...settings.commsReadThrough, ...marks } })
+      .catch((e: unknown) => {
+        setError(t('settings.notSaved', { reason: explainError(e, t) }))
+        return null
+      })
+    if (!written) return
+    onSettings(written.settings)
+    if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+  }
+  // #endregion comms-unread
 
   useEffect(() => {
     if (sessionWindowId !== null || fileWindowPath) return
@@ -711,6 +759,7 @@ function Shell({
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
         onComms={() => { setShowSettings(false); setActive({ kind: 'comms' }) }}
+        commsBadge={commsUnread ?? 0}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
         onNewProject={() => { setShowSettings(false); goTo({ kind: 'start', path: 'menu' }) }}
         onProject={(projectId: string, section: ProjectSection) => {
@@ -816,7 +865,12 @@ function Shell({
           />
         )}
         {active.kind === 'comms' && (
-          <CommsScreen projects={projects} onPulse={() => setActive({ kind: 'pulse' })} />
+          <CommsScreen
+            projects={projects}
+            onPulse={() => setActive({ kind: 'pulse' })}
+            seen={settings.commsReadThrough}
+            onRead={(marks) => void onCommsRead(marks)}
+          />
         )}
         {active.kind === 'quota' && (
           <div className="lp" data-launch-view="quotas">

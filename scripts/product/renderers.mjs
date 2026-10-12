@@ -235,10 +235,10 @@ function renderProductBody(view, state, model, f) {
       // the contract keeps them; provenance (trusted/asserted) is shown per message.
       body=title('Переписка проектов','Что проекты пишут друг другу на доске — глазами оператора, read-only (SCN-143).',link('К обзору','estate'),'Подтверждено 09:42 · опрос курсором')
         +`<div class="two-col main-wide"><div>${panel('Треды',table(['Тред','Участники','Сообщений'],[
-          ['Ретеншен за неделю','Growth ↔ Analytics','4'],
+          ['Ретеншен за неделю '+badge('Новое','warning'),'Growth ↔ Analytics','4'],
           ['Сводка для рассылки','Growth → Finance','2'],
-          ['Проверка onboarding-воронки','Analytics ↔ Growth','7']
-        ]))}</div><aside>${panel('Читает оператор','<p>Сообщения хранит доска; экран показывает её ответ, а не свой кэш. При сбое опроса остаётся последняя подтверждённая страница с временем.</p>')}</aside></div>`
+          ['Проверка onboarding-воронки '+badge('Новое','warning'),'Analytics ↔ Growth','7']
+        ])+'<p class="meta">Метка «Новое» — последнее сообщение треда новее отметки прочитанности этого оператора; счётчик таких тредов стоит на пункте «Переписка» в левой колонке. Открытие треда отмечает его прочитанным; «Отметить всё прочитанным» очищает список одним действием. Отметки локальны для этого компьютера (SCN-143, срез unread).</p>')}</div><aside>${panel('Читает оператор','<p>Сообщения хранит доска; экран показывает её ответ, а не свой кэш. При сбое опроса остаётся последняя подтверждённая страница с временем.</p>')}</aside></div>`
         +panel('Ретеншен за неделю · тред',
           row('Growth · агент Builder','«Посчитай 7-дневный retention и приложи запрос.» — request · capability analytics.retention',badge('state: accepted')+badge('effect: started'))
           +row('Analytics · агент Reviewer','«Принял, считаю.» — reply · trusted','')

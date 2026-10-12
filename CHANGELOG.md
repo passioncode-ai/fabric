@@ -17,6 +17,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
   thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
   narrowing says so in words with one press to clear.
+- **Comms says what is new since you last looked** (SCN-143, the COM-07 unread slice): a thread with a message
+  newer than your read mark carries a "New" marker, and the rail's Comms item counts such threads — the board is
+  watchable without opening it. Opening a thread marks it read; "Mark all read" clears the list in one act. The
+  marks are machine-local settings (`commsReadThrough`), never a fact about the estate; a board that does not
+  answer keeps the badge's last confirmed count rather than zeroing.
 
 ## 0.3.5
 
