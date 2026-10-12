@@ -371,6 +371,23 @@ else {
   else fail('the none adapter produced args: ' + JSON.stringify(none?.args))
 }
 
+// D6 (fabric-agent-adapter session hooks) — every session Fabric launches, whatever its adapter, carries the
+// non-secret marker FABRIC_LAUNCHED_SESSION=1, so the hooks of a plugin the agent loads stay silent there: Fabric
+// briefed that session itself. The marker is the only thing the hooks read; its value is not a credential.
+{
+  const kinds = [['claude-code', 'mcp-config-flag'], ['kilo', 'config-content-env'], ['hermes', 'acp-session'], ['codex', 'codex-config-home'], ['codex', 'none']]
+  const missing = []
+  for (const [runner, adapter] of kinds) {
+    const sidM = randomUUID()
+    const b = await bundles.compile(sidM, randomUUID(), null, runner, adapter, null, adapter === 'acp-session' ? { acpMode: 'ask' } : undefined)
+    if (b?.env?.FABRIC_LAUNCHED_SESSION !== '1') missing.push(adapter + '=' + JSON.stringify(b?.env?.FABRIC_LAUNCHED_SESSION))
+    if (JSON.stringify(b?.args ?? []).includes('FABRIC_LAUNCHED_SESSION')) missing.push(adapter + ' put it in argv')
+    bundles.discard(sidM)
+  }
+  if (missing.length === 0) ok('every launched session carries FABRIC_LAUNCHED_SESSION=1 in its environment, whatever its adapter')
+  else fail('the launched-session marker is missing or wrong: ' + missing.join(', '))
+}
+
 // ADR-0119 / P-10 — a runner told through ONE environment variable holding its whole session
 // config (Kilo: KILO_CONFIG_CONTENT, which outranks the project's own kilo.json).
 {

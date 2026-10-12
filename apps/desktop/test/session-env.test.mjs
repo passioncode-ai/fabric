@@ -10,7 +10,7 @@
 // REAL environment this machine is running, so a key that is genuinely set here
 // is genuinely gone from what a session would receive.
 
-import { sessionEnvironment, WITHHELD_FROM_SESSIONS } from '../src/main/sessionEnv.ts'
+import { sessionEnvironment, WITHHELD_FROM_SESSIONS, LAUNCHED_SESSION_MARKER } from '../src/main/sessionEnv.ts'
 
 let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
@@ -54,6 +54,17 @@ child.SUPABASE_URL === parent.SUPABASE_URL
 'EMPTY' in child
   ? fail('an unset variable was materialised as a value')
   : ok('an unset variable stays unset rather than becoming an empty string')
+
+// D6 (fabric-agent-adapter session hooks): FABRIC_LAUNCHED_SESSION=1 says "Fabric launched and briefed this
+// session", so the hooks stay silent in it. Only the session bundle may say that (sessionBundle.ts). A Fabric that was
+// itself started from inside a launched session would otherwise hand the marker to every plain shell it opens — and a
+// coding agent the person then starts in that shell would be wrongly silenced.
+LAUNCHED_SESSION_MARKER === 'FABRIC_LAUNCHED_SESSION'
+  ? ok('the launched-session marker is named FABRIC_LAUNCHED_SESSION, the name the adapter reads')
+  : fail(`the marker is named ${LAUNCHED_SESSION_MARKER}, which the adapter's hooks do not read`)
+sessionEnvironment({ ...parent, [LAUNCHED_SESSION_MARKER]: '1' })[LAUNCHED_SESSION_MARKER] === undefined
+  ? ok('an inherited launched-session marker does not reach a session: only the bundle sets it')
+  : fail('an inherited FABRIC_LAUNCHED_SESSION reached a session Fabric did not brief')
 
 // Against the REAL environment of this process — the one the app actually runs
 // in. On a machine where the key is set, this is the assertion that matters.
