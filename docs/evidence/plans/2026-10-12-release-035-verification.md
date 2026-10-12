@@ -102,7 +102,71 @@ Exit for iteration 1: 67 findings dispositioned (58 fixed, 7 ruled, 2 not a defe
 
 ## Iteration 2
 
-_Not started._
+Five fresh reviewers, 2026-10-12, against `3570f116` (`3570f1168048b8df9a0d0183d92f67adf9400d9c`, `main` after iteration 1's fixes and the scheduled workspace pin), read-only in a detached checkout; the errors reviewer stopped at an API session limit and a second fresh errors reviewer read the same candidate. Reports (committed as written, machine paths replaced):
+[scenarios/UX/UI](../reviews/0.3.5/iteration-2/2026-10-12-ux.md) (UX-n, 3 blocking + 10),
+[errors and boundaries](../reviews/0.3.5/iteration-2/2026-10-12-errors.md) (ER-n, 4 blocking + 6),
+[code ↔ documents](../reviews/0.3.5/iteration-2/2026-10-12-docs.md) (DO-n, 1 blocking + 7),
+[data, memory, orchestration, harness](../reviews/0.3.5/iteration-2/2026-10-12-data.md) (DA-n, 1 blocking + 5),
+[plan and roadmap](../reviews/0.3.5/iteration-2/2026-10-12-plan.md) (PL-n, 1 blocking + 14).
+
+52 findings, 10 blocking (DA-1 blocking by the brief's definition, ruled: only the repair tool reaches it). Every *watched* fix had its test run with the defect planted back and seen failing. The Windows fixes are proven on macOS by their built command lines (CO-267). Fixes on `agent/rv2-fixes`: workflows, work screens, docs and plan (`6ae2401d`, `8af4b08f`, landed on `main`), the errors level on `agent/rv2-errors` (`3061d438`).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1 (blocking) | «Who is working on what» goes stale and then says false things. | fixed: `WhoIsWorking.tsx` re-reads each minute and on `session`/`terminal` events (`ProjectHome.tsx`); `WhoIsWorking.test.tsx` minute re-read (watched: interval removed → 1 failed) |
+| V2-2 | UX-2 (blocking) | A review count on «Where work is» opens the wrong section. | fixed: BoardPanel's «Needs you» is `sec-needs-you` (`evidence.ts`), so the review count opens the board; `projectSectionIds.test.ts` (watched: the shared id put back → 1 failed) |
+| V2-3 | UX-3 (blocking) | The «Sessions with no project» row leaves out where each session runs. | fixed: `WorkSessionView.folder` from Fabric's own terminals (`index.ts#heldSessions`, `workRead.ts#sessionView`); the no-project row names the folder, else "its folder is not shared with Fabric", and opens when Fabric holds the console (watched: Open removed → 1 failed) |
+| V2-4 | UX-4 | When the review queue cannot be read, «Where work is» still counts projects as having "nothing in flight". | ruled CO-268 (iteration 2 additions) |
+| V2-5 | UX-5 | Comms calls itself "the board", one rail item below the task «Board». | ruled CO-268 |
+| V2-6 | UX-6 | Comms says "The board did not answer." with Try again even when the board did answer: with a refusal, an invalid_arguments, or a row in a shape this build cannot read (a newer schema). | ruled CO-268 |
+| V2-7 | UX-7 | Russian still says "Estate" in the private-history panel. | ruled CO-268: a terminology pass over the private-history strings, not a one-word swap |
+| V2-8 | UX-8 | First-run "Your choice was not saved: {reason}" puts main's English sentence inside the operator's language. | ruled CO-268 |
+| V2-9 | UX-9 | Times on the two work screens use the operating system's locale, not the app's. | ruled CO-268 |
+| V2-10 | UX-10 | «Who is working on what» can show another project's claims. | fixed: the reading is kept only for the project still on screen (a ref, not the closure); `WhoIsWorking.test.tsx` stale reading (watched: the old guard → 1 failed) |
+| V2-11 | UX-11 | The headline 0.3.5 feature (a coding agent opened in a terminal joins a project) has no route inside the product. | ruled CO-268; the CHANGELOG and README give the registration until the Setup console (0.4.0, RM-09) |
+| V2-12 | UX-12 | A fabric://chat link that carries both a service and a project never tries the service's repository. | ruled CO-268 (Dashboards' button sends only the service, not affected) |
+| V2-13 | UX-13 | A fabric:// link pressed while the project list cannot be read is held with no word, indefinitely. | ruled CO-268 |
+| V2-14 | ER-1 (blocking) | release.yml is not valid YAML, so GitHub rejects the workflow and a pushed v0.3.5 tag starts nothing. | fixed with DO-1 (`6ae2401d`): `release.yml` block scalar; `scripts/check-workflows.py` in `ci.sh` |
+| V2-15 | ER-2 (blocking) | Iteration-1's ER-9 fix holds only for a client that throws, and the real one never does. | fixed: `schemaReadiness.ts#unansweredCause` — a status-0 answer or a 502/503/504 is `transport`, an AbortError `timeout`, only a database answer `backend-error`; `schema-readiness.test.mjs` with the real client against a closed port (watched: always backend-error → exit 1) |
+| V2-16 | ER-3 (blocking) | fabric-mcp treats the surface's own refusals as a broken connection. | fixed: `fabricMcp.ts#classifyFailure` keeps the session on 400/408/413/429 and says nothing was done; no re-enrollment (watched: 1 of 32 failed); ADR-0134 amendment 4 |
+| V2-17 | ER-4 (blocking) | The per-binding cap (8) ends the oldest-minted session, not the least recently active one. | fixed: eviction by last call (`sessionEnroll.ts#enrollSession`), the evicted session told why (`AgentSurface#forget`), DELETE ends a leaving session (`AgentSurface#leave`, `openSessionLink`); `session-enroll.test.mjs` 3 new, `fabric-mcp.test.mjs` 1 new (watched: 4 plants caught); ADR-0134 amendment 4 |
+| V2-18 | ER-5 | Each --rejoin-only (the session hooks, per turn) mints another bearer for the same session, and nothing bounds or sweeps them. | fixed: `EnrolledSessions#rejoinBearer` reuses an unspent bearer; unclaimed bearers swept at mint (watched: 2 plants caught) |
+| V2-19 | ER-6 | A Windows Stop runs taskkill synchronously on the main thread: execFileSync, 5 s timeout, up to two steps, per session. | fixed: `platform.ts#stopWindowsTree` async, `pty.ts#runBounded` async `execFile` with its 5 s bound (watched: 2 plants caught); on-host proof CO-267 |
+| V2-20 | ER-7 | fabric:// links that arrive before startup has finished or with no window are capped at 8, and the 9th and later are dropped with no record and no notice. | fixed: `linkOutbox.ts#createLinkHold` reports each drop; `link.dropped` in the ops log, `links.notice.dropped` on screen (watched: 2 plants caught) |
+| V2-21 | ER-8 | fabric_work_release with how: done appends the release, then appends task.moved@1 to review, and only the release is read back. | fixed: `workTools.ts#moveDoneTaskToReview` reads the move back; `task-not-moved` when it did not land; a repeat finishes it (watched: 2 plants caught) |
+| V2-22 | ER-9 | The Windows ACL for the hub and credential files grants userInfo().username, a bare name. | fixed: `platform.ts#windowsAclAccount` grants `%USERDOMAIN%\name`; not proven on an Azure AD or domain machine (CO-267) |
+| V2-23 | ER-10 | The Windows taskkill spawn in executorDetect.ts#versionOf (killGroup) and the quit reaper (quit.ts#spawnQuitReaper, bare cmd.exe) attach no 'error' listener. | fixed: `platform.ts#spawnHelper` attaches `error` first; used by `executorDetect.ts` and `quit.ts#spawnQuitReaper`, both recorded (watched: 2 plants caught) |
+| V2-24 | DO-1 (blocking) | The release workflow does not parse, so pushing v0.3.5 releases nothing. | fixed: `release.yml` block scalar; `scripts/check-workflows.py` in `ci.sh` (PyYAML in `scripts/requirements-ci.txt`) parses every workflow (watched: the old file → FAIL, exit 1) |
+| V2-25 | DO-2 | "Signed with the organization's Authenticode certificate" has no receipt, and the publisher Windows shows is a person. | fixed: CHANGELOG and README say "Authenticode-signed through Azure Artifact Signing"; the 0.3.5 rc rehearsal on the release commit is the signature's proof, before the tag |
+| V2-26 | DO-3 | The Windows registration of fabric-mcp.cmd is given but was never measured, and the repository's own probe cannot start a .cmd directly. | fixed: the Windows registration through `cmd /c "<Fabric>\resources\bin\fabric-mcp.cmd"`, marked not yet tried on a Windows machine (CO-267) |
+| V2-27 | DO-4 | Runbook step 6 describes the Linux job wrongly. | fixed: runbook step 6 — `windows` installs, smoke-starts and uninstalls; `linux` installs and starts the `.deb`; the AppImage is built, not started |
+| V2-28 | DO-5 | The upgrade section's remedy for pre-migration-91 grants points at the wrong screen. | fixed with DA-2: the runbook says floor grants before 91 last at most an hour and nothing revokes them |
+| V2-29 | DO-6 | Three glossary and ADR entries read as shipped for 0.4.0 work 0.3.5 does not have. | fixed: CONTEXT.md *Setup console* and *Session handoff* marked 0.4.0; ADR-0119 amendment 7 |
+| V2-30 | DO-7 | Two Linux-only gaps in the CHANGELOG's fabric:// bullet (not measured). | fixed: the CHANGELOG says to install the `.deb` to open `fabric://` links and register `fabric-mcp` |
+| V2-31 | DO-8 | A stale count in scripts/ci.sh's header (a code comment, read by contributors): "The full tier runs the eleven owned-cluster suites". | fixed: the ci.sh header counts six fast and fourteen full owned-cluster suites |
+| V2-32 | DA-1 (blocking) | An in-place replay closes a claim with a release that belongs to an earlier claim. | ruled CO-265 (extended): only `rebuild_estate_projections`, the repair tool, reaches it; the app does not call it and the runbook does not name it; deadline: before the tool is offered to anyone |
+| V2-33 | DA-2 | The runbook's remedy for pre-91 grants points at a control that cannot reach them, and it misnames what 91 projects. | fixed: the runbook's pre-91 paragraph names floor grants, their one-hour life and that nothing revokes them |
+| V2-34 | DA-3 | A restore reproduces live claims and leases from the source machine. | ruled CO-264 (4) |
+| V2-35 | DA-4 | A reused idempotency key returns another task's claim as same_claim. | ruled CO-264 (5) |
+| V2-36 | DA-5 | Migration 94 (count 83) does not add 83 to the archive's accepted list; 95 adds 83 and 84. | not a defect: the five migrations apply together and the app admits only 84, so a schema-83 database is never opened |
+| V2-37 | DA-6 | Iteration 1's rulings and fixes:<br>- V1-45 (rehearsal) holds: receipt PASS, and the migrations are byte-identical since the rehearsed commit.<br>- V1-51 holds: header counts are unchanged and explained in the runbook (r | not a defect: a check of iteration 1 — its findings are DA-1 and DA-2 of this iteration |
+| V2-38 | PL-1 (blocking) | The gate cannot clear: hosted ci is red on the candidate, so iteration 1's PL-1 fix (V1-55) does not hold.<br>The release guard (release-guard@v1, workflows: ci.yml) passes only a tag whose commit passed ci.yml.<br>On 35 | fixed: the 0.3.3 startup-dialog tests name darwin (`startupFailure.test.ts`); the hosted fast tier on `8c1c279e` passed (run 38207098935) |
+| V2-39 | PL-2 | The rc rehearsal is ordered before iterations 2 and 3, but it cannot pass preflight until the gate is clear and the changelog is final.<br>The handoff's open work puts "2. | fixed: the handoff orders the rc rehearsal on the release commit, after the gate clears |
+| V2-40 | PL-3 | The plan's Now/Next line still contradicts the re-dated rows.<br>The backlog says "until then the Now line is the authority", but the Next clause reads "P-12 (self-update) and P-13 (the CEO as a session) after 0.3.4". | fixed: the Now/Next line — P-12 and P-13 in 0.4.0, the upgrade to 84 |
+| V2-41 | PL-4 | P-17's status is stale and miscounts iteration 1. | fixed: P-17's status — iteration 1 closed with 13 blocking, iteration 2 on `3570f116` |
+| V2-42 | PL-5 | The handoff is stale again at this candidate.<br>It says the fixes "are on agent/rv1-fixes" and gives "Next task: step 1" (land them). | fixed: the handoff's status at 07:40, the CO-210 wording |
+| V2-43 | PL-6 | The knowledge base still states two things that are no longer true.<br>RM-19 says "Fabric builds it after 0.3.4 (P-12; ADR-0121 amendment 2)". | fixed: fabric-workspace #156 — RM-19 says 0.4.0, plans.md's Now line names P-17 |
+| V2-44 | PL-7 | platforms.md says Windows signing is "switched on at the 0.3.5 rc". | fixed: fabric-workspace #156 — platforms.md says switched on 2026-10-12, first signed build at the rc |
+| V2-45 | PL-8 | The 0.4.0 plan's #waves anchor now lands on the 0.3.5 decision. | fixed: `<a id="waves">` moved to just above `## Waves` |
+| V2-46 | PL-9 | P-16's plan-item text still says Windows/Linux "folds in". | fixed: P-16's text (Windows and Linux shipped in 0.3.5) and lane 2's entry rule names P-15 |
+| V2-47 | PL-10 | Carry-over deadlines are past due or name an old release.<br>CO-221's "latest" is still "After 0.3.4". | fixed: CO-221 and CO-179 re-dated; CO-198 records the 79 → 84 rehearsal |
+| V2-48 | PL-11 | P-17 says the seed owner is retired in 0.3.5 (CO-242), but the release notes do not say so. | fixed: a CHANGELOG bullet for the seed owner's revoke at first start |
+| V2-49 | PL-12 | REQ-25's receipt ("operator's Windows PC smoke") is not scheduled, and the deviation is not recorded as an operator question.<br>0.3.5 ships REQ-25's port part without the updater. | fixed: recorded as an operator question in the handoff with the default taken (release with CO-267) |
+| V2-50 | PL-13 | It is unclear when the operator's data is reset: at 0.3.5 or at 0.4.0.<br>The handoff's step 5 resets the operator's local data after installing 0.3.5 ("the operator's original order"), and also lists that reset as an op | fixed: one home — the 0.4.0 plan's *Decision, 2026-10-12* moves the clean first run to 0.3.5's release close |
+| V2-51 | PL-14 | The site's Windows/Linux download has no carry-over row. | fixed: CO-269, the site's Windows and Linux downloads |
+| V2-52 | PL-15 | The backlog's direction paragraph says the unified plan is the queue, yet unified-plan.mjs check still exits 1. | not a defect: CO-221's ruling confirmed |
+
+Exit for iteration 2: 52 findings dispositioned (37 fixed, 12 ruled, 3 not a defect or not recoverable); the next candidate goes to iteration 3. Blocking findings open: none.
 
 ## Iteration 3
 

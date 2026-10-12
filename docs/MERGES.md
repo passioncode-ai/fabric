@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12 · `release-040-wave1-b4` · agent/rv2-fixes + agent/rv2-errors → main · fast-forward
+- run: r-249d0762eddd
+- summary: the 0.3.5 verification's iteration 2 (52 findings, 10 blocking, all disposed): release.yml parses again with a workflow-parse gate, the hosted Linux fast tier green, the work screens current, the errors level (schema refusal cause, fabric-mcp refusals keep the session, eviction by activity and DELETE on leave, link drops said, async Windows stop), ADR-0134 amendment 4, docs and plan; CO-269.
+
 ### 2026-10-12 · `release-040-wave1-b4` · agent/rv1-fixes → main · fast-forward
 - run: r-249d0762eddd
 - summary: the 0.3.5 verification's iteration 1 (67 findings, 13 blocking, all disposed in docs/evidence/plans/2026-10-12-release-035-verification.md): renderer fixes (agent/rv1-ux), main-process and platform fixes (agent/rv1-main), the hosted Linux fast tier, the MCP version, docs and plan for 0.3.5 (P-17), CO-264…CO-268, the private archive's 83/84 record; Windows signing switched on; the 79 → 84 upgrade rehearsed on the operator's dump.

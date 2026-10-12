@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "3570f1168048b8df9a0d0183d92f67adf9400d9c",
+  "report": "docs/evidence/reviews/0.3.5/iteration-2/2026-10-12-ux.md",
+  "reportSha256": "e1aecddf79a235f875651180c505f3b25345ddfa66aad07e09836afc9ce35fc9",
+  "reviewerRun": "release-035-i2-ux-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `WhoIsWorking.tsx` re-reads each minute and on `session`/`terminal` events (`ProjectHome.tsx`); `WhoIsWorking.test.tsx` minute re-read (watched: interval removed → 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-2",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: BoardPanel's «Needs you» is `sec-needs-you` (`evidence.ts`), so the review count opens the board; `projectSectionIds.test.ts` (watched: the shared id put back → 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "UX-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `WorkSessionView.folder` from Fabric's own terminals (`index.ts#heldSessions`, `workRead.ts#sessionView`); the no-project row names the folder, else \"its folder is not shared with Fabric\", and opens when Fabric holds the console (watched: Open removed → 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268 (iteration 2 additions)"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "UX-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "UX-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "UX-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268: a terminology pass over the private-history strings, not a one-word swap"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "UX-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the reading is kept only for the project still on screen (a ref, not the closure); `WhoIsWorking.test.tsx` stale reading (watched: the old guard → 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "UX-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268; the CHANGELOG and README give the registration until the Setup console (0.4.0, RM-09)"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "UX-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268 (Dashboards' button sends only the service, not affected)"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "UX-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-268"
+      ]
+    }
+  ]
+}

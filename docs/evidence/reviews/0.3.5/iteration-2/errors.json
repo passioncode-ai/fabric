@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "3570f1168048b8df9a0d0183d92f67adf9400d9c",
+  "report": "docs/evidence/reviews/0.3.5/iteration-2/2026-10-12-errors.md",
+  "reportSha256": "adf7253580bb84036efaf23bd537e90da6a8030156d6945e18c141bf418e4969",
+  "reviewerRun": "release-035-i2-errors-20261012b",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-14",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed with DO-1 (`6ae2401d`): `release.yml` block scalar; `scripts/check-workflows.py` in `ci.sh`"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `schemaReadiness.ts#unansweredCause` — a status-0 answer or a 502/503/504 is `transport`, an AbortError `timeout`, only a database answer `backend-error`; `schema-readiness.test.mjs` with the real client against a closed port (watched: always backend-error → exit 1)"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabricMcp.ts#classifyFailure` keeps the session on 400/408/413/429 and says nothing was done; no re-enrollment (watched: 1 of 32 failed); ADR-0134 amendment 4"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "ER-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: eviction by last call (`sessionEnroll.ts#enrollSession`), the evicted session told why (`AgentSurface#forget`), DELETE ends a leaving session (`AgentSurface#leave`, `openSessionLink`); `session-enroll.test.mjs` 3 new, `fabric-mcp.test.mjs` 1 new (watched: 4 plants caught); ADR-0134 amendment 4"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `EnrolledSessions#rejoinBearer` reuses an unspent bearer; unclaimed bearers swept at mint (watched: 2 plants caught)"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#stopWindowsTree` async, `pty.ts#runBounded` async `execFile` with its 5 s bound (watched: 2 plants caught); on-host proof CO-267"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `linkOutbox.ts#createLinkHold` reports each drop; `link.dropped` in the ops log, `links.notice.dropped` on screen (watched: 2 plants caught)"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `workTools.ts#moveDoneTaskToReview` reads the move back; `task-not-moved` when it did not land; a repeat finishes it (watched: 2 plants caught)"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#windowsAclAccount` grants `%USERDOMAIN%\\name`; not proven on an Azure AD or domain machine (CO-267)"
+      ]
+    },
+    {
+      "id": "V2-23",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `platform.ts#spawnHelper` attaches `error` first; used by `executorDetect.ts` and `quit.ts#spawnQuitReaper`, both recorded (watched: 2 plants caught)"
+      ]
+    }
+  ]
+}

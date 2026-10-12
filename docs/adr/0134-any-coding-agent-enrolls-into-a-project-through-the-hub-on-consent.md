@@ -118,3 +118,17 @@ tree when this decision was taken. Main has since connected Codex (`codex-config
 Amendment 6), so a session Fabric launches in either gets Fabric's tools without `fabric-mcp`; `fabric-mcp` remains
 the path for an agent the person opens in a terminal, and for Cline. Ships in 0.3.5. Found by the 0.3.5
 verification, iteration 1 (DO-14).
+
+### Amendment 4 — 2026-10-12: which session a full binding ends, and how a session leaves
+
+From the 0.3.5 verification, iteration 2 (ER-3, ER-4, ER-5):
+
+- Past 8 live sessions per binding, the **least recently active** one ends, judged by its last call, not by when it was
+  minted (`sessionEnroll.ts#enrollSession`). Its next call is told it was evicted and that its claims were released.
+- An MCP client that leaves sends DELETE with its bearer and `mcp-session-id` (`agentSurface.ts#leave`,
+  `fabricMcpClient.ts#openSessionLink`). For an enrolled session, the agent's own bearer leaving ends the session and
+  releases its claims; a rejoin's bearer, or a launched session's, takes only itself.
+- A rejoin holds at most one bearer per session (`EnrolledSessions#rejoinBearer`); unclaimed bearers past the claim
+  window are swept at the next mint.
+- Fabric's own refusals (HTTP 400, 408, 413, 429) keep the session and reach the agent as Fabric's refusal — nothing was
+  done, and no re-enrollment happens (`fabricMcp.ts#classifyFailure`), so a fresh enrollment never resets the call budget.

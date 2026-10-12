@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "3570f1168048b8df9a0d0183d92f67adf9400d9c",
+  "report": "docs/evidence/reviews/0.3.5/iteration-2/2026-10-12-data.md",
+  "reportSha256": "2d5e3b8ab69cdb531aea9b53b167ce8736e17cea7287be3bb15d33f39e1dbf13",
+  "reviewerRun": "release-035-i2-data-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-32",
+      "source": "DA-1 (blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-265 (extended): only `rebuild_estate_projections`, the repair tool, reaches it; the app does not call it and the runbook does not name it; deadline: before the tool is offered to anyone"
+      ]
+    },
+    {
+      "id": "V2-33",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the runbook's pre-91 paragraph names floor grants, their one-hour life and that nothing revokes them"
+      ]
+    },
+    {
+      "id": "V2-34",
+      "source": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-264 (4)"
+      ]
+    },
+    {
+      "id": "V2-35",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-264 (5)"
+      ]
+    },
+    {
+      "id": "V2-36",
+      "source": "DA-5",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the five migrations apply together and the app admits only 84, so a schema-83 database is never opened"
+      ]
+    },
+    {
+      "id": "V2-37",
+      "source": "DA-6",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: a check of iteration 1 — its findings are DA-1 and DA-2 of this iteration"
+      ]
+    }
+  ]
+}

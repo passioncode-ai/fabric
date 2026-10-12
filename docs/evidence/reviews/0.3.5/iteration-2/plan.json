@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "3570f1168048b8df9a0d0183d92f67adf9400d9c",
+  "report": "docs/evidence/reviews/0.3.5/iteration-2/2026-10-12-plan.md",
+  "reportSha256": "57e4508dc9d84947d5d62ccd7d1565ec7ebe96a185eddd8d2e0de972e8989460",
+  "reviewerRun": "release-035-i2-plan-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-38",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.3.3 startup-dialog tests name darwin (`startupFailure.test.ts`); the hosted fast tier on `8c1c279e` passed (run 38207098935)"
+      ]
+    },
+    {
+      "id": "V2-39",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff orders the rc rehearsal on the release commit, after the gate clears"
+      ]
+    },
+    {
+      "id": "V2-40",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now/Next line — P-12 and P-13 in 0.4.0, the upgrade to 84"
+      ]
+    },
+    {
+      "id": "V2-41",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-17's status — iteration 1 closed with 13 blocking, iteration 2 on `3570f116`"
+      ]
+    },
+    {
+      "id": "V2-42",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff's status at 07:40, the CO-210 wording"
+      ]
+    },
+    {
+      "id": "V2-43",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace #156 — RM-19 says 0.4.0, plans.md's Now line names P-17"
+      ]
+    },
+    {
+      "id": "V2-44",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace #156 — platforms.md says switched on 2026-10-12, first signed build at the rc"
+      ]
+    },
+    {
+      "id": "V2-45",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `<a id=\"waves\">` moved to just above `## Waves`"
+      ]
+    },
+    {
+      "id": "V2-46",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-16's text (Windows and Linux shipped in 0.3.5) and lane 2's entry rule names P-15"
+      ]
+    },
+    {
+      "id": "V2-47",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-221 and CO-179 re-dated; CO-198 records the 79 → 84 rehearsal"
+      ]
+    },
+    {
+      "id": "V2-48",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a CHANGELOG bullet for the seed owner's revoke at first start"
+      ]
+    },
+    {
+      "id": "V2-49",
+      "source": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: recorded as an operator question in the handoff with the default taken (release with CO-267)"
+      ]
+    },
+    {
+      "id": "V2-50",
+      "source": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one home — the 0.4.0 plan's *Decision, 2026-10-12* moves the clean first run to 0.3.5's release close"
+      ]
+    },
+    {
+      "id": "V2-51",
+      "source": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-269, the site's Windows and Linux downloads"
+      ]
+    },
+    {
+      "id": "V2-52",
+      "source": "PL-15",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: CO-221's ruling confirmed"
+      ]
+    }
+  ]
+}
