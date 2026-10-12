@@ -118,6 +118,18 @@ export function cleanProps(props: Record<string, unknown>): Props {
   return out
 }
 
+/**
+ * How many agents are connected, from the live grants (callee and agent only — never a resource, a project or a name).
+ * A coding agent's enrollment into a project (ADR-0134) is a grant on Fabric itself, one per agent and project: it is
+ * counted apart, as `coding_agents_enrolled`, so `agents_with_access` stays what it says — the agents that may use a
+ * connected product. Each is a count of distinct agents, not of grants.
+ */
+export function agentCounts(grants: ReadonlyArray<{ agent_id: string; callee: string }>): { agents_with_access: number; coding_agents_enrolled: number } {
+  const withAccess = new Set<string>(), enrolled = new Set<string>()
+  for (const g of grants) (g.callee === 'fabric' ? enrolled : withAccess).add(g.agent_id)
+  return { agents_with_access: withAccess.size, coding_agents_enrolled: enrolled.size }
+}
+
 interface QueuedEvent { timestamp: string; sessionId: string; eventName: string; systemProps: Record<string, unknown>; props: Props; at: number }
 /**
  * sshlg-growth's contract (its report 2026-10-05-analytics-platform-review, decision 3): it counts

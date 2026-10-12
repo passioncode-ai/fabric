@@ -156,14 +156,15 @@ port (`FABRIC_HUB_PORT`, default 47070, published in `~/Library/Application Supp
 the external ingress closed and the reason in Settings → Agent access. The port alone does not prove Fabric holds it: while
 Fabric is down any program can listen there, so an agent uses `hub.json`'s origin exactly as written (never `localhost`), re-reads it and checks that its `pid` is alive before it
 sends a binding credential (the hub's `fabric.access.*` tool descriptions say so; `src/main/hub.ts`). Sessions it starts get a one-shot bearer; agents
-registered on this Mac get a door token that may only ask and, on the operator's Allow, a revocable binding credential
+registered on this Mac get a door token that may only ask (for access, or to enroll a coding agent into a project,
+[ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) and, on the operator's Allow, a revocable binding credential
 ([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). It creates no Keychain item:
 a connected product's secret goes to Project Observatory's vault, value on stdin, and is read for one call at a time. It reads Claude Code's
 credential item for the quota once per token lifetime (held in memory until five minutes before it
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
 `~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
 
-**On Windows and Linux (0.4.0, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
+**On Windows and Linux (0.3.5, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
 The installer is per-user NSIS on Windows (`%LOCALAPPDATA%\Programs\<package name>`, its own uninstaller) and an
 AppImage or a `.deb` on Linux (`/opt/Fabric`, `/usr/bin/passioncode-fabric`). The app's data folder is Electron's
 `userData`: `%APPDATA%\@fabric\desktop` on Windows, `~/.config/@fabric/desktop` on Linux — a deliberate deviation from

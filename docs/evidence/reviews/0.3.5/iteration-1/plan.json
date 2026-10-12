@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "895302f19c7f3a132f043c23a9e1f7a5662c99d0",
+  "report": "docs/evidence/reviews/0.3.5/iteration-1/2026-10-12-plan.md",
+  "reportSha256": "ecff9a0424331450ca78de2ca7abb37b306ab9b3b47394028a47f11846b40914",
+  "reviewerRun": "release-035-i1-plan-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-55",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `schema-readiness.test.mjs` expects this OS's stack folder (`shared/stackFolder.ts`) and pins all three; reproduced with process.platform linux (old fails, new passes); hosted `ci` on the next candidate is the receipt"
+      ]
+    },
+    {
+      "id": "V1-56",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-17 row and Now line; P-12, P-13, P-16 re-dated; lane 2 delivers P-17 and CO-238"
+      ]
+    },
+    {
+      "id": "V1-57",
+      "source": "PL-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.4.0 plan's dated section *Decision, 2026-10-12* says what 0.3.5 ships and what 0.4.0 keeps"
+      ]
+    },
+    {
+      "id": "V1-58",
+      "source": "PL-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Windows signing switched on (passioncode-ai/.github #41, `AZURE_SIGNING_ENABLED` true in the release environment), as fabric-workspace platforms.md recorded; CHANGELOG and README say signed; an rc rehearsal proves it before the tag"
+      ]
+    },
+    {
+      "id": "V1-59",
+      "source": "PL-5 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/appVersion.ts`, `test/app-version.test.mjs` (watched: a literal put back → 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-60",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-256 narrowed; CONTEXT.md *Enrollment* agrees"
+      ]
+    },
+    {
+      "id": "V1-61",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-238 partially (ships in 0.3.5, resolved at the tag), CO-244 recorded (release-notes branch), CO-238 moved to lane 2"
+      ]
+    },
+    {
+      "id": "V1-62",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-17 names RM-05, RM-13, RM-25 and PL-01, PL-02, PL-10; the knowledge base rows follow the release (runbook step 11)"
+      ]
+    },
+    {
+      "id": "V1-63",
+      "source": "PL-9",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: a constraint, met — every source fix lands before iteration 3's candidate; only release metadata follows it"
+      ]
+    },
+    {
+      "id": "V1-64",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the unified-plan promise re-dated to after 0.3.5 with CO-221"
+      ]
+    },
+    {
+      "id": "V1-65",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff names step 1 done, the operator questions and the next task"
+      ]
+    },
+    {
+      "id": "V1-66",
+      "source": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed with DO-13: ADR-0131 amendment 2"
+      ]
+    },
+    {
+      "id": "V1-67",
+      "source": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG — sign-in not read on Windows and Linux (CO-244); the vault not on Windows (CO-245)"
+      ]
+    }
+  ]
+}

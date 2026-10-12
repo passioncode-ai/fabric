@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "816d22844ff6bef41c27a2d028d35b22ee09a811",
+  "report": "docs/evidence/reviews/0.3.5/iteration-3/2026-10-12-ux.md",
+  "reportSha256": "dfd1645e76b6c9aad7bb89c7b5dbb8e7ad75f662365ffa3fd2895623c8b9ffa5",
+  "reviewerRun": "release-035-i3-ux-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `harness.agent.codex` and `harness.agent.kimi-code` (en, ru) say connected; `harnessAgentWords.test.ts` holds each agent's words to its surface adapter (watched: the old strings → codex, kimi-code)"
+      ]
+    },
+    {
+      "id": "V3-2",
+      "source": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"The list above is read again\" (en, ru, strings.md)"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "UX-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-271"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "UX-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-271"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "UX-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "UX-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-272"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCR-78 is built in `docs/ux/screens.md`, covered by `launch/WhereWorkScreen.tsx`"
+      ]
+    }
+  ]
+}

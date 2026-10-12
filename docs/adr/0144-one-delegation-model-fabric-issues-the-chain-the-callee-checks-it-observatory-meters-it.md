@@ -271,3 +271,19 @@ What this changes in the decision above:
   boundary, and for attribution — but no local path waits on it. Observatory's defaults already match:
   `slotsRequireGrant: when-token`, the keyserver's mode `off`; `always` / `agents` are for a machine serving external
   callers.
+
+### Amendment 5 — 2026-10-12: webpilot under amendment 4 (BL-015)
+
+webpilot's proposals (`ssheleg/webpilot`, `docs/integrations/fabric-delegation-proposals.md`, `cae3993`), agreed with
+webpilot-5c on 2026-10-12:
+
+- webpilot's flow code `approval-required` collides with DEC-0039's and is renamed `flow-approval-required`; its act
+  refusals and tool errors map onto DEC-0039's codes in one refusal form (amendment 3).
+- The approval/1 action object for `webpilot.act` is webpilot's grant-digest field set, canonicalized by RFC 8785;
+  `actionDigest == payloadDigest`, held by the 12 published vectors (and a lone-surrogate vector refused as
+  `invalid-input`).
+- For T2 callers the hub owns the confirmation screen; webpilot reports its project links (C17) as events, and removing
+  a link revokes the hub's grant.
+- Calls from this machine carry no token; a token presented anyway is attribution only (amendment 4), and no approval/1
+  is needed from a local caller. webpilot's own human confirmation of an irreversible act (publishing as the owner and
+  the like) stays a human gate: a product's control, which this decision does not remove.

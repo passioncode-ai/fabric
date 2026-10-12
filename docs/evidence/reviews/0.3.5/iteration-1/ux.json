@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "895302f19c7f3a132f043c23a9e1f7a5662c99d0",
+  "report": "docs/evidence/reviews/0.3.5/iteration-1/2026-10-12-ux.md",
+  "reportSha256": "7d31e5050a19506d48f02e3f68b207cf6493b0f5b3b1ca5256fa21ace03adea5",
+  "reviewerRun": "release-035-i1-ux-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CommsScreen.tsx#ThreadView` starts Earlier at the first page's cursor, bounded by the thread's first message; `CommsScreen.test.tsx` 120-message walk (watched: start cursor removed → 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startupFailure.ts#forPlatform` gives Windows and Linux their own remedies (`.win32`/`.linux` keys, en/ru); `startupFailure.test.ts` holds every Windows/Linux dialog free of brew, Homebrew, OrbStack, DMG and Mac (watched: no per-OS remedy → 8 failed); CHANGELOG names the Supabase CLI for Windows"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `console` on `WorkSessionView`/`WorkClaimView` (`workRead.ts#consolesOf`); Open only for a console Fabric holds, otherwise \"runs in a terminal outside Fabric\"; `WhoIsWorking.test.tsx`, `test/work-read-views.test.mjs` (watched: Open shown regardless → 1 failed); the session window's wording is CO-268"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `WhoIsWorking.tsx` lists sessions without a claim; \"nobody\" only with none; SCR-31 updated (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentSyncLeases.ts` asks only a repository with `.claude/agent-sync.json`; reason codes translated; no repeated prefix; `test/agent-sync-leases.test.mjs` (watched: 4 plants caught)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `observatoryVault.ts#unavailable` on win32; `productConnect.ts#begin` refuses `vault-unavailable` before the product opens; `hub-products.test.mjs` (watched: 1 failed); off-host proof is CO-267"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `executorAuth.ts` returns `unsupported-os` on Windows and Linux, with its own string (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: no-command variants in FirstRun and BuilderFixes (watched: 2 plants caught); the missing vendor links are CO-268"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startParts.tsx#programOf` splits on both separators and drops the extension (watched: old split → 2 failed)"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `OperatorError.tsx#MachineDetail` — our sentence with the machine's words on a second line, on Comms, both work screens and the quota panel; `quotaReading.ts` strips the IPC wrapper (watched: 5 plants caught)"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: thread heading by subject or first words; a reply names the answered message by sender and first words, else \"an earlier message\" (watched: 2 plants caught); an unread first message is CO-268"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ru «пространства»; `accessWords.ts#projectWords` carries its own preposition (watched: 2 plants caught)"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"messages: {count}\" and \"More projects with nothing in flight: {count}\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `linkRoute.ts#resolveLink` — a failed read is `link-unreadable`, never an empty list; `linkArrival.ts#releaseLink` `first-run-left` offers a held link when the first run is left by any route (watched: 4 and 3 failed)"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: FirstRun shows plain Continue while agents are read (watched: 1 failed)"
+      ]
+    }
+  ]
+}

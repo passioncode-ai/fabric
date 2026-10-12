@@ -83,6 +83,7 @@ import { registerWorkTools, type LiveSession } from './workTools.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
 import { CLAIM_DEFAULT_MINUTES, type CameIn } from '../shared/workClaims.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -208,6 +209,8 @@ export interface MintOrigin {
   cameIn: CameIn
   agent: string | null
   runtimeSessionId?: string | null
+  /** A bearer the session hooks' rejoin (D2) holds beside the agent's own: its client leaving takes only itself. */
+  rejoin?: boolean
 }
 
 /** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
@@ -310,7 +313,13 @@ interface ScopeState {
   transport: StreamableHTTPServerTransport | null
   windowStart: number
   callsInWindow: number
+  /** Minted for a rejoin (MintOrigin.rejoin): not the session's own bearer. */
+  rejoin: boolean
 }
+
+/** How many ended bearers the surface remembers the reason of, so their next call is told it (ER-4). Hashes only. */
+const ENDED_REMEMBERED = 256
+const bearerDigest = (token: string): string => createHash('sha256').update(token, 'utf8').digest('hex')
 
 /**
  * Which door bucket a JSON-RPC body spends (ER-7): a status poll its request, an ask its agent, anything
@@ -328,6 +337,12 @@ function doorBucket(body: unknown): string {
 
 export class AgentSurface {
   private states = new Map<string, ScopeState>()
+  /**
+   * Why a bearer this surface held was ended, by its sha256 (0.3.5 review iteration 2, ER-4): an evicted session's
+   * next call is told it was evicted and that its claims went, not "unknown credential", which its client could
+   * only read as "Fabric restarted". Bounded (ENDED_REMEMBERED, oldest first out); never the bearer itself.
+   */
+  private endedWhy = new Map<string, string>()
   /** Sessions that have already been recorded as oriented. In memory on
    *  purpose: the question the journal is asked is "did this session EVER read
    *  its rules", so a restart appending a second row costs nothing, while a
@@ -493,6 +508,14 @@ export class AgentSurface {
     const now = this.now()
     if (!known)
       this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null })
+    // #region surface-unclaimed-sweep — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+    // A bearer no client presented within its claim window is swept here (0.3.5 review iteration 2, ER-5): a hook
+    // process that died before its initialize would otherwise stay in the map for the life of the app, because the
+    // only other drop is when someone presents it. Its next presentation is told it expired, as before.
+    for (const [token, st] of this.states) {
+      if (st.claimedAt === null && now - st.mintedAt > this.limits.claimWindowMs) this.forget(token, 'credential expired before its session initialised')
+    }
+    // #endregion surface-unclaimed-sweep
     this.states.set(scope.token, {
       scope,
       mintedAt: now,
@@ -500,17 +523,35 @@ export class AgentSurface {
       mcpSessionId: null,
       transport: null,
       windowStart: now,
-      callsInWindow: 0
+      callsInWindow: 0,
+      rejoin: origin?.rejoin === true
     })
     return scope
   }
 
-  /** A session that ended can no longer act; its credential goes with it. */
-  revokeSession(sessionId: string): void {
+  /** A session that ended can no longer act; its credential goes with it. `reason`, when given, is what the next call
+   *  of any of its bearers is told (an eviction, ER-4). */
+  revokeSession(sessionId: string, reason?: string): void {
     for (const [token, st] of this.states) {
-      if (st.scope.sessionId === sessionId) this.drop(token)
+      if (st.scope.sessionId !== sessionId) continue
+      if (reason) this.forget(token, reason)
+      else this.drop(token)
     }
     if (this.live.has(sessionId)) this.sessionEnded(sessionId, 'ended')
+  }
+
+  /** One bearer goes and nothing else: the session it belongs to goes on (a rejoin bearer replaced, ER-5). */
+  revokeCredential(token: string): void {
+    this.drop(token)
+  }
+
+  /** Drops a bearer and remembers why, by its digest, for its next presentation. */
+  private forget(token: string, reason: string): void {
+    this.drop(token)
+    const key = bearerDigest(token)
+    this.endedWhy.delete(key)
+    this.endedWhy.set(key, reason)
+    while (this.endedWhy.size > ENDED_REMEMBERED) this.endedWhy.delete(this.endedWhy.keys().next().value as string)
   }
 
   /** The session is gone from this surface; its claims are released through `onSessionEnded` (once). */
@@ -622,7 +663,9 @@ export class AgentSurface {
       await hub.callback(connect[1], req, res)
       return
     }
-    if (req.method !== 'POST' || !req.url?.startsWith('/mcp')) {
+    // An MCP client that leaves says so with DELETE (the transport's terminateSession, ER-4); nothing else but POST.
+    const leaving = req.method === 'DELETE'
+    if ((req.method !== 'POST' && !leaving) || !req.url?.startsWith('/mcp')) {
       res.writeHead(404).end()
       return
     }
@@ -637,9 +680,15 @@ export class AgentSurface {
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
     const st = this.states.get(token)
     if (!st) {
+      // A bearer this surface ended with a reason (an eviction): the reason, so the agent knows its claims went.
+      const why = token ? this.endedWhy.get(bearerDigest(token)) : undefined
+      if (why) {
+        AgentSurface.refuse(res, 401, why, {}, attempt)
+        return
+      }
       // A session's bearer is looked up FIRST and is never confused with an external credential:
       // only a bearer that is not a session's reaches the hub's door (ADR-0115).
-      if (token && hub && (await this.handleExternal(token, hub, req, res, ctx, attempt))) return
+      if (token && !leaving && hub && (await this.handleExternal(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
@@ -647,6 +696,10 @@ export class AgentSurface {
     }
     ctx.sessionId = st.scope.sessionId
     if (st.scope.projectId) ctx.projectId = st.scope.projectId
+    if (leaving) {
+      this.leave(token, st, req, res, attempt)
+      return
+    }
 
     const now = this.now()
 
@@ -797,6 +850,30 @@ export class AgentSurface {
     this.touched(st.scope)
     await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
+
+  // #region surface-session-leave — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+  /**
+   * An MCP client leaving (DELETE with its bearer and its mcp-session-id; 0.3.5 review iteration 2, ER-4). Without it an
+   * enrolled session outlived its coding agent and held its claims until the cap ended it — or ended a live one
+   * instead. The agent's own bearer of an ENROLLED session ends the session (its claims are released, as at any session
+   * end); a rejoin's bearer, or a launched session's (its terminal owns that session), takes only itself.
+   */
+  private leave(token: string, st: ScopeState, req: IncomingMessage, res: ServerResponse, attempt: { refused(reason: string): void }): void {
+    const headerSession = headerValue(req, 'mcp-session-id')
+    if (st.claimedAt === null || !st.mcpSessionId || headerSession !== st.mcpSessionId) {
+      AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
+      return
+    }
+    const sessionId = st.scope.sessionId
+    const endsSession = st.scope.cameIn === 'enrolled' && !st.rejoin
+    if (endsSession) (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(sessionId)
+    else this.drop(token)
+    ops.record({ op: 'agentSurface.session-left', outcome: 'ok', level: 'info', detail: { ended_session: endsSession, rejoin: st.rejoin },
+      ctx: { correlationId: ops.correlate(), estateId: this.deps.estateId, sessionId } })
+    res.writeHead(200, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ left: true, sessionEnded: endsSession }))
+  }
+  // #endregion surface-session-leave
 
   /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims renewed. */
   private touched(scope: AgentScope): void {
@@ -1116,7 +1193,7 @@ export class AgentSurface {
       estateId: scope.estateId,
       projectId: scope.projectId
     })
-    const server = new McpServer({ name: 'fabric', version: '0.1.0' })
+    const server = new McpServer({ name: 'fabric', version: APP_VERSION })
 
     server.registerTool(
       'fabric_whoami',

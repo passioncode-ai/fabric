@@ -17,15 +17,20 @@ const P = '0b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
 const binding = { id: 'b-1', agent_id: 'claude-code', revoked_at: null }
 const grant = (over = {}) => ({ id: 'g-1', callee: 'fabric', capability: 'session.enroll', resource: `project:${P}`, revoked_at: null, expires_at: new Date(Date.now() + 86400000).toISOString(), ...over })
 
-/** A fake surface: bearers it holds, with their state; `end` drops one, as AgentSurface.revokeSession does. */
+/** A fake surface: bearers it holds, with their state; `end` drops one, as AgentSurface.revokeSession does, and keeps
+ *  the reason it was given; `signs` is each session's last call (AgentSurface.sessionSign); `drop` revokes one bearer. */
 function fakeSurface() {
   const held = new Map() // bearer -> { sessionId, state }
+  const signs = new Map() // sessionId -> last call
+  const why = new Map() // sessionId -> the reason it was ended with
   let n = 0
   return {
-    held,
+    held, signs, why,
     mint: (projectId, sessionId) => { const token = `T${++n}`.padEnd(32, 'x'); held.set(token, { sessionId, state: 'unclaimed' }); return { token } },
-    end: (sessionId) => { for (const [t, v] of held) if (v.sessionId === sessionId) held.delete(t) },
+    end: (sessionId, reason) => { why.set(sessionId, reason ?? null); for (const [t, v] of held) if (v.sessionId === sessionId) held.delete(t) },
+    drop: (token) => { held.delete(token) },
     state: (token) => held.get(token)?.state ?? null,
+    lastSign: (sessionId) => signs.get(sessionId) ?? null,
     claimAll: () => { for (const v of held.values()) v.state = 'claimed' }
   }
 }
@@ -33,7 +38,7 @@ function fakeSurface() {
 function deps(over = {}) {
   const minted = [], journaled = []
   const surface = fakeSurface()
-  const sessions = new EnrolledSessions({ end: surface.end, state: surface.state })
+  const sessions = new EnrolledSessions({ end: surface.end, state: surface.state, lastSign: surface.lastSign, drop: surface.drop })
   return {
     minted, journaled, surface, sessions,
     d: {
@@ -142,6 +147,55 @@ test('a loop that spends every bearer is capped: the binding keeps at most MAX_E
   assert.equal(h.surface.state(first.session.bearer), null, 'the oldest session was ended')
 })
 
+test('past the cap the least recently active session ends, never one that called within the renewal window while an idle one exists, and it is told why (0.3.5 review i2 ER-4)', async () => {
+  let now = 1_000_000
+  const h = deps({ now: () => now })
+  const ids = []
+  for (let i = 0; i < MAX_ENROLLED_PER_BINDING; i++) {
+    now += 60_000
+    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+    ids.push(r.session.sessionId)
+    h.surface.claimAll()
+  }
+  // The FIRST minted is the long-running agent still at work: it called a minute ago. The others exited long since.
+  now += 30 * 60_000
+  h.surface.signs.set(ids[0], now - 60_000)
+  for (let i = 1; i < ids.length; i++) h.surface.signs.set(ids[i], 1_000_000 + i * 60_000 + 5_000)
+  const ninth = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  assert.equal(ninth.ok, true)
+  assert.equal(h.surface.why.has(ids[0]), false, 'the live session is kept')
+  assert.equal(h.surface.why.has(ids[1]), true, 'the session idle the longest ended')
+  assert.equal(h.surface.why.size, 1, 'one, to make room for one')
+  assert.match(h.surface.why.get(ids[1]), /least recently active/)
+  assert.match(h.surface.why.get(ids[1]), /claims were released/)
+  assert.doesNotMatch(h.surface.why.get(ids[1]), /restart/i)
+  // A session with no call at all counts from its mint: the next to go is ids[2], still not the live one.
+  h.surface.claimAll()
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  assert.equal(h.surface.why.has(ids[2]), true)
+  assert.equal(h.surface.why.has(ids[0]), false)
+})
+
+test('the session hooks\' rejoins hold at most one bearer per session: an unspent one is handed out again, a spent one is replaced (0.3.5 review i2 ER-5)', async () => {
+  const h = deps()
+  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+  h.surface.claimAll()
+  const bearers = new Set()
+  for (let i = 0; i < 50; i++) {
+    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
+    assert.equal(r.ok, true)
+    assert.equal(r.session.sessionId, first.session.sessionId)
+    bearers.add(r.session.bearer)
+    assert.ok(h.surface.held.size <= 2, `the surface holds ${h.surface.held.size} bearers for one session`)
+    // Every other turn the hook's client spends its bearer before the next turn comes.
+    if (i % 2 === 1) h.surface.claimAll()
+  }
+  assert.equal(h.surface.state(first.session.bearer), 'claimed', 'the agent\'s own bearer is never touched')
+  assert.equal(h.minted.length, 1 + 25, 'a new bearer only after the last one was spent')
+  assert.equal(bearers.size, 25)
+  assert.equal(h.journaled.length, 1)
+})
+
 // --- revocation, with the real AccessService and AgentSurface ---------------------------------------------------
 
 async function enrolledWorld() {
@@ -219,6 +273,72 @@ test('a revocation that lands between the mint and the re-read: the minted beare
   assert.deepEqual([r.ok, r.code], [false, 'needs-grant'])
   assert.equal(w.surface.credentialState(minted.token), null)
   assert.equal((await w.call(minted.token)).status, 401)
+})
+
+// An MCP client that leaves says so (DELETE with its bearer and mcp-session-id, 0.3.5 review i2 ER-4): an enrolled
+// session ends then, and its claims are released; a rejoin's bearer leaving takes only itself.
+async function initialize(surface, bearer) {
+  const r = await fetch(`${surface.origin}/mcp`, { method: 'POST', headers: { authorization: `Bearer ${bearer}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } }) })
+  await r.text()
+  return r.headers.get('mcp-session-id')
+}
+const leave = (surface, bearer, mcpSessionId) => fetch(`${surface.origin}/mcp`, { method: 'DELETE', headers: { authorization: `Bearer ${bearer}`, ...(mcpSessionId ? { 'mcp-session-id': mcpSessionId } : {}) } })
+
+test('an enrolled agent that leaves (DELETE) ends its session and its claims go; a rejoin bearer that leaves takes only itself (0.3.5 review i2 ER-4)', async (t) => {
+  const ended = []
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', onSessionEnded: async (id, why) => { ended.push([id, why]) } })
+  await surface.start()
+  t.after(() => surface.stop())
+  const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
+  const d = { ...deps().d, sessions, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
+  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  const mcp = await initialize(surface, first.session.bearer)
+  assert.ok(mcp)
+  const hook = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, d)
+  const hookMcp = await initialize(surface, hook.session.bearer)
+  // A leave without the session's handshake id is refused and ends nothing.
+  assert.equal((await leave(surface, first.session.bearer, null)).status, 401)
+  assert.equal(surface.credentialState(first.session.bearer), 'claimed')
+  // The hook's client leaves: its bearer goes, the session stays.
+  assert.equal((await leave(surface, hook.session.bearer, hookMcp)).status, 200)
+  assert.equal(surface.credentialState(hook.session.bearer), null)
+  assert.equal(surface.credentialState(first.session.bearer), 'claimed')
+  assert.deepEqual(ended, [])
+  // The agent's own client leaves: the session ends, its claims are released through the session-end hook.
+  assert.equal((await leave(surface, first.session.bearer, mcp)).status, 200)
+  assert.equal(surface.credentialState(first.session.bearer), null)
+  assert.equal(surface.heldSessions().length, 0)
+  assert.deepEqual(ended, [[first.session.sessionId, 'ended']])
+  assert.equal(sessions.liveOf(binding.id).length, 0)
+})
+
+test('an evicted session\'s next call is told it was evicted and that its claims were released, not that Fabric restarted (0.3.5 review i2 ER-4)', async (t) => {
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  await surface.start()
+  t.after(() => surface.stop())
+  const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
+  const d = { ...deps().d, sessions, maxSessionsPerBinding: 1, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
+  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, d)
+  const mcp = await initialize(surface, first.session.bearer)
+  assert.ok(mcp)
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, d)
+  const r = await fetch(`${surface.origin}/mcp`, { method: 'POST', headers: { authorization: `Bearer ${first.session.bearer}`, 'mcp-session-id': mcp, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) })
+  assert.equal(r.status, 401)
+  const body = await r.json()
+  assert.match(body.error, /least recently active/)
+  assert.match(body.error, /claims were released/)
+})
+
+test('a bearer minted and never presented does not stay: the next mint sweeps the ones past their claim window (0.3.5 review i2 ER-5)', () => {
+  let now = 1_000_000
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', now: () => now })
+  for (let i = 0; i < 20; i++) surface.mint(P, 'dead-hook-' + i, null)
+  assert.equal(surface.credentialCount(), 20)
+  now += 10 * 60_000
+  surface.mint(P, 'next', null)
+  assert.equal(surface.credentialCount(), 1, 'only the fresh one is held')
 })
 
 // D2 (fabric-agent-adapter#53): the session hooks' fabric-mcp joins the session its coding agent already holds.

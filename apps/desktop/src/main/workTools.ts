@@ -84,6 +84,85 @@ export interface WorkToolDeps {
   now(): number
 }
 
+/**
+ * `fabric_work_release {claims: "session"}` (D5), READ BACK like the single-claim branch (0.3.5 review ER-8): every
+ * live claim is released, then the live claims are read again. `released` only when none of them is still live;
+ * a release the projection ignored is `unconfirmed`; an append that throws stops the walk and the answer says which
+ * were released (confirmed by the read-back) and which are still live or were not tried (`partial`).
+ */
+export async function releaseEveryOwnClaim(
+  readLive: () => Promise<Array<{ id: string; work_id: string }>>,
+  release: (c: { id: string; work_id: string }) => Promise<number>
+): Promise<Record<string, unknown>> {
+  const rows = await readLive()
+  if (rows.length === 0) return { released: true, claims: [], note: 'this session holds no live claim' }
+  let stopped: string | null = null
+  for (const c of rows) {
+    try {
+      await release(c)
+    } catch (e) {
+      // Not silent: the reason is returned to the agent as `partial`, with the ids released so far.
+      stopped = e instanceof Error ? e.message : String(e)
+      break
+    }
+  }
+  let still: Set<string>
+  try {
+    still = new Set((await readLive()).map((c) => c.id))
+  } catch {
+    // Unread is not released: nothing is claimed as done.
+    still = new Set(rows.map((c) => c.id))
+  }
+  const claims = rows.filter((c) => !still.has(c.id)).map((c) => c.id)
+  const unconfirmed = rows.filter((c) => still.has(c.id)).map((c) => c.id)
+  if (stopped !== null)
+    return { released: false, code: 'partial', claims, unconfirmed, reason: `a release failed (${stopped}); the claims listed as unconfirmed are still live or were not tried — read fabric_work_list before acting again` }
+  if (unconfirmed.length)
+    return { released: false, code: 'unconfirmed', claims, unconfirmed, reason: 'some releases could not be confirmed; read fabric_work_list before acting again' }
+  return { released: true, claims }
+}
+
+/**
+ * A done release's second write, READ BACK (0.3.5 review iteration 2, ER-8): the release and the task's move to review
+ * are two appends, and only the first was read back, so a move that threw (or that the projection ignored) left the
+ * task in running while a retry answered `already-released`. The task is read, moved when the ladder lets an agent move
+ * it to review, and read again; `task_moved_to` is `review` only when the board says the task is there, and `failed`
+ * says why it is not. A task already in review (a repeat) is not moved twice; no board task, or a closed one, moves
+ * nothing and fails nothing.
+ */
+export async function moveDoneTaskToReview(
+  readTask: () => Promise<{ id: string; status: TaskState } | null>,
+  move: (task: { id: string; status: TaskState }) => Promise<unknown>
+): Promise<{ task_moved_to: 'review' | null; task_status: TaskState | null; failed?: string }> {
+  const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+  let task: { id: string; status: TaskState } | null
+  try {
+    task = await readTask()
+  } catch (e) {
+    // Returned to the agent as `failed`: the release stands, the move is unknown.
+    return { task_moved_to: null, task_status: null, failed: said(e) }
+  }
+  if (!task) return { task_moved_to: null, task_status: null }
+  if (task.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
+  if (!mayMove('agent', task.status, 'review').ok) return { task_moved_to: null, task_status: task.status }
+  let failed: string | null = null
+  try {
+    await move(task)
+  } catch (e) {
+    // Returned to the agent as `failed`, with the status read back below.
+    failed = said(e)
+  }
+  let after: { id: string; status: TaskState } | null
+  try {
+    after = await readTask()
+  } catch (e) {
+    // Unread is not moved: nothing is claimed as done.
+    return { task_moved_to: null, task_status: task.status, failed: failed ?? said(e) }
+  }
+  if (after?.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
+  return { task_moved_to: null, task_status: after?.status ?? null, failed: failed ?? 'the move to review could not be confirmed' }
+}
+
 const reply = (value: Record<string, unknown>) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const KEY = z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/)
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
@@ -392,15 +471,12 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         })).seq
 
       if (claims === 'session') {
-        const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
-        if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
-        const rows = (live.data ?? []) as Array<{ id: string; work_id: string }>
-        const released: string[] = []
-        for (const c of rows) {
-          await release(c)
-          released.push(c.id)
+        const readLive = async (): Promise<Array<{ id: string; work_id: string }>> => {
+          const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
+          if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
+          return (live.data ?? []) as Array<{ id: string; work_id: string }>
         }
-        return reply({ released: true, claims: released, ...(rows.length ? {} : { note: 'this session holds no live claim' }) })
+        return reply(await releaseEveryOwnClaim(readLive, (c) => release(c)))
       }
       if (!claimId && !taskId) return reply({ released: false, code: 'bad-input', reason: 'name the claim: claimId, taskId, or claims: "session"' })
       let row: Record<string, unknown> | null = claimId ? await claimById(claimId) : null
@@ -412,6 +488,20 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       }
       if (!row) return reply({ released: false, code: 'not-held', reason: 'you hold no such claim in this project' })
       if (row.owner_session !== scope.sessionId) return reply({ released: false, code: 'not-yours', reason: 'another session holds that claim' })
+      // The move of a done task, read back; a repeat calls it again to finish a move that did not land (ER-8).
+      const toReview = (taskId: string) =>
+        moveDoneTaskToReview(() => ownTask(taskId), (task) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to: 'review', note: said } }))
+      const notMoved = (m: { task_status: TaskState | null; failed?: string }) => ({
+        code: 'task-not-moved',
+        task_status: m.task_status,
+        reason: `the claim is released, but its task did not move to review (${m.failed}); call fabric_work_release again with the same idempotencyKey to finish the move, or read fabric_work_list`
+      })
+      if (ending === 'done' && row.released_how === 'done' && row.released_at) {
+        const m = await toReview(row.work_id as string)
+        if (m.failed) return reply({ released: true, claim_id: row.id, how: 'done', at: row.released_at, task_moved_to: null, ...notMoved(m) })
+        return reply({ released: true, code: 'already-released', claim_id: row.id, how: 'done', at: row.released_at, task_moved_to: m.task_moved_to, task_status: m.task_status,
+          reason: 'already released (done)' })
+      }
       if (row.released_at)
         return reply({
           released: row.released_how === ending,
@@ -421,17 +511,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         })
       const handedTo = ending === 'handed-over' ? (to ?? (row.handover_requested_by as string | null) ?? null) : null
       const seq = await release({ id: row.id as string, work_id: row.work_id as string }, handedTo ? { handed_to: handedTo } : {})
-      let moved: string | null = null
-      if (ending === 'done') {
-        const task = await ownTask(row.work_id as string)
-        if (task && mayMove('agent', task.status, 'review').ok && task.status !== 'review') {
-          await deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to: 'review', note: said } })
-          moved = 'review'
-        }
-      }
+      const m = ending === 'done' ? await toReview(row.work_id as string) : null
       const after = await claimById(row.id as string)
       if (!after?.released_at) return reply({ released: false, code: 'unconfirmed', reason: 'the release could not be confirmed; read fabric_work_list before acting again', seq })
-      return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: moved, seq })
+      if (m?.failed) return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: null, seq, ...notMoved(m) })
+      return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: m?.task_moved_to ?? null, ...(m ? { task_status: m.task_status } : {}), seq })
     }
   )
 

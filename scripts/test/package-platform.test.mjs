@@ -60,3 +60,25 @@ test('an unsigned Windows release says so in its own notes (PL-10)', () => {
     'a line in another version\'s section does not count')
   assert.match(unsignedWindowsNoteProblem({ version: '0.3.5', text: '## 0.3.4\n' }) ?? '', /no "## 0.3.5"/)
 })
+
+// The rehearsal v0.3.5-rc.1 (run 38235005334): through cmd.exe the publisher "Siarhei Sheleh" split into two arguments
+// and electron-builder refused the Windows build ("Unknown argument: Sheleh"). Each argument must survive the shell's
+// split: a minimal cmd.exe tokenizer (spaces outside double quotes split; "" is a literal quote) reads them back whole.
+test('the signed Windows build arguments survive cmd.exe whole', async () => {
+  const { builderArgs, signingOptions, cmdArg } = await import('../lib/package-platform.mjs')
+  const signing = signingOptions({ AZURE_SIGNING_ENDPOINT: 'https://neu.codesigning.azure.net/', AZURE_SIGNING_ACCOUNT: 'acct', AZURE_SIGNING_PROFILE: 'profile' })
+  const args = builderArgs({ platform: 'win32', arch: 'x64', version: '0.3.5', signing })
+  const line = args.map(cmdArg).join(' ')
+  const tokens = []
+  let cur = '', quoted = false, started = false
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]
+    if (c === '"') { if (quoted && line[i + 1] === '"') { cur += '"'; i++ } else { quoted = !quoted; started = true } }
+    else if (c === ' ' && !quoted) { if (started || cur) tokens.push(cur); cur = ''; started = false }
+    else { cur += c; started = true }
+  }
+  if (started || cur) tokens.push(cur)
+  assert.deepEqual(tokens, args)
+  assert.ok(args.some((a) => a.endsWith('publisherName=Siarhei Sheleh')))
+  assert.equal(cmdArg('plain'), 'plain')
+})

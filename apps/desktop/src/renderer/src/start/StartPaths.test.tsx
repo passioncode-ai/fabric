@@ -75,6 +75,14 @@ describe('the first run (SCN-126)', () => {
       cleanup()
     }
   })
+  it('on Windows and Linux the sign-in line names the system, not the agent\'s version (UX-7)', async () => {
+    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [executor({ state: 'unsupported', method: null, reason: 'unsupported-os' })]) } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    await screen.findByText(en['start.executor.auth.unsupportedOs'])
+    expect(screen.queryByText(en['start.executor.auth.unsupported']), 'never "for this version of the coding agent"').toBeNull()
+    expect(en['start.executor.auth.unsupportedOs']).not.toMatch(/version/)
+  })
   it('treats an older bridge with no status as unknown, and ignores a stale authenticated reply', async () => {
     let resolveOld!: (rows: ExecutorRow[]) => void
     const executors = vi.fn().mockImplementationOnce(() => new Promise<ExecutorRow[]>((resolve) => { resolveOld = resolve }))
@@ -96,7 +104,9 @@ describe('the first run (SCN-126)', () => {
     render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
     fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
     await screen.findByText(en['first.exec.checking'])
-    const next = screen.getByRole('button', { name: en['first.exec.continueWithout'] }) as HTMLButtonElement
+    // UX-15: while agents are still being looked for, nothing says "without an agent" — nothing is known yet.
+    expect(screen.queryByRole('button', { name: en['first.exec.continueWithout'] })).toBeNull()
+    const next = screen.getByRole('button', { name: en['first.next'] }) as HTMLButtonElement
     expect(next.disabled).toBe(false)
     fireEvent.click(next)
     await screen.findByText(en['first.start.lede'])
@@ -197,6 +207,28 @@ describe('the coding agent is chosen in the first run (REQ-40)', () => {
     fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
     await waitFor(() => expect(fabric.settings.write).toHaveBeenCalledWith({ runnerFallback: { order: [{ runner: 'codex', session: 'spawn' }] } }))
     await screen.findByText(en['first.start.lede'])
+  })
+
+  it('a missing agent with no install command is not told to "run the command below" (UX-8)', async () => {
+    const { group } = await stepTwo({ start: { ...bridge().start, executors: vi.fn(async () => [
+      ...machine().slice(0, 1),
+      { id: 'kimi-code', label: 'Kimi Code', connected: false, state: 'missing', version: null, path: null, install: null }
+    ]) } })
+    const kimi = radio(group, 'Kimi Code')
+    expect(describedBy(kimi)).toContain(en['first.exec.cannotPick.missingNoCommand'])
+    expect(describedBy(kimi)).not.toContain(en['first.exec.cannotPick.missing'])
+    expect(screen.queryByRole('button', { name: new RegExp(en['first.exec.copy']) })).toBeNull()
+  })
+
+  it('a Windows path names the program, not the whole path, and drops its extension (UX-9)', async () => {
+    const path = 'C:\\Users\\a\\AppData\\Roaming\\npm\\cline.cmd'
+    const { group } = await stepTwo({ start: { ...bridge().start, executors: vi.fn(async () => [
+      ...machine().slice(0, 1),
+      { id: 'cline', label: 'Cline', connected: false, state: 'unresponsive', version: null, path, install: null }
+    ]) } })
+    expect(describedBy(radio(group, 'Cline'))).toContain(en['first.exec.unresponsive'].replaceAll('{program}', 'cline'))
+    expect(screen.getByText(path, { selector: 'code' }), 'the full path is still shown, once, as the path').toBeTruthy()
+    expect(document.body.textContent!.split(path).length - 1).toBe(1)
   })
 
   it('a coding agent that cannot be picked says why, and what to do', async () => {
@@ -817,6 +849,20 @@ describe('the coding agent picker of the agent actions (REQ-40)', () => {
     expect(within(fixes).getByText(en['first.exec.unresponsive'].replaceAll('{program}', 'cline'))).toBeTruthy()
     fireEvent.click(within(fixes).getByRole('button', { name: en['start.builder.recheck'] }))
     await waitFor(() => expect(executors.mock.calls.length).toBeGreaterThan(1))
+  })
+
+  it('a missing agent with no command says how to install it without promising a command; a Windows path names the program (UX-8, UX-9)', async () => {
+    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [
+      { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.1.288', path: '/bin/claude', install: null },
+      { id: 'kimi-code', label: 'Kimi Code', connected: false, state: 'missing', version: null, path: null, install: null },
+      { id: 'cline', label: 'Cline', connected: false, state: 'unresponsive', version: null, path: 'C:\\tools\\cline.exe', install: null }
+    ]) } })
+    start('agent')
+    const picker = (await screen.findByLabelText(en['start.builder.label'])) as HTMLSelectElement
+    const fixes = document.getElementById(picker.getAttribute('aria-describedby')!.split(' ').find((id) => id !== 'start-builder-hint')!)!
+    expect(within(fixes).getByText(en['start.builder.fixMissingNoCommand'].replace('{name}', 'Kimi Code'))).toBeTruthy()
+    expect(within(fixes).queryByText(en['start.builder.fixMissing'].replace('{name}', 'Kimi Code'))).toBeNull()
+    expect(within(fixes).getByText(en['first.exec.unresponsive'].replaceAll('{program}', 'cline'))).toBeTruthy()
   })
 })
 

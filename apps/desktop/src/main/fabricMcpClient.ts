@@ -20,6 +20,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { readHubDocument, writeAtomic } from './hub.ts'
 import type { CredentialStore, HubCall, PendingRequest, SessionLink } from './fabricMcp.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
 const CREDENTIAL_FILE = /^([0-9a-f]{8})\.credential$/
@@ -131,7 +132,7 @@ export const httpTransport: TransportFactory = (url, bearer) =>
 
 async function connect(url: string, bearer: string, transportOf: TransportFactory): Promise<{ client: Client; transport: Transport }> {
   const transport = transportOf(url, bearer)
-  const client = new Client({ name: 'fabric-mcp', version: '0.4.0' })
+  const client = new Client({ name: 'fabric-mcp', version: APP_VERSION })
   await client.connect(transport)
   return { client, transport }
 }
@@ -156,12 +157,32 @@ export function makeHubCall(transportOf: TransportFactory = httpTransport): HubC
 
 /** The session a bearer opens. When its transport closes, the SDK's own close handling runs first (it fails the
  *  requests still waiting, which would otherwise hang), then the proxy is told. */
-export async function openSessionLink(url: string, bearer: string, transportOf: TransportFactory = httpTransport): Promise<SessionLink> {
+export async function openSessionLink(url: string, bearer: string, transportOf: TransportFactory = httpTransport, opts: { leaveMs?: number } = {}): Promise<SessionLink> {
   const { client, transport } = await connect(url, bearer, transportOf)
   const link: SessionLink = {
     listTools: async () => (await client.listTools()).tools,
     callTool: async (name, args) => (await client.callTool({ name, arguments: args })) as Record<string, unknown>,
-    close: () => client.close()
+    close: () => client.close(),
+    // The SDK's close() sends nothing to the server; terminateSession() is the HTTP session's DELETE (0.3.5 review i2
+    // ER-4). Bounded: a Fabric that is gone or hung must not hold the coding agent's exit.
+    leave: async () => {
+      const terminate = (transport as { terminateSession?: () => Promise<void> }).terminateSession
+      if (terminate) {
+        let timer: ReturnType<typeof setTimeout> | undefined
+        try {
+          await Promise.race([terminate.call(transport), new Promise<void>((resolve) => { timer = setTimeout(resolve, opts.leaveMs ?? 2000) })])
+        } catch (e) {
+          // fabric-mcp has no ops sink: stderr. Fabric then ends the session when the cap or a revocation does.
+          process.stderr.write(`fabric-mcp: Fabric could not be told this session ended (${e instanceof Error ? e.message : String(e)})\n`)
+        } finally {
+          if (timer) clearTimeout(timer)
+        }
+      }
+      await client.close().catch((e: unknown) => {
+        // Closing a transport that already failed: nothing is left open to report beyond this line.
+        process.stderr.write(`fabric-mcp: the session's transport did not close cleanly (${e instanceof Error ? e.message : String(e)})\n`)
+      })
+    }
   }
   const sdkOnclose = transport.onclose
   transport.onclose = () => {

@@ -694,3 +694,14 @@ Migration `20261011000090_session_enrollment.sql` is schema count 81 and `202610
 own count added, so the SQL import accepts 66–82. `PRIVATE_ARCHIVE_LIMITS` reads 66–82 and `schemaContract.json`
 82; the next unqualified schema 83 refuses before digest admission (`apps/desktop/test/ceo-private-archive-codec.test.mjs`).
 `node apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-11 against the 82-migration chain.
+
+## Schema-83 and schema-84 compatibility qualification — 2026-10-12
+
+Migration `20261011000094_project_board_operator_read.sql` is schema count 83 and `20261011000095_work_claims.sql`
+is count 84 (both ship in 0.3.5); migration 95 redefines `ceo_private_archive_canonical` to accept 66–84, and
+`PRIVATE_ARCHIVE_LIMITS.sourceSchemas` in `apps/desktop/src/main/ceoPrivateArchive.ts` reads 66–84 — the archive's
+`source_schema_version` type is now derived from that list, so the two cannot drift again (it had stopped at 83).
+`schemaContract.json` reads 84; the next unqualified schema 85 refuses before digest admission
+(`apps/desktop/test/ceo-private-archive-codec.test.mjs`). `node apps/desktop/test/run-ceo-private-archive-db.mjs`
+exit 0 on 2026-10-12 against the 84-migration chain (6 groups on an owned cluster; the running app NOT_RUN, N1).
+Found by the 0.3.5 verification, iteration 1 (DO-16, DA-8).

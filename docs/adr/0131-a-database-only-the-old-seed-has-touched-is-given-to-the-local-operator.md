@@ -95,3 +95,9 @@ undone (`legacy`: the revoke case).
 0.4.0 revokes `…0002` through `change_membership` (compare-and-set, `desktop-bootstrap:seed-retire`, a command
 receipt, never a delete), only in the shape the repair leaves, and tenure counts from the repair
 (`seedRepair.ts#retireSeedOwner`, `operatorStartedAt`).
+
+### Amendment 2 — 2026-10-12: the retirement ships in 0.3.5
+
+Amendment 1's "0.4.0" names the release it was planned for. The operator decided on 2026-10-12 that what is on
+`main` ships as 0.3.5, so 0.3.5 retires `…0002` at start, as the runbook says (`docs/launch/release-mac.md`,
+*Upgrading an existing database*). Found by the 0.3.5 verification, iteration 1 (DO-13, PL-12).

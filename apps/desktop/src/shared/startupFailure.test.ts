@@ -137,18 +137,19 @@ describe('why the app would not start', () => {
     expect(classifyStartupFailure('plain string').detail).toContain('plain string')
   })
 })
+// These cases read the macOS words; the platform is named, so the hosted Linux runner reads the same ones (0.3.5).
 
 import { startupDialog, type StartupCause } from './startupFailure.ts'
 
 describe('what the operator is actually shown', () => {
-  const f = classifyStartupFailure(enoent)
+  const f = classifyStartupFailure(enoent, 'darwin')
 
   it('leads with which precondition failed, not with a stack trace', () => {
-    expect(startupDialog(f, { retryable: true, logPath: '/l/startup.log' }).message).toBe(f.title)
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l/startup.log' }).message).toBe(f.title)
   })
 
   it('carries the remedy, the machine’s own words, and where the log is', () => {
-    const d = startupDialog(f, { retryable: true, logPath: '/l/startup.log' })
+    const d = startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l/startup.log' })
     expect(d.detail).toContain(f.remedy)
     expect(d.detail).toContain('spawnSync supabase ENOENT')
     expect(d.detail).toContain('/l/startup.log')
@@ -159,18 +160,18 @@ describe('what the operator is actually shown', () => {
     // every IPC handler twice. The boundary is observed as bootstrap crosses
     // it, never inferred from the error — a failure we cannot place is a
     // failure we must not offer to repeat.
-    expect(startupDialog(f, { retryable: true, logPath: '/l' }).buttons).toContain('Retry')
-    expect(startupDialog(f, { retryable: false, logPath: '/l' }).buttons).not.toContain('Retry')
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l' }).buttons).toContain('Retry')
+    expect(startupDialog(f, { platform: 'darwin', retryable: false, logPath: '/l' }).buttons).not.toContain('Retry')
   })
 
   it('when a retry is unsafe it says so rather than leaving a silent gap', () => {
-    const d = startupDialog(f, { retryable: false, logPath: '/l' })
+    const d = startupDialog(f, { platform: 'darwin', retryable: false, logPath: '/l' })
     expect(d.detail.toLowerCase()).toContain('reopen')
   })
 
   it('always offers a way out and a way to copy', () => {
     for (const retryable of [true, false]) {
-      const d = startupDialog(f, { retryable, logPath: '/l' })
+      const d = startupDialog(f, { platform: 'darwin', retryable, logPath: '/l' })
       expect(d.buttons).toContain('Quit')
       expect(d.buttons.some((b) => /copy/i.test(b))).toBe(true)
       expect(d.defaultId).toBeGreaterThanOrEqual(0)
@@ -183,11 +184,11 @@ import { translator } from '../renderer/src/i18n/translate.ts'
 import type { StringKey } from '../renderer/src/i18n/en.ts'
 
 describe('the dialog in the operator’s language (0.3.3)', () => {
-  const f = classifyStartupFailure(enoent)
+  const f = classifyStartupFailure(enoent, 'darwin')
   const ru = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
 
   it('speaks Russian when asked, title, remedy and buttons alike', () => {
-    const d = startupDialog(f, { retryable: true, logPath: '/l', say: ru })
+    const d = startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l', say: ru })
     expect(d.message).toBe(ru('startup.supabase-cli-missing.title'))
     expect(d.detail).toContain(ru('startup.supabase-cli-missing.remedy'))
     expect(d.detail).toContain(ru('startup.machineSaid'))
@@ -196,12 +197,12 @@ describe('the dialog in the operator’s language (0.3.3)', () => {
   })
 
   it('still carries the machine’s own words untranslated, because that is what a report is read in', () => {
-    expect(startupDialog(f, { retryable: true, logPath: '/l', say: ru }).detail).toContain('spawnSync supabase ENOENT')
+    expect(startupDialog(f, { platform: 'darwin', retryable: true, logPath: '/l', say: ru }).detail).toContain('spawnSync supabase ENOENT')
   })
 
   it('names what each button DOES index for index, so a translated label retries exactly as Retry did', () => {
     for (const retryable of [true, false]) {
-      const d = startupDialog(f, { retryable, logPath: '/l', say: ru })
+      const d = startupDialog(f, { platform: 'darwin', retryable, logPath: '/l', say: ru })
       expect(d.actions).toHaveLength(d.buttons.length)
       expect(d.actions).toEqual(retryable ? ['retry', 'copy', 'quit'] : ['copy', 'quit'])
       expect(d.actions[d.defaultId]).toBe(retryable ? 'retry' : 'quit')
@@ -210,7 +211,7 @@ describe('the dialog in the operator’s language (0.3.3)', () => {
 
   it('falls back to the cause’s own English for a cause the registry has no words for', () => {
     const odd = { ...f, cause: 'not-a-cause' as typeof f.cause, title: 'Own title', remedy: 'Own remedy' }
-    const d = startupDialog(odd, { retryable: true, logPath: '/l', say: ru })
+    const d = startupDialog(odd, { platform: 'darwin', retryable: true, logPath: '/l', say: ru })
     expect(d.message).toBe('Own title')
     expect(d.detail).toContain('Own remedy')
   })
@@ -227,4 +228,77 @@ describe('every startup cause has its words in both registries', () => {
       for (const part of ['title', 'remedy'])
         for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[`startup.${cause}.${part}`], `${cause}.${part}`).toBeTruthy()
     })
+})
+
+import { withSchemaReadiness } from '../main/schemaReadiness.ts'
+import contract from './schemaContract.json' with { type: 'json' }
+import { readManifest } from './buildManifest.ts'
+
+describe('a schema refusal says what to do in the operator’s language, with its numbers', () => {
+  const sayRu = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
+  const refused = async (found: number): Promise<unknown> => {
+    try {
+      await withSchemaReadiness({ packaged: false, manifest: readManifest(null), readSchema: async () => ({ data: found, error: null }) }, () => 'started')
+    } catch (e) { return e }
+    throw new Error('admitted')
+  }
+  it('behind: the Russian remedy names the schema found and the one needed; the copied details stay English', async () => {
+    const d = startupDialog(classifyStartupFailure(await refused(contract.minimum - 1)), { retryable: true, logPath: '/l', say: sayRu })
+    expect(d.detail).toContain(`База данных на схеме ${contract.minimum - 1}, а этой сборке нужна`)
+    expect(d.detail).toContain(`${contract.minimum}–${contract.maximum}`)
+    expect(d.detail).toContain('The database schema is')
+  })
+  it('ahead and unverified have their own words, never the generic "follow the details"', async () => {
+    const ahead = startupDialog(classifyStartupFailure(await refused(contract.maximum + 1)), { retryable: true, logPath: '/l', say: sayRu })
+    expect(ahead.detail).toContain('Установите более новый Fabric')
+    const generic = translator('ru')('startup.schema-not-ready.remedy' as StringKey)
+    expect(ahead.detail).not.toContain(generic)
+  })
+})
+
+// 0.3.5 review UX-2: the same causes on Windows and Linux. A Windows user with no Supabase CLI was told to run brew; a
+// Linux user whose Docker would not start was sent to OrbStack; the repository remedy named a DMG. Each OS gets its
+// own remedy, in both registries and in the English the log keeps.
+describe('startup remedies are each OS’s own', () => {
+  const sayIn = (locale: 'en' | 'ru') => (key: string, vars?: Record<string, string | number>) => translator(locale)(key as StringKey, vars)
+  const repository = { message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }
+  const shapes = { enoent, timedOut, startFailed, repository }
+  const macOnly = /\bbrew\b|Homebrew|OrbStack|\bDMG\b|\bMac\b|macOS/i
+  for (const platform of ['win32', 'linux'] as const)
+    for (const locale of ['en', 'ru', 'none'] as const)
+      it(`${platform}, ${locale}: no remedy names brew, Homebrew, OrbStack or a DMG`, () => {
+        for (const [name, shape] of Object.entries(shapes)) {
+          const f = classifyStartupFailure(shape, platform)
+          expect(f.remedy, `${name} English remedy`).not.toMatch(macOnly)
+          const d = startupDialog(f, { retryable: true, logPath: '/l', platform, ...(locale === 'none' ? {} : { say: sayIn(locale) }) })
+          const shown = `${d.message}\n${d.detail.replace(f.detail, '')}`
+          expect(shown, `${name} dialog`).not.toMatch(macOnly)
+        }
+      })
+  it('Windows names scoop and Docker Desktop; Linux names Docker Engine; macOS keeps brew', () => {
+    expect(classifyStartupFailure(enoent, 'win32').remedy).toMatch(/scoop/)
+    expect(classifyStartupFailure(timedOut, 'win32').remedy).toMatch(/Docker Desktop/)
+    expect(classifyStartupFailure(timedOut, 'linux').remedy).toMatch(/Docker Engine/)
+    expect(classifyStartupFailure(enoent, 'darwin').remedy).toMatch(/brew install supabase/)
+    expect(classifyStartupFailure(enoent, 'darwin').remedyKey).toBeUndefined()
+  })
+  it('every per-OS remedy key is in both registries', () => {
+    for (const platform of ['win32', 'linux'] as const)
+      for (const shape of Object.values(shapes)) {
+        const key = classifyStartupFailure(shape, platform).remedyKey
+        expect(key, JSON.stringify(shape)).toBeTruthy()
+        for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[key as string], key).toBeTruthy()
+      }
+  })
+})
+
+// 0.3.5 review ER-9: an unverified schema check names its own cause, in both registries.
+describe('an unverified schema check says which way it failed', () => {
+  for (const check of ['timeout', 'transport', 'backend-error', 'not-an-integer'])
+    it(check, () => {
+      for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[`startup.schema-not-ready.unverified.${check}`], check).toBeTruthy()
+    })
+  it('a database that answered with an error is not told to start Docker', () => {
+    expect(en['startup.schema-not-ready.unverified.backend-error' as StringKey]).not.toMatch(/Docker/)
+  })
 })

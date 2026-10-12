@@ -58,8 +58,8 @@
       "repository": "https://github.com/passioncode-ai/.github"
     },
     {
-      "id": "passioncode-platform",
-      "repository": "https://github.com/passioncode-ai/passioncode-platform"
+      "id": "relay",
+      "repository": "https://github.com/passioncode-ai/relay"
     }
   ]
 }

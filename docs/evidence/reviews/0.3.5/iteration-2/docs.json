@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "3570f1168048b8df9a0d0183d92f67adf9400d9c",
+  "report": "docs/evidence/reviews/0.3.5/iteration-2/2026-10-12-docs.md",
+  "reportSha256": "3af2eaaa109c4ec428dae77926e3df8257ce68b783d8d93fcff9bb2e1f97f538",
+  "reviewerRun": "release-035-i2-docs-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-24",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `release.yml` block scalar; `scripts/check-workflows.py` in `ci.sh` (PyYAML in `scripts/requirements-ci.txt`) parses every workflow (watched: the old file → FAIL, exit 1)"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and README say \"Authenticode-signed through Azure Artifact Signing\"; the 0.3.5 rc rehearsal on the release commit is the signature's proof, before the tag"
+      ]
+    },
+    {
+      "id": "V2-26",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Windows registration through `cmd /c \"<Fabric>\\resources\\bin\\fabric-mcp.cmd\"`, marked not yet tried on a Windows machine (CO-267)"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 6 — `windows` installs, smoke-starts and uninstalls; `linux` installs and starts the `.deb`; the AppImage is built, not started"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed with DA-2: the runbook says floor grants before 91 last at most an hour and nothing revokes them"
+      ]
+    },
+    {
+      "id": "V2-29",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CONTEXT.md *Setup console* and *Session handoff* marked 0.4.0; ADR-0119 amendment 7"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG says to install the `.deb` to open `fabric://` links and register `fabric-mcp`"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ci.sh header counts six fast and fourteen full owned-cluster suites"
+      ]
+    }
+  ]
+}

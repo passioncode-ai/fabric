@@ -12,6 +12,7 @@ import { registryDirs } from './agentRegistry.ts'
 import { locateHub } from './hub.ts'
 import { FabricMcpProxy, RUNTIME_SESSION_ID } from './fabricMcp.ts'
 import { fileCredentialStore, makeHubCall, openSessionLink } from './fabricMcpClient.ts'
+import { APP_VERSION } from '../shared/appVersion.ts'
 
 const say = (line: string): void => { process.stderr.write(line + '\n') }
 const at = process.argv.indexOf('--runner')
@@ -49,7 +50,7 @@ const proxy = new FabricMcpProxy({
 })
 
 const server = new Server(
-  { name: 'fabric', version: '0.4.0' },
+  { name: 'fabric', version: APP_VERSION },
   {
     capabilities: { tools: { listChanged: true } },
     instructions: 'Fabric is the harness for this project: call fabric_whoami before anything else; it returns the project, its context, the task and the rules of this session.'

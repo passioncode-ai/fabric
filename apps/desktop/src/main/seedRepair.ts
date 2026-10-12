@@ -119,7 +119,7 @@ export function seedRepairDb(client: SupabaseClient): SeedRepairDb {
 }
 // #endregion seed-repair
 
-// #region seed-retire — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#decision
+// #region seed-retire — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#amendments
 /**
  * The second half of the repair (CO-242, Fabric 0.4.0 wave 1, REQ-32). ADR-0131's grant gives the local operator the
  * estate and never revokes, so a repaired database still lists the old seed's `…0002` ("Operator", no sign-in) as an

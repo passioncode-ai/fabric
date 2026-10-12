@@ -105,6 +105,26 @@ else ok('the session is launched with --strict-mcp-config')
   else ok('the pack is compiled per session, before the session starts')
 }
 
+// 1b-win — on Windows the brief travels in a 0600 file, never as an argument (0.3.5 review ER-5): npm's claude.cmd runs
+// through cmd.exe, where a line break ends the command line, so the multi-line brief was cut at its first newline and
+// the preamble naming fabric_whoami never arrived.
+{
+  const winBundles = createBundleCompiler({ root, surface, platform: 'win32' })
+  const wid = randomUUID()
+  const wb = await winBundles.compile(wid, randomUUID(), null, 'claude-code', 'mcp-config-flag')
+  const i = wb.args.indexOf('--append-system-prompt-file')
+  const briefPath = wb.args[i + 1] ?? ''
+  if (i < 0 || wb.args.includes('--append-system-prompt')) fail('on Windows the brief is still an argument: ' + JSON.stringify(wb.args))
+  else if (briefPath !== path.join(root, 'sessions', wid, 'brief.md')) fail('the brief file is not in the session directory: ' + briefPath)
+  else if ((statSync(briefPath).mode & 0o777) !== 0o600) fail('the brief file is not 0600')
+  else if (!readFileSync(briefPath, 'utf8').includes('fabric_whoami')) fail('the brief file does not carry the preamble')
+  else if (wb.args.some((a) => /[\\r\\n]/.test(a))) fail('an argument still carries a line break on Windows')
+  else ok('on Windows the brief rides in a 0600 file beside mcp.json, and no argument carries a line break')
+  winBundles.discard(wid)
+  if (existsSync(briefPath)) fail('the brief file outlived its session')
+  else ok('and it dies with the session')
+}
+
 // 1c — a pack that cannot be compiled must not stop a session starting. An agent
 // with no memory pre-loaded still works; an agent that never starts does not.
 {

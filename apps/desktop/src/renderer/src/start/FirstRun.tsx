@@ -15,6 +15,7 @@ import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
 import { FALLBACK_CHANGED } from '../useFallbackChoice'
 import { CopyButton, StartCards, errorText, type StartPath } from './StartPaths'
+import { programOf } from './startParts'
 
 export interface FirstRunProps {
   /** The operator chose a path (or skipped): stamp completion, then go there. */
@@ -162,6 +163,7 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
   // the same default the agent actions compute — the fallback order's first installed agent, then a connected one.
   const preselected = rows && fallback !== undefined ? defaultBuilder(rows, fallback) : null
   const chosen = picked && rows?.some((r) => r.id === picked && mayPick(r)) ? picked : preselected
+  const pending = (rows === null && !failure) || (rows !== null && fallback === undefined)
   const how = picked === chosen || !chosen ? null
     : (fallback?.order ?? []).some((e) => e.runner === chosen) ? 'start.builder.fromOrder' : fallback === null ? 'start.builder.orderUnread' : 'start.builder.fromFound'
 
@@ -229,12 +231,13 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                       {r.state === 'found' && <small id={auth} data-authentication={r.authentication?.state ?? 'unknown'}>
                         {t(r.authentication?.state === 'authenticated' ? 'start.executor.auth.authenticated'
                           : r.authentication?.state === 'not-authenticated' ? 'start.executor.auth.notAuthenticated'
-                          : r.authentication?.state === 'unsupported' ? 'start.executor.auth.unsupported'
+                          : r.authentication?.state === 'unsupported' ? (r.authentication.reason === 'unsupported-os' ? 'start.executor.auth.unsupportedOs' : 'start.executor.auth.unsupported')
                           : 'start.executor.auth.unknown')}
                       </small>}
                       {/* #endregion executor-auth-status */}
-                      {r.state === 'unresponsive' && <small id={`${why}-state`}>{t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}</small>}
-                      {!pickable && <small id={why} className="st-exec-why">{t(r.state === 'unresponsive' ? 'first.exec.cannotPick.unresponsive' : 'first.exec.cannotPick.missing')}</small>}
+                      {r.state === 'unresponsive' && <small id={`${why}-state`}>{t('first.exec.unresponsive', { program: programOf(r.path, r.label) })}</small>}
+                      {/* A missing agent with no install command is not told to run "the command below" (UX-8). */}
+                      {!pickable && <small id={why} className="st-exec-why">{t(r.state === 'unresponsive' ? 'first.exec.cannotPick.unresponsive' : r.install ? 'first.exec.cannotPick.missing' : 'first.exec.cannotPick.missingNoCommand')}</small>}
                     </div>
                     {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}
                     {r.state === 'missing' && r.install && (
@@ -251,7 +254,9 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
         )}
         <p className="lp-meta">{t('start.executor.auth.note')}</p>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" disabled={busy} aria-busy={busy} onClick={() => void next()}>{chosen ? t('first.next') : t('first.exec.continueWithout')}</button>
+          {/* "Without an agent" only once the agents are read and none can be picked; while they are being looked for
+              (or the fallback order is still being read) it is plain Continue (UX-15, SCR-70). */}
+          <button type="button" className="lp-button primary" disabled={busy} aria-busy={busy} onClick={() => void next()}>{chosen || pending ? t('first.next') : t('first.exec.continueWithout')}</button>
           <button type="button" className="lp-button" disabled={busy} onClick={check}>{t('first.exec.recheck')}</button>
           <button type="button" className="lp-button" disabled={busy} onClick={onBack}>{t('first.back')}</button>
         </div>

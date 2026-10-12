@@ -17,6 +17,11 @@ describe('readQuotaReading', () => {
       .toEqual({ read: true, failed: 'the main process did not answer' })
   })
 
+  it("the reason is the machine's words without Electron's wrapper (UX-10)", async () => {
+    expect(await readQuotaReading(async () => { throw new Error("Error invoking remote method 'quota:read': Error: the reader timed out") }))
+      .toEqual({ read: true, failed: 'the reader timed out' })
+  })
+
   it('a read that throws synchronously is failed too', async () => {
     expect(await readQuotaReading(() => { throw 'no bridge' })).toEqual({ read: true, failed: 'no bridge' })
   })

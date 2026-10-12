@@ -1498,6 +1498,12 @@ export interface FabricApi {
     ): Promise<MemoryFact[]>
   }
   /** Claims (REQ-38): who is working on what — a project's (SCR-31) and the estate's (SCR-78 «Where work is»). */
+  /** `fabric://` links (DEC-0040): where one opened, and why if it opened home. */
+  links: {
+    onOpen(cb: (route: import('./linkRoute.ts').LinkRoute) => void): () => void
+    /** Called once the page listens: the links that opened before it did, oldest first (a cold start). */
+    pending(): Promise<import('./linkRoute.ts').LinkRoute[]>
+  }
   work: {
     project(projectId: string): Promise<ProjectWorkView>
     estate(): Promise<WhereWorkView>
@@ -1599,6 +1605,10 @@ export const IPC = {
    * message it was holding. Nothing listened, so nothing noticed.
    */
   projectsRepoChanged: 'projects:repo-changed',
+  /** Main → the main window: a `fabric://` link opened (contract DEC-0040, SCN-142). */
+  linksOpen: 'links:open',
+  /** The page is listening: what opened before it did (SCN-142, a cold start). */
+  linksPending: 'links:pending',
   quotaRead: 'quota:read',
   runsStatus: 'runs:status',
   memoryPreview: 'memory:preview',

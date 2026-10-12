@@ -48,8 +48,11 @@ try {
   fixture(`echo invoked > '${path.join(bin, 'invoked')}'`)
   assert.equal((await observe({ version: '2.1.290' })).state, 'unsupported')
   assert.equal((await observe({ id: 'unknown-vendor' })).state, 'unsupported')
-  assert.equal((await observe({ platform: 'win32' })).state, 'unsupported')
-  assert.equal((await observe({ platform: 'linux' })).state, 'unsupported')
+  assert.equal((await observe({ version: '2.1.290' })).reason, 'unverified-build', 'an unmeasured version is the version')
+  // 0.3.5 review UX-7: on Windows and Linux the cause is the system, not the agent's version — said as its own reason.
+  assert.deepEqual(await observe({ platform: 'win32' }), { state: 'unsupported', method: null, reason: 'unsupported-os' })
+  assert.deepEqual(await observe({ platform: 'linux' }), { state: 'unsupported', method: null, reason: 'unsupported-os' })
+  assert.deepEqual(await observe({ platform: 'linux', version: '2.1.290' }), { state: 'unsupported', method: null, reason: 'unsupported-os' }, 'the system is said first: no version would make it readable')
   assert.equal((await observe({ arch: 'ia32' })).state, 'unsupported')
   assert.equal((await observe({ arch: 'arm' })).state, 'unsupported')
   assert.throws(() => readFileSync(path.join(bin, 'invoked')), { code: 'ENOENT' }, 'unsupported builds never invoke a guessed command')

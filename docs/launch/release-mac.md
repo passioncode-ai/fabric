@@ -17,7 +17,13 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
   one never did (N1; nothing in the app reads the tuple yet). The coding-agent
   sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0 (those exact builds; any other build
   is reported as unverified)
-  ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
+  ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)).
+- **Windows and Linux, from 0.3.5** (CO-238): a per-user NSIS installer for Windows x64 and arm64, an AppImage and a
+  `.deb` for Linux x64 and arm64, published on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
+  beside the DMG (the website offers macOS only until its own change, step 9). The local stack needs Docker Desktop
+  (Windows, WSL2) or Docker Engine (Linux) and the Supabase CLI there too; the data folders and the rest are in
+  `AGENTS.md`, *Lifecycle*, *On Windows and Linux*. Not read there yet: a coding agent's sign-in (CO-244); not
+  available on Windows: a product's secret through Project Observatory's vault (CO-245).
 - **Docker** (Docker Desktop or OrbStack) running, and the **Supabase CLI** (`brew install supabase/tap/supabase`).
   The app ships its stack project (`config.toml`, `seed.sql`, the migrations) in `Contents/Resources/stack`
   and keeps a working copy in `~/Library/Application Support/@fabric/desktop/stack`
@@ -58,7 +64,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Exit for iteration N: … Blocking findings open: none.`, and unless the ledger's title names exactly the
    version it clears — each release has its own ledger; 0.3.0's is
    [`2026-10-03-verification.md`](../evidence/plans/2026-10-03-verification.md), 0.3.1's (the hub) is
-   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and 0.3.3's is [`2026-10-08-release-033-verification.md`](../evidence/plans/2026-10-08-release-033-verification.md), and each release's version bump points the gate at its own
+   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), 0.3.3's is [`2026-10-08-release-033-verification.md`](../evidence/plans/2026-10-08-release-033-verification.md), 0.3.4's is [`2026-10-10-release-034-verification.md`](../evidence/plans/2026-10-10-release-034-verification.md), 0.3.5's is [`2026-10-12-release-035-verification.md`](../evidence/plans/2026-10-12-release-035-verification.md), and each release's version bump points the gate at its own
    ledger (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
    Preflight also requires exactly one nonempty finalized `## X.Y.Z` changelog entry.
@@ -95,8 +101,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
 4. **Approval by checks** ([ADR-0145](../adr/0145-fabric-releases-are-approved-by-checks-and-pushing-the-tag-is-the-decision.md)).
    The `guard` job (`passioncode-ai/.github/actions/release-guard@v1`) passes the tag only when `main` contains the
    tagged commit and `ci.yml` passed on that commit — with no run it starts one on the tag and waits; otherwise it
-   refuses with the reason and the run's link. `macos` and `publish` need it; the `release` environment has no
-   reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
+   refuses with the reason and the run's link. Every job that holds the `release` environment — `macos`,
+   `windows`, `linux` — needs it, and `publish` needs those (`scripts/test/release-mac.test.mjs` checks the first);
+   the environment has no reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
    `release-approvers` may push a `v*` tag (ruleset `release-tags`).
 5. **`macos`** builds on `macos-latest`: `passioncode-ai/.github/actions/apple-signing@v1` makes a throwaway
    keychain with the CI Developer ID and names it; `release-mac.mjs --tag vX.Y.Z` gets that identity in
@@ -112,7 +119,15 @@ build signed anywhere but the `release` environment is a debug build that is nev
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
    keychain is deleted on every path.
-6. **`publish`** (it holds the GPG key) runs once `macos` has passed, then attests every file (Sigstore),
+6. **`windows` and `linux`, then `publish`.** `windows` and `linux` build natively on their runners (x64 and arm64 each)
+   and upload the installers with their receipts. `windows` installs the NSIS build, starts it once in SMOKE mode with
+   `--mcp` (the packaged `fabric-mcp` check above) and uninstalls it; `linux` installs the `.deb` and starts it the same
+   way — the AppImage is built and published, not started. Windows signs through Azure Artifact Signing when the release environment's
+   `AZURE_SIGNING_ENABLED` is `true` (passioncode-ai/.github `release-signing/products.json`); otherwise the
+   receipt says `windows_authenticode: NOT_SIGNED` and the job refuses release notes that do not say so
+   (`.github/workflows/release.yml`, the windows job's notes check). Linux packages are not code-signed; the
+   published `SHA256SUMS` is GPG-signed and every file is attested.
+   **`publish`** (it holds the GPG key) runs once `macos`, `windows` and `linux` have passed, then attests every file (Sigstore),
    writes `SHA256SUMS` and `SHA256SUMS.asc`, and publishes the release **in this repository**, marked a
    prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with
@@ -161,6 +176,10 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `vX.Y.Z/Fabric-X.Y.Z-universal.dmg`. Download the asset anonymously and check its SHA-256 and
    `spctl -a -t open --context context:primary-signature` before pointing anything at it. This repository does not
    write to the website.
+   **Windows and Linux (from 0.3.5):** the site has no route for them yet (`curl -sI
+   https://passioncode.ai/fabric/download/windows` and `/linux` answered 404 on 2026-10-12), so those installers are
+   offered on GitHub Releases only; the site's own change adds `Fabric-{version}-windows-{arch}-setup.exe`,
+   `Fabric-{version}-linux-{arch}.AppImage` and `.deb` to its policy once a release carries them.
 10. **Publish and pin the workspace from the release commit.** After the tag, from a clean `main`:
     `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child`; record the
     source commit, the workspace digest and the parent pin together in the release's verification ledger
@@ -177,8 +196,8 @@ build signed anywhere but the `release` environment is a debug build that is nev
 ### Rehearsal
 
 Push `vX.Y.Z-rc.N` on a commit of main (the push trigger ignores `-rc` tags; never reuse or move a tag),
-then `gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false`. Every job runs and waits for the same
-approvals; the signed, attested and summed set is kept as the workflow artifact
+then `gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false`. Every job runs behind the same `guard`
+as a release (no reviewers, nothing to approve); the signed, attested and summed set is kept as the workflow artifact
 `signed-release-vX.Y.Z-rc.N` for 14 days, and no release is created. The release gate applies to a
 rehearsal too: a version whose gate is not clear stops at `preflight`.
 
@@ -232,20 +251,24 @@ order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, th
 the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
 opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
 
-**0.4.0 (in development) admits schema 84** — five migrations past 0.3.4's 79, applied in order:
+**0.3.5 admits schema 84** — five migrations past 0.3.4's 79, applied in order:
 `20261011000082_write_rules_at_the_door.sql` moves the hub's write rules out of replay (CO-201) and registers the
 refusal summary (CO-200); `20261011000090_session_enrollment.sql` registers `session.enrolled@1`, the event of a coding
-agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the hub's
-grants from the journal; `20261011000094_project_board_operator_read.sql` lets the operator read the project board (COM-06/COM-07); `20261011000095_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
+agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the floor's
+`grants` (money, deletion and publication effects) from the journal; `20261011000094_project_board_operator_read.sql` lets the operator read the project board (COM-06/COM-07); `20261011000095_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
 tasks link to (`task_sources`), and registers `task.source.linked@1`, `work.handover.requested@1` and
 `session.turn.observed@1` (REQ-38, REQ-08, the session hooks' D4). `schema_version()` counts applied migrations, so
 79 + 5 = **84**, whatever the suffixes say. The procedure is the same with 84 in place of 79. A
 database at 79 upgrades in order (82 sorts after 81), which `scripts/check-migration-order.mjs` holds for every
 later migration (CO-199): no new filename may sort below the newest one recorded in `supabase/migration-ledger.json`.
-At start, 0.4.0 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
+At start, 0.3.5 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
 operator — a revoke through the membership door (`desktop-bootstrap:seed-retire`, compare-and-set at the revision read),
 never a delete, and only while that membership is still the seed's own and its person has no sign-in — and the
 profile's "Running for N days" counts from the repair, not from the failed install (CO-242, `seedRepair.ts#retireSeedOwner`).
+Floor grants (the short-lived grants for money, deletion and publication effects, at most an hour) written before
+migration 91 (`grants_from_the_journal`) carry no project, and after the upgrade they still serve every project until
+they expire or are spent (91's own note; no journal event names them, so a restore never recreates them). Nothing
+revokes them; upgrade at least an hour after the last such grant, or let them expire.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -267,7 +290,7 @@ profile's "Running for N days" counts from the repair, not from the failed insta
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1 — read it, do not assume it
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
@@ -314,7 +337,7 @@ profile's "Running for N days" counts from the repair, not from the failed insta
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 and 0.3.3).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

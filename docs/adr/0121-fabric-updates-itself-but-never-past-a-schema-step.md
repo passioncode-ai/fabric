@@ -70,3 +70,9 @@ The operator set 0.4.0's scope on 2026-10-11 (decision D-02 of the
 The target release becomes **0.4.0**, and the updater reads a signed feed for each platform the release ships —
 macOS, Windows and Linux (closing CO-246's deviation from PL-10). Copies up to and including 0.3.4 still need one
 manual update. Status stays proposed until the updater is built and verified (REQ-26).
+
+### Amendment 4 — 2026-10-12: 0.3.5 ships without the updater
+
+The operator decided on 2026-10-12 that what is on `main` ships as 0.3.5; the updater stays in 0.4.0 (Amendment 3).
+So copies up to and including **0.3.5** — every Windows and Linux install among them — still need one manual
+update. Found by the 0.3.5 verification, iteration 1 (DO-15).

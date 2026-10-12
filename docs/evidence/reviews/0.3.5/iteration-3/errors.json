@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "816d22844ff6bef41c27a2d028d35b22ee09a811",
+  "report": "docs/evidence/reviews/0.3.5/iteration-3/2026-10-12-errors.md",
+  "reportSha256": "fe691d38457ffc369afcbf4098dfc9def15b8e279743b66e9df33ffe5ce6478e",
+  "reviewerRun": "release-035-i3-errors-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-12",
+      "source": "ER-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-271"
+      ]
+    },
+    {
+      "id": "V3-18",
+      "source": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-271"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `test/work-release-session.test.mjs` joins the desktop test chain (`apps/desktop/package.json` test); it ran in the hosted full tier on the final candidate (run 38219258686)"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "ER-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "ER-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "ER-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-270"
+      ]
+    }
+  ]
+}

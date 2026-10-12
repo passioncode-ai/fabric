@@ -14,7 +14,7 @@ export function HelpScreen({ projects, onChat, onGuide, onBack, onGo }: {
   onChat: (suggestion?: string) => void
   onGuide: (projectId: string) => void
   onBack: () => void
-  /** The screens «Все управленческие возможности» names. */
+  /** The screens «Всё, чем можно управлять здесь» names. */
   onGo: (to: 'board' | 'plan' | 'pulse' | 'persona' | 'welcome') => void
 }): React.JSX.Element {
   const t = useT()

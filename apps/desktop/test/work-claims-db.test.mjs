@@ -47,6 +47,9 @@ const actor = { kind: 'system', id: 'work-claims-probe' }
 const repo = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-work-claims-')))
 mkdirSync(path.join(repo, 'docs'))
 writeFileSync(path.join(repo, 'docs/backlog.md'), '| ID | Milestone |\n|---|---|\n| CO-901 | claims |\n| CO-902 | more |\n')
+// The repository uses agent-sync: since 0.3.5 iteration 1 (UX-5) a repository without its config is not asked at all.
+mkdirSync(path.join(repo, '.claude'))
+writeFileSync(path.join(repo, '.claude/agent-sync.json'), '{}\n')
 execFileSync('git', ['init', '-q', repo])
 execFileSync('git', ['-C', repo, 'remote', 'add', 'origin', 'git@github.com:example/claims-repo.git'])
 

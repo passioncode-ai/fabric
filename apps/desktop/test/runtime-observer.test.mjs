@@ -94,7 +94,8 @@ gone[0]?.state === 'gone' && gone[0].appended === true
 // declare adapter 'none': every one of their sessions was called stalled
 // fifteen minutes in, forever.
 sessions[0].processEnded = false
-sessions[0].optionId = 'codex'
+// Codex connected by probe (codex-config-home, 0.3.5); Cline still declares 'none' (0.3.5 verification, iteration 3).
+sessions[0].optionId = 'cline'
 now += 3_600_000
 const bare = await observer.sample()
 bare[0]?.state !== 'stalled'

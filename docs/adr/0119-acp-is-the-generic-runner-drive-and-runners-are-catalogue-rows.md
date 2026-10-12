@@ -223,3 +223,18 @@ and removes it the same way ([ADR-0135](0135-setup-runs-in-the-persons-coding-ag
 Fabric still writes nothing into an agent's configuration. Runners without a surface adapter (Codex, Cline, Kimi
 Code) reach Fabric through `fabric-mcp` ([ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)),
 marked connected only by a probe (§4). 0.4.0 plan, decisions D-03 and D-04.
+
+### Amendment 6 — 2026-10-12: Codex and Kimi Code are connected by probe
+
+Amendment 5's list of runners without a surface adapter was true when written; the same day main connected two of
+them by the probe §4 requires ([probe report](../reports/2026-10-11-codex-kimi-surface-probes/README.md)): Kimi Code
+over ACP with HTTP MCP (`surfaceAdapter: 'acp-session'`) and Codex through an isolated per-session `CODEX_HOME`
+(`surfaceAdapter: 'codex-config-home'`), both in `apps/desktop/src/shared/agents.ts`; both ship in 0.3.5. Cline stays
+without one (its ACP `session/new` demands a sign-in no probe has passed) and reaches Fabric through `fabric-mcp`.
+Found by the 0.3.5 verification, iteration 1 (DO-14).
+
+### Amendment 7 — 2026-10-12: the Setup console is 0.4.0's
+
+Amendment 5 describes setup "in the Setup console" ([ADR-0135](0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md));
+that console is planned for 0.4.0 (RM-09) and does not ship in 0.3.5, where the person registers `fabric-mcp` with
+their coding agent's own CLI as the release notes say. Found by the 0.3.5 verification, iteration 2 (DO-6).

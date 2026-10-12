@@ -18,6 +18,7 @@
 // empty array is a MEASUREMENT" — and not applied to quota.
 
 import type { Quota } from './types.ts'
+import { humaniseError } from './errorText.ts'
 
 /**
  * THREE STATES, because the sentence was answering three questions.
@@ -31,13 +32,15 @@ export type QuotaReading =
 
 /**
  * Ask once and keep the answer as a reading: a read that throws is `failed` with its reason, never null
- * (audit A4-020 — the project status bar caught the throw as null, which renders as "no quota").
+ * (audit A4-020 — the project status bar caught the throw as null, which renders as "no quota"). The reason is the
+ * machine's words without the transport's wrapping ("Error invoking remote method …", 0.3.5 review UX-10); screens
+ * show it beneath their own sentence, never as the sentence.
  */
 export async function readQuotaReading(read: () => Promise<Quota | null>): Promise<QuotaReading> {
   try {
     return { read: true, quota: await read() }
   } catch (e) {
-    return { read: true, failed: e instanceof Error ? e.message : String(e) }
+    return { read: true, failed: humaniseError(e).detail }
   }
 }
 

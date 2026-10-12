@@ -109,3 +109,26 @@ The blind reviews of wave 1 failed it; the fix round (fabric commits `ce630523`,
 - **Words.** The consent is "Let <coding agent> work in <project>?" with the folder on its own line, what it gets, the
   same-user floor ("Fabric cannot prove this is <name>…") and "for a year, unless you revoke it"; Allow is only Allow —
   an enrollment never offers to connect anything (`accessWords.ts#sayRequest`, SCR-76, SCN-137).
+
+### Amendment 3 — 2026-10-12: Codex and Kimi Code have surface adapters
+
+The context above ("Codex, Cline and Kimi Code get no Fabric tools even when Fabric launches them") describes the
+tree when this decision was taken. Main has since connected Codex (`codex-config-home`) and Kimi Code
+(`acp-session`) by probe ([ADR-0119](0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md)
+Amendment 6), so a session Fabric launches in either gets Fabric's tools without `fabric-mcp`; `fabric-mcp` remains
+the path for an agent the person opens in a terminal, and for Cline. Ships in 0.3.5. Found by the 0.3.5
+verification, iteration 1 (DO-14).
+
+### Amendment 4 — 2026-10-12: which session a full binding ends, and how a session leaves
+
+From the 0.3.5 verification, iteration 2 (ER-3, ER-4, ER-5):
+
+- Past 8 live sessions per binding, the **least recently active** one ends, judged by its last call, not by when it was
+  minted (`sessionEnroll.ts#enrollSession`). Its next call is told it was evicted and that its claims were released.
+- An MCP client that leaves sends DELETE with its bearer and `mcp-session-id` (`agentSurface.ts#leave`,
+  `fabricMcpClient.ts#openSessionLink`). For an enrolled session, the agent's own bearer leaving ends the session and
+  releases its claims; a rejoin's bearer, or a launched session's, takes only itself.
+- A rejoin holds at most one bearer per session (`EnrolledSessions#rejoinBearer`); unclaimed bearers past the claim
+  window are swept at the next mint.
+- Fabric's own refusals (HTTP 400, 408, 413, 429) keep the session and reach the agent as Fabric's refusal — nothing was
+  done, and no re-enrollment happens (`fabricMcp.ts#classifyFailure`), so a fresh enrollment never resets the call budget.

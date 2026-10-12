@@ -55,7 +55,8 @@ async function bounded<T>(call: () => Promise<T>, ms: number): Promise<T | null>
 /** `connected`: whether Fabric's own tools reach a session of this agent (`AgentDescriptor.connectsToSurface`). */
 export interface ExecutorProbe { id: string; label: string; program: string; connected: boolean }
 import type { ExecutorRow } from '../shared/startPaths.ts'
-import { executableCandidates, launchFor, processTreeStopInvocation } from './platform.ts'
+import { executableCandidates, launchFor, processTreeStopInvocation, spawnHelper } from './platform.ts'
+import { ops } from './opsSink.ts'
 export type { ExecutorRow } from '../shared/startPaths.ts'
 
 /** The vendors' published install commands: Anthropic's native installer, OpenAI's, Kilo's and
@@ -195,7 +196,7 @@ function versionOf(file: string, env: Record<string, string>, timeoutMs: number)
     // through cmd.exe, and its tree is ended by taskkill (0.3.5, REQ-09, REQ-11).
     const windows = process.platform === 'win32'
     const how = launchFor(file, ['--version'], process.platform)
-    const child = spawn(how.file, how.args, { env, detached: !windows, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] })
+    const child = spawn(how.file, how.args, { env, detached: !windows, windowsHide: true, windowsVerbatimArguments: how.verbatim === true, stdio: ['ignore', 'pipe', 'ignore'] })
     let out = ''
     let done = false
     let drain: NodeJS.Timeout | undefined
@@ -204,7 +205,9 @@ function versionOf(file: string, env: Record<string, string>, timeoutMs: number)
         if (windows) {
           if (child.pid && child.exitCode === null) {
             const stop = processTreeStopInvocation(child.pid, 'SIGKILL')
-            spawn(stop.file, stop.args, { stdio: 'ignore', windowsHide: true })
+            // A taskkill that cannot start is reported, never an uncaught 'error' (ER-10): the probe has its answer.
+            spawnHelper(spawn, stop, { stdio: 'ignore', windowsHide: true }, (e) =>
+              ops.failed('executorDetect.version-stop', e, { note: 'the version probe\'s tree was not stopped; it ends on its own' }))
           }
         } else process.kill(-(child.pid as number), 'SIGKILL')
       } catch {

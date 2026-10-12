@@ -1,0 +1,166 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.5",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "895302f19c7f3a132f043c23a9e1f7a5662c99d0",
+  "report": "docs/evidence/reviews/0.3.5/iteration-1/2026-10-12-docs.md",
+  "reportSha256": "6fd62389448cd36b6025a241f13ef83e27fecce865318f4eeb3b25b9f4e34f79",
+  "reviewerRun": "release-035-i1-docs-20261012",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-26",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README says macOS, Windows and Linux with each install route, the `.deb` for `fabric-mcp`, Docker and the Supabase CLI on every OS"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook *What the installed app needs* gains Windows and Linux from 0.3.5, with CO-244 and CO-245"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook \"0.3.5 admits schema 84\"; readback 84 for 0.3.5; the FROM comment names 79 for 0.3.2–0.3.4"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG Upgrading — install 0.3.5 and start it once, quit, back up, rehearse, migrate, start again"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 6 names the windows and linux jobs, their smoke check, signing and notes, and `publish` waiting for all three"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 9 says Windows and Linux are on GitHub Releases only until the site adds their patterns (404 read 2026-10-12)"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 1 lists the 0.3.4 and 0.3.5 ledgers"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Codex registration beside Claude Code's in the CHANGELOG and README"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed with PL-5: `shared/appVersion.ts`; `test/app-version.test.mjs` refuses a literal version in any MCP server or client in main (watched)"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CONTEXT.md *Enrollment* says where 0.3.5 lists an enrolled session and where it does not; CO-256 narrowed"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CONTEXT.md *Fabric button* separates the target from what 0.3.5 does"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CONTEXT.md says the three labels are to be retired and still shown in 0.3.5"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0131 amendment 2 — the retirement ships in 0.3.5"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0119 amendment 6 and ADR-0134 amendment 3 — Codex and Kimi Code connected by probe"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0121 amendment 4 — copies up to 0.3.5 need one manual update"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the archive's schema 83/84 qualification recorded (`run-ceo-private-archive-db.mjs` exit 0); the type derived from the admitted list"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README counts — nineteen runners, six in the fast tier, fourteen in the full tier; `pnpm dev` no longer \"macOS\""
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "DO-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed with PL-2: plan row P-17 for 0.3.5"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "DO-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-251, deferred to 0.4.0 wave 7: nothing reads the tuple yet (N1), and the release jobs install and smoke-start each build natively"
+      ]
+    }
+  ]
+}

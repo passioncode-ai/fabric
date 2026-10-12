@@ -24,6 +24,8 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
+import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
+import { createLinkHold, createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
@@ -158,7 +160,7 @@ import { type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
-import { createAnalytics, installationPath, type Analytics } from './analytics'
+import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
@@ -420,6 +422,77 @@ let hub: {
   downFact: string | undefined
 } | null = null
 let mainWindow: BrowserWindow | null = null
+
+// #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
+/**
+ * `fabric://` links (contract DEC-0040): a product's Fabric button opens one; macOS hands it to `open-url`, Windows and
+ * Linux to a second instance's argv (or this process's argv at a cold start). Links that arrive before startup has
+ * finished, or while no main window exists, wait for it — and a link that finds no window opens one (ER-2), the way the
+ * consent presenter does. The link itself is never logged: it is the operator's, and a refused one may carry anything;
+ * the notice is.
+ */
+let linkRegistry: AgentRegistry | null = null
+/** Set where startup sets `windowReady` (that `let` is declared further down, after the argv read below runs). */
+let linkStartupDone = false
+/** Past eight waiting links the oldest goes, and never in silence (0.3.5 review i2 ER-7): the drop is logged (not the
+ *  link) and the window that opens them says how many were not opened. */
+const linkDropped = (where: 'before-window' | 'before-page'): void =>
+  ops.record({ op: 'link.dropped', outcome: 'ok', level: 'warn', detail: { where, limit: 8, note: 'the oldest waiting link was not opened; the window says so' }, ctx: { correlationId: ops.correlate() } })
+const pendingLinks = createLinkHold<string>(8, () => linkDropped('before-window'))
+const isFabricLink = (s: string): boolean => /^fabric:\/\//i.test(s)
+/** A resolved link waits until the page says it listens (`links:pending`), so a cold start does not lose it. */
+const linkOutbox = createLinkOutbox<LinkRoute>((result) => mainWindow?.webContents.send(IPC.linksOpen, result), 8, {
+  onDrop: () => linkDropped('before-page'),
+  mark: (newest, dropped) => ({ ...newest, dropped: (newest.dropped ?? 0) + dropped })
+})
+function acceptLink(url: string): void {
+  if (!isFabricLink(url)) return
+  const plan = linkWindowPlan({ startupDone: linkStartupDone, hasWindow: mainWindow !== null })
+  if (plan === 'open') { void openLink(url); return }
+  pendingLinks.hold(url)
+  // The new window's first load opens what waited (`linksWindowReady`).
+  if (plan === 'hold-and-open-window') createWindow()
+}
+function linksStartupDone(): void {
+  linkStartupDone = true
+}
+async function openLink(url: string, dropped = 0): Promise<void> {
+  // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
+  const result = await resolveLink(url, {
+    projects: async () => {
+      const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+      if (error) throw new Error(`the projects could not be read: ${error.message}`)
+      return (data ?? []) as Array<{ id: string; name: string }>
+    },
+    remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    services: () => (linkRegistry?.snapshot().entries ?? [])
+      .filter((e) => e.kind === 'service')
+      .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
+    failed: (e) => ops.failed('link.open', e, { note: 'the link was answered with link-unreadable' })
+  })
+  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+  // The window closed while the link was read: it waits for the one acceptLink opens.
+  if (!mainWindow) { acceptLink(url); return }
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+  linkOutbox.deliver(dropped > 0 ? { ...result, dropped } : result)
+}
+function linksWindowReady(): void {
+  const { links, dropped } = pendingLinks.take()
+  // In the order they came, so the newest is shown last and carries how many were dropped before it.
+  void (async () => {
+    for (const [i, url] of links.entries()) await openLink(url, i === links.length - 1 ? dropped : 0)
+  })().catch((e) => ops.failed('link.open', e, { note: 'the waiting links were not all opened' }))
+}
+// macOS: delivered before or after `ready`, so registered at once.
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  acceptLink(url)
+})
+// Windows and Linux: a cold start carries the link in argv.
+for (const arg of process.argv.slice(1)) if (isFabricLink(arg)) acceptLink(arg)
+// #endregion fabric-link-handler
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
 // macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
 // hard deadline ends the process if anything stalls.
@@ -739,6 +812,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const dirs = registryDirs()
   const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
   registry.refresh()
+  linkRegistry = registry
   const stopWatching = registry.watch()
   quit.onQuit(stopWatching)
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
@@ -800,7 +874,14 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     }
   }
   // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
-  const enrolled = new EnrolledSessions({ end: (sessionId) => surface.revokeSession(sessionId), state: (token) => surface.credentialState(token) })
+  // The cap evicts by last call, and an evicted session's next call is told why (0.3.5 review i2 ER-4); a rejoin's
+  // replaced bearer goes alone (ER-5).
+  const enrolled = new EnrolledSessions({
+    end: (sessionId, reason) => surface.revokeSession(sessionId, reason),
+    state: (token) => surface.credentialState(token),
+    lastSign: (sessionId) => surface.sessionSign(sessionId)?.lastSignAt ?? null,
+    drop: (token) => surface.revokeCredential(token)
+  })
   access = new AccessService({
     store: accessStore,
     registry,
@@ -903,13 +984,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
       }
     }
-    const [projects, products, agents] = await Promise.all([
+    // Live grants, callee and agent only: `agentCounts` keeps a coding agent's enrollment apart from product access.
+    const agents = async (): Promise<ReturnType<typeof agentCounts> | null> => {
+      try {
+        const r = await db.from('access_grants').select('agent_id,callee').eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null).gt('expires_at', new Date().toISOString()).limit(10_000)
+        return r.error ? null : agentCounts((r.data ?? []) as Array<{ agent_id: string; callee: string }>)
+      } catch (e) {
+        ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
+      }
+    }
+    const [projects, products, agentsNow] = await Promise.all([
       count(db.from('projects').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')),
       count(db.from('product_connections').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('removed_at', null)),
-      count(db.from('access_bindings').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null))
+      agents()
     ])
     // An unreadable count is absent, never a zero (an unknown stays unknown).
-    return Object.fromEntries(Object.entries({ projects, products_connected: products, agents_with_access: agents }).filter(([, v]) => v !== null)) as Record<string, number>
+    return Object.fromEntries(Object.entries({ projects, products_connected: products, ...(agentsNow ?? {}) }).filter(([, v]) => v !== null)) as Record<string, number>
   }
   analyticsCounts = usageCounts
   // Held by `analytics.ts` until the person answers the disclosure (A7-012): nothing leaves before that.
@@ -1124,14 +1214,15 @@ async function projectLeaseRefs(projectId: string) {
 function heldSessions(projectId?: string): HeldSession[] {
   const out = new Map<string, HeldSession>()
   for (const s of surface?.heldSessions(projectId) ?? [])
-    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
+    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
     const at = Date.parse(p.lastActivityAt)
     const held = out.get(p.sessionId)
+    // A running terminal is a console Fabric holds: «Open session» opens it (0.3.5 review UX-3).
     out.set(p.sessionId, held
-      ? { ...held, agent: held.agent ?? p.optionId, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
-      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', startedAt: Date.parse(p.startedAt), lastSignAt: at })
+      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at })
   }
   return [...out.values()]
 }
@@ -1412,6 +1503,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   /** The host window both the observer and `runs.status` judge against. */
   const hostWindow = (): HostWindow => ({ watchingSince, suspended: suspendedIntervals, sourceHealthy: true })
 
+  handle(IPC.linksPending, async (): Promise<Returns<FabricApi['links']['pending']>> => linkOutbox.claim())
   handle(IPC.metaInfo, async (e): Promise<Returns<FabricApi['meta']['info']>> => {
     // Which window this is comes from the one record the bridge is authorised by (CO-091), so the
     // window a renderer draws and the calls it is allowed cannot disagree.
@@ -4678,6 +4770,9 @@ function createWindow(): void {
     revokeWindowRoots(contentsId)
     mainWindow = null
   })
+  // A new page listens only once it has claimed what waited (`links:pending`).
+  mainWindow.webContents.on('did-start-loading', () => linkOutbox.reset())
+  mainWindow.webContents.once('did-finish-load', linksWindowReady)
   if (devServer()) void mainWindow.loadURL(devServer()!)
   else void mainWindow.loadFile(path.join(import.meta.dirname, '../renderer/index.html'))
 }
@@ -4715,14 +4810,15 @@ if (!isPrimary) {
   })
   app.quit()
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
     // Someone tried to open Fabric again. Show them the one they have rather
     // than doing nothing, which reads as the application being broken.
     const [existing] = BrowserWindow.getAllWindows()
     if (existing) {
       if (existing.isMinimized()) existing.restore()
       existing.focus()
-    }
+    } else if (linkStartupDone && !process.env.SMOKE) createWindow() // as activation does: none open (ER-2)
   })
 }
 
@@ -4738,6 +4834,13 @@ app.whenReady().then(async () => {
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
   installMenu(readSettings().locale, windowKinds)
+  // The fabric:// scheme (DEC-0040): a development run registers the electron binary with this app's entry.
+  try {
+    if (process.defaultApp && process.argv[1]) app.setAsDefaultProtocolClient('fabric', process.execPath, [path.resolve(process.argv[1])])
+    else app.setAsDefaultProtocolClient('fabric')
+  } catch (e) {
+    ops.failed('link.register', e)
+  }
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()
@@ -4783,7 +4886,9 @@ async function startOrExplain(): Promise<void> {
     // A background launch opens no window until the person activates the app (`activate` below); an
     // activation that arrived while startup was still running opens it now.
     windowReady = true
-    if (!BACKGROUND_LAUNCH || activatedDuringStartup) createWindow()
+    linksStartupDone()
+    // A link that arrived during a background launch is a person's act: it opens the window as activation does.
+    if (!BACKGROUND_LAUNCH || activatedDuringStartup || pendingLinks.size > 0) createWindow()
   } catch (e) {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log

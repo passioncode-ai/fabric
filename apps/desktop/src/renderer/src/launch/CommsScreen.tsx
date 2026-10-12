@@ -25,12 +25,15 @@ import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { en, type StringKey } from '../i18n/en'
 import { FabricStrip } from './FabricStrip'
+import { MachineDetail } from '../OperatorError'
 
 // The board is the record; polling is the v1 wake-up, on the feed's own clock (ADR-0027,
 // FEED_POLL_MS in App.tsx).
 const COMMS_POLL_MS = 2500
 /** One page, bounded like the board's own pages (migration 80 caps the RPC at 100). */
 const PAGE = 50
+/** How many empty windows one Earlier may step over before it hands the next step back to the operator. */
+const EARLIER_STEPS = 20
 /** How much of a first message stands in for a missing subject (SCN-143 step 1). */
 const FIRST_WORDS = 12
 
@@ -43,6 +46,12 @@ const contractWord = (t: Translate, group: string, value: string): string => {
   const key = `launch.comms.${group}.${value}`
   return key in en ? t(key as StringKey) : value
 }
+
+/** The page of history that lies in seqs (after, after + PAGE]: seqs are unique estate-wide, so a thread holds at
+ *  most PAGE messages there, and one read of PAGE from `after` brings every one of them — no gap (UX-1). */
+const earlierFrom = (earliestAfter: number, floor: number): number => Math.max(floor, earliestAfter - PAGE)
+/** The cursor below which the thread holds nothing: its first message is at or after its createdSeq. */
+const floorOf = (thread: Pick<CommsThread, 'createdSeq'>): number => Math.max(0, thread.createdSeq - 1)
 
 const firstWordsOf = (text: string): string => {
   const words = text.trim().split(/\s+/).slice(0, FIRST_WORDS).join(' ')
@@ -159,7 +168,8 @@ export function CommsScreen({ projects, onPulse }: {
       {threadsError && threads === null ? (
         // UNAVAILABLE, never an empty list: the board did not answer at all.
         <div className="lp-callout" role="alert">
-          <b>{t('launch.comms.unavailable', { reason: threadsError.message })}</b>
+          <b>{t('launch.comms.unavailable')}</b>
+          <MachineDetail text={threadsError.message} />
           <div className="lp-actions">
             <button type="button" className="lp-button primary" onClick={() => { confirmed.current = false; setAttempt((a) => a + 1) }}>{t('launch.comms.tryAgain')}</button>
           </div>
@@ -227,7 +237,7 @@ export function CommsScreen({ projects, onPulse }: {
             ))}
           </section>
           {chosen ? (
-            <ThreadView key={chosen.id} thread={chosen} nameOf={nameOf} onClose={() => setSelected(null)} />
+            <ThreadView key={chosen.id} thread={chosen} title={titleOf(chosen)} nameOf={nameOf} onClose={() => setSelected(null)} />
           ) : (
             <aside className="lp-panel lp-brief">
               <p className="lp-kicker">{t('launch.comms.kicker')}</p>
@@ -241,8 +251,10 @@ export function CommsScreen({ projects, onPulse }: {
   )
 }
 
-function ThreadView({ thread, nameOf, onClose }: {
+function ThreadView({ thread, title, nameOf, onClose }: {
   thread: CommsThread
+  /** The thread's name as the list says it: subject, else its first words (UX-11). */
+  title: string
   nameOf: (id: string) => string
   onClose: () => void
 }): React.JSX.Element {
@@ -257,15 +269,20 @@ function ThreadView({ thread, nameOf, onClose }: {
   const [historyBusy, setHistoryBusy] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const cursor = useRef(0)
-  /** The after_seq the OLDEST confirmed page was read from; Earlier steps back from it. */
+  /** The after_seq the OLDEST confirmed page was read from; Earlier steps back from it. Seeded by the first page,
+   *  never left at 0 — a cursor at 0 read the thread's first page and skipped everything between (UX-1). */
   const earliestAfter = useRef(0)
   const confirmed = useRef(false)
+  /** What is on screen, for Earlier to tell a new older message from one already shown. */
+  const shown = useRef<CommsMessage[] | null>(null)
+  shown.current = messages
   /** A thread the estate does not hold stops the poll: it cannot recover by asking again. */
   const gone = useRef(false)
   // The operator lands at the END of the history: the newest page, walked back with
   // Earlier (SCN-143 steps 4–5). Seqs are the estate's, so the window is approximate
   // and the dedupe below is what keeps it exact.
-  const initialAfter = Math.max(0, thread.lastSeq - PAGE)
+  const floor = floorOf(thread)
+  const initialAfter = Math.max(floor, thread.lastSeq - PAGE)
 
   useEffect(() => {
     let alive = true
@@ -283,8 +300,9 @@ function ThreadView({ thread, nameOf, onClose }: {
         confirmed.current = true
         cursor.current = reply.lastSeq
         if (initial) {
+          earliestAfter.current = initialAfter
           setMessages(reply.messages)
-          setHasEarlier(initialAfter > 0)
+          setHasEarlier(initialAfter > floor)
         } else if (reply.messages.length > 0) {
           setMessages((prev) => {
             const have = new Set((prev ?? []).map((m) => m.id))
@@ -305,28 +323,35 @@ function ThreadView({ thread, nameOf, onClose }: {
     void tick()
     const timer = setInterval(() => void tick(), COMMS_POLL_MS)
     return () => { alive = false; clearInterval(timer) }
-  }, [thread.id, attempt, initialAfter])
+  }, [thread.id, attempt, initialAfter, floor])
 
-  /** One page further back by the same cursor contract, bounded like the board's own pages. */
+  /** One page further back by the same cursor contract, bounded like the board's own pages. Seqs are the estate's,
+   *  so a window of PAGE seqs can hold none of this thread's messages: Earlier keeps stepping back (a bounded number
+   *  of reads) until it brings at least one, or reaches the thread's first seq — and only there is it "the beginning". */
   const earlier = async (): Promise<void> => {
-    const after = Math.max(0, earliestAfter.current - PAGE)
     setHistoryBusy(true)
     try {
-      const reply = await window.fabric.comms.list(thread.id, after, PAGE)
-      if (!reply.ok) {
-        // A read that fails mid-history keeps the pages already read and refuses the older page only.
-        setHistoryFailed(true)
-        return
+      const have = new Set((shown.current ?? []).map((m) => m.id))
+      const older: CommsMessage[] = []
+      let after = earliestAfter.current
+      for (let step = 0; step < EARLIER_STEPS && after > floor && older.length === 0; step++) {
+        after = earlierFrom(earliestAfter.current, floor)
+        const reply = await window.fabric.comms.list(thread.id, after, PAGE)
+        if (!reply.ok) {
+          // A read that fails mid-history keeps the pages already read and refuses the older page only.
+          setHistoryFailed(true)
+          return
+        }
+        earliestAfter.current = after
+        older.push(...reply.messages.filter((m) => !have.has(m.id)))
       }
       setHistoryFailed(false)
-      earliestAfter.current = after
       setMessages((prev) => {
-        const have = new Set((prev ?? []).map((m) => m.id))
-        const older = reply.messages.filter((m) => !have.has(m.id))
-        if (older.length === 0) setHasEarlier(false)
-        return older.length === 0 ? prev : [...older, ...(prev ?? [])]
+        const now = new Set((prev ?? []).map((m) => m.id))
+        const fresh = older.filter((m) => !now.has(m.id))
+        return fresh.length === 0 ? prev : [...fresh, ...(prev ?? [])]
       })
-      if (after === 0) setHasEarlier(false)
+      setHasEarlier(earliestAfter.current > floor)
     } catch {
       setHistoryFailed(true)
     } finally {
@@ -342,7 +367,8 @@ function ThreadView({ thread, nameOf, onClose }: {
     return (
       <section className="lp-detail" aria-label={t('launch.comms.threads')}>
         <div className="lp-callout" role="alert">
-          <b>{readError.code === 'not_found' ? t('launch.comms.notFound') : t('launch.comms.unavailable', { reason: readError.message })}</b>
+          <b>{readError.code === 'not_found' ? t('launch.comms.notFound') : t('launch.comms.unavailable')}</b>
+          {readError.code !== 'not_found' && <MachineDetail text={readError.message} />}
           {readError.code !== 'not_found' && (
             <div className="lp-actions">
               <button type="button" className="lp-button primary" onClick={() => { confirmed.current = false; setReadError(null); setAttempt((a) => a + 1) }}>{t('launch.comms.tryAgain')}</button>
@@ -359,7 +385,7 @@ function ThreadView({ thread, nameOf, onClose }: {
         <p className="lp-kicker">{thread.participants.map(nameOf).join(', ')}</p>
         <button type="button" className="lp-button" aria-label={t('launch.comms.close')} onClick={onClose}>{t('glyph.close')}</button>
       </div>
-      <h3 id="comms-thread-title" tabIndex={-1}>{thread.subject ?? t('launch.comms.untitled', { id: shortId(thread.id) })}</h3>
+      <h3 id="comms-thread-title" tabIndex={-1}>{title}</h3>
       {pollFailed && confirmedTime && (
         <div className="lp-callout" role="status"><b>{t('launch.comms.pollFailed', { time: confirmedTime })}</b></div>
       )}
@@ -376,7 +402,7 @@ function ThreadView({ thread, nameOf, onClose }: {
           )}
           {historyFailed && <div className="lp-callout" role="status"><b>{t('launch.comms.historyFailed')}</b></div>}
           {messages.map((m) => (
-            <MessageRow key={m.id} message={m} nameOf={nameOf} t={t} locale={locale} />
+            <MessageRow key={m.id} message={m} answered={m.replyTo ? (messages.find((x) => x.id === m.replyTo) ?? null) : null} nameOf={nameOf} t={t} locale={locale} />
           ))}
           <div className="lp-panel-foot">
             <span>{confirmedTime ? t('launch.comms.confirmed', { time: confirmedTime }) : t('launch.comms.reading')}</span>
@@ -387,8 +413,19 @@ function ThreadView({ thread, nameOf, onClose }: {
   )
 }
 
-function MessageRow({ message: m, nameOf, t, locale }: {
+/** What a reply answers, in words: the sender and first words of the message when it is on the page, else "an earlier
+ *  message" — never the message's id (UX-11, SCN-143 step 3). */
+function answers(t: Translate, nameOf: (id: string) => string, answered: CommsMessage | null): string {
+  if (!answered) return t('launch.comms.replyToEarlier')
+  const sender = nameOf(answered.sender.project)
+  const text = answered.body?.text?.trim()
+  return text ? t('launch.comms.replyTo', { sender, words: firstWordsOf(text) }) : t('launch.comms.replyToFrom', { sender })
+}
+
+function MessageRow({ message: m, answered, nameOf, t, locale }: {
   message: CommsMessage
+  /** The message this one answers, when it is on the page. */
+  answered: CommsMessage | null
   nameOf: (id: string) => string
   t: Translate
   locale: string
@@ -407,7 +444,7 @@ function MessageRow({ message: m, nameOf, t, locale }: {
         {principal?.provenance && <span className="lp-pill">{contractWord(t, 'provenance', principal.provenance)}</span>}
         {m.kind !== 'message' && <span className="lp-pill">{contractWord(t, 'kind', m.kind)}</span>}
       </span>
-      {m.replyTo && <p className="lp-meta">{t('launch.comms.replyTo', { id: shortId(m.replyTo) })}</p>}
+      {m.replyTo && <p className="lp-meta">{answers(t, nameOf, answered)}</p>}
       {m.request && (
         <dl className="lp-facts">
           {/* TWO separate facts, the way the contract keeps them (SCN-143 step 3). */}

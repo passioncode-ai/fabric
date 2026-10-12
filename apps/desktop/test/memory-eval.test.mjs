@@ -138,7 +138,7 @@ const UNANSWERABLE = { q: 'kubernetes ingress certificate rotation', where: 'bot
 const surface = new AgentSurface({
   db,
   journal: createDesktopJournal(journal),
-  ptys: () => ({ list: () => [] }),
+  ptys: () => ({ list: () => [], get: () => undefined }),
   estateId: ESTATE
 })
 await surface.start()

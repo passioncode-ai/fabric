@@ -1,4 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
+import { receiveLink, releaseLink, type LinkGate } from './linkArrival'
+import type { StringKey } from './i18n/en.ts'
+
+/** What a `fabric://` link's notice says (SCN-142). */
+const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
+  'conversation-soon': 'links.notice.conversation-soon',
+  'start-session': 'links.notice.start-session',
+  'link-refused': 'links.notice.link-refused',
+  'project-unknown': 'links.notice.project-unknown',
+  'service-unknown': 'links.notice.service-unknown',
+  'service-in-no-project': 'links.notice.service-in-no-project',
+  'service-in-many-projects': 'links.notice.service-in-many-projects',
+  'link-unreadable': 'links.notice.link-unreadable'
+}
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
 import type { AppSettings, FeedEvent, ProjectRow, Quota, SettingsPatch, TerminalSession } from '../../shared/types'
@@ -427,13 +442,66 @@ function Shell({
   // branch away. A window that cannot say what it is must still be able to say
   // that, which is why this branch renders rather than returning a bare div.
 
+  // #region fabric-link-open — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
+  // A `fabric://` link from a product's button (DEC-0040): main resolved where it opens; the notice says what happened.
+  // It waits while the first run is undecided or on screen (linkArrival.ts), and the page claims what opened before it
+  // listened, so a link that started Fabric cold is not lost.
+  const [linkNotice, setLinkNotice] = useState<LinkNotice | null>(null)
+  /** Links that waited past the limit and were not opened, said beside the notice (0.3.5 review i2 ER-7). */
+  const [linksDropped, setLinksDropped] = useState(0)
+  const [linkOffer, setLinkOffer] = useState<LinkRoute | null>(null)
+  const heldLink = useRef<LinkRoute | null>(null)
+  const linkDecided = useRef(false)
+  const activeKind = useRef(active.kind)
+  activeKind.current = active.kind
+  const applyLink = (r: LinkRoute): void => {
+    goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
+    setLinkNotice(r.notice)
+    setLinksDropped(r.dropped ?? 0)
+    setLinkOffer(null)
+  }
+  const applyLinkRef = useRef(applyLink)
+  applyLinkRef.current = applyLink
+  const releaseHeld = (how: Parameters<typeof releaseLink>[1]): void => {
+    const { apply, offer } = releaseLink(heldLink.current, how)
+    heldLink.current = null
+    if (apply) applyLinkRef.current(apply)
+    if (offer) setLinkOffer(offer)
+  }
+  useEffect(() => {
+    const take = (r: LinkRoute): void => {
+      const gate: LinkGate = !linkDecided.current ? 'deciding' : activeKind.current === 'welcome' ? 'first-run' : 'open'
+      const { held, apply } = receiveLink(gate, heldLink.current, r)
+      heldLink.current = held
+      if (apply) applyLinkRef.current(apply)
+    }
+    const off = window.fabric.links?.onOpen(take)
+    window.fabric.links?.pending?.().then((waiting) => waiting.forEach(take), (e) => setError(explainError(e, t)))
+    return () => off?.()
+    // Subscribing once is the point; what changes is read through refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // The first run left by any route — the rail stays visible during it — offers what waited (UX-14). Finishing it
+  // releases first (its own onFinish), so this finds nothing held then.
+  useEffect(() => {
+    if (!linkDecided.current || active.kind === 'welcome' || !heldLink.current) return
+    releaseHeld('first-run-left')
+    // Only a change of place matters; the rest is read through refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active.kind])
+  // #endregion fabric-link-open
+
   // ADR-0100: the first run is shown ONCE, to an estate with no project, and only after both the
   // settings and the project list are known — an unknown list is not an empty one.
   const firstRunOffered = useRef(false)
   useEffect(() => {
     if (firstRunOffered.current || projects === null) return
     firstRunOffered.current = true
-    if (firstRunDue(settings.firstRun?.completedAt, projects)) goTo({ kind: 'welcome' })
+    linkDecided.current = true
+    if (firstRunDue(settings.firstRun?.completedAt, projects)) {
+      activeKind.current = 'welcome'
+      goTo({ kind: 'welcome' })
+    } else releaseHeld('no-first-run')
   }, [projects, settings.firstRun?.completedAt])
 
   /** Help's "go" links: the named place, the first run included (ADR-0100). */
@@ -465,6 +533,7 @@ function Shell({
     setActive(route)
     setHonoured(null)
   }
+
 
   /** Open the exact thing, not the project it happens to live in. */
   const openEntity = (projectId: string, ref: EntityRef): void => {
@@ -692,6 +761,33 @@ function Shell({
       {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
       <UsageCountsNotice />
 
+      {linkNotice && (
+        <Banner
+          actions={
+            <Button tone="ghost" onClick={() => { setLinkNotice(null); setLinksDropped(0) }}>
+              {t('common.dismiss')}
+            </Button>
+          }
+        >
+          {t(LINK_NOTICE_KEY[linkNotice])}
+          {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
+        </Banner>
+      )}
+      {linkOffer && (
+        <Banner
+          actions={
+            <>
+              <Button onClick={() => applyLink(linkOffer)}>{t('links.offer.open')}</Button>
+              <Button tone="ghost" onClick={() => setLinkOffer(null)}>
+                {t('common.dismiss')}
+              </Button>
+            </>
+          }
+        >
+          {t('links.offer.body')}
+        </Banner>
+      )}
+
       {error && (
         <Banner
           actions={
@@ -757,6 +853,8 @@ function Shell({
               }
               if (next === 'new') newDraft()
               else goTo(next === 'home' ? { kind: 'home' } : { kind: 'start', path: next })
+              activeKind.current = next === 'new' ? 'draft' : next === 'home' ? 'home' : 'start'
+              releaseHeld(next === 'home' ? 'first-run-home' : 'first-run-chose')
             }}
           />
         )}
@@ -838,6 +936,7 @@ function Shell({
             onProject={openProject}
             onTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
             onReview={(projectId) => { openProject(projectId); revealSection('sec-board') }}
+            onError={setError}
           />
         )}
         {active.kind === 'agents' && (

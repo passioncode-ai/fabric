@@ -39,6 +39,9 @@ export interface SessionLink {
   listTools(): Promise<unknown[]>
   callTool(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>>
   close(): Promise<void>
+  /** Leaves the session for good, telling Fabric first (the HTTP session's DELETE), then closes; bounded, never
+   *  throws. Fabric ends an enrolled session whose agent left, so its claims do not outlive it (0.3.5 review i2 ER-4). */
+  leave?(): Promise<void>
   /** Set by the proxy: called once when the session ends (Fabric quit, the bearer revoked). */
   onclose?: () => void
 }
@@ -94,12 +97,42 @@ export const RUNTIME_SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
  * enrolls again; an `McpError` raised in the client (the SDK's own request timeout, an answer that does not match
  * the tool's output schema) keeps the session: Fabric is there, the call may well have run. Only a refusal before
  * the call was handled (HTTP 401/403/404, a connection that was never made) lets the answer say nothing was done.
+ *
+ * Fabric's own refusals of a call it would not take (0.3.5 review iteration 2, ER-3) — 429 (the call budget, too many
+ * at once), 413 (a body too large), 408 (a body too slow), 400 (a batch) — are answered before any tool runs, and the
+ * session is healthy: they keep the session and are passed on as Fabric's refusal, in its words. Dropping the session
+ * on them made the agent read "the outcome is unknown" and enrolled a new session with a fresh call budget, which
+ * turned the loop guard into a loop and left the old session holding its claims.
  */
 export interface CallFailure {
   /** Whether the session is gone and the proxy must enroll again. */
   drop: boolean
   /** Whether the call can have reached Fabric. */
   mayHaveRun: boolean
+  /** Fabric refused the call before any tool ran: its HTTP status and its reason, for the agent. */
+  refusal?: { status: number; reason: string }
+}
+
+/** HTTP statuses Fabric's surface answers before any tool runs, on a session that stays valid (`agentSurface.ts#handle`). */
+const REFUSED_BEFORE_ANY_TOOL = new Set([400, 408, 413, 429])
+
+/** The reason Fabric gave in its refusal body (`{"error": "…"}`, or a JSON-RPC error's message), read from the SDK's
+ *  `Error POSTing to endpoint: <body>`; null when there is none. Bounded and one line: it is shown to the agent. */
+export function surfaceReason(e: unknown): string | null {
+  const message = e instanceof Error ? e.message : typeof e === 'string' ? e : ''
+  const at = message.indexOf('{')
+  if (at < 0) return null
+  let body: unknown
+  try {
+    body = JSON.parse(message.slice(at))
+  } catch {
+    // Not Fabric's JSON body (a proxy's page, a truncated answer): no reason to pass on, and the status still says it.
+    return null
+  }
+  const error = (body as { error?: unknown } | null)?.error
+  const said = typeof error === 'string' ? error : typeof (error as { message?: unknown } | null)?.message === 'string' ? (error as { message: string }).message : null
+  // eslint-disable-next-line no-control-regex
+  return said ? said.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) || null : null
 }
 
 /** JSON-RPC code of the SDK's ConnectionClosed: the transport closed under the request. */
@@ -109,7 +142,10 @@ const NOT_CONNECTED = new Set(['ECONNREFUSED', 'ENOENT', 'EHOSTUNREACH', 'ENETUN
 export function classifyFailure(e: unknown): CallFailure {
   const err = e as { name?: unknown; code?: unknown; cause?: { code?: unknown } } | null
   if (err?.name === 'McpError') return { drop: err.code === CONNECTION_CLOSED, mayHaveRun: true }
-  // StreamableHTTPError carries the HTTP status as its code: refused before any tool ran.
+  // StreamableHTTPError carries the HTTP status as its code. Fabric refused this one call; the session is kept.
+  if (typeof err?.code === 'number' && REFUSED_BEFORE_ANY_TOOL.has(err.code))
+    return { drop: false, mayHaveRun: false, refusal: { status: err.code, reason: surfaceReason(e) ?? 'no reason given' } }
+  // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
   // fetch's TypeError: a connection that was never made sent nothing.
   if (typeof err?.cause?.code === 'string' && NOT_CONNECTED.has(err.cause.code)) return { drop: true, mayHaveRun: false }
@@ -162,7 +198,7 @@ export class FabricMcpProxy {
       s.kind === 'not-running' ? 'Fabric is not running, or its hub is closed (Settings → Agent access says why). Open Fabric, then call this tool again.'
       : s.kind === 'not-a-hub' ? `Fabric's hub could not be verified (${s.reason}). Open Fabric, then call this tool again.`
       : s.kind === 'no-project' ? s.message
-      : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — the prompt is on their screen. Call this tool again in a moment.`
+      : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — Fabric is asking them: a prompt in its window, or a notification when Fabric is in the background. Call this tool again in a moment.`
       : s.kind === 'denied' ? `The operator denied this coding agent the project ${s.projectName}. It stays denied until they clear the denial in Fabric (Agent access).`
       : s.kind === 'failed' ? `Fabric could not be reached: ${s.reason}.`
       : s.kind === 'not-enrolled' ? s.message
@@ -213,10 +249,17 @@ export class FabricMcpProxy {
         const f = classifyFailure(e)
         const cause = e instanceof Error ? e.message : String(e)
         this.deps.log(`fabric-mcp: ${name} failed (${cause})`)
+        if (f.refusal) {
+          const { status, reason } = f.refusal
+          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 ? '; wait before you call again' : ''}.`)
+        }
         if (!f.drop) return text(`${name} failed in the client before its answer arrived (${cause}). The session stays open. The outcome is unknown — check its effect before you act again.`)
         this.dropSession(link, e)
-        return f.mayHaveRun
-          ? text(`The connection to Fabric broke during ${name} (${cause}); reconnecting. The outcome is unknown — check its effect before you act again.`)
+        if (f.mayHaveRun) return text(`The connection to Fabric broke during ${name} (${cause}); reconnecting. The outcome is unknown — check its effect before you act again.`)
+        // Fabric's own reason when it gave one (a session it ended, and why); otherwise a restart is the likely cause.
+        const why = surfaceReason(e)
+        return why
+          ? text(`Fabric closed this session before ${name} reached it: ${why}. Reconnecting. Nothing of this call was done — call it again in a moment.`)
           : text(`Fabric restarted or closed this session before ${name} reached it; reconnecting. Nothing of this call was done — call it again in a moment.`)
       }
     }
@@ -252,6 +295,8 @@ export class FabricMcpProxy {
       const none = (why: string): ProxyState => this.set({ kind: 'not-enrolled', message: `Not enrolled: ${why}. A rejoin asks nothing and starts no session.` })
       if (!runtime) return none('no runtime session id was given')
       for (const { credential } of store.list()) {
+        const gone = this.moved(hub)
+        if (gone) return gone
         // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
         const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
         if (r.unauthorized) continue
@@ -264,6 +309,9 @@ export class FabricMcpProxy {
     // Every credential this runner holds, one per binding: the first that enrolls wins; a revoked one is forgotten.
     let need: { data: Record<string, unknown>; bearer: string; via: string } | null = null
     for (const { id, credential } of store.list()) {
+      // Each credential leaves only for the hub hub.json names now, with its pid alive (ER-7).
+      const gone = this.moved(hub)
+      if (gone) return gone
       const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
       if (r.unauthorized) {
         // Revoked, or minted by another Fabric: forget this one; the others (or the door) are tried next.
@@ -278,17 +326,32 @@ export class FabricMcpProxy {
       need ??= { data: errorData(r.value), bearer: credential, via: id }
     }
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
-    if (need) return this.ask(hub.mcpUrl, need.bearer, need.data, need.via)
+    if (need) return this.ask(hub, need.bearer, need.data, need.via)
 
     const r = await this.deps.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })
     if (code !== 'needs-grant') return this.set({ kind: 'failed', reason: `the door answered ${code ?? 'a session, which it never should'}` })
-    return this.ask(hub.mcpUrl, hub.doorToken, errorData(r.value), 'door')
+    return this.ask(hub, hub.doorToken, errorData(r.value), 'door')
   }
 
-  private async ask(url: string, bearer: string, need: Record<string, unknown>, via: string): Promise<ProxyState> {
+  /**
+   * hub.json read again before a credential is sent (0.3.5 review ER-7; the contract in hub.ts's header): null while it
+   * still names the hub this pass located, with its pid alive; otherwise the state to stop in. A request that waits
+   * with the operator is polled every few seconds for up to ten minutes, and in that time Fabric can quit and another
+   * program can take its port: the credential must not follow the old origin there.
+   */
+  private moved(hub: { origin: string; pid: number }): ProxyState | null {
+    const now = this.deps.locate()
+    if (!now.ok) return this.set({ kind: now.code, reason: now.reason })
+    if (now.origin !== hub.origin || now.pid !== hub.pid)
+      return this.set({ kind: 'not-running', reason: 'the Fabric hub changed since this pass found it (Fabric quit or restarted); it is looked for again' })
+    return null
+  }
+
+  private async ask(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, need: Record<string, unknown>, via: string): Promise<ProxyState> {
+    const url = hub.mcpUrl
     const projectName = typeof need.projectName === 'string' ? need.projectName : 'this project'
     const resource = typeof need.resource === 'string' ? need.resource : ''
     const store = this.deps.store
@@ -299,9 +362,11 @@ export class FabricMcpProxy {
     const kept = store.pending(resource)
     if (kept && kept.via === via) {
       this.set({ kind: 'waiting', projectName })
-      return this.poll(url, bearer, resource, projectName, kept)
+      return this.poll(hub, bearer, resource, projectName, kept)
     }
 
+    const stale = this.moved(hub)
+    if (stale) return stale
     const asked = await this.deps.hubCall(url, bearer, 'fabric.access.request', {
       agentId: this.deps.runner,
       callee: 'fabric',
@@ -327,10 +392,11 @@ export class FabricMcpProxy {
       // Not fatal: this process keeps polling; only another start would ask again.
       this.deps.log(`fabric-mcp: the waiting request could not be kept on disk (${e instanceof Error ? e.message : String(e)}); a restart will ask again`)
     }
-    return this.poll(url, bearer, resource, projectName, request)
+    return this.poll(hub, bearer, resource, projectName, request)
   }
 
-  private async poll(url: string, bearer: string, resource: string, projectName: string, request: PendingRequest): Promise<ProxyState> {
+  private async poll(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, resource: string, projectName: string, request: PendingRequest): Promise<ProxyState> {
+    const url = hub.mcpUrl
     const store = this.deps.store
     const door = request.via === 'door'
     const done = (): void => {
@@ -343,6 +409,8 @@ export class FabricMcpProxy {
     }
     for (;;) {
       await this.deps.sleep(this.deps.pollMs ?? 3000)
+      const gone = this.moved(hub)
+      if (gone) return gone
       const st = await this.deps.hubCall(url, bearer, 'fabric.access.status', { requestId: request.requestId, ...(request.pollSecret ? { pollSecret: request.pollSecret } : {}) })
       if (st.unauthorized) return this.set({ kind: 'failed', reason: 'the request could not be read' })
       if (st.isError) {
@@ -413,10 +481,11 @@ export class FabricMcpProxy {
     }
   }
 
+  /** The agent is gone (stdin ended): leave the session, so Fabric ends it and releases its claims. */
   async close(): Promise<void> {
     const s = this.session
     this.session = null
-    if (s) await s.close()
+    if (s) await (s.leave ? s.leave() : s.close())
   }
 }
 // #endregion fabric-mcp

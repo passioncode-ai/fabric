@@ -25,9 +25,11 @@ change.
 **PassionCode.ai is the organization; its toolkit is for AI-native teams.** **Fabric** is the
 product and CEO AI agent: it plans, coordinates agents, runs Projects and works with their data,
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
-Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS on
-Apple silicon and Intel Macs** (one universal DMG from 0.3.4): each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
-with its notes, checksums and attestation, and the newest one is [downloadable from its product page](https://passioncode.ai/fabric/#download).
+Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS,
+Windows and Linux**: each release on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases) carries a
+signed and notarized universal DMG for Apple silicon and Intel Macs (from 0.3.4), Authenticode-signed Windows installers for x64
+and arm64, and an AppImage and a `.deb` for Linux x64 and arm64 (from 0.3.5), with its notes, checksums and
+attestation; the newest Mac build is also [downloadable from its product page](https://passioncode.ai/fabric/#download).
 Releases are built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
 [`CHANGELOG.md`](CHANGELOG.md) ([procedure](docs/launch/release-mac.md),
 [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)). This repository holds
@@ -104,16 +106,24 @@ plan survives as org #1 and builds first.
 
 ## Quick start for a new teammate
 
-- **Install:** the signed, notarized preview for macOS (Apple silicon and Intel, from 0.3.4) from
-  [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos); it needs
-  Docker and the Supabase CLI for its local stack (below).
-- **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
+- **Install:** on a Mac, the signed, notarized universal DMG from
+  [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos); on Windows (signed NSIS
+  installer) or Linux (prefer the `.deb`: an AppImage mounts at a new path each start, which breaks a `fabric-mcp`
+  registration), from [GitHub Releases](https://github.com/passioncode-ai/fabric/releases). Every OS needs Docker
+  (Docker Desktop, or Docker Engine on Linux) and the Supabase CLI for the local stack (below).
+- **Configure:** Fabric uses the Claude Code and Codex logins already on the computer; no key is typed
   into Fabric. Coordination in this repository needs your own Notion token in `.env.agent-sync`
   (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling), visible to members of the passioncode-ai organization).
-- **MCP:** every agent session Fabric starts is given Fabric's agent surface automatically — a
+- **MCP:** every agent session Fabric starts in Claude Code, Codex, Kilo Code, Hermes Agent or Kimi Code is given
+  Fabric's agent surface automatically (Cline and a plain terminal get none) — a
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
   nothing is registered by hand. A coding agent you open yourself reaches the same harness through
-  `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`);
+  `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`,
+  or `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex`; on Windows through
+  `cmd /c "<install folder>\resources\bin\fabric-mcp.cmd" --runner …` (the install folder under
+  `%LOCALAPPDATA%\Programs\`), not yet tried on a Windows machine, CO-267);
+  `<Fabric>/bin` is `Fabric.app/Contents/Resources/bin` on macOS and the install folder's `resources/bin` on Windows
+  (`fabric-mcp.cmd`) and Linux — on Linux from the `.deb`, since an AppImage mounts at a new path each start;
   Fabric asks you once per agent and project ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)). Fabric
   drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md), members only).
 - **Contribute:** read the organization's [CONTRIBUTING.md](https://github.com/passioncode-ai/.github/blob/main/CONTRIBUTING.md)
@@ -206,7 +216,7 @@ everything ([ADR-0008](docs/adr/0008-the-fabric-is-standalone-and-the-terminal-r
 pnpm install            # workspace: apps/desktop + packages/*; postinstall fixes node-pty's spawn-helper exec bit
 supabase start          # local stack: API 54321, DB 54322, Studio 54323 (requires Docker) — the app's, holding your estates
 bash scripts/ci.sh full # every probe, against a disposable stack (below) — never the one above
-pnpm dev                # the macOS desktop app: projects, journal feed, hosted terminals
+pnpm dev                # the desktop app: projects, journal feed, hosted terminals
 pnpm --filter @fabric/desktop package   # → apps/desktop/dist/mac-arm64/Fabric.app (unsigned, local)
 ```
 
@@ -269,10 +279,10 @@ The probes that need only PostgreSQL, not the whole stack, run on clusters of th
 `apps/desktop/test/run-*-db.mjs` runner (and `run-ceo-host-sql.mjs`) `initdb`s a temporary cluster
 on a Unix socket, applies the migration chain, runs its suite and removes the cluster. They need
 PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default Homebrew's `postgresql@17`); without them a runner
-exits 2, NOT_RUN. `ci.sh fast` runs five of them (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
+exits 2, NOT_RUN. `ci.sh fast` runs six of them (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`, `grants-journal-db.test`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
 fail the fast tier — the hosted fast runner has no PostgreSQL — but is printed beside the runner and
-again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those five
+again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those six
 in the same step and every other runner after it, the same way, and fails on NOT_RUN.
 
 The full tier runs every package's test suites through
@@ -287,10 +297,11 @@ is running, prints the list so far with the number of suites it never reached, a
 with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
 ended by a signal exits 128 plus that signal's number.
 
-Eighteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+Nineteen owned-cluster runners (the eighteen `apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
-`/opt/homebrew/opt/postgresql@17/bin`). Five (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
+`/opt/homebrew/opt/postgresql@17/bin`). Five of them (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`) run in the fast tier with the
+`grants-journal-db.test` suite; the other fourteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database

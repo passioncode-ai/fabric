@@ -11,7 +11,7 @@
 # types, the design and documentation gates, the register arithmetic, and every
 # test that is pure. Run it locally before the source commit; hosted execution
 # follows the repository nightly policy, not a new push/PR dispatch. The full
-# tier runs the eleven owned-cluster suites, then starts a DISPOSABLE Supabase
+# tier runs the owned-cluster suites (six in the fast tier, fourteen in the full tier), then starts a DISPOSABLE Supabase
 # stack (its own project id, ports and volumes — scripts/test-stack.mjs), runs
 # every probe that talks to a database against it, and removes it on exit. It
 # never starts, migrates, reads or writes the operator's live stack (project
@@ -23,6 +23,13 @@
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+# A Mac outside hosted CI keeps its display awake for the run: quit.test.mjs's real-Electron dialog case does not
+# finish within its bound while the display sleeps (measured 2026-10-12: fails asleep, passes awake; CO-210). Once,
+# never in a loop: FABRIC_CI_AWAKE marks the re-executed run.
+if [ "$(uname -s)" = Darwin ] && [ -z "${CI:-}${GITHUB_ACTIONS:-}${FABRIC_CI_AWAKE:-}" ] && command -v caffeinate >/dev/null 2>&1; then
+  FABRIC_CI_AWAKE=1 exec caffeinate -d -i bash "$0" "$@"
+fi
 
 TIER="${1:-fast}"
 step() { printf '\n\033[1m── %s\033[0m\n' "$1"; }
@@ -56,6 +63,9 @@ pnpm gates:docs
 node --test scripts/test/check-regions.test.mjs
 node --test scripts/test/conflict-markers.test.mjs
 node scripts/check-conflict-markers.mjs
+# 0.3.5 verification, iteration 2, DO-1: release.yml did not parse for two days and nothing local noticed —
+# GitHub refuses a workflow that is not YAML, so a tag would have released nothing.
+python3 scripts/check-workflows.py
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
