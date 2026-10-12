@@ -6334,7 +6334,7 @@
    "COM-01"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "COM-02.1–02.3 landed (migrations 79 and 86; ADR-0149); remaining: the repin to contract DEC-0073 (pending merge), which serves com.reply and com.cancel",
+  "notes": "COM-02.1–02.3 landed (migrations 79 and 86; ADR-0149); remaining: the repin to contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned), which serves com.reply and com.cancel",
   "register": "COM plan",
   "node": "C8",
   "wave": "W2",

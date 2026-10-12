@@ -4,7 +4,7 @@
 [the comms plan](../evidence/plans/2026-10-04-project-communications.md) · amends
 [ADR-0117](0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) §3, §4 (the clock) and §6, and
 [ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md) (the consent words) ·
-resolves CO-212 · relates to contract DEC-0073 of fabric-agent-contract (pending merge), which fixes the argument
+resolves CO-212 · relates to contract DEC-0073 of fabric-agent-contract (merged at f8ae4e1; not yet pinned), which fixes the argument
 shapes this record's tools take.
 
 ## Context
@@ -111,7 +111,7 @@ pass writes nothing.
 - ADR-0117 Amendment 2 and ADR-0134 Amendment 5 record the pointers; `CONTEXT.md` gains **Idempotency epoch** and
   **Board outbox** and says how an archive carries the board's history; **Responder grant**, **Board session** and
   **Attempt** arrive with COM-03.
-- Contract DEC-0073 (pending merge) fixes the argument shapes; until Fabric repins to it, `com.reply`,
+- Contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) fixes the argument shapes; until Fabric repins to it, `com.reply`,
   `com.cancel`, `com.directory` and the responder tools answer `unsupported_capability` through
   `PINNED_COMMS_OPERATIONS` (`apps/desktop/src/main/boardService.ts`).
 - The adapter (FAA-12) can start: Switchboard (SB-47) reads a generation from the `com.enroll` receipt and from

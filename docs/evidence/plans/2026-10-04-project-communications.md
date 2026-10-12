@@ -1,6 +1,6 @@
 # Claude recovery and project communications — execution spine
 
-Owner: Fabric. Status as of 2026-10-13: recovery done and 0.3.1's release commit on main (steps 1–3 below); COM-01 closed by ADR-0117; COM-02 partial — COM-02.1–02.3 landed, the repin to contract DEC-0073 (pending merge) outstanding; COM-03 is the ready task, stacked on COM-02.3 (ADR-0149); COM-06, COM-07 and COM-12 partial.
+Owner: Fabric. Status as of 2026-10-13: recovery done and 0.3.1's release commit on main (steps 1–3 below); COM-01 closed by ADR-0117; COM-02 partial — COM-02.1–02.3 landed, the repin to contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) outstanding; COM-03 is the ready task, stacked on COM-02.3 (ADR-0149); COM-06, COM-07 and COM-12 partial.
 This source owns `COM-*` task status only. The existing hub verification ledger owns its findings;
 private consumer queues stay private. No existing backlog row is duplicated here.
 Architecture context: [RPT fabric/2026-10-04-project-communications §Canonical identities and contract](../../reports/2026-10-04-project-communications/README.md#canonical-identities-and-contract).

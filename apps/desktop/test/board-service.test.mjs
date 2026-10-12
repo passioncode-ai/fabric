@@ -230,8 +230,11 @@ test('com.reply and com.cancel: the digest is the contract\'s, ids are board ids
     assert.equal((await board.list(caller, { [forged]: 'x' })).error.code, 'invalid_arguments', `list ${forged}`)
     assert.equal((await board.get(caller, { message: M1, [forged]: 'x' })).error.code, 'invalid_arguments', `get ${forged}`)
     assert.equal((await board.readAck(caller, { message: M1, [forged]: 'x' })).error.code, 'invalid_arguments', `read_ack ${forged}`)
-    assert.equal((await board.status(caller, { [forged]: 'x' })).error.code, 'invalid_arguments', `status ${forged}`)
+    // DEC-0073: `project` is com.status's one argument — another Project's id is not_authorized (below), not malformed.
+    if (forged !== 'project') assert.equal((await board.status(caller, { [forged]: 'x' })).error.code, 'invalid_arguments', `status ${forged}`)
   }
+  // DEC-0073: com.read_ack takes no idempotency key — it is naturally idempotent, and a key is a field it does not name.
+  assert.equal((await board.readAck(caller, { message: M1, idempotency: { epoch: 1, key: 'ack-key-0001' } })).error.code, 'invalid_arguments', 'read_ack took a key')
   assert.equal((await board.reply(caller, { fence: {}, body: { text: 'x' } })).error.code, 'unsupported_capability')
   assert.equal((await board.reply(caller, { ...replyArgs, replyTo: 'abcdefgh' })).error.code, 'not_authorized')
   assert.equal((await board.cancel(caller, { ...cancelArgs, request: 'abcdefgh' })).error.code, 'not_authorized')
@@ -251,6 +254,35 @@ test('status comes from board_status: ready with unread and responders, an archi
     const down = await createBoard({ rpc: fake({ board_status: answer }).rpc }).status(caller)
     assert.equal(down.board.state, 'unavailable'); assert.equal(validators['comms-status.schema.json'](down), true)
   }
+})
+
+test('DEC-0073 com.status: a session omits its Project or names its own; another Project answers exactly as an unknown one', async () => {
+  const unknown = { data: { error: { code: 'not_authorized', message: 'This Project may not read the board.', retryable: false } }, error: null }
+  const { rpc, calls } = fake({ board_status: (args) => args.p_reader === caller.projectId ? { data: { ok: true, unread: 1, epoch: 1, responders: [] }, error: null } : unknown })
+  const board = createBoard({ rpc })
+  assert.equal((await board.status(caller, {})).board.state, 'ready')
+  assert.equal((await board.status(caller, { project: caller.projectId })).board.state, 'ready', 'its own Project')
+  assert.equal((await board.status(caller, { project: caller.projectId.toUpperCase() })).board.state, 'ready', 'its own Project in another case')
+  const n = calls.length
+  const other = await board.status(caller, { project: '79000000-0000-4000-8000-000000000099' })
+  const notAProject = await board.status(caller, { project: 'no-such-project' })
+  assert.equal(calls.length, n, 'another Project reached the board')
+  const unknownAnswer = await createBoard({ rpc: fake({ board_status: unknown }).rpc }).status({ ...caller, projectId: '79000000-0000-4000-8000-000000000098' })
+  assert.deepEqual(other, unknownAnswer, 'another Project and an unknown one answer differently')
+  assert.deepEqual(notAProject, unknownAnswer)
+  assert.equal((await board.status(caller, { project: '' })).error.code, 'invalid_arguments', 'not a Project id at all')
+  assert.equal((await board.status(caller, 'x')).error.code, 'invalid_arguments')
+})
+
+test('DEC-0073 com.status: the idempotency epoch is a session\'s — a viewer principal never reads it', async () => {
+  const rpc = fake({ board_status: { data: { ok: true, unread: 0, epoch: 4, responders: [] }, error: null } }).rpc
+  // Once the pin's comms-status carries `idempotency` (the repin flips STATUS_CARRIES_EPOCH): a session reads its epoch.
+  const session = await createBoard({ rpc, statusCarriesEpoch: true }).status(caller)
+  assert.deepEqual(session.idempotency, { epoch: 4 })
+  const viewer = await createBoard({ rpc, statusCarriesEpoch: true }).status({ ...caller, surface: 'viewer' })
+  assert.equal('idempotency' in viewer, false, 'a viewer principal was told an epoch to submit under')
+  assert.equal(viewer.board.state, 'ready'); assert.equal(viewer.unread, 0)
+  assert.equal('idempotency' in await createBoard({ rpc }).status(caller), STATUS_CARRIES_EPOCH, 'the default follows the pin')
 })
 
 test('the gate: all seventeen tools registered; an operation outside the pin answers unsupported_capability before the door', async () => {

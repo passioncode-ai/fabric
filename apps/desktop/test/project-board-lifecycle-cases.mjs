@@ -78,6 +78,18 @@ export async function run(h) {
     assert.equal('request' in noRequest, false, 'a message that is no request carries no request')
   })
 
+  await test('DEC-0073: a read mark answers when it was first made — a second com.read_ack is repeated:true with the first mark\'s at', () => {
+    const m = submit(A, PA1, message(rqThread), digest(1090)).message
+    const first = ack(A, PA2, m)
+    assert.equal(first.repeated, false, JSON.stringify(first)); assert.match(first.at ?? '', /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/)
+    const markedAt = sql(`select to_char(j.occurred_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from board_read_marks r join journal j
+      on j.estate_id = r.estate_id and j.seq = r.seq where r.estate_id='${A}' and r.reader_project='${PA2}' and r.message_id='${m}'`)
+    assert.equal(first.at, markedAt, 'the first receipt is not the mark\'s time')
+    sql(`select pg_sleep(0.01)`)
+    const again = ack(A, PA2, m)
+    assert.deepEqual(again, { ...first, repeated: true }, 'the repeat is not the first mark')
+  })
+
   await test('com.reply: a reply lands in the thread of what it answers; the same key repeats; a foreign or absent message is refused alike', () => {
     const body = { idempotency: idem(1), replyTo: rq, body: { text: 'the numbers are attached', format: 'text/markdown' } }
     const first = reply(A, PA2, body, digest(1020))

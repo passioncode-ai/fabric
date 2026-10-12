@@ -115,7 +115,7 @@ projects. The table names (`board_*`) and the event names stay as §5 reserved t
   and its cursors); §5's table list is extended, not renamed.
 - **The pin (§2).** The vendored fixtures are at fabric-agent-contract `623bf613`
   (`apps/desktop/test/contract-consumer-fixtures.mjs`, `CURRENT_COMMIT`), not `d4c8831`: the comms files are byte-identical
-  between the two. The next pin is the merge of contract DEC-0073 (pending merge); until it lands, the tools whose
+  between the two. The next pin is the merge of contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned); until it lands, the tools whose
   argument shapes only DEC-0073 fixes answer `unsupported_capability` (`PINNED_COMMS_OPERATIONS`).
 - **"ADR-0117 D3".** Migration 83's header, `commsRead.ts`, `types.ts`, SCN-143, the product model and the board's DB
   test cite "ADR-0117 D3". This record has no section D3: the citation names the operator's decision D3 of

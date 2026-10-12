@@ -21,7 +21,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   request (work that had begun becomes "may have happened" until reconciled), a passed deadline expires a queued
   request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply` and `com.cancel`
   are registered and answer `unsupported_capability` until Fabric adopts the contract decision that fixes their
-  arguments (DEC-0073, pending merge); so does every responder tool until COM-03.
+  arguments (DEC-0073, merged in the contract at f8ae4e1 and not yet pinned); so does every responder tool until COM-03.
 - **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
   it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
 - **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full

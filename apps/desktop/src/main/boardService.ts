@@ -35,7 +35,7 @@ export const isRefusal = (v: unknown): v is Refusal =>
 
 export class CommsCanonicalError extends Error {}
 
-/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (pending merge) adds. Every one
+/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) adds. Every one
  *  is registered (A7-039); the gate decides which are served. */
 export const COMMS_OPERATIONS = [
   'com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.reply', 'com.cancel', 'com.status',
@@ -48,7 +48,7 @@ export type CommsOperation = (typeof COMMS_OPERATIONS)[number]
 /**
  * The operations Fabric serves under the contract pin it vendors (spec §1.3). `com.submit` and `com.status` have
  * their schemas in the pin; `com.list`, `com.get` and `com.read_ack` take the shapes Fabric has served since 0.3.2,
- * which contract DEC-0073 (pending merge) adopts (`comms-list`, `comms-message-ref`; `com.read_ack` takes no
+ * which contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) adopts (`comms-list`, `comms-message-ref`; `com.read_ack` takes no
  * idempotency key there). `com.reply`, `com.cancel`, `com.directory` and the responder tools have no argument schema
  * in the pin yet: they answer `unsupported_capability` until the repin (COM02.3-01) adds their names here. `board-service.test.mjs` fails when the vendored pin gains a schema this set does not serve, so
  * the repin cannot land without this line.
@@ -115,6 +115,8 @@ export const commsSubmitSchema = z.strictObject({
 export type CommsSubmit = z.infer<typeof commsSubmitSchema>
 export const commsListSchema = z.strictObject({ thread: opaqueId.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional() })
 export const commsMessageRefSchema = z.strictObject({ message: opaqueId })
+/** `com.status` (contract DEC-0073, `comms-status-args`): a session omits its Project or names its own. */
+export const commsStatusArgsSchema = z.strictObject({ project: projectId.optional() })
 const idempotency = z.strictObject({ epoch: z.number().int().min(1).max(2147483647), key: z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/) })
 const body = z.strictObject({ text: z.string().min(1).max(BODY_MAX_BYTES), format: z.enum(['text/plain', 'text/markdown']).optional() })
 /** `com.reply`, a participant's form (spec §1.2, Fabric's proposal; the responder's fenced form is COM-03's). */
@@ -144,6 +146,9 @@ export interface BoardCaller {
   principal: { kind: 'agent' | 'person' | 'operator'; id: string; label?: string; provenance: 'trusted' | 'asserted' }
   /** What the session takes part under (C3: a cursor is bound to it): how it came in today, its grant with COM-03. */
   participationGrant?: string
+  /** A Project session (the default) submits and so reads its idempotency epoch; a viewer principal (a host such as
+   *  Fabric Dashboards, C9) reads com.status only and is never told an epoch (contract DEC-0073). */
+  surface?: 'session' | 'viewer'
 }
 /** The SQL door: `db.rpc` in the app, a fake in tests. */
 export type BoardRpc = (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>
@@ -153,6 +158,8 @@ export interface BoardDeps {
   /** Binds cursors to this run; a restart resets them (`cursor_reset_required`), which the contract allows. */
   cursorKey?: Buffer
   now?: () => Date
+  /** Whether com.status carries `idempotency.epoch`; the pin decides (`STATUS_CARRIES_EPOCH`), a test may say otherwise. */
+  statusCarriesEpoch?: boolean
 }
 
 const UNAVAILABLE = refusal('not_available', 'The board cannot be read right now; nothing was changed.', true)
@@ -164,6 +171,7 @@ type Kind = 'read' | 'write'
 export function createBoard(deps: BoardDeps) {
   const key = deps.cursorKey ?? randomBytes(32)
   const now = deps.now ?? (() => new Date())
+  const statusCarriesEpoch = deps.statusCarriesEpoch ?? STATUS_CARRIES_EPOCH
 
   const mac = (caller: BoardCaller, thread: string | null, seq: number): string =>
     createHmac('sha256', key).update(commsCanonical({ e: caller.estateId, g: 'participant', r: caller.projectId, s: seq, t: thread, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
@@ -327,9 +335,13 @@ export function createBoard(deps: BoardDeps) {
      * cannot be read is `unavailable`, never an empty board; an archived Project is refused, as every read is.
      */
     async status(caller: BoardCaller, input?: unknown): Promise<Record<string, unknown> | Refusal> {
-      if (input !== undefined && input !== null && (typeof input !== 'object' || Object.keys(input).length > 0))
-        // DEC-0073 (pending merge) refuses a session naming another Project; until the repin no argument is taken at all.
-        return refusal('invalid_arguments', 'com.status takes no arguments here: your Project is this session\'s.')
+      const args = commsStatusArgsSchema.safeParse(input ?? {})
+      if (!args.success) return refusal('invalid_arguments', 'com.status takes one optional argument, project: your Project is this session\'s.')
+      // Contract DEC-0073: a session's Project is its endpoint's. Naming another Project answers exactly as an unknown
+      // one does (board_status's own refusal), before the door — whether that Project exists is not this session's to learn.
+      const named = args.data.project
+      if (named !== undefined && (BOARD_ID.test(named) ? named.toLowerCase() : named) !== caller.projectId)
+        return refusal('not_authorized', 'This Project may not read the board.')
       const down = { protocol: COMMS_PROTOCOL, board: { state: 'unavailable', reason: 'The board could not be read.' }, project: caller.projectId, responders: [], transport: { telegram: 'off' } }
       const data = await call('board_status', { p_estate_id: caller.estateId, p_reader: caller.projectId }, 'read')
       if (isRefusal(data)) return data.error.code === 'not_available' ? down : data
@@ -341,9 +353,9 @@ export function createBoard(deps: BoardDeps) {
       }
       return {
         protocol: COMMS_PROTOCOL, board: { state: 'ready' }, project: caller.projectId, responders, transport: { telegram: 'off' }, unread,
-        // The epoch is a session's: the caller here is always a session. A viewer principal (Dashboards, C9) reads
-        // com.status without `idempotency` — it submits nothing (contract DEC-0073, pending merge).
-        ...(STATUS_CARRIES_EPOCH ? { idempotency: { epoch } } : {})
+        // The epoch is a session's: a viewer principal (Dashboards, C9) reads com.status without `idempotency` — it
+        // submits nothing (contract DEC-0073).
+        ...(statusCarriesEpoch && (caller.surface ?? 'session') === 'session' ? { idempotency: { epoch } } : {})
       }
     }
   }

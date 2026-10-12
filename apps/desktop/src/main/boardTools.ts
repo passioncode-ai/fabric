@@ -7,7 +7,7 @@
  * service validates every call against the contract's own shapes and answers a refusal in the contract's
  * form, `{error: {code, message, retryable}}`, so an agent meets one refusal vocabulary.
  *
- * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073, pending merge) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
+ * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073, merged in the contract at f8ae4e1 and not yet pinned) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
  * reads literals), so an agent that calls one Fabric does not serve yet is told so in the contract's words —
  * `unsupported_capability` — instead of meeting an unknown tool (ADR-0117 §2, A7-039). Which are served is
  * `PINNED_COMMS_OPERATIONS` (the vendored contract pin) intersected with what this board implements; the
