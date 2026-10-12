@@ -220,3 +220,42 @@ test('a revocation that lands between the mint and the re-read: the minted beare
   assert.equal(w.surface.credentialState(minted.token), null)
   assert.equal((await w.call(minted.token)).status, 401)
 })
+
+// D2 (fabric-agent-adapter#53): the session hooks' fabric-mcp joins the session its coding agent already holds.
+test('a rejoin joins the live session of that runtime session — the same session, a second bearer, nothing journalled', async () => {
+  const h = deps()
+  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+  h.surface.claimAll()
+  const again = await enrollSession(binding, { cwd: '/Users/me/DATA/site/src', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
+  assert.equal(again.ok, true)
+  assert.equal(again.session.sessionId, first.session.sessionId, 'the same Fabric session')
+  assert.notEqual(again.session.bearer, first.session.bearer, 'its own bearer: the first is spent by the agent')
+  assert.equal(h.journaled.length, 1, 'no second session.enrolled@1')
+  assert.equal(h.sessions.size(), 1, 'no second session registered under the binding')
+})
+
+test('a rejoin with no live session of that runtime session asks nothing and mints nothing', async () => {
+  for (const args of [{ runtimeSessionId: 'rt-other', rejoinOnly: true }, { rejoinOnly: true }]) {
+    const h = deps()
+    await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', ...args }, h.d)
+    assert.deepEqual([r.ok, r.code], [false, 'no-session'])
+    assert.equal(h.minted.length, 1, 'only the first enrollment minted')
+  }
+  const door = deps()
+  const r = await enrollSession(null, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, door.d)
+  assert.deepEqual([r.ok, r.code], [false, 'no-session'], 'through the door a rejoin is no-session, never needs-grant')
+  const revoked = deps()
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, revoked.d)
+  revoked.d.stillLive = async () => false
+  const gone = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, revoked.d)
+  assert.deepEqual([gone.ok, gone.code], [false, 'no-session'], 'a grant no longer live joins nothing')
+})
+
+test('an enrolled mint tells the surface it is an enrollment, its runner and its runtime session', async () => {
+  const origins = []
+  const h = deps()
+  h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
+  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9' }])
+})

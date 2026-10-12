@@ -20,7 +20,7 @@ yourself in a terminal can work in your project through Fabric.
 - **Fixed: agents registered on this Mac could not be connected through Fabric.** Since 0.3.1 the hub's requests,
   decisions and calls were refused by the app's own journal before they were saved, so an agent's request never reached
   you (CO-254). They are recorded now, and a test checks every event the app writes against the journal's policy.
-- **The database moves to schema 84** (from 79): five migrations, applied in order. An existing database is upgraded
+- **The database moves to schema 85** (from 79): six migrations, applied in order. An existing database is upgraded
   by the [documented procedure](docs/launch/release-mac.md) before 0.4.0 opens it.
 - **Codex and Kimi Code connect to Fabric's surface.** Sessions of both get the project-board tools
   (`com.submit`, `com.list`, `com.get`, `com.read_ack`, `com.status`) like Claude Code, Kilo Code and Hermes

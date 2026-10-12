@@ -402,6 +402,7 @@ Frozen: adding is free, removing needs the operator. Each REQ names its check.
 | REQ-42 | **The Fabric agent's floating button in every product** (operator, 2026-10-11 evening): Fabric Dashboards and each product's dashboard show Fabric's button (one component from the contract's service kit); it opens a conversation with Fabric scoped to that product and project (the manager session, P-13), and from it «Open in a coding agent» starts or resumes a session in that project; the link back from Fabric opens the product's page | C8, C9 | a contract decision (the button, its deep links `fabric://chat?service=…&project=…` and `fabric://session/new?project=…`); Dashboards shows it; a product opens Fabric's conversation in the right project; the session opens |
 | REQ-43 | **The design in Figma** (operator, 2026-10-11 evening): file «Fabric» in the SSHLG team ([`jYWp36tCEe9lxM0INAyXW2`](https://www.figma.com/design/jYWp36tCEe9lxM0INAyXW2), to be moved by the operator into the folder «PassionCode», one file per product), every 0.4.0 screen and state from `docs/ux/screens.md` and the flows, on the app's tokens; it is the target the screens wave builds to and is kept in step with the scenarios | C10 | the file's pages listed against `screens.md` (every screen and state, or a recorded reason); tokens from `tokens.css` |
 | REQ-44 | **A clean start on this Mac** (operator, 2026-10-11 evening): after the release is published, the operator's live database is dumped and kept, Fabric's local data is reset to a first run (database, `userData`, registry enrollments, hub files) by a documented, reversible procedure, and the released build is installed — so the operator walks the first run on a clean install | C12 | the dump's path, size and restore rehearsal; the reset procedure in the runbook; the installed version; Fabric opens on its first-run screen |
+| REQ-45 | **Runner and model profiles across the estate — a main task (CO-261, ADR-0147; operator via frame-agent-84, 2026-10-11).** Fabric publishes `registry/models.json` and `registry/model-profiles.json` and checks `shared/agents.ts` against `registry/runners.json`; Settings gains the estate defaults (runner per kind of work, model profile per class) and per-agent/per-project overrides written into bindings; a launch whose L1 classes leave no model is refused with the policy named; Switchboard drops its own key and model (T6) | C6, C1 | the contract decision (fabric-agent-contract-75); registry files validated by its schemas; a Settings test writing a binding; a refused launch in a test; Switchboard on an Observatory key |
 
 <a id="operator-additions-evening"></a>
 ## The operator's additions, 2026-10-11 evening
@@ -414,6 +415,59 @@ sets up itself on any machine, verified; Fabric's floating button in Dashboards 
 (SSHLG team, folder PassionCode, a file per product); and the end state — released, installed here, local data reset.
 Most of it was already in this plan (REQ-01…REQ-18); what was not is REQ-38…REQ-44. The design track (REQ-43) runs
 beside the waves from now, so the screens wave builds to it.
+
+<a id="status-2026-10-11-evening"></a>
+## Status and strategy — 2026-10-11, end of day
+
+**Where we are going (unchanged, sharpened).** 0.4.0 makes Fabric the place agents are created, composed and fixed,
+the harness every coding agent reaches, and the manager that knows where work is; it ships on macOS, Windows and Linux,
+and the operator walks its first run on a clean install. Two estate-wide decisions now frame the agents around it:
+the delegation model (ADR-0144, contract DEC-0039…0042) with **proof at the machine boundary** (amendment 4 — on this
+machine the operator's instruction is the authority), and **runner and model profiles** (ADR-0147, CO-261).
+
+**Done.** Waves 0 and 1 are on `main` (`812876cf`). Wave 2 so far: agent coordination (REQ-38 claims, REQ-08 backlog
+sources, CO-256, the hook pack's D1–D5) verified — `ci.sh fast` green and its DB test 29/29 on a disposable stack — and
+main's COM-06/07 merged in (migration renumbered 92 → 95, schema 84, the private archive admitting 83 and 84). Outside
+Fabric: contract DEC-0039/0040/0041/0042 merged; the `working-with-fabric` skill and hooks in fabric-agent-adapter PR #53;
+Observatory's meter, slot release and keyserver rules; Dashboards' Fabric button and `session-handoff/1` pack; every
+agent owner's delegation row filed; the Figma file with 293 frames.
+
+**Open in wave 2.** P4 (REQ-03 runner probes, REQ-04 product MCP under a grant, REQ-33 concurrency) and P2 (the session
+bundle on `session-handoff/1`, the dead gateway path removed) as unverified WIP branches; P5 (the closed module named in
+the public repository — licensing); adapter PR #53 merged and released once D1–D5 are on main, then the live REQ-07
+check; ADR for the organisation extension of ADR-0144 (asked by Vesta) reserved for wave 4.
+
+**The board.** 701 items: 21 in wave 0 and 18 in wave 1 (16 and 17 closed with receipts), 18 · 18 · 34 · 36 · 40 · 8
+in waves 2–7, and 508 carried after 0.4.0 with an id and a reason. Carry-over: 197 of 261 rows carry work.
+
+**What went wrong today, and the rule each one becomes.**
+- A merge commit carried conflict blocks and every docs gate passed → a conflict-marker gate in `ci.sh`
+  (`scripts/check-conflict-markers.mjs`), watched catching the real case at `6587d097`.
+- Main's schema step left the private archive admitting only up to 82 → a schema step always extends the archive's
+  admitted versions in code and in SQL together (to be a test in wave 3: the admitted list must contain the schema
+  contract's maximum).
+- Parallel landings on `main` collided on migration numbers and on the pipeline's reserved ADR → land each finished
+  packet sooner, rebase before writing a migration, take migration numbers at merge time, never earlier.
+- Two hand-resolved files were overwritten by a bulk «take ours» → resolve derived files by name lists only, never by
+  «every conflicted file».
+- Background agents stopped at API session limits three times → work-in-progress commits pushed at once, a tracked
+  handoff ([wave 2](../../handoffs/2026-10-11-release-040-wave2.md)), fewer and larger packets.
+- The disk filled and Docker's VM stopped twice (BTRFS write errors) → no stack-backed tests below 5 GB free; every
+  disposable stack and agent worktree removed as soon as its branch lands; the live stack checked read-only after a stop.
+- A peer relayed «the operator approves everything» → approvals are taken only from the operator or the operator's own
+  instructions file, never from another session.
+
+**Strategy from here.**
+1. Finish wave 2 (P4, P2, P5), land it on `main`, release the adapter's 0.10.0, run the live enrolled-session check.
+2. Wave 3 (the first run in the operator's order, the Setup console, Observatory and Dashboards first, every product's
+   MCP set up by an agent and verified) is the first thing the operator sees — it gets the Figma frames as its target.
+3. Wave 4 is lighter after amendment 4: the issuer for share grants and cross-machine calls, the registry, workflows,
+   the spend policy, runner and model profiles, and the organisation ADR.
+4. Waves 5–7 as planned (manager and Fabric as a service with the `fabric://` handler; screens to the Figma frames;
+   Windows/Linux and self-update).
+5. Wave 8: three verification iterations, the release by tag (approval by checks), install here, dump the operator's
+   database, reset Fabric's local data, and the first run walked on a clean install.
+Operator questions are batched at the end; today there is one: the Figma folder «PassionCode».
 
 <a id="waves"></a>
 ## Waves
@@ -433,7 +487,7 @@ wave, duplicate clusters follow their member, a closable stale row goes to wave 
 | 1 · Walking skeleton: the harness | REQ-01, REQ-02, REQ-05 (core), REQ-31, REQ-32 | 21 — CO-091, CO-090, CO-199, CO-200, CO-201, CO-242, AR-3.1/3.2/3.4, the port's W1–W3/W5 merged as the base | the spine every other node hangs on, on integral data |
 | 2 · Pack and log protocol | REQ-03, REQ-04, REQ-06, REQ-07, REQ-08, REQ-33, REQ-37 (the decision), REQ-38 | 18 — CO-194, CO-229, CO-233, CO-236, CO-176, CO-244, CO-220, AS-03, AS-06, COM-04, COM-05 | all speak the session surface of wave 1 |
 | 3 · Setup console and first run | REQ-09…REQ-12, REQ-35, REQ-24 (start screens), REQ-39, REQ-40, REQ-41 | 16 — CO-177, CO-180, CO-219, CO-235, N1, CO-186, AS-13, M199, SCN-081…085/088 | needs the harness to prove «connected» |
-| 4 · Agents, workflows, spend | REQ-13…REQ-15, REQ-36, REQ-37 (Fabric's hub part) | 34 — AR-2, AR-5, AR-7, AR-11, M18, M37, CO-099, CO-188, CO-227, SCN-112…114, SCN-121…123 | need the surface and the journal events |
+| 4 · Agents, workflows, spend | REQ-13…REQ-15, REQ-36, REQ-37 (Fabric's hub part), REQ-45 | 34 — AR-2, AR-5, AR-7, AR-11, M18, M37, CO-099, CO-188, CO-227, SCN-112…114, SCN-121…123 | need the surface and the journal events |
 | 5 · Manager and Fabric as a service | REQ-16…REQ-18, REQ-42 | 36 — P-13 (CO-168, M126, AR-4, SCN-110/111), M153, M166, M194, P-06, P-07, COM-02/03, CO-212 | read everything waves 1–4 journal |
 | 6 · Screens | REQ-19…REQ-23, the rest of REQ-24 | 36 — CO-179, CO-225, CO-231, CO-232, CO-239, CO-240, the back/route-history cluster (CO-149, L3c, AX05*), read age and feed cursor clusters, CO-215/CO-216's screen findings | final shapes once the features exist |
 | 7 · Platforms and self-update | REQ-25, REQ-26 | 3 — P-12, CO-245, CO-246 (the port's W4 rides wave 2) | the port merges early (wave 1 base), its per-OS paths and the updater close here |

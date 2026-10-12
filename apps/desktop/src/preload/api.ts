@@ -233,6 +233,11 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       search: (projectId, query, includeSuperseded, category) =>
         ipc.invoke(IPC.memorySearch, projectId, query, includeSuperseded, category)
     },
+    work: {
+      project: (projectId) => ipc.invoke(IPC.workProject, projectId),
+      estate: () => ipc.invoke(IPC.workEstate),
+      release: (claimId) => ipc.invoke(IPC.workRelease, claimId)
+    },
     terminal: {
       options: () => ipc.invoke(IPC.terminalOptions),
       fallback: (projectId, kind, permissionMode, preset) => ipc.invoke(IPC.terminalFallback, projectId, kind, permissionMode, preset),

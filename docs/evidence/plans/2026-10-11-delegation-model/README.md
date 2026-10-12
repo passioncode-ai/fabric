@@ -37,7 +37,7 @@ Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers
 
 | Agent (session) | Today [audit] | Changes | Steps |
 |---|---|---|---|
-| copylot-agent (copylot-agent-e6) | one token for every caller; per-call `maxChargeUsd`; wallet per workspace | accept the token: author of a job = outermost `act` (AU-07), job access by `sub` + caller; charge against the token's grant via Observatory's grant-check (SP-01); revisit DEC-0039 "one token" → descriptor token for the host only; `effect` already declared per tool — keep | 4 |
+| copylot-agent (copylot-agent-e6) | one token for every caller; per-call `maxChargeUsd`; wallet per workspace | accept the token: author of a job = outermost `act` (AU-07), job access by `sub` + caller; charge against the token's grant via Observatory's grant-check (SP-01); revisit copylot DEC-0039 "one token" (Copylot's own decision, not the contract's) → descriptor token for the host only; `effect` already declared per tool — keep | 4 |
 | project-observatory (-85, -3d) | stdio has no caller; HTTP bindings; keyserver's self-named caller header; no `grant check` | be the meter (step 3); keyserver trusts the token, not `X-Observatory-Caller`; stdio MCP stays the operator's local agent; correct `ARCHITECTURE.md:604` (identity is the hub's, the gateway is gone) | 3, 4 |
 | fabric-dashboards (-76) | calls every service with that service's descriptor token, which can mint login codes | read feeds, well-known and usage with the descriptor token as the host (allowed); every capability call (control, `doctor`/`update` that act) through a minted token; FD-40 builds on the grant-check of step 3 | 5 |
 | fabric-inbox (-df) | per-key Cloudflare Access identity; `X-Fabric-Accounts` narrowing; confirm codes | accept `Fabric-Delegation` on hub-forwarded calls and attribute to its chain (not to the `fabric` key alone); keep its keys for people and outside callers; map refusals; confirm codes stay for people, `approval/1` between agents | 4, 6 |
@@ -93,7 +93,21 @@ Each owner filed its row on its own board and named it back; the status lives th
 | agent-stack (sshlg-skills) | B-155, the interop doctrine | ssheleg/agent-stack#42 |
 | frame-agent | BL-059 (folds BL-056, BL-057) | branch `agent/bl-059-delegation`, `93f2772` |
 | nicegram-business | B-765 (deferred until its MCP returns) | nicegram/nicegram-business PR #379, `393ebf4b` |
+| prowl-research.default (PROWL-AI/research-agent, a local HTTP MCP — not ssheleg/research-agent, not prowl.chat) | B-020 (step 4, callee side; its contract pin moves to the merged DEC-0039/0041) | its own board |
 
 **A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
 lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for
 the dashboard it shows keeps using the descriptor token; it is not a capability call.
+
+**A ruling for webpilot's C17 (BL-015):** each per-agent project link the operator confirmed becomes a standing grant —
+`audience` webpilot, `capabilities` the webpilot tools that link allows, `project` the linked project, `effectCeiling` from
+C13's effect classes; the operator's confirmation in C17 is the grant decision (DEC-0039's grant shape).
+
+**Step 1 done, 2026-10-11:** fabric-agent-contract DEC-0039 and DEC-0040 merged (`8e49fbd`, PR #30) after a blind
+seam review and its re-check; the meter verifies an onward token minted for it (aud = the meter), presented in
+`Authorization`; follow-ups are CO-260 and two adapter rows in the contract's handoff.
+
+**The machine boundary, 2026-10-11 (ADR-0144 amendment 4, the operator).** On this machine the operator's instruction is
+the authority: no token, approval or grant record is needed locally, money limits and human gates still bind. Every row
+above is required only for a service reachable from another machine or from an external caller (a share grant); for the
+rest it is optional attribution. Owners keep their rows and re-scope them; none has to change a local path.

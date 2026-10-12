@@ -4399,7 +4399,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 669,
-        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes",
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -10441,7 +10441,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 1939,
-        "coverage_claim": "none yet",
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -10736,7 +10736,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2007,
-        "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 84 (`supabase/migrations/20261011000097_project_board_thread_aggregates.sql`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -33228,7 +33228,7 @@
         "SCR-31",
         "SCR-78"
       ],
-      "coverage": "none yet",
+      "coverage": "partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Before starting, every agent in a project knows who holds what there; its own work is claimed on the project's board; related work is flagged to it and to the operator; every claim and release is journalled and visible on the project page and in «Where work is» — through Fabric, never a second board.",
@@ -33251,7 +33251,7 @@
         "SCR-31",
         "SCR-39"
       ],
-      "coverage": "none yet",
+      "coverage": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` and `apps/desktop/src/main/workRead.ts#readWhereWork`; «Log under a project…» and its consent are REQ-17's, wave 5",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One screen answers where every piece of work in the estate is right now and who holds it, with the work no project owns named instead of hidden.",
@@ -33293,7 +33293,7 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 84 (`supabase/migrations/20261011000097_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`",
+      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator watches projects coordinate without joining a session, and every message on screen is one the board holds — the screen shows the board's truth, never a renderer's cache of it.",

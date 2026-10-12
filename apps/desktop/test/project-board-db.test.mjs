@@ -245,12 +245,12 @@ await test('operator read refuses what is not there and never writes: no marks, 
   refuses(`set role authenticated; select board_list_operator('${A}',null,0,10)`, /permission denied/)
 })
 
-// Migration 84 (suffix 97) — the thread aggregates the filter slice reads (SCN-143, amended 2026-10-11;
+// Migration 85 (suffix 100) — the thread aggregates the filter slice reads (SCN-143, amended 2026-10-11;
 // COM-07): `kinds` (what a thread HOLDS, sorted and distinct) and `openRequests` (requests outside the
 // contract's terminal set — completed/failed_known/cancelled/expired — with outcome_unknown open, because
 // only reconciliation leaves it). The filters narrow the already-answered list and never re-query the
 // board, so the aggregate has to come from here. To WATCH these fail, run the runner with
-// FABRIC_SKIP_MIGRATION=20261011000097_project_board_thread_aggregates.sql.
+// FABRIC_SKIP_MIGRATION=20261011000100_project_board_thread_aggregates.sql.
 await test('thread aggregates: kinds are what the thread holds, sorted and distinct; a queued request is open', () => {
   const t = threadsOp(A).threads.find((x) => x.id === threadA)
   assert.ok(t, 'threadA missing')

@@ -170,7 +170,17 @@ const EVENT_FIELDS: Record<string, Fields> = {
   'memory.project.recorded@1': { id: required(uuid), claim: required(text), source_ref: optional(nullable(reference)),
     kind: optional(enumeration(['note', 'finding', 'decision', 'trap'])), supersedes: optional(nullable(uuid)),
     category: optional(enumeration(INSIGHT_CATEGORIES)), about: optional(nullable(about)),
-    occurrence: optional(nullable(occurrence)), valid_from: optional(nullable(timestamp)), ...metadata }
+    occurrence: optional(nullable(occurrence)), valid_from: optional(nullable(timestamp)), ...metadata },
+  // Claims (migration 95, REQ-38/REQ-08; main/workTools.ts). A backlog row's address is references, never text.
+  'task.source.linked@1': { task_id: required(uuid), repository: required(reference), repo_path: required(reference),
+    path: required(reference), row_id: required(reference), ...metadata },
+  'work.renewed@1': { work: required(uuid), owner: required(uuid), expires_at: required(timestamp), claim_id: optional(uuid), ...metadata },
+  'work.handover.requested@1': { claim_id: required(uuid), work: required(uuid), requested_by: required(uuid),
+    note: optional(nullable(text)), ...metadata },
+  // A turn's facts from the working-with-fabric hooks (D4): ids and counts, no path and no content.
+  'session.turn.observed@1': { session_id: required(uuid), runtime: required(reference), runtime_session_id: required(reference),
+    observed_at: required(timestamp), head: optional(nullable(reference)), files_changed: optional(nullable(integer(0))),
+    lines_added: optional(nullable(integer(0))), lines_removed: optional(nullable(integer(0))), idempotency_key: required(reference), ...metadata }
 }
 export const COVERED_INGRESS_EVENTS: readonly string[] = Object.freeze(Object.keys(EVENT_FIELDS))
 

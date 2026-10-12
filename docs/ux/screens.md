@@ -99,7 +99,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 ## Design system
 
 - **Style pack:** `paperclip` (SHELEG), adopted 2026-08-31 — see `foundation.md` → Design tooling
-- **Figma library:** none — Figma disabled for this iteration
+- **Figma file:** «Fabric», SSHLG team — [`jYWp36tCEe9lxM0INAyXW2`](https://www.figma.com/design/jYWp36tCEe9lxM0INAyXW2) (0.4.0 REQ-43, created 2026-10-11; to be moved into the folder «PassionCode», one file per product). 14 pages: cover and index, foundations (153 variables from `tokens.passioncode.css`, `tokens.app.css`, `tokens.paperclip.css`, dark default and light), 30 components bound to variables, and 293 frames named `SCR-xx · <screen> · <state>` for every 0.4.0 screen and state in this file; what is not drawn and why is on its cover page. It is the target the screens wave builds to; this file stays the source of truth
 - **Tokens in code:** `apps/desktop/src/renderer/src/tokens.paperclip.css` (pack, verbatim) + `tokens.app.css` (semantic aliases); enforced by `scripts/check-design.mjs`
 - **Component source:** none yet
 - **Assets:** none yet
@@ -699,7 +699,7 @@ different destination under the same name.
   | who-is-working none | no claim is live | none | one line: nobody is working in this project right now — from a read board, never before it answers |
   | who-is-working stale | a claim is past its expiry with no sign of life, or lapsed with its session | none | «no sign since <time>», or «lapsed — the session ended», never "working" |
   | release confirm | «Release…» chosen on a claim | none | a confirmation naming the agent and the task: the claim ends now and the agent is told on its next call; Release and Cancel, Cancel focused |
-- **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes
+- **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`
 - **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140
 - **Resources:** `project_tasks`, journal, `agent_stages`, leases
 - **Status:** designed
@@ -1958,7 +1958,7 @@ frames; the visual layer is the recorded style pack's tokens.
   | not-logged | «Don't log here» chosen | none | the session stays as «not logged here»; that folder is not asked about again |
   | long-content | many projects or long folder paths | none | rows wrap; paths keep their last segment visible |
 - **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
-- **Coverage:** none yet
+- **Coverage:** partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5
 - **Scenarios:** SCN-141, SCN-140
 - **Resources:** the journal's projections (sessions, `work.claimed@1` claims, tasks in review, heartbeats); [ADR-0136](../adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md) §2 for the admission; the viewer tool `fabric.work.overview` of [ADR-0139](../adr/0139-fabric-is-a-service-its-descriptor-its-well-known-document-and-a-read-only-viewer.md) reads the same facts.
 - **Status:** designed
@@ -2018,7 +2018,7 @@ frames; the visual layer is the recorded style pack's tokens.
   | unavailable | the board/RPC did not answer | none | says the board is unavailable with Try again; NEVER an empty list |
   | not-found | a thread outside this estate | none | said as not found, not as empty |
   | failed | one poll or one history page failed | none | the last confirmed page stays, saying when it was confirmed; the next success resumes from the cursor |
-- **Coverage:** `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 84 (`supabase/migrations/20261011000097_project_board_thread_aggregates.sql`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)
+- **Coverage:** `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)
 - **Scenarios:** SCN-143
 - **Resources:** [ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md), [the comms plan](../evidence/plans/2026-10-04-project-communications.md).
 - **Implementation tasks:** COM-07

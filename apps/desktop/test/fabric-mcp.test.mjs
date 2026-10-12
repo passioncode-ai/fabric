@@ -38,7 +38,7 @@ function memCreds(initial = [], { failSave = null } = {}) {
   }
 }
 
-function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allowed'], enroll = (bearer) => (bearer === LIVE.doorToken ? 'needs-grant' : 'ok'), collected = false } = {}) {
+function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allowed'], enroll = (bearer) => (bearer === LIVE.doorToken ? 'needs-grant' : 'ok'), collected = false, extra = {} } = {}) {
   const calls = [], opened = [], logs = [], slept = []
   let statusIdx = 0, changed = 0
   const label = (b) => (b === LIVE.doorToken ? 'door' : b === CRED ? 'cred' : b === CRED2 ? 'cred2' : b)
@@ -63,7 +63,7 @@ function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allow
     runner: 'claude-code', cwd: '/Users/me/DATA/site',
     locate: () => hub, store,
     hubCall, openSession: async (url, bearer) => { opened.push(bearer); return link },
-    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0
+    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0, ...extra
   })
   proxy.onToolsChanged = () => { changed++ }
   return { proxy, calls, opened, link, store, logs, slept, get changed() { return changed } }
@@ -351,4 +351,42 @@ test('the session link keeps the SDK\'s own close handling: a request waiting wh
   const outcome = await Promise.race([waiting.then(() => 'answered', (e) => `failed: ${e.message}`), new Promise((r) => setTimeout(() => r('HUNG'), 1000))])
   assert.match(outcome, /^failed: .*[Cc]onnection closed/)
   assert.equal(told, 1)
+})
+
+// D1/D2 (fabric-agent-adapter#53): the runtime session id travels with every enrollment; a rejoin asks nothing.
+test('the runtime session id is sent with every enrollment, credential and door alike', async () => {
+  const h = harness({ extra: { runtimeSessionId: 'rt-42' } })
+  await h.proxy.connectOnce()
+  const enrolls = h.calls.filter((c) => c.tool === 'fabric.session.enroll')
+  assert.ok(enrolls.length >= 2)
+  for (const c of enrolls) assert.deepEqual(c.args, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42' })
+})
+
+test('a runtime session id that is not one is not sent', async () => {
+  const h = harness({ store: memCreds([CRED]), extra: { runtimeSessionId: 'bad id with spaces' } })
+  await h.proxy.connectOnce()
+  assert.deepEqual(h.calls[0].args, { cwd: '/Users/me/DATA/site' })
+})
+
+test('--rejoin-only joins through a held credential, never the door, never a request, and forgets nothing', async () => {
+  const store = memCreds([CRED])
+  const h = harness({ store, extra: { runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.deepEqual(trail(h), ['cred:fabric.session.enroll'])
+  assert.deepEqual(h.calls[0].args, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42', rejoinOnly: true })
+})
+
+test('--rejoin-only with no live session, or no credential: not enrolled, quietly — no door, no ask', async () => {
+  const none = harness({ store: memCreds([CRED]), enroll: () => 'no-project', extra: { runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  const s1 = await none.proxy.connectOnce()
+  assert.equal(s1.kind, 'not-enrolled')
+  assert.deepEqual(trail(none), ['cred:fabric.session.enroll'])
+  const empty = harness({ extra: { runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  assert.equal((await empty.proxy.connectOnce()).kind, 'not-enrolled')
+  assert.deepEqual(trail(empty), [], 'nothing is called without a credential')
+  const revoked = harness({ store: memCreds([CRED]), enroll: () => 'unauthorized', extra: { runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  await revoked.proxy.connectOnce()
+  assert.equal(revoked.store.creds.size, 1, 'a rejoin forgets no credential')
+  const answer = await empty.proxy.call(WAITING_TOOL, {})
+  assert.match(answer.content[0].text, /asks nothing and starts no session/)
 })

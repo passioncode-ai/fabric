@@ -30,6 +30,8 @@ const DECLARED = 'apps/desktop/src/shared/surfaceTools.ts'
 // The project board's tools (COM-02.2) register in their own module; both files are the surface.
 const REGISTERED = 'apps/desktop/src/main/agentSurface.ts'
 const REGISTERED_BOARD = 'apps/desktop/src/main/boardTools.ts'
+// The claim tools and the session's own observations (REQ-38; the session hooks' D4/D5) register in theirs.
+const REGISTERED_WORK = 'apps/desktop/src/main/workTools.ts'
 
 const problems = []
 const notes = []
@@ -45,7 +47,7 @@ if (declared.length === 0)
 // `registerTool` is called with the name as its first argument, on the line
 // after the call opens. Matched together rather than counted separately: two
 // counts that agree can still be two different sets.
-const registeredSource = read(REGISTERED) + '\n' + read(REGISTERED_BOARD)
+const registeredSource = read(REGISTERED) + '\n' + read(REGISTERED_BOARD) + '\n' + read(REGISTERED_WORK)
 const registered = [
   ...registeredSource.matchAll(/server\.registerTool\(\s*\n?\s*'(fabric_[a-z_]+|com\.[a-z_]+)'/g)
 ].map((m) => m[1])
