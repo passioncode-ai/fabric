@@ -22,9 +22,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   watchable without opening it. Opening a thread marks it read; "Mark all read" clears the list in one act. The
   marks are machine-local settings (`commsReadThrough`), never a fact about the estate; a board that does not
   answer keeps the badge's last confirmed count rather than zeroing.
-- **The thread list narrows by last activity** (SCN-143, the COM-07 time-filter slice): today (24 h), the week
-  (7 days) or all time, read from each thread's `lastAt` — a fact the board already answered with, so the filter
-  never re-queries it; a thread with no messages yet is undated, not "old", and matches only "all time".
+- **The thread list narrows by last activity** (SCN-143, the COM-07 time-filter slice): last 24 hours, last 7
+  days or all time, measured back from now and inclusive at the edge, read from each thread's `lastAt` — a fact the
+  board already answered with, so the filter never re-queries it; a thread with no messages yet (or a time that
+  does not parse) is undated, not "old", and matches only "all time". "Mark all read" still marks every thread,
+  the ones a filter hides included, because it answers the rail's count.
 
 ## 0.3.5
 

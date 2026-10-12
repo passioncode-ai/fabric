@@ -926,6 +926,29 @@ Humanization: on — own pass (copywriting, notice register: plain, no humour, s
 | `links.offer.body` | A product's Fabric button was pressed while the first run was open. It waited for you. | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-142 | proposed |
 | `links.offer.open` | Open it | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-142 | proposed |
 
+### Comms filters and unread marks · 2026-10-12 (SCN-143, COM-07 filter, unread and time-filter slices)
+
+Humanization: on — own pass (copywriting, peer-builder; label register: a filter names what it measures). The
+activity windows say the span they measure — "Last 24 hours", "Last 7 days" — never "Today" or "The week", which
+would promise a calendar day or week the filter does not compute. Russian: «За 24 часа», «За 7 дней», «За всё время».
+
+| Key | English | Location | Scenario | Status |
+|---|---|---|---|---|
+| `launch.comms.filters.label` | Filter threads | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.project` | Project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.allProjects` | All projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.kind` | Kind | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.allKinds` | All kinds | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.openRequests` | Only with an open request | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.activity` | Activity | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.allTime` | All time | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.day` | Last 24 hours | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.week` | Last 7 days | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.noMatch` | No thread matches these filters | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.filters.clear` | Clear the filters | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.new` | New | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.markAllRead` | Mark all read | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+
 ## Russian copy pass — the whole ru registry reviewed (2026-10-12)
 
 Written through `copywriting` (Edit mode: the seven sweeps, then the humanization pass) against `voice.md`

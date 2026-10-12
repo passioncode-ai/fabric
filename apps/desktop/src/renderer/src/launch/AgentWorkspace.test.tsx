@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ConsoleDetails, ContextTab, RUN_STATUS_POLL_MS, RunCallout, useRunStatus } from './AgentWorkspace'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
@@ -81,12 +81,16 @@ describe('how a run ended (A5-018)', () => {
       stub({ runs: { status } })
       const Probe = (): React.JSX.Element => { const s = useRunStatus('s1'); return <p>{s.view?.data?.runState ?? 'none'}</p> }
       wrap(<Probe />)
-      await vi.advanceTimersByTimeAsync(0)
+      // The read resolves in a `.then` outside React's own events, so its state update is committed by
+      // the scheduler, not by the timer advance. Inside act the commit is flushed before act returns;
+      // outside it, a loaded machine reads the screen before the re-render (the CO-281 shape).
+      const advance = (ms: number) => act(async () => { await vi.advanceTimersByTimeAsync(ms) })
+      await advance(0)
       expect(status).toHaveBeenCalledTimes(1)
-      await vi.advanceTimersByTimeAsync(RUN_STATUS_POLL_MS)
+      await advance(RUN_STATUS_POLL_MS)
       expect(status).toHaveBeenCalledTimes(2)
       expect(screen.getByText('ended')).toBeTruthy()
-      await vi.advanceTimersByTimeAsync(RUN_STATUS_POLL_MS * 3)
+      await advance(RUN_STATUS_POLL_MS * 3)
       expect(status, 'an ended run was polled').toHaveBeenCalledTimes(2)
     } finally {
       vi.useRealTimers()

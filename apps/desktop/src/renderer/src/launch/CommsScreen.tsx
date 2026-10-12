@@ -70,22 +70,32 @@ interface ThreadFilters {
   kind: string | null
   openOnly: boolean
   /** Last-activity window (SCN-143, the time-filter slice): read from `lastAt`, a fact the
-   *  board already answered with. An undated thread (no messages yet) matches only 'all' —
-   *  it is not "old", and a window must not pretend otherwise. */
+   *  board already answered with. An undated thread — no messages yet, or a `lastAt` that does
+   *  not parse — matches only 'all': it is not "old", and a window must not pretend otherwise. */
   activity: 'all' | 'day' | 'week'
 }
 const ALL_THREADS: ThreadFilters = { project: null, kind: null, openOnly: false, activity: 'all' }
+/** The windows measure what their labels say: the last 24 hours and the last 7 days, inclusive at the edge. */
 const ACTIVITY_WINDOW_MS = { day: 24 * 3_600_000, week: 7 * 24 * 3_600_000 } as const
 /** A select's value, narrowed: anything that is not a known window is the widest one. */
 const activityOf = (value: string): ThreadFilters['activity'] => (value === 'day' || value === 'week' ? value : 'all')
-const matchesFilters = (thread: CommsThread, f: ThreadFilters): boolean =>
-  (f.project === null || thread.participants.includes(f.project)) &&
-  (f.kind === null || thread.kinds.includes(f.kind)) &&
-  (!f.openOnly || thread.openRequests > 0) &&
-  (f.activity === 'all' ||
-    (thread.lastAt !== null && Date.now() - Date.parse(thread.lastAt) <= ACTIVITY_WINDOW_MS[f.activity]))
+/** When the thread was last written, or null when it is undated (no message, or a time that does not parse). */
+const lastActivityMs = (thread: Pick<CommsThread, 'lastAt'>): number | null => {
+  if (thread.lastAt === null) return null
+  const ms = Date.parse(thread.lastAt)
+  return Number.isNaN(ms) ? null : ms
+}
+/** `nowMs` is read once per render from the injected clock, so every row is judged against one instant. */
+const matchesFilters = (thread: CommsThread, f: ThreadFilters, nowMs: number): boolean => {
+  if (f.project !== null && !thread.participants.includes(f.project)) return false
+  if (f.kind !== null && !thread.kinds.includes(f.kind)) return false
+  if (f.openOnly && thread.openRequests === 0) return false
+  if (f.activity === 'all') return true
+  const last = lastActivityMs(thread)
+  return last !== null && nowMs - last <= ACTIVITY_WINDOW_MS[f.activity]
+}
 
-export function CommsScreen({ projects, onPulse, seen, onRead }: {
+export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now }: {
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
   projects: ProjectRow[] | null
@@ -95,6 +105,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead }: {
   seen: Record<string, number>
   /** Merge new marks; the parent persists them field-scoped, never as a whole-settings write. */
   onRead: (marks: Record<string, number>) => void
+  /** The clock the activity windows are measured from; the machine's own by default, injected by tests. */
+  now?: () => number
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
@@ -183,12 +195,13 @@ export function CommsScreen({ projects, onPulse, seen, onRead }: {
   const titleOf = (thread: CommsThread): string => thread.subject ?? firstWords[thread.id] ?? t('launch.comms.untitled', { id: shortId(thread.id) })
   // A narrowed list hides the rows outside it; a detail of an invisible row would be a second
   // truth beside the filter, so a selection the filter excludes is closed with the filter change.
+  const nowMs = now()
   useEffect(() => {
-    if (selected !== null && threads && !threads.some((thread) => thread.id === selected && matchesFilters(thread, filters))) {
+    if (selected !== null && threads && !threads.some((thread) => thread.id === selected && matchesFilters(thread, filters, nowMs))) {
       setSelected(null)
     }
-  }, [filters, threads, selected])
-  const shown = threads?.filter((thread) => matchesFilters(thread, filters)) ?? null
+  }, [filters, threads, selected, nowMs])
+  const shown = threads?.filter((thread) => matchesFilters(thread, filters, nowMs)) ?? null
   const anyUnread = (threads ?? []).some((thread) => thread.lastSeq > seenOf(thread.id))
   const chosen = openThread
   const observed = threadsConfirmedAt
@@ -247,7 +260,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead }: {
                   {t('launch.comms.filters.activity')}
                   <select value={filters.activity} onChange={(e) => setFilters((f) => ({ ...f, activity: activityOf(e.target.value) }))}>
                     <option value="all">{t('launch.comms.filters.allTime')}</option>
-                    <option value="day">{t('launch.comms.filters.today')}</option>
+                    <option value="day">{t('launch.comms.filters.day')}</option>
                     <option value="week">{t('launch.comms.filters.week')}</option>
                   </select>
                 </label>
@@ -256,7 +269,10 @@ export function CommsScreen({ projects, onPulse, seen, onRead }: {
                   {t('launch.comms.filters.openRequests')}
                 </label>
                 {/* The first run of the slice shows every thread unread; one act clears the
-                    list instead of punishing a long board with a click per thread (SCN-143). */}
+                    list instead of punishing a long board with a click per thread (SCN-143).
+                    It marks EVERY thread of the board, the ones a filter hides included: it
+                    answers the rail's count, which counts every thread, so it is offered while
+                    any thread is unread, visible or not (SCN-143, amended 2026-10-12). */}
                 {anyUnread && (
                   <button type="button" className="lp-button" onClick={() => mark(Object.fromEntries((threads ?? []).map((thread) => [thread.id, thread.lastSeq])))}>
                     {t('launch.comms.markAllRead')}

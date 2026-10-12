@@ -298,47 +298,152 @@ describe("the operator's own unread marks", () => {
 
 // SCN-143, amended 2026-10-12 (COM-07, the time-filter slice): the window reads `lastAt` — a fact
 // the board already answered with — so it narrows the answered list and never re-queries it; an
-// undated thread (no messages yet) is not "old" and matches only "all time".
+// undated thread (no messages yet, or a `lastAt` that does not parse) is not "old" and matches only
+// "all time". The clock is injected, so every boundary is held against a fixed instant.
 describe('the activity filter narrows by last write, never re-querying', () => {
-  const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString()
-  const recent = { ...THREAD, lastAt: ago(2) }
-  const stale = { ...THREAD_B, lastAt: ago(72) }
+  const NOW = Date.parse('2026-10-12T12:00:00.000Z')
+  const HOUR = 3_600_000
+  const at = (ms: number) => new Date(NOW - ms).toISOString()
+  const recent = { ...THREAD, lastAt: at(2 * HOUR) }
+  const stale = { ...THREAD_B, lastAt: at(72 * HOUR) }
   const undated = { ...THREAD_B, id: '79000000-0000-4000-8000-0000000000d3', subject: 'Empty start', lastAt: null, messageCount: 0 }
+  const garbled = { ...THREAD_B, id: '79000000-0000-4000-8000-0000000000d4', subject: 'Garbled clock', lastAt: 'not-a-date' }
+  const titled = (id: string, subject: string, lastAt: string | null) => ({ ...THREAD_B, id, subject, lastAt })
+  const activity = () => screen.getByLabelText(en['launch.comms.filters.activity']) as HTMLSelectElement
+  const choose = (value: 'all' | 'day' | 'week') => fireEvent.change(activity(), { target: { value } })
+  const showAt = (now: number = NOW, seen: Record<string, number> = {}, onRead: (marks: Record<string, number>) => void = () => {}) =>
+    render(
+      <I18nProvider locale="en">
+        <CommsScreen projects={PROJECTS} seen={seen} onRead={onRead} now={() => now} />
+      </I18nProvider>
+    )
 
-  it('today keeps what was written today and hides what was not, without asking the board again', async () => {
-    const { threads } = stub({ ok: true, threads: [recent, stale] })
-    show()
+  it('offers the windows by what they measure: last 24 hours and last 7 days, never "today" or "the week"', async () => {
+    stub({ ok: true, threads: [recent] })
+    showAt()
     await screen.findByText('Cutover plan')
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    const labels = Array.from(activity().options).map((o) => o.textContent)
+    expect(labels).toEqual([en['launch.comms.filters.allTime'], en['launch.comms.filters.day'], en['launch.comms.filters.week']])
+    expect(en['launch.comms.filters.day']).toBe('Last 24 hours')
+    expect(en['launch.comms.filters.week']).toBe('Last 7 days')
+    expect(ru['launch.comms.filters.day']).toBe('За 24 часа')
+    expect(ru['launch.comms.filters.week']).toBe('За 7 дней')
+  })
+
+  it('the last 24 hours keeps what was written in them and hides what was not, without asking the board again', async () => {
+    const { threads } = stub({ ok: true, threads: [recent, stale] })
+    showAt()
+    await screen.findByText('Cutover plan')
+    choose('day')
     expect(screen.queryByText('Retention digest')).toBeNull()
     expect(screen.getByText('Cutover plan')).toBeTruthy()
     await waitFor(() => expect(threads).toHaveBeenCalledTimes(1), { timeout: 300 })
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'week' } })
+    choose('week')
     expect(screen.getByText('Retention digest')).toBeTruthy()
   })
 
-  it('an undated thread is not "old": it matches only all time', async () => {
+  it('a write exactly 24 hours ago is inside the day window; one millisecond earlier is outside it', async () => {
+    stub({ ok: true, threads: [titled('79000000-0000-4000-8000-0000000000e1', 'On the edge', at(24 * HOUR)), titled('79000000-0000-4000-8000-0000000000e2', 'Just past', at(24 * HOUR + 1))] })
+    showAt()
+    await screen.findByText('On the edge')
+    choose('day')
+    expect(screen.getByText('On the edge')).toBeTruthy()
+    expect(screen.queryByText('Just past')).toBeNull()
+    choose('week')
+    expect(screen.getByText('Just past')).toBeTruthy()
+  })
+
+  it('a write exactly 7 days ago is inside the week window; one millisecond earlier is outside it', async () => {
+    stub({ ok: true, threads: [titled('79000000-0000-4000-8000-0000000000e3', 'Week edge', at(7 * 24 * HOUR)), titled('79000000-0000-4000-8000-0000000000e4', 'Week past', at(7 * 24 * HOUR + 1))] })
+    showAt()
+    await screen.findByText('Week edge')
+    choose('week')
+    expect(screen.getByText('Week edge')).toBeTruthy()
+    expect(screen.queryByText('Week past')).toBeNull()
+    choose('all')
+    expect(screen.getByText('Week past')).toBeTruthy()
+  })
+
+  it('the window is measured from the injected clock, not from the machine time the test runs at', async () => {
+    // The same thread, two clocks: two hours after its write it is in the day window; three days after, it is not.
+    stub({ ok: true, threads: [recent] })
+    showAt(NOW + 70 * HOUR)
+    await screen.findByText('Cutover plan')
+    choose('day')
+    expect(screen.queryByText('Cutover plan', { selector: '.lp-topic-title' })).toBeNull()
+    choose('week')
+    expect(screen.getByText('Cutover plan')).toBeTruthy()
+  })
+
+  it('an undated thread is not "old": no messages yet matches only all time', async () => {
     stub({ ok: true, threads: [recent, undated] })
-    show()
+    showAt()
     await screen.findByText('Cutover plan')
     expect(screen.getByText('Empty start')).toBeTruthy()
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    choose('day')
+    expect(screen.queryByText('Empty start')).toBeNull()
+    choose('week')
     expect(screen.queryByText('Empty start')).toBeNull()
     expect(screen.getByText('Cutover plan')).toBeTruthy()
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'all' } })
+    choose('all')
     expect(screen.getByText('Empty start')).toBeTruthy()
+  })
+
+  it('a last write that does not parse is undated too: it matches only all time, never a window', async () => {
+    stub({ ok: true, threads: [recent, garbled] })
+    showAt()
+    await screen.findByText('Garbled clock')
+    choose('day')
+    expect(screen.queryByText('Garbled clock')).toBeNull()
+    choose('week')
+    expect(screen.queryByText('Garbled clock')).toBeNull()
+    choose('all')
+    expect(screen.getByText('Garbled clock')).toBeTruthy()
   })
 
   it('combines with the other filters as AND', async () => {
     stub({ ok: true, threads: [recent, stale] })
-    show()
+    showAt()
     await screen.findByText('Cutover plan')
     // The only thread HOLDING a finding is the stale one, and it is outside the day window: nothing matches.
     fireEvent.change(screen.getByLabelText(en['launch.comms.filters.kind']), { target: { value: 'finding' } })
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'day' } })
+    choose('day')
     await screen.findByText(en['launch.comms.filters.noMatch'])
-    fireEvent.change(screen.getByLabelText(en['launch.comms.filters.activity']), { target: { value: 'week' } })
+    choose('week')
     expect(screen.getByText('Retention digest')).toBeTruthy()
     expect(screen.queryByText('Cutover plan')).toBeNull()
+  })
+
+  it('clearing the filters puts the activity window back to all time', async () => {
+    stub({ ok: true, threads: [stale, undated] })
+    showAt()
+    await screen.findByText('Retention digest')
+    choose('day')
+    await screen.findByText(en['launch.comms.filters.noMatch'])
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.filters.clear'] }))
+    expect(activity().value).toBe('all')
+    expect(screen.getByText('Retention digest')).toBeTruthy()
+    expect(screen.getByText('Empty start')).toBeTruthy()
+  })
+
+  it('mark all read marks every thread of the board, the ones a filter hides included — it answers the rail count', async () => {
+    const onRead = vi.fn()
+    stub({ ok: true, threads: [recent, stale] })
+    showAt(NOW, {}, onRead)
+    await screen.findByText('Cutover plan')
+    choose('day')
+    expect(screen.queryByText('Retention digest')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.markAllRead'] }))
+    await waitFor(() => expect(onRead).toHaveBeenCalledWith({ [recent.id]: recent.lastSeq, [stale.id]: stale.lastSeq }))
+    expect(onRead).toHaveBeenCalledTimes(1)
+  })
+
+  it('mark all read is offered while a hidden thread is unread, even when every visible one is read', async () => {
+    stub({ ok: true, threads: [recent, stale] })
+    showAt(NOW, { [recent.id]: recent.lastSeq })
+    await screen.findByText('Cutover plan')
+    choose('day')
+    expect(screen.queryByText(en['launch.comms.new'])).toBeNull()
+    expect(screen.getByRole('button', { name: en['launch.comms.markAllRead'] })).toBeTruthy()
   })
 })
