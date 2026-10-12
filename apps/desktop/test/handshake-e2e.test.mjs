@@ -77,7 +77,7 @@ await journal.append({
 const surface = new AgentSurface({
   db,
   journal: createDesktopJournal(journal),
-  ptys: () => ({ list: () => [] }),
+  ptys: () => ({ list: () => [], get: () => undefined }),
   estateId: ESTATE
 })
 await surface.start()
