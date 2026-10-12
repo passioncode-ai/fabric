@@ -80,6 +80,28 @@ await test('backend rejection/error bodies never enter safe startup error or eff
   }
   assert.deepEqual(effects,[])
 })
+await test('an unverified schema keeps its typed cause, so the remedy and the log name it, without backend text (0.3.5 review ER-9)',async()=>{
+  const busy=async()=>{const end=performance.now()+25;while(performance.now()<end){};return {data:N,error:null}}
+  const cases=[
+    [{timeoutMs:5,readSchema:()=>new Promise(()=>{})},'timeout',/timed out/],
+    [{timeoutMs:5,readSchema:busy},'timeout',/timed out/],
+    [{readSchema:async()=>{throw new Error('synthetic-private-backend-canary')}},'transport',/could not reach/],
+    [{readSchema:async()=>({data:N,error:{message:'synthetic-private-backend-canary'}})},'backend-error',/answered with an error/],
+    [{readSchema:async()=>({data:'64',error:null})},'not-an-integer',/not a schema version/],
+    [{readSchema:async()=>({data:0,error:null})},'not-an-integer',/not a schema version/],
+    [{readSchema:async()=>null},'not-an-integer',/not a schema version/]
+  ]
+  for(const [over,check,said] of cases){
+    await assert.rejects(withSchemaReadiness({...input(),...over},start),error=>{
+      assert.equal(error.why,'unverified');assert.equal(error.check,check,check)
+      assert.match(error.message,said);assert.ok(!String(error).includes('canary'))
+      const failure=classifyStartupFailure(error)
+      assert.equal(failure.remedyKey,`startup.schema-not-ready.unverified.${check}`)
+      return true
+    })
+  }
+  assert.deepEqual(effects,[])
+})
 await test('hung and late replies never start, deadline aborts, retry is fresh',async()=>{
   let finish,signal
   const p=withSchemaReadiness({...input(),timeoutMs:5,readSchema:s=>{signal=s;return new Promise(resolve=>{finish=resolve})}},start)

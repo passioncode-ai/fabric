@@ -24,7 +24,7 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
-import { routeForLink, type LinkRoute } from '../shared/linkRoute.ts'
+import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
 import { createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
@@ -426,49 +426,52 @@ let mainWindow: BrowserWindow | null = null
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
 /**
  * `fabric://` links (contract DEC-0040): a product's Fabric button opens one; macOS hands it to `open-url`, Windows and
- * Linux to a second instance's argv (or this process's argv at a cold start). Links that arrive before the main
- * window exists wait for it. The link itself is never logged: it is the operator's, and a refused one may carry
- * anything; the notice is.
+ * Linux to a second instance's argv (or this process's argv at a cold start). Links that arrive before startup has
+ * finished, or while no main window exists, wait for it — and a link that finds no window opens one (ER-2), the way the
+ * consent presenter does. The link itself is never logged: it is the operator's, and a refused one may carry anything;
+ * the notice is.
  */
 let linkRegistry: AgentRegistry | null = null
-let linkWindowReady = false
+/** Set where startup sets `windowReady` (that `let` is declared further down, after the argv read below runs). */
+let linkStartupDone = false
 const pendingLinks: string[] = []
 const isFabricLink = (s: string): boolean => /^fabric:\/\//i.test(s)
 /** A resolved link waits until the page says it listens (`links:pending`), so a cold start does not lose it. */
 const linkOutbox = createLinkOutbox<LinkRoute>((result) => mainWindow?.webContents.send(IPC.linksOpen, result))
 function acceptLink(url: string): void {
   if (!isFabricLink(url)) return
-  if (!linkWindowReady || !mainWindow) {
-    if (pendingLinks.length < 8) pendingLinks.push(url)
-    return
-  }
-  void openLink(url)
+  const plan = linkWindowPlan({ startupDone: linkStartupDone, hasWindow: mainWindow !== null })
+  if (plan === 'open') { void openLink(url); return }
+  if (pendingLinks.length < 8) pendingLinks.push(url)
+  // The new window's first load opens what waited (`linksWindowReady`).
+  if (plan === 'hold-and-open-window') createWindow()
+}
+function linksStartupDone(): void {
+  linkStartupDone = true
 }
 async function openLink(url: string): Promise<void> {
-  try {
-    const { data } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
-    const rows = (data ?? []) as Array<{ id: string; name: string }>
-    const projects = await Promise.all(rows.map(async (p) => ({
-      id: p.id,
-      name: p.name,
-      remotes: (await projectReposWithRemotes(p.id)).map((r) => r.remote)
-    })))
-    const services = (linkRegistry?.snapshot().entries ?? [])
+  // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
+  const result = await resolveLink(url, {
+    projects: async () => {
+      const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+      if (error) throw new Error(`the projects could not be read: ${error.message}`)
+      return (data ?? []) as Array<{ id: string; name: string }>
+    },
+    remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    services: () => (linkRegistry?.snapshot().entries ?? [])
       .filter((e) => e.kind === 'service')
-      .map((e) => ({ key: e.key, id: e.id, repository: e.repository }))
-    const result = routeForLink(url, { projects, services })
-    ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
-    if (!mainWindow) return
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.show()
-    mainWindow.focus()
-    linkOutbox.deliver(result)
-  } catch (e) {
-    ops.failed('link.open', e)
-  }
+      .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
+    failed: (e) => ops.failed('link.open', e, { note: 'the link was answered with link-unreadable' })
+  })
+  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+  // The window closed while the link was read: it waits for the one acceptLink opens.
+  if (!mainWindow) { acceptLink(url); return }
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+  linkOutbox.deliver(result)
 }
 function linksWindowReady(): void {
-  linkWindowReady = true
   for (const url of pendingLinks.splice(0)) void openLink(url)
 }
 // macOS: delivered before or after `ready`, so registered at once.
@@ -4796,7 +4799,7 @@ if (!isPrimary) {
     if (existing) {
       if (existing.isMinimized()) existing.restore()
       existing.focus()
-    }
+    } else if (linkStartupDone && !process.env.SMOKE) createWindow() // as activation does: none open (ER-2)
   })
 }
 
@@ -4864,7 +4867,9 @@ async function startOrExplain(): Promise<void> {
     // A background launch opens no window until the person activates the app (`activate` below); an
     // activation that arrived while startup was still running opens it now.
     windowReady = true
-    if (!BACKGROUND_LAUNCH || activatedDuringStartup) createWindow()
+    linksStartupDone()
+    // A link that arrived during a background launch is a person's act: it opens the window as activation does.
+    if (!BACKGROUND_LAUNCH || activatedDuringStartup || pendingLinks.length > 0) createWindow()
   } catch (e) {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log

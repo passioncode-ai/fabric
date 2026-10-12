@@ -52,10 +52,11 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
 - **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
   and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
-  through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.
+  through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop and the Supabase CLI (`scoop install supabase`).
 - **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
 - **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244), and
-  connecting a cloud product's secret through Project Observatory is macOS and Linux only (CO-245).
+  connecting a cloud product's secret through Project Observatory is macOS and Linux only (CO-245): on Windows,
+  Agent access says so when you press Connect, before the product is opened.
 - **Usage counts** (only after you answer the switch): `agents_with_access` counts agents with access to a connected
   product, and coding agents enrolled in projects are counted apart as `coding_agents_enrolled`
   ([docs/ANALYTICS.md](docs/ANALYTICS.md)).

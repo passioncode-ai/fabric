@@ -25,6 +25,8 @@ export type LinkNotice =
   | 'service-unknown'
   | 'service-in-no-project'
   | 'service-in-many-projects'
+  /** The projects or their repositories could not be read: said, never routed against an empty list (ER-1). */
+  | 'link-unreadable'
 
 export interface LinkRoute {
   route: { kind: 'home' } | { kind: 'project'; projectId: string }
@@ -86,5 +88,43 @@ export function routeForLink(url: string, deps: LinkRouteDeps): LinkRoute {
   if (holders.length === 0) return home('service-in-no-project')
   if (holders.length > 1) return home('service-in-many-projects')
   return { route: { kind: 'project', projectId: holders[0].id }, notice: 'conversation-soon' }
+}
+
+export interface LinkReads {
+  /** The estate's active projects; throws when they cannot be read. */
+  projects(): Promise<ReadonlyArray<{ id: string; name: string }>>
+  /** A project's repository remotes; throws when they cannot be read. */
+  remotes(projectId: string): Promise<ReadonlyArray<string | null>>
+  services(): LinkRouteDeps['services']
+  /** Where a failed read goes: the log, never the window (the notice says it there). */
+  failed(e: unknown): void
+}
+
+/**
+ * Read what a link needs and route it (0.3.5 review ER-1, UX-14). A list that could not be read is never an empty
+ * one: routing a failed read against `[]` said "a project that is not in your list" and pushed the person to add a
+ * duplicate, and a read that threw only logged, so the click did nothing. Every failure is `link-unreadable`, at home.
+ * A link Fabric refuses is refused before anything is read.
+ */
+export async function resolveLink(url: string, reads: LinkReads): Promise<LinkRoute> {
+  if (!parseFabricLink(url).ok) return home('link-refused')
+  try {
+    const rows = await reads.projects()
+    const projects = await Promise.all(rows.map(async (p) => ({ id: p.id, name: p.name, remotes: await reads.remotes(p.id) })))
+    return routeForLink(url, { projects, services: reads.services() })
+  } catch (e) {
+    reads.failed(e)
+    return home('link-unreadable')
+  }
+}
+
+/**
+ * What the main process does with a link as it arrives (0.3.5 review ER-2): before startup has finished it waits
+ * (startup opens the window, whose first load opens what waited); with no window — macOS after the last one closed,
+ * a `--background` launch, a second instance on Windows or Linux — it waits for the window it opens; otherwise it opens.
+ */
+export function linkWindowPlan(s: { startupDone: boolean; hasWindow: boolean }): 'hold' | 'hold-and-open-window' | 'open' {
+  if (!s.startupDone) return 'hold'
+  return s.hasWindow ? 'open' : 'hold-and-open-window'
 }
 // #endregion fabric-link-route

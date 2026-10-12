@@ -200,6 +200,22 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   await surface.stop()
 })
 
+test('Windows: Connect is refused before the product\'s consent page opens, in words of its own (0.3.5 review UX-6)', async () => {
+  // The vault cannot keep a key on Windows (CO-245), so a consent there would mint a key Fabric must then refuse.
+  const opened = []
+  const vault = createObservatoryVault({ launcher: 'project-observatory-not-installed-here', platform: 'win32' })
+  assert.match(vault.unavailable(), /not available on Windows/)
+  const connector = new ProductConnector({ estateId: ESTATE_A, store: recordingStore(), vault, origin: () => 'http://127.0.0.1:47070', openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  for (const reconnect of [false, true]) {
+    const r = await connector.begin(FABRIC_INBOX, { reconnect })
+    assert.equal(r.ok, false)
+    assert.equal(r.problem.code, 'vault-unavailable')
+    assert.match(r.reason, /Windows/)
+  }
+  assert.deepEqual(opened, [], 'the product was never opened')
+  assert.equal(createObservatoryVault({ platform: 'darwin' }).unavailable(), null, 'elsewhere the vault is tried when it is needed')
+})
+
 test('a closed hub (no published door token) opens neither the callback nor any external door', async () => {
   const opened = []
   let origin = ''

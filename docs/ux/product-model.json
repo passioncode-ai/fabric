@@ -3319,7 +3319,7 @@
         {
           "state": "confirm-start",
           "trigger": "a Fabric button or a `fabric://chat` link asks for the manager session and none is open for that project (SCN-142)",
-          "behavior": "«Talk to <name> about <project> — asked from <product>, <page>», the coding agent the fallback order chooses (Change), Start as the one primary; nothing starts before Start; a malformed link opens nothing and says the link was not understood (link-refused)"
+          "behavior": "«Talk to <name> about <project> — asked from <product>, <page>», the coding agent the fallback order chooses (Change), Start as the one primary; nothing starts before Start; a malformed link opens nothing and says the link was not understood (link-refused); projects that could not be read open home and say so, never \"not in your list\" (link-unreadable)"
         },
         {
           "state": "manager",
@@ -10177,6 +10177,11 @@
           "state": "failed",
           "trigger": "the product reported a failure; the vault refused or was too slow; no answer within 10 minutes; a Reconnect whose new key was withdrawn",
           "behavior": "the reason in warning ink, separated from the connected line; Try again when not connected; a withdrawn Reconnect says the product is not connected now"
+        },
+        {
+          "state": "vault-unavailable",
+          "trigger": "Connect or Reconnect pressed on Windows, where Project Observatory's vault does not run yet (CO-245)",
+          "behavior": "refused before the product is opened, the reason in the operator's language; no consent is shown for a key Fabric could not keep (0.3.5 review UX-6)"
         }
       ]
     },
@@ -10228,7 +10233,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1893,
+        "line": 1894,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10440,7 +10445,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1939,
+        "line": 1940,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10561,7 +10566,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1967,
+        "line": 1968,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10639,7 +10644,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1986,
+        "line": 1987,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10735,7 +10740,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2007,
+        "line": 2008,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`",
         "status_claim": "designed"
       },
@@ -32351,7 +32356,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "First value is an inspectable sourced project overview and saved continuation. The operator supplies source and intent only where discovery cannot establish them; no required rename, purpose form or separate review/check step.",
-      "errors_recovery": "Startup schema failure uses the existing native error dialog: safe reason and Retry for a fresh schema observation; an older database names the bundled stack folder, `supabase migration up --local` and the release runbook, requiring stopped writers, verified backup and copy rehearsal before that command; artifact errors require installing/rebuilding and restarting. Retry does not migrate, resume work or imply compatibility. No raw database errors/credentials. The prototype exposes these fixtures only in its review tools, and repeating a failed check stays blocked. Failed/missing executor blocks agent scan only. Permission denial offers choose another folder/retry after access change. URL authentication, unreachable source and invalid URL have local recovery. Cancelled scan cannot later overwrite a newer source. Timeout preserves partial facts and unknown status. Duplicate identity reconciles once; no double project on retry. Re-entry never restarts an uncertain run blindly. Macros/commands/dependency installation found in a repository are not executed during read-only observation.",
+      "errors_recovery": "Startup schema failure uses the existing native error dialog: safe reason and Retry for a fresh schema observation; an older database names the bundled stack folder, `supabase migration up --local` and the release runbook, requiring stopped writers, verified backup and copy rehearsal before that command; artifact errors require installing/rebuilding and restarting. Retry does not migrate, resume work or imply compatibility. No raw database errors/credentials. The prototype exposes these fixtures only in its review tools, and repeating a failed check stays blocked. Failed/missing executor blocks agent scan only. Permission denial offers choose another folder/retry after access change. URL authentication, unreachable source and invalid URL have local recovery. Cancelled scan cannot later overwrite a newer source. Timeout preserves partial facts and unknown status. Duplicate identity reconciles once; no double project on retry. Re-entry never restarts an uncertain run blindly. Macros/commands/dependency installation found in a repository are not executed during read-only observation. *(0.3.5 review: the dialog's remedies are each OS's own — scoop and Docker Desktop on Windows, the Supabase CLI release packages and Docker Engine on Linux, never brew, OrbStack or a DMG there; a schema version that could not be read says which way it failed — no answer in time, no connection, an error from the database, or an answer that is not a schema version — and that cause is in the copied details and the log, never the database's own text.)*",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 2482
@@ -33090,7 +33095,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The product is connected once, with nothing copied by a person; agents with grants reach it through Fabric.",
-      "errors_recovery": "SCR-76 accepts only the newest eligible overview: an act invalidates older reads before changing state; polling waits through the act and its fresh read. Late successes/errors or completions after panel cleanup cannot restore stale connections; a current read failure remains unreadable, never empty.  Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. A POST that does not carry the attempt's own state (wrong content type, a body that is not a JSON object, no state or an unknown one) is refused and leaves the pending attempt waiting, so the genuine delivery that follows still connects; a delivery that carries the state but is invalid settles that attempt as failed at once; a browser Origin cannot cancel consent. A late record that could not be withdrawn says the recorded connection will not work and to disconnect then connect again. A hub that is not listening disables Connect and Reconnect and gives the remedy for its own cause (invalid setting, registered-agent port claim, another listener, or startup failure) in the operator's language; machine observations are a secondary line.",
+      "errors_recovery": "SCR-76 accepts only the newest eligible overview: an act invalidates older reads before changing state; polling waits through the act and its fresh read. Late successes/errors or completions after panel cleanup cannot restore stale connections; a current read failure remains unreadable, never empty.  Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. A POST that does not carry the attempt's own state (wrong content type, a body that is not a JSON object, no state or an unknown one) is refused and leaves the pending attempt waiting, so the genuine delivery that follows still connects; a delivery that carries the state but is invalid settles that attempt as failed at once; a browser Origin cannot cancel consent. A late record that could not be withdrawn says the recorded connection will not work and to disconnect then connect again. A hub that is not listening disables Connect and Reconnect and gives the remedy for its own cause (invalid setting, registered-agent port claim, another listener, or startup failure) in the operator's language; machine observations are a secondary line. On Windows, where Project Observatory's vault does not run yet, Connect and Reconnect are refused before the product is opened, with that reason in the operator's language: no consent is shown for a key Fabric could not keep (0.3.5 review UX-6).",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3314
@@ -33269,11 +33274,11 @@
         "SCR-71",
         "SCR-77"
       ],
-      "coverage": "partly — `apps/desktop/src/shared/linkRoute.ts#routeForLink` (the project by the link's id or name, else by the service's registered repository against the projects' remotes; one match only, never a guess), `apps/desktop/src/main/index.ts` region `fabric-link-handler` (the `fabric://` scheme registered, `open-url` and a second instance's argv, links held until the window exists), `App.tsx` region `fabric-link-open` (the notice); the parser is the contract's, vendored (`apps/desktop/src/shared/contract/fabricLinks.ts`). Until the manager's conversation (REQ-16/REQ-42, wave 5) a chat link opens the project with a notice that the conversation is coming; a session link opens the project to start one",
+      "coverage": "partly — `apps/desktop/src/shared/linkRoute.ts#routeForLink` (the project by the link's id or name, else by the service's registered repository against the projects' remotes; one match only, never a guess), `apps/desktop/src/shared/linkRoute.ts#resolveLink` (a failed read is `link-unreadable`, never an empty list) and `#linkWindowPlan` (a link that finds no window opens one), `apps/desktop/src/main/index.ts` region `fabric-link-handler` (the `fabric://` scheme registered, `open-url` and a second instance's argv, links held until the window exists), `App.tsx` region `fabric-link-open` (the notice; a held link offered when the first run is left by any route); the parser is the contract's, vendored (`apps/desktop/src/shared/contract/fabricLinks.ts`). Until the manager's conversation (REQ-16/REQ-42, wave 5) a chat link opens the project with a notice that the conversation is coming; a session link opens the project to start one",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "From any product's page, one press reaches Fabric in that product's project, one more starts or continues the conversation in the person's coding agent, the work goes on in a working session in that project, and the way back to the page is one press.",
-      "errors_recovery": "Fabric does not come forward within 15 s → the button says \"<name> did not open — open it from Applications\" and returns to idle; nothing is retried by itself. No coding agent can start → the session window lists each with its reason (as SCN-135) and «Set up a coding agent» (SCR-77). The working session fails to start → the reason; the manager session stays; Try again. A link with a malformed or unknown parameter → Fabric opens nothing new and says the link was not understood. The way back cannot open (Dashboards not installed or not answering) → said in place, with the page's address to copy.",
+      "errors_recovery": "Fabric does not come forward within 15 s → the button says \"<name> did not open — open it from Applications\" and returns to idle; nothing is retried by itself. No coding agent can start → the session window lists each with its reason (as SCN-135) and «Set up a coding agent» (SCR-77). The working session fails to start → the reason; the manager session stays; Try again. A link with a malformed or unknown parameter → Fabric opens nothing new and says the link was not understood. The projects or their repositories cannot be read → home, with \"Fabric could not read your projects to open this link. Try again.\"; a failed read is never taken as an empty list, so the person is never told the project is missing (ER-1, UX-14). The way back cannot open (Dashboards not installed or not answering) → said in place, with the page's address to copy.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3521

@@ -88,7 +88,7 @@ describe('the prompt in English says what the 0.3.0 prompt said', () => {
 // Latin word left once the untrusted values (ids, addresses, names, product names) are removed. A new
 // English sentence carried from main, or a key missing in ru (which falls back to en), turns it red.
 describe('UX-2 — in ru, nothing the operator consents on is English', () => {
-  const values = ['example-agent.default', 'Example agent', 'example-installer', 'https://github.com/example/example-agent', 'news@example.com', 'abc123', 'Fabric Inbox', 'Fabric', 'purge_everything', 'Settings', 'Observatory', 'Project', 'Gmail', 'Mac', 'summarise the newsletter']
+  const values = ['example-agent.default', 'Example agent', 'example-installer', 'https://github.com/example/example-agent', 'news@example.com', 'abc123', 'Fabric Inbox', 'Fabric', 'purge_everything', 'Settings', 'Observatory', 'Project', 'Gmail', 'Mac', 'Windows', 'summarise the newsletter']
   const latinLeft = (text: string): string[] => {
     let rest = text
     for (const v of values) rest = rest.split(v).join(' ')

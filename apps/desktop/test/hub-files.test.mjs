@@ -7,9 +7,31 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { publishHub, withdrawHub, hubPort, checkPortUnclaimed, DEFAULT_HUB_PORT, HUB_PROTOCOL } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
+const { publishHub, withdrawHub, hubPort, checkPortUnclaimed, DEFAULT_HUB_PORT, HUB_PROTOCOL, writeAtomic } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
 
 const mode = (f) => statSync(f).mode & 0o777
+
+// 0.3.5 review ER-6: on Windows the token file gets DEC-0033's ACL before it is published. A user name with a space is
+// granted as one argument, and the temporary file holding a fresh token is removed on every path that does not publish.
+test('Windows: a user name with a space is granted; a refused name or a failed icacls leaves no temporary token behind', async () => {
+  const { readdirSync } = await import('node:fs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'fabric-acl-'))
+  const file = path.join(dir, 'hub-door-token')
+  const runs = []
+  writeAtomic(file, 'T1', { platform: 'win32', user: () => 'John Smith', exec: (f, a) => { runs.push([f, a]) } })
+  assert.equal(readFileSync(file, 'utf8'), 'T1')
+  assert.equal(runs.length, 1)
+  assert.equal(runs[0][0], 'icacls.exe')
+  assert.ok(runs[0][1].includes('John Smith:(F)'), 'the whole name is one grant argument')
+  assert.deepEqual(readdirSync(dir), ['hub-door-token'])
+  assert.throws(() => writeAtomic(file, 'T2', { platform: 'win32', user: () => 'a:b', exec: () => {} }), /user name/)
+  assert.deepEqual(readdirSync(dir), ['hub-door-token'], 'a refused user name leaves no temporary token file')
+  assert.throws(() => writeAtomic(file, 'T3', { platform: 'win32', user: () => { throw new Error('no user') }, exec: () => {} }), /no user/)
+  assert.deepEqual(readdirSync(dir), ['hub-door-token'], 'an unreadable user leaves no temporary token file')
+  assert.throws(() => writeAtomic(file, 'T4', { platform: 'win32', user: () => 'alice', exec: () => { throw new Error('icacls failed') } }), /ACL could not be set/)
+  assert.deepEqual(readdirSync(dir), ['hub-door-token'], 'a failed icacls leaves no temporary token file')
+  assert.equal(readFileSync(file, 'utf8'), 'T1', 'and the published token is the last one whose ACL was set')
+})
 
 test('publish writes the door token and hub.json, both 0600, hub.json naming the token file', () => {
   const root = path.join(mkdtempSync(path.join(tmpdir(), 'fabric-hub-')), 'ai.passioncode.fabric')

@@ -16,6 +16,7 @@ test('a background launch shows no splash', () => {
   assert.match(src, /const splash = process\.env\.SMOKE \|\| BACKGROUND_LAUNCH \? null : splashWindow\(/)
 })
 test('a background launch opens no main window until activated, and an early activation is honoured after startup', () => {
-  assert.match(src, /windowReady = true\s*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup\) createWindow\(\)/)
+  // A fabric:// link that arrived during the background startup is a person's act too (0.3.5 review ER-2).
+  assert.match(src, /windowReady = true\s*\n\s*linksStartupDone\(\)\s*\n\s*\/\/[^\n]*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.length > 0\) createWindow\(\)/)
   assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; return \}\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
 })

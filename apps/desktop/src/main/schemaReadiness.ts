@@ -6,16 +6,23 @@ import { STACK_FOLDER } from '../shared/stackFolder.ts'
 /** Which check refused, so the dialog can say what to do in the operator's language (`startup.schema-not-ready.<why>`);
  *  the message stays English, for the copied details and the log. */
 export type SchemaWhy = 'contract-invalid' | 'build-mismatch' | 'unverified' | 'behind' | 'ahead'
+/** Why an `unverified` check could not read a version (0.3.5 review ER-9): no answer in time, no connection, an error
+ *  from the database, or an answer that is not a schema version. Typed and free of the backend's own text, so the
+ *  dialog's remedy and the log can name it without carrying what the database said. */
+export type SchemaUnverified = 'timeout' | 'transport' | 'backend-error' | 'not-an-integer'
 
 export class SchemaReadinessError extends Error {
   readonly code = 'FABRIC_SCHEMA_NOT_READY'
   readonly why: SchemaWhy
   readonly facts: { found?: number; min?: number; max?: number }
-  constructor(reason: string, why: SchemaWhy = 'unverified', facts: { found?: number; min?: number; max?: number } = {}) {
+  /** Set when `why` is `unverified`: which way the read failed. */
+  readonly check?: SchemaUnverified
+  constructor(reason: string, why: SchemaWhy = 'unverified', facts: { found?: number; min?: number; max?: number } = {}, check?: SchemaUnverified) {
     super(reason)
     this.name = 'SchemaReadinessError'
     this.why = why
     this.facts = facts
+    if (check) this.check = check
   }
 }
 
@@ -38,6 +45,15 @@ export function readBuildManifestCandidates(files: readonly string[]): ManifestR
 
 const stackPath = STACK_FOLDER
 const schemaBehindRecovery = 'Stop all writers and make a verified backup first. Follow https://github.com/passioncode-ai/Fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services.'
+
+/** The English words of each unverified cause, for the copied details and the log; none carries the backend's text. */
+const UNVERIFIED: Record<SchemaUnverified, string> = {
+  timeout: 'The database schema check timed out: the database did not answer in time. Check the local stack and retry.',
+  transport: 'The database schema could not be verified: Fabric could not reach the database. Check the local stack and retry.',
+  'backend-error': 'The database schema could not be verified: the database answered with an error, so it may predate this build. Check the local stack and retry.',
+  'not-an-integer': 'The database schema could not be verified: the database answered with something that is not a schema version. Check that Fabric is connected to its own database and retry.'
+}
+const unverified = (check: SchemaUnverified): SchemaReadinessError => new SchemaReadinessError(UNVERIFIED[check], 'unverified', {}, check)
 
 const positiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value > 0
@@ -71,25 +87,30 @@ export async function withSchemaReadiness<T>(input: {
   const controller = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined
   let response: { data: unknown; error: unknown }
+  let timedOut = false
   try {
     response = await Promise.race([
       Promise.resolve().then(() => input.readSchema(controller.signal)),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
+          timedOut = true
           controller.abort()
-          reject(new SchemaReadinessError('The database schema check timed out. Check the local stack and retry.'))
+          reject(unverified('timeout'))
         }, timeout)
       })
     ])
   } catch {
-    throw new SchemaReadinessError('The database schema could not be verified. Check the local stack and retry.')
+    // The thrown value is the backend's or the transport's and stays out of the error: only its kind is kept.
+    throw unverified(timedOut ? 'timeout' : 'transport')
   } finally {
     if (timer) clearTimeout(timer)
     controller.abort()
   }
   // Timers may be starved by synchronous work; a late answer grants nothing.
-  if (performance.now() >= deadline || !response || response.error != null || !positiveInteger(response.data))
-    throw new SchemaReadinessError('The database schema could not be verified. Check the local stack and retry.')
+  if (performance.now() >= deadline) throw unverified('timeout')
+  if (!response) throw unverified('not-an-integer')
+  if (response.error != null) throw unverified('backend-error')
+  if (!positiveInteger(response.data)) throw unverified('not-an-integer')
   if (response.data < contract.minimum)
     throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. ${schemaBehindRecovery.replace('{stackPath}', stackPath)}`, 'behind', { found: response.data, min: contract.minimum, max: contract.maximum })
   if (response.data > contract.maximum)

@@ -35,6 +35,11 @@ Contract: brand-contract v1
 | Mac | MAC (the computer the app runs on) |
 | Project Observatory | Observatory alone in the interface's first mention; the machine's project and credential registry whose vault keeps a connected product's key |
 | Gmail | GMail, gmail (Google's mail service, an account kind Fabric Inbox reads) |
+| Docker Desktop | Docker desktop (the Docker app on Windows and macOS that runs the local stack) |
+| Docker Engine | Docker engine (Docker on Linux, without Docker Desktop) |
+| Supabase CLI | Supabase cli (the command-line tool that starts the local stack) |
+| Windows | MS Windows |
+| AppImage | Appimage (a Linux package Fabric ships as) |
 
 The wrong forms above are literal strings the brand lint looks for in the English registry. In Russian a coding agent is «агент для кода» — never «агент» alone where a runner is meant, and never «раннер»; the lint does not read the Russian registry, so review it by hand.
 

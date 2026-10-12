@@ -53,6 +53,8 @@ export interface BundleCompilerDeps {
   declaredServers?: (projectId: string) => Promise<DeclaredServer[]>
   /** What the machine's gateway offers, and the key for the hop. */
   gateway?: () => GatewayFacts
+  /** The OS the session starts on (default: this process's). On Windows the brief travels in a file (ER-5). */
+  platform?: NodeJS.Platform
 }
 
 export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
@@ -233,6 +235,14 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // until this argument existed the only thing asking for that call was
             // a sentence inside a tool description. The preamble names one tool
             // and no rule — `preamble.ts` says why, and a test enforces it.
+            // On Windows the brief travels in a 0600 file beside mcp.json (0.3.5 review ER-5): npm's claude.cmd runs
+            // through cmd.exe, where a line break ends the command line, so a multi-line brief reached the agent cut
+            // at its first newline and the preamble below it was lost. The file dies with the session directory.
+            if ((deps.platform ?? process.platform) === 'win32') {
+              const briefPath = path.join(dir, 'brief.md')
+              writeFileSync(briefPath, agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, { encoding: 'utf8', mode: 0o600 })
+              return { dir, args: ['--mcp-config', configPath, '--strict-mcp-config', '--append-system-prompt-file', briefPath] }
+            }
             return {
               dir,
               args: [
