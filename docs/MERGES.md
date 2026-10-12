@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-12T20:29:59Z · `—` · agent/comms-time-filters-land → main · fast-forward
+- run: r-faa9aae98a19 (slice by r-64b69ed3a)
+- files: 93
+- conflicts: docs/reports/map.html (every lane kept, time-filters above load-tests and co-277-278), docs/reports/completeness.html (rebuilt)
+- summary: Comms time filters (COM-07 slice): the thread list narrows by last activity — Last 24 hours / Last 7 days / All time, measured back from an injected clock and inclusive at the edge, client-side over the board's answered lastAt, AND with the other filters, never re-querying; a thread with no messages or an unparseable lastAt is undated and matches only All time; Clear resets the window; Mark all read still marks threads a filter hides (it answers the rail count). SCN-143 amendment lifts the 2026-10-11 deferral; comms filter/unread strings registered. AgentWorkspace A5-018 race (load-sensitive, the CO-281 shape) fixed in the test.
+
 ### 2026-10-12T19:45:00Z · `—` · agent/load-tests → main · fast-forward
 - run: 249d0762eddd
 - files: 10
