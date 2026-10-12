@@ -109,3 +109,12 @@ The blind reviews of wave 1 failed it; the fix round (fabric commits `ce630523`,
 - **Words.** The consent is "Let <coding agent> work in <project>?" with the folder on its own line, what it gets, the
   same-user floor ("Fabric cannot prove this is <name>…") and "for a year, unless you revoke it"; Allow is only Allow —
   an enrollment never offers to connect anything (`accessWords.ts#sayRequest`, SCR-76, SCN-137).
+
+### Amendment 3 — 2026-10-12: Codex and Kimi Code have surface adapters
+
+The context above ("Codex, Cline and Kimi Code get no Fabric tools even when Fabric launches them") describes the
+tree when this decision was taken. Main has since connected Codex (`codex-config-home`) and Kimi Code
+(`acp-session`) by probe ([ADR-0119](0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md)
+Amendment 6), so a session Fabric launches in either gets Fabric's tools without `fabric-mcp`; `fabric-mcp` remains
+the path for an agent the person opens in a terminal, and for Cline. Ships in 0.3.5. Found by the 0.3.5
+verification, iteration 1 (DO-14).

@@ -14,7 +14,8 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
 
 - **Fabric opens from a product's Fabric button.** A `fabric://` link from Fabric Dashboards or any product now opens Fabric in that product's project (found from the product's repository), or says why it could not; before, macOS answered that Fabric was not installed, because Fabric did not register the scheme. A link that starts Fabric is not lost while the window opens, and one that arrives during the first run waits for it to end.
 - **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
-  `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code` — with no key in it. The first
+  `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`, or
+  `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex` — with no key in it. The first
   time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
   a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
   Settings → Agent access ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).
@@ -51,17 +52,20 @@ yourself in a terminal can work in your project through Fabric; and Fabric shows
   that does not answer says so, never an empty list. Read-only by design; the read goes through two new SQL
   functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
 - **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
-  and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
-  through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.
+  and `-arm64-setup.exe`, signed with the organization's Authenticode certificate (Azure Artifact Signing). Terminals
+  open PowerShell; the local stack needs Docker Desktop (WSL2) and the Supabase CLI.
 - **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
-- **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244), and
-  connecting a cloud product's secret through Project Observatory is macOS and Linux only (CO-245).
+- **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244).
+  **Not yet on Windows:** connecting a cloud product's secret through Project Observatory (CO-245).
+- **Windows and Linux are offered on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)**; the
+  download page on passioncode.ai offers the Mac build until its own change.
 - **Usage counts** (only after you answer the switch): `agents_with_access` counts agents with access to a connected
   product, and coding agents enrolled in projects are counted apart as `coding_agents_enrolled`
   ([docs/ANALYTICS.md](docs/ANALYTICS.md)).
 
-**Upgrading.** A database at schema 79 (0.3.2 to 0.3.4) is upgraded to 84 before 0.3.5 opens it: stop Fabric, make a
-verified backup, rehearse on a copy, then `supabase migration up --local` in Fabric's stack folder
+**Upgrading.** A database at schema 79 (0.3.2 to 0.3.4) is upgraded to 84 before 0.3.5 opens it: install 0.3.5 and
+start it once (it refuses, and copies its migrations into Fabric's stack folder), quit it, make a verified backup,
+rehearse on a copy, then run `supabase migration up --local` in that folder and start 0.3.5 again
 ([release runbook](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
 Until then 0.3.5 refuses to start its workspace services and says which schema it found. An older database (69, 75,
 78) takes the same procedure; `supabase migration up` applies every missing migration in order.

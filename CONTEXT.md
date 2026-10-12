@@ -319,7 +319,8 @@ session and the one tool catalogue (`shared/surfaceTools.ts`), with the work jou
 `fabric-mcp` it asks `fabric.session.enroll` with its folder; the folder is resolved to a
 Project and, on the operator's standing consent per (runtime, Project), it is served the
 session tools of that one Project (ADR-0134). An enrolled session is a session in every other
-respect but one: until 0.4.0's wave 2 it is not listed among the Project's running sessions (CO-256).
+respect but one: from 0.3.5 it is listed in «Who is working» (SCR-31) and «Where work is» (SCR-78), but not yet among
+the Agents grid's running sessions or in `fabric_agents_list`, which read Fabric's own consoles (CO-256).
 
 **Session handoff** — the context a session is handed before its first turn, in the shared
 format `session-handoff/1` (files in user data, never the repository; a preamble naming one
@@ -333,9 +334,10 @@ it locks nothing, except that one task is never claimed by two agents at once.
 **Where work is** — the manager's view of every claim, session and run across the estate's projects, and of sessions with
 no project (SCR-78, SCN-141): what Fabric knows is in flight, read from the journal, never a second board.
 
-**Fabric button** — the one control a product's dashboard shows to reach Fabric (REQ-42, SCN-142, SCR-79): it opens the
-manager session scoped to that product and project in the person's coding agent, never a chat drawn inside the product;
-hidden when Fabric is not installed.
+**Fabric button** — the one control a product's dashboard shows to reach Fabric (REQ-42, SCN-142, SCR-79). Its target:
+it opens the manager session scoped to that product and project in the person's coding agent, never a chat drawn
+inside the product; hidden when Fabric is not installed. In 0.3.5 its `fabric://` link opens Fabric in that project
+and says the conversation is not built yet (`shared/linkRoute.ts#routeForLink`); the manager session is REQ-16/REQ-42.
 
 **Setup console** — the person's coding agent, opened by Fabric with a setup brief, doing the
 machine's setup on the person's consent step by step — skills, Fabric's MCP entry in each
@@ -349,7 +351,7 @@ operator approves it. **Chain** is the run-time shape a workflow run takes (task
 
 **Schedule** — what starts a workflow on time or on an event; the shipped Routine is a
 schedule of a one-step workflow (ADR-0137). The labels «Automations», «Cycles» and «Rhythm of
-work» are retired.
+work» are to be retired (ADR-0137); the 0.3.5 screens still show them until the workflow screens land.
 
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
