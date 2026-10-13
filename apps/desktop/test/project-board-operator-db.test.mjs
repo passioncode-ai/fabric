@@ -277,6 +277,8 @@ await test('related threads: the same projects, or the same file by its stated h
   assert.equal(rel.ok, true, JSON.stringify(rel))
   const why = Object.fromEntries(rel.threads.map(t => [t.id, t.why]))
   assert.equal(why[sameFile.thread], 'shared-artifact'); assert.equal(why[sameProjects.thread], 'same-projects')
+  const row = rel.threads.find(t => t.id === sameFile.thread)
+  assert.deepEqual([...row.participants].sort(), [A, B].sort()); assert.ok(row.createdSeq > 0); assert.ok(row.lastSeq >= row.createdSeq, 'what opens it')
   assert.equal(why[financeThread], 'same-projects', 'the finding thread is between growth and finance too')
   assert.equal(why[origin.thread], undefined, 'a thread is not related to itself')
   assert.equal(Object.keys(why).length, 3, `only those three: ${JSON.stringify(rel.threads)}`)
@@ -306,6 +308,7 @@ await test('search: the words as themselves — %, _ and \\ escaped; newest firs
   assert.deepEqual(texts(search(E, 'DECOY')), ['this is a decoy too', 'a decoy draft with no percent sign'], 'newest first, any case')
   const hit = search(E, 'under_score').hits[0]
   assert.equal(hit.thread, s); assert.equal(hit.sender, A); assert.match(hit.at, /Z$/); assert.ok(hit.seq > 0)
+  assert.equal(hit.subject, 'search'); assert.deepEqual([...hit.participants].sort(), [A, B].sort()); assert.ok(hit.createdSeq > 0 && hit.createdSeq <= hit.seq, 'its thread, to open it there')
   assert.equal(search(E, 'elsewhere').hits.length, 0, 'another estate\'s message')
   for (const bad of ['x', 'y'.repeat(201)]) assert.equal(search(E, bad).error?.code, 'invalid_arguments', bad)
   assert.equal(search(E, 'x'.repeat(200)).ok, true, '200 characters is a search')

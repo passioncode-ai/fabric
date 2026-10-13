@@ -277,11 +277,15 @@ begin
     union all
     select id, 'same-projects' from same where id not in (select id from shared)
   ), related as (
-    select c.id, o.subject, c.why, (select max(m.at) from board_messages m where m.estate_id = p_estate and m.thread_id = c.id) as last_at
+    -- With what opens it when the list does not hold it: its participants, first seq and last seq.
+    select c.id, o.subject, c.why, o.participants, o.created_seq,
+           (select max(m.at) from board_messages m where m.estate_id = p_estate and m.thread_id = c.id) as last_at,
+           coalesce((select max(m.seq) from board_messages m where m.estate_id = p_estate and m.thread_id = c.id), 0) as last_seq
       from candidates c join board_threads o on o.estate_id = p_estate and o.id = c.id
   )
   select coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'subject', x.subject, 'why', x.why,
-                                                       'lastAt', case when x.last_at is not null then board_at(x.last_at) end)
+                                                       'lastAt', case when x.last_at is not null then board_at(x.last_at) end,
+                                                       'participants', x.participants, 'createdSeq', x.created_seq, 'lastSeq', x.last_seq)
                                     order by x.last_at desc nulls last, x.id)
                      from (select * from related order by last_at desc nulls last, id limit 20) x), '[]'::jsonb),
          (select count(*) from related)
@@ -307,8 +311,9 @@ begin
   v_pattern := '%' || replace(replace(replace(p_query, '\', '\\'), '%', '\%'), '_', '\_') || '%';
   v_needle := lower(p_query);
   -- Newest first through (estate, seq); a removed body has no row here, so it never matches.
-  for x in select m.id, m.thread_id, m.seq, m.at, m.sender_project, b.text
+  for x in select m.id, m.thread_id, m.seq, m.at, m.sender_project, b.text, t.subject, t.participants, t.created_seq
              from board_messages m join board_bodies b on b.estate_id = m.estate_id and b.message_id = m.id
+             join board_threads t on t.estate_id = m.estate_id and t.id = m.thread_id
             where m.estate_id = p_estate and (p_before_seq is null or m.seq < p_before_seq)
             order by m.seq desc loop
     if clock_timestamp() - v_start > v_budget then v_stopped := true; exit; end if;
@@ -316,7 +321,9 @@ begin
     if v_n = v_limit then v_more := true; exit; end if;
     v_pos := strpos(lower(x.text), v_needle);
     v_hits := v_hits || jsonb_build_array(jsonb_build_object('message', x.id, 'thread', x.thread_id, 'seq', x.seq, 'at', board_at(x.at),
-      'sender', x.sender_project, 'snippet', substr(x.text, greatest(1, v_pos - 60), 200)));
+      'sender', x.sender_project, 'snippet', substr(x.text, greatest(1, v_pos - 60), 200),
+      -- Its thread, so the screen opens it there even when its list does not hold the thread.
+      'subject', x.subject, 'participants', x.participants, 'createdSeq', x.created_seq));
     v_n := v_n + 1;
     v_last := x.seq;
   end loop;
