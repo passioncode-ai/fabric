@@ -2595,3 +2595,63 @@ flowchart TD
   | SCR-81 Project comms | loading, empty, filtered-empty, read, unavailable, not-found, failed |
 - **Scenarios:** SCN-143
 - **Implementation tasks:** COM-07
+
+### FLW-84: A responder takes a project's requests, and a replaced one is fenced
+- **Traces:** SCN-144 (COM-03); [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2–§6; contract DEC-0073
+- **Goal:** Answer another project's request as the one current holder of the target project's responder slot, so that no replaced agent's result is ever recorded.
+- **Entry points:** a session of the target project whose agent holds a responder grant (FLW-85): launched, enrolled or a board session.
+- **Success exit:** the request is completed or failed_known with what was observed, by the slot's current holder.
+- **Task analysis:** enroll; claim; accept; begin the effect; renew while working; complete; on a lapse, another holder takes over; reconcile what may have happened.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  E[com.enroll capability] -->|no grant| NA[not_authorized: ask the operator — FLW-85; nothing written]
+  E -->|live holder is another session| FX[fenced: use com.responder_replace]
+  E --> S[Slot: generation n, lease 60 s database time]
+  S --> C[com.claim]
+  C -->|nothing claimable| NC[ok, nothing stored: poll again with the same key]
+  C --> A[request claimed, attempt id, digest]
+  A -->|com.accept| AC[accepted]
+  AC -->|com.effect_begin| IP[in_progress, effect started]
+  AC -->|com.complete| DONE[completed or failed_known]
+  IP -->|com.complete observed| DONE
+  IP -->|com.complete not observed| OR[observation_required]
+  S -->|lease lapses| ST[stale]
+  ST -->|another granted session enrolls| N[generation n+1: claimed back to queued, in_progress to outcome_unknown, accepted held]
+  N -->|old holder's late call| F[fenced or lease_expired: nothing committed]
+  S -->|session ends| R[released: nothing moves; a claimed request is taken again as a lapsed claim]
+  R -->|next holder enrolls| N2[in_progress to outcome_unknown; claimed stays claimed; accepted held]
+  N --> RC[com.reconcile observed by the current holder: outcome_unknown to completed or failed_known]
+  S -->|grant revoked| AU[authority_changed: the request stays where it was]
+```
+
+- **Screens traversed:** none in this change — the operator reads the outcome in SCR-81 (SCN-143); its responder indicator is a later slice.
+- **Scenarios:** SCN-144
+- **Implementation tasks:** COM-03
+
+### FLW-85: The operator lets an agent answer a project's requests
+- **Traces:** SCN-145, SCN-132 (COM-03); [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2, [ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md) Amendment 7
+- **Goal:** Decide, in plain words, whether one agent may answer one project's requests for named capabilities.
+- **Entry points:** an agent's `fabric.access.request` (callee fabric, capability board.respond); the prompt, the attention queue or SCR-76.
+- **Success exit:** the grant is listed in SCR-76 with its expiry and Revoke — or the ask is denied and stays denied until cleared.
+- **Task analysis:** read who asks, which project, which capabilities, what it may and may not do; Allow or Deny; later, revoke.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  Q[Agent asks board.respond on board:project/capability, 1 to 8, one project] -->|not a coding agent or registered agent, unknown project, two projects, a folder| X[Refused before anything is shown]
+  Q --> P[Prompt or queue: Let agent answer capabilities requests for project? — may take and answer them; cannot spend, publish or delete; same-user floor; a year unless revoked]
+  P -->|Deny, the default| D[Denied until cleared in SCR-76]
+  P -->|Allow| G[Grant listed in SCR-76: answer capabilities requests for project]
+  G -->|a coding agent| U1[Its sessions enroll with com.enroll — FLW-84]
+  G -->|a service| U2[fabric.board.join: a board session with the com.* tools only]
+  G -->|Revoke in SCR-76| V[Slots released; next responder call authority_changed; a board session holding it ends]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-76 Agent access | waiting, read, revoked |
+- **Scenarios:** SCN-145
+- **Implementation tasks:** COM-03

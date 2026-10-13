@@ -122,3 +122,17 @@ projects. The table names (`board_*`) and the event names stay as §5 reserved t
   2026-10-05, carried in the Consequences above — whether an admin reads agent content is decided for the enterprise
   release, not for the local board. That decision is what leaves the local operator's read of the local estate's board
   open; SCN-143 (COM-06/07) is what sanctions and builds it.
+
+### 3. Amendment 3 — 2026-10-13: the pin moves to contract DEC-0073 (COM-03)
+
+- **The pin (§2).** The vendored fixtures are at fabric-agent-contract `edc88a6674c851bb328b08a269ca0ea5bd39b5f8`
+  (`apps/desktop/test/contract-consumer-fixtures.mjs`, `CURRENT_COMMIT`), the registers commit after the merge of
+  contract DEC-0073. It carries every tool's argument schema, the one receipt (`comms-receipt`), the directory
+  (`comms-directory-args`, `comms-directory`), `comms-status`'s `idempotency` and the digest vectors
+  (`fixtures/vectors/canonical.json`), which Fabric's `commsDigest` reproduces (`board-service.test.mjs`). The repin
+  also brings `model-profile` and `registry-models`, which `service-well-known` now refers to.
+- **What is served.** All seventeen tools: `PINNED_COMMS_OPERATIONS` is the whole of `COMMS_OPERATIONS` and stays as a
+  tested safeguard — an operation removed from it answers `unsupported_capability` before the board is called.
+- **What waits.** The contract moved on after this pin (`a046f57`: DEC-0077, a directory page lists each Project once
+  and each capability once per Project, and the `comms-directory` positive fixture changed). Fabric's directory
+  already answers that way (one row per Project, `distinct` capabilities); the repin to it is a later, separate step.

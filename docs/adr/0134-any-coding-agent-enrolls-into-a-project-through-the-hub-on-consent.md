@@ -194,3 +194,15 @@ Measured against the fabric-agent-adapter v0.23.0 `working-with-fabric` session 
 - **OpenCode and pi get no catalogue rows yet.** ADR-0119 §4 calls a runner connected only when a scripted session's
   Fabric tool answers, and with no project in the estate an enrollment can only answer no-project; a row also needs its
   own drive (CO-220, ADR-0147 §5). `fabric-mcp` still exits 2 for them.
+
+### Amendment 7 — 2026-10-13: the responder grant is asked in its own words (COM-03)
+
+Amendment 5 left responding to a grant asked apart; COM-03 builds the ask (ADR-0149 §2). Of Fabric itself an agent
+now asks either `session.enroll` (this record) or `board.respond` on 1 to 8 resources `board:<project>/<capability>`
+of one Project (`shared/access.ts`, `normaliseRespondAsk`). The asker is a coding agent of the runner catalogue or a
+registered service; anything else, an unknown Project, a second Project or a `folder` is refused before any prompt
+(`accessService.ts`, region `board-respond-request`). The prompt says: "Let <agent> answer <capabilities> requests for
+<project>?", then "It may take and answer the requests other projects send to <project> for these capabilities. It
+cannot spend, publish or delete through this.", the same-user floor and "For a year, unless you revoke it under Agent
+access in settings." (en and ru, `shared/accessWords.ts`, checked in `accessWords.test.ts`). A launched or handed-off
+session answers under its runner's grant; an enrolled one under its own binding's (ADR-0149 §3).
