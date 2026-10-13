@@ -117,7 +117,11 @@ export function createResourceReconciliation(deps: ResourceReconciliationDeps) {
             throw Error('invalid page order')
           previous = r.admittedSeq; reservations.add(r.reservationId); runs.add(r.runId); sessions.add(r.sessionId)
         }
-      } catch { return result('unavailable', expired ? 'deadline' : 'ledger_read_unavailable') }
+      } catch {
+        // Structured unavailability preserves missing evidence; raw database
+        // diagnostics may contain private connection details and are not logged.
+        return result('unavailable', expired ? 'deadline' : 'ledger_read_unavailable')
+      }
       for (const candidate of rows.slice(0, pageSize)) {
         const { releasedSeq: _unused, ...identity } = candidate
         // Advance after attempting this identity, including uncertainty, so a
@@ -142,6 +146,8 @@ export function createResourceReconciliation(deps: ResourceReconciliationDeps) {
             throw Error('release readback mismatch')
           items.push({ ...identity, state: 'released', reason: receipt.repeated ? 'already_released' : 'release_confirmed', receiptSeq: receipt.receipt_seq })
         } catch {
+          // Neither a failed command nor a lost readback proves release. Return
+          // explicit uncertainty without logging raw database/transport errors.
           items.push({ ...identity, state: 'unknown', reason: expired ? 'deadline' : 'release_unconfirmed' })
           if (expired) return result('partial', 'deadline')
         }
