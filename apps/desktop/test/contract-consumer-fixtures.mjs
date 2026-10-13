@@ -8,22 +8,38 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = '623bf61358c339cb10297807b3f024b5d9f1f327'
+export const CURRENT_COMMIT = 'edc88a6674c851bb328b08a269ca0ea5bd39b5f8'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
-// fixture the contract's own catalogue grades, so this consumer is held to the same verdicts.
-export const COMMS_SURFACES = ['comms-complete', 'comms-fence', 'comms-message', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit']
-const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'manifest', 'pipeline', 'service-common', 'service-well-known', 'comms-common', ...COMMS_SURFACES]
+// fixture the contract's own catalogue grades, so this consumer is held to the same verdicts. DEC-0073 (pinned at
+// edc88a6) adds every tool's argument schema, the one receipt and the project directory, and the digest vectors.
+export const COMMS_SURFACES = ['comms-cancel', 'comms-claim', 'comms-complete', 'comms-directory', 'comms-directory-args', 'comms-effect-begin',
+  'comms-enroll', 'comms-fence', 'comms-fenced', 'comms-list', 'comms-message', 'comms-message-ref', 'comms-page', 'comms-progress', 'comms-receipt',
+  'comms-reconcile', 'comms-refusal', 'comms-reply', 'comms-responder-replace', 'comms-status', 'comms-status-args', 'comms-submit']
+// model-profile and registry-models: service-well-known refers to them since the repin to edc88a6.
+const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'manifest', 'pipeline', 'service-common', 'model-profile', 'registry-models', 'service-well-known', 'comms-common', ...COMMS_SURFACES]
 const positiveNames = ['interop-agent-call', 'manifest-mcp', 'pipeline', 'service-well-known-capabilities',
-  'comms-complete', 'comms-fence', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit-reply', 'comms-submit-request']
-const negativeNames = ['comms-fence-without-generation', 'comms-page-redacted-with-body', 'comms-refusal-unknown-code', 'comms-status-bad-state',
-  'comms-submit-body-too-long', 'comms-submit-forged-estate', 'comms-submit-forged-sender', 'comms-submit-reply-without-target',
-  'comms-submit-request-without-details', 'comms-submit-too-many-artifacts']
+  'comms-cancel', 'comms-claim', 'comms-complete', 'comms-directory', 'comms-directory-args', 'comms-effect-begin', 'comms-enroll', 'comms-fence',
+  'comms-fenced', 'comms-list', 'comms-list-empty', 'comms-message-ref', 'comms-page', 'comms-progress', 'comms-receipt-claim', 'comms-receipt-enroll',
+  'comms-receipt-nothing-queued', 'comms-receipt-submit', 'comms-reconcile', 'comms-refusal', 'comms-reply-participant', 'comms-reply-responder',
+  'comms-responder-replace', 'comms-status', 'comms-status-args', 'comms-status-epoch', 'comms-submit-reply', 'comms-submit-request']
+const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-long', 'comms-claim-forged-project', 'comms-claim-without-idempotency',
+  'comms-directory-args-forged-estate', 'comms-directory-args-limit-over-page', 'comms-directory-entry-with-content', 'comms-directory-entry-with-generation',
+  'comms-directory-over-page', 'comms-directory-snapshot-with-count', 'comms-directory-with-count', 'comms-effect-begin-without-fence',
+  'comms-enroll-forged-principal', 'comms-fence-without-generation', 'comms-fenced-without-fence', 'comms-list-limit-over-page',
+  'comms-message-ref-without-message', 'comms-page-redacted-with-body', 'comms-progress-note-too-long', 'comms-receipt-attempt-with-seq',
+  'comms-receipt-not-ok', 'comms-receipt-request-with-seq', 'comms-receipt-slot-with-holder', 'comms-receipt-with-seq', 'comms-receipt-without-ok',
+  'comms-receipt-without-repeated', 'comms-reconcile-unobserved', 'comms-reconcile-without-digest', 'comms-refusal-unknown-code',
+  'comms-reply-fence-and-replyto', 'comms-reply-neither', 'comms-responder-replace-duplicate-transfer', 'comms-status-args-forged-estate',
+  'comms-status-bad-state', 'comms-status-epoch-zero', 'comms-submit-body-too-long', 'comms-submit-forged-estate', 'comms-submit-forged-sender',
+  'comms-submit-reply-without-target', 'comms-submit-request-without-details', 'comms-submit-too-many-artifacts']
 export const expectedPaths = [
   ...currentSchemas.map(name => `current/schemas/${name}.schema.json`),
   ...positiveNames.map(name => `current/positive/${name}.json`),
   ...negativeNames.map(name => `current/negative/${name}.json`),
+  // The contract's digest vectors (DEC-0043): Fabric's commsDigest reproduces each (board-service.test.mjs).
+  'current/vectors/canonical.json',
   'current/catalogue.json',
   'legacy/schemas/common.schema.json', 'legacy/schemas/interop-agent-call.schema.json', 'LICENSE'
 ].sort()
@@ -32,7 +48,7 @@ export const expectedPaths = [
 export function upstreamPathOf(path) {
   if (path === 'LICENSE') return 'LICENSE'
   if (path === 'current/catalogue.json') return 'fixtures/catalogue.json'
-  return path.replace(/^(current|legacy)\/(positive|negative)\//, 'fixtures/$2/').replace(/^(current|legacy)\//, '')
+  return path.replace(/^(current|legacy)\/(positive|negative|vectors)\//, 'fixtures/$2/').replace(/^(current|legacy)\//, '')
 }
 
 /** Verify the complete recorded byte set first. Do not compile a partly verified bundle. */

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-reconcile.schema.json",
+  "title": "com.reconcile arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "outcome_unknown to completed or failed_known, observed only. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "idempotency",
+    "request",
+    "digest",
+    "outcome"
+  ],
+  "properties": {
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    },
+    "request": {
+      "description": "A request of the caller's Project in outcome_unknown, for a capability whose current slot the caller holds.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "digest": {
+      "description": "The request's semantic digest; another one is digest_conflict.",
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "expectedRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "state",
+        "observed"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "failed_known"
+          ]
+        },
+        "observed": {
+          "description": "Reconciliation settles an unknown outcome only by an observed result.",
+          "const": true
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidence": {
+          "$ref": "comms-common.schema.json#/$defs/artifacts"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

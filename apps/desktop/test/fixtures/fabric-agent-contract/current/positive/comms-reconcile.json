@@ -1,0 +1,20 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reconcile-req_A1b2C3d4E5"
+  },
+  "request": "req_A1b2C3d4E5",
+  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "expectedRevision": 5,
+  "outcome": {
+    "state": "completed",
+    "observed": true,
+    "summary": "The query ran; the result file is attached.",
+    "evidence": [
+      {
+        "id": "fabric://artifact/retention-result",
+        "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  }
+}

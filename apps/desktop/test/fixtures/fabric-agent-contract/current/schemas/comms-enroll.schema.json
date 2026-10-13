@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-enroll.schema.json",
+  "title": "com.enroll arguments: take a Project's responder slot for a capability (fabric-project-comms/0.1, DEC-0073)",
+  "description": "The responder is the authenticated session; a supplied process id, model name, origin, launcher label or descriptor never authorizes it. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "idempotency",
+    "capability"
+  ],
+  "properties": {
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    },
+    "capability": {
+      "description": "A capability of the caller's Project; the slot's Project comes from the endpoint, and the host's responder grant for it is checked in the same statement.",
+      "$ref": "common.schema.json#/$defs/capabilityName"
+    }
+  },
+  "additionalProperties": false
+}

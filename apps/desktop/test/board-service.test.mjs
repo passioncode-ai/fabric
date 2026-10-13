@@ -40,6 +40,16 @@ test('the digest is the contract\'s framing over canonical JSON, one value howev
   assert.equal(commsDigest('com.submit', { a: 1 }), 'sha256:' + createHash('sha256').update('fabric-project-comms/0.1\u0000com.submit\u0000{"a":1}').digest('hex'))
 })
 
+test('Fabric\'s commsDigest reproduces every digest vector the contract publishes and refuses every call it refuses (DEC-0043, DEC-0073)', () => {
+  const vectors = fixtures.document('current/vectors/canonical.json').commsDigest
+  assert.ok(vectors.vectors.length >= 4 && vectors.refuses.length >= 4)
+  for (const v of vectors.vectors) {
+    assert.equal(commsCanonical(v.args), v.canonical, `${v.name}: canonical form`)
+    assert.equal(commsDigest(v.operation, v.args), v.digest, `${v.name}: digest`)
+  }
+  for (const r of vectors.refuses) assert.throws(() => commsDigest(r.operation, JSON.parse(r.argsJson)), CommsCanonicalError, r.name)
+})
+
 test('the input schema reaches the contract\'s verdict on every comms-submit fixture it grades', () => {
   const graded = catalogue.filter(e => e.schema === 'comms-submit.schema.json')
   assert.equal(graded.length, 8)

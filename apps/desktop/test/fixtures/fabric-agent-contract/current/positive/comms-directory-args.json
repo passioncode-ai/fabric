@@ -1,0 +1,4 @@
+{
+  "capability": "analytics.retention",
+  "limit": 20
+}

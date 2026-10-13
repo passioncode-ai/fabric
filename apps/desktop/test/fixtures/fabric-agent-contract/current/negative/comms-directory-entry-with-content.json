@@ -1,0 +1,41 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "snapshot": {
+    "readAt": "2026-10-12T10:00:00Z"
+  },
+  "projects": [
+    {
+      "id": "proj-analytics",
+      "name": "Analytics",
+      "capabilities": [
+        {
+          "capability": "analytics.retention",
+          "responder": "active"
+        },
+        {
+          "capability": "analytics.ask",
+          "responder": "absent"
+        }
+      ],
+      "lastMessage": {
+        "text": "Please compute 7-day retention."
+      }
+    },
+    {
+      "id": "proj-render",
+      "name": "Video rendering",
+      "capabilities": [
+        {
+          "capability": "video.render",
+          "responder": "stale"
+        }
+      ]
+    },
+    {
+      "id": "proj-notes",
+      "name": "Notes",
+      "capabilities": []
+    }
+  ],
+  "cursor": null
+}

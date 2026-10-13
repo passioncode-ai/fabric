@@ -1,0 +1,514 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "snapshot": {
+    "readAt": "2026-10-12T10:00:00Z"
+  },
+  "projects": [
+    {
+      "id": "proj-p000",
+      "name": "Project 000",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p001",
+      "name": "Project 001",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p002",
+      "name": "Project 002",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p003",
+      "name": "Project 003",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p004",
+      "name": "Project 004",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p005",
+      "name": "Project 005",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p006",
+      "name": "Project 006",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p007",
+      "name": "Project 007",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p008",
+      "name": "Project 008",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p009",
+      "name": "Project 009",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p010",
+      "name": "Project 010",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p011",
+      "name": "Project 011",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p012",
+      "name": "Project 012",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p013",
+      "name": "Project 013",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p014",
+      "name": "Project 014",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p015",
+      "name": "Project 015",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p016",
+      "name": "Project 016",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p017",
+      "name": "Project 017",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p018",
+      "name": "Project 018",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p019",
+      "name": "Project 019",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p020",
+      "name": "Project 020",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p021",
+      "name": "Project 021",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p022",
+      "name": "Project 022",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p023",
+      "name": "Project 023",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p024",
+      "name": "Project 024",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p025",
+      "name": "Project 025",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p026",
+      "name": "Project 026",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p027",
+      "name": "Project 027",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p028",
+      "name": "Project 028",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p029",
+      "name": "Project 029",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p030",
+      "name": "Project 030",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p031",
+      "name": "Project 031",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p032",
+      "name": "Project 032",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p033",
+      "name": "Project 033",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p034",
+      "name": "Project 034",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p035",
+      "name": "Project 035",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p036",
+      "name": "Project 036",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p037",
+      "name": "Project 037",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p038",
+      "name": "Project 038",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p039",
+      "name": "Project 039",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p040",
+      "name": "Project 040",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p041",
+      "name": "Project 041",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p042",
+      "name": "Project 042",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p043",
+      "name": "Project 043",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p044",
+      "name": "Project 044",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p045",
+      "name": "Project 045",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p046",
+      "name": "Project 046",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p047",
+      "name": "Project 047",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p048",
+      "name": "Project 048",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p049",
+      "name": "Project 049",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p050",
+      "name": "Project 050",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p051",
+      "name": "Project 051",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p052",
+      "name": "Project 052",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p053",
+      "name": "Project 053",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p054",
+      "name": "Project 054",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p055",
+      "name": "Project 055",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p056",
+      "name": "Project 056",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p057",
+      "name": "Project 057",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p058",
+      "name": "Project 058",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p059",
+      "name": "Project 059",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p060",
+      "name": "Project 060",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p061",
+      "name": "Project 061",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p062",
+      "name": "Project 062",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p063",
+      "name": "Project 063",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p064",
+      "name": "Project 064",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p065",
+      "name": "Project 065",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p066",
+      "name": "Project 066",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p067",
+      "name": "Project 067",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p068",
+      "name": "Project 068",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p069",
+      "name": "Project 069",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p070",
+      "name": "Project 070",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p071",
+      "name": "Project 071",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p072",
+      "name": "Project 072",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p073",
+      "name": "Project 073",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p074",
+      "name": "Project 074",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p075",
+      "name": "Project 075",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p076",
+      "name": "Project 076",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p077",
+      "name": "Project 077",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p078",
+      "name": "Project 078",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p079",
+      "name": "Project 079",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p080",
+      "name": "Project 080",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p081",
+      "name": "Project 081",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p082",
+      "name": "Project 082",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p083",
+      "name": "Project 083",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p084",
+      "name": "Project 084",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p085",
+      "name": "Project 085",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p086",
+      "name": "Project 086",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p087",
+      "name": "Project 087",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p088",
+      "name": "Project 088",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p089",
+      "name": "Project 089",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p090",
+      "name": "Project 090",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p091",
+      "name": "Project 091",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p092",
+      "name": "Project 092",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p093",
+      "name": "Project 093",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p094",
+      "name": "Project 094",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p095",
+      "name": "Project 095",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p096",
+      "name": "Project 096",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p097",
+      "name": "Project 097",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p098",
+      "name": "Project 098",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p099",
+      "name": "Project 099",
+      "capabilities": []
+    },
+    {
+      "id": "proj-p100",
+      "name": "Project 100",
+      "capabilities": []
+    }
+  ],
+  "cursor": "cur_N3xtPage01"
+}

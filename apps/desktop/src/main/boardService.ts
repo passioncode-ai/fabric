@@ -35,7 +35,7 @@ export const isRefusal = (v: unknown): v is Refusal =>
 
 export class CommsCanonicalError extends Error {}
 
-/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) adds. Every one
+/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (pinned at edc88a6) adds. Every one
  *  is registered (A7-039); the gate decides which are served. */
 export const COMMS_OPERATIONS = [
   'com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.reply', 'com.cancel', 'com.status',
@@ -46,16 +46,15 @@ export type CommsOperation = (typeof COMMS_OPERATIONS)[number]
 
 // #region comms-pinned-operations — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#decision
 /**
- * The operations Fabric serves under the contract pin it vendors (spec §1.3). `com.submit` and `com.status` have
- * their schemas in the pin; `com.list`, `com.get` and `com.read_ack` take the shapes Fabric has served since 0.3.2,
- * which contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned) adopts (`comms-list`, `comms-message-ref`; `com.read_ack` takes no
- * idempotency key there). `com.reply`, `com.cancel`, `com.directory` and the responder tools have no argument schema
- * in the pin yet: they answer `unsupported_capability` until the repin (COM02.3-01) adds their names here. `board-service.test.mjs` fails when the vendored pin gains a schema this set does not serve, so
- * the repin cannot land without this line.
+ * The operations Fabric serves under the contract pin it vendors (spec §1.3). Since the repin to contract DEC-0073
+ * (fabric-agent-contract edc88a6, COM02.3-01) every one of the seventeen has its argument schema in the pin and is
+ * served. The set stays as a tested safeguard: an operation removed from it — or a future tool the pin does not carry
+ * yet — answers `unsupported_capability` before anything is read or stored. `board-service.test.mjs` fails when the
+ * vendored pin and this set disagree, so a repin cannot land without this line.
  */
-export const PINNED_COMMS_OPERATIONS: ReadonlySet<CommsOperation> = new Set<CommsOperation>(['com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.status'])
-/** Whether the pinned `comms-status` carries `idempotency.epoch` (DEC-0073 adds it; the pin refuses it today). */
-export const STATUS_CARRIES_EPOCH = false
+export const PINNED_COMMS_OPERATIONS: ReadonlySet<CommsOperation> = new Set<CommsOperation>(COMMS_OPERATIONS)
+/** Whether the pinned `comms-status` carries `idempotency.epoch` (DEC-0073 adds it; a viewer principal never reads it). */
+export const STATUS_CARRIES_EPOCH = true
 // #endregion comms-pinned-operations
 
 /** The contract's canonical JSON. Throws on anything it does not admit rather than guessing a spelling. */
@@ -81,6 +80,9 @@ export function commsCanonical(value: unknown): string {
 }
 
 export function commsDigest(operation: string, value: unknown): string {
+  // A NUL inside the operation would move the separator, and two calls would share a digest (contract
+  // src/comms-digest.ts; the refusal vectors of fixtures/vectors/canonical.json).
+  if (operation === '' || operation.includes('\u0000')) throw new CommsCanonicalError('an operation is a non-empty name without NUL')
   return 'sha256:' + createHash('sha256').update(`${COMMS_PROTOCOL}\u0000${operation}\u0000${commsCanonical(value)}`, 'utf8').digest('hex')
 }
 
