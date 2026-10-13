@@ -88,7 +88,10 @@ export function createResourceAttemptObservation(maxRecords: number) {
   return {
     record(raw: unknown): 'recorded' | 'duplicate' | 'invalid' | 'overflow' {
       let value: ResourceAttemptObservation
-      try { value = observation(raw) } catch { invalid = count(invalid); return 'invalid' }
+      try { value = observation(raw) } catch {
+        // The exported invalid counter marks incomplete evidence; raw rejected input is dropped, never logged.
+        invalid = count(invalid); return 'invalid'
+      }
       // A repeated condition within this attempt is one occurrence, not new
       // corroboration. Keep its first sample, never inflate measured duration.
       const key = [value.attemptDigest, value.phase, value.outcome, value.reason].join(':')
