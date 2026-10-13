@@ -1,0 +1,66 @@
+62043: function defaultHomeDir(env) {
+62044: 	const override = env["KIMI_CODE_HOME"];
+62045: 	if (override !== void 0 && override.length > 0) return override;
+62046: 	return join(homedir$1(), ".kimi-code");
+62047: }
+63111: function defaultKimiHome() {
+63112: 	const override = process.env["KIMI_CODE_HOME"];
+63113: 	if (override !== void 0 && override.length > 0) return override;
+63114: 	return join(homedir$1(), ".kimi-code");
+63115: }
+63116: function managedUsageUrl(baseUrl) {
+302416: //#region src/utils/paths.ts
+302417: /**
+302418: * CLI-owned data path helpers.
+302419: *
+302420: * These paths are for local app data such as logs and input history. Config
+302421: * files are owned by Core/SDK and intentionally do not live behind this module.
+302422: */
+302423: /**
+302424: * Return the root data directory for Kimi Code.
+302425: *
+302426: * Priority: `KIMI_CODE_HOME` env var > `~/.kimi-code`.
+302427: */
+302428: function getDataDir() {
+302429: 	const envDir = process.env[KIMI_CODE_HOME_ENV];
+302430: 	if (envDir) return envDir;
+302431: 	return join(homedir$1(), KIMI_CODE_DATA_DIR_NAME);
+302432: }
+302433: /**
+302434: * Return the diagnostic log directory: `<dataDir>/logs/`.
+302435: */
+302436: function getLogDir() {
+302437: 	return join(getDataDir(), KIMI_CODE_LOG_DIR_NAME);
+302438: }
+302439: /**
+302440: * Return the CLI cache directory: `<dataDir>/cache/`.
+302441: */
+313204: }));
+313205: //#endregion
+313206: //#region src/cli/sub/acp.ts
+313207: init_version$2();
+313208: init_app$1();
+313209: init_paths();
+313210: function registerAcpCommand(parent) {
+313211: 	parent.command("acp").description("Run kimi-code as an Agent Client Protocol (ACP) server over stdio.").option("--login", "Run the device-code login flow then exit (entry point for ACP terminal-auth).", false).option("--region <region>", "Login region used together with --login: \"mainland-cn\" (kimi.com) or \"global\" (kimi.ai).").action(async (opts) => {
+313212: 		if (opts.login === true) {
+313213: 			await runLoginFlow({ region: opts.region === void 0 ? void 0 : parseRegionFlag(opts.region) });
+313214: 			return;
+313215: 		}
+313216: 		const sandboxHome = process.env[KIMI_CODE_HOME_ENV];
+313217: 		const terminalAuthEnv = sandboxHome !== void 0 && sandboxHome.length > 0 ? { [KIMI_CODE_HOME_ENV]: sandboxHome } : void 0;
+313218: 		const legacyCommand = process.argv[1];
+313219: 		try {
+313220: 			const { runAcpServer } = await Promise.resolve().then(() => (init_src$3(), src_exports));
+313221: 			await runAcpServer({
+313222: 				homeDir: getDataDir(),
+313223: 				agentInfo: {
+313224: 					name: "Kimi Code CLI",
+313225: 					version: getVersion()
+313226: 				},
+313227: 				...terminalAuthEnv ? { terminalAuthEnv } : {},
+313228: 				...legacyCommand !== void 0 && legacyCommand.length > 0 ? { terminalAuthLegacyCommand: legacyCommand } : {}
+313229: 			});
+313230: 			process.exit(0);
+313231: 		} catch (error) {
+313232: 			process.stderr.write(`acp server: fatal error: ${String(error)}\n`);

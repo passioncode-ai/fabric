@@ -1,6 +1,6 @@
 # Controlled managed-pool completeness: bounded next design
 
-Status: storage slice A has reviewed N034 implementation; concrete composition slice B remains DESIGN ONLY. This continues ADR-0154. Neither storage alone nor N032 proves complete inventory. See [the N034 contract](resource-pool-registry.md) and [source evidence](../../reports/2026-10-13-resource-admission-contract/raw/n034/README.md).
+Status: this is the historical design packet. Both storage slice A (N034) and concrete composition slice B (N035) now have bounded source implementations; see [the current controlled-pool contract](resource-controlled-pool.md). Their expanded combined gate and runtime activation remain open. The design text below records the original decomposition, not a fresh implementation status. This continues ADR-0154. Neither storage alone nor N032 proves complete inventory. See [the N034 contract](resource-pool-registry.md) and [source evidence](../../reports/2026-10-13-resource-admission-contract/raw/n034/README.md).
 
 ## Exact existing gaps
 

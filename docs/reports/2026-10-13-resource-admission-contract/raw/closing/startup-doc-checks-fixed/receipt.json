@@ -1,0 +1,39 @@
+{
+  "scope": "Sequential focused documentation checks only; not full fast or runtime acceptance",
+  "baseHead": "1810405b6d7c40a6013595451f48569029737caf",
+  "commandPathRendering": "Installed skill root parameterized; exact version retained",
+  "results": [
+    {
+      "command": [
+        "bash",
+        "scripts/check-docs.sh"
+      ],
+      "exit": 0,
+      "seconds": 82.89,
+      "log": "0.log"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-regions.mjs"
+      ],
+      "exit": 0,
+      "seconds": 1.3,
+      "log": "1.log"
+    },
+    {
+      "command": [
+        "python3",
+        "{TASK_PIPELINE_SKILL_1.93.3}/scripts/plan_audit.py",
+        "--graph",
+        "docs/execution/harness-waves/graph.json",
+        "--packets",
+        "docs/execution/harness-waves/packets",
+        "--json"
+      ],
+      "exit": 0,
+      "seconds": 0.42,
+      "log": "2.log"
+    }
+  ]
+}

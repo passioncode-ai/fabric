@@ -1,0 +1,18 @@
+{
+  "runtime": "DISTINCT_NODE_NPM_NOT_NATIVE_BINARY",
+  "package": "@moonshot-ai/kimi-code",
+  "version": "2.1.1",
+  "bin": {
+    "kimi": "dist/main.mjs"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "entry": "/opt/homebrew/lib/node_modules/@moonshot-ai/kimi-code/dist/main.mjs",
+  "entrySha256": "2563a338c94868a34e1bfd2e5579067d5a472acf4cb0bf350a3bfe1092bbe59d",
+  "entryBytes": 21988585,
+  "packageSha256": "61fa2d6169c8b6b46ca47f529d5ea52415735faddac5640e960d2c3a7a13d441",
+  "scriptSha256": "187fab74e00c9653f6e40d342890f3e25917e889651deaa3a5f1cb48a26aff80",
+  "instrumentation": "Node --import data URL prints process.version/arch/platform to stderr before exact installed npm bin; no model/provider/session/auth",
+  "environment": "Original HOME unchanged; KIMI_CODE_HOME=data, KIMI_CODE_CACHE_DIR=cache, startup trace under owned root. No CODEX_HOME assignment."
+}

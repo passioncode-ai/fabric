@@ -1,0 +1,27 @@
+{
+  "source": "/opt/homebrew/lib/node_modules/@moonshot-ai/kimi-code/dist/main.mjs",
+  "package": "@moonshot-ai/kimi-code",
+  "packageVersion": "2.1.1",
+  "sourceBytes": 21988585,
+  "excerptRanges": [
+    [
+      62043,
+      62047
+    ],
+    [
+      63111,
+      63116
+    ],
+    [
+      302416,
+      302441
+    ],
+    [
+      313204,
+      313232
+    ]
+  ],
+  "excerptSha256": "9f14d7d3acd2c231f1a06e7dffd384a3403d5e452776fc45e045a91620e4e79c",
+  "fullSourceHash": "NOT_CAPTURED bounded source excerpts only",
+  "relationToBinary": "Installed npm2.1.1 source route; bundled PATH executable also reported2.1.1 previously, exact equivalence not assumed. Actual sandboxed initialize is independent observed behavior."
+}

@@ -1,0 +1,9 @@
+{
+  "kind": "APPENDED_METADATA_CORRECTION",
+  "originalReceiptSha256": "07142b78b7a874ac20b694b4fd5a51400965880958f2eb3d78fa3b3d2210060b",
+  "executedScriptSha256": "57b8e6f1c37c83b5e5db0bd72acce03ac63e2b14b2c45d96efc307ffbddd9a59",
+  "field": "receipt.environment",
+  "original": "KIMI_CODE_HOME alone redirected",
+  "correct": "Original HOME preserved; supported KIMI_CODE_HOME and KIMI_CODE_CACHE_DIR both redirect to owned directories; KIMI_STARTUP_TRACE=1 and KIMI_STARTUP_TRACE_LOG point to owned private trace. CODEX_HOME untouched. Same sandbox restrictions.",
+  "evidence": "Exact saved executed probe.py env dictionary. Original receipt remains unchanged."
+}

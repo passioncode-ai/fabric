@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 native startup and owner readback · task-branch preparation
+- scope: preserve source-guided restricted Kimi failures, exact owner readback and overlap design review; correct historical design status without changing product code
+- evidence: original HOME preserved; data/cache-path native initialize attempts fail before reply, cause unknown; task-pipeline selected certification/lesson bytes unchanged at540679ea
+- remains: actual native behavior, full source gate/publication, owner board admission and runtime authority; no new node is marked done
+- entry: docs/handoffs/2026-10-13-harness-waves.md; source branch delivery only, not a main merge or installed change
+
 ### 2026-10-13 · CO-282 corrected initialize-only probe · task-branch preparation
 - scope: preserve HOME using installed-source-confirmed HERMES_HOME; retain rejected child-HOME probe and explicit Kimi NOT_RUN
 - evidence: actual Hermes initialize protocolVersion1/exit0 without session, prompt or authentication; launcher identity only, not full closure

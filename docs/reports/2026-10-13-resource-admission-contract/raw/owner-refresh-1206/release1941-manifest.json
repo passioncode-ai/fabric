@@ -1,0 +1,18 @@
+[
+  {
+    "path": "docs/evidence/runs/2026-10-13-release-1941/README.md",
+    "sha256": "b29bddfd9bd6baf635456ba009538b88b02f69c0c995fade326d8386825c50f0"
+  },
+  {
+    "path": "docs/evidence/runs/2026-10-13-release-1941/focused.json",
+    "sha256": "98bf09ba430de6759ca30420a5b67b8484cba2f1d5ff782cc24fb96cfd02cb4c"
+  },
+  {
+    "path": "docs/evidence/runs/2026-10-13-release-1941/candidate-validation.json",
+    "sha256": "6d8edb967ddd0aa7caddb1fbe41cc8a3a351d3d13c42709a299492a8fbe9df4f"
+  },
+  {
+    "path": "docs/evidence/runs/2026-10-13-release-1941/publication-boundary.json",
+    "sha256": "66e5d4a0cef8bfb967026563088224c22b8cd972639e4e917deefcff2e232683"
+  }
+]

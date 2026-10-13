@@ -1,0 +1,36 @@
+[
+  {
+    "at": 1791892724.2714539,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Connecting to Fabric. Call this tool again in a moment."
+        }
+      ],
+      "structuredContent": {
+        "fabric": {
+          "state": "starting"
+        }
+      },
+      "isError": true
+    }
+  },
+  {
+    "at": 1791892734.280479,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Fabric could not be reached: Streamable HTTP error: Error POSTing to endpoint: {\"error\":\"the hub cannot check credentials right now; try again\"}."
+        }
+      ],
+      "structuredContent": {
+        "fabric": {
+          "state": "failed"
+        }
+      },
+      "isError": true
+    }
+  }
+]

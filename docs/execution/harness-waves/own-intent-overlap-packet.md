@@ -66,3 +66,14 @@ resource_wait_queue.sql:80–87 never-started proof rejects prior reservations; 
 One bounded implementation packet can define/test the versioned cut + server joins and update N025/N027/R1/adapter/factory integration together. It reuses existing producers, not a new generic scheduling framework. The existing pending107 filename is historical test DDL, not a promised activation number: collision with the owner's migration work remains unresolved. Allocate the future pending migration honestly under the ledger policy; do not assert an available number or enable schema automatically.
 
 Local code and isolated fixture work are executable without COM consent. Production readiness separately needs actual R1 held/fence/full dependency closure, trusted app-root and privileged publisher composition, active migration ordering, measured native path and policy installation. No provider retirement or all-host process completeness claim is included. This removes first-launch worker double charge; it does not create infinite reuse of an unretired capacity-one pool.
+
+## Independent design review and implementation sequence
+
+[The source-bound review](../../reports/2026-10-13-resource-admission-contract/raw/overlap-design-review/packet.md), with [13 input hashes](../../reports/2026-10-13-resource-admission-contract/raw/overlap-design-review/inputs.json), found no arithmetic counterexample under the stated assumptions. It did not execute tests or certify earlier implementation by this contributor. Before credit is implemented:
+
+- Prove retained-set preservation and append ancestry, not only increasing count/head sequence. No retirement exists, so a newer cut cannot omit an old member.
+- Use a versioned admission envelope carrying exact generation, cut and unit identity. The current eight-key resource binding cannot carry these fields, and policy-label equality cannot distinguish A1→B2→A3.
+- Persist consumed linkage so release or restoration cannot manufacture a fresh own-intent credit. Missing history is not proof of first use.
+- Apply identical union semantics to coherent read, first admission and final begin/validate checks. Exact historical receipt recovery does not itself authorize a current spawn.
+
+The smallest independently testable storage slice is service-only immutable cut publication/readback with all overlap credits still zero. It is a prerequisite, not the capacity-one fix. The next slices are atomic reservation linkage/shared SQL accounting, then actual sampler/publisher/R1/factory composition. These remain design proposals under REQ009, without allocated implementation nodes or claimed schema activation. Local source work needs no COM consent; runtime ordering/authority still do. At-most-one admission is safety, not progress: two simultaneous intents can conservatively exhaust a capacity-one pool, and an unretired consumed unit cannot be recycled by release alone.

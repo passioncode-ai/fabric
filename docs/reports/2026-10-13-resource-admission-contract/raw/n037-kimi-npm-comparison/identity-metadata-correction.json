@@ -1,0 +1,7 @@
+{
+  "originalReceiptSha256": "61dd3caaec2f5be7dca1b754cdcc3255598e7f38339259ab1c382274d9e9a60d",
+  "correction": "entryPrefixBytes1048576 is read LIMIT, not bytes read. Node executable size132848 means read returned full132848 bytes; digest is full small launcher-file SHA256, not the linked Node runtime/dependency closure. Original receipt retained.",
+  "actualReadBytes": 132848,
+  "nodeLauncherFileSha256": "832eaf52cafa7ff1364c2ca378451db14fb043d8d23a5cfd18a0a103d66226fc",
+  "fullLinkedRuntimeClosure": "NOT_CAPTURED"
+}

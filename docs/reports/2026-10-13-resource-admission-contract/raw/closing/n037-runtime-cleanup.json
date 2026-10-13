@@ -1,0 +1,128 @@
+{
+  "recordedAt": "2026-10-13T12:27:16.655318+00:00",
+  "authorization": "Root explicitly authorized only excluded completed N037 runtime/cache cleanup",
+  "rootOrInstalledFilesTouched": false,
+  "processActions": "NONE; no signals, services, apps or native/model processes launched",
+  "recordedPidCheck": {
+    "pids": [
+      71223,
+      13726
+    ],
+    "psExit": 1,
+    "present": false
+  },
+  "olderPidLimit": "Earlier probes did not record PID; completion supported by actual exit/wait receipts plus no open descriptors in exact owned trees, not fabricated PID authentication",
+  "scopes": [
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-acp-initialize-frn7brc6/hermes-owned-home",
+      "beforeLogicalBytes": 750,
+      "beforeAllocatedKiB": 12,
+      "fileCount": 6,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    },
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-acp-initialize-frn7brc6/kimi-owned-home",
+      "beforeLogicalBytes": 2036228,
+      "beforeAllocatedKiB": 2012,
+      "fileCount": 9,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    },
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-acp-corrected-k4my00fm/hermes-owned-home",
+      "beforeLogicalBytes": 750,
+      "beforeAllocatedKiB": 12,
+      "fileCount": 6,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    },
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-kimi-corrected-vvvquxfw/kimi-owned-home",
+      "beforeLogicalBytes": 0,
+      "beforeAllocatedKiB": 0,
+      "fileCount": 0,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    },
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-kimi-cache-probe-2ufg82vq/kimi-owned-home",
+      "beforeLogicalBytes": 2036228,
+      "beforeAllocatedKiB": 2012,
+      "fileCount": 9,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    },
+    {
+      "scope": "{OWNED_TEMP}/fabric-n037-kimi-npm-comparison-qxgnvrlp/kimi-owned-home",
+      "beforeLogicalBytes": 107,
+      "beforeAllocatedKiB": 4,
+      "fileCount": 1,
+      "parentExactOwnedPath": true,
+      "runtimeDirNotSymlink": true,
+      "manifestExcludesRuntime": true,
+      "completionEvidence": "Original executed probe receipt exit plus exact saved source p.wait; current lsof +D returned1/no PIDs/no stderr",
+      "lsofExit": 1,
+      "openPids": [],
+      "lsofStderrBytes": 0,
+      "afterLogicalBytes": 0,
+      "afterAllocatedKiB": 0,
+      "removed": true
+    }
+  ],
+  "removedRuntimeAllocatedKiB": 4052,
+  "removedRuntimeLogicalBytes": 4074063,
+  "preservedPrivateEvidence": [
+    {
+      "path": "{OWNED_TEMP}/fabric-n037-kimi-npm-comparison-qxgnvrlp/startup-trace.private-preserved.txt",
+      "sha256": "8adb48f5afd6e290876ecd10b2a323e386d493d8d4aa9ed1e4f838906f26d868",
+      "bytes": 107,
+      "publication": "PRIVATE provenance, not included in public probe manifest"
+    }
+  ],
+  "allExistingTopLevelEvidenceFilesHashUnchanged": true,
+  "existingFilesVerified": 54,
+  "afterRuntimeBytes": 0,
+  "publicPathConvention": "{OWNED_TEMP} denotes the task temporary parent; concrete private root not published",
+  "limit": "Removed allocated bytes are directory du totals, not a claim of equivalent machine-wide free-space increase; preserved private trace still consumes its small allocation"
+}

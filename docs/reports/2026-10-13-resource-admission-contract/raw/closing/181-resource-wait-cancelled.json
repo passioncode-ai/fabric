@@ -1,0 +1,26 @@
+{
+  "status": "CANCELLED_BEFORE_GATE",
+  "reason": "Archive reviewed native and owner evidence; no full gate started",
+  "cancelledAt": 1791893482.277039,
+  "lastState": {
+    "headBefore": "1810405b6d7c40a6013595451f48569029737caf",
+    "indexTreeBefore": "4f6677cbb8b7ded039ea8e31a64bad8a730f68ad",
+    "workspaceCheckoutBefore": "3998a3371c0b8ae0e4d5fde439f430320967a9c0",
+    "originMainBefore": "d162e844e7a29e4997d2d9071aaa0ff07d2c228d",
+    "scriptSha256": "d63dc8edaea15b083269a783ec5f937e05dff7d823228007b627fffe56afbd87",
+    "startedAt": 1791892190.676815,
+    "pid": 9110,
+    "requiredFreeBytes": 3221225472,
+    "maximumLoad1": 56,
+    "waitDeadlineSeconds": 5400,
+    "executionDeadlineSeconds": 4500,
+    "limits": "Full fast only; no automatic graph closure, commit, publish, service control or owner consent. Shared dependency/toolchain reproducibility remains unverified.",
+    "phase": "resource-wait",
+    "at": 1791893454.302457,
+    "freeBytes": 2120650752,
+    "load1": 890.36474609375,
+    "readySamples": 0
+  },
+  "watcherCommand": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /tmp/fabric-final-fast.py",
+  "ownedChildCount": 0
+}

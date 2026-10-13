@@ -1,0 +1,17 @@
+{
+  "status": "FAILED_STARTUP_NO_INITIALIZE_ACCEPTANCE",
+  "files": {
+    "kimi-sandbox.public.sb": "abfb2ef75af32e27962028096e6c42673981b678a801c7c696702a3a07ae344e",
+    "kimi-stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-source.excerpt.txt": "9f14d7d3acd2c231f1a06e7dffd384a3403d5e452776fc45e045a91620e4e79c",
+    "README.md": "b7a3e2f12daf85621b5ae268192c2c98e0e008de2b47d0eead704e046e0c3173",
+    "source-support.json": "8382a9e1cfe0ea70a4f8f7639c763329a71c33b66532fead761c5bab08a07a72",
+    "probe.py": "0eb47b44b1faf351d3c3f798278a5da575eef3e9c318af06f746ba9d8e3aa004",
+    "audit-trail.json": "8a22289bed7a1f848584d7dbb949b69e94469aa714f1369f8a4b67476edaff9a",
+    "kimi-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt.json": "507b37dcb28496d13eed241b4662b39a588a268c048d76110ddb416520d4a31c"
+  },
+  "excluded": [
+    "kimi-owned-home/"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "kind": "READ_ONLY_STARTUP_DIAGNOSIS_NOT_ACCEPTANCE",
+  "priorReceiptSha256": "507b37dcb28496d13eed241b4662b39a588a268c048d76110ddb416520d4a31c",
+  "nativeProcessesRun": 0,
+  "rootFilesReadOrWritten": false,
+  "crashSearch": {
+    "directories": [
+      "{REAL_HOME}/Library/Logs/DiagnosticReports",
+      "/Library/Logs/DiagnosticReports"
+    ],
+    "basis": "receipt file mtime, not exact native start timestamp",
+    "receiptMtimeUTC": "2026-10-13T12:01:10.247905Z",
+    "windowSecondsEitherSide": 900,
+    "recentFiles": 0,
+    "crashBodiesRead": 0,
+    "pidCorrelation": "NOT_AVAILABLE prior probe did not record PID"
+  },
+  "source": "installed @moonshot-ai/kimi-code2.1.1 dist/main.mjs",
+  "sourceRanges": [
+    [
+      1,
+      6
+    ],
+    [
+      313011,
+      313045
+    ],
+    [
+      313103,
+      313111
+    ],
+    [
+      313942,
+      313950
+    ],
+    [
+      381195,
+      381212
+    ],
+    [
+      382036,
+      382057
+    ],
+    [
+      490289,
+      490301
+    ],
+    [
+      490389,
+      490395
+    ],
+    [
+      490435,
+      490440
+    ],
+    [
+      490677,
+      490715
+    ]
+  ],
+  "newFinding": "native asset cache separately honors KIMI_CODE_CACHE_DIR",
+  "causeOfSIGSEGV": "UNKNOWN",
+  "proposedRuns": "NOT_RUN",
+  "sourceExcerptSha256": "2e3ddace01913df19196445db514c28474ac77ea7ba7b4df8b31b2718ccc6e06"
+}

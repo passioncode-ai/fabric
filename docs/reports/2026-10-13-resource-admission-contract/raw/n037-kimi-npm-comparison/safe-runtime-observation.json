@@ -1,0 +1,23 @@
+{
+  "runtime": [
+    {
+      "node": "v26.10.0",
+      "arch": "arm64",
+      "platform": "darwin"
+    }
+  ],
+  "traceExists": true,
+  "safeTraceStages": [
+    {
+      "ms": 766,
+      "stage": "minidb-worker",
+      "status": "not-sea"
+    },
+    {
+      "ms": 766,
+      "stage": "search-worker",
+      "status": "not-sea"
+    }
+  ],
+  "rawTracePublished": false
+}

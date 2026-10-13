@@ -6,7 +6,13 @@ A prepared packet, submission or acknowledgement does not establish behavioral
 acceptance. [The plan](../../evidence/plans/2026-10-13-harness-waves.md) owns this
 run's scope; N-009/N-010 retain the upstream acceptance obligations.
 
-## Source pins
+## Latest inspected owner source: 12:06 UTC
+
+[The current bounded readback](../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/receipt.json) supersedes the earlier state table below for dispatch preparation. Task-pipeline main is `540679ea7552f8a37e99560e287a69c23cbd3c4a` (source1.94.1); #112 merged as `4d750573ce53ea4c7ffa2bde192ee35b59acefa7`. Its selected graph, lessons and iteration bytes are identical to the09:19 readback: candidate/input/dispatch certification, idempotent rounds and authorized lesson adoption remain open. The new release-gap repair is a separate change. Latest published release is still1.93.3; installation was not refreshed here.
+
+Hub main/release remain `a17f829e8d652ce7f68423b67e0de00fb89b3693` /1.62.2. Observatory service status returned `Transport closed`; no fresh runtime version or collector health follows. The [official Fabric probe](../../reports/2026-10-13-resource-admission-contract/raw/closing/board-official-1158.json) reports that the hub cannot check credentials. All packets remain PREPARED/NOT_SENT. Refresh current owner heads again before actual dispatch.
+
+## Historical source pins
 
 Remote states were read on 2026-10-13 with
 `gh pr view <number> -R <owner/repo> --json state,headRefOid,mergeCommit`.

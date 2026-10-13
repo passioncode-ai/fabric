@@ -1,0 +1,12 @@
+{
+  "sourceCheckpoint": "1810405b",
+  "rootSourceRead": false,
+  "prior": "HOME-substitution initialize remains NONCONFORMING, no acceptance credit",
+  "correctedHermes": "Previously observed with documented HERMES_HOME and original HOME unchanged, separate receipt",
+  "currentKimi": "SUPPORTED_OVERRIDE_FOUND_BUT_ACTUAL_INITIALIZE_FAILED_STARTUP",
+  "exit": -11,
+  "reply": null,
+  "attemptCount": 1,
+  "rerun": false,
+  "limits": "Not full N037 acceptance; no claim of product defect or sandbox-cause attribution"
+}

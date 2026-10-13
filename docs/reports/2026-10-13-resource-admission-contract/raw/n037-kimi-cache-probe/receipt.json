@@ -1,0 +1,55 @@
+{
+  "scope": "Single cache-override Kimi ACP initialize; original HOME preserved, CODEX_HOME untouched; not native instruction/MCP/session/auth/provider acceptance",
+  "scriptSha256": "57b8e6f1c37c83b5e5db0bd72acce03ac63e2b14b2c45d96efc307ffbddd9a59",
+  "network": "sandbox denied network*",
+  "writes": "only respective owned temporary home",
+  "environment": "minimal no inherited tokens; original HOME value passed unchanged, KIMI_CODE_HOME alone redirected; real credential dirs and keychain filesystem/Mach access denied",
+  "deadlineSecondsPerHost": 30,
+  "maxOutputBytesPerStream": 65536,
+  "sequential": true,
+  "results": [
+    {
+      "host": "kimi",
+      "childPid": 71223,
+      "startedUTC": "2026-10-13T12:11:27.862145+00:00",
+      "finishedUTC": "2026-10-13T12:11:32.395003+00:00",
+      "command": [
+        "{REAL_HOME}/.kimi-code/bin/kimi",
+        "acp"
+      ],
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": null,
+      "reason": "child_exited_without_initialize_reply",
+      "exit": -11,
+      "seconds": 4.532,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 737307530,
+        "size": 188155456,
+        "mtimeNs": 1791244378222093244,
+        "sameAfter": true
+      },
+      "originalHomePreserved": true,
+      "entryPrefixSha256": "ca9374a5f76b1463a85497b8649176b8eeeb2d7a55ebf60e50bfe68f2ef2ad77",
+      "entryPrefixBytes": 1048576,
+      "fullExecutableHash": "NOT_CAPTURED 188155456-byte executable; limited prefix read avoids substantial I/O under current host pressure",
+      "identityLimit": "prefix digest and stat only, not full executable/dependency identity",
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "status": "FAILED_STARTUP_NO_ACCEPTANCE",
+  "files": {
+    "kimi-sandbox.public.sb": "abfb2ef75af32e27962028096e6c42673981b678a801c7c696702a3a07ae344e",
+    "kimi-stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "README.md": "b39c182da815e429ed1a400027bd2d26e45abf5d9f97a0b465f14b5547ecf8a6",
+    "owned-output-metadata.json": "b6f6a1514710f6e620e33d69b417c31700c5b4cc937ff1521633191b01546437",
+    "probe.py": "57b8e6f1c37c83b5e5db0bd72acce03ac63e2b14b2c45d96efc307ffbddd9a59",
+    "trace-inspection.json": "fb1a14acd9edda25d9112feced3a55da5a69361e54e4568285a84668bed41c81",
+    "kimi-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-execution.json": "26e38dd405bd43c4a47d31b0e0c8834acaeecd9e3670f169561e05025d289f3d",
+    "receipt.json": "07142b78b7a874ac20b694b4fd5a51400965880958f2eb3d78fa3b3d2210060b",
+    "metadata-correction.json": "afac44926476ddc7139810c4b0f9faae00b7a6fb03a338b76bdcd487641c78c8"
+  },
+  "excluded": [
+    "kimi-owned-home/"
+  ]
+}

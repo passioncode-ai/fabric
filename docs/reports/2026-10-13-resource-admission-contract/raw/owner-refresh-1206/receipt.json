@@ -1,0 +1,135 @@
+{
+  "schema": "fabric.owner-readback/1",
+  "checkedAt": "2026-10-13T12:06:15.230123+00:00",
+  "scope": "Read-only bounded remote source/release metadata and selected committed evidence; not owner adoption or runtime acceptance",
+  "fabricCheckpoint": "1810405b",
+  "baseline": "owner-refresh-0919",
+  "remote": {
+    "asOf": "2026-10-13T12:02:04.601613+00:00",
+    "reads": {
+      "pipeline-main": {
+        "exitCode": 0,
+        "value": {
+          "date": "2026-10-13T11:19:24Z",
+          "sha": "540679ea7552f8a37e99560e287a69c23cbd3c4a"
+        },
+        "errorClass": null
+      },
+      "pipeline-release": {
+        "exitCode": 0,
+        "value": {
+          "html_url": "https://github.com/ssheleg/task-pipeline/releases/tag/v1.93.3",
+          "published_at": "2026-10-12T17:25:52Z",
+          "tag_name": "v1.93.3",
+          "target_commitish": "main"
+        },
+        "errorClass": null
+      },
+      "pipeline-pr112": {
+        "exitCode": 0,
+        "value": {
+          "head": {
+            "sha": "216bcbc410cca4a660e56197f2021169eacabb22"
+          },
+          "html_url": "https://github.com/ssheleg/task-pipeline/pull/112",
+          "merge_commit_sha": "4d750573ce53ea4c7ffa2bde192ee35b59acefa7",
+          "merged_at": "2026-10-13T08:03:33Z",
+          "number": 112,
+          "state": "closed"
+        },
+        "errorClass": null
+      },
+      "hub-main": {
+        "exitCode": 0,
+        "value": {
+          "date": "2026-10-13T04:50:54Z",
+          "sha": "a17f829e8d652ce7f68423b67e0de00fb89b3693"
+        },
+        "errorClass": null
+      },
+      "hub-release": {
+        "exitCode": 0,
+        "value": {
+          "html_url": "https://github.com/ssheleg/sshlg-skills/releases/tag/v1.62.2",
+          "published_at": "2026-10-13T04:59:54Z",
+          "tag_name": "v1.62.2",
+          "target_commitish": "main"
+        },
+        "errorClass": null
+      }
+    }
+  },
+  "requirements": [
+    {
+      "id": "REQ006",
+      "status": "OPEN_UNCHANGED_SOURCE",
+      "evidence": "task-pipeline@540679ea7552f8a37e99560e287a69c23cbd3c4a plugins/task-pipeline/skills/task-pipeline/scripts/graph.py:1737-1755",
+      "finding": "Collector reads current HEAD and increments round/history. Previously identified candidate/input/dispatch binding and idempotent-round findings are not corrected by the new release metadata commit."
+    },
+    {
+      "id": "REQ007",
+      "status": "OPEN_UNCHANGED_SOURCE",
+      "evidence": "task-pipeline@540679ea7552f8a37e99560e287a69c23cbd3c4a plugins/task-pipeline/skills/task-pipeline/references/iteration.md:308-322",
+      "finding": "Presence of kind still treated as filter proof, observed lesson still binds as standing instruction. Emission already exists at lessons.py:965-998; do not request duplicate emitter. Authorized adoption and producer/store/search/consumer evidence remain separate."
+    },
+    {
+      "id": "REQ008",
+      "status": "OPEN_NO_UPSTREAM_DELTA",
+      "evidence": "sshlg-skills@a17f829e8d652ce7f68423b67e0de00fb89b3693 unchanged from09:19",
+      "finding": "Retain already-implemented B186 installer pin acknowledgement; prior host-specific visibility and actual Observatory MCP-profile adoption/native acceptance remain unverified. No new hub source or release since baseline."
+    }
+  ],
+  "newEvidence": {
+    "commit": "540679ea7552f8a37e99560e287a69c23cbd3c4a",
+    "sourceVersion": "1.94.1",
+    "scope": "Release-gap history preservation and version metadata only; one commit since baseline",
+    "focusedReleaseControls": 8,
+    "focusedReleaseControlsAllPassed": true,
+    "structuralReceiptSource": "4f323883391730a497333d7609b92e67ffdb1b54",
+    "structuralExit": 0,
+    "fullGate": "NOT_RUN in inspected committed candidate receipt",
+    "installed": "NOT_RUN in inspected committed candidate receipt; not refreshed here",
+    "publication": "NOT_RUN in inspected committed candidate receipt; current latest GitHub release remains v1.93.3",
+    "limitation": "Historical candidate receipts are not exact current-main certification, native acceptance, or all workflow runs. No test was executed by this refresh."
+  },
+  "observatory": {
+    "tool": "fabric-dashboards.service_status",
+    "service": "project-observatory.default",
+    "outcome": "UNAVAILABLE",
+    "error": "Transport closed",
+    "freshVersion": null,
+    "limit": "Previous0.24.4 degraded service reading is historical, not refreshed or reasserted current."
+  },
+  "board": {
+    "packets": "NOT_SENT",
+    "reason": "No cross-project messaging attempted; parent reported official board cannot check credentials."
+  },
+  "limits": [
+    "No source edits, installs, builds, tests, fetch/full clone, provider calls, owner messages, collector or lifecycle actions.",
+    "Selected source hashes prove unchanged files only; source/release metadata does not prove installation or adoption.",
+    "No fresh installed-version scan or native-host acceptance.",
+    "GitHub latest-release endpoint may exclude draft/prerelease artifacts."
+  ],
+  "selectedSource": [
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+      "sha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+      "bytes": 111655
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+      "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "bytes": 54613
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+      "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "bytes": 24990
+    },
+    {
+      "path": "package.json",
+      "sha256": "d1c00ce7a9073b73b0608a6a1e988cfe7bd46e83e2e22884e9a8ad5465446b32",
+      "bytes": 3255
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "head": "1810405b6d7c40a6013595451f48569029737caf",
+  "files": [
+    {
+      "path": "docs/execution/harness-waves/own-intent-overlap-packet.md",
+      "sha256": "c46cfe205f9730de96b0743caa144293985be88c1ac9a0e65641acb0586fd8b5"
+    },
+    {
+      "path": "apps/desktop/src/shared/resourceAdmission.ts",
+      "sha256": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceControlledPool.ts",
+      "sha256": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644"
+    },
+    {
+      "path": "apps/desktop/src/main/resourcePoolRegistry.ts",
+      "sha256": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceWorkerInventory.ts",
+      "sha256": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceHostSampler.ts",
+      "sha256": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c"
+    },
+    {
+      "path": "apps/desktop/src/main/resourcePoolPublisher.ts",
+      "sha256": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6"
+    },
+    {
+      "path": "apps/desktop/src/main/resourcePoolAccounting.ts",
+      "sha256": "79b8e9a727ab1be0530f3aa7fa9c591c10b478cb87749708b3db926eeb52a358"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "sha256": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceManagedUnit.ts",
+      "sha256": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6"
+    },
+    {
+      "path": "apps/desktop/src/main/managedLaunch.ts",
+      "sha256": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa"
+    },
+    {
+      "path": "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "sha256": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770"
+    },
+    {
+      "path": "supabase/pending-migrations/20261013000108_resource_wait_queue.sql",
+      "sha256": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca"
+    }
+  ]
+}

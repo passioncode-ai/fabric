@@ -12,13 +12,28 @@
       "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-acp-corrected/receipt.json",
       "sha256": "d3a0cc81d2a382451d5cde83aad78493af0ba43e1691278e2879462579a4a725",
       "scope": "Actual Hermes initialize-only protocolVersion1 reply, original HOME preserved, documented HERMES_HOME used; no session/prompt/auth/provider or full N037 acceptance"
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/receipt.json",
+      "sha256": "507b37dcb28496d13eed241b4662b39a588a268c048d76110ddb416520d4a31c",
+      "scope": "Original HOME preserved; supported KIMI_CODE_HOME; one restricted native initialize attempt exits SIGSEGV before reply. Cause unknown; not general product failure or accepted native behavior."
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/receipt.json",
+      "sha256": "07142b78b7a874ac20b694b4fd5a51400965880958f2eb3d78fa3b3d2210060b",
+      "scope": "One specific cache-override follow-up, original HOME and sandbox unchanged; nine owned cache files extracted, still SIGSEGV before reply. See metadata-correction.json; no further native retries."
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/receipt.json",
+      "sha256": "61dd3caaec2f5be7dca1b754cdcc3255598e7f38339259ab1c382274d9e9a60d",
+      "scope": "Different installed npm2.1.1/Node26.10.0 runtime initialize protocol1 reply/exit0, original HOME preserved; no session/prompt/auth and no acceptance of the failed native binary. Launcher metadata correction and entry/package hashes are preserved."
     }
   ],
   "observed": {
     "claude": "2.1.296",
     "codex": "0.162.1",
     "hermes": "0.21.4 (2026.9.21)",
-    "kimi": "2.1.1",
+    "kimi": "2.1.1; two restricted native startup failures; distinct npm/Node initialize-only observed",
     "kilo": "found; version/help denied filesystem write, version NOT_OBSERVED",
     "cline": "not found on probed PATH",
     "shell": "not an autonomous executor"
@@ -30,5 +45,5 @@
     "Required unsupported capabilities need authorized scope disposition"
   ],
   "next": "Run feasible bounded native probes independently; sign-in or consent gates apply only to their dependent probes; never infer loaded behavior from CLI help",
-  "probeConformance": "Earlier version/help and ACP child-HOME substitutions remain NONCONFORMING history. Corrected Hermes initialization preserves HOME; corrected Kimi NOT_RUN because supported path override is unestablished."
+  "probeConformance": "Earlier version/help and ACP child-HOME substitutions remain NONCONFORMING history. Corrected Hermes initialization preserves HOME. Two corrected restricted native Kimi probes preserve HOME and use source-confirmed data/cache paths; both failed before initialize, with no causal attribution."
 }

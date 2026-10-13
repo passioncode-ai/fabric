@@ -1,0 +1,11 @@
+{
+  "state": "DESIGN_REVIEW_ONLY",
+  "at": "2026-10-13T12:10:41.167881+00:00",
+  "inputsSha256": "2c707fabb0c921020259de41e97eb2a9d0fca8be8e89f921248de3744b5ac09f",
+  "packetSha256": "c9c71d234bcba0cc61a2f5cd09957694f52cd1309ff5ae9d36211b3519e0726c",
+  "verdict": "Union arithmetic sound conditional on exact producer/link lineage; full change is coordinated accounting contract, not narrow subtraction",
+  "nextSlice": "pending service-only immutable observation cut store/readback; no credit or capacity-one closure claim",
+  "tests": "NOT_RUN",
+  "rootEdits": false,
+  "authorDisclosure": "Earlier implementation contributor; independent reviewer of this new proposal, not self-certifying previous modules"
+}

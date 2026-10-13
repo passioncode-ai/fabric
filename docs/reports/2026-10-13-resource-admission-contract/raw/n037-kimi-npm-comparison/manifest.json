@@ -1,0 +1,17 @@
+{
+  "scope": "DISTINCT_NPM_RUNTIME_INITIALIZE_ONLY_OBSERVED_NATIVE_BINARY_FAILURE_UNRESOLVED",
+  "files": {
+    "kimi-sandbox.public.sb": "edcbd7cf27dda914b3b4da055c5dd862542af75497bae6fd06da0f126924cbf0",
+    "identity-metadata-correction.json": "51cb024bd526f3fd38dda5361b05c36375a52f7181c61187fbfa382f9ab60138",
+    "kimi-stdout.txt": "53c605f8e6f23f193a64dc58e6a615dbd69b910051e15b2da04b2fb33af69f8d",
+    "safe-runtime-observation.json": "b1a2d0ebb9a56a6871e84820cae64ae34da65366c976d3a553c30a0a24ffef23",
+    "README.md": "8d64afe7d4e8ba8c1cc8951c3aac660c06ee82a51e16f4709a8631b4347b5ec5",
+    "probe.py": "187fab74e00c9653f6e40d342890f3e25917e889651deaa3a5f1cb48a26aff80",
+    "kimi-stderr.txt": "c48df85cd94fdb2a5cccecaa8f32b69a9487a9d61fd53c5779c0a161ae4e049a",
+    "pre-execution.json": "856291159e72bdd7041978e79ddf42041b34bed1f8b310fdf8c0e47cb1faa10a",
+    "receipt.json": "61dd3caaec2f5be7dca1b754cdcc3255598e7f38339259ab1c382274d9e9a60d"
+  },
+  "excluded": [
+    "kimi-owned-home/"
+  ]
+}

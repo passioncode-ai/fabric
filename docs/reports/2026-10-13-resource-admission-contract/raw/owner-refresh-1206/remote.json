@@ -1,0 +1,55 @@
+{
+  "asOf": "2026-10-13T12:02:04.601613+00:00",
+  "reads": {
+    "pipeline-main": {
+      "exitCode": 0,
+      "value": {
+        "date": "2026-10-13T11:19:24Z",
+        "sha": "540679ea7552f8a37e99560e287a69c23cbd3c4a"
+      },
+      "errorClass": null
+    },
+    "pipeline-release": {
+      "exitCode": 0,
+      "value": {
+        "html_url": "https://github.com/ssheleg/task-pipeline/releases/tag/v1.93.3",
+        "published_at": "2026-10-12T17:25:52Z",
+        "tag_name": "v1.93.3",
+        "target_commitish": "main"
+      },
+      "errorClass": null
+    },
+    "pipeline-pr112": {
+      "exitCode": 0,
+      "value": {
+        "head": {
+          "sha": "216bcbc410cca4a660e56197f2021169eacabb22"
+        },
+        "html_url": "https://github.com/ssheleg/task-pipeline/pull/112",
+        "merge_commit_sha": "4d750573ce53ea4c7ffa2bde192ee35b59acefa7",
+        "merged_at": "2026-10-13T08:03:33Z",
+        "number": 112,
+        "state": "closed"
+      },
+      "errorClass": null
+    },
+    "hub-main": {
+      "exitCode": 0,
+      "value": {
+        "date": "2026-10-13T04:50:54Z",
+        "sha": "a17f829e8d652ce7f68423b67e0de00fb89b3693"
+      },
+      "errorClass": null
+    },
+    "hub-release": {
+      "exitCode": 0,
+      "value": {
+        "html_url": "https://github.com/ssheleg/sshlg-skills/releases/tag/v1.62.2",
+        "published_at": "2026-10-13T04:59:54Z",
+        "tag_name": "v1.62.2",
+        "target_commitish": "main"
+      },
+      "errorClass": null
+    }
+  }
+}

@@ -45,6 +45,11 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 
 ## Recent log
 
+### 2026-10-13 · CO-282 isolated startup probes and evidence metadata
+
+R004 applies when a restricted native probe exits before its initialize reply: record the boundary reached and unknown cause, never call it a general Fabric defect. Kimi has separate supported data and native-cache controls; discovering the cache control justified one targeted follow-up, but its repeated SIGSEGV did not justify relaxing credential/network isolation or a retry loop. Record PID and UTC before launch. Reused probe scaffolding also copied a stale environment description into the second receipt; preserve the original trace and append a correction tied to the saved script. A successful different npm runtime, if later observed, cannot certify the failed native binary. [Evidence](../reports/2026-10-13-resource-admission-contract/README.md#native-startup-and-owner-readback-continuation). This is a local lesson, not Observatory adoption or a new standing rule.
+
+
 ### 2026-10-13 · CO-282 carry environment constraints into native probe packets
 
 The CLI/ACP reviewer used a disposable child HOME to isolate fixtures; parent shell state was unchanged, but the standing constraint prohibits repurposing HOME/CODEX_HOME. The correction arrived after execution. Keep the original trace explicitly nonconforming, never infer accepted native behavior, and require host-specific supported path controls plus sandbox denial before the corrected probe. Write the exact replay script before execution and carry the environment prohibition in every delegated native packet. Isolation intent does not substitute for the actual applicable contract.

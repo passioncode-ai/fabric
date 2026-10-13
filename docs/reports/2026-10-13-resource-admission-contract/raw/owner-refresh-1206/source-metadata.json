@@ -1,0 +1,141 @@
+{
+  "files": [
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+      "sha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+      "bytes": 111655
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+      "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "bytes": 54613
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+      "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "bytes": 24990
+    },
+    {
+      "path": "package.json",
+      "sha256": "d1c00ce7a9073b73b0608a6a1e988cfe7bd46e83e2e22884e9a8ad5465446b32",
+      "bytes": 3255
+    }
+  ],
+  "comparison": {
+    "commits": [
+      {
+        "message": "fix: preserve failed release history and prepare v1.94.1 (#126)\n\n* docs: scope failed release repair and exact-tag admission\n\n* fix: record failed release gap without backfilling a run; v1.94.1\n\n* docs: align repair target and retain first local-tag findings\n\n* docs: describe metadata validation without an unrelated guard-count claim\n\n* docs: retain exact local-tag repair validation and publication limits\n\n---------\n\nCo-authored-by: \u0420\u043e\u0431\u043e\u0442 <r@e.com>",
+        "sha": "540679ea7552f8a37e99560e287a69c23cbd3c4a"
+      }
+    ],
+    "files": [
+      {
+        "changes": 2,
+        "filename": ".claude-plugin/marketplace.json",
+        "status": "modified"
+      },
+      {
+        "changes": 7,
+        "filename": "CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "changes": 2,
+        "filename": "SKILL-CARD.md",
+        "status": "modified"
+      },
+      {
+        "changes": 12,
+        "filename": "docs/HANDOFF.md",
+        "status": "modified"
+      },
+      {
+        "changes": 12,
+        "filename": "docs/evidence/retro.md",
+        "status": "modified"
+      },
+      {
+        "changes": 113,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/README.md",
+        "status": "added"
+      },
+      {
+        "changes": 13,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/candidate-validation.json",
+        "status": "added"
+      },
+      {
+        "changes": 68,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/check.py",
+        "status": "added"
+      },
+      {
+        "changes": 148,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/failed-release.json",
+        "status": "added"
+      },
+      {
+        "changes": 8,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/first-candidate-validation.json",
+        "status": "added"
+      },
+      {
+        "changes": 8,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/first-local-candidate.json",
+        "status": "added"
+      },
+      {
+        "changes": 48,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/focused.json",
+        "status": "added"
+      },
+      {
+        "changes": 14,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/historical-validation-output.json",
+        "status": "added"
+      },
+      {
+        "changes": 9,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/local-candidate.json",
+        "status": "added"
+      },
+      {
+        "changes": 5,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/publication-boundary.json",
+        "status": "added"
+      },
+      {
+        "changes": 8,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/second-candidate-validation.json",
+        "status": "added"
+      },
+      {
+        "changes": 9,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/second-local-candidate.json",
+        "status": "added"
+      },
+      {
+        "changes": 26,
+        "filename": "docs/evidence/runs/2026-10-13-release-1941/strict-manifests.json",
+        "status": "added"
+      },
+      {
+        "changes": 7,
+        "filename": "docs/evidence/verification.md",
+        "status": "modified"
+      },
+      {
+        "changes": 2,
+        "filename": "package.json",
+        "status": "modified"
+      },
+      {
+        "changes": 2,
+        "filename": "plugins/task-pipeline/.claude-plugin/plugin.json",
+        "status": "modified"
+      }
+    ],
+    "status": "ahead",
+    "total_commits": 1
+  }
+}

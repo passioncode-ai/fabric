@@ -1,0 +1,62 @@
+[
+  {
+    "file": "graph.py.snapshot.txt",
+    "sha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+    "bytes": 111655
+  },
+  {
+    "file": "iteration.md.snapshot.txt",
+    "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+    "bytes": 24990
+  },
+  {
+    "file": "lessons.py.snapshot.txt",
+    "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+    "bytes": 54613
+  },
+  {
+    "file": "package.json.snapshot.txt",
+    "sha256": "d1c00ce7a9073b73b0608a6a1e988cfe7bd46e83e2e22884e9a8ad5465446b32",
+    "bytes": 3255
+  },
+  {
+    "file": "receipt.json",
+    "sha256": "44634ead63e2effd836105939e134a224bc4c161e0aaa7ab51822f52c1013fb9",
+    "bytes": 5791
+  },
+  {
+    "file": "release1941-README.md",
+    "sha256": "b29bddfd9bd6baf635456ba009538b88b02f69c0c995fade326d8386825c50f0",
+    "bytes": 7093
+  },
+  {
+    "file": "release1941-candidate-validation.json",
+    "sha256": "6d8edb967ddd0aa7caddb1fbe41cc8a3a351d3d13c42709a299492a8fbe9df4f",
+    "bytes": 3060
+  },
+  {
+    "file": "release1941-focused.json",
+    "sha256": "98bf09ba430de6759ca30420a5b67b8484cba2f1d5ff782cc24fb96cfd02cb4c",
+    "bytes": 3463
+  },
+  {
+    "file": "release1941-manifest.json",
+    "sha256": "a89046183a9f30650e6ee6a4ddf68bec4b6affc24f7f5ed6daf052d3a4d11f41",
+    "bytes": 669
+  },
+  {
+    "file": "release1941-publication-boundary.json",
+    "sha256": "66e5d4a0cef8bfb967026563088224c22b8cd972639e4e917deefcff2e232683",
+    "bytes": 229
+  },
+  {
+    "file": "remote.json",
+    "sha256": "07b153955f1b6eff62963dd19a3899739397c25ac284718a4dc95826606cd147",
+    "bytes": 1494
+  },
+  {
+    "file": "source-metadata.json",
+    "sha256": "b23b51c1bb41653ece4ce722f28d702e83ee6c3b87e2e8ab64f4a939654ab498",
+    "bytes": 4396
+  }
+]

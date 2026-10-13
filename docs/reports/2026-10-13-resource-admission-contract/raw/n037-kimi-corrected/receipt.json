@@ -1,0 +1,51 @@
+{
+  "scope": "Corrected Kimi KIMI_CODE_HOME-only ACP initialize; original HOME preserved, CODEX_HOME untouched; not native instruction/MCP/session/auth/provider acceptance",
+  "scriptSha256": "0eb47b44b1faf351d3c3f798278a5da575eef3e9c318af06f746ba9d8e3aa004",
+  "network": "sandbox denied network*",
+  "writes": "only respective owned temporary home",
+  "environment": "minimal no inherited tokens; original HOME value passed unchanged, KIMI_CODE_HOME alone redirected; real credential dirs and keychain filesystem/Mach access denied",
+  "deadlineSecondsPerHost": 30,
+  "maxOutputBytesPerStream": 65536,
+  "sequential": true,
+  "results": [
+    {
+      "host": "kimi",
+      "command": [
+        "{REAL_HOME}/.kimi-code/bin/kimi",
+        "acp"
+      ],
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": null,
+      "reason": "child_exited_without_initialize_reply",
+      "exit": -11,
+      "seconds": 4.59,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 737307530,
+        "size": 188155456,
+        "mtimeNs": 1791244378222093244,
+        "sameAfter": true
+      },
+      "originalHomePreserved": true,
+      "entryPrefixSha256": "ca9374a5f76b1463a85497b8649176b8eeeb2d7a55ebf60e50bfe68f2ef2ad77",
+      "entryPrefixBytes": 1048576,
+      "identityLimit": "prefix digest and stat only, not full executable/dependency identity",
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    }
+  ]
+}

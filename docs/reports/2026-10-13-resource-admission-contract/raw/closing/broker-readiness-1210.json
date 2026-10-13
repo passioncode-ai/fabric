@@ -1,0 +1,71 @@
+{
+  "scope": "Lifecycle broker observation only; no direct app restart or database action",
+  "list": {
+    "targets": [
+      {
+        "targetId": "dashboards.desktop",
+        "kind": "app",
+        "desiredState": "on_demand",
+        "policyRevision": 4,
+        "idleStopMinutes": 15
+      },
+      {
+        "targetId": "fabric.desktop",
+        "kind": "app",
+        "desiredState": "on_demand",
+        "policyRevision": 12,
+        "idleStopMinutes": 15
+      },
+      {
+        "targetId": "inbox.desktop",
+        "kind": "app",
+        "desiredState": "on_demand",
+        "policyRevision": 4,
+        "idleStopMinutes": 15
+      },
+      {
+        "targetId": "switchboard.desktop",
+        "kind": "app",
+        "desiredState": "on_demand",
+        "policyRevision": 6,
+        "backgroundLaunch": true
+      }
+    ],
+    "observedAt": 1791893405309,
+    "grantRevision": 7
+  },
+  "ensure": {
+    "operationId": "a529125e-8e61-406b-98e5-18c3061ebb4d",
+    "targetId": "fabric.desktop",
+    "kind": "ensure",
+    "state": "running",
+    "generation": 1,
+    "createdAt": 1791893417007,
+    "updatedAt": 1791893417007,
+    "policyRevision": 12,
+    "grantRevision": 7,
+    "traceparent": "00-eebe1cea6f343bfbd079389b398583e0-d0f785a8b903b39b-01"
+  },
+  "result": {
+    "operationId": "a529125e-8e61-406b-98e5-18c3061ebb4d",
+    "targetId": "fabric.desktop",
+    "kind": "ensure",
+    "state": "verification_pending",
+    "generation": 1,
+    "createdAt": 1791893417007,
+    "updatedAt": 1791893423223,
+    "policyRevision": 12,
+    "grantRevision": 7,
+    "traceparent": "00-eebe1cea6f343bfbd079389b398583e0-d0f785a8b903b39b-01",
+    "authState": "unknown",
+    "capabilityReady": false,
+    "observedAt": 1791893423223,
+    "processReady": false,
+    "transportReady": false
+  },
+  "limits": [
+    "verification_pending is not readiness",
+    "Observed on_demand policy is a current broker setting, not a policy change made by this run",
+    "No manual Fabric launch, stop, consent or credential modification"
+  ]
+}

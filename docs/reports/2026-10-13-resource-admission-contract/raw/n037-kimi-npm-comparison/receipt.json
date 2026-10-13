@@ -1,0 +1,119 @@
+{
+  "scope": "DISTINCT installed npm/Node runtime comparison, initialize only; original HOME preserved, CODEX_HOME untouched; not native instruction/MCP/session/auth/provider acceptance",
+  "scriptSha256": "187fab74e00c9653f6e40d342890f3e25917e889651deaa3a5f1cb48a26aff80",
+  "network": "sandbox denied network*",
+  "writes": "only respective owned temporary home",
+  "environment": "minimal no inherited tokens; original HOME value passed unchanged, supported KIMI_CODE_HOME and KIMI_CODE_CACHE_DIR redirected, startup trace enabled to owned path; real credential dirs and keychain filesystem/Mach access denied",
+  "deadlineSecondsPerHost": 30,
+  "maxOutputBytesPerStream": 65536,
+  "sequential": true,
+  "results": [
+    {
+      "host": "kimi",
+      "childPid": 13726,
+      "startedUTC": "2026-10-13T12:15:48.492847+00:00",
+      "finishedUTC": "2026-10-13T12:15:55.297163+00:00",
+      "command": [
+        "/opt/homebrew/Cellar/node/26.10.0_2/bin/node",
+        "--import",
+        "data:text/javascript,process.stderr.write%28JSON.stringify%28%7BprobeRuntime%3A%7Bnode%3Aprocess.version%2Carch%3Aprocess.arch%2Cplatform%3Aprocess.platform%7D%7D%29%2B%22%5Cn%22%29",
+        "/opt/homebrew/lib/node_modules/@moonshot-ai/kimi-code/dist/main.mjs",
+        "acp"
+      ],
+      "entryStatStable": true,
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "protocolVersion": 1,
+          "agentCapabilities": {
+            "loadSession": true,
+            "promptCapabilities": {
+              "image": true,
+              "audio": false,
+              "embeddedContext": true
+            },
+            "sessionCapabilities": {
+              "list": {},
+              "resume": {},
+              "close": {},
+              "delete": {},
+              "fork": {},
+              "additionalDirectories": {}
+            },
+            "mcpCapabilities": {
+              "http": true,
+              "sse": true
+            },
+            "auth": {
+              "logout": {}
+            }
+          },
+          "authMethods": [
+            {
+              "id": "login",
+              "type": "terminal",
+              "name": "Login with Kimi account",
+              "description": "Open the device-code login flow in a terminal.",
+              "args": [
+                "--login"
+              ],
+              "env": {
+                "KIMI_CODE_HOME": "{OWNED_HOME}/data"
+              },
+              "_meta": {
+                "terminal-auth": {
+                  "type": "terminal",
+                  "label": "Login with Kimi account",
+                  "command": "/opt/homebrew/lib/node_modules/@moonshot-ai/kimi-code/dist/main.mjs",
+                  "args": [
+                    "login"
+                  ],
+                  "env": {
+                    "KIMI_CODE_HOME": "{OWNED_HOME}/data"
+                  }
+                }
+              }
+            }
+          ],
+          "agentInfo": {
+            "name": "Kimi Code CLI",
+            "version": "2.1.1"
+          }
+        }
+      },
+      "reason": null,
+      "exit": 0,
+      "seconds": 6.803,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 721548890,
+        "size": 132848,
+        "mtimeNs": 1791207175756448663,
+        "sameAfter": true
+      },
+      "originalHomePreserved": true,
+      "entryPrefixSha256": "832eaf52cafa7ff1364c2ca378451db14fb043d8d23a5cfd18a0a103d66226fc",
+      "entryPrefixBytes": 1048576,
+      "fullExecutableHash": "NOT_CAPTURED Node interpreter prefix only; full interpreter/dependency hash not captured to avoid substantial I/O",
+      "identityLimit": "prefix digest and stat only, not full executable/dependency identity",
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    }
+  ]
+}

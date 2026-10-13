@@ -1,0 +1,364 @@
+{
+  "state": "CHANGES_REQUESTED_PACKAGING_ONLY",
+  "at": "2026-10-13T12:22:10.578311+00:00",
+  "base": "1810405b6d7c40a6013595451f48569029737caf",
+  "authorDisclosure": "Reviewer authored owner readback and overlap proposal; independent cold integration review of documentation/probes, not independent acceptance of own source proposal or native runs.",
+  "findings": [
+    {
+      "id": "DOC-LINK-01",
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-README.md",
+      "severity": "packaging",
+      "finding": "Six copied relative links do not resolve in archive",
+      "targets": [
+        "local-candidate.json",
+        "candidate-validation.json",
+        "focused.json",
+        "strict-manifests.json",
+        "historical-validation-output.json",
+        "publication-boundary.json"
+      ],
+      "fix": "Preserve exact upstream README as inert .snapshot.txt plus local index with commit-pinned upstream link and available local artifact names; refresh manifest. No need new network reads/tests."
+    }
+  ],
+  "verified": {
+    "manifestHashes": 43,
+    "manifestErrors": 0,
+    "receiptAndScriptBindings": 12,
+    "bindingErrors": 0,
+    "changedFragmentLinks": 7,
+    "fragmentErrors": 0,
+    "relativeFileTargetsScanned": 1040,
+    "missingTargets": 6,
+    "artifactNestedRuntimeTrees": 0,
+    "artifactSymlinks": 0,
+    "privateHomeOrTempPathMatches": 0,
+    "targetedPrivateKeyTokenPatternFiles": [],
+    "oldOverlapDocHashMatchesBase": true,
+    "oldTrackedRawArtifactsModified": false
+  },
+  "claimsReview": "No new native mode/session/MCP, owner acceptance, active schema, installed runner, or full-gate PASS claim found. Distinct npm initialize success correctly separated from native SIGSEGV and authored whole-goal acceptance. Historical receipts remain unchanged; corrections reference original checksum.",
+  "workspace": "Unstaged workspace gitlink8cd81284 to3998a337 is outside docs-only scope; exclude or disclose separately. Parent notified.",
+  "stagedPaths": [],
+  "limits": [
+    "No native, build, compiler, DB, or test execution.",
+    "Targeted secret patterns and selected archive inspection are not exhaustive security certification.",
+    "Map generated stamp/check receipts remain root-owned and not certified by this review."
+  ],
+  "files": [
+    {
+      "path": "docs/MERGES.md",
+      "sha256": "59fa083a5d0f4d4a0d9daff95dfe7d7d0f33e6b485bb84959ec2c2552ca4706e",
+      "bytes": 165066
+    },
+    {
+      "path": "docs/evidence/retro.md",
+      "sha256": "5210b7925c54dba9b4776bc49770ec5d740d8380282efe3d94ca20291eb6d39a",
+      "bytes": 481227
+    },
+    {
+      "path": "docs/execution/harness-waves/N-037-native-host-acceptance.json",
+      "sha256": "a1d2c648881791aa94a03cd2b8aa7610d079de2f7a99a39e7ff2079c6024330e",
+      "bytes": 3370
+    },
+    {
+      "path": "docs/execution/harness-waves/controlled-pool-next-packet.md",
+      "sha256": "411f0444c1bd3376c04bd647a9af5783e6ecd71e83579d6efa55ffd666435e73",
+      "bytes": 14092
+    },
+    {
+      "path": "docs/execution/harness-waves/own-intent-overlap-packet.md",
+      "sha256": "1dc2b1240edb0af18e677a477a8c7857dc224e9f2a6542adbbb52b57c99d7570",
+      "bytes": 13468
+    },
+    {
+      "path": "docs/execution/harness-waves/owner-packets.md",
+      "sha256": "98ae5cef806e6f287715e6f66af34eb3a0310dc2e689bc7af45fa51662853d89",
+      "bytes": 26782
+    },
+    {
+      "path": "docs/handoffs/2026-10-13-harness-waves.md",
+      "sha256": "dff9de6b28bfe819463b09f2312af1746cf6d509ef46fe93b3580826a6370206",
+      "bytes": 30990
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "sha256": "96119e7153bd03a7ab80e984e141b81f42133417d5388e7566129d65dfb0433b",
+      "bytes": 43615
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/181-resource-wait-cancelled.json",
+      "sha256": "1d2c5b7d055b27319a410510820f96f47530013accfa8eb48cc92a728d1b560b",
+      "bytes": 1237
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/board-official-1158.json",
+      "sha256": "9f81963fdd02e545e246b5c35e3ec317c6b3c37e5bd60d2c2483384477f25dea",
+      "bytes": 756
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/broker-readiness-1210.json",
+      "sha256": "88b1032305e5da17ad973e3388bbc802fb89ce2a2be6d01ce76280cf34a3ff51",
+      "bytes": 2032
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/README.md",
+      "sha256": "b39c182da815e429ed1a400027bd2d26e45abf5d9f97a0b465f14b5547ecf8a6",
+      "bytes": 2427
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/kimi-sandbox.public.sb",
+      "sha256": "abfb2ef75af32e27962028096e6c42673981b678a801c7c696702a3a07ae344e",
+      "bytes": 528
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/kimi-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/kimi-stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/manifest.json",
+      "sha256": "67ffcf58448d67b7c85ed81d37e8d8a9a74ff0581bf7ef6b49eed54840c67f1b",
+      "bytes": 1038
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/metadata-correction.json",
+      "sha256": "afac44926476ddc7139810c4b0f9faae00b7a6fb03a338b76bdcd487641c78c8",
+      "bytes": 669
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/owned-output-metadata.json",
+      "sha256": "b6f6a1514710f6e620e33d69b417c31700c5b4cc937ff1521633191b01546437",
+      "bytes": 1743
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/pre-execution.json",
+      "sha256": "26e38dd405bd43c4a47d31b0e0c8834acaeecd9e3670f169561e05025d289f3d",
+      "bytes": 568
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/probe.py",
+      "sha256": "57b8e6f1c37c83b5e5db0bd72acce03ac63e2b14b2c45d96efc307ffbddd9a59",
+      "bytes": 5426
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/receipt.json",
+      "sha256": "07142b78b7a874ac20b694b4fd5a51400965880958f2eb3d78fa3b3d2210060b",
+      "bytes": 2056
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-cache-probe/trace-inspection.json",
+      "sha256": "fb1a14acd9edda25d9112feced3a55da5a69361e54e4568285a84668bed41c81",
+      "bytes": 69
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/README.md",
+      "sha256": "b7a3e2f12daf85621b5ae268192c2c98e0e008de2b47d0eead704e046e0c3173",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/audit-trail.json",
+      "sha256": "8a22289bed7a1f848584d7dbb949b69e94469aa714f1369f8a4b67476edaff9a",
+      "bytes": 519
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/installed-source.excerpt.txt",
+      "sha256": "9f14d7d3acd2c231f1a06e7dffd384a3403d5e452776fc45e045a91620e4e79c",
+      "bytes": 2984
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/kimi-sandbox.public.sb",
+      "sha256": "abfb2ef75af32e27962028096e6c42673981b678a801c7c696702a3a07ae344e",
+      "bytes": 528
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/kimi-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/kimi-stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/manifest.json",
+      "sha256": "23bd2c2160dbda124de4b06d41b14a051ca2d48547b59cab70194b006689ef0a",
+      "bytes": 947
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/probe.py",
+      "sha256": "0eb47b44b1faf351d3c3f798278a5da575eef3e9c318af06f746ba9d8e3aa004",
+      "bytes": 4982
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/receipt.json",
+      "sha256": "507b37dcb28496d13eed241b4662b39a588a268c048d76110ddb416520d4a31c",
+      "bytes": 1783
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-corrected/source-support.json",
+      "sha256": "8382a9e1cfe0ea70a4f8f7639c763329a71c33b66532fead761c5bab08a07a72",
+      "bytes": 720
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/README.md",
+      "sha256": "8d64afe7d4e8ba8c1cc8951c3aac660c06ee82a51e16f4709a8631b4347b5ec5",
+      "bytes": 2833
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/identity-metadata-correction.json",
+      "sha256": "51cb024bd526f3fd38dda5361b05c36375a52f7181c61187fbfa382f9ab60138",
+      "bytes": 526
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/kimi-sandbox.public.sb",
+      "sha256": "edcbd7cf27dda914b3b4da055c5dd862542af75497bae6fd06da0f126924cbf0",
+      "bytes": 541
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/kimi-stderr.txt",
+      "sha256": "c48df85cd94fdb2a5cccecaa8f32b69a9487a9d61fd53c5779c0a161ae4e049a",
+      "bytes": 72
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/kimi-stdout.txt",
+      "sha256": "53c605f8e6f23f193a64dc58e6a615dbd69b910051e15b2da04b2fb33af69f8d",
+      "bytes": 826
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/manifest.json",
+      "sha256": "24f42f2fa7be17319df5ce1051180c2a77e1d042239dbb6b8d78ecf052739af2",
+      "bytes": 1002
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/pre-execution.json",
+      "sha256": "856291159e72bdd7041978e79ddf42041b34bed1f8b310fdf8c0e47cb1faa10a",
+      "bytes": 878
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/probe.py",
+      "sha256": "187fab74e00c9653f6e40d342890f3e25917e889651deaa3a5f1cb48a26aff80",
+      "bytes": 5937
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/receipt.json",
+      "sha256": "61dd3caaec2f5be7dca1b754cdcc3255598e7f38339259ab1c382274d9e9a60d",
+      "bytes": 4166
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-npm-comparison/safe-runtime-observation.json",
+      "sha256": "b1a2d0ebb9a56a6871e84820cae64ae34da65366c976d3a553c30a0a24ffef23",
+      "bytes": 367
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-startup-analysis/README.md",
+      "sha256": "b0a89ab0b9a8e173461b7ae2e456081581880861e879a423fcb3fd95bfa07bf3",
+      "bytes": 4976
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-startup-analysis/manifest.json",
+      "sha256": "c15e24bd12afff30fe47276c1f6cbcdc09e701ef9ea4434ef1ebf3f534877dd0",
+      "bytes": 272
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-startup-analysis/receipt.json",
+      "sha256": "34e2a051b9c59a97ee77c6fd52a370780f00294f6a3a8f04e7b8c5a7e270eac2",
+      "bytes": 1343
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-kimi-startup-analysis/startup-source.excerpt.txt",
+      "sha256": "2e3ddace01913df19196445db514c28474ac77ea7ba7b4df8b31b2718ccc6e06",
+      "bytes": 8496
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/overlap-design-review/inputs.json",
+      "sha256": "2c707fabb0c921020259de41e97eb2a9d0fca8be8e89f921248de3744b5ac09f",
+      "bytes": 2196
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/overlap-design-review/packet.md",
+      "sha256": "c9c71d234bcba0cc61a2f5cd09957694f52cd1309ff5ae9d36211b3519e0726c",
+      "bytes": 10158
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/overlap-design-review/receipt.json",
+      "sha256": "f9ea60c654460194a8aa323d59f946452f6097d3fcd4b867eb4f4de106add0ff",
+      "bytes": 712
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/graph.py.snapshot.txt",
+      "sha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+      "bytes": 111655
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/iteration.md.snapshot.txt",
+      "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "bytes": 24990
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/lessons.py.snapshot.txt",
+      "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "bytes": 54613
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/manifest.json",
+      "sha256": "31e22521fb441e28251b9867948e65b514cf308535c58f93232e220b4e81d2f0",
+      "bytes": 1786
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/package.json.snapshot.txt",
+      "sha256": "d1c00ce7a9073b73b0608a6a1e988cfe7bd46e83e2e22884e9a8ad5465446b32",
+      "bytes": 3255
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/receipt.json",
+      "sha256": "44634ead63e2effd836105939e134a224bc4c161e0aaa7ab51822f52c1013fb9",
+      "bytes": 5791
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-README.md",
+      "sha256": "b29bddfd9bd6baf635456ba009538b88b02f69c0c995fade326d8386825c50f0",
+      "bytes": 7093
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-candidate-validation.json",
+      "sha256": "6d8edb967ddd0aa7caddb1fbe41cc8a3a351d3d13c42709a299492a8fbe9df4f",
+      "bytes": 3060
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-focused.json",
+      "sha256": "98bf09ba430de6759ca30420a5b67b8484cba2f1d5ff782cc24fb96cfd02cb4c",
+      "bytes": 3463
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-manifest.json",
+      "sha256": "a89046183a9f30650e6ee6a4ddf68bec4b6affc24f7f5ed6daf052d3a4d11f41",
+      "bytes": 669
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/release1941-publication-boundary.json",
+      "sha256": "66e5d4a0cef8bfb967026563088224c22b8cd972639e4e917deefcff2e232683",
+      "bytes": 229
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/remote.json",
+      "sha256": "07b153955f1b6eff62963dd19a3899739397c25ac284718a4dc95826606cd147",
+      "bytes": 1494
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-1206/source-metadata.json",
+      "sha256": "b23b51c1bb41653ece4ce722f28d702e83ee6c3b87e2e8ab64f4a939654ab498",
+      "bytes": 4396
+    },
+    {
+      "path": "docs/reports/map.html",
+      "sha256": "1cc6fe0064d399b011f98e9422aca82d7cd6cba618f5de95dd0e422deb5f138c",
+      "bytes": 1318800
+    }
+  ]
+}

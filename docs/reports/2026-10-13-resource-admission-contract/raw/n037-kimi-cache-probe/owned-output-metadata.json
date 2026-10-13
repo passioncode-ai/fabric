@@ -1,0 +1,38 @@
+[
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/.kimi-native-entry.cjs",
+    "bytes": 26
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/runtime/kap-server/search-worker.mjs",
+    "bytes": 469244
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/runtime/minidb/text-build-worker.mjs",
+    "bytes": 38622
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@moonshot-ai/pi-tui/package.json",
+    "bytes": 1443
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@moonshot-ai/pi-tui/native/darwin/prebuilds/darwin-arm64/darwin-platform.node",
+    "bytes": 51480
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@mariozechner/clipboard-darwin-arm64/clipboard.darwin-arm64.node",
+    "bytes": 1447440
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@mariozechner/clipboard-darwin-arm64/package.json",
+    "bytes": 381
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@mariozechner/clipboard/index.js",
+    "bytes": 25986
+  },
+  {
+    "path": "cache/native/2.1.1/darwin-arm64/3ca29c3351d8a1e598486d70b9e4bbf5731de768555db12e25eeb736a8fe5dff/node_modules/@mariozechner/clipboard/package.json",
+    "bytes": 1606
+  }
+]

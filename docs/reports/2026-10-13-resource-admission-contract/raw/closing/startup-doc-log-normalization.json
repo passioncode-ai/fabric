@@ -1,0 +1,51 @@
+{
+  "scope": "Portable derivatives of newly archived check logs and independent review receipts; original results unchanged",
+  "replacements": [
+    "absolute checkout prefix to {SOURCE_ROOT}",
+    "remaining user-home prefix to {REAL_HOME}"
+  ],
+  "files": [
+    {
+      "file": "closing/startup-doc-checks-first/1.log",
+      "originalSha256": "e43b29576a0b1923d40b3d3d5682335cd3e525dfccaa3e4ba5b211bc583c0bae",
+      "storedSha256": "aa9f7b3dbb380942a9e73854c874a719eae8fd8b1986747472fb5104fe6e014c",
+      "changed": true
+    },
+    {
+      "file": "closing/startup-doc-checks-fixed/2.log",
+      "originalSha256": "c9ecfd2d6e50d0ed953d63a39d716aae525835435f5e0dd9cf960ea372d2162f",
+      "storedSha256": "c9ecfd2d6e50d0ed953d63a39d716aae525835435f5e0dd9cf960ea372d2162f",
+      "changed": false
+    },
+    {
+      "file": "closing/startup-doc-checks-fixed/1.log",
+      "originalSha256": "100e2b6befecd57562f5c8bdbd8f62543bb95c0db892171f7e413dd1c9f91ce3",
+      "storedSha256": "100e2b6befecd57562f5c8bdbd8f62543bb95c0db892171f7e413dd1c9f91ce3",
+      "changed": false
+    },
+    {
+      "file": "closing/startup-doc-checks-fixed/0.log",
+      "originalSha256": "f4b649561d3e3f7794859a52be36f0a9fb074d4734c5a2ff9f83ddc9f636dc0a",
+      "storedSha256": "81f1f1010bf73b602659c56afddf460b47d69bd4ce7e9c9d75fea66de4910302",
+      "changed": true
+    },
+    {
+      "file": "closing/startup-doc-checks-fixed/receipt.json",
+      "originalSha256": "e6c41a9976a8735fea91800aadd76a621ab03925c346602c32d0361050d045e5",
+      "storedSha256": "e6c41a9976a8735fea91800aadd76a621ab03925c346602c32d0361050d045e5",
+      "changed": false
+    },
+    {
+      "file": "closing/startup-doc-review/receipt.json",
+      "originalSha256": "250b9071da546cb21b69bbfa8b073a4bc78e48e4d794e9e327a2df718f9ef5d1",
+      "storedSha256": "250b9071da546cb21b69bbfa8b073a4bc78e48e4d794e9e327a2df718f9ef5d1",
+      "changed": false
+    },
+    {
+      "file": "closing/startup-doc-review/receipt-final.json",
+      "originalSha256": "5563fcacbce66bdf524f9f057d4abeb1132ceef689509f7001110784eb6832d4",
+      "storedSha256": "5563fcacbce66bdf524f9f057d4abeb1132ceef689509f7001110784eb6832d4",
+      "changed": false
+    }
+  ]
+}

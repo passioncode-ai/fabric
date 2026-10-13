@@ -1,0 +1,8 @@
+{
+  "scriptSha256": "57b8e6f1c37c83b5e5db0bd72acce03ac63e2b14b2c45d96efc307ffbddd9a59",
+  "scope": "ONE native initialize-only; supported data/cache and private trace into owned temp; original HOME preserved; CODEX_HOME untouched; existing sandbox unchanged",
+  "nativeBinaryFullHash": "NOT_CAPTURED; prefix1MiB+path/stat limitation retained",
+  "sourceSupport": "Previous installed startup excerpt at main.mjs381195\u2013205 and382036\u201357",
+  "attemptsAuthorized": 1,
+  "priorFailure": "Native data-only run exit-11, remains failure; no causal attribution yet"
+}

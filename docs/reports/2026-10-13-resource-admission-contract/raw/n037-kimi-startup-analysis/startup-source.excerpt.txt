@@ -1,0 +1,164 @@
+1: #!/usr/bin/env node
+2: import { fileURLToPath as __cjsShimFileURLToPath } from 'node:url';
+3: import { dirname as __cjsShimDirname } from 'node:path';
+4: const __filename = __cjsShimFileURLToPath(import.meta.url);
+5: const __dirname = __cjsShimDirname(__filename);
+6: import { createRequire } from "node:module";
+313011: async function runAcpServerWithStream(stream, opts = {}) {
+313012: 	const homeDir = resolveKimiHome(opts.homeDir);
+313013: 	const configPath = resolveConfigPath({
+313014: 		homeDir,
+313015: 		configPath: opts.configPath
+313016: 	});
+313017: 	const logging = resolveLoggingConfig({
+313018: 		homeDir,
+313019: 		env: process.env
+313020: 	});
+313021: 	const { app: core } = bootstrap$1({
+313022: 		homeDir,
+313023: 		configPath,
+313024: 		clientIdentity: {
+313025: 			productName: opts.agentInfo?.name ?? "kimi-code-acp",
+313026: 			version: opts.agentInfo?.version ?? "0.0.0",
+313027: 			platform: "kimi_code_cli"
+313028: 		}
+313029: 	}, [...logSeed(logging), ...opts.extraSeeds ?? []]);
+313030: 	const klient = createKlient({ scope: core });
+313031: 	const acpConnection = core.accessor.get(IAcpConnection);
+313032: 	let server;
+313033: 	const conn = createAcpAgentApp(() => server).connect(stream);
+313034: 	const client = acpClientFromContext(conn.client);
+313035: 	acpConnection.bind(client);
+313036: 	const workspaceManager = core.accessor.get(IWorkspaceInstanceManager);
+313037: 	const acpRuntimeProvider = new AcpRuntimeProviderFactory(acpConnection, core.accessor.get(IHostEnvironment), core.accessor.get(IHostProcessService));
+313038: 	const acpProviderRegistration = await workspaceManager.addProvider(acpRuntimeProvider);
+313039: 	const sessionWorkspaces = /* @__PURE__ */ new Map();
+313040: 	server = new AcpServer(client, klient, acpConnection, {
+313041: 		agentInfo: opts.agentInfo,
+313042: 		disableAuth: opts.disableAuth,
+313043: 		terminalAuthEnv: opts.terminalAuthEnv,
+313044: 		terminalAuthLegacyCommand: opts.terminalAuthLegacyCommand,
+313045: 		slashCommands: opts.slashCommands,
+313103: async function runAcpServer(opts = {}) {
+313104: 	redirectConsoleToStderr();
+313105: 	const input = opts.input ?? process.stdin;
+313106: 	const output = opts.output ?? process.stdout;
+313107: 	const server = await runAcpServerWithStream(ndJsonStream(Writable.toWeb(output), Readable$1.toWeb(input)), opts);
+313108: 	await server.conn.closed;
+313109: 	await server.close();
+313110: }
+313111: var init_start$2 = __esmMin((() => {
+313942: function detectNativeInstall() {
+313943: 	const sea = loadSeaModule$1();
+313944: 	if (sea === null) return false;
+313945: 	try {
+313946: 		return sea.isSea();
+313947: 	} catch {
+313948: 		return false;
+313949: 	}
+313950: }
+381195: function getNativeCacheBase(options = {}) {
+381196: 	if (options.cacheBase !== void 0) return options.cacheBase;
+381197: 	const env = options.env ?? process.env;
+381198: 	const platform = options.platform ?? process.platform;
+381199: 	const home = options.homeDir ?? homedir$1();
+381200: 	const cacheDirEnv = optionalEnvValue(env, "KIMI_CODE_CACHE_DIR");
+381201: 	if (cacheDirEnv !== null) return cacheDirEnv;
+381202: 	if (platform === "darwin") return join$4(home, "Library", "Caches", "kimi-code");
+381203: 	if (platform === "win32") {
+381204: 		const localAppData = optionalEnvValue(env, "LOCALAPPDATA");
+381205: 		return localAppData !== null ? win32.join(localAppData, "kimi-code") : win32.join(home, "AppData", "Local", "kimi-code", "Cache");
+381206: 	}
+381207: 	return join$4(optionalEnvValue(env, "XDG_CACHE_HOME") ?? join$4(home, ".cache"), "kimi-code");
+381208: }
+381209: function getNativeAssetCacheRoot(manifest, options = {}) {
+381210: 	const validated = validateNativeAssetManifest(manifest);
+381211: 	const version = sanitizeSegment$1(options.version ?? KIMI_BUILD_INFO.version ?? "dev");
+381212: 	const manifestHash = sha256$1(JSON.stringify(manifest));
+382036: //#endregion
+382037: //#region src/utils/startup-trace.ts
+382038: const enabled$1 = process.env["KIMI_STARTUP_TRACE"] !== void 0 && process.env["KIMI_STARTUP_TRACE"] !== "";
+382039: const logPath = process.env["KIMI_STARTUP_TRACE_LOG"] ?? "/tmp/kimi-startup-trace.log";
+382040: const t0 = performance.now();
+382041: let prepared = false;
+382042: function startupTrace(label) {
+382043: 	if (!enabled$1) return;
+382044: 	if (!prepared) {
+382045: 		prepared = true;
+382046: 		try {
+382047: 			mkdirSync(path.dirname(logPath), { recursive: true });
+382048: 			appendFileSync(logPath, `--- ${(/* @__PURE__ */ new Date()).toISOString()} pid=${process.pid} ---\n`);
+382049: 		} catch {}
+382050: 	}
+382051: 	try {
+382052: 		appendFileSync(logPath, `${(performance.now() - t0).toFixed(0).padStart(7)}ms ${label}\n`);
+382053: 	} catch {}
+382054: }
+382055: //#endregion
+382056: //#region src/cli/options.ts
+382057: function isOutputFormat(value) {
+490289: async function maybeRelaunchWithStagedNativeUpdate(deps) {
+490290: 	if (!deps.isNative) return false;
+490291: 	const swapInProgress = await sweepStaleNativeUpdateArtifacts(deps.exePath);
+490292: 	if (isTruthy(deps.env["KIMI_CODE_UPDATE_REEXEC"])) {
+490293: 		delete deps.env[KIMI_CODE_UPDATE_REEXEC_ENV];
+490294: 		return false;
+490295: 	}
+490296: 	if (swapInProgress) {
+490297: 		logSwap("another instance is mid-swap, skipping", { exePath: deps.exePath });
+490298: 		return false;
+490299: 	}
+490300: 	const claimed = await claimStagedUpdate(deps.exePath);
+490301: 	if (claimed === null) return false;
+490389: function installMinidbTextBuildWorker(options = {}) {
+490390: 	const source = options.source ?? getSeaAssetSource();
+490391: 	if (source === null) return { status: "not-sea" };
+490392: 	let assetSha256;
+490393: 	try {
+490394: 		const manifest = options.manifest ?? getEmbeddedNativeAssetManifest(source);
+490395: 		const file = manifest?.runtimeFiles.find((entry) => entry.key === MINIDB_TEXT_BUILD_WORKER_ASSET.key);
+490435: function installKapSearchWorker(options = {}) {
+490436: 	const source = options.source ?? getSeaAssetSource();
+490437: 	if (source === null) return { status: "not-sea" };
+490438: 	let assetSha256;
+490439: 	try {
+490440: 		const manifest = options.manifest ?? getEmbeddedNativeAssetManifest(source);
+490677: function main() {
+490678: 	process.title = PROCESS_NAME;
+490679: 	installCrashHandlers();
+490680: 	maybeRelaunchWithStagedNativeUpdate({
+490681: 		exePath: process.execPath,
+490682: 		argv: process.argv,
+490683: 		env: process.env,
+490684: 		currentVersion: getVersion(),
+490685: 		isNative: detectNativeInstall()
+490686: 	}).catch(() => false).then((relaunched) => {
+490687: 		if (!relaunched) bootstrap();
+490688: 	});
+490689: }
+490690: function bootstrap() {
+490691: 	installGlobalProxyDispatcher();
+490692: 	installNativeModuleHook();
+490693: 	const workerInstall = installMinidbTextBuildWorker();
+490694: 	startupTrace(workerInstall.status === "installed" ? `minidb-worker:installed basename=${workerInstall.basename} sha256=${workerInstall.assetSha256}` : workerInstall.status === "failed" ? `minidb-worker:failed code=${workerInstall.errorCode} sha256=${workerInstall.assetSha256 ?? "unknown"}` : `minidb-worker:${workerInstall.status}`);
+490695: 	const searchWorkerInstall = installKapSearchWorker();
+490696: 	startupTrace(searchWorkerInstall.status === "installed" ? `search-worker:installed basename=${searchWorkerInstall.basename} sha256=${searchWorkerInstall.assetSha256}` : searchWorkerInstall.status === "failed" ? `search-worker:failed code=${searchWorkerInstall.errorCode} sha256=${searchWorkerInstall.assetSha256 ?? "unknown"}` : `search-worker:${searchWorkerInstall.status}`);
+490697: 	if (runNativeAssetSmokeIfRequested()) return;
+490698: 	queueMicrotask(() => {
+490699: 		try {
+490700: 			cleanupStaleNativeCacheForCurrent();
+490701: 		} catch {}
+490702: 	});
+490703: 	const version = getVersion();
+490704: 	createProgram(version, (opts) => {
+490705: 		handleMainCommand(opts, version).then(async (outcome) => {
+490706: 			if (outcome.headlessCompleted) await finalizeHeadlessRun(process, [process.stdout, process.stderr], () => Number(process.exitCode) || 0);
+490707: 		}).catch(async (error) => {
+490708: 			process.exitCode = 1;
+490709: 			const operation = opts.prompt !== void 0 ? "run prompt" : "start shell";
+490710: 			await logStartupFailure(operation, error);
+490711: 			process.stderr.write(formatStartupError(error, { operation }));
+490712: 			process.stderr.write(`See log: ${resolveGlobalLogPath(resolveKimiHome())}\n`);
+490713: 			process.exit(1);
+490714: 		});
+490715: 	}, (migrateOptions) => {

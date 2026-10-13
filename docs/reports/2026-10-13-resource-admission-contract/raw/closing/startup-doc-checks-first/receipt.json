@@ -1,0 +1,24 @@
+{
+  "scope": "Sequential focused documentation checks only; not full fast or runtime acceptance",
+  "baseHead": "1810405b6d7c40a6013595451f48569029737caf",
+  "results": [
+    {
+      "command": [
+        "node",
+        "scripts/check-design-map.mjs"
+      ],
+      "exit": 0,
+      "seconds": 6.7,
+      "log": "0.log"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/check-docs.sh"
+      ],
+      "exit": 1,
+      "seconds": 125.58,
+      "log": "1.log"
+    }
+  ]
+}
