@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "reviewer": "pipeline_research",
+  "author": "observatory_research",
+  "verdict": "SCOPED_ACCEPT_DURABLE_INTENT_SUBSTRATE",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "114e95502ce9e385a533466f8684dbe9ab463dfff6b1edbca400806d294d7328"
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 0,
+      "pass": 18,
+      "fail": 0,
+      "skip": 0,
+      "log": "focused-final.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test <REVIEWER>/durability.mjs <REVIEWER>/directory-durability.mjs <REVIEWER>/controls.mjs",
+      "exit": 0,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "log": "probes-final.log"
+    }
+  ],
+  "resolvedFinding": {
+    "originalSha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+    "originalSource": "before-durability.snapshot.txt",
+    "negativeCommand": "node --experimental-strip-types --test <REVIEWER>/durability.mjs",
+    "negativeExit": 1,
+    "negativeLog": "durability-before.log",
+    "finding": "Failed first event fsync retained complete file; retry returned recorded without new durability barriers. Common corrected path validates exact retained bytes/inode and syncs file plus directory for both initial registration and retry.",
+    "reusedLesson": "Retained uncertainty cannot be promoted to a successful receipt from bytes alone; actual durable barrier and provenance must be re-established."
+  },
+  "independentControls": [
+    "actual FileHandle.sync first-file failure and exact retry",
+    "actual FileHandle.sync directory failure and exact retry",
+    "pending real N028 membership after persistence keeps inventory lock and I/O slot through timeout until settlement",
+    "unknown future lifecycle event remains unknown and retained"
+  ],
+  "limitations": [
+    "Focused local production-module/real filesystem evidence only; membership transport synthetic via actual N028 factory.",
+    "No active SQL/native/provider/launcher composition, R1 held authority, complete worker count or hostile same-user filesystem guarantee.",
+    "directory-durability-during-freeze.log is exploratory PASS during source transition, not original-source negative evidence.",
+    "Parent owns typecheck, final combined gates, graph and durable evidence publication."
+  ],
+  "artifacts": {
+    "directory-durability-during-freeze.log": "84568b5a1a037d8a2c782166b7f36b6e4d412140eb335a1042b23ca9ce3199cc",
+    "receipt-blocker.json": "976b09b39489b2aab0c702331a61a339b3d3ce614a797e4a77848d6153eace70",
+    "focused-final.log": "b8764811039d805e73c61ba1ff6f74074e4ac39d9f03e571530f42ffa7b19f06",
+    "probes-final.log": "be5b6914d12473700a2971407995affab51b78104bd2182f19947258f3cc3086",
+    "before-durability.snapshot.txt": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+    "controls.mjs": "90aefa4fe27d1f15e306800b571161bc49657653e8221aa39667166d471fe003",
+    "durability.mjs": "8d6b07a6eeb489cf82f9eecbb0c55f579a27b63e03eec0197441e826277b0254",
+    "directory-durability.mjs": "e5fe3b8529c5117acc74b49aa481fa5c75914e2b6a254f8cbbfe9eb3f4de2a51",
+    "durability-before.log": "b5811124f833ffcdca7cf51001e0e3f4fe0fa2b9e4039e9f08435f443038521b",
+    "controls-before.log": "dddcb0944a6483f0c01313d56c6170d6cb894dd0bca82afa654a9b35a4568cb8"
+  }
+}

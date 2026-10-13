@@ -1,0 +1,26 @@
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (318.2475ms)
+✔ empty and registered pools never claim complete zero or active workers (229.830166ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (197.940042ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (294.972125ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (249.658333ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (583.5285ms)
+✔ two managers share exclusive registration and can only retain one event (175.786084ms)
+✔ membership drift after durable registration retains an unresolved intent (164.714833ms)
+✔ coverage drift after durable write never returns usable intent (176.410959ms)
+✔ host or actual producer substitution during reads refuses (150.176333ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (220.004208ms)
+✔ event bounds and unsafe storage refuse without automatic repair (197.241792ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (189.763959ms)
+✔ retained duplicate run or event IDs make whole registry unknown (329.944416ms)
+✔ N022 identifier constraints, aggregate bytes and record permissions remain strict (174.369583ms)
+✔ host changes while post-write membership settles leave immutable evidence unknown (191.057542ms)
+✔ exact retry reestablishes event and directory durability after event fsync refusal (226.749209ms)
+✔ exact retry reestablishes event and directory durability after directory fsync refusal (187.642ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4401.266125

@@ -1,0 +1,21 @@
+{
+  "reviewer": "pipeline_research",
+  "author": "observatory_research",
+  "verdict": "REJECT_DURABILITY_RETRY",
+  "sourceSha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+  "focused": {
+    "pass": 16,
+    "fail": 0,
+    "skip": 0
+  },
+  "independent": {
+    "command": "node --experimental-strip-types --test <REVIEWER>/durability.mjs",
+    "exit": 1,
+    "log": "durability-before.log",
+    "fault": "actual FileHandle.sync rejects first invocation after real file write; retry reaches success without any additional durability barrier"
+  },
+  "limitations": [
+    "No DB/native or hostile filesystem certification",
+    "Simulated filesystem sync failure, real production module and owned filesystem"
+  ]
+}

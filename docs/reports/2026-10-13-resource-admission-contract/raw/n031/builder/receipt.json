@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "node": "N031",
+  "state": "FROZEN_BUILDER_ACCEPT_PENDING_INDEPENDENT_REVIEW",
+  "base_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "candidate": "three new files in owned temp overlay, not committed",
+  "source": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "2284bfe239303c39f14f943520379ef7eb5ff43bcd9f66f09e8f3a1160be6f39"
+  },
+  "dependencies": {
+    "apps/desktop/src/shared/scope.ts": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+    "apps/desktop/src/main/scopedStore.ts": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+    "apps/desktop/src/main/resourceInputSnapshot.ts": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "scripts/resourceAgentSyncIdentity.py": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a"
+  },
+  "patch_sha256": "eb3e322ec51dc2aaab696694f34fd6eea31cb6684ed8a0a232bf3b95e4499bb6",
+  "focused": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+    "exit": 0,
+    "tests": 16,
+    "passed": 16,
+    "skipped": 0,
+    "log": "focused.log",
+    "sha256": "6f42f658ced9dbbb2970b3df16711077744543f156418c8b59e454d82340ba52"
+  },
+  "original_source_negative": {
+    "origin": "Independent reviewer source lead; builder preserved prior source and reproduced failure",
+    "source": "before-uniqueness.snapshot.txt",
+    "source_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+    "log": "uniqueness-original-red.log",
+    "log_sha256": "a29ffea2606893f17c15e0d5fcad25e35f98d730b04284e7d322bf6db25c522f",
+    "exit": 1,
+    "finding": "Retained duplicate run IDs passed whole-registry read; event uniqueness also repaired",
+    "portable_rerun": "controls/uniqueness-before/negative.log; current probe config removes later maxRegistryBytes field so exact old source executes intended assertion, not constructor failure"
+  },
+  "source_plants": [
+    {
+      "name": "host-binding-removed",
+      "exit": 1,
+      "log_sha256": "9322cef01c1c480f91f725c2d417f096b2a6047a02fd4764515d3bfeadf443f6"
+    },
+    {
+      "name": "false-completeness",
+      "exit": 1,
+      "log_sha256": "f1278af2bf908bfe9c40363466be46200cc8c0cae8643d72cc19868459b9ee06"
+    }
+  ],
+  "initial_fixture_failure": {
+    "log": "focused-initial.log",
+    "sha256": "724962deeb3d8ae486e7ca295412dfe9548cdc7c28f83fc8aaea86094a426eb0",
+    "classification": "Fixture changed backing object after materializing response; unchanged returned row still valid. Fixed fixture to return changed membership. Not a product-defect or independent RED claim."
+  },
+  "scope": [
+    "Actual N028 calls and installed function bodies, real owned FS/Git; fixture scoped DB transport.",
+    "Registration only; all resultscompletefalse; no observed worker count, native spawn, provider retirement, SQL reservation or admission authority.",
+    "Root integration/typecheck/combined gate NOT_RUN here.",
+    "N032 concrete controlled launcher coverage/lifecycle adapter remains separately required.",
+    "No fake ended callback, global process inventory, scheduler, installs or root writes."
+  ],
+  "lessons": [
+    "Captured actual scope/dependency objects across await",
+    "All started I/O retained after caller timeout",
+    "Exact source negative controls, real production module path",
+    "Unknown prior invocation remains retained"
+  ]
+}

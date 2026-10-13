@@ -347,6 +347,7 @@ node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher
 node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs
 node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs
 # #endregion harness-regressions
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null

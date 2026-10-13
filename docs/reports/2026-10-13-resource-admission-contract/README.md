@@ -426,6 +426,32 @@ classifier ([receipt](raw/closing/n030-first-fast.json)). N026 already passed th
 repository as Git cwd; the classifier did not recognize its local expression. An explicit
 `repoPath` alias preserves the command/dataflow and the checker unchanged. The release
 check passes;31 focused and8 independent plus the index regression pass on sourcea06566fe
-([supplement](raw/closing/n026-target-repository-supplement.json)). Full combined rerun
-remains required. ADR0154 and planned N031/N032 describe the next bounded worker-entry
-wave; their presence in the32-node graph is not implementation acceptance.
+([supplement](raw/closing/n026-target-repository-supplement.json)). The corrected combined
+rerun passed in744.68seconds on unchanged tree`d13d7773cead07b7b6f1424898ebca3033f787de`;
+source`8e683c3a71d094fa46dc1369ad74e5413cd4f13e` is pushed and remote-read back.
+[Exact receipt](raw/closing/n030-fast.json), [delivery](raw/closing/n030-branch-delivery.json).
+170 Vitest files/2053tests and16 negative plants passed. Existing no-model native-view
+fixtures passed14 groups; this does not accept N032 or provider termination. Resource
+SQL, browser and stack-backed suites remain NOT_RUN; toolchain reproducibility remains
+UNVERIFIED. N026/N028/N029 close only their bounded source deliverables. The32-node
+graph has26 done,2 blocked and4 pending; N027 needs actual SQL and N030 needs final
+delivery/publication. ADR0154 and N031/N032 continue worker-entry implementation.
+
+## Durable worker-entry source wave
+
+N031 source2ff89b1f persists bounded immutable intent records using actual N028
+assignment readback. It always returns incomplete inventory and no execution authority.
+Independent review reproduced a failed-fsync retry defect on original7ddd2dc6; the
+correction establishes exact file and directory durability before confirming a retry.
+[Portable archive](raw/n031/README.md) preserves original failures, accepted18 focused
+checks and4 independent controls. A separate test-budget supplement fixes a30ms fixture
+timeout under load; it changes no production timeout policy. All67 archived artifacts
+were hash-checked on root import. Root18 focused tests and whole desktop typecheck pass
+([receipt](raw/closing/n031-root-checks.json)). These results precede N032's event extension
+and do not certify it.
+
+N032 is implementing the reviewed concrete managed/PTY consumer: actual opaque unit
+identity and exact owned admission binding, with durable attachments and retained
+unknown outcomes. Its first slice keeps complete:false; complete controlled entry coverage
+and positive provider retirement require later concrete evidence. No installed policy,
+live DDL or new product UI is activated by either module.

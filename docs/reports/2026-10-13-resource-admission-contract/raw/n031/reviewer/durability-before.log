@@ -1,0 +1,25 @@
+✖ retry must establish durable receipt after prior event fsync failure (279.495666ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 511.934291
+
+✖ failing tests:
+
+test at ../../../../private<REVIEWER>/durability.mjs:14:23
+✖ retry must establish durable receipt after prior event fsync failure (279.495666ms)
+  AssertionError [ERR_ASSERTION]: retry success must sync retained event and directory after failed first durability barrier
+      at TestContext.<anonymous> (file:///private<REVIEWER>/durability.mjs:51:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,38 @@
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (1069.025334ms)
+✔ empty and registered pools never claim complete zero or active workers (750.318333ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (744.266625ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (716.369667ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (521.446125ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (1603.555083ms)
+✔ two managers share exclusive registration and can only retain one event (869.986875ms)
+✔ membership drift after durable registration retains an unresolved intent (742.211708ms)
+✔ coverage drift after durable write never returns usable intent (442.835459ms)
+✔ host or actual producer substitution during reads refuses (490.673292ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (541.785208ms)
+✔ event bounds and unsafe storage refuse without automatic repair (484.328625ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (476.397375ms)
+✔ retained duplicate run or event IDs make whole registry unknown (1128.291459ms)
+✔ N022 identifier constraints, aggregate bytes and record permissions remain strict (553.98125ms)
+✔ host changes while post-write membership settles leave immutable evidence unknown (540.273958ms)
+✔ exact retry reestablishes event and directory durability after event fsync refusal (504.290458ms)
+✔ exact retry reestablishes event and directory durability after directory fsync refusal (502.723667ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13016.206041
+✔ timed-out postwrite validation retains cross-manager lock until actual settlement (2627.672917ms)
+✔ future lifecycle event cannot be silently omitted from unresolved storage (823.787792ms)
+✔ directory sync failure cannot be upgraded to durable success by a read-only retry (628.110583ms)
+✔ retry must establish durable receipt after prior event fsync failure (821.974792ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6402.139292

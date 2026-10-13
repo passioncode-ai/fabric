@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 durable worker intents and managed binding · branch preparation, NOT MERGED
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- scope: N031 crash-gap-safe intent records and N032 concrete managed/PTY binding; ADR0154 keeps incomplete inventory and uncertain retirement explicit
+- previous source: 8e683c3a71d094fa46dc1369ad74e5413cd4f13e pushed; full fast exit0 on unchanged tree, resource accounting SQL NOT_RUN for disk headroom
+- evidence: docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json; source preparation is not activation, publication or native/provider acceptance
+
 ### 2026-10-13 · CO-282 selected input and accounting wave · branch preparation, NOT MERGED
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - scope: N026 selected raw input snapshots; N027 coherent reserved accounting; N028 local assignment; N029 once-prepared managed inputs; N030 integration checks (preparation, acceptance tracked in graph)

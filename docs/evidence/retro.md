@@ -45,6 +45,26 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 
 ## Recent log
 
+### 2026-10-13 · durable worker entry · retained bytes are not a durability receipt
+
+- Reused R006/R007 and the earlier retained-uncertainty lesson: independent review
+  failed a real file `sync` after writing a complete intent, then retried the same unit.
+  Original N031 source7ddd2dc6 returned success without re-establishing durability.
+  Corrected source2ff89b1f validates the retained bytes/inode and syncs both the file
+  and its directory before confirming either an initial write or an exact retry.
+- The source correction passed18 focused and4 independent controls. Portable replay
+  exposed a separate fixture issue: a30ms recovery budget timed out under load.
+  The reviewer raised only that test budget to1000ms; an unresolved dependency still
+  forces the actual timeout. Preserve the failed packaging logs and distinguish a
+  test-budget correction from another product defect.
+- Reuse in N032: an admission summary cannot stand in for the adapter's actual owned
+  attempt/reservation/input binding. The concrete consumer reads that retained binding;
+  callback labels, copied handles and an empty process map cannot prove retirement or
+  complete inventory. These are implementation requirements, not native acceptance.
+- Evidence: [worker intent contract](../execution/harness-waves/resource-worker-inventory.md),
+  [wave report](../reports/2026-10-13-resource-admission-contract/README.md).
+  Observatory delivery remains NOT_SENT; no new standing rule or run stamp is inferred.
+
 ### 2026-10-13 · harness input wave · metadata and composition are separate evidence
 
 - Reused R006/R007: test the actual production reader against real Git changes.

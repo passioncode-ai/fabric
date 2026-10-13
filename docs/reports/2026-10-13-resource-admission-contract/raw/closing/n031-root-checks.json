@@ -1,0 +1,24 @@
+{
+  "module": "N031 durable intents before N032 extension",
+  "sourceSha256": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+  "testSha256": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 0,
+      "passed": 18,
+      "skipped": 0
+    },
+    {
+      "command": "pnpm_config_verify_deps_before_run=warn pnpm --filter @fabric/desktop typecheck",
+      "exit": 0
+    }
+  ],
+  "archiveManifestSha256": "672c5c5c008dad23172cd97a41941f13720b2a1ac4bd358f7b5dd78cd0eeab36",
+  "archiveFilesVerified": 67,
+  "limits": [
+    "Pending integration commit and full combined check",
+    "Archive uses historical N026 dependency0db51b; root has accepted alias a06566, checked separately",
+    "N032 typed-event changes require separate review; no native/provider/complete-inventory claim"
+  ]
+}

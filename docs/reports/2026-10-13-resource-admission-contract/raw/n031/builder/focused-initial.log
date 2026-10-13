@@ -1,0 +1,42 @@
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (160.080416ms)
+✔ empty and registered pools never claim complete zero or active workers (128.315375ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (132.778083ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (135.289792ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (129.934583ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (365.81525ms)
+✔ two managers share exclusive registration and can only retain one event (128.066916ms)
+✖ membership drift after durable registration retains an unresolved intent (128.118083ms)
+✔ coverage drift after durable write never returns usable intent (134.271833ms)
+✔ host or actual producer substitution during reads refuses (122.87475ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (180.592125ms)
+✔ event bounds and unsafe storage refuse without automatic repair (126.748375ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (125.681208ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2111.740708
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-inventory.test.mjs:14:23
+✖ membership drift after durable registration retains an unresolved intent (128.118083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'recorded'
+  - 'unknown'
+
+      at TestContext.<anonymous> (file://<BUILDER>/apps/desktop/test/resource-worker-inventory.test.mjs:75:64)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'recorded',
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

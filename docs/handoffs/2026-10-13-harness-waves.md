@@ -8,7 +8,11 @@ enforcement, cross-owner acceptance and native acceptance remain open.
 ## Current source and bounded results
 
 Integration branch: `agent/harness-integrated-20261013` in `passioncode-ai/fabric`;
-accepted producer source `f2576c109f1de55179e07c7398aa2c4564e12087`; earlier recovery source
+latest pushed source checkpoint `8e683c3a71d094fa46dc1369ad74e5413cd4f13e`;
+[full-fast receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json)
+binds tree `d13d7773cead07b7b6f1424898ebca3033f787de`, exit0,744.68seconds.
+Resource accounting SQL remains NOT_RUN, so N027/N030 are still open. Earlier producer
+source `f2576c109f1de55179e07c7398aa2c4564e12087` and recovery source
 `ae197a1552231a9252754f9ee296736f94269471` is historical.
 Merge `cc123baf67753d817282fdd686365051ae897d66` preserves main privacy changes through
 `f4e21d18fd5b077291652b0508fde2ba43378b1a`. The producer source has its own verified branch-delivery receipt below; neither
@@ -184,7 +188,7 @@ expanded graph includes these pending integration/check tasks; no global complet
 or installed enforcement is implied.
 
 
-## Current integration continuation: N026–N030
+## N026–N030 checkpoint and current worker-entry continuation
 
 N026 selected input, N027 pool accounting and N028 local run assignment are integrated
 for combined verification. N028 source archive is [portable](../reports/2026-10-13-resource-admission-contract/raw/n028/README.md); its root typecheck and27 focused checks passed,
@@ -194,9 +198,12 @@ is integrated with100 focused and5 independent controls after fixing scope drift
 pending compiler I/O and preserving ordinary compiler fail-fast behavior.
 N030 owns the shared CI script; graph/packet audit reports no scope findings.
 
-Exact next task: rerun the combined fast gate after the N026 target-repository alias
-correction; frozen N028/N029 archives are now integrated. Then bind
-source delivery and ordinary workspace publication. Actual accounting SQL is still
+The corrected combined fast gate passed and its exact source was pushed, with
+[remote readback](../reports/2026-10-13-resource-admission-contract/raw/closing/n030-branch-delivery.json).
+N026/N028/N029 are closed as bounded source modules. Exact next task: integrate the
+independently reviewed N031 durable intent substrate, then the N032 concrete managed
+consumer after its independent review. Run current combined checks and ordinary workspace
+publication. Actual accounting SQL is still
 NOT_RUN for insufficient disk headroom; do not weaken the runner reserve to make it green.
 The scheduled publisher's earlier failure was a rejected non-fast-forward parent push
 after child deployment; preserve its receipt, never force-push or claim it publishes this
@@ -207,6 +214,9 @@ The first N030 combined run failed only at its reached release-provenance classi
 it is not a full-suite pass. Sourcea06566fe makes the already-enforced project repository
 explicit to that existing classifier; commands and checker are unchanged.31 focused,
 8 independent and the index control pass. [ADR0154](../adr/0154-logical-worker-pools-retain-unresolved-start-intents.md)
-and N031/N032 plan durable logical worker entry followed by actual launcher binding.
-N031 is under isolated implementation; N032 is a source-bound design. Both remain pending
-and neither supplies complete worker inventory or native resource enforcement.
+and N031/N032 own durable logical worker entry followed by actual launcher binding.
+N031 source2ff89b1 has18 focused and4 independent checks after an actual failed-fsync
+retry defect was reproduced and corrected. Root integration is underway; its acceptance
+does not cover N032's subsequent event extension. N032's reviewed concrete scope is now
+under isolated implementation. Both graph rows remain pending until their delivery
+receipts; neither supplies complete worker inventory or native resource enforcement.

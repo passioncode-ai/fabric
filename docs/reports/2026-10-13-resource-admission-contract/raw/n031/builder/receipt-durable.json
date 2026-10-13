@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "node": "N031",
+  "status": "DURABILITY_CORRECTED_FROZEN_PENDING_REVIEW",
+  "prior_receipt_sha256": "30ff26ff6ee025543149a73eb1a9f9431d5f8cc2b910f81a000c1f791a10da9b",
+  "source": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "114e95502ce9e385a533466f8684dbe9ab463dfff6b1edbca400806d294d7328"
+  },
+  "patch_sha256": "192dda549ebb9435f2ae7cb55e3aef6bdcccd5a9ee4f2ca4d55e2c6b13ae03aa",
+  "checks": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+    "exit": 0,
+    "tests": 18,
+    "passed": 18,
+    "skipped": 0,
+    "log": "focused-durable.log",
+    "sha256": "cc9f0436677c73a8ec3a69cca3dc6c8c0bdd61715cda2ab1982f7af79bd35709"
+  },
+  "finding_origin": "Independent reviewer reproduced actual FileHandle fsync failure followed by retry receipt without durability. Original frozen source preserved; no builder discovery claim.",
+  "correction": "Both initial and exact retry reopen expected bytes no-follow, bounded read and exact descriptor/path identity validation, fsync event and directory before final N028/coverage/host checks. Partial/failed evidence remains retained.",
+  "limits": "Original receipt scope and limitations remain. No root/types/fullgate/native/DB acceptance."
+}

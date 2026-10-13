@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+  "tree": "d13d7773cead07b7b6f1424898ebca3033f787de",
+  "remote": "https://github.com/passioncode-ai/fabric.git",
+  "branch": "agent/harness-integrated-20261013",
+  "pushExit": 0,
+  "remoteReadback": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+  "claim": "Branch source checkpoint only; not main merge, publication, activation or product release"
+}

@@ -664,19 +664,34 @@
       "id": "N-026",
       "title": "Selected raw input and mutable-scope snapshot",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-023"
       ],
       "serves": "REQ-006",
       "check": "node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n026-target-repository-supplement.json",
+        "proven at 8e683c3a71d094fa46dc1369ad74e5413cd4f13e (tree d13d7773cead07b7b6f1424898ebca3033f787de)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceInputSnapshot.ts",
         "apps/desktop/test/resource-input-snapshot.test.mjs",
         "docs/execution/harness-waves/resource-input-snapshot.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+        "tree": "d13d7773cead07b7b6f1424898ebca3033f787de",
+        "graph_revision": "26",
+        "checks": [
+          "Full fast exit0,744.68s on unchanged tree",
+          "Independent module review and original failures retained; scope-limited acceptance"
+        ]
+      }
     },
     {
       "id": "N-027",
@@ -702,33 +717,54 @@
       "id": "N-028",
       "title": "Trusted local run assignment and agent-sync identity correlation",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-026"
       ],
       "serves": "REQ-006",
       "check": "Focused owned filesystem/Git/installed-function-readback tests and independent source review",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n028/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n028-scope/README.md",
+        "proven at 8e683c3a71d094fa46dc1369ad74e5413cd4f13e (tree d13d7773cead07b7b6f1424898ebca3033f787de)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceRunAssignment.ts",
         "apps/desktop/test/resource-run-assignment.test.mjs",
         "scripts/resourceAgentSyncIdentity.py",
         "docs/execution/harness-waves/resource-run-assignment.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+        "tree": "d13d7773cead07b7b6f1424898ebca3033f787de",
+        "graph_revision": "27",
+        "checks": [
+          "Full fast exit0,744.68s on unchanged tree",
+          "Independent module review and original failures retained; scope-limited acceptance"
+        ]
+      }
     },
     {
       "id": "N-029",
       "title": "Compile actual managed launch input once before resource admission",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-014",
         "N-003"
       ],
       "serves": "REQ-006",
       "check": "Actual compiler, bundle byte readback, shared admission and managed launch negative fixtures",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n029-implementation/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n029-implementation/independent/receipt-final.json",
+        "proven at 8e683c3a71d094fa46dc1369ad74e5413cd4f13e (tree d13d7773cead07b7b6f1424898ebca3033f787de)"
+      ],
       "touches": [
         "apps/desktop/src/main/preparedLaunchInput.ts",
         "apps/desktop/src/main/managedLaunch.ts",
@@ -745,7 +781,16 @@
         "apps/desktop/test/resource-launch-adapter.test.mjs",
         "docs/execution/harness-waves/prepared-launch-input.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+        "tree": "d13d7773cead07b7b6f1424898ebca3033f787de",
+        "graph_revision": "28",
+        "checks": [
+          "Full fast exit0,744.68s on unchanged tree",
+          "Independent module review and original failures retained; scope-limited acceptance"
+        ]
+      }
     },
     {
       "id": "N-030",
@@ -794,17 +839,25 @@
       "status": "pending",
       "blocked_by": [
         "N-031",
-        "N-029",
-        "N-030"
+        "N-029"
       ],
       "serves": "REQ-009",
       "check": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged",
       "evidence": null,
       "touches": [
+        "apps/desktop/src/main/resourceManagedUnit.ts",
         "apps/desktop/src/main/managedLaunch.ts",
         "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/src/main/resourceWorkerInventory.ts",
         "apps/desktop/test/resource-worker-launch.test.mjs",
-        "docs/execution/harness-waves/resource-worker-launch.md"
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "apps/desktop/test/prepared-managed-launch.test.mjs",
+        "apps/desktop/test/prepared-launch-fixture.mjs",
+        "apps/desktop/test/resource-worker-inventory.test.mjs",
+        "docs/execution/harness-waves/resource-worker-launch.md",
+        "docs/execution/harness-waves/resource-worker-inventory.md"
       ]
     }
   ],
@@ -1093,11 +1146,6 @@
       "from": "N-029",
       "to": "N-032",
       "payload": "Once-prepared managed input consumers"
-    },
-    {
-      "from": "N-030",
-      "to": "N-032",
-      "payload": "Integrated source gate and delivery checkpoint"
     }
   ],
   "revisions": [
@@ -1243,6 +1291,29 @@
       "verb": "add",
       "node": "N-032",
       "why": "Concrete launcher coverage is required after intent persistence; neither manifest nor in-memory count proves complete inventory; design now, source after current gate"
+    },
+    {
+      "verb": "close",
+      "node": "N-026",
+      "why": "closed with no re-plan",
+      "precondition": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e"
+    },
+    {
+      "verb": "close",
+      "node": "N-028",
+      "why": "closed with no re-plan",
+      "precondition": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e"
+    },
+    {
+      "verb": "close",
+      "node": "N-029",
+      "why": "closed with no re-plan",
+      "precondition": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e"
+    },
+    {
+      "verb": "wave",
+      "node": "N-032",
+      "why": "Reviewed real consumer scope includes exact owned resource binding and typed immutable lifecycle events; N029/N031 are source prerequisites. N030 SQL/publication is retained separately, not an input of local source preparation."
     }
   ]
 }

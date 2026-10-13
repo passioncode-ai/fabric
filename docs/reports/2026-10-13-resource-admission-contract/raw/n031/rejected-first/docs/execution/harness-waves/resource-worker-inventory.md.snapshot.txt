@@ -1,0 +1,108 @@
+# Durable logical-worker intents
+
+## Contract
+
+N031 implements crash-gap-safe local **registration**, not a complete worker inventory.
+One configured Fabric-controlled logical unit is intended to charge one worker slot in
+future composition. Nothing here inventories every OS process, foreign CLI, helper,
+provider job or sibling application. Every API result carries `complete:false` and
+`executionAuthorized:false`, including an empty directory. A successfully recorded intent
+is not admission, a live worker, a reservation, a spawn permission or a retirement proof.
+
+`createResourceWorkerInventory` fixes estate, installation host, pool, human policy revision,
+app invocation, existing canonical0700 storage and the exact bytes/digest of a reviewed
+adapter coverage manifest. It accepts the actual trusted N028 assignment producer and
+existing `stopHostIdentity` object from main composition. The producer object, its
+`readIdentity` method and host object are captured; substitutions and changed host/invocation
+refuse before and after asynchronous boundaries. These dependencies are trusted main code,
+not renderer/tool arguments; structural TypeScript typing is not authentication of arbitrary
+JavaScript objects. No callback takes an expected identity and returns `held` or `ended`.
+
+The host `bootId` denotes the **app invocation**, not OS boot. N022's existing `resourceId`
+validator owns host/pool/policy/adapter identifier shape. Human `localPolicyRevision` is not
+N025's full-policy SQL binding revision; this module never derives a SQL reservation or
+configuration generation from that string.
+
+The manifest shape is `{schema:1,hostId,poolId,localPolicyRevision,adapters:[{id,sourceSha256}]}`,
+with distinct adapter IDs and at most32 declarations. Its SHA is checked on every use.
+Adapter source hashes are approved **declarations**, not measurements of installed/runtime
+code. A matching manifest does not prove every launch path passes an adapter. It therefore
+cannot produce `complete:true`, even if every listed unit were known.
+
+## API and durable format
+
+- `register(assignmentHandle, adapterId)` independently calls actual N028 `readIdentity`
+  before and after persistence. N028 validates its own opaque handle, immutable mapping,
+  manifest, installed function source and actual scoped membership. The returned unit ID
+  is its attempt UUID; its agent-sync run ID remains distinct from SQL `task_run_id`.
+  Success has `state:recorded` and returns an opaque intent handle, event ID and exact
+  record digest. It grants no permission to materialize a process.
+- `readIntent(intentHandle)` accepts only handles created by this manager, rereads exact
+  bytes, validates the full retained registry, rechecks coverage/host and original N028
+  provenance. It returns the immutable event and digest. A copied or restarted handle
+  cannot restore authority from identifiers alone.
+- `snapshot()` validates bounded retained records and returns `knownActive:[]` plus
+  unresolved events/digests. The empty known-active list means **no active evidence was
+  produced**, never zero observed worker slots. Valid earlier-invocation/policy records
+  remain classified `prior_binding_unresolved`; current intents are `intent_unresolved`.
+  Both the result and its payload remain `complete:false`. Invalid/corrupt storage instead
+  returns structured unknown; no raw paths, errors or credentials leave the API.
+
+An immutable schema1 `intent.registered` event binds unit/event IDs, estate/host/pool/human
+policy/invocation, adapter declaration/source digest, coverage digest, actual N028 run ID
+and all five assignment identity fields. File name is `<unit UUID>.<event UUID>.json`.
+No timestamp, numeric fence, lifecycle state, SQL run/reservation or prepared-content digest
+is invented. Future lifecycle evidence can append a new versioned event without overwriting
+this registration. Unknown event kinds/versions currently refuse, rather than being ignored.
+That future reader upgrade must define aggregate semantics explicitly.
+
+An exact current-invocation retry returns original bytes/event ID/digest; it neither refreshes
+an age nor creates another event. Conflicting unit, session, run, event or adapter identities
+refuse. Changed manifest or earlier invocation prevents new registration from bypassing
+retained uncertainty. A restarted manager can inspect retained events; it cannot restore an
+old opaque handle. No stale lock stealing, automatic deletion, record reuse or retirement exists.
+
+## Storage and asynchronous bounds
+
+Registration takes an exclusive no-follow `.register.lock`, fully validates retained files,
+and creates its event with exclusive no-follow0600 semantics. The event and directory are
+fsynced before a receipt can return. A partial write or later validation failure leaves its
+evidence in place. Cleanup closes descriptors and removes only the operation's same-inode
+lock; a prior/crashed/replaced lock remains unresolved. This is cooperative owned storage,
+not a sandbox against arbitrary same-account filesystem interference.
+
+Reads refuse symlinks, hardlinks, replaced files, incomplete JSON, wrong file modes,
+unknown names and duplicate immutable identities. Configured limits cap records at1024,
+each record/manifest at64KiB, the aggregate registry at8MiB and operation time at30seconds.
+Actual settings can be smaller. Scans bound entries and bytes before accumulating results.
+One manager operation stays occupied until every started read/write and owned cleanup
+actually settles. Caller timeout never frees uncertain I/O; late work checks its deadline
+before later mutations and cannot return a usable receipt. No sibling Promise fan-out is
+introduced. The monotonic clock is the actual process clock; no injectable clock callback
+or periodic scheduler is added.
+
+## Verification and next adapter
+
+Run `node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs`.
+The suite drives actual N028 plus real owned filesystem/Git and pinned installed-function
+execution. Scoped membership transport is a fixture; DB/native/provider acceptance is not
+claimed. Existing `N028_AGENT_SYNC_SCRIPT` selects the pinned installed source; missing
+installation yields explicit skips, never an installation action. Receipt counts/hashes and
+original RED controls live with the source delivery evidence, not as timeless doc assertions.
+
+The next contract is **N032 concrete launcher adapter** (design/implementation status is
+owned by the parent graph, not this document). It must own the managed-required logical pool,
+exclusive writer/entry coverage, durable registration before any possible spawn, actual
+SQL admission/reservation identity and prepared content binding, actual session/native process
+identity and independent provider/process retirement observations. All admitted units must
+stay conservatively charged until genuine never-spawn or retirement evidence exists. That
+conservative unretired set is distinct from an exact observed-live count. Existing
+`PtyManager.observeProcess` supplies owned local process observations, while
+`nativeStopRuntime` treats provider quiescence separately; root exit alone is insufficient.
+N031 does not connect those producers, count unobserved units as live or claim the future
+coverage protocol already exists. Restart/unknown provider outcomes remain retained.
+
+Retrospective lessons applied: preserve exact source receipts; exercise actual production
+readers and filesystem refusals; keep mutable scope closure bound across awaits; retain
+all started I/O through settlement. No active DDL, native launch, installed wiring, generic
+completion callback, scheduler or public protocol is introduced.

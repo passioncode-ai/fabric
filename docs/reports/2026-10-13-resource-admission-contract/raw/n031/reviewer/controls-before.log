@@ -1,0 +1,10 @@
+✔ timed-out postwrite validation retains cross-manager lock until actual settlement (218.005209ms)
+✔ future lifecycle event cannot be silently omitted from unresolved storage (140.98675ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 469.553041

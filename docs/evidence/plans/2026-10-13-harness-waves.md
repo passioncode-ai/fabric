@@ -430,5 +430,24 @@ Known unretired units and uncertain termination are retained. A future complete 
 unit set requires proved controlled entry coverage and intact durable history, not every
 unit proved live; missing provider quiescence still prevents retirement. Existing ordinary
 non-resource launch behavior remains unchanged. No policy activation or complete inventory
-is inferred from the N031 primitive. N032 is design-only until its concrete source scope
-is reviewed; implementation needs no new operator permission within this authorized task.
+is inferred from the N031 primitive. The concrete N032 source scope was reviewed and is
+now being implemented in isolated overlays. It consumes the exact owned resource-adapter
+binding, rather than reconstructing an attempt from a public admission receipt. The N031
+owner extends its typed immutable event schema separately; the N032 owner changes the
+actual managed/PTY consumers. The root integrator owns shared CI wiring. No operator
+permission or foreign board admission is missing for this bounded local implementation.
+
+N030's SQL/publication completion is not a runtime input of N032 source preparation.
+N032 depends on N029 and N031 source contracts; its final integration still requires
+the current combined check. The previous N030 dependency is removed to avoid a false
+barrier on an unrelated unavailable database fixture. This does not waive N027 SQL
+acceptance or N030 publication.
+
+### N026–N030 source checkpoint
+
+Source `8e683c3a71d094fa46dc1369ad74e5413cd4f13e` is pushed and remote-read back;
+tree `d13d7773cead07b7b6f1424898ebca3033f787de` passed full fast in744.68seconds
+without source changes. [Receipt](../../reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json).
+N026, N028 and N029 close as bounded source modules. N027 remains open because its
+real SQL runner refused insufficient disk headroom; N030 retains SQL/publication work.
+Browser/stack-backed acceptance and toolchain reproducibility remain unverified.

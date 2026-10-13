@@ -1,0 +1,198 @@
+// #region resource-input-snapshot — docs: docs/execution/harness-waves/resource-input-snapshot.md#contract
+import * as fs from 'node:fs/promises'
+import { constants } from 'node:fs'
+import path from 'node:path'
+import { createHash } from 'node:crypto'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import { HARDENED_GIT_ARGS, hardenedGitEnv } from './gitRun.ts'
+
+export interface InputIdentity { estateId: string; projectId: string; taskId: string; sessionId: string; attemptId: string }
+export interface InputAssignment extends InputIdentity {
+  selectionRevision: string
+  repository: { approvedRoot: string; approvedRemoteDigest: string; expectedHead: string }
+  selectedInputs: { path: string; allowUntracked?: true }[]
+  mutableScope: { path: string; state: 'file' | 'absent' }[]
+  bounds: { maxPaths: number; maxDepth: number; maxPathBytes: number; maxFileBytes: number; maxTotalBytes: number; maxMetadataBytes: number; timeoutMs: number; maxAgeMs: number }
+  lease?: { configuredKey: string; expectedRunId: string; expectedTip: string; repositoryName: string; scopeMappingRevision: string }
+}
+export interface InputSnapshotDeps {
+  /** Trusted producer, independently read, no expected identity argument. */
+  identity: () => unknown | Promise<unknown>
+  lease?: () => unknown | Promise<unknown>
+  fs?: Pick<typeof fs, 'lstat' | 'realpath' | 'open'>
+  git?: (args: readonly string[], options: { cwd: string; timeoutMs: number; maxBytes: number }) => Promise<{ code: number; stdout: string }>
+  now?: () => number
+}
+export interface InputReceipt {
+  state: 'observed'
+  executionAuthorized: false
+  selectionComplete: false
+  identity: Readonly<InputIdentity>
+  atMs: number
+  head: string
+  indexDigest: string
+  selectionDigest: string
+  inputDigest: string
+  scopeDigest: string
+  lease: Readonly<{ state: 'not_requested' } | { state: 'observed'; tip: string; expiresAt: number }>
+}
+export type InputSnapshotResult = InputReceipt | { state: 'refused' | 'unknown'; reason: string; executionAuthorized: false; lease: { state: 'not_requested' | 'unavailable' } }
+const identityKeys = ['estateId','projectId','taskId','sessionId','attemptId'] as const
+const digest = (domain: string, value: unknown) => createHash('sha256').update(JSON.stringify([domain,value])).digest('hex')
+function data(raw: unknown, required: readonly string[], optional: readonly string[] = []): Record<string, unknown> {
+  if (!raw || typeof raw !== 'object' || ![Object.prototype,null].includes(Object.getPrototypeOf(raw))) throw Error('invalid_assignment')
+  const descriptors = Object.getOwnPropertyDescriptors(raw)
+  if (Reflect.ownKeys(raw).some(k => typeof k !== 'string' || ![...required,...optional].includes(k)) || required.some(k => !descriptors[k])) throw Error('invalid_assignment')
+  for (const d of Object.values(descriptors)) if (!('value' in d)) throw Error('invalid_assignment')
+  return Object.fromEntries(Object.entries(descriptors).map(([k,d])=>[k,d.value]))
+}
+function integer(v: unknown, max = Number.MAX_SAFE_INTEGER): number { if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 1 || v > max) throw Error('invalid_assignment'); return v }
+function id(v: unknown): string { if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v)) throw Error('invalid_assignment'); return v }
+function sha(v: unknown, length = 64): string { if (typeof v !== 'string' || !(new RegExp(`^[a-f0-9]{${length}}$`)).test(v)) throw Error('invalid_assignment'); return v }
+function freeze<T>(v: T): T { if (v && typeof v === 'object') { for (const child of Object.values(v)) freeze(child); Object.freeze(v) } return v }
+function clock(read: () => number): number {
+  const value: unknown = read()
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype && !Object.hasOwn(value,'constructor')) {
+    try { void Promise.prototype.then.call(value,undefined,()=>{}) } catch { /* A spoofed prototype remains invalid clock data. */ }
+  }
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw Error('clock_invalid')
+  return value
+}
+function assignment(raw: InputAssignment) {
+  const a = data(raw,[...identityKeys,'selectionRevision','repository','selectedInputs','mutableScope','bounds'],['lease'])
+  const identity = Object.fromEntries(identityKeys.map(k=>[k,id(a[k])])) as unknown as InputIdentity
+  const r = data(a.repository,['approvedRoot','approvedRemoteDigest','expectedHead'])
+  if (typeof r.approvedRoot !== 'string' || !path.isAbsolute(r.approvedRoot) || path.normalize(r.approvedRoot) !== r.approvedRoot || /[\x00-\x1f\x7f]/.test(r.approvedRoot)) throw Error('invalid_assignment')
+  const b = data(a.bounds,['maxPaths','maxDepth','maxPathBytes','maxFileBytes','maxTotalBytes','maxMetadataBytes','timeoutMs','maxAgeMs'])
+  const bounds = Object.fromEntries(Object.entries(b).map(([k,v])=>[k,integer(v)])) as unknown as InputAssignment['bounds']
+  if (bounds.maxPaths > 4096 || bounds.maxDepth > 64 || bounds.maxPathBytes > 4096 || bounds.maxFileBytes > 64*1024*1024 || bounds.maxTotalBytes > 256*1024*1024 || bounds.maxMetadataBytes > 16*1024*1024 || bounds.timeoutMs > 30000 || bounds.maxAgeMs > 86400000) throw Error('invalid_assignment')
+  function relative(v: unknown): string {
+    if (typeof v !== 'string' || !v || Buffer.byteLength(v)>bounds.maxPathBytes || v.includes('\\') || /[\x00-\x1f\x7f]/.test(v) || path.posix.isAbsolute(v)) throw Error('invalid_path')
+    const parts=v.split('/')
+    if (parts.length>bounds.maxDepth || parts.some(p=>!p || p==='.' || p==='..' || p.toLowerCase()==='.git') || /^[A-Za-z]:/.test(v)) throw Error('invalid_path')
+    return v
+  }
+  if (!Array.isArray(a.selectedInputs) || !Array.isArray(a.mutableScope) || a.selectedInputs.length + a.mutableScope.length > bounds.maxPaths || a.selectedInputs.length===0) throw Error('invalid_assignment')
+  const selectedInputs=a.selectedInputs.map(raw=>{const v=data(raw,['path'],['allowUntracked']);if(v.allowUntracked!==undefined && v.allowUntracked!==true)throw Error('invalid_assignment');return {path:relative(v.path),allowUntracked:v.allowUntracked===true}}).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0)
+  const mutableScope=a.mutableScope.map(raw=>{const v=data(raw,['path','state']);if(v.state!=='file'&&v.state!=='absent')throw Error('invalid_assignment');return {path:relative(v.path),state:v.state}}).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0)
+  if ([selectedInputs,mutableScope].some(rows=>new Set(rows.map(r=>r.path)).size!==rows.length)) throw Error('duplicate_path')
+  for(const entry of mutableScope)if(entry.state==='absent'&&selectedInputs.some(i=>i.path===entry.path))throw Error('conflicting_path')
+  let lease: InputAssignment['lease']
+  if(a.lease!==undefined){const l=data(a.lease,['configuredKey','expectedRunId','expectedTip','repositoryName','scopeMappingRevision']);
+    if(typeof l.configuredKey!=='string'||!l.configuredKey||l.configuredKey.length>200||/[\x00-\x1f\x7f]/.test(l.configuredKey))throw Error('invalid_assignment')
+    lease={configuredKey:l.configuredKey,expectedRunId:id(l.expectedRunId),expectedTip:sha(l.expectedTip,40),repositoryName:id(l.repositoryName),scopeMappingRevision:id(l.scopeMappingRevision)}}
+  return freeze({identity,selectionRevision:id(a.selectionRevision),repository:{approvedRoot:r.approvedRoot,approvedRemoteDigest:sha(r.approvedRemoteDigest),expectedHead:sha(r.expectedHead,40)},selectedInputs,mutableScope,bounds,lease})
+}
+const exec=promisify(execFile)
+const gitDefault: NonNullable<InputSnapshotDeps['git']> = async(args,o)=>{
+  try {const {stdout}=await exec('git',[...HARDENED_GIT_ARGS,...args],{cwd:o.cwd,timeout:o.timeoutMs,maxBuffer:o.maxBytes,env:hardenedGitEnv()});return {code:0,stdout}}
+  catch(e){/* Only check-ignore's documented miss is normal; raw transport errors stay private. */if(args[0]==='check-ignore'&&(e as {code?:unknown}).code===1)return {code:1,stdout:''};throw Error('git_unavailable')}
+}
+class SnapshotFailure extends Error { readonly state:'unknown'|'refused'; readonly reason:string; constructor(state:'unknown'|'refused',reason:string){super(reason);this.state=state;this.reason=reason} }
+function refuse(reason:string):never {throw new SnapshotFailure('refused',reason)}
+const uncertain=(reason:string):never=>{throw new SnapshotFailure('unknown',reason)}
+const stamp=(s: any)=>[s.dev,s.ino,s.mode,s.nlink,s.size,s.mtimeNs,s.ctimeNs].map(String).join(':')
+const nodeIdentity=(s:any)=>[s.dev,s.ino,s.mode].map(String).join(':')
+
+/** Actual selected bytes, not dependency discovery, continuous ownership or launch authority. */
+export function createResourceInputSnapshotReader(raw: InputAssignment,deps: InputSnapshotDeps){
+  const a=assignment(raw),io=deps.fs??fs,git=deps.git??gitDefault,now=deps.now??Date.now
+  const selectionDigest=digest('fabric-selected-input-assignment/v1',a),receipts=new WeakSet<object>()
+  let outstanding:Promise<InputSnapshotResult>|null=null
+  const failure=(state:'unknown'|'refused',reason:string):InputSnapshotResult=>({state,reason,executionAuthorized:false,lease:{state:a.lease?'unavailable':'not_requested'}})
+  async function inspect():Promise<InputSnapshotResult>{
+    const deadline=performance.now()+a.bounds.timeoutMs,started=clock(now)
+    const check=()=>{if(performance.now()>=deadline)uncertain('timeout')}
+    async function call<T>(fn:()=>Promise<T>|T):Promise<T>{check();return await fn()}
+    async function identity(){const seen=data(await call(deps.identity),identityKeys);if(identityKeys.some(k=>seen[k]!==a.identity[k]))refuse('identity_changed')}
+    async function lease(){
+      if(!a.lease)return {state:'not_requested'} as const
+      if(!deps.lease)uncertain('lease_unavailable')
+      const v=data(await call(deps.lease!),['status','remoteDigest','key','runId','repositoryName','tip','observedAt','leaseUpdatedAt','expiresAt','executionAuthorized'])
+      const t=clock(now)
+      if(v.status!=='observed'||v.executionAuthorized!==false||v.remoteDigest!==a.repository.approvedRemoteDigest||v.key!==a.lease.configuredKey||v.runId!==a.lease.expectedRunId||v.repositoryName!==a.lease.repositoryName||v.tip!==a.lease.expectedTip)refuse('lease_changed')
+      if(!Number.isSafeInteger(v.observedAt)||!Number.isSafeInteger(v.leaseUpdatedAt)||!Number.isSafeInteger(v.expiresAt)||Number(v.leaseUpdatedAt)>Number(v.observedAt)||Number(v.observedAt)>t||t-Number(v.observedAt)>a.bounds.maxAgeMs||Number(v.expiresAt)<=t)refuse('lease_stale')
+      return {state:'observed',tip:a.lease.expectedTip,expiresAt:Number(v.expiresAt)} as const
+    }
+    async function run(args:string[]){const remaining=Math.ceil(deadline-performance.now());check();const result=await call(()=>git(args,{cwd:a.repository.approvedRoot,timeoutMs:remaining,maxBytes:a.bounds.maxMetadataBytes}));if(typeof result.stdout!=='string'||result.stdout.includes('\uFFFD')||Buffer.byteLength(result.stdout)>a.bounds.maxMetadataBytes)refuse('metadata_budget');return result}
+    async function view(){
+      const top=await run(['rev-parse','--show-toplevel']);if(top.code!==0||top.stdout!==a.repository.approvedRoot+'\n')refuse('repository_root_changed')
+      const head=await run(['rev-parse','--verify','HEAD']);if(head.code!==0||head.stdout.trim()!==a.repository.expectedHead)refuse('head_changed')
+      const index=await run(['ls-files','--stage','-v','-z']);if(index.code!==0)uncertain('index_unavailable')
+      const entries=new Map<string,{mode:string;stage:string}>()
+      for(const line of index.stdout.split('\0').filter(Boolean)){check();const m=/^[A-Za-z?] ([0-7]{6}) ([a-f0-9]{40}) ([0-3])\t([\s\S]+)$/.exec(line);if(!m||entries.has(m[4]))refuse('unsupported_index');entries.set(m[4],{mode:m[1],stage:m[3]})}
+      const flags=await run(['ls-files','--debug','-z']);if(flags.code!==0)uncertain('index_unavailable')
+      return {head:head.stdout.trim(),indexDigest:digest('fabric-git-index-view/v1',[index.stdout,flags.stdout]),entries}
+    }
+    const parents=new Map<string,string>(),missingParents=new Set<string>(),fileStamps=new Map<string,string>(),records=new Map<string,{path:string;state:'file'|'absent';mode?:string;bytes?:number;digest?:string}>(),aliases=new Set<string>()
+    let total=0
+    async function components(relative:string,absent:boolean){
+      const parts=relative.split('/');let current=a.repository.approvedRoot
+      for(let i=0;i<parts.length;i++){
+        current=path.join(current,parts[i]);let st:any
+        try{st=await call(()=>io.lstat(current,{bigint:true}))}catch(e){/* Explicit absent paths carry absence, while every other filesystem error stays unavailable. */if((e as {code?:unknown}).code==='ENOENT'&&absent){missingParents.add(current);return null}throw e}
+        if(st.isSymbolicLink())refuse('symlink')
+        if(i<parts.length-1){if(!st.isDirectory())refuse('non_directory');const key=nodeIdentity(st);if(parents.has(current)&&parents.get(current)!==key)uncertain('parent_changed');parents.set(current,key)}
+        else {if(absent)refuse('absent_path_created');if(!st.isFile())refuse('special_file');return st}
+      }
+      return null
+    }
+    try{
+      await identity();const beforeLease=await lease()
+      const rootBefore:any=await call(()=>io.lstat(a.repository.approvedRoot,{bigint:true}))
+      if(!rootBefore.isDirectory()||rootBefore.isSymbolicLink()||await call(()=>io.realpath(a.repository.approvedRoot))!==a.repository.approvedRoot)refuse('root_not_canonical')
+      const before=await view()
+      const paths=[...new Set([...a.selectedInputs.map(v=>v.path),...a.mutableScope.map(v=>v.path)])].sort()
+      for(const relative of paths){
+        const selected=a.selectedInputs.find(v=>v.path===relative),scope=a.mutableScope.find(v=>v.path===relative),absent=scope?.state==='absent'
+        const parts=relative.split('/');for(let depth=1;depth<=parts.length;depth++)if(before.entries.get(parts.slice(0,depth).join('/'))?.mode==='160000')refuse('submodule')
+        const index=before.entries.get(relative)
+        if(index&&(index.mode!=='100644'&&index.mode!=='100755'||index.stage!=='0'))refuse('unsupported_index')
+        const initial:any=await components(relative,absent)
+        const ignored=await run(['check-ignore','--no-index','--quiet','--',relative]);if(ignored.code===0)refuse('ignored_input');if(ignored.code!==1)uncertain('ignore_unavailable')
+        if(!absent&&!index&&!selected?.allowUntracked)refuse('untracked_input')
+        if(absent){records.set(relative,{path:relative,state:'absent'});continue}
+        const absolute=path.join(a.repository.approvedRoot,relative)
+        if(await call(()=>io.realpath(absolute))!==absolute)refuse('path_alias')
+        const alias=[initial.dev,initial.ino].map(String).join(':');if(aliases.has(alias))refuse('file_alias');aliases.add(alias)
+        if(initial.size>BigInt(a.bounds.maxFileBytes)||initial.size>BigInt(a.bounds.maxTotalBytes-total))refuse('byte_budget')
+        let handle:Awaited<ReturnType<typeof io.open>>|null=null
+        try{
+          handle=await call(()=>io.open(absolute,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK));check()
+          const opened=await call(()=>handle!.stat({bigint:true}));if(!opened.isFile()||stamp(opened)!==stamp(initial))uncertain('file_changed')
+          const h=createHash('sha256');let bytes=0
+          while(true){const allowed=Math.min(a.bounds.maxFileBytes-bytes,a.bounds.maxTotalBytes-total);const buffer=Buffer.alloc(Math.min(65536,allowed+1));const read=await call(()=>handle!.read(buffer,0,buffer.length,null));check();if(read.bytesRead===0)break;bytes+=read.bytesRead;total+=read.bytesRead;if(bytes>a.bounds.maxFileBytes||total>a.bounds.maxTotalBytes)refuse('byte_budget');h.update(buffer.subarray(0,read.bytesRead))}
+          const end=await call(()=>handle!.stat({bigint:true}));if(stamp(opened)!==stamp(end)||BigInt(bytes)!==opened.size)uncertain('file_changed')
+          const after:any=await components(relative,false);if(stamp(end)!==stamp(after))uncertain('file_changed')
+          fileStamps.set(relative,stamp(end));records.set(relative,{path:relative,state:'file',mode:(Number(end.mode)&0o777).toString(8),bytes,digest:h.digest('hex')})
+        }finally{if(handle)await handle.close()}
+      }
+      for(const entry of records.values()){const st:any=await components(entry.path,entry.state==='absent');if(entry.state==='file'&&(!st||stamp(st)!==fileStamps.get(entry.path)))uncertain('file_changed')}
+      for(const missing of missingParents){try{await call(()=>io.lstat(missing,{bigint:true}));uncertain('absent_parent_changed')}catch(e){/* Reconfirm explicit absence; do not turn unreadable metadata into missing evidence. */if((e as {code?:unknown}).code!=='ENOENT')throw e}}
+      for(const [parent,expected] of parents){const st:any=await call(()=>io.lstat(parent,{bigint:true}));if(!st.isDirectory()||st.isSymbolicLink()||nodeIdentity(st)!==expected)uncertain('parent_changed')}
+      const rootAfter:any=await call(()=>io.lstat(a.repository.approvedRoot,{bigint:true}));if(nodeIdentity(rootAfter)!==nodeIdentity(rootBefore)||await call(()=>io.realpath(a.repository.approvedRoot))!==a.repository.approvedRoot)uncertain('root_changed')
+      const after=await view();if(before.indexDigest!==after.indexDigest)uncertain('index_changed')
+      await identity();const afterLease=await lease();const ended=clock(now);check()
+      if(ended<started||ended-started>a.bounds.maxAgeMs)uncertain('clock_changed')
+      if(beforeLease.state==='observed'&&(afterLease.state!=='observed'||afterLease.tip!==beforeLease.tip||afterLease.expiresAt<=ended))refuse('lease_changed')
+      const base={selectionDigest,head:after.head,indexDigest:after.indexDigest,identity:a.identity}
+      const receipt=freeze({state:'observed' as const,executionAuthorized:false as const,selectionComplete:false as const,identity:a.identity,atMs:ended,head:after.head,indexDigest:after.indexDigest,selectionDigest,
+        inputDigest:digest('fabric-selected-input-bytes/v1',[base,a.selectedInputs.map(v=>records.get(v.path))]),scopeDigest:digest('fabric-selected-mutable-scope/v1',[base,a.mutableScope.map(v=>records.get(v.path))]),lease:afterLease})
+      receipts.add(receipt);return receipt
+    }catch(e){/* Return bounded reason codes, never raw paths, file bytes or transport errors. */if(e instanceof SnapshotFailure)return failure(e.state,e.reason);return failure('unknown','input_unavailable')}
+  }
+  function capture():Promise<InputSnapshotResult>{
+    if(outstanding)return Promise.resolve(failure('unknown','io_outstanding'))
+    const work=Promise.resolve().then(inspect).catch(()=>failure('unknown','input_unavailable'));outstanding=work
+    void work.then(()=>{if(outstanding===work)outstanding=null})
+    return new Promise(resolve=>{let delivered=false;const finish=(v:InputSnapshotResult)=>{if(delivered)return;delivered=true;clearTimeout(timer);resolve(v)};const timer=setTimeout(()=>finish(failure('unknown','timeout')),a.bounds.timeoutMs);void work.then(finish)})
+  }
+  return {capture,async current(previous:InputReceipt){
+    if(!previous||!receipts.has(previous))return {state:'unknown' as const,reason:'foreign_receipt',executionAuthorized:false as const}
+    const next=await capture();if(next.state!=='observed')return {state:next.state==='refused'?'changed' as const:'unknown' as const,reason:next.reason,executionAuthorized:false as const}
+    const same=previous.inputDigest===next.inputDigest&&previous.scopeDigest===next.scopeDigest&&JSON.stringify(previous.lease)===JSON.stringify(next.lease)
+    return {state:same?'same' as const:'changed' as const,executionAuthorized:false as const,snapshot:next}
+  }}
+}
+// #endregion resource-input-snapshot

@@ -1,0 +1,58 @@
+#region resource-run-assignment — docs: docs/execution/harness-waves/resource-run-assignment.md#contract
+"""Pinned installed-function readback. Never import or execute agent-sync main/Sync."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+PIN = 'fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1'
+
+def main():
+    source, key = sys.argv[1:]
+    if not re.fullmatch('[a-z0-9]{12}', key) or os.environ.get('AGENT_SYNC_RUN_ID') != key:
+        raise ValueError('identity input')
+    fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        before = os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode) or before.st_size > 2_000_000:
+            raise ValueError('source type')
+        raw = bytearray()
+        while True:
+            part = os.read(fd, min(65536, 2_000_001 - len(raw)))
+            if not part:
+                break
+            raw.extend(part)
+            if len(raw) > 2_000_000:
+                raise ValueError('source bound')
+        after = os.fstat(fd)
+        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+            raise ValueError('source changed')
+    finally:
+        os.close(fd)
+    if hashlib.sha256(raw).hexdigest() != PIN:
+        raise ValueError('unsupported source')
+    tree = ast.parse(raw)
+    names = {'_rid_from', '_session_key', 'run_id'}
+    functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
+    if len(functions) != 3 or {n.name for n in functions} != names:
+        raise ValueError('source definitions')
+    namespace = {'os': os, 're': re, 'hashlib': hashlib, 'Path': Path}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), '<pinned-agent-sync-functions>', 'exec'), namespace)
+    # Explicit env branch returns before any marker read/write, discovery or tool call.
+    run = namespace['run_id'](Path.cwd())
+    if run != 'r-' + key:
+        raise ValueError('identity mismatch')
+    print(json.dumps({'key': key, 'runId': run, 'scriptSha256': PIN}))
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception:
+        # Bounded refusal only; source paths, environment and installed data stay private.
+        print('identity_readback_unavailable', file=sys.stderr)
+        sys.exit(1)
+#endregion resource-run-assignment

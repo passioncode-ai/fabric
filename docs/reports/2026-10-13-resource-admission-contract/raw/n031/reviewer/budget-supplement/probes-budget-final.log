@@ -1,0 +1,12 @@
+✔ timed-out postwrite validation retains cross-manager lock until actual settlement (1963.971959ms)
+✔ future lifecycle event cannot be silently omitted from unresolved storage (941.165875ms)
+✔ directory sync failure cannot be upgraded to durable success by a read-only retry (707.587541ms)
+✔ retry must establish durable receipt after prior event fsync failure (991.841292ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6060.861375

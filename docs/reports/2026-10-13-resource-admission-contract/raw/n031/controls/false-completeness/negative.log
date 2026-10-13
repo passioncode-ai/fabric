@@ -1,0 +1,28 @@
+✖ empty and registered pools never claim complete zero or active workers (170.96625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 297.310292
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-inventory.test.mjs:14:23
+✖ empty and registered pools never claim complete zero or active workers (170.96625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file://<BUILDER>/controls/false-completeness/apps/desktop/test/resource-worker-inventory.test.mjs:49:142)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

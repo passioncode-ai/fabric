@@ -1,0 +1,50 @@
+✖ host or actual producer substitution during reads refuses (167.639458ms)
+✖ host changes while post-write membership settles leave immutable evidence unknown (146.450333ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 443.642625
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-inventory.test.mjs:14:23
+✖ host or actual producer substitution during reads refuses (167.639458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'recorded'
+  - 'unknown'
+
+      at TestContext.<anonymous> (file://<BUILDER>/controls/host-binding-removed/apps/desktop/test/resource-worker-inventory.test.mjs:83:69)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'recorded',
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-worker-inventory.test.mjs:14:23
+✖ host changes while post-write membership settles leave immutable evidence unknown (146.450333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'recorded'
+  - 'unknown'
+
+      at TestContext.<anonymous> (file://<BUILDER>/controls/host-binding-removed/apps/desktop/test/resource-worker-inventory.test.mjs:114:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'recorded',
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

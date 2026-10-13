@@ -1,0 +1,29 @@
+{
+  "node": "N-029",
+  "done": [
+    "Once-prepared ordinary required managed input with bounded I/O"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "No active DDL, configured required composition, native provider or all-host enforcement",
+    "Resource accounting SQL remains NOT_RUN; this node does not certify N027"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/README.md",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n029-implementation/README.md",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n029-implementation/independent/receipt-final.json"
+  ],
+  "tested": {
+    "head": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+    "tree": "d13d7773cead07b7b6f1424898ebca3033f787de",
+    "checks": [
+      "Full fast exit0,744.68s on unchanged tree",
+      "Independent module review and original failures retained; scope-limited acceptance"
+    ]
+  }
+}

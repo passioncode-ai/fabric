@@ -1,0 +1,59 @@
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (256.914209ms)
+✔ empty and registered pools never claim complete zero or active workers (234.342084ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (178.912834ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (185.287042ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (175.606375ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (515.259959ms)
+✔ two managers share exclusive registration and can only retain one event (214.440208ms)
+✔ membership drift after durable registration retains an unresolved intent (179.074166ms)
+✔ coverage drift after durable write never returns usable intent (266.225667ms)
+✔ host or actual producer substitution during reads refuses (170.894625ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (230.175334ms)
+✔ event bounds and unsafe storage refuse without automatic repair (194.145958ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (216.928334ms)
+✔ retained duplicate run or event IDs make whole registry unknown (493.319167ms)
+✔ N022 identifier constraints, aggregate bytes and record permissions remain strict (238.556833ms)
+✔ host changes while post-write membership settles leave immutable evidence unknown (174.300792ms)
+✔ exact retry reestablishes event and directory durability after event fsync refusal (208.664542ms)
+✔ exact retry reestablishes event and directory durability after directory fsync refusal (236.717292ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4526.405125
+✖ timed-out postwrite validation retains cross-manager lock until actual settlement (389.944ms)
+✔ future lifecycle event cannot be silently omitted from unresolved storage (221.582875ms)
+✔ directory sync failure cannot be upgraded to durable success by a read-only retry (314.070916ms)
+✔ retry must establish durable receipt after prior event fsync failure (300.986791ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 781.84775
+
+✖ failing tests:
+
+test at ../fabric-n031-durable-fzyrzhax/raw/n031/probes/controls.mjs:15:23
+✖ timed-out postwrite validation retains cross-manager lock until actual settlement (389.944ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unknown'
+  - 'recorded'
+
+      at TestContext.<anonymous> (file://<TEMP>/fabric-n031-durable-fzyrzhax/raw/n031/probes/controls.mjs:53:68)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'recorded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

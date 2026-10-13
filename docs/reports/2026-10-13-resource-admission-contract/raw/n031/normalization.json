@@ -1,0 +1,522 @@
+{
+  "schema": 1,
+  "note": "Original receipt digests preserved; normalized files identified separately. Final independently accepted N031 archive.",
+  "files": [
+    {
+      "origin": "receipt.json",
+      "stored": "builder/receipt.json",
+      "original_sha256": "30ff26ff6ee025543149a73eb1a9f9431d5f8cc2b910f81a000c1f791a10da9b",
+      "stored_sha256": "30ff26ff6ee025543149a73eb1a9f9431d5f8cc2b910f81a000c1f791a10da9b",
+      "normalization": []
+    },
+    {
+      "origin": "n031.patch",
+      "stored": "builder/n031.patch",
+      "original_sha256": "eb3e322ec51dc2aaab696694f34fd6eea31cb6684ed8a0a232bf3b95e4499bb6",
+      "stored_sha256": "eb3e322ec51dc2aaab696694f34fd6eea31cb6684ed8a0a232bf3b95e4499bb6",
+      "normalization": []
+    },
+    {
+      "origin": "focused.log",
+      "stored": "builder/focused.log",
+      "original_sha256": "6f42f658ced9dbbb2970b3df16711077744543f156418c8b59e454d82340ba52",
+      "stored_sha256": "6f42f658ced9dbbb2970b3df16711077744543f156418c8b59e454d82340ba52",
+      "normalization": [
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "focused-initial.log",
+      "stored": "builder/focused-initial.log",
+      "original_sha256": "724962deeb3d8ae486e7ca295412dfe9548cdc7c28f83fc8aaea86094a426eb0",
+      "stored_sha256": "b33120447c1244bd86ad5246e5f8832e9b39e98652fd255b59d23ff83bf16bb6",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>",
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "before-uniqueness.snapshot.txt",
+      "stored": "builder/before-uniqueness.snapshot.txt",
+      "original_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+      "stored_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+      "normalization": []
+    },
+    {
+      "origin": "uniqueness-original-red.log",
+      "stored": "builder/uniqueness-original-red.log",
+      "original_sha256": "a29ffea2606893f17c15e0d5fcad25e35f98d730b04284e7d322bf6db25c522f",
+      "stored_sha256": "c917baf24b8dfd4fd71c17f8049ce8074fabf9fdf1065678f1a7b4d31bd3a5ce",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>",
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "controls.json",
+      "stored": "builder/controls.json",
+      "original_sha256": "ce2d2b1091072f0885639355aac5c5acad3d006f9e8a32aeeed03bc7af27bc8e",
+      "stored_sha256": "ce2d2b1091072f0885639355aac5c5acad3d006f9e8a32aeeed03bc7af27bc8e",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "rejected-first/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/gitRun.ts",
+      "stored": "rejected-first/apps/desktop/src/main/gitRun.ts.snapshot.txt",
+      "original_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "stored_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceHostPolicy.ts",
+      "stored": "rejected-first/apps/desktop/src/main/resourceHostPolicy.ts.snapshot.txt",
+      "original_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "stored_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "rejected-first/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "rejected-first/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "original_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "stored_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "rejected-first/apps/desktop/src/main/resourceWorkerInventory.ts.snapshot.txt",
+      "original_sha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+      "stored_sha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/scopedStore.ts",
+      "stored": "rejected-first/apps/desktop/src/main/scopedStore.ts.snapshot.txt",
+      "original_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "stored_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/shared/scope.ts",
+      "stored": "rejected-first/apps/desktop/src/shared/scope.ts.snapshot.txt",
+      "original_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "stored_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "rejected-first/apps/desktop/test/resource-worker-inventory.test.mjs.snapshot.txt",
+      "original_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "stored_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "normalization": []
+    },
+    {
+      "origin": "scripts/resourceAgentSyncIdentity.py",
+      "stored": "rejected-first/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "original_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "stored_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "normalization": []
+    },
+    {
+      "origin": "docs/execution/harness-waves/resource-worker-inventory.md",
+      "stored": "rejected-first/docs/execution/harness-waves/resource-worker-inventory.md.snapshot.txt",
+      "original_sha256": "2284bfe239303c39f14f943520379ef7eb5ff43bcd9f66f09e8f3a1160be6f39",
+      "stored_sha256": "2284bfe239303c39f14f943520379ef7eb5ff43bcd9f66f09e8f3a1160be6f39",
+      "normalization": []
+    },
+    {
+      "origin": "controls/false-completeness/apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "controls/false-completeness/source.snapshot.txt",
+      "original_sha256": "44279579d8625b7481bf0f46f3517cd3247d1fa22c549f60b222cd64bace4b60",
+      "stored_sha256": "44279579d8625b7481bf0f46f3517cd3247d1fa22c549f60b222cd64bace4b60",
+      "normalization": []
+    },
+    {
+      "origin": "controls/false-completeness/apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "controls/false-completeness/test.snapshot.txt",
+      "original_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "stored_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "normalization": []
+    },
+    {
+      "origin": "controls/false-completeness/negative.log",
+      "stored": "controls/false-completeness/negative.log",
+      "original_sha256": "f1278af2bf908bfe9c40363466be46200cc8c0cae8643d72cc19868459b9ee06",
+      "stored_sha256": "bb40db6110b43480ecaa46d627769f994be8815921dd327c403e651c062e15fe",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>",
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "controls/host-binding-removed/apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "controls/host-binding-removed/source.snapshot.txt",
+      "original_sha256": "a8213225b195b81127017eec642d76ab3a7fdaad84733a76a7e07bc15baade0f",
+      "stored_sha256": "a8213225b195b81127017eec642d76ab3a7fdaad84733a76a7e07bc15baade0f",
+      "normalization": []
+    },
+    {
+      "origin": "controls/host-binding-removed/apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "controls/host-binding-removed/test.snapshot.txt",
+      "original_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "stored_sha256": "3fdc7ea618d418042db2a39ce37a840e080c97c4716116a08c489a217640ca94",
+      "normalization": []
+    },
+    {
+      "origin": "controls/host-binding-removed/negative.log",
+      "stored": "controls/host-binding-removed/negative.log",
+      "original_sha256": "9322cef01c1c480f91f725c2d417f096b2a6047a02fd4764515d3bfeadf443f6",
+      "stored_sha256": "be51fa6f962fe04de72fb22d0a3beefde85eb0d38ddc9f7fada29b5383208eae",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>",
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "controls/uniqueness-before/apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "controls/uniqueness-before/source.snapshot.txt",
+      "original_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+      "stored_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+      "normalization": []
+    },
+    {
+      "origin": "controls/uniqueness-before/apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "controls/uniqueness-before/test.snapshot.txt",
+      "original_sha256": "77dc7ed23653970a568a25422087122c9a0f91fc6f5f9acdd7168da1d2c53fda",
+      "stored_sha256": "77dc7ed23653970a568a25422087122c9a0f91fc6f5f9acdd7168da1d2c53fda",
+      "normalization": []
+    },
+    {
+      "origin": "controls/uniqueness-before/negative.log",
+      "stored": "controls/uniqueness-before/negative.log",
+      "original_sha256": "0f0be7ed0965d916974ee1366ce10598e723f2aef2d42fa65b5afd495e42be60",
+      "stored_sha256": "3d142c9eaed3ad7c335a65545cd58247cd599df60d87d276106919af31abae84",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>",
+        "Log trailing whitespace normalized; finalLF"
+      ]
+    },
+    {
+      "origin": "apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/gitRun.ts",
+      "stored": "accepted/apps/desktop/src/main/gitRun.ts.snapshot.txt",
+      "original_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "stored_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceHostPolicy.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceHostPolicy.ts.snapshot.txt",
+      "original_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "stored_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "original_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "stored_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceWorkerInventory.ts.snapshot.txt",
+      "original_sha256": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+      "stored_sha256": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/scopedStore.ts",
+      "stored": "accepted/apps/desktop/src/main/scopedStore.ts.snapshot.txt",
+      "original_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "stored_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/shared/scope.ts",
+      "stored": "accepted/apps/desktop/src/shared/scope.ts.snapshot.txt",
+      "original_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "stored_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "accepted/apps/desktop/test/resource-worker-inventory.test.mjs.snapshot.txt",
+      "original_sha256": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+      "stored_sha256": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+      "normalization": []
+    },
+    {
+      "origin": "scripts/resourceAgentSyncIdentity.py",
+      "stored": "accepted/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "original_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "stored_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "normalization": []
+    },
+    {
+      "origin": "docs/execution/harness-waves/resource-worker-inventory.md",
+      "stored": "accepted/docs/execution/harness-waves/resource-worker-inventory.md.snapshot.txt",
+      "original_sha256": "114e95502ce9e385a533466f8684dbe9ab463dfff6b1edbca400806d294d7328",
+      "stored_sha256": "114e95502ce9e385a533466f8684dbe9ab463dfff6b1edbca400806d294d7328",
+      "normalization": []
+    },
+    {
+      "origin": "receipt-durable.json",
+      "stored": "builder/receipt-durable.json",
+      "original_sha256": "38f8f3705b505cf183b7af1e3bbf029707fcb35eff3eb36130f9d184fcf04e76",
+      "stored_sha256": "38f8f3705b505cf183b7af1e3bbf029707fcb35eff3eb36130f9d184fcf04e76",
+      "normalization": []
+    },
+    {
+      "origin": "n031-final.patch",
+      "stored": "builder/n031-final.patch",
+      "original_sha256": "192dda549ebb9435f2ae7cb55e3aef6bdcccd5a9ee4f2ca4d55e2c6b13ae03aa",
+      "stored_sha256": "192dda549ebb9435f2ae7cb55e3aef6bdcccd5a9ee4f2ca4d55e2c6b13ae03aa",
+      "normalization": []
+    },
+    {
+      "origin": "focused-durable.log",
+      "stored": "builder/focused-durable.log",
+      "original_sha256": "cc9f0436677c73a8ec3a69cca3dc6c8c0bdd61715cda2ab1982f7af79bd35709",
+      "stored_sha256": "cc9f0436677c73a8ec3a69cca3dc6c8c0bdd61715cda2ab1982f7af79bd35709",
+      "normalization": [
+        "Log whitespace normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/before-durability.snapshot.txt",
+      "stored": "reviewer/before-durability.snapshot.txt",
+      "original_sha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+      "stored_sha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/controls-before.log",
+      "stored": "reviewer/controls-before.log",
+      "original_sha256": "dddcb0944a6483f0c01313d56c6170d6cb894dd0bca82afa654a9b35a4568cb8",
+      "stored_sha256": "dddcb0944a6483f0c01313d56c6170d6cb894dd0bca82afa654a9b35a4568cb8",
+      "normalization": [
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/controls.mjs",
+      "stored": "reviewer/controls.mjs.snapshot.txt",
+      "original_sha256": "90aefa4fe27d1f15e306800b571161bc49657653e8221aa39667166d471fe003",
+      "stored_sha256": "766431d0843a28b9b2d119a90bd24f45f50daafeb947355e1f1d9931aebb284d",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>"
+      ]
+    },
+    {
+      "origin": "reviewer/controls.mjs",
+      "stored": "probes/controls-30ms-historical.mjs.snapshot.txt",
+      "original_sha256": "90aefa4fe27d1f15e306800b571161bc49657653e8221aa39667166d471fe003",
+      "stored_sha256": "2c6f5e636cd39326da5ba61848d2029615856c25d0a06e13f31723ce7b795c2e",
+      "normalization": [
+        "Portable import-only derivative: N031_SOURCE URL and sibling module URLs replace three absolute imports; fixture body/assertions unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/directory-durability-during-freeze.log",
+      "stored": "reviewer/directory-durability-during-freeze.log",
+      "original_sha256": "84568b5a1a037d8a2c782166b7f36b6e4d412140eb335a1042b23ca9ce3199cc",
+      "stored_sha256": "84568b5a1a037d8a2c782166b7f36b6e4d412140eb335a1042b23ca9ce3199cc",
+      "normalization": [
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/directory-durability.mjs",
+      "stored": "reviewer/directory-durability.mjs.snapshot.txt",
+      "original_sha256": "e5fe3b8529c5117acc74b49aa481fa5c75914e2b6a254f8cbbfe9eb3f4de2a51",
+      "stored_sha256": "d4790aa20af627ae092ead75632b91bebb32aeade3399ae40f39550567e854d8",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>"
+      ]
+    },
+    {
+      "origin": "reviewer/directory-durability.mjs",
+      "stored": "probes/directory-durability.mjs",
+      "original_sha256": "e5fe3b8529c5117acc74b49aa481fa5c75914e2b6a254f8cbbfe9eb3f4de2a51",
+      "stored_sha256": "ab08b7a091b733237564d6b9c29eeb4907088e0342d0e56d8e662c682d31552e",
+      "normalization": [
+        "Portable import-only derivative: N031_SOURCE URL and sibling module URLs replace three absolute imports; fixture body/assertions unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/durability-before.log",
+      "stored": "reviewer/durability-before.log",
+      "original_sha256": "b5811124f833ffcdca7cf51001e0e3f4fe0fa2b9e4039e9f08435f443038521b",
+      "stored_sha256": "54697931557c528a4aa677b974a4f8f545fbb8b8194008af1fb982f502eecc6e",
+      "normalization": [
+        "Literal private prefix replaced by <REVIEWER>",
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/durability.mjs",
+      "stored": "reviewer/durability.mjs.snapshot.txt",
+      "original_sha256": "8d6b07a6eeb489cf82f9eecbb0c55f579a27b63e03eec0197441e826277b0254",
+      "stored_sha256": "8374d707a7ec859748fb19d906e532bd7d2670e00d4eb3786e1b4e5b7702467c",
+      "normalization": [
+        "Literal private prefix replaced by <BUILDER>"
+      ]
+    },
+    {
+      "origin": "reviewer/durability.mjs",
+      "stored": "probes/durability.mjs",
+      "original_sha256": "8d6b07a6eeb489cf82f9eecbb0c55f579a27b63e03eec0197441e826277b0254",
+      "stored_sha256": "389624317c85b92d287d46193f2f3b4871b1fe58201c622f73c561a1b013d04d",
+      "normalization": [
+        "Portable import-only derivative: N031_SOURCE URL and sibling module URLs replace three absolute imports; fixture body/assertions unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/focused-final.log",
+      "stored": "reviewer/focused-final.log",
+      "original_sha256": "b8764811039d805e73c61ba1ff6f74074e4ac39d9f03e571530f42ffa7b19f06",
+      "stored_sha256": "b8764811039d805e73c61ba1ff6f74074e4ac39d9f03e571530f42ffa7b19f06",
+      "normalization": [
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/probes-final.log",
+      "stored": "reviewer/probes-final.log",
+      "original_sha256": "be5b6914d12473700a2971407995affab51b78104bd2182f19947258f3cc3086",
+      "stored_sha256": "be5b6914d12473700a2971407995affab51b78104bd2182f19947258f3cc3086",
+      "normalization": [
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-blocker.json",
+      "stored": "reviewer/receipt-blocker.json",
+      "original_sha256": "976b09b39489b2aab0c702331a61a339b3d3ce614a797e4a77848d6153eace70",
+      "stored_sha256": "56130e75133c1260a4621e64a25d992f7dc84760933db675e85c4e2ab39a948b",
+      "normalization": [
+        "Literal private prefix replaced by <REVIEWER>"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-final.json",
+      "stored": "reviewer/receipt-final.json",
+      "original_sha256": "e637fff852b46696e55a4af7a077924493bc8748b9a37da5d73476074f5c0eb1",
+      "stored_sha256": "a2cb36c29d9e5428a069effcab3067547881b106dd79fbc3762f4e066909da58",
+      "normalization": [
+        "Literal private prefix replaced by <REVIEWER>"
+      ]
+    },
+    {
+      "origin": "reviewer/controls-30ms-historical.mjs",
+      "stored": "reviewer/budget-supplement/controls-30ms-historical.mjs.snapshot.txt",
+      "original_sha256": "90aefa4fe27d1f15e306800b571161bc49657653e8221aa39667166d471fe003",
+      "stored_sha256": "4fe8eaf16f885d297acccb6c9edbfa4db0ddee667ebc366b7263d90d1371d4ce",
+      "normalization": [
+        "Private absolute prefixes normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/controls.mjs",
+      "stored": "reviewer/budget-supplement/controls.mjs.snapshot.txt",
+      "original_sha256": "ab1b3e2512b1d3d0d217c3d35bbfb218959466f6b3a48fe9e8ae7ead36587793",
+      "stored_sha256": "675d0f1ab28a82189487bc9f5ba838c12978bfc9fd34f9ba20093d0625a94b58",
+      "normalization": [
+        "Private absolute prefixes normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/durability-budget-original-red.log",
+      "stored": "reviewer/budget-supplement/durability-budget-original-red.log",
+      "original_sha256": "7e635db4d0824d2b2e031b14ea7d90121a6b5934a6ac1cc4a787199c747a7d32",
+      "stored_sha256": "4b8e63c5ddfe7b4ef614eea3fbc959a9ad89a0bdb03fd6fa3a4c71906e1e8448",
+      "normalization": [
+        "Private absolute prefixes normalized",
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/probes-budget-final.log",
+      "stored": "reviewer/budget-supplement/probes-budget-final.log",
+      "original_sha256": "37ec7fad4c4cec3323500c439728e922cafa4ec8bd88cf40659c8ca6f5882b5f",
+      "stored_sha256": "37ec7fad4c4cec3323500c439728e922cafa4ec8bd88cf40659c8ca6f5882b5f",
+      "normalization": [
+        "Private absolute prefixes normalized",
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-fixture-budget-supplement.json",
+      "stored": "reviewer/budget-supplement/receipt-fixture-budget-supplement.json",
+      "original_sha256": "e26b0e4e9f0fe3c413616164a4eddf2da479e36b580ed4371f6774831543d590",
+      "stored_sha256": "76db3753ae0c2afd39179258e27878a4f86fcdec4005590c8f231f9eff146f3d",
+      "normalization": [
+        "Private absolute prefixes normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/packaging-failed-fabric-n031-portable-replay.log",
+      "stored": "reviewer/budget-supplement/packaging-failed-fabric-n031-portable-replay.log",
+      "original_sha256": "059457796abc96ad295213ef749ca1a53980bda80645bf2ea35e9d120377d39b",
+      "stored_sha256": "312409bfe921b5ff3358cf474095b624b7fecb34babbeeb55acba5b2f4951cf2",
+      "normalization": [
+        "Private absolute prefixes normalized",
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/packaging-failed-fabric-n031-portable-serial.log",
+      "stored": "reviewer/budget-supplement/packaging-failed-fabric-n031-portable-serial.log",
+      "original_sha256": "2920be6148a1020e803d54afc89cbf655742f9bdc9b26353c32cf27bba137f27",
+      "stored_sha256": "ebc7292f31c6430180582de31abead3ed5dc237065ff638f5daee5219cb1f616",
+      "normalization": [
+        "Private absolute prefixes normalized",
+        "Log trailing whitespace normalized; final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/controls.mjs budget supplement",
+      "stored": "probes/controls.mjs",
+      "original_sha256": "ab1b3e2512b1d3d0d217c3d35bbfb218959466f6b3a48fe9e8ae7ead36587793",
+      "stored_sha256": "069c2a1dbe4c4d7d47225ba7a7ee023006155c2f67e06d16e516833b27bd148d",
+      "normalization": [
+        "Portable three-import derivative of reviewer1000ms fixture; assertions unchanged"
+      ]
+    },
+    {
+      "origin": "packaging portable final",
+      "stored": "portable-final.log",
+      "original_sha256": "e65182d9016afa7fe8a5214df26544ecb6a1b9dc7372f5d50fe7e0504535f684",
+      "stored_sha256": "e65182d9016afa7fe8a5214df26544ecb6a1b9dc7372f5d50fe7e0504535f684",
+      "normalization": [
+        "Private prefixes and trailing whitespace normalized; final LF"
+      ]
+    }
+  ]
+}

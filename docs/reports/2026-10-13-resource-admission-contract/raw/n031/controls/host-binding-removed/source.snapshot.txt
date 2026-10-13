@@ -1,0 +1,162 @@
+// #region resource-worker-intents — docs: docs/execution/harness-waves/resource-worker-inventory.md#contract
+import * as fs from 'node:fs/promises'
+import { constants } from 'node:fs'
+import path from 'node:path'
+import { createHash, randomUUID } from 'node:crypto'
+import { resourceId as id } from './resourceHostPolicy.ts'
+import type { createResourceRunAssignmentManager, RunAssignmentHandle } from './resourceRunAssignment.ts'
+
+type Assignments = Pick<ReturnType<typeof createResourceRunAssignmentManager>, 'readIdentity'>
+type Identity = { estateId:string;projectId:string;taskId:string;sessionId:string;attemptId:string }
+export interface WorkerIntentConfig {
+  estateId:string;hostId:string;poolId:string;localPolicyRevision:string;invocationId:string
+  storageRoot:string;coveragePath:string;coverageSha256:string
+  timeoutMs:number;maxRecords:number;maxRecordBytes:number;maxCoverageBytes:number;maxRegistryBytes:number
+}
+export interface WorkerIntentHandle { readonly unitId:string;readonly eventId:string }
+interface Intent {
+  schema:1;kind:'intent.registered';unitId:string;eventId:string
+  estateId:string;hostId:string;poolId:string;localPolicyRevision:string;invocationId:string
+  adapterId:string;adapterSourceSha256:string;coverageSha256:string;runId:string;assignment:Identity
+}
+const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex')
+const digest=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{64}$/.test(v))throw Error('invalid_digest');return v}
+const uuid=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v))throw Error('invalid_uuid');return v}
+function object(value:unknown,keys:readonly string[]):Record<string,unknown>{
+ if(!value||typeof value!=='object'||Object.getPrototypeOf(value)!==Object.prototype)throw Error('invalid_object')
+ const descriptors=Object.getOwnPropertyDescriptors(value)
+ if(Reflect.ownKeys(value).length!==keys.length||keys.some(k=>!descriptors[k]||!('value' in descriptors[k])))throw Error('invalid_fields')
+ return value as Record<string,unknown>
+}
+function identity(raw:unknown):Identity{
+ const r=object(raw,['estateId','projectId','taskId','sessionId','attemptId'])
+ return {estateId:id(r.estateId),projectId:id(r.projectId),taskId:id(r.taskId),sessionId:id(r.sessionId),attemptId:uuid(r.attemptId)}
+}
+function same(a:Identity,b:Identity){return Object.keys(a).every(k=>a[k as keyof Identity]===b[k as keyof Identity])}
+function freeze<T>(v:T):Readonly<T>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v)}return v}
+const unknown=(reason:string)=>({state:'unknown' as const,reason,complete:false as const,executionAuthorized:false as const})
+const stamp=(s:{dev:number;ino:number;size:number;mtimeMs:number;ctimeMs:number})=>[s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs].join(':')
+/** Trusted main supplies the actual N028 producer and host identity object. Neither
+ * dependency is a task/tool argument; object identity is retained across every await. */
+export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assignments:Assignments;host:{hostInstanceId:string;bootId:string}}){
+ const keys=['estateId','hostId','poolId','localPolicyRevision','invocationId','storageRoot','coveragePath','coverageSha256','timeoutMs','maxRecords','maxRecordBytes','maxCoverageBytes','maxRegistryBytes']
+ const c=Object.freeze({...object(raw,keys)}) as unknown as Readonly<WorkerIntentConfig>
+ for(const k of ['estateId','hostId','poolId','localPolicyRevision','invocationId'] as const)id(c[k])
+ digest(c.coverageSha256)
+ for(const k of ['storageRoot','coveragePath'] as const)if(typeof c[k]!=='string'||!path.isAbsolute(c[k])||path.normalize(c[k])!==c[k])throw Error('invalid_path')
+ for(const [key,max] of [['timeoutMs',30000],['maxRecords',1024],['maxRecordBytes',65536],['maxCoverageBytes',65536],['maxRegistryBytes',8*1024*1024]] as const)if(!Number.isSafeInteger(c[key])||c[key]<1||c[key]>max)throw Error('invalid_bound')
+ object(deps,['assignments','host'])
+ const assignments=deps.assignments,readIdentity=assignments.readIdentity,host=deps.host
+ if(typeof readIdentity!=='function')throw Error('invalid_assignments')
+ const handles=new WeakMap<object,{event:Intent;bytes:string;assignment:RunAssignmentHandle}>()
+ let busy=false
+ function binding(){
+  // injected missing binding verification
+ }
+ binding()
+ async function directory(){const s=await fs.lstat(c.storageRoot);if(!s.isDirectory()||s.isSymbolicLink()||(s.mode&0o777)!==0o700||await fs.realpath(c.storageRoot)!==c.storageRoot)throw Error('storage_unknown')}
+ async function read(file:string,max:number,privateFile=false){
+  const fd=await fs.open(file,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK)
+  try{
+   const before=await fd.stat();if(!before.isFile()||before.nlink!==1||before.size>max||(privateFile&&(before.mode&0o777)!==0o600))throw Error('file_unknown')
+   const bytes=Buffer.alloc(max+1);let used=0
+   while(used<=max){const r=await fd.read(bytes,used,max+1-used,used);if(!r.bytesRead)break;used+=r.bytesRead}
+   const after=await fd.stat(),linked=await fs.lstat(file)
+   if(used>max||stamp(before)!==stamp(after)||stamp(after)!==stamp(linked)||linked.isSymbolicLink())throw Error('file_changed')
+   return bytes.subarray(0,used)
+  }finally{await fd.close()}
+ }
+ async function coverage(){
+  const bytes=await read(c.coveragePath,c.maxCoverageBytes);if(hash(bytes)!==c.coverageSha256)throw Error('coverage_changed')
+  const m=object(JSON.parse(bytes.toString('utf8')),['schema','hostId','poolId','localPolicyRevision','adapters'])
+  if(m.schema!==1||m.hostId!==c.hostId||m.poolId!==c.poolId||m.localPolicyRevision!==c.localPolicyRevision||!Array.isArray(m.adapters)||!m.adapters.length||m.adapters.length>32)throw Error('coverage_unknown')
+  const result=new Map<string,string>()
+  for(const raw of m.adapters){const a=object(raw,['id','sourceSha256']),key=id(a.id);if(result.has(key))throw Error('duplicate_adapter');result.set(key,digest(a.sourceSha256))}
+  return result
+ }
+ function validate(raw:unknown,name:string):Intent{
+  const r=object(raw,['schema','kind','unitId','eventId','estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId','adapterSourceSha256','coverageSha256','runId','assignment'])
+  if(r.schema!==1||r.kind!=='intent.registered'||name!==`${uuid(r.unitId)}.${uuid(r.eventId)}.json`)throw Error('event_unknown')
+  for(const k of ['estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId'])id(r[k])
+  digest(r.adapterSourceSha256);digest(r.coverageSha256)
+  if(typeof r.runId!=='string'||!/^r-[a-z0-9]{12}$/.test(r.runId))throw Error('run_unknown')
+  const a=identity(r.assignment);if(r.unitId!==a.attemptId||r.estateId!==a.estateId)throw Error('identity_conflict')
+  return freeze({...r,assignment:a}) as unknown as Intent
+ }
+ async function scan(check:()=>void,locked=false){
+  await directory();check();const events:{event:Intent;bytes:string}[]=[];const units=new Set<string>(),sessions=new Set<string>(),runs=new Set<string>(),eventIds=new Set<string>(),dir=await fs.opendir(c.storageRoot)
+  let totalBytes=0
+  for await(const file of dir){
+   check();if(file.name==='.register.lock'&&locked)continue
+   if(!file.isFile()||!file.name.endsWith('.json')||events.length>=c.maxRecords)throw Error('registry_unknown')
+   const bytes=(await read(path.join(c.storageRoot,file.name),Math.min(c.maxRecordBytes,c.maxRegistryBytes-totalBytes),true)).toString('utf8');check();totalBytes+=Buffer.byteLength(bytes);const event=validate(JSON.parse(bytes),file.name)
+   if(units.has(event.unitId)||sessions.has(event.assignment.sessionId)||runs.has(event.runId)||eventIds.has(event.eventId))throw Error('registry_conflict')
+   units.add(event.unitId);sessions.add(event.assignment.sessionId);runs.add(event.runId);eventIds.add(event.eventId);events.push({event,bytes})
+  }
+  return events
+ }
+ async function assignment(handle:RunAssignmentHandle,check:()=>void){
+  check();const result=await readIdentity.call(assignments,handle);check()
+  if(result.state!=='observed')throw Error('assignment_unknown')
+  const value=identity(result.value);if(value.estateId!==c.estateId||typeof handle.runId!=='string'||!/^r-[a-z0-9]{12}$/.test(handle.runId))throw Error('assignment_binding')
+  return value
+ }
+ async function operation<T>(body:(check:()=>void)=>Promise<T>){
+  if(busy)return unknown('io_outstanding');busy=true;let active=true,timer:ReturnType<typeof setTimeout>|undefined;const started=performance.now()
+  const check=()=>{binding();if(!active||performance.now()-started>=c.timeoutMs)throw Error('expired')}
+  const work=Promise.resolve().then(()=>body(check)).then(value=>{check();return {state:'recorded' as const,value,complete:false as const,executionAuthorized:false as const}},()=>unknown('evidence_unavailable'))
+  void work.then(()=>{busy=false},()=>{busy=false})
+  try{return await Promise.race([work,new Promise<ReturnType<typeof unknown>>(resolve=>{timer=setTimeout(()=>{active=false;resolve(unknown('timeout'))},c.timeoutMs)})])}
+  catch{/* Expired or changed evidence stays unknown; raw errors and paths never leave this API. */return unknown('evidence_unavailable')}
+  finally{if(timer)clearTimeout(timer);active=false}
+ }
+ function current(event:Intent,adapters:Map<string,string>){
+  return event.estateId===c.estateId&&event.hostId===c.hostId&&event.poolId===c.poolId&&event.localPolicyRevision===c.localPolicyRevision&&event.invocationId===c.invocationId&&event.coverageSha256===c.coverageSha256&&adapters.get(event.adapterId)===event.adapterSourceSha256
+ }
+ return {
+  register(handle:RunAssignmentHandle,adapterId:string){return operation(async check=>{
+   id(adapterId);const a=await assignment(handle,check),adapters=await coverage();check();const adapterSource=adapters.get(adapterId);if(!adapterSource)throw Error('adapter_unknown')
+   await directory();check();const lockPath=path.join(c.storageRoot,'.register.lock'),lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+   let lockStat:Awaited<ReturnType<typeof lock.stat>>|undefined
+   try{
+    lockStat=await lock.stat();check();const rows=await scan(check,true)
+    if(rows.some(r=>!current(r.event,adapters)))throw Error('prior_binding_unresolved')
+    const prior=rows.find(r=>r.event.unitId===a.attemptId)
+    let saved:Intent,bytes:string
+    if(prior){
+     saved=prior.event;bytes=prior.bytes
+     if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId)throw Error('intent_conflict')
+    }else{
+     if(rows.length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
+     saved={schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
+     bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||rows.reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
+     check();const fd=await fs.open(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+     try{check();await fd.writeFile(bytes);await fd.sync()}finally{await fd.close()}
+     const dir=await fs.open(c.storageRoot,constants.O_RDONLY);try{await dir.sync()}finally{await dir.close()}
+    }
+    const after=await assignment(handle,check);const latest=await coverage();check()
+    if(!same(a,after)||!current(saved,latest))throw Error('binding_changed')
+    const token=Object.freeze({unitId:saved.unitId,eventId:saved.eventId});handles.set(token,{event:freeze(saved),bytes,assignment:handle})
+    return {handle:token,unitId:saved.unitId,eventId:saved.eventId,recordSha256:hash(bytes)}
+   }finally{
+    await lock.close()
+    if(lockStat){const linked=await fs.lstat(lockPath);if(linked.dev===lockStat.dev&&linked.ino===lockStat.ino)await fs.unlink(lockPath)}
+   }
+  })},
+  readIntent(handle:WorkerIntentHandle){return operation(async check=>{
+   const held=handles.get(handle);if(!held)throw Error('foreign_handle')
+   const a=await assignment(held.assignment,check),adapters=await coverage();const rows=await scan(check);check()
+   if(rows.some(r=>!current(r.event,adapters)))throw Error('prior_binding_unresolved')
+   const item=rows.find(r=>r.event.eventId===held.event.eventId)
+   if(!item||item.bytes!==held.bytes||!same(a,held.event.assignment))throw Error('intent_changed')
+   const after=await assignment(held.assignment,check);await coverage();check();if(!same(a,after))throw Error('assignment_changed')
+   return {event:held.event,recordSha256:hash(held.bytes)}
+  })},
+  snapshot(){return operation(async check=>{
+   const adapters=await coverage(),rows=await scan(check);await coverage();check()
+   return {complete:false as const,reason:'launcher_coverage_unproven' as const,knownActive:[] as readonly string[],
+    unresolved:rows.map(({event,bytes})=>({event,recordSha256:hash(bytes),unitId:event.unitId,eventId:event.eventId,classification:current(event,adapters)?'intent_unresolved':'prior_binding_unresolved'}))}
+  })}
+ }
+}
+// #endregion resource-worker-intents

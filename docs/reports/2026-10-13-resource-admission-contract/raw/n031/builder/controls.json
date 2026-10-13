@@ -1,0 +1,17 @@
+[
+  {
+    "variant": "uniqueness-before",
+    "source_sha256": "9bec7ba9899f2635e100ee3fb7e588407b89fa39058c21ba1a6c7785ddfa3ad7",
+    "kind": "preserved actual prior source; portable current probe config removes later maxRegistryBytes field"
+  },
+  {
+    "variant": "host-binding-removed",
+    "source_sha256": "a8213225b195b81127017eec642d76ab3a7fdaad84733a76a7e07bc15baade0f",
+    "kind": "production source negative plant"
+  },
+  {
+    "variant": "false-completeness",
+    "source_sha256": "44279579d8625b7481bf0f46f3517cd3247d1fa22c549f60b222cd64bace4b60",
+    "kind": "production source negative plant"
+  }
+]

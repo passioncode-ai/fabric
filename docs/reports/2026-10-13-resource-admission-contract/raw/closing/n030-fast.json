@@ -1,0 +1,32 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "exitCode": 0,
+  "durationSeconds": 744.68,
+  "headBefore": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "indexTreeBefore": "d13d7773cead07b7b6f1424898ebca3033f787de",
+  "indexTreeAfter": "d13d7773cead07b7b6f1424898ebca3033f787de",
+  "changedPaths": [],
+  "sourceUnchanged": true,
+  "log": "n030-fast.log",
+  "note": "Dependency reuse with drift warning; inspect exact NOT_RUN and failure stages in log. Tree is staged candidate, not a source commit until committed.",
+  "sourceCommit": "8e683c3a71d094fa46dc1369ad74e5413cd4f13e",
+  "vitest": {
+    "files": 170,
+    "tests": 2053
+  },
+  "limits": [
+    "Eight-stage resource SQL runner NOT_RUN: less than1.5GiB free; no accounting SQL acceptance",
+    "Browser and stack-backed probes NOT_RUN",
+    "Node/pnpm toolchain reproducibility UNVERIFIED; existing dependencies reused"
+  ],
+  "nativeBoundary": "Existing bounded no-model native-view fixture passed14 groups and cleaned owned processes; this is not N032/provider/all-host acceptance",
+  "plants": "16/16 plants caught, including child workspace checks",
+  "normalization": {
+    "originalLogSha256": "93e2354fc69c3a63b36ddd714a9153ee6286246613954b9673b2b502cd8e871e",
+    "storedLogSha256": "6459fe90407ca970742eb6e38317cc4c59a6ea3873c839551252062ba890ca57",
+    "changes": [
+      "task checkout path replaced",
+      "ANSI color removed"
+    ]
+  }
+}

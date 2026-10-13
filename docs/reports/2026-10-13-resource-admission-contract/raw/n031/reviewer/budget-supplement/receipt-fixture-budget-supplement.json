@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "reviewer": "pipeline_research",
+  "verdict": "SCOPED_ACCEPT_FIXTURE_BUDGET_SUPPLEMENT",
+  "sourceSha256": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+  "priorReceipt": {
+    "file": "receipt-final.json",
+    "sha256": "e637fff852b46696e55a4af7a077924493bc8748b9a37da5d73476074f5c0eb1",
+    "preserved": true
+  },
+  "fixtureDelta": {
+    "onlyChange": "fixture(t,{timeoutMs:30}) to fixture(t,{timeoutMs:1000})",
+    "historical": "controls-30ms-historical.mjs",
+    "historicalSha256": "90aefa4fe27d1f15e306800b571161bc49657653e8221aa39667166d471fe003",
+    "current": "controls.mjs",
+    "currentSha256": "ab1b3e2512b1d3d0d217c3d35bbfb218959466f6b3a48fe9e8ae7ead36587793",
+    "why": "Portable parallel and serial replays observed correct unknown on successful retry under the 30ms budget. Actual disk timing is not an acceptance requirement. Unresolved membership promise still guarantees the first timeout; unchanged assertions prove slot and lock retained until settlement."
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test --test-concurrency=1 <REVIEWER>/durability.mjs <REVIEWER>/directory-durability.mjs <REVIEWER>/controls.mjs",
+      "exit": 0,
+      "pass": 4,
+      "fail": 0,
+      "log": "probes-budget-final.log"
+    },
+    {
+      "command": "N031_SOURCE=<REVIEWER>/before-durability-replay.ts node --experimental-strip-types --test --test-concurrency=1 <REVIEWER>/durability.mjs <REVIEWER>/directory-durability.mjs",
+      "exit": 1,
+      "pass": 0,
+      "fail": 2,
+      "expected": "Both intended durability barrier assertions RED",
+      "log": "durability-budget-original-red.log"
+    }
+  ],
+  "negativeSource": {
+    "original": "before-durability.snapshot.txt",
+    "originalSha256": "7ddd2dc6ca92359c2f12965ec95f7e5498baa2e0b244d7a50660cc86379a09a8",
+    "replay": "before-durability-replay.ts",
+    "replaySha256": "2207fba050528070505a28f0df1cba4badc91a79fc7b7230ef9134474187795a",
+    "derivation": "Only two relative imports changed to the pinned candidate dependency paths; original function bytes otherwise unchanged."
+  },
+  "failedPortableLogs": {
+    "packaging-failed-fabric-n031-portable-serial.log": "2920be6148a1020e803d54afc89cbf655742f9bdc9b26353c32cf27bba137f27",
+    "packaging-failed-fabric-n031-portable-replay.log": "059457796abc96ad295213ef749ca1a53980bda80645bf2ea35e9d120377d39b"
+  },
+  "limitations": [
+    "Prior packaging failures retained; not rewritten as PASS or asserted to be a production defect.",
+    "No production source delta or new native/DB/full-gate claim.",
+    "Two shell preparation attempts failed before fixture execution; those are harness setup errors, not application negatives."
+  ]
+}
