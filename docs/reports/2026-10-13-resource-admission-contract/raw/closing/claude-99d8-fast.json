@@ -1,0 +1,104 @@
+{
+  "receipt": "CO-282 complete local fast gate, Claude continuation",
+  "candidate": {
+    "commit": "99d8952ca00d340f42786022bcb649b76d15b578",
+    "tree": "960ee60e54f10df26855cb64c045173518e27d02"
+  },
+  "localFullFast": {
+    "expectedHead": "99d8952ca00d340f42786022bcb649b76d15b578",
+    "headBefore": "99d8952ca00d340f42786022bcb649b76d15b578",
+    "indexTreeBefore": "960ee60e54f10df26855cb64c045173518e27d02",
+    "trackedPathCount": 6157,
+    "sourceManifestSha256": "3a8f06a5354b8f081716757280b1fdbc758a2d740185d5bfc2bbd3e328843719",
+    "requiredFreeBytes": 3221225472,
+    "maximumLoad1": 56.0,
+    "requiredConsecutiveSamples": 2,
+    "sampleIntervalSeconds": 30,
+    "waitDeadlineUTC": "2026-10-13T23:29:07.602784+00:00",
+    "executionDeadlineSeconds": 4500,
+    "pid": 72734,
+    "limits": [
+      "Full fast only; no graph closure, merge, publication, installed update or consent",
+      "One heavy slot: admission also waits for no other scripts/ci.sh process",
+      "Manifest excludes the workspace gitlink and the graph lock"
+    ],
+    "status": "FAIL",
+    "samples": [
+      {
+        "at": "2026-10-13T20:29:10.711532+00:00",
+        "freeBytes": 2955919360,
+        "load1": 43.12,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T20:29:40.782903+00:00",
+        "freeBytes": 3762163712,
+        "load1": 40.34,
+        "otherCi": 0,
+        "ok": true
+      },
+      {
+        "at": "2026-10-13T20:30:10.865966+00:00",
+        "freeBytes": 3485274112,
+        "load1": 45.13,
+        "otherCi": 0,
+        "ok": true
+      }
+    ],
+    "startedAtUTC": "2026-10-13T20:30:10.866477+00:00",
+    "environment": {
+      "pnpm_config_verify_deps_before_run": "false"
+    },
+    "exitCode": 1,
+    "elapsedSeconds": 1497.23,
+    "minFreeBytesDuringRun": 783757312,
+    "finishedAtUTC": "2026-10-13T20:55:11.405903+00:00",
+    "headAfter": "99d8952ca00d340f42786022bcb649b76d15b578",
+    "indexTreeAfter": "960ee60e54f10df26855cb64c045173518e27d02",
+    "dirtyAfter": [],
+    "sourceManifestSha256After": "3a8f06a5354b8f081716757280b1fdbc758a2d740185d5bfc2bbd3e328843719",
+    "sourceUnchanged": true
+  },
+  "failureExcerpt": "✖ failing tests:\n\ntest at apps/desktop/test/quit.test.mjs:264:1\n✖ a real Electron main process exits gracefully on SIGTERM (181998.436375ms)\n  AssertionError [ERR_ASSERTION]: still alive 180 s after SIGTERM (CO-191; a loaded machine makes the teardown slow, never endless):\n  quit-app: ready\n  quit-app: before-quit\n  quit-app: schedulers-stopped ticks=6\n  quit-app: shutdown\n  quit-app: before-quit\n  quit-app: will-quit\n  quit-app: exit 0\n  \n  + actual - expected\n  \n  + true\n  - undefined\n  \n      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/quit.test.mjs:278:12)\n      at async Test.run (node:internal/test_runner/test:1409:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: true,\n    expected: undefined,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+  "stagesReached": [
+    "build — what ships is what the probes read",
+    "release: the build identifies itself from the artifact it actually contains",
+    "pure tests — no database"
+  ],
+  "isolatedRerun": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/quit.test.mjs",
+    "exit": 0,
+    "seconds": 79,
+    "load1Before": 184.61,
+    "summary": [
+      "✔ a real Electron main process with a startup-failure dialog open still quits on SIGTERM (65657.229ms)",
+      "✔ a real Electron main process exits gracefully on SIGTERM (3970.574166ms)",
+      "ℹ pass 14",
+      "ℹ fail 0"
+    ]
+  },
+  "hostedFast": [
+    {
+      "conclusion": "success",
+      "databaseId": 38463120357,
+      "event": "pull_request",
+      "headSha": "99d8952ca00d340f42786022bcb649b76d15b578",
+      "name": "ci",
+      "url": "https://github.com/passioncode-ai/fabric/actions/runs/38463120357"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 38463113857,
+      "event": "push",
+      "headSha": "99d8952ca00d340f42786022bcb649b76d15b578",
+      "name": "ci",
+      "url": "https://github.com/passioncode-ai/fabric/actions/runs/38463113857"
+    }
+  ],
+  "verdict": "FAIL — the run stopped in the pure-tests stage at the first failure: one real-Electron quit case alive 180 s after logging exit 0 (CO-293). Stages before it passed; the stages after it did not run. Not a PASS, and not closed by the isolated rerun.",
+  "limits": [
+    "The isolated rerun shows the case can pass on this commit; it does not explain or excuse the full-run failure",
+    "No graph node closes on this receipt"
+  ]
+}
