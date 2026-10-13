@@ -1,0 +1,12 @@
+PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery
+PASS launch receipt identity mismatch never spawns or dispatches against another generation
+PASS a typed refusal before spawn classifies by the result, not by a stale session record
+✔ apps/desktop/test/managed-launch.test.mjs (100.973333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.716291

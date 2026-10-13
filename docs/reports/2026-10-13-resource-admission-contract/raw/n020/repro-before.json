@@ -1,0 +1,47 @@
+{
+  "candidate": "repository adapter; source binding is in paired receipt",
+  "results": [
+    {
+      "method": "current",
+      "cachedEntriesBound": 1,
+      "requests": 6,
+      "outstandingBeforeSettlement": 6,
+      "responses": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "method": "cancelUnbegun",
+      "cachedEntriesBound": 1,
+      "requests": 6,
+      "outstandingBeforeSettlement": 6,
+      "responses": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "method": "releaseCompensated",
+      "cachedEntriesBound": 1,
+      "requests": 6,
+      "outstandingBeforeSettlement": 6,
+      "responses": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  ]
+}

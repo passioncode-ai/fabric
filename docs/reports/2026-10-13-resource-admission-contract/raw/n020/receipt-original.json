@@ -1,0 +1,64 @@
+{
+  "candidate_commit": "d4ae7a295ec0c7a146c34e4b3afc6f52763a238a",
+  "base_commit": "e42366eb02a7ad602fd7382345642b0bd03949a5",
+  "source_sha256": {
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "afc02a3272b8927e09029427b10d5a2bbb5e02db8ca956ac9263f4563a55c99d",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "26c8ef799bc179fcbda71fcb56c7bd2d23202d6bdec431e1967b9da0def595f8",
+    "docs/execution/harness-waves/resource-launch-adapter.md": "cfbb6ad3725a46da15e865f387f9821e10f8225bff8ed2e9f72cee4970be6a66"
+  },
+  "old_source_sha256": "80b331f2f3f4ba63679677f274f12d98a5cc32759a6050c029ed5629df08fc11",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs",
+      "exit_code": 0,
+      "tests": 67,
+      "log": "after.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/managed-launch.test.mjs",
+      "exit_code": 0,
+      "log": "managed.log"
+    },
+    {
+      "command": "node apps/desktop/node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions --types node --typeRoots apps/desktop/node_modules/@types apps/desktop/src/main/resourceAttemptObservation.ts apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "exit_code": 0,
+      "log": "types.log"
+    },
+    {
+      "command": "node --experimental-strip-types --import <artifact-dir>/negative-loader-portable.mjs --test --test-name-pattern='one outstanding entry|pending operation blocks' apps/desktop/test/resource-launch-adapter.test.mjs",
+      "exit_code": 1,
+      "failed_tests": 7,
+      "log": "negative.log"
+    },
+    {
+      "command": "node --experimental-strip-types <artifact-dir>/repro-portable.mjs",
+      "exit_code": 0,
+      "log": "repro-fixed.json",
+      "outstanding_per_entry_per_method": 1
+    },
+    {
+      "command": "node --experimental-strip-types --import <artifact-dir>/negative-loader-portable.mjs <artifact-dir>/repro-portable.mjs",
+      "exit_code": 0,
+      "log": "repro-before.json",
+      "outstanding_per_entry_per_method": 6
+    }
+  ],
+  "limitations": [
+    "Synthetic local dependencies only; no real database, native provider or production composition.",
+    "Bound is per retained entry per adapter instance; dependency-internal fanout and replacing adapter instances are not bounded.",
+    "Timeout leaves capacity uncertain and blocks cleanup I/O until actual dependency settlement."
+  ],
+  "original_reject_receipt_sha256": "fb7c0918a18bcd5785ae6edef80f74b584026216892bb6b05ca09d4fccdfd4b6",
+  "artifacts_sha256": {
+    "types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "repro-fixed.json": "002f25746d8a6c9cdcc6131c6ca5043ea1aac533b7e1fd48c998d75726ffc40f",
+    "negative.log": "2e536c3a850ab578d1322757242642ec9bf8d977995c31ecffc642af00db4e6d",
+    "managed.log": "44e447b6553e0e744d27a7d60f41cc990dc47accc0287e84223625b3c14ad192",
+    "before.log": "3c400a0d71d9eb34a2b0d364acc19cbb7615fe0d03146ff148881c46e5c7ae66",
+    "repro-before.json": "08ef412646fb06e3346811ff632a4eb93e6ef4ad29222ef5121184016fa09fd1",
+    "negative-loader-portable.mjs": "da82712e5edf04a04ec4010d1a07293ca2580bcab2a4f3337abf4b3b8358f4cb",
+    "before.ts": "80b331f2f3f4ba63679677f274f12d98a5cc32759a6050c029ed5629df08fc11",
+    "repro-portable.mjs": "aa630039051fe60786edae1f6f734bee280141f2c3c287684bc9c435766d1ad6",
+    "after.log": "2f746bf890526ddc12af5f472d07ebe7fa40dbde1c85e7ce5e4b522e5b70daa1"
+  }
+}

@@ -1,0 +1,136 @@
+✖ one outstanding entry operation across methods: current, late resolve (69.5305ms)
+✖ one outstanding entry operation across methods: current, late reject (61.332292ms)
+✖ one outstanding entry operation across methods: cancelUnbegun, late resolve (60.214583ms)
+✖ one outstanding entry operation across methods: cancelUnbegun, late reject (59.428583ms)
+✖ one outstanding entry operation across methods: releaseCompensated, late resolve (63.869459ms)
+✖ one outstanding entry operation across methods: releaseCompensated, late reject (60.654875ms)
+✖ pending operation blocks only its own entry and consumes a late rejection (12.41175ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 0
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 495.803541
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: current, late resolve (69.5305ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: current, late reject (61.332292ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: cancelUnbegun, late resolve (60.214583ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: cancelUnbegun, late reject (59.428583ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: releaseCompensated, late resolve (63.869459ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:241:51
+✖ one outstanding entry operation across methods: releaseCompensated, late reject (60.654875ms)
+  AssertionError [ERR_ASSERTION]: timeouts and cross-method retries must retain the same unsettled operation slot
+
+  13 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:259:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 13,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-launch-adapter.test.mjs:275:1
+✖ pending operation blocks only its own entry and consumes a late rejection (12.41175ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file://<repository-root>/apps/desktop/test/resource-launch-adapter.test.mjs:285:65)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
