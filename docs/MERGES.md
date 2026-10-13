@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T12:00:00Z · `—` · agent/com-03-responders-land → main · fast-forward (squash of agent/com-03-responders onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none expected; docs/MERGES.md and docs/reports/map.html take this entry on top
+- summary: The project board's responders, COM-03 (ADR-0149 Amendment 1; ADR-0117 Amendment 3, ADR-0134 Amendment 7). Contract DEC-0073 pinned at fabric-agent-contract edc88a6: all seventeen board tools served, digest vectors reproduced. Migration 87 (suffix 104): responder slots, enrollments, attempts, the fence, enroll/claim/accept/renew/progress/effect_begin/complete/reconcile/responder_replace with transfer, fenced reply, release on session end and grant revoke, com.status responders, the operator read, the project directory with operator-only unlisting, the restore settle as a projection rule (nothing appended). The board.respond grant and its words, fabric.board.join board sessions. Gate: ci.sh fast, the owned board, responders, privileges, restore, write-rules, archive, hub-upgrade and releases suites; plants 1, 2, 3, 6, 8, 9, 11 red. NOT_RUN: agent-surface on a disposable stack, probe-fresh-vs-upgraded, the real-client smoke (disk).
+
 ### 2026-10-13T09:00:00Z · `—` · agent/priv-01-redaction → main · fast-forward
 - run: r-faa9aae98a19
 - files: 15
