@@ -82,5 +82,5 @@ nodes, not9 of11 product requirements: REQ-007/008 and resource/native acceptanc
 
 Final affected-input acceptance: [compiler receipt](../reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json)
 records53/53,0 skips after938acc62; document/graph/register/projection checks pass.
-Integration entry: [PR31](https://github.com/passioncode-ai/fabric/pull/31). Preserve the newer
-main privacy-redaction commit when landing; no foreign change may be replaced by this branch.
+Integration entry: [PR31](https://github.com/passioncode-ai/fabric/pull/31). The newer main privacy-redaction commit a1de7f43 is now preserved in the branch.
+Application source remains unchanged; the one changed compiler fixture input is rechecked.

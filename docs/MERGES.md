@@ -10,11 +10,17 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: combined both MCP test groups, both merge-log entries and map lanes onto main 4e227922; fast gate passed on preserved commit 179e71e9; onboarding and CO-212 documentation reconciled onto 938acc62, fresh53 compiler/reconciliation tests and documentation checks pass; newer main privacy redaction must be retained at landing
 - summary: Four reviewed repairs: pending enrollment identity/serialization, whole-context budget and refusal propagation, acknowledged ACP mode with contradictory-mode refusal, MCP Retry-After and close/late-consent boundaries. Eleven-node execution plan, host evidence matrix, upstream owner packets and resource/feedback specification. CO-282 remains partial. This entry is prepared inside the source iteration as required by the map contract; it does not assert a merge or installed runtime. Entry point: docs/handoffs/2026-10-13-harness-waves.md.
 
+### 2026-10-13T09:00:00Z · `—` · agent/priv-01-redaction → main · fast-forward
+- run: r-faa9aae98a19
+- files: 15
+- conflicts: docs/MERGES.md (both entries kept, this one on top), docs/reports/map.html (both changelog lanes kept, this one on top; the stamp re-made by --refresh)
+- summary: PRIV-01, HEAD redaction under ADR-0096 (no history rewrite, D10): ADR-0144, ADR-0147, the ADR register row, the delegation roll-call audit and plan, the 0.4.0 plan, the agent-registry plan, two handoffs, three raw JSON/JSONL evidence files, a probe note (a private gateway's port) and two older map lanes no longer name the operator's private agents, their sessions, private repository URLs, paths, port or limits; each Markdown record carries one dated redaction note. The 0.4.0 plan's "asked by" names the first organization server, not its private product name (CT-49). The onboarding-036 entry below no longer names a private session. Decisions unchanged.
+
 ### 2026-10-13T03:30:00Z · `—` · agent/onboarding-036 → main · fast-forward
 - run: r-fc848dc29
 - files: 9
 - conflicts: none
-- summary: 0.3.6 onboarding wave 0 — the funnel review (23 findings), the measured inventory (30 open items) and the canvas with waves 1–5 under docs/evidence/plans/2026-10-13-onboarding-036/ (awaiting the operator's go); lane 13 of the plan and CO-212 closed by COM-02.3 (a5b78e49, ADR-0149) at heygen-hyperframes-vr-28's request; 214 of 281 carry-over rows open.
+- summary: 0.3.6 onboarding wave 0 — the funnel review (23 findings), the measured inventory (30 open items) and the canvas with waves 1–5 under docs/evidence/plans/2026-10-13-onboarding-036/ (awaiting the operator's go); lane 13 of the plan and CO-212 closed by COM-02.3 (a5b78e49, ADR-0149) at another session's request (session name redacted 2026-10-13 under ADR-0096); 214 of 281 carry-over rows open.
 
 ### 2026-10-13T02:40:00Z · `—` · agent/board-participants-land → main · fast-forward
 - run: r-faa9aae98a19

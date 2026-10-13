@@ -13,4 +13,5 @@ Later the same day (Fabric P-10, ADR-0119 amendments 1-2):
 - cline 3.0.46: session/new answers "Authentication required: Call authenticate before creating a session."; the
   global `cline` package disappeared from /opt/homebrew/lib/node_modules twice on this machine after a run (reinstalled
   with npm install -g cline@3.0.46, npm skipping its install scripts by policy). Not connected.
-- Probe ports moved to 48100+ after one collided with the communicator gateway on 47835.
+- Probe ports moved to 48100+ after one collided with a private local gateway of the operator's (its name and port
+  redacted 2026-10-13 under ADR-0096).
