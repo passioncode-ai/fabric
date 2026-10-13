@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T22:43:00Z · `—` · agent/co-292-board-schemas → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: CO-292 — the board's 17 tools publish in tools/list the strict shape each handler parses with (BOARD_TOOL_INPUT, publishedBoardSchema; com.reply's two forms merged plus anyOf); the SDK still validates nothing, the board service stays the one validator. New board-tool-schemas.test.mjs (typed-client nested com.submit, com.list {limit: 50}, forged estate_id refused before the database), the open schema planted back fails two of three. Unblocks handing the onboarding review's packages out on the board.
+
 ### 2026-10-14T00:30:00Z · `—` · agent/com-w4-reads-land → main · fast-forward (squash of agent/com-w4-reads onto origin/main)
 - run: r-faa9aae98a19
 - files: see the commit
