@@ -27,7 +27,7 @@
       "surface_class": "internal",
       "check": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {
@@ -48,7 +48,7 @@
       "surface_class": "internal",
       "check": "node apps/desktop/test/session-bundle.test.mjs",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {
@@ -66,7 +66,7 @@
       "surface_class": "internal",
       "check": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {
@@ -82,7 +82,7 @@
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {
@@ -98,7 +98,7 @@
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {
@@ -114,7 +114,7 @@
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
       "evidence": [
-        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
       ]
     },
     {

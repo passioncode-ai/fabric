@@ -53,7 +53,8 @@ bundle or a passing fake into native agent acceptance.
 | Observatory | Structured lessons, search/filter contract, outcomes, spend/latency observations | A note cannot amend policy or grant authority |
 
 Cross-project asks go through the Fabric project board, addressed to a project. The board
-is not available in this CLI session. Owner packets can be prepared here but are NOT_SENT;
+is not available to this session: after operator-approved MCP registration the official
+`fabric_whoami` returned `no-project`. Project binding is the remaining human step. Owner packets can be prepared here but are NOT_SENT;
 writing another project's HANDOFF or messaging its session is not a substitute. This is a
 real dependency for upstream integration, not a reason to stop independent Fabric repairs.
 

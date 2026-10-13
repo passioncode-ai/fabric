@@ -110,7 +110,7 @@ All these scopes concern launch/protocol behavior, not model obedience or contin
 caught and fixed: an artificial matrix barrier, missing N-009/N-010 task descriptions,
 NOT_SENT incorrectly eligible to count as owner acceptance, and unnamed repair checks.
 N-009/N-010 remain blocked on actual owner admission and behavior acceptance. Completing
-packets or this report does not complete REQ-006…009. No external owner status was edited.
+packets or this report does not complete REQ-006…009. No external owner status was edited. N-004…006 independently reviewed by `/root/observatory_research` at4808f83b; the exact document digests and contribution disclosure are in [review rounds](../../execution/harness-waves/review.md).
 
 ## Combined gate
 
@@ -119,13 +119,14 @@ TypeScript dependency. Existing dependencies were then exposed through ignored w
 links, with pnpm dependency repair disabled (`pnpm_config_verify_deps_before_run=warn`);
 no dependency installation was attempted. A development-tree run passed types/design and
 many documentation checks, then correctly refused a changed map source stamp while work
-was in progress. Neither run certifies the final candidate. Final frozen-candidate receipt
-is recorded below after integration.
+was in progress. Neither run certifies the final candidate. A frozen run at4808f83b then caught four errors in this change’s carry-over registration: a blank line split the table, the status vocabulary was invalid, and the asserted count was stale. The row is now parseable with `partially` status, counted and assigned to lane6; focused register and plan-ID checks pass. Final frozen-candidate receipt follows the corrected run.
 
 ## Open acceptance and continuation
 
-The Fabric project board is unavailable in this CLI session (no whoami/COM tools); owner
-packets are PREPARED / NOT_SENT. Existing pipeline/hub work is preserved with pinned source
+The Fabric project board is unavailable to this session; owner packets are PREPARED / NOT_SENT.
+After explicit operator approval, Codex MCP registration succeeded. The official registered
+`fabric-mcp` was called through the adapter skill’s stdio client and `fabric_whoami` returned
+`no-project`. Project binding is the remaining human step; registration alone is not enrollment. Existing pipeline/hub work is preserved with pinned source
 and negative acceptance. Do not substitute messages to sessions or edits to foreign repos.
 
 Native host rule consumption, isolated Codex home discovery, MCP overlay isolation,

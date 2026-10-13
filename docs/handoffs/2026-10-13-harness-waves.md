@@ -26,8 +26,10 @@ Final result will be appended to the wave review before branch delivery.
 Next implementation wave: submit [owner packets](../execution/harness-waves/owner-packets.md)
 to owning Projects through Fabric COM, refresh their source heads, then finish pipeline
 receipt provenance, Observatory lesson contract and host-aware hub/MCP selection in those
-owners. N-009/N-010 remain blocked, packets NOT_SENT: this CLI has no Fabric whoami/COM tools.
-Registration/consent is a human gate under the standing board instruction; no bypass was used.
+owners. N-009/N-010 remain blocked, packets NOT_SENT: MCP registration was explicitly approved and completed. The official MCP
+`fabric_whoami` answered `no-project`; the operator must bind this checkout through
+Fabric’s Open a project flow, then grant access if asked. The registered MCP was called
+through the adapter skill’s stdio client; no hub token was read or direct hub bypass used.
 
 Fabric follow-ups: effective generated-home skill loading, per-host identity/hooks/resume,
 MCP isolation and multi-instance gateway support; admission/feedback remains a specification
