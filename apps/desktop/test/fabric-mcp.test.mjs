@@ -519,8 +519,8 @@ test('--rejoin-only with no live session, or no credential: not enrolled, quietl
 // Kimi started inside a Claude Code session hands fabric-mcp THAT session's CLAUDE_CODE_SESSION_ID. Only Claude Code's
 // own variable names its own session, and only for --runner claude-code.
 test('the runtime session id: Claude Code\'s own variable for claude-code only; an inherited one never names a Codex or Kimi session', () => {
-  const env = { CLAUDE_CODE_SESSION_ID: 'faa9aa08-4fb4-4e04-84ed-d362fb5cf236' }
-  assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code'], env), 'faa9aa08-4fb4-4e04-84ed-d362fb5cf236')
+  const env = { CLAUDE_CODE_SESSION_ID: '0f3c2a1e-5b7d-4c8e-9a10-2b3c4d5e6f70' }
+  assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code'], env), '0f3c2a1e-5b7d-4c8e-9a10-2b3c4d5e6f70')
   assert.equal(runtimeSessionIdOf('kimi-code', ['--runner', 'kimi-code'], env), null)
   assert.equal(runtimeSessionIdOf('codex', ['--runner', 'codex'], env), null)
   // The flag names it for any runner (the hooks' rejoin passes it), and wins over the variable.
