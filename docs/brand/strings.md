@@ -751,7 +751,7 @@ lands beside SCN-132.
 |---|---|---|---|---|
 | `access.enroll.title` | Let {name} work in {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1005 | SCN-132 (enrollment) | proposed |
 | `access.enroll.message` | {name}, opened outside Fabric, asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1006 | SCN-132 (enrollment) | proposed |
-| `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1007 | SCN-132 (enrollment) | proposed |
+| `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, messages with other projects, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1007 | SCN-132 (enrollment) | proposed |
 | `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1008 | SCN-132 (enrollment) | proposed |
 | `access.enroll.thisProject` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1009 | SCN-132 (enrollment) | proposed |
 | `access.enroll.projectNamed` | {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 (enrollment) | proposed |

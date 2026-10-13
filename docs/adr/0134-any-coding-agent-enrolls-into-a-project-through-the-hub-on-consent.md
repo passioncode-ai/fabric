@@ -133,7 +133,17 @@ From the 0.3.5 verification, iteration 2 (ER-3, ER-4, ER-5):
 - Fabric's own refusals (HTTP 400, 408, 413, 429) keep the session and reach the agent as Fabric's refusal — nothing was
   done, and no re-enrollment happens (`fabricMcp.ts#classifyFailure`), so a fresh enrollment never resets the call budget.
 
-### Amendment 5 — 2026-10-13: a terminal session on the project board — what Fabric gives the session hooks
+### Amendment 5 — 2026-10-12: the enrollment is also the board enrollment; responding is asked apart
+
+[ADR-0149](0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §1
+settles ADR-0117 §3's "board enrollment" for a coding agent: this record's grant **is** its board enrollment for that
+one Project — the session takes part in the project board (`com.submit`, `com.list`, `com.get`, `com.read_ack`,
+`com.reply`, `com.cancel`, `com.status`) as a `trusted` principal, like a session Fabric launched. The consent says so:
+`access.enroll.what` now names "messages with other projects" beside the tasks, board and memory (en and ru, SCN-137,
+`docs/brand/strings.md`). **Answering** another Project's requests is not part of this grant: it is the
+`board.respond` grant of ADR-0149 §2, asked and shown on its own (its words arrive with COM-03).
+
+### Amendment 6 — 2026-10-13: a terminal session on the project board — what Fabric gives the session hooks
 
 Measured against the fabric-agent-adapter v0.23.0 `working-with-fabric` session hooks (their needs D1–D6 and
 `scripts/fabric_session.py`) on main `7eace021`, with Fabric 0.3.5 running on the operator's machine:

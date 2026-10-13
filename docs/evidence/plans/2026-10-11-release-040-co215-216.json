@@ -4873,7 +4873,8 @@
    "release": "0.4.0",
    "waveWhy": "node C8",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13: e4d8533b capped the epoch at 2^31−1 and applied the uuid rule before the RPC; the residual — SQLSTATE 22P02/22003 answered not_available — closed by COM-02.3: boardService.ts `call()` maps SQLSTATE class 22 to invalid_arguments (board-service.test.mjs 'A7-017 residual …', red with the mapping removed)"
   },
   {
    "id": "A7-018",
@@ -4896,7 +4897,8 @@
    "release": "0.4.0",
    "waveWhy": "node C8",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: board_get, board_read_ack and board_status refuse an inactive Project (supabase/migrations/20261012000103_project_board_lifecycle.sql); project-board-lifecycle-cases.mjs 'A7-018 …' (red with board_is_project removed from board_get)"
   },
   {
    "id": "A7-019",
@@ -4917,7 +4919,8 @@
    "release": "0.4.0",
    "waveWhy": "node C8",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: board_epochs, board_current_epoch reads the open epoch, board_epoch_gate rotates a full epoch and refuses capacity_exceeded (retryable), board_tick rotates at 90 % or 30 days and retires 30 days after close (supabase/migrations/20261012000103_project_board_lifecycle.sql; ADR-0149 §7); project-board-lifecycle-cases.mjs 'A7-019/C6 …' and 'rotation by age …' (red with the epoch stuck at 1)"
   },
   {
    "id": "A7-020",
@@ -5030,7 +5033,8 @@
    "release": "0.4.0",
    "waveWhy": "node C8",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: board_requests keyed by (estate_id, message_id), no foreign key to messages; the dead citation `…081:68` corrected in supabase/migrations/20261012000103_project_board_lifecycle.sql's header (migration 81's bytes are frozen by the ledger); project-board-lifecycle-cases.mjs 'A7-024 …'"
   },
   {
    "id": "A7-025",
@@ -5284,7 +5288,8 @@
    "release": "0.4.0",
    "waveWhy": "node C12",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: a write whose answer was lost answers not_available 'may have been stored … send it again with the same idempotency key'; every failed call is in the operations log (boardService.ts `call()`); board-service.test.mjs 'A7-035 …' (red with the write wording reverted)"
   },
   {
    "id": "A7-036",
@@ -5376,7 +5381,8 @@
    "release": "0.4.0",
    "waveWhy": "node C12",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: every board tool the contract names is registered by a literal call and gated by PINNED_COMMS_OPERATIONS, answering unsupported_capability (boardTools.ts); board-service.test.mjs 'the gate …' (red with one operation unpinned)"
   },
   {
    "id": "A7-040",
@@ -5516,7 +5522,8 @@
    "release": "0.4.0",
    "waveWhy": "node C8",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-13 COM-02.3: the SQL list gains 85 (migration 100 had not added itself) and 86 (supabase/migrations/20261012000103_project_board_lifecycle.sql); ceo-private-archive-codec.test.mjs asserts sourceSchemas.at(-1) === schemaContract.maximum; the owned ceo-*/restore-authority runners export at the admitted schema"
   },
   {
    "id": "A7-046",

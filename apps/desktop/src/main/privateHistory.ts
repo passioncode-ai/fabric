@@ -14,14 +14,15 @@
  * receipt — and never mints a second restore. The operator's identity comes from main's held
  * authority only; nothing here takes a Person, Estate or credential from a caller.
  */
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeSync } from 'node:fs'
 import path from 'node:path'
 import { ARCHIVE_REASON_CODES, ArchiveFormatError, type ArchiveReasonCode } from './archiveJson.ts'
 import { decodePrivateArchive, preflightOrdinaryArchive, type CeoPrivateArchive } from './ceoPrivateArchive.ts'
+import { BOARD_ARCHIVE_FILE, readBoardArchive } from '../shared/archive.ts'
 
 export interface PrivateHistoryIdentity { estateId: string; personId: string; revision: number; actor: { kind: 'person'; id: string } }
-export type PrivateHistoryRpc = (name: 'ceo_export_private_archive' | 'restore_estate_verified' | 'ceo_import_private_archive' | 'ceo_private_import_receipt',
+export type PrivateHistoryRpc = (name: 'ceo_export_private_archive' | 'restore_estate_verified' | 'ceo_import_private_archive' | 'ceo_private_import_receipt' | 'restore_board_history',
   args: Record<string, unknown>) => Promise<{ data: unknown; error?: unknown }>
 export interface PrivateHistoryPorts {
   rootDir: string
@@ -33,7 +34,10 @@ export interface PrivateHistoryPorts {
 }
 export type PrivateHistoryRefusal = { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 export interface RestoreOperation { schema: 'PrivateRestoreOperation@1'; operation_id: string; import_operation_id: string; target_estate_id: string;
-  control_estate_id: string; person_id: string; dir: string; name: string; archive_digest: string | null; stage: 'restore' | 'import' | 'done'; target_revision: number | null
+  control_estate_id: string; person_id: string; dir: string; name: string; archive_digest: string | null; stage: 'restore' | 'board' | 'import' | 'done'; target_revision: number | null
+  /** The project board's history (ADR-0149 §6, CO-212): `restored`, `missing` (the archive carries no board.json),
+   *  or the restore's refusal code. Absent on operations written before board history travelled. */
+  board_history?: string | null
   /** Why private history was NOT imported although the archive carried one: `not_your_history` (another Person's
    *  companion, never sent to import), or the import's definitive refusal. Absent on operations written before it. */
   private_history_skipped?: string | null }
@@ -41,6 +45,7 @@ export interface RestoreOperation { schema: 'PrivateRestoreOperation@1'; operati
 export const NOT_YOUR_HISTORY = 'not_your_history'
 
 const MANIFEST = 'manifest.json', JOURNAL = 'journal.ndjson', COMPANION = 'ceo-private.json'
+const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const known = new Set<string>(ARCHIVE_REASON_CODES)
 const refuse = (reason_code: string, state: PrivateHistoryRefusal['state'] = 'refused', operation_id?: string): PrivateHistoryRefusal =>
@@ -110,7 +115,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
     }
   }
 
-  type ArchiveRead = { ok: true; files: { manifest: Buffer; journal: Buffer; companion: Buffer | null }
+  type ArchiveRead = { ok: true; files: { manifest: Buffer; journal: Buffer; companion: Buffer | null; board: Buffer | null }
     m: ReturnType<typeof preflightOrdinaryArchive>['manifest']; companion: CeoPrivateArchive | null }
   /** The archive's bytes, read ONCE and checked as read: what is verified is what is kept and sent. */
   function readArchive(dir: string): ArchiveRead | PrivateHistoryRefusal {
@@ -123,7 +128,14 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
         companion = decodePrivateArchive(companionRaw).archive
         if (companion.estate_archive.digest !== m.digest) return refuse('invalid_archive')
       }
-      return { ok: true, files: { manifest, journal, companion: companionRaw }, m, companion }
+      // The board's history, when the archive carries it, is checked here — before anything is written.
+      let board: Buffer | null = null
+      if (existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) {
+        board = readFileSync(path.join(dir, BOARD_ARCHIVE_FILE))
+        const b = readBoardArchive(board.toString('utf8'), m.digest, sha256)
+        if (!b.ok) return refuse(b.why === 'corrupt' ? 'integrity_mismatch' : 'invalid_archive')
+      }
+      return { ok: true, files: { manifest, journal, companion: companionRaw, board }, m, companion }
     } catch (e) {
       // Not silence: an unreadable or refused file is its reason code, never a quoted path or byte.
       return refuse(existsSync(dir) ? codeOf(e) : 'not_found')
@@ -167,6 +179,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
       writePrivate(path.join(copy, MANIFEST), read.files.manifest)
       writePrivate(path.join(copy, JOURNAL), read.files.journal)
       if (companion && read.files.companion) writePrivate(path.join(copy, COMPANION), read.files.companion)
+      if (read.files.board) writePrivate(path.join(copy, BOARD_ARCHIVE_FILE), read.files.board)
     } catch {
       // Not silence: nothing was sent and no operation was recorded, so there is nothing to check.
       try { if (lstatSync(copy).isDirectory()) rmSync(copy, { recursive: true, force: true }) } catch { /* no copy was made */ }
@@ -175,7 +188,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
     // #endregion private-history-restore-skip
     const op: RestoreOperation = { schema: 'PrivateRestoreOperation@1', operation_id, import_operation_id: newId(), target_estate_id: newId(),
       control_estate_id: who.estateId, person_id: who.personId, dir: copy, name: name.trim(), archive_digest: companion?.archive_digest ?? null,
-      stage: 'restore', target_revision: null, private_history_skipped: skipped }
+      stage: 'restore', target_revision: null, private_history_skipped: skipped, board_history: null }
     saveOp(op)
     return advance(op)
   }
@@ -205,7 +218,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
         p_operation_id: op.operation_id, p_target_estate: op.target_estate_id, p_estate_manifest: manifest.value, p_journal_ndjson: journal.text, p_name: op.name })
       if (!r.ok) return refuse(r.lost ? 'result_unknown' : r.reason, r.lost ? 'result_unknown' : 'refused', op.operation_id)
       op.target_revision = Number(r.value.target_revision)
-      op.stage = op.archive_digest ? 'import' : 'done'
+      op.stage = op.archive_digest ? 'import' : 'board'
       saveOp(op)
     }
     if (op.stage === 'import') {
@@ -219,7 +232,31 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
       // Estate usable with private history unavailable") — it used to stay at `import`, never openable.
       if (!r.ok && r.lost) return refuse('result_unknown', 'result_unknown', op.operation_id)
       if (!r.ok) op.private_history_skipped = r.reason
-      op.stage = 'done'; saveOp(op)
+      op.stage = 'board'; saveOp(op)
+    }
+    if (op.stage === 'board') {
+      // The board's texts (ADR-0149 §6), after the private import, which requires the restored Estate untouched: a refusal leaves the restored Estate usable with its messages' events and
+      // without their texts, and says so; a lost reply repeats, because the database refuses a second history.
+      if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) op.board_history = 'missing'
+      else {
+        const text = readOpFile(op, BOARD_ARCHIVE_FILE); if (!text.ok) return text
+        const manifestText = readOpFile(op, MANIFEST); if (!manifestText.ok) return manifestText
+        const manifest = parsed(op, manifestText.text); if (!manifest.ok) return manifest
+        const b = readBoardArchive(text.text, String(manifest.value.digest), sha256)
+        if (!b.ok) op.board_history = b.why === 'corrupt' ? 'integrity_mismatch' : 'invalid_archive'
+        else {
+          // Its own codes (not the archive's): `already_restored` after a lost reply means the first call landed.
+          let reply: { data: unknown; error?: unknown }
+          try { reply = await ports.rpc('restore_board_history', { p_target: op.target_estate_id, p_history: b.history }) }
+          catch { /* Not silence: a lost reply leaves the operation at this stage; Check again repeats it. */ return refuse('result_unknown', 'result_unknown', op.operation_id) }
+          const said = reply.data as Record<string, unknown> | null
+          if (reply.error || !said || typeof said !== 'object') return refuse('result_unknown', 'result_unknown', op.operation_id)
+          op.board_history = said.ok === true || said.reason_code === 'already_restored' ? 'restored'
+            : typeof said.reason_code === 'string' && /^[a-z_]{1,40}$/.test(said.reason_code) ? said.reason_code : 'unavailable'
+        }
+      }
+      op.stage = 'done'
+      saveOp(op)
     }
     // The result is known: the operation's copy has done its job (the original is the operator's, never touched).
     try { rmSync(copyDir(op.operation_id), { recursive: true, force: true }) } catch { /* Not silence: a copy left behind is private (0700); the result stands. */ }
@@ -228,7 +265,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
   const imported = (op: RestoreOperation): boolean => op.archive_digest !== null && !op.private_history_skipped
   const resultOf = (op: RestoreOperation) => ({ ok: true as const, operation_id: op.operation_id, target_estate_id: op.target_estate_id,
     history_restored: true as const, access_verified: true as const, private_history: imported(op),
-    private_history_skipped: op.private_history_skipped ?? null, opened: false as const })
+    private_history_skipped: op.private_history_skipped ?? null, board_history: op.board_history ?? null, opened: false as const })
 
   /** A lost reply: repeat the SAME operation. Never a new target, never a new operation ID. */
   async function check(operationId: string) {
