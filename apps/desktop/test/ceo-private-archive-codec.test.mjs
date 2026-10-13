@@ -138,6 +138,7 @@ refuses('wrong source schema', () => decode(mutate(a => { a.source_schema_versio
   assert.equal(PRIVATE_ARCHIVE_LIMITS.sourceSchemas.at(-1), contract.maximum, 'the archive source list and the schema contract end apart'); checks++
   refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = contract.maximum + 1 })), 'unsupported_schema')
 }
+assert.equal(decode(mutate(a => { a.source_schema_version = 87 })).archive.source_schema_version, 87, 'schema 87 is a qualified source (migration 104, the board responders)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 86 })).archive.source_schema_version, 86, 'schema 86 is a qualified source (migration 103, the board lifecycle)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 85 })).archive.source_schema_version, 85, 'schema 85 is a qualified source (migration 100, the board thread aggregates)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 82 })).archive.source_schema_version, 82, 'schema 82 is a qualified source (migration 91, grants from the journal)'); checks++

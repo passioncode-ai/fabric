@@ -245,7 +245,9 @@ test('com.reply and com.cancel: the digest is the contract\'s, ids are board ids
   }
   // DEC-0073: com.read_ack takes no idempotency key — it is naturally idempotent, and a key is a field it does not name.
   assert.equal((await board.readAck(caller, { message: M1, idempotency: { epoch: 1, key: 'ack-key-0001' } })).error.code, 'invalid_arguments', 'read_ack took a key')
-  assert.equal((await board.reply(caller, { fence: {}, body: { text: 'x' } })).error.code, 'unsupported_capability')
+  // A responder's fenced reply needs responder facts from the scope; a caller without them cannot respond (COM-03).
+  assert.equal((await board.reply(caller, { fence: {}, body: { text: 'x' } })).error.code, 'not_authorized')
+  assert.equal((await board.reply(caller, { ...replyArgs, fence: {} })).error.code, 'invalid_arguments', 'both reply forms')
   assert.equal((await board.reply(caller, { ...replyArgs, replyTo: 'abcdefgh' })).error.code, 'not_authorized')
   assert.equal((await board.cancel(caller, { ...cancelArgs, request: 'abcdefgh' })).error.code, 'not_authorized')
   assert.equal((await board.cancel(caller, { ...cancelArgs, reason: 'x'.repeat(301) })).error.code, 'invalid_arguments')
@@ -357,5 +359,107 @@ test('the cycle\'s board upkeep never throws: a pass that fails is logged and an
     assert.equal(await tickBoard(fake({ board_tick: answer }).rpc, caller.estateId), null)
     assert.equal(logged.at(-1).op, 'board.tick')
   }
+})
+
+// ── COM-03: the responder tools and the directory (migration 87, contract DEC-0073 pinned at edc88a6) ──────
+const { commsEnrollSchema, commsClaimSchema, commsFencedSchema, commsProgressSchema, commsEffectBeginSchema, commsCompleteSchema, commsReconcileSchema,
+  commsResponderReplaceSchema, commsDirectoryArgsSchema, commsDirectorySchema, commsReplyAnySchema, commsFenceSchema, commsListSchema, commsMessageRefSchema, commsStatusArgsSchema } = await import('../src/main/boardService.ts')
+const responder = { ...caller, responder: { sessionId: 'session-1', cameIn: 'enrolled', agent: 'codex', bindingId: '79000000-0000-4000-8000-0000000000b1' } }
+const ATT = '79000000-0000-4000-8000-0000000000e1'
+const fenceArgs = (extra = {}) => ({ request: M1, generation: 2, attempt: ATT, digest: 'sha256:' + 'a'.repeat(64), idempotency: { epoch: 1, key: 'fence-000001' }, ...extra })
+
+test('every zod mirror reaches the contract\'s verdict on every fixture the pin grades for its schema (DEC-0073)', () => {
+  const mirrors = { 'comms-enroll.schema.json': commsEnrollSchema, 'comms-claim.schema.json': commsClaimSchema, 'comms-fenced.schema.json': commsFencedSchema,
+    'comms-progress.schema.json': commsProgressSchema, 'comms-effect-begin.schema.json': commsEffectBeginSchema, 'comms-complete.schema.json': commsCompleteSchema,
+    'comms-reconcile.schema.json': commsReconcileSchema, 'comms-responder-replace.schema.json': commsResponderReplaceSchema, 'comms-directory-args.schema.json': commsDirectoryArgsSchema,
+    'comms-directory.schema.json': commsDirectorySchema, 'comms-reply.schema.json': commsReplyAnySchema, 'comms-fence.schema.json': commsFenceSchema,
+    'comms-list.schema.json': commsListSchema, 'comms-message-ref.schema.json': commsMessageRefSchema, 'comms-status-args.schema.json': commsStatusArgsSchema,
+    'comms-receipt.schema.json': commsReceiptSchema, 'comms-cancel.schema.json': commsCancelSchema }
+  let n = 0
+  for (const [schema, mirror] of Object.entries(mirrors)) {
+    const graded = catalogue.filter(e => e.schema === schema)
+    assert.ok(graded.length >= 1, `${schema}: the pin grades no fixture`)
+    for (const e of graded) {
+      const doc = fixtures.document('current/' + e.path)
+      assert.equal(mirror.safeParse(doc).success, e.valid, `${e.name}: Fabric's mirror and the contract disagree`)
+      n++
+    }
+  }
+  assert.ok(n >= 50, `only ${n} fixtures graded`)
+})
+
+test('a responder command: the holder from the scope, the project from the endpoint, the digest over the arguments sent, ids lower-cased', async () => {
+  const claimed = { ok: true, repeated: false, message: M1, request: { id: M1, state: 'claimed', effect: 'not_started', revision: 2 },
+    attempt: { id: ATT, generation: 2, digest: 'sha256:' + 'a'.repeat(64), leaseExpiresAt: '2026-10-13T07:00:00.000Z' } }
+  const { rpc, calls } = fake({ board_claim: { data: claimed, error: null }, board_accept: { data: { ok: true, repeated: false, request: { id: M1, state: 'accepted', effect: 'not_started', revision: 3 } }, error: null } })
+  const board = createBoard({ rpc })
+  const args = { idempotency: { epoch: 1, key: 'claim-000001' }, capability: 'analytics.retention', request: M1.toUpperCase() }
+  const c = await board.claim(responder, args)
+  assert.deepEqual(c, claimed)
+  assert.deepEqual(calls[0].args.p_holder, { session_id: 'session-1', came_in: 'enrolled', agent: 'codex', binding_id: '79000000-0000-4000-8000-0000000000b1', label: 'Claude Code' })
+  assert.equal(calls[0].args.p_project, caller.projectId); assert.equal(calls[0].args.p_estate, caller.estateId)
+  assert.equal(calls[0].args.p_args.request, M1)
+  assert.equal(calls[0].args.p_digest, commsDigest('com.claim', { ...args, request: M1 }))
+  await board.accept(responder, { fence: fenceArgs({ request: M1.toUpperCase(), attempt: ATT.toUpperCase() }) })
+  assert.deepEqual(calls[1].args.p_args.fence, fenceArgs())
+  const n = calls.length
+  for (const forged of ['estate_id', 'project', 'principal', 'session', 'leaseUntil'])
+    for (const [op, a] of [['enroll', { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' }], ['accept', { fence: fenceArgs() }], ['claim', args]])
+      assert.equal((await board[op](responder, { ...a, [forged]: 'x' })).error.code, 'invalid_arguments', `${op} ${forged}`)
+  assert.equal((await board.accept(responder, { fence: fenceArgs({ request: 'abcdefgh' }) })).error.code, 'not_authorized')
+  assert.equal((await board.accept(responder, { fence: fenceArgs({ attempt: 'abcdefgh' }) })).error.code, 'fenced')
+  assert.equal((await board.reconcile(responder, { idempotency: { epoch: 1, key: 'recon-000001' }, request: M1, digest: 'sha256:' + 'a'.repeat(64), outcome: { state: 'completed', observed: false } })).error.code, 'invalid_arguments', 'an unobserved reconcile')
+  assert.equal((await board.enroll(caller, { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })).error.code, 'not_authorized', 'a caller without responder facts')
+  assert.equal((await board.enroll({ ...responder, surface: 'viewer' }, { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })).error.code, 'not_authorized', 'a viewer')
+  assert.equal((await board.enroll({ ...responder, principal: { ...responder.principal, provenance: 'asserted' } }, { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })).error.code, 'not_authorized', 'an asserted principal')
+  assert.equal(calls.length, n, 'a refused responder call reached the board')
+})
+
+test('a fenced reply goes to board_reply_fenced; a receipt with a holder or a seq never reaches the agent', async () => {
+  const { rpc, calls } = fake({ board_reply_fenced: { data: goodReceipt, error: null }, board_enroll: { data: { ok: true, repeated: false, slot: { project: caller.projectId, capability: 'x.y', generation: 1, leaseExpiresAt: '2026-10-13T07:00:00.000Z', holder: 'session-1' } }, error: null } })
+  const board = createBoard({ rpc })
+  assert.equal((await board.reply(responder, { fence: fenceArgs(), body: { text: 'on it' } })).ok, true)
+  assert.equal(calls[0].fn, 'board_reply_fenced'); assert.equal(calls[0].args.p_digest, commsDigest('com.reply', { fence: fenceArgs(), body: { text: 'on it' } }))
+  logged.length = 0
+  const leaked = await board.enroll(responder, { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })
+  assert.equal(leaked.error.code, 'not_available'); assert.equal(logged.at(-1).op, 'board.receipt-shape')
+})
+
+test('com.directory: sessions only; the cursor is bound to the reader, its grant and the filter; nothing but ids, names, capabilities and responder state leaves', async () => {
+  const P2 = '79000000-0000-4000-8000-000000000012'
+  const page = { ok: true, projects: [{ id: P2, name: 'analytics', capabilities: [{ capability: 'analytics.retention', responder: 'active' }] }], more: true, last: P2 }
+  const { rpc, calls } = fake({ board_directory: { data: page, error: null } })
+  const board = createBoard({ rpc })
+  const first = await board.directory(caller, { capability: 'analytics.retention', limit: 1 })
+  assert.equal(validators['comms-directory.schema.json'](first), true, JSON.stringify(validators['comms-directory.schema.json'].errors))
+  assert.match(first.cursor, /^d[0-9a-f]{32}_[A-Za-z0-9_-]{22}$/)
+  assert.deepEqual(calls[0].args, { p_estate: caller.estateId, p_reader: caller.projectId, p_capability: 'analytics.retention', p_after: null, p_limit: 1 })
+  await board.directory(caller, { capability: 'analytics.retention', cursor: first.cursor })
+  assert.equal(calls[1].args.p_after, P2)
+  const n = calls.length
+  assert.equal((await board.directory(caller, { cursor: first.cursor })).error.code, 'cursor_reset_required', 'another filter')
+  assert.equal((await board.directory({ ...caller, projectId: P2 }, { capability: 'analytics.retention', cursor: first.cursor })).error.code, 'cursor_reset_required', 'another reader')
+  assert.equal((await board.directory({ ...caller, participationGrant: 'other' }, { capability: 'analytics.retention', cursor: first.cursor })).error.code, 'cursor_reset_required', 'another grant')
+  assert.equal((await board.directory({ ...caller, surface: 'viewer' }, {})).error.code, 'not_authorized', 'a viewer read the estate\'s Project list')
+  assert.equal((await board.directory({ ...caller, principal: { ...caller.principal, provenance: 'asserted' } }, {})).error.code, 'not_authorized')
+  assert.equal((await board.directory(caller, { estate_id: 'x' })).error.code, 'invalid_arguments')
+  assert.equal(calls.length, n)
+  logged.length = 0
+  const leaky = await createBoard({ rpc: fake({ board_directory: { data: { ...page, projects: [{ ...page.projects[0], unread: 3 }] }, error: null } }).rpc }).directory(caller, {})
+  assert.equal(leaky.error.code, 'not_available'); assert.equal(logged.at(-1).op, 'board.directory-shape')
+})
+
+test('every board tool is served now that the pin carries its schema; one removed from the set is refused before the door (R-006 plant 9)', async () => {
+  const tools = new Map()
+  const { rpc, calls } = fake({ board_enroll: { data: { ok: true, repeated: false, slot: { project: caller.projectId, capability: 'x.y', generation: 1, leaseExpiresAt: '2026-10-13T07:00:00.000Z' } }, error: null } })
+  registerBoardTools({ registerTool: (name, _m, h) => tools.set(name, h) }, createBoard({ rpc }), () => responder)
+  const enrolled = JSON.parse((await tools.get('com.enroll')({ idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })).content[0].text)
+  assert.equal(enrolled.slot.generation, 1)
+  const narrowed = new Map()
+  registerBoardTools({ registerTool: (name, _m, h) => narrowed.set(name, h) }, createBoard({ rpc }), () => responder, new Set([...PINNED_COMMS_OPERATIONS].filter(o => o !== 'com.enroll')))
+  const n = calls.length
+  assert.equal(JSON.parse((await narrowed.get('com.enroll')({ idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'x.y' })).content[0].text).error.code, 'unsupported_capability')
+  assert.equal(calls.length, n)
+  assert.equal(PINNED_COMMS_OPERATIONS.size, 17)
 })
 // #endregion project-board-service-lifecycle

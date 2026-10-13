@@ -142,6 +142,44 @@ export const commsReceiptSchema = z.strictObject({
   attempt: z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp }).optional()
 })
 
+// ── the responder tools' argument shapes (contract DEC-0073, pinned at edc88a6), strict ─────────────────────
+const boardIntSafe = z.number().int().max(Number.MAX_SAFE_INTEGER)
+export const commsFenceSchema = z.strictObject({
+  request: opaqueId, generation: boardIntSafe.min(1), attempt: opaqueId, digest: sha256, expectedRevision: boardIntSafe.min(1).optional(), idempotency
+})
+const artifacts = z.array(artifactRef).max(8).refine((a) => new Set(a.map((x) => commsCanonical(x))).size === a.length, 'artifacts are unique')
+/** `com.reply` (comms-reply): exactly one of a participant's `{idempotency, replyTo}` or a responder's `{fence}`. */
+export const commsReplyResponderSchema = z.strictObject({ fence: commsFenceSchema, body, artifacts: artifacts.optional() })
+export const commsReplyAnySchema = z.union([z.strictObject({ idempotency, replyTo: opaqueId, body, artifacts: artifacts.optional() }), commsReplyResponderSchema])
+export const commsEnrollSchema = z.strictObject({ idempotency, capability: capabilityName })
+export const commsClaimSchema = z.strictObject({ idempotency, capability: capabilityName, request: opaqueId.optional() })
+export const commsFencedSchema = z.strictObject({ fence: commsFenceSchema })
+export const commsProgressSchema = z.strictObject({ fence: commsFenceSchema, note: z.strictObject({ text: z.string().min(1).max(2000) }).optional() })
+export const commsEffectBeginSchema = z.strictObject({ fence: commsFenceSchema, summary: z.string().min(1).max(2000).optional() })
+const outcomeBase = { state: z.enum(['completed', 'failed_known']), summary: z.string().min(1).max(2000).optional(), evidence: artifacts.optional() }
+export const commsCompleteSchema = z.strictObject({ fence: commsFenceSchema, outcome: z.strictObject({ ...outcomeBase, observed: z.boolean() }) })
+export const commsReconcileSchema = z.strictObject({
+  idempotency, request: opaqueId, digest: sha256, expectedRevision: boardIntSafe.min(1).optional(), outcome: z.strictObject({ ...outcomeBase, observed: z.literal(true) })
+})
+export const commsResponderReplaceSchema = z.strictObject({
+  idempotency, capability: capabilityName, expectedGeneration: boardIntSafe.min(0),
+  transfer: z.strictObject({
+    requests: z.array(opaqueId).min(1).max(64).refine((a) => new Set(a).size === a.length, 'requests are unique'),
+    checkpoint: z.strictObject({ summary: z.string().min(1).max(2000), evidence: artifacts.optional() })
+  }).optional()
+})
+export const commsDirectoryArgsSchema = z.strictObject({ capability: capabilityName.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional() })
+/** The directory's answer (comms-directory): closed at every level, so nothing but ids, names, capabilities and responder state leaves. */
+export const commsDirectorySchema = z.strictObject({
+  protocol: z.literal(COMMS_PROTOCOL),
+  snapshot: z.strictObject({ readAt: timestamp, stale: z.boolean().optional() }),
+  projects: z.array(z.strictObject({
+    id: projectId, name: z.string().min(1).max(120),
+    capabilities: z.array(z.strictObject({ capability: capabilityName, responder: z.enum(['active', 'stale', 'absent']) })).max(64)
+  })).max(100),
+  cursor: opaqueId.nullable()
+})
+
 export interface BoardCaller {
   estateId: string
   projectId: string
@@ -150,7 +188,10 @@ export interface BoardCaller {
   participationGrant?: string
   /** A Project session (the default) submits and so reads its idempotency epoch; a viewer principal (a host such as
    *  Fabric Dashboards, C9) reads com.status only and is never told an epoch (contract DEC-0073). */
-  surface?: 'session' | 'viewer'
+  surface?: 'session' | 'board' | 'viewer'
+  /** The responder's facts (COM-03), from the authenticated scope: the session, how it came in, its runner and its
+   *  binding — the board answers under the grant these name (ADR-0149 §3). Absent: this caller cannot respond. */
+  responder?: { sessionId: string; cameIn: 'launched' | 'enrolled' | 'handed-off' | 'hub'; agent: string | null; bindingId: string | null }
 }
 /** The SQL door: `db.rpc` in the app, a fake in tests. */
 export type BoardRpc = (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>
@@ -229,6 +270,59 @@ export function createBoard(deps: BoardDeps) {
     }
   }
 
+  /** The holder a responder command runs as: built from the authenticated scope (ADR-0149 §3), never from the input. */
+  const holderOf = (caller: BoardCaller): Record<string, unknown> | null => {
+    const r = caller.responder
+    if (!r || caller.principal.provenance !== 'trusted' || (caller.surface ?? 'session') === 'viewer') return null
+    return { session_id: r.sessionId, came_in: r.cameIn, agent: r.agent, binding_id: r.bindingId, ...(caller.principal.label ? { label: caller.principal.label.slice(0, 80) } : {}) }
+  }
+  /** A board id where the contract admits any opaque id: one that is no uuid names nothing here (refused as unknown). */
+  const normaliseFence = (f: z.infer<typeof commsFenceSchema>): z.infer<typeof commsFenceSchema> | Refusal => {
+    const request = boardId(f.request)
+    if (request === null) return refusal('not_authorized', 'This Project cannot act on that request.')
+    const attempt = boardId(f.attempt)
+    if (attempt === null) return refusal('fenced', 'This attempt is no longer the request\'s; this call was not committed.')
+    return { ...f, request, attempt }
+  }
+  /**
+   * One responder command (COM-03): the contract's argument shape, ids normalised, the digest over the arguments as
+   * sent to the board, the holder from the scope, and the answer passed on only as the contract's receipt.
+   */
+  const responderCall = async <T extends z.ZodType>(caller: BoardCaller, op: CommsOperation, fn: string, schema: T, input: unknown): Promise<Record<string, unknown> | Refusal> => {
+    const holder = holderOf(caller)
+    if (!holder) return refusal('not_authorized', 'This session cannot answer requests: only a Project session or a board session can respond.')
+    const parsed = schema.safeParse(input ?? {})
+    if (!parsed.success) {
+      const big = parsed.error.issues.some((i) => i.path.join('.') === 'body.text' && i.code === 'too_big')
+      return big ? refusal('body_too_large', 'The message body is larger than 65,536 bytes.') : refusal('invalid_arguments', `The call does not match ${op}'s arguments.`)
+    }
+    const args = { ...(parsed.data as Record<string, unknown>) }
+    if (args.fence) {
+      const f = normaliseFence(args.fence as z.infer<typeof commsFenceSchema>)
+      if (isRefusal(f)) return f
+      args.fence = f
+    }
+    if (typeof args.request === 'string') {
+      const request = boardId(args.request)
+      if (request === null) return refusal('not_authorized', op === 'com.claim' ? 'This Project cannot claim that request.' : 'This Project cannot act on that request.')
+      args.request = request
+    }
+    const transfer = args.transfer as { requests: string[]; checkpoint: unknown } | undefined
+    if (transfer) {
+      const ids = transfer.requests.map(boardId)
+      if (ids.some((x) => x === null)) return refusal('invalid_arguments', 'A transferred request must be an accepted request of this Project and capability.')
+      args.transfer = { ...transfer, requests: ids as string[] }
+    }
+    const body = args.body as { text?: string } | undefined
+    if (body?.text !== undefined && Buffer.byteLength(body.text, 'utf8') > BODY_MAX_BYTES) return refusal('body_too_large', 'The message body is larger than 65,536 bytes.')
+    const digest = idempotencyDigest(op, args)
+    if (typeof digest !== 'string') return digest
+    return receipt(fn, await call(fn, { p_estate: caller.estateId, p_holder: holder, p_project: caller.projectId, p_args: args, p_digest: digest }, 'write'))
+  }
+
+  const dirMac = (caller: BoardCaller, capability: string | null, after: string): string =>
+    createHmac('sha256', key).update(commsCanonical({ a: after, e: caller.estateId, f: capability, k: 'directory', r: caller.projectId, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
+
   return {
     async submit(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       const parsed = commsSubmitSchema.safeParse(input)
@@ -262,8 +356,11 @@ export function createBoard(deps: BoardDeps) {
 
     /** `com.reply`, a participant's form. The responder's fenced form arrives with the responder tools (COM-03). */
     async reply(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
-      if (input && typeof input === 'object' && 'fence' in input)
-        return refusal('unsupported_capability', 'A responder\'s reply arrives with the responder tools; this board does not serve it yet.')
+      // A responder's reply carries its fence and answers fence.request (DEC-0073); both forms, or neither, are refused.
+      if (input && typeof input === 'object' && 'fence' in input) {
+        if ('replyTo' in input || 'idempotency' in input) return refusal('invalid_arguments', 'A reply is a participant\'s (idempotency and replyTo) or a responder\'s (fence), not both.')
+        return responderCall(caller, 'com.reply', 'board_reply_fenced', commsReplyResponderSchema, input)
+      }
       const parsed = commsReplySchema.safeParse(input)
       if (!parsed.success) {
         const big = parsed.error.issues.some((i) => i.path.join('.') === 'body.text' && i.code === 'too_big')
@@ -288,6 +385,70 @@ export function createBoard(deps: BoardDeps) {
       const digest = idempotencyDigest('com.cancel', parsed.data)
       if (typeof digest !== 'string') return digest
       return receipt('board_cancel', await call('board_cancel', { p_estate_id: caller.estateId, p_caller: caller.projectId, p_principal: caller.principal, p_cancel: parsed.data, p_digest: digest }, 'write'))
+    },
+
+    // ── the responder tools (COM-03, migration 87; contract DEC-0073) ────────────────────────────────────────
+    enroll: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.enroll', 'board_enroll', commsEnrollSchema, input),
+    claim: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.claim', 'board_claim', commsClaimSchema, input),
+    renew: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.renew', 'board_renew', commsFencedSchema, input),
+    accept: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.accept', 'board_accept', commsFencedSchema, input),
+    progress: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.progress', 'board_progress', commsProgressSchema, input),
+    effectBegin: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.effect_begin', 'board_effect_begin', commsEffectBeginSchema, input),
+    complete: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.complete', 'board_complete', commsCompleteSchema, input),
+    reconcile: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.reconcile', 'board_reconcile', commsReconcileSchema, input),
+    responderReplace: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.responder_replace', 'board_responder_replace', commsResponderReplaceSchema, input),
+
+    /**
+     * `com.directory` (DEC-0073 §8): the estate's addressable Projects. Readers are Project and board sessions the
+     * board verified; a viewer or an asserted principal is refused before the door. The cursor is bound to the reader,
+     * its grant, the filter and (through the estate id a restore replaces) the restore epoch.
+     */
+    async directory(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      if ((caller.surface ?? 'session') === 'viewer' || caller.principal.provenance !== 'trusted')
+        return refusal('not_authorized', 'Only a session of a Project of this estate reads the directory.')
+      const parsed = commsDirectoryArgsSchema.safeParse(input ?? {})
+      if (!parsed.success) return refusal('invalid_arguments', 'com.directory takes capability?, cursor? and limit? (1–100).')
+      const capability = parsed.data.capability ?? null
+      let after: string | null = null
+      if (parsed.data.cursor !== undefined) {
+        const m = /^d([0-9a-f]{32})_([A-Za-z0-9_-]{22})$/.exec(parsed.data.cursor)
+        const id = m ? `${m[1].slice(0, 8)}-${m[1].slice(8, 12)}-${m[1].slice(12, 16)}-${m[1].slice(16, 20)}-${m[1].slice(20)}` : null
+        const want = id ? Buffer.from(dirMac(caller, capability, id)) : null
+        if (!m || !id || !want || want.length !== m[2].length || !timingSafeEqual(want, Buffer.from(m[2])))
+          return refusal('cursor_reset_required', 'This cursor does not belong to this reader and filter; read again from the start.')
+        after = id
+      }
+      const data = await call('board_directory', { p_estate: caller.estateId, p_reader: caller.projectId, p_capability: capability, p_after: after, p_limit: parsed.data.limit ?? 50 }, 'read')
+      if (isRefusal(data)) return data
+      const last = typeof data.last === 'string' && BOARD_ID.test(data.last) ? data.last : null
+      const out = {
+        protocol: COMMS_PROTOCOL,
+        snapshot: { readAt: now().toISOString() },
+        projects: data.projects,
+        cursor: data.more === true && last ? `d${last.replace(/-/g, '')}_${dirMac(caller, capability, last)}` : null
+      }
+      const checked = commsDirectorySchema.safeParse(out)
+      if (checked.success) return checked.data
+      ops.failed('board.directory-shape', new Error(checked.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.code}`).join('; ')),
+        { note: 'board_directory answered a page the contract does not name; the caller was told not_available' })
+      return UNAVAILABLE
+    },
+
+    /** A session ended: its slots go (DEC-0073 §5). Best effort, never thrown; the authority recheck is what refuses. */
+    async releaseSession(estateId: string, sessionId: string): Promise<number | null> {
+      const r = await call('board_release_session', { p_estate: estateId, p_session: sessionId }, 'write')
+      return isRefusal(r) ? null : Number(r.released ?? 0)
+    },
+    /** A board.respond grant was revoked: the enrollments it admitted go. */
+    async releaseGrant(estateId: string, grantId: string): Promise<number | null> {
+      const r = await call('board_release_grant', { p_estate: estateId, p_grant: grantId }, 'write')
+      return isRefusal(r) ? null : Number(r.released ?? 0)
+    },
+    /** `fabric.board.join`: the capabilities a binding may answer for one Project, or a refusal. */
+    async joinCheck(estateId: string, bindingId: string, projectId: string): Promise<{ capabilities: string[] } | Refusal> {
+      const r = await call('board_join_check', { p_estate: estateId, p_binding: bindingId, p_project: projectId }, 'read')
+      if (isRefusal(r)) return r
+      return Array.isArray(r.capabilities) ? { capabilities: r.capabilities.filter((c): c is string => typeof c === 'string') } : UNAVAILABLE
     },
 
     async list(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
