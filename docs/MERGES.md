@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T06:55:00Z · `—` · agent/ledger-co279-co281 → main · fast-forward
+- run: r-ac49ed619
+- files: docs/evidence/specs/2026-08-16-software-fabric-carryover.md, docs/adr/README.md, docs/reports/map.html, docs/MERGES.md
+- conflicts: none
+- summary: registers only. CO-279 records D-1 (`project.context.set`, by a person only) and D-12 (the hub refuses with `session-closed` / `context-mismatch`, no project id; outside-purpose is a mark only) from the org-contexts testing round; CO-281's open question corrected (the SIGTERM bound already runs from the signal); ADR-0109's register row says amended 2026-10-13 (`learning-note/1`, DEC-0072).
 ### 2026-10-13T06:41:00Z · `—` · agent/com-w2-registers-land → main · fast-forward (squash of agent/com-w2-registers onto origin/main)
 - run: r-faa9aae98a19
 - files: see the commit
