@@ -9,6 +9,25 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Comms reads a long board a page at a time** (wave 4, [ADR-0156](docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §8):
+  threads newest activity first, 50 a page, with "Show older threads"; the filters — project, kind, coding agent, open
+  request, activity — are answered by Comms itself, so they work on a board too large to hold, and a filter Comms did
+  not answer keeps the last confirmed list and says so instead of saying nothing matches. The rail's count reads each
+  thread's last message only and says "5000+" past its cap.
+- **Comms says who answers each request and how it ended** (SCN-147): "Responder #n · <agent> · since <time>", a lapsed
+  lease ("That says nothing about whether it worked."), or that no agent answers it now and why the last one left;
+  the responder's reported outcome and its evidence, or the requester's reason for cancelling; an outcome nobody
+  observed reads "may have happened — awaiting reconciliation" with who can settle it. Each message says which projects
+  marked it read, and each file a message names shows its hash as the sender stated it — only `https:` links open.
+  A request's timeline and the threads related to one (the same projects, or the same file) open on demand.
+- **Search what projects told each other** (SCN-156), newest first; `%` and `_` are searched as themselves, and a search
+  that runs out of time says so. **What waits for a project** (SCN-157): per project, the messages none of its agents
+  has read, the oldest, and the requests nobody answers.
+- **The journal says who settled a request** (contract DEC-0081, FAC-SEM-109): every complete and reconcile transition
+  carries `settled_by`, `responder` today; the repin to fabric-agent-contract `a59d04b` brings DEC-0079 (the host hold),
+  DEC-0080 (the structured finding) and DEC-0081 (owner settlement) into Fabric's contract tests, each held to the
+  contract's shared vectors as its node is built.
+
 - **Projects answer each other's requests** (COM-03, [ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
   Amendment 1): the project board serves all seventeen tools of `fabric-project-comms/0.1` at contract DEC-0073 —
   `com.reply` and `com.cancel`, `com.directory`, and the responder tools `com.enroll`, `com.claim`, `com.renew`,

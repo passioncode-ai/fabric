@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "held",
+    "message": "The operator has put this work on hold; it continues when the operator resumes it.",
+    "retryable": false
+  }
+}

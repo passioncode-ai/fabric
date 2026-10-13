@@ -443,3 +443,11 @@ and ADR-0152…ADR-0155 were issued to another run (0155 its own pipeline reserv
 is superseded and never reused. A wave-4 migration that lands on a later date than this paragraph's must still sort
 below the reservation or move it again, by the same rule. No pipeline file exists at 0157 or at either migration number.
 Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-13, wave 4's reads (W4-1):** slot 108 is taken, as recorded above, by the executed migration
+`20261013000108_project_board_operator_reads.sql` — migration 89 by count (the operator's reads of the project board:
+the bounded thread page, heads, message facts, the request timeline, related threads, history search, what waits for a
+project, and `settledBy` on the journal's complete and reconcile transitions; ADR-0156 §8). The unexecuted pipeline
+migration reservations stay at **110/111** (`20261013000110_pipeline_definitions.sql`,
+`20261013000111_graph_version_pins.sql`) and the reserved ADR at **0157**: W4-1 wrote no ADR. Slot 109 stays wave 4's
+controls migration. No pipeline file exists at either number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.

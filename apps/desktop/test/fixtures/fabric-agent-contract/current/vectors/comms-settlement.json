@@ -1,0 +1,513 @@
+{
+  "description": "Who settled a request (DEC-0081, project-comms.md#owner-settlement): a transition record `{op, from, to, observed?, settledBy?, summary?, principal?}` (a host journal document, not a receipt; settledBy is required on every complete and reconcile record) checked by kind `comms-transition`, FAC-SEM-027 (the lifecycle table) then FAC-SEM-109 (settlement attribution). `expect` lists `<code> <instancePath>` in that order. Characters are code points, as JSON Schema's maxLength counts them; strings compare as written (case matters); a null settledBy is present, not absent.",
+  "cases": [
+    {
+      "name": "responder-complete",
+      "record": {
+        "op": "complete",
+        "from": "in_progress",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "responder"
+      },
+      "expect": []
+    },
+    {
+      "name": "responder-reconcile-without-summary",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "failed_known",
+        "observed": true,
+        "settledBy": "responder"
+      },
+      "expect": []
+    },
+    {
+      "name": "reconcile-record-without-settled-by",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true
+      },
+      "expect": [
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "complete-record-without-settled-by",
+      "record": {
+        "op": "complete",
+        "from": "accepted",
+        "to": "completed",
+        "observed": true
+      },
+      "expect": [
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "cancel-record-without-settled-by",
+      "record": {
+        "op": "cancel",
+        "from": "in_progress",
+        "to": "outcome_unknown"
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-settles-without-observed-and-without-settled-by",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "summary": "Seen on the registry.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-027 /observed",
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "owner-reconcile",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-reconcile-failed-known",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "failed_known",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-summary-one-character",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "x",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-summary-2000-characters",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-summary-2000-astral-characters",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": []
+    },
+    {
+      "name": "owner-summary-2001-characters",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /summary"
+      ]
+    },
+    {
+      "name": "owner-summary-2001-astral-characters",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /summary"
+      ]
+    },
+    {
+      "name": "owner-summary-empty",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /summary"
+      ]
+    },
+    {
+      "name": "owner-without-summary",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /summary"
+      ]
+    },
+    {
+      "name": "owner-summary-not-a-string",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": 7,
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /summary"
+      ]
+    },
+    {
+      "name": "owner-asserted",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "asserted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /principal"
+      ]
+    },
+    {
+      "name": "owner-provenance-capitalised",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "Trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /principal"
+      ]
+    },
+    {
+      "name": "owner-a-person",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "person",
+          "id": "person:someone",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /principal"
+      ]
+    },
+    {
+      "name": "owner-without-principal",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand."
+      },
+      "expect": [
+        "FAC-SEM-109 /principal"
+      ]
+    },
+    {
+      "name": "owner-without-summary-or-principal",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner"
+      },
+      "expect": [
+        "FAC-SEM-109 /summary",
+        "FAC-SEM-109 /principal"
+      ]
+    },
+    {
+      "name": "owner-completes",
+      "record": {
+        "op": "complete",
+        "from": "in_progress",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /op"
+      ]
+    },
+    {
+      "name": "owner-abandons-to-cancelled",
+      "record": {
+        "op": "cancel",
+        "from": "outcome_unknown",
+        "to": "cancelled",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-027 /to",
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "owner-reconciles-to-cancelled",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "cancelled",
+        "observed": true,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-027 /to"
+      ]
+    },
+    {
+      "name": "owner-unobserved",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": false,
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-027 /observed"
+      ]
+    },
+    {
+      "name": "owner-observed-missing",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "settledBy": "owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-027 /observed"
+      ]
+    },
+    {
+      "name": "late-responder-reconciles-settled",
+      "record": {
+        "op": "reconcile",
+        "from": "completed",
+        "to": "failed_known",
+        "observed": true,
+        "settledBy": "responder"
+      },
+      "expect": [
+        "FAC-SEM-027 /to"
+      ]
+    },
+    {
+      "name": "late-responder-completes-settled",
+      "record": {
+        "op": "complete",
+        "from": "completed",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "responder"
+      },
+      "expect": [
+        "FAC-SEM-027 /to"
+      ]
+    },
+    {
+      "name": "settled-by-capitalised",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": "Owner",
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "settled-by-null",
+      "record": {
+        "op": "reconcile",
+        "from": "outcome_unknown",
+        "to": "completed",
+        "observed": true,
+        "settledBy": null,
+        "summary": "The release v1.4.2 is on the registry; checked by hand.",
+        "principal": {
+          "kind": "operator",
+          "id": "operator:estate-owner",
+          "provenance": "trusted"
+        }
+      },
+      "expect": [
+        "FAC-SEM-109 /settledBy"
+      ]
+    },
+    {
+      "name": "settled-by-on-claim",
+      "record": {
+        "op": "claim",
+        "from": "queued",
+        "to": "claimed",
+        "settledBy": "responder"
+      },
+      "expect": [
+        "FAC-SEM-109 /settledBy"
+      ]
+    }
+  ]
+}

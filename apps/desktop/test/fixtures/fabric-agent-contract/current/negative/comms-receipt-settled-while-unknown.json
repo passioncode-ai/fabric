@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "repeated": false,
+  "request": {
+    "id": "req_A1b2C3d4E5",
+    "state": "outcome_unknown",
+    "effect": "unknown",
+    "revision": 7,
+    "settledBy": "owner"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "repeated": false,
+  "request": {
+    "id": "req_A1b2C3d4E5",
+    "state": "failed_known",
+    "effect": "failed_observed",
+    "revision": 6
+  }
+}

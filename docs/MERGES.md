@@ -4,10 +4,27 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T22:43:00Z · `—` · agent/co-292-board-schemas → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: CO-292 — the board's 17 tools publish in tools/list the strict shape each handler parses with (BOARD_TOOL_INPUT, publishedBoardSchema; com.reply's two forms merged plus anyOf); the SDK still validates nothing, the board service stays the one validator. New board-tool-schemas.test.mjs (typed-client nested com.submit, com.list {limit: 50}, forged estate_id refused before the database), the open schema planted back fails two of three. Unblocks handing the onboarding review's packages out on the board.
+
+### 2026-10-14T00:30:00Z · `—` · agent/com-w4-reads-land → main · fast-forward (squash of agent/com-w4-reads onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none (the squash met W4-0's own cherry-pick in three docs; the branch's later text was kept)
+- summary: Project-board wave 4, the read half (W4-0…W4-6). W4-0: the pipeline reservation moves to 110/111 and ADR-0157 (fix-pf-06.03 red on main after migration 88, green after); ADR-0156 accepted per the operator's go. W4-1: migration 89 (suffix 108) — bounded newest-first thread page with board filters and the agent filter, heads, message facts, timeline, related, search, pending, responders with release cause, `settled_by` on complete/reconcile; repin to fabric-agent-contract a59d04b (settlement vectors 31/31; hold and finding vectors and three fixtures owed by name to W4-7/W4-12/W4-13). W4-2…W4-6: nine main-window comms channels (https-only artifact opening) and SCR-81's list, responder line, outcomes, read-by, artifacts, timeline, related, search and pending panel. Owned chain at 89 all exit 0; renderer 1486/1486. Next: W4-7 (migration 109).
+
 ### 2026-10-13 · CO-282 task branch takes main 1982b92e · task-branch preparation
 - sources: d2ea4357 plus main 1982b92e (migration 88, contract DEC-0078); integration into the task branch, not a merge into main
 - conflicts: carry-over and backlog rebuilt on main with the CO-282 and CO-292 rows (219 of 292 open), this log and the map unioned, previews/plan/matrix/completeness from main and re-verified by their generators
 - checks: docs gates on the merge; full local fast still owed
+
+### 2026-10-14 · CO-282 task branch takes main 59eef190 · task-branch preparation
+- sources: 395e39e1 plus main 59eef190 (wave-4 reads, migration 89; CO-292); integration into the task branch, not a merge into main
+- conflicts: ADR register (0152/0154/0156), ledger and backlog rebuilt on main with CO-282 and CO-293 (219 of 293 open), this log and the map unioned, generated reports from main and re-verified
+- checks: docs gates on the merge; the complete local fast gate follows
 
 ### 2026-10-13 · CO-282 hosted fast green, local full gate still owed · task-branch preparation
 - fixes: graph lock ignored for the map stamp (e8b36ce3), controlled-pool suite NOT_RUN without pinned agent-sync (1e47ad6c), 116 mockup previews main left stale (1c21db61), pipeline reservation to ADR-0157 (03694bd2)

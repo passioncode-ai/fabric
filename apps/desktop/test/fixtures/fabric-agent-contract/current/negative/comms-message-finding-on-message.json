@@ -1,0 +1,48 @@
+{
+  "id": "msg_F1n2D3g4H5",
+  "thread": "thr_Q1w2E3r4T5",
+  "kind": "message",
+  "sender": {
+    "project": "proj-growth",
+    "principal": {
+      "kind": "agent",
+      "id": "enr_growth_01",
+      "label": "Growth agent",
+      "provenance": "trusted"
+    }
+  },
+  "at": "2026-10-13T11:00:00Z",
+  "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "body": {
+    "text": "The board answers a replacement without `transferred`, so a kit that took a request over cannot fence it. The failing run is attached.",
+    "format": "text/markdown"
+  },
+  "artifacts": [
+    {
+      "id": "https://example.org/runs/4711",
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "label": "failing run"
+    }
+  ],
+  "finding": {
+    "severity": "blocking",
+    "consequence": "A kit that takes a transferred request over cannot complete it until the board answers transferred.",
+    "affects": [
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-41"
+      },
+      {
+        "redacted": true
+      },
+      {
+        "redacted": true
+      },
+      {
+        "task": "tsk_7Hn3Kq9Lm2"
+      }
+    ],
+    "dedupeKey": "transferred-missing:CT-41"
+  }
+}

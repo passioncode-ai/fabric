@@ -1,0 +1,1248 @@
+{
+  "$comment": "Shared vectors of the structured finding (DEC-0080, docs/specification/project-comms.md#findings). A port puts `finding` into `base.submit` (com.submit arguments, comms-submit.schema.json) or `base.message` (a message as read, comms-message.schema.json), both of kind finding, and, where a case gives `key`, that idempotency key, and checks that its validator answers `valid`. `lax` names the mistake a lax port makes on that case. Lengths count Unicode code points. The rule cases (FAC-SEM-108) are fixtures/semantic/comms-finding-*.json.",
+  "base": {
+    "submit": {
+      "idempotency": {
+        "epoch": 3,
+        "key": "fnd_Q7mX2cL9pZ4tVb1Nk8Rw"
+      },
+      "thread": {
+        "id": "thr_Q1w2E3r4T5"
+      },
+      "kind": "finding",
+      "body": {
+        "text": "A finding."
+      }
+    },
+    "message": {
+      "id": "msg_F1n2D3g4H5",
+      "thread": "thr_Q1w2E3r4T5",
+      "kind": "finding",
+      "sender": {
+        "project": "proj-growth",
+        "principal": {
+          "kind": "agent",
+          "id": "enr_growth_01",
+          "provenance": "trusted"
+        }
+      },
+      "at": "2026-10-13T11:00:00Z",
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "body": {
+        "text": "A finding."
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "dedupeKey of 8 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "kkkkkkkk"
+      },
+      "valid": true
+    },
+    {
+      "name": "dedupeKey of 7 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "kkkkkkk"
+      },
+      "valid": false
+    },
+    {
+      "name": "dedupeKey of 128 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+      },
+      "valid": true
+    },
+    {
+      "name": "dedupeKey of 129 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+      },
+      "valid": false
+    },
+    {
+      "name": "dedupeKey of every allowed character class",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "a.B:c-D_9"
+      },
+      "valid": true
+    },
+    {
+      "name": "dedupeKey with a slash",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred/CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "consequence of 500 astral-plane characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true,
+      "lax": "a port that counts UTF-16 code units sees 1000 and refuses it; the limit counts code points"
+    },
+    {
+      "name": "consequence of 501 astral-plane characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "consequence of 500 ASCII characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "consequence of 501 ASCII characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "empty consequence",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "16 affects items",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-1"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-2"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-3"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-4"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-5"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-6"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-7"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-8"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-9"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-10"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-11"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-12"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-13"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-14"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-15"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-16"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "17 affects items",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-1"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-2"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-3"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-4"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-5"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-6"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-7"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-8"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-9"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-10"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-11"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-12"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-13"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-14"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-15"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-16"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-17"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "no affects item",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "severity blocking",
+      "on": "submit",
+      "finding": {
+        "severity": "blocking",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "severity info",
+      "on": "submit",
+      "finding": {
+        "severity": "info",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "severity upper-cased",
+      "on": "submit",
+      "finding": {
+        "severity": "Blocking",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false,
+      "lax": "an enum compares as written; a case-folding port accepts it"
+    },
+    {
+      "name": "repository named .github",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/.github",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "repository keeps its case",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "Example-Org/Example_Tool",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "repository owner of 39 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "ooooooooooooooooooooooooooooooooooooooo/n",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "repository owner of 40 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "oooooooooooooooooooooooooooooooooooooooo/n",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository name of 100 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "repository name of 100 characters with a leading dot",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o/.nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "repository name of 101 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository name ..",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o/..",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository name .",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o/.",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository owner starts with a hyphen",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "-o/n",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository as a URL",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "https://github.com/o/n",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "repository without a name",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "o",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path of 256 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "path of 257 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a segment ending in a dot",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/v1./backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "path with a .. segment",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/../backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a hidden segment",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/.board/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a leading slash",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "/docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a trailing slash",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a backslash",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs\\backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a space",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/back log.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a drive",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "C:/docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "row id of 64 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "row id of 65 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "row id starting with a hyphen",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "row id in lower case",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "faa-12b"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "task id of 1 character",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "task": "t"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "task id of 128 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "task": "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "task id of 129 characters",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "task": "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "task id with a colon, as a delegation token's task may hold",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "task": "fabric:task:42"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "task id with a slash",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "task": "tasks/42"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "path with a trailing newline",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md\n",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false,
+      "lax": "Python's re `$` matches before a final newline, so re.match(pattern) accepts it; use re.fullmatch or \\Z"
+    },
+    {
+      "name": "the same row twice with its members in another order",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "id": "CT-41",
+            "path": "docs/backlog.md",
+            "repository": "passioncode-ai/fabric-agent-contract"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false,
+      "lax": "uniqueItems compares JSON values, not their text; a port that compares serialized items sees two"
+    },
+    {
+      "name": "a row and a task",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "task": "tsk_7Hn3Kq9Lm2"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "one item with both a task and a row",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41",
+            "task": "tsk_7Hn3Kq9Lm2"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "a redacted item in a submit",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "redacted": true
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "a redacted item in a message",
+      "on": "message",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "redacted": true
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "every item redacted in a message",
+      "on": "message",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "redacted": true
+          },
+          {
+            "redacted": true
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "redacted false in a message",
+      "on": "message",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "redacted": false
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "the same row twice in a submit",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false
+    },
+    {
+      "name": "the same row twice in a message: the schema admits it, FAC-SEM-108 refuses it",
+      "on": "message",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          },
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true
+    },
+    {
+      "name": "idempotency key of 22 characters with a finding",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": true,
+      "key": "kkkkkkkkkkkkkkkkkkkkkk"
+    },
+    {
+      "name": "idempotency key of 21 characters with a finding",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41"
+      },
+      "valid": false,
+      "key": "kkkkkkkkkkkkkkkkkkkkk",
+      "lax": "the general key admits 8 characters; a submit that carries a finding needs 22, the least that holds 128 random bits"
+    },
+    {
+      "name": "an evidence member",
+      "on": "submit",
+      "finding": {
+        "severity": "warning",
+        "consequence": "The kit cannot fence a transferred request.",
+        "affects": [
+          {
+            "repository": "passioncode-ai/fabric-agent-contract",
+            "path": "docs/backlog.md",
+            "id": "CT-41"
+          }
+        ],
+        "dedupeKey": "transferred-missing:CT-41",
+        "evidence": [
+          "https://example.org/runs/4711"
+        ]
+      },
+      "valid": false
+    }
+  ]
+}

@@ -182,3 +182,129 @@ test('an empty board over a journal that records messages answers textsMissing w
   await createCommsOperatorRead({ ...fake({ board_threads_operator: { data: { ok: true, threads: [threadRow] }, error: null } }), journalMessages: async () => { asked = true; return 9 } }).threads(ESTATE)
   assert.equal(asked, false)
 })
+
+// #region comms-operator-reads-w4 — docs: docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md#8-what-comms-shows-besides
+// Wave 4's reads (W4-2; migration 89): each method maps the door's answer field by field. A payload this build cannot
+// read is `unavailable`, never an empty answer; the board's refusals travel with their codes; an argument the door
+// would refuse is refused here first, so a malformed call never reaches it.
+const PROJECT_A = '79000000-0000-4000-8000-000000000011'
+const PROJECT_B = '79000000-0000-4000-8000-000000000012'
+const REQUEST = '79000000-0000-4000-8000-0000000000c1'
+const HASH = 'sha256:' + 'a'.repeat(64)
+const pageRow = { ...threadRow, providers: ['claude-code'] }
+const answers = {
+  board_thread_page_operator: { data: { ok: true, threads: [pageRow], more: true, before: { lastSeq: 9, id: THREAD } }, error: null },
+  board_thread_heads_operator: { data: { ok: true, heads: [{ id: THREAD, lastSeq: 9 }], truncated: true }, error: null },
+  board_responders_operator: { data: { ok: true, responders: [
+    { project: PROJECT_B, capability: 'review', state: 'active', generation: 2, leaseExpiresAt: '2026-10-13T10:00:00.000Z', agent: 'claude-code', cameIn: 'launched', label: 'Claude Code', since: '2026-10-13T09:00:00.000Z' },
+    { project: PROJECT_B, capability: 'audit', state: 'absent', generation: 1, releasedCause: 'revoked', releasedAt: '2026-10-13T08:00:00.000Z' }] }, error: null },
+  board_message_facts_operator: { data: { ok: true, messages: { [REQUEST]: { readBy: [PROJECT_B] } }, requests: { [REQUEST]: {
+    generation: 2, attemptLive: false, lastOp: 'complete', lastCause: 'responder', lastAt: '2026-10-13T09:30:00.000Z',
+    outcomes: [{ kind: 'outcome', summary: 'Done.', evidence: [{ id: 'https://example.org/a.csv', contentHash: HASH, label: 'a.csv' }], at: '2026-10-13T09:30:00.000Z', settledBy: 'responder' }] } } }, error: null },
+  board_request_timeline_operator: { data: { ok: true, more: false, steps: [{ op: 'claim', from: 'queued', to: 'claimed', effectFrom: 'not_started', effectTo: 'not_started', cause: 'responder', generation: 2, at: '2026-10-13T09:00:00.000Z' }] }, error: null },
+  board_related_threads_operator: { data: { ok: true, more: false, threads: [{ id: THREAD, subject: null, why: 'shared-artifact', lastAt: '2026-10-13T09:00:00.000Z' }] }, error: null },
+  board_search_operator: { data: { ok: true, hits: [{ message: REQUEST, thread: THREAD, seq: 7, at: '2026-10-13T09:00:00.000Z', sender: PROJECT_A, snippet: 'please review' }], more: true, stoppedEarly: false, before: 7 }, error: null },
+  board_pending_operator: { data: { ok: true, more: false, projects: [{ project: PROJECT_B, unread: 3, oldestAt: '2026-10-13T08:00:00.000Z', findings: 1, requests: 1, requestsWithAbsentResponder: 1 }] }, error: null }
+}
+const reads = read => ({
+  threadPage: () => read.threadPage(ESTATE, {}, null, 50),
+  heads: () => read.heads(ESTATE),
+  responders: () => read.responders(ESTATE),
+  facts: () => read.facts(ESTATE, [REQUEST]),
+  timeline: () => read.timeline(ESTATE, REQUEST),
+  related: () => read.related(ESTATE, THREAD),
+  search: () => read.search(ESTATE, 'review', null),
+  pending: () => read.pending(ESTATE)
+})
+const doorOf = { threadPage: 'board_thread_page_operator', heads: 'board_thread_heads_operator', responders: 'board_responders_operator', facts: 'board_message_facts_operator',
+  timeline: 'board_request_timeline_operator', related: 'board_related_threads_operator', search: 'board_search_operator', pending: 'board_pending_operator' }
+
+test('W4-2: every new read maps the door\'s answer as the board shaped it', async () => {
+  const read = createCommsOperatorRead(fake(answers))
+  const r = reads(read)
+  assert.deepEqual(await r.threadPage(), { ok: true, threads: [pageRow], more: true, before: { lastSeq: 9, id: THREAD } })
+  assert.deepEqual(await r.heads(), { ok: true, heads: [{ id: THREAD, lastSeq: 9 }], truncated: true })
+  assert.deepEqual(await r.responders(), { ok: true, responders: answers.board_responders_operator.data.responders })
+  assert.deepEqual(await r.facts(), { ok: true, messages: answers.board_message_facts_operator.data.messages, requests: answers.board_message_facts_operator.data.requests })
+  assert.deepEqual(await r.timeline(), { ok: true, steps: answers.board_request_timeline_operator.data.steps, more: false })
+  assert.deepEqual(await r.related(), { ok: true, threads: answers.board_related_threads_operator.data.threads, more: false })
+  assert.deepEqual(await r.search(), { ok: true, hits: answers.board_search_operator.data.hits, more: true, stoppedEarly: false, before: 7 })
+  assert.deepEqual(await r.pending(), { ok: true, projects: answers.board_pending_operator.data.projects, more: false })
+})
+
+test('W4-2: a door that does not answer, or answers a shape this build cannot read, is unavailable — never an empty answer', async () => {
+  const malformed = {
+    board_thread_page_operator: { ok: true, threads: [{ ...pageRow, providers: 'claude-code' }], more: false, before: null },
+    board_thread_heads_operator: { ok: true, heads: [{ id: THREAD }], truncated: false },
+    board_responders_operator: { ok: true, responders: [{ project: PROJECT_B, capability: 'review' }] },
+    board_message_facts_operator: { ok: true, messages: {}, requests: { [REQUEST]: { attemptLive: false, outcomes: [{ kind: 'mystery', evidence: [], at: 'x' }] } } },
+    board_request_timeline_operator: { ok: true, steps: [{ op: 'claim' }], more: false },
+    board_related_threads_operator: { ok: true, threads: [{ id: THREAD, subject: null, why: 'similar', lastAt: null }], more: false },
+    board_search_operator: { ok: true, hits: [{ message: REQUEST }], more: false, stoppedEarly: false },
+    board_pending_operator: { ok: true, projects: [{ project: PROJECT_B, unread: '3' }], more: false }
+  }
+  for (const [name, door] of Object.entries(doorOf)) {
+    for (const answer of [new Error('socket hang up'), { data: null, error: { message: 'Could not find the function' } }, { data: 'garbage', error: null }, { data: malformed[door], error: null }, { data: { ok: true }, error: null }]) {
+      const reply = await reads(createCommsOperatorRead(fake({ [door]: answer })))[name]()
+      assert.equal(reply.ok, false, `${name}: ${JSON.stringify(answer)}`)
+      assert.equal(reply.error.code, 'unavailable', `${name}: ${JSON.stringify(reply)}`)
+    }
+  }
+})
+
+test('W4-2: the board\'s refusals travel with their codes and messages', async () => {
+  for (const [name, door] of Object.entries(doorOf)) {
+    for (const code of ['not_found', 'invalid_arguments']) {
+      const reply = await reads(createCommsOperatorRead(fake({ [door]: { data: { error: { code, message: `the board said ${code}` } }, error: null } })))[name]()
+      assert.deepEqual(reply, { ok: false, error: { code, message: `the board said ${code}` } }, name)
+    }
+  }
+})
+
+test('W4-2: a call the door would refuse is refused here, and the door is never asked', async () => {
+  const { rpc, calls } = fake(answers)
+  const read = createCommsOperatorRead({ rpc })
+  const refused = async (p) => { const r = await p; assert.equal(r.ok, false); assert.equal(r.error.code, 'invalid_arguments', JSON.stringify(r)) }
+  await refused(read.threadPage(ESTATE, { other: true }, null, 50))
+  await refused(read.threadPage(ESTATE, { project: 'not-a-uuid' }, null, 50))
+  await refused(read.threadPage(ESTATE, { openOnly: 'yes' }, null, 50))
+  await refused(read.threadPage(ESTATE, {}, { lastSeq: -1, id: THREAD }, 50))
+  await refused(read.threadPage(ESTATE, {}, { lastSeq: 1, id: 'x' }, 50))
+  await refused(read.threadPage(ESTATE, null, null, 50))
+  await refused(read.facts(ESTATE, Array.from({ length: 101 }, () => REQUEST)))
+  await refused(read.facts(ESTATE, ['not-a-uuid']))
+  await refused(read.timeline(ESTATE, 'x'))
+  await refused(read.related(ESTATE, ''))
+  await refused(read.search(ESTATE, 'x', null))
+  await refused(read.search(ESTATE, 'y'.repeat(201), null))
+  await refused(read.search(ESTATE, 'review', 0))
+  assert.equal(calls.length, 0, 'nothing reached the board')
+  // The page limit is the board's own cap; the filter goes through as given.
+  await read.threadPage(ESTATE, { kind: 'request', openOnly: true }, { lastSeq: 9, id: THREAD }, 500)
+  assert.deepEqual(calls.at(-1), { fn: 'board_thread_page_operator', args: { p_estate: ESTATE, p_filter: { kind: 'request', openOnly: true }, p_before: { lastSeq: 9, id: THREAD }, p_limit: 100 } })
+  await read.facts(ESTATE, [])
+  assert.equal(calls.at(-1).fn, 'board_message_facts_operator', 'an empty list is asked as it is')
+})
+
+test('W4-2: the first unfiltered page of an empty board over a journal that records messages answers textsMissing (SCN-146)', async () => {
+  const empty = { board_thread_page_operator: { data: { ok: true, threads: [], more: false, before: null }, error: null } }
+  const read = createCommsOperatorRead({ ...fake(empty), journalMessages: async () => 4 })
+  assert.deepEqual(await read.threadPage(ESTATE, {}, null, 50), { ok: true, threads: [], more: false, before: null, textsMissing: 4 })
+  // A filtered or later page that is empty is the filter's answer, never "the texts did not come back".
+  assert.deepEqual(await read.threadPage(ESTATE, { kind: 'finding' }, null, 50), { ok: true, threads: [], more: false, before: null })
+  assert.deepEqual(await read.threadPage(ESTATE, {}, { lastSeq: 3, id: THREAD }, 50), { ok: true, threads: [], more: false, before: null })
+})
+
+test('W4-2 (comms:open-artifact): only an https link opens; javascript:, file:, data:, http: and garbage are refused and never opened', async () => {
+  const opened = []
+  const read = createCommsOperatorRead({ ...fake(), openExternal: async (url) => { opened.push(url) } })
+  assert.deepEqual(await read.openArtifact('https://example.org/report.pdf'), { ok: true })
+  for (const url of ['javascript:alert(1)', 'file:///etc/passwd', 'data:text/html,<b>x</b>', 'http://example.org/a', 'not a url', '', 'HTTPS', 42, null]) {
+    assert.deepEqual(await read.openArtifact(url), { ok: false, reason: 'refused' }, String(url))
+  }
+  assert.deepEqual(opened, ['https://example.org/report.pdf'])
+  const failing = createCommsOperatorRead({ ...fake(), openExternal: async () => { throw new Error('no browser') } })
+  assert.deepEqual(await failing.openArtifact('https://example.org/x'), { ok: false, reason: 'failed' })
+  assert.deepEqual(await createCommsOperatorRead(fake()).openArtifact('https://example.org/x'), { ok: false, reason: 'failed' }, 'no opener wired is a failure, not a success')
+})
+// #endregion comms-operator-reads-w4
