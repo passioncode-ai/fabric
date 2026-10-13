@@ -3387,7 +3387,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // client the agent surface uses for the board's participant half. The read logic
   // (unavailable is never empty; the board's refusals travel unchanged) lives in
   // `commsOperatorRead.ts`, where the tests can reach it without a database.
-  const commsRead = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
+  const commsRead = createCommsOperatorRead({
+    rpc: (fn, args) => db.rpc(fn, args),
+    // SCN-146 alt path: read only when the board holds no thread — messages the journal records without their texts.
+    journalMessages: async (estateId) => {
+      const r = await db.from('journal').select('seq', { count: 'exact', head: true }).eq('estate_id', estateId).eq('type', 'comms.message_submitted@1')
+      return r.error || typeof r.count !== 'number' ? null : r.count
+    }
+  })
   handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsRead.threads(ACTIVE_ESTATE))
   handle(IPC.commsList, (_e, threadId: string | null, afterSeq: number, limit?: number): Promise<Returns<FabricApi['comms']['list']>> =>
     commsRead.list(ACTIVE_ESTATE, threadId ?? null, afterSeq, limit))

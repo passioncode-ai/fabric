@@ -165,3 +165,20 @@ test('threads come back as the board shaped them', async () => {
   assert.deepEqual(reply.threads, [threadRow])
 })
 // #endregion comms-screen
+
+// SCN-146 alt path (wave-2 product finding 17): a restored estate whose board history did not come back holds the
+// journal's messages but none of their texts. An empty thread list is then not "nothing was said".
+test('an empty board over a journal that records messages answers textsMissing with their count; a journal with none, or unreadable, adds nothing', async () => {
+  const empty = { board_threads_operator: { data: { ok: true, threads: [] }, error: null } }
+  const counted = []
+  const missing = await createCommsOperatorRead({ ...fake(empty), journalMessages: async (estate) => { counted.push(estate); return 7 } }).threads(ESTATE)
+  assert.deepEqual(missing, { ok: true, threads: [], textsMissing: 7 })
+  assert.deepEqual(counted, [ESTATE])
+  assert.deepEqual(await createCommsOperatorRead({ ...fake(empty), journalMessages: async () => 0 }).threads(ESTATE), { ok: true, threads: [] })
+  assert.deepEqual(await createCommsOperatorRead({ ...fake(empty), journalMessages: async () => null }).threads(ESTATE), { ok: true, threads: [] })
+  assert.deepEqual(await createCommsOperatorRead({ ...fake(empty), journalMessages: async () => { throw new Error('down') } }).threads(ESTATE), { ok: true, threads: [] })
+  // A board with threads is never second-guessed: the journal is not read at all.
+  let asked = false
+  await createCommsOperatorRead({ ...fake({ board_threads_operator: { data: { ok: true, threads: [threadRow] }, error: null } }), journalMessages: async () => { asked = true; return 9 } }).threads(ESTATE)
+  assert.equal(asked, false)
+})

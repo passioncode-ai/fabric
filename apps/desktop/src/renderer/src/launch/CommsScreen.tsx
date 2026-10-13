@@ -113,6 +113,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now }:
   const nameOf = (id: string): string => (projects ?? []).find((p) => p.id === id)?.name ?? shortId(id)
 
   const [threads, setThreads] = useState<CommsThread[] | null>(null)
+  const [textsMissing, setTextsMissing] = useState(0)
   const [threadsError, setThreadsError] = useState<CommsReadError | null>(null)
   const [threadsConfirmedAt, setThreadsConfirmedAt] = useState<string | null>(null)
   const [threadsStale, setThreadsStale] = useState(false)
@@ -161,6 +162,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now }:
       if (reply.ok) {
         confirmed.current = true
         setThreads(reply.threads)
+        setTextsMissing(reply.textsMissing ?? 0)
         setThreadsError(null)
         setThreadsConfirmedAt(new Date().toISOString())
         setThreadsStale(false)
@@ -234,7 +236,14 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now }:
               <div className="lp-callout" role="status"><b>{t('launch.comms.pollFailed', { time: observed })}</b></div>
             )}
             {threads === null && <p className="lp-meta">{t('launch.comms.reading')}</p>}
-            {threads !== null && threads.length === 0 && (
+            {threads !== null && threads.length === 0 && textsMissing > 0 && (
+              // SCN-146 alt path: the journal holds messages whose texts the restore did not bring back.
+              <div className="lp-empty" role="status">
+                <h3>{t('launch.comms.textsMissing')}</h3>
+                <p>{t('launch.comms.textsMissingBody', { count: String(textsMissing) })}</p>
+              </div>
+            )}
+            {threads !== null && threads.length === 0 && textsMissing === 0 && (
               <div className="lp-empty">
                 <h3>{t('launch.comms.empty')}</h3>
                 <p>{t('launch.comms.emptyBody')}</p>

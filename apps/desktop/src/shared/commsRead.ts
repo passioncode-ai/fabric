@@ -74,7 +74,9 @@ export interface CommsReadError {
   message: string
 }
 
-export type CommsThreadsReply = { ok: true; threads: CommsThread[] } | { ok: false; error: CommsReadError }
+/** `textsMissing` (SCN-146 alt path): the board holds no thread, yet the journal records this many messages — a
+ *  restore whose board history did not come back. Absent when the empty list is the board's true answer. */
+export type CommsThreadsReply = { ok: true; threads: CommsThread[]; textsMissing?: number } | { ok: false; error: CommsReadError }
 
 /** One page: messages oldest first, the cursor to continue from, and whether the board
  *  holds more after it — the same paging contract as the board's own `board_list`. */
