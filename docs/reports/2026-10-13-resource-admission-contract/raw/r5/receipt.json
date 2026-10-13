@@ -1,0 +1,102 @@
+{
+  "candidate_commit": "66bf406a02193d93a59f0c4fdf4a9fccb8768e67",
+  "source_sha256": {
+    "apps/desktop/src/main/resourceWaitQueue.ts": "7c6129540b80869122eba010228e1dca4d3ea2779598e67abc1c3a50af848223",
+    "apps/desktop/test/resource-wait-queue.test.mjs": "a3f5a08d4c5b29c80631ecdebe114d956dc060060f3c0ce34c44910b76ab09ad",
+    "docs/execution/harness-waves/resource-wait-queue.md": "c08c66cbd332676265c64196215d14d2be76e3e72d80487bf1b530a4229412c1"
+  },
+  "post_run_hashes_match": true,
+  "verdict": "SCOPED_ACCEPT",
+  "supersedes_rejected_receipt_sha256": "a98425df65688822178b19d3d8896989b3d5d796856fad0b54fa4484265a5c5d",
+  "runs": [
+    {
+      "name": "focused",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/resource-wait-queue.test.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "negative-e5",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--import",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r5/negative-loader-portable.mjs",
+        "--test",
+        "--test-name-pattern",
+        "ten repeated|late nested|nested permit dependency|retained permit",
+        "apps/desktop/test/resource-wait-queue.test.mjs"
+      ],
+      "exit_code": 1
+    },
+    {
+      "name": "clock-counterexample",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r5/clock-counterexample-portable.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "clock-default-node",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r5/clock-default-node-portable.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "pending-permit",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r5/pending-permit-portable.mjs"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "verified": [
+    "26 focused tests including mechanism removal controls pass",
+    "four timeout/late-permit regressions still fail against exact e5f8e290 kernel through portable loader",
+    "same independent clock fixture now returns unknown with zero unhandled rejections; default Node exits0",
+    "dispatcher returns before nested permit finishes: busy slot held, late permit false, zero new store reads, next pass empty"
+  ],
+  "source_review": [
+    "bounded operation owns unresolved dependencies after timeout; completion revokes retained permit; permit starts no work on revoked operation",
+    "CAS before dispatch plus dispatch_started/outcome_unknown restart barrier prevent blind replay under trusted linearizable store",
+    "read compares exact immutable input; permit rechecks current row/revision, authority condition and deadlines",
+    "FIFO is only within scope and conditional; no blanket starvation/runtime durability guarantee",
+    "ordinary native rejected clock Promise is observed before invalid reading rejected; no thenable getter executed; exotic Promise subclasses/own constructors outside trusted synchronous contract"
+  ],
+  "limits": [
+    "trusted fake store port; no real SQL/durable queue/permissions certification",
+    "dispatcher must call/obey permit at effect boundary and retain own final authority; a previously granted boolean is not native cancellation",
+    "no provider/native/process or production composition acceptance",
+    "one-instance backpressure only; never-settling dependency stays busy"
+  ],
+  "artifacts": {
+    "clock-counterexample.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "input-hashes.json": "8560bda0368743d2354de0ec2cc65e181d52d50c314e00b1199f83ea15ca05ce",
+    "clock-default-node.stdout": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5",
+    "focused.stdout": "a0137bb69f913c8c897ad7144cb6619d4866140a16f1fc091e6da49d2a3b81c3",
+    "clock-default-node-portable.mjs": "235b00e830d538c453b58930acbf94ef40bab84dd4b1defd504e2ac6ace43249",
+    "clock-default-node.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pending-permit-portable.mjs": "9238511281c7e6ce69a71540d4be077a72e19663e1895a49a93608f02e687724",
+    "focused.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clock-counterexample.stdout": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5",
+    "negative-e5.stdout": "0090cef99fbdcae5b6ddd9a322a44ec12f7e06c17f2924ea111cc90c3e6d856b",
+    "pending-permit.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pending-permit.stdout": "bfe6918b10b24140848bc488cb357046b89cc6da76c1dde8c86c93a390fa04ad",
+    "clock-counterexample-portable.mjs": "5a565157e244f6630d54abb67478b72ddec22ed87523a3d733b247a5a42edd89",
+    "negative-loader-portable.mjs": "4595816e90a974c74f01256671f87f4f7fc4e718e9e154afeb1644cc3dec3aa7",
+    "before.ts": "338ac9aa44766dc39f003ce3b421b5d0cd847159c4105d6b03771a959b3b2ca1",
+    "runs.json": "82161eaa89909a4c14370596e511e5908ff2555ebd88b27f4b71d8c1b62e7926",
+    "negative-e5.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

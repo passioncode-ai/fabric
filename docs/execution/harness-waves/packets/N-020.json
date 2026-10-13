@@ -1,0 +1,57 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-020",
+  "node": "N-020",
+  "parent_id": "CO-282",
+  "module": "Bound unresolved launch adapter I/O",
+  "intent": "Bound underlying operations across timeout and repeated current/cancel/release calls",
+  "expected_result": "One unresolved operation per entry; no late permission",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "apps/desktop/test/resource-launch-adapter.test.mjs",
+      "docs/execution/harness-waves/resource-launch-adapter.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "One unresolved operation per entry; no late permission",
+      "paths": [
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/resource-launch-adapter.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "node --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs"
+    },
+    {
+      "kind": "negative",
+      "check": "Seven new regressions fail against exact pre-fix source; repeated calls start one underlying operation"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

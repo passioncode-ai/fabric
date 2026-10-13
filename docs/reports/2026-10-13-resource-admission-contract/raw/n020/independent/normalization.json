@@ -1,0 +1,26 @@
+{
+  "candidate_commit": "d4ae7a295ec0c7a146c34e4b3afc6f52763a238a",
+  "receipt_binding": "Original reviewer candidate and source hashes retained; normalization creates portable derivatives, not a new acceptance run.",
+  "files": {
+    "run-0.log": {
+      "original_sha256": "67906a1b9c7657570f7408fca3a407d84801035d1f8f01042b66bef8b259ffd3",
+      "stored_sha256": "67906a1b9c7657570f7408fca3a407d84801035d1f8f01042b66bef8b259ffd3",
+      "normalization": "replace private roots with placeholders; CRLF to LF; strip trailing spaces/tabs per line"
+    },
+    "run-1.log": {
+      "original_sha256": "6aaea5d889fadff5859b41c86acadefc7dc7325478f969c81dc48559f89b0b98",
+      "stored_sha256": "6aaea5d889fadff5859b41c86acadefc7dc7325478f969c81dc48559f89b0b98",
+      "normalization": "replace private roots with placeholders; CRLF to LF; strip trailing spaces/tabs per line"
+    },
+    "review.mjs": {
+      "original_sha256": "83376ebde238780a076fcf51539613abd6c7ba430a5db7072b401eb3de8f4350",
+      "stored_sha256": "c6b824fbf137d43298d720d963b3d2c2faa20187d653e22832cd36a929856bc1",
+      "normalization": "absolute module imports replaced by equivalent repository-cwd pathToFileURL imports; fixture bodies unchanged"
+    },
+    "receipt.json": {
+      "original_sha256": "afb298783d32eb1b6db73a0d511a846d2e440fb64a41b940958a2afc3d1e9afa",
+      "stored_sha256": "b81e4a3d70d4b2653a81e343fdccdced0b471f68a246283e443e2b0ed9f8f92c",
+      "normalization": "replace private roots with placeholders; CRLF to LF; strip trailing spaces/tabs per line"
+    }
+  }
+}

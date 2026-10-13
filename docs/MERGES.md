@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 bounded recovery and durable waits · prepared, NOT MERGED
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- files: bounded recovery, CAS wait kernel/store, observation reduction, timeout retention and source-bound evidence
+- conflicts: preserved main7e51da91 including COM03 and CO283–286; generated projections rebuilt from the219/286 union
+- summary: recovery checkpoint ae197a15 full fast PASS. Later N019/N020 acceptance is recorded separately; pending107/108 are not active. Graph20 nodes retains owner admission/native/production composition gates. Entry: docs/handoffs/2026-10-13-harness-waves.md.
+
 ### 2026-10-13T12:30:00Z · `—` · agent/com03-registers → main · fast-forward
 - run: r-fc848dc29
 - files: 6

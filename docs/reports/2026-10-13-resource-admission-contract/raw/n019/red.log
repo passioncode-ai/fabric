@@ -1,0 +1,61 @@
+NOTICE:  event trigger "deny_anon_on_new_tables" does not exist, skipping
+NOTICE:  trigger "floored_effect_needs_live_reservation" for relation "effect_intents" does not exist, skipping
+NOTICE:  trigger "effect_success_needs_an_observation" for relation "effect_intents" does not exist, skipping
+NOTICE:  policy "effect_attempts_read" for relation "effect_attempts" does not exist, skipping
+NOTICE:  policy "session_heartbeats_read" for relation "session_heartbeats" does not exist, skipping
+NOTICE:  policy "deliveries_read" for relation "deliveries" does not exist, skipping
+NOTICE:  trigger "task_run_is_terminal" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "task_runs_read" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "memory_occurrences_read" for relation "memory_occurrences" does not exist, skipping
+NOTICE:  trigger "memory_fact_is_not_a_slot" for relation "memory_facts" does not exist, skipping
+NOTICE:  function memory_fact_is_not_a_slot() does not exist, skipping
+NOTICE:  trigger "an_estate_keeps_an_owner" for relation "memberships" does not exist, skipping
+NOTICE:  trigger "membership_revision_moves" for relation "memberships" does not exist, skipping
+NOTICE:  policy "membership_commands_read" for relation "membership_commands" does not exist, skipping
+PASS PostgreSQL dispatch migration: concurrent claim, stale generation, pre/post-boundary crash, completion, safe retry, unknown fence, identity/scope, ended run, privileges
+PASS managed launch SQL: concurrency, one-shot begin, idempotency, authority, legacy atomic bind, compensation, unknown ownership, replay, privileges
+PASS managed Stop SQL: concurrent intent, typed trusted observations, independent exit receipt, retained uncertainty, exact generation, immutable endings, proof-gated readmission, replay, privileges
+PASS R2 resource SQL: configured pool, safe integers, unknown readings, concurrent shared/child capacity, frozen retry, exact proof release, replay, marker restore refusal, client privileges
+PASS production resource recovery kernel: service-role SQL release/readback, recreated scanner, held unresolved, parent/child, changed fence refusal
+DIAGNOSTIC {"races":[{"ok":false},{"ok":false}],"attemptCounts":[1,1],"neverStarted":["f","f"],"inputValid":["t","t"]}
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+0 !== 1
+
+    at file:///privatefixture.mjs:49:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 0,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.10.0_2/bin/node fixture.mjs
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at test (file:///privaterunner.mjs:23:38)
+    at file:///privaterunner.mjs:34:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 57522,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v26.10.0

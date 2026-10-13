@@ -138,7 +138,8 @@
         "N-016",
         "N-017",
         "N-018",
-        "N-019"
+        "N-019",
+        "N-020"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -370,6 +371,25 @@
       ],
       "surface_class": "internal",
       "check": "Real isolated PostgreSQL CAS, restart, FIFO, immutable binding and client privilege fixtures; independent source review"
+    },
+    {
+      "id": "N-020",
+      "title": "Bound unresolved launch adapter I/O",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-014",
+        "N-018"
+      ],
+      "touches": [
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/resource-launch-adapter.md"
+      ],
+      "surface_class": "internal",
+      "check": "node --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs",
+      "evidence": []
     }
   ],
   "edges": [

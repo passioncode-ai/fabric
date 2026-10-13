@@ -92,6 +92,7 @@ interface Entry {
   outcome: Promise<AdmitOutcome>
   observedStartedAt?: number | null
   observedSnapshot?: string
+  outstanding?: object
 }
 /** Optional at composition only. Once installed this adapter never calls legacy
  * admission, even if pending migration107 is missing. No index.ts wiring yet.
@@ -133,13 +134,25 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
     } catch { /* A failed local diagnostic sink cannot alter admission/currentness/release authority. No raw input is logged. */ }
   }
   // #endregion resource-attempt-instrumentation
-  async function bounded<T>(call: () => T | PromiseLike<T>): Promise<T> {
+  async function bounded<T>(call: () => T | PromiseLike<T>, entry?: Entry): Promise<T> {
+    if (entry?.outstanding) throw Error('resource operation outstanding')
+    const operation = {}
+    // Reserve before invoking the dependency, including synchronous re-entry.
+    // A timeout ends only the caller's wait; it cannot cancel underlying I/O.
+    if (entry) entry.outstanding = operation
+    const pending = Promise.resolve().then(call)
+    if (entry) {
+      const settled = () => { if (entry.outstanding === operation) delete entry.outstanding }
+      // Both branches consume settlement without accepting a late outcome or
+      // creating a rejected cleanup promise. Only actual settlement frees the slot.
+      void pending.then(settled, settled)
+    }
     let timer: ReturnType<typeof setTimeout> | undefined
-    try { return await Promise.race([Promise.resolve().then(call), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error('resource timeout')), deps.timeoutMs) })]) }
+    try { return await Promise.race([pending, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error('resource timeout')), deps.timeoutMs) })]) }
     finally { if (timer) clearTimeout(timer) }
   }
-  async function rpc(name: string, args: Record<string, unknown>): Promise<unknown> {
-    const answer = await bounded(() => deps.db.rpc(name, args))
+  async function rpc(name: string, args: Record<string, unknown>, entry?: Entry): Promise<unknown> {
+    const answer = await bounded(() => deps.db.rpc(name, args), entry)
     if (answer.error) throw Error('resource receipt unavailable')
     return answer.data
   }
@@ -169,7 +182,7 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
     const started = observedNow(), phase = command === 'cancel_resource_admission' ? 'cancel' : 'release'
     try {
       const answer = data(await rpc(command, { p_estate: entry.input.estateId, p_reservation: entry.binding.identity.reservationId,
-        p_run: entry.receipt.task_run_id, p_session: entry.input.sessionId, p_fence: String(entry.binding.identity.fence) }))
+        p_run: entry.receipt.task_run_id, p_session: entry.input.sessionId, p_fence: String(entry.binding.identity.fence) }, entry))
       const released = answer.released === true && positive(answer.receipt_seq)
       observe(entry, phase, released ? 'accepted' : 'unknown', released ? 'released' : 'release-unconfirmed', started)
       return released
@@ -225,7 +238,7 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
       if (!entry?.binding || !entry.receipt) return false
       const started = observedNow()
       try {
-        const current = await bounded(() => deps.current(entry.binding!, entry.receipt!)) === true
+        const current = await bounded(() => deps.current(entry.binding!, entry.receipt!), entry) === true
         observe(entry, 'currentness', current ? 'accepted' : 'refused', current ? 'current' : 'not-current', started)
         return current
       } catch { /* Failed currentness is a returned refusal, never permission to continue. */

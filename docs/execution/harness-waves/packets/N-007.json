@@ -9,7 +9,7 @@
   "inputs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
     },
     {
       "address": "scripts/ci.sh",
@@ -19,7 +19,7 @@
   "decision_refs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
     }
   ],
   "source_scope": {

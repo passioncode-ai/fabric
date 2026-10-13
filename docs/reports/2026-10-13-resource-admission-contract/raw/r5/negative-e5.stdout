@@ -1,0 +1,92 @@
+✖ ten repeated timeout calls retain one outstanding dependency until settlement for every entry point (7.505542ms)
+✖ late nested permit after dispatch timeout cannot initiate new dependency work (6.594291ms)
+✖ nested permit dependency remains owned after timeout and releases busy only after settlement (6.175417ms)
+✖ retained permit after completed operation is revoked before inspecting anything (0.716834ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.663125
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-wait-queue.test.mjs:241:1
+✖ ten repeated timeout calls retain one outstanding dependency until settlement for every entry point (7.505542ms)
+  AssertionError [ERR_ASSERTION]: enqueue
+
+  'waiting' !== 'busy'
+
+      at TestContext.<anonymous> (file://apps/desktop/test/resource-wait-queue.test.mjs:253:41)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'waiting',
+    expected: 'busy',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-wait-queue.test.mjs:260:1
+✖ late nested permit after dispatch timeout cannot initiate new dependency work (6.594291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'outcome_unknown'
+  - 'busy'
+
+      at TestContext.<anonymous> (file://apps/desktop/test/resource-wait-queue.test.mjs:267:39)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'outcome_unknown',
+    expected: 'busy',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-wait-queue.test.mjs:272:1
+✖ nested permit dependency remains owned after timeout and releases busy only after settlement (6.175417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'outcome_unknown'
+  - 'busy'
+
+      at TestContext.<anonymous> (file://apps/desktop/test/resource-wait-queue.test.mjs:280:39)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'outcome_unknown',
+    expected: 'busy',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-wait-queue.test.mjs:285:1
+✖ retained permit after completed operation is revoked before inspecting anything (0.716834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file://apps/desktop/test/resource-wait-queue.test.mjs:290:52)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

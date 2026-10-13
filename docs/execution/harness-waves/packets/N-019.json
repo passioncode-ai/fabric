@@ -9,13 +9,13 @@
   "inputs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
     }
   ],
   "decision_refs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+      "sha256": "b93bc02eab7ecfa262be446cf0708da15f4065ae9fdf6051aadb54abe17d3b78"
     }
   ],
   "source_scope": {
@@ -40,7 +40,7 @@
   "acceptance": [
     {
       "kind": "positive",
-      "check": "Execute positive cases in plan N-017 and corresponding resource packet"
+      "check": "Execute real SQL positive and negative cases in plan N-019 and resource-wait-store.md, including lost committed CAS reply"
     },
     {
       "kind": "negative",

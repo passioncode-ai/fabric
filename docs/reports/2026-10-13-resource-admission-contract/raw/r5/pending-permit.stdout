@@ -1,0 +1,1 @@
+{"case":"dispatcher-returns-before-nested-permit-settles","permitOutcome":false,"reads":0,"inspections":2,"passed":true}

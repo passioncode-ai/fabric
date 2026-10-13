@@ -96,7 +96,9 @@ They use unresolved promises and fake time, not real network cancellation.
 
 ## Remaining integration
 
-A real durable queue migration/store, atomic ownership and replay tests,
+The pending108 SQL store and real-role fixture now exist in [N019](resource-wait-store.md);
+its complete corrected database acceptance is separate from this pure-kernel receipt.
+Active durable queue configuration,
 R2/pending107 activation, R3 production composition/currentness and exact receipt
 hydration remain required. R4 proof is required before reclaiming live resources;
 it is not a prerequisite to queuing never-started work. Queue reconciliation,
@@ -105,8 +107,8 @@ and external callback compatibility are NOT_RUN. Existing board cancellation or
 board upkeep does not satisfy those requirements.
 
 Retros applied: R-006 requires the executable negative controls; R-007 requires
-this explicit fake-store boundary; R-003 reserves real database-role probes for
-the future SQL producer. Root owns the shared plan, CI wiring, map and handoff.
+this explicit fake-store boundary; R-003 requires actual database-role probes for
+the separate pending108 SQL producer. Root owns the shared plan, CI wiring, map and handoff.
 
 Independent review also found an accidental async clock provider could return a
 rejected Promise: the kernel returned unknown but Node then terminated on the

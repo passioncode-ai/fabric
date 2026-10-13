@@ -162,7 +162,9 @@ for (const failure of ['changed', 'throw', 'timeout']) test(`currentness ${failu
   f.currentHook = () => { if (failure === 'throw') throw Error('private proof'); if (failure === 'timeout') return new Promise(() => {}); return false }
   const result = await createManagedLaunch(f.managed)({ taskId: ids.task, trigger: 'operator' })
   assert.equal(result.started, false); assert.equal(f.spawned, 0)
-  const order = names(f); assert.ok(order.indexOf('release_resource_reservation') > order.indexOf('fail_task_launch'))
+  const order = names(f)
+  if (failure === 'timeout') assert.equal(order.includes('release_resource_reservation'), false, 'unsettled currentness retains the shared I/O slot and capacity')
+  else assert.ok(order.indexOf('release_resource_reservation') > order.indexOf('fail_task_launch'))
   const failed = f.calls.find(c => c.name === 'fail_task_launch'); assert.equal(failed.args.p_process_started, false)
 })
 test('a chain cannot supply an untracked legacy or altered receipt in required mode', async () => {
@@ -232,4 +234,57 @@ test('late successful RPC after timeout never enables a later spawn', async () =
     instruction: 'late', run_ordinal: 2, receipt_seq: 12, resource_reservation: { reservation_id: `r-${ids.session}`, state: 'held', run_ordinal: 2 } } })
   await new Promise(resolve => setImmediate(resolve))
   assert.deepEqual(await f.admit(input()), a); assert.equal(f.calls.length, 1)
+})
+
+// N-020: deadlines bound waiting, while one shared slot bounds actual unsettled work.
+for (const first of ['current', 'cancelUnbegun', 'releaseCompensated']) {
+  for (const completion of ['resolve', 'reject']) test(`one outstanding entry operation across methods: ${first}, late ${completion}`, async () => {
+    const f = fixture(), observations = []
+    const adapter = createResourceLaunchAdapter({ ...f.deps, maxEntries: 1, timeoutMs: 5,
+      observations: { sink: { record: sample => observations.push(sample) } } })
+    const admission = await adapter.admit(input()); assert.equal(admission.admitted, true)
+    let finish, requests = 0
+    const pending = new Promise((resolve, reject) => { finish = completion === 'resolve' ? resolve : reject })
+    f.currentHook = () => { requests++; return pending }
+    f.rpc = name => {
+      if (name === 'cancel_resource_admission' || name === 'release_resource_reservation') { requests++; return pending }
+    }
+    const firstResult = adapter[first](admission.receipt)
+    const crossMethods = ['current', 'cancelUnbegun', 'releaseCompensated']
+    assert.deepEqual(await Promise.all(crossMethods.map(method => adapter[method](admission.receipt))), [false, false, false])
+    assert.equal(await firstResult, false)
+    for (let repeat = 0; repeat < 3; repeat++) {
+      for (const method of crossMethods) assert.equal(await adapter[method](admission.receipt), false)
+    }
+    assert.equal(requests, 1, 'timeouts and cross-method retries must retain the same unsettled operation slot')
+    assert.deepEqual(await adapter.admit(input()), admission, 'cached admission remains available without new I/O')
+    assert.equal(f.prepares, 1)
+    assert.equal(names(f).filter(name => name === 'admit_resource_task_launch').length, 1)
+    const samplesBeforeSettlement = observations.length
+    finish(completion === 'reject' ? Error('private late rejection') : first === 'current' ? true : { data: { released: true, receipt_seq: 25 } })
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(observations.length, samplesBeforeSettlement, 'late success never adds an accepted diagnostic or permission')
+    assert.equal(observations.filter(sample => sample.phase !== 'admission').every(sample => sample.outcome === 'unknown'), true)
+    assert.equal(await firstResult, false, 'late proof/release success cannot change the timed-out result')
+    f.currentHook = undefined; f.rpc = undefined
+    assert.equal(await adapter.current(admission.receipt), true, 'actual settlement permits a fresh independent check')
+    assert.equal(await adapter.cancelUnbegun(admission.receipt), true)
+    assert.equal(await adapter.releaseCompensated(admission.receipt), true)
+  })
+}
+test('pending operation blocks only its own entry and consumes a late rejection', async () => {
+  const f = fixture(), adapter = createResourceLaunchAdapter({ ...f.deps, maxEntries: 2, timeoutMs: 5 })
+  const a = await adapter.admit(input()), b = await adapter.admit({ ...input(), sessionId: ids.project })
+  let rejectFirst, firstCalls = 0
+  f.currentHook = (_binding, receipt) => receipt.session_id === ids.session
+    ? (firstCalls++, new Promise((_resolve, reject) => { rejectFirst = reject })) : true
+  const waiting = adapter.current(a.receipt)
+  assert.equal(await adapter.current(b.receipt), true)
+  assert.equal(await adapter.releaseCompensated(b.receipt), true)
+  assert.equal(await waiting, false)
+  assert.equal(await adapter.current(a.receipt), false); assert.equal(firstCalls, 1)
+  rejectFirst(Error('private failed I/O'))
+  await new Promise(resolve => setImmediate(resolve))
+  f.currentHook = undefined
+  assert.equal(await adapter.current(a.receipt), true)
 })

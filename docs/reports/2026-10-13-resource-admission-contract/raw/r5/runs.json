@@ -1,0 +1,53 @@
+[
+  {
+    "name": "focused",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test",
+      "apps/desktop/test/resource-wait-queue.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "negative-e5",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--import",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r5/negative-loader-portable.mjs",
+      "--test",
+      "--test-name-pattern",
+      "ten repeated|late nested|nested permit dependency|retained permit",
+      "apps/desktop/test/resource-wait-queue.test.mjs"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "clock-counterexample",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r5/clock-counterexample-portable.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "clock-default-node",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r5/clock-default-node-portable.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "pending-permit",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r5/pending-permit-portable.mjs"
+    ],
+    "exit_code": 0
+  }
+]

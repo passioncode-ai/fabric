@@ -1,0 +1,81 @@
+{
+  "node": "N-019",
+  "initial_candidate": "9495aab4564dcd65fe93d7577d0e6cbb05c662b9",
+  "fixture_correction": "c6f5ce5bdfcc0e3c88bbcddbb6872dee60c6dc2e",
+  "static_review": {
+    "verdict": "SCOPED_ACCEPT_REPORTED_BY_INDEPENDENT_PEER",
+    "reviewer": "pipeline_research",
+    "pin": "9495aab4564dcd65fe93d7577d0e6cbb05c662b9",
+    "limitations": "Static source review only; no independent database execution acceptance."
+  },
+  "authorship_disclosure": "mcp_research authored N019 SQL/client/fixture/docs and diagnostic fixture correction; this receipt is a builder record, not independent acceptance.",
+  "actual_db": {
+    "state": "INCOMPLETE",
+    "first_root_run": {
+      "exit": 1,
+      "log": "fabric-harness-wait-store-db.log"
+    },
+    "diagnostic_replay": {
+      "exit": 1,
+      "log": "red.log",
+      "observed": {
+        "race_results": [
+          {
+            "ok": false
+          },
+          {
+            "ok": false
+          }
+        ],
+        "existing_resource_attempt_counts": [
+          1,
+          1
+        ],
+        "input_valid": [
+          true,
+          true
+        ],
+        "never_started": [
+          false,
+          false
+        ]
+      },
+      "diagnosis": "Wait fixture reused attempt-12/attempt-14 from preceding R4 fixture. Production refusal was correct."
+    },
+    "corrected_run": {
+      "exit": 2,
+      "log": "green.log",
+      "state": "NOT_RUN_DISK_GUARD",
+      "cluster_created": false
+    },
+    "remaining": "Corrected full pending108 fixture: capacity/FIFO/CAS/compensation/roles/client-kernel/lost-reply restart acceptance."
+  },
+  "correction": {
+    "production_changed": false,
+    "description": "Distinct wait-store-attempt fixture namespace plus explicit existing reservation-ledger attempt refusal; truthful partial-acceptance documentation."
+  },
+  "hashes": {
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+    "apps/desktop/src/main/resourceWaitStore.ts": "284d1e291300e65799157bbf94b6934355474161181c8b9ab539d9f10f8701b6",
+    "apps/desktop/test/resource-wait-store-db.test.mjs": "7f56f63775e0f20f4bec58c3b0491e50f20c120c75c7284bf3545cf846b09af7",
+    "docs/execution/harness-waves/resource-wait-store.md": "7fa230452fb5b187bb06dcedf394fddd01eeb4c082a008b0a9cd2ab8e49497ed"
+  },
+  "checks": [
+    {
+      "command": "node --check apps/desktop/test/resource-wait-store-db.test.mjs",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "boundaries": {
+    "pending_migration_only": true,
+    "active_schema_applied": false,
+    "native_process_started": false,
+    "provider_invocation": false,
+    "production_wiring": false,
+    "r5_complete": false
+  }
+}

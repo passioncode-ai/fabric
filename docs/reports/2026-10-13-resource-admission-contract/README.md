@@ -167,18 +167,6 @@ Registration persists from the operator's earlier explicit approval. No sign-in,
 service restart, private token, installed Fabric change or live provider call was performed.
 
 
----
-
-**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
-
-- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — modular waves and review
-- [`agent-sync`](https://github.com/ssheleg/agent-sync) — exclusive ownership
-- [`agent-stack`](https://github.com/ssheleg/agent-stack) — admission boundaries
-- [`evidence-docs`](https://github.com/ssheleg/task-pipeline) — source-bound evidence
-- `project-reports` — durable report — not a skill this family ships
-
-<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>
-
 
 ## Probe gate correction
 
@@ -198,13 +186,13 @@ PostgreSQL caller test then exposed RLS-hidden rows under a service role without
 BYPASSRLS. Pending107 now explicitly permits service-role SELECT, still denies client
 reads and table writes, and indexes the scoped held-row scan. The corrected SQL run
 passes; [rejected and corrected receipts](raw/r4/sql-corrected.json) retain the boundary.
-Extra privilege assertions from8c5a870 await the combined run. Comments-only d71922ba
+Extra privilege assertions from8c5a870 pass in the combined ae197a15 run. Comments-only d71922ba
 explain structured uncertainty without logging raw database errors.
 
 N-017's internal wait kernel preserves never-started identities, CAS ownership, FIFO
 head selection and the unreplayable begun-effect barrier. Review rejected timeout I/O
 accumulation and an accidentally asynchronous clock rejection; candidates57d7f36e
-and66bf406a correct them. Independent acceptance and combined validation are separate.
+and66bf406a correct them. Independent acceptance at66bf406a passes26 tests, four old-source negative regressions and async-clock/late-permit controls; [receipt](raw/r5/receipt.json), [normalization](raw/r5/normalization.json).
 N-019 is the allocated pending108 real SQL/CAS-store producer; until it passes, shared
 in-memory fixtures do not establish durable wait persistence. Neither module enables
 a production timer or proves fairness across bypassing launch paths.
@@ -220,3 +208,49 @@ synthetic deltas nor lesson retrieval prove savings, causal benefit or policy au
 The temporary deinitialization of the owned workspace for disk reserve caused a separate
 compiler prerequisite failure, [recorded here](raw/probe-fixed-prerequisite-rejected.json).
 The exact pinned child was restored, then all53 compiler tests passed. No gate was waived.
+
+
+## Combined recovery checkpoint and adapter correction
+
+Commit `ae197a1552231a9252754f9ee296736f94269471`, tree
+`73f62899eceb74f60445f506ac1e950b03709aff`, passed the complete fast tier in615.87s.
+[Receipt](raw/recovery-wave-fast.json). This includes real R4 SQL under a non-BYPASSRLS
+service role. It does not certify subsequent N019/N020 changes.
+
+N020 independently reproduces the timeout finding in the launch adapter: six sequential
+timeouts started six unresolved operations per method. Corrected d4ae7a29 retains one
+shared slot per entry across current/cancel/release; independent entries remain parallel.
+Seven new tests fail against original source,67 adapter/observation tests pass corrected
+source; the separate reviewer adds reentry,100-repeat and cross-entry controls.
+[Portable evidence](raw/n020/README.md). Scope remains one reused adapter instance,
+not transport cancellation, installed runtime or global scheduling.
+
+
+## N019 SQL fixture diagnosis and remaining activation
+
+The first combined resource runner applied pending107/108 and passed legacy launch/Stop,
+R2 and R4. Its wait-store concurrency assertion then failed because prior R4 fixtures
+had already reserved both generic attempt IDs. [Builder diagnosis](raw/n019/receipt.json) and [first root log](raw/n019/fabric-harness-wait-store-db.log) preserve the failure. Actual SQL diagnostics found both inputs
+well formed and both identities already reserved. Candidate c6f5ce5b namespaces wait
+fixture IDs and explicitly checks that a pre-existing reservation identity still refuses.
+A subsequent run returned NOT_RUN before startup at the1.5GiB disk reserve gate.
+No capacity assertion or role restriction was weakened. Final corrected SQL acceptance
+is recorded separately; a prepared fixture is not an accepted durable queue.
+
+[Activation prerequisites](../../execution/harness-waves/resource-activation-prerequisites.md)
+name actual producers and missing policy/sampling/ownership evidence. Local preparation
+is not blocked by COM consent. Active migration order, native execution and owner
+contracts retain their separate gates. No further placeholder store is required for R4
+capacity safety: durable SQL release authority plus retained uncertainty already exists.
+
+---
+
+**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — modular waves and review
+- [`agent-sync`](https://github.com/ssheleg/agent-sync) — exclusive ownership
+- [`agent-stack`](https://github.com/ssheleg/agent-stack) — admission boundaries
+- [`evidence-docs`](https://github.com/ssheleg/task-pipeline) — source-bound evidence
+- `project-reports` — durable report — not a skill this family ships
+
+<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>

@@ -1,0 +1,77 @@
+{
+  "changes": "Replace temporary artifact and worktree paths; strip trailing whitespace. Historical receipt artifact hashes describe original bytes. This manifest binds stored bytes.",
+  "files": {
+    "clock-counterexample.stderr": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "input-hashes.json": {
+      "original_sha256": "8560bda0368743d2354de0ec2cc65e181d52d50c314e00b1199f83ea15ca05ce",
+      "normalized_sha256": "8560bda0368743d2354de0ec2cc65e181d52d50c314e00b1199f83ea15ca05ce"
+    },
+    "clock-default-node.stdout": {
+      "original_sha256": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5",
+      "normalized_sha256": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5"
+    },
+    "focused.stdout": {
+      "original_sha256": "a0137bb69f913c8c897ad7144cb6619d4866140a16f1fc091e6da49d2a3b81c3",
+      "normalized_sha256": "a0137bb69f913c8c897ad7144cb6619d4866140a16f1fc091e6da49d2a3b81c3"
+    },
+    "clock-default-node-portable.mjs": {
+      "original_sha256": "235b00e830d538c453b58930acbf94ef40bab84dd4b1defd504e2ac6ace43249",
+      "normalized_sha256": "235b00e830d538c453b58930acbf94ef40bab84dd4b1defd504e2ac6ace43249"
+    },
+    "clock-default-node.stderr": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pending-permit-portable.mjs": {
+      "original_sha256": "9238511281c7e6ce69a71540d4be077a72e19663e1895a49a93608f02e687724",
+      "normalized_sha256": "9238511281c7e6ce69a71540d4be077a72e19663e1895a49a93608f02e687724"
+    },
+    "focused.stderr": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "clock-counterexample.stdout": {
+      "original_sha256": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5",
+      "normalized_sha256": "d3238933f9d1590008ab3d8bac2d8fa214372ef8a0952355e7d205a1bec598b5"
+    },
+    "negative-e5.stdout": {
+      "original_sha256": "0090cef99fbdcae5b6ddd9a322a44ec12f7e06c17f2924ea111cc90c3e6d856b",
+      "normalized_sha256": "ee6f66b7bf889d40fecfcffe47cbf2d96c026d631a61ccc86efc8c6cc901a097"
+    },
+    "pending-permit.stderr": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pending-permit.stdout": {
+      "original_sha256": "bfe6918b10b24140848bc488cb357046b89cc6da76c1dde8c86c93a390fa04ad",
+      "normalized_sha256": "bfe6918b10b24140848bc488cb357046b89cc6da76c1dde8c86c93a390fa04ad"
+    },
+    "clock-counterexample-portable.mjs": {
+      "original_sha256": "5a565157e244f6630d54abb67478b72ddec22ed87523a3d733b247a5a42edd89",
+      "normalized_sha256": "5a565157e244f6630d54abb67478b72ddec22ed87523a3d733b247a5a42edd89"
+    },
+    "negative-loader-portable.mjs": {
+      "original_sha256": "4595816e90a974c74f01256671f87f4f7fc4e718e9e154afeb1644cc3dec3aa7",
+      "normalized_sha256": "4595816e90a974c74f01256671f87f4f7fc4e718e9e154afeb1644cc3dec3aa7"
+    },
+    "before.ts": {
+      "original_sha256": "338ac9aa44766dc39f003ce3b421b5d0cd847159c4105d6b03771a959b3b2ca1",
+      "normalized_sha256": "338ac9aa44766dc39f003ce3b421b5d0cd847159c4105d6b03771a959b3b2ca1"
+    },
+    "runs.json": {
+      "original_sha256": "82161eaa89909a4c14370596e511e5908ff2555ebd88b27f4b71d8c1b62e7926",
+      "normalized_sha256": "83a11aac37da0607968600412e38ee938a7a28574ee7e45dda4d19e4e08f14c7"
+    },
+    "receipt.json": {
+      "original_sha256": "72a1e5bab2570427f7f1607fe7447521e052d837f5e27c81a70525dd80d0ce3e",
+      "normalized_sha256": "a718ce0b0108e38f372c373be842f2536f046cd8b979038499951162cae816f0"
+    },
+    "negative-e5.stderr": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

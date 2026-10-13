@@ -1,0 +1,13 @@
+{
+  "before_tree": "73f62899eceb74f60445f506ac1e950b03709aff",
+  "after_tree": "73f62899eceb74f60445f506ac1e950b03709aff",
+  "exit": 0,
+  "elapsed_seconds": 615.87,
+  "commit": "ae197a1552231a9252754f9ee296736f94269471",
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "limits": [
+    "Source and disposable SQL fixtures only; installed/runtime/native/owner acceptance not implied",
+    "Node26.10 differs from repository26.8.2; dependency verification warns",
+    "Subsequent N019/N020 changes require fresh gate"
+  ]
+}

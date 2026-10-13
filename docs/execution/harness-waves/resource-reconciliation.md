@@ -90,20 +90,15 @@ operation separate from the finished sweep. Query and release regressions each m
 ten further calls while the original operation never settles, require exactly one
 operation, then settle it late and require a fresh read before continuing.
 
-Real SQL integration for this new caller: **NOT_RUN**, pending the serialized owned
-PostgreSQL test slot. The prepared [caller fixture](../../../apps/desktop/test/resource-reconciliation-db.test.mjs)
-imports the production kernel, translates its fluent query to a real scoped SQL
-projection, and invokes the real release RPC as `service_role` through bounded psql.
-It requires the existing pending-107 runner's disposable socket database; run it after
-`resource-reservation-db.test.mjs` in that same cluster. The fixture covers compensated
-release, a recreated scanner, unresolved ownership, parent/child release order and
-a changed-fence negative control. Syntax validation passed; execution is not yet a receipt. Existing R2 SQL acceptance is linked from the
-[resource review](../../reports/2026-10-13-resource-admission-contract/README.md#r2--reviewed-pending-reservation-authority)
-and does not certify this new transport caller. Before activation, exercise this
-kernel against an owned fixture applying the active chain plus pending 107: unresolved
-process/provider/Stop states must remain held, valid exact-generation proof must
-release, duplicate completion must not mint another release, and restore must retain
-uncertainty. Independent source review and combined type/gate checks are also pending.
+Real SQL integration of the production caller passed in the owned PostgreSQL cluster.
+The [combined receipt](../../reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json)
+binds commit `ae197a1552231a9252754f9ee296736f94269471` and its exact tree.
+The caller fixture checks compensated release, recreated scanner, unresolved ownership,
+parent/child order and changed-fence refusal as a service role without BYPASSRLS.
+It also verifies held rows are visible through explicit SELECT policies while client reads
+and service table writes remain denied. Initial RLS failure and corrected replay are
+preserved in the [resource review](../../reports/2026-10-13-resource-admission-contract/README.md#n-016n-019--recovery-waits-and-measurements).
+These are real disposable SQL checks, not installed database or native Stop acceptance.
 
 ## Continuation and lessons applied
 
@@ -114,8 +109,10 @@ its new caller acceptance separate from previous R2 fixtures. Local implementati
 is permitted while board admission is unavailable; no cross-project owner acceptance
 is inferred.
 
-Next executable unit: isolated SQL integration of this kernel, then durable unknown
-outcome/checkpoint storage and targeted retry after restart. Production scheduling,
+Next activation unit: compose one reused bounded scanner with the trusted production
+client and observe native Stop/recovery behavior after pending migration promotion.
+Durable diagnostic unknown-outcome/checkpoint storage is optional efficiency/history
+work: lost replies do not release capacity locally, and SQL retains release authority. Production scheduling,
 restored-marker inventory, current native/provider observers and all entry-path
 coverage remain open. Pending DDL promotion still needs the owning migration order
 (104 is integrated; 105–106 remain reserved). Trusted policy/sampler work governs

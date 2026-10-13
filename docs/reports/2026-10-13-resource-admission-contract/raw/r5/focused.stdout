@@ -1,0 +1,34 @@
+✔ authorized wake re-enters dispatcher with exact frozen identity and one boundary permit (2.349709ms)
+✔ concurrent workers and restart use stored CAS identity without replay (0.53125ms)
+✔ idempotent enqueue rejects changed identity without replacing the record (0.747958ms)
+✔ live work is never enqueued and there is no process-release operation (0.085959ms)
+✔ strict FIFO holds cheap work behind capacity-blocked expensive head then eventually admits it (1.205791ms)
+✔ cancellation wins CAS while readiness is in flight; no effect follows (0.226625ms)
+✔ cancellation after begin is not process termination or retry permission (0.200625ms)
+✔ restart reclaims only expired pre-effect claim and fences the previous worker (0.237625ms)
+✔ changed inputs/authority at final boundary refuse even after ready selection (0.189583ms)
+✔ invalid ownership is invalidated; unknown conditions do not authorize and back off (0.274291ms)
+✔ deadline and backwards clock never authorize effects (0.210042ms)
+✔ expired permit, duplicate permit and success without permit are not accepted (0.652791ms)
+✔ timeout after begin retains unknown and restarted worker never blindly retries (12.518458ms)
+✔ lost begin reply persists an unreclaimable effect fence, without calling dispatch (0.264875ms)
+✔ lost settlement reply cannot reset dispatched work (0.431834ms)
+✔ refused admission is terminal for this attempt; do not recycle adapter cached identity (0.246084ms)
+✔ incomplete, oversized, unsorted, foreign and unknown-state pages fail closed (0.764459ms)
+✔ hostile inputs and accessor observations are rejected without invoking getters (0.281167ms)
+✔ dependency failures and stale CAS receipts refuse without exposing raw errors (0.19375ms)
+✔ explicit safe bounds and queue clock are required (0.154541ms)
+✔ negative controls fail when final authority, unknown fence or FIFO selection is removed (490.743334ms)
+✔ ten repeated timeout calls retain one outstanding dependency until settlement for every entry point (23.696917ms)
+✔ late nested permit after dispatch timeout cannot initiate new dependency work (8.079ms)
+✔ nested permit dependency remains owned after timeout and releases busy only after settlement (7.556291ms)
+✔ retained permit after completed operation is revoked before inspecting anything (0.298042ms)
+✔ ordinary rejected async clock is refused without an unhandled process rejection (87.785375ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 732.787916

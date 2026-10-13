@@ -1,14 +1,14 @@
 # CO-282 — portable harness waves handoff
 
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
-[the 19-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+[the 20-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource
 enforcement, cross-owner acceptance and native acceptance remain open.
 
 ## Current source and bounded results
 
 Integration branch: `agent/harness-integrated-20261013` in `passioncode-ai/fabric`;
-source snapshot `a3ad1cb5e47a88ab1fc3882f90ebe1478c1622e6`.
+verified recovery source `ae197a1552231a9252754f9ee296736f94269471`; later candidate changes are disclosed below.
 Merge `cc123baf67753d817282fdd686365051ae897d66` preserves main privacy changes through
 `f4e21d18fd5b077291652b0508fde2ba43378b1a`. This snapshot is not a main merge,
 installation, publication or final branch-delivery receipt.
@@ -27,10 +27,23 @@ admission. Source acceptance, active schema, configured policy and native behavi
 separate claims. N-007/N-008 must close against the expanded candidate, not inherit the
 first-wave completion. Final graph reconciliation and delivery receipts follow integration.
 
-**Expanded-candidate full fast gate: NOT_RUN at this handoff update.** Typecheck passed before the narrow N-015 order correction; the final fast tier
-will validate the combined source. Root integration owns final checks, source-bound
-receipts, push and publication outcomes. Do not reuse historical compiler or application
-results without checking the relevant inputs.
+**Verified recovery checkpoint:** full `bash scripts/ci.sh fast` PASS at
+`ae197a1552231a9252754f9ee296736f94269471`, exact tree
+`73f62899eceb74f60445f506ac1e950b03709aff`; [receipt](../reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json).
+N016 recovery, N017 wait kernel and N018 observations are present there. Subsequent
+N019 durable store and N020 adapter timeout correction require their own acceptance.
+Main documentation through `7e51da91099c13abbcd2a29a62fae59d2b6bafdb` is preserved
+in `d96f62e7`: union219/286 carry-over rows, next CO287.
+
+N020: seven new regressions fail on original source; corrected adapter/observations
+pass67 tests and five independent adversarial checks.
+[Portable receipt](../reports/2026-10-13-resource-admission-contract/raw/n020/README.md).
+N019: actual SQL application succeeded but the first fixture incorrectly reused
+R4 attempt IDs; the ledger correctly refused both. Fixture c6f5ce5b namespaces them
+and retains an explicit collision-refusal test. Corrected full SQL acceptance is pending.
+
+Source review and module tests do not establish active schema, installed runtime,
+production composition, all-host behavior or owner adoption.
 
 ## Historical first-wave receipts
 
@@ -57,13 +70,16 @@ a historical scope count, not completion of product requirements.
 
 ## Exact next work and dependencies
 
-1. Finish expanded-source review and gates, reconcile the 19-node graph, then record exact
-   delivery and publication outcomes. Preserve the source and historical receipts above.
-2. Continue independently executable local work from the
-   [resource packets](../execution/harness-waves/resource-implementation.md): R4 recovery,
-   R5 durable waits/deduplicated wakes/fairness and R6 measurements/evidence-bound feedback.
-   Use their real dependencies and per-module acceptance; no blanket requirement to await
-   external protocol approval before writing internal implementations.
+1. Re-run the existing one-cluster resource DB runner after its disk reserve is
+   available; it applies pending107/108 and tests real R2/R4/R5 roles, races and restart.
+   Then run the final combined fast tier, close reviewed nodes with source-bound
+   receipts, push and publish through the existing workspace publisher. Do not
+   waive the 1.5GiB fixture gate or claim a prior tree covers subsequent changes.
+2. The [activation prerequisites](../execution/harness-waves/resource-activation-prerequisites.md)
+   identify the next bounded source work: trusted policy/sampler, actual input/scope
+   ownership verifier, then one composed supported launch path. These local producers
+   are executable without portable-protocol approval. Existing ref viewers and
+   overlap warnings cannot be substituted for exclusive current ownership.
 3. Before activation, resolve migration ordering with the owners of reserved positions
    105–106 after COM-03 applied104; pending 107 is not active DDL. Recheck current admission/Stop protections,
    migration ledger, schema contract, fresh/upgrade/restore and privilege behavior.

@@ -1,0 +1,5 @@
+{
+  "apps/desktop/src/main/resourceWaitQueue.ts": "7c6129540b80869122eba010228e1dca4d3ea2779598e67abc1c3a50af848223",
+  "apps/desktop/test/resource-wait-queue.test.mjs": "a3f5a08d4c5b29c80631ecdebe114d956dc060060f3c0ce34c44910b76ab09ad",
+  "docs/execution/harness-waves/resource-wait-queue.md": "c08c66cbd332676265c64196215d14d2be76e3e72d80487bf1b530a4229412c1"
+}

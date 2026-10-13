@@ -1,0 +1,13 @@
+✔ independent current: synchronous reentry, 100 retries, late refusal, fresh operation (11.606625ms)
+✔ independent cancelUnbegun: synchronous reentry, 100 retries, late refusal, fresh operation (8.040667ms)
+✔ independent releaseCompensated: synchronous reentry, 100 retries, late refusal, fresh operation (18.687666ms)
+✔ independent cached prepare timeout cannot restart or expose late receipt (7.879708ms)
+✔ independent cached admission timeout cannot restart or expose late receipt (18.422292ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.643709

@@ -273,3 +273,18 @@ actual never-started state, FIFO order, revision and permitted state transitions
 begun effects remain reconciliation barriers; elapsed time never authorizes replay.
 The client adapter and owned PostgreSQL fixture must exercise real service-role RPCs and
 client-role denials. No portable protocol, production loop or active schema is implied.
+
+
+### N-020 — retain timed-out launch adapter operations
+
+Actual repeated-call probes found that each timed-out `current`, `cancelUnbegun` or
+`releaseCompensated` could start another unresolved operation for the same cached entry.
+Retain one shared operation slot per entry until its underlying I/O settles, return
+false/unknown while busy, and never adopt a late reply as permission. Different entries
+remain independent. A hung currentness query conservatively retains capacity because
+release must not bypass that unresolved operation. Scope is this adapter instance; no
+transport cancellation or restart-wide boundedness is implied.
+
+N-020 owns resourceLaunchAdapter.ts, its existing test and resource-launch-adapter.md.
+Independent review runs the seven new regressions against the exact old source, the
+corrected adapter plus R6 observation suite and source-bound negative receipts.

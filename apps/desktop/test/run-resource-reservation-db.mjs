@@ -25,11 +25,14 @@ try {
   // Deliberately fixture-applied: this proposal is NOT in the application's active chain.
   const migration = readFileSync(new URL('../../../supabase/pending-migrations/20261013000107_resource_reservations.sql', import.meta.url), 'utf8')
   run('psql', [url, '-X', '-q', '-v', 'ON_ERROR_STOP=1'], migration)
+  const waitMigration = readFileSync(new URL('../../../supabase/pending-migrations/20261013000108_resource_wait_queue.sql', import.meta.url), 'utf8')
+  run('psql', [url, '-X', '-q', '-v', 'ON_ERROR_STOP=1'], waitMigration)
   test('./managed-launch-db.test.mjs')
   test('./managed-stop-db.test.mjs')
   test('./resource-reservation-db.test.mjs')
   test('./resource-reconciliation-db.test.mjs')
-  console.log('PASS pending R2 SQL plus legacy managed launch/stop on one disposable PostgreSQL cluster')
+  test('./resource-wait-store-db.test.mjs')
+  console.log('PASS pending R2/R5 SQL plus recovery and legacy managed launch/stop on one disposable PostgreSQL cluster')
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'fast', '-w', 'stop'])
   rmSync(dir, { recursive: true, force: true })

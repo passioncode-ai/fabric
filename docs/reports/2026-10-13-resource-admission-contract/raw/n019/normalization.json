@@ -1,0 +1,21 @@
+{
+  "transform": "Private worktree and temporary output paths normalized; trailing whitespace stripped. Candidate and test outcomes unchanged.",
+  "files": {
+    "receipt.json": {
+      "original_sha256": "abfefd54496584e2d9b34b002f2d1fa0f52e7b5d752bd202132c27ec7657767b",
+      "stored_sha256": "cf218355cc3ca78c8cf37dabfceb8dd2db12f2af93f387c9f01a452b46da034f"
+    },
+    "red.log": {
+      "original_sha256": "4ea9d813bd7d985463ea1a1ba7c3f6f90be225353c0c23e46f4495ebb57975a9",
+      "stored_sha256": "93053d9178f9c37ab6d727797ea140d167ff150b0152cfe7806785b6513ba92c"
+    },
+    "green.log": {
+      "original_sha256": "e49f81edc2d9af00c344bc83987c3eca89046a019b6875f094c4400232e1b529",
+      "stored_sha256": "e49f81edc2d9af00c344bc83987c3eca89046a019b6875f094c4400232e1b529"
+    },
+    "fabric-harness-wait-store-db.log": {
+      "original_sha256": "ef861184de7fe269b69a53415fdb2fb3a7c47e7c8db9d68e4009a494f5afca22",
+      "stored_sha256": "30e6c5294fa8bd34dc634374c3f2518b8ed4134d4c564a059d6dd71ef42b02d2"
+    }
+  }
+}
