@@ -2,7 +2,7 @@
 
 Candidate: `d4ae7a295ec0c7a146c34e4b3afc6f52763a238a`; base:
 `e42366eb02a7ad602fd7382345642b0bd03949a5`. This directory preserves
-builder checks, not independent review or production acceptance. Source hashes,
+builder checks plus a separately attributed independent review; neither establishes production acceptance. Source hashes,
 commands, exit codes, limitations and normalization metadata are in
 [receipt.json](receipt.json). [receipt-original.json](receipt-original.json)
 is the byte-exact original receipt; its log hashes describe the original local
@@ -26,3 +26,14 @@ The fixed adapter plus existing R6 suite passed 67 tests. The managed-launch
 legacy check and targeted strict TypeScript check exited 0. These use synthetic
 local dependencies; no SQL, native process, provider, installation or activation
 was exercised. A timeout still cannot cancel the underlying operation.
+
+Independent reviewer evidence is under [independent/receipt.json](independent/receipt.json),
+with original/stored hashes and exact transformations in
+[independent/normalization.json](independent/normalization.json). The reviewer authored
+the original adapter, not N-020. Their independent cases cover synchronous reentry,
+100 cross-method retries, unrelated-entry progress and unchanged admission caching.
+The portable derivative runs from the repository root:
+
+```sh
+node --experimental-strip-types --test docs/reports/2026-10-13-resource-admission-contract/raw/n020/independent/review.mjs
+```

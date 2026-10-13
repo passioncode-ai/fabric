@@ -1,0 +1,10 @@
+{
+  "candidate_commit": "d4ae7a295ec0c7a146c34e4b3afc6f52763a238a",
+  "purpose": "builder verifies path-normalized independent fixture remains executable; does not replace independent review receipt",
+  "command": "node --experimental-strip-types --test docs/reports/2026-10-13-resource-admission-contract/raw/n020/independent/review.mjs",
+  "exit_code": 0,
+  "tests": 5,
+  "fixture_sha256": "c6b824fbf137d43298d720d963b3d2c2faa20187d653e22832cd36a929856bc1",
+  "log_sha256": "3919d6c70aaa8e9ebac6cb3877ac393fa0849f325e587f6a662126e74094baf1",
+  "normalization": "none"
+}
