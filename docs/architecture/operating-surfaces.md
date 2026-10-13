@@ -428,6 +428,18 @@ retires closed ones (`comms.retention_applied@1`). A session's end and a revoked
 (`comms.responder_released@1`); no request moves. The operator lists or unlists a Project in the directory through
 `board_set_listing` (`comms.directory_listing_set@1`), a database door no tool reaches; its Settings control is COM-06's.
 
+**The estate owner's controls (wave 4 — decided, NOT built; [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md),
+contract DEC-0079 and DEC-0081).** None of these is a tool, and none is served today:
+
+| Control | Does | Journals |
+|---|---|---|
+| pause / resume | the owner pauses a thread, a Project's answering or one (Project, capability) slot, or lifts it; a repeat records nothing. Under it the tools that take new work answer `held` (retryable; `not_authorized` to a kit pinned before DEC-0079): `com.submit` and a participant's `com.reply` into a paused thread, `com.enroll`, `com.responder_replace`, `com.claim`, `com.accept`, `com.effect_begin` on paused work; `com.complete`, `com.reconcile`, `com.progress`, `com.renew`, the fenced `com.reply`, `com.cancel` and every read are never refused. `com.status` and the directory answer `held` to readers pinned at or after DEC-0079 | `comms.hold_set@1` (new event type, wave 4) |
+| listing | `board_set_listing` with the owner's check, target-state; its control is the project directory (SCR-83), after a preview of the entry other Projects read | `comms.directory_listing_set@1` |
+| owner settlement | `com.reconcile` from the estate's owner, only on an `outcome_unknown` request whose slot no responder holds; observed only, with a summary of 1–2000 characters; every reader sees `settledBy: "owner"`, and every `complete` / `reconcile` transition carries `settledBy` | `comms.request_transitioned@1` |
+
+Each checks the estate owner's membership at the revision the host holds (`not_authorized` for a member,
+`authority_changed` for a moved revision). They arrive with the repin to fabric-agent-contract `a59d04b` or later.
+
 **The hub's `fabric.board.join {projectId}`** (a binding's tool, never the door's; `apps/desktop/src/main/hubTools.ts`,
 region `hub-board-join`) gives a service agent holding a responder grant on the Project a board session: one bearer
 for the tools above and nothing else, ended with its binding or any of its grants (ADR-0149 §4).
@@ -453,8 +465,9 @@ for the tools above and nothing else, ended with its binding or any of its grant
   `idempotency_conflict`, `idempotency_window_expired`, `capacity_exceeded` (retryable), `revision_conflict`,
   `invalid_transition`, `reconcile_required`, `observation_required`, `cursor_reset_required`, `not_available`,
   `unsupported_capability`.
-- **Not built yet:** any operator write control — pause, stop, unlisting in Settings (COM-06, wave 4); Fabric driving
-  a service's capability as its responder (ADR-0149 §4).
+- **Not built yet:** the owner's controls above — pause and resume, listing in Settings, owner settlement — designed in
+  ADR-0156 and SCN-147…SCN-149 for wave 4, with "stop" meaning a pause plus revoking the agent's responder grant in
+  Agents & access; Fabric driving a service's capability as its responder (ADR-0149 §4).
 
   `scripts/check-surface-tools.mjs` keeps `apps/desktop/src/shared/surfaceTools.ts` equal to what both
   modules register.

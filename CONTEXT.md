@@ -289,6 +289,20 @@ any of its grants.
 released is taken again under a new attempt. Not the **Claim** of the task board (REQ-38), which says who works on a
 task.
 
+**Board hold** — the estate owner's pause of a thread, a Project's answering or one (Project, capability) **Responder
+slot** on the project board (ADR-0156, contract DEC-0079; decided, not built — wave 4). It refuses new work in its
+scope with the retryable refusal `held` and never refuses a call that settles, reports on or keeps alive work already
+started, a cancel or a read; a Project hold pauses the Project's answering, not what it sends. Set and lifted only in
+Fabric's operator controls, never by a tool; journalled as `comms.hold_set@1`; kept by a restore. On screen it is
+"Paused" / «пауза» and "Resume" / «возобновить». Not the "held" of accepted work whose deadline passed (it waits, C4),
+and not a revocation: the **Responder grant** stands under it.
+
+**Project directory listing** — whether a Project appears in the project directory other Projects read
+(`com.directory`); unlisting hides it from the list only, and a Project that knows its id still reaches it. Set by the
+estate's owner through `board_set_listing` (`comms.directory_listing_set@1`), whose Settings control is the project
+directory screen (SCR-83, ADR-0156 §5–§6; designed, not built), after a preview of exactly the entry other Projects see.
+A restore keeps it.
+
 **Product manager** — the cardinal agent role accountable for one project's goals,
 graphs, roster, routines and report upward. A Project in setup may leave this role
 explicitly unconfigured; managed activation requires exactly one current admitted PM
