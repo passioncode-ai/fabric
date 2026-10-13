@@ -528,6 +528,17 @@ await test('fix 5: renew and progress are refused under a CLOSED epoch (DEC-0073
 })
 
 await test('fix 6: no deadlock — a stale enroll races a cancel on a claimed request, a release of a two-slot session races a claim, 50 times each (no 40P01)', async () => {
+  // This case is about lock ORDER, not latency. Every board function carries `set lock_timeout = '3s'` in its own
+  // definition (ADR-0149 §5), which overrides any session setting; at a load average in the hundreds a correctly ordered
+  // wait can outlast 3 s and be cancelled — a timeout, not a deadlock. So for this case only the functions' own limit is
+  // raised to 60 s (and restored after): a wrong order still deadlocks, and PostgreSQL's detector (deadlock_timeout 1 s)
+  // reports it as 40P01 long before 60 s. Any error still fails the case — a timeout included; nothing is counted as a pass.
+  const bounded = sql(`select string_agg(p.oid::regprocedure::text, '|') from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proconfig @> array['lock_timeout=3s']`).split('|').filter(Boolean)
+  assert.ok(bounded.length >= 10, `only ${bounded.length} functions carry lock_timeout=3s`)
+  const limitAll = value => sql(bounded.map(f => `alter function ${f} set lock_timeout = '${value}';`).join('\n'))
+  limitAll('60s')
+  try {
   const deadlocks = []
   for (let i = 0; i < 50; i++) {
     freshHolder()
@@ -556,6 +567,7 @@ await test('fix 6: no deadlock — a stale enroll races a cancel on a claimed re
     for (const o of outs) assert.equal(o.code, 0, o.stderr)
   }
   assert.deepEqual(deadlocks, [], 'a deadlock was detected')
+  } finally { limitAll('3s') }
   // Leave a live holder on CAP for the cases below.
   const HL = { session_id: id(3999), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
   lapse(CAP); assert.equal(cmd('board_enroll', HL, { idempotency: idem(), capability: CAP }).ok, true)
