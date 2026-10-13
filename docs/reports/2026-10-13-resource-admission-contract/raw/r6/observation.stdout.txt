@@ -1,0 +1,25 @@
+✔ real adapter records admission once, currentness condition once, and confirmed cancellation/release (2.512875ms)
+✔ actual preflight-unknown admission stays attributable without raw errors (0.260958ms)
+✔ actual throw admission stays attributable without raw errors (0.213792ms)
+✔ actual timeout admission stays attributable without raw errors (10.336208ms)
+✔ actual refused admission stays attributable without raw errors (0.315417ms)
+✔ actual false currentness retains refusal/unknown distinction (0.274833ms)
+✔ actual throw currentness retains refusal/unknown distinction (0.224583ms)
+✔ unconfirmed false settlement is never a released observation (0.224209ms)
+✔ unconfirmed throw settlement is never a released observation (0.169416ms)
+✔ absent, throwing and rejected ordinary Promise sinks cannot change authority (1.140208ms)
+✔ clock gaps/backwards reads are unknown; wall clock is irrelevant (1.209333ms)
+✔ dedup does not become independent evidence; overflow and conflicting admission expose incomplete corpus (0.188209ms)
+✔ same-condition evidence conflicts are invalid, not fresh corroboration or harmless repeats (0.269458ms)
+✔ strict local receipt rejects getters, secrets, extra properties, bogus enums and malformed quantities (0.197458ms)
+✔ corpus reducer refuses duplicate or conflicting admission rather than counting mentions (0.301708ms)
+✔ counterfactual constraints require equivalent manifests, complete timing and outcome coverage (0.624ms)
+✔ bounded synthetic export records before/after actual adapter observations without savings claims (0.739083ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.914667

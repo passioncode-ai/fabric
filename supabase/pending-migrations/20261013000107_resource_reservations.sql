@@ -1,5 +1,5 @@
 -- #region local-resource-reservation — docs: docs/execution/harness-waves/resource-reservation.md#authority-and-state
--- Pending, NOT part of the active migration chain. Preserve reserved positions 104–106.
+-- Pending, NOT part of the active migration chain. COM-03 applied104; preserve reserved105–106.
 -- Internal Fabric authority, not a portable contract. The trusted host configures the pool
 -- and reports observations. Agents/renderer cannot write these operational tables or RPCs.
 -- Lock order: Estate -> session/reservation identity -> pool row -> task locks. A pool
@@ -50,10 +50,16 @@ create table resource_reservations (
 );
 create index resource_reservations_pool on resource_reservations(host_id,pool_id) where state='held';
 create index resource_reservations_parent on resource_reservations(parent_id) where state='held';
+-- Bound recovery keyset reads to the trusted scope without sorting all held work.
+create index resource_reservations_recovery on resource_reservations(estate_id,host_id,pool_id,admitted_seq) where state='held';
 alter table resource_pools enable row level security;
 alter table resource_reservations enable row level security;
 revoke all on resource_pools,resource_reservations from public,anon,authenticated,service_role;
 grant select on resource_pools,resource_reservations to service_role;
+-- The explicit read grant works even when a service role has no global BYPASSRLS.
+-- Renderer/API roles retain no table privileges; writes remain security-definer RPCs.
+create policy resource_pools_service_read on resource_pools for select to service_role using(true);
+create policy resource_reservations_service_read on resource_reservations for select to service_role using(true);
 
 -- Explicit trusted configuration only. No implicit machine-wide pool/default and no
 -- caller-selected capacity on admission. A policy cannot change beneath held work.

@@ -1,0 +1,45 @@
+✔ release requires SQL yes plus exact durable row readback, after a fresh controller restart (1.814584ms)
+✔ concurrent local sweeps share a single execution and promise (0.15225ms)
+✔ bounded continuation does not starve behind retained head rows and survives restart (0.578458ms)
+✔ parent retained for children is retried after the sweep wraps (0.281875ms)
+✔ SQL resource_execution_unresolved retains reservation (0.096625ms)
+✔ SQL resource_children_held retains reservation (0.070459ms)
+✔ malformed/unconfirmed release remains unknown: null (0.1175ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true} (0.081541ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":true,"receipt_seq":0} (0.084708ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":"yes","receipt_seq":10} (0.12275ms)
+✔ malformed/unconfirmed release remains unknown: {"released":false,"reason_code":"resource_identity_conflict"} (0.1835ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":false,"receipt_seq":1010} (0.154083ms)
+✔ malformed ledger estate_id has no release side effects (0.092791ms)
+✔ malformed ledger host_id has no release side effects (0.044167ms)
+✔ malformed ledger pool_id has no release side effects (0.038667ms)
+✔ malformed ledger task_run_id has no release side effects (0.053542ms)
+✔ malformed ledger session_id has no release side effects (0.039166ms)
+✔ malformed ledger admitted_seq has no release side effects (0.035709ms)
+✔ malformed ledger run_ordinal has no release side effects (0.048291ms)
+✔ malformed ledger binding has no release side effects (0.035041ms)
+✔ unordered, duplicate or oversized page refuses before release (0.061ms)
+✔ unordered, duplicate or oversized page refuses before release (0.338708ms)
+✔ unordered, duplicate or oversized page refuses before release (0.0585ms)
+✔ page accessor cannot execute as proof (0.09925ms)
+✔ unavailable read missing-schema never claims completion or zero held (0.065375ms)
+✔ unavailable read missing-ledger-read never claims completion or zero held (0.035875ms)
+✔ unavailable read throw never claims completion or zero held (0.031375ms)
+✔ unavailable read timeout never claims completion or zero held (21.828666ms)
+✔ timed-out release stays unknown; late completion never mutates returned result or cursor (21.652833ms)
+✔ lost RPC response after SQL release never becomes local released proof (0.161084ms)
+✔ successful RPC with changed task_run_id readback is unknown (0.123542ms)
+✔ successful RPC with changed session_id readback is unknown (0.064541ms)
+✔ successful RPC with changed run_ordinal readback is unknown (0.056625ms)
+✔ successful RPC with changed released_seq readback is unknown (0.053916ms)
+✔ foreign restored cursor, unbounded config and implicit defaults refuse (0.129416ms)
+✔ uncancellable query owns the I/O slot until actual settlement (19.843208ms)
+✔ uncancellable release owns the I/O slot until actual settlement (20.749167ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 181.7905

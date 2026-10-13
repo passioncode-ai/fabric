@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-019",
+  "node": "N-019",
+  "parent_id": "CO-282",
+  "module": "Durable internal wait store",
+  "intent": "Linearizable scoped wait persistence",
+  "expected_result": "Internal pending SQL and client adapter verified against real isolated PostgreSQL",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "supabase/pending-migrations/20261013000108_resource_wait_queue.sql",
+      "apps/desktop/src/main/resourceWaitStore.ts",
+      "apps/desktop/test/resource-wait-store-db.test.mjs",
+      "docs/execution/harness-waves/resource-wait-store.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Internal pending SQL and client adapter verified against real isolated PostgreSQL",
+      "paths": [
+        "supabase/pending-migrations/20261013000108_resource_wait_queue.sql",
+        "apps/desktop/src/main/resourceWaitStore.ts",
+        "apps/desktop/test/resource-wait-store-db.test.mjs",
+        "docs/execution/harness-waves/resource-wait-store.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan N-017 and corresponding resource packet"
+    },
+    {
+      "kind": "negative",
+      "check": "Independently reproduce invalid identity, uncertainty and missing-evidence refusal cases"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "candidate_commit": "17aadd81ee315b2f21ab7a2131d71b6ad551b9a8",
+  "base_commit": "a3ad1cb5e47a88ab1fc3882f90ebe1478c1622e6",
+  "source_sha256": {
+    "apps/desktop/src/main/resourceAttemptObservation.ts": "2295cf04c5148d6cfd1a24025614266e139d4f6a116f3fd46d26f6f04d262659",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "80b331f2f3f4ba63679677f274f12d98a5cc32759a6050c029ed5629df08fc11",
+    "apps/desktop/test/resource-attempt-observation.test.mjs": "afcaf7df8e6c23c908997b11e4b6a5e6385995821f525f048d1f80f5742573bf",
+    "docs/execution/harness-waves/resource-attempt-observation.md": "072d4db7ffe4532190fdf02569c6172044dcfc54ce1703226c39085bad16c66c"
+  },
+  "synthetic_source_hashes_match": true,
+  "checks": [
+    {
+      "name": "observation",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/resource-attempt-observation.test.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "existing-adapter",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/resource-launch-adapter.test.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "negative-no-adapter",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--import",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r6/no-adapter.mjs",
+        "--test",
+        "apps/desktop/test/resource-attempt-observation.test.mjs"
+      ],
+      "exit_code": 1
+    },
+    {
+      "name": "negative-no-dedup",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--import",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/r6/no-dedup.mjs",
+        "--test",
+        "apps/desktop/test/resource-attempt-observation.test.mjs"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "counts": {
+    "new_observation_tests": 17,
+    "existing_adapter_tests": 43,
+    "negative_no_dedup_failures": 3
+  },
+  "additional_checks": [
+    {
+      "command": "node apps/desktop/node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions --types node --typeRoots apps/desktop/node_modules/@types apps/desktop/src/main/resourceAttemptObservation.ts apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit_code": 0,
+      "summary": "372 markers, every region closed/reference resolves"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "review_origin": "Builder checks; pipeline_research independent final review pending. Early review flagged same-condition evidence conflict and accidental async clock rejection; both corrected before freeze with regressions.",
+  "limits": [
+    "optional local R6 preparation, no index composition",
+    "no portable schema, external lesson store or automatic adoption",
+    "no native/provider/active SQL/full runtime or actual energy/speed improvement acceptance",
+    "trusted bounded synchronous diagnostic dependencies; exotic native Promise subclasses/constructor overrides outside DI",
+    "comparison manifest is caller supplied and descriptive; does not prove causal gain/per-task equivalence"
+  ],
+  "artifacts": {
+    "no-dedup.mjs": "f956bc23eda1eb87b2b7937ac614f460a4796de6f35df72ea3f73c96c84009cb",
+    "adapter-before.ts": "d4cc524bc686c8b64335024ad668fae39de24d2e3b13d776fa232239bd0494b1",
+    "synthetic.json": "a58d3288d26ad24a578051b8695ddd338518723f2b19d7da26f67883978b3c63",
+    "existing-adapter.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "no-adapter.mjs": "fd7b625aeeeb373fedc428f8920160fffbfe73dccfb33e144e2b30c2d8b719a7",
+    "observation.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "negative-no-adapter.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "negative-no-adapter.stdout": "3c441185d7ad1f73e2f7b1e24b58a63e08dfa9fa6b8a208ae41c5f7e857d872d",
+    "observation.stdout": "e32d67cd4499a8fa81f366fa4c1ccd9a78dbf9973a66a49628627250839c3a23",
+    "existing-adapter.stdout": "16ce8be4b0a6013ebf01746001e228d160cd41f0633e4b90f02a5a7a946eb20f",
+    "negative-no-dedup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "negative-no-dedup.stdout": "1c541db6f2b47ee5b628524d5c2e4996da30f6e0b8d904e9c12907b76c259d3d",
+    "runs.json": "92a1c55f7ef102b358dc17851e5a2f7fbd7e5e77c560470d49db73cfc4b53dd1",
+    "without-dedup.ts": "f3bfd4fd33d3a4ac092d46757a2cccac6f01edf320766f3b6816fb46d426f89f"
+  }
+}

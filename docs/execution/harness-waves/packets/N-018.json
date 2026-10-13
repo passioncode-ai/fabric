@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-018",
+  "node": "N-018",
+  "parent_id": "CO-282",
+  "module": "Bounded resource observation",
+  "intent": "Bounded resource observation",
+  "expected_result": "Bounded resource observation with explicit runtime limitations",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceAttemptObservation.ts",
+      "apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "apps/desktop/test/resource-attempt-observation.test.mjs",
+      "docs/execution/harness-waves/resource-attempt-observation.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Bounded resource observation",
+      "paths": [
+        "apps/desktop/src/main/resourceAttemptObservation.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-attempt-observation.test.mjs",
+        "docs/execution/harness-waves/resource-attempt-observation.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan N-018 and corresponding resource packet"
+    },
+    {
+      "kind": "negative",
+      "check": "Independently reproduce invalid identity, uncertainty and missing-evidence refusal cases"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

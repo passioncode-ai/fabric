@@ -1,0 +1,85 @@
+✔ release requires SQL yes plus exact durable row readback, after a fresh controller restart (1.894541ms)
+✔ concurrent local sweeps share a single execution and promise (0.153583ms)
+✔ bounded continuation does not starve behind retained head rows and survives restart (0.581125ms)
+✔ parent retained for children is retried after the sweep wraps (0.302208ms)
+✔ SQL resource_execution_unresolved retains reservation (0.107667ms)
+✔ SQL resource_children_held retains reservation (0.085208ms)
+✔ malformed/unconfirmed release remains unknown: null (0.093417ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true} (0.087708ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":true,"receipt_seq":0} (0.087ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":"yes","receipt_seq":10} (0.119708ms)
+✔ malformed/unconfirmed release remains unknown: {"released":false,"reason_code":"resource_identity_conflict"} (0.076083ms)
+✔ malformed/unconfirmed release remains unknown: {"released":true,"repeated":false,"receipt_seq":1010} (0.097375ms)
+✔ malformed ledger estate_id has no release side effects (0.093792ms)
+✔ malformed ledger host_id has no release side effects (0.06175ms)
+✔ malformed ledger pool_id has no release side effects (1.116ms)
+✔ malformed ledger task_run_id has no release side effects (0.043709ms)
+✔ malformed ledger session_id has no release side effects (0.040084ms)
+✔ malformed ledger admitted_seq has no release side effects (0.037292ms)
+✔ malformed ledger run_ordinal has no release side effects (0.038416ms)
+✔ malformed ledger binding has no release side effects (0.449208ms)
+✔ unordered, duplicate or oversized page refuses before release (0.068083ms)
+✔ unordered, duplicate or oversized page refuses before release (0.036167ms)
+✔ unordered, duplicate or oversized page refuses before release (0.025834ms)
+✔ page accessor cannot execute as proof (0.069ms)
+✔ unavailable read missing-schema never claims completion or zero held (0.049125ms)
+✔ unavailable read missing-ledger-read never claims completion or zero held (0.023959ms)
+✔ unavailable read throw never claims completion or zero held (0.029042ms)
+✔ unavailable read timeout never claims completion or zero held (20.892167ms)
+✔ timed-out release stays unknown; late completion never mutates returned result or cursor (20.827083ms)
+✔ lost RPC response after SQL release never becomes local released proof (0.203958ms)
+✔ successful RPC with changed task_run_id readback is unknown (0.126833ms)
+✔ successful RPC with changed session_id readback is unknown (0.066584ms)
+✔ successful RPC with changed run_ordinal readback is unknown (0.057083ms)
+✔ successful RPC with changed released_seq readback is unknown (0.055917ms)
+✔ foreign restored cursor, unbounded config and implicit defaults refuse (0.135834ms)
+✖ uncancellable query owns the I/O slot until actual settlement (39.666375ms)
+✖ uncancellable release owns the I/O slot until actual settlement (41.843875ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 35
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 229.401666
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-reconciliation.test.mjs:153:46
+✖ uncancellable query owns the I/O slot until actual settlement (39.666375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'deadline'
+  - 'prior_io_unresolved'
+  
+      at TestContext.<anonymous> (file://<checkout>/apps/desktop/test/resource-reconciliation.test.mjs:163:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'deadline',
+    expected: 'prior_io_unresolved',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-reconciliation.test.mjs:153:46
+✖ uncancellable release owns the I/O slot until actual settlement (41.843875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'deadline'
+  - 'prior_io_unresolved'
+  
+      at TestContext.<anonymous> (file://<checkout>/apps/desktop/test/resource-reconciliation.test.mjs:163:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'deadline',
+    expected: 'prior_io_unresolved',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

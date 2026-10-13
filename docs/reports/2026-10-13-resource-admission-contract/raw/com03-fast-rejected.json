@@ -1,0 +1,10 @@
+{
+  "before_tree": "769ba6c3fde27ff51161fecc554d69b0176283e4",
+  "after_tree": "769ba6c3fde27ff51161fecc554d69b0176283e4",
+  "exit": 1,
+  "elapsed_seconds": 218.08,
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "failure": "check-probes requires an unindented script-template closing delimiter; resource-admission test had an indented delimiter",
+  "log_sha256": "1e640beb29463affe6f11d22914431e9c5b4f7a539a96a47d9c5cde71a7506e6",
+  "later_gates": "NOT_RUN"
+}

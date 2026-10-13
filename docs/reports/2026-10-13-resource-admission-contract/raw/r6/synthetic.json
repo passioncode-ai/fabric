@@ -1,0 +1,140 @@
+{
+  "kind": "synthetic-resource-observation-fixture",
+  "sourceDigests": {
+    "resourceAttemptObservation.ts": "2295cf04c5148d6cfd1a24025614266e139d4f6a116f3fd46d26f6f04d262659",
+    "resourceLaunchAdapter.ts": "80b331f2f3f4ba63679677f274f12d98a5cc32759a6050c029ed5629df08fc11"
+  },
+  "before": {
+    "mode": "synthetic",
+    "taskSetDigest": "a7ff8bebb547d299de069dcb3a012a2751042222a25077b98d16fd241798f9d6",
+    "acceptanceDigest": "9e94bc2308481c29d18ae195a24e8407d3dc224bd8852abd1a1aad200b9748ee",
+    "environmentDigest": "1af1af6473d2c7c83ef83f0e7975a387d12e85615401115162ee18eaea24ac81",
+    "policyDigest": "e5793a64f6997fdbe5e78e4b6588a77c9143da313112c1b35b4716bed6742020",
+    "sourceDigest": "7c58ea10df18becd4d2083e105ad3824edfec7e41984c87259b3c5a06ff18f76",
+    "evidence": {
+      "kind": "fabric-local-resource-observations",
+      "version": 1,
+      "records": [
+        {
+          "attemptDigest": "bcc386d29498c1ba233df0fc140951acd7bcbbc88a7e88e8b05d43170cb71d6f",
+          "phase": "admission",
+          "outcome": "accepted",
+          "reason": "admitted",
+          "durationMs": 10,
+          "requested": {
+            "workerSlots": 1,
+            "memoryBytes": 100,
+            "diskBytes": 10,
+            "cpuMilliCores": 1000
+          },
+          "reserved": {
+            "workerSlots": 1,
+            "memoryBytes": 100,
+            "diskBytes": 10,
+            "cpuMilliCores": 1000
+          },
+          "snapshotDigest": "faeb82689df10fba34d9aa03086748f4bf5ee2acca5096a86be504d98fa259a7",
+          "policyDigest": "e5793a64f6997fdbe5e78e4b6588a77c9143da313112c1b35b4716bed6742020"
+        }
+      ],
+      "coverage": {
+        "complete": true,
+        "duplicates": 0,
+        "invalid": 0,
+        "dropped": 0
+      }
+    }
+  },
+  "after": {
+    "mode": "synthetic",
+    "taskSetDigest": "a7ff8bebb547d299de069dcb3a012a2751042222a25077b98d16fd241798f9d6",
+    "acceptanceDigest": "9e94bc2308481c29d18ae195a24e8407d3dc224bd8852abd1a1aad200b9748ee",
+    "environmentDigest": "1af1af6473d2c7c83ef83f0e7975a387d12e85615401115162ee18eaea24ac81",
+    "policyDigest": "e5793a64f6997fdbe5e78e4b6588a77c9143da313112c1b35b4716bed6742020",
+    "sourceDigest": "7c58ea10df18becd4d2083e105ad3824edfec7e41984c87259b3c5a06ff18f76",
+    "evidence": {
+      "kind": "fabric-local-resource-observations",
+      "version": 1,
+      "records": [
+        {
+          "attemptDigest": "bcc386d29498c1ba233df0fc140951acd7bcbbc88a7e88e8b05d43170cb71d6f",
+          "phase": "admission",
+          "outcome": "accepted",
+          "reason": "admitted",
+          "durationMs": 6,
+          "requested": {
+            "workerSlots": 1,
+            "memoryBytes": 100,
+            "diskBytes": 10,
+            "cpuMilliCores": 1000
+          },
+          "reserved": {
+            "workerSlots": 1,
+            "memoryBytes": 100,
+            "diskBytes": 10,
+            "cpuMilliCores": 1000
+          },
+          "snapshotDigest": "faeb82689df10fba34d9aa03086748f4bf5ee2acca5096a86be504d98fa259a7",
+          "policyDigest": "e5793a64f6997fdbe5e78e4b6588a77c9143da313112c1b35b4716bed6742020"
+        }
+      ],
+      "coverage": {
+        "complete": true,
+        "duplicates": 0,
+        "invalid": 0,
+        "dropped": 0
+      }
+    }
+  },
+  "comparison": {
+    "comparable": true,
+    "reason": "controlled-descriptive-comparison",
+    "mode": "synthetic",
+    "admissionLatencyDeltaMs": -4,
+    "before": {
+      "coverage": {
+        "complete": true,
+        "duplicates": 0,
+        "invalid": 0,
+        "dropped": 0
+      },
+      "attempts": 1,
+      "admitted": 1,
+      "refused": 0,
+      "unknown": 0,
+      "admissionLatencyMs": 10,
+      "knownLatencySamples": 1,
+      "unknownLatencySamples": 0,
+      "queueDelayMs": null,
+      "observedResourcePeak": null,
+      "energySaved": null,
+      "lessonsHelped": null
+    },
+    "after": {
+      "coverage": {
+        "complete": true,
+        "duplicates": 0,
+        "invalid": 0,
+        "dropped": 0
+      },
+      "attempts": 1,
+      "admitted": 1,
+      "refused": 0,
+      "unknown": 0,
+      "admissionLatencyMs": 6,
+      "knownLatencySamples": 1,
+      "unknownLatencySamples": 0,
+      "queueDelayMs": null,
+      "observedResourcePeak": null,
+      "energySaved": null,
+      "lessonsHelped": null
+    },
+    "helped": "not_established",
+    "energySaved": null,
+    "policyPromotion": false
+  },
+  "limits": [
+    "injected RPC durations, not measured runtime speedup",
+    "no native, database, provider, energy or lesson-effect acceptance"
+  ]
+}

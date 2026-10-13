@@ -28,6 +28,7 @@ try {
   test('./managed-launch-db.test.mjs')
   test('./managed-stop-db.test.mjs')
   test('./resource-reservation-db.test.mjs')
+  test('./resource-reconciliation-db.test.mjs')
   console.log('PASS pending R2 SQL plus legacy managed launch/stop on one disposable PostgreSQL cluster')
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'fast', '-w', 'stop'])

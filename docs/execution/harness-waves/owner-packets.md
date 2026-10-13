@@ -206,3 +206,35 @@ expired same-run resource and live task lease; require fresh CAS or refusal. An 
 bare-repository fixture then checks a competing writer/CAS loss, malformed remote,
 unreadable remote, and live-own timestamp behavior. Installed tool files are unchanged.
 The [isolated executable regression](../../reports/2026-10-13-resource-admission-contract/raw/agent-sync-expired/receipt.json) now reproduces actual guard/acquire code reporting success with zero CAS and an expired resource. Git/clock/state are isolated; live remote competition tests and a released fix remain NOT_RUN / NOT_IMPLEMENTED. Exit0 explicitly means DEFECT_REPRODUCED.
+
+
+## Latest skill-hub release reconciliation — 2026-10-13
+
+The earlier snapshots above remain historical. Published hub `v1.62.1` resolves to
+`ae1b415bc79a3d89ca97199299e0e00a2a5e7674`; the [durable native visibility
+report](https://github.com/ssheleg/sshlg-skills/blob/b6e8bb4bb7cc76ada212f8d0078ec94cfe20adb5/docs/reports/2026-10-13-native-visibility-rollout/README.md)
+is committed at`b6e8bb4bb7cc76ada212f8d0078ec94cfe20adb5` on verified remote
+`waves/2026-10-13-installed`. This run read its sanitized committed evidence, not
+private logs or current machine configuration.
+
+Do not request rebuilding completed work: multi-host catalogue discovery and isolated
+CODEX_HOME/profile-aware writer ownership are implemented in the published source
+(`lib/catalogue.js`, `bin/sshlg-skills.js`). Release and listed installed-byte readback
+also have owner receipts; plain-host update remains `DEFERRED_B186`. Local later
+installer work is not silently treated as released.
+
+The report records Pi loaded skills499→178 with all39 family entries retained; Gemini
+179 enabled/320 disabled; Hermes228/321 with full family identity unproven; OpenCode
+321 denies while inventory536 is not active prompt proof. Pi's controlled loader
+comparison reduces prompt UTF-16 text308638→144221 (53.2718%). These are the owner's
+bounded snapshot measurements, not measured model tokens, money savings, routing
+quality or task success. Claude/Codex fresh native discovery remains NOT_RUN; Cursor
+and Kimi listing hiding is unsupported.
+
+Remaining acceptance: Fabric-isolated Codex sessions and Claude discovery; complete
+Hermes identity readback; OpenCode per-agent override boundary and Gemini warnings;
+pending plain-host installer bytes. Search hidden-status annotation still reads a
+hard-coded Claude settings path in published CLI around1865: this static finding
+is not a rerun regression. MCP profile/runtime ownership remains separate with
+Observatory writers, Fabric RM-23 visibility and lifecycle decisions. All new owner
+requests remain PREPARED / NOT_SENT at the project-access consent gate.

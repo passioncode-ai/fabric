@@ -180,7 +180,7 @@ for (const checker of ['ownership', 'parent']) test(`rejected async ${checker} p
     const result = assessResourceAdmission(f.request, f.context, checks);
     if (result.state === 'eligible') process.exit(2);
     await new Promise(resolve => setImmediate(resolve));
-  `
+`
   const child = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script], { encoding: 'utf8' })
   assert.equal(child.status, 0, child.stderr)
 })

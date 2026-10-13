@@ -1,0 +1,11 @@
+{
+  "before_tree": "25deb47cab8f98dbf41967010ddae70bbe25917b",
+  "after_tree": "25deb47cab8f98dbf41967010ddae70bbe25917b",
+  "exit": 1,
+  "elapsed_seconds": 72.46,
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "failure": "Root temporarily deinitialized owned workspace checkout to preserve disk reserve; compiler fixture requires pinned parser in initialized child",
+  "recovery": "git submodule update --init workspace restored exact ea325a4ad1cb78bc4cdc1cedfe73e2de2be996d5; no source change or gate bypass",
+  "log_sha256": "dc05e6fb526fb8a444e6b11711dc4e42c5b5ece948003aee5af78ece063648c8",
+  "later_gates": "NOT_RUN"
+}

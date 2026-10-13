@@ -1,0 +1,57 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-016",
+  "node": "N-016",
+  "parent_id": "CO-282",
+  "module": "Restart resource reconciliation",
+  "intent": "Restart resource reconciliation",
+  "expected_result": "Restart resource reconciliation with explicit runtime limitations",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "1dc1e9b3a9c25ce096056c09a47bde3848c103c1a1bc012c863acf8e45fa2c99"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceReconciliation.ts",
+      "apps/desktop/test/resource-reconciliation.test.mjs",
+      "docs/execution/harness-waves/resource-reconciliation.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Restart resource reconciliation",
+      "paths": [
+        "apps/desktop/src/main/resourceReconciliation.ts",
+        "apps/desktop/test/resource-reconciliation.test.mjs",
+        "docs/execution/harness-waves/resource-reconciliation.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan N-016 and corresponding resource packet"
+    },
+    {
+      "kind": "negative",
+      "check": "Independently reproduce invalid identity, uncertainty and missing-evidence refusal cases"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "candidate": "17aadd81ee315b2f21ab7a2131d71b6ad551b9a8",
+  "reviewer": "pipeline_research",
+  "checks": 1041,
+  "verdict": "PASS_scoped",
+  "sourceSha256": "2295cf04c5148d6cfd1a24025614266e139d4f6a116f3fd46d26f6f04d262659",
+  "limits": [
+    "No native/SQL/provider runtime or performance acceptance",
+    "Trusted bounded synchronous sink; no timing-neutral sandbox",
+    "Synthetic allowlist/conflict/missing-data checks only"
+  ]
+}

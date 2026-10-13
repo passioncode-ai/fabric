@@ -1,14 +1,14 @@
 # CO-282 — portable harness waves handoff
 
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
-[the 15-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+[the 19-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource
 enforcement, cross-owner acceptance and native acceptance remain open.
 
 ## Current source and bounded results
 
 Integration branch: `agent/harness-integrated-20261013` in `passioncode-ai/fabric`;
-source snapshot `79aa9e5ba92babe2f914fcd130515fe400ace7c8`.
+source snapshot `a3ad1cb5e47a88ab1fc3882f90ebe1478c1622e6`.
 Merge `cc123baf67753d817282fdd686365051ae897d66` preserves main privacy changes through
 `f4e21d18fd5b077291652b0508fde2ba43378b1a`. This snapshot is not a main merge,
 installation, publication or final branch-delivery receipt.
@@ -17,7 +17,7 @@ installation, publication or final branch-delivery receipt.
 |---|---|---|
 | N-012 / R1 | Accepted `d984d98358b82824695e0636d8f3e0c50ec6eb82`, integrated as `c5bb122f`; [review receipt](../reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json) | Advisory local eligibility only; 106 focused tests and independent arithmetic/binding checks. It cannot reserve capacity or authorize execution. |
 | N-013 / R2 | Fixed and independently accepted `0b0ad6a9dd9e14a58762e0fc5aaf982bd5789af1`, integrated as `aba21213`; [reservation implementation and checks](../execution/harness-waves/resource-reservation.md#verification) | Pending SQL tested in an owned isolated database. Numeric fence normalization closes the review finding; the ledger is not active in the installed schema. |
-| N-014 / R3 preparation | Fix `ae23efc24e4d83800aeb8b7d26e1074a7fcd2dab`, integrated as `79aa9e5b`; [adapter contract and checks](../execution/harness-waves/resource-launch-adapter.md) | 44 focused tests pass. Async currentness now precedes final SQL validation; ordinary and pre-admitted negative cases require zero spawns. No production composition or universal entry-path enforcement. |
+| N-014 / R3 preparation | Fix `ae23efc24e4d83800aeb8b7d26e1074a7fcd2dab`, integrated as `981c5afc`; [adapter contract and checks](../execution/harness-waves/resource-launch-adapter.md) | 44 focused tests pass. Async currentness now precedes final SQL validation; ordinary and pre-admitted negative cases require zero spawns. No production composition or universal entry-path enforcement. |
 | N-015 final PTY preparation | `9b83706ed61373c205113dc84518a8c3a371f889` | Independent production-manager regression passes fixed and fails on exact parent source; synthetic spawn only, no native/Windows claim. |
 
 The [resource-wave review](../reports/2026-10-13-resource-admission-contract/README.md)
@@ -57,7 +57,7 @@ a historical scope count, not completion of product requirements.
 
 ## Exact next work and dependencies
 
-1. Finish expanded-source review and gates, reconcile the 15-node graph, then record exact
+1. Finish expanded-source review and gates, reconcile the 19-node graph, then record exact
    delivery and publication outcomes. Preserve the source and historical receipts above.
 2. Continue independently executable local work from the
    [resource packets](../execution/harness-waves/resource-implementation.md): R4 recovery,
@@ -65,7 +65,7 @@ a historical scope count, not completion of product requirements.
    Use their real dependencies and per-module acceptance; no blanket requirement to await
    external protocol approval before writing internal implementations.
 3. Before activation, resolve migration ordering with the owners of reserved positions
-   104–106; pending 107 is not active DDL. Recheck current admission/Stop protections,
+   105–106 after COM-03 applied104; pending 107 is not active DDL. Recheck current admission/Stop protections,
    migration ledger, schema contract, fresh/upgrade/restore and privilege behavior.
    Configure trusted host/pool policy and a fresh sampler explicitly. Production composition,
    all global launch paths, compiled input-closure binding and native termination/recovery proof still

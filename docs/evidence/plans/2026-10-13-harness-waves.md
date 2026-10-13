@@ -204,10 +204,9 @@ capacity atomically with an admitted attempt, recover identical retries, and pre
 run/session/generation proof on release. Configuration and observations are trusted internal
 inputs; a caller cannot raise its own pool limits. Children consume a parent envelope.
 
-The migration-order gate requires append order, while104–106 are reserved by existing work.
+The migration-order gate requires append order, while COM-03 has applied104 and105–106 remain reserved by existing work.
 Therefore the new107 SQL belongs under `supabase/pending-migrations/` and is explicitly
-applied only by owned fixtures. Active migrations, their ledger and schema support remain
-unchanged. Promotion depends on resolution of those owning reservations; no owner is silently
+applied only by owned fixtures. R2 itself does not change active migrations, their ledger or schema support. Promotion depends on resolution of those owning reservations; no owner is silently
 renumbered. This splits useful source/test progress from an actual activation dependency.
 R3–R6 retain their separate packet obligations; R2 is not their runtime acceptance.
 
@@ -236,3 +235,41 @@ No asynchronous preparation may intervene between an accepted final check and th
 owned spawn. Preserve mandatory Fabric surface, modes, enrollment markers and existing
 platform behavior. A source-order or injected-function regression has its explicit scope;
 it never certifies native Windows, provider quiescence or machine-wide resource enforcement.
+
+
+### N-016–N-018 — independently executable recovery, waits and observation
+
+N-016 prepares a bounded resource reconciliation scanner using durable held reservation
+identities and the existing authoritative release RPC. It never infers quiescence from
+missing sessions, lease expiry, cancellation or a task claim; repeated/restarted scans
+retain ambiguous results. Production scheduling and active DDL remain separate.
+
+N-017 prepares an internal never-started wait/wake kernel with a trusted CAS-store port,
+immutable input and attempt binding, fenced begin and explicit uncertain outcomes. Strict
+per-pool FIFO head selection prevents this queue bypassing an older expensive item, but
+eventual starts require finite holds and all competing admissions respecting that policy.
+Injected shared-store restart fixtures do not certify durable SQL or production scheduling.
+A separately allocated persistence migration and real coordinator wiring remain producers.
+
+N-018 prepares a bounded allowlisted observation/reduction module and optional resource
+launch adapter instrumentation. Missing queue delay and observed usage remain unknown;
+identity hashes, deduplication and explicit overflow prevent repeated samples becoming new
+evidence. Synthetic paired comparison requires matching task, acceptance and environment
+manifests; no fixture proves energy savings, lesson benefit or policy authority.
+
+These three modules use isolated builders, then different reviewers and negative cases.
+N-016 and N-017 own new files only; N-018 alone owns resourceLaunchAdapter.ts. Root owns
+plan, graph, CI and registers. One expensive test/DB slot serves the wave. No active DDL,
+index wiring, foreign project edits, native process or live-provider actions are included.
+
+
+### N-019 — durable wait-store producer
+
+This run allocates pending filename `supabase/pending-migrations/20261013000108_resource_wait_queue.sql`
+for the internal CAS-store producer behind N-017. It follows pending107 and does not
+occupy reserved105–106 or enter the active migration ledger. The trusted service alone
+configures bounded per-scope capacity. SQL enforces immutable task/session/attempt identity,
+actual never-started state, FIFO order, revision and permitted state transitions. Unknown
+begun effects remain reconciliation barriers; elapsed time never authorizes replay.
+The client adapter and owned PostgreSQL fixture must exercise real service-role RPCs and
+client-role denials. No portable protocol, production loop or active schema is implied.

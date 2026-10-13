@@ -1,0 +1,46 @@
+[
+  {
+    "name": "observation",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test",
+      "apps/desktop/test/resource-attempt-observation.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "existing-adapter",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test",
+      "apps/desktop/test/resource-launch-adapter.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "negative-no-adapter",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--import",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r6/no-adapter.mjs",
+      "--test",
+      "apps/desktop/test/resource-attempt-observation.test.mjs"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "negative-no-dedup",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--import",
+      "docs/reports/2026-10-13-resource-admission-contract/raw/r6/no-dedup.mjs",
+      "--test",
+      "apps/desktop/test/resource-attempt-observation.test.mjs"
+    ],
+    "exit_code": 1
+  }
+]

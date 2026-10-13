@@ -134,7 +134,11 @@
         "N-012",
         "N-013",
         "N-014",
-        "N-015"
+        "N-015",
+        "N-016",
+        "N-017",
+        "N-018",
+        "N-019"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -293,6 +297,79 @@
       "evidence": [
         "Independent SCOPED ACCEPT9b83706e integrated79aa9e5b. Same production-manager test passes fixed and fails with exact parentPTYbytes; docs/reports/2026-10-13-resource-admission-contract/raw/n015/receipt.json. No native/provider/Windows acceptance."
       ]
+    },
+    {
+      "id": "N-016",
+      "title": "Restart resource reconciliation",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-013"
+      ],
+      "touches": [
+        "apps/desktop/src/main/resourceReconciliation.ts",
+        "apps/desktop/test/resource-reconciliation.test.mjs",
+        "docs/execution/harness-waves/resource-reconciliation.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+    },
+    {
+      "id": "N-017",
+      "title": "Fenced never-started wait kernel",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-012",
+        "N-013"
+      ],
+      "touches": [
+        "apps/desktop/src/main/resourceWaitQueue.ts",
+        "apps/desktop/test/resource-wait-queue.test.mjs",
+        "docs/execution/harness-waves/resource-wait-queue.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+    },
+    {
+      "id": "N-018",
+      "title": "Bounded resource observation",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-005",
+      "blocked_by": [
+        "N-012",
+        "N-014"
+      ],
+      "touches": [
+        "apps/desktop/src/main/resourceAttemptObservation.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-attempt-observation.test.mjs",
+        "docs/execution/harness-waves/resource-attempt-observation.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+    },
+    {
+      "id": "N-019",
+      "title": "Durable internal wait store",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-013",
+        "N-017"
+      ],
+      "touches": [
+        "supabase/pending-migrations/20261013000108_resource_wait_queue.sql",
+        "apps/desktop/src/main/resourceWaitStore.ts",
+        "apps/desktop/test/resource-wait-store-db.test.mjs",
+        "docs/execution/harness-waves/resource-wait-store.md"
+      ],
+      "surface_class": "internal",
+      "check": "Real isolated PostgreSQL CAS, restart, FIFO, immutable binding and client privilege fixtures; independent source review"
     }
   ],
   "edges": [
@@ -390,6 +467,61 @@
       "from": "N-015",
       "to": "N-007",
       "payload": "Frozen final-boundary fix and scoped regression"
+    },
+    {
+      "from": "N-013",
+      "to": "N-016",
+      "payload": "Accepted producer source and current contract receipts"
+    },
+    {
+      "from": "N-016",
+      "to": "N-007",
+      "payload": "Restart resource reconciliation source and independent acceptance receipt"
+    },
+    {
+      "from": "N-012",
+      "to": "N-017",
+      "payload": "Accepted producer source and current contract receipts"
+    },
+    {
+      "from": "N-013",
+      "to": "N-017",
+      "payload": "Accepted producer source and current contract receipts"
+    },
+    {
+      "from": "N-017",
+      "to": "N-007",
+      "payload": "Fenced never-started wait kernel source and independent acceptance receipt"
+    },
+    {
+      "from": "N-012",
+      "to": "N-018",
+      "payload": "Accepted producer source and current contract receipts"
+    },
+    {
+      "from": "N-014",
+      "to": "N-018",
+      "payload": "Accepted producer source and current contract receipts"
+    },
+    {
+      "from": "N-018",
+      "to": "N-007",
+      "payload": "Bounded resource observation source and independent acceptance receipt"
+    },
+    {
+      "from": "N-013",
+      "to": "N-019",
+      "payload": "Accepted reservation authority and immutable wait queue CAS contract"
+    },
+    {
+      "from": "N-017",
+      "to": "N-019",
+      "payload": "Accepted reservation authority and immutable wait queue CAS contract"
+    },
+    {
+      "from": "N-019",
+      "to": "N-007",
+      "payload": "Durable wait-store source and actual SQL acceptance receipt"
     }
   ],
   "revisions": [

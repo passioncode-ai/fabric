@@ -1,0 +1,9 @@
+{
+  "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+  "exit": 0,
+  "log_original_sha256": "b8422775f6f9e88b562ee54b334a77d969badc335b1d1a0b3c277f68deec3ba0",
+  "log_portable_sha256": "b8422775f6f9e88b562ee54b334a77d969badc335b1d1a0b3c277f68deec3ba0",
+  "scope": "Owned socket-only PostgreSQL; production recovery module and actual SQL through narrow psql query adapter; not PostgREST/native/installed acceptance",
+  "finding": "RLS with service_role lacking BYPASSRLS hid rows despite explicit SELECT grant; explicit SELECT-only role policies fix it",
+  "later_privilege_assertions": "Added in8c5a870; full combined gate must run them separately"
+}

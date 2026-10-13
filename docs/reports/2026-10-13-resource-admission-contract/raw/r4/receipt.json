@@ -1,0 +1,38 @@
+{
+  "reviewer": "root",
+  "verdict": "SCOPED_ACCEPT_FUNCTIONS_DB_PENDING",
+  "rejected_commit": "fbab925783c4d99e3052f424a25670f371a8fdff",
+  "accepted_commit": "5b9af8e54e10c4586143500e2f65a958867e8a16",
+  "source_sha256": {
+    "apps/desktop/src/main/resourceReconciliation.ts": "b9b0b3c973bb264797c143035a799ed1f060e717829d9f321ddf422eed9734c4",
+    "apps/desktop/test/resource-reconciliation.test.mjs": "75f1b9afc84cb1af47009e77dc9fe4fd904c8b2c842c82c43e597dc3d26849eb",
+    "docs/execution/harness-waves/resource-reconciliation.md": "3c13546e6cf230b62c7f00ea87241c213c82d39a1eb73b439391a6af7309b659"
+  },
+  "positive": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-reconciliation.test.mjs",
+    "exit": 0,
+    "tests": 37
+  },
+  "negative": {
+    "command": "node --experimental-strip-types --import ./docs/reports/2026-10-13-resource-admission-contract/raw/r4/negative-loader.mjs --test apps/desktop/test/resource-reconciliation.test.mjs",
+    "exit": 1,
+    "intended_failures": 2,
+    "meaning": "Original query/release timeouts relinquish module I/O ownership before dependency settles"
+  },
+  "logs": {
+    "positive": {
+      "original_sha256": "9860651a67cface7a2caea0140da493497cb5be2b1d57c94d6ad0082e18359f1",
+      "portable_sha256": "9860651a67cface7a2caea0140da493497cb5be2b1d57c94d6ad0082e18359f1"
+    },
+    "negative": {
+      "original_sha256": "7c0dd35af96330b4eecba3825b7c818a553cbf7108627dc08011b54e91e2ad65",
+      "portable_sha256": "2578307ff29e027618aad40a53c1927c0e52d70980292b69cc87c27c5600f5c8"
+    }
+  },
+  "limitations": [
+    "Actual SQL caller integration pending",
+    "No active schema or production scheduling",
+    "Caller owns durable checkpoint and unresolved-outcome persistence",
+    "No native/process/provider stop acceptance"
+  ]
+}

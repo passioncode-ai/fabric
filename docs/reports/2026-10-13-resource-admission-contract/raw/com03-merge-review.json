@@ -1,0 +1,29 @@
+{
+  "merge_commit": "a3ad1cb5e47a88ab1fc3882f90ebe1478c1622e6",
+  "parents": [
+    "61db988572fb0a589921faec3be7b0709a7ba613",
+    "3d7e77520d9c08d2c96d4974c149d7e29e7ed6dd"
+  ],
+  "reviewer": "pipeline_research",
+  "verdict": "SCOPED_ACCEPT",
+  "checks": {
+    "enrollment_and_request_tests": 37,
+    "exit": 0
+  },
+  "source_sha256": {
+    "apps/desktop/src/main/sessionEnroll.ts": "a9c1ce021163f8f8e574cecbd14594f329ae006571bd41516a6cb2b44fad29fe",
+    "apps/desktop/test/session-enroll.test.mjs": "9398b25900122ccab550221f4303d35771de7831dbce58447868b654f3eb539d",
+    "scripts/ci.sh": "15e12007e5e1da5ac6877ae17613e551ffe6223bcb16436cfacc193f2e30d88b",
+    "apps/desktop/test/session-enroll-request.test.mjs": "63ea59a5ff9594ab4f638c492b3bcdbb946afe1d1ff0f54516d93bd1938c845c"
+  },
+  "review": [
+    "Exact known/null native identity and per-binding admission serialization retained",
+    "Upstream bindingId passed through initial and rejoin mint; grantIds revocation preserved for responder participation",
+    "No enrollment RPC shape change from merge",
+    "Our fast harness/resource checks and upstream full responder runner both retained"
+  ],
+  "limits": [
+    "No native or live board acceptance",
+    "Combined fast separately required"
+  ]
+}

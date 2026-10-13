@@ -1,0 +1,11 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "exit": 1,
+  "candidate_tree": "63742182d4e233f650053b3630d32eb76ba36e85",
+  "after_tree": "63742182d4e233f650053b3630d32eb76ba36e85",
+  "tree_unchanged": true,
+  "log_sha256": "129e9fb570419c81da9758a7074b9e3cde7da50ebe79a02e273a24e82454bdf2",
+  "log_bytes": 537280,
+  "candidate_commit": "61db9885",
+  "failure": "origin/main advanced to COM-03 migration104; base ledger entry87 absent in this frozen pre-merge candidate. No later checks certified."
+}

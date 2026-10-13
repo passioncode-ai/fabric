@@ -1,0 +1,50 @@
+{
+  "normalization": "Local paths redacted; loaders resolve cwd; stdout extensions .txt; original digests retained",
+  "artifacts": {
+    "no-dedup.mjs": {
+      "original_sha256": "f956bc23eda1eb87b2b7937ac614f460a4796de6f35df72ea3f73c96c84009cb",
+      "portable_sha256": "af8efb918624cc1edec9cd0860ac36b6b3a2208fd2bc1762c4b06eaec4ba87ea"
+    },
+    "adapter-before.ts": {
+      "original_sha256": "d4cc524bc686c8b64335024ad668fae39de24d2e3b13d776fa232239bd0494b1",
+      "portable_sha256": "d4cc524bc686c8b64335024ad668fae39de24d2e3b13d776fa232239bd0494b1"
+    },
+    "synthetic.json": {
+      "original_sha256": "a58d3288d26ad24a578051b8695ddd338518723f2b19d7da26f67883978b3c63",
+      "portable_sha256": "a58d3288d26ad24a578051b8695ddd338518723f2b19d7da26f67883978b3c63"
+    },
+    "no-adapter.mjs": {
+      "original_sha256": "fd7b625aeeeb373fedc428f8920160fffbfe73dccfb33e144e2b30c2d8b719a7",
+      "portable_sha256": "5c3d6504d10164301c3a44fcce7ecd6f917cae27bf6201a9d894ade5a97d8694"
+    },
+    "negative-no-adapter.stdout.txt": {
+      "original_sha256": "3c441185d7ad1f73e2f7b1e24b58a63e08dfa9fa6b8a208ae41c5f7e857d872d",
+      "portable_sha256": "70af9b186afa0e515ff3e6468a5074020c5925c89955b656a845649aa6b6cf05"
+    },
+    "observation.stdout.txt": {
+      "original_sha256": "e32d67cd4499a8fa81f366fa4c1ccd9a78dbf9973a66a49628627250839c3a23",
+      "portable_sha256": "e32d67cd4499a8fa81f366fa4c1ccd9a78dbf9973a66a49628627250839c3a23"
+    },
+    "existing-adapter.stdout.txt": {
+      "original_sha256": "16ce8be4b0a6013ebf01746001e228d160cd41f0633e4b90f02a5a7a946eb20f",
+      "portable_sha256": "16ce8be4b0a6013ebf01746001e228d160cd41f0633e4b90f02a5a7a946eb20f"
+    },
+    "negative-no-dedup.stdout.txt": {
+      "original_sha256": "1c541db6f2b47ee5b628524d5c2e4996da30f6e0b8d904e9c12907b76c259d3d",
+      "portable_sha256": "76e64987f79fc6e1ef3b9ebee1c6ff95b1a5c1c02b3adc95ecf754efb8bf22c6"
+    },
+    "runs.json": {
+      "original_sha256": "92a1c55f7ef102b358dc17851e5a2f7fbd7e5e77c560470d49db73cfc4b53dd1",
+      "portable_sha256": "b1dd1da075108d890c88351c036a12955fa5e0e8bc37e985ae487f61c71d0ae2"
+    },
+    "receipt.json": {
+      "original_sha256": "79f495091fb9d1884348554d86416472b20849aa2d7788ee27e657ce4646cb96",
+      "portable_sha256": "52f8dad2bbe3559e90d8e51a7ce1bbe47993212809707287a92ff59dcb8bc6a4"
+    },
+    "without-dedup.ts": {
+      "original_sha256": "f3bfd4fd33d3a4ac092d46757a2cccac6f01edf320766f3b6816fb46d426f89f",
+      "portable_sha256": "f3bfd4fd33d3a4ac092d46757a2cccac6f01edf320766f3b6816fb46d426f89f"
+    }
+  },
+  "independent_replay": "Imported reviewer test prints actual source digest and explicit replay actor; never overwrites archived receipt or claims original candidate was retested"
+}
