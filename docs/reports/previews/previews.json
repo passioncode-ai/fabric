@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "c5595ac151f19637b0d6a9be01d56965d73ef8629f240ca02c6fe4a23e687e84",
-    "docs/ux/product-model.json": "52227f31df7b7e604f91bb99a3ad6a2a21faa3541735347d66a9875daee21a18"
+    "docs/reports/product.html": "b85cd0f13bf47df1395e26b71e77e76cbccf4473f70398a84341ed43429f1555",
+    "docs/ux/product-model.json": "05e64167e33f286698d88ecf63fdf5e8f19a4bfb3d7b28979ae89c418bf67a6d"
   },
   "views": [
     {

@@ -19,6 +19,11 @@
       ]
     },
     {
+      "id": "proj-notes",
+      "name": "Notes",
+      "capabilities": []
+    },
+    {
       "id": "proj-render",
       "name": "Video rendering",
       "capabilities": [
@@ -27,11 +32,6 @@
           "responder": "stale"
         }
       ]
-    },
-    {
-      "id": "proj-notes",
-      "name": "Notes",
-      "capabilities": []
     }
   ],
   "cursor": null

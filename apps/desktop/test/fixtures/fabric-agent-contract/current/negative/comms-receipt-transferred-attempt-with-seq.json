@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "repeated": false,
+  "slot": {
+    "project": "proj-render",
+    "capability": "render.video",
+    "generation": 3,
+    "leaseExpiresAt": "2026-10-13T10:02:00Z"
+  },
+  "transferred": [
+    {
+      "request": "req_A1b2C3d4E5",
+      "revision": 4,
+      "attempt": {
+        "id": "att_Tr4nsF3rA1",
+        "generation": 3,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "leaseExpiresAt": "2026-10-13T10:02:00Z",
+        "seq": 7
+      }
+    },
+    {
+      "request": "req_F6g7H8i9J0",
+      "revision": 2,
+      "attempt": {
+        "id": "att_Tr4nsF3rB2",
+        "generation": 3,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "leaseExpiresAt": "2026-10-13T10:02:00Z"
+      }
+    }
+  ]
+}

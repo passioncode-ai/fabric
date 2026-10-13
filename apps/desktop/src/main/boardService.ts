@@ -35,7 +35,7 @@ export const isRefusal = (v: unknown): v is Refusal =>
 
 export class CommsCanonicalError extends Error {}
 
-/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 (pinned at edc88a6) adds. Every one
+/** The board's tools: DEC-0022's sixteen and `com.directory`, which contract DEC-0073 adds (pinned since f00a768, DEC-0078). Every one
  *  is registered (A7-039); the gate decides which are served. */
 export const COMMS_OPERATIONS = [
   'com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.reply', 'com.cancel', 'com.status',
@@ -48,7 +48,7 @@ export type CommsOperation = (typeof COMMS_OPERATIONS)[number]
 /**
  * The operations Fabric serves under the contract pin it vendors (spec §1.3). Since the repin to contract DEC-0073
  * (fabric-agent-contract edc88a6, COM02.3-01) every one of the seventeen has its argument schema in the pin and is
- * served. The set stays as a tested safeguard: an operation removed from it — or a future tool the pin does not carry
+ * served; the pin is now `f00a768` (DEC-0078, which carries DEC-0076 and DEC-0077). The set stays as a tested safeguard: an operation removed from it — or a future tool the pin does not carry
  * yet — answers `unsupported_capability` before anything is read or stored. `board-service.test.mjs` fails when the
  * vendored pin and this set disagree, so a repin cannot land without this line.
  */
@@ -146,7 +146,10 @@ export const commsCancelSchema = z.strictObject({
 const timestamp = z.iso.datetime({ offset: true })
 const requestState = z.enum(['queued', 'claimed', 'accepted', 'in_progress', 'completed', 'failed_known', 'cancelled', 'expired', 'outcome_unknown'])
 const effectState = z.enum(['not_started', 'started', 'succeeded_observed', 'failed_observed', 'unknown'])
-/** The receipt of every successful mutation (spec §1.2, `comms-receipt`): no field it does not name, so no seq (C3). */
+const receiptAttempt = z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp })
+/** The receipt of every successful mutation (spec §1.2, `comms-receipt`): no field it does not name, so no seq (C3).
+ *  `transferred` (contract DEC-0078, pinned at f00a768): only com.responder_replace answers it, one entry per request it
+ *  transferred — each request once — with its revision and the attempt the new holder continues under. */
 export const commsReceiptSchema = z.strictObject({
   ok: z.literal(true),
   repeated: z.boolean(),
@@ -155,10 +158,12 @@ export const commsReceiptSchema = z.strictObject({
   at: timestamp.optional(),
   request: z.strictObject({ id: opaqueId, state: requestState, effect: effectState, revision: z.number().int().min(1) }).optional(),
   slot: z.strictObject({ project: projectId, capability: capabilityName, generation: z.number().int().min(1), leaseExpiresAt: timestamp }).optional(),
-  attempt: z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp }).optional()
+  attempt: receiptAttempt.optional(),
+  transferred: z.array(z.strictObject({ request: opaqueId, revision: z.number().int().min(1), attempt: receiptAttempt })).min(1).max(64)
+    .refine((t) => new Set(t.map((x) => x.request)).size === t.length, 'each transferred request once').optional()
 })
 
-// ── the responder tools' argument shapes (contract DEC-0073, pinned at edc88a6), strict ─────────────────────
+// ── the responder tools' argument shapes (contract DEC-0073, pinned at f00a768 with DEC-0078), strict ──────
 const boardIntSafe = z.number().int().max(Number.MAX_SAFE_INTEGER)
 export const commsFenceSchema = z.strictObject({
   request: opaqueId, generation: boardIntSafe.min(1), attempt: opaqueId, digest: sha256, expectedRevision: boardIntSafe.min(1).optional(), idempotency
@@ -185,14 +190,16 @@ export const commsResponderReplaceSchema = z.strictObject({
   }).optional()
 })
 export const commsDirectoryArgsSchema = z.strictObject({ capability: capabilityName.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional() })
-/** The directory's answer (comms-directory): closed at every level, so nothing but ids, names, capabilities and responder state leaves. */
+/** The directory's answer (comms-directory): closed at every level, so nothing but ids, names, capabilities and responder
+ *  state leaves; a page lists each Project once and each capability once per Project (contract DEC-0077, FAC-SEM-107). */
 export const commsDirectorySchema = z.strictObject({
   protocol: z.literal(COMMS_PROTOCOL),
   snapshot: z.strictObject({ readAt: timestamp, stale: z.boolean().optional() }),
   projects: z.array(z.strictObject({
     id: projectId, name: z.string().min(1).max(120),
     capabilities: z.array(z.strictObject({ capability: capabilityName, responder: z.enum(['active', 'stale', 'absent']) })).max(64)
-  })).max(100),
+      .refine((c) => new Set(c.map((x) => x.capability)).size === c.length, 'each capability once per Project')
+  })).max(100).refine((p) => new Set(p.map((x) => x.id)).size === p.length, 'each Project once'),
   cursor: opaqueId.nullable()
 })
 

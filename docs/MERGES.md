@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 task branch takes main 1982b92e · task-branch preparation
+- sources: d2ea4357 plus main 1982b92e (migration 88, contract DEC-0078); integration into the task branch, not a merge into main
+- conflicts: carry-over and backlog rebuilt on main with the CO-282 and CO-292 rows (219 of 292 open), this log and the map unioned, previews/plan/matrix/completeness from main and re-verified by their generators
+- checks: docs gates on the merge; full local fast still owed
+
 ### 2026-10-13 · CO-282 hosted fast green, local full gate still owed · task-branch preparation
 - fixes: graph lock ignored for the map stamp (e8b36ce3), controlled-pool suite NOT_RUN without pinned agent-sync (1e47ad6c), 116 mockup previews main left stale (1c21db61), pipeline reservation to ADR-0157 (03694bd2)
 - checks: hosted fast PASS on 03694bd2 (runs 38420835560, 38420846534); the four agent-sync resource suites 105/105 locally; complete local fast NOT_RUN for disk/load
@@ -85,6 +90,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: bounded recovery, CAS wait kernel/store, observation reduction, timeout retention and source-bound evidence
 - conflicts: preserved main7e51da91 including COM03 and CO283–286; generated projections rebuilt from the219/286 union
 - summary: recovery checkpoint ae197a15 full fast PASS. Later N019/N020 acceptance is recorded separately; pending107/108 are not active. Graph20 nodes retains owner admission/native/production composition gates. Entry: docs/handoffs/2026-10-13-harness-waves.md.
+
+### 2026-10-13T15:34:00Z · `—` · agent/com-w2-fixes-db-land → main · fast-forward (squash of agent/com-w2-fixes-db onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: The SQL half of the COM-03 wave-2 fix round (ADR-0149 Amendment 2 §6–§7): migration 88 (suffix 107, functions replaced in place) — unread counts only readable deliveries, a closed epoch refuses renew/progress, enroll/replace/claim/release take their locks in ADR-0149 §5's order, reconcile_required for the current holder on an outcome_unknown request, a replay without an enrollment needs a grant, com.enroll's refusal names Settings → Agent access, com.responder_replace's receipt carries transferred and com.claim no longer reads back (contract DEC-0078); repin to fabric-agent-contract f00a768 (DEC-0076..0078; graded 77; directory mirror refuses a repeated Project or capability); schema contract 88/88, private-archive source 88. DB tier on owned clusters, every exit 0: responders 23/23, project-board 33/33, restore-authority, write-rules (fresh = upgraded at 88), ceo-private-archive, function-privileges; plants red then green for fixes 3, 5, 6 (reversed lock order → deadlock detected), 8 and transferred. Fix 6 raises only its functions' own lock_timeout to 60 s (it proves order, not latency). Registers: CO-283, CO-285, CO-287 resolved; lane 13 217 of 290; CO-282 untouched.
 
 ### 2026-10-13T10:30:00Z · `—` · agent/com-w4-docs-land → main · fast-forward (squash of agent/com-w4-docs onto origin/main)
 - run: r-faa9aae98a19
