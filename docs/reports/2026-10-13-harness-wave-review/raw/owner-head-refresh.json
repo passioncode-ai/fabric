@@ -1,0 +1,35 @@
+{
+  "observed_at": "2026-10-13T01:38:45.306133+00:00",
+  "command": "gh pr view NUMBER -R REPO --json state,headRefOid,mergeCommit,url",
+  "rows": [
+    {
+      "repo": "ssheleg/task-pipeline",
+      "number": 112,
+      "head": "c8bed2a1022849b658080e3b941ae708c39e318d",
+      "state": "OPEN",
+      "mergeCommit": null
+    },
+    {
+      "repo": "ssheleg/task-pipeline",
+      "number": 114,
+      "head": "6875e04b1a5d4ec2c3ca599d8bbb61e480b401f3",
+      "state": "OPEN",
+      "mergeCommit": null
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "number": 213,
+      "head": "18a2a7703b7926cdafd62dd6dd8a2d0067820503",
+      "state": "OPEN",
+      "mergeCommit": null
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "number": 214,
+      "head": "ff33a3b1ccac249077085785ec61f130d70ee355",
+      "state": "OPEN",
+      "mergeCommit": null
+    }
+  ],
+  "limit": "Head/status read only; does not inherit previous review or reproduction onto changed commits"
+}

@@ -13,7 +13,7 @@ The detailed receipt is [the wave review](../../reports/2026-10-13-harness-wave-
 Review identity is a session-local agent label, not externally authenticated identity.
 Every verdict has a distinct examined artifact. A retry or a repeated report is not another
 review round. Native model behavior and all-agent policy enforcement remain outside these
-receipts. Combined source is a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; final gate follows.
+receipts. N-001–003 combined source is a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; final gate follows.
 
 ## Document review after artifact freeze
 
@@ -82,3 +82,41 @@ row conservation, not independent re-acceptance of that code. No broad tests ran
 
 Reviewed unchanged archive digest: `dff61151e0999c75882975d441e1f7ecd47bc14981304d2c601d151bd6f7a887`.
 Reviewed rotation receipt digest: `7f3c154341986f9f913d5f9ccf156c730913853b5f174d642a3b0551a542ac60`.
+
+## N-011 — MCP cooldown and close boundaries
+
+Candidate frozen by SHA-256 before independent review:
+
+| File under apps/desktop | SHA-256 |
+|---|---|
+| src/main/fabricMcp.ts | 12d7d19f78b274a1a3e72cb72ccbcd40365b77f42d5968684e1466b07779a819 |
+| src/main/fabricMcpClient.ts | bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1 |
+| test/fabric-mcp.test.mjs | 86d94b07bbc0423b5773462933410ebaa1adc9b08410e0ee5cff5a7d3b32aa68 |
+
+Builder `/root/mcp_research`: two initial HTTP429 regressions failed before edits.
+A 40-test green candidate was independently rejected: background SSE429 still allowed the
+next POST; a late session link attached after close; a late consent response lost its
+one-shot credential. Three added regressions failed before the correction. Final suite
+`node --test apps/desktop/test/fabric-mcp.test.mjs`:43/43 pass; node TypeScript check and
+`git diff --check`: exit0. The rejected bytes remain reproducible from
+`../../reports/2026-10-13-harness-wave-review/raw/n011-rejected-candidate.patch.gz` against30664c0e, with hashes in its JSON receipt.
+
+Independent reviewer `/root/observatory_research` reran both persisted negative fixtures
+on the exact final hashes, via `node --experimental-strip-types --input-type=module <`
+`docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-boundaries.mjs`
+and its `n011-independent-late-consent.mjs` counterpart. Both exited0 and all three
+`negativeControlPassed` values were true: late link closed once/no call; background429
+sent initialize/initialized/GET only; late consent saved once/no subsequent network/open.
+These fixtures print their verdicts; exit0 alone is not their acceptance criterion.
+
+The transport preserves numeric/date Retry-After with a monotonic local deadline; zero
+waits at least1second, invalid or greater-than-five-minute values fall back to60seconds.
+Every transport fetch is fenced, including after a background GET. The proxy preserves
+cooldown across whoami wakeups and rechecks hub identity. Closing permits local persistence
+of an already-received consent response while forbidding new network/session work.
+No server limit was raised. This is process-local retry control, not cross-process poll
+leadership, proof of the live saturation cause, native enrollment or board acceptance.
+
+Final cold-reader review `/root/pipeline_research`: scoped PASS on11-node graph and
+N-011 exact hashes; old ten-node and pre-N-011 source labels corrected. Owner refresh
+uses new committed heads and explicitly does not inherit old dynamic reproductions.

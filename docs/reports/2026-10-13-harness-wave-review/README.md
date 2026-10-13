@@ -106,7 +106,7 @@ All these scopes concern launch/protocol behavior, not model obedience or contin
 
 ## Plan and scope review
 
-`graph.py validate` and `plan_audit.py` pass for the ten-node queue. Independent plan review
+`graph.py validate` and `plan_audit.py` passed for the initial ten-node queue. Independent plan review
 caught and fixed: an artificial matrix barrier, missing N-009/N-010 task descriptions,
 NOT_SENT incorrectly eligible to count as owner acceptance, and unnamed repair checks.
 N-009/N-010 remain blocked on actual owner admission and behavior acceptance. Completing
@@ -114,12 +114,24 @@ packets or this report does not complete REQ-006…009. No external owner status
 
 ## Combined gate
 
+The later combined invocation passed53 compiler/reconciliation tests, then stopped at
+`check-ops` on the new ACP refusal catch. The catch already reports a bounded terminal
+error and exits3; an explanatory comment now documents that sink without copying untrusted
+peer errors. [Attempt receipt](raw/combined-gate-attempt-1.json). The rest of that invocation
+was NOT_RUN; a complete corrected run is required.
+
 Initial planning attempt: `bash scripts/ci.sh fast` stopped at a missing local journal
 TypeScript dependency. Existing dependencies were then exposed through ignored worktree
 links, with pnpm dependency repair disabled (`pnpm_config_verify_deps_before_run=warn`);
-no dependency installation was attempted. A development-tree run passed types/design and
+no Node dependency installation was attempted. A development-tree run passed types/design and
 many documentation checks, then correctly refused a changed map source stamp while work
 was in progress. Neither run certifies the final candidate. A frozen run at 4808f83b then caught four errors in this change’s carry-over registration: a blank line split the table, the status vocabulary was invalid, and the asserted count was stale. The row is now parseable with `partially` status, counted and assigned to lane 6; focused register and plan-ID checks pass. Final frozen-candidate receipt follows the corrected run.
+
+Current owner-head reconciliation is appended to [owner packets](../../execution/harness-waves/owner-packets.md#later-owner-head-reconciliation--2026-10-13-013845-utc). Four OPEN PRs advanced; implemented lesson emission and hub recovery improvements are separated from remaining source and native acceptance gaps.
+
+A read-only [capacity snapshot](raw/capacity-snapshot.json) measured14 logical CPUs,
+48GiB memory, load average152.64/245.55/231.12 and1450 processes. These are machine totals,
+not per-project attribution or enforced capacity. This run kept one heavy-check slot.
 
 ## Resource implementation decomposition
 
@@ -171,6 +183,41 @@ not chronological. A [hash-conservation receipt](raw/retro-rotation-receipt.json
 all historical rows. No standing rule was retired from guessed exposure data; legacy
 classification/provenance and narrative-archive debt remain explicit. Observatory delivery
 is NOT_SENT pending Fabric access, and no local note is claimed to exist in its store.
+
+
+## N-011 — MCP cooldown and close boundaries
+
+Candidate frozen by SHA-256 before independent review:
+
+| File under apps/desktop | SHA-256 |
+|---|---|
+| src/main/fabricMcp.ts | 12d7d19f78b274a1a3e72cb72ccbcd40365b77f42d5968684e1466b07779a819 |
+| src/main/fabricMcpClient.ts | bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1 |
+| test/fabric-mcp.test.mjs | 86d94b07bbc0423b5773462933410ebaa1adc9b08410e0ee5cff5a7d3b32aa68 |
+
+Builder `/root/mcp_research`: two initial HTTP429 regressions failed before edits.
+A 40-test green candidate was independently rejected: background SSE429 still allowed the
+next POST; a late session link attached after close; a late consent response lost its
+one-shot credential. Three added regressions failed before the correction. Final suite
+`node --test apps/desktop/test/fabric-mcp.test.mjs`:43/43 pass; node TypeScript check and
+`git diff --check`: exit0. The rejected bytes remain reproducible from
+`raw/n011-rejected-candidate.patch.gz` against30664c0e, with hashes in its JSON receipt.
+
+Independent reviewer `/root/observatory_research` reran both persisted negative fixtures
+on the exact final hashes, via `node --experimental-strip-types --input-type=module <`
+`docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-boundaries.mjs`
+and its `n011-independent-late-consent.mjs` counterpart. Both exited0 and all three
+`negativeControlPassed` values were true: late link closed once/no call; background429
+sent initialize/initialized/GET only; late consent saved once/no subsequent network/open.
+These fixtures print their verdicts; exit0 alone is not their acceptance criterion.
+
+The transport preserves numeric/date Retry-After with a monotonic local deadline; zero
+waits at least1second, invalid or greater-than-five-minute values fall back to60seconds.
+Every transport fetch is fenced, including after a background GET. The proxy preserves
+cooldown across whoami wakeups and rechecks hub identity. Closing permits local persistence
+of an already-received consent response while forbidding new network/session work.
+No server limit was raised. This is process-local retry control, not cross-process poll
+leadership, proof of the live saturation cause, native enrollment or board acceptance.
 
 ## Retrospective
 

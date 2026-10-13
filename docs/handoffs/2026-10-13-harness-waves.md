@@ -5,14 +5,14 @@ Objective: modular autonomous work with bounded resources, asynchronous independ
 source-bound feedback and explicit support per host. Status: first Fabric repair wave;
 CO-282 remains open, not universal runtime acceptance.
 
-Source baseline a5b78e4919d82c6eae88bee72e59eba3e0c1fbae; integrated repair source
+Source baseline a5b78e4919d82c6eae88bee72e59eba3e0c1fbae; N-001–003 integrated repair source
 a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Main delivery branch: `agent/harness-waves-20261013`.
 All outputs and packets are repository-relative under `docs/execution/harness-waves`.
 [Review and limitations](../reports/2026-10-13-harness-wave-review/README.md).
 
-Completed: detailed graph/packets (initial ten nodes; N-011 added for observed MCP retry failure); three reviewed repairs (pending bearer identity
+Completed: detailed graph/packets (initial ten nodes; N-011 added for observed MCP retry failure); four reviewed repairs (pending bearer identity
 and admission race; whole-context budget; negotiated ACP mode and mandatory surface);
-all-host evidence matrix; owner packets and shared admission/feedback specification.
+MCP Retry-After and close/late-consent boundaries; all-host evidence matrix; owner packets and shared admission/feedback specification.
 One ACP patch was rejected and repaired before integration; earlier green checks were not reused.
 
 Decisions: existing ADR/grant authority outranks observed lessons; board is the sole
@@ -52,3 +52,12 @@ N-011 now owns the local MCP cooldown repair before N-007 combined acceptance. T
 HTTP429 negative tests failed before production edits: Retry-After lost at the SDK boundary,
 and whoami/connect retry before the server deadline. Aggregate live saturation cause is
 unmeasured. Shared cross-process poll leadership is not implemented by this bounded patch.
+
+N-011 final scoped review passed:43 regressions and three independent negative fixtures.
+The previously green40-test candidate was rejected and preserved for replay. Exact hashes
+and limits are recorded in the wave report; combined fast gate remains the next step.
+
+Latest owner heads were re-read: see the appended source reconciliation in owner packets.
+Some earlier findings are addressed in source, but no current-head native acceptance or
+board delivery is inferred. The first complete candidate attempt reached53 passing compiler
+checks, then failed an ACP observability-comment gate; comment corrected, full rerun required.

@@ -131,3 +131,49 @@ No session message, foreign HANDOFF edit or PR comment substitutes for this rout
 Return states: prepared, submitted, acknowledged, accepted-for-work, implemented,
 verified, rejected, superseded. Only verified behavior satisfies a behavioral
 requirement. Board availability does not authorize consent, spending or secrets.
+
+## Later owner-head reconciliation — 2026-10-13 01:38:45 UTC
+
+A second read found four changed OPEN candidates. These do not replace the earlier
+historical findings or inherit their runtime tests. [Machine receipt](../../reports/2026-10-13-harness-wave-review/raw/owner-head-refresh.json).
+
+| Work | Newly inspected head | Source-level disposition |
+|---|---|---|
+| task-pipeline #112 | c8bed2a1022849b658080e3b941ae708c39e318d | lesson emitter added; certification and adoption gaps remain |
+| task-pipeline #114 | 6875e04b1a5d4ec2c3ca599d8bbb61e480b401f3 | same graph/doctrine boundaries; no live store receipt |
+| hub #213 | 18a2a7703b7926cdafd62dd6dd8a2d0067820503 | scoped consent and recoverable host writes improved |
+| hub #214 | ff33a3b1ccac249077085785ec61f130d70ee355 | effective Claude settings and disabled-skill search improved |
+
+Reviewer `/root/pipeline_research` read committed bytes without running tests.
+Both pipeline heads share graph blob6507d0616c7cd6719593b9b96a87c3a65c3b2b0b and
+iteration blob45b738ef4c5dab29c73200030adde9f8d10409e5.
+[graph.py677–678 and1635–1653](https://github.com/ssheleg/task-pipeline/blob/c8bed2a1022849b658080e3b941ae708c39e318d/plugins/task-pipeline/skills/task-pipeline/scripts/graph.py#L1635)
+still omit reviewed candidate/input/dispatch bindings, stamp the collector HEAD and
+append round/history on each call; the old replay reproduction was not rerun.
+[iteration.md283–297](https://github.com/ssheleg/task-pipeline/blob/c8bed2a1022849b658080e3b941ae708c39e318d/plugins/task-pipeline/skills/task-pipeline/references/iteration.md#L283)
+still infers filter support from kind and promotes an observed lesson to a standing
+instruction without an adoption record.
+
+The earlier emitter gap is addressed in source:
+[lessons.py895–928](https://github.com/ssheleg/task-pipeline/blob/c8bed2a1022849b658080e3b941ae708c39e318d/plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py#L895)
+supports `observatory_lesson`, with owner/classKey/title/trigger/check/nouns/origin;
+argument-shape tests at test/lessons_test.py265–275 were added. These tests were NOT_RUN
+in this refresh; schema compatibility and emit→store→retrieve remain unverified.
+The index-ownership reference now cites merged hub#209. Do not ask an owner to rebuild
+these completed source changes; test and integrate the current producer instead.
+
+Reviewer `/root/mcp_research` inspected both hub heads without tests or config writes.
+L1 now journals host writes and refuses ambiguous recovery while preserving bytes,
+modes and symlinks ([visibility-state.js27–95](https://github.com/ssheleg/sshlg-skills/blob/18a2a7703b7926cdafd62dd6dd8a2d0067820503/lib/visibility-state.js#L27)).
+L5 derives Claude user→project→local enablement, keeps disabled installed skills searchable,
+and avoids arming absent/repeated routes ([enablement.js42–49](https://github.com/ssheleg/sshlg-skills/blob/ff33a3b1ccac249077085785ec61f130d70ee355/lib/enablement.js#L42),
+[conflicts.js243–296](https://github.com/ssheleg/sshlg-skills/blob/ff33a3b1ccac249077085785ec61f130d70ee355/lib/conflicts.js#L243)).
+Catalogue enumeration still uses Claude roots; this is not all-host discovery. L1 still
+writes the normal Codex home, so Fabric's isolated CODEX_HOME remains an acceptance gap.
+[hostvis.js118–125](https://github.com/ssheleg/sshlg-skills/blob/18a2a7703b7926cdafd62dd6dd8a2d0067820503/lib/hostvis.js#L118)
+explicitly cannot hide Cursor/Kimi entries: invocation denial is not listing removal.
+
+Neither hub head contains the other (both ancestry checks exit1); combined L1+L5 behavior,
+installation and native-host readback remain unverified. MCP loading doctrine is unchanged:
+these PRs do not implement the Observatory profile writer, gateway selection or Fabric
+session policy. Their owner routes remain in force. No cross-project board packet was sent.

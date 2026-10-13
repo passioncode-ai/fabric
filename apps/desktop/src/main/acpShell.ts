@@ -485,6 +485,8 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       const ack = await rpc.request('session/set_mode', { sessionId, modeId: spec.sessionMode })
       if (!record(ack)) throw new Error('invalid mode acknowledgement')
     } catch {
+      // This standalone PTY reports a bounded refusal to its reader and exits with code 3;
+      // the parent PTY records that exit. Do not echo an untrusted peer error payload.
       if (stopping) return stopping
       out('\nFabric: the agent did not acknowledge the requested session mode; no prompt was sent.\n')
       return stop(3)

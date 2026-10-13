@@ -8,7 +8,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - files: see branch diff against a5b78e4919d82c6eae88bee72e59eba3e0c1fbae
 - conflicts: none in the owned integration worktree; final-main integration remains pending
-- summary: Three reviewed repairs: pending enrollment identity/serialization, whole-context budget and refusal propagation, acknowledged ACP mode with contradictory-mode refusal. Ten-node execution plan, host evidence matrix, upstream owner packets and resource/feedback specification. CO-282 remains partial. This entry is prepared inside the source iteration as required by the map contract; it does not assert a merge or installed runtime. Entry point: docs/handoffs/2026-10-13-harness-waves.md.
+- summary: Four reviewed repairs: pending enrollment identity/serialization, whole-context budget and refusal propagation, acknowledged ACP mode with contradictory-mode refusal, MCP Retry-After and close/late-consent boundaries. Eleven-node execution plan, host evidence matrix, upstream owner packets and resource/feedback specification. CO-282 remains partial. This entry is prepared inside the source iteration as required by the map contract; it does not assert a merge or installed runtime. Entry point: docs/handoffs/2026-10-13-harness-waves.md.
 
 ### 2026-10-12T23:44:28Z · `—` · agent/com-02.3-lifecycle → main · fast-forward (squash of agent/com-02.3-lifecycle onto origin/main 7eace021)
 - run: r-faa9aae98a19

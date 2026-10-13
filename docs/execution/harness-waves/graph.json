@@ -187,7 +187,7 @@
       "id": "N-011",
       "title": "MCP Retry-After and cooldown",
       "owner": "implementer",
-      "status": "running",
+      "status": "done",
       "serves": "REQ-008",
       "blocked_by": [],
       "touches": [
@@ -196,7 +196,10 @@
         "apps/desktop/test/fabric-mcp.test.mjs"
       ],
       "surface_class": "internal",
-      "check": "node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs"
+      "check": "node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs",
+      "evidence": [
+        "Exact three source SHA-256 values and independent three-negative-fixture PASS in docs/execution/harness-waves/review.md. Builder43/43 and typecheck exit0; live enrollment and owner acceptance remain open."
+      ]
     }
   ],
   "edges": [

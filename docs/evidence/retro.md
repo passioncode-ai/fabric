@@ -65,6 +65,15 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 - **The check:** context-mandatory 10 and context-privacy 8 scenarios; saved seed7321 invariant check 500 cases, 471 valid packs/29 explicit refusals. Synthetic combinations are not native agent obedience.
 - **Commit:** `1ddf43fd`; [scoped evidence and saved fixture](../reports/2026-10-13-harness-wave-review/README.md#n-003--exact-context-budget-and-refusal-propagation).
 
+### 2026-10-13 · harness-waves · asynchronous errors cross more than one boundary
+
+- **Symptom:**40 MCP tests passed while an independent SDK-background429 fixture still sent the next POST; closing could attach a late link or discard a received one-shot consent.
+- **Surfaced at:** independent negative review after builder tests, before combined acceptance.
+- **Owned by:** transport retry enforcement and proxy close/admission lifecycle.
+- **Root cause:** foreground rejection was treated as every error path; cancellation was checked after a result that required durable local persistence.
+- **Fix:** transport-wide monotonic fence, late-link disposal and persistence before the no-new-network close boundary. Process-local only; no shared poll leader is claimed.
+- **The check:**43 builder tests and three independent negative controls. The rejected source capsule and commands remain in [N-011 evidence](../reports/2026-10-13-harness-wave-review/README.md#n-011--mcp-cooldown-and-close-boundaries), bound by exact source hashes. A green suite alone did not close the module.
+
 ### 2026-10-13 · harness-waves · retrospective maintenance receipt
 
 - **Stamp then prune:** one current stamp added; 127 historical rows become 9 active plus 118 archived, byte-for-byte, with row-hash multiset conservation. Live total:10. The original table was not chronological, so retention uses explicit dates rather than the last nine physical rows.

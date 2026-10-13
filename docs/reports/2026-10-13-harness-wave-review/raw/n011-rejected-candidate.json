@@ -1,0 +1,39 @@
+{
+  "baseline": "30664c0e",
+  "candidate": "uncommitted reviewed bytes, reconstructed exactly by saved patch",
+  "patch": "n011-rejected-candidate.patch.gz",
+  "patch_sha256": "584214abc92b2dc85618a1b4b4d55aa71babba6986aef29c7e4c652600e67c06",
+  "sources": [
+    {
+      "path": "apps/desktop/src/main/fabricMcp.ts",
+      "sha256": "b01ad771b44576e2310291afdd296a09241d6e2e352fee0fa0a124b54aa74a77"
+    },
+    {
+      "path": "apps/desktop/src/main/fabricMcpClient.ts",
+      "sha256": "fe00a860372eb02f8acbc19fcc497496dfaf452fab49aad40f74fd738fe4a57a"
+    },
+    {
+      "path": "apps/desktop/test/fabric-mcp.test.mjs",
+      "sha256": "a49d89fb88a797a60d670683d65ab8a5cd7229665d8f8f2380561c7241ff3669"
+    }
+  ],
+  "validation": "git read-tree baseline plus git apply --cached under owned temporary index; all three reconstructed source hashes match",
+  "builder_initial": {
+    "tests": 40,
+    "pass": 40,
+    "exit": 0
+  },
+  "independent_review": "REJECT",
+  "negative_findings": [
+    "late openSession attaches link after close",
+    "background SDK GET429 does not block subsequent tools/call POST",
+    "closed hubCall discards late one-shot allowed credential before save"
+  ],
+  "limits": "Source fixtures only; no native/server load attribution. First two existed before this patch; credential-drop guard was introduced by rejected candidate.",
+  "compression": {
+    "format": "gzip",
+    "uncompressed_sha256": "584214abc92b2dc85618a1b4b4d55aa71babba6986aef29c7e4c652600e67c06",
+    "compressed_sha256": "6c850c0654ae0050a7c0c052160e968d8efe63fb71657648bdb5308b18c47c55",
+    "replay": "gzip -dc n011-rejected-candidate.patch.gz | git apply --cached (owned temporary index at30664c0e)"
+  }
+}
