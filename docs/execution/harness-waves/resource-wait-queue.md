@@ -55,7 +55,18 @@ establish estate-wide fairness while other launch paths bypass the queue.
 Clock readings are trusted epoch milliseconds for persisted deadlines. A reading
 before the stored update is refused. Expiry never grants approval. Claim duration,
 page size and dependency timeout are explicit constructor bounds; there is no
-background timer, default policy or worker created by construction.
+background polling timer, default policy or worker created by construction.
+
+One factory instance permits at most one top-level operation. A dependency timeout
+revokes that operation and its permit immediately, but retains its busy slot until
+all underlying dependency promises actually settle. Repeated enqueue/pass/cancel
+calls return `busy` without starting more dependencies. Nested permit reads share
+the same operation token. A late or retained permit cannot start another read.
+The worst in-flight port fanout is a dispatcher plus its one nested permit read;
+there is no per-retry accumulation. A dependency that never settles keeps this
+instance busy indefinitely. This is backpressure, not proof it was cancelled.
+Production composition must reuse the instance, not construct one per retry;
+there is no machine-wide limit across independently constructed instances.
 
 ## Verification
 
@@ -70,11 +81,18 @@ mutant. The original control runner inherited Node's test-child marker and did
 not execute the child test; clearing that marker fixed the harness before the
 accepted control run. Temporary mutant files are removed after the check.
 
-**Known initial-candidate defect, review pending:** timeout bounds response time
-but does not yet cap outstanding dependency promises across repeated top-level
-calls. A pending dependency can outlive the returned timeout. The next correction
-must retain operation ownership until settlement and revoke a late nested permit;
-the current 21-test result does not establish this resource bound.
+**Rejected candidate and correction:** initial commit `e5f8e290` bounded response
+time only. The four regression tests selected by `--test-name-pattern
+"ten repeated|late nested|nested permit dependency|retained permit"` all failed
+against that implementation (exit 1), then all passed after retaining operation
+ownership and revoking late permits (exit 0). The corrected complete suite passes
+25 tests, including the three mechanism-removal controls. The initial mutation
+control marker issue above is a harness correction, not a production defect.
+
+The retained-slot tests repeat each entry point ten times after timeout and check
+one outstanding dependency, then settle it and verify that a fresh operation can
+proceed. The nested-permit tests also assert no new store read after timeout.
+They use unresolved promises and fake time, not real network cancellation.
 
 ## Remaining integration
 

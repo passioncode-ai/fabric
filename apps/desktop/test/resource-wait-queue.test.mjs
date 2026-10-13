@@ -149,7 +149,7 @@ test('timeout after begin retains unknown and restarted worker never blindly ret
   await f.add(); assert.equal((await f.queue().pass(scope)).state, 'unknown')
   f.tick(5000); assert.equal((await f.queue().pass(scope)).state, 'outcome_unknown')
   assert.equal(calls, 1); gate.release(); await pause(0)
-  assert.equal(f.row('a').state, 'outcome_unknown')
+  assert.equal(f.row('a').state, 'dispatch_started')
 })
 test('lost begin reply persists an unreclaimable effect fence, without calling dispatch', async () => {
   const f = fixture(); await f.add(); const cas = f.store.cas
@@ -221,7 +221,7 @@ if (!process.env.RESOURCE_WAIT_MODULE) test('negative controls fail when final a
   const root = await mkdtemp(join(tmpdir(), 'fabric-wait-plants-'))
   try {
     for (const [name, before, after, pattern] of [
-      ['authority', "if ((await checked(boundary.input)).state !== 'ready') return false", '', 'changed inputs/authority'],
+      ['authority', "if ((await checked(op, boundary.input)).state !== 'ready') return false", '', 'changed inputs/authority'],
       ['unknown', "if (head.state === 'outcome_unknown' || head.state === 'dispatch_started') return result('outcome_unknown')", '', 'timeout after begin'],
       ['fifo', 'const head = rows[0]', 'const head = rows[rows.length - 1]', 'strict FIFO']
     ]) {
@@ -236,4 +236,56 @@ if (!process.env.RESOURCE_WAIT_MODULE) test('negative controls fail when final a
       assert.match(run.stdout, /ERR_ASSERTION|AssertionError/)
     }
   } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test('ten repeated timeout calls retain one outstanding dependency until settlement for every entry point', async () => {
+  for (const method of ['enqueue', 'pass', 'cancel']) {
+    const gate = latch(); let calls = 0
+    const f = fixture({ timeoutMs: 5 }); if (method !== 'enqueue') await f.add()
+    const q = f.queue()
+    if (method === 'enqueue') f.deps.neverStarted = async () => { calls++; if (calls === 1) await gate.promise; return true }
+    else {
+      const name = method === 'pass' ? 'page' : 'read', original = f.store[name]
+      f.store[name] = async (...args) => { calls++; if (calls === 1) await gate.promise; return original(...args) }
+    }
+    const invoke = () => method === 'pass' ? q.pass(scope) : q[method](input())
+    assert.equal((await invoke()).state, 'unknown')
+    for (let i = 0; i < 10; i++) assert.equal((await invoke()).state, 'busy', method)
+    assert.equal(calls, 1, method)
+    gate.release(); await pause(0)
+    assert.notEqual((await invoke()).state, 'busy', method)
+    assert.ok(calls > 1, `${method}: a fresh operation was allowed after settlement`)
+  }
+})
+test('late nested permit after dispatch timeout cannot initiate new dependency work', async () => {
+  const gate = latch(); let inspections = 0, latePermit
+  const f = fixture({ timeoutMs: 5,
+    inspect: async () => { inspections++; return { state: 'ready' } },
+    dispatch: async (_i, permit) => { await gate.promise; latePermit = await permit(); return 'started' } })
+  await f.add(); const q = f.queue()
+  assert.equal((await q.pass(scope)).state, 'unknown')
+  for (let i = 0; i < 10; i++) assert.equal((await q.pass(scope)).state, 'busy')
+  gate.release(); await pause(0)
+  assert.equal(latePermit, false); assert.equal(inspections, 1)
+  assert.equal((await q.pass(scope)).state, 'outcome_unknown')
+})
+test('nested permit dependency remains owned after timeout and releases busy only after settlement', async () => {
+  const gate = latch(); let inspections = 0, reads = 0
+  const f = fixture({ timeoutMs: 5, inspect: async () => {
+    inspections++; if (inspections === 2) await gate.promise; return { state: 'ready' }
+  } })
+  await f.add(); const read = f.store.read
+  f.store.read = async (...args) => { reads++; return read(...args) }
+  const q = f.queue(); await q.pass(scope)
+  for (let i = 0; i < 10; i++) assert.equal((await q.pass(scope)).state, 'busy')
+  gate.release(); await pause(0)
+  assert.equal(reads, 0); assert.equal(inspections, 2)
+  assert.equal((await q.pass(scope)).state, 'outcome_unknown')
+})
+test('retained permit after completed operation is revoked before inspecting anything', async () => {
+  let savedPermit, inspections = 0
+  const f = fixture({ inspect: async () => { inspections++; return { state: 'ready' } },
+    dispatch: async (_i, permit) => { savedPermit = permit; return 'refused_before_start' } })
+  await f.add(); assert.equal((await f.queue().pass(scope)).state, 'refused_before_start')
+  assert.equal(await savedPermit(), false); assert.equal(inspections, 1)
 })

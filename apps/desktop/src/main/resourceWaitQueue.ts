@@ -61,7 +61,7 @@ export interface ResourceWaitDeps {
   dispatch(input: ResourceWaitInput, permit: () => Promise<boolean>): Promise<'started' | 'refused_before_start' | 'unknown'>
 }
 export interface ResourceWaitOutcome {
-  state: ResourceWaitState | 'empty' | 'deferred' | 'contended' | 'unknown'
+  state: ResourceWaitState | 'empty' | 'deferred' | 'contended' | 'busy' | 'unknown'
   id?: string
 }
 const active = new Set<ResourceWaitState>(['waiting', 'claimed', 'dispatch_started', 'outcome_unknown'])
@@ -124,15 +124,37 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
   if (!identifier(deps.workerId) || !positive(deps.pageSize) || deps.pageSize > 100 ||
       !positive(deps.claimMs) || deps.claimMs > 300_000 || !positive(deps.timeoutMs) || deps.timeoutMs > 30_000)
     throw Error('invalid queue bounds')
+  const { workerId, pageSize, claimMs, timeoutMs } = deps
+  type Operation = { valid: boolean; finished: boolean; pending: Set<Promise<unknown>> }
+  let operation: Operation | null = null
+  const release = (op: Operation) => {
+    if (op.finished && op.pending.size === 0 && operation === op) operation = null
+  }
+  async function run(call: (op: Operation) => Promise<ResourceWaitOutcome>): Promise<ResourceWaitOutcome> {
+    if (operation) return { state: 'busy' }
+    const op: Operation = { valid: true, finished: false, pending: new Set() }
+    operation = op
+    try { return await call(op) } finally { op.valid = false; op.finished = true; release(op) }
+  }
   const now = () => { const n = deps.now(); if (!integer(n)) throw Error('invalid clock'); return n }
-  async function bounded<T>(call: () => Promise<T>): Promise<T> {
+  async function bounded<T>(op: Operation, call: () => Promise<T>): Promise<T> {
+    if (!op.valid) throw Error('wait operation revoked')
     let timer: ReturnType<typeof setTimeout> | undefined
-    try { return await Promise.race([Promise.resolve().then(call), new Promise<never>((_, reject) => {
-      timer = setTimeout(() => reject(Error('wait dependency timeout')), deps.timeoutMs)
+    // A response timeout is not cancellation of the underlying dependency. Keep
+    // ownership until it really settles; nested permits share the same token.
+    const pending = Promise.resolve().then(() => {
+      if (!op.valid) throw Error('wait operation revoked')
+      return call()
+    })
+    op.pending.add(pending)
+    const settled = () => { op.pending.delete(pending); release(op) }
+    void pending.then(settled, settled)
+    try { return await Promise.race([pending, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => { op.valid = false; reject(Error('wait dependency timeout')) }, timeoutMs)
     })]) } finally { clearTimeout(timer) }
   }
-  async function checked(input: ResourceWaitInput): Promise<ResourceWaitCheck> {
-    const raw = await bounded(() => deps.inspect(input))
+  async function checked(op: Operation, input: ResourceWaitInput): Promise<ResourceWaitCheck> {
+    const raw = await bounded(op, () => deps.inspect(input))
     const d = Object.getOwnPropertyDescriptor(raw, 'state')
     if (!d || !('value' in d)) throw Error('invalid observation')
     const x = shape(raw, d.value === 'wait' ? ['state', 'nextCheckAt'] : ['state'])
@@ -140,48 +162,48 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
     if (x.state === 'wait' && (!integer(x.nextCheckAt) || x.nextCheckAt <= now())) throw Error('invalid next check')
     return x as unknown as ResourceWaitCheck
   }
-  async function change(row: ResourceWaitRecord, patch: Partial<ResourceWaitRecord>): Promise<ResourceWaitRecord | null> {
+  async function change(op: Operation, row: ResourceWaitRecord, patch: Partial<ResourceWaitRecord>): Promise<ResourceWaitRecord | null> {
     const t = now()
     if (t < row.updatedAt || !positive(row.revision + 1)) throw Error('invalid revision or clock')
     const next = rowOf({ ...row, ...patch, revision: row.revision + 1, updatedAt: t })
-    const applied = await bounded(() => deps.store.cas(row.input.scope, row.input.id, row.revision, next))
+    const applied = await bounded(op, () => deps.store.cas(row.input.scope, row.input.id, row.revision, next))
     if (typeof applied !== 'boolean') throw Error('invalid CAS receipt')
     return applied ? next : null
   }
-  async function read(input: ResourceWaitInput): Promise<ResourceWaitRecord | null> {
-    const raw = await bounded(() => deps.store.read(input.scope, input.id))
+  async function read(op: Operation, input: ResourceWaitInput): Promise<ResourceWaitRecord | null> {
+    const raw = await bounded(op, () => deps.store.read(input.scope, input.id))
     if (raw === null) return null
     const row = rowOf(raw)
     if (!same(row.input, input)) throw Error('changed wait identity')
     return row
   }
-  return {
-    async enqueue(raw: ResourceWaitInput): Promise<ResourceWaitOutcome> {
+  const actions = {
+    async enqueue(op: Operation, raw: ResourceWaitInput): Promise<ResourceWaitOutcome> {
       try {
         const input = inputOf(raw), t = now()
-        if (input.createdAt > t || input.deadlineAt <= t || await bounded(() => deps.neverStarted(input)) !== true)
+        if (input.createdAt > t || input.deadlineAt <= t || await bounded(op, () => deps.neverStarted(input)) !== true)
           return { state: 'unknown' }
-        const row = rowOf(await bounded(() => deps.store.insert(input)))
+        const row = rowOf(await bounded(op, () => deps.store.insert(input)))
         if (!same(row.input, input) || row.updatedAt > now()) return { state: 'unknown' }
         return { state: row.state, id: input.id }
       } catch { return { state: 'unknown' } }
     },
-    async cancel(raw: ResourceWaitInput): Promise<ResourceWaitOutcome> {
+    async cancel(op: Operation, raw: ResourceWaitInput): Promise<ResourceWaitOutcome> {
       try {
-        const input = inputOf(raw), row = await read(input)
+        const input = inputOf(raw), row = await read(op, input)
         if (!row) return { state: 'unknown' }
         // Cancellation of a request is not termination of a dispatch or process.
         if (row.state !== 'waiting' && row.state !== 'claimed') return { state: row.state, id: input.id }
-        const next = await change(row, { state: 'cancelled', claim: null })
+        const next = await change(op, row, { state: 'cancelled', claim: null })
         return { state: next ? 'cancelled' : 'contended', id: input.id }
       } catch { return { state: 'unknown' } }
     },
-    async pass(rawScope: WaitQueueScope): Promise<ResourceWaitOutcome> {
+    async pass(op: Operation, rawScope: WaitQueueScope): Promise<ResourceWaitOutcome> {
       let begun: ResourceWaitRecord | null = null
       try {
         const scope = freeze(scopeOf(rawScope))
-        const page = shape(await bounded(() => deps.store.page(scope, deps.pageSize)), ['rows', 'more'])
-        if (!Array.isArray(page.rows) || page.rows.length > deps.pageSize || typeof page.more !== 'boolean' ||
+        const page = shape(await bounded(op, () => deps.store.page(scope, pageSize)), ['rows', 'more'])
+        if (!Array.isArray(page.rows) || page.rows.length > pageSize || typeof page.more !== 'boolean' ||
             (page.more && page.rows.length === 0)) throw Error('invalid page')
         const rows = page.rows.map(rowOf)
         for (let i = 0; i < rows.length; i++) {
@@ -194,45 +216,50 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
         const result = (state: ResourceWaitOutcome['state']): ResourceWaitOutcome => ({ state, id: head.input.id })
         if (head.state === 'outcome_unknown' || head.state === 'dispatch_started') return result('outcome_unknown')
         if (head.state === 'claimed' && head.claim!.until > now()) return result('deferred')
-        if (head.input.deadlineAt <= now()) return result(await change(head, { state: 'expired', claim: null }) ? 'expired' : 'contended')
+        if (head.input.deadlineAt <= now()) return result(await change(op, head, { state: 'expired', claim: null }) ? 'expired' : 'contended')
         if (head.nextCheckAt > now()) return result('deferred')
-        const until = now() + deps.claimMs
+        const until = now() + claimMs
         if (!integer(until)) throw Error('claim overflow')
-        const claim = await change(head, { state: 'claimed', claim: { workerId: deps.workerId, until } })
+        const claim = await change(op, head, { state: 'claimed', claim: { workerId: workerId, until } })
         if (!claim) return result('contended')
-        const verdict = await checked(claim.input)
+        const verdict = await checked(op, claim.input)
         if (verdict.state !== 'ready') {
-          const next = await change(claim, verdict.state === 'invalid' ? { state: 'invalidated', claim: null } :
+          const next = await change(op, claim, verdict.state === 'invalid' ? { state: 'invalidated', claim: null } :
             { state: 'waiting', claim: null, nextCheckAt: verdict.state === 'wait' ? verdict.nextCheckAt : until })
           return result(next ? next.state === 'waiting' ? 'deferred' : next.state : 'contended')
         }
         if (now() >= until || now() >= claim.input.deadlineAt) return result('deferred')
-        begun = await change(claim, { state: 'dispatch_started' })
+        begun = await change(op, claim, { state: 'dispatch_started' })
         if (!begun) return result('contended')
         const boundary = begun
         let permitRequested = false, permitGranted = false
         const permit = async () => {
-          if (permitRequested) return false
+          if (!op.valid || permitRequested) return false
           permitRequested = true
           try {
-            if ((await checked(boundary.input)).state !== 'ready') return false
-            const current = await read(boundary.input), t = now()
-            permitGranted = !!current && same(current, boundary) && t >= boundary.updatedAt &&
+            if ((await checked(op, boundary.input)).state !== 'ready') return false
+            const current = await read(op, boundary.input), t = now()
+            permitGranted = op.valid && !!current && same(current, boundary) && t >= boundary.updatedAt &&
               t < until && t < boundary.input.deadlineAt
             return permitGranted
           } catch { return false }
         }
-        const effect = await bounded(() => deps.dispatch(boundary.input, permit))
+        const effect = await bounded(op, () => deps.dispatch(boundary.input, permit))
         const state: ResourceWaitState = effect === 'started' && permitGranted ? 'dispatched' :
           effect === 'refused_before_start' ? 'refused_before_start' : 'outcome_unknown'
-        return result(await change(boundary, { state }) ? state : 'unknown')
+        return result(await change(op, boundary, { state }) ? state : 'unknown')
       } catch {
         // A lost begin/dispatch/settlement reply never authorizes another effect.
         // A claimed row may expire safely; dispatch_started is deliberately unreclaimable.
-        if (begun) { try { await change(begun, { state: 'outcome_unknown' }) } catch { /* Retain the durable begin fence. */ } }
+        if (begun) { try { await change(op, begun, { state: 'outcome_unknown' }) } catch { /* Retain the durable begin fence. */ } }
         return { state: 'unknown' }
       }
     }
+  }
+  return {
+    enqueue: (input: ResourceWaitInput) => run(op => actions.enqueue(op, input)),
+    cancel: (input: ResourceWaitInput) => run(op => actions.cancel(op, input)),
+    pass: (scope: WaitQueueScope) => run(op => actions.pass(op, scope))
   }
 }
 // #endregion resource-wait-queue
