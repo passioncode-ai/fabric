@@ -36,8 +36,8 @@ export const WITHHELD_FROM_SESSIONS: readonly string[] = [
 // #region launched-session-marker — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
 /**
  * D6 of the working-with-fabric session hooks: `FABRIC_LAUNCHED_SESSION=1` in the environment of every session
- * Fabric launches, whatever its adapter (`sessionBundle.ts` sets it), so a plugin's hooks stay silent where Fabric
- * already briefed the session. Not a secret: it carries no authority, only "Fabric started this". It is NEVER
+ * Fabric launches and connects to its surface, whatever the adapter (`sessionBundle.ts#launched` sets it), so a
+ * plugin's hooks stay silent where Fabric already briefed the session. Not a secret: it carries no authority, only "Fabric started this". It is NEVER
  * inherited — a Fabric started from inside a launched session would otherwise pass it to every plain shell it opens,
  * and silence the hooks of a coding agent the person starts there, which Fabric did not brief.
  */

@@ -10,7 +10,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { AGENTS } from '../shared/agents.ts'
 import { registryDirs } from './agentRegistry.ts'
 import { locateHub } from './hub.ts'
-import { FabricMcpProxy, RUNTIME_SESSION_ID } from './fabricMcp.ts'
+import { FabricMcpProxy, RUNTIME_SESSION_ID, runtimeSessionIdOf } from './fabricMcp.ts'
 import { fileCredentialStore, makeHubCall, openSessionLink } from './fabricMcpClient.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -24,12 +24,10 @@ if (!runner || !AGENTS.some((a) => a.id === runner && a.program)) {
 
 // D1: Claude Code gives the MCP servers it starts its own session id (CLAUDE_CODE_SESSION_ID); Fabric keeps it with the
 // enrollment, so the session hooks can name that session. D2: `--rejoin-only --runtime-session-id <id>` joins it.
-const flag = (name: string): string | undefined => {
-  const i = process.argv.indexOf(name)
-  return i >= 0 ? process.argv[i + 1] : undefined
-}
+// Codex and Kimi Code give their MCP servers no session id (measured; runtimeSessionIdOf says how), so their sessions
+// enroll without one and cannot be rejoined until a CLI supplies it.
 const rejoinOnly = process.argv.includes('--rejoin-only')
-const runtimeSessionId = flag('--runtime-session-id') ?? (runner === 'claude-code' ? process.env.CLAUDE_CODE_SESSION_ID : undefined) ?? null
+const runtimeSessionId = runtimeSessionIdOf(runner, process.argv, process.env)
 if (rejoinOnly && (!runtimeSessionId || !RUNTIME_SESSION_ID.test(runtimeSessionId))) {
   say('fabric-mcp: --rejoin-only needs --runtime-session-id <the coding agent\'s session id>')
   process.exit(2)

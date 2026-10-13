@@ -147,7 +147,8 @@ export interface SessionBundle {
   dir: string
   /** Extra arguments the program is launched with. */
   args: string[]
-  /** Extra environment (`config-content-env`): the session config, credential included. */
+  /** Extra environment: the session config, credential included (`config-content-env`, `codex-config-home`, `acp-session`),
+   *  and FABRIC_LAUNCHED_SESSION=1 in every bundle that connects the session to the surface (D6). */
   env?: Record<string, string>
   /** `acp-session`: the program actually started (Fabric's ACP shell) and its arguments, in place
    *  of the agent's binary; the agent runs inside it. */

@@ -90,6 +90,23 @@ export interface ProxyDeps {
 /** The runtime session ids fabric-mcp passes on: what Fabric's enrollment accepts (`sessionEnroll.ts`). */
 export const RUNTIME_SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
 
+// #region fabric-mcp-runtime-session — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+/**
+ * Which coding-agent session this fabric-mcp serves (D1), or null. `--runtime-session-id` names it for any runner
+ * (the hooks' rejoin passes it). Otherwise only Claude Code says: it gives the MCP servers it starts its own session
+ * id, CLAUDE_CODE_SESSION_ID (2.1.296). Measured 2026-10-13, nothing else does: Codex 0.162.1 gives an MCP stdio
+ * server a fixed dozen variables and no session or thread id, and Kimi Code 2.1.1 passes its whole parent environment
+ * and adds none — so a Kimi started inside a Claude Code session carries THAT session's CLAUDE_CODE_SESSION_ID, which
+ * must never name the Kimi session. Hence the variable is read for `claude-code` only.
+ */
+export function runtimeSessionIdOf(runner: string, argv: readonly string[], env: Readonly<Record<string, string | undefined>>): string | null {
+  const i = argv.indexOf('--runtime-session-id')
+  const flagged = i >= 0 ? argv[i + 1] : undefined
+  if (flagged !== undefined) return flagged
+  return runner === 'claude-code' ? (env.CLAUDE_CODE_SESSION_ID ?? null) : null
+}
+// #endregion fabric-mcp-runtime-session
+
 // #region fabric-mcp-failures — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
 /**
  * What a failed call under a session means. A transport failure — the HTTP client could not reach the session (a
@@ -161,6 +178,17 @@ const errorMessage = (v: Record<string, unknown>): string => String(((v.error as
 const errorData = (v: Record<string, unknown>): Record<string, unknown> => ((v.error as { data?: Record<string, unknown> } | undefined)?.data ?? {})
 const text = (t: string, isError = true): Record<string, unknown> => ({ content: [{ type: 'text', text: t }], ...(isError ? { isError: true } : {}) })
 
+// #region fabric-mcp-broker-wording — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+/** What an agent is told while Fabric is down. Never "open Fabric": an agent reads that as `open -a`, and only the
+ *  machine's local lifecycle broker starts an enrolled app (fabric-workspace knowledge/agents-first.md, "Fabric must be
+ *  running, and only the broker starts it"). fabric-mcp itself wakes nothing: it is the coding agent's child. */
+export const ASK_THE_BROKER =
+  'Ask the local lifecycle broker to start it — lifecycle.list, lifecycle.ensure_running, then lifecycle.operation.get ' +
+  'until ready — and call this tool again; never start, quit or kill it yourself (no open -a, osascript or pkill). ' +
+  'Without the broker, or when it answers held_off or in_use_by_person, tell the person "Fabric is not running" and ' +
+  'go on with other work.'
+// #endregion fabric-mcp-broker-wording
+
 /** How long the run loop waits before the next pass, by state. A folder that is no project is not asked about every
  *  few seconds: it waits until the agent calls fabric_whoami, or half a minute. */
 export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
@@ -195,8 +223,8 @@ export class FabricMcpProxy {
   waitingAnswer(): Record<string, unknown> {
     const s = this.state
     const said =
-      s.kind === 'not-running' ? 'Fabric is not running, or its hub is closed (Settings → Agent access says why). Open Fabric, then call this tool again.'
-      : s.kind === 'not-a-hub' ? `Fabric's hub could not be verified (${s.reason}). Open Fabric, then call this tool again.`
+      s.kind === 'not-running' ? `Fabric is not running, or its hub is closed (Settings → Agent access says why). ${ASK_THE_BROKER}`
+      : s.kind === 'not-a-hub' ? `Fabric's hub could not be verified (${s.reason}). Nothing is sent to it until it can be. If Fabric is not running, ask the local lifecycle broker to start it (lifecycle.ensure_running), never start it yourself; then call this tool again.`
       : s.kind === 'no-project' ? s.message
       : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — Fabric is asking them: a prompt in its window, or a notification when Fabric is in the background. Call this tool again in a moment.`
       : s.kind === 'denied' ? `The operator denied this coding agent the project ${s.projectName}. It stays denied until they clear the denial in Fabric (Agent access).`

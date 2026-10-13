@@ -30,6 +30,7 @@ import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
 import { materialize, verify } from './executionPacket.ts'
 import { MandatoryContextUnmet } from './contextPack.ts'
+import { LAUNCHED_SESSION_MARKER } from './sessionEnv.ts'
 
 export interface BundleSurface {
   readonly endpoint: string
@@ -59,6 +60,14 @@ export interface BundleCompilerDeps {
 
 export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
   const dirFor = (sessionId: string): string => path.join(deps.root, 'sessions', sessionId)
+
+  // #region launched-session-bundle — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+  /** D6 of the working-with-fabric session hooks: every session this bundle connects to the surface — the sessions
+   *  Fabric briefs, whatever the adapter — carries FABRIC_LAUNCHED_SESSION=1, so a plugin's hooks stay silent there.
+   *  A `none` session (a plain shell, a runner that connects to nothing) is not marked: Fabric briefed nothing in it,
+   *  and a coding agent the person starts inside it enrolls and is observed like one opened in any terminal. */
+  const launched = (bundle: SessionBundle): SessionBundle => ({ ...bundle, env: { ...(bundle.env ?? {}), [LAUNCHED_SESSION_MARKER]: '1' } })
+  // #endregion launched-session-bundle
 
   function discard(sessionId: string): void {
     // Revoke first, but still remove the credential file if revocation throws.
@@ -241,9 +250,9 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             if ((deps.platform ?? process.platform) === 'win32') {
               const briefPath = path.join(dir, 'brief.md')
               writeFileSync(briefPath, agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, { encoding: 'utf8', mode: 0o600 })
-              return { dir, args: ['--mcp-config', configPath, '--strict-mcp-config', '--append-system-prompt-file', briefPath] }
+              return launched({ dir, args: ['--mcp-config', configPath, '--strict-mcp-config', '--append-system-prompt-file', briefPath] })
             }
-            return {
+            return launched({
               dir,
               args: [
                 '--mcp-config',
@@ -258,7 +267,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 // Clean prompt text, never the scoped transport credential.
                 agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
               ]
-            }
+            })
           case 'config-content-env': {
             // ADR-0119 / P-10: the whole session config travels in ONE variable whose
             // content outranks the project's config file (`SurfaceConfig` in agents.ts
@@ -273,7 +282,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               encoding: 'utf8',
               mode: 0o600
             })
-            return {
+            return launched({
               dir,
               args: [],
               env: {
@@ -287,7 +296,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                   })
                 )
               }
-            }
+            })
           }
           case 'acp-session': {
             // ADR-0119 §1/§2, P-10: the PTY runs Fabric's ACP terminal shell, which starts the agent
@@ -336,12 +345,12 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 ]
               }))
             }
-            return {
+            return launched({
               dir,
               args: [],
               command: { program: shell.program, args: [...shell.args, '--', descriptor.program, ...descriptor.acp.args] },
               env: { ...shell.env, ...(descriptor.acp.env ?? {}), FABRIC_ACP_SESSION: JSON.stringify(spec) }
-            }
+            })
           }
           // #region codex-config-home — docs: docs/reports/2026-10-11-codex-kimi-surface-probes/README.md#codex-01621--what-it-takes
           case 'codex-config-home': {
@@ -383,11 +392,11 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               copyFileSync(operatorAuth, path.join(codexHome, 'auth.json'))
               chmodSync(path.join(codexHome, 'auth.json'), 0o600)
             }
-            return {
+            return launched({
               dir,
               args: [],
               env: { CODEX_HOME: codexHome, [tokenEnv]: scope.token }
-            }
+            })
           }
           // #endregion codex-config-home
           case 'none':
