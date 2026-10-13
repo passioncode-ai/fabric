@@ -6,7 +6,7 @@ report:
   project: fabric
   domains: [architecture]
   as_of: 2026-10-13
-  status: draft
+  status: active
   valid_until: 2026-10-27
   summary: >-
     Continuation of the harness wave: local resource preflight and pending durable SQL
@@ -307,3 +307,51 @@ Cross-project owner packets remain NOT_SENT at project-access consent.
 - `project-reports` — durable report — not a skill this family ships
 
 <sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>
+
+
+## Producer source acceptance and stack recovery
+
+Source `f2576c109f1de55179e07c7398aa2c4564e12087`, tree
+`5ac7a0e834fe38e572d56188ac52b8c38616cc58`, passed full fast in873.64s,
+exit0 with identical before/after tree. [Receipt](raw/closing/producer-f257-fast.json)
+and [normalized command output](raw/closing/producer-f257-fast.txt). This includes
+170 Vitest files/2053 tests and actual owned SQL, including all seven resource stages.
+Stack-backed/browser tests were NOT_RUN;12 host plants skipped without workspace
+node_modules; dependency-installation reproducibility remains UNVERIFIED.
+
+The generic pool read was rejected by the unchanged scope gate. A dedicated
+service-only host/pool read RPC now returns exactly eight fields or null. Its
+[independent review](raw/n025/rpc-read/independent/receipt.json) accepts54 focused
+checks and9 independent probes; actual SQL tests deny anon/authenticated execution.
+The function grants neither launch permission nor exclusive host ownership.
+
+After the earlier database failure, one `orbctl start` resumed the local machines.
+Fabric DB became healthy, API returned200 and official MCP reached project consent
+`waiting`. [Recovery receipt](raw/closing/live-stack-recovery.json). Owner requests
+remain NOT_SENT; this recovery is not an installed-source or integrity acceptance.
+The [next local packet](../../execution/harness-waves/input-scope-next-packet.md)
+bounds remaining input/scope and run-binding work without inventing a COM prerequisite.
+
+
+[Independent fresh-checkout delivery](raw/closing/producer-fresh-checkout/portable-receipt.json)
+verified the pushed source,24 accepted hashes and61 entry targets without installing
+or re-running tests. The25-node graph now has23 completed bounded deliverables and
+2 blocked owner-acceptance nodes; CO282 remains partial. Completed historical packet
+inputs are retained instead of being restamped to a newer plan.
+
+
+## Latest runtime correction and documentation gate
+
+The recovery above was brief. A distinct OrbStack boot at06:07:18UTC stopped at
+06:09:23UTC with errno28/StorageFull. [Independent recurrence receipt](raw/closing/live-stack-recurrence.json).
+The first recovery record now names its timestamp `recordedAt`; successful probes
+were not individually timestamped. It does not establish continued availability.
+No second restart or volume reset was attempted. Current board access is unavailable;
+consent must be checked again after stable database recovery.
+
+The documentation candidate tree `1f610a105ef7cfee1197149734405b20503ae65f` passed
+fast in996.38s, [receipt](raw/closing/producer-closeout-fast.json). Its resource SQL
+runner explicitly returned NOT_RUN because free disk was below1.5GiB; this is not a
+new SQL PASS. Unchanged resource code retains the separately recorded seven-stage
+PASS at f2576c1. This runtime correction and receipt attachment are a subsequent
+documentation-only delta, checked separately before publication; no runtime code changed.

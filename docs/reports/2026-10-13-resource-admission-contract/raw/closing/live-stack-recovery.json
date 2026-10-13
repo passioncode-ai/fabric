@@ -1,0 +1,24 @@
+{
+  "action": {
+    "command": "orbctl start",
+    "exit": 0,
+    "scope": "resume previously running OrbStack machines; no Fabric restart, volume reset or migration"
+  },
+  "checks": {
+    "orbctl_status": "Running",
+    "supabase_db_fabric": "healthy",
+    "gateway": "GET http://127.0.0.1:54321/rest/v1/ -> HTTP200 without credentials",
+    "fabric_whoami": {
+      "state": "waiting",
+      "meaning": "operator project-access consent in Fabric"
+    }
+  },
+  "limits": [
+    "Other previously running local containers resumed too",
+    "Database response is not full integrity/native acceptance",
+    "Free disk remains volatile:251MiB then1.8GiB",
+    "Owner submissions remain NOT_SENT; no consent bypass"
+  ],
+  "recordedAt": "2026-10-13T06:10:28.896081+00:00",
+  "timeQualification": "Receipt construction timestamp, not probe timestamps. Success probes have no exact saved wall timestamps; later recurrence receipt bounds the brief recovery."
+}

@@ -1,0 +1,100 @@
+{
+  "task": "Independent fresh checkout delivery/source verification",
+  "verdict": "SCOPED_FRESH_CHECKOUT_PASS",
+  "candidate_commit": "f2576c109f1de55179e07c7398aa2c4564e12087",
+  "candidate_tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+  "remote_branch_commit": "f2576c109f1de55179e07c7398aa2c4564e12087",
+  "remote": "git@github.com:passioncode-ai/fabric.git",
+  "checkout": {
+    "independent_clone": true,
+    "partial_clone_filter": "blob:none",
+    "sparse_checkout": true,
+    "source_read_method": "git show HEAD:path; tracked path existence from git ls-tree",
+    "alternates_present": false,
+    "status_porcelain": "",
+    "mutation_scope": "fetch branch and detach exact candidate in dedicated reviewer clone; no installs or builds"
+  },
+  "entry_sha256": {
+    "docs/handoffs/2026-10-13-harness-waves.md": "efcf068f5d17ac50a50a0b3e20078e03cbf7af44295b7765049e2d2e3b9038e1",
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "1ce6d280bdf82bc341fe73f19edfcaf7e98cd7a22e13ba16ed1b4181e61aa0f6"
+  },
+  "source_receipt_chain": [
+    {
+      "receipt_sha256": "8615fb9e462b498393bc334ce385ba9394e9935d98b752069cc4953f9b5b3b38",
+      "task": "N007 final combined N022\u2013N025 source/docs review"
+    },
+    {
+      "receipt_sha256": "2b17120a371261271dfea91350259e78928c0227ac558042f652179ea1eae738",
+      "task": "N007 final producer delta acceptance"
+    },
+    {
+      "receipt_sha256": "c93d8cc6050113e54e81e874f6261b42a420714317b32931f0faeca149d9c1f1",
+      "task": "N025 dedicated read RPC correction"
+    }
+  ],
+  "counts": {
+    "source_hashes_matched": 24,
+    "relative_targets_resolved": 61,
+    "packets_loaded": 25,
+    "completed_packets_with_historical_input_differences": 17,
+    "blocked_future_outputs": 2
+  },
+  "graph_status_counts": {
+    "done": 17,
+    "pending": 6,
+    "blocked": 2
+  },
+  "ci_evidence": {
+    "executor": "root; independently inspected completion receipt, not rerun",
+    "receipt": {
+      "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+      "before_tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+      "after_tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+      "exit": 0,
+      "seconds": 873.64
+    },
+    "receipt_sha256": "9822df980da2020f9b1fee23239b5d6b73bd63f6548292251fd26848aeea47b4",
+    "log_sha256": "e80ee7bc94af3086a0abc054775ee7e487824c9d9c6a3acb1820fd2484ae2acf",
+    "tree_matches_candidate": true
+  },
+  "limits": [
+    "Markdown target files checked; heading fragments and external network URLs not revalidated.",
+    "Packet reference mismatches, if any, reported without rewriting historical inputs.",
+    "No new test or production/native/provider/active DDL acceptance; prior N024 authorship disclosed, relying on separate independent review evidence.",
+    "Source candidate precedes final docs closeout; no whole goal completion inferred.",
+    "Historical completed packet input hashes differ from current source by design; historical dispatch commits were not exhaustively replayed. All pending packet reference hashes match current source."
+  ],
+  "source_sha256": {
+    "apps/desktop/src/main/agentSurface.ts": "e81d01be582876c3661434880d8d5e8f0fe11d7f212037b38c08f8bb80927cd2",
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+    "apps/desktop/src/main/index.ts": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+    "apps/desktop/src/main/pty.ts": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6",
+    "apps/desktop/src/main/sessionEnroll.ts": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "apps/desktop/test/bounded-psql.mjs": "597a4c4fe8ff547aeb1516c370fc0e0c9ea9666f8d805c500c5f25c0a7be4536",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+    "apps/desktop/test/resource-host-sampler.test.mjs": "21e4e1fb82801223224e50c61b578f3b437c10bdbbe273bdf74c5c86141321ad",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "403c866575493a9d49d50d8cfa42b89395895fdb1371404a14e919ba9a528919",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "027a16ac9e2f3e24f3853f6f596c165cfbe6d7f3eb4063284411ca5890560e75",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+    "apps/desktop/test/session-enroll.test.mjs": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "e501821976d8d447d799f00071fe2fb009378053b07ae15796755ab028241435",
+    "scripts/check-ops.mjs": "ead41c1f66101031ba5fb41c8bb8865a867e8336ef2b44a9b6de6758c6f2d3ab",
+    "scripts/check-scope.mjs": "ecf6bacfbcc80e039e2bf005d1d0872413c9e414200ea8abd3d80f36f42a3b94",
+    "scripts/ci.sh": "782908e829e39650779ed3a1ba2b922b7d8afcea22ee08c0b03da4a633ec4b11",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110",
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca"
+  },
+  "findings": [],
+  "packet_disposition": "17 completed packets preserve historical input hashes; 2 blocked owner outputs remain absent/NOT_SENT. Pending input hashes match. No restamping or invented acceptance.",
+  "detailed_audit": {
+    "file": "receipt-final.json",
+    "sha256": "66a636a762760704f64b226b27cc806ab93d6a1ebd2290609ee45b1d27ad1c9f"
+  }
+}

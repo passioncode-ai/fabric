@@ -1,0 +1,9 @@
+{
+  "kind": "design-only",
+  "observedAt": "2026-10-13T05:54:22.109260+00:00",
+  "sourceBase": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "artifactSha256": "9bddb47c3c1f8b9a80cd7f9ba2377a4fca2d534ad24391b25ea045c73d7dfabe",
+  "checks": "bounded read-only source inspection; no tests, no DB, no root edits; line references source observed, not runtime certification",
+  "boardRequests": "NOT_SENT",
+  "implementation": "NOT_STARTED pending interface review"
+}

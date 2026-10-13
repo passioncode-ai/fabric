@@ -1,0 +1,85 @@
+{
+  "task": "N025 dedicated read RPC correction",
+  "verdict": "SCOPED_ACCEPT",
+  "candidate": "uncommitted root integration, bound by source_sha256; base HEAD is not candidatecommit",
+  "base_commit": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "source_sha256": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "027a16ac9e2f3e24f3853f6f596c165cfbe6d7f3eb4063284411ca5890560e75",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "403c866575493a9d49d50d8cfa42b89395895fdb1371404a14e919ba9a528919",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "e501821976d8d447d799f00071fe2fb009378053b07ae15796755ab028241435",
+    "scripts/check-scope.mjs": "ecf6bacfbcc80e039e2bf005d1d0872413c9e414200ea8abd3d80f36f42a3b94",
+    "scripts/check-ops.mjs": "ead41c1f66101031ba5fb41c8bb8865a867e8336ef2b44a9b6de6758c6f2d3ab"
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+      "executor": "independent reviewer on frozen builder source; hashes match root",
+      "exitCode": 0,
+      "pass": 54,
+      "log": "focused.log"
+    },
+    {
+      "command": "N025_SOURCE=<candidate-source> node probes.mjs",
+      "executor": "independent reviewer",
+      "exitCode": 0,
+      "pass": 9,
+      "log": "probes.log",
+      "scope": "RPC-only positive with generic table getter forbidden; missing/denied/array/extra/partial/foreignhost/foreignpool responses causezero writes;90crossmethod retries retain1unsettledread and late rejection consumed."
+    },
+    {
+      "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+      "executor": "root; reviewer independently inspected source and completedlog",
+      "exitCode": 0,
+      "exitProvenance": "Root reported session82490 exit0; reviewer did not start a cluster.",
+      "stages": 7,
+      "log": "root-actual-sql.log",
+      "log_sha256": "cc04c35244dcad6d8a24e103cdfbd29640331791129ef07b7e727c2b1b8bb84d"
+    }
+  ],
+  "review": [
+    "Client changed only dependencytype rpc-only and read_resource_pool(p_host,p_pool) call; exact8field response validation and all generation/policy/freshness/writeuncertainty logic retained.",
+    "Missing/denied RPC never triggers generic table or legacy fallback.",
+    "SQL validates both identifiers with boundedASCII grammar, returns exact8namedkeys orNULL for absent exacthost/pool.",
+    "Stable security-definer function reads explicitlyqualified public.resource_pools; no mutation or capacity/lease/spend grant.",
+    "PUBLIC/anon/authenticated execute revoked, service_role execute granted. service_role is trusted cross-host kernel, not per-host authenticated authority.",
+    "Actual fixture checks serviceexecute, realanon/authdenials, null/invalid/overlong/missing arguments, same-pool different-hostdecoy, exactprojection and unchanged state afterread.",
+    "ExistingCAS/generation/heldcapacity/release functions unchanged bySQLdelta. Existingactual sevenstage SQLsuite includes priornegativebindings/lostreply/ABA.",
+    "Scope and ops gate sources identical to baseline; no fabricated estatepredicate, scope-map allowlist or checker exception."
+  ],
+  "unchanged_checkers": {
+    "scripts/check-scope.mjs": true,
+    "scripts/check-ops.mjs": true
+  },
+  "reviewer_fixture_failure": {
+    "status": "PRE_EXECUTION_SYNTAX_ERROR_CORRECTED",
+    "files": [
+      "probes-syntax-rejected.mjs",
+      "probes-syntax-rejected.normalized.log"
+    ],
+    "description": "First reviewer fixture omitted a closing object brace. Node never imported/exercised production; source was unchanged and corrected fixture passed. This is not a production RED regression.",
+    "original_log_sha256": "fb3509d3ad67d1b5dcf20b943d505d179093869243453ba7ffe7fd799e592431",
+    "stored_log_sha256": "f9b34dc952ce05a5a137b1de70ebbb64a9e4642ab9d9796239f7d2621faa486b",
+    "normalization": "literal owned review path replacement only"
+  },
+  "authorship_disclosure": "Reviewer authored earlierN024CAS, not new service-only readRPC (pipeline_research) or clientcorrection(mcp_research). Fixture-base reuses reviewer historical fixture with disclosed builder setup; probeassertions independentlyauthored.",
+  "limits": [
+    "No independent DB execution; actualSQL source/log review and rootrun attributed separately.",
+    "No livePostgREST/provider/native runtime, activeDDL, productioncredentials or global admission acceptance.",
+    "Fullfast remains pending after the failedscope-gate candidate; this receipt onlyaccepts exactclient/SQL/fixture correction."
+  ],
+  "artifacts": {
+    "fixture-base.mjs": "2a714a0084626fbbd5acbcf3e2bc04e81dbbe1f7d0b75a5d6942f52b15580857",
+    "probes-syntax-rejected.mjs": "2e1132e6347e8ba784707d6f439c1feb835c7e0b901ec4e45357b645cdf469be",
+    "probes.mjs": "a134a515e2c998f2047a5154043a1b01326a1b27ce6eb04ab4e85b8361cbfcd7",
+    "probes.log": "f11e0eb0d4e8f51f87b2762a497d833eaff47f8614ae4d583a36925e4287733f",
+    "root-actual-sql.log": "cc04c35244dcad6d8a24e103cdfbd29640331791129ef07b7e727c2b1b8bb84d",
+    "probes-syntax-rejected.log": "fb3509d3ad67d1b5dcf20b943d505d179093869243453ba7ffe7fd799e592431",
+    "probes-syntax-rejected.normalized.log": "f9b34dc952ce05a5a137b1de70ebbb64a9e4642ab9d9796239f7d2621faa486b",
+    "focused.log": "17bba2dc5bb61be9caea7f513b5306c10ac673cc4b7e12baeeec3117b7f59379"
+  }
+}

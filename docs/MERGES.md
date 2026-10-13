@@ -338,3 +338,5 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - `analytics:status` and `analytics:set-enabled` IPC;
 - `UsageCountsSetting` on SCR-52, with en/ru strings;
 - the App Key comes only from `FABRIC_ANALYTICS_APP_KEY` at build time (`electron.vite.config.ts` `define`). `release.yml` passes the `release` environment secret, which was set from the vault (`sshlg-analytics/prod/APTABASE_APP_KEY_FABRIC`) without printing it.
+
+Producer source checkpoint f2576c109f1de55179e07c7398aa2c4564e12087 is pushed, full fast exit0 at tree5ac7a0e834fe38e572d56188ac52b8c38616cc58; this branch delivery is not a main merge. Producer graph closeout preserves CO282 partial and N009/N010 NOT_SENT.

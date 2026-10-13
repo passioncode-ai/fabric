@@ -121,7 +121,7 @@
       "id": "N-007",
       "title": "Independent combined acceptance",
       "owner": "reviewer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-010",
       "blocked_by": [
         "N-001",
@@ -152,15 +152,29 @@
       ],
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
-      "evidence": null,
-      "proof": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "16",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      },
       "certification": null
     },
     {
       "id": "N-008",
       "title": "Durable delivery and continuation",
       "owner": "manager",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-005",
       "blocked_by": [
         "N-007"
@@ -170,8 +184,23 @@
       ],
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
-      "evidence": null,
-      "proof": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-fresh-checkout/portable-receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "17",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      },
       "certification": null
     },
     {
@@ -499,69 +528,119 @@
       "id": "N-022",
       "title": "Explicit host policy and real resource observations",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-012"
       ],
       "serves": "REQ-009",
       "check": "Real OS read and bounded injected failures; unknown axes never become zero",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceHostPolicy.ts",
         "apps/desktop/src/main/resourceHostSampler.ts",
         "apps/desktop/test/resource-host-sampler.test.mjs",
         "docs/execution/harness-waves/resource-host-observation.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "12",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      }
     },
     {
       "id": "N-023",
       "title": "Strict current Git lease snapshot reader",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-001"
       ],
       "serves": "REQ-005",
       "check": "Real owned Git authority fixtures; foreign expired changed or unreadable authority refuses",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
       "touches": [
         "apps/desktop/src/main/gitLeaseSnapshot.ts",
         "apps/desktop/test/git-lease-snapshot.test.mjs",
         "docs/execution/harness-waves/resource-ownership-snapshot.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "13",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      }
     },
     {
       "id": "N-024",
       "title": "Fence policy configuration and observation writers",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-013"
       ],
       "serves": "REQ-009",
       "check": "Actual isolated SQL stale writer and ABA refusal; idempotent readback and held-capacity protection",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
       "touches": [
         "supabase/pending-migrations/20261013000107_resource_reservations.sql",
         "apps/desktop/test/resource-reservation-db.test.mjs",
         "docs/execution/harness-waves/resource-reservation.md"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "14",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      }
     },
     {
       "id": "N-025",
       "title": "Bounded policy observation publication and readback",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-022",
         "N-024"
       ],
       "serves": "REQ-009",
       "check": "Exact configuration generation and observation readback; unknown response retains I/O and cannot grant admission",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "proven at f2576c109f1de55179e07c7398aa2c4564e12087 (tree 5ac7a0e834fe38e572d56188ac52b8c38616cc58)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourcePoolPublisher.ts",
         "apps/desktop/test/resource-pool-publisher.test.mjs",
@@ -569,7 +648,17 @@
         "apps/desktop/test/resource-pool-publisher-db.test.mjs",
         "apps/desktop/test/run-resource-reservation-db.mjs"
       ],
-      "surface_class": "internal"
+      "surface_class": "internal",
+      "proof": {
+        "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+        "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+        "graph_revision": "15",
+        "checks": [
+          "Full fast exit0,873.64s on unchanged tree",
+          "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+          "Independent scoped producer reviews; original rejected cases retained"
+        ]
+      }
     }
   ],
   "edges": [
@@ -861,6 +950,42 @@
       "verb": "add",
       "node": "N-025",
       "why": "Existing activation-prerequisite packet is locally executable; observation and ownership gaps plus stale policy writer finding require concrete producers"
+    },
+    {
+      "verb": "close",
+      "node": "N-022",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "close",
+      "node": "N-023",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "close",
+      "node": "N-024",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "close",
+      "node": "N-025",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "close",
+      "node": "N-007",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "close",
+      "node": "N-008",
+      "why": "closed with no re-plan",
+      "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
     }
   ]
 }

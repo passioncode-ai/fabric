@@ -1,0 +1,30 @@
+{
+  "node": "N-008",
+  "done": [
+    "Pushed source f2576c109f1de55179e07c7398aa2c4564e12087; independent fresh-checkout entry and source readback; exact next packet and remaining gates durable"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "No active DDL, production composition, installed/native or all-host enforcement",
+    "Workspace publication is a separate subsequent delivery check"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/README.md",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-fresh-checkout/portable-receipt.json"
+  ],
+  "tested": {
+    "head": "f2576c109f1de55179e07c7398aa2c4564e12087",
+    "tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+    "checks": [
+      "Full fast exit0,873.64s on unchanged tree",
+      "Seven actual resource SQL stages;170 Vitest files and2053tests passed",
+      "Independent scoped producer reviews; original rejected cases retained"
+    ]
+  }
+}

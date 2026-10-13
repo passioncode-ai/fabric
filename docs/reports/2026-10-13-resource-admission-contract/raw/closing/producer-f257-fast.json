@@ -1,0 +1,17 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "before_tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+  "after_tree": "5ac7a0e834fe38e572d56188ac52b8c38616cc58",
+  "exit": 0,
+  "seconds": 873.64,
+  "sourceCommit": "f2576c109f1de55179e07c7398aa2c4564e12087",
+  "vitest": {
+    "files": 170,
+    "tests": 2053
+  },
+  "limits": [
+    "stack/browser NOT_RUN",
+    "12 host plants skipped: workspace/node_modules absent",
+    "dependency installation reproducibility UNVERIFIED"
+  ]
+}

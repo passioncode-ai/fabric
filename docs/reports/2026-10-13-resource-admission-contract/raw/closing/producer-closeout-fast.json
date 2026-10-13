@@ -1,0 +1,12 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "before_tree": "1f610a105ef7cfee1197149734405b20503ae65f",
+  "after_tree": "1f610a105ef7cfee1197149734405b20503ae65f",
+  "exit": 0,
+  "seconds": 996.38,
+  "limits": [
+    "Resource SQL runner NOT_RUN: less than1.5GiB free, reserve1GiB; unchanged resource sources retain separate seven-stage PASS at f2576c1",
+    "Stack/browser suites NOT_RUN;12 workspace host plants skipped; clean-install reproducibility UNVERIFIED"
+  ],
+  "logSha256": "2d137c6ddb6cccc7fbb9322fdbdb204dd0a8c855a05c7a3b6bda7c8ac2c2e8cc"
+}

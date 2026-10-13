@@ -1,0 +1,7 @@
+{
+  "originalSha256": "9bddb47c3c1f8b9a80cd7f9ba2377a4fca2d534ad24391b25ea045c73d7dfabe",
+  "originalArtifact": "input-scope-proposal.snapshot.txt",
+  "currentSha256": "66ea6039d99b3abf4fecfe9b0c96c09af3bbe55208f295c0f68a03c0de85827a",
+  "change": "replace moving filename:line citations with exact committed source links; no interface or implementation change",
+  "gateFinding": "living document single-line citation managedLaunch.ts:132 refused"
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "fabric-runtime-recurrence/1",
+  "observedAt": "2026-10-13T06:20:08.877676+00:00",
+  "reviewer": "pipeline_research",
+  "scope": "read-only; no restart/retry, no cleanup, no database or volume mutation",
+  "priorRecoveryReceipt": {
+    "path": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recovery.json",
+    "sha256": "cfd0ab62418ea10cef0914d92d0bf8b8ba310cc2d980a046bbdd9354ee13c4a0",
+    "recordedAt": "2026-10-13T06:10:28.896081+00:00"
+  },
+  "current": {
+    "orbctl": {
+      "exit": 1,
+      "stdout": "Stopped"
+    },
+    "disk": "df / sample1.4GiB, volatile"
+  },
+  "latestBootLocal": "2026-10-13T08:07:18+02:00",
+  "latestShutdownUtc": "2026-10-13T06:09:23.073870Z",
+  "directEvidence": [
+    {
+      "file": "OrbStack vmgr.log",
+      "line": 360,
+      "text": "2026-10-13T06:09:23.052006Z ERROR devices::virtio::block::hvc: block req failed: write failed @ 3557670912: Os { code: 28, kind: StorageFull, message: \"No space left on device\" }"
+    },
+    {
+      "file": "OrbStack vmgr.log",
+      "line": 367,
+      "text": "2026-10-13T06:09:23.073870Z  INFO virtue::machine: VM stopped"
+    },
+    {
+      "file": "OrbStack gui.log",
+      "line": 9496,
+      "text": "2026-10-13 08:09:24.272 OrbStack[36116:192310104] Daemon exited: I/O error"
+    }
+  ],
+  "conclusion": "Latest OrbStack failure explicitly reports host block write StorageFull/errno28 No space left on device and immediate VM stop. Same ENOSPC mechanism as earlier05:14UTC failure, independently confirmed from a new boot; not merely inferred from low disk.",
+  "chronologyLimit": "Parent confirms recovery receipt top observedAt denotes receipt construction, not timed probe execution; source should rename it recordedAt. Successful probes were captured before receipt write; exact per-probe timestamps unavailable. New boot08:07:18local (06:07:18UTC) and shutdown06:09:23UTC bound the brief recovery. Do not place failure after06:10:28 receipt construction. No additional later shutdown observed in bounded current logs.",
+  "otherLimits": [
+    "No assertion of database corruption or full integrity; BTRFS write error count alone is insufficient.",
+    "Current1.4GiB free is not proof restart is safe or sufficient under concurrent disk usage.",
+    "No restart requested or performed; parent retains resource cleanup/recovery scheduling."
+  ]
+}
