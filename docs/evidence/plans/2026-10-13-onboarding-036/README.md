@@ -12,7 +12,7 @@ install worked; coding agents ticked by default are the **found and ready** ones
 the fallback order (ADR-0125) with the reason beside it; design is drawn as the **in-repository prototype**
 (`docs/reports/product.html`, `scripts/product/`), not in Figma.
 
-**Inputs.** [Wave 0 funnel review](wave-0-funnel-review.md) (23 findings); [wave 0 inventory](wave-0-inventory.md) (30 open items, measured); the real-app walk in Russian
+**Inputs.** [Wave 0 funnel review](2026-10-13-wave-0-funnel-review.md) (23 findings); [wave 0 inventory](2026-10-13-wave-0-inventory.md) (30 open items, measured); the real-app walk in Russian
 (`scripts/walk/start-paths.mjs`, recorded beside it); SCN-126…SCN-131, SCN-136; 0.4.0's REQ-39, REQ-40, REQ-41
 ([plan](../2026-10-11-release-040-agents-first.md)) — this run builds them; ADR-0100, ADR-0125, ADR-0129, ADR-0134;
 [products](../../../../workspace/knowledge/products.md).

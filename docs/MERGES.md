@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T03:30:00Z · `—` · agent/onboarding-036 → main · fast-forward
+- run: r-fc848dc29
+- files: 9
+- conflicts: none
+- summary: 0.3.6 onboarding wave 0 — the funnel review (23 findings), the measured inventory (30 open items) and the canvas with waves 1–5 under docs/evidence/plans/2026-10-13-onboarding-036/ (awaiting the operator's go); lane 13 of the plan and CO-212 closed by COM-02.3 (a5b78e49, ADR-0149) at heygen-hyperframes-vr-28's request; 214 of 281 carry-over rows open.
+
 ### 2026-10-13T02:40:00Z · `—` · agent/board-participants-land → main · fast-forward
 - run: r-faa9aae98a19
 - files: 21
