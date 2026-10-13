@@ -128,6 +128,10 @@ begin
   or p_binding->>'scopeDigest' !~ '^[a-f0-9]{64}$' then return jsonb_build_object('admitted',false,'reason_code','resource_input_invalid'); end if;
  if jsonb_typeof(p_binding->'fence') is distinct from 'number' then return jsonb_build_object('admitted',false,'reason_code','resource_input_invalid'); end if;
  if (p_binding->>'fence')::numeric not between 1 and 9007199254740991 or (p_binding->>'fence')::numeric<>trunc((p_binding->>'fence')::numeric) then return jsonb_build_object('admitted',false,'reason_code','resource_input_invalid'); end if;
+ -- JSONB preserves numeric scale (1.0), while the typed caller sends fence as
+ -- canonical integer text (1). Normalize only after the safe-integer check,
+ -- before retry comparison and storage, so release/cancel name the same fence.
+ p_binding:=jsonb_set(p_binding,'{fence}',to_jsonb((p_binding->>'fence')::numeric::bigint));
  foreach k in array array['workerSlots','memoryBytes','diskBytes','cpuMilliCores'] loop
   if (p_own_demand->>k)::numeric>(p_demand->>k)::numeric then return jsonb_build_object('admitted',false,'reason_code','resource_input_invalid'); end if;
  end loop;

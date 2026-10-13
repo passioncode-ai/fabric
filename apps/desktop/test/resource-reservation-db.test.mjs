@@ -83,6 +83,30 @@ assert.equal(release(winner, won).released, true)
 assert.equal(release(winner, won).repeated, true)
 assert.equal(admit(winner, 'race').resource_reservation.state, 'released', 'retry cannot recreate released capacity')
 
+// JSON numeric scale is not identity: 1.0/1.00/1e0 all name fence 1.
+// Keep raw numeric spelling here; JSON.stringify(1.0) would erase the regression.
+configure('fence-scale', v(2, 100, 100, 100))
+const scaledStatement = (t, spelling) => statement(t, 'fence-scale').replace(json(t.binding),
+  quote(JSON.stringify(t.binding).replace('\"fence\":1,', `\"fence\":${spelling},`)) + '::jsonb')
+for (const path of ['cancel', 'compensated-release']) {
+  const scaled = task(), sr = call(scaledStatement(scaled, '1.0'))
+  assert.equal(sr.admitted, true)
+  assert.equal(sql(`select binding->>'fence' from resource_reservations where reservation_id=${quote(scaled.binding.reservationId)}`), '1')
+  for (const spelling of ['1', '1.00', '1e0']) {
+    const repeated = call(scaledStatement(scaled, spelling))
+    assert.equal(repeated.repeated, true); assert.equal(repeated.task_run_id, sr.task_run_id)
+  }
+  if (path === 'cancel') assert.equal(cancel(scaled, sr).released, true)
+  else {
+    assert.equal(begin(scaled, sr).granted, true)
+    assert.equal(compensate(scaled, sr).compensated, true)
+    assert.equal(release(scaled, sr).released, true)
+  }
+  assert.equal(release(scaled, sr).repeated, true)
+  for (const malformed of ['null', '\"1\"', '0', '-1', '1.5', '9007199254740992'])
+    assert.equal(call(scaledStatement(scaled, malformed)).reason_code, 'resource_input_invalid')
+}
+
 // Parent envelope includes its own worker. Two child contenders cannot spend one remainder twice.
 configure('children', v(2, 100, 100, 100))
 const parent = task(), pr = admit(parent, 'children', v(2, 50, 50, 50), v())
