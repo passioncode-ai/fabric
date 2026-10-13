@@ -91,7 +91,8 @@ await test('no grant: an agent the operator did not let answer is refused before
   const before = journalCount(E)
   const r = cmd('board_enroll', HC, { idempotency: idem(), capability: CAP })
   assert.equal(r.error?.code, 'not_authorized', JSON.stringify(r))
-  assert.equal(r.error.message, `Ask the operator to let you answer ${CAP} requests for this project.`)
+  // The refusal names a route the agent has (wave-2 product finding 16): the operator's Settings → Agent access.
+  assert.equal(r.error.message, `The operator has not let this agent answer ${CAP} requests for this project: the operator grants it in Fabric, Settings → Agent access. Until then, reply on the request's thread and say it stays queued.`)
   assert.equal(journalCount(E), before, 'a refused enroll wrote an event')
   assert.equal(sql(`select count(*) from board_idempotency where estate_id='${E}' and operation='enroll'`), '0', 'a refused enroll stored a receipt')
 })
@@ -328,9 +329,17 @@ await test('com.responder_replace: a live holder is replaced at the generation r
   assert.match(state(rq.id), /^queued\|/, 'a claimed request of the replaced generation is queued again (op replace)')
   assert.match(state(rp.id), /^outcome_unknown\|unknown\|/)
   assert.match(state(ra.id), /^accepted\|/)
-  // The new holder reads the transferred attempt back through com.claim naming it, and continues.
-  const read = cmd('board_claim', HG, { idempotency: idem(), capability: CAP, request: ra.id })
-  assert.equal(read.request.state, 'accepted', JSON.stringify(read)); assert.equal(read.attempt.generation, gen + 1)
+  // Contract DEC-0078: the receipt names each transferred request once, with its revision and the new attempt.
+  assert.equal(rep.transferred?.length, 1, JSON.stringify(rep))
+  const [moved] = rep.transferred
+  assert.equal(moved.request, ra.id); assert.equal(moved.revision, Number(state(ra.id).split('|')[2]))
+  assert.equal(moved.attempt.generation, gen + 1); assert.equal(moved.attempt.digest, ra.digest); assert.match(moved.attempt.leaseExpiresAt, /Z$/)
+  assert.deepEqual(Object.keys(moved).sort(), ['attempt', 'request', 'revision']); assert.deepEqual(Object.keys(moved.attempt).sort(), ['digest', 'generation', 'id', 'leaseExpiresAt'])
+  // com.claim never moves or reads back an accepted request (ADR-0149 Amendment 1 §3 withdrawn): nothing moves.
+  const revBefore = state(ra.id)
+  assert.equal(cmd('board_claim', HG, { idempotency: idem(), capability: CAP, request: ra.id }).error?.code, 'invalid_transition')
+  assert.equal(state(ra.id), revBefore)
+  const read = { request: { id: ra.id }, attempt: moved.attempt }
   assert.equal(cmd('board_complete', holder, { fence: fence(ca), outcome: { state: 'completed', observed: true } }).error?.code, 'fenced', 'the replaced holder completed')
   const done = cmd('board_complete', HG, { fence: fence(read), outcome: { state: 'completed', observed: false } })
   assert.equal(done.request.state, 'completed', JSON.stringify(done)); assert.equal(done.request.effect, 'not_started')
@@ -467,6 +476,104 @@ await test('a restored board: claimed → queued, in_progress → outcome_unknow
 })
 
 // ── R-003: what no API role may do ────────────────────────────────────────────────────────────────────────
+// ── the wave-2 fix round (ADR-0149 Amendment 2, migration 88): each seen red without migration 88 ───────────────
+// Each case takes a fresh holder first: a slot lease is 60 s of database time, and under load the cases before these
+// (the restore above all) outlast it — a case must not depend on how long the previous one took.
+let freshN = 0
+const freshHolder = () => {
+  lapse()
+  const H = { session_id: id(4000 + ++freshN), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+  const en = cmd('board_enroll', H, { idempotency: idem(), capability: CAP })
+  assert.equal(en.ok, true, JSON.stringify(en))
+  Object.assign(HB, H)
+}
+await test('fix 9: a replay of another session\'s key needs a live grant when the caller holds no enrollment', () => {
+  freshHolder()
+  const r = submitRequest()
+  const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
+  const args = { fence: fence(c) }, d = digest()
+  assert.equal(cmd('board_accept', HB, args, d).request.state, 'accepted')
+  assert.equal(cmd('board_accept', HB, args, d).repeated, true, 'the holder\'s own replay')
+  const out = cmd('board_accept', HC, args, d)
+  assert.equal(out.error?.code, 'not_authorized', `a session with no grant read another\'s stored receipt: ${JSON.stringify(out)}`)
+})
+
+await test('fix 8: the current holder on a request whose outcome became unknown meets reconcile_required, not fenced', () => {
+  freshHolder()
+  const r = submitRequest()
+  const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
+  cmd('board_accept', HB, { fence: fence(c) })
+  assert.equal(cmd('board_effect_begin', HB, { fence: fence(c) }).request.state, 'in_progress')
+  const cancelled = call('board_cancel', q(E), q(REQUESTER), j(agent), j({ idempotency: idem(), request: r.id }), lit(digest()))
+  assert.equal(cancelled.request?.state, 'outcome_unknown', JSON.stringify(cancelled))
+  for (const [fn, args] of [['board_complete', { fence: fence(c), outcome: { state: 'completed', observed: true } }], ['board_accept', { fence: fence(c) }]])
+    assert.equal(cmd(fn, HB, args).error?.code, 'reconcile_required', fn)
+  assert.equal(cmd('board_reconcile', HB, { idempotency: idem(), request: r.id, digest: r.digest, outcome: { state: 'completed', observed: true } }).request.state, 'completed')
+})
+
+await test('fix 5: renew and progress are refused under a CLOSED epoch (DEC-0073), a stored receipt still answers', () => {
+  // THIRD's slot, so the rotation below leaves the other cases' epoch 1 alone.
+  const rt = call('board_submit', q(E), q(REQUESTER), j(agent), j({ idempotency: idem(), thread: { new: { participants: [THIRD] } }, kind: 'request',
+    body: { text: 'Close the books.' }, request: { target: THIRD, capability: 'finance.close' } }), lit(digest()))
+  assert.equal(cmd('board_enroll', HD, { idempotency: idem(), capability: 'finance.close' }, digest(), THIRD).ok, true)
+  const c = cmd('board_claim', HD, { idempotency: idem(), capability: 'finance.close', request: rt.message }, digest(), THIRD)
+  assert.equal(c.request?.state, 'claimed', JSON.stringify(c))
+  const accArgs = { fence: fence(c) }, accDigest = digest()
+  assert.equal(cmd('board_accept', HD, accArgs, accDigest, THIRD).request.state, 'accepted')
+  sql(`select board_rotate_epoch('${E}', '${THIRD}', 1, 'age')`)
+  for (const [fn, args] of [['board_renew', { fence: fence(c) }], ['board_progress', { fence: fence(c), note: { text: 'half' } }]])
+    assert.equal(cmd(fn, HD, args, digest(), THIRD).error?.code, 'idempotency_window_expired', `${fn} under a closed epoch`)
+  assert.equal(cmd('board_accept', HD, accArgs, accDigest, THIRD).repeated, true, 'a stored receipt is still answered under a closed epoch')
+  assert.equal(cmd('board_renew', HD, { fence: fence(c, { idempotency: { epoch: 2, key: key() } }) }, digest(), THIRD).ok, true, 'the current epoch renews')
+})
+
+await test('fix 6: no deadlock — a stale enroll races a cancel on a claimed request, a release of a two-slot session races a claim, 50 times each (no 40P01)', async () => {
+  // This case is about lock ORDER, not latency. Every board function carries `set lock_timeout = '3s'` in its own
+  // definition (ADR-0149 §5), which overrides any session setting; at a load average in the hundreds a correctly ordered
+  // wait can outlast 3 s and be cancelled — a timeout, not a deadlock. So for this case only the functions' own limit is
+  // raised to 60 s (and restored after): a wrong order still deadlocks, and PostgreSQL's detector (deadlock_timeout 1 s)
+  // reports it as 40P01 long before 60 s. Any error still fails the case — a timeout included; nothing is counted as a pass.
+  const bounded = sql(`select string_agg(p.oid::regprocedure::text, '|') from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proconfig @> array['lock_timeout=3s']`).split('|').filter(Boolean)
+  assert.ok(bounded.length >= 10, `only ${bounded.length} functions carry lock_timeout=3s`)
+  const limitAll = value => sql(bounded.map(f => `alter function ${f} set lock_timeout = '${value}';`).join('\n'))
+  limitAll('60s')
+  try {
+  const deadlocks = []
+  for (let i = 0; i < 50; i++) {
+    freshHolder()
+    const r = submitRequest()
+    const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
+    assert.equal(c.request?.state, 'claimed', JSON.stringify(c))
+    lapse()
+    const HN = { session_id: id(2000 + i), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+    const enroll = `set role service_role; select board_enroll('${E}',${j(HN)},'${RESPONDER}',${j({ idempotency: idem(), capability: CAP })},${lit(digest())});`
+    const cancel = `set role service_role; select board_cancel('${E}','${REQUESTER}',${j(agent)},${j({ idempotency: idem(), request: r.id })},${lit(digest())});`
+    const outs = await Promise.all([enroll, cancel].map(s => runPsqlAsync('psql', psqlArgs, s, { label: 'enroll vs cancel' })))
+    for (const o of outs) if (/40P01|deadlock/i.test(o.stderr)) deadlocks.push(`enroll/cancel ${i}: ${o.stderr.trim().slice(0, 200)}`)
+    for (const o of outs) assert.equal(o.code, 0, o.stderr)
+  }
+  for (let i = 0; i < 50; i++) {
+    // A session holding two slots (CAP and CAP2, both granted to codex binding BB) is released while another session claims on the second.
+    const HS = { session_id: id(3000 + i), came_in: 'enrolled', agent: 'codex', binding_id: BB, label: 'Codex' }
+    lapse(CAP); lapse(CAP2)
+    assert.equal(cmd('board_enroll', HS, { idempotency: idem(), capability: CAP }).ok, true)
+    assert.equal(cmd('board_enroll', HS, { idempotency: idem(), capability: CAP2 }).ok, true)
+    submitRequest({}, CAP2)
+    const release = `set role service_role; select board_release_session('${E}', ${lit(HS.session_id)});`
+    const claim = `set role service_role; select board_claim('${E}',${j(HS)},'${RESPONDER}',${j({ idempotency: idem(), capability: CAP2 })},${lit(digest())});`
+    const outs = await Promise.all([release, claim].map(s => runPsqlAsync('psql', psqlArgs, s, { label: 'release vs claim' })))
+    for (const o of outs) if (/40P01|deadlock/i.test(o.stderr)) deadlocks.push(`release/claim ${i}: ${o.stderr.trim().slice(0, 200)}`)
+    for (const o of outs) assert.equal(o.code, 0, o.stderr)
+  }
+  assert.deepEqual(deadlocks, [], 'a deadlock was detected')
+  } finally { limitAll('3s') }
+  // Leave a live holder on CAP for the cases below.
+  const HL = { session_id: id(3999), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+  lapse(CAP); assert.equal(cmd('board_enroll', HL, { idempotency: idem(), capability: CAP }).ok, true)
+  Object.assign(HB, HL)
+})
+
 await test('R-003: no API role touches the responder tables, appends a comms event or runs a helper', () => {
   for (const t of ['board_responder_slots', 'board_enrollments', 'board_attempts', 'board_progress_notes', 'board_directory_listings'])
     for (const role of ['anon', 'authenticated', 'service_role'])

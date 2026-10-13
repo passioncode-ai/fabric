@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "repeated": false,
+  "slot": {
+    "project": "proj-render",
+    "capability": "render.video",
+    "generation": 3,
+    "leaseExpiresAt": "2026-10-13T10:02:00Z"
+  },
+  "transferred": []
+}

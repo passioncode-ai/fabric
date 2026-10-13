@@ -148,8 +148,9 @@ test('every comms fixture the contract grades gets the same verdict from the pin
   const vendored = new Set(fixtures.source.files.map(file => file.upstreamPath))
   // A comms fixture the contract grades but this copy left out would be a verdict silently skipped.
   assert.deepEqual(graded.map(entry => 'fixtures/' + entry.path).filter(path => !vendored.has(path)), [])
-  // DEC-0022's seventeen and DEC-0073's fifty-two (the tools' arguments, the receipt, the directory) at edc88a6.
-  assert.equal(graded.length, 69)
+  // DEC-0022's seventeen, DEC-0073's fifty-two (the tools' arguments, the receipt, the directory) and DEC-0078's eight
+  // (the replace receipt's `transferred`: one positive, seven negatives) at f00a768.
+  assert.equal(graded.length, 77)
   for (const entry of graded) {
     const validate = comms[entry.schema]
     assert.ok(validate, `${entry.name}: no compiled comms schema ${entry.schema}`)

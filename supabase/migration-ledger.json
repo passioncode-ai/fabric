@@ -349,6 +349,10 @@
     {
       "file": "20261012000104_project_board_responders.sql",
       "sha256": "a8c437c6f32dcf28cb2b4a4b790bf5513203f59c35e5f7a6eaf34f5e19c540dc"
+    },
+    {
+      "file": "20261013000107_project_board_w2_fixes.sql",
+      "sha256": "64c03db33f1f818713dc5ba9a617c20fa9e3a610facc0cbe41bdfb46542aab3e"
     }
   ]
 }
