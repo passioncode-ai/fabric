@@ -7,7 +7,7 @@
  * service validates every call against the contract's own shapes and answers a refusal in the contract's
  * form, `{error: {code, message, retryable}}`, so an agent meets one refusal vocabulary.
  *
- * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073, pinned at edc88a6) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
+ * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073; pinned at f00a768, DEC-0078) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
  * reads literals), so an agent that calls one Fabric does not serve yet is told so in the contract's words —
  * `unsupported_capability` — instead of meeting an unknown tool (ADR-0117 §2, A7-039). Which are served is
  * `PINNED_COMMS_OPERATIONS` (the vendored contract pin) intersected with what this board implements: since COM-03,
@@ -112,7 +112,7 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
     description:
       'fabric-project-comms/0.1 com.claim (comms-claim). Arguments: idempotency; capability (a slot you hold); request? (claim that one). ' +
       'Answers request, attempt and message — the attempt is what your fences carry — or {ok, repeated: false} with nothing claimable (nothing stored: poll again with the same key). ' +
-      'A request whose claim lapsed is taken again under a new attempt.',
+      'A request whose claim lapsed is taken again under a new attempt. An accepted request is never claimed or read back here (a transfer\'s attempts arrive in com.responder_replace\'s receipt).',
     inputSchema: open
   }, gate('com.claim', (c, a) => board.claim(c, a)))
   server.registerTool('com.renew', {
@@ -152,7 +152,7 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
     description:
       'fabric-project-comms/0.1 com.responder_replace (comms-responder-replace). Arguments: idempotency; capability; expectedGeneration (from com.status); transfer? {requests: accepted request ids, checkpoint {summary, evidence?}}. ' +
       'Takes the slot even from a live holder at generation + 1: its claimed requests return to queued, in_progress ones become outcome_unknown, accepted ones are held unless transferred. ' +
-      'A transferred request continues under a new attempt: read it with com.claim naming the request.',
+      'A transferred request continues under a new attempt: the receipt\'s transferred names each one once with its revision and attempt — carry those in its next fence (contract DEC-0078).',
     inputSchema: open
   }, gate('com.responder_replace', (c, a) => board.responderReplace(c, a)))
   server.registerTool('com.directory', {

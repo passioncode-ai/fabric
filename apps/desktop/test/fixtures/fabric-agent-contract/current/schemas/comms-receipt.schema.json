@@ -105,6 +105,33 @@
       },
       "additionalProperties": false,
       "description": "The attempt com.claim opened, or whose lease com.renew or com.progress extended: the values the caller's next fence carries."
+    },
+    "transferred": {
+      "description": "com.responder_replace with transfer.requests (DEC-0078): one entry per accepted request the replacement transferred, each request once, giving its revision and the attempt the new holder continues under, so its next fence on that request carries these values (expectedRevision from revision). Only com.responder_replace answers it, and only for requests it transferred.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "request",
+          "revision",
+          "attempt"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "comms-common.schema.json#/$defs/opaqueId"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "attempt": {
+            "$ref": "#/properties/attempt"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

@@ -8,12 +8,13 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = 'edc88a6674c851bb328b08a269ca0ea5bd39b5f8'
+export const CURRENT_COMMIT = 'f00a7685e3861c27f7899c033fb850a145a1708f'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
 // fixture the contract's own catalogue grades, so this consumer is held to the same verdicts. DEC-0073 (pinned at
 // edc88a6) adds every tool's argument schema, the one receipt and the project directory, and the digest vectors.
+// DEC-0078 (pinned at f00a768, which carries DEC-0076 and DEC-0077) adds the replace receipt's `transferred`.
 export const COMMS_SURFACES = ['comms-cancel', 'comms-claim', 'comms-complete', 'comms-directory', 'comms-directory-args', 'comms-effect-begin',
   'comms-enroll', 'comms-fence', 'comms-fenced', 'comms-list', 'comms-message', 'comms-message-ref', 'comms-page', 'comms-progress', 'comms-receipt',
   'comms-reconcile', 'comms-refusal', 'comms-reply', 'comms-responder-replace', 'comms-status', 'comms-status-args', 'comms-submit']
@@ -22,14 +23,17 @@ const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'm
 const positiveNames = ['interop-agent-call', 'manifest-mcp', 'pipeline', 'service-well-known-capabilities',
   'comms-cancel', 'comms-claim', 'comms-complete', 'comms-directory', 'comms-directory-args', 'comms-effect-begin', 'comms-enroll', 'comms-fence',
   'comms-fenced', 'comms-list', 'comms-list-empty', 'comms-message-ref', 'comms-page', 'comms-progress', 'comms-receipt-claim', 'comms-receipt-enroll',
-  'comms-receipt-nothing-queued', 'comms-receipt-submit', 'comms-reconcile', 'comms-refusal', 'comms-reply-participant', 'comms-reply-responder',
+  'comms-receipt-nothing-queued', 'comms-receipt-replace-transferred', 'comms-receipt-submit', 'comms-reconcile', 'comms-refusal', 'comms-reply-participant', 'comms-reply-responder',
   'comms-responder-replace', 'comms-status', 'comms-status-args', 'comms-status-epoch', 'comms-submit-reply', 'comms-submit-request']
 const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-long', 'comms-claim-forged-project', 'comms-claim-without-idempotency',
   'comms-directory-args-forged-estate', 'comms-directory-args-limit-over-page', 'comms-directory-entry-with-content', 'comms-directory-entry-with-generation',
   'comms-directory-over-page', 'comms-directory-snapshot-with-count', 'comms-directory-with-count', 'comms-effect-begin-without-fence',
   'comms-enroll-forged-principal', 'comms-fence-without-generation', 'comms-fenced-without-fence', 'comms-list-limit-over-page',
   'comms-message-ref-without-message', 'comms-page-redacted-with-body', 'comms-progress-note-too-long', 'comms-receipt-attempt-with-seq',
-  'comms-receipt-not-ok', 'comms-receipt-request-with-seq', 'comms-receipt-slot-with-holder', 'comms-receipt-with-seq', 'comms-receipt-without-ok',
+  'comms-receipt-not-ok', 'comms-receipt-request-with-seq', 'comms-receipt-slot-with-holder', 'comms-receipt-transferred-attempt-with-seq',
+  'comms-receipt-transferred-empty', 'comms-receipt-transferred-over-limit', 'comms-receipt-transferred-with-holder',
+  'comms-receipt-transferred-without-attempt', 'comms-receipt-transferred-without-request', 'comms-receipt-transferred-without-revision',
+  'comms-receipt-with-seq', 'comms-receipt-without-ok',
   'comms-receipt-without-repeated', 'comms-reconcile-unobserved', 'comms-reconcile-without-digest', 'comms-refusal-unknown-code',
   'comms-reply-fence-and-replyto', 'comms-reply-neither', 'comms-responder-replace-duplicate-transfer', 'comms-status-args-forged-estate',
   'comms-status-bad-state', 'comms-status-epoch-zero', 'comms-submit-body-too-long', 'comms-submit-forged-estate', 'comms-submit-forged-sender',

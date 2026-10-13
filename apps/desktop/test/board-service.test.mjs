@@ -513,4 +513,28 @@ test('com.enroll\'s description names only routes a session has: no fabric.acces
   assert.match(described.get('com.enroll'), /Settings → Agent access/)
   assert.match(described.get('com.enroll'), /stays queued/)
 })
+test('DEC-0078: a replace receipt carrying `transferred` reaches the agent, each request once with its revision and attempt; a duplicate or a holder never does', async () => {
+  const att = (n) => ({ id: `79000000-0000-4000-8000-0000000000f${n}`, generation: 3, digest: 'sha256:' + 'b'.repeat(64), leaseExpiresAt: '2026-10-13T10:02:00.000Z' })
+  const slotOf = { project: caller.projectId, capability: 'x.y', generation: 3, leaseExpiresAt: '2026-10-13T10:02:00.000Z' }
+  const transferred = [{ request: M1, revision: 4, attempt: att(1) }, { request: T1, revision: 2, attempt: att(2) }]
+  const replaceArgs = { idempotency: { epoch: 1, key: 'replace-00001' }, capability: 'x.y', expectedGeneration: 2, transfer: { requests: [M1, T1], checkpoint: { summary: 'half done' } } }
+  const ok = await createBoard({ rpc: fake({ board_responder_replace: { data: { ok: true, repeated: false, slot: slotOf, transferred }, error: null } }).rpc }).responderReplace(responder, replaceArgs)
+  assert.deepEqual(ok.transferred, transferred)
+  assert.equal(validators['comms-receipt.schema.json'](ok), true, JSON.stringify(validators['comms-receipt.schema.json'].errors))
+  for (const bad of [[transferred[0], transferred[0]], [{ ...transferred[0], holder: 'session-1' }], [{ request: M1, attempt: att(1) }], []]) {
+    logged.length = 0
+    const r = await createBoard({ rpc: fake({ board_responder_replace: { data: { ok: true, repeated: false, slot: slotOf, transferred: bad }, error: null } }).rpc }).responderReplace(responder, replaceArgs)
+    assert.equal(r.error?.code, 'not_available', JSON.stringify(bad)); assert.equal(logged.at(-1).op, 'board.receipt-shape')
+  }
+})
+
+test('DEC-0077: a directory page lists each Project once and each capability once per Project; a page that repeats either never leaves', async () => {
+  const P2 = '79000000-0000-4000-8000-000000000012'
+  const entry = { id: P2, name: 'analytics', capabilities: [{ capability: 'analytics.retention', responder: 'active' }] }
+  for (const projects of [[entry, entry], [{ ...entry, capabilities: [entry.capabilities[0], { ...entry.capabilities[0], responder: 'stale' }] }]]) {
+    logged.length = 0
+    const r = await createBoard({ rpc: fake({ board_directory: { data: { ok: true, projects, more: false, last: null }, error: null } }).rpc }).directory(caller, {})
+    assert.equal(r.error?.code, 'not_available', JSON.stringify(projects)); assert.equal(logged.at(-1).op, 'board.directory-shape')
+  }
+})
 // #endregion project-board-service-w2-fixes

@@ -36,6 +36,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   `com.enroll`, then `com.claim`, under a responder grant the operator gives in Settings → Agent access, and without it
   to reply and say the request stays queued; a retry sends the same `idempotency {epoch, key}`. A call that takes no
   key (`com.read_ack`, `com.renew`, `com.progress`) and lost its answer says it is safe to send again.
+- **A takeover hands over its attempts in its answer** (contract DEC-0078, pinned at fabric-agent-contract `f00a768`):
+  `com.responder_replace`'s receipt carries `transferred` — each transferred request once, with its revision and the
+  attempt the new holder continues under — and `com.claim` never reads back an accepted request. Unread counts only
+  messages an agent can read; `com.renew` and `com.progress` are refused under a closed idempotency epoch; a fenced call
+  on a request whose outcome became unknown answers `reconcile_required`; the board takes its locks in one order, so a
+  takeover no longer deadlocks against a cancel or a release.
 - **The `coding_agents_enrolled` usage count counts enrollments only**: a `board.respond` grant is counted in neither
   that nor `agents_with_access`.
 - **A restored estate's board acts on nothing**: a request that was claimed is queued again, one in progress becomes
@@ -63,9 +69,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
   questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
-- **The database moves to schema 87** (from 84): three migrations — the project board's thread aggregates (the kinds a
-  thread holds, its open requests) that back the Comms filters, the board's lifecycle (ADR-0149) and its responders
-  (`20261012000104_project_board_responders.sql`). An existing database is upgraded by the
+- **The database moves to schema 88** (from 84): four migrations — the project board's thread aggregates (the kinds a
+  thread holds, its open requests) that back the Comms filters, the board's lifecycle (ADR-0149), its responders
+  (`20261012000104_project_board_responders.sql`) and the responders' fix round
+  (`20261013000107_project_board_w2_fixes.sql`, functions only). An existing database is upgraded by the
   [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database); the arithmetic is in
   [release-mac.md](docs/launch/release-mac.md).
 - **Board receipts changed shape (agents, take note).** A `com.submit` or `com.read_ack` receipt no longer carries the

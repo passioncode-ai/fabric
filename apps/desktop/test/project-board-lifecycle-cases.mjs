@@ -337,6 +337,9 @@ export async function run(h) {
     const journal = JSON.parse(sql2(`select jsonb_agg(jsonb_build_object('seq',seq,'type',type,'schema_rev',schema_rev,'actor',actor,'project_id',project_id,
       'run_id',run_id,'node_id',node_id,'payload',payload,'occurred_at',occurred_at) order by seq) from journal where estate_id='${S}'`))
     assert.equal(rpc('restore_estate', q(T), q(S), lit('restored board'), j(journal)).restored, true)
+    // Before any board history: the journal rebuilt the deliveries, but none of their messages is on the board, so
+    // nothing counts as unread that com.list and com.read_ack cannot reach (wave-2 fix 3, migration 88).
+    assert.equal(status(T, S2).unread, 0, 'a restore without board history left unread no read can clear')
     assert.equal(rpc('restore_board_history', q(NOT_RESTORED), j(history)).reason_code, 'not_restored')
     const tampered = structuredClone(history); tampered.messages[0].digest = digest(4242)
     const refused = rpc('restore_board_history', q(T), j(tampered))
@@ -351,7 +354,9 @@ export async function run(h) {
     assert.equal(get(T, S2, secret.message).message.redacted, true, 'a redacted body came back')
     assert.equal(get(T, S2, late.message).error.code, 'not_authorized', 'a message missing from the archive was invented')
     assert.equal(sql(`select summary from board_outcomes where estate_id='${T}'`), 'done elsewhere')
-    assert.ok(status(T, S2).unread >= 2, 'the deliveries were not rebuilt')
+    // Exactly the readable ones: the request and the message the archive carried; the message past the watermark has a
+    // delivery from the journal and no row on the board, so it is not unread (wave-2 fix 3).
+    assert.equal(status(T, S2).unread, 2, 'unread is not the count of readable deliveries')
     assert.equal(sql(`select count(*) from journal where estate_id='${T}'`), String(journal.length), 'the history restore appended to the restored prefix')
     assert.equal(rpc('restore_board_history', q(T), j(history)).reason_code, 'already_restored')
     sql(`drop database ${db}`)
