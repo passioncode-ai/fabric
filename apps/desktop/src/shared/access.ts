@@ -39,6 +39,18 @@ export type AccessCallee = ConnectableProduct | typeof FABRIC_SELF
 export const projectOfResource = (resource: string): string | null => (PROJECT_RESOURCE.test(resource) ? resource.slice('project:'.length) : null)
 // #endregion session-enroll-ask
 
+// #region board-respond-ask — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
+/** ADR-0149 §2: answering a Project's requests is a grant of its own — callee `fabric`, capability `board.respond`,
+ *  resource `board:<project>/<capability>`, 1 to 8 capabilities of ONE Project per ask. */
+export const BOARD_RESPOND = 'board.respond'
+export const BOARD_RESOURCE = /^board:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([a-z][a-z0-9._-]{1,127})$/
+/** The Project and capability a `board:<project>/<capability>` resource names. */
+export function boardResourceOf(resource: string): { project: string; capability: string } | null {
+  const m = BOARD_RESOURCE.exec(resource)
+  return m ? { project: m[1], capability: m[2] } : null
+}
+// #endregion board-respond-ask
+
 /**
  * Capabilities that act on the WORKSPACE rather than inside one mailbox. They run without the
  * narrowing header, so they run only when the operator saw them in the prompt as their own line —
@@ -269,6 +281,8 @@ export type AskLine =
   /** ADR-0134: a coding agent asks to work in one project — said as the project, never as `session.enroll` or
    *  `project:<uuid>`. `name` is null when the facts carry none (a grant's line is built from the grant alone). */
   | { kind: 'enroll'; project: { id: string; name: string | null } }
+  /** ADR-0149 §2: an agent asks to answer one Project's requests for these capabilities. */
+  | { kind: 'respond'; project: { id: string; name: string | null }; capabilities: string[] }
 
 export function capabilityRef(id: string): CapabilityRef {
   const known = Object.prototype.hasOwnProperty.call(PLAIN, id) || setupExtra(id) !== null
@@ -293,6 +307,16 @@ export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'> & { 
     })
   }
   // #endregion enroll-words
+  // #region board-respond-words — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
+  if (ask.capabilities.includes(BOARD_RESPOND)) {
+    const parts = ask.resources.map(boardResourceOf).filter((x): x is { project: string; capability: string } => x !== null)
+    if (!parts.length) return []
+    const id = parts[0].project
+    const known = enrollProjectOf(ask.registry)
+    return [{ kind: 'respond' as const, project: { id, name: known && (known.id === null || known.id === id) ? known.name : null },
+      capabilities: [...new Set(parts.filter((x) => x.project === id).map((x) => oneLine(x.capability, 128)))].sort() }]
+  }
+  // #endregion board-respond-words
   const inside = ask.capabilities.filter((c) => !isWorkspaceSetup(c))
   const setup = ask.capabilities.filter(isWorkspaceSetup)
   const lines: AskLine[] = []
@@ -310,14 +334,34 @@ export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'> & { 
 function normaliseEnrollAsk(input: { agentId?: unknown; capabilities?: unknown; resources?: unknown; reason?: unknown }): Normalised<AccessAsk> {
   if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
     return { ok: false, reason: 'agentId must be your coding agent\'s catalogue id, e.g. claude-code' }
+  if (Array.isArray(input.capabilities) && input.capabilities.length === 1 && input.capabilities[0] === BOARD_RESPOND) return normaliseRespondAsk(input)
   if (!Array.isArray(input.capabilities) || input.capabilities.length !== 1 || input.capabilities[0] !== SESSION_ENROLL)
-    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL}` }
+    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL} or ${BOARD_RESPOND}` }
   if (!Array.isArray(input.resources) || input.resources.length !== 1 || typeof input.resources[0] !== 'string' || !PROJECT_RESOURCE.test(input.resources[0]))
     return { ok: false, reason: 'name exactly one project: project:<id>, as fabric.session.enroll answered it' }
   const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
   const reason = raw.length > 1000 ? '' : oneLine(raw, 1000)
   if (!reason) return { ok: false, reason: 'give a reason of 1 to 1000 characters — the operator reads it, as your claim' }
   return { ok: true, value: { agentId: input.agentId, callee: FABRIC_SELF, capabilities: [SESSION_ENROLL], resources: [input.resources[0]], reason } }
+}
+
+/** ADR-0149 §2: exactly `board.respond` on 1 to 8 `board:<project>/<capability>` resources, all of one Project. */
+function normaliseRespondAsk(input: { agentId?: unknown; resources?: unknown; reason?: unknown }): Normalised<AccessAsk> {
+  if (!Array.isArray(input.resources) || input.resources.length < 1 || input.resources.length > 8)
+    return { ok: false, reason: 'name 1 to 8 resources board:<project id>/<capability>, all of one project' }
+  const res = new Set<string>()
+  let project: string | null = null
+  for (const r of input.resources) {
+    const parts = typeof r === 'string' ? boardResourceOf(r) : null
+    if (!parts || namesPrototype(parts.capability)) return { ok: false, reason: `${JSON.stringify(r)} is not board:<project id>/<capability>` }
+    if (project !== null && parts.project !== project) return { ok: false, reason: 'one ask names one project; ask again for another' }
+    project = parts.project
+    res.add(r as string)
+  }
+  const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
+  const reason = raw.length > 1000 ? '' : oneLine(raw, 1000)
+  if (!reason) return { ok: false, reason: 'give a reason of 1 to 1000 characters — the operator reads it, as your claim' }
+  return { ok: true, value: { agentId: input.agentId as string, callee: FABRIC_SELF, capabilities: [BOARD_RESPOND], resources: [...res].sort(), reason } }
 }
 
 export function requestSignature(ask: Pick<AccessAsk, 'agentId' | 'callee' | 'capabilities' | 'resources'>): string {
@@ -568,6 +612,8 @@ export function shortFolder(path: string, home?: string, max = 60): string {
  *  the folder the project was found by, already shortened for a person (`shortFolder`). */
 export interface EnrollFacts { projectName: string; folder?: { root: string; how: FolderHow | null } }
 // #endregion enroll-words
+/** ADR-0149 §2: an ask to answer one Project's requests, as the operator's screens say it. */
+export interface RespondFacts { projectName: string; capabilities: string[] }
 
 /** The agent's name as shown: the registry's, on one line, or its id. A value, not a sentence. */
 export function agentName(agentId: string, registry: RegistrySnapshot | null | undefined): string {
@@ -605,6 +651,8 @@ export interface PendingRequestFacts {
   /** ADR-0134: a coding agent asks Fabric itself to work in this project (the name as Fabric read it, and the
    *  folder Fabric resolved it by, when the snapshot carries it). */
   enroll?: EnrollFacts
+  /** ADR-0149 §2: an agent asks to answer this Project's requests for these capabilities. */
+  respond?: RespondFacts
   requestedAt: string
   expiresAt: string
 }
@@ -639,10 +687,15 @@ export function pendingFacts(r: RequestRowLike, connected: boolean, home?: strin
     ask: askLines(r),
     reason: oneLine(r.reason, 300),
     incremental: r.asked_by_binding !== null,
-    ...(r.callee === FABRIC_SELF ? { enroll: enrollFacts(r.registry, home) } : {}),
+    ...(r.callee === FABRIC_SELF && r.capabilities.includes(BOARD_RESPOND) ? { respond: respondFacts(r) } : r.callee === FABRIC_SELF ? { enroll: enrollFacts(r.registry, home) } : {}),
     requestedAt: r.requested_at,
     expiresAt: r.expires_at
   }
+}
+
+function respondFacts(r: RequestRowLike): RespondFacts {
+  const line = askLines(r).find((l) => l.kind === 'respond')
+  return { projectName: line?.kind === 'respond' ? (line.project.name ?? '') : '', capabilities: line?.kind === 'respond' ? line.capabilities : [] }
 }
 
 function enrollFacts(registry: RegistrySnapshot | null, home: string | undefined): EnrollFacts {

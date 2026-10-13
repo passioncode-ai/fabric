@@ -7,11 +7,11 @@
  * service validates every call against the contract's own shapes and answers a refusal in the contract's
  * form, `{error: {code, message, retryable}}`, so an agent meets one refusal vocabulary.
  *
- * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073, merged in the contract at f8ae4e1 and not yet pinned) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
+ * All seventeen names — DEC-0022's sixteen and `com.directory` (contract DEC-0073, pinned at edc88a6) — are registered, each by a literal call (`scripts/check-surface-tools.mjs`
  * reads literals), so an agent that calls one Fabric does not serve yet is told so in the contract's words —
  * `unsupported_capability` — instead of meeting an unknown tool (ADR-0117 §2, A7-039). Which are served is
- * `PINNED_COMMS_OPERATIONS` (the vendored contract pin) intersected with what this board implements; the
- * responder tools are implemented with COM-03.
+ * `PINNED_COMMS_OPERATIONS` (the vendored contract pin) intersected with what this board implements: since COM-03,
+ * all seventeen.
  */
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -29,7 +29,6 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
   // contract's words before anything is read or stored.
   const gate = (op: CommsOperation, handler?: Handler) => async (args: unknown) =>
     reply(served.has(op) && handler ? await handler(caller(), args) : refusal('unsupported_capability', `This board does not serve ${op} yet.`))
-  const later = 'Served with the responder tools (COM-03); until then it answers unsupported_capability.'
 
   server.registerTool('com.submit', {
     title: 'Send a message or request to other Projects',
@@ -68,8 +67,8 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
   server.registerTool('com.reply', {
     title: 'Reply to a board message',
     description:
-      'fabric-project-comms/0.1 com.reply. Arguments: idempotency {epoch: the one com.status names, key}; replyTo (a message of a thread you take part in); ' +
-      'body {text, format?}; artifacts?. The reply lands in that message\'s thread. A reply is not a completion: no request changes state.',
+      'fabric-project-comms/0.1 com.reply (comms-reply). A participant: idempotency {epoch: the one com.status names, key}; replyTo (a message of a thread you take part in); body {text, format?}; artifacts? — the reply lands in that message\'s thread. ' +
+      'A responder: fence (as com.accept takes it); body; artifacts? — the reply answers fence.request in its thread. Both forms, or neither, are refused. A reply is not a completion: no request changes state.',
     inputSchema: open
   }, gate('com.reply', (c, a) => board.reply(c, a)))
 
@@ -86,27 +85,77 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
     description:
       'fabric-project-comms/0.1 com.status (comms-status.schema.json). Arguments: project? (omit it, or name your own Project; another Project answers not_authorized, as an unknown one does). ' +
       'Answers whether the board is ready, your unread count, your responders and the mirror (off). ' +
-      'A responder that is stale has let its lease lapse — not that it failed or succeeded. Reads no message.',
+      'A responder that is stale has let its lease lapse — not that it failed or succeeded. idempotency.epoch is the epoch your Project submits under now. Reads no message.',
     inputSchema: open
   }, gate('com.status', (c, a) => board.status(c, a)))
 
-  server.registerTool('com.enroll', { title: 'Hold a responder slot for your Project', description: `fabric-project-comms/0.1 com.enroll. ${later}`, inputSchema: open }, gate('com.enroll'))
-  server.registerTool('com.claim', { title: 'Claim the next request for a capability', description: `fabric-project-comms/0.1 com.claim. ${later}`, inputSchema: open }, gate('com.claim'))
-  server.registerTool('com.renew', { title: 'Renew a responder lease', description: `fabric-project-comms/0.1 com.renew. ${later}`, inputSchema: open }, gate('com.renew'))
-  server.registerTool('com.accept', { title: 'Accept a claimed request', description: `fabric-project-comms/0.1 com.accept. ${later}`, inputSchema: open }, gate('com.accept'))
-  server.registerTool('com.progress', { title: 'Report progress on a request', description: `fabric-project-comms/0.1 com.progress. ${later}`, inputSchema: open }, gate('com.progress'))
-  server.registerTool('com.effect_begin', { title: 'Say a request\'s effect has begun', description: `fabric-project-comms/0.1 com.effect_begin. ${later}`, inputSchema: open }, gate('com.effect_begin'))
-  server.registerTool('com.complete', { title: 'Complete a request with its outcome', description: `fabric-project-comms/0.1 com.complete. ${later}`, inputSchema: open }, gate('com.complete'))
+  // The responder tools (COM-03): the holder is this session, under the operator's board.respond grant for the slot
+  // (ADR-0149 §2–§3); a lease is 60 s of database time — renew at about 20 s.
+  const FENCE = 'fence {request, generation, attempt, digest — the values com.claim returned —, expectedRevision?, idempotency {epoch, key}}'
+  server.registerTool('com.enroll', {
+    title: 'Hold your Project\'s responder slot for a capability',
+    description:
+      'fabric-project-comms/0.1 com.enroll (comms-enroll). Arguments: idempotency {epoch: the one com.status names, key}; capability. ' +
+      'Takes the slot of your Project for that capability, if the operator let this agent answer it (else not_authorized — ask with fabric.access.request, callee fabric, capability board.respond, resource board:<project>/<capability>). ' +
+      'The receipt\'s slot carries the generation your fences name and the lease expiry (database time). A live holder answers fenced; a lapsed one is replaced. ' +
+      'Leaving or ending this session releases the slot.',
+    inputSchema: open
+  }, gate('com.enroll', (c, a) => board.enroll(c, a)))
+  server.registerTool('com.claim', {
+    title: 'Claim the next request for a capability',
+    description:
+      'fabric-project-comms/0.1 com.claim (comms-claim). Arguments: idempotency; capability (a slot you hold); request? (claim that one). ' +
+      'Answers request, attempt and message — the attempt is what your fences carry — or {ok, repeated: false} with nothing claimable (nothing stored: poll again with the same key). ' +
+      'A request whose claim lapsed is taken again under a new attempt.',
+    inputSchema: open
+  }, gate('com.claim', (c, a) => board.claim(c, a)))
+  server.registerTool('com.renew', {
+    title: 'Renew your responder lease',
+    description: `fabric-project-comms/0.1 com.renew (comms-fenced). Arguments: ${FENCE}. Extends the slot\'s and the attempt\'s leases by 60 s of database time and changes no state; nothing is stored.`,
+    inputSchema: open
+  }, gate('com.renew', (c, a) => board.renew(c, a)))
+  server.registerTool('com.accept', {
+    title: 'Accept a claimed request',
+    description: `fabric-project-comms/0.1 com.accept (comms-fenced). Arguments: ${FENCE}. claimed → accepted: you acknowledge this exact request and digest. Nothing has happened yet.`,
+    inputSchema: open
+  }, gate('com.accept', (c, a) => board.accept(c, a)))
+  server.registerTool('com.progress', {
+    title: 'Report progress on a request',
+    description: `fabric-project-comms/0.1 com.progress (comms-progress). Arguments: ${FENCE}; note? {text: 1–2,000 characters}. Renews like com.renew; a note is posted on the request\'s thread once per attempt and key (a repeat answers that message with repeated: true).`,
+    inputSchema: open
+  }, gate('com.progress', (c, a) => board.progress(c, a)))
+  server.registerTool('com.effect_begin', {
+    title: 'Say a request\'s effect has begun',
+    description: `fabric-project-comms/0.1 com.effect_begin (comms-effect-begin). Arguments: ${FENCE}; summary?. accepted → in_progress, effect started. From here only an observed result settles the request.`,
+    inputSchema: open
+  }, gate('com.effect_begin', (c, a) => board.effectBegin(c, a)))
+  server.registerTool('com.complete', {
+    title: 'Complete a request with its outcome',
+    description: `fabric-project-comms/0.1 com.complete (comms-complete). Arguments: ${FENCE}; outcome {state: completed|failed_known, observed, summary?, evidence?}. After an effect began, observed: false is observation_required. A replaced responder is fenced: its late result is refused, never committed.`,
+    inputSchema: open
+  }, gate('com.complete', (c, a) => board.complete(c, a)))
   server.registerTool('com.reconcile', {
     title: 'Settle a request whose outcome is unknown',
-    description: `fabric-project-comms/0.1 com.reconcile. outcome_unknown means the work may have happened; only an observed result settles it. ${later}`,
+    description:
+      'fabric-project-comms/0.1 com.reconcile (comms-reconcile). Arguments: idempotency; request; digest (the request\'s); expectedRevision?; outcome {state, observed: true, summary?, evidence?}. ' +
+      'outcome_unknown means the work may have happened; only an observed result settles it, by the slot\'s current holder.',
     inputSchema: open
-  }, gate('com.reconcile'))
-  server.registerTool('com.responder_replace', { title: 'Take over a responder slot', description: `fabric-project-comms/0.1 com.responder_replace. ${later}`, inputSchema: open }, gate('com.responder_replace'))
+  }, gate('com.reconcile', (c, a) => board.reconcile(c, a)))
+  server.registerTool('com.responder_replace', {
+    title: 'Take over a responder slot',
+    description:
+      'fabric-project-comms/0.1 com.responder_replace (comms-responder-replace). Arguments: idempotency; capability; expectedGeneration (from com.status); transfer? {requests: accepted request ids, checkpoint {summary, evidence?}}. ' +
+      'Takes the slot even from a live holder at generation + 1: its claimed requests return to queued, in_progress ones become outcome_unknown, accepted ones are held unless transferred. ' +
+      'A transferred request continues under a new attempt: read it with com.claim naming the request.',
+    inputSchema: open
+  }, gate('com.responder_replace', (c, a) => board.responderReplace(c, a)))
   server.registerTool('com.directory', {
     title: 'Which Projects of this estate you can address',
-    description: 'fabric-project-comms/0.1 com.directory (contract DEC-0073). Served once the contract pin carries it; until then it answers unsupported_capability.',
+    description:
+      'fabric-project-comms/0.1 com.directory (comms-directory, DEC-0073). Arguments: capability? (only Projects that list it), cursor?, limit? (1–100). ' +
+      'The other Projects of your estate by name then id: their id (what com.submit addresses), name, the capabilities they take requests for and each one\'s responder state. Never a message, a count or who answers. ' +
+      'Your own Project is not listed (com.status describes it); a Project its operator unlisted is absent but still reachable by its id.',
     inputSchema: open
-  }, gate('com.directory'))
+  }, gate('com.directory', (c, a) => board.directory(c, a)))
 }
 // #endregion project-board-tools

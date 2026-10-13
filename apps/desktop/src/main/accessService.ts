@@ -41,6 +41,8 @@ import {
   GRANT_TTL_MS,
   normaliseAccessRequest,
   projectOfResource,
+  BOARD_RESPOND,
+  boardResourceOf,
   requestSignature,
   type AccessAsk
 } from '../shared/access.ts'
@@ -220,6 +222,36 @@ export class AccessService {
       // and the one resource is a project that exists. Every other callee goes through the registry as before.
       let entry: { key: string; kind: string; name: string; installedBy: string; repository: string | null; summary: string | null }
       let enrolling: EnrollProjectFact | null = null
+      // #region board-respond-request — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
+      // ADR-0149 §2: answering a Project's requests. The asker is a coding agent of the runner catalogue (an enrolled or
+      // launched session answers under its runner's binding) or a registry service (it joins with fabric.board.join);
+      // anything else is refused before any prompt, and so is a Project this Fabric does not have.
+      if (asked.value.callee === FABRIC_SELF && asked.value.capabilities[0] === BOARD_RESPOND) {
+        if (raw.folder !== undefined) {
+          receipt('folder-not-asked', asked.value.agentId)
+          return { ok: false, refused: 'folder belongs to a session.enroll ask, not to board.respond. Nothing was shown to the operator.' }
+        }
+        const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
+        if (runner) {
+          entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
+        } else {
+          this.deps.registry.refresh()
+          const resolved = this.deps.registry.resolve(asked.value.agentId)
+          if (!resolved.ok) {
+            receipt('not-a-responder', asked.value.agentId)
+            return { ok: false, refused: `${asked.value.agentId} is neither a coding agent Fabric knows on this computer nor a registered agent. Nothing was shown to the operator.` }
+          }
+          entry = resolved.entry
+        }
+        const projectId = boardResourceOf(asked.value.resources[0])?.project as string
+        const project = this.deps.enrollment ? await this.deps.enrollment.project(projectId) : null
+        if (!project) {
+          receipt('unknown-project', entry.key)
+          return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
+        }
+        enrolling = { id: project.id, name: project.name, root: null, how: null }
+      } else
+      // #endregion board-respond-request
       if (asked.value.callee === FABRIC_SELF) {
         const enrollment = this.deps.enrollment
         const runner = enrollment?.runner(asked.value.agentId) ?? null

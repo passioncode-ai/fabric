@@ -95,6 +95,20 @@
     "unread": {
       "type": "integer",
       "minimum": 0
+    },
+    "idempotency": {
+      "description": "The open idempotency epoch the caller's Project submits under now (DEC-0073). A closed epoch takes no new key (idempotency_window_expired) but still answers a repeat of a stored key and digest with its receipt; a retired epoch refuses every key (C6).",
+      "type": "object",
+      "required": [
+        "epoch"
+      ],
+      "properties": {
+        "epoch": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

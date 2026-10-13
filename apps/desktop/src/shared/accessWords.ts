@@ -12,7 +12,7 @@
 
 import type { StringKey } from '../renderer/src/i18n/en.ts'
 import type { AccessActRefusal } from './accessActs.ts'
-import type { AgentFacts, AskLine, CapabilityRef, ConnectProblem, EnrollFacts, FolderHow, ResourceRef } from './access.ts'
+import type { AgentFacts, AskLine, CapabilityRef, ConnectProblem, EnrollFacts, FolderHow, ResourceRef, RespondFacts } from './access.ts'
 
 export type Say = (key: StringKey, vars?: Record<string, string | number>) => string
 
@@ -36,6 +36,10 @@ export function sayAsk(t: Say, line: AskLine): string {
   // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
   if (line.kind === 'enroll') return line.project.name ? t('access.ask.enroll', { project: line.project.name }) : t('access.ask.enrollThis')
   // #endregion enroll-words
+  // #region board-respond-words — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
+  if (line.kind === 'respond')
+    return line.project.name ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities), project: line.project.name }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities) })
+  // #endregion board-respond-words
   const resource = sayResource(t, line.resource)
   if (line.kind === 'inside') return t('access.ask.inside', { verbs: sayList(t, line.capabilities.map((c) => sayCapability(t, c))), resource })
   if (line.kind === 'setup-extra') return t('access.ask.setupExtra', { resource, verb: sayCapability(t, line.capability) })
@@ -52,6 +56,10 @@ export const shownName = (agent: AgentFacts): string => agent.name ?? agent.agen
  */
 export function sayGrant(t: Say, line: AskLine, nameOf?: (projectId: string) => string | null | undefined): string {
   // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  if (line.kind === 'respond') {
+    const shown = line.project.name ?? nameOf?.(line.project.id)
+    return shown ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities), project: shown }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities) })
+  }
   if (line.kind !== 'enroll') return sayAsk(t, line)
   const name = line.project.name ?? nameOf?.(line.project.id)
   if (name) return t('access.grant.enroll', { project: name })
@@ -72,8 +80,8 @@ export function sayOrigin(t: Say, agent: AgentFacts): string {
 
 /** The same-user floor (ADR-0115 §2), said wherever the operator can answer a request. For an enrollment it is
  *  said of the name the agent asked under: no registry entry was checked, so nothing is claimed about one. */
-export const sayFloor = (t: Say, x?: { agent: AgentFacts; enroll?: EnrollFacts }): string =>
-  x?.enroll ? t('access.enroll.floor', { name: shownName(x.agent) }) : t('access.floor')
+export const sayFloor = (t: Say, x?: { agent: AgentFacts; enroll?: EnrollFacts; respond?: RespondFacts }): string =>
+  x?.enroll || (x?.respond && x.agent.codingAgent) ? t('access.enroll.floor', { name: shownName(x.agent) }) : t('access.floor')
 export const sayIncremental = (t: Say): string => t('access.incremental')
 
 /** The project an enrollment names, as the slot `{project}` of the enrollment sentences takes it: "Atlas" / "this
@@ -82,8 +90,10 @@ export const sayIncremental = (t: Say): string => t('access.incremental')
 const projectWords = (t: Say, name: string): string => (name ? t('access.enroll.projectNamed', { name }) : t('access.enroll.thisProject'))
 
 /** The queue row's title: "<name> asks to use <product>", or for an enrollment (ADR-0134) "<name> asks to work in <project>". */
-export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }): string =>
-  x.enroll
+export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string }; respond?: RespondFacts }): string =>
+  x.respond
+    ? t('access.queue.respondTitle', { name: shownName(x.agent), project: projectWords(t, x.respond.projectName) })
+    : x.enroll
     ? t('access.queue.enrollTitle', { name: shownName(x.agent), project: projectWords(t, x.enroll.projectName) })
     : t('access.queue.title', { name: shownName(x.agent), product: x.product })
 
@@ -91,8 +101,12 @@ export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; e
  * What the operator decided, named (CO-207): "You allowed X to use Y", "You denied X access to Y" — or, for a
  * coding agent's enrollment (ADR-0134), "You let X work in P". The queue row and SCR-76 say the same sentence.
  */
-export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }, decision: 'allowed' | 'denied'): string {
+export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string }; respond?: RespondFacts }, decision: 'allowed' | 'denied'): string {
   const name = shownName(x.agent)
+  if (x.respond) {
+    const project = projectWords(t, x.respond.projectName)
+    return t(decision === 'allowed' ? 'access.queue.responded' : 'access.queue.respondDenied', { name, project })
+  }
   if (x.enroll) {
     const project = projectWords(t, x.enroll.projectName)
     return t(decision === 'allowed' ? 'access.queue.enrolled' : 'access.queue.enrollDenied', { name, project })
@@ -101,16 +115,16 @@ export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enro
 }
 
 /** Whether Allow also opens the product's connect flow. Never for an enrollment: Fabric itself is not connected. */
-const opensConnect = (x: { connected: boolean; enroll?: EnrollFacts }): boolean => !x.connected && !x.enroll
+const opensConnect = (x: { connected: boolean; enroll?: EnrollFacts; respond?: RespondFacts }): boolean => !x.connected && !x.enroll && !x.respond
 
 /** The Allow button: plain, or "Allow and connect <product>" when Allow also opens the product (UX-4). */
-export const sayAllow = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts }): string =>
+export const sayAllow = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts; respond?: RespondFacts }): string =>
   opensConnect(x) ? t('access.allowConnect', { product: x.product }) : t('access.allow')
 
 /** The Allow button's accessible name: its visible words, then whose request it answers — "label in name",
  *  so a screen reader hears that Allow also connects the product and voice control can say what it reads
  *  (verification iteration 2 for 0.3.1, UX-8). */
-export const sayAllowFor = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts }, name: string): string =>
+export const sayAllowFor = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts; respond?: RespondFacts }, name: string): string =>
   opensConnect(x) ? t('access.allowConnectFor', { product: x.product, name }) : t('access.allowFor', { name })
 
 // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
@@ -128,9 +142,22 @@ const projectOf = (t: Say, enroll: EnrollFacts): string => projectWords(t, enrol
  * who asks, where (an enrollment's folder, Fabric's own line), what, what it gets, the agent's reason as its claim,
  * the same-user floor, then what the answer does and how long it lasts.
  */
-export function sayRequest(t: Say, x: { agent: AgentFacts; ask: AskLine[]; reason: string; incremental: boolean; enroll?: EnrollFacts }): {
+export function sayRequest(t: Say, x: { agent: AgentFacts; ask: AskLine[]; reason: string; incremental: boolean; enroll?: EnrollFacts; respond?: RespondFacts }): {
   origin: string; folder: string | null; asks: string[]; what: string | null; reason: string; floor: string; notes: string[]
 } {
+  // ADR-0149 §2: answering a Project's requests — what it may do, what it may not, and how long it lasts.
+  if (x.respond) {
+    const project = projectWords(t, x.respond.projectName)
+    return {
+      origin: sayOrigin(t, x.agent),
+      folder: null,
+      asks: x.ask.map((l) => sayAsk(t, l)),
+      what: t('access.respond.what', { project }),
+      reason: t('access.pending.reason', { reason: x.reason }),
+      floor: sayFloor(t, x),
+      notes: [...(x.incremental ? [sayIncremental(t)] : []), t('access.respond.revoke'), t('access.denyStands')]
+    }
+  }
   const enroll = x.enroll
   return {
     origin: sayOrigin(t, x.agent),
@@ -178,6 +205,7 @@ export function consentPrompt(t: Say, input: {
   connected: boolean
   incremental: boolean
   enroll?: EnrollFacts
+  respond?: RespondFacts
 }): { title: string; message: string; statement: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
   const name = shownName(input.agent)
   // ADR-0134: a coding agent asks to work in a project — not a product, not a mailbox.
@@ -209,6 +237,22 @@ export function consentPrompt(t: Say, input: {
     }
   }
   // #endregion enroll-words
+  // #region board-respond-words — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
+  if (input.respond) {
+    const project = projectWords(t, input.respond.projectName)
+    const capabilities = sayList(t, input.respond.capabilities)
+    const said = sayRequest(t, input)
+    return {
+      title: t('access.respond.title', { name, capabilities, project }),
+      message: t('access.respond.title', { name, capabilities, project }),
+      statement: t('access.respond.message', { name, project }),
+      detail: [said.origin, said.what as string, '', t('access.prompt.reasonLead'), t('access.prompt.quoted', { reason: input.reason }), '', said.floor, '', ...said.notes].join('\n'),
+      buttons: [t('access.deny'), t('access.allow')],
+      defaultId: 0,
+      cancelId: 0
+    }
+  }
+  // #endregion board-respond-words
   const product = input.product
   const detail = [
     t('access.prompt.asks', { origin: sayOrigin(t, input.agent) }),

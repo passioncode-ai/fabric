@@ -66,7 +66,7 @@ import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { mayChain } from '../shared/loopBound.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
-import { createBoard, type Board } from './boardService.ts'
+import { createBoard, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { Journal } from '@fabric/journal'
@@ -202,6 +202,11 @@ export interface AgentScope {
   agent: string | null
   /** The coding agent's own session id, when it enrolled with one (D1); what a rejoin and an observation name. */
   runtimeSessionId: string | null
+  /** Which server the scope is given (ADR-0115: authority is the server a principal gets). 'board': a board session from
+   *  `fabric.board.join` (ADR-0149 §4) — the `com.*` tools and nothing else. */
+  surface: 'session' | 'board'
+  /** The hub binding an enrolled or board session came in under; null for a launched session (ADR-0149 §3). */
+  bindingId: string | null
 }
 
 /** How a session was minted: launched (the default) or enrolled, with its runner. */
@@ -211,6 +216,10 @@ export interface MintOrigin {
   runtimeSessionId?: string | null
   /** A bearer the session hooks' rejoin (D2) holds beside the agent's own: its client leaving takes only itself. */
   rejoin?: boolean
+  /** The binding it came in under (enrolled, board session), for the board's responder grant (ADR-0149 §3). */
+  bindingId?: string | null
+  /** 'board': a board session (`fabric.board.join`), given only the `com.*` tools. */
+  surface?: 'session' | 'board'
 }
 
 /** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
@@ -377,7 +386,7 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
-  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null }>()
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
@@ -503,11 +512,13 @@ export class AgentSurface {
       taskId,
       cameIn: origin?.cameIn ?? known?.cameIn ?? 'launched',
       agent: origin?.agent ?? known?.agent ?? null,
-      runtimeSessionId: origin?.runtimeSessionId ?? known?.runtimeSessionId ?? null
+      runtimeSessionId: origin?.runtimeSessionId ?? known?.runtimeSessionId ?? null,
+      surface: origin?.surface ?? known?.surface ?? 'session',
+      bindingId: origin?.bindingId ?? known?.bindingId ?? null
     }
     const now = this.now()
     if (!known)
-      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null })
+      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId })
     // #region surface-unclaimed-sweep — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
     // A bearer no client presented within its claim window is swept here (0.3.5 review iteration 2, ER-5): a hook
     // process that died before its initialize would otherwise stay in the map for the life of the app, because the
@@ -558,6 +569,15 @@ export class AgentSurface {
   private sessionEnded(sessionId: string, why: 'ended' | 'app-quit'): void {
     if (!this.live.delete(sessionId)) return
     this.claimHolders.delete(sessionId)
+    // #region board-release-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#5-leases-fences-and-the-clock
+    // DEC-0073 §5: the session's end releases every responder slot it holds. Best effort: the authority recheck inside
+    // every transition is what refuses a released responder; a release that fails leaves a lease that lapses in 60 s.
+    const released: Promise<void> = this.board.releaseSession(this.deps.estateId, sessionId).then((n) => {
+      if (n === null) ops.record({ op: 'agentSurface.board-release', outcome: 'failed', level: 'warn', detail: { session_id: sessionId, why }, ctx: { correlationId: ops.correlate() } })
+    }, (e) => { ops.failed('agentSurface.board-release', e, { note: 'its responder leases lapse in 60 s', session_id: sessionId }) })
+      .finally(() => { this.ending.delete(released) })
+    this.ending.add(released)
+    // #endregion board-release-session
     const hook = this.deps.onSessionEnded
     if (!hook) return
     const p: Promise<void> = hook(sessionId, why).catch((e) => {
@@ -612,6 +632,30 @@ export class AgentSurface {
     return this.now() - st.mintedAt > this.limits.claimWindowMs ? null : 'unclaimed'
   }
   // #endregion session-enroll-credential-state
+
+  // #region board-session-join — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
+  /**
+   * `fabric.board.join` (ADR-0149 §4): a binding with a live board.respond grant on the Project gets a board session —
+   * one bearer, the `com.*` tools only. Answers the bearer with the capabilities and the grants it came in under (a
+   * revocation of any of them ends the session), or the board's refusal.
+   */
+  async joinBoard(binding: { id: string; agent_id: string }, projectId: string, sessionId: string): Promise<{ token: string; capabilities: string[]; grants: string[] } | { error: { code: string; message: string } }> {
+    const checked = await this.board.joinCheck(this.deps.estateId, binding.id, projectId)
+    if ('error' in checked) return { error: { code: checked.error.code, message: checked.error.message } }
+    const { token } = this.mint(projectId, sessionId, null, { cameIn: 'hub', agent: binding.agent_id, bindingId: binding.id, surface: 'board' })
+    return { token, capabilities: checked.capabilities, grants: checked.grants }
+  }
+
+  /** A board.respond grant was revoked: the enrollments it admitted are released (COM03-10). Best effort. */
+  async releaseBoardGrant(grantId: string): Promise<void> {
+    try {
+      if ((await this.board.releaseGrant(this.deps.estateId, grantId)) === null)
+        ops.record({ op: 'agentSurface.board-release-grant', outcome: 'failed', level: 'warn', detail: { grant_id: grantId }, ctx: { correlationId: ops.correlate() } })
+    } catch (e) {
+      ops.failed('agentSurface.board-release-grant', e, { note: 'the authority recheck still refuses its responder', grant_id: grantId })
+    }
+  }
+  // #endregion board-session-join
 
   /** Test seam and honest accounting: what the surface currently holds. */
   credentialCount(): number {
@@ -1194,6 +1238,13 @@ export class AgentSurface {
       projectId: scope.projectId
     })
     const server = new McpServer({ name: 'fabric', version: APP_VERSION })
+
+    // ADR-0149 §4 and ADR-0115's rule: a board session is given a server with the board's tools and nothing else, so no
+    // session tool — fabric_whoami included — is reachable from it.
+    if (scope.surface === 'board') {
+      registerBoardTools(server, this.board, () => this.boardCaller(scope))
+      return server
+    }
 
     server.registerTool(
       'fabric_whoami',
@@ -2556,16 +2607,30 @@ export class AgentSurface {
       now: this.now
     })
 
-    registerBoardTools(server, this.board, () => ({
-      estateId: scope.estateId,
-      projectId: scope.projectId,
-      principal: { kind: 'agent', id: scope.sessionId, provenance: 'trusted' },
-      // C3: a cursor is bound to what the session takes part under — how it came in, its grant with COM-03.
-      participationGrant: scope.cameIn
-    }))
+    registerBoardTools(server, this.board, () => this.boardCaller(scope, ptys()?.get(scope.sessionId)?.optionId ?? null))
 
     return server
   }
+
+  // #region board-caller — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#1-participation-comes-with-a-project-session
+  /**
+   * Who a session is on the board (ADR-0149 §1, §3), from its scope alone: its Project, a trusted principal labelled by
+   * its runner, and — for responding — the session, how it came in, its runner and its binding. No argument names any.
+   */
+  private boardCaller(scope: AgentScope, ptyRunner: string | null = null): BoardCaller {
+    const agent = scope.agent ?? ptyRunner
+    const cameIn = scope.cameIn === 'unknown' ? null : scope.cameIn
+    return {
+      estateId: scope.estateId,
+      projectId: scope.projectId,
+      principal: { kind: 'agent', id: scope.sessionId, ...(agent ? { label: agent.slice(0, 80) } : {}), provenance: 'trusted' },
+      // C3: a cursor is bound to what the session takes part under — how it came in, and its binding.
+      participationGrant: scope.bindingId ? `${scope.cameIn}:${scope.bindingId}` : scope.cameIn,
+      surface: scope.surface === 'board' ? 'board' : 'session',
+      ...(cameIn ? { responder: { sessionId: scope.sessionId, cameIn, agent, bindingId: scope.bindingId } } : {})
+    }
+  }
+  // #endregion board-caller
 }
 
 /**

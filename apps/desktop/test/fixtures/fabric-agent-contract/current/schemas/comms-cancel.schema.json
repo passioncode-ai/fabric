@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-cancel.schema.json",
+  "title": "com.cancel arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "idempotency",
+    "request"
+  ],
+  "properties": {
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    },
+    "request": {
+      "description": "A request the caller's Project sent; only the sender Project may cancel it.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "expectedRevision": {
+      "description": "The request revision the caller last read; another one is revision_conflict.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    }
+  },
+  "additionalProperties": false
+}

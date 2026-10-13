@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-directory.schema.json",
+  "title": "com.directory result: the addressable Projects of the caller's estate (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Names, ids, listed capabilities and responder state only: never a message, a body, a participant, a thread, a count, a generation, a lease or a holder, and never a Project of another estate or one its operator unlisted.",
+  "type": "object",
+  "required": [
+    "protocol",
+    "snapshot",
+    "projects",
+    "cursor"
+  ],
+  "properties": {
+    "protocol": {
+      "$ref": "comms-common.schema.json#/$defs/protocol"
+    },
+    "snapshot": {
+      "type": "object",
+      "required": [
+        "readAt"
+      ],
+      "properties": {
+        "readAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "stale": {
+          "description": "The board answered from a projection it knows is behind: a Project listed or unlisted, or a responder enrolled or lapsed, may not show yet.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "projects": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "capabilities"
+        ],
+        "properties": {
+          "id": {
+            "description": "What com.submit addresses. Data, not authority.",
+            "$ref": "comms-common.schema.json#/$defs/projectId"
+          },
+          "name": {
+            "description": "The Project's name as its host shows it to the operator.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "capabilities": {
+            "description": "The capabilities the Project takes requests for, as its host lists them.",
+            "type": "array",
+            "maxItems": 64,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "capability",
+                "responder"
+              ],
+              "properties": {
+                "capability": {
+                  "$ref": "common.schema.json#/$defs/capabilityName"
+                },
+                "responder": {
+                  "description": "The state com.status reports for this capability: active, stale (its lease lapsed — not that it failed) or absent. No generation, lease time or holder.",
+                  "enum": [
+                    "active",
+                    "stale",
+                    "absent"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cursor": {
+      "description": "null when the listing is exhausted.",
+      "oneOf": [
+        {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

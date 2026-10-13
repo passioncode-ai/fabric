@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-reply.schema.json",
+  "title": "com.reply arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Exactly one of two forms: a participant answers a message (idempotency and replyTo), a responder answers the request it holds (fence). A call carrying both, or neither, is refused. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "idempotency",
+        "replyTo",
+        "body"
+      ],
+      "properties": {
+        "idempotency": {
+          "$ref": "comms-common.schema.json#/$defs/idempotency"
+        },
+        "replyTo": {
+          "description": "The message answered, in a thread the caller's Project takes part in; the reply joins that thread.",
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        "body": {
+          "$ref": "comms-common.schema.json#/$defs/body"
+        },
+        "artifacts": {
+          "$ref": "comms-common.schema.json#/$defs/artifacts"
+        }
+      },
+      "additionalProperties": false,
+      "title": "A participant's reply"
+    },
+    {
+      "type": "object",
+      "required": [
+        "fence",
+        "body"
+      ],
+      "properties": {
+        "fence": {
+          "description": "The responder's fence; the reply answers fence.request in its thread. A reply is not a completion: the request's state does not change.",
+          "$ref": "comms-fence.schema.json"
+        },
+        "body": {
+          "$ref": "comms-common.schema.json#/$defs/body"
+        },
+        "artifacts": {
+          "$ref": "comms-common.schema.json#/$defs/artifacts"
+        }
+      },
+      "additionalProperties": false,
+      "title": "A responder's fenced reply"
+    }
+  ]
+}

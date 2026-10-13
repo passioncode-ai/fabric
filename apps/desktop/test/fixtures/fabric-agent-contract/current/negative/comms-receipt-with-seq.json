@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "repeated": false,
+  "message": "msg_K9j8H7g6F5",
+  "thread": "thr_Q1w2E3r4T5",
+  "at": "2026-10-12T10:00:00Z",
+  "request": {
+    "id": "req_A1b2C3d4E5",
+    "state": "queued",
+    "effect": "not_started",
+    "revision": 1
+  },
+  "seq": 4211
+}

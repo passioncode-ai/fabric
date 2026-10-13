@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-fenced.schema.json",
+  "title": "com.accept and com.renew arguments: the fence alone (fabric-project-comms/0.1, DEC-0073)",
+  "description": "com.accept moves claimed to accepted under this fence; com.renew extends the slot's and the attempt's leases and changes no state. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "fence"
+  ],
+  "properties": {
+    "fence": {
+      "$ref": "comms-fence.schema.json"
+    }
+  },
+  "additionalProperties": false
+}

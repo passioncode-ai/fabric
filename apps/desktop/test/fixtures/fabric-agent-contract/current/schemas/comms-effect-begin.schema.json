@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-effect-begin.schema.json",
+  "title": "com.effect_begin arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "accepted to in_progress; effect not_started to started. From here only an observed result settles the request. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "fence"
+  ],
+  "properties": {
+    "fence": {
+      "$ref": "comms-fence.schema.json"
+    },
+    "summary": {
+      "description": "What the effect about to start is, for the readers of the request.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    }
+  },
+  "additionalProperties": false
+}

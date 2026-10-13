@@ -1,0 +1,10 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "cancel-req_A1b2C3d4E5"
+  },
+  "request": "req_A1b2C3d4E5",
+  "expectedRevision": 2,
+  "reason": "The numbers are no longer needed.",
+  "sender": "proj-growth"
+}

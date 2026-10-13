@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "repeated": true,
+  "at": "2026-10-12T09:59:00Z",
+  "slot": {
+    "project": "proj-analytics",
+    "capability": "analytics.retention",
+    "generation": 2,
+    "leaseExpiresAt": "2026-10-12T10:00:00Z"
+  }
+}

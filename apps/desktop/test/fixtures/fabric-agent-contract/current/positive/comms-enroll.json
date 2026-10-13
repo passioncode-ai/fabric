@@ -1,0 +1,7 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "enroll-analytics-retention-1"
+  },
+  "capability": "analytics.retention"
+}
