@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-status-args.schema.json",
+  "title": "com.status arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "properties": {
+    "project": {
+      "description": "The Project to report on. A Project session's Project comes from its endpoint: it omits this or names its own Project, and another Project is not_authorized. A viewer principal (a host such as Fabric Dashboards) names the Project it was granted.",
+      "$ref": "comms-common.schema.json#/$defs/projectId"
+    }
+  },
+  "additionalProperties": false
+}

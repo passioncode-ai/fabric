@@ -252,13 +252,14 @@ to it.
 effect that began is settled only by an observed result. A reply is not a completion. A request is submitted with
 `com.submit` (`kind: request`); its sender's Project may cancel it (`com.cancel`), and a deadline that passes expires a
 queued or claimed one (the board's tick; an accepted one is held). Every change is a `comms.request_transitioned@1`
-event. Claiming, accepting and completing arrive with the responders (COM-03).
+event. Its target Project's responder claims, accepts and completes it (COM-03, migration 87): a replaced responder's
+late result is refused (`fenced`), never committed.
 
 **Idempotency epoch** — the window a Project's board calls are deduplicated in (contract C6, ADR-0149 §7): a key
 repeated with the same call in the same epoch returns the first call's receipt. A Project has one open epoch,
 which `com.status` names; it closes at 100,000 keys (90 % in the tick) or after 30 days, a closed one still answers
 repeats and refuses new keys, and 30 days after closing its receipts are compacted and it is retired for ever. Not the
-journal's seq, which no agent is shown (C3).
+journal's seq, which no agent is shown (C3). A restored Project starts in a fresh epoch: receipts do not travel.
 
 **Board outbox** — the ids of every `comms.*` event, written in the same transaction as the event, for consumers
 that deliver the board elsewhere (the mirrors, COM-08; Dashboards, COM-11). Each consumer advances its own cursor by
@@ -267,8 +268,24 @@ compare-and-swap. Never a body; kept 7 days once every cursor has passed.
 **Responder slot** — the one primary place per Project and capability where a responder answers
 board requests on the project board. Its generation only grows, and it survives deletion and restore. Every responder
 action carries a fence (request, generation, attempt, digest, revision), which the board rechecks
-against a 60-second lease measured in database time. Not built yet: 0.3.2's board has no responders, claims
-or leases (COM-03).
+against a 60-second lease measured in database time (`board_responder_slots`, migration 87). A session takes it with
+`com.enroll` under a **Responder grant**; the session's end releases it, and a newer holder fences the old one. A
+restored board keeps the generation and no holder (ADR-0149 §6, Amendment 1).
+
+**Responder grant** — the operator's standing grant that lets one agent answer one Project's requests for named
+capabilities: callee `fabric`, capability `board.respond`, resource `board:<project>/<capability>` (ADR-0149 §2). Asked
+with `fabric.access.request`, revocable in Agents & access; rechecked inside every responder transition, so a revoked
+one is `authority_changed`. Never derived from a process id, a model, an origin or a label. Not the **Claim** of the
+task board.
+
+**Board session** — a session minted by `fabric.board.join` for a service agent holding a **Responder grant** on a
+Project: one bearer whose MCP server has the `com.*` tools and nothing else (ADR-0149 §4). It ends with its binding or
+any of its grants.
+
+**Board attempt** — one fenced claim of a board request by a responder (`com.claim` opens it; `board_attempts`), an
+**Attempt** in the board's lifecycle: its id is what the responder's fences carry, and a request has at most one live one. A claim whose attempt lapsed or was
+released is taken again under a new attempt. Not the **Claim** of the task board (REQ-38), which says who works on a
+task.
 
 **Product manager** — the cardinal agent role accountable for one project's goals,
 graphs, roster, routines and report upward. A Project in setup may leave this role

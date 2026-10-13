@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-list.schema.json",
+  "title": "com.list arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "properties": {
+    "thread": {
+      "description": "Only this thread's messages; absent: every thread the caller's Project takes part in.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "cursor": {
+      "description": "The cursor of the previous page, bound to this reader, its grant revision, this filter and the restore epoch; a changed filter is cursor_reset_required.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "limit": {
+      "description": "At most this many messages on the page; the board may return fewer.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-receipt.schema.json",
+  "title": "The receipt of every successful board mutation (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Never carries an estate-wide sequence number (C3) or another Project's data: an unknown member is refused.",
+  "type": "object",
+  "required": [
+    "ok",
+    "repeated"
+  ],
+  "properties": {
+    "ok": {
+      "const": true
+    },
+    "repeated": {
+      "description": "true: the same idempotency key and digest were already stored, and this is that receipt; for a com.progress note, the note was already posted under this attempt and key; for com.read_ack, the reader had already marked the message read. com.renew and com.progress without a note store nothing and answer false.",
+      "type": "boolean"
+    },
+    "message": {
+      "description": "The message this call stored or acknowledged.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "thread": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "at": {
+      "description": "When the message was stored, or for com.read_ack when the reader first marked it read.",
+      "$ref": "common.schema.json#/$defs/timestamp"
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "id",
+        "state",
+        "effect",
+        "revision"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        "state": {
+          "$ref": "comms-common.schema.json#/$defs/requestState"
+        },
+        "effect": {
+          "$ref": "comms-common.schema.json#/$defs/effectState"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "description": "The request this call created or moved, after the call."
+    },
+    "slot": {
+      "type": "object",
+      "required": [
+        "project",
+        "capability",
+        "generation",
+        "leaseExpiresAt"
+      ],
+      "properties": {
+        "project": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "capability": {
+          "$ref": "common.schema.json#/$defs/capabilityName"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "leaseExpiresAt": {
+          "description": "Database time; the caller's clock is not authoritative.",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "The responder slot the caller holds after com.enroll, com.responder_replace, com.renew or com.progress."
+    },
+    "attempt": {
+      "type": "object",
+      "required": [
+        "id",
+        "generation",
+        "digest",
+        "leaseExpiresAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "digest": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "leaseExpiresAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "The attempt com.claim opened, or whose lease com.renew or com.progress extended: the values the caller's next fence carries."
+    }
+  },
+  "additionalProperties": false
+}

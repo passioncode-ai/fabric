@@ -421,3 +421,10 @@ outbox and the board's history in the archive; ADR-0149) — and slot 104 is the
 moves to **0150** (ADR-0149 was written past 0148; 0150 issued by key
 `pipeline-reservation-after-board-responders-20261012`). No pipeline file exists at either number. Receipt:
 `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-13, the board's responders (COM-03):** slot 104 is taken, as reserved above, by the executed migration
+`20261012000104_project_board_responders.sql` — migration 87 by count (responder slots, enrollments, attempts, the
+fence, release and the project directory; ADR-0149 Amendment 1). The unexecuted pipeline migration reservations stay
+at **105/106** (`20261012000105_pipeline_definitions.sql`, `20261012000106_graph_version_pins.sql`) and the reserved
+ADR at **0150**: COM-03 wrote no ADR (it amends ADR-0149, ADR-0117 and ADR-0134). No pipeline file exists at either
+number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.

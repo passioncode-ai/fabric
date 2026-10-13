@@ -1,0 +1,22 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "replace-analytics-retention-3"
+  },
+  "capability": "analytics.retention",
+  "expectedGeneration": 2,
+  "transfer": {
+    "requests": [
+      "req_A1b2C3d4E5"
+    ],
+    "checkpoint": {
+      "summary": "Query written and reviewed; not yet run.",
+      "evidence": [
+        {
+          "id": "fabric://artifact/query-draft",
+          "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    }
+  }
+}

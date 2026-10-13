@@ -38,7 +38,7 @@ export interface EnrollDeps extends FolderDeps {
   liveGrants(binding: BindingRow): Promise<GrantRow[]>
   projectName(projectId: string): Promise<string | null>
   /** The same mint a launched session gets (`AgentSurface.mint`), told it is an enrollment and by which runner. */
-  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true }): { token: string }
+  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true; bindingId: string }): { token: string }
   /** The enrolled sessions this process minted, by binding and grant: what a revocation ends. */
   sessions: EnrolledSessions
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
@@ -90,6 +90,8 @@ export interface EnrolledSession {
   runtimeSessionId?: string | null
   /** The one bearer the session hooks' rejoins (D2) hold for this session, or none (0.3.5 review iteration 2, ER-5). */
   rejoinBearer?: string | null
+  /** A board session (`fabric.board.join`, ADR-0149 §4) holds several board.respond grants: any one revoked ends it. */
+  grantIds?: string[]
 }
 
 /**
@@ -180,7 +182,7 @@ export class EnrolledSessions {
 
   /** Ends every session minted under a grant; returns their ids. */
   endForGrant(grantId: string): string[] {
-    const ids = [...this.rows.values()].filter((r) => r.grantId === grantId).map((r) => r.sessionId)
+    const ids = [...this.rows.values()].filter((r) => r.grantId === grantId || (r.grantIds ?? []).includes(grantId)).map((r) => r.sessionId)
     for (const id of ids) this.endSession(id)
     return ids
   }
@@ -230,7 +232,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
     const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
     if (!held || !(await deps.stillLive(binding.id, held.grantId))) return refuse
     const token = deps.sessions.rejoinBearer(held.sessionId, () =>
-      deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true }).token)
+      deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id }).token)
     if (!token) return refuse
     return { ok: true, session: { bearer: token, sessionId: held.sessionId, projectId: folder.projectId, projectName, how: folder.how } }
   }
@@ -267,7 +269,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   // #endregion session-enroll-bound
 
   const sessionId = randomUUID()
-  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId })
+  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id })
   // Registered before the re-read: a revocation from now on ends it through its listener, one before it is seen below.
   deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grant.id, projectId: folder.projectId, mintedAt: now, runtimeSessionId })
   try {

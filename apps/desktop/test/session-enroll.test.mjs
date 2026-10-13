@@ -479,10 +479,10 @@ test('a rejoin with no live session of that runtime session asks nothing and min
   assert.deepEqual([gone.ok, gone.code], [false, 'no-session'], 'a grant no longer live joins nothing')
 })
 
-test('an enrolled mint tells the surface it is an enrollment, its runner and its runtime session', async () => {
+test('an enrolled mint tells the surface it is an enrollment, its runner, its runtime session and its binding (ADR-0149 §3)', async () => {
   const origins = []
   const h = deps()
   h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
   await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
-  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9' }])
+  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id }])
 })

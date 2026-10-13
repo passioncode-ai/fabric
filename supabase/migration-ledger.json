@@ -345,6 +345,10 @@
     {
       "file": "20261012000103_project_board_lifecycle.sql",
       "sha256": "98e64d2f609919f5f14ae7d1838bd863835d0a675de4b3c421207829f12a9a55"
+    },
+    {
+      "file": "20261012000104_project_board_responders.sql",
+      "sha256": "a8c437c6f32dcf28cb2b4a4b790bf5513203f59c35e5f7a6eaf34f5e19c540dc"
     }
   ]
 }

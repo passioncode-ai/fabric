@@ -142,13 +142,14 @@ test('session tools are a separate surface with no agent.call', async () => {
   })
 })
 
-test('every comms fixture the contract grades gets the same verdict from the pinned schemas (DEC-0022)', () => {
+test('every comms fixture the contract grades gets the same verdict from the pinned schemas (DEC-0022, DEC-0073)', () => {
   const comms = compileCommsValidators(fixtures)
   const graded = fixtures.document('current/catalogue.json').filter(entry => /^(positive|negative)\/comms-/.test(entry.path))
   const vendored = new Set(fixtures.source.files.map(file => file.upstreamPath))
   // A comms fixture the contract grades but this copy left out would be a verdict silently skipped.
   assert.deepEqual(graded.map(entry => 'fixtures/' + entry.path).filter(path => !vendored.has(path)), [])
-  assert.equal(graded.length, 17)
+  // DEC-0022's seventeen and DEC-0073's fifty-two (the tools' arguments, the receipt, the directory) at edc88a6.
+  assert.equal(graded.length, 69)
   for (const entry of graded) {
     const validate = comms[entry.schema]
     assert.ok(validate, `${entry.name}: no compiled comms schema ${entry.schema}`)
@@ -158,7 +159,8 @@ test('every comms fixture the contract grades gets the same verdict from the pin
   }
   // The board takes estate and sender from the authenticated endpoint, never the payload (C-rules, project-comms.md).
   const forged = graded.filter(entry => /forged/.test(entry.name)).map(entry => entry.valid)
-  assert.deepEqual(forged, [false, false])
+  assert.equal(forged.length, 7)
+  assert.ok(forged.every(v => v === false), 'a forged estate, sender, project or principal passed a pinned schema')
 })
 
 test('planted schema byte drift refuses before compilation; no regex or revision fallback', () => {

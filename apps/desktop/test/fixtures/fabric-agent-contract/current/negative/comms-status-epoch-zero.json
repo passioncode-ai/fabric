@@ -1,0 +1,15 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "board": {
+    "state": "ready"
+  },
+  "project": "proj-growth",
+  "responders": [],
+  "transport": {
+    "telegram": "off"
+  },
+  "unread": 0,
+  "idempotency": {
+    "epoch": 0
+  }
+}

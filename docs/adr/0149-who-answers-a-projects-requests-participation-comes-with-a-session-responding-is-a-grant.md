@@ -123,3 +123,48 @@ pass writes nothing.
   `com.status`, because Fabric assigns no generation at launch.
 - Dashboards' viewer `com.status` (FD-12) still needs the contract's viewer principal (C9). Only a session's
   `com.status` carries `idempotency.epoch`; a viewer submits nothing and gets none.
+
+## Amendments
+
+### Amendment 1 — 2026-10-13: COM-03 as built (migration 87)
+
+Migration 87 (`supabase/migrations/20261012000104_project_board_responders.sql`) builds §2–§4 and §6's restore settle,
+with contract DEC-0073 pinned (fabric-agent-contract `edc88a6`). Where it had to choose, it chose this:
+
+1. **The restore settle appends nothing.** A verified restore checks, before it commits, that the restored journal is
+   exactly the archive's prefix (`restore_estate_verified`, migration 66), and an owner's later private-history import
+   checks the event count and the watermark again. A settle written as journal events after the boundary would refuse
+   every such restore. So §6's settle is a **projection rule**, migration 77's for the hub: at or below the target's
+   restore watermark a `claimed` request projects as `queued`, an `in_progress` one as `outcome_unknown` with effect
+   `unknown`, an accepted one is held, an enrollment projects released (cause `restore`) and holds no slot, an attempt
+   projects ended, and an epoch the source opened projects closed; a restored Project's first lazily opened epoch is 2
+   or above, because the source's epoch 1 left no event. The slot generation still projects and only grows. A rebuild
+   replays the same rule. `restore_estate_events` is unchanged.
+2. **A release is not an operation** (DEC-0073 §5). A session's end and a revoked grant append
+   `comms.responder_released@1` and end the enrollment's live attempts; no request moves. A fresh `com.enroll` on a slot
+   a release left empty still turns every `in_progress` request of an older generation into `outcome_unknown`
+   (op `lost_result`, cause `replaced`); a released `claimed` request stays claimed and the next `com.claim` takes it as
+   a lapsed claim; accepted work is held. A lapsed holder replaced, or `com.responder_replace`, also returns `claimed`
+   requests to `queued` (op `replace`).
+3. **A transferred attempt is read back with `com.claim`.** `com.responder_replace` answers `slot` only, and DEC-0073
+   gives a transfer's new attempts no other way to reach the new holder. `com.claim` naming an accepted request whose
+   live attempt belongs to the caller's enrollment answers that request and attempt, moves nothing and stores nothing.
+   This is Fabric's reading; the contract owner is asked to decide it (row text in the COM-03 handoff).
+4. **The directory.** A Project lists the capabilities an operator granted `board.respond` on (live grants); its
+   responder state is `com.status`'s. Readers are Project sessions and board sessions the board verified; a viewer or
+   an asserted principal is refused before the door. The cursor binds the reader, its grant (how it came in and its
+   binding), the filter and — through the estate id a restore replaces — the restore epoch. Unlisting is
+   `board_set_listing`, an operator-only SQL door that journals `comms.directory_listing_set@1`, so it survives a
+   restore; no tool reaches it. Its Settings control is a declared stub until **COM-06 operator controls**, which
+   removes the stub by calling that door.
+5. **`com.status`'s epoch.** DEC-0073 says a session should be told `idempotency.epoch` once its kit is pinned at or
+   after DEC-0073; no per-kit signal exists. Fabric tells every Project and board session and never a viewer. Measured
+   on fabric-agent-adapter `fe45cc7`: the session hooks read `com.status` through `board_unread`
+   (`skills/working-with-fabric/scripts/fabric_session.py`), which reads `board.state` and `unread` and ignores any
+   other member, so the added member breaks no installed kit.
+6. **Messages a responder writes.** A fenced reply, a progress note, an effect summary and a transfer checkpoint are
+   reply messages on the request's thread whose journal payload carries the fence (generation, attempt, enrollment);
+   their digest is the call's. A progress note's at-most-once record is `board_progress_notes`, a receipt that never
+   travels.
+7. **Consent words** for `board.respond` are recorded in ADR-0134 Amendment 7; the pin in ADR-0117 Amendment 3.
+

@@ -1,0 +1,9 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "claim-analytics-retention-1"
+  },
+  "capability": "analytics.retention",
+  "request": "req_A1b2C3d4E5",
+  "project": "proj-growth"
+}

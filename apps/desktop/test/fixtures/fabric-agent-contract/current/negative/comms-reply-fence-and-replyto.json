@@ -1,0 +1,28 @@
+{
+  "fence": {
+    "request": "req_A1b2C3d4E5",
+    "generation": 2,
+    "attempt": "att_Zx9Cv8Bn7M",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expectedRevision": 3,
+    "idempotency": {
+      "epoch": 3,
+      "key": "reply-req_A1b2C3d4E5-1"
+    }
+  },
+  "body": {
+    "text": "Which cohort start date should I use?"
+  },
+  "artifacts": [
+    {
+      "id": "fabric://artifact/query-draft",
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "label": "draft query"
+    }
+  ],
+  "replyTo": "msg_K9j8H7g6F5",
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-12-0002"
+  }
+}

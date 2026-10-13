@@ -10,8 +10,7 @@
   ],
   "properties": {
     "agentId": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-]{1,62}(\\.[a-z][a-z0-9-]{0,31})?$"
+      "$ref": "common.schema.json#/$defs/agentId"
     },
     "capability": {
       "$ref": "common.schema.json#/$defs/capabilityName"

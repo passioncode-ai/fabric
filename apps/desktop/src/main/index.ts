@@ -911,6 +911,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
   access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
   access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
+  // COM03-10: a revoked board.respond grant releases the responder slots it admitted (best effort; the in-statement
+  // authority recheck is what refuses).
+  access.onGrantRevoked((grantId) => { void surface?.releaseBoardGrant(grantId) })
   // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
   quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
@@ -932,7 +935,17 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
           journal: (type, projectId, payload) =>
             journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
-        })
+        }),
+        // #region board-join-wiring — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
+        // A board session ends with its binding or any of its board.respond grants (EnrolledSessions, as ADR-0134 §3).
+        joinBoard: async (binding, args) => {
+          const sessionId = randomUUID()
+          const joined = await surface.joinBoard(binding, args.projectId, sessionId)
+          if ('error' in joined) return { ok: false, code: joined.error.code, message: joined.error.message }
+          enrolled.add({ sessionId, bearer: joined.token, bindingId: binding.id, grantId: joined.grants[0] ?? '', grantIds: joined.grants, projectId: args.projectId, mintedAt: Date.now() })
+          return { ok: true, session: { bearer: joined.token, sessionId, projectId: args.projectId, capabilities: joined.capabilities } }
+        }
+        // #endregion board-join-wiring
       }),
       callback: (product, req, res) => connector.callback(product, req, res)
     },

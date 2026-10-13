@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "repeated": false,
+  "message": "msg_K9j8H7g6F5",
+  "at": "2026-10-12T10:01:00Z",
+  "request": {
+    "id": "req_A1b2C3d4E5",
+    "state": "claimed",
+    "effect": "not_started",
+    "revision": 2
+  },
+  "attempt": {
+    "id": "att_Zx9Cv8Bn7M",
+    "generation": 2,
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "leaseExpiresAt": "2026-10-12T10:02:00Z",
+    "seq": 4212
+  }
+}

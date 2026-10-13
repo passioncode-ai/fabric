@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-claim.schema.json",
+  "title": "com.claim arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "idempotency",
+    "capability"
+  ],
+  "properties": {
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    },
+    "capability": {
+      "description": "The capability whose slot the caller holds.",
+      "$ref": "common.schema.json#/$defs/capabilityName"
+    },
+    "request": {
+      "description": "Claim this request; absent: the oldest claimable one for the caller's Project and this capability. Nothing claimable answers a receipt without request.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    }
+  },
+  "additionalProperties": false
+}

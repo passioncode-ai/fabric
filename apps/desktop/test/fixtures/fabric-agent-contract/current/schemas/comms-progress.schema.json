@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-progress.schema.json",
+  "title": "com.progress arguments (fabric-project-comms/0.1, DEC-0073)",
+  "description": "Extends the leases like com.renew and changes no state. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "type": "object",
+  "required": [
+    "fence"
+  ],
+  "properties": {
+    "fence": {
+      "$ref": "comms-fence.schema.json"
+    },
+    "note": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "additionalProperties": false,
+      "description": "A progress note, posted as the responder's message on the request's thread at most once per attempt and idempotency key; a repeat posts nothing."
+    }
+  },
+  "additionalProperties": false
+}

@@ -105,6 +105,8 @@ const EXCLUDED: Readonly<Record<string, string>> = {
   board_outbox: 'the transactional outbox of board events, about deliveries to mirrors of this estate; a restored estate starts its own',
   board_consumer_cursors: 'how far each mirror of THIS estate has read; a restored estate has no mirror yet',
   board_write_authorizations: 'transaction-only authorization of the board commands must never survive in a portable archive',
+  // COM-03: a progress note's at-most-once record is a receipt like the others; the note itself travels as a message.
+  board_progress_notes: 'the at-most-once record of a responder\'s progress note. Restored, a key would stand for a note nobody posted in the new estate',
   estates: 'a restore creates a NEW estate. Carrying the old row back would make the copy claim to be the original',
   event_types: 'the vocabulary ships with the migrations. An archive that carried it could restore an estate onto a schema that does not speak it',
   persons: 'identity belongs to the auth plane; an archive that carried it would carry people',

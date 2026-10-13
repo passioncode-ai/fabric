@@ -15,6 +15,10 @@
     "protocol": {
       "$ref": "service-common.schema.json#/$defs/protocol"
     },
+    "protocols": {
+      "$ref": "common.schema.json#/$defs/protocols",
+      "description": "DEC-0067: the protocol revisions this service accepts, N and N−1 per protocol. A request in another revision is refused with schema-unsupported before it is read."
+    },
     "service": {
       "type": "object",
       "required": [
@@ -123,6 +127,10 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 300
+          },
+          "setup": {
+            "description": "DEC-0044. true: the source waits for a person to finish setting it up (a key not entered, a model not chosen); it is not an outage, and a watcher does not alert on it. Absent or false: the source is failing.",
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -205,10 +213,11 @@
               }
             },
             "auth": {
-              "description": "DEC-0024. descriptor (default): the MCP surface takes the descriptor's token in its header. own: it authenticates its callers with credentials of its own (a token per agent, a gateway's caller identity); the descriptor's token is the host's and is not an MCP credential.",
+              "description": "DEC-0024, DEC-0039. descriptor (default): the MCP surface takes the descriptor's token in its header. own: it authenticates its callers with credentials of its own (a token per agent, a gateway's caller identity); the descriptor's token is the host's and is not an MCP credential. delegation: it takes only the estate's delegation tokens (auth.delegation), and the descriptor's token is not an MCP credential.",
               "enum": [
                 "descriptor",
-                "own"
+                "own",
+                "delegation"
               ]
             }
           },
@@ -240,6 +249,107 @@
             }
           },
           "additionalProperties": false
+        },
+        "operatorChannel": {
+          "description": "DEC-0034. Where the service answers its operator-channel status (fabric-operator-channel/0.1); token-protected like the events feed.",
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "$ref": "service-common.schema.json#/$defs/originPath"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "auth": {
+      "description": "DEC-0039. How the service authenticates calls beyond the descriptor's token.",
+      "type": "object",
+      "properties": {
+        "delegation": {
+          "description": "The service accepts the estate's delegation tokens (fabric-delegation/0.1): Authorization: Bearer on a direct call, Fabric-Delegation on a call the hub forwards.",
+          "type": "object",
+          "required": [
+            "issuer",
+            "jwks"
+          ],
+          "properties": {
+            "issuer": {
+              "$ref": "common.schema.json#/$defs/uri",
+              "description": "The iss it trusts: the estate hub."
+            },
+            "jwks": {
+              "$ref": "common.schema.json#/$defs/uri",
+              "description": "Where it reads the estate's public keys (the hub's /.well-known/jwks.json, or the copy Fabric publishes)."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "configuration": {
+      "description": "DEC-0046. What the operator can configure for this agent, and what applies now — read-only: a change is made in Fabric and reaches the agent through its binding, never through this document.",
+      "type": "object",
+      "required": [
+        "slots",
+        "resolved"
+      ],
+      "properties": {
+        "slots": {
+          "description": "The configurable slots: the runner, the model, or both.",
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 2,
+          "items": {
+            "enum": [
+              "runner",
+              "model"
+            ]
+          }
+        },
+        "resolved": {
+          "description": "The profiles that apply now, after the resolution order (request, agent, binding or project, estate default) and the project's model classes.",
+          "type": "object",
+          "properties": {
+            "from": {
+              "enum": [
+                "request",
+                "agent",
+                "binding",
+                "estate"
+              ]
+            },
+            "runnerProfile": {
+              "$ref": "model-profile.schema.json#/$defs/profileId"
+            },
+            "runnerKind": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,62}$"
+            },
+            "route": {
+              "enum": [
+                "subscription",
+                "key"
+              ]
+            },
+            "modelProfile": {
+              "$ref": "model-profile.schema.json#/$defs/profileId"
+            },
+            "models": {
+              "description": "The profile's models the project's classes admit, first choice first.",
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "$ref": "registry-models.schema.json#/$defs/modelId"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -267,5 +377,51 @@
       "$ref": "common.schema.json#/$defs/extensions"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "surfaces"
+        ],
+        "properties": {
+          "surfaces": {
+            "type": "object",
+            "required": [
+              "mcp"
+            ],
+            "properties": {
+              "mcp": {
+                "type": "object",
+                "required": [
+                  "auth"
+                ],
+                "properties": {
+                  "auth": {
+                    "const": "delegation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "auth"
+        ],
+        "properties": {
+          "auth": {
+            "type": "object",
+            "required": [
+              "delegation"
+            ],
+            "properties": {
+              "delegation": true
+            }
+          }
+        }
+      }
+    }
+  ]
 }

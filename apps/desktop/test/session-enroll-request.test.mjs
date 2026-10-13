@@ -143,3 +143,51 @@ test('the access overview names each enrollment grant\'s own project — an incr
   const names = b.grants.map((g) => askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0].project.name).sort()
   assert.deepEqual(names, ['other', 'site'])
 })
+
+// ADR-0149 §2: board.respond — asked of Fabric itself by a coding agent of the catalogue or a registered service, on
+// 1–8 capabilities of one existing Project; anything else is refused before any prompt.
+const respondAsk = (agentId = 'claude-code', resources = [`board:${PROJECT}/analytics.retention`]) =>
+  ({ agentId, callee: 'fabric', capabilities: ['board.respond'], resources, reason: 'I answer the analytics requests of this project' })
+function respondHarness() {
+  const rows = new Map(), appended = [], presented = []
+  const store = {
+    requests: async () => [], countRequests: async () => 0,
+    append: async (type, actor, payload) => { appended.push({ type, payload }); rows.set(payload.id, { ...payload, status: 'pending' }); return appended.length },
+    request: async (id) => rows.get(id) ?? null
+  }
+  const service = new AccessService({
+    store,
+    registry: { refresh() {}, resolve: (id) => (id === 'example-agent' ? { ok: true, entry: { key: 'example-agent', kind: 'service', name: 'Example agent', installedBy: 'example-installer', repository: null, summary: null } } : { ok: false, reason: `${id} is not registered` }) },
+    present: (r) => presented.push(r),
+    connected: async () => { throw Error('Fabric itself is not a product to connect') },
+    enrollment: { runner: (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: null } : null), project: async (id) => (id === PROJECT ? { id, name: 'site' } : null), available: async () => true, resolve: resolveFolder }
+  })
+  return { service, appended, presented }
+}
+
+test('board.respond: a coding agent or a registered service asks once, with the project named in the snapshot', async () => {
+  for (const [agentId, kind] of [['claude-code', 'runner'], ['example-agent', 'service']]) {
+    const h = respondHarness()
+    const r = await h.service.request({ kind: 'door' }, respondAsk(agentId))
+    assert.equal(r.ok, true, JSON.stringify(r))
+    const ev = h.appended.find((e) => e.type === 'access.requested@1')
+    assert.deepEqual([ev.payload.capabilities, ev.payload.resources], [['board.respond'], [`board:${PROJECT}/analytics.retention`]])
+    assert.equal(ev.payload.registry.kind, kind); assert.deepEqual(ev.payload.registry.project, { id: PROJECT, name: 'site', root: null, how: null })
+    assert.equal(h.presented.length, 1); assert.equal(h.presented[0].connected, true)
+  }
+})
+
+test('board.respond: an unknown agent, an unknown project, a folder or a second project is refused before any prompt', async () => {
+  const cases = [
+    [respondAsk('nobody-here'), /neither a coding agent/],
+    [respondAsk('claude-code', [`board:${OTHER}/analytics.retention`]), /not one of this Fabric/],
+    [{ ...respondAsk(), folder: '/Users/me/DATA/site' }, /folder belongs to a session\.enroll ask/],
+    [respondAsk('claude-code', [`board:${PROJECT}/a.x`, `board:${OTHER}/a.x`]), /one ask names one project/]
+  ]
+  for (const [a, why] of cases) {
+    const h = respondHarness()
+    const r = await h.service.request({ kind: 'door' }, a)
+    assert.equal(r.ok, false); assert.match(r.refused, why)
+    assert.equal(h.presented.length, 0); assert.equal(h.appended.length, 0)
+  }
+})
