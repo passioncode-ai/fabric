@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T00:30:00Z · `—` · agent/com-w4-reads-land → main · fast-forward (squash of agent/com-w4-reads onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none (the squash met W4-0's own cherry-pick in three docs; the branch's later text was kept)
+- summary: Project-board wave 4, the read half (W4-0…W4-6). W4-0: the pipeline reservation moves to 110/111 and ADR-0157 (fix-pf-06.03 red on main after migration 88, green after); ADR-0156 accepted per the operator's go. W4-1: migration 89 (suffix 108) — bounded newest-first thread page with board filters and the agent filter, heads, message facts, timeline, related, search, pending, responders with release cause, `settled_by` on complete/reconcile; repin to fabric-agent-contract a59d04b (settlement vectors 31/31; hold and finding vectors and three fixtures owed by name to W4-7/W4-12/W4-13). W4-2…W4-6: nine main-window comms channels (https-only artifact opening) and SCR-81's list, responder line, outcomes, read-by, artifacts, timeline, related, search and pending panel. Owned chain at 89 all exit 0; renderer 1486/1486. Next: W4-7 (migration 109).
+
 ### 2026-10-13T15:34:00Z · `—` · agent/com-w2-fixes-db-land → main · fast-forward (squash of agent/com-w2-fixes-db onto origin/main)
 - run: r-faa9aae98a19
 - files: see the commit
