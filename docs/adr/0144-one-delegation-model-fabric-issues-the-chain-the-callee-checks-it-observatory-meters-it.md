@@ -4,7 +4,7 @@
 **Date:** 2026-10-11. **Decided by:** Fabric, on the operator's instruction of 2026-10-11 relayed by copylot-agent-e6:
 the agents' delegation and access is Fabric's main task, Fabric decides and tells each agent what to change
 (CO-258, release 0.4.0 REQ-37). **Inputs:** the roll call of 25 sessions
-([copylot-agent `9f729f4`](https://github.com/ssheleg/copylot-agent/blob/9f729f4/docs/handoffs/2026-10-11-delegation-rollcall.md))
+(kept in Copylot's private repository at `9f729f4`)
 and its audit against every owner's default branch ([audit](../evidence/plans/2026-10-11-delegation-model/2026-10-11-roll-call-audit.md),
 `[audit §n]` below). **Amends** [ADR-0115](0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)
 (the hub's grant gains the contract's shape and becomes the estate's one grant store),
@@ -15,6 +15,8 @@ never another agent's key — call its capability; the owner pays; a grant is un
 together; per-project limits are dynamic; the estate total is USD 1,000 a month; human gates stay human.
 **Plan of adoption and the per-agent changes:** [2026-10-11-delegation-model](../evidence/plans/2026-10-11-delegation-model/README.md).
 
+> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+
 ## Context
 
 Measured 2026-10-11 [audit §4]: fifteen ways a caller gets the credential it presents (I1–I15), thirteen grant and
@@ -23,7 +25,7 @@ used for at least eight different things. What that costs, each a fact of the au
 
 - **A callee cannot tell callers apart.** Six services hand one descriptor token to every caller [§1]; three agents
   call another service with *that service's own* descriptor token, which in some also mints operator login codes
-  (fabric-dashboards → every service, frame-agent → Copylot and Foundry, mobile-publisher → Foundry) [§1, §5].
+  (fabric-dashboards → every service, a private product agent → Copylot and Foundry, mobile-publisher → Foundry) [§1, §5].
 - **Nobody passes "on whose behalf".** No contract schema carries a caller, chain or grant toward a callee: the hub's
   `agent.call` forwards Fabric's one Inbox key, the account narrowing and `traceparent` — nothing of the original
   caller ([`productForwarder.ts`](../../apps/desktop/src/main/productForwarder.ts), [audit §3.3]). Copylot's
@@ -70,7 +72,7 @@ attributable name, and lets a limit hold per caller.
 - **The descriptor token goes back to being the host's credential only** — the well-known document, the events feed,
   the usage report, the login code (contract `service.md` §Surfaces) — and is never presented to call a capability.
   Calling another service's capability with that service's own descriptor token is retired by this decision: no new
-  caller does it, and the existing ones (fabric-dashboards, frame-agent, mobile-publisher) switch to minted tokens once
+  caller does it, and the existing ones (fabric-dashboards, a private product agent, mobile-publisher) switch to minted tokens once
   the issuer exists — until then their calls keep working.
 - **The proof-of-identity sources reconcile into one chain**: the hub binding is how an agent proves itself *to the
   hub*; the registry session token of DEC-0037 *is* this delegation token; the session bearer stays Fabric's own
@@ -138,7 +140,7 @@ hub whether a `jti` is still good (`fabric.delegation.introspect`, RFC 7662's sh
 `approval/1` is a JWS by the same estate key over: the **action digest** (SHA-256 of the RFC 8785 canonical JSON of
 the action, the way nicegram-business and Publisher already bind approvals to a fingerprint), the audience, the
 approver (a person of the estate), the method (`prompt` in Fabric, the operator channel — Telegram through the
-communicator, DEC-0034 OC-6 — or a device check), `iat`, `exp` at most 24 hours, and a `jti` the callee consumes once.
+operator's notification agent, DEC-0034 OC-6 — or a device check), `iat`, `exp` at most 24 hours, and a `jti` the callee consumes once.
 A callee that needs approval refuses `approval-required` with the action digest; the caller obtains the approval
 through the hub (`fabric.approval.request`), which asks the operator and returns the document. Products keep their own
 gates for people who use them directly; between agents this one document replaces the shared HMAC key of brand and
@@ -157,7 +159,7 @@ maps its own: `access-required` → `no-grant` (still carrying the ready request
 
 An operator's browser session on a service (login code → cookie) lives 12 hours, refreshed by use up to 7 days, ends on
 logout and on the descriptor token's rotation; the contract's service kit carries it as a default a service may only
-shorten (frame-agent BL-057).
+shorten (the private product agent's BL-057).
 
 ## Consequences
 

@@ -1,5 +1,7 @@
 # Handoff — after Fabric 0.3.5: the operator's clean first run (2026-10-12, evening)
 
+> **Redacted 2026-10-13 under [ADR-0096](../adr/0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+
 **Objective.** The operator's standing order for this release: install the new build on this Mac and clean the local
 Fabric data so the operator can test from scratch; then finish what the release left open. Continues
 [the 0.3.5 fix wave](2026-10-12-release-035-fix-wave.md).
@@ -20,7 +22,7 @@ Fabric data so the operator can test from scratch; then finish what the release 
   `setImmediate`; the `.git` watch probe waits up to 20 s; CO-281 stays open for the real-Electron SIGTERM case at
   load 380. CO-261, CO-226, CO-192 and one backlog sentence redacted
   (ADR-0096): they no longer name private agents, their repositories or paths; the rest of the tree is
-  heygen-hyperframes-vr-28's redaction pass.
+  a separate redaction pass's (PRIV-01).
 - fabric-agent-contract P6-06 agreed for CO-263: an app with `lifecycle.manager: "person"` writes its descriptor on a
   start where none exists or where its version differs from `installedBy.tool`'s; liveness stays in `hub.json`.
 
@@ -33,7 +35,7 @@ Fabric data so the operator can test from scratch; then finish what the release 
   containers — the operator's decision.
 - The machine's lifecycle broker never verifies `fabric.desktop` (`verification_pending`): reported to the broker's
   owner; Observatory OBS-79.
-- The COM lane is heygen-hyperframes-vr-28's (agreed 2026-10-12); this run touches nothing in COM-*.
+- The COM lane is another session's (agreed 2026-10-12); this run touches nothing in COM-*.
 - CO-263 waits for P6-06's DEC and commit; CO-267 (Windows on-host proof), CO-270…CO-280, 0.4.0 P-16.
 
 **Checks run.** `ci.sh fast` green on `b9d7c89b`'s content and on `bb0e6870`'s before its rebase (one post-rebase run

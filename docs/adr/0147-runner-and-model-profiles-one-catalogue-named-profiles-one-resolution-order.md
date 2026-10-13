@@ -1,20 +1,22 @@
 # ADR-0147 — Runner and model profiles: one catalogue, named profiles, one resolution order
 
 **Status:** accepted.
-**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's request relayed by frame-agent-84 («продумай всю систему…
+**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's request relayed by a private product agent («продумай всю систему…
 раскидай по проектам и поставь всем задачи»): runner and model profiles across the estate are Fabric's main task
 (CO-261, release 0.4.0 REQ-45), decided here and in a fabric-agent-contract decision written by its owner session
 (fabric-agent-contract-75). **Input:** the proposal
-[`2026-10-11-runner-and-model-profiles.md`](https://github.com/ssheleg/frame-agent/blob/9f05a3f/docs/evidence/proposals/2026-10-11-runner-and-model-profiles.md)
-(frame-agent `agent/m26-runner-backends` @ `9f05a3f`), adopted with the refinements below. **Relates to**
+`2026-10-11-runner-and-model-profiles.md`
+(kept in the private product agent's repository at `9f05a3f`), adopted with the refinements below. **Relates to**
 [ADR-0119](0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md) (runners are catalogue rows),
 [ADR-0125](0125-an-agent-launch-may-follow-the-operators-fallback-order.md) (the fallback order),
 [ADR-0144](0144-one-delegation-model-fabric-issues-the-chain-the-callee-checks-it-observatory-meters-it.md) (the grant
 and the meter), DEC-0037/0038 (spend levels and `modelClasses`).
 
+> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+
 ## Context
 
-Nine agents keep local model tables and price lists (the proposal §2: frame-agent, Copylot, research-agent, Mobile
+Nine agents keep local model tables and price lists (the proposal §2: the private product agent, Copylot, research-agent, Mobile
 Publisher, analytics, Asset Foundry, webpilot, nicegramappbot, Observatory's assistant); Switchboard holds its own
 OpenRouter key and Hermes model. The contract has a runner catalogue (DEC-0016, `runners.md`, Fabric ships
 `registry/runners.json`), runner routes and fallback (DEC-0026/0029) and usage by model (DEC-0021/0027), but no model
@@ -52,7 +54,7 @@ matter).
    the kit. Fabric Dashboards shows the truth per agent: configured runner, model and route from its well-known, spend by
    model from usage, budget left from the meter; it links to Fabric to change it.
 4. **An agent declares what can be configured.** Its well-known (or capability answer) names its configurable slots
-   (`runner`, `model`) and shows the resolved profile read-only (frame-agent's `frames_capabilities.runner` is the
+   (`runner`, `model`) and shows the resolved profile read-only (the private product agent's capability answer is the
    reference); usage reports carry `route` beside `model`.
 5. **Headless drives** for the shared kinds the catalogue lacks: `pi-json`, `opencode-json`, `kimi-stream-json`, with
    `pi` named a shared kind.
@@ -69,7 +71,7 @@ matter).
 - **Fabric carries Switchboard's row (T6)**, which has no live session: drop its own OpenRouter key and Hermes model,
   take the estate profile and an Observatory key (with SB-96).
 - **Every other agent has a row** (the proposal §4, T3–T16), filed on its own board; until the contract decision lands,
-  agents keep their local tables and frame-agent's `catalog/models.json` is the reference.
+  agents keep their local tables and the private product agent's model catalogue is the reference.
 - **Two things only the operator can do** (T17): the OpenRouter account's standing with OpenAI, and moving the
   plaintext keys in `~/.hermes/.env` and opencode's `auth.json` into Observatory (BL-060). They join the operator's
   question batch.
@@ -78,14 +80,14 @@ matter).
 
 ### Amendment 1 — 2026-10-11: the OpenAI refusal is one key's, not the account's
 
-Corrected by frame-agent-84 the same day: sshlg-analytics-agent's OpenRouter key reaches `openai/gpt-6-luna` (HTTP 200),
-and only frame-agent's key is refused «blocked for a previous policy violation». The Context's sentence and T17's first
-item are therefore a key matter — frame-agent's BL-063 (a new key through Observatory's door, a re-probe, the old key
+Corrected by the private product agent the same day: sshlg-analytics-agent's OpenRouter key reaches `openai/gpt-6-luna` (HTTP 200),
+and only that agent's key is refused «blocked for a previous policy violation». The Context's sentence and T17's first
+item are therefore a key matter — that agent's BL-063 (a new key through Observatory's door, a re-probe, the old key
 revoked), waiting for the operator's yes — not the account's standing. The plaintext keys of BL-060 stay as stated.
 
 ### Amendment 2 — 2026-10-11: provider routing per model
 
-Asked by frame-agent-84: a catalogue entry may carry an optional `provider` routing object (`ignore`, `order`,
+Asked by the private product agent: a catalogue entry may carry an optional `provider` routing object (`ignore`, `order`,
 `allow_fallbacks`, in the shape of OpenRouter's provider routing), which the key route's proxy applies — so a model
-refused by one upstream (OpenAI's own endpoint for frame-agent's key) is still reached through another (Azure). It
+refused by one upstream (OpenAI's own endpoint for that agent's key) is still reached through another (Azure). It
 changes the route, never the model; the profile's allow-list is unchanged. Passed to the contract decision (T2/CT-05).

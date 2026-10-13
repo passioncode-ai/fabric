@@ -1,5 +1,7 @@
 # Handoff — onboarding, start paths, icon, general plan (2026-10-03)
 
+> **Redacted 2026-10-13 under [ADR-0096](../adr/0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+
 > **Note, 2026-10-03 (later the same day):** the release-approval rule below was amended by [ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md): any member of `release-approvers` may approve, the person who pushed the tag included; an agent never approves.
 
 Branch `claude/onboarding-and-plan` (pushed; not on `main`). The branch head is the commit that carries
@@ -85,7 +87,7 @@ copy; fabric#4 and fabric#5 verified on the released build and closed.
    launcher 0.1.28 (PC-11) with the adapter re-pinned (PC-10), and switchboard `v0.5.4-beta.1` (SB-34).
    Okolos: the feed agent is installed (B-138); snapshot v54 is committed (B-139), and the snapshot's
    14-day limit now falls on 2026-10-18.
-4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in sshlg-personal-os (awaits the
+4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in the machine's private lifecycle agent's backlog (awaits the
    operator's go).
 
 ### Backlog consolidation, 2026-10-04 — where each board lives
