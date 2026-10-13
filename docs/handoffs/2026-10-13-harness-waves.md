@@ -1,5 +1,25 @@
 # CO-282 — portable harness waves handoff
 
+## Claude Code continuation 2026-10-13 14:30 to 15:45 UTC
+
+**CO-282 remains partial.** This continuation made the branch pass the hosted fast gate in a clean checkout and recorded what that pass does not cover. It is not a main merge, a publication, an installation or owner acceptance.
+
+**Candidate:** `03694bd27aefcae67a8ac22986737ed0f342af9d`, tree `72e22229cc51f29f9e3ccde49beefda1dc7376a1`, branch `agent/harness-integrated-20261013`, merging main `d162e844`. [Gate receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-0369-gate.json): hosted `./scripts/ci.sh fast` PASS on push and pull_request (runs 38420835560, 38420846534); the four resource suites the runner skips as NOT_RUN (no pinned agent-sync there) pass locally on the exact candidate, 105 tests, 0 skipped. Still NOT_RUN in that pass: the private workspace-parser suite (21), owned-database steps (no `FABRIC_PG_BIN`), macOS-only window/pipe/Keychain checks. **The complete local `bash scripts/ci.sh fast` has still not run**: its admission (≥3 GiB free, load1 ≤ 56 twice 30 s apart, no other `ci.sh`) was not met — free space fell to 1.8 GiB and load1 rose to 148 while the scheduled workspace sync ran its own gate.
+
+**What was wrong and is fixed on the branch (each commit pushed, hosted run named):**
+
+1. `78bb1a66` — main `d162e844` merged; conflicts were documentation only (ADR register rows 0152/0154/0156, next free ADR-0158; merge log and map changelog unioned; `completeness.html` regenerated).
+2. `e8b36ce3` — every hosted fast run of this branch, including `c4ba3f11`, failed at the map gate because the untracked `docs/execution/harness-waves/.graph.lock` was hashed into the stamp locally only. It is now in `.gitignore` (the file is kept).
+3. `1e47ad6c` — `resource-controlled-pool.test.mjs` read the pinned installed `agent_sync.py` unconditionally: 18 ENOENT failures on a runner. It now skips as NOT_RUN like its three neighbours.
+4. `1c21db61` — main's own fast gate has been red since 09:45 UTC: wave 4 changed `product.html` without rebuilding the 116 mockup previews. Rebuilt with the builder's own contract (installed Playwright module, installed Chrome). Main turns green on this when PR 31 lands, or earlier if the COM lane rebuilds them.
+5. `03694bd2` — the pipeline persistence reservation moved from ADR-0155 to ADR-0157 (issued for key `pipeline-reservation-after-operator-holds-20261013`), so `fix-pf-06.03` continues the real sequence again.
+
+**Board:** reachable at 15:25 UTC (`com.status` ready, unread 0); this session claimed CO-282 on it. Owner packets were refreshed (hub #213/#214 are now closed unmerged) but **stay NOT_SENT**: `com.submit` from Claude Code is refused because the board tools publish an open schema and the client sends nested arguments as strings — [CO-292](../evidence/specs/2026-08-16-software-fabric-carryover.md), lane 13. [Refresh](../execution/harness-waves/owner-packets.md#owner-refresh-and-board-attempt-2026-10-13-1530-utc-claude-continuation).
+
+**Machine state seen, not changed:** OrbStack was stopped (Sparkle auto-update) and the local stack down, so the hub could not check credentials; it came back by itself at about 15:03 UTC. One landed agent worktree (`.claude/worktrees/ux-review-1010`, branch `agent/ledger-co279-co281` already in main, clean) was removed under LC-15 to recover 1.1 GiB; the branch ref is kept.
+
+**Exact next task:** run the complete local fast gate once on the branch head with the [bounded waiter](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-fast-waiter.py) (`python3 -I <waiter> <worktree> <full HEAD sha> <receipt.json> <log>`); it refuses a dirty or different candidate and records `NOT_RUN_RESOURCE_WAIT_EXPIRED` rather than lowering its thresholds. With a PASS, close N030 and N032–N036 against that receipt in [the graph](../execution/harness-waves/graph.json) and update the [requirement closure table](../execution/harness-waves/requirement-closure.md); then run the workspace publication procedure. In parallel, once CO-292 is fixed by the COM lane, resend the owner packets with their idempotency keys (`co282-n038-task-pipeline-20261013` and siblings). N037 native, N038 owner certification, N039 convergence and REQ-009 activation are unchanged.
+
 ## Handoff to Claude Code — operator request, 14:16 UTC
 
 The operator asked this run to finish and let Claude continue. **This is a handoff, not task completion.** The latest implementation/evidence checkpoint delivered before this handoff is `faf64b691f29f02ccbc8514a9ea42d1741361632`, tree `bfc138d4420dfff1c70c519614003401b837c55c`, on branch `agent/harness-integrated-20261013`, [PR31](https://github.com/passioncode-ai/fabric/pull/31). Resume that branch; find its existing checkout with `git worktree list`, preserving unrelated work. This handoff commit changes documentation/evidence only.

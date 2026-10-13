@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 hosted fast green, local full gate still owed · task-branch preparation
+- fixes: graph lock ignored for the map stamp (e8b36ce3), controlled-pool suite NOT_RUN without pinned agent-sync (1e47ad6c), 116 mockup previews main left stale (1c21db61), pipeline reservation to ADR-0157 (03694bd2)
+- checks: hosted fast PASS on 03694bd2 (runs 38420835560, 38420846534); the four agent-sync resource suites 105/105 locally; complete local fast NOT_RUN for disk/load
+- board: reachable, owner packets still NOT_SENT — com.submit refused from Claude Code (CO-292); entry docs/handoffs/2026-10-13-harness-waves.md
+
 ### 2026-10-13 · CO-282 task branch takes main d162e844 · task-branch preparation
 - sources: handoff c4ba3f11 plus main d162e844 (wave-4 docs, ADR-0156); integration into the task branch, not a merge into main
 - conflicts: ADR register (rows 0152/0154/0156 kept, next free ADR-0158, 0153/0155 marked unused), this log and the map changelog unioned, completeness.html regenerated

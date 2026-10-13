@@ -318,3 +318,22 @@ The [source/install refresh](../../reports/2026-10-13-resource-admission-contrac
 The [specific Observatory service readback](../../reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json) reports degraded0.24.4 and10consecutive collector tick timeouts. Registry freshness must remain explicit: current HTTP/service status cannot update observation timestamps or transform missing/incomplete collectors into zero. Owner follow-up should cover bounded collector scheduling/backpressure and freshness metadata without resetting foreign services, dropping sources or treating old Heroku load diagnostics as current host measurements. This run invoked no collector or doctor.
 
 Delivery remains **PREPARED / NOT_SENT**. Official project-access consent was still waiting on the bounded watcher; MCP registration does not authorize the binding. Source snapshots above are dated, not substituted for owner acknowledgement, installed adoption or native positive/negative acceptance.
+
+## Owner refresh and board attempt 2026-10-13 15:30 UTC (Claude continuation)
+
+Heads read with `gh api repos/<owner/repo>/commits/main` and `gh release view`: task-pipeline main
+`540679ea7552f8a37e99560e287a69c23cbd3c4a`, release v1.94.1, #112 merged as `4d750573`; hub
+(sshlg-skills) main `a17f829e8d652ce7f68423b67e0de00fb89b3693`, release v1.62.2 — both unchanged since
+12:06 UTC. **Changed:** hub #213 (head `18a2a770`) and #214 (head `ff33a3b1`) are now CLOSED without a
+merge (closed 02:09 UTC); the host-aware packet above must not be addressed to them as open candidates.
+Installed agent-sync is 1.22.2, `agent_sync.py` SHA-256 `fba3e2d9…7ee1`, the same bytes as the 1.22.2
+section above: the expired-own-lease packet is unresolved.
+
+The official board was reachable this time: `fabric_whoami` answered project `fabric`, `com.status`
+`ready`, unread 0. Owner Project ids were read from Fabric's local registry (task-pipeline `db028b9e`,
+sshlg-skills `37567686`, agent-sync `81fb5e55`; Observatory's service repository is not a Fabric
+Project — only its contract and open-source halves are). The first `com.submit` (the N038/N009 packet to
+task-pipeline) was refused `invalid_arguments` twice: the board tools publish an open input schema, so
+this Claude Code client delivered the nested objects as strings ([CO-292](../../evidence/specs/2026-08-16-software-fabric-carryover.md)).
+**Delivery stays PREPARED / NOT_SENT** — now because of that tool-surface defect, not consent. No message
+was stored, so no retry key is spent; resend with the same idempotency keys once CO-292 is fixed.

@@ -1,0 +1,155 @@
+{
+  "receipt": "CO-282 candidate gate, Claude continuation",
+  "candidate": {
+    "commit": "03694bd27aefcae67a8ac22986737ed0f342af9d",
+    "tree": "72e22229cc51f29f9e3ccde49beefda1dc7376a1",
+    "branch": "agent/harness-integrated-20261013",
+    "mergesMain": "d162e844e7a29e4997d2d9071aaa0ff07d2c228d"
+  },
+  "hostedFast": {
+    "command": "./scripts/ci.sh fast (GitHub-hosted Linux, clean checkout, no database)",
+    "runs": [
+      {
+        "conclusion": "success",
+        "createdAt": "2026-10-13T15:17:51Z",
+        "event": "push",
+        "headSha": "03694bd27aefcae67a8ac22986737ed0f342af9d",
+        "jobs": [
+          {
+            "completedAt": "2026-10-13T15:26:36Z",
+            "conclusion": "success",
+            "name": "fast — no database",
+            "startedAt": "2026-10-13T15:17:55Z"
+          },
+          {
+            "completedAt": "2026-10-13T15:17:52Z",
+            "conclusion": "skipped",
+            "name": "gate",
+            "startedAt": "2026-10-13T15:18:02Z"
+          },
+          {
+            "completedAt": "2026-10-13T15:26:36Z",
+            "conclusion": "skipped",
+            "name": "full — with a disposable stack",
+            "startedAt": "2026-10-13T15:26:36Z"
+          }
+        ],
+        "runId": 38420835560,
+        "updatedAt": "2026-10-13T15:26:36Z",
+        "url": "https://github.com/passioncode-ai/fabric/actions/runs/38420835560"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-10-13T15:17:56Z",
+        "event": "pull_request",
+        "headSha": "03694bd27aefcae67a8ac22986737ed0f342af9d",
+        "jobs": [
+          {
+            "completedAt": "2026-10-13T15:24:55Z",
+            "conclusion": "success",
+            "name": "fast — no database",
+            "startedAt": "2026-10-13T15:17:58Z"
+          },
+          {
+            "completedAt": "2026-10-13T15:17:56Z",
+            "conclusion": "skipped",
+            "name": "gate",
+            "startedAt": "2026-10-13T15:17:57Z"
+          },
+          {
+            "completedAt": "2026-10-13T15:24:55Z",
+            "conclusion": "skipped",
+            "name": "full — with a disposable stack",
+            "startedAt": "2026-10-13T15:24:56Z"
+          }
+        ],
+        "runId": 38420846534,
+        "updatedAt": "2026-10-13T15:24:56Z",
+        "url": "https://github.com/passioncode-ai/fabric/actions/runs/38420846534"
+      }
+    ],
+    "result": "PASS",
+    "notRunClasses": {
+      "NOT_RUN: pinned installed agent-sync source unavailable; no installation attempted": 75,
+      "NOT_RUN pinned installed agent-sync source unavailable": 29,
+      "NOT_RUN: the pinned common parser is the private fabric-workspace submodule, which a hosted clone of this public repository cannot read; the local gate runs this suite": 21,
+      "NOT_RUN: set FABRIC_PG_BIN to installed PostgreSQL binaries": 6,
+      "NOT_RUN": 3,
+      "NOT_RUN: a real Electron window needs macOS or a DISPLAY": 2,
+      "NOT_RUN scoped acceptance holds only the bounded owner packet": 1,
+      "NOT_RUN: the Keychain token cache is macOS-only": 1,
+      "NOT_RUN the recipe pins the binary, confines writes to its own root and exposes no token: needs macOS sandbox-exec; this host is linux": 1,
+      "NOT_RUN an unpinned, writable or relative binary and a shared root are refused: needs macOS sandbox-exec; this host is linux": 1,
+      "NOT_RUN model access links the existing login instead of copying it, and opens only 443 and DNS: needs macOS sandbox-exec; this host is linux": 1,
+      "NOT_RUN 3 recipe groups": 1,
+      "NOT_RUN run-estate-identity-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN run-read-schema-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN run-function-privileges-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN run-hub-access-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN run-first-install-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN grants-journal-db.test: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN: set FABRIC_PG_BIN": 1,
+      "NOT_RUN run-resource-reservation-db: owned-cluster prerequisites unavailable; see runner output": 1,
+      "NOT_RUN: the private pipe adapters are measured on Darwin only; this host is Linux": 1,
+      "NOT_RUN said out loud^[[0m": 1,
+      "NOT_RUN browser suites: set FABRIC_PLAYWRIGHT_MODULE and FABRIC_CHROME to run them": 1,
+      "NOT_RUN: the owned-database step did not run": 1
+    },
+    "coverageLimits": [
+      "agent-sync-pinned resource suites skip as NOT_RUN on the runner (no pinned installed agent_sync.py); covered by localFocused below",
+      "private fabric-workspace parser tests NOT_RUN on a public-runner clone",
+      "owned-database steps NOT_RUN without FABRIC_PG_BIN",
+      "macOS-only Electron window, Darwin pipe adapters and Keychain cache NOT_RUN on Linux"
+    ]
+  },
+  "localFocused": {
+    "host": "operator Mac, exact candidate checkout, clean except the excluded workspace gitlink",
+    "suites": {
+      "resource-controlled-pool": {
+        "command": "node --experimental-strip-types --test apps/desktop/test/resource-controlled-pool.test.mjs",
+        "exit": 0,
+        "pass": 18,
+        "fail": 0,
+        "skipped": 0
+      },
+      "resource-worker-launch": {
+        "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs",
+        "exit": 0,
+        "pass": 29,
+        "fail": 0,
+        "skipped": 0
+      },
+      "resource-run-assignment": {
+        "command": "node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs",
+        "exit": 0,
+        "pass": 29,
+        "fail": 0,
+        "skipped": 0
+      },
+      "resource-worker-inventory": {
+        "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+        "exit": 0,
+        "pass": 29,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "result": "PASS"
+  },
+  "localFullFast": {
+    "status": "NOT_RUN",
+    "reason": "admission thresholds (>=3GiB free, load1<=56 twice 30s apart, no other ci.sh) not met during this window: observed down to 1.8GiB free and load1 up to 148 while the scheduled workspace sync ran its own fast gate"
+  },
+  "fixesOnTheWay": {
+    "78bb1a66": "merge main d162e844 (docs conflicts only)",
+    "e8b36ce3": "ignore task-pipeline .graph.lock so the map stamp matches a clean checkout",
+    "1e47ad6c": "controlled-pool suite NOT_RUN without pinned agent-sync instead of 18 ENOENT failures",
+    "1c21db61": "rebuild 116 mockup previews main d162e844 left stale",
+    "03694bd2": "pipeline persistence reservation moves to ADR-0157"
+  },
+  "limits": [
+    "Hosted PASS is a clean-checkout fast tier on Linux; it does not certify macOS-native, owned-database, workspace-parser or installed behaviour",
+    "No graph node closes on this receipt alone; N030/N032-N036 still owe the complete local fast gate",
+    "No main merge, publication, installation or owner acceptance follows from this receipt"
+  ]
+}
