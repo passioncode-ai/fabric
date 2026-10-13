@@ -63,3 +63,22 @@ The [resource proposal](resource-implementation.md), SHA-256
 independent review as a decomposition. Existing quota/backend-cap and launch/stop/outbox
 claims match source; R1–R6 tests remain proposed and NOT_RUN. No native/provider behavior,
 full CI, deployment or machine-wide enforcement is established by this review.
+
+## Retrospective conservation review
+
+Reviewer `/root/observatory_research` compared the working files to source `e169e3c3`:
+all127 historical rows preserved byte-for-byte by multiset comparison; active10/archive118;
+newest-nine selection by explicit date/stable original order, Q3 grouping, receipt hash arrays,
+relative links/fragments and new cited commit ancestry pass. Pinned task-pipeline52fa75d
+contains the class-aware retirement doctrine. Keeping all ten rules is justified: recent
+stamps apply R-001/R-005 and record R-008's originating exposure; five relevant non-applications
+are not established. No historical provenance repair is inferred from archiving.
+
+A wording finding was corrected before commit: old context selection did count heading
+lengths, and the existing mandatory-context fallback already refused; the new budget error
+must preserve that refusal boundary. The prior wording overstated the old defects.
+The reviewer authored the earlier enrollment patch; this review certifies documentation and
+row conservation, not independent re-acceptance of that code. No broad tests ran here.
+
+Reviewed unchanged archive digest: `dff61151e0999c75882975d441e1f7ecd47bc14981304d2c601d151bd6f7a887`.
+Reviewed rotation receipt digest: `7f3c154341986f9f913d5f9ccf156c730913853b5f174d642a3b0551a542ac60`.

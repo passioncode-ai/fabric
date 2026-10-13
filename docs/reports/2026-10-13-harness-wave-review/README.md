@@ -144,7 +144,7 @@ API health did not complete the user's project-binding flow.
 The Fabric project board is unavailable to this session; owner packets are PREPARED / NOT_SENT.
 After explicit operator approval, Codex MCP registration succeeded. The official registered
 `fabric-mcp` was called through the adapter skill’s stdio client and `fabric_whoami` returned
-`no-project`. Project binding is the remaining human step; registration alone is not enrollment. Existing pipeline/hub work is preserved with pinned source
+`no-project`. At a later official read the project was recognized and the result changed to `waiting`: Fabric is awaiting the operator’s project-access consent. Registration and project discovery are not enrollment. Existing pipeline/hub work is preserved with pinned source
 and negative acceptance. Do not substitute messages to sessions or edits to foreign repos.
 
 Native host rule consumption, isolated Codex home discovery, MCP overlay isolation,
@@ -152,6 +152,17 @@ non-Claude hooks/recovery, multi-instance gateway support and shared resource ad
 remain explicit follow-ups in the matrix and admission specification. Cline plain launch
 and shell are not promoted to autonomous executors. The remaining protocol/scheduler and
 lesson changes require owning-project work; this Fabric repair wave cannot certify them.
+
+## Canonical feedback maintenance
+
+The [project retrospective](../../evidence/retro.md) now records this wave's two executable
+lessons and applied rules. Its stamp table had127 historical rows despite the ten-row cap.
+After adding this run,118 rows were moved byte-for-byte to the Q3 archive, leaving ten active
+stamps. Retention uses explicit dates and stable same-day order because the old table was
+not chronological. A [hash-conservation receipt](raw/retro-rotation-receipt.json) records
+all historical rows. No standing rule was retired from guessed exposure data; legacy
+classification/provenance and narrative-archive debt remain explicit. Observatory delivery
+is NOT_SENT pending Fabric access, and no local note is claimed to exist in its store.
 
 ## Retrospective
 

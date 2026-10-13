@@ -27,8 +27,7 @@ Next implementation wave: submit [owner packets](../execution/harness-waves/owne
 to owning Projects through Fabric COM, refresh their source heads, then finish pipeline
 receipt provenance, Observatory lesson contract and host-aware hub/MCP selection in those
 owners. N-009/N-010 remain blocked, packets NOT_SENT: MCP registration was explicitly approved and completed. The official MCP
-`fabric_whoami` answered `no-project`; the operator must bind this checkout through
-Fabric’s Open a project flow, then grant access if asked. The user encountered a database outage during that flow. Read-only diagnostics now show Docker OK, REST200 and database healthy; the latest official MCP result is still `no-project`. No service was restarted by this run. The registered MCP was called
+`fabric_whoami` first answered `no-project` after the database recovered, then `waiting`: the project is recognized and Fabric awaits operator project-access consent. Registration alone is not enrollment. Read-only diagnostics show Docker OK, REST200 and database healthy; no service was restarted by this run. The registered MCP was called
 through the adapter skill’s stdio client; no hub token was read or direct hub bypass used.
 
 Fabric follow-ups: effective generated-home skill loading, per-host identity/hooks/resume,
@@ -40,3 +39,7 @@ No merge to main, release, installed skill update or workspace publication was p
 The source review branches preserve independent-review targets; root verifies remote SHAs
 before reporting delivery. Dependency links are local-only and must never be committed.
 No foreign worktree, credential or service lifecycle was changed.
+
+Canonical lessons are in [the project retrospective](../evidence/retro.md); its stamp table
+was bounded to ten with all118 moved rows preserved in the Q3 archive. Historical evidence
+repair and Observatory lesson-store publication are not claimed.
