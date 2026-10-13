@@ -61,6 +61,28 @@ The later N-015 correction moves executable preparation before that callback
 (`apps/desktop/src/main/pty.ts#PtyManager`). Its production-manager regression
 uses a synthetic spawn; native Windows and full runtime enforcement remain unverified.
 
+## Outstanding operation bound
+
+Within one adapter instance, each admitted entry has one shared operation slot
+for `current`, `cancelUnbegun` and `releaseCompensated`. It is reserved before the
+trusted dependency is invoked. Concurrent calls and retries across those methods
+return false without another dependency call while the slot is occupied. The
+wait deadline does not cancel I/O: after timeout the slot remains occupied until
+the underlying promise actually resolves or rejects. Late success does not
+change the returned refusal or emit an accepted observation; late rejection is
+consumed. Actual settlement allows a fresh call. Other entries run independently
+(`apps/desktop/src/main/resourceLaunchAdapter.ts#bounded`).
+
+A stuck currentness provider therefore also blocks cancellation/release for that
+entry; capacity remains uncertain and held rather than issuing more work. These
+methods share at most one outstanding dependency per retained entry. Admission
+already shares its cached outcome: a late preparation/admission result does not
+start another attempt or expose a receipt. `maxEntries` bounds retained entries,
+not outstanding operations across different adapter instances or work hidden
+inside a trusted dependency. Replacing an adapter does not cancel its old I/O;
+its composition owner must not use replacement as a retry mechanism. No durable
+recovery or transport cancellation is introduced by this local bound.
+
 ## Cancellation and release
 
 For an ungranted or uncertain begin, `cancelUnbegun` asks SQL to prove that no
@@ -118,3 +140,25 @@ asynchronous gap, not the separately documented native PTY resolution gap.
 - Provider quiescence, Windows tree observation, durable recovery and reservation
   retirement remain separate acceptance work. No all-host support claim follows
   from these fixtures.
+
+## N-020 regression evidence
+
+Seven added production-adapter tests failed against the original observation-aware
+adapter (source SHA256
+`80b331f2f3f4ba63679677f274f12d98a5cc32759a6050c029ed5629df08fc11`):
+each of the three entry methods accumulated dependency calls after timeout.
+The corrected tests hold an operation unresolved, retry all three methods,
+require exactly one dependency call, then resolve or reject it late. They require
+no late accepted observation or permission and permit a fresh call only after
+settlement. A separate two-entry case verifies continued parallel work.
+
+Executed after correction:
+
+```sh
+node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs
+```
+
+Result: **67 passed, 0 failed**, exit 0. This includes the existing R6 observation
+suite and the changed conservative expectation that compensation cannot issue a
+release RPC while currentness I/O remains unsettled. All dependencies are
+synthetic; no database, native process, provider or production activation was tested.
