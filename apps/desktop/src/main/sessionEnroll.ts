@@ -98,6 +98,7 @@ export interface EnrolledSession {
  */
 export class EnrolledSessions {
   private rows = new Map<string, EnrolledSession>()
+  private enrollmentTails = new Map<string, Promise<void>>()
   private end: (sessionId: string, reason?: string) => void
   private state: (bearer: string) => CredentialState
   private lastSign: (sessionId: string) => number | null
@@ -116,6 +117,23 @@ export class EnrolledSessions {
     this.state = opts.state
     this.lastSign = opts.lastSign ?? (() => null)
     this.drop = opts.drop ?? (() => {})
+  }
+
+  /** A pending row is registered before the grant re-read and journal so revocation can end it.
+   *  Serialize admission per binding: a retry or hook must not borrow that row's bearer before
+   *  those checks finish. Other bindings stay independent, and failures release the queue too. */
+  async enrolling<T>(bindingId: string, attempt: () => Promise<T>): Promise<T> {
+    const previous = this.enrollmentTails.get(bindingId) ?? Promise.resolve()
+    let release!: () => void
+    const tail = new Promise<void>((resolve) => { release = resolve })
+    this.enrollmentTails.set(bindingId, tail)
+    try {
+      await previous
+      return await attempt()
+    } finally {
+      release()
+      if (this.enrollmentTails.get(bindingId) === tail) this.enrollmentTails.delete(bindingId)
+    }
   }
 
   add(row: EnrolledSession): void {
@@ -190,7 +208,12 @@ export class EnrolledSessions {
 // #endregion session-enroll-revocation
 
 /** `binding` null: the door asks — the folder is resolved and the project named (`needs-grant`), never a session. */
-export async function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+export function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+  const attempt = () => enrollSessionOnce(binding, args, deps)
+  return binding === null ? attempt() : deps.sessions.enrolling(binding.id, attempt)
+}
+
+async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   const folder = await resolveAgentFolder(args.cwd, deps)
   if (!folder.ok) return { ok: false, code: folder.code, message: folder.message }
   const runtimeSessionId = typeof args.runtimeSessionId === 'string' && RUNTIME_SESSION.test(args.runtimeSessionId) ? args.runtimeSessionId : null
@@ -229,7 +252,10 @@ export async function enrollSession(binding: BindingRow | null, args: { cwd: unk
   // ends (0.3.5 review iteration 2, ER-4): by its last call, not its mint, so a long-running agent at work outlives the
   // short ones that already exited, and the one evicted is told why on its next call.
   const live = deps.sessions.liveOf(binding.id)
-  const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === folder.projectId && s.grantId === grant.id)
+  // Unknown identities can retry each other as before, but never borrow a known runtime's
+  // bearer. A different runtime would otherwise inherit its session while its own hooks fail to rejoin.
+  const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === folder.projectId &&
+    s.grantId === grant.id && s.runtimeSessionId === runtimeSessionId)
   if (spare) return session(spare.bearer, spare.sessionId)
   const cap = Math.max(1, deps.maxSessionsPerBinding ?? MAX_ENROLLED_PER_BINDING)
   const byActivity = live.map((s) => ({ s, at: deps.sessions.activityOf(s) })).sort((a, b) => a.at - b.at)
