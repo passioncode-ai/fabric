@@ -1,0 +1,53 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-007",
+  "node": "N-007",
+  "parent_id": "CO-282",
+  "module": "Independent combined acceptance",
+  "intent": "Independent review and exact-source combined check receipt, with failures preserved",
+  "expected_result": "Independent review and exact-source combined check receipt, with failures preserved",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/review.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Independent review and exact-source combined check receipt, with failures preserved",
+      "paths": [
+        "docs/execution/harness-waves/review.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan Task contracts row N-007"
+    },
+    {
+      "kind": "negative",
+      "check": "Execute rejection/absence cases in plan Task contracts row N-007"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read plan and input digests, inspect current N-007 outputs, reproduce before fix",
+    "after_change": "Refresh evidence; independent review on final source; report exact limitations"
+  }
+}

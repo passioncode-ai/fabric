@@ -1,0 +1,76 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-002",
+  "node": "N-002",
+  "parent_id": "CO-282",
+  "module": "Effective adapter modes and surface admission",
+  "intent": "Supported modes survive actual transport; required surface absence refuses before spawn",
+  "expected_result": "Supported modes survive actual transport; required surface absence refuses before spawn",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+    },
+    {
+      "address": "apps/desktop/src/main/sessionBundle.ts",
+      "sha256": "7833849596a78c933600b71db370f715bdf1b7dd010a389ea5895a3fb3614456"
+    },
+    {
+      "address": "apps/desktop/src/main/pty.ts",
+      "sha256": "38eed1f20ff63ddc1da0fbf935d95708b9b0b161fef25951fb42aeb732a81897"
+    },
+    {
+      "address": "apps/desktop/src/shared/agents.ts",
+      "sha256": "ec854b336669e75ea8ca8a409eadd9e0696ed05e8184d68be05cc79d940b584d"
+    },
+    {
+      "address": "apps/desktop/test/session-bundle.test.mjs",
+      "sha256": "121448297b6e95dbe8a050df6579facb77835f0ed7aac50125e0909209cc165c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/sessionBundle.ts",
+      "apps/desktop/src/main/pty.ts",
+      "apps/desktop/src/shared/agents.ts",
+      "apps/desktop/test/session-bundle.test.mjs"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Supported modes survive actual transport; required surface absence refuses before spawn",
+      "paths": [
+        "apps/desktop/src/main/sessionBundle.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/shared/agents.ts",
+        "apps/desktop/test/session-bundle.test.mjs"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan Task contracts row N-002",
+      "command": "node apps/desktop/test/session-bundle.test.mjs"
+    },
+    {
+      "kind": "negative",
+      "check": "Execute rejection/absence cases in plan Task contracts row N-002"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read plan and input digests, inspect current N-002 outputs, reproduce before fix",
+    "after_change": "Refresh evidence; independent review on final source; report exact limitations"
+  }
+}
