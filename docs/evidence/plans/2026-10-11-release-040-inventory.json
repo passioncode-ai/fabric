@@ -6334,7 +6334,7 @@
    "COM-01"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "COM-02.1–02.3 landed (migrations 79 and 86; ADR-0149); remaining: the repin to contract DEC-0073 (merged in the contract at f8ae4e1; not yet pinned), which serves com.reply and com.cancel",
+  "notes": "COM-02.1–02.3 landed (migrations 79 and 86; ADR-0149); the repin to contract DEC-0073 (edc88a6) landed with COM-03 on 2026-10-13 and serves com.reply and com.cancel",
   "register": "COM plan",
   "node": "C8",
   "wave": "W2",
@@ -6345,13 +6345,13 @@
   "id": "COM-03",
   "source": "docs/evidence/plans/2026-10-04-project-communications.md:41",
   "title": "Consumer identity, replacement and fences",
-  "status": "open",
+  "status": "partial",
   "area": "board/communications",
   "blockedBy": [
    "COM-02"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "",
+  "notes": "built 2026-10-13: migration 87 (responder slots, enrollments, attempts, the fence, release, directory), the board.respond grant, fabric.board.join, contract DEC-0073 pinned at edc88a6 (ADR-0149 Amendment 1); remaining: the real-client smoke COM03-14 (NOT_RUN: no disposable built app on this machine) and the operator-visible E2E walk",
   "register": "COM plan",
   "node": "C8",
   "wave": "W2",
