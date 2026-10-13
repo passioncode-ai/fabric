@@ -91,7 +91,13 @@ ten further calls while the original operation never settles, require exactly on
 operation, then settle it late and require a fresh read before continuing.
 
 Real SQL integration for this new caller: **NOT_RUN**, pending the serialized owned
-PostgreSQL test slot. Existing R2 SQL acceptance is linked from the
+PostgreSQL test slot. The prepared [caller fixture](../../../apps/desktop/test/resource-reconciliation-db.test.mjs)
+imports the production kernel, translates its fluent query to a real scoped SQL
+projection, and invokes the real release RPC as `service_role` through bounded psql.
+It requires the existing pending-107 runner's disposable socket database; run it after
+`resource-reservation-db.test.mjs` in that same cluster. The fixture covers compensated
+release, a recreated scanner, unresolved ownership, parent/child release order and
+a changed-fence negative control. Syntax validation passed; execution is not yet a receipt. Existing R2 SQL acceptance is linked from the
 [resource review](../../reports/2026-10-13-resource-admission-contract/README.md#r2--reviewed-pending-reservation-authority)
 and does not certify this new transport caller. Before activation, exercise this
 kernel against an owned fixture applying the active chain plus pending 107: unresolved
