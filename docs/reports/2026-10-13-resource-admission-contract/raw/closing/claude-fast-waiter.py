@@ -5,7 +5,7 @@ Admission: no other ci.sh process, free bytes >= REQUIRED and load1 <= MAX_LOAD 
 SAMPLE_INTERVAL apart. Binds HEAD, index tree and the tracked-path hash set before and after.
 Writes one JSON receipt; grants no merge, publication, graph closure or consent.
 """
-import hashlib, json, os, subprocess, sys, time, datetime
+import hashlib, json, os, signal, subprocess, sys, time, datetime
 
 repo, expected_head, receipt_path, log_path = sys.argv[1:5]
 REQUIRED = 3 * 1024**3
@@ -92,9 +92,26 @@ r["startedAtUTC"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
 write(r)
 t0 = time.time()
 min_free = None
+# Recorded, never set here: an environment override the caller chose (pnpm's pre-run dependency check
+# cannot judge a worktree whose node_modules is a link to another checkout; see the receipt).
+r["environment"] = {k: os.environ[k] for k in ("pnpm_config_verify_deps_before_run",) if k in os.environ}
+write(r)
 with open(log_path, "w") as log:
     p = subprocess.Popen(["bash", "scripts/ci.sh", "fast"], cwd=repo, stdout=log, stderr=subprocess.STDOUT,
                          start_new_session=True)
+
+    def stop(signum, _frame):
+        # The gate runs in its own process group; stopping the waiter must not orphan it.
+        try:
+            os.killpg(p.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        r.update(status="NOT_RUN_WAITER_STOPPED", signal=signum)
+        write(r)
+        sys.exit(4)
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
     while p.poll() is None:
         free = os.statvfs(repo).f_bavail * os.statvfs(repo).f_frsize
         min_free = free if min_free is None else min(min_free, free)
