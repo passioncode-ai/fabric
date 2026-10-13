@@ -2595,6 +2595,40 @@ flowchart TD
   | SCR-81 Project comms | loading, empty, filtered-empty, read, unavailable, not-found, failed |
 - **Scenarios:** SCN-143
 - **Implementation tasks:** COM-07
+- **Amended 2026-10-13 (wave 4 — designed, NOT built; SCN-143 amendment, SCN-147, SCN-156, SCN-157, [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md)):** the diagram above is what Comms does today. Wave 4 changes the list and adds four branches, drawn below: the thread list is a bounded page, newest activity first, with "Show older threads"; every filter, the coding-agent filter included, is a board read, and a filtered read the board did not answer is unavailable, never "no match"; a request carries its responder line, its outcome and who can settle it, with the owner's "Settle with a summary" when no responder holds the slot (contract DEC-0081); search opens a thread at a hit; the "Waiting for a project" panel narrows the list to a project; pausing goes through FLW-91.
+
+```mermaid
+flowchart TD
+ R[Left rail: Comms] --> P[SCR-81: 50 threads, newest activity first]
+ P -->|Show older threads| P2[Next page by the same keyset: no thread twice, none skipped]
+ P -->|filter: project, kind, open request, activity, coding agent| FQ[The board reads the filtered page]
+ FQ -->|answered, zero rows| FE[No match, with Clear the filters]
+ FQ -->|not answered| FU[Comms did not answer this filter; the last confirmed list stays]
+ P -->|Waiting for a project panel| W[Per project: unread, oldest, findings, requests with no agent answering]
+ W -->|open a project| FQ
+ P -->|Search messages| S[Newest hits first, up to 50]
+ S -->|none| SN[No message contains these words]
+ S -->|stopped early| SE[What was found, and use more specific words]
+ S -->|not answered| SU[Comms did not answer the search]
+ S -->|open a hit| T
+ P -->|open a thread| T[Messages; read by; artifacts as the sender stated them]
+ T --> Q[A request: its responder line — active, stale, absent with why, paused, or unknown]
+ Q -->|finished| O[What the responder reported, or why the requester cancelled, or settled by the owner]
+ Q -->|outcome_unknown, a responder holds the slot| U1[Only the agent answering it can settle it]
+ Q -->|outcome_unknown, no responder holds the slot, the owner| ST[Settle with a summary: done or failed, what was observed]
+ ST -->|settled| O
+ ST -->|an agent took the slot meanwhile| U1
+ ST -->|settled by someone first| RR[Read the request again]
+ T -->|What happened to this request| TL[Timeline: each transition, its cause, responder #n]
+ T -->|Related threads| RT[Same projects, or the same file]
+ T -->|Pause this thread, the owner| H[FLW-91]
+```
+
+- **Screens traversed (wave 4, designed):**
+  | Screen | States used here |
+  |---|---|
+  | SCR-81 Project comms | more, filtered-empty, filter-unavailable, responder checking/active/stale/absent/paused/unknown, outcome, settle offered/confirm/settled/refused, search idle/results/none/stopped-early/unavailable, pending none/list/unavailable, timeline, related |
+- **Scenarios (wave 4):** SCN-147, SCN-156, SCN-157
 
 ### FLW-84: A responder takes a project's requests, and a replaced one is fenced
 - **Traces:** SCN-144 (COM-03); [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2–§6; contract DEC-0073
@@ -2629,6 +2663,19 @@ flowchart TD
 - **Screens traversed:** none in this change — the operator reads the outcome in SCR-81 (SCN-143); its responder indicator is a later slice.
 - **Scenarios:** SCN-144
 - **Implementation tasks:** COM-03
+- **Amended 2026-10-13 (wave 4 — designed, NOT built; SCN-144 amendment; contract DEC-0079 and DEC-0081):** two edges join the diagram above once Fabric repins to fabric-agent-contract `a59d04b` or later. **Held:** under the owner's pause of the request's thread, its target project's answering or its slot, every call that takes new work answers `held` (retryable; `not_authorized` for a kit pinned before DEC-0079), stores nothing, and the same call and key commit after the resume; settling, reporting, renewing and the fenced reply are never refused. **Settled by the owner:** with no responder holding the slot, the estate's owner may move `outcome_unknown` to completed or failed_known with an observed result and a summary (SCR-81, SCN-147); a late responder then meets a terminal request.
+
+```mermaid
+flowchart TD
+  H0[The owner paused the thread, the target project or the slot — FLW-91] --> HC{The call}
+  HC -->|com.enroll, com.responder_replace, com.claim, com.accept, com.effect_begin on paused work| HR[held: retryable, nothing stored; the same key commits after the resume]
+  HC -->|com.complete, com.reconcile, com.progress, com.renew, a fenced com.reply, com.cancel, a read| HA[Allowed: started work is always settled]
+  HC -->|com.claim naming no request| HS[Passes over requests in paused threads; nothing to claim when only those are left]
+  UK[outcome_unknown] -->|a responder holds the slot| RC[com.reconcile by that holder]
+  UK -->|no responder holds the slot| OW[The estate's owner settles: observed, with a summary, settledBy owner]
+  OW --> TERM[completed or failed_known]
+  TERM -->|a late responder's com.complete or com.reconcile| LATE[invalid_transition, fenced or revision_conflict: nothing committed]
+```
 
 ### FLW-85: The operator lets an agent answer a project's requests
 - **Traces:** SCN-145, SCN-132 (COM-03); [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2, [ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md) Amendment 7
@@ -2655,3 +2702,69 @@ flowchart TD
   | SCR-76 Agent access | waiting, read, revoked |
 - **Scenarios:** SCN-145
 - **Implementation tasks:** COM-03
+
+### FLW-91: Pause and resume a thread, a project's answering or one responder slot
+- **Traces:** SCN-148 (COM-06; designed, NOT built); [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §1–§4; contract DEC-0079; operator decision D9
+- **Goal:** Stop new work in one chosen scope, keep everything that settles or reports on started work, and start it again — or stop an agent for good by revoking it.
+- **Entry points:** Comms (SCR-81): "Pause this thread" on an open thread, "Pause <capability> for <project>" on a responder line, "Pause answering for <project>" on a participant project; "Resume" wherever "Paused" is shown.
+- **Success exit:** the chip "Paused" shows what the board says is paused (or is gone after Resume), announced; agents' new work in that scope is refused `held` until the resume.
+- **Task analysis:** choose the scope; read what stops and what keeps going; pause; later resume — or open Agents & access and revoke.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  C[SCR-81: a pause control, owner only] -->|a member| M[One line: only the estate's owner can pause or resume; no controls]
+  C -->|press| S[SCR-82: what stops in this scope; what keeps going; a pause cannot stop work already started]
+  S -->|Esc or close| C
+  S -->|Open Agents & access| AA[SCR-76: revoke the agent — FLW-85; its slots released, the responder line reads absent]
+  S -->|Pause| B[Busy]
+  B -->|recorded| D[Paused, announced; the chip on the thread or responder line]
+  B -->|it was already paused| AL[It was already in that state. Nothing changed]
+  B -->|not the owner| NO[Only the estate's owner can pause or resume]
+  B -->|access changed since the window opened| AM[Reopen and try again; nothing changed]
+  B -->|the target is not in this estate| NF[Not found]
+  B -->|the answer was lost| MS[This may have been saved: read the pauses again and show what they say]
+  D -->|agents' new work in the scope| HD[Refused held — FLW-84; reports on started work go on]
+  D -->|Resume| R[Busy, then Resumed, announced; the chip gone; a refused call sent again with its key goes through]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-81 Project comms | hold controls owner, member; paused chip |
+  | SCR-82 Pause sheet | confirm, busy, paused, resumed, already, refused-not-owner, refused-authority-moved, not-found, may-have-saved |
+  | SCR-76 Agent access | read, revoked |
+- **Scenarios:** SCN-148
+- **Implementation tasks:** COM-06 (wave 4: W4-7, W4-8, W4-9)
+
+### FLW-92: List or unlist a project for other projects, with a preview
+- **Traces:** SCN-149 (COM-06; designed, NOT built); [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §5–§6; [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) Amendment 1 §4; contract DEC-0073 §8
+- **Goal:** Decide which projects other projects can find, seeing exactly what they would see before the change.
+- **Entry points:** Settings → "Project directory" (SCR-83, in the Settings band of SCR-52); the link from Agents & access (SCR-76).
+- **Success exit:** the switch shows what the directory says after the change, announced; other projects' next directory read agrees.
+- **Task analysis:** find the project; open what other projects see; switch; read the result.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  E[Settings or Agents & access] --> L[SCR-83: loading]
+  L -->|the directory did not answer| U[The directory did not answer — never an empty list; no switch offered]
+  L --> RD[Active projects, each with Listed for other projects]
+  RD -->|a member| RO[Switches read-only: only the estate's owner can change this]
+  RD -->|switch or What other projects see| PV[Preview: name, capabilities with responder state and paused — nothing else]
+  PV -->|no capability| PE[No capabilities: no agent may answer requests for it yet]
+  PV -->|confirm the switch| SV[Saving]
+  SV -->|recorded| OK[The switch shows the directory's answer, announced]
+  SV -->|already that way| AL[Nothing changed, nothing recorded]
+  SV -->|not the owner, or access changed| RF[Refused: reopen and try again]
+  SV -->|the answer was lost| MS[This may have been saved: read the directory again]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-83 Project directory | loading, read, unavailable, preview, saving, saved, already, refused, may-have-saved, member |
+  | SCR-52 Workspace settings | the Settings band's entry to SCR-83 |
+  | SCR-76 Agent access | the link to SCR-83 |
+- **Scenarios:** SCN-149
+- **Implementation tasks:** COM-06 (wave 4: W4-7, W4-8, W4-10); closes CO-286 when built

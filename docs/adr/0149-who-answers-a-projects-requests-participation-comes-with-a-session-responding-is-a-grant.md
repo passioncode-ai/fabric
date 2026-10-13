@@ -218,3 +218,26 @@ decision below is recorded here; each fix carries its test, named in the COM-03 
    holder answers `reconcile_required`, not `fenced`; a replay of another session's key needs a live grant when the
    caller holds no enrollment; and `com.enroll`'s refusal names the operator's Settings → Agent access.
 8. **Comms names its source Comms** («Переписка»), never "the board" / «доска» (SCN-143's preamble, corrected).
+
+
+### Amendment 3 — 2026-10-13: the listing control and pauses over responders (wave 4; designed, not built)
+
+1. **The listing control is designed** (amends Amendment 1 §4). The Settings control Amendment 1 §4 calls a declared
+   stub does not exist in the app: there is nothing to remove. Wave 4 builds the real control, the project directory
+   (SCR-83, SCN-149, FLW-92), and `board_set_listing` gains the estate owner's check and becomes target-state — a
+   repeat records nothing ([ADR-0156](0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md)
+   §5–§6). Before a change the owner sees exactly the entry other projects read: the name and each capability with its
+   responder state. CO-286 closes when SCR-83 is built.
+2. **A pause sits over responders** (contract DEC-0079; ADR-0156 §2–§3). The owner may pause one (project, capability)
+   slot or a whole project's answering. Under it, `com.enroll`, `com.responder_replace`, `com.claim`, `com.accept` and
+   `com.effect_begin` on paused work are refused `held` (retryable; `not_authorized` for a kit pinned before DEC-0079);
+   `com.complete`, `com.reconcile`, `com.progress`, `com.renew` and the fenced `com.reply` never are, so the slot's
+   current holder always settles what it started. A pause is checked at commit like a lease and bumps no generation, attempt or
+   revision. If the holder's session ends under a slot or project pause, the next enroll waits for the resume, and its
+   accepted work stays held (contract C4). `com.status` answers `responders[].held`, and the directory `held` per capability,
+   only to readers pinned at or after DEC-0079.
+3. **A pause is not a revocation** (§2). The `board.respond` grant stands under a pause; stopping an agent for good is
+   revoking that grant in Agents & access, which releases its slots as §2 already says. Comms' pause sheet links there.
+4. **The owner may settle what no responder can** (contract DEC-0081; ADR-0117 Amendment 4): ADR-0117 §4's "settled only by an
+   observed result" holds, and with no responder holding the slot the estate's owner may give that observed result.
+5. **A restore keeps pauses** as §6 keeps the directory's listings: a pause takes authority away and grants none.
