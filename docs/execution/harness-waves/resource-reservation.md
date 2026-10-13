@@ -42,6 +42,11 @@ immutable demand and own demand, optional parent, and eight identity fields:
 (`builder` / `reviewer` / `test`), `inputDigest`, `scopeDigest`,
 `localPolicyRevision`. Digests are lowercase SHA-256. These fields identify the
 attempt; they do **not** grant spend, provider access or a mutable-file lease.
+After safe-integer validation, `fence` is stored as a canonical JSON integer.
+Accepted numeric spellings `1.0`, `1.00` and `1e0` therefore recover the same
+reservation and release/cancel with canonical text `1`; malformed, fractional
+and out-of-range values remain refused (SQL admission normalization and the
+`fence-scale` production SQL regression).
 
 An admission transaction takes the Estate lock, session/reservation identity
 locks, pool row lock and existing task locks. No pool transaction takes another
@@ -91,7 +96,7 @@ all client roles. Table mutations are also revoked from `service_role`.
 | `observe_resource_pool` | Exact host/pool/revision, complete observed vector, captured timestamp; boolean. No inferred overlap. |
 | `admit_resource_task_launch` | Existing Estate/task/actor/session; injected host/pool; binding; demand and own demand; optional parent; existing trigger/person/membership revision. Returns the ordinary admission receipt plus `resource_reservation: { reservation_id, state, run_ordinal }`, or `admitted:false` and `reason_code`. |
 | `begin_task_run_launch`, `validate_task_run_launch` | Existing argument shapes. Resource reservations add current reading/ledger checks before the preserved generation/authority checks. |
-| `release_resource_reservation` | Exact Estate, reservation, run, session and fence (text spelling of the positive number); `{ released, repeated?, receipt_seq?, reason_code? }`. |
+| `release_resource_reservation` | Exact Estate, reservation, run, session and fence (canonical base-10 integer text); `{ released, repeated?, receipt_seq?, reason_code? }`. |
 | `cancel_resource_admission` | Same exact identity; only an unconsumed managed spawn permission can produce never-begun compensation. Same release result shape. |
 
 No new MCP endpoint, renderer command or portable schema is published. SQL error
@@ -121,13 +126,21 @@ Verified on 2026-10-13 with Node26.10.0 and local PostgreSQL17: the command exit
 Coverage includes shared cross-Estate concurrency, child contention and own-slot
 charging, safe integers, incomplete/stale/future readings, disk refusal,
 idempotent response recovery, changed retry inputs, before-spawn refusal,
-explicit never-begun cancellation, exact release, forged journal/lease expiry,
+explicit never-begun cancellation, exact release, equivalent numeric fence
+spellings across retry/cancel/compensated release, forged journal/lease expiry,
 real projection replay and restore, and attempted writes from denied roles.
 The restore fixture remaps synthetic entity IDs to avoid collisions and calls
 the real journal restore projector; it is not a private-archive/UI acceptance.
 A transaction-local negative control replaces the real capacity checker with
 an always-eligible function: an otherwise refused request is admitted, proving
 the capacity assertion detects its removal; rollback restores the function.
+
+The independent review found that accepted JSON fence `1.0` was stored with
+its scale while release/cancel compared canonical caller text `1`. Admission now
+normalizes only validated integer fences before storage. One bounded rerun of
+the command above passed the new raw-JSON retry/cancel/compensated-release
+regression and all existing SQL suites, exit 0; the owned cluster was removed.
+This correction leaves the DDL pending and does not activate an installed pool.
 
 The first run reached the negative control after all preceding cases passed,
 then failed because its replacement SQL omitted the existing function parameter
