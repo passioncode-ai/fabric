@@ -17,14 +17,32 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   <project>?", Settings → Agent access); every responder call is fenced, so an agent that was replaced cannot record a
   late result. A session's end releases what it held. A service agent joins a project's board with `fabric.board.join`.
 - **`com.status` names the idempotency epoch** a session submits under (`idempotency.epoch`) and the project's
-  responders per capability; a viewer is never told an epoch.
+  responders per capability — to a project session and to a board session alike; a viewer is never told an epoch.
+- **A board session is respond-only** ([ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
+  Amendment 2): a service that joins with `fabric.board.join` gets `com.status`, `com.list`, `com.get`, `com.reply`
+  (only as a responder) and the responder tools — never `com.submit`, `com.cancel`, `com.read_ack` or `com.directory`,
+  so it cannot write as the project or clear the unread its coding agents rely on. A board session ends when its client
+  leaves (its slots are released), and at its next call once a grant it joined under has expired; joining again hands
+  out an unspent session instead of minting another, and a binding's board sessions have a cap of their own.
+- **The responder consent says what the grant does not change**: "This grant itself lets it spend, publish or delete
+  nothing; it still has its own tools, and a request is never an approval." In Russian the prompt now says requests
+  are sent «проекту «…»», not «в проекте «…»».
+- **A session Fabric launched as a created agent answers requests as its coding agent** — the runner its binding
+  names — not as the created agent, whose id no grant could match.
+- **Comms calls its source Comms** («Переписка»): "Comms did not answer." / «Переписка не ответила.», never "the
+  board", which on the rail is the task board. **After a restore whose message texts did not come back**, Comms says
+  "The texts did not come back" with how many messages the journal records, instead of saying none were exchanged.
+- **An agent learns from Fabric how to answer a request**: `fabric_whoami`'s board rule says answering means
+  `com.enroll`, then `com.claim`, under a responder grant the operator gives in Settings → Agent access, and without it
+  to reply and say the request stays queued; a retry sends the same `idempotency {epoch, key}`. A call that takes no
+  key (`com.read_ack`, `com.renew`, `com.progress`) and lost its answer says it is safe to send again.
+- **The `coding_agents_enrolled` usage count counts enrollments only**: a `board.respond` grant is counted in neither
+  that nor `agents_with_access`.
 - **A restored estate's board acts on nothing**: a request that was claimed is queued again, one in progress becomes
-  "may have happened", and every project starts in a fresh idempotency window, so a retry from before the archive is
+  "outcome unknown" (it may have happened; only an observed result settles it), and every project starts in a fresh idempotency window, so a retry from before the archive is
   refused instead of stored twice. Nothing is added to the restored history to do this.
 - **The submit receipt changed shape** (COM-02.3, kept here for the release notes): it carries no `seq`, and `request`
   is an object `{id, state, effect, revision}`.
-- **Schema 87** (`20261012000104_project_board_responders.sql`); see the arithmetic in
-  [release-mac.md](docs/launch/release-mac.md).
 
 - **Coding agents learn the project board rule from Fabric** (COM-12): `fabric_whoami`'s rules now say to read the
   board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, and that a
@@ -45,9 +63,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
   questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
-- **The database moves to schema 86** (from 84): two migrations — the project board's thread aggregates (the kinds a
-  thread holds, its open requests) that back the Comms filters, and the board's lifecycle (ADR-0149). An existing
-  database is upgraded by the [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database).
+- **The database moves to schema 87** (from 84): three migrations — the project board's thread aggregates (the kinds a
+  thread holds, its open requests) that back the Comms filters, the board's lifecycle (ADR-0149) and its responders
+  (`20261012000104_project_board_responders.sql`). An existing database is upgraded by the
+  [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database); the arithmetic is in
+  [release-mac.md](docs/launch/release-mac.md).
 - **Board receipts changed shape (agents, take note).** A `com.submit` or `com.read_ack` receipt no longer carries the
   estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
   `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.
@@ -56,10 +76,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   takes an optional `project` (your own; another Project answers `not_authorized`, as an unknown one does); a
   `com.submit` of kind `reply` whose thread is not `replyTo`'s own is refused `invalid_arguments`.
 - **Requests can be cancelled and expire; replies are threaded** (COM-02.3): the requester's Project may cancel a
-  request (work that had begun becomes "may have happened" until reconciled), a passed deadline expires a queued
-  request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply` and `com.cancel`
-  are registered and answer `unsupported_capability` until Fabric adopts the contract decision that fixes their
-  arguments (DEC-0073, merged in the contract at f8ae4e1 and not yet pinned); so does every responder tool until COM-03.
+  request (work that had begun becomes "outcome unknown" — it may have happened — until reconciled), a passed deadline
+  expires a queued request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply`
+  and `com.cancel` take the arguments contract DEC-0073 fixed, served since Fabric pinned it (COM-03).
 - **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
   it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
 - **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full

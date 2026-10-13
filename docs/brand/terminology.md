@@ -20,6 +20,7 @@ Contract: brand-contract v1
 | Fabric | fabric, Software Fabric when naming the current product or kernel |
 | Fabric Switchboard | Fabric Switcher, F Switchboard; use Switchboard as the short form |
 | Fabric Inbox | Fabric Mail; use Inbox as the short form |
+| Comms | comms, the comms; the name of the operator's screen for what projects tell each other (Russian «Переписка»), and what that screen calls its source |
 | Fabric Agent Adapter | Fabric Adapter, Fabric agent adapter; the published skills that adapt a project to the Fabric protocol |
 | Coding agent | Runner, runner, executor |
 | First run | onboarding wizard, setup tour |
@@ -90,3 +91,11 @@ These terms describe ADR-0115; secrets remain in the main process.
 | Binding credential | учётные данные привязки | An agent’s credential for Fabric, bounded by the grants; never the product’s key |
 | Access grant | разрешение доступа | One capability on one resource, until expiry or revocation |
 | Product connection | подключение продукта | Product key metadata in Fabric and its secret in the vault |
+
+## Project communications terms (English / Russian)
+
+These terms describe ADR-0117 and SCN-143 (corrected 2026-10-13).
+
+| English | Russian | Meaning |
+|---|---|---|
+| Comms | Переписка | The operator's screen for what projects tell each other, and the word that screen uses for its own source ("Comms did not answer." / «Переписка не ответила.»). Never "the board" / «доска» in its text: the rail's Board / «Доска» is the task board |

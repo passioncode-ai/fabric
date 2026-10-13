@@ -168,3 +168,53 @@ with contract DEC-0073 pinned (fabric-agent-contract `edc88a6`). Where it had to
    travels.
 7. **Consent words** for `board.respond` are recorded in ADR-0134 Amendment 7; the pin in ADR-0117 Amendment 3.
 
+
+### Amendment 2 — 2026-10-13: the wave-2 fix round — a board session is respond-only; DEC-0078 replaces the read-back
+
+Three blind readings of COM-03 (unit, seam and product tiers over `e09ad8fb..3d7e7752`) found what follows. Each
+decision below is recorded here; each fix carries its test, named in the COM-03 row of
+[the comms plan](../evidence/plans/2026-10-04-project-communications.md).
+
+1. **A board session is respond-only** (amends §1 and §4; from [ADR-0117](0117-fabric-hosts-the-project-board-of-fabric-project-comms.md)
+   §3, where a board enrollment is a respond-only participation). The `board.respond` consent promises that the agent
+   may take and answer the requests other projects send to the project; the board session `fabric.board.join` mints
+   (surface `board`) is given exactly that: `com.status`; `com.list` and `com.get` (the threads its Project takes part
+   in, to read the requests); `com.reply` in the responder's fenced form only; and `com.enroll`, `com.claim`,
+   `com.renew`, `com.accept`, `com.progress`, `com.effect_begin`, `com.complete`, `com.reconcile`,
+   `com.responder_replace` — thirteen tools (`BOARD_SESSION_OPERATIONS`, `apps/desktop/src/main/boardService.ts`). It is
+   NOT given `com.submit` (it never writes as the Project), `com.cancel`, `com.read_ack` (read marks are shared per
+   Project: a service must not clear the unread its coding agents rely on) or `com.directory`. The tools outside the
+   set are not registered, and the service refuses them for a board caller before the door as well. Amendment 1 §4's
+   directory readers are therefore Project sessions only, which also matches the contract's managed-or-enrolled reader
+   rule. A project session's participation is unchanged (all seventeen).
+2. **A board session is told its idempotency epoch.** Amendment 1 §5 said Fabric tells every Project and board
+   session; `com.status` told only surface `session`. Every surface but a viewer is now told it.
+3. **A board session's life.** Its client leaving ends it like an enrolled session's (its slots are released,
+   `comms.responder_released@1`, and it is no longer listed as held). A grant that EXPIRES fires no revocation, so the
+   session carries its grants' earliest expiry and ends at its first call past it, told why. A join hands out an
+   unspent board session of the same binding, Project and grants instead of minting another; a binding holds at most
+   four board sessions, counted apart from its coding agent's enrollments (neither evicts the other), and an evicted one
+   is told what to do in a board session's own tools (`fabric.board.join`, `com.enroll`); the grants are read again
+   after the mint (ADR-0134's read-then-mint).
+4. **A launched session of a created agent answers as its runner** (clarifies §3): the holder's `agent` is the
+   runner's catalogue id, which `board_grant_for` compares with the binding's agent, never the created agent's id.
+5. **The consent words** (amends the words [ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)
+   Amendment 7 recorded): the detail line keeps the contract's caveat — "This grant itself lets it spend, publish or
+   delete nothing; it still has its own tools, and a request is never an approval." (Russian: «Само это разрешение не
+   даёт ему ни тратить деньги, ни публиковать, ни удалять; свои инструменты у него остаются, а запрос никогда не
+   одобрение.») — and in Russian the project requests are sent TO takes its own dative form («присылают проекту
+   «{name}»» / «этому проекту»), not the enrollment's locative.
+6. **Contract DEC-0078 replaces Amendment 1 §3.** `com.responder_replace`'s receipt carries `transferred`: 1–64 items
+   `{request, revision, attempt}` (attempt = `{id, generation, digest, leaseExpiresAt}`), each transferred request once,
+   and only `com.responder_replace` answers it. The contract defines no `com.claim` read-back, and `com.claim` never
+   moves or reads back an accepted request: Amendment 1 §3 is withdrawn. Built by migration 88 with the repin to
+   fabric-agent-contract `f00a768` (which includes DEC-0076 and DEC-0077); until that migration lands — it lands only
+   with its database tier, CO-287 — main serves Amendment 1 §3 as before.
+7. **The SQL half of the round**, also migration 88 (CO-287): `com.status` counts as unread only deliveries whose
+   message the board holds (a restore without board history no longer leaves unread that can never be read); the
+   epoch gate refuses `com.renew` and `com.progress` under a closed epoch; enroll and replace take the request rows they
+   will move before the journal's estate lock, and a release takes every slot lock in a stable order before its first
+   append (ADR-0149 §5's order); a fenced call on a request that became `outcome_unknown` from the slot's current
+   holder answers `reconcile_required`, not `fenced`; a replay of another session's key needs a live grant when the
+   caller holds no enrollment; and `com.enroll`'s refusal names the operator's Settings → Agent access.
+8. **Comms names its source Comms** («Переписка»), never "the board" / «доска» (SCN-143's preamble, corrected).

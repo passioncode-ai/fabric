@@ -6351,7 +6351,7 @@
    "COM-02"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "built 2026-10-13: migration 87 (responder slots, enrollments, attempts, the fence, release, directory), the board.respond grant, fabric.board.join, contract DEC-0073 pinned at edc88a6 (ADR-0149 Amendment 1); remaining: the real-client smoke COM03-14 (NOT_RUN: no disposable built app on this machine) and the operator-visible E2E walk",
+  "notes": "built 2026-10-13: migration 87 (responder slots, enrollments, attempts, the fence, release, directory), the board.respond grant, fabric.board.join, contract DEC-0073 pinned at edc88a6 (ADR-0149 Amendment 1); remaining: the real-client smoke COM03-14 (NOT_RUN: the disk had under 3 GB free, too little to build a disposable app on this machine) and the operator-visible E2E walk; the wave-2 fix round (2026-10-13, ADR-0149 Amendment 2) narrowed board sessions to respond-only and fixed the service, surface and docs findings of the three blind readings",
   "register": "COM plan",
   "node": "C8",
   "wave": "W2",
