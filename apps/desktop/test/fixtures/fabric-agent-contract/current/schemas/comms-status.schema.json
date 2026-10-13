@@ -71,6 +71,10 @@
           },
           "provenance": {
             "$ref": "comms-common.schema.json#/$defs/provenance"
+          },
+          "held": {
+            "description": "true: the operator holds this slot or its Project (DEC-0079), so its enrollment, replacement, claims, accepts and effect starts are refused held; absent or false: not held. Never names who set the hold.",
+            "type": "boolean"
           }
         },
         "additionalProperties": false

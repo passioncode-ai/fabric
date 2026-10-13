@@ -1,0 +1,15 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "board": {
+    "state": "ready"
+  },
+  "project": "proj-analytics",
+  "responders": [
+    {
+      "capability": "analytics.retention",
+      "state": "active",
+      "generation": 2,
+      "held": "operator"
+    }
+  ]
+}

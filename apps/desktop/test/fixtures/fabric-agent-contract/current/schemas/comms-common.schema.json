@@ -66,6 +66,10 @@
         "unknown"
       ]
     },
+    "settledBy": {
+      "description": "Present only when the estate owner settled the request (DEC-0081): a trusted operator principal, the owner of the request's target Project, through com.reconcile of an outcome_unknown request while no responder held the slot. A board sends it on every owner settlement and on nothing else, so its absence means the responder settled the request (com.complete or com.reconcile), and a reader is told the owner, not the responder, attested the outcome.",
+      "const": "owner"
+    },
     "transportState": {
       "enum": [
         "pending",
@@ -161,6 +165,131 @@
         "$ref": "#/$defs/artifactRef"
       }
     },
+    "findingSeverity": {
+      "description": "How much the finding matters to what it affects, as its sender judges it (DEC-0080). It is descriptive: its effect on notifications, the Telegram mirror or holds is not decided here.",
+      "enum": [
+        "info",
+        "warning",
+        "blocking"
+      ]
+    },
+    "repositoryName": {
+      "description": "A repository as <owner>/<name>, the path of the canonical GitHub URL a backlog source manifest names (https://github.com/<owner>/<name>): an owner of 1 to 39 letters, digits and hyphens that starts with a letter or digit, and a name of 1 to 100 of [A-Za-z0-9._-] that is not . or .. and has at most one leading dot (.github). Compared as written (DEC-0080).",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/(\\.[A-Za-z0-9_-][A-Za-z0-9._-]{0,98}|[A-Za-z0-9_-][A-Za-z0-9._-]{0,99})$"
+    },
+    "repositoryPath": {
+      "description": "A file path relative to the repository's root: segments of [A-Za-z0-9._-] joined by single slashes, no leading or trailing slash, and no segment that starts with a dot, so no ., .. or hidden segment (DEC-0080).",
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$"
+    },
+    "backlogRowId": {
+      "description": "A backlog row's stable id, unique within its source file. The knowledge base's backlog contract (fabric-workspace knowledge/backlog.md) requires a nonempty string id; this pattern deliberately narrows it to 1 to 64 of [A-Za-z0-9._-] starting with a letter or digit, so no id holds a space, a colon or a slash. Compared as written (DEC-0080).",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "dedupeKey": {
+      "description": "The sender's name for what a finding is about: the same sender Project and dedupeKey answer the retained finding's receipt with repeated: true and store no message (DEC-0080). Compared as written.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+    },
+    "hostTaskId": {
+      "description": "A task of the host that serves the board: the issuing host's task, in the grammar of a delegation token's task (DEC-0041, delegation-token.schema.json#/$defs/task), issued by the host, not by the board. Opaque, so compared as written (DEC-0076's opaque ids).",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "affectedRow": {
+      "description": "A backlog row, named by repository, path and id: the row's identity in the common backlog. It links to the row and never copies it.",
+      "type": "object",
+      "required": [
+        "repository",
+        "path",
+        "id"
+      ],
+      "properties": {
+        "repository": {
+          "$ref": "#/$defs/repositoryName"
+        },
+        "path": {
+          "$ref": "#/$defs/repositoryPath"
+        },
+        "id": {
+          "$ref": "#/$defs/backlogRowId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "affectedTask": {
+      "description": "A task of the host that serves the board, named by its id (hostTaskId, DEC-0041's task). It links to the task and never copies it.",
+      "type": "object",
+      "required": [
+        "task"
+      ],
+      "properties": {
+        "task": {
+          "$ref": "#/$defs/hostTaskId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "affectedRedacted": {
+      "description": "What a reader sees in place of an affects item outside its grants: the item's place and the count stay, what it names does not. Only in a message as read, never in com.submit.",
+      "type": "object",
+      "required": [
+        "redacted"
+      ],
+      "properties": {
+        "redacted": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "description": "A structured finding (DEC-0080): only on a message of kind finding. Evidence is the message's artifacts; there is no evidence member. comms-submit adds that its affects items are distinct and never redacted; in a message as read an item outside the reader's grants is {redacted: true}, in its place, and FAC-SEM-108 refuses two unredacted items that are the same.",
+      "type": "object",
+      "required": [
+        "severity",
+        "consequence",
+        "affects",
+        "dedupeKey"
+      ],
+      "properties": {
+        "severity": {
+          "$ref": "#/$defs/findingSeverity"
+        },
+        "consequence": {
+          "description": "What happens to what it affects if nobody acts, 1 to 500 characters.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "affects": {
+          "description": "What the finding affects, 1 to 16 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/affectedRow"
+              },
+              {
+                "$ref": "#/$defs/affectedTask"
+              },
+              {
+                "$ref": "#/$defs/affectedRedacted"
+              }
+            ]
+          }
+        },
+        "dedupeKey": {
+          "$ref": "#/$defs/dedupeKey"
+        }
+      },
+      "additionalProperties": false
+    },
     "refusalCode": {
       "enum": [
         "invalid_arguments",
@@ -181,7 +310,8 @@
         "reconcile_required",
         "observation_required",
         "cursor_reset_required",
-        "immutable_participants"
+        "immutable_participants",
+        "held"
       ]
     }
   }

@@ -1,0 +1,113 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "fnd_Q7mX2cL9pZ4tVb1Nk8Rw"
+  },
+  "thread": {
+    "id": "thr_Q1w2E3r4T5"
+  },
+  "kind": "finding",
+  "body": {
+    "text": "The board answers a replacement without `transferred`, so a kit that took a request over cannot fence it. The failing run is attached.",
+    "format": "text/markdown"
+  },
+  "artifacts": [
+    {
+      "id": "https://example.org/runs/4711",
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "label": "failing run"
+    }
+  ],
+  "finding": {
+    "severity": "blocking",
+    "consequence": "A kit that takes a transferred request over cannot complete it until the board answers transferred.",
+    "affects": [
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-1"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-2"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-3"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-4"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-5"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-6"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-7"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-8"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-9"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-10"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-11"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-12"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-13"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-14"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-15"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-16"
+      },
+      {
+        "repository": "passioncode-ai/fabric-agent-contract",
+        "path": "docs/backlog.md",
+        "id": "CT-17"
+      }
+    ],
+    "dedupeKey": "transferred-missing:CT-41"
+  }
+}

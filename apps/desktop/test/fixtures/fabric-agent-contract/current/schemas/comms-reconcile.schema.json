@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-reconcile.schema.json",
-  "title": "com.reconcile arguments (fabric-project-comms/0.1, DEC-0073)",
-  "description": "outcome_unknown to completed or failed_known, observed only. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "title": "com.reconcile arguments (fabric-project-comms/0.1, DEC-0073; the estate owner as caller, DEC-0081)",
+  "description": "outcome_unknown to completed or failed_known, observed only. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments). The caller is the current responder, or the estate owner when no responder holds the request's slot (DEC-0081); the caller's role is taken from the endpoint too, so the same arguments serve both.",
   "type": "object",
   "required": [
     "idempotency",
@@ -15,7 +15,7 @@
       "$ref": "comms-common.schema.json#/$defs/idempotency"
     },
     "request": {
-      "description": "A request of the caller's Project in outcome_unknown, for a capability whose current slot the caller holds.",
+      "description": "A request in outcome_unknown. Called by a responder: a request of the caller's Project, for a capability whose current slot the caller holds. Called by the estate owner (the trusted operator principal, verified by the host, that owns the request's target Project; in an organization estate that member only; no Project grant makes one): a request whose (Project, capability) slot no responder holds, absent or lapsed with no current enrollment; while a responder holds it, or for any other operator, the call is refused not_authorized (DEC-0081).",
       "$ref": "comms-common.schema.json#/$defs/opaqueId"
     },
     "digest": {
@@ -44,6 +44,7 @@
           "const": true
         },
         "summary": {
+          "description": "What the caller observed. Optional for a responder; required for the estate owner, whose settlement without it is refused observation_required and leaves the request outcome_unknown (DEC-0081). The schema cannot see the caller, so FAC-SEM-109 checks it on the transition record.",
           "type": "string",
           "minLength": 1,
           "maxLength": 2000

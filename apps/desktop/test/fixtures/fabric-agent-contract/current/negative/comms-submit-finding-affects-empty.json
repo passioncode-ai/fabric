@@ -1,0 +1,27 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "fnd_Q7mX2cL9pZ4tVb1Nk8Rw"
+  },
+  "thread": {
+    "id": "thr_Q1w2E3r4T5"
+  },
+  "kind": "finding",
+  "body": {
+    "text": "The board answers a replacement without `transferred`, so a kit that took a request over cannot fence it. The failing run is attached.",
+    "format": "text/markdown"
+  },
+  "artifacts": [
+    {
+      "id": "https://example.org/runs/4711",
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "label": "failing run"
+    }
+  ],
+  "finding": {
+    "severity": "blocking",
+    "consequence": "A kit that takes a transferred request over cannot complete it until the board answers transferred.",
+    "affects": [],
+    "dedupeKey": "transferred-missing:CT-41"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "snapshot": {
+    "readAt": "2026-10-13T10:00:00Z"
+  },
+  "projects": [
+    {
+      "id": "proj-analytics",
+      "name": "Analytics",
+      "capabilities": [
+        {
+          "capability": "analytics.retention",
+          "responder": "active",
+          "held": true
+        },
+        {
+          "capability": "analytics.ask",
+          "responder": "absent",
+          "held": false
+        }
+      ]
+    },
+    {
+      "id": "proj-render",
+      "name": "Video rendering",
+      "capabilities": [
+        {
+          "capability": "video.render",
+          "responder": "stale"
+        }
+      ]
+    }
+  ],
+  "cursor": null
+}

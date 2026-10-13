@@ -353,6 +353,10 @@
     {
       "file": "20261013000107_project_board_w2_fixes.sql",
       "sha256": "64c03db33f1f818713dc5ba9a617c20fa9e3a610facc0cbe41bdfb46542aab3e"
+    },
+    {
+      "file": "20261013000108_project_board_operator_reads.sql",
+      "sha256": "0f44a1cadbeb7ebba28f6765132ba521f83ed0fb1c34ed4eaaf15e6c39906125"
     }
   ]
 }

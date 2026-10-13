@@ -93,6 +93,22 @@
     },
     "artifacts": {
       "$ref": "comms-common.schema.json#/$defs/artifacts"
+    },
+    "finding": {
+      "description": "Only with kind finding, and optional there (DEC-0080): the severity, the consequence, what the finding affects and its dedupeKey. Here every affects item is distinct and none is {redacted: true}: a sender names what it found, only a reader's copy is redacted.",
+      "$ref": "comms-common.schema.json#/$defs/finding",
+      "type": "object",
+      "properties": {
+        "affects": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "not": {
+              "$ref": "comms-common.schema.json#/$defs/affectedRedacted"
+            }
+          }
+        }
+      }
     }
   },
   "additionalProperties": false,
@@ -140,6 +156,52 @@
         "required": [
           "replyTo"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "finding"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "finding": true
+        }
+      },
+      "else": {
+        "properties": {
+          "finding": false
+        }
+      }
+    },
+    {
+      "description": "DEC-0080: a submit that carries a finding uses an idempotency key of at least 22 characters, the least that can hold 128 random bits in the key's alphabet. The key MUST come from a cryptographically secure generator; length is what a schema can check.",
+      "if": {
+        "properties": {
+          "finding": true
+        },
+        "required": [
+          "finding"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 22
+              }
+            }
+          }
+        }
       }
     }
   ]
