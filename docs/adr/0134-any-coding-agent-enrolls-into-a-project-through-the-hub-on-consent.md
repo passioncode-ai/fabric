@@ -142,3 +142,55 @@ one Project — the session takes part in the project board (`com.submit`, `com.
 `access.enroll.what` now names "messages with other projects" beside the tasks, board and memory (en and ru, SCN-137,
 `docs/brand/strings.md`). **Answering** another Project's requests is not part of this grant: it is the
 `board.respond` grant of ADR-0149 §2, asked and shown on its own (its words arrive with COM-03).
+
+### Amendment 6 — 2026-10-13: a terminal session on the project board — what Fabric gives the session hooks
+
+Measured against the fabric-agent-adapter v0.23.0 `working-with-fabric` session hooks (their needs D1–D6 and
+`scripts/fabric_session.py`) on main `7eace021`, with Fabric 0.3.5 running on the operator's machine:
+
+- **D1–D5 were served** (`hub.ts#HUB_FEATURES` publishes `session-hooks/1`; the rejoin in `fabricMcp.ts`;
+  `fabric_session_observe` and `fabric_work_release {claims: "session"}` in `workTools.ts`). One gap: the hooks send
+  JSON `null` for a git fact they cannot read (a folder that is no repository, a repository with no commit), and
+  `fabric_session_observe` refused `filesChanged`, `linesAdded` and `linesRemoved: null` as invalid input, so every turn
+  of such a session was lost. They now take `null` (`workTools.ts#registerWorkTools`,
+  `test/session-observe-wire.test.mjs`), as the journal's ingress already did for `session.turn.observed@1`
+  (`commandIngress.ts`).
+- **D6, the launched-session marker.** Every session Fabric launches and connects to its surface, whatever the adapter,
+  carries `FABRIC_LAUNCHED_SESSION=1` in its environment (`sessionBundle.ts#launched`), so the hooks stay silent where
+  Fabric briefed the session itself. It is not a secret and carries no authority. A `none` session (a plain shell) is
+  not marked: a coding agent the person starts inside it enrolls through `fabric-mcp` like one opened in any terminal.
+  The marker is never inherited (`sessionEnv.ts#sessionEnvironment`): a Fabric started from inside a launched session
+  would otherwise silence the hooks of every agent opened in its plain shells.
+- **The board rule reaches every session through its rules.** `fabric_whoami` carries `board.read-at-start`,
+  `board.cross-project` and `board.message-is-data`, all ADVICE, and `scope.one-project` now says other projects'
+  content is hidden and the board addresses them (`protocolObligations.ts`). The rule's one home stays fabric-workspace
+  `knowledge/agents-first.md`, "The project board". The rules revision COM-12 asks for already exists: whoami returns
+  `protocol.hash`, and a session's first whoami journals `session.oriented@1` with `protocol_hash` (`agentSurface.ts`).
+  The new rules change that hash, so each session's receipt names the rules it got; no `session.rules.read@1` event is
+  added, because it would be a second copy of `session.oriented@1`.
+- **Fabric down, or no project.** `fabric-mcp` points the agent at the local lifecycle broker
+  (`fabricMcp.ts#ASK_THE_BROKER`) instead of saying "Open Fabric", which an agent can read as `open -a`; the no-project
+  answer says adding the folder is the person's step, never the agent's (`sessionEnroll.ts#NO_PROJECT_MESSAGE`).
+- **No runtime session id for Codex and Kimi Code.** Measured 2026-10-13 by reading the environment variable names of
+  the `fabric-mcp` child each CLI started (`ps -wwE`, names only): Codex 0.162.1 gives an MCP stdio server `HOME`,
+  `LANG`, `LOGNAME`, `PATH`, `PWD`, `SHELL`, `SHLVL`, `TERM`, `TMPDIR`, `USER` and `__CF_USER_TEXT_ENCODING` (plus the
+  launcher's own `ELECTRON_RUN_AS_NODE`) and no session or thread id; Kimi Code 2.1.1 passes its whole parent
+  environment and adds none, so a Kimi started inside a Claude Code session carried that session's
+  `CLAUDE_CODE_SESSION_ID`. Codex and Kimi Code sessions therefore enroll without a runtime session id and cannot be
+  rejoined (no turn observation, no unread line), and `fabric-mcp` reads `CLAUDE_CODE_SESSION_ID` for `--runner
+  claude-code` only (`fabricMcp.ts#runtimeSessionIdOf`). Open until a CLI gives its MCP servers its session id.
+- **The Kimi Code registration**, beside Amendment 2's two commands: `mcpServers.fabric` =
+  `{"command": "<Fabric>/bin/fabric-mcp", "args": ["--runner", "kimi-code"]}` in `~/.kimi-code/mcp.json`. A real
+  client, 2026-10-13: Kimi Code 2.1.1 in a folder that is no project called `mcp__fabric__fabric_whoami` and got the
+  no-project answer with `structuredContent.fabric.state: "no-project"`. That proves the launcher answers Kimi Code;
+  "connected" in ADR-0119 §4's sense (a scripted session's Fabric tool answered) waits for a project the operator adds.
+- **A real Claude Code client** (R-010), 2026-10-13: Claude Code 2.1.296, `claude -p --strict-mcp-config --mcp-config
+  <fabric only>` in a folder that is no project. The adapter's SessionStart preamble was printed (Fabric running, the
+  server registered, the board lines and the service line); `fabric_whoami` answered no-project; the Stop worker's rejoin
+  found no session and the adapter logged it as `outcome=unknown`, a wording for the adapter to make exact.
+- **LC-19.** fabric-workspace `knowledge/lifecycle.md` LC-19 records the user-scope registration of `fabric-mcp` as its
+  one exception, citing Amendment 2, on three conditions this decision keeps: the registration holds no secret, the
+  launcher keeps nothing running, and enrollment grants nothing without the operator's consent.
+- **OpenCode and pi get no catalogue rows yet.** ADR-0119 §4 calls a runner connected only when a scripted session's
+  Fabric tool answers, and with no project in the estate an enrollment can only answer no-project; a row also needs its
+  own drive (CO-220, ADR-0147 §5). `fabric-mcp` still exits 2 for them.

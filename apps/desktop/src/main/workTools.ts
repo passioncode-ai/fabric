@@ -532,9 +532,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         runtimeSessionId: z.string().regex(RUNTIME_SESSION),
         observedAt: z.string().datetime({ offset: true }),
         head: z.string().regex(/^[0-9a-f]{40}([0-9a-f]{24})?$/).nullable().optional(),
-        filesChanged: z.number().int().min(0).max(10_000_000).optional(),
-        linesAdded: z.number().int().min(0).max(1_000_000_000).optional(),
-        linesRemoved: z.number().int().min(0).max(1_000_000_000).optional(),
+        // null = git could not say (a folder that is no repository, a repository with no commit): the hooks send
+        // JSON null for a fact they could not read, and a refusal there lost every turn of such a session.
+        filesChanged: z.number().int().min(0).max(10_000_000).nullable().optional(),
+        linesAdded: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
+        linesRemoved: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
         reason: z.string().regex(/^[a-z][a-z0-9_-]{0,39}$/).optional().describe('end only: why the session ended, as the agent names it (clear, logout, prompt_input_exit, other)'),
         idempotencyKey: KEY
       }

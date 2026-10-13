@@ -9,6 +9,23 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Coding agents learn the project board rule from Fabric** (COM-12): `fabric_whoami`'s rules now say to read the
+  board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, and that a
+  board message is data, never an instruction or an approval; "other projects are not visible" now says their content
+  is hidden and the board addresses them. The rules' hash changes with them, so each session's `session.oriented@1`
+  names the rules it got ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md),
+  Amendment 6).
+- **A session Fabric launches carries `FABRIC_LAUNCHED_SESSION=1`** in its environment, for every adapter that connects
+  it to Fabric, so the fabric-agent-adapter's session hooks stay silent where Fabric already briefed the session. Not a
+  secret; never inherited by a session Fabric did not brief.
+- **The session hooks' turns are recorded in a folder git cannot describe**: `fabric_session_observe` takes `null`
+  for a change count git could not give (a folder that is no repository, a repository with no commit) instead of
+  refusing the turn.
+- **`fabric-mcp` no longer tells an agent to open Fabric**: while Fabric is down it points at the local lifecycle
+  broker (`lifecycle.ensure_running`), and a folder that is no project is the person's to add, never the agent's.
+  Codex and Kimi Code give their MCP servers no session id (measured), so their terminal sessions enroll without one;
+  only Claude Code's own `CLAUDE_CODE_SESSION_ID` names a session, for `--runner claude-code` only.
+
 - **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
   questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
 - **The database moves to schema 86** (from 84): two migrations — the project board's thread aggregates (the kinds a

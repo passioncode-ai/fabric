@@ -86,6 +86,10 @@ test('a folder no project holds: no-project, with what to do in Fabric\'s own wo
   const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere' }, h.d)
   assert.deepEqual([r.ok, r.code], [false, 'no-project'])
   assert.match(r.message, /\+ Project → Open a project/)
+  // Said as the person's step: an agent told "open it in Fabric" could take it as its own (attach the folder, create
+  // a project), which the project board rule forbids — the R-010 real client read this sentence back verbatim.
+  assert.match(r.message, /the person's step/)
+  assert.match(r.message, /never create a project or attach a folder yourself/)
 })
 
 test('a relative, missing or non-string folder: bad-folder, said of this computer', async () => {

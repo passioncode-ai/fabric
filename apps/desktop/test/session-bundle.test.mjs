@@ -371,6 +371,29 @@ else {
   else fail('the none adapter produced args: ' + JSON.stringify(none?.args))
 }
 
+// D6 (fabric-agent-adapter session hooks) — every session Fabric launches and connects to its surface, whatever the
+// adapter, carries the non-secret marker FABRIC_LAUNCHED_SESSION=1, so the hooks of a plugin the agent loads stay
+// silent there: Fabric briefed that session itself. The marker is the only thing the hooks read; its value is not a
+// credential. A "none" session (a plain shell) is NOT marked: Fabric briefed nothing in it, and a coding agent the
+// person starts inside it enrolls through fabric-mcp like one opened in any terminal, its hooks working.
+{
+  const kinds = [['claude-code', 'mcp-config-flag'], ['kilo', 'config-content-env'], ['hermes', 'acp-session'], ['codex', 'codex-config-home']]
+  const missing = []
+  for (const [runner, adapter] of kinds) {
+    const sidM = randomUUID()
+    const b = await bundles.compile(sidM, randomUUID(), null, runner, adapter, null, adapter === 'acp-session' ? { acpMode: 'ask' } : undefined)
+    if (b?.env?.FABRIC_LAUNCHED_SESSION !== '1') missing.push(adapter + '=' + JSON.stringify(b?.env?.FABRIC_LAUNCHED_SESSION))
+    if (JSON.stringify(b?.args ?? []).includes('FABRIC_LAUNCHED_SESSION')) missing.push(adapter + ' put it in argv')
+    bundles.discard(sidM)
+  }
+  const sidN = randomUUID()
+  const plain = await bundles.compile(sidN, randomUUID(), null, 'codex', 'none')
+  if (plain?.env?.FABRIC_LAUNCHED_SESSION !== undefined) missing.push('none=' + JSON.stringify(plain.env.FABRIC_LAUNCHED_SESSION) + ' (a plain session was marked)')
+  bundles.discard(sidN)
+  if (missing.length === 0) ok('every session connected to the surface carries FABRIC_LAUNCHED_SESSION=1 in its environment, whatever its adapter; a plain session does not')
+  else fail('the launched-session marker is missing or wrong: ' + missing.join(', '))
+}
+
 // ADR-0119 / P-10 — a runner told through ONE environment variable holding its whole session
 // config (Kilo: KILO_CONFIG_CONTENT, which outranks the project's own kilo.json).
 {

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main')
-const { FabricMcpProxy, WAITING_TOOL, BACKOFF_MS, classifyFailure } = await import(path.join(SRC, 'fabricMcp.ts'))
+const { FabricMcpProxy, WAITING_TOOL, BACKOFF_MS, classifyFailure, runtimeSessionIdOf } = await import(path.join(SRC, 'fabricMcp.ts'))
 const { fileCredentialStore, openSessionLink } = await import(path.join(SRC, 'fabricMcpClient.ts'))
 
 const LIVE = { ok: true, origin: 'http://127.0.0.1:47070', mcpUrl: 'http://127.0.0.1:47070/mcp', doorToken: 'D'.repeat(43), pid: 1 }
@@ -77,7 +77,24 @@ test('Fabric not running (or its hub closed): one tool, an error that says both,
   assert.deepEqual(tools.map((t) => t.name), [WAITING_TOOL])
   const a = await h.proxy.call(WAITING_TOOL, {})
   assert.equal(a.isError, true)
-  assert.equal(a.content[0].text, 'Fabric is not running, or its hub is closed (Settings → Agent access says why). Open Fabric, then call this tool again.')
+  // The agent is pointed at the lifecycle broker, never told to open the app itself: an "Open Fabric" read as
+  // `open -a` is exactly what the machine's rules forbid (design §0 finding 10; agents-first.md "The project board").
+  const said = a.content[0].text
+  assert.match(said, /^Fabric is not running, or its hub is closed \(Settings → Agent access says why\)\./)
+  assert.match(said, /lifecycle\.list, lifecycle\.ensure_running, then lifecycle\.operation\.get/)
+  assert.match(said, /never start, quit or kill it yourself \(no open -a, osascript or pkill\)/)
+  assert.match(said, /held_off or in_use_by_person/)
+  assert.doesNotMatch(said, /Open Fabric/)
+  assert.equal(h.calls.length, 0)
+})
+
+test('a hub that cannot be verified is sent nothing, and the agent is pointed at the broker, not at opening Fabric', async () => {
+  const h = harness({ hub: { ok: false, code: 'not-a-hub', reason: 'hub.json names process 4242, which is not Fabric' } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'not-a-hub')
+  const said = (await h.proxy.call(WAITING_TOOL, {})).content[0].text
+  assert.match(said, /^Fabric's hub could not be verified \(hub\.json names process 4242, which is not Fabric\)\. Nothing is sent to it/)
+  assert.match(said, /lifecycle\.ensure_running/)
+  assert.doesNotMatch(said, /Open Fabric/)
   assert.equal(h.calls.length, 0)
 })
 
@@ -494,4 +511,20 @@ test('--rejoin-only with no live session, or no credential: not enrolled, quietl
   assert.equal(revoked.store.creds.size, 1, 'a rejoin forgets no credential')
   const answer = await empty.proxy.call(WAITING_TOOL, {})
   assert.match(answer.content[0].text, /asks nothing and starts no session/)
+})
+
+// D1 for the other runners (design §0 finding 6), measured 2026-10-13 by reading the environment NAMES of the
+// fabric-mcp child each CLI started (ADR-0134, Amendments): Codex 0.162.1 gives its MCP stdio servers a fixed dozen
+// variables and no session or thread id; Kimi Code 2.1.1 gives them its whole parent environment and adds none — so a
+// Kimi started inside a Claude Code session hands fabric-mcp THAT session's CLAUDE_CODE_SESSION_ID. Only Claude Code's
+// own variable names its own session, and only for --runner claude-code.
+test('the runtime session id: Claude Code\'s own variable for claude-code only; an inherited one never names a Codex or Kimi session', () => {
+  const env = { CLAUDE_CODE_SESSION_ID: '0f3c2a1e-5b7d-4c8e-9a10-2b3c4d5e6f70' }
+  assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code'], env), '0f3c2a1e-5b7d-4c8e-9a10-2b3c4d5e6f70')
+  assert.equal(runtimeSessionIdOf('kimi-code', ['--runner', 'kimi-code'], env), null)
+  assert.equal(runtimeSessionIdOf('codex', ['--runner', 'codex'], env), null)
+  // The flag names it for any runner (the hooks' rejoin passes it), and wins over the variable.
+  assert.equal(runtimeSessionIdOf('codex', ['--runner', 'codex', '--runtime-session-id', 'thr-1'], env), 'thr-1')
+  assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code', '--runtime-session-id', 'rt-2'], env), 'rt-2')
+  assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code'], {}), null)
 })

@@ -33,6 +33,17 @@ export const WITHHELD_FROM_SESSIONS: readonly string[] = [
   'PGPASSWORD'
 ]
 
+// #region launched-session-marker — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+/**
+ * D6 of the working-with-fabric session hooks: `FABRIC_LAUNCHED_SESSION=1` in the environment of every session
+ * Fabric launches and connects to its surface, whatever the adapter (`sessionBundle.ts#launched` sets it), so a
+ * plugin's hooks stay silent where Fabric already briefed the session. Not a secret: it carries no authority, only "Fabric started this". It is NEVER
+ * inherited — a Fabric started from inside a launched session would otherwise pass it to every plain shell it opens,
+ * and silence the hooks of a coding agent the person starts there, which Fabric did not brief.
+ */
+export const LAUNCHED_SESSION_MARKER = 'FABRIC_LAUNCHED_SESSION'
+// #endregion launched-session-marker
+
 /**
  * The environment a session gets: the operator's, minus Fabric's own keys.
  *
@@ -58,6 +69,7 @@ export function sessionEnvironment(
   for (const [key, value] of Object.entries(parent)) {
     if (value === undefined) continue
     if (WITHHELD_FROM_SESSIONS.includes(key)) continue
+    if (key === LAUNCHED_SESSION_MARKER) continue
     if (overrides?.has(key)) continue
     out[key] = value
   }

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T02:40:00Z · `—` · agent/board-participants-land → main · fast-forward
+- run: r-faa9aae98a19
+- files: 21
+- conflicts: none
+- summary: Board participation for coding agents opened in a terminal (fabric-agent-adapter v0.23.0 session hooks, D1–D6): fabric_session_observe takes null git facts (D4 gap); FABRIC_LAUNCHED_SESSION=1 in every surface-connected launched session, never inherited (D6); whoami rules gain board.read-at-start / board.cross-project / board.message-is-data and a reworded scope.one-project (rules revision = protocol.hash, receipt = session.oriented@1); fabric-mcp points at the lifecycle broker, no-project is the person's step; runtime session id read for claude-code only (Codex 0.162.1 and Kimi Code 2.1.1 measured: no id). ADR-0134 Amendment 6 (Kimi registration line + real-client whoami, R-010 transcript, LC-19, OpenCode/pi deferred); README Kimi line; CHANGELOG.
 ### 2026-10-12T23:44:28Z · `—` · agent/com-02.3-lifecycle → main · fast-forward (squash of agent/com-02.3-lifecycle onto origin/main 7eace021)
 - run: r-faa9aae98a19
 - files: see the commit
