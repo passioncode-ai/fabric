@@ -19,7 +19,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { readHubDocument, writeAtomic } from './hub.ts'
-import type { CredentialStore, HubCall, PendingRequest, SessionLink } from './fabricMcp.ts'
+import { FabricRateLimitError, boundedRetryMs, type CredentialStore, type HubCall, type PendingRequest, type SessionLink } from './fabricMcp.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
@@ -127,8 +127,36 @@ export function fileCredentialStore(root: string, runner: string): CredentialSto
 /** How an MCP client reaches the hub; replaced in tests by an in-memory transport. */
 export type TransportFactory = (url: string, bearer: string) => Transport
 
-export const httpTransport: TransportFactory = (url, bearer) =>
-  new StreamableHTTPClientTransport(new URL(url), { requestInit: { headers: { Authorization: `Bearer ${bearer}` } } })
+/** Retry-After is either seconds or an HTTP date. Missing/invalid/excessive values use a bounded fallback. */
+export function retryAfterMs(header: string | null, now = Date.now()): number {
+  if (header === null || header.trim() === '') return boundedRetryMs(undefined)
+  const value = header.trim()
+  const delay = /^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - now
+  return boundedRetryMs(delay)
+}
+
+export const httpTransport: TransportFactory = (url, bearer) => {
+  // SDK background SSE failures do not reject callTool. The same transport must therefore
+  // enforce a monotonic deadline before EVERY fetch, including its next foreground POST.
+  let retryUntil = 0
+  return new StreamableHTTPClientTransport(new URL(url), {
+    requestInit: { headers: { Authorization: `Bearer ${bearer}` } },
+    // The SDK's StreamableHTTPError discards headers. Capture the delay at the fetch boundary;
+    // do not replay the request, and do not copy the URL, bearer or arbitrary response body into an error.
+    fetch: async (input, init) => {
+      const remaining = retryUntil - performance.now()
+      if (remaining > 0) throw new FabricRateLimitError(remaining)
+      const response = await fetch(input, init)
+      if (response.status === 429) {
+        const delay = retryAfterMs(response.headers.get('retry-after'))
+        retryUntil = Math.max(retryUntil, performance.now() + delay)
+        await response.body?.cancel().catch(() => {})
+        throw new FabricRateLimitError(delay)
+      }
+      return response
+    }
+  })
+}
 
 async function connect(url: string, bearer: string, transportOf: TransportFactory): Promise<{ client: Client; transport: Transport }> {
   const transport = transportOf(url, bearer)

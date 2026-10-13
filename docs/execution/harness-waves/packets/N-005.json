@@ -1,0 +1,53 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-005",
+  "node": "N-005",
+  "parent_id": "CO-282",
+  "module": "Owner integration packets",
+  "intent": "Existing owners receive precise provenance, lesson and routing acceptance; unavailable board remains NOT_SENT",
+  "expected_result": "Existing owners receive precise provenance, lesson and routing acceptance; unavailable board remains NOT_SENT",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/owner-packets.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Existing owners receive precise provenance, lesson and routing acceptance; unavailable board remains NOT_SENT",
+      "paths": [
+        "docs/execution/harness-waves/owner-packets.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan Task contracts row N-005"
+    },
+    {
+      "kind": "negative",
+      "check": "Execute rejection/absence cases in plan Task contracts row N-005"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read plan and input digests, inspect current N-005 outputs, reproduce before fix",
+    "after_change": "Refresh evidence; independent review on final source; report exact limitations"
+  }
+}

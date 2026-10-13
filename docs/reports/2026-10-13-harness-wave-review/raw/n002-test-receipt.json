@@ -1,0 +1,88 @@
+{
+  "schema": "fabric/n002-focused-test-receipt/1",
+  "observed_on": "2026-10-13",
+  "candidate": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+  "red": [
+    {
+      "scope": "Base implementation with added tests",
+      "command": "node apps/desktop/test/session-bundle.test.mjs",
+      "exit_code": 1,
+      "symptom": "Kimi plan spec.sessionMode was undefined instead of plan"
+    },
+    {
+      "scope": "Base implementation with added tests",
+      "command": "node --test --test-name-pattern='native ACP mode|ACP mode refuses' apps/desktop/test/acp-shell.test.mjs",
+      "exit_code": 1,
+      "failed_tests": 6,
+      "symptom": "No native mode selection before prompt and no fail-closed mode rejection"
+    },
+    {
+      "scope": "Restore base pty.ts only while other candidate changes remain",
+      "command": "node apps/desktop/test/session-bundle.test.mjs",
+      "exit_code": 1,
+      "symptom": "Claude with no compiler attempted injected spawn instead of refusing missing required surface"
+    }
+  ],
+  "green": [
+    {
+      "command": "node apps/desktop/test/session-bundle.test.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": null,
+      "count_kind": null,
+      "retained_output_sha256": "4951fc61fdaa7001ef69801c642a531d4ef05f2c6b91220903b54392674a096c"
+    },
+    {
+      "command": "node --test apps/desktop/test/acp-shell.test.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": 32,
+      "count_kind": "tests",
+      "retained_output_sha256": "c9b2a833e7b3384efa9fb89ab21960ad7150c435d91e3b94bbff38c8ac0a9d09"
+    },
+    {
+      "command": "node apps/desktop/test/pty-launch-failure.test.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": null,
+      "count_kind": null,
+      "retained_output_sha256": "0716c3488b9f2584819bce88bca511a9f2c31e3c04836fb352bdc561bda370c8"
+    },
+    {
+      "command": "node apps/desktop/test/pty.test.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": null,
+      "count_kind": null,
+      "retained_output_sha256": "eb88184d61e4dc11d7af0012f9d90d2b1176e0179ce415fde1a378af77e30319"
+    },
+    {
+      "command": "node scripts/check-containment.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": 12,
+      "count_kind": "permission_modes",
+      "retained_output_sha256": "89af4d86832a560e62a9e158f42e61d4cd5c25841eebffd9b2c95626ca9e9b20"
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit_code": 0,
+      "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+      "count": 340,
+      "count_kind": "region_markers",
+      "retained_output_sha256": "6e0bd86aa043f43ad6eebf88574c84ab4a8a5dfa372a68d77d66ba50dde89ab1"
+    }
+  ],
+  "diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0,
+    "source_commit": "67b763586ddfdb34878b29a6fb6117a0cc90ec52"
+  },
+  "isolation": "Final tests used an owned temporary root removed after completion. Dependency links reused existing dependencies; no installation.",
+  "not_run": [
+    "Full repository gate in this worker",
+    "Provider/model execution",
+    "All-host native acceptance"
+  ],
+  "provenance": "Summary transcribed from tool results and existing temporary logs; no tests or native calls rerun while writing this receipt. Hashes identify original temporary log bytes; private machine paths are intentionally not copied."
+}

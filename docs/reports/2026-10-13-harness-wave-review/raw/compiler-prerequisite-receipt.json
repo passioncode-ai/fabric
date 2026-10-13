@@ -1,0 +1,56 @@
+{
+  "source_commit_at_start": "829570ab586be73043bbd975280e89b20596a7fc",
+  "workspace_commit": "ea325a4ad1cb78bc4cdc1cedfe73e2de2be996d5",
+  "command": "node --test scripts/test/build-unified-plan.test.mjs",
+  "exit": 0,
+  "tests": 21,
+  "pass": 21,
+  "fail": 0,
+  "skip": 0,
+  "duration_seconds": 1095.62,
+  "environment": {
+    "temp": "owned disposable TMPDIR, removed after run",
+    "FABRIC_COMPILER_TEST_WORKSPACE": "not set",
+    "FABRIC_COMPILER_TEST_BASELINE": "not set"
+  },
+  "prerequisite_failure": {
+    "exit": 1,
+    "tests": 21,
+    "fail": 21,
+    "pass": 0,
+    "duration_seconds": 17.17,
+    "boundary": "fixture git clone --shared --no-checkout failed before assertions: partial-clone promised blob unavailable with lazy fetching disabled",
+    "repair": "Hydrate objects in the owned submodule without changing pinned HEAD; no source or foreign checkout edits."
+  },
+  "fixture_diagnostic": {
+    "canonical_rows": 683,
+    "COM_rows": 14,
+    "source_pins": 72,
+    "derived_records": 1020,
+    "ready": 0
+  },
+  "expensive_cases_seconds": {
+    "production_parity_variants_24": 281.34,
+    "directory_negative_cases": 130.15,
+    "new_output_boundaries": 106.53,
+    "scoped_NOT_RUN": 85.85
+  },
+  "reported_by": "/root/pipeline_research",
+  "limits": [
+    "Single compiler suite only, not full CI",
+    "Fixture output counts are not production task completion",
+    "No model/provider/Docker operation",
+    "No measured CPU peak, memory peak or machine-wide resource enforcement"
+  ],
+  "later_source_comparison": {
+    "through_commit": "30664c0e",
+    "unchanged_files": [
+      "scripts/test/build-unified-plan.test.mjs",
+      "scripts/build-unified-plan.py",
+      "scripts/unified-plan.mjs",
+      "scripts/unified-canonical-sources.mjs",
+      "docs/backlog-sources.json"
+    ],
+    "meaning": "Limited source comparison, not re-stamping the full suite onto a later candidate"
+  }
+}

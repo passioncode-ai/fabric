@@ -327,6 +327,14 @@ node --experimental-strip-types apps/desktop/test/chain-advance-reads.test.mjs
 node --experimental-strip-types apps/desktop/test/list-reads.test.mjs
 node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs
 node apps/desktop/test/session-bundle.test.mjs
+# #region harness-regressions — docs: docs/evidence/plans/2026-10-13-harness-waves.md#n-007-fast-gate-retention
+# Retain the pure harness regressions in fast, not only the full package chains.
+# Run fixture processes sequentially; no native agent, provider call or live database.
+node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs
+node --experimental-strip-types --test apps/desktop/test/session-enroll-request.test.mjs
+node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/acp-shell.test.mjs
+# #endregion harness-regressions
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
 # facts included — a real MCP client and server over the real registerWorkTools.
 node --experimental-strip-types --test apps/desktop/test/session-observe-wire.test.mjs

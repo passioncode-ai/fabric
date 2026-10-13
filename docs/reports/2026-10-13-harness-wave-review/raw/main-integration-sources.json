@@ -1,0 +1,57 @@
+{
+  "base": "4e227922909e14f5df3cf32895c02ac518dfa5bc",
+  "reviewer": "/root/pipeline_research",
+  "verdict": "scoped semantic union PASS, no tests run",
+  "production": [
+    {
+      "path": "apps/desktop/src/main/acpShell.ts",
+      "sha256": "2596a770c5e73c69a9b67283a88fb5ed9a420eb020645a00db9eea18382a796c",
+      "previous_wave_sha256": "2596a770c5e73c69a9b67283a88fb5ed9a420eb020645a00db9eea18382a796c"
+    },
+    {
+      "path": "apps/desktop/src/main/contextPack.ts",
+      "sha256": "14f86b2de0962331ec2df19c54420b7f19a3b6442ca94898c65982a8519eccf7",
+      "previous_wave_sha256": "14f86b2de0962331ec2df19c54420b7f19a3b6442ca94898c65982a8519eccf7"
+    },
+    {
+      "path": "apps/desktop/src/main/fabricMcp.ts",
+      "sha256": "ffe797ba0a97224b19dec24a425c6bbfa807e3a30a8c67d3221d20d3dede75c4",
+      "previous_wave_sha256": "12d7d19f78b274a1a3e72cb72ccbcd40365b77f42d5968684e1466b07779a819"
+    },
+    {
+      "path": "apps/desktop/src/main/fabricMcpClient.ts",
+      "sha256": "bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1",
+      "previous_wave_sha256": "bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1"
+    },
+    {
+      "path": "apps/desktop/src/main/pty.ts",
+      "sha256": "c09fe5d23c66d4fb75c099797b9b9d4f678f60e60eabd83f86776593d570ae44",
+      "previous_wave_sha256": "6549e75fb4fd2819df43e7edccd9333a02551bfb8fa7144f11151e167a293d02"
+    },
+    {
+      "path": "apps/desktop/src/main/sessionBundle.ts",
+      "sha256": "dee37f72ccc41e3f27dc8924b111dcd8d6bfa308075c0910e8787e7f1cce75e1",
+      "previous_wave_sha256": "efad1afccf6a2a5604b1f5e888ca5986662d1e49e2515d2e40ba8da1d048efed"
+    },
+    {
+      "path": "apps/desktop/src/main/sessionEnroll.ts",
+      "sha256": "7e2ebe5b57b13b8b00dbedde4ff803c66730bcc7f0c7b5bc61e95ec334cf2d49",
+      "previous_wave_sha256": "904b29859ac6f892ec8c5085cc9b12f36f84a99340210428d45d59895ebdc585"
+    },
+    {
+      "path": "apps/desktop/src/shared/agents.ts",
+      "sha256": "0144a97235ced8dbada025f69242f18f038ec6db2572e838374abdd1325effcd",
+      "previous_wave_sha256": "0144a97235ced8dbada025f69242f18f038ec6db2572e838374abdd1325effcd"
+    }
+  ],
+  "mcp_test_sha256": "a01bb5df0555a41234f79007f93842fad2210fe29ce460ac56b40ca3d2f4dede",
+  "test_names": {
+    "main": 34,
+    "wave": 43,
+    "union_unique": 45
+  },
+  "limits": [
+    "CI and native acceptance not established by source review",
+    "Automatic runtime identity remains Claude-only; unknown identity fallback remains disclosed"
+  ]
+}

@@ -20,6 +20,7 @@ import path from 'node:path'
 const HERE = import.meta.dirname
 const script = `
 import { createBundleCompiler } from ${JSON.stringify(path.join(HERE, '../src/main/sessionBundle.ts'))}
+import { AGENTS, mayLaunch } from ${JSON.stringify(path.join(HERE, '../src/shared/agents.ts'))}
 import { PtyManager } from ${JSON.stringify(path.join(HERE, '../src/main/pty.ts'))}
 import { useOps } from ${JSON.stringify(path.join(HERE, '../src/main/opsSink.ts'))}
 import { MandatoryContextUnmet } from ${JSON.stringify(path.join(HERE, '../src/main/contextPack.ts'))}
@@ -655,6 +656,45 @@ else {
   ok('unlink failure preserves the launch error, revokes authority and logs no dependency error secrets')
 }
 
+
+// #region adapter-mode-regressions — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
+// CO-282 / N-002: use the real catalogue and compiler, never a copy of the runner row.
+{
+  for (const runner of AGENTS.filter(a => a.surfaceAdapter === 'acp-session')) {
+    for (const mode of runner.permissionModes) {
+      const verdict = mayLaunch(runner.id, mode.id)
+      assert.equal(verdict.ok, true)
+      const id = randomUUID()
+      const bundle = await bundles.compile(id, randomUUID(), null, runner.id, runner.surfaceAdapter, null, verdict.config)
+      const spec = JSON.parse(bundle.env.FABRIC_ACP_SESSION)
+      assert.equal(spec.mode, mode.id === 'bypass' ? 'bypass' : 'ask')
+      if (runner.id === 'kimi-code') {
+        assert.equal(spec.sessionMode, { plan: 'plan', ask: 'default', bypass: 'yolo' }[mode.id], 'Kimi needs its native ACP mode, not ignored CLI flags')
+        assert.deepEqual(mode.args, [], 'Kimi ACP does not receive TUI flags')
+      } else assert.equal(spec.sessionMode, undefined, 'Hermes keeps its existing permission path')
+      bundles.discard(id)
+    }
+  }
+  ok('all ACP catalogue modes compile into their effective protocol semantics')
+}
+{
+  let spawns = 0, minted = 0, events = 0
+  for (const runner of AGENTS.filter(a => a.connectsToSurface)) {
+    writeFileSync(path.join(standIn, runner.program), '#!/bin/sh\\nexit 0\\n', { mode: 0o755 })
+    for (const absent of ['compiler', 'surface']) {
+      const compiler = absent === 'compiler' ? undefined : createBundleCompiler({ root, surface: { endpoint: '', mint: () => { minted++; return { token: 'fixture' } }, revokeSession() {} } })
+      const manager = new PtyManager({ append: async () => { events++; return { seq: 1 } } }, randomUUID(), { onData() {}, onExit() {} }, compiler,
+        () => { spawns++; throw Error('must not spawn without surface') }, undefined, () => ({ kind: 'person', id: 'operator' }))
+      await assert.rejects(manager.open(randomUUID(), root, runner.id), /agent surface is not running/, runner.id + ': ' + absent)
+      assert.equal(manager.list().length, 0)
+      if (runner.permissionModes.length) await assert.rejects(manager.open(randomUUID(), root, runner.id, null, 'invalid-mode-fixture'), /mode|permission/i)
+    }
+  }
+  assert.equal(spawns, 0); assert.equal(minted, 0); assert.equal(events, 0)
+  ok('every connected catalogue runner refuses missing compiler/surface before spawn, mint and journal')
+}
+
+// #endregion adapter-mode-regressions
 if (failures > 0) {
   console.error('\\n' + failures + ' check(s) FAILED — a credential outlives what it was minted for')
   process.exit(1)

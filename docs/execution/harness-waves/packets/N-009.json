@@ -1,0 +1,47 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-009",
+  "node": "N-009",
+  "parent_id": "CO-282",
+  "module": "Owner acceptance REQ-007",
+  "intent": "Verify actual upstream acceptance for REQ-007",
+  "expected_result": "Existing owners receive precise provenance, lesson and routing acceptance; unavailable board remains NOT_SENT",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/N-009-owner-acceptance.json"
+    ]
+  },
+  "outputs": [
+    "docs/execution/harness-waves/N-009-owner-acceptance.json"
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Verify plan row N-009 against owner candidate and runtime receipt"
+    },
+    {
+      "kind": "negative",
+      "check": "NOT_SENT, installation-only and configuration-only reports cannot satisfy this node"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Wait for authorized owner board channel, then submit existing owner packet and verify implementation receipt; preserve blocked state while NOT_SENT"
+  }
+}

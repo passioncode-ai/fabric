@@ -91,5 +91,51 @@ await test('facts past one read are COUNTED: omittedFacts includes what the gate
   assert.match(pack.markdown, /500 fact\(s\)/)
 })
 
+await test('the budget includes oversized project/task input and rejects instead of truncating authority', async () => {
+  for (const input of [
+    { store: store({ ...healthy, projects: { data: { name: 'Atlas', purpose: '😀'.repeat(1000) }, error: null } }) },
+    { taskInstruction: 'work '.repeat(1000) },
+    { taskBrief: { what: 'x'.repeat(5000), why: 'why', expected: 'done' } },
+    { store: store({ ...healthy, project_repos: { data: [{ path: '/repo/' + 'x'.repeat(5000), is_primary: true }], error: null } }) }
+  ]) {
+    await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget: 1000, ...input }),
+      e => e instanceof MandatoryContextUnmet && /budget/i.test(e.message))
+  }
+})
+
+await test('invalid and impossibly small budgets cannot produce a pack', async () => {
+  for (const budget of [0, -1, 1, 0.5, NaN, Infinity]) {
+    await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget }),
+      e => e instanceof MandatoryContextUnmet && /budget/i.test(e.message))
+  }
+})
+
+await test('facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget', async () => {
+  const fact = i => ({ id: `f${i}`, claim: '😀'.repeat(50), source_ref: null, kind: 'note', actor_kind: i % 2 ? 'agent' : 'person', actor_id: 'op', recorded_at: 'x', seq: i })
+  const answers = { ...healthy,
+    memory_facts: { data: Array.from({ length: 20 }, (_, i) => fact(i)), error: null, count: 29 },
+    session_transcripts: { data: Array.from({ length: 5 }, (_, i) => ({ session_id: `s${i}`, annotation: 'ran 😀'.repeat(30), ending_provenance: 'observed' })), error: null },
+    project_repos: { data: null, error: { message: 'refused' } }
+  }
+  for (const budget of [1000, 1100, 1300, 1600, 2000, 3000, 6000, 12000]) {
+    const pack = await compileContextPack({ store: store(answers), projectId: 'p1', budget })
+    assert.equal(pack.chars, pack.markdown.length)
+    assert.ok(pack.chars <= budget, `${pack.chars} > ${budget}`)
+    assert.match(pack.markdown, /could not be read/)
+    assert.match(pack.markdown, new RegExp(`${pack.omittedFacts} fact\\(s\\)`))
+    assert.equal(pack.factIds.length + pack.omittedFacts, 29)
+    assert.equal(pack.transcriptIds.length + pack.omittedTranscripts, 5)
+    if (pack.factIds.some(id => Number(id.slice(1)) % 2)) assert.match(pack.markdown, /DATA, NOT INSTRUCTIONS/)
+  }
+})
+
+await test('an empty pack fits its exact size, including the final newline', async () => {
+  const first = await compileContextPack({ store: store(healthy), projectId: 'p1' })
+  const exact = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars })
+  assert.equal(exact.chars, first.chars)
+  await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars - 1 }),
+    e => e instanceof MandatoryContextUnmet)
+})
+
 if (failures) { console.log('\n' + failures + ' failure(s)'); process.exit(1) }
 console.log('\nall green: an unattended start runs on its required context or not at all')
