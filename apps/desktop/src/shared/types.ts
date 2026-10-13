@@ -1283,8 +1283,20 @@ export interface FabricApi {
    * travels through unchanged).
    */
   comms: {
+    /** Deprecated for one release (wave 4): every thread at once. The screen reads `threadPage`. */
     threads(): Promise<import('./commsRead.ts').CommsThreadsReply>
     list(threadId: string | null, afterSeq: number, limit?: number): Promise<import('./commsRead.ts').CommsPageReply>
+    // Wave 4's reads (migration 89; SCN-143's wave-4 amendment, SCN-147, SCN-156, SCN-157). Still READ-ONLY.
+    threadPage(filter: import('./commsRead.ts').CommsThreadFilter, before: import('./commsRead.ts').CommsThreadCursor | null, limit?: number): Promise<import('./commsRead.ts').CommsThreadPageReply>
+    heads(): Promise<import('./commsRead.ts').CommsHeadsReply>
+    responders(): Promise<import('./commsRead.ts').CommsRespondersReply>
+    facts(messages: string[]): Promise<import('./commsRead.ts').CommsFactsReply>
+    timeline(requestId: string): Promise<import('./commsRead.ts').CommsTimelineReply>
+    related(threadId: string): Promise<import('./commsRead.ts').CommsRelatedReply>
+    search(query: string, before: number | null): Promise<import('./commsRead.ts').CommsSearchReply>
+    pending(): Promise<import('./commsRead.ts').CommsPendingReply>
+    /** Opens an artifact's link in the browser — only an `https:` one; any other scheme is refused in main. */
+    openArtifact(url: string): Promise<import('./commsRead.ts').CommsOpenArtifactReply>
   }
   /**
    * The onboarding form's contents, kept where the operator's own state is kept
@@ -1693,6 +1705,15 @@ export const IPC = {
   feedReplay: 'feed:replay',
   commsThreads: 'comms:threads',
   commsList: 'comms:list',
+  commsThreadPage: 'comms:thread-page',
+  commsHeads: 'comms:heads',
+  commsResponders: 'comms:responders',
+  commsFacts: 'comms:facts',
+  commsTimeline: 'comms:timeline',
+  commsRelated: 'comms:related',
+  commsSearch: 'comms:search',
+  commsPending: 'comms:pending',
+  commsOpenArtifact: 'comms:open-artifact',
   attentionGrant: 'attention:grant',
   analyticsStatus: 'analytics:status',
   analyticsSetEnabled: 'analytics:set-enabled',

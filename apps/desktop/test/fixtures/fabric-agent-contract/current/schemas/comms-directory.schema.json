@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-directory.schema.json",
   "title": "com.directory result: the addressable Projects of the caller's estate (fabric-project-comms/0.1, DEC-0073)",
-  "description": "Names, ids, listed capabilities and responder state only: never a message, a body, a participant, a thread, a count, a generation, a lease or a holder, and never a Project of another estate or one its operator unlisted.",
+  "description": "Names, ids, listed capabilities, responder state and whether the operator holds a capability only: never a message, a body, a participant, a thread, a count, a generation, a lease, a lease holder or who set a hold, and never a Project of another estate or one its operator unlisted.",
   "type": "object",
   "required": [
     "protocol",
@@ -73,6 +73,10 @@
                     "stale",
                     "absent"
                   ]
+                },
+                "held": {
+                  "description": "The same fact as com.status's responders[].held (DEC-0079): true when the operator holds this capability's slot or the whole Project, so a request to it waits and its deadline keeps running; absent or false: not held. Never names who set the hold.",
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false

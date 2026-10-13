@@ -28,7 +28,25 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "if": {
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "const": "held"
+          }
+        }
+      },
+      "then": {
+        "description": "An operator's hold (DEC-0079) is lifted by the operator, so the same call may be repeated later: held is always retryable.",
+        "properties": {
+          "retryable": {
+            "const": true
+          }
+        }
+      }
     }
   },
   "additionalProperties": false

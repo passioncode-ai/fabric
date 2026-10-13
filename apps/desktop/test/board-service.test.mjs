@@ -50,12 +50,26 @@ test('Fabric\'s commsDigest reproduces every digest vector the contract publishe
   for (const r of vectors.refuses) assert.throws(() => commsDigest(r.operation, JSON.parse(r.argsJson)), CommsCanonicalError, r.name)
 })
 
+// What the pin (a59d04b) grades valid and Fabric does not serve yet, each named with the node that serves it and the
+// contract decision behind it. Fabric refuses these today on purpose; the list is exact both ways — a new disagreement
+// fails the mirror tests, and so does a member Fabric starts serving without leaving this list.
+const OWED = new Map([
+  ['comms-submit-finding', 'W4-12: the structured finding on com.submit (DEC-0080)'],
+  ['comms-directory-held', 'W4-7: a paused capability in the directory (DEC-0079)'],
+  ['comms-receipt-reconcile-owner', 'W4-13: the owner\'s settlement receipt, settledBy "owner" (DEC-0081)']
+])
+const verdict = (e, accepted, mirror) => {
+  if (OWED.has(e.name)) assert.equal(accepted, false, `${e.name}: Fabric now serves it — take it out of OWED (${OWED.get(e.name)})`)
+  else assert.equal(accepted, e.valid, `${e.name}: Fabric's ${mirror} and the contract disagree`)
+}
+
 test('the input schema reaches the contract\'s verdict on every comms-submit fixture it grades', () => {
   const graded = catalogue.filter(e => e.schema === 'comms-submit.schema.json')
-  assert.equal(graded.length, 8)
+  // DEC-0022's eight, and DEC-0080's structured finding (one positive, thirty-three negatives) at a59d04b.
+  assert.equal(graded.length, 42)
   for (const e of graded) {
     const doc = fixtures.document('current/' + e.path)
-    assert.equal(commsSubmitSchema.safeParse(doc).success, e.valid, `${e.name}: Fabric's schema and the contract disagree`)
+    verdict(e, commsSubmitSchema.safeParse(doc).success, 'schema')
     assert.equal(validators['comms-submit.schema.json'](doc), e.valid, `${e.name}: the pinned schema disagrees with its own catalogue`)
   }
 })
@@ -384,7 +398,7 @@ test('every zod mirror reaches the contract\'s verdict on every fixture the pin 
     assert.ok(graded.length >= 1, `${schema}: the pin grades no fixture`)
     for (const e of graded) {
       const doc = fixtures.document('current/' + e.path)
-      assert.equal(mirror.safeParse(doc).success, e.valid, `${e.name}: Fabric's mirror and the contract disagree`)
+      verdict(e, mirror.safeParse(doc).success, 'mirror')
       n++
     }
   }

@@ -189,3 +189,15 @@ test('every window Fabric gives the preload is created with its kind', () => {
   const registered = [...main.matchAll(/windowKinds\.register\(/g)].length
   assert.equal(registered, preloads, 'a window with the preload that the registry never learns of')
 })
+
+// Wave 4's Comms reads (W4-2): the operator's screen lives in the main window, and nothing a session or editor window
+// shows needs to read the board's facts, search it or open its links.
+test('the Comms wave-4 reads and comms:open-artifact are the main window\'s alone', () => {
+  const channels = ['commsThreadPage', 'commsHeads', 'commsResponders', 'commsFacts', 'commsTimeline', 'commsRelated', 'commsSearch', 'commsPending', 'commsOpenArtifact']
+  for (const key of channels) {
+    assert.ok(key in IPC, `IPC.${key} is missing`)
+    assert.deepEqual(Object.keys(CHANNEL_RULES[key]), ['main'], `IPC.${key}`)
+    for (const kind of ['session', 'editor']) assert.equal(authorise({ kind, subject: 's-1' }, IPC[key], []).ok, false, `${kind} reached IPC.${key}`)
+  }
+  assert.equal(IPC.commsOpenArtifact, 'comms:open-artifact')
+})

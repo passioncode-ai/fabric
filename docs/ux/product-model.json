@@ -10992,7 +10992,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2071,
+        "line": 2083,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11105,7 +11105,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2095,
+        "line": 2107,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -33809,7 +33809,7 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`",
+      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`; wave 4 (W4-1…W4-3): the bounded page, the board's filters and the heads in `supabase/migrations/20261013000108_project_board_operator_reads.sql` (`board_thread_page_operator`, `board_thread_heads_operator`), the `comms:thread-page` / `comms:heads` IPC over `commsOperatorRead.ts`, the list's rules in `apps/desktop/src/renderer/src/launch/commsList.ts` (tested in `commsList.test.ts`), the rail's count from the heads in `App.tsx` and `LaunchShell.tsx` (\"5000+\", `FabricStrip.test.tsx`); DB tests in `apps/desktop/test/project-board-operator-db.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator watches projects coordinate without joining a session, and every message on screen is one the board holds — the screen shows the board's truth, never a renderer's cache of it.",
@@ -33836,7 +33836,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3595
+        "line": 3596
       }
     },
     {
@@ -33855,7 +33855,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3623
+        "line": 3624
       }
     },
     {
@@ -33874,7 +33874,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3654
+        "line": 3655
       }
     },
     {
@@ -33886,14 +33886,14 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "none yet — designed for wave 4 (the responder line, outcomes, `outcome_unknown` wording and read marks are node W4-4; artifacts, timeline and related threads W4-5; the settle action W4-13, after the repin to fabric-agent-contract `43bef18` or later, DEC-0081)",
+      "coverage": "steps 1–5 and 7 built (W4-1, W4-4, W4-5) — the reads `board_responders_operator` (replaced), `board_message_facts_operator`, `board_request_timeline_operator`, `board_related_threads_operator` in `supabase/migrations/20261013000108_project_board_operator_reads.sql`; `apps/desktop/src/main/commsOperatorRead.ts` (`responders`, `facts`, `timeline`, `related`, `openArtifact` — https only); `apps/desktop/src/renderer/src/launch/CommsParts.tsx` (`ResponderLine`, `UnknownLine`, `OutcomeBlock`, `ReadBy`, `ArtifactList`, `Timeline`, `RelatedThreads`) and `CommsScreen.tsx`; tests `apps/desktop/test/project-board-operator-db.test.mjs`, `apps/desktop/test/comms-operator-read.test.mjs`, `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`. Step 6, the settle action, is W4-13, after the repin to fabric-agent-contract `43bef18` or later (DEC-0081); the pin is `a59d04b` since W4-1, and Fabric does not serve owner settlement yet",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "for every request on screen the operator knows who answers it now, how it ended and on whose word; and a request whose responder is gone does not stay unsettled once its owner has observed what happened.",
       "errors_recovery": "each read fails on its own and says so where its answer would be; what was read stays on screen. The settle sheet never resends by itself: a lost answer is resolved by reading the request again, and the same idempotency key makes a second press the same settlement.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3691
+        "line": 3692
       }
     },
     {
@@ -33914,7 +33914,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3720
+        "line": 3722
       }
     },
     {
@@ -33935,7 +33935,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3747
+        "line": 3749
       }
     },
     {
@@ -33947,14 +33947,14 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "none yet — designed for wave 4 (the search read W4-1, the screen W4-5)",
+      "coverage": "built — `board_search_operator` in `supabase/migrations/20261013000108_project_board_operator_reads.sql`; `search` in `apps/desktop/src/main/commsOperatorRead.ts`; `SearchPanel` in `apps/desktop/src/renderer/src/launch/CommsParts.tsx`; tests `apps/desktop/test/project-board-operator-db.test.mjs` (escaping, redaction, the estate, paging, the planted zero budget), `comms-operator-read.test.mjs`, `CommsScreen.test.tsx` (\"history search (SCN-156)\")",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a message the board holds is found by its words, and opening it shows it in its thread.",
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3773
+        "line": 3775
       }
     },
     {
@@ -33966,14 +33966,14 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "none yet — designed for wave 4 (the pending read W4-1, the panel W4-6)",
+      "coverage": "built — `board_pending_operator` in `supabase/migrations/20261013000108_project_board_operator_reads.sql`; `pending` in `apps/desktop/src/main/commsOperatorRead.ts`; `PendingPanel` in `apps/desktop/src/renderer/src/launch/CommsParts.tsx`; tests `apps/desktop/test/project-board-operator-db.test.mjs` (\"pending: …\"), `comms-operator-read.test.mjs`, `CommsScreen.test.tsx` (\"what waits for a project (SCN-157)\")",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator sees which projects have messages nobody there has read, how old the oldest is, and which requests nobody can answer.",
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3796
+        "line": 3799
       }
     }
   ],
@@ -35818,7 +35818,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2633
+        "line": 2634
       },
       "mermaid_source": "flowchart TD\n  E[com.enroll capability] -->|no grant| NA[not_authorized: ask the operator — FLW-85; nothing written]\n  E -->|live holder is another session| FX[fenced: use com.responder_replace]\n  E --> S[Slot: generation n, lease 60 s database time]\n  S --> C[com.claim]\n  C -->|nothing claimable| NC[ok, nothing stored: poll again with the same key]\n  C --> A[request claimed, attempt id, digest]\n  A -->|com.accept| AC[accepted]\n  AC -->|com.effect_begin| IP[in_progress, effect started]\n  AC -->|com.complete| DONE[completed or failed_known]\n  IP -->|com.complete observed| DONE\n  IP -->|com.complete not observed| OR[observation_required]\n  S -->|lease lapses| ST[stale]\n  ST -->|another granted session enrolls| N[generation n+1: claimed back to queued, in_progress to outcome_unknown, accepted held]\n  N -->|old holder's late call| F[fenced or lease_expired: nothing committed]\n  S -->|session ends| R[released: nothing moves; a claimed request is taken again as a lapsed claim]\n  R -->|next holder enrolls| N2[in_progress to outcome_unknown; claimed stays claimed; accepted held]\n  N --> RC[com.reconcile observed by the current holder: outcome_unknown to completed or failed_known]\n  S -->|grant revoked| AU[authority_changed: the request stays where it was]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35837,7 +35837,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2680
+        "line": 2681
       },
       "mermaid_source": "flowchart TD\n  Q[Agent asks board.respond on board:project/capability, 1 to 8, one project] -->|not a coding agent or registered agent, unknown project, two projects, a folder| X[Refused before anything is shown]\n  Q --> P[Prompt or queue: Let agent answer capabilities requests for project? — may take and answer them; cannot spend, publish or delete; same-user floor; a year unless revoked]\n  P -->|Deny, the default| D[Denied until cleared in SCR-76]\n  P -->|Allow| G[Grant listed in SCR-76: answer capabilities requests for project]\n  G -->|a coding agent| U1[Its sessions enroll with com.enroll — FLW-84]\n  G -->|a service| U2[fabric.board.join: a board session with the com.* tools only]\n  G -->|Revoke in SCR-76| V[Slots released; next responder call authority_changed; a board session holding it ends]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35858,7 +35858,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2706
+        "line": 2707
       },
       "mermaid_source": "flowchart TD\n  C[SCR-81: a pause control, owner only] -->|a member| M[One line: only the estate's owner can pause or resume; no controls]\n  C -->|press| S[SCR-82: what stops in this scope; what keeps going; a pause cannot stop work already started]\n  S -->|Esc or close| C\n  S -->|Open Agents & access| AA[SCR-76: revoke the agent — FLW-85; its slots released, the responder line reads absent]\n  S -->|Pause| B[Busy]\n  B -->|recorded| D[Paused, announced; the chip on the thread or responder line]\n  B -->|it was already paused| AL[It was already in that state. Nothing changed]\n  B -->|not the owner| NO[Only the estate's owner can pause or resume]\n  B -->|access changed since the window opened| AM[Reopen and try again; nothing changed]\n  B -->|the target is not in this estate| NF[Not found]\n  B -->|the answer was lost| MS[This may have been saved: read the pauses again and show what they say]\n  D -->|agents' new work in the scope| HD[Refused held — FLW-84; reports on started work go on]\n  D -->|Resume| R[Busy, then Resumed, announced; the chip gone; a refused call sent again with its key goes through]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35879,7 +35879,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2740
+        "line": 2741
       },
       "mermaid_source": "flowchart TD\n  E[Settings or Agents & access] --> L[SCR-83: loading]\n  L -->|the directory did not answer| U[The directory did not answer — never an empty list; no switch offered]\n  L --> RD[Active projects, each with Listed for other projects]\n  RD -->|a member| RO[Switches read-only: only the estate's owner can change this]\n  RD -->|switch or What other projects see| PV[Preview: name, capabilities with responder state and paused — nothing else]\n  PV -->|no capability| PE[No capabilities: no agent may answer requests for it yet]\n  PV -->|confirm the switch| SV[Saving]\n  SV -->|recorded| OK[The switch shows the directory's answer, announced]\n  SV -->|already that way| AL[Nothing changed, nothing recorded]\n  SV -->|not the owner, or access changed| RF[Refused: reopen and try again]\n  SV -->|the answer was lost| MS[This may have been saved: read the directory again]",
       "status": "target_or_mixed_not_coverage_claim",

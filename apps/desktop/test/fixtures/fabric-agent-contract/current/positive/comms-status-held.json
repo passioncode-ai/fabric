@@ -1,0 +1,23 @@
+{
+  "protocol": "fabric-project-comms/0.1",
+  "board": {
+    "state": "ready"
+  },
+  "project": "proj-analytics",
+  "responders": [
+    {
+      "capability": "analytics.retention",
+      "state": "active",
+      "generation": 2,
+      "leaseExpiresAt": "2026-10-13T15:02:00Z",
+      "provenance": "trusted",
+      "held": true
+    },
+    {
+      "capability": "analytics.ask",
+      "state": "absent",
+      "generation": 0,
+      "held": false
+    }
+  ]
+}

@@ -270,18 +270,21 @@ migration 91 (`grants_from_the_journal`) carry no project, and after the upgrade
 they expire or are spent (91's own note; no journal event names them, so a restore never recreates them). Nothing
 revokes them; upgrade at least an hour after the last such grant, or let them expire.
 
-**The next release admits schema 88** — four migrations past 0.3.5's 84, applied in order:
+**The next release admits schema 89** — five migrations past 0.3.5's 84, applied in order:
 `20261011000100_project_board_thread_aggregates.sql` (count 85: the Comms thread list's kinds and open requests),
 `20261012000103_project_board_lifecycle.sql` (count 86: the project board's lifecycle, ADR-0149 — epochs, reply,
 cancel, expiry, deliveries, the outbox, board history in the archive) and
 `20261012000104_project_board_responders.sql` (count 87: the board's responders, ADR-0149 Amendment 1 — slots,
 enrollments, attempts, the fence, release, the project directory) and
 `20261013000107_project_board_w2_fixes.sql` (count 88: the board's wave-2 fixes, ADR-0149 Amendment 2 — functions
-replaced in place, `transferred` in the replace receipt). 84 + 4 = **88**, whatever the suffixes say
-(101/102 were never applied; they were the pipeline's prose reservation, now 105/106). The procedure is the same
-with 88 in place of 84. Migration 86 rewrites the board's stored idempotency receipts once, to the shape without
+replaced in place, `transferred` in the replace receipt) and `20261013000108_project_board_operator_reads.sql` (count
+89: the operator's reads of the board, ADR-0156 §8 — the bounded thread page, heads, message facts, the request
+timeline, related threads, history search, what waits for a project, and `settledBy` on complete and reconcile
+transitions). 84 + 5 = **89**, whatever the suffixes say (101/102 and 105/106 were never applied; they were the
+pipeline's prose reservation, now 110/111). The procedure is the same with 89 in place of 84. Migration 86 rewrites the board's stored idempotency receipts once, to the shape without
 `seq`; an archive taken before it has no `board.json`, and restores with the board's texts missing. Migration 87 adds
-tables and functions only and rewrites no stored row; migration 88 replaces functions only.
+tables and functions only and rewrites no stored row; migration 88 replaces functions only; migration 89 adds
+functions and one partial index on the journal and rewrites no stored row.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

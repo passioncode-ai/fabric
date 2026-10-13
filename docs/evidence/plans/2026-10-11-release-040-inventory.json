@@ -6378,14 +6378,14 @@
   "id": "COM-05",
   "source": "docs/evidence/plans/2026-10-04-project-communications.md:43",
   "title": "Work awareness and dependency findings",
-  "status": "open",
+  "status": "partial",
   "area": "board/communications",
   "blockedBy": [
    "COM-02",
    "COM-03"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "",
+  "notes": "shipped in the wave-4 reads (2026-10-13): what waits for a project (SCN-157, migration 89); remaining: structured findings (DEC-0080, W4-12)",
   "register": "COM plan",
   "node": "C8",
   "wave": "W2",
@@ -6401,7 +6401,7 @@
    "COM-01"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "shipped: the operator read screen and SCN-143 (3bba5412); remaining after 0.4.0: operator controls (operator decision D9, 2026-10-12)",
+  "notes": "shipped: the operator read screen and SCN-143 (3bba5412); remaining after 0.4.0: operator controls (operator decision D9, 2026-10-12); history search built in the wave-4 reads (SCN-156, migration 89)",
   "register": "COM plan",
   "node": "C8",
   "wave": "W6",
@@ -6420,7 +6420,7 @@
    "COM-06"
   ],
   "closableInOnePass": "no — packet with its own acceptance; several runs",
-  "notes": "shipped: live read and history paging (3bba5412), filters (bbaec717), operator unread marks (e4318bf2), time filters (50cb3b18, 2edc2242); remaining after 0.4.0: participant read marks, artifact links, virtualized history, responder state, the chain interface",
+  "notes": "shipped: live read and history paging (3bba5412), filters (bbaec717), operator unread marks (e4318bf2), time filters (50cb3b18, 2edc2242); the wave-4 reads (2026-10-13, migration 89): bounded newest-first page, board filters and the agent filter, heads badge, responder line, outcomes, read marks, artifact links, timeline and related threads; remaining: the browser walk (W4-11)",
   "register": "COM plan",
   "node": "C8",
   "wave": "W6",

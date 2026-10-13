@@ -10,6 +10,7 @@ import { hubServerFor } from '../src/main/hubTools.ts'
 import { normaliseAccessRequest } from '../src/shared/access.ts'
 import { AgentSurface } from '../src/main/agentSurface.ts'
 import { compileCommsValidators, compilePinnedSchemas, fixtureRoot, loadPinnedFixtures } from './contract-consumer-fixtures.mjs'
+import { transitionFindings } from '../src/main/commsTransition.ts'
 
 const fixtures = loadPinnedFixtures()
 const current = compilePinnedSchemas(fixtures)
@@ -148,9 +149,10 @@ test('every comms fixture the contract grades gets the same verdict from the pin
   const vendored = new Set(fixtures.source.files.map(file => file.upstreamPath))
   // A comms fixture the contract grades but this copy left out would be a verdict silently skipped.
   assert.deepEqual(graded.map(entry => 'fixtures/' + entry.path).filter(path => !vendored.has(path)), [])
-  // DEC-0022's seventeen, DEC-0073's fifty-two (the tools' arguments, the receipt, the directory) and DEC-0078's eight
-  // (the replace receipt's `transferred`: one positive, seven negatives) at f00a768.
-  assert.equal(graded.length, 77)
+  // DEC-0022's seventeen, DEC-0073's fifty-two (the tools' arguments, the receipt, the directory), DEC-0078's eight
+  // (the replace receipt's `transferred`: one positive, seven negatives) at f00a768, and DEC-0079's, DEC-0080's and
+  // DEC-0081's fifty-nine (the held refusal and member, the structured finding, the owner's settlement) at a59d04b.
+  assert.equal(graded.length, 136)
   for (const entry of graded) {
     const validate = comms[entry.schema]
     assert.ok(validate, `${entry.name}: no compiled comms schema ${entry.schema}`)
@@ -163,6 +165,44 @@ test('every comms fixture the contract grades gets the same verdict from the pin
   assert.equal(forged.length, 7)
   assert.ok(forged.every(v => v === false), 'a forged estate, sender, project or principal passed a pinned schema')
 })
+
+// #region project-board-settled-by — docs: docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md#7-the-owner-settles-a-request-nobody-can-settle-contract-dec-0081
+test('FAC-SEM-109 (DEC-0081): Fabric\'s transition rules give every settlement vector the contract\'s answer, in its order', () => {
+  const vectors = fixtures.document('current/vectors/comms-settlement.json')
+  assert.equal(vectors.cases.length, 31, 'the pin publishes thirty-one settlement vectors')
+  for (const c of vectors.cases) {
+    assert.deepEqual(transitionFindings(c.record).map(f => `${f.code} ${f.instancePath}`), c.expect, c.name)
+  }
+  // The boundaries a port gets wrong, present by name: a vector set that lost them would pass a lax port.
+  const names = new Set(vectors.cases.map(c => c.name))
+  for (const name of ['owner-summary-2000-astral-characters', 'owner-summary-2001-characters', 'settled-by-null', 'owner-provenance-capitalised',
+    'reconcile-record-without-settled-by', 'complete-record-without-settled-by', 'owner-abandons-to-cancelled'])
+    assert.ok(names.has(name), name)
+  // An op named after an Object.prototype member is a finding, never a throw.
+  for (const op of ['constructor', '__proto__', 'toString']) assert.deepEqual(transitionFindings({ op, from: 'queued', to: 'claimed' }).map(f => f.code), ['FAC-SEM-027'])
+  assert.deepEqual(transitionFindings(null).map(f => f.code), ['FAC-SEM-027'], 'a record that is not an object is read as an empty one')
+})
+
+// The pin's other two vector sets are owed, by name, to the nodes that build what they test (never skipped silently):
+// the hold matrix to W4-7 (migration 109's board_hold_refusal), the structured finding to W4-12 (after DEC-0080 is served).
+// What READS can say today is said here: the contract never refuses a read under any hold, and every message case of the
+// finding vectors is a read of a member Fabric does not serve yet.
+test('DEC-0079 hold vectors: the reads are never refused under any hold; the rest are owed to W4-7', () => {
+  const v = fixtures.document('current/vectors/comms-hold.json')
+  assert.equal(v.cases.length, 114)
+  const READS = new Set(['com.list', 'com.get', 'com.status', 'com.directory', 'com.read_ack'])
+  const reads = v.cases.filter(c => READS.has(c.tool))
+  assert.equal(reads.length, 25, 'each read tool with no hold, under each scope alone and under all three')
+  for (const c of reads) assert.equal(c.refused, false, c.name)
+  assert.equal(v.cases.length - reads.length, 89, 'the commands\' cases W4-7 runs through its port')
+})
+test('DEC-0079 hold vectors through Fabric\'s hold check (89 command cases: submit, reply, enroll, responder_replace, claim, accept, effect_begin, complete, reconcile, progress, renew, cancel, release)', { todo: 'owed to W4-7: migration 109 builds the hold check these run through' }, () => {})
+test('DEC-0080 finding vectors: 61 cases (57 on com.submit, 4 on a message as read)', { todo: 'owed to W4-12: Fabric serves the structured finding after DEC-0080 is built' }, () => {
+  const v = fixtures.document('current/vectors/comms-finding.json')
+  assert.equal(v.cases.length, 61)
+  assert.equal(v.cases.filter(c => c.on === 'message').length, 4)
+})
+// #endregion project-board-settled-by
 
 test('planted schema byte drift refuses before compilation; no regex or revision fallback', () => {
   const root = mkdtempSync(join(tmpdir(), 'fabric-contract-byte-drift-'))

@@ -13,7 +13,7 @@
       "const": true
     },
     "repeated": {
-      "description": "true: the same idempotency key and digest were already stored, and this is that receipt; for a com.progress note, the note was already posted under this attempt and key; for com.read_ack, the reader had already marked the message read. com.renew and com.progress without a note store nothing and answer false.",
+      "description": "true: the same idempotency key and digest were already stored, and this is that receipt; for a com.submit of a finding under a fresh key, the sender Project's retained finding with the same dedupeKey already stands, and this is that finding's receipt, no message stored (DEC-0080); for a com.progress note, the note was already posted under this attempt and key; for com.read_ack, the reader had already marked the message read. com.renew and com.progress without a note store nothing and answer false.",
       "type": "boolean"
     },
     "message": {
@@ -48,10 +48,32 @@
         "revision": {
           "type": "integer",
           "minimum": 1
+        },
+        "settledBy": {
+          "$ref": "comms-common.schema.json#/$defs/settledBy"
         }
       },
       "additionalProperties": false,
-      "description": "The request this call created or moved, after the call."
+      "if": {
+        "properties": {
+          "settledBy": true
+        },
+        "required": [
+          "settledBy"
+        ]
+      },
+      "then": {
+        "description": "Only a settled request can have been settled by the owner (DEC-0081).",
+        "properties": {
+          "state": {
+            "enum": [
+              "completed",
+              "failed_known"
+            ]
+          }
+        }
+      },
+      "description": "The request this call created or moved, after the call. After the estate owner settled it, settledBy is owner; absent, the responder settled it (DEC-0081)."
     },
     "slot": {
       "type": "object",

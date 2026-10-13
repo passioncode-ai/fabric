@@ -20,14 +20,36 @@
  * undefined on screen as if it were data.
  */
 
-import type {
-  CommsMessage,
-  CommsPageReply,
-  CommsPrincipal,
-  CommsReadError,
-  CommsRequest,
-  CommsThread,
-  CommsThreadsReply
+import {
+  COMMS_KINDS,
+  type CommsArtifact,
+  type CommsFactsReply,
+  type CommsHead,
+  type CommsHeadsReply,
+  type CommsMessage,
+  type CommsOpenArtifactReply,
+  type CommsOutcome,
+  type CommsPageReply,
+  type CommsPageThread,
+  type CommsPending,
+  type CommsPendingReply,
+  type CommsPrincipal,
+  type CommsReadError,
+  type CommsRelatedReply,
+  type CommsRelatedThread,
+  type CommsRequest,
+  type CommsRequestFacts,
+  type CommsResponder,
+  type CommsRespondersReply,
+  type CommsSearchHit,
+  type CommsSearchReply,
+  type CommsThread,
+  type CommsThreadCursor,
+  type CommsThreadFilter,
+  type CommsThreadPageReply,
+  type CommsThreadsReply,
+  type CommsTimelineReply,
+  type CommsTimelineStep
 } from '../shared/commsRead.ts'
 import { ops } from './opsSink.ts'
 
@@ -40,6 +62,9 @@ export interface CommsOperatorReadDeps {
    *  only when the board holds no thread (SCN-146 alt path): a restore whose board history did not come back leaves
    *  the journal's messages without their texts, and the screen must not say nothing was ever said. */
   journalMessages?: (estateId: string) => Promise<number | null>
+  /** Opens an `https:` link in the browser (`shell.openExternal` in the app). Absent, an artifact link fails rather
+   *  than pretending it opened. */
+  openExternal?: (url: string) => Promise<void>
 }
 
 const failed = (code: CommsReadError['code'], message: string): { ok: false; error: CommsReadError } => ({ ok: false, error: { code, message } })
@@ -132,6 +157,130 @@ function messageOf(v: unknown): CommsMessage | null {
   return out
 }
 
+
+// #region comms-operator-reads-w4 — docs: docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md#8-what-comms-shows-besides
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID.test(v)
+const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v)
+const strings = (v: unknown): string[] | null => (Array.isArray(v) && v.every((x) => typeof x === 'string') ? (v as string[]) : null)
+const optStr = (v: unknown): boolean => v === undefined || typeof v === 'string'
+
+function cursorOf(v: unknown): CommsThreadCursor | null {
+  if (!isObj(v) || !isInt(v.lastSeq) || v.lastSeq < 0 || !isUuid(v.id)) return null
+  return { lastSeq: v.lastSeq, id: v.id }
+}
+
+/** The filter as the board takes it, or null when the board would refuse it (refused here instead). */
+function filterOf(v: unknown): CommsThreadFilter | null {
+  if (!isObj(v)) return null
+  const out: CommsThreadFilter = {}
+  for (const [k, x] of Object.entries(v)) {
+    if (x === undefined) continue
+    if (k === 'project' && isUuid(x)) out.project = x
+    else if (k === 'kind' && typeof x === 'string' && (COMMS_KINDS as readonly string[]).includes(x)) out.kind = x as CommsThreadFilter['kind']
+    else if (k === 'openOnly' && typeof x === 'boolean') out.openOnly = x
+    else if (k === 'activeSince' && typeof x === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/.test(x) && !Number.isNaN(Date.parse(x))) out.activeSince = x
+    else if (k === 'provider' && typeof x === 'string' && x.length >= 1 && x.length <= 200) out.provider = x
+    else return null
+  }
+  return out
+}
+
+function pageThreadOf(v: unknown): CommsPageThread | null {
+  const thread = threadOf(v)
+  if (!thread || !isObj(v)) return null
+  const providers = strings(v.providers)
+  return providers ? { ...thread, providers } : null
+}
+
+function responderOf(v: unknown): CommsResponder | null {
+  if (!isObj(v) || !isUuid(v.project) || typeof v.capability !== 'string' || typeof v.state !== 'string' || !isInt(v.generation)) return null
+  for (const k of ['leaseExpiresAt', 'agent', 'cameIn', 'label', 'since', 'releasedCause', 'releasedAt'] as const) if (!optStr(v[k])) return null
+  if (v.held !== undefined && typeof v.held !== 'boolean') return null
+  return v as unknown as CommsResponder
+}
+
+function artifactOf(v: unknown): CommsArtifact | null {
+  if (!isObj(v) || typeof v.id !== 'string' || typeof v.contentHash !== 'string' || !optStr(v.label)) return null
+  return { id: v.id, contentHash: v.contentHash, ...(typeof v.label === 'string' ? { label: v.label } : {}) }
+}
+
+function outcomeOf(v: unknown): CommsOutcome | null {
+  if (!isObj(v) || (v.kind !== 'outcome' && v.kind !== 'cancel_reason') || typeof v.at !== 'string' || !optStr(v.summary) || !optStr(v.settledBy)) return null
+  if (!Array.isArray(v.evidence)) return null
+  const evidence: CommsArtifact[] = []
+  for (const a of v.evidence) {
+    const artifact = artifactOf(a)
+    if (!artifact) return null
+    evidence.push(artifact)
+  }
+  return { kind: v.kind, evidence, at: v.at, ...(typeof v.summary === 'string' ? { summary: v.summary } : {}), ...(typeof v.settledBy === 'string' ? { settledBy: v.settledBy } : {}) }
+}
+
+function requestFactsOf(v: unknown): CommsRequestFacts | null {
+  if (!isObj(v) || typeof v.attemptLive !== 'boolean' || !Array.isArray(v.outcomes)) return null
+  if (v.generation !== undefined && !isInt(v.generation)) return null
+  for (const k of ['lastOp', 'lastCause', 'lastAt'] as const) if (!optStr(v[k])) return null
+  const outcomes: CommsOutcome[] = []
+  for (const o of v.outcomes) {
+    const outcome = outcomeOf(o)
+    if (!outcome) return null
+    outcomes.push(outcome)
+  }
+  const out: CommsRequestFacts = { attemptLive: v.attemptLive, outcomes }
+  if (isInt(v.generation)) out.generation = v.generation
+  if (typeof v.lastOp === 'string') out.lastOp = v.lastOp
+  if (typeof v.lastCause === 'string') out.lastCause = v.lastCause
+  if (typeof v.lastAt === 'string') out.lastAt = v.lastAt
+  return out
+}
+
+function stepOf(v: unknown): CommsTimelineStep | null {
+  if (!isObj(v) || typeof v.op !== 'string' || typeof v.from !== 'string' || typeof v.to !== 'string' || typeof v.at !== 'string') return null
+  for (const k of ['effectFrom', 'effectTo', 'cause', 'settledBy'] as const) if (!optStr(v[k])) return null
+  if (v.generation !== undefined && !isInt(v.generation)) return null
+  return v as unknown as CommsTimelineStep
+}
+
+function relatedOf(v: unknown): CommsRelatedThread | null {
+  if (!isObj(v) || !isUuid(v.id) || (v.why !== 'same-projects' && v.why !== 'shared-artifact')) return null
+  if (!(v.subject === null || typeof v.subject === 'string') || !(v.lastAt === null || v.lastAt === undefined || typeof v.lastAt === 'string')) return null
+  const out: CommsRelatedThread = { id: v.id, subject: v.subject, why: v.why, lastAt: v.lastAt ?? null }
+  // What opens it when the list does not hold it: optional, and only as the board shaped it.
+  if (v.participants !== undefined) { const p = strings(v.participants); if (!p) return null; out.participants = p }
+  if (v.createdSeq !== undefined) { if (!isInt(v.createdSeq)) return null; out.createdSeq = v.createdSeq }
+  if (v.lastSeq !== undefined) { if (!isInt(v.lastSeq)) return null; out.lastSeq = v.lastSeq }
+  return out
+}
+
+function hitOf(v: unknown): CommsSearchHit | null {
+  if (!isObj(v) || !isUuid(v.message) || !isUuid(v.thread) || !isInt(v.seq) || typeof v.at !== 'string' || !isUuid(v.sender) || typeof v.snippet !== 'string') return null
+  const out: CommsSearchHit = { message: v.message, thread: v.thread, seq: v.seq, at: v.at, sender: v.sender, snippet: v.snippet }
+  if (v.subject !== undefined) { if (!(v.subject === null || typeof v.subject === 'string')) return null; out.subject = v.subject }
+  if (v.participants !== undefined) { const p = strings(v.participants); if (!p) return null; out.participants = p }
+  if (v.createdSeq !== undefined) { if (!isInt(v.createdSeq)) return null; out.createdSeq = v.createdSeq }
+  return out
+}
+
+function pendingOf(v: unknown): CommsPending | null {
+  if (!isObj(v) || !isUuid(v.project) || typeof v.oldestAt !== 'string') return null
+  for (const k of ['unread', 'findings', 'requests', 'requestsWithAbsentResponder'] as const) if (!isInt(v[k]) || (v[k] as number) < 0) return null
+  return v as unknown as CommsPending
+}
+
+/** Every item of `v` through `of`, or null when `v` is not a list or any item does not read. */
+function every<T>(v: unknown, of: (x: unknown) => T | null): T[] | null {
+  if (!Array.isArray(v)) return null
+  const out: T[] = []
+  for (const x of v) {
+    const item = of(x)
+    if (item === null) return null
+    out.push(item)
+  }
+  return out
+}
+// #endregion comms-operator-reads-w4
+
 export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
   /** The door, with a thrown transport read as the same answer as a returned one:
    *  unavailable. `supabase-js` reports failures in `error`, but the door is a seam —
@@ -146,6 +295,22 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
       return { data: null, error: e }
     }
   }
+  /** One wave-4 read: the door's transport error and a payload that is not an object are `unavailable`; the board's
+   *  refusal travels with its code; anything else is `body`'s to read, and null from it is `unavailable` too. */
+  const answer = async <T,>(fn: string, args: Record<string, unknown>, what: string, body: (data: Record<string, unknown>) => T | null): Promise<T | { ok: false; error: CommsReadError }> => {
+    const { data, error } = await call(fn, args)
+    if (error) return unavailable(errorMessage(error))
+    if (!isObj(data)) return unavailable(`the board answered with something that is not ${what}`)
+    if (isObj(data.error)) {
+      const code = asStr(data.error.code)
+      const message = asStr(data.error.message) ?? 'the board refused the read'
+      return failed(code === 'not_found' ? 'not_found' : code === 'invalid_arguments' ? 'invalid_arguments' : 'unavailable', message)
+    }
+    if (data.ok !== true) return unavailable(`the board answered with something that is not ${what}`)
+    const out = body(data)
+    return out ?? unavailable(`the board answered ${what} in a shape this build cannot read`)
+  }
+  const refused = (message: string) => failed('invalid_arguments', message)
   return {
     /** Every thread of the estate, oldest first. */
     async threads(estateId: string): Promise<CommsThreadsReply> {
@@ -175,6 +340,131 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
       }
       return { ok: true, threads }
     },
+
+    // #region comms-operator-reads-w4 — docs: docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md#8-what-comms-shows-besides
+    /** One bounded page of threads, newest activity first, filtered by the board (SCN-143's wave-4 amendment). The first
+     *  unfiltered page of an empty board says when the journal holds messages whose texts did not come back (SCN-146). */
+    async threadPage(estateId: string, filter: unknown, before: unknown, limit = 50): Promise<CommsThreadPageReply> {
+      const f = filterOf(filter)
+      if (!f) return refused('The thread filter is not one the board takes.')
+      const cursor = before === null || before === undefined ? null : cursorOf(before)
+      if (before !== null && before !== undefined && !cursor) return refused('The page cursor is not valid.')
+      const bounded = Number.isFinite(limit) ? Math.max(1, Math.min(100, Math.floor(limit))) : 50
+      const reply = await answer('board_thread_page_operator', { p_estate: estateId, p_filter: f, p_before: cursor, p_limit: bounded }, 'a thread page', (d) => {
+        const threads = every(d.threads, pageThreadOf)
+        if (!threads || typeof d.more !== 'boolean') return null
+        const next = d.before === null || d.before === undefined ? null : cursorOf(d.before)
+        if (d.before !== null && d.before !== undefined && !next) return null
+        return { ok: true as const, threads, more: d.more, before: next }
+      })
+      if (reply.ok && reply.threads.length === 0 && cursor === null && Object.keys(f).length === 0 && deps.journalMessages) {
+        try {
+          const n = await deps.journalMessages(estateId)
+          if (typeof n === 'number' && Number.isSafeInteger(n) && n > 0) return { ...reply, textsMissing: n }
+        } catch (e) {
+          ops.failed('comms.journal-count', e, { note: 'the journal\'s message count could not be read; Comms shows the board\'s empty answer' })
+        }
+      }
+      return reply
+    },
+
+    /** Each thread's id and last seq, newest first, capped by the board (the rail's count, "mark all read"). */
+    async heads(estateId: string): Promise<CommsHeadsReply> {
+      return answer('board_thread_heads_operator', { p_estate: estateId, p_limit: 5000 }, 'the thread heads', (d) => {
+        const heads = every(d.heads, (h): CommsHead | null => (isObj(h) && isUuid(h.id) && isInt(h.lastSeq) ? { id: h.id, lastSeq: h.lastSeq } : null))
+        return heads && typeof d.truncated === 'boolean' ? { ok: true as const, heads, truncated: d.truncated } : null
+      })
+    },
+
+    /** Who answers each (project, capability) now (SCN-147 step 1). */
+    async responders(estateId: string): Promise<CommsRespondersReply> {
+      return answer('board_responders_operator', { p_estate: estateId }, 'the responders', (d) => {
+        const responders = every(d.responders, responderOf)
+        return responders ? { ok: true as const, responders } : null
+      })
+    },
+
+    /** Read marks for at most 100 messages, and for the requests among them what they ended with (SCN-147 steps 2–4). */
+    async facts(estateId: string, messages: unknown): Promise<CommsFactsReply> {
+      if (!Array.isArray(messages) || messages.length > 100 || !messages.every(isUuid)) return refused('Ask for the facts of at most 100 messages.')
+      return answer('board_message_facts_operator', { p_estate: estateId, p_messages: messages }, 'message facts', (d) => {
+        if (!isObj(d.messages) || !isObj(d.requests)) return null
+        const out: { ok: true; messages: Record<string, { readBy: string[] }>; requests: Record<string, CommsRequestFacts> } = { ok: true, messages: {}, requests: {} }
+        for (const [id, m] of Object.entries(d.messages)) {
+          const readBy = isObj(m) ? strings(m.readBy) : null
+          if (!isUuid(id) || !readBy) return null
+          out.messages[id] = { readBy }
+        }
+        for (const [id, r] of Object.entries(d.requests)) {
+          const facts = requestFactsOf(r)
+          if (!isUuid(id) || !facts) return null
+          out.requests[id] = facts
+        }
+        return out
+      })
+    },
+
+    /** A request's transitions from the journal, oldest first (SCN-147 step 7). */
+    async timeline(estateId: string, requestId: unknown): Promise<CommsTimelineReply> {
+      if (!isUuid(requestId)) return refused('Name the request.')
+      return answer('board_request_timeline_operator', { p_estate: estateId, p_request: requestId }, 'a request timeline', (d) => {
+        const steps = every(d.steps, stepOf)
+        return steps && typeof d.more === 'boolean' ? { ok: true as const, steps, more: d.more } : null
+      })
+    },
+
+    /** Threads between the same projects, or carrying the same stated file (SCN-147 step 7). */
+    async related(estateId: string, threadId: unknown): Promise<CommsRelatedReply> {
+      if (!isUuid(threadId)) return refused('Name the thread.')
+      return answer('board_related_threads_operator', { p_estate: estateId, p_thread: threadId }, 'related threads', (d) => {
+        const threads = every(d.threads, relatedOf)
+        return threads && typeof d.more === 'boolean' ? { ok: true as const, threads, more: d.more } : null
+      })
+    },
+
+    /** History search, newest first (SCN-156). The words go to the board as typed; the board searches them as themselves. */
+    async search(estateId: string, query: unknown, before: unknown): Promise<CommsSearchReply> {
+      if (typeof query !== 'string' || [...query].length < 2 || [...query].length > 200) return refused('Search for 2 to 200 characters.')
+      if (before !== null && before !== undefined && !(isInt(before) && before >= 1)) return refused('The search cursor is not valid.')
+      return answer('board_search_operator', { p_estate: estateId, p_query: query, p_before_seq: before ?? null, p_limit: 50 }, 'search results', (d) => {
+        const hits = every(d.hits, hitOf)
+        if (!hits || typeof d.more !== 'boolean' || typeof d.stoppedEarly !== 'boolean') return null
+        const next = d.before === null || d.before === undefined ? null : isInt(d.before) ? d.before : undefined
+        return next === undefined ? null : { ok: true as const, hits, more: d.more, stoppedEarly: d.stoppedEarly, before: next }
+      })
+    },
+
+    /** What waits for each project: delivered, held and not read (SCN-157, COM-05). */
+    async pending(estateId: string): Promise<CommsPendingReply> {
+      return answer('board_pending_operator', { p_estate: estateId, p_limit: 100 }, 'what waits', (d) => {
+        const projects = every(d.projects, pendingOf)
+        return projects && typeof d.more === 'boolean' ? { ok: true as const, projects, more: d.more } : null
+      })
+    },
+
+    /** `comms:open-artifact` (SCN-147 step 5): an artifact's link opens in the browser only when it is `https:`; any
+     *  other scheme — `javascript:`, `file:`, `data:`, `http:` — is refused and never handed to the system. */
+    async openArtifact(url: unknown): Promise<CommsOpenArtifactReply> {
+      let parsed: URL | null = null
+      try {
+        parsed = typeof url === 'string' ? new URL(url) : null
+      } catch {
+        parsed = null
+      }
+      if (!parsed || parsed.protocol !== 'https:') {
+        ops.record({ op: 'comms.artifact-refused', outcome: 'ok', level: 'warn', detail: { scheme: typeof url === 'string' ? url.split(':')[0].slice(0, 20) : typeof url }, ctx: { correlationId: ops.correlate() } })
+        return { ok: false, reason: 'refused' }
+      }
+      if (!deps.openExternal) return { ok: false, reason: 'failed' }
+      try {
+        await deps.openExternal(parsed.href)
+        return { ok: true }
+      } catch (e) {
+        ops.failed('comms.artifact-open', e, { note: 'the browser did not take the artifact link' })
+        return { ok: false, reason: 'failed' }
+      }
+    },
+    // #endregion comms-operator-reads-w4
 
     /** One page of a thread (or of the estate when threadId is null), after `afterSeq`,
      *  oldest first — the board's own paging contract, so the screen's cursor logic is

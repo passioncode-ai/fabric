@@ -17,7 +17,8 @@ const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
 import type { AppSettings, FeedEvent, ProjectRow, Quota, SettingsPatch, TerminalSession } from '../../shared/types'
-import type { CommsThread } from '../../shared/commsRead.ts'
+import type { CommsHead } from '../../shared/commsRead.ts'
+import { unreadOf } from './launch/commsList'
 import { restoreTabs, toPersist } from '../../shared/tabs.ts'
 import {
   addressKey,
@@ -183,7 +184,7 @@ function Shell({
   /** The board's threads for the rail badge. Null until the first confirmed answer;
    *  a failed poll keeps the last confirmed list — the badge keeps its count rather
    *  than zeroing, because zero is a true answer and silence is not (SCN-143). */
-  const [commsThreads, setCommsThreads] = useState<CommsThread[] | null>(null)
+  const [commsHeads, setCommsHeads] = useState<{ heads: CommsHead[]; truncated: boolean } | null>(null)
   /** M83 via M113 — the account's windows, which are an ESTATE fact. Null when
    *  there is nothing to say: not signed in is an answer, not an error. */
   /**
@@ -420,8 +421,9 @@ function Shell({
     let alive = true
     const tick = async (): Promise<void> => {
       try {
-        const reply = await window.fabric.comms.threads()
-        if (alive && reply.ok) setCommsThreads(reply.threads)
+        // Each thread's id and last seq only, capped by the board (wave 4): never every thread at once.
+        const reply = await window.fabric.comms.heads()
+        if (alive && reply.ok) setCommsHeads({ heads: reply.heads, truncated: reply.truncated })
       } catch {
         // keep the last confirmed list; the badge doctrine above
       }
@@ -432,11 +434,10 @@ function Shell({
   }, [])
 
   /** Threads with a message newer than this operator's read mark (SCN-143, the unread
-   *  slice). Null while the board has never answered — no badge is shown then, because
-   *  a badge is a claim and an unanswered board makes none. */
-  const commsUnread = commsThreads === null
-    ? null
-    : commsThreads.filter((thread) => thread.lastSeq > (settings.commsReadThrough[thread.id] ?? 0)).length
+   *  slice), from the heads. Null while the board has never answered — no badge is shown then,
+   *  because a badge is a claim and an unanswered board makes none. When the board cut the heads
+   *  at its cap the count is a floor, said "5000+" — never a smaller number (W4-3). */
+  const commsUnread = unreadOf(commsHeads, settings.commsReadThrough)
 
   /** Merge read marks from Comms, field-scoped — the A7-008 rule the feed's onRead states:
    *  a window writes the one field it owns, never a whole-settings copy read at start. */
@@ -759,7 +760,8 @@ function Shell({
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
         onComms={() => { setShowSettings(false); setActive({ kind: 'comms' }) }}
-        commsBadge={commsUnread ?? 0}
+        commsBadge={commsUnread?.count ?? 0}
+        commsBadgeAtLeast={commsUnread?.atLeast ?? false}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
         onNewProject={() => { setShowSettings(false); goTo({ kind: 'start', path: 'menu' }) }}
         onProject={(projectId: string, section: ProjectSection) => {
@@ -870,6 +872,7 @@ function Shell({
             onPulse={() => setActive({ kind: 'pulse' })}
             seen={settings.commsReadThrough}
             onRead={(marks) => void onCommsRead(marks)}
+            heads={commsHeads}
           />
         )}
         {active.kind === 'quota' && (
