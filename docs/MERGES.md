@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T11:30:00Z · `—` · agent/priv-co258 → main · fast-forward
+- run: r-fc848dc29
+- files: 6
+- conflicts: none
+- summary: Carry-over ledger redacted under ADR-0096: CO-258 drops a private repository link and a session name; the usage-counts row drops a private agent's name; the onboarding plan's owner example is neutral. The rest of the private-name sweep (PRIV-02) is the redaction pass's.
 ### 2026-10-13T11:00:00Z · `—` · agent/priv-02-redaction → main · fast-forward
 - run: r-faa9aae98a19
 - files: 10
