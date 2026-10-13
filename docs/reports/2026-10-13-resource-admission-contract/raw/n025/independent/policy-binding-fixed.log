@@ -1,0 +1,85 @@
+{
+  "firstConfig": {
+    "state": "configured",
+    "reason": "existing_policy",
+    "generation": 1,
+    "executionAuthorized": false
+  },
+  "firstPublication": {
+    "state": "published",
+    "reason": "observation_readback",
+    "generation": 1,
+    "executionAuthorized": false,
+    "snapshotId": "3d73596a3fa172e7b130e68493a6b3d354b36a6e3609582d59baa95198ad0971"
+  },
+  "secondConfig": {
+    "state": "refused",
+    "reason": "configuration_conflict",
+    "generation": null,
+    "executionAuthorized": false
+  },
+  "secondPublication": {
+    "state": "refused",
+    "reason": "not_configured",
+    "generation": null,
+    "executionAuthorized": false
+  },
+  "before": {
+    "host_id": "host",
+    "pool_id": "pool",
+    "policy_revision": "policy-sha256-v1:839d2b5185e625f8886a884c033533138d9794ac2aeba508af7fd53934e8ecd7",
+    "configuration_generation": 1,
+    "capacity": {
+      "workerSlots": 10,
+      "memoryBytes": 1000,
+      "diskBytes": 1000,
+      "cpuMilliCores": 1000
+    },
+    "max_age_ms": 100,
+    "observed": {
+      "workerSlots": 1,
+      "memoryBytes": 300,
+      "diskBytes": 200,
+      "cpuMilliCores": 250
+    },
+    "observed_at": "1970-01-01T00:00:01.000Z"
+  },
+  "after": {
+    "host_id": "host",
+    "pool_id": "pool",
+    "policy_revision": "policy-sha256-v1:839d2b5185e625f8886a884c033533138d9794ac2aeba508af7fd53934e8ecd7",
+    "configuration_generation": 1,
+    "capacity": {
+      "workerSlots": 10,
+      "memoryBytes": 1000,
+      "diskBytes": 1000,
+      "cpuMilliCores": 1000
+    },
+    "max_age_ms": 100,
+    "observed": {
+      "workerSlots": 1,
+      "memoryBytes": 300,
+      "diskBytes": 200,
+      "cpuMilliCores": 250
+    },
+    "observed_at": "1970-01-01T00:00:01.000Z"
+  },
+  "writes": [
+    {
+      "name": "observe_resource_pool",
+      "args": {
+        "p_host": "host",
+        "p_pool": "pool",
+        "p_revision": "policy-sha256-v1:839d2b5185e625f8886a884c033533138d9794ac2aeba508af7fd53934e8ecd7",
+        "p_observed": {
+          "workerSlots": 1,
+          "memoryBytes": 300,
+          "diskBytes": 200,
+          "cpuMilliCores": 250
+        },
+        "p_at": "1970-01-01T00:00:01.000Z",
+        "p_configuration_generation": 1
+      }
+    }
+  ]
+}

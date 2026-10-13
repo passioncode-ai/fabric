@@ -1,0 +1,55 @@
+{
+  "schema_version": "local-patch-preparation/1",
+  "candidate": "uncommitted temporary patch; no root edits",
+  "base_commit": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b",
+  "before_sha256": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "784224d3ae8a8a9e58ae2383adfb8c7299f3a51a7a94e879a0e5f5e1f1e4ec4f",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "086c0a708003c8b632a3db2313f06c91680f009dfa9efffc141c0cbf63ce84c4",
+    "docs/execution/harness-waves/resource-reservation.md": "fcf86cc099c42d9347f15f87d10b2cc169333132c7dcf0282d4f1527c1bf7b1c"
+  },
+  "after_sha256": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "2f08213d70c5316c8d0027a1ecf4456a57b9387e67182abb9f5b6298c0788c4c",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "c13b247e69cf3d8cb3387688a1f9b41fb6b92b2fb065b4658df2165bb5580448",
+    "docs/execution/harness-waves/resource-reservation.md": "9ddc6cc824717b2a45c582e1ced241a44169f7cdaec3369adf7b47a234a79a8a"
+  },
+  "patch_sha256": "6b8ba5c0ee54016da995645e35a92a0d211ee11d5fd1af4ef45924ccafef96da",
+  "negative_fixture_sha256": "7c7415d412fecf98a34d1c8e00891b8c077735000ae4875de2e1f9ee3da7e4a8",
+  "checks": [
+    {
+      "command": "node --check after/apps/desktop/test/resource-reservation-db.test.mjs",
+      "exit_code": 0,
+      "meaning": "JavaScript syntax only"
+    },
+    {
+      "command": "git apply --check ../n024.patch (cwd before/)",
+      "exit_code": 0,
+      "meaning": "patch applies to copied exact source baseline"
+    }
+  ],
+  "sql_execution": "NOT_RUN; root owns heavy DB slot",
+  "requested_future_checks": [
+    "Original production five-argument function fails negative-original.sql on actual rollback assertion, not missing new signature",
+    "Corrected same negative exits0; full prepared resource-reservation-db fixture passes",
+    "Concurrent different creators and concurrent updates sharing same expected revision each admit exactly one winner",
+    "Exact same-policy retry preserves observed+observed_at, including stale data; held update refused even with matching expected revision",
+    "Both five/six argument calls denied to anon/authenticated; no old five-argument overload remains"
+  ],
+  "design": [
+    "p_expected_revision default null means create-only or exact same-policy no-op",
+    "Update under pool row lock requires current previous revision equality, changed new revision, and no held reservations",
+    "Expected-revision update never creates an absent pool",
+    "Exact same-policy retry returns true without resetting/freshening observation, including lost successful reply",
+    "DROP old five-arg signature without CASCADE, update revoke/grant six-arg signature; old call arity resolves default",
+    "No revision lexical/numeric order, writer lease, active DDL, config or public protocol introduced; unique immutable revision usage remains caller responsibility"
+  ],
+  "scope": [
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+    "apps/desktop/test/resource-reservation-db.test.mjs",
+    "docs/execution/harness-waves/resource-reservation.md"
+  ],
+  "limitations": [
+    "Prepared test expectations are not acceptance until real SQL run",
+    "No active schema, provider/native runtime or operator configuration touched",
+    "No implementation of producer writer/readback seam yet"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "node": "N025",
+  "status": "FOCUSED_PASS_RPC_SQL_INTEGRATION_PENDING",
+  "files": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "027a16ac9e2f3e24f3853f6f596c165cfbe6d7f3eb4063284411ca5890560e75",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "e501821976d8d447d799f00071fe2fb009378053b07ae15796755ab028241435"
+  },
+  "tests": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+    "exitCode": 0,
+    "passed": 54,
+    "log": "rpc-focused.log"
+  },
+  "negative": {
+    "sourceSha256": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+    "command": "node --experimental-strip-types --test --test-name-pattern='configure is policy confirmation' before-rpc-read/test/resource-pool-publisher.test.mjs",
+    "exitCode": 1,
+    "log": "rpc-red.log"
+  },
+  "cheapChecks": {
+    "overlay": "Root main source symlinks with only publisher source replaced; unchanged original gate programs",
+    "scope": {
+      "command": "node scripts/check-scope.mjs",
+      "exitCode": 0,
+      "log": "scope.log"
+    },
+    "ops": {
+      "command": "node scripts/check-ops.mjs",
+      "exitCode": 0,
+      "log": "ops.log"
+    }
+  },
+  "patchSha256": "90c8cf708823305dec1bbfa887a7188ea7d7bc1726637e7302d1c1139cc81ce7",
+  "limits": [
+    "SQL RPC implementation/ACL owned by root and peer",
+    "No DB run in this subtask",
+    "No production or admission wiring"
+  ]
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "case": "native-rejected-clock-1",
+    "exit": 0,
+    "stdout": "{\"rejectAt\":1,\"result\":{\"status\":\"unknown\",\"reason\":\"clock_invalid\",\"executionAuthorized\":false}}\n",
+    "stderr": ""
+  },
+  {
+    "case": "native-rejected-clock-2",
+    "exit": 0,
+    "stdout": "{\"rejectAt\":2,\"result\":{\"status\":\"unknown\",\"reason\":\"clock_invalid\",\"executionAuthorized\":false}}\n",
+    "stderr": ""
+  },
+  {
+    "case": "native-rejected-clock-3",
+    "exit": 0,
+    "stdout": "{\"rejectAt\":3,\"result\":{\"status\":\"unknown\",\"reason\":\"clock_invalid\",\"executionAuthorized\":false}}\n",
+    "stderr": ""
+  },
+  {
+    "case": "hostile-thenable-getter",
+    "pass": true
+  },
+  {
+    "case": "valid",
+    "result": {
+      "status": "observed",
+      "remoteDigest": "f6c440dfe86a00a59ba6f8ae7e40d8f2895d6984f73ed954a64c457615999278",
+      "key": "scope",
+      "runId": "run",
+      "repositoryName": "fixture",
+      "tip": "e1d197f655a3615de25e418cfd16caf124ba9c55",
+      "observedAt": 1791892800000,
+      "leaseUpdatedAt": 1791892790000,
+      "expiresAt": 1791892850000,
+      "executionAuthorized": false
+    }
+  },
+  {
+    "case": "extra-private-field",
+    "result": {
+      "status": "observed",
+      "remoteDigest": "f6c440dfe86a00a59ba6f8ae7e40d8f2895d6984f73ed954a64c457615999278",
+      "key": "scope",
+      "runId": "run",
+      "repositoryName": "fixture",
+      "tip": "5f8019de756c595b4b0203c229a6d99fee101544",
+      "observedAt": 1791892800000,
+      "leaseUpdatedAt": 1791892790000,
+      "expiresAt": 1791892850000,
+      "executionAuthorized": false
+    }
+  },
+  {
+    "case": "foreign-run",
+    "result": {
+      "status": "refused",
+      "reason": "binding_mismatch",
+      "executionAuthorized": false
+    }
+  },
+  {
+    "case": "expired",
+    "result": {
+      "status": "refused",
+      "reason": "expired_or_future",
+      "executionAuthorized": false
+    }
+  },
+  {
+    "case": "installed-cross-second",
+    "result": {
+      "status": "observed",
+      "remoteDigest": "f6c440dfe86a00a59ba6f8ae7e40d8f2895d6984f73ed954a64c457615999278",
+      "key": "scope",
+      "runId": "run",
+      "repositoryName": "fixture",
+      "tip": "0d94de28378c85925b90f5afc4060e50875417e5",
+      "observedAt": 1791892800000,
+      "leaseUpdatedAt": 1791892790000,
+      "expiresAt": 1791892850000,
+      "executionAuthorized": false
+    }
+  },
+  {
+    "case": "timeout-100-retries-retain-one-and-clean-scratch",
+    "pass": true,
+    "calls": 1
+  }
+]

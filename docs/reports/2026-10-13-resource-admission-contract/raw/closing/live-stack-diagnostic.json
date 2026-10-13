@@ -1,0 +1,108 @@
+{
+  "schema": "fabric-readonly-stack-diagnostic/1",
+  "observedAt": "2026-10-13T05:42:49.353563+00:00",
+  "reviewer": "pipeline_research",
+  "scope": "read-only; no lifecycle or Docker mutation, no credential reads",
+  "sourceHead": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "observed": {
+    "officialWhoami": {
+      "state": "failed",
+      "httpError": "hub cannot check credentials right now; try again"
+    },
+    "lifecycle": {
+      "targetId": "fabric.desktop",
+      "state": "ready",
+      "pid": 8073,
+      "authState": "not_checked",
+      "startedBy": "other",
+      "policyRevision": 12,
+      "grantRevision": 7
+    },
+    "orbstack": "orbctl status: Stopped",
+    "docker": "docker ps exits1: docker.sock absent",
+    "gatewayProbe": "curl http://127.0.0.1:54321/rest/v1/ exits7, status000, no credentials",
+    "authErrors": [
+      {
+        "at": "2026-10-13T05:42:46.501Z",
+        "op": "agentSurface.hub-authenticate",
+        "outcome": "failed",
+        "error": {
+          "name": "DatabaseDeadline",
+          "message": "the binding: the database did not answer within 5000 ms"
+        }
+      },
+      {
+        "at": "2026-10-13T05:42:46.503Z",
+        "op": "agentSurface.hub-authenticate",
+        "outcome": "failed",
+        "error": {
+          "name": "DatabaseDeadline",
+          "message": "the binding: the database did not answer within 5000 ms"
+        }
+      },
+      {
+        "at": "2026-10-13T05:42:47.019Z",
+        "op": "agentSurface.hub-authenticate",
+        "outcome": "failed",
+        "error": {
+          "name": "DatabaseDeadline",
+          "message": "the binding: the database did not answer within 5000 ms"
+        }
+      }
+    ],
+    "vmgr": {
+      "localTimestamp": "2026-10-13T07:14:13+02:00",
+      "facts": [
+        "No space left on device (os error28)",
+        "I/O error dev vdb WRITE",
+        "VM stopped"
+      ]
+    },
+    "gui": {
+      "localTimestamp": "2026-10-13T07:14:15+02:00",
+      "facts": [
+        "Daemon exited: I/O error",
+        "synthetic state -> stopped"
+      ]
+    },
+    "diskSample": "df /: 830MiB available; changing concurrently"
+  },
+  "sourceExplanation": [
+    {
+      "file": "apps/desktop/src/main/agentSurface.ts",
+      "lines": "1055-1069",
+      "claim": "authenticate failure maps to503, not denial"
+    },
+    {
+      "file": "apps/desktop/src/main/accessService.ts",
+      "lines": "201-204",
+      "claim": "authenticate reads bindingByVerifier"
+    },
+    {
+      "file": "apps/desktop/src/main/accessStore.ts",
+      "lines": "247-249",
+      "claim": "bindingByVerifier queries access_bindings database"
+    }
+  ],
+  "conclusion": "Fabric hub process is alive; binding authentication cannot reach the stopped local database stack. OrbStack logs tie its latest shutdown to disk-full/I/O errors. Current failure is not proof credentials are invalid or revoked.",
+  "limitations": [
+    "Installed Fabric source SHA not identified; repository source explains matching error boundary, running log is direct runtime evidence.",
+    "Docker inaccessible: no container or database integrity state observed.",
+    "No conclusion that volumes are corrupted from write-error counters alone.",
+    "Recovery not attempted; subsequent database readiness and original consent state remain unverified."
+  ],
+  "recovery": {
+    "command": "orbctl start",
+    "verifiedBy": "orbctl --help and orbctl start --help",
+    "prerequisite": "Restore sufficient headroom through task-owned disposable artifact cleanup; do not remove Docker volumes or foreign work.",
+    "effect": "Starts all machines that were running when OrbStack last stopped; potentially affects multiple local services.",
+    "authorization": "Not executed: assignment is read-only. Parent may determine existing authorization and schedule after disk pressure is resolved; no invented credential or MCP registration gate.",
+    "followup": [
+      "orbctl status",
+      "docker ps status only",
+      "probe local stack gateway readiness without credentials",
+      "retry official fabric_whoami and distinguish consent from authenticated readiness"
+    ],
+    "notRecommended": "Do not restart Fabric just to repair missing Docker daemon; no app/volume/reset operations."
+  }
+}

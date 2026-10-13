@@ -1,0 +1,110 @@
+✖ same human revision cannot reuse another publisher's diskPath policy binding (2.437083ms)
+✖ same human revision cannot reuse another publisher's diskDeviceId policy binding (0.348458ms)
+✖ same human revision cannot reuse another publisher's demandProfile policy binding (0.322ms)
+✖ same human revision cannot reuse another publisher's sampleWindowMs policy binding (0.236709ms)
+✖ same human revision cannot reuse another publisher's timeoutMs policy binding (0.622167ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.58125
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:125:95
+✖ same human revision cannot reuse another publisher's diskPath policy binding (2.437083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'configured'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:135:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'configured',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:125:95
+✖ same human revision cannot reuse another publisher's diskDeviceId policy binding (0.348458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'configured'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:135:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'configured',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:125:95
+✖ same human revision cannot reuse another publisher's demandProfile policy binding (0.322ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'configured'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:135:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'configured',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:125:95
+✖ same human revision cannot reuse another publisher's sampleWindowMs policy binding (0.236709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'configured'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:135:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'configured',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:125:95
+✖ same human revision cannot reuse another publisher's timeoutMs policy binding (0.622167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'configured'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:135:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'configured',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

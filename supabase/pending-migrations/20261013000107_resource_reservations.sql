@@ -22,6 +22,7 @@ create table resource_pools (
  host_id text not null check(length(host_id) between 1 and 128),
  pool_id text not null check(length(pool_id) between 1 and 128),
  policy_revision text not null check(length(policy_revision) between 1 and 128),
+ configuration_generation bigint not null default 1 check(configuration_generation between 1 and 9007199254740991),
  capacity jsonb not null check(resource_vector_valid(capacity)),
  max_age_ms bigint not null check(max_age_ms between 1 and 9007199254740991),
  observed jsonb check(observed is null or resource_vector_valid(observed)),
@@ -61,33 +62,70 @@ grant select on resource_pools,resource_reservations to service_role;
 create policy resource_pools_service_read on resource_pools for select to service_role using(true);
 create policy resource_reservations_service_read on resource_reservations for select to service_role using(true);
 
+-- Bounded readback for the trusted publisher. This grants no launch/spend authority.
+-- Service role is the trusted machine kernel, not a per-host client credential.
+create function read_resource_pool(p_host text,p_pool text) returns jsonb
+language plpgsql stable security definer set search_path=public as $$
+declare answer jsonb;
+begin
+ if p_host is null or octet_length(p_host) not between 1 and 128
+  or p_pool is null or octet_length(p_pool) not between 1 and 128 then return null; end if;
+ if p_host !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+  or p_pool !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' then return null; end if;
+ select jsonb_build_object('host_id',p.host_id,'pool_id',p.pool_id,
+  'policy_revision',p.policy_revision,'configuration_generation',p.configuration_generation,
+  'capacity',p.capacity,'max_age_ms',p.max_age_ms,'observed',p.observed,'observed_at',p.observed_at)
+ into answer from public.resource_pools p where p.host_id=p_host and p.pool_id=p_pool;
+ return answer;
+end $$;
+revoke all on function read_resource_pool(text,text) from public,anon,authenticated;
+grant execute on function read_resource_pool(text,text) to service_role;
+
 -- Explicit trusted configuration only. No implicit machine-wide pool/default and no
 -- caller-selected capacity on admission. A policy cannot change beneath held work.
-create function configure_resource_pool(p_host text,p_pool text,p_revision text,p_capacity jsonb,p_max_age_ms bigint)
+-- Omitted expectations are create-only; updates compare revision and generation
+-- under the row lock. Reused revision text cannot revive a stale writer. Exact same-policy retries preserve the current observation.
+-- Preserve five-argument call syntax through the default, but leave no old
+-- unconditional overload callable. No CASCADE: dependent authority must be reviewed.
+drop function if exists configure_resource_pool(text,text,text,jsonb,bigint);
+drop function if exists configure_resource_pool(text,text,text,jsonb,bigint,text);
+create function configure_resource_pool(p_host text,p_pool text,p_revision text,p_capacity jsonb,p_max_age_ms bigint,p_expected_revision text default null,p_expected_generation bigint default null)
 returns boolean language plpgsql security definer set search_path=public as $$
 declare previous resource_pools;
 begin
  if p_host is null or p_host !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' or p_pool is null or p_pool !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
   or p_revision is null or p_revision !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' or not resource_vector_valid(p_capacity)
-  or p_max_age_ms is null or p_max_age_ms not between 1 and 9007199254740991 then return false; end if;
+  or p_max_age_ms is null or p_max_age_ms not between 1 and 9007199254740991
+  or (p_expected_revision is null)<>(p_expected_generation is null)
+  or (p_expected_revision is not null and p_expected_revision !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$')
+  or (p_expected_generation is not null and p_expected_generation not between 1 and 9007199254740991) then return false; end if;
+ if p_expected_revision is null then
  insert into resource_pools(host_id,pool_id,policy_revision,capacity,max_age_ms)
  values(p_host,p_pool,p_revision,p_capacity,p_max_age_ms) on conflict do nothing;
+ end if;
  select * into previous from resource_pools where host_id=p_host and pool_id=p_pool for update;
+ if not found then return false; end if;
  if previous.policy_revision=p_revision and previous.capacity=p_capacity and previous.max_age_ms=p_max_age_ms then return true; end if;
- if previous.policy_revision=p_revision or exists(select 1 from resource_reservations where host_id=p_host and pool_id=p_pool and state='held') then return false; end if;
- update resource_pools set policy_revision=p_revision,capacity=p_capacity,max_age_ms=p_max_age_ms,observed=null,observed_at=null
+ if p_expected_revision is null or previous.policy_revision is distinct from p_expected_revision
+  or previous.configuration_generation is distinct from p_expected_generation or previous.configuration_generation=9007199254740991
+  or previous.policy_revision=p_revision or exists(select 1 from resource_reservations where host_id=p_host and pool_id=p_pool and state='held') then return false; end if;
+ update resource_pools set policy_revision=p_revision,configuration_generation=configuration_generation+1,capacity=p_capacity,max_age_ms=p_max_age_ms,observed=null,observed_at=null
  where host_id=p_host and pool_id=p_pool;
  return true;
 end $$;
 
 -- observed is total external/host usage, conservatively charged in addition to reservations.
 -- No overlap credit is accepted until a sampler can bind it to exact reservation identities.
-create function observe_resource_pool(p_host text,p_pool text,p_revision text,p_observed jsonb,p_at timestamptz)
+-- The legacy five-argument call is bound to generation 1, never whichever
+-- configuration is current. Reused revision text cannot revive an old sampler.
+drop function if exists observe_resource_pool(text,text,text,jsonb,timestamptz);
+create function observe_resource_pool(p_host text,p_pool text,p_revision text,p_observed jsonb,p_at timestamptz,p_configuration_generation bigint default 1)
 returns boolean language plpgsql security definer set search_path=public as $$
 declare pool resource_pools;
 begin
  select * into pool from resource_pools where host_id=p_host and pool_id=p_pool for update;
- if not found or pool.policy_revision is distinct from p_revision or not resource_vector_valid(p_observed)
+ if not found or pool.policy_revision is distinct from p_revision
+  or pool.configuration_generation is distinct from p_configuration_generation or not resource_vector_valid(p_observed)
   or p_at is null or p_at>clock_timestamp() or (p_at=pool.observed_at and p_observed<>pool.observed) or (pool.observed_at is not null and p_at<pool.observed_at) then return false; end if;
  update resource_pools set observed=p_observed,observed_at=p_at where host_id=p_host and pool_id=p_pool;
  return true;
@@ -274,8 +312,8 @@ end $$;
 
 -- Helpers and bypassable pre-resource gates are never callable by a database client.
 revoke all on function resource_vector_valid(jsonb),resource_pool_problem(text,text,text,jsonb),resource_launch_problem(uuid,uuid,uuid) from public,anon,authenticated,service_role;
-revoke all on function configure_resource_pool(text,text,text,jsonb,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) from public,anon,authenticated;
-grant execute on function configure_resource_pool(text,text,text,jsonb,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) to service_role;
+revoke all on function configure_resource_pool(text,text,text,jsonb,bigint,text,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz,bigint),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) from public,anon,authenticated;
+grant execute on function configure_resource_pool(text,text,text,jsonb,bigint,text,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz,bigint),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) to service_role;
 revoke all on function cancel_resource_admission(uuid,text,uuid,uuid,text) from public,anon,authenticated;
 grant execute on function cancel_resource_admission(uuid,text,uuid,uuid,text) to service_role;
 -- #endregion local-resource-reservation

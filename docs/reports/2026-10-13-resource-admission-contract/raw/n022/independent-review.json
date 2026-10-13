@@ -1,0 +1,38 @@
+{
+  "node": "N-022",
+  "reviewer": "root",
+  "author": "mcp_research",
+  "reviewer_authored_candidate": false,
+  "verdict": "ACCEPT_SCOPED",
+  "source_hashes": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/test/resource-host-sampler.test.mjs": "21e4e1fb82801223224e50c61b578f3b437c10bdbbe273bdf74c5c86141321ad"
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-host-sampler.test.mjs",
+      "exit": 0,
+      "pass": 31
+    },
+    {
+      "command": "node --experimental-strip-types root-independent.mjs <resourceHostSampler.ts>",
+      "exit": 0,
+      "controls": 5,
+      "results": {
+        "multi_core_milli_cores": 1250,
+        "missing_workers": "unknown",
+        "timed_out_worker_requests": 1,
+        "retries": 40,
+        "reentry": "busy",
+        "changed_identity": "unknown"
+      }
+    }
+  ],
+  "finding_fixed": "Original real OS smoke failed28/29; builder reproduced early timer wake49.6595ms for50ms window and corrected bounded monotonic waiting. Root31 corrected tests pass. Builder160 real samples and source plants are separately attributed, not independent root repetitions.",
+  "limits": [
+    "No complete production worker inventory; absent inventory yields no publishable vector",
+    "No SQL publication/readback, production composition, active policy or native/provider acceptance from this receipt",
+    "Injected clock/readers are trusted code; same-instance in-flight bound is not a global distributed scheduler"
+  ]
+}

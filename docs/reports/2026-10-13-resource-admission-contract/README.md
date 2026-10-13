@@ -160,8 +160,10 @@ packets must not request work that this released source already completes.
 
 ## Runtime boundary
 
-A later bounded official MCP read, after20 seconds of startup, returned `waiting` for
-operator project-access consent. Earlier `starting` and429 observations remain historical. Board
+The latest official MCP read returned `failed`: the hub cannot check credentials. The
+[read-only diagnostic](raw/closing/live-stack-diagnostic.json) found OrbStack stopped after
+disk-full I/O errors and the database gateway unreachable. Earlier `waiting`, `starting`
+and429 observations are historical; project consent must be rechecked after recovery. Board
 requests, acknowledgements, owner acceptance and Observatory lesson delivery are NOT_SENT.
 Registration persists from the operator's earlier explicit approval. No sign-in, grant,
 service restart, private token, installed Fabric change or live provider call was performed.
@@ -258,6 +260,41 @@ exclusion, real client/kernel restart, committed CAS with a lost response and ze
 redispatch, and actual role denials. Previous failed/NOT_RUN receipts remain historical.
 This is pending-DDL acceptance in a disposable cluster; active schema, policy, sampler,
 exclusive ownership producer, production scheduler and native acceptance remain open.
+
+
+## Merged checkpoint and concrete producers
+
+Merged source `1b63e81c11e3327c26f930e93656ac7a2b11fcb6`, tree
+`76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5`, passed complete fast in707.51s,
+including all six actual resource SQL stages.
+[Exact receipt](raw/closing/merged-1b63-fast.json). This retains COM03 wave2 through
+ac874946 and N021 serialization; it does not cover the later producers below.
+
+N022's [independent review](raw/n022/independent-review.json) accepts the explicit
+host policy and bounded OS sampler. A real early timer wake caused the original29-test
+candidate to refuse sampling; the correction waits for the monotonic
+sampling deadline. Missing complete worker inventory still returns unknown, never0.
+The real OS smoke supports physical readings only, not worker coverage or admission.
+
+N023's [review and replay](raw/n023/README.md) accept the read-only exact Git lease
+snapshot. Reusing N017's documented clock lesson fixed rejected native Promises at
+all three clock sites. This is concrete lesson retrieval→application→verification;
+it does not prove Observatory adoption or change a standing authority rule.
+
+N024's [actual SQL receipt](raw/n024/root-sql-receipt.json) and
+[independent review](raw/n024/independent-review.json) accept revision+generation CAS
+and old-generation observation refusal, including A1→B2→A3. The original SQL control
+fails as intended. A failed control setup hit an ambiguous overload; its corrected
+transaction removes the conflicting overload and rolls back afterwards. Both logs
+remain available. Pending107 is not an applied production migration.
+
+N025's [preserved reviews and actual SQL replay](raw/n025/README.md) cover complete-policy
+identity, frozen-generation publication and reconciliation of committed lost replies.
+Independent review found the same-human-version/different-disk collision; the complete
+policy digest correction refuses it. Actual SQL found valid timezone-offset readback
+was refused; strict exact-instant parsing fixes it. All seven owned SQL stages pass.
+The final combined producer gate remains separate from these module receipts.
+Cross-project owner packets remain NOT_SENT at project-access consent.
 
 ---
 

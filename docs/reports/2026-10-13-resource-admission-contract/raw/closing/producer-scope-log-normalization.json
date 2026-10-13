@@ -1,0 +1,5 @@
+{
+  "originalSha256": "acde546e8b66329eee52eeec84ecff57e3e6b2b56f254b852508b8c573b75744",
+  "storedSha256": "33d51b71b10b46d6213c0513d8151036442353fed3704525a9f708230e80cd9d",
+  "transform": "replace user/temp prefixes; strip trailing whitespace"
+}

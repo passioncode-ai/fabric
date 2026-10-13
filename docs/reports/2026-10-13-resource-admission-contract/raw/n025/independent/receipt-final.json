@@ -1,0 +1,94 @@
+{
+  "task": "N025",
+  "verdict": "SCOPED_ACCEPT",
+  "candidate": "uncommitted isolated builder files, bound by actual source_sha256",
+  "source_sha256": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "b7655f3c9077f2bdf63d4c8544f3b0d5706d07d5c39efd4dfe082e6be67430b0",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "b4b17ad2621c9b0bd8f24f4ba9604facbf0e0ac53ff185ef8ca308e6fa5dcdc0",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "783ed57e93b8b5802f549837c1c39ba3738a52fdb6afd09fb760f4687e2f399f"
+  },
+  "dependency_sha256": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a"
+  },
+  "supersedes_review": {
+    "receipt": "receipt-before.json",
+    "sha256": "26adaa4965d62abe6f2f4a2c3a1160e5decc75186d26eafece4543dfadf3ea31",
+    "reason": "Full canonical validated policy now binds SQL revision; original cross-disk/generation counterexample refused."
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+      "exitCode": 0,
+      "pass": 36,
+      "log": "focused-fixed.log"
+    },
+    {
+      "command": "N025_SOURCE=<candidate-source> node policy-binding-fixed.mjs",
+      "exitCode": 0,
+      "pass": 1,
+      "log": "policy-binding-fixed.log"
+    },
+    {
+      "command": "N025_SOURCE=<candidate-source> node probes-fixed.mjs",
+      "exitCode": 0,
+      "pass": 5,
+      "log": "probes-fixed.log"
+    },
+    {
+      "command": "N025_SOURCE=<candidate-source> node cas-binding-fixed.mjs",
+      "exitCode": 0,
+      "pass": 5,
+      "log": "cas-binding-fixed.log"
+    }
+  ],
+  "fixture_derivation": "Unchanged independent assertions retained in probes-fixed/policy-binding-fixed; import redirects only to fixture-fixed. Fixture row SQL revision now independently computes full SHA256 over known canonical fixture policy; mocked CAS stores actual RPC revision/capacity/maxAge, rather than original policy. Added5 independent binding/CAS cases. Builder fixture setup reuse disclosed; reviewer authored assertions. Historical rejected files/logs unchanged.",
+  "source_review": [
+    "Stored revision uses full64hex SHA256 with versioned prefix over validated canonical policy. No truncated hash or policy revision auto-refresh.",
+    "Captured configuration generation survives sample/write/readback; superseded generation leaves uncertainty and never relabels sample.",
+    "Unknown writes retain intent and actual unsettled operation;300 repeated cross-method requests issue no new RPC/read, late rejection consumed.",
+    "Freshness rechecked after sampling and before publication; foreign host/pool row refusal checked.",
+    "Different disk cannot overwrite same generation; explicit prior binding+generation CAS moves2, clears observation and old publisher refuses. Human legacy revision needs explicit CAS.",
+    "Changed demand profile/sample window/timeout alters full-policy binding; local human revision remains inventory label.",
+    "Observation authority remains executionAuthorized false; no reservation vector, ownership proof or numeric external fence fabricated."
+  ],
+  "limitations": [
+    "No actual publisher\u2192PostgreSQL integration, activeDDL, production config, provider/native launch or R1/R2 full composition acceptance.",
+    "Supabase-shaped fixture with actual N022 sampler and injected host readings; test DB behavior is not SQL transactional proof.",
+    "Caller-provided trusted clock/identity/worker inventory is not independent cryptographic identity; ordinary native Promise mistakes only covered.",
+    "Publisher and nested sampler each retain their own outstanding operation; no global one-I/O or cross-instance bound claimed.",
+    "Uncertain intents are in memory; restart durability and production scheduling remain separate composition obligations.",
+    "Future R1/R2 composition must use bindingRevision for SQL identity and human localPolicyRevision for N022 inventory, as docs state."
+  ],
+  "normalization": {
+    "file": "policy-binding.normalized.log",
+    "original_sha256": "edd52a346822af603e2fe03dbe38ced0e0fb9530f5fc4a01686f5adb536708eb",
+    "stored_sha256": "ce0a1a6ee001d4d3eed5f8ef41f6e5d2df0bb048b238865c8748313639acbc99",
+    "transform": "literal private candidate/review path replacements only; original preserved"
+  },
+  "artifacts": {
+    "fixture-fixed.mjs": "2a714a0084626fbbd5acbcf3e2bc04e81dbbe1f7d0b75a5d6942f52b15580857",
+    "receipt-before.json": "26adaa4965d62abe6f2f4a2c3a1160e5decc75186d26eafece4543dfadf3ea31",
+    "probes.mjs": "a4991700be0cde0775148b142b7d3682985b96571ca61f40c9f636e009ea0d80",
+    "fixture.mjs": "0388be75e85c307c7b643129b6ae994721a54b8ec58ce16c8827b5370eeb2928",
+    "policy-binding.log": "edd52a346822af603e2fe03dbe38ced0e0fb9530f5fc4a01686f5adb536708eb",
+    "policy-binding.mjs": "a0cd6c56ba54d204293054602fec57eda1c42d601ae371001a54aa1e2065e061",
+    "probes.log": "2e3b64a153da4f23b28351234bb2663dbafe495daf334a7b75ffd11039a691e2",
+    "cas-binding-fixed.log": "5a963dbd602f2564468114dadaca96510f9a5f75347a69463da87c6b9979ae4b",
+    "policy-binding.normalized.log": "ce0a1a6ee001d4d3eed5f8ef41f6e5d2df0bb048b238865c8748313639acbc99",
+    "policy-binding-fixed.log": "ba00ec665d03d0050b42632704df0f355d54b4468f1952848bf34ecbeb4ef032",
+    "focused-fixed.log": "7f18158e5fa768fd44a6410fbaaca9f534fd64163261dee18bbee324b06582f0",
+    "probes-fixed.log": "2e3b64a153da4f23b28351234bb2663dbafe495daf334a7b75ffd11039a691e2",
+    "cas-binding-fixed.mjs": "d6de03d53f594ed992fbeec3fba5becdf0cc38b1c4e0bf6ebb94454d98f705c1",
+    "focused.log": "125ce8e1605e87a71d7bbe6dbdcbfafffa6e86a11ba19a5a6b27b5903af576d2",
+    "policy-binding-fixed.mjs": "f41fb00091b3ee8efabc32903548d180bdf5ccb9d05568b08b33a0a37c1d1d17",
+    "probes-fixed.mjs": "f9967ec599a266d4834a0e2b252723bef1cd38d26107e109dd2f05b0eab9ca88",
+    "rejected-source/apps/desktop/test/resource-pool-publisher.test.mjs": "daec875e12d3c483b6e1843f89e633ebfc044765b00173fc8bbcecd4773cee44",
+    "rejected-source/apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "rejected-source/apps/desktop/src/main/resourcePoolPublisher.ts": "680118016f4c7943c16c57ea2af560b88558d2f004a0cab9b7b96163e629f9c0",
+    "rejected-source/apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "rejected-source/apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "rejected-source/docs/execution/harness-waves/resource-pool-publisher.md": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e"
+  }
+}

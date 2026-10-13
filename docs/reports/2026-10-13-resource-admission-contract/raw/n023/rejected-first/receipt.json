@@ -1,0 +1,49 @@
+{
+  "task": "N-023",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "author": "pipeline_research",
+  "sourceCommit": null,
+  "integrationBaselineObserved": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "files": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "43a36b7e9d51a683f5979ab8f25078131b3d92e0a4379f330dd5e4095692ef87",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "9f854a307694d24e93f8c7e5f63aa9007a430405726a787b8bafbd9e8a056a95"
+  },
+  "dependency": {
+    "file": "apps/desktop/src/main/gitRun.ts",
+    "sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  },
+  "installedAgentSyncScriptSha256": "455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302",
+  "patchSha256": "03fe7775442db7e46a2b379c6a1d43391bbaab8feeb13eb7ab5b0a62e0abb7e3",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 0,
+      "tests": 44,
+      "pass": 44,
+      "log": "raw/focused.log",
+      "sha256": "8f93dfd1af7dc271d6d1113c27aeb7ee5eacdc9909402e7c4e54c4a7b3c000f6"
+    },
+    {
+      "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions --types node [repository typeRoots] apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-name-pattern=\"expired own lease\" [negative-control]/apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 1,
+      "intendedFailures": 1,
+      "mutation": "Remove expiry comparisons from both inspect and final publication in copied production source",
+      "log": "raw/negative-expiry.log",
+      "sha256": "43c3d42b42813f6e3ad913fa108ed1941411ab5ea8035331f7d2254b53649c19"
+    }
+  ],
+  "limitations": [
+    "No selected file/input closure, external numeric fence, or full R1 ownership authorization",
+    "No root edits, foreign ref mutations, installed protocol changes, DDL, DB, native runtime or global launch composition",
+    "Owned real Git fixture uses trusted transport substitution; no live authenticated HTTPS acceptance",
+    "Sampled 8 MiB scratch limit can overshoot; no hard filesystem quota or arbitrary descendant-process termination guarantee",
+    "Default transport has no credential helper; authenticated remote requires separately trusted composition",
+    "Outstanding I/O bound is per retained reader instance"
+  ],
+  "independentReview": "NOT_RUN"
+}

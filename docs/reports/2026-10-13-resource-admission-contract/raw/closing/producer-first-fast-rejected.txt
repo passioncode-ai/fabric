@@ -1,0 +1,1 @@
+Full fast refused broken relative Markdown links inside relocated historical snapshots. Stored those exact bytes with .md.snapshot.txt suffix and archive-layout.json mapping; live documentation links and the checker remain unchanged. No production code change.

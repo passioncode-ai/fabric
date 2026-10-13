@@ -1,0 +1,1 @@
+{"checks":["stale-after-sample-no-write","foreign-row-host_id-refused","foreign-row-pool_id-refused","ABA-read-reconciliation-never-rewrites","300-cross-method-retries-one-write-late-rejection-consumed"],"pass":5}

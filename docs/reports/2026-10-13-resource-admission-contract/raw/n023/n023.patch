@@ -1,0 +1,545 @@
+diff --git a/apps/desktop/src/main/gitLeaseSnapshot.ts b/apps/desktop/src/main/gitLeaseSnapshot.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/src/main/gitLeaseSnapshot.ts
+@@ -0,0 +1,250 @@
++// #region git-lease-snapshot — docs: docs/execution/harness-waves/resource-ownership-snapshot.md#contract
++import { execFile } from 'node:child_process'
++import { createHash } from 'node:crypto'
++import { mkdtemp, rm, opendir, lstat } from 'node:fs/promises'
++import { tmpdir } from 'node:os'
++import { join } from 'node:path'
++import { promisify } from 'node:util'
++import { HARDENED_GIT_ARGS, hardenedGitEnv } from './gitRun.ts'
++
++const exec = promisify(execFile)
++const SHA = /^[a-f0-9]{40}$/
++const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
++const MAX_COMMIT_BYTES = 16_384
++const FETCH_SCRATCH_BYTES = 8 * 1024 * 1024
++
++export interface LeaseSnapshotConfig {
++  /** Kernel configuration, never task input or a repository's remote.origin.url. */
++  approvedRemote: string
++  key: string
++  runId: string
++  repositoryName: string
++  /** Exact previously observed Git tip, or null for an explicitly new observation. */
++  expectedTip: string | null
++  maxAgeMs: number
++  timeoutMs: number
++}
++export interface LeaseGitOptions { cwd: string; timeoutMs: number; maxBytes: number }
++export type LeaseGitRunner = (args: readonly string[], options: LeaseGitOptions) => Promise<string>
++export interface LeaseSnapshotDeps {
++  /** Trusted transport substitution, not exposed to the task. No caller-supplied verdict. */
++  git?: LeaseGitRunner
++  now?: () => number
++}
++export type LeaseSnapshotResult = {
++  status: 'observed'
++  remoteDigest: string
++  key: string
++  runId: string
++  repositoryName: string
++  tip: string
++  observedAt: number
++  leaseUpdatedAt: number
++  expiresAt: number
++  /** No external numeric fence exists in the agent-sync Git payload. */
++  executionAuthorized: false
++} | { status: 'unknown' | 'refused'; reason: string; executionAuthorized: false }
++
++const failure = (status: 'unknown' | 'refused', reason: string): LeaseSnapshotResult =>
++  ({ status, reason, executionAuthorized: false })
++
++/** agent-sync 1.22.1 lease_name encoding; no lossy legacy-slug fallback. */
++export function exactLeaseRef(key: string): string {
++  if (!key || key.length > 200 || /[\s`|\x00-\x1f\x7f]/u.test(key) || /[\ud800-\udfff]/u.test(key)) throw new Error('invalid_lease_key')
++  const chars = Array.from(key)
++  let name = chars.map((ch, i) => {
++    const badDot = ch === '.' && (i === 0 || i === chars.length - 1 || chars[i + 1] === '.')
++    if (/^[A-Za-z0-9._-]$/.test(ch) && !badDot) return ch
++    return Array.from(Buffer.from(ch)).map(b => '%' + b.toString(16).toUpperCase().padStart(2, '0')).join('')
++  }).join('')
++  if (name.endsWith('.lock')) name = name.slice(0, -5) + '%2Elock'
++  if (name.length > 200) throw new Error('invalid_lease_key')
++  return 'refs/agent-sync/leases/' + name
++}
++function remote(value: string): boolean {
++  try {
++    const u = new URL(value)
++    return u.protocol === 'https:' && !!u.hostname && !u.username && !u.password && !u.search && !u.hash &&
++      !/[\s\x00-\x1f\x7f]/u.test(value) && u.href === value
++  } catch { return false }
++}
++function configValid(c: LeaseSnapshotConfig): boolean {
++  return remote(c.approvedRemote) && [c.runId, c.repositoryName].every(v =>
++    typeof v === 'string' && v.length > 0 && Buffer.byteLength(v) <= 200 && !/[\x00-\x1f\x7f]/u.test(v)) &&
++    (c.expectedTip === null || SHA.test(c.expectedTip)) &&
++    Number.isSafeInteger(c.maxAgeMs) && c.maxAgeMs > 0 && c.maxAgeMs <= 86_400_000 &&
++    Number.isSafeInteger(c.timeoutMs) && c.timeoutMs > 0 && c.timeoutMs <= 30_000
++}
++// Fetch filters are hints: an approved server may ignore them. Monitor the owned scratch,
++// with finite traversal work, and stop Git on overflow. This is NOT a hard filesystem quota.
++async function scratchWithinBudget(root: string): Promise<void> {
++  let entries = 0, bytes = 0
++  const visit = async (directory: string): Promise<void> => {
++    const stream = await opendir(directory)
++    for await (const entry of stream) {
++      if (++entries > 1024) throw new Error('scratch_entries')
++      const file = join(directory, entry.name), stat = await lstat(file)
++      if (stat.isSymbolicLink()) throw new Error('scratch_symlink')
++      bytes += stat.size
++      if (bytes > FETCH_SCRATCH_BYTES) throw new Error('scratch_bytes')
++      if (stat.isDirectory()) await visit(file)
++    }
++  }
++  await visit(root)
++}
++/** No repository or inherited Git config may redirect the approved URL or execute helpers. */
++export const leaseGit: LeaseGitRunner = async (args, options) => {
++  const pending = exec('git', [
++    ...HARDENED_GIT_ARGS, '-c', 'protocol.https.allow=always',
++    '-c', 'http.followRedirects=false', '-c', 'credential.helper=',
++    '-c', 'fetch.writeCommitGraph=false', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false',
++    ...args
++  ], {
++    cwd: options.cwd, timeout: options.timeoutMs, maxBuffer: options.maxBytes,
++    env: { ...hardenedGitEnv(Object.fromEntries(Object.entries(process.env).filter(([key]) =>
++      ['PATH', 'HOME', 'SystemRoot', 'TMPDIR', 'TEMP', 'TMP', 'LANG', 'LC_ALL'].includes(key)))), GIT_CONFIG_GLOBAL: '/dev/null', GIT_TEMPLATE_DIR: '',
++      GIT_ASKPASS: 'true', SSH_ASKPASS: 'true', GIT_ALLOW_PROTOCOL: 'https', GIT_NO_REPLACE_OBJECTS: '1' }
++  })
++  let monitor: Promise<void> | null = null, violated = false
++  const check = (): void => {
++    if (monitor !== null) return
++    monitor = scratchWithinBudget(options.cwd).catch(() => {
++      // Resource uncertainty refuses; never report an unchecked oversized transfer as a proof.
++      violated = true; pending.child.kill('SIGKILL')
++    }).finally(() => { monitor = null })
++  }
++  const timer = args[0] === 'fetch' ? setInterval(check, 25) : null
++  try {
++    const { stdout } = await pending
++    if (timer !== null) clearInterval(timer)
++    await monitor
++    if (args[0] === 'fetch') await scratchWithinBudget(options.cwd)
++    if (violated) throw new Error('scratch_limit')
++    return stdout
++  } finally {
++    if (timer !== null) clearInterval(timer)
++    await monitor
++  }
++}
++function tipOf(text: string, ref: string): string | null {
++  const lines = text.trim().split('\n')
++  if (lines.length !== 1) return null
++  const parts = lines[0].split('\t')
++  return parts.length === 2 && SHA.test(parts[0]) && parts[1] === ref ? parts[0] : null
++}
++// Reused lesson: resourceWaitQueue's ordinary native-Promise clock rejection handling.
++// Time is synchronous authority input. Reject async/exotic values without reading then
++// or constructor accessors; consume only an ordinary native Promise's rejection.
++function clock(read: () => number): number | null {
++  try {
++    const value: unknown = read()
++    if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype &&
++        !Object.prototype.hasOwnProperty.call(value, 'constructor')) {
++      try { void Promise.prototype.then.call(value, undefined, () => {}) }
++      catch { /* A spoofed Promise prototype remains invalid clock data. */ }
++    }
++    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null
++  } catch {
++    // A failed diagnostic clock is unavailable; never substitute fabricated time.
++    return null
++  }
++}
++function parseTime(value: unknown): number | null {
++  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|\+00:00)$/.test(value)) return null
++  const n = Date.parse(value)
++  // Round-trip calendar fields: Date.parse normalises impossible dates on some hosts.
++  return Number.isSafeInteger(n) && new Date(n).toISOString().slice(0, 19) === value.slice(0, 19) ? n : null
++}
++function payloadOf(raw: string, tip: string): Record<string, unknown> | null {
++  const bytes = Buffer.from(raw)
++  if (bytes.length > MAX_COMMIT_BYTES || createHash('sha1').update(`commit ${bytes.length}\0`).update(bytes).digest('hex') !== tip) return null
++  const split = raw.indexOf('\n\n')
++  if (split < 0) return null
++  const headers = raw.slice(0, split).split('\n')
++  if (headers[0] !== 'tree ' + EMPTY_TREE || headers.some(h => h.startsWith('parent '))) return null
++  try {
++    const payload: unknown = JSON.parse(raw.slice(split + 2))
++    return payload !== null && typeof payload === 'object' && !Array.isArray(payload) ? payload as Record<string, unknown> : null
++  } catch { return null }
++}
++
++/** A fresh snapshot only. No cache, lease acquisition, mutation, numeric fence, or launch grant. */
++export function createGitLeaseSnapshotReader(config: LeaseSnapshotConfig, deps: LeaseSnapshotDeps = {}) {
++  const c = { ...config }, git = deps.git ?? leaseGit, now = deps.now ?? Date.now
++  let ref = '', valid = false
++  try { ref = exactLeaseRef(c.key); valid = configValid(c) } catch { /* Invalid fixed configuration refuses before I/O. */ }
++  let outstanding: Promise<LeaseSnapshotResult> | null = null
++  async function inspect(): Promise<LeaseSnapshotResult> {
++    const started = clock(now)
++    if (started === null) return failure('unknown', 'clock_invalid')
++    const deadline = performance.now() + c.timeoutMs
++    let scratch: string | null = null
++    try {
++      scratch = await mkdtemp(join(tmpdir(), 'fabric-lease-read-'))
++      const run = async (args: string[], maxBytes = MAX_COMMIT_BYTES): Promise<string> => {
++        const remaining = Math.ceil(deadline - performance.now())
++        if (remaining <= 0) throw new Error('deadline')
++        const result = await git(args, { cwd: scratch!, timeoutMs: remaining, maxBytes })
++        if (typeof result !== 'string' || Buffer.byteLength(result) > maxBytes) throw new Error('bounded_output')
++        return result
++      }
++      await run(['init', '--bare', '--quiet', '--template='])
++      const tip = tipOf(await run(['ls-remote', '--refs', c.approvedRemote, ref], 512), ref)
++      if (!tip) return failure('refused', 'missing_or_ambiguous_ref')
++      if (c.expectedTip !== null && tip !== c.expectedTip) return failure('refused', 'tip_changed')
++      // Fetch only the named lease. The exact object is then read, never a mutable FETCH_HEAD alias.
++      await run(['fetch', '--quiet', '--no-tags', '--no-write-fetch-head', '--depth=1', '--filter=tree:0', c.approvedRemote, ref])
++      const raw = await run(['cat-file', 'commit', tip])
++      const payload = payloadOf(raw, tip)
++      if (!payload) return failure('refused', 'unsupported_or_malformed_lease')
++      const again = tipOf(await run(['ls-remote', '--refs', c.approvedRemote, ref], 512), ref)
++      if (again !== tip) return failure('refused', 'tip_changed')
++      if (payload.key !== c.key || payload.run !== c.runId || payload.repo !== c.repositoryName) return failure('refused', 'binding_mismatch')
++      const updated = parseTime(payload.ts), since = parseTime(payload.since), ttl = payload.ttl
++      if (updated === null || since === null || since > updated + 1000 || typeof ttl !== 'number' || !Number.isSafeInteger(ttl) || ttl <= 0 || ttl > 86_400) return failure('refused', 'malformed_freshness')
++      const ended = clock(now), expires = updated + ttl * 1000
++      if (ended === null || ended < started) return failure('unknown', 'clock_invalid')
++      if (updated > started || since > ended || ended >= expires) return failure('refused', 'expired_or_future')
++      if (ended - updated > c.maxAgeMs) return failure('refused', 'stale_observation')
++      return { status: 'observed', remoteDigest: createHash('sha256').update(c.approvedRemote).digest('hex'),
++        key: c.key, runId: c.runId, repositoryName: c.repositoryName, tip, observedAt: ended,
++        leaseUpdatedAt: updated, expiresAt: expires, executionAuthorized: false }
++    } catch {
++      // The transport's raw error may contain URLs, credentials, paths or remote content. Keep it local.
++      return failure('unknown', 'remote_unreadable')
++    } finally {
++      if (scratch !== null) await rm(scratch, { recursive: true, force: true })
++    }
++  }
++  return {
++    read(): Promise<LeaseSnapshotResult> {
++      if (!valid) return Promise.resolve(failure('refused', 'invalid_configuration'))
++      if (outstanding !== null) return Promise.resolve(failure('unknown', 'prior_io_unresolved'))
++      // A caller deadline does not cancel Git/DI promises. Hold the slot until cleanup settles;
++      // never publish a late verdict, and never accumulate I/O on repeated reads after timeout.
++      const work = Promise.resolve().then(inspect).catch(() => failure('unknown', 'remote_unreadable'))
++      outstanding = work
++      void work.then(() => { if (outstanding === work) outstanding = null })
++      return new Promise(resolve => {
++        let delivered = false
++        const finish = (result: LeaseSnapshotResult): void => {
++          if (delivered) return
++          delivered = true; clearTimeout(timer)
++          // Scratch cleanup is asynchronous too. Recheck time immediately before publishing,
++          // so an observed lease cannot expire during cleanup and emerge as a fresh proof.
++          if (result.status === 'observed') {
++            const finalNow = clock(now)
++            if (finalNow === null || finalNow < result.observedAt) result = failure('unknown', 'clock_invalid')
++            else if (finalNow >= result.expiresAt) result = failure('refused', 'expired_or_future')
++            else if (finalNow - result.leaseUpdatedAt > c.maxAgeMs) result = failure('refused', 'stale_observation')
++            else result = { ...result, observedAt: finalNow }
++          }
++          resolve(result)
++        }
++        const timer = setTimeout(() => finish(failure('unknown', 'timeout')), c.timeoutMs)
++        void work.then(finish)
++      })
++    }
++  }
++}
++// #endregion git-lease-snapshot
+diff --git a/apps/desktop/test/git-lease-snapshot.test.mjs b/apps/desktop/test/git-lease-snapshot.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/test/git-lease-snapshot.test.mjs
+@@ -0,0 +1,239 @@
++import assert from 'node:assert/strict'
++import { test, before, after } from 'node:test'
++import { execFileSync, execFile } from 'node:child_process'
++import { promisify } from 'node:util'
++import { mkdtemp, rm, readdir, writeFile, chmod } from 'node:fs/promises'
++import { tmpdir } from 'node:os'
++import { join } from 'node:path'
++import { createHash } from 'node:crypto'
++import { createGitLeaseSnapshotReader, exactLeaseRef, leaseGit } from '../src/main/gitLeaseSnapshot.ts'
++import { HARDENED_GIT_ARGS, hardenedGitEnv } from '../src/main/gitRun.ts'
++const exec = promisify(execFile)
++const remote = 'https://lease.invalid/fixture.git', timestamp = Date.parse('2026-10-13T12:00:00Z')
++const base = { approvedRemote: remote, key: 'scope:docs/test.lock', runId: 'owned-run', repositoryName: 'fixture', expectedTip: null, maxAgeMs: 60_000, timeoutMs: 1500 }
++const payload = (delta = {}) => ({ key: base.key, run: base.runId, repo: base.repositoryName, ts: '2026-10-13T11:59:50Z', since: '2026-10-13T11:59:00Z', ttl: 60, host: 'fixture', ...delta })
++let root, repo
++const calls = []
++const fixtureGit = (args, input) => execFileSync('git', ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', ...args], { cwd: repo, input, encoding: 'utf8', env: { ...hardenedGitEnv(), GIT_CONFIG_GLOBAL: '/dev/null' } }).trim()
++function install(value = payload(), options = {}) {
++  const tree = fixtureGit(['mktree'], '')
++  const text = typeof value === 'string' ? value : JSON.stringify(value)
++  const tip = fixtureGit(['commit-tree', tree, ...(options.parent ? ['-p', options.parent] : [])], text + '\n')
++  fixtureGit(['update-ref', exactLeaseRef(base.key), tip]); return tip
++}
++// Real Git objects and remote refs in an owned bare fixture. Only the transport URL/protocol
++// is substituted. Production verification, exact-ref read/fetch/object/hash/parser/currentness
++// remain unmodified; this is not live HTTPS or installed agent-sync runtime certification.
++async function git(args, options) {
++  calls.push([...args])
++  const mapped = args.map(a => a === remote ? repo : a)
++  return (await exec('git', [...HARDENED_GIT_ARGS, '-c', 'protocol.file.allow=always', ...mapped], {
++    cwd: options.cwd, timeout: options.timeoutMs, maxBuffer: options.maxBytes,
++    env: { ...hardenedGitEnv(), GIT_CONFIG_GLOBAL: '/dev/null', GIT_NO_REPLACE_OBJECTS: '1' }
++  })).stdout
++}
++const reader = (config = {}, deps = {}) => createGitLeaseSnapshotReader({ ...base, ...config }, { git, now: () => timestamp, ...deps })
++before(async () => { root = await mkdtemp(join(tmpdir(), 'fabric-lease-test-')); repo = join(root, 'remote.git'); execFileSync('git', ['init', '--bare', '--quiet', repo]); })
++after(async () => { await rm(root, { recursive: true, force: true }) })
++
++test('real parentless lease: exact binding, SHA, freshness, and no launch authority', async () => {
++  const tip = install(), result = await reader({ expectedTip: tip }).read()
++  assert.deepEqual(result, { status: 'observed', remoteDigest: createHash('sha256').update(remote).digest('hex'), key: base.key,
++    runId: base.runId, repositoryName: base.repositoryName, tip, observedAt: timestamp, leaseUpdatedAt: timestamp - 10_000,
++    expiresAt: timestamp + 50_000, executionAuthorized: false })
++  assert.equal('fence' in result, false)
++})
++test('expired own lease refuses, even if agent-sync acquire once accepted the same run', async () => {
++  install(payload({ ttl: 9 })); assert.equal((await reader().read()).reason, 'expired_or_future')
++})
++for (const [label, delta, reason] of [
++  ['foreign run', { run: 'foreign' }, 'binding_mismatch'], ['foreign repo', { repo: 'foreign' }, 'binding_mismatch'],
++  ['wrong exact key', { key: 'other' }, 'binding_mismatch'], ['keyless legacy', { key: undefined }, 'binding_mismatch'],
++  ['future', { ts: '2026-10-13T12:00:01Z' }, 'expired_or_future'], ['expiry boundary', { ttl: 10 }, 'expired_or_future'],
++  ['zero ttl', { ttl: 0 }, 'malformed_freshness'], ['ttl string', { ttl: '60' }, 'malformed_freshness'],
++  ['negative ttl', { ttl: -1 }, 'malformed_freshness'], ['huge ttl', { ttl: 86401 }, 'malformed_freshness'],
++  ['fraction ttl', { ttl: 1.5 }, 'malformed_freshness'], ['invalid calendar', { ts: '2026-02-30T12:00:00Z' }, 'malformed_freshness'],
++  ['local timestamp', { ts: '2026-10-13T11:59:50' }, 'malformed_freshness'], ['since more than one second after ts', { since: '2026-10-13T11:59:52Z' }, 'malformed_freshness']
++]) test(label, async () => { install(payload(delta)); assert.equal((await reader().read()).reason, reason) })
++test('stale but still leased is refused by configured snapshot age', async () => {
++  install(); assert.equal((await reader({ maxAgeMs: 9999 }).read()).reason, 'stale_observation')
++})
++test('own renewal changes expected opaque tip and requires new explicit observation', async () => {
++  const old = install(), next = install(payload({ ts: '2026-10-13T11:59:51Z' }))
++  assert.notEqual(next, old); assert.equal((await reader({ expectedTip: old }).read()).reason, 'tip_changed')
++  assert.equal((await reader({ expectedTip: next }).read()).status, 'observed')
++})
++test('ref changes after reading object: no success for a superseded lease', async () => {
++  install(); let reads = 0
++  const r = reader({}, { git: async (args, opts) => {
++    if (args[0] === 'ls-remote' && ++reads === 2) install(payload({ run: 'foreign' }))
++    return git(args, opts)
++  } })
++  assert.equal((await r.read()).reason, 'tip_changed')
++})
++test('ref changes between ls-remote and fetch: exact old object cannot become new object proof', async () => {
++  install(); let changed = false
++  const r = reader({}, { git: async (args, opts) => {
++    if (args[0] === 'fetch' && !changed) { changed = true; install(payload({ ts: '2026-10-13T11:59:52Z' })) }
++    return git(args, opts)
++  } })
++  assert.equal((await r.read()).status, 'unknown')
++})
++test('missing ref and ambiguous remote output never become free ownership', async () => {
++  fixtureGit(['update-ref', '-d', exactLeaseRef(base.key)])
++  assert.equal((await reader().read()).reason, 'missing_or_ambiguous_ref')
++  install()
++  const r = reader({}, { git: async (args, opts) => { const out = await git(args, opts); return args[0] === 'ls-remote' ? out + out : out } })
++  assert.equal((await r.read()).reason, 'missing_or_ambiguous_ref')
++})
++for (const value of ['not json', '[]', 'null']) test('malformed commit payload ' + value, async () => {
++  install(value); assert.equal((await reader().read()).reason, 'unsupported_or_malformed_lease')
++})
++test('parent-bearing commit is not a supported lease object', async () => {
++  const parent = install(); install(payload({ host: 'next' }), { parent })
++  assert.equal((await reader().read()).reason, 'unsupported_or_malformed_lease')
++})
++test('object bytes must hash to advertised tip, even with a faulty trusted transport', async () => {
++  install(); const r = reader({}, { git: async (args, opts) => (await git(args, opts)) + (args[0] === 'cat-file' ? ' ' : '') })
++  assert.equal((await r.read()).reason, 'unsupported_or_malformed_lease')
++})
++test('clock rollback and invalid clock refuse', async () => {
++  install(); let call = 0
++  assert.equal((await reader({}, { now: () => ++call === 1 ? timestamp : timestamp - 1 }).read()).reason, 'clock_invalid')
++  assert.equal((await reader({}, { now: () => NaN }).read()).reason, 'clock_invalid')
++})
++test('expiry while transport was running refuses', async () => {
++  install(); let call = 0
++  assert.equal((await reader({}, { now: () => ++call === 1 ? timestamp : timestamp + 51_000 }).read()).reason, 'expired_or_future')
++})
++test('configuration is copied and not redirectable after construction', async () => {
++  install(); const config = { ...base }, r = createGitLeaseSnapshotReader(config, { git, now: () => timestamp })
++  config.approvedRemote = 'https://foreign.invalid/other.git'; config.runId = 'foreign'
++  assert.equal((await r.read()).status, 'observed')
++})
++for (const approvedRemote of ['/tmp/repo', 'file:///tmp/r', 'ext::anything', 'ssh://host/repo', 'http://host/repo',
++  'https://user:secret@host/repo', 'https://host/repo?token=secret', 'https://host/repo#fragment']) test('reject task-unapproved URL form ' + approvedRemote.split(':')[0], async () => {
++  let ran = false; const result = await reader({ approvedRemote }, { git: async () => { ran = true; throw 0 } }).read()
++  assert.equal(result.reason, 'invalid_configuration'); assert.equal(ran, false)
++})
++test('timeout keeps the outstanding slot; repeated calls do not accumulate I/O; late settling permits a fresh read', async () => {
++  install(); let settle, count = 0, first = true
++  const r = reader({ timeoutMs: 1500 }, { git: async (args, opts) => {
++    count++
++    if (first) { first = false; return new Promise(resolve => { settle = resolve }) }
++    return git(args, opts)
++  } })
++  assert.equal((await r.read()).reason, 'timeout')
++  for (let i = 0; i < 50; i++) assert.equal((await r.read()).reason, 'prior_io_unresolved')
++  assert.equal(count, 1); settle('')
++  await new Promise(resolve => setTimeout(resolve, 30))
++  const fresh = await r.read(); assert.equal(fresh.status, 'observed')
++  assert.ok(count > 1, 'fresh proof performs fresh Git I/O')
++})
++test('ordinary transport rejection is consumed and exposes no raw secret/path', async () => {
++  const r = reader({}, { git: async () => { throw new Error('/private/path?token=verysecret') } })
++  const result = await r.read(); assert.deepEqual(result, { status: 'unknown', reason: 'remote_unreadable', executionAuthorized: false })
++  assert.equal(JSON.stringify(result).includes('secret'), false)
++})
++test('raw oversized output is bounded even if a transport ignores requested maxBytes', async () => {
++  const r = reader({}, { git: async () => 'x'.repeat(20_000) })
++  assert.equal((await r.read()).reason, 'remote_unreadable')
++})
++test('exact lease_name percent encoding preserves otherwise-colliding keys', () => {
++  assert.equal(exactLeaseRef('a:b'), 'refs/agent-sync/leases/a%3Ab')
++  assert.equal(exactLeaseRef('a/b'), 'refs/agent-sync/leases/a%2Fb')
++  assert.equal(exactLeaseRef('.a..b.lock'), 'refs/agent-sync/leases/%2Ea%2E.b%2Elock')
++  assert.equal(exactLeaseRef('scope:док'), 'refs/agent-sync/leases/scope%3A%D0%B4%D0%BE%D0%BA')
++  for (const key of ['', 'a b', 'a|b', 'a`b', 'x'.repeat(201)]) assert.throws(() => exactLeaseRef(key))
++})
++
++test('default command transport isolates inherited config, TLS bypass and executable redirects', async () => {
++  const bin = join(root, 'bin'); await (await import('node:fs/promises')).mkdir(bin)
++  const executable = join(bin, 'git')
++  await writeFile(executable, '#!' + process.execPath + '\n' +
++    'process.stdout.write(JSON.stringify({args:process.argv.slice(2),env:Object.fromEntries(Object.entries(process.env).filter(([k])=>k.startsWith("GIT_")||k==="HTTPS_PROXY"))}))\n')
++  await chmod(executable, 0o700)
++  const names = ['PATH', 'GIT_SSL_NO_VERIFY', 'GIT_EXEC_PATH', 'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_GLOBAL', 'HTTPS_PROXY']
++  const saved = Object.fromEntries(names.map(k => [k, process.env[k]]))
++  try {
++    process.env.PATH = bin + ':' + process.env.PATH
++    for (const name of names.slice(1)) process.env[name] = 'untrusted-fixture'
++    const out = JSON.parse(await leaseGit(['ls-remote', '--refs', remote, exactLeaseRef(base.key)], { cwd: root, timeoutMs: 1000, maxBytes: 16384 }))
++    assert.ok(out.args.includes('protocol.allow=never')); assert.ok(out.args.includes('protocol.https.allow=always'))
++    assert.ok(out.args.includes('http.followRedirects=false')); assert.ok(out.args.includes('credential.helper='))
++    assert.equal(out.env.GIT_CONFIG_GLOBAL, '/dev/null'); assert.equal(out.env.GIT_ALLOW_PROTOCOL, 'https')
++    for (const name of names.slice(1).filter(n => n !== 'GIT_CONFIG_GLOBAL')) assert.equal(out.env[name], undefined)
++  } finally {
++    for (const [key, value] of Object.entries(saved)) { if (value === undefined) delete process.env[key]; else process.env[key] = value }
++  }
++})
++test('default fetch reader rejects scratch overflow, even when a fetch finishes before sampled monitoring', async () => {
++  const bin = join(root, 'budget-bin'), scratch = join(root, 'budget-scratch')
++  await (await import('node:fs/promises')).mkdir(bin); await (await import('node:fs/promises')).mkdir(scratch)
++  const executable = join(bin, 'git')
++  await writeFile(executable, '#!' + process.execPath + '\n' +
++    'require("node:fs").writeFileSync("oversized",Buffer.alloc(9*1024*1024));\n')
++  await chmod(executable, 0o700)
++  const saved = process.env.PATH
++  try {
++    process.env.PATH = bin + ':' + saved
++    await assert.rejects(leaseGit(['fetch', remote], { cwd: scratch, timeoutMs: 1000, maxBytes: 16384 }))
++  } finally { process.env.PATH = saved; await rm(scratch, { recursive: true, force: true }) }
++})
++
++test('expiry between object validation and publication after async cleanup still refuses', async () => {
++  install(); let count = 0
++  const r = reader({}, { now: () => ++count < 3 ? timestamp : timestamp + 51_000 })
++  assert.equal((await r.read()).reason, 'expired_or_future')
++})
++
++test('ordinary rejected async clock at start, after reads, or before publication never crashes the process', () => {
++  const source = new URL('../src/main/gitLeaseSnapshot.ts', import.meta.url).href
++  for (const rejectAt of [1, 2, 3]) {
++    const code = `
++      import assert from 'node:assert/strict';
++      import {createHash} from 'node:crypto';
++      import {createGitLeaseSnapshotReader,exactLeaseRef} from ${JSON.stringify(source)};
++      const cfg=${JSON.stringify(base)};
++      const raw='tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904\\n' +
++        'author fixture <fixture@example.invalid> 1791889190 +0000\\n' +
++        'committer fixture <fixture@example.invalid> 1791889190 +0000\\n\\n' + ${JSON.stringify(JSON.stringify(payload()))} + '\\n';
++      const tip=createHash('sha1').update('commit '+Buffer.byteLength(raw)+'\\0').update(raw).digest('hex');
++      let count=0;
++      const reader=createGitLeaseSnapshotReader(cfg,{
++        now:()=>++count===${rejectAt}?Promise.reject(Error('synthetic-clock-failure')):${timestamp},
++        git:async args=>args[0]==='ls-remote'?tip+'\\t'+exactLeaseRef(cfg.key)+'\\n':args[0]==='cat-file'?raw:''
++      });
++      const result=await reader.read();assert.equal(result.reason,'clock_invalid');
++      assert.equal(result.executionAuthorized,false);
++      await new Promise(resolve=>setTimeout(resolve,20));
++    `
++    execFileSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', code], { timeout: 4000, stdio: 'pipe' })
++  }
++})
++test('invalid thenable clock never reads arbitrary then or constructor getters', async () => {
++  let thenReads=0, constructorReads=0
++  const invalid=Object.defineProperties({}, {
++    then: {get(){thenReads++;throw Error('do not read then')}},
++    constructor: {get(){constructorReads++;throw Error('do not read constructor')}}
++  })
++  assert.equal((await reader({}, {now:()=>invalid}).read()).reason,'clock_invalid')
++  assert.equal(thenReads,0);assert.equal(constructorReads,0)
++})
++test('spoofed native Promise prototype is invalid time without throwing', async () => {
++  assert.equal((await reader({}, {now:()=>Object.create(Promise.prototype)}).read()).reason,'clock_invalid')
++})
++
++test('producer crossing one rounded second is accepted without extending ts-based expiry', async () => {
++  // Actual installed 1.22.2 _git_acquire payload-expression output, fixed fixture inputs.
++  const produced = {"key":"scope:docs/test.lock","run":"owned-run","ts":"2026-10-13T11:59:50Z","ttl":60,"repo":"fixture","host":"fixture","since":"2026-10-13T11:59:51Z"}
++  install(produced)
++  const result=await reader().read()
++  assert.equal(result.status,'observed');assert.equal(result.expiresAt,timestamp+50_000)
++  install(payload({since:'2026-10-13T11:59:51Z',ttl:10}))
++  assert.equal((await reader().read()).reason,'expired_or_future')
++})
++test('one-second tolerance never accepts a since timestamp still in the future', async () => {
++  install(payload({ts:'2026-10-13T12:00:00Z',since:'2026-10-13T12:00:01Z'}))
++  assert.equal((await reader().read()).reason,'expired_or_future')
++})
+diff --git a/docs/execution/harness-waves/resource-ownership-snapshot.md b/docs/execution/harness-waves/resource-ownership-snapshot.md
+new file mode 100644
+--- /dev/null
++++ b/docs/execution/harness-waves/resource-ownership-snapshot.md
+@@ -0,0 +1,41 @@
++# Read-only Git lease snapshot (N-023)
++
++## Contract
++
++`apps/desktop/src/main/gitLeaseSnapshot.ts` implements a local, read-only snapshot producer. Its fixed kernel configuration names an approved HTTPS remote, exact agent-sync lease key, expected run and repository label, freshness budget, deadline, and optionally the previously observed exact Git tip. No value is inferred from a task request or a writable repository's `remote.origin.url`.
++
++An `observed` result proves only that the configured ref advertised the same SHA before fetching and after inspecting its exact commit bytes; the supported payload matched key/run/repository and was fresh and unexpired at the final clock reading. The opaque tip is not converted to a numeric fence. Every result has `executionAuthorized: false`. The remote URL is represented by SHA-256 in successful evidence; raw Git errors, host payload fields and remote URLs are not returned.
++
++A renewal changes the tip. With `expectedTip` configured, that requires a new explicit observation rather than accepting an old proof. Two matching reads do not establish uninterrupted ownership between them or prevent a change immediately afterwards. Git push permission and a self-reported `run` are not cryptographic agent identity. This module acquires, renews and releases no lease; it cannot enforce writers or make a SQL/PTY action atomic with a remote Git lease.
++
++## Supported format and transport
++
++The encoding and payload follow installed agent-sync 1.22.1 `lease_name`, `_git_acquire`, `_refresh_lease` and `_lease_alive`: exact percent-encoded key; parentless commit over Git's empty tree; JSON `key`, `run`, `repo`, `ts`, `since`, `ttl`. The inspected installed script SHA-256 is `455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302`. This is a file pin, not a claim that the older local source repository has that release. No installed code or protocol is changed. During independent review the installed package advanced to 1.22.2, script SHA-256 `fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1`; the producer fields remain the same. The producer reads its clock separately for `ts` and `since` at whole-second precision; a call spanning a rounded second can emit `since = ts + 1s`. The reader accepts that one-second edge only when `since` is no later than the final clock reading. Expiration remains `ts + ttl`, so the tolerance grants no extra lease lifetime. A larger producer delay still refuses conservatively; not every possible delayed initial lease is supported. Legacy lossy refs, keyless payloads, SHA-256 Git object repositories and lease TTLs over 24 hours are unsupported and refuse.
++
++The default transport reuses `gitRun.ts` hardening in a newly created private bare scratch repository. It strips inherited Git/SSH/proxy overrides, system/global configuration, helpers, redirect following, prompts and non-HTTPS protocols. It reads the exact advertised SHA rather than a mutable fetched-ref alias; the commit bytes must hash to that SHA. The remote cannot choose a task checkout, hook, filter, lazy-fetch repository or shared fallback ref.
++
++The default supports HTTPS without credentials. It does not borrow a person's credential helper or silently fall back to SSH. Private authenticated remote support needs a separately trusted transport/configuration; production credential composition is NOT_RUN. The injectable Git runner is trusted infrastructure and must preserve these transport constraints; the task must never select it.
++
++## Bounds and uncertainty
++
++One reader instance has one outstanding operation. A public timeout returns `unknown`; it does not cancel or forget an unresolved underlying promise. Further calls report `prior_io_unresolved` until that operation and scratch cleanup settle. Late results are discarded. Reuse the reader instance for its fixed binding; repeatedly constructing readers is not a global I/O limit.
++
++Configuration caps the deadline at 30 seconds and age at 24 hours. Ref output is limited to 512 bytes, commit/other command output to 16 KiB, and key/run/repository sizes are bounded. Fetch asks for depth one, no tags and `tree:0` filtering. Servers may ignore filters: the default checks scratch size every 25 ms and after fetch, refusing more than 8 MiB or 1,024 entries and refusing symlinks. This is a sampled control, not a hard disk quota: transfer can overshoot between checks. It sends SIGKILL to the Git child on overflow and inherits `execFile`'s deadline/process semantics; it does not certify termination of arbitrary descendant processes. No native Git server or hostile descendant termination acceptance is claimed.
++
++An absent, ambiguous, malformed, unreadable or expired lease is never free ownership. In particular, the installed acquire shortcut for a same-run expired lease is not used as evidence. Clock rollback, future timestamps and expiry during the read refuse. Output and cleanup failures return structured uncertainty without raw private error details.
++
++## Acceptance and remaining composition
++
++Run the production module's bounded tests:
++
++```sh
++node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs
++```
++
++The suite uses actual refs and objects in an owned bare Git fixture, substituting only HTTPS transport with the fixture's local path. It covers expiry of the same owner's lease, foreign binding, exact-tip renewal, changes on either side of fetch, malformed payload/calendar, parent commits, altered object bytes, missing/ambiguous refs, clock change, timeout/repeated calls/late settlement, configuration mutation, and error redaction. Separate default-executor probes verify command/env hardening and fetch scratch overflow. These probes use an owned executable fixture, not a live private remote. No foreign ref is modified.
++
++This closes a local snapshot-reading primitive only. The selected input/scope closure producer remains absent: a lease commit does not enumerate file paths, untracked files, symlinks, worktree bytes or task instruction dependencies. No request digest is echoed as independently verified input. A bounded manifest reader and source-owned run/session/input binding remain separate local implementation work. Full R1 ownership authorization additionally needs its documented authority semantics; this module does not manufacture its numeric fence or writer enforcement. Active resource DDL, machine policy, production composition and native acceptance are unchanged.
++
++## Reused review lesson
++
++Independent N-023 review reproduced a process crash at each of three clock sites: an accidental async provider returned a rejected native Promise. The first candidate refused its value but did not consume the rejection. This repeats the already recorded lesson in `resourceWaitQueue.ts` and `resource-wait-queue.md` (ordinary rejected async clock): the fixed reader uses one synchronous clock normalizer at all sites, consumes only ordinary native Promise rejection, and rejects its value. The clock remains trusted synchronous dependency injection. The helper never reads arbitrary then/constructor getters or invents time; exotic Promise subclasses, constructor poisoning and a hostile or nonterminating clock function are outside this supported contract. The child-process regression must exit zero at start, after reads and after asynchronous cleanup; the same probe on the preserved first candidate fails. This lesson is explicitly reused, not a new authority exception.

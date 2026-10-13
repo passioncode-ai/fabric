@@ -1,0 +1,41 @@
+{
+  "scope": "N022/N023/N024 combined static contract review",
+  "baselineHead": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+    "docs/execution/harness-waves/resource-host-observation.md": "b3354801c2401797ec6a6f92a9d9ace34889de8cf12a3535642d044330a95456",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "df990a11e7f57235c79938e650febd6ee8889d39fa5fdb6ed0134278426cf43b",
+    "docs/execution/harness-waves/resource-reservation.md": "d5d3b99e0d4ed4d618f45d8899086459f5e6a7fee3b77e18546f9b4e2a00de5e",
+    "docs/handoffs/2026-10-13-harness-waves.md": "208eb0df20dd01fd2d36d3f1df2bdd206eb8023b05a72a00cd92af57ffc06452",
+    "docs/execution/harness-waves/graph.json": "1a71213ec09bc7f1c63c218fb667c65a1796388ee435737e2ec4718cf87a16c0",
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "d40e6454be459b728e111788be5de9589fa88ecd69fad246e4f4e2a61336f954"
+  },
+  "authorshipDisclosure": "Reviewer authored N022 and N025; N022 is contributor cross-seam review, not independent component acceptance. N023/N024 static review independent. N025 not certified here.",
+  "result": "NO_NEW_CODE_BLOCKER_STATIC_SCOPE",
+  "documentationCorrection": "resource-host-observation.md:17 first-candidate31 should be historical29 or labelled corrected31; raw independent failure has29tests28pass",
+  "COMComparedToBaseline": {
+    "apps/desktop/src/main/sessionEnroll.ts": true,
+    "apps/desktop/src/main/agentSurface.ts": true,
+    "apps/desktop/src/main/index.ts": true,
+    "apps/desktop/src/main/pty.ts": true
+  },
+  "checks": {
+    "sourceAndContractRead": "PASS",
+    "packetN022throughN025PlanDigests": "MATCH",
+    "COMProductionSourcePreservation": "MATCH",
+    "heavyTests": "NOT_RUN",
+    "native": "NOT_RUN",
+    "DDLactivation": "NOT_RUN"
+  },
+  "remainingPrerequisites": [
+    "Complete trusted worker inventory",
+    "Input/scope closure producer and actual run-to-lease identity binding",
+    "No numeric fence may be invented from Git SHA",
+    "Map sampler human revision to complete-policy SQL binding in future composition",
+    "Fresh coherent reservation/observed snapshot without fabricated reserved=0",
+    "Explicit production composition and migration ordering; no default enforcement"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "state": "PENDING_ACTUAL_SQL_RESULT",
+  "reviewed": [
+    "Bridge validates owned database/socket naming, uses service_role each query, converts Boolean with to_json (not text t/f).",
+    "Publisher imports actualproduction module + actualN022 sampler; OS inputs synthetic.",
+    "Reads select exact8pool columns and bothhost/pool filters; RPC arg names/types explicitlychecked.",
+    "First positive asserts noobservation onconfigure, exact measured vector, digestrevision and generation, typed timestampreadback.",
+    "Lostreply hook throws only after actualSQL call finishes, then no rewrite + exact read reconciliation asserted.",
+    "A1 B2 A3 uses distinct publisher instances, oldsampler generation1 SQL returnsfalse; oldpublisherrefuses refresh.",
+    "Five completepolicy changes require explicit binding/generation CAS.",
+    "Uncertain observation followed by actualABA refuses reconciliation even copiedvector/timestamp atgen3.",
+    "Runner adds publisher last after existing6SQLgroups; first6PASS before stage7failure retained."
+  ],
+  "limits": [
+    "Initial actualSQL stage7 failed firstpositive, laterSQLassertions NOT_REACHED in that attempt.",
+    "No secondcluster/reviewerDB execution.",
+    "Observed failure reasonwrite_unconfirmed; source parser offsetfalse refusal independentlyreproduced, SQLtimezonecause notyetconfirmed.",
+    "No nativePostgREST transport, provider, productionconfig or realhostsampleacceptance."
+  ]
+}

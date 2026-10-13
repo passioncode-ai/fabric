@@ -1,0 +1,17 @@
+{
+  "scope": "explicit host policy + actual OS sampler producer; packet1 incomplete until publication/readback and composition",
+  "files": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "14a1fc3506bb1e3b53ef4fd1e397d9230ed476c88038c81ddd63434a94d379a2",
+    "apps/desktop/test/resource-host-sampler.test.mjs": "b4e9c541288c4bdd7c5d7bf55a7527e4d7125ea627b62e271f3edb482069f2c6"
+  },
+  "command": "node --experimental-strip-types --test apps/desktop/test/resource-host-sampler.test.mjs",
+  "exit": 0,
+  "tests": 29,
+  "real_os_smoke": "PASS, read-only memory/CPU/canonical disk; worker inventory absent stays unknown",
+  "negative_controls": "negative-controls.json; four plants each exit1",
+  "patch_sha256": "411c1f2c319cef187049eedb1ab0aa60341fe2219e4a8ff612906d882fd6c013",
+  "disclosure": "Builder receipt, no independent acceptance. No repository edits/DB/build/install/provider/config mutation. Source not committed; integration owner persists it.",
+  "node": "N-022",
+  "region_comment_only_after_tests": "Updated region doc path to root-allocated resource-host-observation.md#contract; executable bytes unchanged."
+}

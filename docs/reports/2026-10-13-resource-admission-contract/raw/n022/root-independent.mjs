@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+const {createResourceHostSampler}=await import(pathToFileURL(process.argv[2]).href);
+const vector={workerSlots:9,memoryBytes:10000,diskBytes:10000,cpuMilliCores:4000};
+const policy={hostId:'host',poolId:'pool',localPolicyRevision:'rev',capacity:vector,demandProfiles:{builder:{...vector,workerSlots:1},reviewer:{...vector,workerSlots:1},test:{...vector,workerSlots:1}},diskPath:'/owned',diskDeviceId:'1',maxAgeMs:100,sampleWindowMs:1,timeoutMs:15};
+function fixture(){let n=0,time=1000,mono=0;const deps={identity:()=>({hostId:'host',bootId:'boot'}),now:()=>time,monotonic:()=>mono,system:()=>{const k=n++;return {totalMemory:1000,freeMemory:100,cpus:[{model:'a',times:{user:k*100,nice:0,sys:0,idle:0,irq:0}},{model:'b',times:{user:k*25,nice:0,sys:0,idle:k*75,irq:0}}]}},disk:()=>({path:'/owned',deviceId:'1',blockSize:1n,blocks:1000n,availableBlocks:100n}),workers:()=>({hostId:'host',bootId:'boot',poolId:'pool',localPolicyRevision:'rev',atMs:time,complete:true,workers:[]}),pause:async()=>{time++;mono++}};return deps;}
+const base=fixture(),r=await createResourceHostSampler(policy,'host',base).sample();assert.equal(r.observed.cpuMilliCores,1250);assert.equal(r.observed.workerSlots,0);assert.equal(r.axes.memoryBytes,900);
+const missing=fixture();delete missing.workers;const m=await createResourceHostSampler(policy,'host',missing).sample();assert.equal(m.observed,null);assert.equal(m.axes.workerSlots,null);assert.equal(m.axes.cpuMilliCores,1250);
+const stuck=fixture();let calls=0,finish;stuck.workers=()=>{calls++;return new Promise(r=>finish=r)};const bounded=createResourceHostSampler(policy,'host',stuck);assert.equal((await bounded.sample()).state,'unknown');for(let i=0;i<40;i++)assert.equal((await bounded.sample()).reason,'busy');assert.equal(calls,1);finish(null);await new Promise(r=>setImmediate(r));
+const re=fixture();let sampler,nested;re.identity=()=>{if(!nested)nested=sampler.sample();return{hostId:'host',bootId:'boot'}};sampler=createResourceHostSampler(policy,'host',re);assert.equal((await sampler.sample()).state,'observed');assert.equal((await nested).reason,'busy');
+const invalid=fixture();let id=0;invalid.identity=()=>({hostId:'host',bootId:++id===1?'boot':'changed'});assert.equal((await createResourceHostSampler(policy,'host',invalid).sample()).observed,null);
+console.log(JSON.stringify({status:'PASS',controls:5,multiCoreMilliCores:1250,missingWorkers:'unknown',timedOutWorkerCalls:1,retries:40,reentrantCall:'busy',changedIdentity:'unknown'}));

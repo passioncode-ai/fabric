@@ -1,0 +1,321 @@
+TIMING {"durationMs":53.176625,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 0 worker-inventory-unavailable
+TIMING {"durationMs":52.72691599999999,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 1 worker-inventory-unavailable
+TIMING {"durationMs":50.89308399999999,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 2 worker-inventory-unavailable
+TIMING {"durationMs":51.92316700000001,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 3 worker-inventory-unavailable
+TIMING {"durationMs":51.19704200000001,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 4 worker-inventory-unavailable
+TIMING {"durationMs":51.84266600000001,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 5 worker-inventory-unavailable
+TIMING {"durationMs":52.552625000000035,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 6 worker-inventory-unavailable
+TIMING {"durationMs":52.056708000000015,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 7 worker-inventory-unavailable
+TIMING {"durationMs":52.63441700000004,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 8 worker-inventory-unavailable
+TIMING {"durationMs":52.717874999999935,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 9 worker-inventory-unavailable
+TIMING {"durationMs":52.62962499999992,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 10 worker-inventory-unavailable
+TIMING {"durationMs":52.533416999999986,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 11 worker-inventory-unavailable
+TIMING {"durationMs":52.60887500000001,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 12 worker-inventory-unavailable
+TIMING {"durationMs":52.49241699999993,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 13 worker-inventory-unavailable
+TIMING {"durationMs":52.53091600000005,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 14 worker-inventory-unavailable
+TIMING {"durationMs":52.61408300000005,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 15 worker-inventory-unavailable
+TIMING {"durationMs":50.62541600000009,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 16 worker-inventory-unavailable
+TIMING {"durationMs":52.55204200000003,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 17 worker-inventory-unavailable
+TIMING {"durationMs":50.93983300000002,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 18 worker-inventory-unavailable
+TIMING {"durationMs":51.463665999999876,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 19 worker-inventory-unavailable
+TIMING {"durationMs":52.591249999999945,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 20 worker-inventory-unavailable
+TIMING {"durationMs":51.91249999999991,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 21 worker-inventory-unavailable
+TIMING {"durationMs":52.48691599999984,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 22 worker-inventory-unavailable
+TIMING {"durationMs":52.61670800000002,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 23 worker-inventory-unavailable
+TIMING {"durationMs":51.94079099999999,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 24 worker-inventory-unavailable
+TIMING {"durationMs":54.5748329999999,"window":50,"wall":55,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 25 worker-inventory-unavailable
+TIMING {"durationMs":52.74191699999983,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 26 worker-inventory-unavailable
+TIMING {"durationMs":54.50179099999991,"window":50,"wall":54,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 27 worker-inventory-unavailable
+TIMING {"durationMs":51.467625,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 28 worker-inventory-unavailable
+TIMING {"durationMs":50.47420799999986,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 29 worker-inventory-unavailable
+TIMING {"durationMs":51.76933299999996,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 30 worker-inventory-unavailable
+TIMING {"durationMs":50.90195800000015,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 31 worker-inventory-unavailable
+TIMING {"durationMs":52.370041999999785,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 32 worker-inventory-unavailable
+TIMING {"durationMs":52.58616600000005,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 33 worker-inventory-unavailable
+TIMING {"durationMs":51.84329099999991,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 34 worker-inventory-unavailable
+TIMING {"durationMs":52.31337499999995,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 35 worker-inventory-unavailable
+TIMING {"durationMs":51.11283300000014,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 36 worker-inventory-unavailable
+TIMING {"durationMs":51.93274999999994,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 37 worker-inventory-unavailable
+TIMING {"durationMs":52.51754199999982,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 38 worker-inventory-unavailable
+TIMING {"durationMs":52.47712499999989,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 39 worker-inventory-unavailable
+TIMING {"durationMs":50.62312500000007,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 40 worker-inventory-unavailable
+TIMING {"durationMs":51.22670900000003,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 41 worker-inventory-unavailable
+TIMING {"durationMs":51.175083000000086,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 42 worker-inventory-unavailable
+TIMING {"durationMs":51.63079199999993,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 43 worker-inventory-unavailable
+TIMING {"durationMs":52.48337500000025,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 44 worker-inventory-unavailable
+TIMING {"durationMs":50.786457999999584,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 45 worker-inventory-unavailable
+TIMING {"durationMs":52.42512499999975,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 46 worker-inventory-unavailable
+TIMING {"durationMs":50.594916999999896,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 47 worker-inventory-unavailable
+TIMING {"durationMs":52.408458999999766,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 48 worker-inventory-unavailable
+TIMING {"durationMs":52.378999999999905,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 49 worker-inventory-unavailable
+TIMING {"durationMs":52.33974999999964,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 50 worker-inventory-unavailable
+TIMING {"durationMs":51.54975000000013,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 51 worker-inventory-unavailable
+TIMING {"durationMs":51.197749999999814,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 52 worker-inventory-unavailable
+TIMING {"durationMs":51.059208000000126,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 53 worker-inventory-unavailable
+TIMING {"durationMs":51.51545900000019,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 54 worker-inventory-unavailable
+TIMING {"durationMs":52.476790999999594,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 55 worker-inventory-unavailable
+TIMING {"durationMs":51.393583000000035,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 56 worker-inventory-unavailable
+TIMING {"durationMs":50.655874999999924,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 57 worker-inventory-unavailable
+TIMING {"durationMs":51.01441700000032,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 58 worker-inventory-unavailable
+TIMING {"durationMs":51.51808400000027,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 59 worker-inventory-unavailable
+TIMING {"durationMs":51.01999999999998,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 60 worker-inventory-unavailable
+TIMING {"durationMs":51.861999999999625,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 61 worker-inventory-unavailable
+TIMING {"durationMs":52.369292000000314,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 62 worker-inventory-unavailable
+TIMING {"durationMs":52.40295900000001,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 63 worker-inventory-unavailable
+TIMING {"durationMs":52.08987500000012,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 64 worker-inventory-unavailable
+TIMING {"durationMs":52.38208399999985,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 65 worker-inventory-unavailable
+TIMING {"durationMs":51.69637499999999,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 66 worker-inventory-unavailable
+TIMING {"durationMs":50.65479099999993,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 67 worker-inventory-unavailable
+TIMING {"durationMs":52.575874999999996,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 68 worker-inventory-unavailable
+TIMING {"durationMs":52.54320899999993,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 69 worker-inventory-unavailable
+TIMING {"durationMs":52.47087500000043,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 70 worker-inventory-unavailable
+TIMING {"durationMs":51.719542000000274,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 71 worker-inventory-unavailable
+TIMING {"durationMs":51.526208000000224,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 72 worker-inventory-unavailable
+TIMING {"durationMs":51.76375000000007,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 73 worker-inventory-unavailable
+TIMING {"durationMs":50.67291699999987,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 74 worker-inventory-unavailable
+TIMING {"durationMs":50.68654199999992,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 75 worker-inventory-unavailable
+TIMING {"durationMs":52.379457999999886,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 76 worker-inventory-unavailable
+TIMING {"durationMs":50.49600000000055,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 77 worker-inventory-unavailable
+TIMING {"durationMs":52.049708000000464,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 78 worker-inventory-unavailable
+TIMING {"durationMs":52.5029169999998,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 79 worker-inventory-unavailable
+TIMING {"durationMs":51.025416999999834,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 80 worker-inventory-unavailable
+TIMING {"durationMs":51.35833300000013,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 81 worker-inventory-unavailable
+TIMING {"durationMs":51.55629200000021,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 82 worker-inventory-unavailable
+TIMING {"durationMs":52.042583999999806,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 83 worker-inventory-unavailable
+TIMING {"durationMs":52.43549999999959,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 84 worker-inventory-unavailable
+TIMING {"durationMs":52.45158300000003,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 85 worker-inventory-unavailable
+TIMING {"durationMs":51.676124999999956,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 86 worker-inventory-unavailable
+TIMING {"durationMs":52.54004200000054,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 87 worker-inventory-unavailable
+TIMING {"durationMs":52.372041999999965,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 88 worker-inventory-unavailable
+TIMING {"durationMs":52.40537500000028,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 89 worker-inventory-unavailable
+TIMING {"durationMs":52.35362500000065,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 90 worker-inventory-unavailable
+TIMING {"durationMs":51.0868330000003,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 91 worker-inventory-unavailable
+TIMING {"durationMs":51.37129199999981,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 92 worker-inventory-unavailable
+TIMING {"durationMs":52.46704099999988,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 93 worker-inventory-unavailable
+TIMING {"durationMs":52.37266699999964,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 94 worker-inventory-unavailable
+TIMING {"durationMs":52.448457999999846,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 95 worker-inventory-unavailable
+TIMING {"durationMs":52.42783299999974,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 96 worker-inventory-unavailable
+TIMING {"durationMs":52.511375000000044,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 97 worker-inventory-unavailable
+TIMING {"durationMs":51.71533299999919,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 98 worker-inventory-unavailable
+TIMING {"durationMs":50.62016700000004,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 99 worker-inventory-unavailable
+TIMING {"durationMs":52.52362499999981,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 100 worker-inventory-unavailable
+TIMING {"durationMs":52.39808300000004,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 101 worker-inventory-unavailable
+TIMING {"durationMs":52.443999999999505,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 102 worker-inventory-unavailable
+TIMING {"durationMs":52.35558300000048,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 103 worker-inventory-unavailable
+TIMING {"durationMs":52.40270800000053,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 104 worker-inventory-unavailable
+TIMING {"durationMs":52.39204199999949,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 105 worker-inventory-unavailable
+TIMING {"durationMs":52.41570899999988,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 106 worker-inventory-unavailable
+TIMING {"durationMs":51.33179099999961,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 107 worker-inventory-unavailable
+TIMING {"durationMs":50.56312500000058,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 108 worker-inventory-unavailable
+TIMING {"durationMs":51.56525000000056,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 109 worker-inventory-unavailable
+TIMING {"durationMs":52.41349999999966,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 110 worker-inventory-unavailable
+TIMING {"durationMs":51.4409999999998,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 111 worker-inventory-unavailable
+TIMING {"durationMs":50.77158299999974,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 112 worker-inventory-unavailable
+TIMING {"durationMs":52.369416000000456,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 113 worker-inventory-unavailable
+TIMING {"durationMs":52.426124999999956,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 114 worker-inventory-unavailable
+TIMING {"durationMs":52.34745899999962,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 115 worker-inventory-unavailable
+TIMING {"durationMs":52.35770800000046,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 116 worker-inventory-unavailable
+TIMING {"durationMs":52.33024999999998,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 117 worker-inventory-unavailable
+TIMING {"durationMs":50.804417000000285,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 118 worker-inventory-unavailable
+TIMING {"durationMs":51.435207999999875,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 119 worker-inventory-unavailable
+TIMING {"durationMs":52.38550000000032,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 120 worker-inventory-unavailable
+TIMING {"durationMs":52.43212500000027,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 121 worker-inventory-unavailable
+TIMING {"durationMs":52.56079200000022,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 122 worker-inventory-unavailable
+TIMING {"durationMs":51.9325000000008,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 123 worker-inventory-unavailable
+TIMING {"durationMs":52.335000000000036,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 124 worker-inventory-unavailable
+TIMING {"durationMs":52.49733300000025,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 125 worker-inventory-unavailable
+TIMING {"durationMs":51.783040999999685,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 126 worker-inventory-unavailable
+TIMING {"durationMs":51.38458400000036,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 127 worker-inventory-unavailable
+TIMING {"durationMs":52.525541999999405,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 128 worker-inventory-unavailable
+TIMING {"durationMs":52.39783299999999,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 129 worker-inventory-unavailable
+TIMING {"durationMs":52.35083399999985,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 130 worker-inventory-unavailable
+TIMING {"durationMs":51.21516699999938,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 131 worker-inventory-unavailable
+TIMING {"durationMs":51.10270800000035,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 132 worker-inventory-unavailable
+TIMING {"durationMs":52.36475000000064,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 133 worker-inventory-unavailable
+TIMING {"durationMs":50.97112500000003,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 134 worker-inventory-unavailable
+TIMING {"durationMs":49.65950000000066,"window":50,"wall":49,"topologySame":true,"totalSame":true,"identitySame":true}
+DIAGNOSTIC resource observation changed
+RESULT 135 unavailable
+TIMING {"durationMs":52.34291699999994,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 136 worker-inventory-unavailable
+TIMING {"durationMs":52.40112500000032,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 137 worker-inventory-unavailable
+TIMING {"durationMs":52.37666700000045,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 138 worker-inventory-unavailable
+TIMING {"durationMs":50.51037499999984,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 139 worker-inventory-unavailable
+TIMING {"durationMs":50.70762500000001,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 140 worker-inventory-unavailable
+TIMING {"durationMs":51.60108300000047,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 141 worker-inventory-unavailable
+TIMING {"durationMs":52.34200000000055,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 142 worker-inventory-unavailable
+TIMING {"durationMs":50.78279100000054,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 143 worker-inventory-unavailable
+TIMING {"durationMs":50.614708000000064,"window":50,"wall":50,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 144 worker-inventory-unavailable
+TIMING {"durationMs":52.378459000000475,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 145 worker-inventory-unavailable
+TIMING {"durationMs":50.72150000000056,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 146 worker-inventory-unavailable
+TIMING {"durationMs":52.47504200000003,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 147 worker-inventory-unavailable
+TIMING {"durationMs":50.41162500000064,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 148 worker-inventory-unavailable
+TIMING {"durationMs":51.46387499999946,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 149 worker-inventory-unavailable
+TIMING {"durationMs":50.76629099999991,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 150 worker-inventory-unavailable
+TIMING {"durationMs":50.92845799999941,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 151 worker-inventory-unavailable
+TIMING {"durationMs":52.36854100000073,"window":50,"wall":53,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 152 worker-inventory-unavailable
+TIMING {"durationMs":51.83458400000018,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 153 worker-inventory-unavailable
+TIMING {"durationMs":52.14325000000008,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 154 worker-inventory-unavailable
+TIMING {"durationMs":50.711834000000636,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 155 worker-inventory-unavailable
+TIMING {"durationMs":52.13300000000072,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 156 worker-inventory-unavailable
+TIMING {"durationMs":51.48899999999958,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 157 worker-inventory-unavailable
+TIMING {"durationMs":51.441790999999284,"window":50,"wall":51,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 158 worker-inventory-unavailable
+TIMING {"durationMs":52.49366699999882,"window":50,"wall":52,"topologySame":true,"totalSame":true,"identitySame":true}
+RESULT 159 worker-inventory-unavailable

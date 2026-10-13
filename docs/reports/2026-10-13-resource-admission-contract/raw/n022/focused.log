@@ -1,0 +1,37 @@
+✔ explicit policy binds independent host and freezes detached profiles without defaults (0.997375ms)
+✔ actual counter delta, disk bytes and used memory remain distinct from configured ceilings (1.259292ms)
+✔ unknown worker coverage never becomes zero: absent (0.282542ms)
+✔ unknown worker coverage never becomes zero: incomplete (0.233459ms)
+✔ unknown worker coverage never becomes zero: wrong-host (0.19625ms)
+✔ unknown worker coverage never becomes zero: wrong-boot (0.202292ms)
+✔ unknown worker coverage never becomes zero: wrong-pool (0.239875ms)
+✔ unknown worker coverage never becomes zero: wrong-policy (0.196625ms)
+✔ unknown worker coverage never becomes zero: future (0.195208ms)
+✔ unknown worker coverage never becomes zero: stale (0.21825ms)
+✔ unknown worker coverage never becomes zero: duplicate (0.937042ms)
+✔ unknown worker coverage never becomes zero: getter (0.535958ms)
+✔ source or freshness mismatch refuses observation: foreign-host (0.201375ms)
+✔ source or freshness mismatch refuses observation: restarted (0.266292ms)
+✔ source or freshness mismatch refuses observation: disk-device (0.094958ms)
+✔ source or freshness mismatch refuses observation: disk-path (0.070125ms)
+✔ source or freshness mismatch refuses observation: disk-negative (0.071875ms)
+✔ source or freshness mismatch refuses observation: disk-overflow (0.058542ms)
+✔ source or freshness mismatch refuses observation: cpu-reset (0.103458ms)
+✔ source or freshness mismatch refuses observation: cpu-empty (0.050583ms)
+✔ source or freshness mismatch refuses observation: cpu-topology (0.09275ms)
+✔ source or freshness mismatch refuses observation: memory-change (0.104125ms)
+✔ source or freshness mismatch refuses observation: clock-back (0.1105ms)
+✔ source or freshness mismatch refuses observation: clock-stale (0.082208ms)
+✔ source or freshness mismatch refuses observation: mono-stale (0.063916ms)
+✔ a timed-out read retains one slot across ten retries, ignores late success and resumes only after settlement (11.4665ms)
+✔ late rejected sampling I/O frees the slot without an unhandled rejection (10.851875ms)
+✔ accidental rejected async clock is unknown and consumed (0.267042ms)
+✔ real OS reader and canonical statfs smoke uses no worker zero or inferred policy (54.198708ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.417208

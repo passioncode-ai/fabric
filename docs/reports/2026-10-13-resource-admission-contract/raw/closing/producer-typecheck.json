@@ -1,0 +1,10 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn pnpm --filter @fabric/desktop typecheck",
+  "exit": 0,
+  "checks": [
+    "tsconfig.node.json",
+    "tsconfig.web.json"
+  ],
+  "source": "pre-offset-correction producer sources; later correction needs revalidation",
+  "environment": "Existing node_modules out of sync with lockfile warning; no install; toolchain reproducibility UNVERIFIED"
+}

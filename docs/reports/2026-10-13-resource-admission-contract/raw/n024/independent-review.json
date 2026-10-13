@@ -1,0 +1,68 @@
+{
+  "task": "N-024",
+  "reviewer": "pipeline_research",
+  "author": "observatory_research",
+  "status": "ACCEPT_SCOPED",
+  "sourceFiles": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+    "docs/execution/harness-waves/resource-reservation.md": "8f9dae8d431d0009dfe3558c5fc74e074edc64f12e94d27f2230d167d39fb726"
+  },
+  "review": [
+    {
+      "topic": "configuration CAS",
+      "source": "supabase/pending-migrations/20261013000107_resource_reservations.sql:73",
+      "finding": "No blocker: row lock, exact revision+generation expectation for changes, held-allocation refusal, generation increment without wrap; exact current-policy retry is a no-op."
+    },
+    {
+      "topic": "ABA and sampler",
+      "source": "supabase/pending-migrations/20261013000107_resource_reservations.sql:103",
+      "finding": "No blocker: observer requires current generation; default generation remains 1, so A1-B2-A3 cannot revive legacy sampler."
+    },
+    {
+      "topic": "privileges and old overloads",
+      "source": "supabase/pending-migrations/20261013000107_resource_reservations.sql:71",
+      "finding": "Old configure5/6 and observe5 signatures dropped without CASCADE; corrected signatures revoke PUBLIC/anon/authenticated and grant service_role; default arities call same permission-checked functions."
+    },
+    {
+      "topic": "ledger invariants",
+      "source": "supabase/pending-migrations/20261013000107_resource_reservations.sql:296",
+      "finding": "Diff leaves admission, nested accounting, compensation, release, replay and existing authority paths unchanged except configuration/observation RPC signature grants."
+    },
+    {
+      "topic": "docs",
+      "source": "docs/execution/harness-waves/resource-reservation.md:95",
+      "finding": "Required current-revision wording correction applied by root; historical revision text may recur at a new generation. Final SQL status receipt insertion remains root closeout bookkeeping."
+    }
+  ],
+  "checks": {
+    "reviewerRanDatabase": false,
+    "integrationOwnerReportedRunnerExitCode": 0,
+    "integrationOwnerProcessId": 3837,
+    "observedLogSha256": "ed3bbdb13c98ccf163c8c4a70dd6bb7e0325acc7dc0e893a2876f71d3b2f63b8",
+    "observedStages": [
+      "continuation dispatch SQL",
+      "managed launch SQL",
+      "managed Stop SQL",
+      "resource reservation SQL",
+      "production resource reconciliation with SQL",
+      "pending108 wait-store SQL"
+    ],
+    "originalNegative": "EXPECTED_RED exact original configure allowed stale writer; transaction rolled back",
+    "correctedControl": "PASS same source-negative control on corrected configuration",
+    "exactOriginalFunctionBodyEquality": true,
+    "originalFunctionBodySha256": "87a67c141419bcf05242a5aa300c3755b4acc4d6e0746f2b72f7658b7503f62c",
+    "ownedRunnerSha256": "64db254974a4aed492f2448dec89131e177824af678ae6c2f3bd2373fb210081"
+  },
+  "initialFailure": {
+    "kind": "test-harness defect, not production SQL rejection",
+    "reason": "Original five-argument function was added beside corrected seven-argument defaults, making untyped calls ambiguous.",
+    "correction": "Drop corrected seven-argument overload inside rollback transaction before installing byte-exact original; original assertion then fails for stale overwrite and corrected control passes."
+  },
+  "limitations": [
+    "Prepared pending DDL only; no active schema promotion, live service, native provider, portable contract or production writer/sampler composition acceptance",
+    "No historical policy-revision nonreuse guarantee; generation is the concurrency identity",
+    "Configuration acknowledgement is not freshness, lease ownership, or resource execution authorization",
+    "Actual SQL was executed by root; reviewer independently inspected exact production/test sources and resulting log, without starting another cluster"
+  ]
+}

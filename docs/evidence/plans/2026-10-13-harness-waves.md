@@ -302,3 +302,30 @@ Incoming deferred migration107 collides with our preparation107; neither filenam
 an active ledger position. Its unapplied carryover patch also proposes an unrelated CO282.
 Do not apply it over this run's CO282. Preserve both historical artifacts, keep canonical
 286 rows/219 open, and reconcile owner IDs/order before activation or owner delivery.
+
+
+<a id="concrete-producers"></a>
+### N-022–N-025 — concrete producers before activation
+
+The verified combined checkpoint1b63e81c completed fast, including the real pending
+resource SQL runner. Local activation prerequisites still name executable source work.
+N022 builds explicit immutable host policy and real OS memory/CPU/disk sampling, with
+a trusted complete worker inventory required instead of inferred zero. N023 reads
+actual exact Git lease objects and revalidates their ref, owner and expiry; it reports
+a snapshot, never a numeric external fence or a fabricated run/input binding.
+
+N024 fixes a newly found delayed-writer rollback in pending107: configuration changes
+need exact previous revision and monotonic generation. Observation publication also
+binds generation so A1→B2→A3 cannot admit an A1 sample. Exact idempotent configuration
+replay preserves observation and generation; held capacity still blocks replacement.
+N025 combines the actual policy/read producer with bounded pending SQL publication
+and exact readback. The complete validated policy binds to a versioned SHA-256 SQL
+revision, distinct from the human revision. An unknown write is reconciled, not treated
+as permission. Readback compares exact instants across supported numeric timezone offsets.
+A service-only host/pool read RPC supplies the exact eight-field projection; the generic
+scoped-store checker remains unchanged and no Estate predicate is fabricated.
+
+These nodes do not install policy, activate DDL or create a complete worker inventory
+from a PTY list. Source-owned task/input closure, actual run↔lease binding, production
+composition and native/write-boundary enforcement retain their explicit prerequisites.
+One heavy DB/build slot remains shared; temporary builders cannot mutate root inputs.

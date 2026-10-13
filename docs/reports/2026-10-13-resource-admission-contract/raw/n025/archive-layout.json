@@ -1,0 +1,20 @@
+[
+  {
+    "original": "rejected-initial/resource-pool-publisher.md",
+    "stored": "rejected-initial/resource-pool-publisher.md.snapshot.txt",
+    "sha256": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e",
+    "transform": "Filename only; exact historical bytes. Relative links describe original source tree, not archive location."
+  },
+  {
+    "original": "offset-correction/rejected-utc/resource-pool-publisher.md",
+    "stored": "offset-correction/rejected-utc/resource-pool-publisher.md.snapshot.txt",
+    "sha256": "783ed57e93b8b5802f549837c1c39ba3738a52fdb6afd09fb760f4687e2f399f",
+    "transform": "Filename only; exact historical bytes. Relative links describe original source tree, not archive location."
+  },
+  {
+    "original": "independent/rejected-source/docs/execution/harness-waves/resource-pool-publisher.md",
+    "stored": "independent/rejected-source/docs/execution/harness-waves/resource-pool-publisher.md.snapshot.txt",
+    "sha256": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e",
+    "transform": "Filename only; exact historical bytes. Relative links describe original source tree, not archive location."
+  }
+]

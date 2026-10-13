@@ -1,0 +1,9 @@
+{
+  "base_commit": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b",
+  "candidate": "temporary patch, not committed; bound by file hashes",
+  "source_sha256": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "784224d3ae8a8a9e58ae2383adfb8c7299f3a51a7a94e879a0e5f5e1f1e4ec4f",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "086c0a708003c8b632a3db2313f06c91680f009dfa9efffc141c0cbf63ce84c4",
+    "docs/execution/harness-waves/resource-reservation.md": "fcf86cc099c42d9347f15f87d10b2cc169333132c7dcf0282d4f1527c1bf7b1c"
+  }
+}

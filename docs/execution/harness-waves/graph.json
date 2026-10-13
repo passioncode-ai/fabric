@@ -140,7 +140,11 @@
         "N-018",
         "N-019",
         "N-020",
-        "N-021"
+        "N-021",
+        "N-022",
+        "N-023",
+        "N-024",
+        "N-025"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -465,16 +469,105 @@
       "id": "N-021",
       "title": "Serialize board session admission per binding",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-001"
       ],
       "serves": "REQ-001",
       "check": "33 enrollment regressions plus independent four-control concurrency probe and merged board seams",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n021/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+        "proven at 1b63e81c11e3327c26f930e93656ac7a2b11fcb6 (tree 76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5)"
+      ],
       "touches": [
         "apps/desktop/src/main/sessionEnroll.ts",
         "apps/desktop/test/session-enroll.test.mjs"
+      ],
+      "surface_class": "internal",
+      "proof": {
+        "head": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+        "tree": "76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5",
+        "graph_revision": "7",
+        "checks": [
+          "Full fast exit0,707.51s exact same before/after tree",
+          "33 enrollment and four independent controls; merged117 Node and92 Vitest seam checks passed"
+        ]
+      }
+    },
+    {
+      "id": "N-022",
+      "title": "Explicit host policy and real resource observations",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-012"
+      ],
+      "serves": "REQ-009",
+      "check": "Real OS read and bounded injected failures; unknown axes never become zero",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceHostPolicy.ts",
+        "apps/desktop/src/main/resourceHostSampler.ts",
+        "apps/desktop/test/resource-host-sampler.test.mjs",
+        "docs/execution/harness-waves/resource-host-observation.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-023",
+      "title": "Strict current Git lease snapshot reader",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-001"
+      ],
+      "serves": "REQ-005",
+      "check": "Real owned Git authority fixtures; foreign expired changed or unreadable authority refuses",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/gitLeaseSnapshot.ts",
+        "apps/desktop/test/git-lease-snapshot.test.mjs",
+        "docs/execution/harness-waves/resource-ownership-snapshot.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-024",
+      "title": "Fence policy configuration and observation writers",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-013"
+      ],
+      "serves": "REQ-009",
+      "check": "Actual isolated SQL stale writer and ABA refusal; idempotent readback and held-capacity protection",
+      "evidence": null,
+      "touches": [
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+        "apps/desktop/test/resource-reservation-db.test.mjs",
+        "docs/execution/harness-waves/resource-reservation.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-025",
+      "title": "Bounded policy observation publication and readback",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-022",
+        "N-024"
+      ],
+      "serves": "REQ-009",
+      "check": "Exact configuration generation and observation readback; unknown response retains I/O and cannot grant admission",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourcePoolPublisher.ts",
+        "apps/desktop/test/resource-pool-publisher.test.mjs",
+        "docs/execution/harness-waves/resource-pool-publisher.md",
+        "apps/desktop/test/resource-pool-publisher-db.test.mjs",
+        "apps/desktop/test/run-resource-reservation-db.mjs"
       ],
       "surface_class": "internal"
     }
@@ -654,6 +747,51 @@
       "from": "N-021",
       "to": "N-007",
       "payload": "Merged board/coding serialization correction with exact-source independent acceptance"
+    },
+    {
+      "from": "N-012",
+      "to": "N-022",
+      "payload": "Accepted producer contract and immutable source evidence"
+    },
+    {
+      "from": "N-001",
+      "to": "N-023",
+      "payload": "Accepted producer contract and immutable source evidence"
+    },
+    {
+      "from": "N-013",
+      "to": "N-024",
+      "payload": "Accepted producer contract and immutable source evidence"
+    },
+    {
+      "from": "N-022",
+      "to": "N-025",
+      "payload": "Accepted producer contract and immutable source evidence"
+    },
+    {
+      "from": "N-024",
+      "to": "N-025",
+      "payload": "Accepted producer contract and immutable source evidence"
+    },
+    {
+      "from": "N-022",
+      "to": "N-007",
+      "payload": "Concrete producer correction and exact scoped review/test evidence"
+    },
+    {
+      "from": "N-023",
+      "to": "N-007",
+      "payload": "Concrete producer correction and exact scoped review/test evidence"
+    },
+    {
+      "from": "N-024",
+      "to": "N-007",
+      "payload": "Concrete producer correction and exact scoped review/test evidence"
+    },
+    {
+      "from": "N-025",
+      "to": "N-007",
+      "payload": "Concrete producer correction and exact scoped review/test evidence"
     }
   ],
   "revisions": [
@@ -697,6 +835,32 @@
       "node": "N-019",
       "why": "closed with no re-plan",
       "precondition": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b"
+    },
+    {
+      "verb": "close",
+      "node": "N-021",
+      "why": "closed with no re-plan",
+      "precondition": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6"
+    },
+    {
+      "verb": "add",
+      "node": "N-022",
+      "why": "Existing activation-prerequisite packet is locally executable; observation and ownership gaps plus stale policy writer finding require concrete producers"
+    },
+    {
+      "verb": "add",
+      "node": "N-023",
+      "why": "Existing activation-prerequisite packet is locally executable; observation and ownership gaps plus stale policy writer finding require concrete producers"
+    },
+    {
+      "verb": "add",
+      "node": "N-024",
+      "why": "Existing activation-prerequisite packet is locally executable; observation and ownership gaps plus stale policy writer finding require concrete producers"
+    },
+    {
+      "verb": "add",
+      "node": "N-025",
+      "why": "Existing activation-prerequisite packet is locally executable; observation and ownership gaps plus stale policy writer finding require concrete producers"
     }
   ]
 }

@@ -1,0 +1,220 @@
+--- a/supabase/pending-migrations/20261013000107_resource_reservations.sql
++++ b/supabase/pending-migrations/20261013000107_resource_reservations.sql
+@@ -22,6 +22,7 @@
+  host_id text not null check(length(host_id) between 1 and 128),
+  pool_id text not null check(length(pool_id) between 1 and 128),
+  policy_revision text not null check(length(policy_revision) between 1 and 128),
++ configuration_generation bigint not null default 1 check(configuration_generation between 1 and 9007199254740991),
+  capacity jsonb not null check(resource_vector_valid(capacity)),
+  max_age_ms bigint not null check(max_age_ms between 1 and 9007199254740991),
+  observed jsonb check(observed is null or resource_vector_valid(observed)),
+@@ -63,31 +64,49 @@
+
+ -- Explicit trusted configuration only. No implicit machine-wide pool/default and no
+ -- caller-selected capacity on admission. A policy cannot change beneath held work.
+-create function configure_resource_pool(p_host text,p_pool text,p_revision text,p_capacity jsonb,p_max_age_ms bigint)
++-- Omitted expectations are create-only; updates compare revision and generation
++-- under the row lock. Reused revision text cannot revive a stale writer. Exact same-policy retries preserve the current observation.
++-- Preserve five-argument call syntax through the default, but leave no old
++-- unconditional overload callable. No CASCADE: dependent authority must be reviewed.
++drop function if exists configure_resource_pool(text,text,text,jsonb,bigint);
++drop function if exists configure_resource_pool(text,text,text,jsonb,bigint,text);
++create function configure_resource_pool(p_host text,p_pool text,p_revision text,p_capacity jsonb,p_max_age_ms bigint,p_expected_revision text default null,p_expected_generation bigint default null)
+ returns boolean language plpgsql security definer set search_path=public as $$
+ declare previous resource_pools;
+ begin
+  if p_host is null or p_host !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' or p_pool is null or p_pool !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+   or p_revision is null or p_revision !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' or not resource_vector_valid(p_capacity)
+-  or p_max_age_ms is null or p_max_age_ms not between 1 and 9007199254740991 then return false; end if;
++  or p_max_age_ms is null or p_max_age_ms not between 1 and 9007199254740991
++  or (p_expected_revision is null)<>(p_expected_generation is null)
++  or (p_expected_revision is not null and p_expected_revision !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$')
++  or (p_expected_generation is not null and p_expected_generation not between 1 and 9007199254740991) then return false; end if;
++ if p_expected_revision is null then
+  insert into resource_pools(host_id,pool_id,policy_revision,capacity,max_age_ms)
+  values(p_host,p_pool,p_revision,p_capacity,p_max_age_ms) on conflict do nothing;
++ end if;
+  select * into previous from resource_pools where host_id=p_host and pool_id=p_pool for update;
++ if not found then return false; end if;
+  if previous.policy_revision=p_revision and previous.capacity=p_capacity and previous.max_age_ms=p_max_age_ms then return true; end if;
+- if previous.policy_revision=p_revision or exists(select 1 from resource_reservations where host_id=p_host and pool_id=p_pool and state='held') then return false; end if;
+- update resource_pools set policy_revision=p_revision,capacity=p_capacity,max_age_ms=p_max_age_ms,observed=null,observed_at=null
++ if p_expected_revision is null or previous.policy_revision is distinct from p_expected_revision
++  or previous.configuration_generation is distinct from p_expected_generation or previous.configuration_generation=9007199254740991
++  or previous.policy_revision=p_revision or exists(select 1 from resource_reservations where host_id=p_host and pool_id=p_pool and state='held') then return false; end if;
++ update resource_pools set policy_revision=p_revision,configuration_generation=configuration_generation+1,capacity=p_capacity,max_age_ms=p_max_age_ms,observed=null,observed_at=null
+  where host_id=p_host and pool_id=p_pool;
+  return true;
+ end $$;
+
+ -- observed is total external/host usage, conservatively charged in addition to reservations.
+ -- No overlap credit is accepted until a sampler can bind it to exact reservation identities.
+-create function observe_resource_pool(p_host text,p_pool text,p_revision text,p_observed jsonb,p_at timestamptz)
++-- The legacy five-argument call is bound to generation 1, never whichever
++-- configuration is current. Reused revision text cannot revive an old sampler.
++drop function if exists observe_resource_pool(text,text,text,jsonb,timestamptz);
++create function observe_resource_pool(p_host text,p_pool text,p_revision text,p_observed jsonb,p_at timestamptz,p_configuration_generation bigint default 1)
+ returns boolean language plpgsql security definer set search_path=public as $$
+ declare pool resource_pools;
+ begin
+  select * into pool from resource_pools where host_id=p_host and pool_id=p_pool for update;
+- if not found or pool.policy_revision is distinct from p_revision or not resource_vector_valid(p_observed)
++ if not found or pool.policy_revision is distinct from p_revision
++  or pool.configuration_generation is distinct from p_configuration_generation or not resource_vector_valid(p_observed)
+   or p_at is null or p_at>clock_timestamp() or (p_at=pool.observed_at and p_observed<>pool.observed) or (pool.observed_at is not null and p_at<pool.observed_at) then return false; end if;
+  update resource_pools set observed=p_observed,observed_at=p_at where host_id=p_host and pool_id=p_pool;
+  return true;
+@@ -274,8 +293,8 @@
+
+ -- Helpers and bypassable pre-resource gates are never callable by a database client.
+ revoke all on function resource_vector_valid(jsonb),resource_pool_problem(text,text,text,jsonb),resource_launch_problem(uuid,uuid,uuid) from public,anon,authenticated,service_role;
+-revoke all on function configure_resource_pool(text,text,text,jsonb,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) from public,anon,authenticated;
+-grant execute on function configure_resource_pool(text,text,text,jsonb,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) to service_role;
++revoke all on function configure_resource_pool(text,text,text,jsonb,bigint,text,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz,bigint),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) from public,anon,authenticated;
++grant execute on function configure_resource_pool(text,text,text,jsonb,bigint,text,bigint),observe_resource_pool(text,text,text,jsonb,timestamptz,bigint),admit_resource_task_launch(uuid,uuid,jsonb,uuid,text,text,jsonb,jsonb,jsonb,text,text,uuid,bigint),release_resource_reservation(uuid,text,uuid,uuid,text),begin_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint),validate_task_run_launch(uuid,uuid,uuid,jsonb,uuid,bigint) to service_role;
+ revoke all on function cancel_resource_admission(uuid,text,uuid,uuid,text) from public,anon,authenticated;
+ grant execute on function cancel_resource_admission(uuid,text,uuid,uuid,text) to service_role;
+ -- #endregion local-resource-reservation
+--- a/apps/desktop/test/resource-reservation-db.test.mjs
++++ b/apps/desktop/test/resource-reservation-db.test.mjs
+@@ -50,6 +50,68 @@
+ sql("update resource_pools set observed_at=clock_timestamp()-interval '2 minutes' where pool_id='stale'")
+ assert.equal(admit(missing, 'stale').reason_code, 'resource_reading_unknown')
+ assert.equal(sql(`select observe_resource_pool('host-a','stale','revision-1',${json(zero)},clock_timestamp()+interval '1 day')`), 'f')
++// Configuration acknowledgement is not a new reading. Same-policy retries
++// preserve the original (even stale) row; omitted expected revision cannot rewind it.
++const policyCapacity = v(2, 100, 100, 100)
++const poolRow = pool => call(`set role service_role; select to_jsonb(p) from resource_pools p where host_id='host-a' and pool_id=${quote(pool)}`)
++const staleBeforeRetry = poolRow('stale')
++assert.equal(sql(`set role service_role; select configure_resource_pool('host-a','stale','revision-1',${json(policyCapacity)},60000)`), 't')
++assert.deepEqual(poolRow('stale'), staleBeforeRetry)
++assert.equal(admit(missing, 'stale').reason_code, 'resource_reading_unknown')
++// This assertion fails on the original five-argument production function: it
++// accepts the stale writer and silently replaces revision-1 with revision-old.
++assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-old',${json(policyCapacity)},60000)`), 'f')
++assert.deepEqual(poolRow('stale'), staleBeforeRetry)
++assert.equal(sql("select to_regprocedure('configure_resource_pool(text,text,text,jsonb,bigint)') is null"), 't', 'no legacy unconditional overload remains callable')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-absent','revision-2',${json(policyCapacity)},60000,'revision-1',1)`), 'f')
++assert.equal(sql("select count(*) from resource_pools where pool_id='cas-absent'"), '0')
++assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-2',${json(policyCapacity)},60000,'',1)`), 'f')
++assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-1',${json(v(3, 100, 100, 100))},60000,'revision-1',1)`), 'f')
++
++// Two creators cannot replace each other's revision; the same expectation cannot
++// authorize two successive updates even when both calls use distinct connections.
++const configRace = (pool, revision, expected) => `select to_jsonb(configure_resource_pool('host-a',${quote(pool)},${quote(revision)},${json(policyCapacity)},60000,${expected === null ? 'null' : quote(expected)},${expected === null ? 'null' : '1'}))`
++const creationResults = await Promise.all(['create-a', 'create-b'].map(revision => parallel(configRace('cas-create', revision, null))))
++assert.equal(creationResults.filter(Boolean).length, 1)
++assert.equal(poolRow('cas-create').configuration_generation, 1)
++const createdRevision = poolRow('cas-create').policy_revision
++assert.equal(createdRevision, creationResults[0] ? 'create-a' : 'create-b')
++const updateResults = await Promise.all(['update-a', 'update-b'].map(revision => parallel(configRace('cas-create', revision, createdRevision))))
++assert.equal(updateResults.filter(Boolean).length, 1)
++const updatedRevision = updateResults[0] ? 'update-a' : 'update-b', updated = poolRow('cas-create')
++assert.equal(updated.policy_revision, updatedRevision); assert.equal(updated.configuration_generation, 2)
++assert.equal(updated.observed, null); assert.equal(updated.observed_at, null)
++assert.equal(sql(`select observe_resource_pool('host-a','cas-create',${quote(updatedRevision)},${json(zero)},clock_timestamp(),2)`), 't')
++const observedUpdated = poolRow('cas-create')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-create',${quote(updatedRevision)},${json(policyCapacity)},60000,${quote(createdRevision)},1)`), 't', 'lost successful CAS reply retries the same policy without changing its reading')
++assert.deepEqual(poolRow('cas-create'), observedUpdated)
++assert.equal(sql(`select configure_resource_pool('host-a','cas-create',${quote(createdRevision)},${json(policyCapacity)},60000)`), 'f', 'delayed creator cannot roll back the winning update')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-create','late-update',${json(policyCapacity)},60000,${quote(createdRevision)},1)`), 'f', 'stale expected revision cannot overwrite a newer policy')
++assert.equal(sql(`select observe_resource_pool('host-a','cas-create',${quote(createdRevision)},${json(zero)},clock_timestamp())`), 'f')
++assert.deepEqual(poolRow('cas-create'), observedUpdated)
++
++// Revision text may repeat, but its generation cannot. An A1 sampler/writer
++// cannot act after A1 -> B2 -> A3, even when all policy bytes match the first A.
++assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000)`), 't')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','B',${json(policyCapacity)},60000,'A',1)`), 't')
++assert.equal(sql(`set role service_role; select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000,'B',2)`), 't')
++assert.equal(poolRow('cas-aba').configuration_generation, 3)
++assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','C',${json(policyCapacity)},60000,'A',1)`), 'f')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','C',${json(policyCapacity)},60000,'A')`), 'f', 'revision-only expectation cannot update')
++assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp())`), 'f', 'legacy sampler remains bound to generation 1')
++assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),1)`), 'f')
++assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),null)`), 'f')
++assert.equal(sql(`set role service_role; select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),3)`), 't')
++const abaObserved = poolRow('cas-aba')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000,'B',2)`), 't')
++assert.deepEqual(poolRow('cas-aba'), abaObserved, 'exact policy replay neither increments generation nor refreshes observedAt')
++assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},${quote(abaObserved.observed_at)},3)`), 't')
++assert.deepEqual(poolRow('cas-aba'), abaObserved, 'exact observation replay never refreshes time')
++assert.equal(sql(`select configure_resource_pool('host-a','cas-max','A',${json(policyCapacity)},60000)`), 't')
++sql("update resource_pools set configuration_generation=9007199254740991 where host_id='host-a' and pool_id='cas-max'")
++assert.equal(sql(`select configure_resource_pool('host-a','cas-max','B',${json(policyCapacity)},60000,'A',9007199254740991)`), 'f')
++assert.equal(poolRow('cas-max').configuration_generation, 9007199254740991)
++
+ for (const bad of [{ ...v(), workerSlots: null }, { ...v(), memoryBytes: -1 }, { ...v(), diskBytes: 1.5 }, { ...v(), cpuMilliCores: 9007199254740992 }, { ...v(), surprise: 0 }]) {
+   assert.equal(sql(`select configure_resource_pool('host-a','bad','revision-1',${json(bad)},60000)`), 'f')
+   assert.equal(admit(missing, 'stale', bad).reason_code, 'resource_input_invalid')
+@@ -72,6 +134,10 @@
+ assert.equal(admit({ ...winner, binding: { ...winner.binding, inputDigest: 'c'.repeat(64) } }, 'race').reason_code, 'resource_identity_conflict')
+ assert.equal(admit(winner, 'race', v(1, 11)).reason_code, 'resource_identity_conflict')
+ assert.equal(sql(`select configure_resource_pool('host-a','race','revision-2',${json(v(9))},60000)`), 'f')
++const heldPool = poolRow('race')
++assert.equal(sql(`select configure_resource_pool('host-a','race','revision-2',${json(v(9))},60000,'revision-1',1)`), 'f', 'valid CAS cannot change a policy beneath held work')
++assert.equal(sql(`select configure_resource_pool('host-a','race','revision-1',${json(v(1, 100, 100, 100))},60000,'revision-1',1)`), 't')
++assert.deepEqual(poolRow('race'), heldPool)
+ assert.equal(release(winner, won).reason_code, 'resource_execution_unresolved')
+ assert.equal(release(winner, won, { estate: winner.estate === E ? E2 : E }).released, false)
+ assert.equal(begin(winner, won).granted, true)
+@@ -176,7 +242,7 @@
+ assert.equal(call(`begin; create or replace function resource_pool_problem(p_host text,p_pool text,p_revision text,p_extra jsonb) returns text language sql as 'select null::text'; ${statement(planted, 'observed')}; rollback;`).admitted, true)
+ // Explicit client-role attempts, not only catalog grant inspection.
+ for (const role of ['anon', 'authenticated']) {
+-  for (const command of ["select configure_resource_pool('x','x','x','{}',1)", statement(task(), 'race'), `select release_resource_reservation('${E}','id','${rr.task_run_id}','${restored.session}','1')`, `select cancel_resource_admission('${E}','id','${rr.task_run_id}','${restored.session}','1')`, "update resource_reservations set state='released',released_seq=1"]) {
++  for (const command of ["select configure_resource_pool('x','x','x','{}',1)", "select configure_resource_pool('x','x','x','{}',1,'previous',1)", "select observe_resource_pool('x','x','x','{}',clock_timestamp(),1)", statement(task(), 'race'), `select release_resource_reservation('${E}','id','${rr.task_run_id}','${restored.session}','1')`, `select cancel_resource_admission('${E}','id','${rr.task_run_id}','${restored.session}','1')`, "update resource_reservations set state='released',released_seq=1"]) {
+     assert.throws(() => sql(`set role ${role}; ${command}`), /permission denied/)
+   }
+ }
+--- a/docs/execution/harness-waves/resource-reservation.md
++++ b/docs/execution/harness-waves/resource-reservation.md
+@@ -92,8 +92,8 @@
+
+ | Function | Inputs / result |
+ |---|---|
+-| `configure_resource_pool` | Explicit host, pool, policy revision, capacity and max-age milliseconds; boolean. A held allocation prevents policy changes. Same revision cannot acquire different policy bytes. |
+-| `observe_resource_pool` | Exact host/pool/revision, complete observed vector, captured timestamp; boolean. No inferred overlap. |
++| `configure_resource_pool` | Explicit host, pool, policy revision, capacity, max-age milliseconds and optional `p_expected_revision`/`p_expected_generation` (both default null); boolean. Omitted/null expectations are create-only. A changed revision requires the exact previous revision and generation under the pool lock and no held allocation. Exact same-policy retries preserve the observation; the same revision cannot acquire different policy bytes. |
++| `observe_resource_pool` | Exact host/pool/revision and configuration generation, complete observed vector, captured timestamp; boolean. Omitted generation defaults to 1, never the current generation. No inferred overlap. |
+ | `admit_resource_task_launch` | Existing Estate/task/actor/session; injected host/pool; binding; demand and own demand; optional parent; existing trigger/person/membership revision. Returns the ordinary admission receipt plus `resource_reservation: { reservation_id, state, run_ordinal }`, or `admitted:false` and `reason_code`. |
+ | `begin_task_run_launch`, `validate_task_run_launch` | Existing argument shapes. Resource reservations add current reading/ledger checks before the preserved generation/authority checks. |
+ | `release_resource_reservation` | Exact Estate, reservation, run, session and fence (canonical base-10 integer text); `{ released, repeated?, receipt_seq?, reason_code? }`. |
+@@ -164,3 +164,38 @@
+ termination proof and durable wakeups. Portable consumers remain subject to
+ fabric-agent-contract owner acceptance. No operator approval is invented for
+ the independently executable local work.
++
++## Pending configuration compare-and-set correction
++
++Each pool starts at `configuration_generation = 1`, a positive safe integer.
++The configuration command takes optional `p_expected_revision` and
++`p_expected_generation`, both default null. Five-argument callers can create a
++pool and retry the exact same policy; they cannot change an existing revision.
++An update requires both current values under the row lock, refuses while any
++reservation is held, increments generation once and clears the old observation.
++A missing pool cannot satisfy an update expectation; exhausted generation refuses
++instead of wrapping. The old unconditional function overload is dropped without
++CASCADE, and service-only grants target the new signature.
++
++Exact same-policy retries acknowledge the current row without changing generation
++or refreshing its reading, including after a successful transition's reply was lost.
++Generation distinguishes repeated revision text: A1 → B2 → A3 does not authorize a
++stale update expecting A1. Observation must name the current generation too; the
++legacy five-argument observation call is bound to generation 1. An old A1 sampler
++cannot overwrite A3 merely because its revision string matches again. Exact
++observation replay preserves its timestamp; it does not manufacture freshness.
++
++A caller must not turn a timeout into an unconditional write or silently replace
++its expectation with the latest one. Read back exact host, pool, revision,
++generation, capacity and freshness policy; compare observation and timestamp
++separately. A configuration acknowledgement does not prove freshness or admission
++eligibility. The CAS is not a writer lease, host authentication or a permission
++grant; the existing service-role trust boundary remains in force.
++
++Prepared SQL regressions cover a five-argument stale writer that the original
++function accepts, competing creators and updates, absent-pool and malformed CAS,
++ABA writers and samplers, generation exhaustion, exact policy/observation replay,
++stale-reading preservation and held-policy refusal with valid expectations.
++Client role denials cover legacy and explicit call arities. **Correction SQL
++execution: NOT_RUN** until the integration owner provides the serialized disposable
++database slot. No active manifest, service configuration or portable protocol changes.

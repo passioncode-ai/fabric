@@ -1,0 +1,23 @@
+{
+  "scope": "pending DDL and actual SQL fixture only; no active migration, no root edits, no DB run",
+  "baseHead": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "files": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": {
+      "before": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+      "after": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110"
+    },
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": {
+      "before": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+      "after": "403c866575493a9d49d50d8cfa42b89395895fdb1371404a14e919ba9a528919"
+    }
+  },
+  "CAS": "configure/observe bodies unchanged; all old SQL bytes retained as contiguous prefix+suffix around additive read RPC",
+  "checks": {
+    "actualSQL": "NOT_RUN; root owns existing cluster",
+    "fixtureSyntax": "node --check exit0",
+    "patchApplicability": "git apply --check against root1b63e81c working files exit0",
+    "allOriginalSqlBytes": "PASS: removing one additive RPC block yields byte-identical original pending107, including N024 CAS"
+  },
+  "authority": "service_role only; exact host/pool filter is data selection, not a new per-host service-role ACL",
+  "patchSha256": "a9aa2c143a333837d64f0decec3f1a0f0153f878b2c5c775be33582b3af97339"
+}

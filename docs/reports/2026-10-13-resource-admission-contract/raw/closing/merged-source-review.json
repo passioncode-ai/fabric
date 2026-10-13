@@ -1,0 +1,68 @@
+{
+  "verdict": "PASS_SCOPED",
+  "reviewer": "pipeline_research",
+  "kind": "independent final merged source and evidence review",
+  "base_head": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b",
+  "incoming": "ac874946db2487ab8101464d1abf1e8345eda199",
+  "candidate_binding": "working source hashes; no final committed SHA invented",
+  "source_hashes": {
+    "apps/desktop/src/main/sessionEnroll.ts": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+    "apps/desktop/test/session-enroll.test.mjs": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+    "apps/desktop/src/main/pty.ts": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+    "apps/desktop/src/main/index.ts": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+    "apps/desktop/src/main/agentSurface.ts": "e81d01be582876c3661434880d8d5e8f0fe11d7f212037b38c08f8bb80927cd2",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "784224d3ae8a8a9e58ae2383adfb8c7299f3a51a7a94e879a0e5f5e1f1e4ec4f",
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+    "docs/execution/harness-waves/graph.json": "aa150c04bb6d7dac5d914973160c3faeb6830e9e8624387088f348e4eff5de9f",
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "2572232b5852e18797829c6986062e706ae9a07b2bd0cf0d0c612efd41a53de1",
+    "docs/handoffs/2026-10-13-harness-waves.md": "ca20a88fce7a1592fcae9495d2e12f0603553a499df14d5564cd03cc18b965b7",
+    "docs/execution/harness-waves/packets/N-021.json": "72c2cabe338974c67d0c0d56ed9fcf4132c61271c000592abed2326f3e5b21d8"
+  },
+  "checks": {
+    "exact_N021_candidate_hashes": "PASS",
+    "N015_preparation_before_guard_then_synchronous_spawn": "PASS",
+    "pending107_and108_identical_to_7b3": "PASS",
+    "incoming_index_surface_board_service_tools_byte_preservation": "PASS",
+    "graph_nodes": 21,
+    "status_preservation": {
+      "N-007": "pending",
+      "N-008": "pending",
+      "N-009": "blocked",
+      "N-010": "blocked",
+      "N-019": "done",
+      "N-020": "done",
+      "N-021": "pending"
+    },
+    "N021_packet_plan_hashes": "PASS",
+    "normalization_manifest_all_stored_hashes": "PASS",
+    "independent_vs_builder_authorship_distinguished": "PASS",
+    "canonical_carryover_union": {
+      "rows": 286,
+      "open_work": 219,
+      "CO282": "one partial autonomy row",
+      "deferred_patch_applied": false
+    },
+    "public_artifact_scan": "No real machine checkout paths found in N021 artifacts; /Users/me fixtures and generated synthetic bearer expressions are test data."
+  },
+  "execution_evidence_reviewed": {
+    "merged_node_seams": {
+      "tests": 117,
+      "passed": 117,
+      "failed": 0,
+      "log_sha256": "26f0598f746af28a727377b15904b5fb9b0572a18589d077fe31c1322cf2ce37"
+    },
+    "merged_vitest": {
+      "files": 4,
+      "tests": 92,
+      "passed": 92,
+      "log_sha256": "1d37794e1c90aec1d200f1522dcab33b1d6a65ec66247b94bc22249d1b51a9de"
+    },
+    "independent_test_rerun_this_review": false
+  },
+  "findings": [],
+  "limitations": [
+    "Final combined fast gate is running, not accepted by this review.",
+    "N021 graph completion and N007/N008 closeout remain pending root source-bound final receipts.",
+    "No active DDL, native provider, owner delivery or global resource enforcement certified."
+  ]
+}

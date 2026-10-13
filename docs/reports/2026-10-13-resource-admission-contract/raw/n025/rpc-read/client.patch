@@ -1,0 +1,111 @@
+diff --git a/apps/desktop/src/main/resourcePoolPublisher.ts b/apps/desktop/src/main/resourcePoolPublisher.ts
+--- a/apps/desktop/src/main/resourcePoolPublisher.ts
++++ b/apps/desktop/src/main/resourcePoolPublisher.ts
+@@ -5,7 +5,7 @@
+ import { createResourceHostSampler, type ResourceHostSamplerDeps, type ResourceHostObservation } from './resourceHostSampler.ts'
+ 
+ export interface ResourcePoolPublisherDeps {
+-  db: Pick<SupabaseClient, 'from' | 'rpc'>
++  db: Pick<SupabaseClient, 'rpc'>
+   rawPolicy: unknown
+   /** Installation identity from the trusted host producer, never task input. */
+   trustedHostId: string
+@@ -131,7 +131,7 @@
+   }
+   type Call = Parameters<Parameters<typeof execute>[0]>[0]
+   async function read(call: Call): Promise<PoolRow | null> {
+-    const answer = await call(() => db.from('resource_pools').select(columns).eq('host_id',policy.hostId).eq('pool_id',policy.poolId).maybeSingle())
++    const answer = await call(() => db.rpc('read_resource_pool',{p_host:policy.hostId,p_pool:policy.poolId}))
+     if (answer.error) throw Error('pool read unavailable')
+     return row(answer.data)
+   }
+diff --git a/apps/desktop/test/resource-pool-publisher.test.mjs b/apps/desktop/test/resource-pool-publisher.test.mjs
+--- a/apps/desktop/test/resource-pool-publisher.test.mjs
++++ b/apps/desktop/test/resource-pool-publisher.test.mjs
+@@ -5,11 +5,16 @@
+ const v=(workerSlots=10)=>({workerSlots,memoryBytes:1000,diskBytes:1000,cpuMilliCores:1000})
+ const config=()=>({hostId:'host',poolId:'pool',localPolicyRevision:'revision-A',capacity:v(),demandProfiles:{builder:v(1),reviewer:v(1),test:v(1)},diskPath:'/owned',diskDeviceId:'1',maxAgeMs:100,sampleWindowMs:5,timeoutMs:40})
+ function fixture({existing=false,timeoutMs=100,policy=config()}={}) {
+- const f={row:null,reads:0,writes:[],systemReads:0,wall:1000,mono:0,identity:{hostId:'host',bootId:'boot'},columns:null,filters:null}
++ const f={row:null,reads:0,writes:[],systemReads:0,wall:1000,mono:0,identity:{hostId:'host',bootId:'boot'}}
+  const pool=(generation=1)=>({host_id:'host',pool_id:'pool',policy_revision:`policy-sha256-v1:${resourceDigest(readResourceHostPolicy(policy,'host'))}`,configuration_generation:generation,capacity:structuredClone(policy.capacity),max_age_ms:policy.maxAgeMs,observed:null,observed_at:null})
+  if(existing)f.row=pool()
+- const db={from(table){assert.equal(table,'resource_pools');let filters=[];return {select(columns){f.columns=columns;return this},eq(key,value){filters.push([key,value]);return this},async maybeSingle(){f.reads++;f.filters=filters;assert.deepEqual(filters,[['host_id','host'],['pool_id','pool']]);if(f.readHook){const r=await f.readHook();if(r!==undefined)return r}return {data:structuredClone(f.row),error:null}}}},
+-  async rpc(name,args){f.writes.push({name,args:structuredClone(args)});if(f.rpcHook){const r=await f.rpcHook(name,args);if(r!==undefined)return r}
++ const db={async rpc(name,args){
++   if(name==='read_resource_pool'){
++    assert.deepEqual(args,{p_host:'host',p_pool:'pool'});f.reads++
++    if(f.readHook){const r=await f.readHook();if(r!==undefined)return r}
++    return {data:structuredClone(f.row),error:null}
++   }
++   f.writes.push({name,args:structuredClone(args)});if(f.rpcHook){const r=await f.rpcHook(name,args);if(r!==undefined)return r}
+    if(name==='configure_resource_pool'){f.row=pool(args.p_expected_generation===null?1:args.p_expected_generation+1);return {data:true,error:null}}
+    assert.equal(name,'observe_resource_pool');f.row.observed=structuredClone(args.p_observed);f.row.observed_at=args.p_at;return {data:true,error:null}
+   }}
+@@ -27,7 +32,7 @@
+  const published=await f.publisher.publish();assert.equal(published.state,'published');assert.equal(published.executionAuthorized,false);assert.equal(published.generation,1)
+  assert.deepEqual(f.row.observed,{workerSlots:1,memoryBytes:300,diskBytes:200,cpuMilliCores:250});assert.equal(f.row.observed_at,new Date(1000).toISOString())
+  assert.equal(f.writes[1].args.p_configuration_generation,1);assert.equal(f.writes.length,2)
+- assert.equal(f.columns,'host_id,pool_id,policy_revision,configuration_generation,capacity,max_age_ms,observed,observed_at')
++ assert.ok(f.reads>=4,'scoped server readback occurs before and after writes')
+ })
+ test('existing exact config needs no write and stale old observation does not imply published',async()=>{
+  const f=fixture({existing:true});f.row.observed=v(0);f.row.observed_at=new Date(0).toISOString()
+@@ -168,3 +173,11 @@
+  f.rpcHook=(_name,args)=>{f.row.observed={...args.p_observed};f.row.observed_at=stamp;return {data:true,error:null}}
+  assert.equal((await f.publisher.publish()).state,'unknown');assert.equal((await f.publisher.publish()).reason,'reconcile_required');assert.equal(f.writes.length,1)
+ })
++test('missing or denied scoped read RPC refuses before any write, without generic table fallback',async()=>{
++ const f=fixture();f.readHook=()=>({data:null,error:{code:'rpc_missing_or_denied'}})
++ assert.equal((await f.publisher.configure()).state,'unknown');assert.equal(f.reads,1);assert.equal(f.writes.length,0)
++})
++for(const key of ['host_id','pool_id'])test(`scoped read RPC returning foreign ${key} refuses before any write`,async()=>{
++ const f=fixture({existing:true});f.row[key]='foreign'
++ assert.equal((await f.publisher.configure()).state,'unknown');assert.equal(f.reads,1);assert.equal(f.writes.length,0)
++})
+diff --git a/docs/execution/harness-waves/resource-pool-publisher.md b/docs/execution/harness-waves/resource-pool-publisher.md
+--- a/docs/execution/harness-waves/resource-pool-publisher.md
++++ b/docs/execution/harness-waves/resource-pool-publisher.md
+@@ -65,8 +65,11 @@
+ 
+ ## Concrete database seam
+ 
+-The adapter performs a scoped Supabase `from('resource_pools').select(...).eq(...)
+-.eq(...).maybeSingle()` read. It calls `configure_resource_pool` with explicit
++The RPC-only adapter calls `read_resource_pool({ p_host, p_pool })`. This dedicated
++service-only server read must validate both identifiers and return exactly the
++eight documented fields or null. Pools are kernel data shared across Estates, so
++there is no fabricated Estate predicate, generic table fallback or scope-map
++allowlist. The ordinary scoped store must continue to refuse this unknown table. It calls `configure_resource_pool` with explicit
+ expected revision/generation and `observe_resource_pool` with the captured
+ configuration generation. The service role is supplied by trusted composition;
+ this module does not discover or acquire credentials.
+@@ -107,13 +110,13 @@
+ node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs
+ ```
+ 
+-The candidate fixture run passed 51 tests (exit0). It covers successful complete
++The candidate fixture run passed 54 tests (exit0). It covers successful complete
+ publication, policy-only confirmation, explicit CAS expectations, lost committed
+ write replies, generation ABA, exact shape/vector/timestamp readback, physical
+ ceilings, missing inventory, changed host identity, stale committed observations,
+ shared outstanding work and malformed/failed RPC responses. It also covers
+ rejected/fulfilled native-Promise clocks and a hostile thenable getter. Tests use
+-the actual sampler with injected host measurements and a Supabase-shaped fixture. Five new
++the actual sampler with injected host measurements and a Supabase RPC-shaped fixture. Five new
+ full-policy binding negatives fail against the preserved original candidate and
+ pass after correction. The independent two-disk counterexample was also replayed
+ against that original candidate (exit1). Explicit binding CAS and canonical-order
+@@ -141,3 +144,12 @@
+ correction; the UTC control already passed. Invalid calendar/offset/precision
+ and different-millisecond cases remain unconfirmed. SQL rerun is recorded by the
+ separate database fixture receipt, not inferred from these focused checks.
++
++The combined scope gate rejected the original generic table read. The correction
++uses a dedicated host/pool read RPC rather than weakening that gate. The RPC-only
++positive fixture fails against the old generic-read candidate and passes after
++correction. Missing/denied RPCs and foreign host/pool returned rows cause no write.
++The unchanged scope and operations checkers pass on a temporary overlay of the
++combined source with this correction. Real SQL read permissions and exact server
++projection are verified separately with the pending migration and owned database
++fixture; client tests alone do not prove that server ACL.

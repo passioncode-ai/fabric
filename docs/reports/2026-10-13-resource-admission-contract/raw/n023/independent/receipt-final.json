@@ -1,0 +1,102 @@
+{
+  "task": "N023",
+  "verdict": "SCOPED_ACCEPT",
+  "candidate": "uncommitted isolated builder files, bound by source_sha256",
+  "source_sha256": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "df990a11e7f57235c79938e650febd6ee8889d39fa5fdb6ed0134278426cf43b",
+    "apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  },
+  "supersedes_review": {
+    "receipt": "receipt-before.json",
+    "sha256": "29a17ecc4fca091972374c041df2639b8952d13fff07d9aae033d35d2efd4400",
+    "reason": "All3 invalid-clock rejection sites corrected; bounded producer rounded-second compatibility corrected."
+  },
+  "checks": [
+    {
+      "command": "N023_SOURCE=<candidate-source> node probes-fixed.mjs",
+      "exitCode": 0,
+      "checks": 10,
+      "log": "probes-fixed.log",
+      "scope": "Three real childprocess rejected-Promise clock sites, getter privacy, binding, expiry, rounded second,100 retry slot + cleanup."
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 1,
+      "pass": 48,
+      "fail": 1,
+      "log": "focused-fixed.log",
+      "note": "Initial run last future-since test failed, concurrent ENOSPC observed. Failure detail absent. Environmental causality not proven."
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-reporter=tap --test-name-pattern='one-second tolerance never accepts' apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 0,
+      "log": "future-since-rerun.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-reporter=tap apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 0,
+      "pass": 49,
+      "fail": 0,
+      "log": "focused-fixed-rerun.log",
+      "note": "Root-authorized complete bounded rerun after disk availability recovered; identical hashes."
+    },
+    {
+      "command": "AGENT_SYNC_SOURCE=<installed-script> python3 installed-format.py > installed-format.json; N023_SOURCE=<candidate-source> node encoding.mjs",
+      "exitCode": 0,
+      "checks": 508,
+      "seed": 23013,
+      "note": "Encoding source unchanged by fix; original comparison retained."
+    }
+  ],
+  "fixture_change": "probes-fixed.mjs differs from probes.mjs only installed-cross-second expected status refused\u2192observed; historical rejected source/output preserved.",
+  "review": [
+    "No numeric fence, ownership authority or input closure synthesized; all results executionAuthorized false.",
+    "Exact ref/tip/object/hash/binding checked; final clock freshness remains ts-based, since tolerance1s does not extend expiry.",
+    "Read-only snapshot cannot make SQL/native launch atomic with Git or prove uninterrupted ownership.",
+    "Default transport isolates own scratch/config and HTTPS-only; authenticated remote composition NOT_RUN.",
+    "Ordinary native Promise mistaken async clocks contained; exotic Promise/hostile DI explicitly unsupported."
+  ],
+  "limitations": [
+    "No DB, live authenticated HTTPS, foreign ref mutation, native launch or all-agent integration acceptance.",
+    "Scratch monitoring is sampled, not hard disk quota; Git child termination not arbitrary descendants.",
+    "One retained reader instance bound, not global bound."
+  ],
+  "normalization": {
+    "clock-before.log": {
+      "original_sha256": "017ee24c2d95a242bc5278536cd0f0d290269d8343fb2f89d6c1721a7f94f1c5",
+      "normalized_file": "clock-before.normalized.log",
+      "normalized_sha256": "2f7703e99d542269fa0b166d71283cf46710c3bcaace0bfe97e9675c6b0a8f8d",
+      "transform": "literal private candidate/review path replacement only; original retained"
+    },
+    "probes-before.log": {
+      "original_sha256": "9eec223ec0b631068c23da2ce5592eef82cf0ab91bab39b124f19d3dc5820563",
+      "normalized_file": "probes-before.normalized.log",
+      "normalized_sha256": "d5c641fac3d469d39cfa11648c47f9831262ab9435b800ce80002df40658c4c5",
+      "transform": "literal private candidate/review path replacement only; original retained"
+    }
+  },
+  "artifacts": {
+    "focused-fixed-rerun.log": "ca8a6205481fca0d1ad8a08af2fe14611c9dd9a05f620321a5f540f37f31a8af",
+    "receipt-before.json": "29a17ecc4fca091972374c041df2639b8952d13fff07d9aae033d35d2efd4400",
+    "clock-before.log": "017ee24c2d95a242bc5278536cd0f0d290269d8343fb2f89d6c1721a7f94f1c5",
+    "probes.mjs": "32d00ad8468f53f637ede0745b5dcf5d4530b13b35d0c7aff603bad7231ff8a8",
+    "installed-format.py": "50cf27bef5280771ea5db081abcdb26d5c73aa91aa5c54216539f2ff290122a4",
+    "future-since-rerun.log": "076f4a7b142b99191ff42c4ec50007a47e8cd04b7b85f129d71cada20abad76d",
+    "clock-child.mjs": "60f7c62feb93d6c340e6fab23dc07ecaf61983f849c578baedb9ff3f97e9b496",
+    "rejected-gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "encoding.log": "4929732105b8708485bfc9ba9572eeb8e5ecf09fc273e00218953054c6da4025",
+    "installed-format.json": "7a0cc5b13db38af2264d4243591fcb258b635bc0c92cd2bb17d6a1a4f2c82287",
+    "focused-fixed.log": "bd7d4cfcd6b8269ef65940f73376ab6f25b1893e62ce651aeefc94b1d437ff80",
+    "probes-fixed.log": "4da507928bd3cddb3bc6b5eb2124e0046072742da37d6726197c625e5cc69f95",
+    "clock-before.normalized.log": "2f7703e99d542269fa0b166d71283cf46710c3bcaace0bfe97e9675c6b0a8f8d",
+    "probes-before.normalized.log": "d5c641fac3d469d39cfa11648c47f9831262ab9435b800ce80002df40658c4c5",
+    "probes-before.log": "9eec223ec0b631068c23da2ce5592eef82cf0ab91bab39b124f19d3dc5820563",
+    "probes-fixed.mjs": "dd6e8e59649d2d987554bf2f1b466b4904d20194903d91795d9c6f39209f5a5c",
+    "before-source-hashes.json": "5be88a6f273594e499ad8c9b66c3b205ddad8ea5b9e4edbceba61d9f45daf5be",
+    "encoding.mjs": "d674d3a12a8a5ae988b6f56e8af77d6f55b8442d5ef198f2e795b42c6b5d64b9",
+    "negative-control/apps/desktop/src/main/gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "negative-control/apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  }
+}

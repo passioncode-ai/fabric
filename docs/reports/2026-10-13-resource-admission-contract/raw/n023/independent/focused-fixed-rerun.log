@@ -1,0 +1,304 @@
+TAP version 13
+# Subtest: real parentless lease: exact binding, SHA, freshness, and no launch authority
+ok 1 - real parentless lease: exact binding, SHA, freshness, and no launch authority
+  ---
+  duration_ms: 124.185917
+  type: 'test'
+  ...
+# Subtest: expired own lease refuses, even if agent-sync acquire once accepted the same run
+ok 2 - expired own lease refuses, even if agent-sync acquire once accepted the same run
+  ---
+  duration_ms: 101.813916
+  type: 'test'
+  ...
+# Subtest: foreign run
+ok 3 - foreign run
+  ---
+  duration_ms: 101.034667
+  type: 'test'
+  ...
+# Subtest: foreign repo
+ok 4 - foreign repo
+  ---
+  duration_ms: 100.793167
+  type: 'test'
+  ...
+# Subtest: wrong exact key
+ok 5 - wrong exact key
+  ---
+  duration_ms: 108.908583
+  type: 'test'
+  ...
+# Subtest: keyless legacy
+ok 6 - keyless legacy
+  ---
+  duration_ms: 99.636125
+  type: 'test'
+  ...
+# Subtest: future
+ok 7 - future
+  ---
+  duration_ms: 128.292291
+  type: 'test'
+  ...
+# Subtest: expiry boundary
+ok 8 - expiry boundary
+  ---
+  duration_ms: 109.57425
+  type: 'test'
+  ...
+# Subtest: zero ttl
+ok 9 - zero ttl
+  ---
+  duration_ms: 110.191333
+  type: 'test'
+  ...
+# Subtest: ttl string
+ok 10 - ttl string
+  ---
+  duration_ms: 110.71975
+  type: 'test'
+  ...
+# Subtest: negative ttl
+ok 11 - negative ttl
+  ---
+  duration_ms: 133.55825
+  type: 'test'
+  ...
+# Subtest: huge ttl
+ok 12 - huge ttl
+  ---
+  duration_ms: 238.117375
+  type: 'test'
+  ...
+# Subtest: fraction ttl
+ok 13 - fraction ttl
+  ---
+  duration_ms: 113.091708
+  type: 'test'
+  ...
+# Subtest: invalid calendar
+ok 14 - invalid calendar
+  ---
+  duration_ms: 103.338209
+  type: 'test'
+  ...
+# Subtest: local timestamp
+ok 15 - local timestamp
+  ---
+  duration_ms: 111.914959
+  type: 'test'
+  ...
+# Subtest: since more than one second after ts
+ok 16 - since more than one second after ts
+  ---
+  duration_ms: 110.889625
+  type: 'test'
+  ...
+# Subtest: stale but still leased is refused by configured snapshot age
+ok 17 - stale but still leased is refused by configured snapshot age
+  ---
+  duration_ms: 103.057291
+  type: 'test'
+  ...
+# Subtest: own renewal changes expected opaque tip and requires new explicit observation
+ok 18 - own renewal changes expected opaque tip and requires new explicit observation
+  ---
+  duration_ms: 147.699875
+  type: 'test'
+  ...
+# Subtest: ref changes after reading object: no success for a superseded lease
+ok 19 - ref changes after reading object: no success for a superseded lease
+  ---
+  duration_ms: 136.315875
+  type: 'test'
+  ...
+# Subtest: ref changes between ls-remote and fetch: exact old object cannot become new object proof
+ok 20 - ref changes between ls-remote and fetch: exact old object cannot become new object proof
+  ---
+  duration_ms: 107.141666
+  type: 'test'
+  ...
+# Subtest: missing ref and ambiguous remote output never become free ownership
+ok 21 - missing ref and ambiguous remote output never become free ownership
+  ---
+  duration_ms: 66.327708
+  type: 'test'
+  ...
+# Subtest: malformed commit payload not json
+ok 22 - malformed commit payload not json
+  ---
+  duration_ms: 105.518417
+  type: 'test'
+  ...
+# Subtest: malformed commit payload []
+ok 23 - malformed commit payload []
+  ---
+  duration_ms: 96.313
+  type: 'test'
+  ...
+# Subtest: malformed commit payload null
+ok 24 - malformed commit payload null
+  ---
+  duration_ms: 91.465666
+  type: 'test'
+  ...
+# Subtest: parent-bearing commit is not a supported lease object
+ok 25 - parent-bearing commit is not a supported lease object
+  ---
+  duration_ms: 114.272833
+  type: 'test'
+  ...
+# Subtest: object bytes must hash to advertised tip, even with a faulty trusted transport
+ok 26 - object bytes must hash to advertised tip, even with a faulty trusted transport
+  ---
+  duration_ms: 96.985167
+  type: 'test'
+  ...
+# Subtest: clock rollback and invalid clock refuse
+ok 27 - clock rollback and invalid clock refuse
+  ---
+  duration_ms: 109.623875
+  type: 'test'
+  ...
+# Subtest: expiry while transport was running refuses
+ok 28 - expiry while transport was running refuses
+  ---
+  duration_ms: 113.975833
+  type: 'test'
+  ...
+# Subtest: configuration is copied and not redirectable after construction
+ok 29 - configuration is copied and not redirectable after construction
+  ---
+  duration_ms: 109.058833
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form /tmp/repo
+ok 30 - reject task-unapproved URL form /tmp/repo
+  ---
+  duration_ms: 0.150333
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form file
+ok 31 - reject task-unapproved URL form file
+  ---
+  duration_ms: 0.033583
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form ext
+ok 32 - reject task-unapproved URL form ext
+  ---
+  duration_ms: 0.02375
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form ssh
+ok 33 - reject task-unapproved URL form ssh
+  ---
+  duration_ms: 0.023125
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form http
+ok 34 - reject task-unapproved URL form http
+  ---
+  duration_ms: 0.017
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form https
+ok 35 - reject task-unapproved URL form https
+  ---
+  duration_ms: 0.031375
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form https
+ok 36 - reject task-unapproved URL form https
+  ---
+  duration_ms: 0.020834
+  type: 'test'
+  ...
+# Subtest: reject task-unapproved URL form https
+ok 37 - reject task-unapproved URL form https
+  ---
+  duration_ms: 0.0185
+  type: 'test'
+  ...
+# Subtest: timeout keeps the outstanding slot; repeated calls do not accumulate I/O; late settling permits a fresh read
+ok 38 - timeout keeps the outstanding slot; repeated calls do not accumulate I/O; late settling permits a fresh read
+  ---
+  duration_ms: 1642.595166
+  type: 'test'
+  ...
+# Subtest: ordinary transport rejection is consumed and exposes no raw secret/path
+ok 39 - ordinary transport rejection is consumed and exposes no raw secret/path
+  ---
+  duration_ms: 0.521291
+  type: 'test'
+  ...
+# Subtest: raw oversized output is bounded even if a transport ignores requested maxBytes
+ok 40 - raw oversized output is bounded even if a transport ignores requested maxBytes
+  ---
+  duration_ms: 0.449042
+  type: 'test'
+  ...
+# Subtest: exact lease_name percent encoding preserves otherwise-colliding keys
+ok 41 - exact lease_name percent encoding preserves otherwise-colliding keys
+  ---
+  duration_ms: 0.3035
+  type: 'test'
+  ...
+# Subtest: default command transport isolates inherited config, TLS bypass and executable redirects
+ok 42 - default command transport isolates inherited config, TLS bypass and executable redirects
+  ---
+  duration_ms: 367.338625
+  type: 'test'
+  ...
+# Subtest: default fetch reader rejects scratch overflow, even when a fetch finishes before sampled monitoring
+ok 43 - default fetch reader rejects scratch overflow, even when a fetch finishes before sampled monitoring
+  ---
+  duration_ms: 340.904708
+  type: 'test'
+  ...
+# Subtest: expiry between object validation and publication after async cleanup still refuses
+ok 44 - expiry between object validation and publication after async cleanup still refuses
+  ---
+  duration_ms: 99.76575
+  type: 'test'
+  ...
+# Subtest: ordinary rejected async clock at start, after reads, or before publication never crashes the process
+ok 45 - ordinary rejected async clock at start, after reads, or before publication never crashes the process
+  ---
+  duration_ms: 354.18825
+  type: 'test'
+  ...
+# Subtest: invalid thenable clock never reads arbitrary then or constructor getters
+ok 46 - invalid thenable clock never reads arbitrary then or constructor getters
+  ---
+  duration_ms: 0.211291
+  type: 'test'
+  ...
+# Subtest: spoofed native Promise prototype is invalid time without throwing
+ok 47 - spoofed native Promise prototype is invalid time without throwing
+  ---
+  duration_ms: 0.084083
+  type: 'test'
+  ...
+# Subtest: producer crossing one rounded second is accepted without extending ts-based expiry
+ok 48 - producer crossing one rounded second is accepted without extending ts-based expiry
+  ---
+  duration_ms: 251.620333
+  type: 'test'
+  ...
+# Subtest: one-second tolerance never accepts a since timestamp still in the future
+ok 49 - one-second tolerance never accepts a since timestamp still in the future
+  ---
+  duration_ms: 105.648334
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6573.350333

@@ -1,0 +1,6 @@
+{
+  "apps/desktop/test/resource-pool-publisher-db.test.mjs": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+  "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+  "apps/desktop/src/main/resourcePoolPublisher.ts": "b7655f3c9077f2bdf63d4c8544f3b0d5706d07d5c39efd4dfe082e6be67430b0",
+  "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e"
+}

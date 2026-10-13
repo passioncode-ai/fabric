@@ -1,0 +1,59 @@
+NOTICE:  event trigger "deny_anon_on_new_tables" does not exist, skipping
+NOTICE:  trigger "floored_effect_needs_live_reservation" for relation "effect_intents" does not exist, skipping
+NOTICE:  trigger "effect_success_needs_an_observation" for relation "effect_intents" does not exist, skipping
+NOTICE:  policy "effect_attempts_read" for relation "effect_attempts" does not exist, skipping
+NOTICE:  policy "session_heartbeats_read" for relation "session_heartbeats" does not exist, skipping
+NOTICE:  policy "deliveries_read" for relation "deliveries" does not exist, skipping
+NOTICE:  trigger "task_run_is_terminal" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "task_runs_read" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "memory_occurrences_read" for relation "memory_occurrences" does not exist, skipping
+NOTICE:  trigger "memory_fact_is_not_a_slot" for relation "memory_facts" does not exist, skipping
+NOTICE:  function memory_fact_is_not_a_slot() does not exist, skipping
+NOTICE:  trigger "an_estate_keeps_an_owner" for relation "memberships" does not exist, skipping
+NOTICE:  trigger "membership_revision_moves" for relation "memberships" does not exist, skipping
+NOTICE:  policy "membership_commands_read" for relation "membership_commands" does not exist, skipping
+PASS PostgreSQL dispatch migration: concurrent claim, stale generation, pre/post-boundary crash, completion, safe retry, unknown fence, identity/scope, ended run, privileges
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/opt/postgresql@17/bin/psql postgresql://postgres@localhost:58438/fabric_dispatch_test_resources?host=%2Fvar%2Ffolders%2F3r%2Fyrdx_c051cv22q3r3k0ylvdm0000gn%2FT%2Ffabric-resources-8aUfHy -X -q -v ON_ERROR_STOP=1
+ERROR:  function configure_resource_pool(unknown, unknown, unknown, jsonb, integer) is not unique
+LINE 1: not configure_resource_pool('n024-negative-host','n024-negat...
+            ^
+HINT:  Could not choose a best candidate function. You might need to add explicit type casts.
+QUERY:  not configure_resource_pool('n024-negative-host','n024-negative-pool','new-policy',capacity,60000)
+CONTEXT:  PL/pgSQL function inline_code_block line 4 at IF
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at run (file:///private/tmp/fabric-n024-owned-runner.mjs:15:36)
+    at file:///private/tmp/fabric-n024-owned-runner.mjs:33:5
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+  status: 3,
+  signal: null,
+  output: [
+    null,
+    '',
+    'ERROR:  function configure_resource_pool(unknown, unknown, unknown, jsonb, integer) is not unique\n' +
+      "LINE 1: not configure_resource_pool('n024-negative-host','n024-negat...\n" +
+      '            ^\n' +
+      'HINT:  Could not choose a best candidate function. You might need to add explicit type casts.\n' +
+      "QUERY:  not configure_resource_pool('n024-negative-host','n024-negative-pool','new-policy',capacity,60000)\n" +
+      'CONTEXT:  PL/pgSQL function inline_code_block line 4 at IF\n'
+  ],
+  pid: 51369,
+  stdout: '',
+  stderr: 'ERROR:  function configure_resource_pool(unknown, unknown, unknown, jsonb, integer) is not unique\n' +
+    "LINE 1: not configure_resource_pool('n024-negative-host','n024-negat...\n" +
+    '            ^\n' +
+    'HINT:  Could not choose a best candidate function. You might need to add explicit type casts.\n' +
+    "QUERY:  not configure_resource_pool('n024-negative-host','n024-negative-pool','new-policy',capacity,60000)\n" +
+    'CONTEXT:  PL/pgSQL function inline_code_block line 4 at IF\n'
+}
+
+Node.js v26.10.0

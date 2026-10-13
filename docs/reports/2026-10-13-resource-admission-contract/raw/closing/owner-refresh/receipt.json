@@ -1,0 +1,267 @@
+{
+  "task": "owner-head refresh for CO282 prepared packets",
+  "reviewer": "pipeline_research",
+  "fetchedAt": "2026-10-13T05:23:13.800678+00:00",
+  "status": "READ_ONLY_SOURCE_REFRESH",
+  "delivery": "PREPARED_NOT_SENT",
+  "remote": {
+    "tp112": {
+      "headRefOid": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 112,
+      "state": "OPEN",
+      "updatedAt": "2026-10-13T05:11:25Z",
+      "url": "https://github.com/ssheleg/task-pipeline/pull/112"
+    },
+    "tp114": {
+      "headRefOid": "6e0e57e607db0a61226b9b5427bf0d74ba93c66d",
+      "mergeCommit": {
+        "oid": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb"
+      },
+      "mergedAt": "2026-10-13T05:11:24Z",
+      "number": 114,
+      "state": "MERGED",
+      "updatedAt": "2026-10-13T05:11:24Z",
+      "url": "https://github.com/ssheleg/task-pipeline/pull/114"
+    },
+    "hub213": {
+      "headRefOid": "18a2a7703b7926cdafd62dd6dd8a2d0067820503",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 213,
+      "state": "CLOSED",
+      "updatedAt": "2026-10-13T02:09:54Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/213"
+    },
+    "hub214": {
+      "headRefOid": "ff33a3b1ccac249077085785ec61f130d70ee355",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 214,
+      "state": "CLOSED",
+      "updatedAt": "2026-10-13T02:09:55Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/214"
+    },
+    "hubRelease": {
+      "html_url": "https://github.com/ssheleg/sshlg-skills/releases/tag/v1.62.2",
+      "published_at": "2026-10-13T04:59:54Z",
+      "tag_name": "v1.62.2"
+    },
+    "hubTag": {
+      "sha": "a17f829e8d652ce7f68423b67e0de00fb89b3693"
+    },
+    "tpRelease": {
+      "html_url": "https://github.com/ssheleg/task-pipeline/releases/tag/v1.93.3",
+      "published_at": "2026-10-12T17:25:52Z",
+      "tag_name": "v1.93.3"
+    },
+    "tpTag": {
+      "sha": "52fa75dbe1a3d169c02c612516b30028929559f9"
+    },
+    "tpMain": {
+      "sha": "52fa75dbe1a3d169c02c612516b30028929559f9"
+    },
+    "fetchedAt": "2026-10-13T05:23:13.800678+00:00"
+  },
+  "metadataSha256": "54cdf7787b6c289c033a8306ded6a43aa72986d1976f88138f1ba896b676786c",
+  "sourcePins": [
+    {
+      "repo": "ssheleg/task-pipeline",
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "file": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+      "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "gitBlobSha": "465e066ae0f90c28f672aed841429011cff4de3f"
+    },
+    {
+      "repo": "ssheleg/task-pipeline",
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "file": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+      "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "gitBlobSha": "c947ed3e07f45ecb973229caa2902b27c8315bab"
+    },
+    {
+      "repo": "ssheleg/task-pipeline",
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "file": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+      "sha256": "8a4f9fd82555ee3ae8c8d8257abf32afc327a20cbf0747d0e54451e38627be78",
+      "gitBlobSha": "6507d0616c7cd6719593b9b96a87c3a65c3b2b0b"
+    },
+    {
+      "repo": "ssheleg/task-pipeline",
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "file": "docs/evidence/runs/2026-10-13-l3-authority-record.md",
+      "sha256": "4c530610d7dbaa6c2caeb33fde33ea6d262727ca55bb1aaf0cc604e189c25d03",
+      "gitBlobSha": "ba0ee92cd387ad74a885b5daf97dcf091e8a8dad"
+    },
+    {
+      "repo": "ssheleg/task-pipeline",
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "file": "docs/evidence/runs/2026-10-13-pr114-current.json",
+      "sha256": "d4646948e990a87ab7bc586b968ffc5f414b5dc1860c2973224625634543ecb6",
+      "gitBlobSha": "b995de75be9657f43f419286342352c70a8cedc5"
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "file": "bin/sshlg-skills.js",
+      "sha256": "f000c9459a3071afd97f64952f1b6901e59516271c79ed56989c0c1c9ef1f759",
+      "gitBlobSha": "726e092587b1cdba817dab1a9478e5c4914f2894"
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "file": "lib/installer-pins.js",
+      "sha256": "3cbb8680a3d61d432e227bbe5b2d5a04aca9979bfee8aff2887924f8bf08fd87",
+      "gitBlobSha": "084d65b3cd555940fc96cdb057823b18f58cb564"
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "file": "docs/evidence/completion-1013/mcp-profile-consumer/README.md",
+      "sha256": "02de3e2256b31f57a305fd8d72a9be9088d0dddff281673e12ca5bec9e2b5b49",
+      "gitBlobSha": "5b57e34557d5aa6576088201555adc5017761e37"
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "file": "docs/evidence/completion-1013/installer-pins.md",
+      "sha256": "85d1237a0cefbf1dd29e6128f300a5cd52def95dc3e264c86fdae5b491654ecb",
+      "gitBlobSha": "9d7552e66ada87eec1f44846720f8db7150f60e6"
+    },
+    {
+      "repo": "ssheleg/sshlg-skills",
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "file": "docs/HANDOFF.md",
+      "sha256": "cf3651edc18289bd9c92dab71b67fdd2c56f9ec52fbd2fbfed730677dbcc6b7c",
+      "gitBlobSha": "b3e4e87f43e7af80ca817e33c51866815d4fc7f5"
+    }
+  ],
+  "findings": [
+    {
+      "id": "pr-state",
+      "status": "CORRECT_PACKET_METADATA",
+      "evidence": [
+        "metadata.json:tp112",
+        "metadata.json:tp114",
+        "metadata.json:hub213",
+        "metadata.json:hub214"
+      ],
+      "finding": "TP114 merged into still-open TP112, not released main; hub213/214 closed without merge, so do not address new work to those closed candidates."
+    },
+    {
+      "id": "certification",
+      "status": "UNCHANGED_SOURCE_NOT_RETESTED",
+      "file": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+      "lines": [
+        677,
+        678,
+        1635,
+        1653
+      ],
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "blob": "6507d0616c7cd6719593b9b96a87c3a65c3b2b0b",
+      "finding": "Exact graph blob unchanged from earlier c8bed2 inspection: tier required keys omit candidate/input/dispatch identity; collection stamps cwd HEAD and advances round/history for each call. Historical reproduction not rerun."
+    },
+    {
+      "id": "lesson-authority",
+      "status": "REMAINS_SOURCE_LEVEL",
+      "file": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+      "lines": [
+        308,
+        322,
+        347,
+        353
+      ],
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "finding": "Still infers supported filtering from any kind field and treats observed lessons as standing instructions. New explicit owning-project promotion follow-up and no-private-doctrine-change caveat improve promotion tracking but do not replace authority/adoption checks."
+    },
+    {
+      "id": "lesson-emitter",
+      "status": "ADDITIONAL_SOURCE_IMPROVEMENT_NOT_RUNTIME_CERTIFIED",
+      "file": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+      "lines": [
+        965,
+        998
+      ],
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "finding": "Dedicated observatory_lesson adapter remains implemented; both emitter paths now use commit: plus12hex rather than raw40hex to survive owner redaction. Do not request duplicate emitter construction. Validate exact current producer/store/search round trip separately."
+    },
+    {
+      "id": "release-authority",
+      "status": "NEW_OWNER_WORK_CREDIT",
+      "file": "docs/evidence/runs/2026-10-13-l3-authority-record.md",
+      "lines": [
+        12,
+        32
+      ],
+      "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+      "finding": "Owner added release.authorized_by source-locator schema/doctrine, expressly not executable authorization or a release. Do not equate this with lesson adoption or graph evidence binding."
+    },
+    {
+      "id": "hub-installer",
+      "status": "IMPLEMENTED_IN_PUBLISHED_GITHUB_RELEASE_SOURCE",
+      "files": [
+        {
+          "file": "bin/sshlg-skills.js",
+          "lines": [
+            371,
+            382
+          ]
+        },
+        {
+          "file": "lib/installer-pins.js",
+          "lines": [
+            24,
+            45
+          ]
+        }
+      ],
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "finding": "v1.62.2 production plain-skills install/update plan now requires pinned skills@1.7.2, validates immutable member commits before steps and checks staged gitlinks. Reconcile prior B186 implementation deferral; native installed-byte readback remains separately unverified by this refresh."
+    },
+    {
+      "id": "hub-search-visibility",
+      "status": "REMAINS_SOURCE_LEVEL_NOT_RETESTED",
+      "file": "bin/sshlg-skills.js",
+      "lines": [
+        1867,
+        1875
+      ],
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "finding": "toolkit --find hidden status still reads normal ~/.claude/settings.json instead of an effective selected host/profile root. Prior static finding remains at line1871."
+    },
+    {
+      "id": "mcp-owner-boundary",
+      "status": "PREPARED_NOT_SENT_UNCHANGED",
+      "file": "docs/evidence/completion-1013/mcp-profile-consumer/README.md",
+      "lines": [
+        3,
+        5,
+        15,
+        40,
+        50,
+        57
+      ],
+      "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+      "finding": "Published source includes a read-only semantic consumer preparation, explicitly no implemented Observatory schema/config writer/native proving call. Owner schema/materializer/manifest/undo and new-session acceptance still required."
+    }
+  ],
+  "checks": {
+    "ghStructuredQueries": "all exit0",
+    "committedSourceReads": 10,
+    "graphBlobEqualityWithHistoricalInspection": true,
+    "tests": "NOT_RUN",
+    "installedHostOrPrivateConfigReads": "NOT_RUN",
+    "ownerMessages": "NONE",
+    "foreignRepositoryWrites": "NONE",
+    "rootWrites": "NONE"
+  },
+  "limits": [
+    "GitHub release state is not installed-byte or native-host readback acceptance",
+    "Source review does not rerun historical logic reproduction or certify emitted-store round trip",
+    "TP114 owner test receipt is source31e0f5aeacb709639c37e621c9fe73dec0f11f2e, not automatically exact final112 head25dc4f89",
+    "v1.62.2 committed HANDOFF and installer evidence retain pre-release wording; remote release metadata supersedes publication status only, not installed/runtime acceptance",
+    "No board submission, acknowledgement or owner behavioral acceptance is fabricated"
+  ]
+}

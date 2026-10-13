@@ -1,0 +1,117 @@
+{
+  "firstConfig": {
+    "state": "configured",
+    "reason": "existing_policy",
+    "generation": 1,
+    "executionAuthorized": false
+  },
+  "firstPublication": {
+    "state": "published",
+    "reason": "observation_readback",
+    "generation": 1,
+    "executionAuthorized": false,
+    "snapshotId": "3d73596a3fa172e7b130e68493a6b3d354b36a6e3609582d59baa95198ad0971"
+  },
+  "secondConfig": {
+    "state": "configured",
+    "reason": "existing_policy",
+    "generation": 1,
+    "executionAuthorized": false
+  },
+  "secondPublication": {
+    "state": "published",
+    "reason": "observation_readback",
+    "generation": 1,
+    "executionAuthorized": false,
+    "snapshotId": "9c81de7d60cb44b707cfb69370b605e10aef349bdfa71effb0e96d0dc798f010"
+  },
+  "before": {
+    "host_id": "host",
+    "pool_id": "pool",
+    "policy_revision": "revision-A",
+    "configuration_generation": 1,
+    "capacity": {
+      "workerSlots": 10,
+      "memoryBytes": 1000,
+      "diskBytes": 1000,
+      "cpuMilliCores": 1000
+    },
+    "max_age_ms": 100,
+    "observed": {
+      "workerSlots": 1,
+      "memoryBytes": 300,
+      "diskBytes": 200,
+      "cpuMilliCores": 250
+    },
+    "observed_at": "1970-01-01T00:00:01.000Z"
+  },
+  "after": {
+    "host_id": "host",
+    "pool_id": "pool",
+    "policy_revision": "revision-A",
+    "configuration_generation": 1,
+    "capacity": {
+      "workerSlots": 10,
+      "memoryBytes": 1000,
+      "diskBytes": 1000,
+      "cpuMilliCores": 1000
+    },
+    "max_age_ms": 100,
+    "observed": {
+      "workerSlots": 1,
+      "memoryBytes": 300,
+      "diskBytes": 900,
+      "cpuMilliCores": 250
+    },
+    "observed_at": "1970-01-01T00:00:01.005Z"
+  },
+  "writes": [
+    {
+      "name": "observe_resource_pool",
+      "args": {
+        "p_host": "host",
+        "p_pool": "pool",
+        "p_revision": "revision-A",
+        "p_observed": {
+          "workerSlots": 1,
+          "memoryBytes": 300,
+          "diskBytes": 200,
+          "cpuMilliCores": 250
+        },
+        "p_at": "1970-01-01T00:00:01.000Z",
+        "p_configuration_generation": 1
+      }
+    },
+    {
+      "name": "observe_resource_pool",
+      "args": {
+        "p_host": "host",
+        "p_pool": "pool",
+        "p_revision": "revision-A",
+        "p_observed": {
+          "workerSlots": 1,
+          "memoryBytes": 300,
+          "diskBytes": 900,
+          "cpuMilliCores": 250
+        },
+        "p_at": "1970-01-01T00:00:01.005Z",
+        "p_configuration_generation": 1
+      }
+    }
+  ]
+}
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: different full policy / disk identity must not overwrite same generation without configuration change
+    at file:///private/tmp/fabric-n025-independent-w13kg9fa/policy-binding.mjs:11:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'published',
+  expected: 'published',
+  operator: 'notStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

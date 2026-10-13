@@ -1,0 +1,57 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-024",
+  "node": "N-024",
+  "parent_id": "CO-282",
+  "module": "Fence policy configuration and observation writers",
+  "intent": "Fence policy configuration and observation writers",
+  "expected_result": "Actual isolated SQL stale writer and ABA refusal; idempotent readback and held-capacity protection",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "apps/desktop/test/resource-reservation-db.test.mjs",
+      "docs/execution/harness-waves/resource-reservation.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Actual isolated SQL stale writer and ABA refusal; idempotent readback and held-capacity protection",
+      "paths": [
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+        "apps/desktop/test/resource-reservation-db.test.mjs",
+        "docs/execution/harness-waves/resource-reservation.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Actual isolated SQL stale writer and ABA refusal; idempotent readback and held-capacity protection"
+    },
+    {
+      "kind": "negative",
+      "check": "Missing/stale/wrong authority and unresolved timeout refuse; negative control reaches actual producer"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

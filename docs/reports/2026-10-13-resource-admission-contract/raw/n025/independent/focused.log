@@ -1,0 +1,37 @@
+✔ configure is policy confirmation, publish uses real sampler and exact scoped generation readback (4.248875ms)
+✔ existing exact config needs no write and stale old observation does not imply published (0.6495ms)
+✔ changed config needs exact explicit CAS revision/generation, never a refreshed expectation (0.359583ms)
+✔ lost configure reply after actual fixture commit reconciles by read without repeat write (0.652708ms)
+✔ lost publish reply after actual fixture commit reconciles by read without repeat write (0.409791ms)
+✔ mismatched generation readback cannot certify publication (0.422375ms)
+✔ mismatched revision readback cannot certify publication (0.331167ms)
+✔ mismatched capacity readback cannot certify publication (0.398292ms)
+✔ mismatched max-age readback cannot certify publication (0.468084ms)
+✔ mismatched observed-vector readback cannot certify publication (0.453333ms)
+✔ mismatched observed-time readback cannot certify publication (0.812209ms)
+✔ mismatched sub-millisecond readback cannot certify publication (0.288084ms)
+✔ mismatched extra-field readback cannot certify publication (0.241458ms)
+✔ ABA after sampling cannot relabel the sample with the newer generation (0.250334ms)
+✔ uncertain generation1 observation cannot reconcile against ABA generation3 even with same vector/time (0.243125ms)
+✔ unknown worker inventory causes no observation RPC or fabricated zero (0.194709ms)
+✔ impossible configured memoryBytes ceiling is refused without overcommit (0.206792ms)
+✔ impossible configured diskBytes ceiling is refused without overcommit (0.198625ms)
+✔ impossible configured cpuMilliCores ceiling is refused without overcommit (0.149625ms)
+✔ identity changed after sample cannot publish into old host invocation (0.581583ms)
+✔ matching but stale lost observation is reconciled as committed and unusable, permitting a fresh explicit sample (0.503583ms)
+✔ timed-out committed write retains one slot across methods; late reply issues no readback until explicit reconcile (9.861708ms)
+✔ pending read is bounded and synchronous reentry cannot enter another operation (11.029792ms)
+✔ RPC false never becomes configured (0.232417ms)
+✔ RPC malformed never becomes configured (0.082167ms)
+✔ RPC error never becomes configured (0.064166ms)
+✔ ordinary native Promise reject from synchronous publisher clock is refused without escaping rejection (0.707917ms)
+✔ ordinary native Promise resolve from synchronous publisher clock is refused without escaping rejection (0.558709ms)
+✔ clock thenable getter is not invoked or adopted (0.323166ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.056542

@@ -1,0 +1,72 @@
+[
+  {
+    "repo": "ssheleg/task-pipeline",
+    "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "file": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+    "sha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+    "gitBlobSha": "465e066ae0f90c28f672aed841429011cff4de3f"
+  },
+  {
+    "repo": "ssheleg/task-pipeline",
+    "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "file": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+    "sha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+    "gitBlobSha": "c947ed3e07f45ecb973229caa2902b27c8315bab"
+  },
+  {
+    "repo": "ssheleg/task-pipeline",
+    "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "file": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+    "sha256": "8a4f9fd82555ee3ae8c8d8257abf32afc327a20cbf0747d0e54451e38627be78",
+    "gitBlobSha": "6507d0616c7cd6719593b9b96a87c3a65c3b2b0b"
+  },
+  {
+    "repo": "ssheleg/task-pipeline",
+    "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "file": "docs/evidence/runs/2026-10-13-l3-authority-record.md",
+    "sha256": "4c530610d7dbaa6c2caeb33fde33ea6d262727ca55bb1aaf0cc604e189c25d03",
+    "gitBlobSha": "ba0ee92cd387ad74a885b5daf97dcf091e8a8dad"
+  },
+  {
+    "repo": "ssheleg/task-pipeline",
+    "commit": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "file": "docs/evidence/runs/2026-10-13-pr114-current.json",
+    "sha256": "d4646948e990a87ab7bc586b968ffc5f414b5dc1860c2973224625634543ecb6",
+    "gitBlobSha": "b995de75be9657f43f419286342352c70a8cedc5"
+  },
+  {
+    "repo": "ssheleg/sshlg-skills",
+    "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+    "file": "bin/sshlg-skills.js",
+    "sha256": "f000c9459a3071afd97f64952f1b6901e59516271c79ed56989c0c1c9ef1f759",
+    "gitBlobSha": "726e092587b1cdba817dab1a9478e5c4914f2894"
+  },
+  {
+    "repo": "ssheleg/sshlg-skills",
+    "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+    "file": "lib/installer-pins.js",
+    "sha256": "3cbb8680a3d61d432e227bbe5b2d5a04aca9979bfee8aff2887924f8bf08fd87",
+    "gitBlobSha": "084d65b3cd555940fc96cdb057823b18f58cb564"
+  },
+  {
+    "repo": "ssheleg/sshlg-skills",
+    "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+    "file": "docs/evidence/completion-1013/mcp-profile-consumer/README.md",
+    "sha256": "02de3e2256b31f57a305fd8d72a9be9088d0dddff281673e12ca5bec9e2b5b49",
+    "gitBlobSha": "5b57e34557d5aa6576088201555adc5017761e37"
+  },
+  {
+    "repo": "ssheleg/sshlg-skills",
+    "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+    "file": "docs/evidence/completion-1013/installer-pins.md",
+    "sha256": "85d1237a0cefbf1dd29e6128f300a5cd52def95dc3e264c86fdae5b491654ecb",
+    "gitBlobSha": "9d7552e66ada87eec1f44846720f8db7150f60e6"
+  },
+  {
+    "repo": "ssheleg/sshlg-skills",
+    "commit": "a17f829e8d652ce7f68423b67e0de00fb89b3693",
+    "file": "docs/HANDOFF.md",
+    "sha256": "cf3651edc18289bd9c92dab71b67fdd2c56f9ec52fbd2fbfed730677dbcc6b7c",
+    "gitBlobSha": "b3e4e87f43e7af80ca817e33c51866815d4fc7f5"
+  }
+]

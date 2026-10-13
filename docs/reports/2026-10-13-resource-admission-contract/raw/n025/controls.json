@@ -1,0 +1,32 @@
+[
+  {
+    "control": "generation",
+    "exitCode": 1,
+    "pattern": "uncertain generation1",
+    "sourceSha256": "eb9b7aa216df4113700358b898659c21d3f348c223c9b325b2a545a809550b96"
+  },
+  {
+    "control": "physical-ceiling",
+    "exitCode": 1,
+    "pattern": "impossible configured memoryBytes",
+    "sourceSha256": "b8221d6c7987b9bd6bb9969b3b1cd92a96b49c1331a59c20fbf0726ec2e560aa"
+  },
+  {
+    "control": "observation-readback",
+    "exitCode": 1,
+    "pattern": "mismatched observed-vector",
+    "sourceSha256": "a292864968f0a9f0d216425c6f2af2a05de1bc856c585a65c3e56cf0230b73de"
+  },
+  {
+    "control": "outstanding-slot",
+    "exitCode": 1,
+    "pattern": "timed-out committed write",
+    "sourceSha256": "6b2347bfdcc4512e42da8b9969e9df2e6522f8284860f5eefc840cdfdc65629d"
+  },
+  {
+    "control": "clock-rejection",
+    "exitCode": 1,
+    "pattern": "ordinary native Promise reject",
+    "sourceSha256": "c3fb79f79d84f9388a6b10c1f5479907888216747a78d46e29d68c1fcbd65b99"
+  }
+]

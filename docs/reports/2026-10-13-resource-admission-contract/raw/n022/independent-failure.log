@@ -1,0 +1,58 @@
+✔ explicit policy binds independent host and freezes detached profiles without defaults (1.022125ms)
+✔ actual counter delta, disk bytes and used memory remain distinct from configured ceilings (1.225667ms)
+✔ unknown worker coverage never becomes zero: absent (0.29025ms)
+✔ unknown worker coverage never becomes zero: incomplete (0.258917ms)
+✔ unknown worker coverage never becomes zero: wrong-host (0.205958ms)
+✔ unknown worker coverage never becomes zero: wrong-boot (0.165625ms)
+✔ unknown worker coverage never becomes zero: wrong-pool (0.206333ms)
+✔ unknown worker coverage never becomes zero: wrong-policy (0.140417ms)
+✔ unknown worker coverage never becomes zero: future (0.165ms)
+✔ unknown worker coverage never becomes zero: stale (0.168042ms)
+✔ unknown worker coverage never becomes zero: duplicate (0.651208ms)
+✔ unknown worker coverage never becomes zero: getter (0.318333ms)
+✔ source or freshness mismatch refuses observation: foreign-host (0.205125ms)
+✔ source or freshness mismatch refuses observation: restarted (0.177167ms)
+✔ source or freshness mismatch refuses observation: disk-device (0.065916ms)
+✔ source or freshness mismatch refuses observation: disk-path (0.05425ms)
+✔ source or freshness mismatch refuses observation: disk-negative (0.058166ms)
+✔ source or freshness mismatch refuses observation: disk-overflow (0.050167ms)
+✔ source or freshness mismatch refuses observation: cpu-reset (0.091583ms)
+✔ source or freshness mismatch refuses observation: cpu-empty (0.044542ms)
+✔ source or freshness mismatch refuses observation: cpu-topology (0.082208ms)
+✔ source or freshness mismatch refuses observation: memory-change (0.114709ms)
+✔ source or freshness mismatch refuses observation: clock-back (0.077791ms)
+✔ source or freshness mismatch refuses observation: clock-stale (0.07625ms)
+✔ source or freshness mismatch refuses observation: mono-stale (0.059667ms)
+✔ a timed-out read retains one slot across ten retries, ignores late success and resumes only after settlement (12.543167ms)
+✔ late rejected sampling I/O frees the slot without an unhandled rejection (11.452625ms)
+✔ accidental rejected async clock is unknown and consumed (0.24725ms)
+✖ real OS reader and canonical statfs smoke uses no worker zero or inferred policy (51.483208ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 28
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.31625
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-host-sampler.test.mjs:77:1
+✖ real OS reader and canonical statfs smoke uses no worker zero or inferred policy (51.483208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unavailable'
+  - 'worker-inventory-unavailable'
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/resource-host-sampler.test.mjs:84:46)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unavailable',
+    expected: 'worker-inventory-unavailable',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

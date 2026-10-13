@@ -1,0 +1,45 @@
+{
+  "transform": "Remove machine checkout/temp prefixes and trailing whitespace; owned-runner.mjs imports and base URLs rebased to this report location without changing SQL/assertions. Original hashes retained.",
+  "files": {
+    "revision-only-rejected.patch": {
+      "original_sha256": "6b8ba5c0ee54016da995645e35a92a0d211ee11d5fd1af4ef45924ccafef96da",
+      "stored_sha256": "b811f5803d5375bb1ab95f0b50b01d360864cee5ad6dd2fce83c41469d3e2c2c"
+    },
+    "baseline.json": {
+      "original_sha256": "fe918345fde81abb17805a5b3acf0f75c61f6043056570196a0e13ad8b4cffda",
+      "stored_sha256": "fe918345fde81abb17805a5b3acf0f75c61f6043056570196a0e13ad8b4cffda"
+    },
+    "receipt-initial-revision-only.json": {
+      "original_sha256": "cabb2ab6600e2a4a8e15a9d67f23a4641fe18294e9f96cbe86bb6ed69b48b6ac",
+      "stored_sha256": "cabb2ab6600e2a4a8e15a9d67f23a4641fe18294e9f96cbe86bb6ed69b48b6ac"
+    },
+    "negative-original.sql": {
+      "original_sha256": "7c7415d412fecf98a34d1c8e00891b8c077735000ae4875de2e1f9ee3da7e4a8",
+      "stored_sha256": "7c7415d412fecf98a34d1c8e00891b8c077735000ae4875de2e1f9ee3da7e4a8"
+    },
+    "n024.patch": {
+      "original_sha256": "dea45ee65a2c207da65854fda891cd17208127ffc09c233c001c8af9531df244",
+      "stored_sha256": "2bdc3e128b5ace80dbd71f9df730136939e5d12e3ea61fbf4a0abad9d8df0c12"
+    },
+    "receipt.json": {
+      "original_sha256": "0076b0de4483b68de3330bf41da4ab7cbe6156c4fbda96849e69593fc9d3ff85",
+      "stored_sha256": "0076b0de4483b68de3330bf41da4ab7cbe6156c4fbda96849e69593fc9d3ff85"
+    },
+    "actual-sql.log": {
+      "original_sha256": "ed3bbdb13c98ccf163c8c4a70dd6bb7e0325acc7dc0e893a2876f71d3b2f63b8",
+      "stored_sha256": "ed3bbdb13c98ccf163c8c4a70dd6bb7e0325acc7dc0e893a2876f71d3b2f63b8"
+    },
+    "negative-setup-failed.log": {
+      "original_sha256": "89b4186622957076abe64a15af9f1de6d17c8c76606dfbd17cf37702239f4f07",
+      "stored_sha256": "89b4186622957076abe64a15af9f1de6d17c8c76606dfbd17cf37702239f4f07"
+    },
+    "original-config.sql": {
+      "original_sha256": "ea0e0b669467c1367b099b651b9c77e44a5488c32d2d72e6243e552968079889",
+      "stored_sha256": "ea0e0b669467c1367b099b651b9c77e44a5488c32d2d72e6243e552968079889"
+    },
+    "owned-runner.mjs": {
+      "original_sha256": "64db254974a4aed492f2448dec89131e177824af678ae6c2f3bd2373fb210081",
+      "stored_sha256": "d25b8888441e32aeaba3041d7b57548f6196ceb2f81113eeb44612b1d8c555b1"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {fixture} from './fixture-fixed.mjs';
+import {pathToFileURL} from 'node:url';
+const {createResourcePoolPublisher}=await import(pathToFileURL(process.env.N025_SOURCE));
+const f=fixture({existing:true});
+const a=await f.publisher.configure();const first=await f.publisher.publish();
+const secondPolicy={...f.deps.rawPolicy,diskPath:'/other-owned-device',diskDeviceId:'2'};
+const second=createResourcePoolPublisher({...f.deps,rawPolicy:secondPolicy,samplerDeps:{...f.deps.samplerDeps,disk:()=>({path:'/other-owned-device',deviceId:'2',blockSize:10n,blocks:100n,availableBlocks:10n})}});
+const b=await second.configure();const before=structuredClone(f.row);const publication=await second.publish();
+console.log(JSON.stringify({firstConfig:a,firstPublication:first,secondConfig:b,secondPublication:publication,before,after:f.row,writes:f.writes},null,2));
+assert.notEqual(publication.state,'published','different full policy / disk identity must not overwrite same generation without configuration change');

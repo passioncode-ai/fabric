@@ -1,0 +1,33 @@
+{
+  "candidate_sha256": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+  "controls": [
+    {
+      "plant": "worker-zero",
+      "command_pattern": "unknown worker coverage never becomes zero: absent",
+      "exit": 1,
+      "removed": "const slots = workers(inventory, policy, finalIdentity.bootId, atMs)",
+      "replacement": "const slots = 0"
+    },
+    {
+      "plant": "cpu-zero",
+      "command_pattern": "actual counter delta",
+      "exit": 1,
+      "removed": "cpu = Number(((total - idle) * cores + total - 1n) / total)",
+      "replacement": "cpu = 0"
+    },
+    {
+      "plant": "slot-bypass",
+      "command_pattern": "a timed-out read retains",
+      "exit": 1,
+      "removed": "if (busy) return unknown('busy')",
+      "replacement": "if (false) return unknown('busy')"
+    },
+    {
+      "plant": "host-unbound",
+      "command_pattern": "source or freshness mismatch refuses observation: foreign-host",
+      "exit": 1,
+      "removed": "if (initialIdentity.hostId !== policy.hostId)",
+      "replacement": "if (false)"
+    }
+  ]
+}

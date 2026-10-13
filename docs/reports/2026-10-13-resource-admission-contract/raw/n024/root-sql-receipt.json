@@ -1,0 +1,20 @@
+{
+  "node": "N-024",
+  "owner": "root",
+  "exit": 0,
+  "command": "node /tmp/fabric-n024-owned-runner.mjs",
+  "sources": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "9e9a862a488ea092dde1cf6a98368209c68d477ebd28a55b59c0f30d6adb1ee8"
+  },
+  "checks": [
+    "Original configure reproduced stale rollback: EXPECTED_RED",
+    "Same negative probe on corrected configure: PASS",
+    "All six owned PostgreSQL stages PASS including actual service-role CAS/ABA/readback/client-denial tests"
+  ],
+  "first_failure": "Negative setup put original5 beside defaulted7 and failed overload resolution before assertion. Corrected wrapper drops7 inside rollback transaction before inserting exact original5. Production candidate unchanged.",
+  "limits": [
+    "Disposable pending DDL only; active schema and installed/runtime/native policy not activated"
+  ]
+}

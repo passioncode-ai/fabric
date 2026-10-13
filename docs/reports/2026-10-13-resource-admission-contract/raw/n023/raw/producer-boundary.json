@@ -1,0 +1,13 @@
+{
+  "installedScriptSha256": "fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1",
+  "method": "Evaluate exact _git_acquire payload AST with fixed fixture environment and consecutive second clock readings; do not execute installed module",
+  "payload": {
+    "key": "scope:docs/test.lock",
+    "run": "owned-run",
+    "ts": "2026-10-13T11:59:50Z",
+    "ttl": 60,
+    "repo": "fixture",
+    "host": "fixture",
+    "since": "2026-10-13T11:59:51Z"
+  }
+}

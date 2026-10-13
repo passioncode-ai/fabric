@@ -92,8 +92,8 @@ all client roles. Table mutations are also revoked from `service_role`.
 
 | Function | Inputs / result |
 |---|---|
-| `configure_resource_pool` | Explicit host, pool, policy revision, capacity and max-age milliseconds; boolean. A held allocation prevents policy changes. Same revision cannot acquire different policy bytes. |
-| `observe_resource_pool` | Exact host/pool/revision, complete observed vector, captured timestamp; boolean. No inferred overlap. |
+| `configure_resource_pool` | Explicit host, pool, policy revision, capacity, max-age milliseconds and optional `p_expected_revision`/`p_expected_generation` (both default null); boolean. Omitted/null expectations are create-only. A changed revision requires the exact previous revision and generation under the pool lock and no held allocation. Exact same-policy retries preserve the observation; the current revision cannot be edited in place. Historical revision text may reappear after another transition; configuration generation distinguishes those occurrences. |
+| `observe_resource_pool` | Exact host/pool/revision and configuration generation, complete observed vector, captured timestamp; boolean. Omitted generation defaults to 1, never the current generation. No inferred overlap. |
 | `admit_resource_task_launch` | Existing Estate/task/actor/session; injected host/pool; binding; demand and own demand; optional parent; existing trigger/person/membership revision. Returns the ordinary admission receipt plus `resource_reservation: { reservation_id, state, run_ordinal }`, or `admitted:false` and `reason_code`. |
 | `begin_task_run_launch`, `validate_task_run_launch` | Existing argument shapes. Resource reservations add current reading/ledger checks before the preserved generation/authority checks. |
 | `release_resource_reservation` | Exact Estate, reservation, run, session and fence (canonical base-10 integer text); `{ released, repeated?, receipt_seq?, reason_code? }`. |
@@ -164,3 +164,39 @@ capability and refuse a missing migration. R4 owns broader recovery, native
 termination proof and durable wakeups. Portable consumers remain subject to
 fabric-agent-contract owner acceptance. No operator approval is invented for
 the independently executable local work.
+
+## Pending configuration compare-and-set correction
+
+Each pool starts at `configuration_generation = 1`, a positive safe integer.
+The configuration command takes optional `p_expected_revision` and
+`p_expected_generation`, both default null. Five-argument callers can create a
+pool and retry the exact same policy; they cannot change an existing revision.
+An update requires both current values under the row lock, refuses while any
+reservation is held, increments generation once and clears the old observation.
+A missing pool cannot satisfy an update expectation; exhausted generation refuses
+instead of wrapping. The old unconditional function overload is dropped without
+CASCADE, and service-only grants target the new signature.
+
+Exact same-policy retries acknowledge the current row without changing generation
+or refreshing its reading, including after a successful transition's reply was lost.
+Generation distinguishes repeated revision text: A1 → B2 → A3 does not authorize a
+stale update expecting A1. Observation must name the current generation too; the
+legacy five-argument observation call is bound to generation 1. An old A1 sampler
+cannot overwrite A3 merely because its revision string matches again. Exact
+observation replay preserves its timestamp; it does not manufacture freshness.
+
+A caller must not turn a timeout into an unconditional write or silently replace
+its expectation with the latest one. Read back exact host, pool, revision,
+generation, capacity and freshness policy; compare observation and timestamp
+separately. A configuration acknowledgement does not prove freshness or admission
+eligibility. The CAS is not a writer lease, host authentication or a permission
+grant; the existing service-role trust boundary remains in force.
+
+Prepared SQL regressions cover a five-argument stale writer that the original
+function accepts, competing creators and updates, absent-pool and malformed CAS,
+ABA writers and samplers, generation exhaustion, exact policy/observation replay,
+stale-reading preservation and held-policy refusal with valid expectations.
+Client role denials cover legacy and explicit call arities. **Correction SQL execution: PASS**, all six stages of the serialized owned cluster.
+The original function fails the same stale-writer probe and the corrected function
+passes; [root SQL receipt](../../reports/2026-10-13-resource-admission-contract/raw/n024/root-sql-receipt.json)
+separates the initial negative-fixture setup error from production behavior. No active manifest, service configuration or portable protocol changes.

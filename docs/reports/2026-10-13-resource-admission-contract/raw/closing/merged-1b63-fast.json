@@ -1,0 +1,11 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "before_tree": "76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5",
+  "after_tree": "76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5",
+  "exit": 0,
+  "seconds": 707.51,
+  "source_commit": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "limitations": [
+    "Browser suites NOT_RUN, stack-backed full tier not selected, toolchain reproducibility UNVERIFIED. All six owned resource SQL stages ran."
+  ]
+}

@@ -1,0 +1,503 @@
+diff --git a/apps/desktop/src/main/resourcePoolPublisher.ts b/apps/desktop/src/main/resourcePoolPublisher.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/src/main/resourcePoolPublisher.ts
+@@ -0,0 +1,195 @@
++// #region resource-pool-publisher — docs: docs/execution/harness-waves/resource-pool-publisher.md#contract
++import type { SupabaseClient } from '@supabase/supabase-js'
++import type { ResourceVector } from '../shared/resourceAdmission.ts'
++import { readResourceHostPolicy, resourceData, resourceDigest, resourceId, resourceInteger, resourceAxes } from './resourceHostPolicy.ts'
++import { createResourceHostSampler, type ResourceHostSamplerDeps, type ResourceHostObservation } from './resourceHostSampler.ts'
++
++export interface ResourcePoolPublisherDeps {
++  db: Pick<SupabaseClient, 'from' | 'rpc'>
++  rawPolicy: unknown
++  /** Installation identity from the trusted host producer, never task input. */
++  trustedHostId: string
++  samplerDeps: ResourceHostSamplerDeps
++  timeoutMs: number
++  now?: () => number
++}
++export interface ResourcePoolExpected { revision: string; generation: number }
++export interface ResourcePoolPublication {
++  state: 'configured' | 'published' | 'refused' | 'unknown'
++  reason: string
++  generation: number | null
++  snapshotId?: string
++  executionAuthorized: false
++}
++const columns = 'host_id,pool_id,policy_revision,configuration_generation,capacity,max_age_ms,observed,observed_at'
++function vector(raw: unknown): ResourceVector {
++  const r = resourceData(raw, resourceAxes)
++  return Object.fromEntries(resourceAxes.map(k => [k, resourceInteger(r[k])])) as unknown as ResourceVector
++}
++function sameVector(a: ResourceVector, b: ResourceVector) { return resourceAxes.every(k => a[k] === b[k]) }
++/** PostgREST UTC timestamps; reject sub-millisecond differences instead of
++ * truncating them into an apparently matching publication receipt. */
++function epoch(raw: unknown): number {
++  if (typeof raw !== 'string') throw Error('invalid observation timestamp')
++  const m = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,6}))?(?:Z|\+00:00)$/.exec(raw)
++  if (!m || (m[2]?.slice(3) ?? '').replaceAll('0', '') !== '') throw Error('invalid observation timestamp')
++  const canonical = `${m[1]}.${(m[2] ?? '').padEnd(3, '0').slice(0, 3)}Z`, at = Date.parse(canonical)
++  if (!Number.isSafeInteger(at) || at < 0 || new Date(at).toISOString() !== canonical) throw Error('invalid observation timestamp')
++  return at
++}
++function nowValue(read: () => number): number {
++  const value: unknown = read()
++  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype && !Object.getOwnPropertyDescriptor(value, 'constructor')) void Promise.prototype.then.call(value, undefined, () => {})
++  return resourceInteger(value)
++}
++interface PoolRow { revision: string; generation: number; capacity: ResourceVector; maxAgeMs: number; observed: ResourceVector | null; atMs: number | null }
++interface Sample { vector: ResourceVector; atMs: number; bootId: string; snapshotId: string }
++type Intent = { kind: 'configure'; generation: number } | { kind: 'observe'; generation: number; sample: Sample }
++
++/** One fixed policy and one long-lived sampler/publisher per pool. This writes
++ * pending107's service-only commands; it neither installs that DDL nor admits work.
++ * An ambiguous write retains its exact generation/intent until read reconciliation.
++ */
++export function createResourcePoolPublisher(deps: ResourcePoolPublisherDeps) {
++  const policy = readResourceHostPolicy(deps.rawPolicy, deps.trustedHostId)
++  const sampler = createResourceHostSampler(policy, deps.trustedHostId, deps.samplerDeps)
++  const db = deps.db, identity = deps.samplerDeps.identity, now = deps.now ?? Date.now
++  const timeoutMs = resourceInteger(deps.timeoutMs, 1, 30000), policyDigest = resourceDigest(policy)
++  // readResourceHostPolicy produces a fixed field/vector/profile order and
++  // normalized disk path. Version this binding if that canonical schema changes.
++  const bindingRevision = `policy-sha256-v1:${policyDigest}`
++  let generation: number | null = null, intent: Intent | null = null, busy = false
++  const result = (state: ResourcePoolPublication['state'], reason: string, snapshotId?: string): ResourcePoolPublication =>
++    ({ state, reason, generation, executionAuthorized: false, ...(snapshotId ? { snapshotId } : {}) })
++  function row(raw: unknown): PoolRow | null {
++    if (raw === null) return null
++    const r = resourceData(raw, columns.split(','))
++    if (r.host_id !== policy.hostId || r.pool_id !== policy.poolId) throw Error('pool identity mismatch')
++    const observed = r.observed === null ? null : vector(r.observed), atMs = r.observed_at === null ? null : epoch(r.observed_at)
++    if ((observed === null) !== (atMs === null)) throw Error('incomplete pool observation')
++    return { revision: resourceId(r.policy_revision), generation: resourceInteger(r.configuration_generation, 1),
++      capacity: vector(r.capacity), maxAgeMs: resourceInteger(r.max_age_ms, 1), observed, atMs }
++  }
++  function matches(r: PoolRow) { return r.revision === bindingRevision && r.maxAgeMs === policy.maxAgeMs && sameVector(r.capacity, policy.capacity) }
++  function fresh(at: number) { const time = nowValue(now); return at <= time && time - at <= policy.maxAgeMs }
++  function sample(raw: ResourceHostObservation): Sample {
++    const r = resourceData(raw, ['state','reason','observed','axes','physical','hostId','poolId','localPolicyRevision','policyDigest','snapshotId','atMs','completedAtMs','durationMs','source'])
++    if (r.state !== 'observed' || r.reason !== 'complete' || r.hostId !== policy.hostId || r.poolId !== policy.poolId ||
++        r.localPolicyRevision !== policy.localPolicyRevision || r.policyDigest !== policyDigest) throw Error('sample unavailable')
++    const observed = vector(r.observed), axes = vector(r.axes), physical = resourceData(r.physical, ['memoryTotalBytes','diskTotalBytes','cpuMilliCores'])
++    // No overcommit contract is installed: a finite configured ceiling is not
++    // evidence that this physical host can supply it. Worker slots are logical.
++    if (policy.capacity.memoryBytes > resourceInteger(physical.memoryTotalBytes,1) ||
++        policy.capacity.diskBytes > resourceInteger(physical.diskTotalBytes,1) ||
++        policy.capacity.cpuMilliCores > resourceInteger(physical.cpuMilliCores,1)) throw Error('policy exceeds physical host')
++    if (!sameVector(observed, axes) || observed.memoryBytes > resourceInteger(physical.memoryTotalBytes,1) ||
++        observed.diskBytes > resourceInteger(physical.diskTotalBytes,1) || observed.cpuMilliCores > resourceInteger(physical.cpuMilliCores,1)) throw Error('invalid physical sample')
++    const source = resourceData(r.source, ['bootId','diskDeviceId','diskPathDigest','cpuTopologyDigest'])
++    if (source.diskDeviceId !== policy.diskDeviceId || source.diskPathDigest !== resourceDigest(policy.diskPath) ||
++        typeof source.cpuTopologyDigest !== 'string' || !/^[a-f0-9]{64}$/.test(source.cpuTopologyDigest)) throw Error('sample source mismatch')
++    const atMs = resourceInteger(r.atMs), completed = resourceInteger(r.completedAtMs)
++    if (completed < atMs || completed > nowValue(now) || !fresh(atMs) || typeof r.durationMs !== 'number' ||
++        !Number.isFinite(r.durationMs) || r.durationMs < policy.sampleWindowMs || r.durationMs > policy.maxAgeMs ||
++        r.snapshotId !== resourceDigest([policyDigest, atMs, completed, source, axes])) throw Error('sample evidence mismatch')
++    // Conversion is validated before a command is dispatched.
++    epoch(new Date(atMs).toISOString())
++    return { vector: observed, atMs, bootId: resourceId(source.bootId), snapshotId: r.snapshotId as string }
++  }
++  async function execute(work: (call: <T>(fn: () => PromiseLike<T> | T) => Promise<T>) => Promise<ResourcePoolPublication>) {
++    if (busy) return result('unknown','io_outstanding')
++    busy = true
++    const deadline = performance.now() + timeoutMs
++    const outstanding = new Set<Promise<unknown>>()
++    let active = true, finished = false
++    const release = () => { if (finished && outstanding.size === 0) busy = false }
++    async function call<T>(fn: () => PromiseLike<T> | T): Promise<T> {
++      const remaining = deadline - performance.now()
++      if (!active || remaining <= 0) { active = false; throw Error('publisher deadline') }
++      const pending = Promise.resolve().then(() => { if (!active) throw Error('publisher ended'); return fn() })
++      outstanding.add(pending)
++      const settled = () => { outstanding.delete(pending); release() }
++      void pending.then(settled, settled)
++      let timer: ReturnType<typeof setTimeout> | undefined
++      try {
++        const value = await Promise.race([pending,new Promise<never>((_, reject) => { timer = setTimeout(() => { active = false; reject(Error('publisher deadline')) }, remaining) })])
++        if (!active || performance.now() >= deadline) { active = false; throw Error('publisher deadline') }
++        return value
++      } finally { if (timer) clearTimeout(timer) }
++    }
++    try { return await work(call) }
++    catch { /* Safe structured uncertainty; connection errors and host paths are not diagnostic output. */ return result('unknown',intent ? 'write_unconfirmed' : 'unavailable') }
++    finally { active = false; finished = true; release() }
++  }
++  type Call = Parameters<Parameters<typeof execute>[0]>[0]
++  async function read(call: Call): Promise<PoolRow | null> {
++    const answer = await call(() => db.from('resource_pools').select(columns).eq('host_id',policy.hostId).eq('pool_id',policy.poolId).maybeSingle())
++    if (answer.error) throw Error('pool read unavailable')
++    return row(answer.data)
++  }
++  async function sameHost(call: Call, bootId?: string): Promise<boolean> {
++    const r = resourceData(await call(identity), ['hostId','bootId'])
++    return r.hostId === policy.hostId && typeof r.bootId === 'string' && resourceId(r.bootId) === r.bootId && (bootId === undefined || r.bootId === bootId)
++  }
++  async function reconcileWith(call: Call): Promise<ResourcePoolPublication> {
++    if (!intent) return result('refused','no_uncertain_write')
++    const pending = intent, actual = await read(call)
++    if (!actual || !matches(actual) || actual.generation !== pending.generation) return result('unknown','write_superseded_or_unobserved')
++    if (pending.kind === 'configure') {
++      if (!await sameHost(call)) return result('unknown','host_changed')
++      generation = actual.generation; intent = null
++      return result('configured','policy_readback')
++    }
++    if (!actual.observed || actual.atMs !== pending.sample.atMs || !sameVector(actual.observed,pending.sample.vector)) return result('unknown','observation_superseded_or_unobserved')
++    const currentHost = await sameHost(call,pending.sample.bootId), current = fresh(pending.sample.atMs)
++    // The exact write was observed. A stale or restarted-host sample is still not ready.
++    intent = null
++    return currentHost && current ? result('published','observation_readback',pending.sample.snapshotId) : result('refused',currentHost ? 'observation_stale' : 'host_changed')
++  }
++  return { policy, bindingRevision,
++    configure(expected?: ResourcePoolExpected): Promise<ResourcePoolPublication> {
++      return execute(async call => {
++        if (intent) return result('unknown','reconcile_required')
++        let expectation: ResourcePoolExpected | null = null
++        if (expected !== undefined) {
++          const r = resourceData(expected,['revision','generation'])
++          expectation = { revision:resourceId(r.revision),generation:resourceInteger(r.generation,1) }
++        }
++        if (!await sameHost(call)) return result('refused','host_changed')
++        const prior = await read(call)
++        if (prior && matches(prior)) {
++          if (generation !== null && generation !== prior.generation) return result('refused','generation_changed')
++          generation = prior.generation; return result('configured','existing_policy')
++        }
++        if (generation !== null) return result('refused','generation_changed')
++        if (prior ? !expectation || prior.revision !== expectation.revision || prior.generation !== expectation.generation || prior.revision === bindingRevision : expectation !== null) return result('refused','configuration_conflict')
++        const nextGeneration = prior ? resourceInteger(prior.generation + 1,1) : 1
++        intent = { kind:'configure',generation:nextGeneration }
++        const answer = await call(() => db.rpc('configure_resource_pool',{p_host:policy.hostId,p_pool:policy.poolId,p_revision:bindingRevision,
++          p_capacity:{...policy.capacity},p_max_age_ms:policy.maxAgeMs,p_expected_revision:expectation?.revision ?? null,p_expected_generation:expectation?.generation ?? null}))
++        if (answer.error || typeof answer.data !== 'boolean') throw Error('configuration unconfirmed')
++        if (!answer.data) { intent = null; return result('refused','configuration_refused') }
++        return reconcileWith(call)
++      })
++    },
++    publish(): Promise<ResourcePoolPublication> {
++      return execute(async call => {
++        if (intent) return result('unknown','reconcile_required')
++        if (generation === null) return result('refused','not_configured')
++        const before = await read(call)
++        if (!before || !matches(before) || before.generation !== generation) return result('refused','generation_changed')
++        const measured = sample(await call(() => sampler.sample()))
++        const after = await read(call)
++        if (!after || !matches(after) || after.generation !== generation || !await sameHost(call,measured.bootId)) return result('refused','generation_or_host_changed')
++        if (!fresh(measured.atMs)) return result('refused','observation_stale')
++        intent = { kind:'observe',generation,sample:measured }
++        const answer = await call(() => db.rpc('observe_resource_pool',{p_host:policy.hostId,p_pool:policy.poolId,p_revision:bindingRevision,
++          p_observed:{...measured.vector},p_at:new Date(measured.atMs).toISOString(),p_configuration_generation:generation}))
++        if (answer.error || typeof answer.data !== 'boolean') throw Error('observation unconfirmed')
++        if (!answer.data) { intent = null; return result('refused','observation_refused') }
++        return reconcileWith(call)
++      })
++    },
++    reconcile(): Promise<ResourcePoolPublication> { return execute(reconcileWith) },
++  }
++}
++// #endregion resource-pool-publisher
+diff --git a/apps/desktop/test/resource-pool-publisher.test.mjs b/apps/desktop/test/resource-pool-publisher.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/test/resource-pool-publisher.test.mjs
+@@ -0,0 +1,160 @@
++import assert from 'node:assert/strict'
++import {test} from 'node:test'
++import {createResourcePoolPublisher} from '../src/main/resourcePoolPublisher.ts'
++import {resourceDigest,readResourceHostPolicy} from '../src/main/resourceHostPolicy.ts'
++const v=(workerSlots=10)=>({workerSlots,memoryBytes:1000,diskBytes:1000,cpuMilliCores:1000})
++const config=()=>({hostId:'host',poolId:'pool',localPolicyRevision:'revision-A',capacity:v(),demandProfiles:{builder:v(1),reviewer:v(1),test:v(1)},diskPath:'/owned',diskDeviceId:'1',maxAgeMs:100,sampleWindowMs:5,timeoutMs:40})
++function fixture({existing=false,timeoutMs=100,policy=config()}={}) {
++ const f={row:null,reads:0,writes:[],systemReads:0,wall:1000,mono:0,identity:{hostId:'host',bootId:'boot'},columns:null,filters:null}
++ const pool=(generation=1)=>({host_id:'host',pool_id:'pool',policy_revision:`policy-sha256-v1:${resourceDigest(readResourceHostPolicy(policy,'host'))}`,configuration_generation:generation,capacity:structuredClone(policy.capacity),max_age_ms:policy.maxAgeMs,observed:null,observed_at:null})
++ if(existing)f.row=pool()
++ const db={from(table){assert.equal(table,'resource_pools');let filters=[];return {select(columns){f.columns=columns;return this},eq(key,value){filters.push([key,value]);return this},async maybeSingle(){f.reads++;f.filters=filters;assert.deepEqual(filters,[['host_id','host'],['pool_id','pool']]);if(f.readHook){const r=await f.readHook();if(r!==undefined)return r}return {data:structuredClone(f.row),error:null}}}},
++  async rpc(name,args){f.writes.push({name,args:structuredClone(args)});if(f.rpcHook){const r=await f.rpcHook(name,args);if(r!==undefined)return r}
++   if(name==='configure_resource_pool'){f.row=pool(args.p_expected_generation===null?1:args.p_expected_generation+1);return {data:true,error:null}}
++   assert.equal(name,'observe_resource_pool');f.row.observed=structuredClone(args.p_observed);f.row.observed_at=args.p_at;return {data:true,error:null}
++  }}
++ const samplerDeps={identity:()=>({...f.identity}),now:()=>f.wall,monotonic:()=>f.mono,
++  system:()=>{const n=f.systemReads++;return {totalMemory:1000,freeMemory:700,cpus:[{model:'cpu',times:{user:100+n*100,nice:0,sys:0,idle:300+n*300,irq:0}}]}},
++  disk:()=>({path:'/owned',deviceId:'1',blockSize:10n,blocks:100n,availableBlocks:80n}),
++  workers:()=>({hostId:'host',bootId:'boot',poolId:'pool',localPolicyRevision:policy.localPolicyRevision,atMs:f.wall,complete:true,workers:['owned-worker']}),
++  pause:async ms=>{f.mono+=ms;f.wall+=ms;await f.sampleHook?.()}}
++ const deps={db,rawPolicy:policy,trustedHostId:'host',samplerDeps,timeoutMs,now:()=>f.wall}
++ const publisher=createResourcePoolPublisher(deps)
++ return Object.assign(f,{publisher,deps,pool})
++}
++test('configure is policy confirmation, publish uses real sampler and exact scoped generation readback',async()=>{
++ const f=fixture();const configured=await f.publisher.configure();assert.equal(configured.state,'configured');assert.equal(configured.executionAuthorized,false);assert.equal(f.row.observed,null);assert.equal(f.systemReads,0)
++ const published=await f.publisher.publish();assert.equal(published.state,'published');assert.equal(published.executionAuthorized,false);assert.equal(published.generation,1)
++ assert.deepEqual(f.row.observed,{workerSlots:1,memoryBytes:300,diskBytes:200,cpuMilliCores:250});assert.equal(f.row.observed_at,new Date(1000).toISOString())
++ assert.equal(f.writes[1].args.p_configuration_generation,1);assert.equal(f.writes.length,2)
++ assert.equal(f.columns,'host_id,pool_id,policy_revision,configuration_generation,capacity,max_age_ms,observed,observed_at')
++})
++test('existing exact config needs no write and stale old observation does not imply published',async()=>{
++ const f=fixture({existing:true});f.row.observed=v(0);f.row.observed_at=new Date(0).toISOString()
++ assert.equal((await f.publisher.configure()).state,'configured');assert.equal(f.writes.length,0);assert.equal(f.systemReads,0)
++ assert.equal((await f.publisher.publish()).state,'published');assert.equal(f.writes.length,1)
++})
++test('changed config needs exact explicit CAS revision/generation, never a refreshed expectation',async()=>{
++ const f=fixture({existing:true});f.row.policy_revision='revision-old';f.row.configuration_generation=4
++ for(const expectation of [undefined,{revision:'revision-old',generation:3},{revision:'foreign',generation:4}])assert.equal((await f.publisher.configure(expectation)).state,'refused')
++ assert.equal(f.writes.length,0)
++ const r=await f.publisher.configure({revision:'revision-old',generation:4});assert.equal(r.state,'configured');assert.equal(r.generation,5)
++ assert.equal(f.writes[0].args.p_expected_revision,'revision-old');assert.equal(f.writes[0].args.p_expected_generation,4)
++})
++for(const method of ['configure','publish'])test(`lost ${method} reply after actual fixture commit reconciles by read without repeat write`,async()=>{
++ const f=fixture({existing:method==='publish'});if(method==='publish')await f.publisher.configure()
++ f.rpcHook=(name,args)=>{if(method==='configure')f.row=f.pool();else {f.row.observed={...args.p_observed};f.row.observed_at=args.p_at}throw Error('private transport/token')}
++ const r=await f.publisher[method]();assert.equal(r.state,'unknown');assert.equal(f.writes.length,1)
++ assert.equal((await f.publisher[method]()).reason,'reconcile_required');assert.equal(f.writes.length,1)
++ const reconciled=await f.publisher.reconcile();assert.equal(reconciled.state,method==='configure'?'configured':'published');assert.equal(f.writes.length,1);assert.ok(!JSON.stringify(r).includes('private'))
++})
++for(const field of ['generation','revision','capacity','max-age','observed-vector','observed-time','sub-millisecond','extra-field'])test(`mismatched ${field} readback cannot certify publication`,async()=>{
++ const f=fixture({existing:true});await f.publisher.configure()
++ f.rpcHook=(_name,args)=>{f.row.observed={...args.p_observed};f.row.observed_at=args.p_at
++  if(field==='generation')f.row.configuration_generation=3;if(field==='revision')f.row.policy_revision='other';if(field==='capacity')f.row.capacity.memoryBytes++
++  if(field==='max-age')f.row.max_age_ms++;if(field==='observed-vector')f.row.observed.diskBytes++;if(field==='observed-time')f.row.observed_at=new Date(999).toISOString()
++  if(field==='sub-millisecond')f.row.observed_at='1970-01-01T00:00:01.000001+00:00';if(field==='extra-field')f.row.extra='not selected';return {data:true,error:null}}
++ assert.equal((await f.publisher.publish()).state,'unknown');assert.equal((await f.publisher.publish()).reason,'reconcile_required');assert.equal(f.writes.length,1)
++ assert.equal((await f.publisher.reconcile()).state,'unknown');assert.equal(f.writes.length,1)
++})
++test('ABA after sampling cannot relabel the sample with the newer generation',async()=>{
++ const f=fixture({existing:true});await f.publisher.configure();f.sampleHook=()=>{f.row.configuration_generation=3}
++ assert.equal((await f.publisher.publish()).state,'refused');assert.equal(f.writes.length,0)
++ assert.equal((await f.publisher.configure()).reason,'generation_changed')
++})
++test('uncertain generation1 observation cannot reconcile against ABA generation3 even with same vector/time',async()=>{
++ const f=fixture({existing:true});await f.publisher.configure()
++ f.rpcHook=(_name,args)=>{f.row.observed={...args.p_observed};f.row.observed_at=args.p_at;f.row.configuration_generation=3;throw Error('lost')}
++ assert.equal((await f.publisher.publish()).state,'unknown');assert.equal((await f.publisher.reconcile()).state,'unknown');assert.equal(f.writes.length,1)
++})
++test('unknown worker inventory causes no observation RPC or fabricated zero',async()=>{
++ const f=fixture({existing:true});f.deps.samplerDeps.workers=undefined
++ const publisher=createResourcePoolPublisher(f.deps);await publisher.configure()
++ assert.equal((await publisher.publish()).state,'unknown');assert.equal(f.writes.length,0)
++})
++for(const axis of ['memoryBytes','diskBytes','cpuMilliCores'])test(`impossible configured ${axis} ceiling is refused without overcommit`,async()=>{
++ const policy=config();policy.capacity[axis]++
++ const f=fixture({policy,existing:true});await f.publisher.configure()
++ assert.equal((await f.publisher.publish()).state,'unknown');assert.equal(f.writes.length,0)
++})
++test('identity changed after sample cannot publish into old host invocation',async()=>{
++ const f=fixture({existing:true});await f.publisher.configure()
++ let calls=0;f.readHook=()=>{if(++calls===2)f.identity.bootId='new'}
++ assert.equal((await f.publisher.publish()).state,'refused');assert.equal(f.writes.length,0)
++})
++test('matching but stale lost observation is reconciled as committed and unusable, permitting a fresh explicit sample',async()=>{
++ const f=fixture({existing:true});await f.publisher.configure()
++ f.rpcHook=(_name,args)=>{f.row.observed={...args.p_observed};f.row.observed_at=args.p_at;throw Error('lost')}
++ assert.equal((await f.publisher.publish()).state,'unknown');f.wall+=200
++ assert.equal((await f.publisher.reconcile()).reason,'observation_stale');f.rpcHook=undefined
++ assert.equal((await f.publisher.publish()).state,'published')
++})
++test('timed-out committed write retains one slot across methods; late reply issues no readback until explicit reconcile',async()=>{
++ const f=fixture({timeoutMs:10});let finish
++ f.rpcHook=()=>{f.row=f.pool();return new Promise(resolve=>finish=resolve)}
++ assert.equal((await f.publisher.configure()).state,'unknown');const reads=f.reads
++ for(let i=0;i<10;i++)for(const method of ['configure','publish','reconcile'])assert.equal((await f.publisher[method]()).reason,'io_outstanding')
++ assert.equal(f.writes.length,1);assert.equal(f.reads,reads)
++ finish({data:true,error:null});await new Promise(resolve=>setImmediate(resolve));assert.equal(f.reads,reads)
++ assert.equal((await f.publisher.publish()).reason,'reconcile_required');assert.equal((await f.publisher.reconcile()).state,'configured');assert.equal(f.writes.length,1)
++})
++test('pending read is bounded and synchronous reentry cannot enter another operation',async()=>{
++ const f=fixture({existing:true,timeoutMs:10});let finish,reentry
++ f.readHook=()=>{reentry=f.publisher.publish();return new Promise(resolve=>finish=resolve)}
++ assert.equal((await f.publisher.configure()).state,'unknown');assert.equal((await reentry).reason,'io_outstanding')
++ for(let i=0;i<10;i++)assert.equal((await f.publisher.configure()).reason,'io_outstanding')
++ assert.equal(f.reads,1);finish({data:f.row,error:null});await new Promise(resolve=>setImmediate(resolve));f.readHook=undefined
++ assert.equal((await f.publisher.configure()).state,'configured');assert.equal(f.writes.length,0)
++})
++for(const mode of ['false','malformed','error'])test(`RPC ${mode} never becomes configured`,async()=>{
++ const f=fixture();f.rpcHook=()=>mode==='false'?{data:false}:mode==='malformed'?{data:'true'}:{data:true,error:{private:'token'}}
++ assert.notEqual((await f.publisher.configure()).state,'configured');assert.equal(f.systemReads,0)
++})
++
++for(const outcome of ['reject','resolve'])test(`ordinary native Promise ${outcome} from synchronous publisher clock is refused without escaping rejection`,async()=>{
++ const f=fixture({existing:true});f.deps.now=()=>outcome==='reject'?Promise.reject(Error('synthetic private clock')):Promise.resolve(f.wall)
++ const publisher=createResourcePoolPublisher(f.deps);assert.equal((await publisher.configure()).state,'configured')
++ assert.equal((await publisher.publish()).state,'unknown');assert.equal(f.writes.length,0)
++ await new Promise(resolve=>setImmediate(resolve))
++})
++test('clock thenable getter is not invoked or adopted',async()=>{
++ const f=fixture({existing:true});let accessed=0
++ f.deps.now=()=>Object.defineProperty({},'then',{get(){accessed++;throw Error('must not invoke')}})
++ const publisher=createResourcePoolPublisher(f.deps);await publisher.configure()
++ assert.equal((await publisher.publish()).state,'unknown');assert.equal(f.writes.length,0);assert.equal(accessed,0)
++})
++for(const changed of ['diskPath','diskDeviceId','demandProfile','sampleWindowMs','timeoutMs'])test(`same human revision cannot reuse another publisher's ${changed} policy binding`,async()=>{
++ const f=fixture({existing:true});assert.equal((await f.publisher.configure()).state,'configured')
++ const policy=config()
++ if(changed==='diskPath')policy.diskPath='/other-disk'
++ if(changed==='diskDeviceId')policy.diskDeviceId='2'
++ if(changed==='demandProfile')policy.demandProfiles.builder.memoryBytes--
++ if(changed==='sampleWindowMs')policy.sampleWindowMs++
++ if(changed==='timeoutMs')policy.timeoutMs++
++ const other=createResourcePoolPublisher({...f.deps,rawPolicy:policy})
++ assert.equal(other.policy.localPolicyRevision,f.publisher.policy.localPolicyRevision)
++ assert.equal((await other.configure()).state,'refused');assert.equal(f.writes.length,0)
++})
++test('explicit previous stored binding CAS changes generation and old publisher cannot publish or reconfigure it',async()=>{
++ const f=fixture({existing:true});await f.publisher.configure()
++ const policy=config();policy.diskDeviceId='2'
++ const other=createResourcePoolPublisher({...f.deps,rawPolicy:policy})
++ assert.match(other.bindingRevision,/^policy-sha256-v1:[a-f0-9]{64}$/)
++ assert.notEqual(other.bindingRevision,f.publisher.bindingRevision)
++ assert.equal((await other.configure({revision:policy.localPolicyRevision,generation:1})).state,'refused')
++ assert.equal(f.writes.length,0)
++ f.rpcHook=(name,args)=>{assert.equal(name,'configure_resource_pool');assert.equal(args.p_expected_revision,f.publisher.bindingRevision);f.row={...f.row,policy_revision:args.p_revision,configuration_generation:2};return {data:true,error:null}}
++ assert.equal((await other.configure({revision:f.publisher.bindingRevision,generation:1})).state,'configured')
++ assert.equal(f.writes.length,1);assert.equal(f.row.policy_revision,other.bindingRevision)
++ assert.equal((await f.publisher.publish()).reason,'generation_changed')
++ assert.equal((await f.publisher.configure()).reason,'generation_changed');assert.equal(f.writes.length,1)
++ assert.equal((await other.configure()).state,'configured');assert.equal(f.writes.length,1)
++})
++test('validated canonical field order gives deterministic binding while preserving human revision',()=>{
++ const f=fixture(),p=config()
++ const reordered=Object.fromEntries(Object.entries(p).reverse());reordered.capacity=Object.fromEntries(Object.entries(p.capacity).reverse());reordered.demandProfiles=Object.fromEntries(Object.entries(p.demandProfiles).reverse())
++ const other=createResourcePoolPublisher({...f.deps,rawPolicy:reordered})
++ assert.equal(other.bindingRevision,f.publisher.bindingRevision);assert.equal(other.policy.localPolicyRevision,'revision-A')
++ p.localPolicyRevision='revision-B'
++ assert.notEqual(createResourcePoolPublisher({...f.deps,rawPolicy:p}).bindingRevision,f.publisher.bindingRevision)
++})
+diff --git a/docs/execution/harness-waves/resource-pool-publisher.md b/docs/execution/harness-waves/resource-pool-publisher.md
+new file mode 100644
+--- /dev/null
++++ b/docs/execution/harness-waves/resource-pool-publisher.md
+@@ -0,0 +1,133 @@
++# Internal resource pool publisher
++
++## Contract
++
++N025 implements the local producer-to-pending107 seam. It does not activate the
++pending migration, configure a running host, wire admission, grant ownership or
++start a sampler loop. Every result carries `executionAuthorized: false`.
++
++`createResourcePoolPublisher` in
++[`resourcePoolPublisher.ts`](../../../apps/desktop/src/main/resourcePoolPublisher.ts)
++accepts a trusted raw policy, an independently supplied host identifier, the
++trusted sampler dependencies, a Supabase client and an explicit deadline. It
++validates and freezes the policy through
++[`resourceHostPolicy.ts`](../../../apps/desktop/src/main/resourceHostPolicy.ts)
++and owns its
++[`resourceHostSampler.ts`](../../../apps/desktop/src/main/resourceHostSampler.ts).
++There is no caller-observation parameter and no capacity default.
++
++Use one long-lived publisher for one fixed policy and pool. `configure()` creates
++an absent pool or reads an exactly matching policy. Changing an existing policy
++requires an explicit `{ revision, generation }` expectation, with the exact prior
++stored binding revision. The producer never
++refreshes that expectation automatically. A configuration result confirms only
++policy readback; it does not certify an observation or readiness.
++
++`publish()` reads the exact configured policy and generation, invokes the owned
++sampler, validates its complete source-bound observation, reads the same policy
++and generation again, checks the current host/boot identity, then calls
++`observe_resource_pool`. Memory and disk units are bytes; CPU is milli-cores;
++workers are complete-inventory slots. Configured memory/disk/CPU ceilings must
++not exceed sampled physical totals. No overcommit allowance is assumed. Missing
++worker inventory and other unknown measurements never become zero.
++
++The publisher sends the captured generation to the pending107/N024 RPC and
++requires exact readback of the stored host, pool, revision, generation, capacity, maximum
++age, observed vector and timestamp. A1 → B2 → A3 cannot attach generation3 to an
++A1 sample or confirm an uncertain generation1 write. PostgREST UTC timestamps
++with sub-millisecond nonzero digits are refused rather than truncated into a
++false match. Policy maximum age is measured against epoch milliseconds; I/O
++expiration uses monotonic time. Sampler elapsed time remains distinct.
++
++## Uncertainty and bounded work
++
++A write intent is retained before dispatch. Transport rejection, malformed
++responses and a lost reply yield structured uncertainty without connection
++errors or host paths. Further writes refuse until `reconcile()` reads the exact
++intended generation and, for observations, the exact vector and timestamp.
++A superseded or absent result remains unresolved; it does not trigger another
++write or sampling attempt. Exact committed but stale/restarted-host observation
++readback clears the confirmed intent and returns refusal, permitting a later
++explicit fresh publication.
++
++All public operations share one retained outstanding-I/O slot. A deadline bounds
++caller wait, not the dependency's lifetime. The slot remains occupied until the
++actual promise settles. Late completion cannot issue a follow-up read, sample or
++write; reconciliation is explicit. This is per publisher instance, not a global
++lock or cancellation guarantee. The nested sampler has its own retained slot;
++if it times out internally, it can return unknown while retaining that sampling
++I/O. Later publication attempts can perform serialized SQL reads but cannot
++start another sampling dependency until the retained sampler work settles. The
++bound is per component, not one global outstanding dependency across both. Ordinary accidentally asynchronous native-Promise
++clock values are rejected and their rejection is consumed. Arbitrary thenable
++accessors are not invoked.
++
++## Concrete database seam
++
++The adapter performs a scoped Supabase `from('resource_pools').select(...).eq(...)
++.eq(...).maybeSingle()` read. It calls `configure_resource_pool` with explicit
++expected revision/generation and `observe_resource_pool` with the captured
++configuration generation. The service role is supplied by trusted composition;
++this module does not discover or acquire credentials.
++
++Its pending contract is
++[`20261013000107_resource_reservations.sql`](../../../supabase/pending-migrations/20261013000107_resource_reservations.sql).
++SELECT/RPC authorization and transactional behavior belong to that SQL contract.
++The exposed `bindingRevision` is `policy-sha256-v1:<sha256>` over JSON of the
++complete canonical, validated, frozen N022 policy. The validator establishes
++field/vector/profile order and normalizes the disk path. The versioned prefix
++identifies this canonical schema; changing that schema requires a new binding
++version. The digest includes the human revision, host/pool, every capacity and
++demand profile, disk path/device, maximum age, sampling window and timeout.
++SQL `policy_revision` stores this binding revision. Readback and both writes use
++it; no field subset stands in for full policy identity. A changed full policy
++therefore requires explicit previous binding/generation CAS. An old publisher
++cannot silently reconfigure or publish against the replacement.
++
++`policy.localPolicyRevision` remains the original human revision for N022 worker
++inventory and source evidence. It is not interchangeable with `bindingRevision`.
++Future composition must pass the stored binding revision to R1/R2 checks that
++compare against the SQL pool revision, while preserving the original label in
++sampler evidence. This module does not wire that translation into admission or
++claim a server-wide restriction on other service-role callers of the generic
++pending107 RPC. Existing rows with human revisions require explicit CAS; they
++are not silently adopted as complete-policy bindings.
++
++Publisher fixture success does not establish real database behavior. The
++publisher neither reads nor fabricates reservation/overlap vectors. An observed
++usage vector and configured ceiling alone are insufficient for R1 admission or
++R2 reservation.
++
++## Verification and remaining boundaries
++
++Focused production-module tests:
++
++```sh
++node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs
++```
++
++The candidate fixture run passed 36 tests (exit0). It covers successful complete
++publication, policy-only confirmation, explicit CAS expectations, lost committed
++write replies, generation ABA, exact shape/vector/timestamp readback, physical
++ceilings, missing inventory, changed host identity, stale committed observations,
++shared outstanding work and malformed/failed RPC responses. It also covers
++rejected/fulfilled native-Promise clocks and a hostile thenable getter. Tests use
++the actual sampler with injected host measurements and a Supabase-shaped fixture. Five new
++full-policy binding negatives fail against the preserved original candidate and
++pass after correction. The independent two-disk counterexample was also replayed
++against that original candidate (exit1). Explicit binding CAS and canonical-order
++controls pass on the correction.
++
++Five controlled mutations of production source each make their selected test
++fail (exit1): removing intended-generation comparison, physical-memory ceiling,
++observation readback, outstanding slot, or clock-rejection consumption. These are
++source-bound negative controls for a new module, not a historical regression.
++The builder receipt preserves each command, hash and output.
++
++Actual publisher-to-PostgreSQL integration, native runtime wiring, production
++service-role configuration, full worker inventory, timer/watcher scheduling,
++process restart persistence of uncertain intents, and admission acceptance remain
++**NOT_RUN / not implemented in this module**. A new publisher can explicitly
++adopt a read-back exact policy after restart; it cannot reconstruct a previous
++instance's unresolved observation intent. Composition must retain uncertainty
++outside this in-memory instance before claiming restart-safe publication.

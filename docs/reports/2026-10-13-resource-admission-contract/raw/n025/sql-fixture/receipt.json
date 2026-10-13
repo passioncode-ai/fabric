@@ -1,0 +1,57 @@
+{
+  "task": "N-025 actual SQL fixture",
+  "author": "pipeline_research",
+  "status": "PREPARED_NOT_RUN_SQL",
+  "ownedFiles": {
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "87f200262aa406908557bfd937de35c45036dece5614c9120c2bb2cb8589918a"
+  },
+  "testPatchSha256": "a877755faf6f6143737af5b76e31e52363c19d6c5bb1e830449c1b7cce3fdff9",
+  "runnerIntegrationPatchSha256": "b23825830d80243cc699105251e7a2c42ad879a3d089e6c4512e1a50de5d6e06",
+  "runnerBeforeSha256": "9e9a862a488ea092dde1cf6a98368209c68d477ebd28a55b59c0f30d6adb1ee8",
+  "checks": [
+    {
+      "command": "node --check apps/desktop/test/resource-pool-publisher-db.test.mjs",
+      "exitCode": 0,
+      "scope": "syntax only"
+    },
+    {
+      "command": "git apply --check runner-integration.patch",
+      "exitCode": 0,
+      "scope": "read-only apply check against root runner"
+    }
+  ],
+  "execution": {
+    "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+    "status": "NOT_RUN",
+    "reason": "Root owns serialized disposable PostgreSQL slot; no second cluster or mutation started."
+  },
+  "productionApi": {
+    "factory": "createResourcePoolPublisher",
+    "bindingRevision": "policy-sha256-v1:${resourceDigest(readResourceHostPolicy(rawPolicy,trustedHostId))}",
+    "methods": [
+      "configure(expected revision/generation)",
+      "publish()",
+      "reconcile()"
+    ]
+  },
+  "cases": [
+    "actual service-role SQL config generation and production sampler observation readback",
+    "exact config replay neither writes nor refreshes time",
+    "SQL-committed configure and observation with lost transport reply reconcile by read only",
+    "actual A1-B2-A3 rejects stale publisher and stale SQL observation",
+    "same human label and capacity/age with changed demand/disk path/device/window/timeout require distinct binding and explicit CAS",
+    "uncertain generation1 observation does not reconcile against identical vector/time at generation3"
+  ],
+  "limitations": [
+    "Real production publisher and sampler, injected measured host inputs; no native host acceptance",
+    "psql query/RPC translation fixture, not a native PostgREST client/server",
+    "Pending107/108 fixture only, no active migration or application/runtime composition",
+    "Actual SQL execution remains NOT_RUN until root schedules existing runner"
+  ],
+  "integration": [
+    "Apply test-only.patch and runner-integration.patch after the N025 publisher source is integrated.",
+    "The runner adds only test(resource-pool-publisher-db.test.mjs) after existing wait-store stage, reusing one initialized cluster.",
+    "Existing disk guard and cleanup remain unchanged.",
+    "After actual runner PASS, preserve exact source/test hashes and log in root durable review evidence."
+  ]
+}

@@ -1,0 +1,104 @@
+[
+  {
+    "path": "n023/independent/clock-before.log",
+    "original_sha256": "017ee24c2d95a242bc5278536cd0f0d290269d8343fb2f89d6c1721a7f94f1c5",
+    "stored_sha256": "e5b8c24571f2c75e83071d79b3f535d63aae9271332f177a71091a22a8624d5d",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n023/independent/probes-before.log",
+    "original_sha256": "9eec223ec0b631068c23da2ce5592eef82cf0ab91bab39b124f19d3dc5820563",
+    "stored_sha256": "73cec1a506536e5b0ab39fe995298388fc1c8c71ec115162c32ab6a2c4f07651",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n023/raw/negative-expiry.log",
+    "original_sha256": "43c3d42b42813f6e3ad913fa108ed1941411ab5ea8035331f7d2254b53649c19",
+    "stored_sha256": "b418028e763f2b116ff191064127590bc99e7db8dea386ec594990d1eb453bfc",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/binding-portable-red.log",
+    "original_sha256": "008ebb9792468d29f42426122ce0ccda18c04d0bf4456255f39ca646d6c0d004",
+    "stored_sha256": "cb759f68d3dc02f7731cca2e9a40d14bfeede4b81c98664824992d2ecb78a531",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/binding-red.log",
+    "original_sha256": "0d44f432aa6c14b402e628bc36538ef340311f544368278c2e771056aa145579",
+    "stored_sha256": "f475fd6e5072c377b5eadb8101e8217a6efd8ec6be1f64fb2a065a8a731af880",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/binding-portable-red.log",
+    "original_sha256": "008ebb9792468d29f42426122ce0ccda18c04d0bf4456255f39ca646d6c0d004",
+    "stored_sha256": "cb759f68d3dc02f7731cca2e9a40d14bfeede4b81c98664824992d2ecb78a531",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/binding-red.log",
+    "original_sha256": "0d44f432aa6c14b402e628bc36538ef340311f544368278c2e771056aa145579",
+    "stored_sha256": "f475fd6e5072c377b5eadb8101e8217a6efd8ec6be1f64fb2a065a8a731af880",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/controls-v3/clock-rejection/stdout.log",
+    "original_sha256": "5f19f003d27984b05a66abbe83667b8f739846304b2ad0a31c78b9a06239e341",
+    "stored_sha256": "12e48070541ce1d268b722d713b950ec1a46cde384a62969c458faafb3df7b39",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/controls-v3/generation/stdout.log",
+    "original_sha256": "e74c3590097666d44ee42d81742da636a3a569e0d44da3d5abd3698a2163a7c6",
+    "stored_sha256": "81ff48bf2b4c19808994b1c7496fd0a9b81994ce0ab74c845d2d1b99236e6edb",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/controls-v3/observation-readback/stdout.log",
+    "original_sha256": "65574591e1da8e9e4fc39f2d8c5b801ef741497dff617f422a4043a77d134c7e",
+    "stored_sha256": "e9f6b625c54324a306187fa2651eb36c39f7b5b331bc3238fc8352e220ce92d9",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/controls-v3/outstanding-slot/stdout.log",
+    "original_sha256": "bda3b097ca26c477318c56789f05b5de558f4d9267c3c47ee033b0fc99c65e43",
+    "stored_sha256": "0b8e707d3b3bbaad3270dfe96450dbb51131ca9d5ef7cbb5b52fc8729afe88a3",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/controls-v3/physical-ceiling/stdout.log",
+    "original_sha256": "29928d1a9964eff2944bd9a6d723f7a3025d32c3b8804b18068c1e4f260b1a26",
+    "stored_sha256": "ca342a3200659f85fe3097f965c7553e6a38bb882ded4cfbda3d6e3ca7e3f2ce",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/offset-red.log",
+    "original_sha256": "a00d771b2e7097a751570cc9764806f4cd5ad93d9781e59114a76a84e5c4dc6e",
+    "stored_sha256": "0a09b7fe3ae95644b99c4e3e5e0cd895213292ffb95242db53d98041c97fd336",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/offset-correction/rejected-utc/actual-sql-diagnostic.log",
+    "original_sha256": "6c00e691c5d09dfbe860aa148433198753e4e8e97a3af7869ce53f12e19dc545",
+    "stored_sha256": "4155b6ea1b337e3accf9a439fc01e0983cbc135b997d199ed19e3c0be2364748",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/sql-first-failed.log",
+    "original_sha256": "63fe302cc542cc54bbd349c819adda347b5aeb7b7487ff09b8ebe3b82d94d88e",
+    "stored_sha256": "eb9bc745d05c10ee8048e15f02061a5b8d39032607fbe6c37faf9634a1d3866c",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/sql-offset-diagnostic.log",
+    "original_sha256": "6c00e691c5d09dfbe860aa148433198753e4e8e97a3af7869ce53f12e19dc545",
+    "stored_sha256": "4155b6ea1b337e3accf9a439fc01e0983cbc135b997d199ed19e3c0be2364748",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  },
+  {
+    "path": "n025/sql-review/initial-actual-sql.log",
+    "original_sha256": "63fe302cc542cc54bbd349c819adda347b5aeb7b7487ff09b8ebe3b82d94d88e",
+    "stored_sha256": "eb9bc745d05c10ee8048e15f02061a5b8d39032607fbe6c37faf9634a1d3866c",
+    "transform": "Literal private-root prefixes replaced with <user-home>/<owned-temp>; trailing whitespace removed. Test values, verdicts, stacks and exits otherwise unchanged."
+  }
+]

@@ -1,0 +1,85 @@
+{
+  "node": "N-025",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "files": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "3b1cf84195b264888d0ae01ae86bc721f7676eb9b2db6988b802986625870508",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "82be0fadec9867ff200fd2a35f1a0df6511f02138c8a12bf8b1c777b7d1c2d01"
+  },
+  "tests": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+    "exitCode": 0,
+    "passed": 51,
+    "log": "focused.log"
+  },
+  "sourceControls": [
+    {
+      "control": "generation",
+      "exitCode": 1,
+      "pattern": "uncertain generation1",
+      "sourceSha256": "fd9e974353b1f3555232d8edf7e896013a4df8588b17552d893f9fdd41167164"
+    },
+    {
+      "control": "physical-ceiling",
+      "exitCode": 1,
+      "pattern": "impossible configured memoryBytes",
+      "sourceSha256": "575b54897773c249767bfeb375b17c713cd317b5c787c1bc1dd8a1bd9406ee28"
+    },
+    {
+      "control": "observation-readback",
+      "exitCode": 1,
+      "pattern": "mismatched observed-vector",
+      "sourceSha256": "dc505291606ac0743c4881e6b0c237a22ec1b3aa3cbf85610d2481aafb5e9e1f"
+    },
+    {
+      "control": "outstanding-slot",
+      "exitCode": 1,
+      "pattern": "timed-out committed write",
+      "sourceSha256": "2bebddd6dba6ce9b43bdbb88937b63fd9ddb04463e6908d02332436a5cd2e0b6"
+    },
+    {
+      "control": "clock-rejection",
+      "exitCode": 1,
+      "pattern": "ordinary native Promise reject",
+      "sourceSha256": "70bb94870a85b1f85274a3305917ba9bf7cdeabc99fd7e8da5d509ffc49cbbd8"
+    }
+  ],
+  "limits": [
+    "No actual PostgreSQL publisher integration run",
+    "No production configuration, active migration, admission or native wiring",
+    "Per-instance in-memory uncertainty only",
+    "No reservation/ownership authority"
+  ],
+  "patchSha256": "b34d6d86359052b37477c63b9acffbe45067de7889d61a39e933887edeebc26e",
+  "dependencies": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a"
+  },
+  "bindingRegression": {
+    "originalSourceSha256": "680118016f4c7943c16c57ea2af560b88558d2f004a0cab9b7b96163e629f9c0",
+    "selectedOriginalExitCode": 1,
+    "failedTests": 5,
+    "log": "binding-red.log",
+    "independentOriginalReplayExitCode": 1,
+    "independentOriginalReplayLog": "reviewer-binding-red.log",
+    "portableReplay": {
+      "command": "node --experimental-strip-types --test --test-name-pattern='same human revision' rejected-initial/test/resource-pool-publisher.test.mjs",
+      "exitCode": 1,
+      "failedTests": 5,
+      "log": "binding-portable-red.log",
+      "testSha256": "0c27ba000e1b76bbb359037bfe2a076f533637aefd9b07aebf895bb51e412912"
+    }
+  },
+  "offsetRegression": {
+    "originalSourceSha256": "b7655f3c9077f2bdf63d4c8544f3b0d5706d07d5c39efd4dfe082e6be67430b0",
+    "redCommand": "node --experimental-strip-types --test --test-name-pattern='exact observation epoch readback' apps/desktop/test/resource-pool-publisher.test.mjs",
+    "redExitCode": 1,
+    "redFailed": 4,
+    "redPassed": 1,
+    "redLog": "offset-red.log",
+    "actualSQLFailureLog": "rejected-utc/actual-sql-diagnostic.log",
+    "correctionPatch": "n025-offset.patch",
+    "patchSha256": "62e58d821fcef19a53c52dc4eb99dc93ecf31c3a2f01a6a4d269a63748189337"
+  }
+}

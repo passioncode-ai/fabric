@@ -1,0 +1,20 @@
+{
+  "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+  "exit": 0,
+  "stages": 7,
+  "source_sha256": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e"
+  },
+  "log": "sql-final.log",
+  "log_sha256": "47796af42c9614c525d978aec92bc1d27d33173c352c53592c0d7afacc730622",
+  "scope": "Owned disposable PostgreSQL, real production publisher and sampler with trusted synthetic host inputs and service-role psql transport fixture. No live PostgREST, native host admission, installed policy or active DDL.",
+  "previous_failures": [
+    "sql-first-failed.log",
+    "sql-offset-diagnostic.log"
+  ]
+}

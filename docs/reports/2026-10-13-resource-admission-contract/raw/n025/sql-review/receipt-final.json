@@ -1,0 +1,108 @@
+{
+  "task": "N025 source and real SQL seam",
+  "verdict": "SCOPED_ACCEPT",
+  "candidate": "uncommitted root integration, bound by source_sha256; HEAD below is BASE, not tested candidate commit",
+  "base_commit": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "base_tree": "76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5",
+  "source_sha256": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "3b1cf84195b264888d0ae01ae86bc721f7676eb9b2db6988b802986625870508",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+    "apps/desktop/test/bounded-psql.mjs": "597a4c4fe8ff547aeb1516c370fc0e0c9ea9666f8d805c500c5f25c0a7be4536",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "82be0fadec9867ff200fd2a35f1a0df6511f02138c8a12bf8b1c777b7d1c2d01"
+  },
+  "checks": [
+    {
+      "command": "N025_SOURCE=<root>/apps/desktop/src/main/resourcePoolPublisher.ts node offset-counterexample-portable.mjs",
+      "executor": "independent reviewer",
+      "exitCode": 0,
+      "original_negative_exitCode": 1,
+      "log": "offset-fixed.log"
+    },
+    {
+      "command": "N025_SOURCE=<root>/apps/desktop/src/main/resourcePoolPublisher.ts node offset-boundaries.mjs",
+      "executor": "independent reviewer",
+      "exitCode": 0,
+      "positive": 114,
+      "negative": 7,
+      "log": "offset-boundaries.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+      "executor": "independent reviewer",
+      "exitCode": 0,
+      "pass": 51,
+      "log": "offset-focused.log"
+    },
+    {
+      "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+      "executor": "root; execution exit0 reported by root, log independently inspected",
+      "exitCode": 0,
+      "stage_count": 7,
+      "log": "actual-sql-pass.log",
+      "description": "Single owned PostgreSQL cluster, pending107/108 fixture-applied, service-role psql bridge; publisher+sampler actual production modules with injected host data."
+    }
+  ],
+  "initial_failure": {
+    "log": "initial-actual-sql.log",
+    "status": "stage7 first publication failed; prior6passed; laterpublisherassertions notreached",
+    "diagnostic_log": "actual-sql-diagnostic-failure.log",
+    "confirmed": "Actual stored2026-10-13T07:22:25.105+02:00 equals submitted2026-10-13T05:22:25.105Z. Old UTC-only parser rejected correct readback. Production parser corrected, not hidden by setting fixture timezone."
+  },
+  "fixture_review": [
+    "Bridge validates owned database/socket naming, uses service_role each query, converts Boolean with to_json (not text t/f).",
+    "Publisher imports actualproduction module + actualN022 sampler; OS inputs synthetic.",
+    "Reads select exact8pool columns and bothhost/pool filters; RPC arg names/types explicitlychecked.",
+    "First positive asserts noobservation onconfigure, exact measured vector, digestrevision and generation, typed timestampreadback.",
+    "Lostreply hook throws only after actualSQL call finishes, then no rewrite + exact read reconciliation asserted.",
+    "A1 B2 A3 uses distinct publisher instances, oldsampler generation1 SQL returnsfalse; oldpublisherrefuses refresh.",
+    "Five completepolicy changes require explicit binding/generation CAS.",
+    "Uncertain observation followed by actualABA refuses reconciliation even copiedvector/timestamp atgen3.",
+    "Runner adds publisher last after existing6SQLgroups; first6PASS before stage7failure retained."
+  ],
+  "source_delta_review": [
+    "Validates local calendar before applying numeric offset; +/-14:00 bounds, invalidminutes/unknown-00:00 refused.",
+    "Submillisecond nonzero digits remain invalid; equivalent offsets compare exact epoch milliseconds, no timestamp truncation.",
+    "Independent invalidcalendar probe chosen so permissive Date.parse normalization would match intended epoch; correctlyrefused.",
+    "Full-policy digest/generation/readback/uncertainwrite logic unchanged from independent b765 acceptance; source hash now4d945."
+  ],
+  "limits": [
+    "Reviewer did not start or run PostgreSQL; inspected root-owned actualSQL log and fixture source, plus independently executed parser/module checks.",
+    "Real SQL receipt uses psql bridge with service role, not native PostgREST HTTP serialization/authentication.",
+    "Host/worker/disk data injected; no production policy config, activeDDL, native runtime, liveprovider or all-agent admission acceptance.",
+    "Fullfast/integration/publication beyond these bytes remains root responsibility."
+  ],
+  "normalization": {
+    "actual-sql-pass.log": {
+      "original_sha256": "47796af42c9614c525d978aec92bc1d27d33173c352c53592c0d7afacc730622",
+      "normalized_sha256": "47796af42c9614c525d978aec92bc1d27d33173c352c53592c0d7afacc730622",
+      "transformation": "literal owned root path replacement only; original retained by root"
+    },
+    "actual-sql-diagnostic-failure.log": {
+      "original_sha256": "6c00e691c5d09dfbe860aa148433198753e4e8e97a3af7869ce53f12e19dc545",
+      "normalized_sha256": "05709e6f51f49bc754a7e1189dbd2ef66e95ef840f3b73c96e058492c4b7aec5",
+      "transformation": "literal owned root path replacement only; original retained by root"
+    }
+  },
+  "artifacts": {
+    "actual-sql-diagnostic-failure.log": "05709e6f51f49bc754a7e1189dbd2ef66e95ef840f3b73c96e058492c4b7aec5",
+    "offset-boundaries.log": "cf6a9c348a9d9ee5bfb8c68df769b2098f2c698e04e69e260efee64193743525",
+    "fixture-fixed.mjs": "2a714a0084626fbbd5acbcf3e2bc04e81dbbe1f7d0b75a5d6942f52b15580857",
+    "initial-actual-sql.log": "63fe302cc542cc54bbd349c819adda347b5aeb7b7487ff09b8ebe3b82d94d88e",
+    "before-hashes.json": "0c6426b0d07dc242fe5e5632e3ec41b4da2d2d8fb7e3395bd0876e3556a47c57",
+    "offset-boundaries.mjs": "f82129da66dbbda16b6d94fcaa0af524e10db6e398169d0326e2b6293c256fd8",
+    "review-pending.json": "16d20c3b66e33f693b6b12f7330d199811533c5e477b57d21cbfb2e5f5d74846",
+    "offset-counterexample.mjs": "e3bf10efcb0d95f3378eee00f499db4187b34aaae008e09f6f34d08e870d4eb8",
+    "offset-counterexample-portable.mjs": "4dbfe967e4a8ac454fd4a46af63ca539317705d0e195f93eaf10dd45bc1339f9",
+    "actual-sql-pass.log": "47796af42c9614c525d978aec92bc1d27d33173c352c53592c0d7afacc730622",
+    "offset-counterexample.log": "809f25329764b32167d7903ccffa7b029adf80dd100b667995ac5af86f6c13a8",
+    "offset-fixed.log": "c03c8f270341ae4a78f7d22dad92a85e4a66162f650a2122cbe3d2bbfaf13568",
+    "offset-focused.log": "daedcaf77a4597a6647bcbce74d29f3fca6ff1153612d5c83b079d2624199151"
+  }
+}

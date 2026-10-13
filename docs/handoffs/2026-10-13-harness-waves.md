@@ -1,7 +1,7 @@
 # CO-282 — portable harness waves handoff
 
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
-[the 21-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+[the 25-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource
 enforcement, cross-owner acceptance and native acceptance remain open.
 
@@ -70,14 +70,18 @@ a historical scope count, not completion of product requirements.
 
 ## Exact next work and dependencies
 
-1. The combined resource source7b3a6d25 passed the complete fast tier, tree
-   b364896fa7e365ad801934d13c2bd7c627da7357, exit0,661.41s;
-   [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/combined-7b3-fast.json).
-   The next source integrates main ac874946 and N021 board serialization; final combined
-   acceptance, source push/readback and workspace publication follow.
+1. Verified merged source1b63e81c11e3327c26f930e93656ac7a2b11fcb6 passed fast
+   at tree76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5, exit0,707.51s;
+   [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/merged-1b63-fast.json).
+   N022–N025 now have scoped source review and seven-stage actual SQL PASS; receipts
+   live under raw/n022–n025 in the resource report. Run final combined producer fast,
+   bind source commit and close N007/N008 acceptance/delivery. Their activation
+   boundaries remain explicit; no module result activates the installed runtime.
 2. The [activation prerequisites](../execution/harness-waves/resource-activation-prerequisites.md)
-   identify the next bounded source work: trusted policy/sampler, actual input/scope
-   ownership verifier, then one composed supported launch path. These local producers
+   identify the next bounded source work: source-owned input/scope snapshot and actual
+   run-to-lease binding, complete trusted worker inventory, then one composed supported launch path.
+   N022/N025 now supply the bounded policy/sampler/publication modules; their historical
+   absence at the audit pin is not a new task. These local producers
    are executable without portable-protocol approval. Existing ref viewers and
    overlap warnings cannot be substituted for exclusive current ownership.
 3. Before activation, resolve migration ordering with the owners of reserved positions
@@ -86,8 +90,11 @@ a historical scope count, not completion of product requirements.
    Configure trusted host/pool policy and a fresh sampler explicitly. Production composition,
    all global launch paths, compiled input-closure binding and native termination/recovery proof still
    need implementation and acceptance. A reservation grants neither spend nor file leases.
-4. The latest bounded official MCP reread returned `waiting` for operator project-access consent and was closed. Board access remains
-   unavailable at this update; no owner requests or foreign writes have occurred. Existing
+4. The latest bounded official MCP reread returned `failed`: the hub cannot check credentials.
+   The [read-only stack diagnosis](../reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-diagnostic.json)
+   found OrbStack stopped after disk-full I/O errors, Docker absent and the database gateway unreachable.
+   Earlier consent-wait evidence is historical. Database recovery and the subsequent consent state remain unverified.
+   Board access remains unavailable at this update; no owner requests or foreign writes have occurred. Existing
    registration authorization does not grant project access. If Fabric requires operator
    project-access consent, retain that human gate; after access, use the official
    `fabric_whoami` → `com.status` → `com.list` → project-addressed `com.submit` route.

@@ -50,6 +50,68 @@ configure('stale')
 sql("update resource_pools set observed_at=clock_timestamp()-interval '2 minutes' where pool_id='stale'")
 assert.equal(admit(missing, 'stale').reason_code, 'resource_reading_unknown')
 assert.equal(sql(`select observe_resource_pool('host-a','stale','revision-1',${json(zero)},clock_timestamp()+interval '1 day')`), 'f')
+// Configuration acknowledgement is not a new reading. Same-policy retries
+// preserve the original (even stale) row; omitted expected revision cannot rewind it.
+const policyCapacity = v(2, 100, 100, 100)
+const poolRow = pool => call(`set role service_role; select to_jsonb(p) from resource_pools p where host_id='host-a' and pool_id=${quote(pool)}`)
+const staleBeforeRetry = poolRow('stale')
+assert.equal(sql(`set role service_role; select configure_resource_pool('host-a','stale','revision-1',${json(policyCapacity)},60000)`), 't')
+assert.deepEqual(poolRow('stale'), staleBeforeRetry)
+assert.equal(admit(missing, 'stale').reason_code, 'resource_reading_unknown')
+// This assertion fails on the original five-argument production function: it
+// accepts the stale writer and silently replaces revision-1 with revision-old.
+assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-old',${json(policyCapacity)},60000)`), 'f')
+assert.deepEqual(poolRow('stale'), staleBeforeRetry)
+assert.equal(sql("select to_regprocedure('configure_resource_pool(text,text,text,jsonb,bigint)') is null"), 't', 'no legacy unconditional overload remains callable')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-absent','revision-2',${json(policyCapacity)},60000,'revision-1',1)`), 'f')
+assert.equal(sql("select count(*) from resource_pools where pool_id='cas-absent'"), '0')
+assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-2',${json(policyCapacity)},60000,'',1)`), 'f')
+assert.equal(sql(`select configure_resource_pool('host-a','stale','revision-1',${json(v(3, 100, 100, 100))},60000,'revision-1',1)`), 'f')
+
+// Two creators cannot replace each other's revision; the same expectation cannot
+// authorize two successive updates even when both calls use distinct connections.
+const configRace = (pool, revision, expected) => `select to_jsonb(configure_resource_pool('host-a',${quote(pool)},${quote(revision)},${json(policyCapacity)},60000,${expected === null ? 'null' : quote(expected)},${expected === null ? 'null' : '1'}))`
+const creationResults = await Promise.all(['create-a', 'create-b'].map(revision => parallel(configRace('cas-create', revision, null))))
+assert.equal(creationResults.filter(Boolean).length, 1)
+assert.equal(poolRow('cas-create').configuration_generation, 1)
+const createdRevision = poolRow('cas-create').policy_revision
+assert.equal(createdRevision, creationResults[0] ? 'create-a' : 'create-b')
+const updateResults = await Promise.all(['update-a', 'update-b'].map(revision => parallel(configRace('cas-create', revision, createdRevision))))
+assert.equal(updateResults.filter(Boolean).length, 1)
+const updatedRevision = updateResults[0] ? 'update-a' : 'update-b', updated = poolRow('cas-create')
+assert.equal(updated.policy_revision, updatedRevision); assert.equal(updated.configuration_generation, 2)
+assert.equal(updated.observed, null); assert.equal(updated.observed_at, null)
+assert.equal(sql(`select observe_resource_pool('host-a','cas-create',${quote(updatedRevision)},${json(zero)},clock_timestamp(),2)`), 't')
+const observedUpdated = poolRow('cas-create')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-create',${quote(updatedRevision)},${json(policyCapacity)},60000,${quote(createdRevision)},1)`), 't', 'lost successful CAS reply retries the same policy without changing its reading')
+assert.deepEqual(poolRow('cas-create'), observedUpdated)
+assert.equal(sql(`select configure_resource_pool('host-a','cas-create',${quote(createdRevision)},${json(policyCapacity)},60000)`), 'f', 'delayed creator cannot roll back the winning update')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-create','late-update',${json(policyCapacity)},60000,${quote(createdRevision)},1)`), 'f', 'stale expected revision cannot overwrite a newer policy')
+assert.equal(sql(`select observe_resource_pool('host-a','cas-create',${quote(createdRevision)},${json(zero)},clock_timestamp())`), 'f')
+assert.deepEqual(poolRow('cas-create'), observedUpdated)
+
+// Revision text may repeat, but its generation cannot. An A1 sampler/writer
+// cannot act after A1 -> B2 -> A3, even when all policy bytes match the first A.
+assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000)`), 't')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','B',${json(policyCapacity)},60000,'A',1)`), 't')
+assert.equal(sql(`set role service_role; select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000,'B',2)`), 't')
+assert.equal(poolRow('cas-aba').configuration_generation, 3)
+assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','C',${json(policyCapacity)},60000,'A',1)`), 'f')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','C',${json(policyCapacity)},60000,'A')`), 'f', 'revision-only expectation cannot update')
+assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp())`), 'f', 'legacy sampler remains bound to generation 1')
+assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),1)`), 'f')
+assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),null)`), 'f')
+assert.equal(sql(`set role service_role; select observe_resource_pool('host-a','cas-aba','A',${json(zero)},clock_timestamp(),3)`), 't')
+const abaObserved = poolRow('cas-aba')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-aba','A',${json(policyCapacity)},60000,'B',2)`), 't')
+assert.deepEqual(poolRow('cas-aba'), abaObserved, 'exact policy replay neither increments generation nor refreshes observedAt')
+assert.equal(sql(`select observe_resource_pool('host-a','cas-aba','A',${json(zero)},${quote(abaObserved.observed_at)},3)`), 't')
+assert.deepEqual(poolRow('cas-aba'), abaObserved, 'exact observation replay never refreshes time')
+assert.equal(sql(`select configure_resource_pool('host-a','cas-max','A',${json(policyCapacity)},60000)`), 't')
+sql("update resource_pools set configuration_generation=9007199254740991 where host_id='host-a' and pool_id='cas-max'")
+assert.equal(sql(`select configure_resource_pool('host-a','cas-max','B',${json(policyCapacity)},60000,'A',9007199254740991)`), 'f')
+assert.equal(poolRow('cas-max').configuration_generation, 9007199254740991)
+
 for (const bad of [{ ...v(), workerSlots: null }, { ...v(), memoryBytes: -1 }, { ...v(), diskBytes: 1.5 }, { ...v(), cpuMilliCores: 9007199254740992 }, { ...v(), surprise: 0 }]) {
   assert.equal(sql(`select configure_resource_pool('host-a','bad','revision-1',${json(bad)},60000)`), 'f')
   assert.equal(admit(missing, 'stale', bad).reason_code, 'resource_input_invalid')
@@ -72,6 +134,10 @@ assert.equal(admit(winner, 'race').repeated, true)
 assert.equal(admit({ ...winner, binding: { ...winner.binding, inputDigest: 'c'.repeat(64) } }, 'race').reason_code, 'resource_identity_conflict')
 assert.equal(admit(winner, 'race', v(1, 11)).reason_code, 'resource_identity_conflict')
 assert.equal(sql(`select configure_resource_pool('host-a','race','revision-2',${json(v(9))},60000)`), 'f')
+const heldPool = poolRow('race')
+assert.equal(sql(`select configure_resource_pool('host-a','race','revision-2',${json(v(9))},60000,'revision-1',1)`), 'f', 'valid CAS cannot change a policy beneath held work')
+assert.equal(sql(`select configure_resource_pool('host-a','race','revision-1',${json(v(1, 100, 100, 100))},60000,'revision-1',1)`), 't')
+assert.deepEqual(poolRow('race'), heldPool)
 assert.equal(release(winner, won).reason_code, 'resource_execution_unresolved')
 assert.equal(release(winner, won, { estate: winner.estate === E ? E2 : E }).released, false)
 assert.equal(begin(winner, won).granted, true)
@@ -176,7 +242,7 @@ const planted = task(); assert.equal(admit(planted, 'observed').reason_code, 're
 assert.equal(call(`begin; create or replace function resource_pool_problem(p_host text,p_pool text,p_revision text,p_extra jsonb) returns text language sql as 'select null::text'; ${statement(planted, 'observed')}; rollback;`).admitted, true)
 // Explicit client-role attempts, not only catalog grant inspection.
 for (const role of ['anon', 'authenticated']) {
-  for (const command of ["select configure_resource_pool('x','x','x','{}',1)", statement(task(), 'race'), `select release_resource_reservation('${E}','id','${rr.task_run_id}','${restored.session}','1')`, `select cancel_resource_admission('${E}','id','${rr.task_run_id}','${restored.session}','1')`, "update resource_reservations set state='released',released_seq=1"]) {
+  for (const command of ["select configure_resource_pool('x','x','x','{}',1)", "select configure_resource_pool('x','x','x','{}',1,'previous',1)", "select observe_resource_pool('x','x','x','{}',clock_timestamp(),1)", statement(task(), 'race'), `select release_resource_reservation('${E}','id','${rr.task_run_id}','${restored.session}','1')`, `select cancel_resource_admission('${E}','id','${rr.task_run_id}','${restored.session}','1')`, "update resource_reservations set state='released',released_seq=1"]) {
     assert.throws(() => sql(`set role ${role}; ${command}`), /permission denied/)
   }
 }

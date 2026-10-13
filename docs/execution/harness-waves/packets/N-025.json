@@ -1,0 +1,63 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-025",
+  "node": "N-025",
+  "parent_id": "CO-282",
+  "module": "Bounded policy observation publication and readback",
+  "intent": "Bounded policy observation publication and readback",
+  "expected_result": "Exact configuration generation and observation readback; unknown response retains I/O and cannot grant admission",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourcePoolPublisher.ts",
+      "apps/desktop/test/resource-pool-publisher.test.mjs",
+      "docs/execution/harness-waves/resource-pool-publisher.md",
+      "apps/desktop/test/resource-pool-publisher-db.test.mjs",
+      "apps/desktop/test/run-resource-reservation-db.mjs",
+      "supabase/pending-migrations/20261013000107_resource_reservations.sql"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Exact configuration generation and observation readback; unknown response retains I/O and cannot grant admission",
+      "paths": [
+        "apps/desktop/src/main/resourcePoolPublisher.ts",
+        "apps/desktop/test/resource-pool-publisher.test.mjs",
+        "docs/execution/harness-waves/resource-pool-publisher.md",
+        "apps/desktop/test/resource-pool-publisher-db.test.mjs",
+        "apps/desktop/test/run-resource-reservation-db.mjs",
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Exact configuration generation and observation readback; unknown response retains I/O and cannot grant admission"
+    },
+    {
+      "kind": "negative",
+      "check": "Missing/stale/wrong authority and unresolved timeout refuse; negative control reaches actual producer"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

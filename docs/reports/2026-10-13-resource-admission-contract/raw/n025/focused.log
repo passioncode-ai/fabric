@@ -1,0 +1,44 @@
+✔ configure is policy confirmation, publish uses real sampler and exact scoped generation readback (3.828125ms)
+✔ existing exact config needs no write and stale old observation does not imply published (0.740959ms)
+✔ changed config needs exact explicit CAS revision/generation, never a refreshed expectation (0.749209ms)
+✔ lost configure reply after actual fixture commit reconciles by read without repeat write (0.309042ms)
+✔ lost publish reply after actual fixture commit reconciles by read without repeat write (0.383625ms)
+✔ mismatched generation readback cannot certify publication (0.400417ms)
+✔ mismatched revision readback cannot certify publication (0.300583ms)
+✔ mismatched capacity readback cannot certify publication (0.295625ms)
+✔ mismatched max-age readback cannot certify publication (0.287541ms)
+✔ mismatched observed-vector readback cannot certify publication (0.70025ms)
+✔ mismatched observed-time readback cannot certify publication (0.329667ms)
+✔ mismatched sub-millisecond readback cannot certify publication (0.265291ms)
+✔ mismatched extra-field readback cannot certify publication (0.232875ms)
+✔ ABA after sampling cannot relabel the sample with the newer generation (0.218958ms)
+✔ uncertain generation1 observation cannot reconcile against ABA generation3 even with same vector/time (0.216625ms)
+✔ unknown worker inventory causes no observation RPC or fabricated zero (0.19725ms)
+✔ impossible configured memoryBytes ceiling is refused without overcommit (0.151958ms)
+✔ impossible configured diskBytes ceiling is refused without overcommit (0.372667ms)
+✔ impossible configured cpuMilliCores ceiling is refused without overcommit (0.151667ms)
+✔ identity changed after sample cannot publish into old host invocation (0.211333ms)
+✔ matching but stale lost observation is reconciled as committed and unusable, permitting a fresh explicit sample (0.420084ms)
+✔ timed-out committed write retains one slot across methods; late reply issues no readback until explicit reconcile (11.362ms)
+✔ pending read is bounded and synchronous reentry cannot enter another operation (11.230792ms)
+✔ RPC false never becomes configured (0.242417ms)
+✔ RPC malformed never becomes configured (0.082334ms)
+✔ RPC error never becomes configured (0.065667ms)
+✔ ordinary native Promise reject from synchronous publisher clock is refused without escaping rejection (0.479458ms)
+✔ ordinary native Promise resolve from synchronous publisher clock is refused without escaping rejection (0.292833ms)
+✔ clock thenable getter is not invoked or adopted (0.203666ms)
+✔ same human revision cannot reuse another publisher's diskPath policy binding (0.131416ms)
+✔ same human revision cannot reuse another publisher's diskDeviceId policy binding (0.101875ms)
+✔ same human revision cannot reuse another publisher's demandProfile policy binding (0.101041ms)
+✔ same human revision cannot reuse another publisher's sampleWindowMs policy binding (0.101667ms)
+✔ same human revision cannot reuse another publisher's timeoutMs policy binding (0.158917ms)
+✔ explicit previous stored binding CAS changes generation and old publisher cannot publish or reconfigure it (0.326625ms)
+✔ validated canonical field order gives deterministic binding while preserving human revision (0.124333ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 134.877958

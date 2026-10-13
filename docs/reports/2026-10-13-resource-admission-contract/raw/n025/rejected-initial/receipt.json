@@ -1,0 +1,60 @@
+{
+  "node": "N-025",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "files": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "680118016f4c7943c16c57ea2af560b88558d2f004a0cab9b7b96163e629f9c0",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "daec875e12d3c483b6e1843f89e633ebfc044765b00173fc8bbcecd4773cee44",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e"
+  },
+  "tests": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+    "exitCode": 0,
+    "passed": 29,
+    "log": "focused.log"
+  },
+  "sourceControls": [
+    {
+      "control": "generation",
+      "exitCode": 1,
+      "pattern": "uncertain generation1",
+      "sourceSha256": "0256cf3973ab846648f4642477ac8af0f6cdb2b8c33e0cdfac658aae7dd880bb"
+    },
+    {
+      "control": "physical-ceiling",
+      "exitCode": 1,
+      "pattern": "impossible configured memoryBytes",
+      "sourceSha256": "03051ff5c35b3663e7092ebddee5d88bf90dd91f8e4aa150594eb82171f4da4d"
+    },
+    {
+      "control": "observation-readback",
+      "exitCode": 1,
+      "pattern": "mismatched observed-vector",
+      "sourceSha256": "b2a5aa0c5b33996016d28844f1fbd0ab8ffdc65c469fbc50a1754fed6150abff"
+    },
+    {
+      "control": "outstanding-slot",
+      "exitCode": 1,
+      "pattern": "timed-out committed write",
+      "sourceSha256": "b5f6387214b2ab75c9b57aa449affd1cb4b3e8d0caa9315c977009bdd60b7a36"
+    },
+    {
+      "control": "clock-rejection",
+      "exitCode": 1,
+      "pattern": "ordinary native Promise reject",
+      "sourceSha256": "05672666235fed87c210fa8a668464ca59ef742a13ee074c5f852496f622ba0f"
+    }
+  ],
+  "limits": [
+    "No actual PostgreSQL publisher integration run",
+    "No production configuration, active migration, admission or native wiring",
+    "Per-instance in-memory uncertainty only",
+    "No reservation/ownership authority",
+    "SQL readback does not persist/validate full N022 policy digest or disk identity; immutable revision mapping remains unproven"
+  ],
+  "patchSha256": "e9e9e3b3a1388977250bd2da391da9d795e96f8e8e257633ff4f6902f5a45b31",
+  "dependencies": {
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a"
+  }
+}

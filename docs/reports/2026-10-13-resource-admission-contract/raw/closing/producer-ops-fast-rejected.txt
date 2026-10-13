@@ -1,0 +1,1 @@
+Full fast stopped at scripts/check-ops.mjs: gitLeaseSnapshot.ts catches69/168 neither recorded nor explained rejection. Added explanatory comments that invalid configured URL/payload produce structured refusal without emitting raw remote data; no behavior change.

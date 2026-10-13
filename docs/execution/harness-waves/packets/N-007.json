@@ -9,17 +9,17 @@
   "inputs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "2572232b5852e18797829c6986062e706ae9a07b2bd0cf0d0c612efd41a53de1"
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
     },
     {
       "address": "scripts/ci.sh",
-      "sha256": "caa9c86a8ed68f02c72f37bfe10890eebfec1f8dfb5f9f0df991e487565d3cde"
+      "sha256": "782908e829e39650779ed3a1ba2b922b7d8afcea22ee08c0b03da4a633ec4b11"
     }
   ],
   "decision_refs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "2572232b5852e18797829c6986062e706ae9a07b2bd0cf0d0c612efd41a53de1"
+      "sha256": "fe105d4a81d912718b18084513aaa58783da8986c71dc7dc64175b1714adc581"
     }
   ],
   "source_scope": {

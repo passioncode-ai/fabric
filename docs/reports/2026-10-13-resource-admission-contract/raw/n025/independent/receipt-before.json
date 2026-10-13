@@ -1,0 +1,45 @@
+{
+  "task": "N025",
+  "candidate": "uncommitted isolated builder files; bound by actual hashes",
+  "source_sha256": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "680118016f4c7943c16c57ea2af560b88558d2f004a0cab9b7b96163e629f9c0",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "daec875e12d3c483b6e1843f89e633ebfc044765b00173fc8bbcecd4773cee44",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e"
+  },
+  "verdict": "REJECTED_FULL_POLICY_BINDING",
+  "checks": [
+    {
+      "command": "N025_SOURCE=<candidate-source> node policy-binding.mjs",
+      "exitCode": 1,
+      "finding": "Two fixed publishers with same host/pool/human revision/capacity/maxAge but distinct disk path/device adopt generation1 and overwrite usage200\u2192900 without CAS. Full N022 policy not bound to SQL revision."
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs",
+      "exitCode": 0,
+      "pass": 29
+    },
+    {
+      "command": "N025_SOURCE=<candidate-source> node probes.mjs",
+      "exitCode": 0,
+      "pass": 5,
+      "includes": "Stale-after-sample; foreign host/pool rows; ABA uncertainty no rewrite;300 retries one unsettled write + late rejection consumed."
+    }
+  ],
+  "disclosure": "fixture.mjs adapts builder setup; all independent probe assertions authored by reviewer. No production source changes.",
+  "limits": [
+    "No actual PostgreSQL/provider/native integration; Supabase-shaped fixture and actual sampler with injected OS values.",
+    "Clock ordinary native Promise scope only; hostile trusted dependency execution not sandboxed.",
+    "Module retains publisher slot; nested sampler independently retains its slot, not a global single-operation guarantee."
+  ],
+  "artifacts": {
+    "probes.mjs": "a4991700be0cde0775148b142b7d3682985b96571ca61f40c9f636e009ea0d80",
+    "fixture.mjs": "0388be75e85c307c7b643129b6ae994721a54b8ec58ce16c8827b5370eeb2928",
+    "policy-binding.log": "edd52a346822af603e2fe03dbe38ced0e0fb9530f5fc4a01686f5adb536708eb",
+    "policy-binding.mjs": "a0cd6c56ba54d204293054602fec57eda1c42d601ae371001a54aa1e2065e061",
+    "probes.log": "2e3b64a153da4f23b28351234bb2663dbafe495daf334a7b75ffd11039a691e2",
+    "focused.log": "125ce8e1605e87a71d7bbe6dbdcbfafffa6e86a11ba19a5a6b27b5903af576d2",
+    "rejected-source/apps/desktop/test/resource-pool-publisher.test.mjs": "daec875e12d3c483b6e1843f89e633ebfc044765b00173fc8bbcecd4773cee44",
+    "rejected-source/apps/desktop/src/main/resourcePoolPublisher.ts": "680118016f4c7943c16c57ea2af560b88558d2f004a0cab9b7b96163e629f9c0",
+    "rejected-source/docs/execution/harness-waves/resource-pool-publisher.md": "9a11246e9bee61016fb4e103b33a6083f5614efa94fafc582486030c24bfe21e"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+  "exit": 0,
+  "stages": 7,
+  "sourceHashes": {
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "403c866575493a9d49d50d8cfa42b89395895fdb1371404a14e919ba9a528919",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983"
+  },
+  "originalLogSha256": "cc04c35244dcad6d8a24e103cdfbd29640331791129ef07b7e727c2b1b8bb84d",
+  "storedLogSha256": "cc04c35244dcad6d8a24e103cdfbd29640331791129ef07b7e727c2b1b8bb84d",
+  "transform": "user/temp prefixes replaced; trailing whitespace removed",
+  "boundary": "single disposable PostgreSQL; service-role psql transport, not installed/native PostgREST"
+}

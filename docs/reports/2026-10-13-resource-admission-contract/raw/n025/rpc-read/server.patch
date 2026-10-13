@@ -1,0 +1,108 @@
+--- a/supabase/pending-migrations/20261013000107_resource_reservations.sql
++++ b/supabase/pending-migrations/20261013000107_resource_reservations.sql
+@@ -61,6 +61,25 @@
+ -- Renderer/API roles retain no table privileges; writes remain security-definer RPCs.
+ create policy resource_pools_service_read on resource_pools for select to service_role using(true);
+ create policy resource_reservations_service_read on resource_reservations for select to service_role using(true);
++
++-- Bounded readback for the trusted publisher. This grants no launch/spend authority.
++-- Service role is the trusted machine kernel, not a per-host client credential.
++create function read_resource_pool(p_host text,p_pool text) returns jsonb
++language plpgsql stable security definer set search_path=public as $$
++declare answer jsonb;
++begin
++ if p_host is null or octet_length(p_host) not between 1 and 128
++  or p_pool is null or octet_length(p_pool) not between 1 and 128 then return null; end if;
++ if p_host !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
++  or p_pool !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' then return null; end if;
++ select jsonb_build_object('host_id',p.host_id,'pool_id',p.pool_id,
++  'policy_revision',p.policy_revision,'configuration_generation',p.configuration_generation,
++  'capacity',p.capacity,'max_age_ms',p.max_age_ms,'observed',p.observed,'observed_at',p.observed_at)
++ into answer from public.resource_pools p where p.host_id=p_host and p.pool_id=p_pool;
++ return answer;
++end $$;
++revoke all on function read_resource_pool(text,text) from public,anon,authenticated;
++grant execute on function read_resource_pool(text,text) to service_role;
+ 
+ -- Explicit trusted configuration only. No implicit machine-wide pool/default and no
+ -- caller-selected capacity on admission. A policy cannot change beneath held work.
+--- a/apps/desktop/test/resource-pool-publisher-db.test.mjs
++++ b/apps/desktop/test/resource-pool-publisher-db.test.mjs
+@@ -28,7 +28,7 @@
+ const expectedVector={workerSlots:1,memoryBytes:300,diskBytes:200,cpuMilliCores:250}
+ const boundRevision=policy=>'policy-sha256-v1:'+resourceDigest(readResourceHostPolicy(policy,policy.hostId))
+ const argsFor=(name,args)=>{
+- const types=name==='configure_resource_pool'
++ const types=name==='read_resource_pool' ? {p_host:'text',p_pool:'text'} : name==='configure_resource_pool'
+   ? {p_host:'text',p_pool:'text',p_revision:'text',p_capacity:'jsonb',p_max_age_ms:'bigint',p_expected_revision:'text',p_expected_generation:'bigint'}
+   : {p_host:'text',p_pool:'text',p_revision:'text',p_observed:'jsonb',p_at:'timestamptz',p_configuration_generation:'bigint'}
+  assert.deepEqual(Object.keys(args).sort(),Object.keys(types).sort())
+@@ -40,18 +40,13 @@
+ }
+ function make(policy,options={}){
+  const f={policy,writes:[],reads:0,wall:Date.now()-2000,mono:0,systemReads:0,afterRpc:null,sampleHook:null}
+- const db={from(table){
+-  assert.equal(table,'resource_pools');let selected,filters=[]
+-  return {select(value){assert.equal(value,columns);selected=value;return this},
+-   eq(key,value){filters.push([key,value]);return this},
+-   async maybeSingle(){
+-    assert.deepEqual(filters,[['host_id',policy.hostId],['pool_id',policy.poolId]]);f.reads++
+-    const data=await call(`select coalesce((select to_jsonb(r) from (select ${selected} from resource_pools where host_id=${q(policy.hostId)} and pool_id=${q(policy.poolId)}) r),'null'::jsonb)`)
+-    return {data,error:null}
+-   }
++ const db={async rpc(name,args){
++  assert.ok(['read_resource_pool','configure_resource_pool','observe_resource_pool'].includes(name))
++  if(name==='read_resource_pool'){
++   assert.deepEqual(args,{p_host:policy.hostId,p_pool:policy.poolId});f.reads++
++   const data=await call(`select coalesce(read_resource_pool(${argsFor(name,args)}),'null'::jsonb)`)
++   return {data,error:null}
+   }
+- },async rpc(name,args){
+-  assert.ok(['configure_resource_pool','observe_resource_pool'].includes(name))
+   f.writes.push({name,args:structuredClone(args)})
+   // Database boolean is converted with to_json; psql's textual t/f is not PostgREST data.
+   const data=await call(`select to_json(${name}(${argsFor(name,args)}))`)
+@@ -74,6 +69,36 @@
+ const positive=make(config('publisher-positive'))
+ assert.equal(outcome(await positive.publisher.configure(),'configured').generation,1)
+ assert.equal(positive.systemReads,0)
++// Execute the actual service-only read RPC, with exact projection and both scope keys.
++// service_role is trusted across pools; a foreign key must not fall back to another row.
++const rpcRead=(host,pool)=>call(`select coalesce(read_resource_pool(${host===null?'null':q(host)},${pool===null?'null':q(pool)}),'null'::jsonb)`)
++const firstRead=await rpcRead(positive.policy.hostId,positive.policy.poolId)
++assert.deepEqual(Object.keys(firstRead).sort(),columns.split(',').sort())
++assert.equal(firstRead.host_id,positive.policy.hostId);assert.equal(firstRead.pool_id,positive.policy.poolId)
++assert.equal(firstRead.observed,null);assert.equal(firstRead.observed_at,null)
++assert.equal(await sql("select has_function_privilege('service_role','read_resource_pool(text,text)','EXECUTE')"),'t')
++for(const role of ['anon','authenticated']){
++ assert.equal(await sql(`select has_function_privilege('${role}','read_resource_pool(text,text)','EXECUTE')`),'f')
++ const denied=await runPsqlAsync('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1'],
++  `set role ${role}; select read_resource_pool(${q(positive.policy.hostId)},${q(positive.policy.poolId)});`,
++  {label:'resource pool read RPC role denial',timeoutMs:10000})
++ assert.notEqual(denied.code,0,`${role} cannot execute the read RPC`)
++ assert.match(denied.stderr,/permission denied for function read_resource_pool/)
++}
++for(const [host,pool] of [
++ [null,positive.policy.poolId],[positive.policy.hostId,null],['',positive.policy.poolId],
++ ['x'.repeat(129),positive.policy.poolId],[positive.policy.hostId,'x'.repeat(129)],
++ ['bad/host',positive.policy.poolId],[positive.policy.hostId,'bad/pool'],
++ ['publisher-foreign-host',positive.policy.poolId],[positive.policy.hostId,'publisher-missing-pool']
++])assert.equal(await rpcRead(host,pool),null,'invalid or missing exact scope cannot return another pool')
++const decoyPolicy={...config(positive.policy.poolId),hostId:'publisher-decoy-host'},decoy=make(decoyPolicy)
++outcome(await decoy.publisher.configure(),'configured')
++const decoyRow=await rpcRead(decoyPolicy.hostId,decoyPolicy.poolId)
++assert.equal(decoyRow.host_id,decoyPolicy.hostId)
++assert.deepEqual(await rpcRead(positive.policy.hostId,positive.policy.poolId),firstRead,'same pool on another host cannot replace exact read')
++assert.equal(await rpcRead(decoyPolicy.hostId,'publisher-missing-pool'),null)
++assert.deepEqual(await read(positive.policy),firstRead,'read RPC has no configuration or observation effect')
++
+ assert.equal((await read(positive.policy)).observed,null,'configuration never fabricates observation')
+ const firstPublication=await positive.publisher.publish()
+ if(firstPublication.state!=='published') console.error(JSON.stringify({diagnostic:'positive publication',result:firstPublication,writes:positive.writes,row:await read(positive.policy)},null,2))
+@@ -170,5 +195,5 @@
+ assert.equal(uncertain.writes.length,writeCount)
+ assert.equal((await read(uncertainPolicy)).configuration_generation,3)
+ 
+-console.log('PASS production resource pool publisher with actual pending107 SQL: full-policy binding, CAS generation, measured sampler/readback, exact retry, lost reply reconciliation, ABA refusal; service-role psql transport fixture only')
++console.log('PASS production resource pool publisher with actual pending107 SQL: service-only bounded read RPC, full-policy binding, CAS generation, measured sampler/readback, exact retry, lost reply reconciliation, ABA refusal; service-role psql transport fixture only')
+ // #endregion resource-pool-publisher-db

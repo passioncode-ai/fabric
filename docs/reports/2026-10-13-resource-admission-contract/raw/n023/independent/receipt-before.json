@@ -1,0 +1,65 @@
+{
+  "task": "N023",
+  "role": "independent reviewer; no implementation authorship",
+  "candidate": "uncommitted isolated builder files, bound by source_sha256; no commit acceptance",
+  "verdict": "REJECTED_PENDING_CLOCK_CORRECTION",
+  "source_sha256": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "43a36b7e9d51a683f5979ab8f25078131b3d92e0a4379f330dd5e4095692ef87",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "9f854a307694d24e93f8c7e5f63aa9007a430405726a787b8bafbd9e8a056a95"
+  },
+  "commands": [
+    {
+      "command": "N023_SOURCE=<candidate>/apps/desktop/src/main/gitLeaseSnapshot.ts node probes.mjs",
+      "exitCode": 1,
+      "observations": "All3 ordinary rejected-native-Promise clock sites exitNode1; 7other controls pass, including100 retries same one outstanding operation, cleanup and no authority synthesis."
+    },
+    {
+      "command": "AGENT_SYNC_SOURCE=<installed-script> python3 installed-format.py > installed-format.json; N023_SOURCE=<candidate>/apps/desktop/src/main/gitLeaseSnapshot.ts node encoding.mjs",
+      "exitCode": 0,
+      "checks": 508,
+      "seed": 23013
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "id": "clock-rejection",
+      "source_lines": [
+        161,
+        188,
+        220
+      ],
+      "description": "Invalid native rejected Promise clock result is refused but rejection is not consumed; process exits instead of remaining diagnostic unknown."
+    },
+    {
+      "severity": "compatibility_note",
+      "id": "installed-cross-second",
+      "description": "AST-extracted installed _git_acquire payload reads now_iso twice; crossing one second emits since>ts and reader refuses. Safe conservative refusal must be disclosed, not called full producer compatibility. No unsafe acceptance requested."
+    }
+  ],
+  "installed_script": {
+    "version": "1.22.2",
+    "sha256": "fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1",
+    "note": "Installed cache advanced from initial builder1.22.1 pin during review; no installation performed."
+  },
+  "limits": [
+    "Synthetic trusted Git runner except actual owned scratch filesystem; encoding compared to installed function AST only, no installed lease acquisition invoked.",
+    "No live HTTPS auth, DB, real ref mutation, native launch or integration acceptance.",
+    "Ordinary rejected native Promise DI mistake only; no claim to sandbox hostile trusted dependencies."
+  ],
+  "artifacts": {
+    "clock-before.log": "017ee24c2d95a242bc5278536cd0f0d290269d8343fb2f89d6c1721a7f94f1c5",
+    "probes.mjs": "32d00ad8468f53f637ede0745b5dcf5d4530b13b35d0c7aff603bad7231ff8a8",
+    "installed-format.py": "50cf27bef5280771ea5db081abcdb26d5c73aa91aa5c54216539f2ff290122a4",
+    "clock-child.mjs": "60f7c62feb93d6c340e6fab23dc07ecaf61983f849c578baedb9ff3f97e9b496",
+    "rejected-gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "encoding.log": "4929732105b8708485bfc9ba9572eeb8e5ecf09fc273e00218953054c6da4025",
+    "installed-format.json": "7a0cc5b13db38af2264d4243591fcb258b635bc0c92cd2bb17d6a1a4f2c82287",
+    "probes-before.log": "9eec223ec0b631068c23da2ce5592eef82cf0ab91bab39b124f19d3dc5820563",
+    "before-source-hashes.json": "5be88a6f273594e499ad8c9b66c3b205ddad8ea5b9e4edbceba61d9f45daf5be",
+    "encoding.mjs": "d674d3a12a8a5ae988b6f56e8af77d6f55b8442d5ef198f2e795b42c6b5d64b9",
+    "negative-control/apps/desktop/src/main/gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "negative-control/apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  }
+}

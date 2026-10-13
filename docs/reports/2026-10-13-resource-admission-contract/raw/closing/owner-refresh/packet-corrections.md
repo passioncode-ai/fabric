@@ -1,0 +1,24 @@
+# Prepared owner packet refresh — 2026-10-13T05:23:13.800678+00:00
+
+Read-only source refresh. No tests, installation, owner message, or board submission ran. Delivery remains **PREPARED / NOT_SENT**. Preserve the existing dated snapshots and append a new reconciliation rather than rewriting their evidence.
+
+| Work | Current source | Remote disposition |
+|---|---|---|
+| task-pipeline #112 | `25dc4f898c143d410cb8cc0b8f17e4edd73da6eb` | OPEN |
+| task-pipeline #114 | head `6e0e57e607db0a61226b9b5427bf0d74ba93c66d`; merge `25dc4f898c143d410cb8cc0b8f17e4edd73da6eb` | MERGED into #112's branch; not released main |
+| hub #213 | `18a2a7703b7926cdafd62dd6dd8a2d0067820503` | CLOSED, no merge commit |
+| hub #214 | `ff33a3b1ccac249077085785ec61f130d70ee355` | CLOSED, no merge commit |
+| hub v1.62.2 | `a17f829e8d652ce7f68423b67e0de00fb89b3693` | GitHub release published 2026-10-13T04:59:54Z |
+| task-pipeline v1.93.3 / main | `52fa75dbe1a3d169c02c612516b30028929559f9` | latest GitHub release remains v1.93.3; #112 changes not released there |
+
+## Exact corrections for the next owner packets
+
+1. Target current task-pipeline #112 for integration; #114 is no longer a pending independent candidate. Its [committed test receipt](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/docs/evidence/runs/2026-10-13-pr114-current.json#L2) names source `31e0f5ae…`, so do not attach that PASS automatically to final head `25dc4f89…`.
+2. Keep candidate-bound certification/idempotent-round acceptance open. [graph.py677–678 and1635–1653](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/plugins/task-pipeline/skills/task-pipeline/scripts/graph.py#L1635) is byte-identical to the earlier inspection (blob `6507d0616c7cd6719593b9b96a87c3a65c3b2b0b`). No new runtime regression was run.
+3. Keep kind-filter validation and authorized lesson adoption open: [iteration.md308–322](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/plugins/task-pipeline/skills/task-pipeline/references/iteration.md#L308) retains both earlier boundaries. Credit the new [promotion follow-up rule351–353](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/plugins/task-pipeline/skills/task-pipeline/references/iteration.md#L347); it improves ownership tracking but does not make observed evidence an authorized instruction.
+4. Do not request another lesson emitter. The dedicated tool route and newer redaction-compatible `commit:<12hex>` origin are [implemented965–998](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py#L965). Ask for source-pinned producer/store/search round-trip acceptance. Also credit the distinct [release authority locator work](https://github.com/ssheleg/task-pipeline/blob/25dc4f898c143d410cb8cc0b8f17e4edd73da6eb/docs/evidence/runs/2026-10-13-l3-authority-record.md#L12), without calling it an executable grant.
+5. Replace the stale blanket B186 implementation deferral with **implemented in published hub v1.62.2 source; installed payload/native acceptance not established here**. The [production entry](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/bin/sshlg-skills.js#L371) now uses the [immutable member plan24–45](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/lib/installer-pins.js#L24). The committed pre-release handoff's publication wording is superseded by GitHub release metadata only; do not infer host refresh from publication.
+6. Reference current published hub source instead of treating closed #213/#214 as pending branches. Preserve existing bounded native visibility receipts and their limits. The [hard-coded Claude search-visibility lookup1871](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/bin/sshlg-skills.js#L1867) remains a source-level follow-up. Fabric-isolated Codex/native Claude acceptance is not established by this refresh.
+7. Reuse the existing [PB159 consumer preparation](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/docs/evidence/completion-1013/mcp-profile-consumer/README.md#L15); it is a semantic fixture and bounded owner ask, not an Observatory profile writer or accepted wire schema. Its [next request50–57](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/docs/evidence/completion-1013/mcp-profile-consumer/README.md#L50) stays NOT_SENT until a genuine project-board receipt exists.
+
+REQ-006/007/008 and N-009/N-010 do not become complete from these source improvements. Installed agent-sync1.22.2's expired-own finding was not retested in this bounded remote refresh; its already recorded source snapshot remains separate evidence.

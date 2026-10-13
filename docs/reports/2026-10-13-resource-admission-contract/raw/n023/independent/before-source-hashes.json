@@ -1,0 +1,5 @@
+{
+  "apps/desktop/src/main/gitLeaseSnapshot.ts": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+  "apps/desktop/test/git-lease-snapshot.test.mjs": "43a36b7e9d51a683f5979ab8f25078131b3d92e0a4379f330dd5e4095692ef87",
+  "docs/execution/harness-waves/resource-ownership-snapshot.md": "9f854a307694d24e93f8c7e5f63aa9007a430405726a787b8bafbd9e8a056a95"
+}

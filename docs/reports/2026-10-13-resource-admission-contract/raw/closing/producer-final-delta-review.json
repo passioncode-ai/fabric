@@ -1,0 +1,171 @@
+{
+  "task": "N007 final producer delta acceptance",
+  "verdict": "SCOPED_SOURCE_AND_DELIVERY_DELTA_ACCEPT",
+  "candidate": "staged tree, uncommitted; source-bound review only",
+  "candidate_tree": "9d0506690c2badd2432b6ea9c952fa763fc45bfb",
+  "base_commit": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "previous_review_tree": "7c92d09a36ecda4c897dbe8e968ecd10557e65ae",
+  "supersedes_review": {
+    "sha256": "8615fb9e462b498393bc334ce385ba9394e9935d98b752069cc4953f9b5b3b38",
+    "finding_disposition": "17 logs normalized including16 private-path findings; optional unsupported Vitestcounts removed; no outstanding finding in reviewed delta."
+  },
+  "source_sha256": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b"
+  },
+  "changes_sha256": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "42941f93033e543b448ecae560d27b172770ec141e72654f95048d827b485d94",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-combined-pre-final-review.json": "8615fb9e462b498393bc334ce385ba9394e9935d98b752069cc4953f9b5b3b38",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-lessons.md": "36693b3eba741fcdef55617c32099f58f27928dce08af9b1457d1dda1a341fb8",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-log-normalization.json": "4c72ebbdb1a4d6e8850823d1f3806e0ed7da887056fcf7c039a810fbaddc6550",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-ops-fast-rejected.json": "eba554271b77035182bd9263d5c4c0f06ae39796eadff53b18af2069396afc01",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-ops-fast-rejected.txt": "87ad19c4cf8fc3d5a2581aa819e86ddc46d2e7fbdf064bdee1918fb58ceb3f90",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/clock-before.log": "e5b8c24571f2c75e83071d79b3f535d63aae9271332f177a71091a22a8624d5d",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/probes-before.log": "73cec1a506536e5b0ab39fe995298388fc1c8c71ec115162c32ab6a2c4f07651",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n023/raw/negative-expiry.log": "b418028e763f2b116ff191064127590bc99e7db8dea386ec594990d1eb453bfc",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md": "241f88c237bcd42fc8b2997318bd753f36573958e6995f443aeaf8a39028576d",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-portable-red.log": "cb759f68d3dc02f7731cca2e9a40d14bfeede4b81c98664824992d2ecb78a531",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-red.log": "f475fd6e5072c377b5eadb8101e8217a6efd8ec6be1f64fb2a065a8a731af880",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-portable-red.log": "cb759f68d3dc02f7731cca2e9a40d14bfeede4b81c98664824992d2ecb78a531",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-red.log": "f475fd6e5072c377b5eadb8101e8217a6efd8ec6be1f64fb2a065a8a731af880",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/clock-rejection/stdout.log": "12e48070541ce1d268b722d713b950ec1a46cde384a62969c458faafb3df7b39",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/generation/stdout.log": "81ff48bf2b4c19808994b1c7496fd0a9b81994ce0ab74c845d2d1b99236e6edb",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/observation-readback/stdout.log": "e9f6b625c54324a306187fa2651eb36c39f7b5b331bc3238fc8352e220ce92d9",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/outstanding-slot/stdout.log": "0b8e707d3b3bbaad3270dfe96450dbb51131ca9d5ef7cbb5b52fc8729afe88a3",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/physical-ceiling/stdout.log": "ca342a3200659f85fe3097f965c7553e6a38bb882ded4cfbda3d6e3ca7e3f2ce",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/offset-red.log": "0a09b7fe3ae95644b99c4e3e5e0cd895213292ffb95242db53d98041c97fd336",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/rejected-utc/actual-sql-diagnostic.log": "4155b6ea1b337e3accf9a439fc01e0983cbc135b997d199ed19e3c0be2364748",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-first-failed.log": "eb9bc745d05c10ee8048e15f02061a5b8d39032607fbe6c37faf9634a1d3866c",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-offset-diagnostic.log": "4155b6ea1b337e3accf9a439fc01e0983cbc135b997d199ed19e3c0be2364748",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/initial-actual-sql.log": "eb9bc745d05c10ee8048e15f02061a5b8d39032607fbe6c37faf9634a1d3866c",
+    "docs/reports/map.html": "efe4706baec1f4a285fc4fd6ca70bd173c5b854b0c583e665f025d797a2cb765"
+  },
+  "checks": {
+    "N023_exact_two_comment_substitution": true,
+    "other_app_SQL_script_changes_from_previous_review": [],
+    "normalization": [
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/clock-before.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/probes-before.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/raw/negative-expiry.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-portable-red.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-red.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-portable-red.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-red.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/clock-rejection/stdout.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/generation/stdout.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/observation-readback/stdout.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/outstanding-slot/stdout.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/physical-ceiling/stdout.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/offset-red.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/rejected-utc/actual-sql-diagnostic.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-first-failed.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-offset-diagnostic.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      },
+      {
+        "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/initial-actual-sql.log",
+        "original_digest_match": true,
+        "stored_digest_match": true,
+        "exact_declared_transform": true
+      }
+    ],
+    "newly_staged_private_path_files": [],
+    "no_unstaged_delta": true,
+    "optional_counts_removed": true,
+    "run_lessons_review": "Bounded local lesson reuse and proposed cheap-import gates; no standing authority promotion or claimedenergy/savings."
+  },
+  "test_evidence": {
+    "executor": "root, log independently inspected",
+    "log": "n023-comments-focused.log",
+    "sha256": "c53138bb2d0002832e87e432adc5ad3b8030b8128afb3ac9c7fa776abf0adbec",
+    "tests": 49,
+    "pass": 49,
+    "fail": 0,
+    "root_reported_check_ops": "PASS",
+    "independent_new_test_execution": "NOT_RUN; no behavior change"
+  },
+  "limits": [
+    "Fullfast NOT_ACCEPTED by this review; preceding two failed producer gates remain historical evidence.",
+    "Earlier23module/source matches and78link checks remain previous scoped review; this receipt reviews only listeddelta.",
+    "N024 authored by this reviewer; independent component acceptance remains pipeline_research source-bound receipt.",
+    "N007 closure still needs successful combined gate on the final source; no wholeharness/native/provider/owner acceptance inferred."
+  ]
+}

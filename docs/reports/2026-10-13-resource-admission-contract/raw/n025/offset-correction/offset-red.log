@@ -1,0 +1,91 @@
+✖ exact observation epoch readback accepts supported numeric offset 1970-01-01T02:00:01.000+02:00 (5.030959ms)
+✖ exact observation epoch readback accepts supported numeric offset 1969-12-31T20:30:01.000-03:30 (0.553791ms)
+✖ exact observation epoch readback accepts supported numeric offset 1970-01-01T14:00:01+14:00 (1.71875ms)
+✖ exact observation epoch readback accepts supported numeric offset 1969-12-31T10:00:01.000000-14:00 (0.713417ms)
+✔ exact observation epoch readback accepts supported numeric offset 1970-01-01T00:00:01.000+00:00 (0.407583ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.144958
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:161:181
+✖ exact observation epoch readback accepts supported numeric offset 1970-01-01T02:00:01.000+02:00 (5.030959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unknown'
+  - 'published'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:164:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'published',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:161:181
+✖ exact observation epoch readback accepts supported numeric offset 1969-12-31T20:30:01.000-03:30 (0.553791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unknown'
+  - 'published'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:164:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'published',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:161:181
+✖ exact observation epoch readback accepts supported numeric offset 1970-01-01T14:00:01+14:00 (1.71875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unknown'
+  - 'published'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:164:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'published',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-publisher.test.mjs:161:181
+✖ exact observation epoch readback accepts supported numeric offset 1969-12-31T10:00:01.000000-14:00 (0.713417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'unknown'
+  - 'published'
+
+      at TestContext.<anonymous> (file:///private<owned-temp>/fabric-n025-publisher-ly_e98dp/apps/desktop/test/resource-pool-publisher.test.mjs:164:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'published',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

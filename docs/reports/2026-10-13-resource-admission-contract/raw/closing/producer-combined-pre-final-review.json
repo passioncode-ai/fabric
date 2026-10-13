@@ -1,0 +1,824 @@
+{
+  "task": "N007 final combined N022\u2013N025 source/docs review",
+  "reviewer": "observatory_research",
+  "verdict": "SCOPED_SOURCE_ACCEPT_WITH_DELIVERY_FINDINGS",
+  "candidate": "staged tree, uncommitted; base HEAD is not tested candidate commit",
+  "candidate_tree": "7c92d09a36ecda4c897dbe8e968ecd10557e65ae",
+  "base_commit": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "base_tree": "76bc7d64fb93c1b0db5db28bc905b6d5c96c55c5",
+  "scope_disclosure": "Reviewer authored N024; this reconciliation checks its source hashes against separate pipeline_research independent acceptance and root SQL evidence, not a new independent self-acceptance. Reviewer independently reviewed N023/N025 and source-bound their fixes. N022 acceptance by root independently reviewed as evidence.",
+  "source_sha256": {
+    "apps/desktop/src/main/agentSurface.ts": "e81d01be582876c3661434880d8d5e8f0fe11d7f212037b38c08f8bb80927cd2",
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+    "apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+    "apps/desktop/src/main/index.ts": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+    "apps/desktop/src/main/pty.ts": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+    "apps/desktop/src/main/sessionEnroll.ts": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "apps/desktop/test/bounded-psql.mjs": "597a4c4fe8ff547aeb1516c370fc0e0c9ea9666f8d805c500c5f25c0a7be4536",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+    "apps/desktop/test/resource-host-sampler.test.mjs": "21e4e1fb82801223224e50c61b578f3b437c10bdbbe273bdf74c5c86141321ad",
+    "apps/desktop/test/resource-pool-publisher-db.test.mjs": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+    "apps/desktop/test/resource-pool-publisher.test.mjs": "3b1cf84195b264888d0ae01ae86bc721f7676eb9b2db6988b802986625870508",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+    "apps/desktop/test/session-enroll.test.mjs": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+    "scripts/ci.sh": "782908e829e39650779ed3a1ba2b922b7d8afcea22ee08c0b03da4a633ec4b11",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca"
+  },
+  "document_sha256": {
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "2a8338f403c6c21d4ba41a322bc9f2342c623537e832e668ad1af8424f3bcb84",
+    "docs/handoffs/2026-10-13-harness-waves.md": "0201b86bf699480dea21de8826826523666ebfea6188f106694c76f0e7fac992",
+    "docs/execution/harness-waves/resource-host-observation.md": "670b373c8fdc176eea3d4ea6e358970db08011979b2b4b3c1508d7cd6ee2e37f",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "df990a11e7f57235c79938e650febd6ee8889d39fa5fdb6ed0134278426cf43b",
+    "docs/execution/harness-waves/resource-reservation.md": "d5d3b99e0d4ed4d618f45d8899086459f5e6a7fee3b77e18546f9b4e2a00de5e",
+    "docs/execution/harness-waves/resource-pool-publisher.md": "82be0fadec9867ff200fd2a35f1a0df6511f02138c8a12bf8b1c777b7d1c2d01",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "a484dd7326e99c0e989fc743db19af2a925fc06737c27b43897ea3bd2f395647",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n023/README.md": "68eb1fcd995c1b5be4f42e4259311017d6c2bc99b5bca9682fa60cfbbbc45012",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md": "98fe341c32d08aba89b679388fce331ebbb345f030e4ccac0068120e31fd0bcb",
+    "docs/execution/harness-waves/graph.json": "1a71213ec09bc7f1c63c218fb667c65a1796388ee435737e2ec4718cf87a16c0"
+  },
+  "module_receipt_matches": [
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/independent-review.json",
+      "file": "apps/desktop/src/main/resourceHostPolicy.ts",
+      "expected": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "actual": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/independent-review.json",
+      "file": "apps/desktop/src/main/resourceHostSampler.ts",
+      "expected": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+      "actual": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/independent-review.json",
+      "file": "apps/desktop/test/resource-host-sampler.test.mjs",
+      "expected": "21e4e1fb82801223224e50c61b578f3b437c10bdbbe273bdf74c5c86141321ad",
+      "actual": "21e4e1fb82801223224e50c61b578f3b437c10bdbbe273bdf74c5c86141321ad",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/receipt-final.json",
+      "file": "apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "expected": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+      "actual": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/receipt-final.json",
+      "file": "apps/desktop/test/git-lease-snapshot.test.mjs",
+      "expected": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+      "actual": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/receipt-final.json",
+      "file": "apps/desktop/src/main/gitRun.ts",
+      "expected": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "actual": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/independent-review.json",
+      "file": "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "expected": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+      "actual": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/independent-review.json",
+      "file": "apps/desktop/test/resource-reservation-db.test.mjs",
+      "expected": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+      "actual": "483baa6bee622b0cd959c6564c8157649359057cbcb79693307f72cf82901277",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/src/main/resourcePoolPublisher.ts",
+      "expected": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+      "actual": "4d9456edee96a3b003b1f90d132c68c404cb623d5595c005a0672c9a4c374372",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/test/resource-pool-publisher.test.mjs",
+      "expected": "3b1cf84195b264888d0ae01ae86bc721f7676eb9b2db6988b802986625870508",
+      "actual": "3b1cf84195b264888d0ae01ae86bc721f7676eb9b2db6988b802986625870508",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/test/resource-pool-publisher-db.test.mjs",
+      "expected": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+      "actual": "21cafda5e7bfa604d21cbcb35ededca208cca7fa00d9416f91b3eba0298e4e76",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/test/run-resource-reservation-db.mjs",
+      "expected": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+      "actual": "16b43529aca1e3e328d94f1fe328782fcb82717642f0be08c678881a2fbdb983",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/test/bounded-psql.mjs",
+      "expected": "597a4c4fe8ff547aeb1516c370fc0e0c9ea9666f8d805c500c5f25c0a7be4536",
+      "actual": "597a4c4fe8ff547aeb1516c370fc0e0c9ea9666f8d805c500c5f25c0a7be4536",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/src/main/resourceHostPolicy.ts",
+      "expected": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "actual": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/src/main/resourceHostSampler.ts",
+      "expected": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+      "actual": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "apps/desktop/src/shared/resourceAdmission.ts",
+      "expected": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+      "actual": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "expected": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+      "actual": "fdf160d383af75cb2ec17ea82579bb4c295726a187e81fb9c026acf36cbdbf3e",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/receipt-final.json",
+      "file": "supabase/pending-migrations/20261013000108_resource_wait_queue.sql",
+      "expected": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+      "actual": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+      "file": "apps/desktop/src/main/sessionEnroll.ts",
+      "expected": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+      "actual": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+      "file": "apps/desktop/test/session-enroll.test.mjs",
+      "expected": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+      "actual": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+      "file": "apps/desktop/src/main/pty.ts",
+      "expected": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+      "actual": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+      "file": "apps/desktop/src/main/index.ts",
+      "expected": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+      "actual": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+      "match": true
+    },
+    {
+      "receipt": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-source-review.json",
+      "file": "apps/desktop/src/main/agentSurface.ts",
+      "expected": "e81d01be582876c3661434880d8d5e8f0fe11d7f212037b38c08f8bb80927cd2",
+      "actual": "e81d01be582876c3661434880d8d5e8f0fe11d7f212037b38c08f8bb80927cd2",
+      "match": true
+    }
+  ],
+  "normalization_checks": [
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/timing-red.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/producer.patch",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/fixed-smoke.mjs",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/diagnostic-bounded.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-controls.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/timing-green.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/diagnostic-bounded.mjs",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-fixed-cpu-zero.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/receipt-initial.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-host-unbound.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/fixed-smoke.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/README.md",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-fixed-host-unbound.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-fixed-worker-zero.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/before-timing.ts",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/diagnostic.mjs",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-cpu-zero.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-controls-fixed.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-slot-bypass.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/diagnostic.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-fixed-slot-bypass.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/candidate-sampler.ts",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/focused.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/negative-worker-zero.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/receipt.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/independent-failure.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/root-independent.mjs",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/root-first-failed.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/root-corrected.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/revision-only-rejected.patch",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/baseline.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/receipt-initial-revision-only.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/negative-original.sql",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/n024.patch",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/receipt.json",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/actual-sql.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/negative-setup-failed.log",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/original-config.sql",
+      "match": true
+    },
+    {
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/owned-runner.mjs",
+      "match": true
+    }
+  ],
+  "relative_file_links": [
+    {
+      "source": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "target": "../../reports/2026-10-13-autonomy-layer-map/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "target": "../../execution/harness-waves/packets/",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../evidence/plans/2026-10-13-harness-waves.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/graph.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/resource-reservation.md#verification",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/resource-launch-adapter.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/n020/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/n019/final/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-harness-wave-review/raw/branch-delivery-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-harness-wave-review/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/closing/merged-1b63-fast.json",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/resource-activation-prerequisites.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/owner-packets.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../evidence/retro.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/admission-feedback.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../execution/harness-waves/host-matrix.md",
+      "exists": true
+    },
+    {
+      "source": "docs/handoffs/2026-10-13-harness-waves.md",
+      "target": "../reports/2026-10-13-resource-admission-contract/raw/n021/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-host-observation.md",
+      "target": "../../reports/2026-10-13-resource-admission-contract/raw/n022/independent-review.json",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-reservation.md",
+      "target": "resource-implementation.md#r2-atomic-shared-reservation",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-reservation.md",
+      "target": "../../../supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-reservation.md",
+      "target": "../../../apps/desktop/test/run-resource-reservation-db.mjs",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-reservation.md",
+      "target": "../../../apps/desktop/test/resource-reservation-db.test.mjs",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-reservation.md",
+      "target": "../../reports/2026-10-13-resource-admission-contract/raw/n024/root-sql-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-pool-publisher.md",
+      "target": "../../../apps/desktop/src/main/resourcePoolPublisher.ts",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-pool-publisher.md",
+      "target": "../../../apps/desktop/src/main/resourceHostPolicy.ts",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-pool-publisher.md",
+      "target": "../../../apps/desktop/src/main/resourceHostSampler.ts",
+      "exists": true
+    },
+    {
+      "source": "docs/execution/harness-waves/resource-pool-publisher.md",
+      "target": "../../../supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../2026-10-13-harness-wave-review/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../execution/harness-waves/graph.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r1-review-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r2-rejected/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r2-fixed/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r3-review-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../execution/harness-waves/resource-launch-adapter.md#contract",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n015/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../execution/harness-waves/owner-packets.md#agent-sync--expired-own-git-lease-reported-as-acquired",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/preflight-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/pre-com03-fast-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/com03-merge-review.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../execution/harness-waves/owner-packets.md#latest-skill-hub-release-reconciliation--2026-10-13",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/com03-fast-rejected.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r4/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r4/sql-corrected.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r5/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r5/normalization.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r6/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r6/independent-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/r6/synthetic.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/probe-fixed-prerequisite-rejected.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/recovery-wave-fast.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n020/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n019/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n019/fabric-harness-wait-store-db.log",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "../../execution/harness-waves/resource-activation-prerequisites.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n019/final/receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n019/final/after.log",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n019/final/independent-review.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/closing/merged-1b63-fast.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n022/independent-review.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n023/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n024/root-sql-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n024/independent-review.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "target": "raw/n025/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/README.md",
+      "target": "receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/README.md",
+      "target": "independent/receipt-final.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "offset-correction/receipt-offset.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "sql-offset-diagnostic.log",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "root-sql-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "sql-final.log",
+      "exists": true
+    },
+    {
+      "source": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+      "target": "sql-review/receipt-final.json",
+      "exists": true
+    }
+  ],
+  "checks": {
+    "module_matches": 23,
+    "module_mismatches": 0,
+    "normalization_entries": 39,
+    "normalization_mismatches": 0,
+    "relative_links": 78,
+    "missing_link_files": 0,
+    "graph_nodes": 25,
+    "statuses": {
+      "done": 17,
+      "pending": 6,
+      "blocked": 2
+    },
+    "no_unstaged_delta": true,
+    "new_heavy_tests": "NOT_RUN"
+  },
+  "findings": [
+    {
+      "id": "delivery-private-paths",
+      "severity": "delivery_cleanup_before_commit",
+      "files": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/clock-before.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n023/independent/probes-before.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-portable-red.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/binding-red.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-portable-red.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/binding-red.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/clock-rejection/stdout.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/generation/stdout.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/observation-readback/stdout.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/outstanding-slot/stdout.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/controls-v3/physical-ceiling/stdout.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/offset-red.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/offset-correction/rejected-utc/actual-sql-diagnostic.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-first-failed.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-offset-diagnostic.log",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n025/sql-review/initial-actual-sql.log"
+      ],
+      "description": "16 newly staged rawlogs contain real private checkout/temp prefixes despite handoff exclusion. Normalize stored logs with explicit original/stored digests; retain historical receipt hashes, do not relabel candidate."
+    },
+    {
+      "id": "optional-checkpoint-counts",
+      "severity": "documentation_evidence_gap",
+      "file": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "description": "170 Vitest files/2053tests stated for1b63 checkpoint are not in cited merged-1b63-fast receipt or nearby N021 receipts inspected. Preserve supported exactSHA/tree/exit0/707.51s and attach original count output or remove optional counts."
+    }
+  ],
+  "conclusions": [
+    "N022\u2013N025 production/test/SQL sources match separate accepted module receipts; N021 enrollment/PTY/index/surface sources still match merged acceptance.",
+    "N024 intentional pending107 delta is covered by separate review and actualSQL; historical1b63 SQL hash is not misapplied to current CAS source.",
+    "N025 human policy revision and SQL full-policy binding remain separate; readback/uncertainty do not grant admission.",
+    "N023 snapshot does not produce numeric fence/inputclosure or exclusive continuousownership.",
+    "N007/N008 remain pending until finalcombined gate/source delivery; N009/N010 blocked NOT_SENT;17done6pending2blocked is currentgraph.",
+    "Report preserves early timer, rejected clocks, fullpolicy collision and SQL offset failures with later corrections instead of overwriting history.",
+    "CO282 partial; no universal/native enforcement, owneradoption, energy saving or wholeharnesscompletion inferred."
+  ],
+  "remaining": [
+    "Root fullfast currently running; this review does not certify its exit or authorize graphclosure before final receipt.",
+    "After rawlog normalization/docs correction, bind corrected staged tree and recheck only changed artifacts/docs; production source acceptance remains sourcehash-bound.",
+    "Source-owned input/scopeclosure, actual run-to-lease binding, fullworkerinventory, coherent reservation snapshot, activeDDL/config/native/globalentry-path composition remain explicit."
+  ],
+  "final_gate_observation": {
+    "log": "/tmp/fabric-producer-final-fast.log",
+    "state": "RUNNING_OR_NOT_YET_REPORTED_AT_REVIEW",
+    "exitCode": null
+  }
+}

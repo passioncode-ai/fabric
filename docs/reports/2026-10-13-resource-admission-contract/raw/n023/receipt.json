@@ -1,0 +1,85 @@
+{
+  "task": "N-023",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "author": "pipeline_research",
+  "sourceCommit": null,
+  "integrationBaselineObserved": "1b63e81c11e3327c26f930e93656ac7a2b11fcb6",
+  "files": {
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "84f4d7680c41480b73c9fe4a66ac01914f4e32537df0e193314ea985572574a2",
+    "apps/desktop/test/git-lease-snapshot.test.mjs": "9da7ae0fe4f5dabd034e8ae763dfd632a08dc1abc4cde0113538a6d15e21a5c4",
+    "docs/execution/harness-waves/resource-ownership-snapshot.md": "df990a11e7f57235c79938e650febd6ee8889d39fa5fdb6ed0134278426cf43b"
+  },
+  "dependency": {
+    "file": "apps/desktop/src/main/gitRun.ts",
+    "sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  },
+  "installedAgentSyncScriptSha256": "455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302",
+  "patchSha256": "817c03d0a3d10dedfa10d7eb69762f3e5c423bbbd20affd147251518ba79a32a",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 0,
+      "tests": 49,
+      "pass": 49,
+      "log": "raw/focused.log",
+      "sha256": "b7fd757decf8f34d4978a08ef238de00c66b9ae0d787f21939e8fef160c7cbdd"
+    },
+    {
+      "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions --types node [repository typeRoots] apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-name-pattern=\"expired own lease\" [negative-control]/apps/desktop/test/git-lease-snapshot.test.mjs",
+      "exitCode": 1,
+      "intendedFailures": 1,
+      "mutation": "Remove expiry comparisons from both inspect and final publication in copied production source",
+      "log": "raw/negative-expiry.log",
+      "sha256": "43c3d42b42813f6e3ad913fa108ed1941411ab5ea8035331f7d2254b53649c19"
+    },
+    {
+      "command": "N023_SOURCE=[rejected first source] node [unchanged independent probes]",
+      "exitCode": 1,
+      "intendedFailures": 3,
+      "log": "raw/clock-before.log",
+      "sha256": "be068bfd0da110cac4ff9c2c9ee9f9aee818b430dd49d9fc6948f0324c8b2b05"
+    },
+    {
+      "command": "N023_SOURCE=[fixed source] node reviewer-probes-adjusted-boundary.mjs",
+      "exitCode": 0,
+      "clockChildCases": 3,
+      "otherControls": 7,
+      "reviewerFixtureAdjustment": "Only installed-cross-second expected status changed to observed to reflect root-authorized one-second compatibility correction",
+      "log": "raw/clock-after.log",
+      "sha256": "4da507928bd3cddb3bc6b5eb2124e0046072742da37d6726197c625e5cc69f95"
+    }
+  ],
+  "limitations": [
+    "No selected file/input closure, external numeric fence, or full R1 ownership authorization",
+    "No root edits, foreign ref mutations, installed protocol changes, DDL, DB, native runtime or global launch composition",
+    "Owned real Git fixture uses trusted transport substitution; no live authenticated HTTPS acceptance",
+    "Sampled 8 MiB scratch limit can overshoot; no hard filesystem quota or arbitrary descendant-process termination guarantee",
+    "Default transport has no credential helper; authenticated remote requires separately trusted composition",
+    "Outstanding I/O bound is per retained reader instance"
+  ],
+  "independentReview": "NOT_RUN",
+  "supersedes": {
+    "receiptSha256": "7c37d6d1ec15d070015b57fe7ebe1855adf4cd85fb0111407005faa762253d77",
+    "sourceSha256": "29800b85c220253e5cac67bc6d2641380160339b1eab188429028a5edb327a52",
+    "status": "REJECTED independent async clock failure",
+    "preserved": "rejected-first/"
+  },
+  "feedbackReuse": {
+    "lessonSource": "apps/desktop/src/main/resourceWaitQueue.ts:141 and docs/execution/harness-waves/resource-wait-queue.md:114",
+    "findingBy": "observatory_research",
+    "lesson": "Ordinary rejected native Promise returned by a synchronous clock must be consumed while refusing its value; never read arbitrary then/constructor getters.",
+    "applied": "One normalizer at start, after remote reads, and before final publication; child-process regressions at all three sites",
+    "supportedBoundary": "Trusted synchronous DI; exotic subclasses, poisoned constructors and hostile nonterminating clock implementations remain unsupported."
+  },
+  "producerCompatibility": {
+    "installedVersion": "1.22.2",
+    "installedScriptSha256": "fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1",
+    "fixture": "raw/producer-boundary.json",
+    "sha256": "a7ae914ed97a9adb2b89c03abd6df4bdf32322e61046aff79f3dc835e2132c13",
+    "acceptance": "Actual producer expression ts/since crossing one second accepted only if since<=finalNow; expiresAt remains ts+ttl; >1 second conservative refusal."
+  }
+}

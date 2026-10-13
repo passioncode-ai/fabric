@@ -341,6 +341,9 @@ node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter
 node --experimental-strip-types --test apps/desktop/test/resource-reconciliation.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-wait-queue.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-attempt-observation.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-host-sampler.test.mjs
+node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs
 # #endregion harness-regressions
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
 # facts included — a real MCP client and server over the real registerWorkTools.

@@ -1,0 +1,10 @@
+{"status":"unknown","reason":"clock_invalid","executionAuthorized":false}
+file:///private/tmp/fabric-n023-independent-en7k1_b0/clock-child.mjs:3
+const reader=createGitLeaseSnapshotReader({approvedRemote:'https://lease.invalid/fixture.git',key:'scope',runId:'run',repositoryName:'fixture',expectedTip:null,maxAgeMs:60000,timeoutMs:100},{now:()=>Promise.reject(new Error('synthetic-clock-rejection')),git:async()=>{throw Error('must_not_run')}});
+                                                                                                                                                                                                                      ^
+
+Error: synthetic-clock-rejection
+    at now (file:///private/tmp/fabric-n023-independent-en7k1_b0/clock-child.mjs:3:215)
+    at inspect (file:///private<owned-temp>/fabric-lease-proof-fdy6infw/apps/desktop/src/main/gitLeaseSnapshot.ts:161:21)
+
+Node.js v26.10.0
