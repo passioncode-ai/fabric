@@ -170,10 +170,30 @@ export interface CommsTimelineStep {
 }
 export type CommsTimelineReply = { ok: true; steps: CommsTimelineStep[]; more: boolean } | { ok: false; error: CommsReadError }
 
-export interface CommsRelatedThread { id: string; subject: string | null; why: 'same-projects' | 'shared-artifact'; lastAt: string | null }
+/** A related thread, with enough of it to open it when the list does not hold it. */
+export interface CommsRelatedThread {
+  id: string
+  subject: string | null
+  why: 'same-projects' | 'shared-artifact'
+  lastAt: string | null
+  participants?: string[]
+  createdSeq?: number
+  lastSeq?: number
+}
 export type CommsRelatedReply = { ok: true; threads: CommsRelatedThread[]; more: boolean } | { ok: false; error: CommsReadError }
 
-export interface CommsSearchHit { message: string; thread: string; seq: number; at: string; sender: string; snippet: string }
+/** A message a search found, with enough of its thread to open it there when the list does not hold it. */
+export interface CommsSearchHit {
+  message: string
+  thread: string
+  seq: number
+  at: string
+  sender: string
+  snippet: string
+  subject?: string | null
+  participants?: string[]
+  createdSeq?: number
+}
 /** `stoppedEarly`: the search ran out of its time budget; what it found before is in `hits`. `before`: the seq to
  *  continue from when `more`. */
 export type CommsSearchReply =

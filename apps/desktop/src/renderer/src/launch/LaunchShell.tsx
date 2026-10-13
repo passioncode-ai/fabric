@@ -85,6 +85,8 @@ export interface LaunchShellProps {
   /** Threads with messages newer than the operator's read mark (SCN-143, the unread slice);
    *  0 while the board has never answered — no badge is a non-claim, not "all read". */
   commsBadge?: number
+  /** The board cut the heads at its cap: the count is a floor, shown as "{count}+" (W4-3). */
+  commsBadgeAtLeast?: boolean
   onPlan(): void
   onHelp(): void
   onQuota(): void
@@ -136,7 +138,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <div className="calm-main-nav">
             <a href="#" {...current(at.kind === 'home')} onClick={e => { e.preventDefault(); props.onHome() }}>{t('launch.nav.fabric')}</a>
             <a href="#" {...current(at.kind === 'board')} onClick={e => { e.preventDefault(); props.onBoard() }}>{t('launch.nav.board')}</a>
-            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}{commsBadge > 0 && <span className="nav-badge" aria-label={t('launch.comms.unreadBadge', { count: commsBadge })}>{commsBadge}</span>}</a>
+            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}{commsBadge > 0 && <span className="nav-badge" aria-label={t(props.commsBadgeAtLeast ? 'launch.comms.unreadBadgeMax' : 'launch.comms.unreadBadge', { count: commsBadge })}>{commsBadge}{props.commsBadgeAtLeast ? '+' : ''}</span>}</a>
             <a href="#" {...current(at.kind === 'plan')} onClick={e => { e.preventDefault(); props.onPlan() }}>{t('launch.nav.plan')}</a>
             <a href="#" {...current(at.kind === 'draft' || at.kind === 'start')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
           </div>

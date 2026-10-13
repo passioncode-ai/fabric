@@ -245,12 +245,21 @@ function stepOf(v: unknown): CommsTimelineStep | null {
 function relatedOf(v: unknown): CommsRelatedThread | null {
   if (!isObj(v) || !isUuid(v.id) || (v.why !== 'same-projects' && v.why !== 'shared-artifact')) return null
   if (!(v.subject === null || typeof v.subject === 'string') || !(v.lastAt === null || v.lastAt === undefined || typeof v.lastAt === 'string')) return null
-  return { id: v.id, subject: v.subject, why: v.why, lastAt: v.lastAt ?? null }
+  const out: CommsRelatedThread = { id: v.id, subject: v.subject, why: v.why, lastAt: v.lastAt ?? null }
+  // What opens it when the list does not hold it: optional, and only as the board shaped it.
+  if (v.participants !== undefined) { const p = strings(v.participants); if (!p) return null; out.participants = p }
+  if (v.createdSeq !== undefined) { if (!isInt(v.createdSeq)) return null; out.createdSeq = v.createdSeq }
+  if (v.lastSeq !== undefined) { if (!isInt(v.lastSeq)) return null; out.lastSeq = v.lastSeq }
+  return out
 }
 
 function hitOf(v: unknown): CommsSearchHit | null {
   if (!isObj(v) || !isUuid(v.message) || !isUuid(v.thread) || !isInt(v.seq) || typeof v.at !== 'string' || !isUuid(v.sender) || typeof v.snippet !== 'string') return null
-  return { message: v.message, thread: v.thread, seq: v.seq, at: v.at, sender: v.sender, snippet: v.snippet }
+  const out: CommsSearchHit = { message: v.message, thread: v.thread, seq: v.seq, at: v.at, sender: v.sender, snippet: v.snippet }
+  if (v.subject !== undefined) { if (!(v.subject === null || typeof v.subject === 'string')) return null; out.subject = v.subject }
+  if (v.participants !== undefined) { const p = strings(v.participants); if (!p) return null; out.participants = p }
+  if (v.createdSeq !== undefined) { if (!isInt(v.createdSeq)) return null; out.createdSeq = v.createdSeq }
+  return out
 }
 
 function pendingOf(v: unknown): CommsPending | null {

@@ -79,6 +79,18 @@ describe('the scope bar', () => {
     expect(screen.getByRole('button', { name: en['launch.profile'] }).getAttribute('aria-current')).toBe('page')
   })
 
+  // W4-3: the rail's Comms count comes from the heads; when the board cut them at its cap the count is a floor.
+  it('the Comms badge says its count, and "N+" with its words when the board cut the heads at the cap', () => {
+    shell({ commsBadge: 7 })
+    expect(screen.getByLabelText(en['launch.comms.unreadBadge'].replace('{count}', '7')).textContent).toBe('7')
+    cleanup()
+    shell({ commsBadge: 5000, commsBadgeAtLeast: true })
+    expect(screen.getByLabelText(en['launch.comms.unreadBadgeMax'].replace('{count}', '5000')).textContent).toBe('5000+')
+    cleanup()
+    shell({ commsBadge: 0 })
+    expect(screen.queryByLabelText(/threads with new messages/)).toBeNull()
+  })
+
   it('offers "Discuss with Fabric" where the screen gives one, and nowhere it does not', () => {
     const props = shell()
     fireEvent.click(screen.getByRole('button', { name: en['launch.board.discuss'] }))

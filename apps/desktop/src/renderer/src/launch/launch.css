@@ -133,6 +133,15 @@
 .lp-filters label{display:flex;flex-direction:column;gap:var(--space-1);font-size:12px;color:var(--app-muted)}
 .lp-filters select{font:inherit;background:var(--app-bg);border:1px solid var(--app-line-strong);color:var(--app-ink);border-radius:var(--app-radius-control);padding:var(--space-2)}
 .lp-filters select:focus-visible,.lp-filters input:focus-visible{outline:2px solid var(--app-focus);outline-offset:3px}
+.lp-filters input[type=search]{font:inherit;background:var(--app-bg);border:1px solid var(--app-line-strong);color:var(--app-ink);border-radius:var(--app-radius-control);padding:var(--space-2);min-width:220px}
+/* Comms, wave 4 (SCR-81): link-styled buttons, the responder line, outcomes, artifacts, disclosures, search and pending. */
+.lp-link{font:inherit;font-size:12px;background:none;border:0;padding:0;color:var(--app-ink);text-decoration:underline;cursor:pointer;text-align:left}
+.lp-link:focus-visible{outline:2px solid var(--app-focus);outline-offset:3px}
+.lp-comms-line{grid-column:1/-1}
+.lp-comms-outcomes,.lp-comms-disclosure,.lp-comms-search,.lp-comms-pending{display:grid;gap:var(--space-2);margin:var(--space-2) 0}
+.lp-comms-artifacts,.lp-comms-steps,.lp-comms-related,.lp-comms-hits,.lp-comms-pending ul{margin:0;padding-left:var(--space-4);display:grid;gap:var(--space-1);font-size:12px}
+.lp-comms-artifacts li{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2)}
+.lp-comms-disclosure>.lp-button,.lp-comms-pending>.lp-button{justify-self:start}
 .lp-field{display:flex;flex-direction:column;gap:var(--space-2);font-size:12px;margin:var(--space-3) 0}
 .lp-field input,.lp-field textarea,.lp-field select{width:100%;background:var(--app-bg);border:1px solid var(--app-line-strong);color:var(--app-ink);border-radius:var(--app-radius-control);font:inherit;padding:var(--space-3);resize:vertical}
 .lp-divider{border-top:1px solid var(--app-line);margin:var(--space-4) 0}
