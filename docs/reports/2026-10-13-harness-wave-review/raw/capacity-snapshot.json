@@ -1,0 +1,14 @@
+{
+  "observed_at": "2026-10-13T01:35:20.291896+00:00",
+  "scope": "read-only machine snapshot, not attributable per project/agent",
+  "cpu_logical": "14",
+  "memory_bytes": "51539607552",
+  "load_average": "{ 152.64 245.55 231.12 }",
+  "disk": [
+    "482797652",
+    "444353512",
+    "2188328",
+    "100%"
+  ],
+  "process_count": 1450
+}

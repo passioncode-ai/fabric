@@ -1,0 +1,64 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-001",
+  "node": "N-001",
+  "parent_id": "CO-282",
+  "module": "Session enrollment identity",
+  "intent": "Different runtime IDs never reuse a pending bearer; same-ID retries remain bounded",
+  "expected_result": "Different runtime IDs never reuse a pending bearer; same-ID retries remain bounded",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    },
+    {
+      "address": "apps/desktop/src/main/sessionEnroll.ts",
+      "sha256": "46f276f33e49af759344cdc64a1364c8b2eabb8eea67569c064a153941901638"
+    },
+    {
+      "address": "apps/desktop/test/session-enroll.test.mjs",
+      "sha256": "3bdc0861b29594ec584aed85fcf5f36f8df3ea3cd842b18f5ac77d4cfcb24058"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "8831335b5c5a8eae99e1bea54871f994c3a39a0402716675795ad4f46518a401"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/sessionEnroll.ts",
+      "apps/desktop/test/session-enroll.test.mjs"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Different runtime IDs never reuse a pending bearer; same-ID retries remain bounded",
+      "paths": [
+        "apps/desktop/src/main/sessionEnroll.ts",
+        "apps/desktop/test/session-enroll.test.mjs"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Execute positive cases in plan Task contracts row N-001",
+      "command": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs"
+    },
+    {
+      "kind": "negative",
+      "check": "Execute rejection/absence cases in plan Task contracts row N-001"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read plan and input digests, inspect current N-001 outputs, reproduce before fix",
+    "after_change": "Refresh evidence; independent review on final source; report exact limitations"
+  }
+}

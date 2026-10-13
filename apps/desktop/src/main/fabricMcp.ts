@@ -78,6 +78,8 @@ export interface ProxyDeps {
   log(line: string): void
   /** How often a waiting request is polled. */
   pollMs?: number
+  /** Monotonic clock for server-directed rate-limit deadlines; defaults to performance.now(). */
+  now?: () => number
   /** The coding agent's own session id (Claude Code's CLAUDE_CODE_SESSION_ID), sent with every enrollment (D1). */
   runtimeSessionId?: string | null
   /**
@@ -170,6 +172,27 @@ export function classifyFailure(e: unknown): CallFailure {
 }
 // #endregion fabric-mcp-failures
 
+// #region fabric-mcp-cooldown — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
+/** Server cooldowns are process-local, bounded and never contain a credential or URL. */
+export const RATE_LIMIT_FALLBACK_MS = 60_000
+export const RATE_LIMIT_MAX_MS = 300_000
+export function boundedRetryMs(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= RATE_LIMIT_MAX_MS
+    ? Math.max(1000, Math.ceil(value)) : RATE_LIMIT_FALLBACK_MS
+}
+export class FabricRateLimitError extends Error {
+  readonly code = 429
+  readonly retryAfterMs: number
+  constructor(delay: unknown) {
+    const retryAfterMs = boundedRetryMs(delay)
+    super(`Fabric refused HTTP 429; wait ${Math.ceil(retryAfterMs / 1000)} seconds before another request`)
+    this.name = 'FabricRateLimitError'
+    this.retryAfterMs = retryAfterMs
+  }
+}
+
+// #endregion fabric-mcp-cooldown
+
 const errorCode = (v: Record<string, unknown>): string | null => {
   const e = v.error as { code?: unknown } | undefined
   return typeof e?.code === 'string' ? e.code : null
@@ -199,6 +222,10 @@ export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
 export class FabricMcpProxy {
   state: ProxyState = { kind: 'starting' }
   private session: SessionLink | null = null
+  private hubIdentity: { origin: string; pid: number } | null = null
+  private cooldown: { origin: string; pid: number; until: number } | null = null
+  private closed = false
+  private closeWaiters = new Set<() => void>()
   /** Said before the state while there is no session: a credential handed over and lost, which needs a new Allow. */
   private notice: string | null = null
   /** Wakes the run loop out of its backoff (the agent called fabric_whoami). */
@@ -209,6 +236,45 @@ export class FabricMcpProxy {
   private deps: ProxyDeps
   constructor(deps: ProxyDeps) {
     this.deps = deps
+  }
+
+  private now(): number { return this.deps.now ? this.deps.now() : performance.now() }
+
+  /** A changed or absent hub invalidates the old deadline, never transfers its credentials. */
+  private cooldownRemaining(): number {
+    const held = this.cooldown
+    if (!held) return 0
+    const hub = this.deps.locate()
+    if (!hub.ok || hub.origin !== held.origin || hub.pid !== held.pid) {
+      this.cooldown = null
+      return 0
+    }
+    const remaining = Math.max(0, held.until - this.now())
+    if (!remaining) this.cooldown = null
+    return remaining
+  }
+
+  private rememberRateLimit(error: unknown): void {
+    const e = error as { code?: unknown; retryAfterMs?: unknown } | null
+    if (e?.code !== 429 || !this.hubIdentity) return
+    const until = this.now() + boundedRetryMs(e.retryAfterMs)
+    this.cooldown = { ...this.hubIdentity, until: Math.max(until, this.cooldown?.until ?? 0) }
+  }
+
+  private async hubCall(...args: Parameters<HubCall>): ReturnType<HubCall> {
+    if (this.closed) throw new Error('Fabric MCP client closed')
+    // An in-flight consent status may return a one-shot credential AFTER close. The caller
+    // must preserve that response locally, while the pre-send guard prevents another call.
+    return this.deps.hubCall(...args)
+  }
+
+  /** Closing this proxy also interrupts a pending consent poll, without deciding the request. */
+  private async pause(ms: number, woken?: Promise<void>): Promise<void> {
+    if (this.closed) return
+    let finish!: () => void
+    const closed = new Promise<void>((resolve) => { finish = resolve; this.closeWaiters.add(resolve) })
+    try { await Promise.race([this.deps.sleep(ms), closed, ...(woken ? [woken] : [])]) }
+    finally { this.closeWaiters.delete(finish) }
   }
 
   private set(state: ProxyState): ProxyState {
@@ -248,11 +314,14 @@ export class FabricMcpProxy {
 
   /** The tools the agent may call now. An McpError of a live session is thrown: the list is unknown, not empty. */
   async tools(): Promise<unknown[]> {
+    const remaining = this.cooldownRemaining()
+    if (this.session && remaining) throw new FabricRateLimitError(remaining)
     const link = this.session
     if (link) {
       try {
         return await link.listTools()
       } catch (e) {
+        this.rememberRateLimit(e)
         const f = classifyFailure(e)
         if (!f.drop) throw e
         // Not silent: dropSession logs the cause to stderr (fabric-mcp runs outside Fabric, with no ops sink) and
@@ -268,12 +337,15 @@ export class FabricMcpProxy {
   }
 
   async call(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const remaining = this.cooldownRemaining()
+    if (remaining) return text(`Fabric is rate limited; wait ${Math.ceil(remaining / 1000)} seconds. No new request was sent.`)
     const link = this.session
     if (link) {
       try {
         return await link.callTool(name, args)
       } catch (e) {
         // Logged to stderr (fabric-mcp has no ops sink) and said to the agent in the answer below.
+        this.rememberRateLimit(e)
         const f = classifyFailure(e)
         const cause = e instanceof Error ? e.message : String(e)
         this.deps.log(`fabric-mcp: ${name} failed (${cause})`)
@@ -301,10 +373,13 @@ export class FabricMcpProxy {
 
   /** One pass of the state machine; returns the state it reached. Never throws. */
   async connectOnce(): Promise<ProxyState> {
+    if (this.closed) return this.state
     try {
+      if (this.cooldownRemaining()) return this.state
       return await this.attempt()
     } catch (e) {
       // The failure becomes the state the agent reads (fabric_whoami) and set() logs it to stderr.
+      this.rememberRateLimit(e)
       return this.set({ kind: 'failed', reason: e instanceof Error ? e.message : String(e) })
     }
   }
@@ -313,6 +388,7 @@ export class FabricMcpProxy {
     if (this.session) return this.state
     const hub = this.deps.locate()
     if (!hub.ok) return this.set({ kind: hub.code, reason: hub.reason })
+    this.hubIdentity = { origin: hub.origin, pid: hub.pid }
     const cwd = this.deps.cwd
     const store = this.deps.store
     const runtime = this.deps.runtimeSessionId && RUNTIME_SESSION_ID.test(this.deps.runtimeSessionId) ? this.deps.runtimeSessionId : null
@@ -326,7 +402,7 @@ export class FabricMcpProxy {
         const gone = this.moved(hub)
         if (gone) return gone
         // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
-        const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
+        const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
         if (r.unauthorized) continue
         if (!r.isError) return this.open(hub.mcpUrl, r.value)
       }
@@ -340,7 +416,7 @@ export class FabricMcpProxy {
       // Each credential leaves only for the hub hub.json names now, with its pid alive (ER-7).
       const gone = this.moved(hub)
       if (gone) return gone
-      const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
+      const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
       if (r.unauthorized) {
         // Revoked, or minted by another Fabric: forget this one; the others (or the door) are tried next.
         store.forget(id)
@@ -356,7 +432,7 @@ export class FabricMcpProxy {
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
     if (need) return this.ask(hub, need.bearer, need.data, need.via)
 
-    const r = await this.deps.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
+    const r = await this.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })
@@ -395,7 +471,7 @@ export class FabricMcpProxy {
 
     const stale = this.moved(hub)
     if (stale) return stale
-    const asked = await this.deps.hubCall(url, bearer, 'fabric.access.request', {
+    const asked = await this.hubCall(url, bearer, 'fabric.access.request', {
       agentId: this.deps.runner,
       callee: 'fabric',
       capabilities: ['session.enroll'],
@@ -436,10 +512,11 @@ export class FabricMcpProxy {
       }
     }
     for (;;) {
-      await this.deps.sleep(this.deps.pollMs ?? 3000)
+      await this.pause(this.deps.pollMs ?? 3000)
+      if (this.closed) return this.state
       const gone = this.moved(hub)
       if (gone) return gone
-      const st = await this.deps.hubCall(url, bearer, 'fabric.access.status', { requestId: request.requestId, ...(request.pollSecret ? { pollSecret: request.pollSecret } : {}) })
+      const st = await this.hubCall(url, bearer, 'fabric.access.status', { requestId: request.requestId, ...(request.pollSecret ? { pollSecret: request.pollSecret } : {}) })
       if (st.unauthorized) return this.set({ kind: 'failed', reason: 'the request could not be read' })
       if (st.isError) {
         // An unknown request (expired from Fabric's store, another Fabric): it is not waited on any longer.
@@ -450,7 +527,10 @@ export class FabricMcpProxy {
         return this.set({ kind: 'failed', reason: 'the request could not be read' })
       }
       const status = st.value.status
-      if (status === 'pending') continue
+      if (status === 'pending') {
+        if (this.closed) return this.state
+        continue
+      }
       done()
       if (status === 'denied') return this.set({ kind: 'denied', projectName })
       if (status === 'expired') return this.set({ kind: 'starting' })
@@ -469,16 +549,23 @@ export class FabricMcpProxy {
             return this.set({ kind: 'failed', reason: `the credential could not be saved (${cause}); the Allow has to be repeated` })
           }
         }
-        return this.attempt()
+        return this.closed ? this.state : this.attempt()
       }
       return this.set({ kind: 'failed', reason: `unknown request status ${String(status)}` })
     }
   }
 
   private async open(url: string, value: Record<string, unknown>): Promise<ProxyState> {
+    if (this.closed) return this.state
     const s = value.session as { bearer?: unknown; projectId?: unknown; projectName?: unknown } | undefined
     if (!s || typeof s.bearer !== 'string') return this.set({ kind: 'failed', reason: 'the enroll answer carried no session' })
     const link = await this.deps.openSession(url, s.bearer)
+    if (this.closed) {
+      // close() could not see this link while openSession was pending. Dispose it now;
+      // never publish a session or tool-list change after this proxy has closed.
+      await (link.leave ? link.leave() : link.close())
+      return this.state
+    }
     link.onclose = () => {
       if (this.session !== link) return
       this.session = null
@@ -498,19 +585,22 @@ export class FabricMcpProxy {
     w?.()
   }
 
-  /** Keep connecting until `stop()`, waiting between passes by state (BACKOFF_MS); fabric_whoami cuts a wait short. */
+  /** Keep connecting until stopped/closed. whoami may wake ordinary backoff, never a server cooldown. */
   async run(stop: { stopped: boolean }): Promise<void> {
-    while (!stop.stopped) {
+    while (!stop.stopped && !this.closed) {
       const s = await this.connectOnce()
-      if (stop.stopped) return
+      if (stop.stopped || this.closed) return
       const woken = new Promise<void>((resolve) => { this.waker = resolve })
-      await Promise.race([this.deps.sleep(BACKOFF_MS[s.kind]), woken])
+      await this.pause(Math.max(BACKOFF_MS[s.kind], this.cooldownRemaining()), woken)
       this.waker = null
     }
   }
 
   /** The agent is gone (stdin ended): leave the session, so Fabric ends it and releases its claims. */
   async close(): Promise<void> {
+    this.closed = true
+    for (const finish of this.closeWaiters) finish()
+    this.wake()
     const s = this.session
     this.session = null
     if (s) await (s.leave ? s.leave() : s.close())

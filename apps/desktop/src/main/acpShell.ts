@@ -34,6 +34,8 @@ export interface AcpSessionSpec {
   brief: string
   /** How a permission request is answered. */
   mode: 'ask' | 'bypass'
+  /** Native mode advertised by session/new and acknowledged by session/set_mode before any prompt. */
+  sessionMode?: string
   /** The project's granted gateway servers, as HTTP MCP servers (they live on the machine's gateway). */
   grants?: Extract<AcpMcpServer, { type: 'http' }>[]
   /**
@@ -320,6 +322,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     })
 
   let sessionId: string | null = null
+  let observedSessionMode: string | null = null
   let turn: Promise<unknown> | null = null
   const rpc = peer(proc, io.timeouts?.requestMs ?? REQUEST_TIMEOUT_MS, {
     async request(method, params) {
@@ -339,7 +342,11 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     },
     notification(method, params) {
       if (method !== 'session/update' || !record(params)) return
-      const text = describeUpdate(params.update)
+      const update = params.update
+      if (sessionId !== null && params.sessionId === sessionId && record(update) &&
+          update.sessionUpdate === 'current_mode_update' && typeof update.currentModeId === 'string')
+        observedSessionMode = update.currentModeId
+      const text = describeUpdate(update)
       if (text) out(text)
     },
     closed() { /* The exit listener reports the end. */ },
@@ -427,8 +434,10 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     return stop(3)
   }
   const servers: AcpMcpServer[] = [surface, ...carried]
+  let offeredModes: unknown
   const openSession = async (): Promise<string | null> => {
     const created = await rpc.request('session/new', { cwd: spec.cwd ?? process.cwd(), mcpServers: servers })
+    offeredModes = record(created) ? created.modes : undefined
     return record(created) && typeof created.sessionId === 'string' ? created.sessionId : null
   }
   const methods = record(init) && Array.isArray(init.authMethods) ? init.authMethods.filter(record) : []
@@ -462,6 +471,34 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   }
   if (stopping) return stopping
   if (!sessionId) { out('\nThe agent opened no session (no session id).\n'); return stop(3) }
+  // CO-282 / N-002: a CLI accepting a flag does not prove its ACP session applied it.
+  // Select only an advertised native mode, and await its protocol acknowledgement before
+  // sending even the brief. Hermes omits sessionMode and keeps its existing permission path.
+  if (spec.sessionMode !== undefined) {
+    const available = record(offeredModes) && Array.isArray(offeredModes.availableModes) ? offeredModes.availableModes : []
+    if (!available.some(m => record(m) && m.id === spec.sessionMode)) {
+      out('\nFabric: the agent did not advertise the requested session mode; no prompt was sent.\n')
+      return stop(3)
+    }
+    observedSessionMode = null
+    try {
+      const ack = await rpc.request('session/set_mode', { sessionId, modeId: spec.sessionMode })
+      if (!record(ack)) throw new Error('invalid mode acknowledgement')
+    } catch {
+      // This standalone PTY reports a bounded refusal to its reader and exits with code 3;
+      // the parent PTY records that exit. Do not echo an untrusted peer error payload.
+      if (stopping) return stopping
+      out('\nFabric: the agent did not acknowledge the requested session mode; no prompt was sent.\n')
+      return stop(3)
+    }
+    if (stopping) return stopping
+    // An empty success result may omit an update. A known contradictory mode from this
+    // session cannot be overridden by that acknowledgement or by a foreign session's update.
+    if (observedSessionMode !== null && observedSessionMode !== spec.sessionMode) {
+      out('\nFabric: the agent reported a different session mode; no prompt was sent.\n')
+      return stop(3)
+    }
+  }
   opened = true
   out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${carried.length ? ` with ${carried.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
 

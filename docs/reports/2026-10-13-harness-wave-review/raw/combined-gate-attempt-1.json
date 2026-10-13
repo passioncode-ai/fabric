@@ -1,0 +1,24 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "base_commit": "30664c0ece35303b7458428a2b1b51bd590b3def",
+  "candidate_tree": "eb5b3e0e074b35b89aff3f1c21d40c78da73afe0",
+  "exit": 1,
+  "passed_through": [
+    "types",
+    "interface",
+    "documentation and registers",
+    "regions",
+    "migration order",
+    "sibling links with declared historical NOT_CHECKED",
+    "unified compiler/reconciliation 53 tests, 0 failed, 392700 ms",
+    "IPC, actor, eval, route, hooks"
+  ],
+  "failure": {
+    "path": "apps/desktop/src/main/acpShell.ts",
+    "line": 487,
+    "checker": "scripts/check-ops.mjs",
+    "message": "catch neither records nor explains"
+  },
+  "repair": "Explain existing bounded PTY refusal and recorded exit3; do not echo untrusted peer payload. No runtime behavior changed.",
+  "not_run": "Later steps were not reached in this invocation; next complete run remains required."
+}

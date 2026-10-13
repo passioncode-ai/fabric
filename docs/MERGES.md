@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 · agent/harness-waves-20261013 · prepared, NOT MERGED
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- files: see branch diff against a5b78e4919d82c6eae88bee72e59eba3e0c1fbae
+- conflicts: combined both MCP test groups, both merge-log entries and map lanes onto main4e227922; final gate remains pending
+- summary: Four reviewed repairs: pending enrollment identity/serialization, whole-context budget and refusal propagation, acknowledged ACP mode with contradictory-mode refusal, MCP Retry-After and close/late-consent boundaries. Eleven-node execution plan, host evidence matrix, upstream owner packets and resource/feedback specification. CO-282 remains partial. This entry is prepared inside the source iteration as required by the map contract; it does not assert a merge or installed runtime. Entry point: docs/handoffs/2026-10-13-harness-waves.md.
+
 ### 2026-10-13T02:40:00Z · `—` · agent/board-participants-land → main · fast-forward
 - run: r-faa9aae98a19
 - files: 21

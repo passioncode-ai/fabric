@@ -1,0 +1,258 @@
+{
+  "goal": "CO-282 portable harness and asynchronous evidence-bound delivery",
+  "requirements": [
+    "REQ-001",
+    "REQ-002",
+    "REQ-003",
+    "REQ-004",
+    "REQ-005",
+    "REQ-006",
+    "REQ-007",
+    "REQ-008",
+    "REQ-009",
+    "REQ-010"
+  ],
+  "nodes": [
+    {
+      "id": "N-001",
+      "title": "Session enrollment identity",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-001",
+      "blocked_by": [],
+      "touches": [
+        "apps/desktop/src/main/sessionEnroll.ts",
+        "apps/desktop/test/session-enroll.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-002",
+      "title": "Effective adapter modes and surface admission",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-002",
+      "blocked_by": [],
+      "touches": [
+        "apps/desktop/src/main/sessionBundle.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/shared/agents.ts",
+        "apps/desktop/test/session-bundle.test.mjs",
+        "apps/desktop/src/main/acpShell.ts",
+        "apps/desktop/test/acp-shell.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node apps/desktop/test/session-bundle.test.mjs",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-003",
+      "title": "Hard context budget",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-003",
+      "blocked_by": [],
+      "touches": [
+        "apps/desktop/src/main/contextPack.ts",
+        "apps/desktop/test/context-mandatory.test.mjs",
+        "apps/desktop/test/context-privacy.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-004",
+      "title": "All-host evidence matrix",
+      "owner": "researcher",
+      "status": "done",
+      "serves": "REQ-004",
+      "blocked_by": [],
+      "touches": [
+        "docs/execution/harness-waves/host-matrix.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-005",
+      "title": "Owner integration packets",
+      "owner": "researcher",
+      "status": "done",
+      "serves": "REQ-006",
+      "blocked_by": [],
+      "touches": [
+        "docs/execution/harness-waves/owner-packets.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-006",
+      "title": "Shared admission and feedback design",
+      "owner": "decomposer",
+      "status": "done",
+      "serves": "REQ-009",
+      "blocked_by": [],
+      "touches": [
+        "docs/execution/harness-waves/admission-feedback.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "Evidence artifact docs/reports/2026-10-13-harness-wave-review/README.md introduced at4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b; tested implementation source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Scoped deliverable only; upstream/runtime gates remain open."
+      ]
+    },
+    {
+      "id": "N-007",
+      "title": "Independent combined acceptance",
+      "owner": "reviewer",
+      "status": "pending",
+      "serves": "REQ-010",
+      "blocked_by": [
+        "N-001",
+        "N-002",
+        "N-003",
+        "N-004",
+        "N-005",
+        "N-006",
+        "N-011"
+      ],
+      "touches": [
+        "docs/execution/harness-waves/review.md",
+        "scripts/ci.sh"
+      ],
+      "surface_class": "internal",
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+    },
+    {
+      "id": "N-008",
+      "title": "Durable delivery and continuation",
+      "owner": "manager",
+      "status": "pending",
+      "serves": "REQ-005",
+      "blocked_by": [
+        "N-007"
+      ],
+      "touches": [
+        "docs/handoffs/2026-10-13-harness-waves.md"
+      ],
+      "surface_class": "internal",
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+    },
+    {
+      "id": "N-009",
+      "title": "Owner acceptance REQ-007",
+      "owner": "verifier",
+      "status": "blocked",
+      "serves": "REQ-007",
+      "blocked_by": [
+        "N-005"
+      ],
+      "touches": [
+        "docs/execution/harness-waves/N-009-owner-acceptance.json"
+      ],
+      "surface_class": "internal",
+      "check": "Owner board admission followed by real upstream positive/negative acceptance; NOT_SENT never passes"
+    },
+    {
+      "id": "N-010",
+      "title": "Owner acceptance REQ-008",
+      "owner": "verifier",
+      "status": "blocked",
+      "serves": "REQ-008",
+      "blocked_by": [
+        "N-005"
+      ],
+      "touches": [
+        "docs/execution/harness-waves/N-010-owner-acceptance.json"
+      ],
+      "surface_class": "internal",
+      "check": "Owner board admission followed by real upstream positive/negative acceptance; NOT_SENT never passes"
+    },
+    {
+      "id": "N-011",
+      "title": "MCP Retry-After and cooldown",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-008",
+      "blocked_by": [],
+      "touches": [
+        "apps/desktop/src/main/fabricMcp.ts",
+        "apps/desktop/src/main/fabricMcpClient.ts",
+        "apps/desktop/test/fabric-mcp.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs",
+      "evidence": [
+        "Exact three source SHA-256 values and independent three-negative-fixture PASS in docs/execution/harness-waves/review.md. Builder43/43 and typecheck exit0; live enrollment and owner acceptance remain open."
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "N-001",
+      "to": "N-007",
+      "payload": "N-001 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-002",
+      "to": "N-007",
+      "payload": "N-002 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-003",
+      "to": "N-007",
+      "payload": "N-003 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-004",
+      "to": "N-007",
+      "payload": "N-004 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-005",
+      "to": "N-007",
+      "payload": "N-005 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-006",
+      "to": "N-007",
+      "payload": "N-006 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-007",
+      "to": "N-008",
+      "payload": "N-007 committed output and exact-source validation receipt"
+    },
+    {
+      "from": "N-005",
+      "to": "N-009",
+      "payload": "Owner integration packet and acceptance contract"
+    },
+    {
+      "from": "N-005",
+      "to": "N-010",
+      "payload": "Owner integration packet and acceptance contract"
+    },
+    {
+      "from": "N-011",
+      "to": "N-007",
+      "payload": "Committed cooldown patch, failing-before/passing-after HTTP fixture and independent review"
+    }
+  ]
+}

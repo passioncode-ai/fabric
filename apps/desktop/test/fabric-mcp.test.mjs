@@ -328,7 +328,8 @@ test('Fabric\'s own refusals (429 call budget, 413, 408, 400) are passed on as F
     // The SDK's own error, as the HTTP client throws it for a non-2xx answer: the status as code, the body in the message.
     const e = new StreamableHTTPError(status, `Error POSTing to endpoint: ${JSON.stringify({ error: reason })}`)
     assert.deepEqual(classifyFailure(e), { drop: false, mayHaveRun: false, refusal: { status, reason } }, `${status}`)
-    const h = harness({ store: memCreds([CRED]) })
+    let now = 1000
+    const h = harness({ store: memCreds([CRED]), extra: { now: () => now } })
     await h.proxy.connectOnce()
     const real = h.link.callTool
     h.link.callTool = async () => { throw e }
@@ -344,7 +345,11 @@ test('Fabric\'s own refusals (429 call budget, 413, 408, 400) are passed on as F
     assert.equal(h.calls.filter((c) => c.tool === 'fabric.session.enroll').length, 1, 'no second enrollment: a fresh budget is never minted')
     assert.equal(h.opened.length, 1)
     h.link.callTool = real
-    assert.equal((await h.proxy.call('fabric_work_list', {})).content[0].text, 'real fabric_work_list', 'and still serves')
+    if (status === 429) {
+      assert.match((await h.proxy.call('fabric_work_list', {})).content[0].text, /No new request was sent/)
+      now += 60_000 // A bare SDK error has no header: the conservative fallback expires.
+    }
+    assert.equal((await h.proxy.call('fabric_work_list', {})).content[0].text, 'real fabric_work_list', 'and still serves after any cooldown')
     // The tool list under a refusal: thrown, the session kept.
     h.link.listTools = async () => { throw e }
     await assert.rejects(() => h.proxy.tools(), (thrown) => thrown === e)
@@ -527,4 +532,225 @@ test('the runtime session id: Claude Code\'s own variable for claude-code only; 
   assert.equal(runtimeSessionIdOf('codex', ['--runner', 'codex', '--runtime-session-id', 'thr-1'], env), 'thr-1')
   assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code', '--runtime-session-id', 'rt-2'], env), 'rt-2')
   assert.equal(runtimeSessionIdOf('claude-code', ['--runner', 'claude-code'], {}), null)
+})
+
+
+// CO-282: the real HTTP boundary must preserve throttling; no native hub or network.
+test('HTTP 429 retains Retry-After through the actual hub client', async () => {
+  const { makeHubCall } = await import(path.join(SRC, 'fabricMcpClient.ts'))
+  const originalFetch = globalThis.fetch
+  let calls = 0
+  globalThis.fetch = async () => {
+    calls++
+    return new Response('{"error":"call budget exhausted before body admission"}', {
+      status: 429, headers: { 'retry-after': '60', 'content-type': 'application/json' }
+    })
+  }
+  try {
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), e => {
+      assert.equal(e.code, 429)
+      assert.equal(e.retryAfterMs, 60_000)
+      assert.ok(!JSON.stringify(e).includes(CRED))
+      return true
+    })
+    assert.equal(calls, 1)
+  } finally { globalThis.fetch = originalFetch }
+})
+
+test('HTTP 429 cooldown survives whoami wakes and direct connection retries', async () => {
+  let now = 1000, calls = 0
+  const h = harness({ extra: { now: () => now, hubCall: async () => {
+    calls++
+    throw Object.assign(new Error('rate limited'), { code: 429, retryAfterMs: 60_000 })
+  } } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'failed')
+  await h.proxy.call(WAITING_TOOL, {})
+  await h.proxy.connectOnce()
+  assert.equal(calls, 1, 'whoami and another pass must not send before Retry-After')
+  now += 59_999
+  await h.proxy.connectOnce()
+  assert.equal(calls, 1)
+  now++
+  await h.proxy.connectOnce()
+  assert.equal(calls, 2, 'a pass may try after the server delay')
+})
+
+
+test('HTTP 429 parses seconds and dates with bounded invalid-header fallback', async () => {
+  const { retryAfterMs } = await import(path.join(SRC, 'fabricMcpClient.ts'))
+  const now = Date.parse('2026-10-13T00:00:00Z')
+  assert.equal(retryAfterMs('60', now), 60_000)
+  assert.equal(retryAfterMs('Tue, 13 Oct 2026 00:00:45 GMT', now), 45_000)
+  assert.equal(retryAfterMs('0', now), 1000)
+  assert.equal(retryAfterMs('300', now), 300_000)
+  for (const value of [null, '', '-1', 'NaN', 'Infinity', '99999999999999999999999999', '301',
+    'Tue, 13 Oct 2026 00:00:00 GMT garbage', 'Mon, 12 Oct 2026 23:59:00 GMT']) {
+    assert.equal(retryAfterMs(value, now), 60_000, String(value))
+  }
+})
+
+test('HTTP 429 run loop cannot be accelerated by whoami and closes without another attempt', async () => {
+  let calls = 0
+  const waits = []
+  const h = harness({ extra: { now: () => 1000, hubCall: async () => {
+    calls++; throw Object.assign(new Error('limited'), { code: 429, retryAfterMs: 60_000 })
+  }, sleep: ms => { waits.push(ms); return new Promise(() => {}) } } })
+  const running = h.proxy.run({ stopped: false })
+  await new Promise(r => setImmediate(r))
+  assert.deepEqual(waits, [60_000])
+  await h.proxy.call(WAITING_TOOL, {})
+  await new Promise(r => setImmediate(r))
+  assert.equal(calls, 1)
+  await h.proxy.close()
+  await running
+  await h.proxy.connectOnce()
+  assert.equal(calls, 1)
+})
+
+test('HTTP 429 cooldown does not follow a changed hub identity or send its old door credential', async () => {
+  let current = LIVE
+  const seen = []
+  const h = harness({ extra: { now: () => 1000, locate: () => current, hubCall: async (url, bearer) => {
+    seen.push({ url, bearer })
+    if (current === LIVE) throw Object.assign(new Error('limited'), { code: 429, retryAfterMs: 60_000 })
+    return { isError: true, value: { error: { code: 'no-project', message: 'not a project' } } }
+  } } })
+  await h.proxy.connectOnce()
+  current = { ...LIVE, pid: 2, origin: 'http://127.0.0.1:47071', mcpUrl: 'http://127.0.0.1:47071/mcp', doorToken: 'N'.repeat(43) }
+  assert.equal((await h.proxy.connectOnce()).kind, 'no-project')
+  assert.equal(seen.length, 2)
+  assert.deepEqual(seen[1], { url: current.mcpUrl, bearer: current.doorToken })
+})
+
+test('HTTP 429 pending consent keeps its request and close interrupts polling without approving or denying', async () => {
+  const store = memCreds()
+  const h = harness({ store, extra: { sleep: () => new Promise(() => {}) } })
+  const connecting = h.proxy.connectOnce()
+  await new Promise(r => setImmediate(r))
+  assert.equal(h.proxy.state.kind, 'waiting')
+  assert.ok(store.pending(RESOURCE))
+  const before = h.calls.length
+  await h.proxy.close()
+  await connecting
+  assert.equal(h.calls.length, before)
+  assert.equal(store.creds.size, 0)
+  assert.ok(store.pending(RESOURCE), 'closing a child does not decide or remove operator consent')
+})
+
+test('HTTP 429 under a live session keeps enrollment and suppresses calls and tools during cooldown', async () => {
+  let now = 1000, calls = 0
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now } })
+  await h.proxy.connectOnce()
+  const enrolls = h.calls.length
+  h.link.callTool = async () => {
+    calls++; throw Object.assign(new Error('limited'), { code: 429, retryAfterMs: 60_000 })
+  }
+  await h.proxy.call('fabric_work_list', {})
+  await h.proxy.call('fabric_work_list', {})
+  await assert.rejects(h.proxy.tools(), e => e.code === 429 && e.retryAfterMs === 60_000)
+  assert.equal(calls, 1)
+  assert.equal(h.proxy.state.kind, 'connected')
+  assert.equal(h.calls.length, enrolls)
+  now += 60_000
+  await h.proxy.call('fabric_work_list', {})
+  assert.equal(calls, 2)
+})
+
+
+test('HTTP 429 during consent polling resumes the kept request only after expiry', async () => {
+  let now = 1000, polls = 0
+  const store = memCreds()
+  const h = harness({ store, statuses: ['allowed'], extra: { now: () => now } })
+  const original = h.proxy.deps.hubCall
+  h.proxy.deps.hubCall = async (...args) => {
+    if (args[2] === 'fabric.access.status' && ++polls === 1)
+      throw Object.assign(new Error('limited poll'), { code: 429, retryAfterMs: 60_000 })
+    return original(...args)
+  }
+  assert.equal((await h.proxy.connectOnce()).kind, 'failed')
+  assert.ok(store.pending(RESOURCE))
+  const before = h.calls.length
+  await h.proxy.call(WAITING_TOOL, {})
+  await h.proxy.connectOnce()
+  assert.equal(h.calls.length, before)
+  now += 60_000
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.equal(h.calls.filter(c => c.tool === 'fabric.access.request').length, 1)
+  assert.equal(polls, 2)
+  assert.equal(store.pending(RESOURCE), null)
+})
+
+
+test('HTTP 429 from SDK background SSE prevents the following tool POST', async () => {
+  const { makeHubCall } = await import(path.join(SRC, 'fabricMcpClient.ts'))
+  const originalFetch = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (_input, init) => {
+    if (init.method === 'GET') {
+      sent.push('GET')
+      return new Response(null, { status: 429, headers: { 'retry-after': '60' } })
+    }
+    const request = JSON.parse(init.body)
+    sent.push(request.method)
+    if (request.method === 'notifications/initialized') return new Response(null, { status: 202 })
+    const result = request.method === 'initialize'
+      ? { protocolVersion: '2025-11-25', capabilities: {}, serverInfo: { name: 'fixture', version: '1' } }
+      : { content: [], structuredContent: { ok: true } }
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: request.id, result }), {
+      status: 200, headers: { 'content-type': 'application/json' }
+    })
+  }
+  try {
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), e => {
+      assert.equal(e.code, 429)
+      assert.ok(e.retryAfterMs > 59_000 && e.retryAfterMs <= 60_000)
+      return true
+    })
+    assert.deepEqual(sent, ['initialize', 'notifications/initialized', 'GET'])
+  } finally { globalThis.fetch = originalFetch }
+})
+
+test('HTTP 429 lifecycle: a session that opens after close is left and never attached', async () => {
+  let finishOpen, opened = 0, left = 0, calls = 0
+  const link = {
+    listTools: async () => [], callTool: async () => { calls++; return {} },
+    close: async () => {}, leave: async () => { left++ }
+  }
+  const h = harness({ store: memCreds([CRED]), extra: { openSession: () => {
+    opened++
+    return new Promise(resolve => { finishOpen = resolve })
+  } } })
+  const connecting = h.proxy.connectOnce()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(opened, 1)
+  await h.proxy.close()
+  finishOpen(link)
+  await connecting
+  await h.proxy.call('fabric_work_list', {})
+  assert.equal(left, 1)
+  assert.equal(calls, 0)
+  assert.notEqual(h.proxy.state.kind, 'connected')
+  assert.equal(h.changed, 0)
+})
+
+
+test('HTTP 429 lifecycle: a late allowed poll saves the one-shot credential after close without enrolling', async () => {
+  const store = memCreds()
+  const h = harness({ store })
+  let finishStatus
+  const original = h.proxy.deps.hubCall
+  h.proxy.deps.hubCall = (...args) => args[2] === 'fabric.access.status'
+    ? new Promise(resolve => { finishStatus = resolve }) : original(...args)
+  const connecting = h.proxy.connectOnce()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(typeof finishStatus, 'function')
+  const before = h.calls.length
+  await h.proxy.close()
+  finishStatus({ isError: false, value: { status: 'allowed', credential: CRED } })
+  await connecting
+  assert.deepEqual([...store.creds.values()], [CRED], 'already consumed one-shot response must remain recoverable')
+  assert.equal(store.pending(RESOURCE), null)
+  assert.equal(h.calls.length, before, 'no new enrollment after close')
+  assert.equal(h.opened.length, 0)
+  assert.notEqual(h.proxy.state.kind, 'connected')
 })

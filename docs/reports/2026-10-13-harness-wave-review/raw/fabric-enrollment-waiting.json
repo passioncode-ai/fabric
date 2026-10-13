@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-10-13T01:10:28.874791+00:00",
+  "transport": "registered fabric-mcp through adapter skill stdio client",
+  "tool": "fabric_whoami",
+  "actual_state": "waiting",
+  "actual_message": "Waiting for the operator to allow this coding agent in Fabric to work in the project fabric",
+  "meaning": "Project recognized; operator project-access consent is pending. No COM calls, work claims, notes or lesson submission succeeded.",
+  "prior_states": [
+    "starting",
+    "no-project",
+    "failed503",
+    "no-project"
+  ]
+}

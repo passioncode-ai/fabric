@@ -1,0 +1,26 @@
+{
+  "base_commit": "30664c0ece35303b7458428a2b1b51bd590b3def",
+  "candidate_tree_at_full_attempt": "8540a7a02b81b34da1d34c788c34682b33c1c3ac",
+  "full_command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "full_exit": 1,
+  "failure": "Disposable stack tests could not resolve pg-connection-string from packages/schema; ignored schema dependency link was missing",
+  "repair": "Link existing compatible packages/schema/node_modules, no dependency install or live database call",
+  "completed_before_failure": "Types, design/docs/registers, compiler53, build, renderer tests, pure application checks, six owned PostgreSQL suites",
+  "continuation_1": {
+    "from": "scripts/ci.sh line403, test-stack/rehearse/residue/timeout/chains/cleanup/release-gate suites",
+    "exit": 1,
+    "failure": "Plan projection stale after task-owned backlog change",
+    "repair": "Run canonical scripts/build-plan-projection.mjs; do not hand-edit generated JSON"
+  },
+  "continuation_2": {
+    "from": "scripts/ci.sh line483, build-plan-projection --check through fast tier end",
+    "exit": 0
+  },
+  "limits": [
+    "Segmented verification; full invocation never returned0 on this old-base candidate",
+    "Continuations preserved test commands/assertions and temporary-directory cleanup",
+    "The integration branch requires its own full fast run",
+    "Build toolchain declared UNVERIFIED: Node26.10.0 differs from pinned26.8.2; no release reproducibility claim",
+    "Live stack/provider/all-host acceptance not established"
+  ]
+}
