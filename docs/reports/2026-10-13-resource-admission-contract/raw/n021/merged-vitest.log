@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 apps/desktop
+
+
+ Test Files  4 passed (4)
+      Tests  92 passed (92)
+   Start at  06:42:49
+   Duration  2.57s (transform 203ms, setup 226ms, import 245ms, tests 467ms, environment 1.28s)

@@ -1,0 +1,55 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-021",
+  "node": "N-021",
+  "parent_id": "CO-282",
+  "module": "Serialize board session admission per binding",
+  "intent": "Serialize board session admission per binding",
+  "expected_result": "Concurrent board joins respect the cap and only reuse fully validated bearers",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "2572232b5852e18797829c6986062e706ae9a07b2bd0cf0d0c612efd41a53de1"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "2572232b5852e18797829c6986062e706ae9a07b2bd0cf0d0c612efd41a53de1"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/sessionEnroll.ts",
+      "apps/desktop/test/session-enroll.test.mjs"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Concurrent board joins respect the cap and only reuse fully validated bearers",
+      "paths": [
+        "apps/desktop/src/main/sessionEnroll.ts",
+        "apps/desktop/test/session-enroll.test.mjs"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "33 enrollment regressions plus independent four-control concurrency probe and merged board seams"
+    },
+    {
+      "kind": "negative",
+      "check": "Original source fails the same concurrency, pending-revocation and grant-read-error assertions"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

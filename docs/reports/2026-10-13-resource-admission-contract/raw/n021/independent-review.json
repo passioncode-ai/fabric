@@ -1,0 +1,64 @@
+{
+  "node": "N-021",
+  "verdict": "ACCEPT_SCOPED",
+  "reviewer": "pipeline_research",
+  "authorship": {
+    "candidate_author": "mcp_research",
+    "independent_reviewer_authored_candidate": false,
+    "reviewer_contribution": "Original concurrency reproduction; independent acceptance script."
+  },
+  "source_context": {
+    "incoming": "ac874946db2487ab8101464d1abf1e8345eda199",
+    "ours": "444f5f961b300ca99f0532229e8d00724db527fe",
+    "candidate": "temporary frozen merged source, no commit claimed"
+  },
+  "source_hashes": {
+    "apps/desktop/src/main/sessionEnroll.ts": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+    "apps/desktop/test/session-enroll.test.mjs": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9",
+    "before.ts": "d2a66db99013e4c4da282ef55efb4120c210a6f0401db80a7cd88697a2e3411e",
+    "n021.patch": "d6ee10d3d5159686d773c1fe5781163cbb03cbbe432dfd784df5777383aa504a"
+  },
+  "independent_artifact_sha256": "3a05d4ab36184a42e2a5a7dfd8c1dd443da55be14060808d7fd47e9a6ecce7c9",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs",
+      "exit": 0,
+      "passed": 33,
+      "failed": 0,
+      "duration_ms": 403.523416
+    },
+    {
+      "command": "node adversarial.mjs <candidate sessionEnroll.ts>",
+      "exit": 0,
+      "controls": 4,
+      "observed": {
+        "concurrent_retry_calls": 8,
+        "distinct_project_calls": 40,
+        "peak_live": 4,
+        "cap": 4,
+        "check_failure_releases_queue": true,
+        "other_board_binding_independent": true
+      }
+    },
+    {
+      "command": "node adversarial.mjs <before-normalized.ts>",
+      "exit": 1,
+      "intended_failure": "8 live sessions instead of 1 fully checked shared session",
+      "normalization": "Only relative imports rewritten to candidate dependency files; original join logic unchanged."
+    },
+    {
+      "check": "Source diff adds only existing-serializer wrapper and Once function; coding board filter plus exact runtime identity retained",
+      "result": "PASS"
+    },
+    {
+      "check": "Added tests retain original assertions and cover pending revocation, grant-read error, mixed coding/board shared queue and different-binding independence",
+      "result": "PASS"
+    }
+  ],
+  "findings": [],
+  "limitations": [
+    "Synthetic source and injected dependency checks; no DB, build, provider or native execution.",
+    "Full merged root integration and incoming board-surface behavior need their own integration checks.",
+    "Existing serializer is per EnrolledSessions instance and per binding, not a distributed admission lock."
+  ]
+}

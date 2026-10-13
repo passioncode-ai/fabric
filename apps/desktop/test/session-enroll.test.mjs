@@ -486,3 +486,127 @@ test('an enrolled mint tells the surface it is an enrollment, its runner, its ru
   await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
   assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id }])
 })
+
+// #region board-join-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+// `fabric.board.join` (ADR-0149 §4) with ADR-0134's safeguards (wave-2 fix 11): an unspent bearer handed out again, a
+// cap of its own, the grant read again after the mint, and an eviction text that names tools a board session has.
+const { joinBoardSession, MAX_BOARD_SESSIONS_PER_BINDING, boardEvictedReason } = await import(path.join(SRC, 'sessionEnroll.ts'))
+const RG = 'rg-1'
+const respondGrant = (over = {}) => ({ id: RG, callee: 'fabric', capability: 'board.respond', resource: `board:${P}/finance.close`, revoked_at: null, expires_at: new Date(Date.now() + 3600000).toISOString(), ...over })
+function boardDeps(over = {}) {
+  const h = deps()
+  const minted = []
+  return {
+    ...h, boardMinted: minted,
+    b: {
+      check: async () => ({ capabilities: ['finance.close'], grants: [RG] }),
+      liveGrants: async () => [respondGrant()],
+      mint: (projectId, sessionId, taskId, origin) => { minted.push({ projectId, sessionId, origin }); return h.surface.mint(projectId, sessionId) },
+      sessions: h.sessions,
+      stillLive: async () => true,
+      ...over
+    }
+  }
+}
+
+test('a board join mints one board session with the grants\' earliest expiry; a loop of joins hands out the one unspent bearer', async () => {
+  const h = boardDeps()
+  const first = await joinBoardSession(binding, { projectId: P }, h.b)
+  assert.equal(first.ok, true); assert.deepEqual(first.session.capabilities, ['finance.close'])
+  for (let i = 0; i < 50; i++) assert.equal((await joinBoardSession(binding, { projectId: P }, h.b)).session.bearer, first.session.bearer)
+  assert.equal(h.boardMinted.length, 1, 'every join minted a new board session')
+  assert.equal(h.boardMinted[0].origin.surface, 'board'); assert.equal(h.boardMinted[0].origin.cameIn, 'hub')
+  assert.ok(Math.abs(h.boardMinted[0].origin.authorityUntil - (Date.now() + 3600000)) < 5000, 'the session does not know when its grant expires')
+})
+
+test('board joins are capped per binding on their own: the least recently active board session ends and is told what a board session can do; a coding agent\'s enrollment never evicts one', async () => {
+  const h = boardDeps()
+  const ids = []
+  for (let i = 0; i < MAX_BOARD_SESSIONS_PER_BINDING + 2; i++) { const j = await joinBoardSession(binding, { projectId: P }, h.b); ids.push(j.session.sessionId); h.surface.claimAll() }
+  assert.equal(h.sessions.liveOf(binding.id).length, MAX_BOARD_SESSIONS_PER_BINDING)
+  const told = h.surface.why.get(ids[0])
+  assert.equal(told, boardEvictedReason(MAX_BOARD_SESSIONS_PER_BINDING))
+  assert.match(told, /fabric\.board\.join/); assert.doesNotMatch(told, /fabric_work_list/, 'a board session was told to use a tool it does not have')
+  // Nine coding-agent enrollments of the same binding leave the board sessions alone.
+  const e = deps({ liveGrants: async () => [grant()] })
+  const sessions = h.sessions
+  for (let i = 0; i < MAX_ENROLLED_PER_BINDING + 1; i++) { await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, { ...e.d, sessions, mint: (projectId, sessionId) => h.surface.mint(projectId, sessionId) }); h.surface.claimAll() }
+  assert.equal(sessions.liveOf(binding.id).filter((r) => r.surface === 'board').length, MAX_BOARD_SESSIONS_PER_BINDING, 'a coding agent\'s enrollment evicted a board session')
+})
+
+test('the read-then-mint race: a board.respond grant found revoked when read again after the mint ends the board session — nothing stands', async () => {
+  const h = boardDeps({ stillLive: async () => false })
+  const r = await joinBoardSession(binding, { projectId: P }, h.b)
+  assert.equal(r.ok, false); assert.equal(r.code, 'authority_changed')
+  assert.equal(h.sessions.liveOf(binding.id).length, 0); assert.equal(h.surface.held.size, 0, 'the minted bearer still stands')
+  const refused = await joinBoardSession(binding, { projectId: P }, boardDeps({ check: async () => ({ error: { code: 'not_authorized', message: 'no', retryable: false } }) }).b)
+  assert.equal(refused.code, 'not_authorized')
+})
+// #endregion board-join-session
+
+// N-021: board and coding admissions share one binding serializer, with separate caps.
+test('concurrent board retries share only a fully checked unspent session', async () => {
+  const h = boardDeps()
+  const answers = await Promise.all(Array.from({ length: 8 }, () => joinBoardSession(binding, { projectId: P }, h.b)))
+  assert.ok(answers.every(r => r.ok))
+  assert.equal(new Set(answers.map(r => r.session.sessionId)).size, 1)
+  assert.equal(h.boardMinted.length, 1)
+  assert.equal(h.sessions.liveOf(binding.id).length, 1)
+})
+test('concurrent board joins never exceed their cap while distinct projects cannot share a spare', async () => {
+  const h = boardDeps(); let peak = 0
+  const mint = h.b.mint
+  h.b.mint = (...args) => { const token = mint(...args); peak = Math.max(peak, h.surface.held.size); return token }
+  const answers = await Promise.all(Array.from({ length: 8 }, (_, i) => joinBoardSession(binding, { projectId: `${P}-${i}` }, h.b)))
+  assert.ok(answers.every(r => r.ok))
+  assert.equal(h.boardMinted.length, 8)
+  assert.equal(h.sessions.liveOf(binding.id).length, MAX_BOARD_SESSIONS_PER_BINDING)
+  assert.ok(peak <= MAX_BOARD_SESSIONS_PER_BINDING)
+})
+for (const failure of ['revoked', 'read-error']) test(`queued board retry never borrows pending bearer after ${failure}`, async () => {
+  const h = boardDeps(); let finish, checks = 0, revoked = false, pendingEntered
+  const entered = new Promise(resolve => { pendingEntered = resolve })
+  h.b.check = async () => { checks++; return revoked ? { error: { code: 'not_authorized', message: 'revoked', retryable: false } } : { capabilities: ['finance.close'], grants: [RG] } }
+  let reads = 0
+  h.b.stillLive = async () => {
+    if (++reads !== 1) return true
+    pendingEntered()
+    return await new Promise((resolve, reject) => { finish = () => failure === 'read-error' ? reject(Error('synthetic grant read')) : resolve(false) })
+  }
+  const first = joinBoardSession(binding, { projectId: P }, h.b).then(value => ({ value }), error => ({ error }))
+  await entered
+  let secondSettled = false
+  const second = joinBoardSession(binding, { projectId: P }, h.b).then(value => { secondSettled = true; return value })
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(secondSettled, false, 'pending registration is not a reusable admission')
+  assert.equal(checks, 1, 'the queued call checks authority after taking the same binding slot')
+  if (failure === 'revoked') revoked = true
+  finish()
+  const a = await first, b = await second
+  if (failure === 'revoked') {
+    assert.equal(a.value.code, 'authority_changed'); assert.equal(b.code, 'not_authorized')
+    assert.equal(h.boardMinted.length, 1); assert.equal(h.surface.held.size, 0)
+  } else {
+    assert.match(a.error.message, /synthetic/); assert.equal(b.ok, true)
+    assert.equal(h.boardMinted.length, 2); assert.equal(h.surface.state(b.session.bearer), 'unclaimed')
+    assert.equal(h.sessions.liveOf(binding.id).length, 1)
+  }
+})
+test('board and coding calls share binding serialization but preserve separate surfaces and runtime identities', async () => {
+  const h = boardDeps(); let finish, enteredResolve
+  const entered = new Promise(resolve => { enteredResolve = resolve })
+  h.b.stillLive = async () => { enteredResolve(); return await new Promise(resolve => { finish = resolve }) }
+  const board = joinBoardSession(binding, { projectId: P }, h.b)
+  await entered
+  const coding = enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'native-A' }, h.d)
+  const other = await enrollSession({ ...binding, id: 'different-binding' }, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'other' }, h.d)
+  assert.equal(other.ok, true, 'another binding remains independent')
+  assert.equal(h.minted.length, 1, 'same-binding coding call waits behind the pending board join')
+  finish(true)
+  const [b, c] = await Promise.all([board, coding])
+  assert.equal(b.ok, true); assert.equal(c.ok, true); assert.notEqual(b.session.bearer, c.session.bearer)
+  const unknown = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  assert.equal(unknown.ok, true); assert.notEqual(unknown.session.bearer, c.session.bearer)
+  assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface === 'board').length, 1)
+  assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface !== 'board').length, 2)
+})

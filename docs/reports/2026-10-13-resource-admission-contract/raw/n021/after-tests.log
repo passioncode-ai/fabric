@@ -1,0 +1,41 @@
+✔ a live grant on the folder's project mints one session for that project, no task, and journals it (2.372834ms)
+✔ no grant, a revoked grant, an expired grant or a grant on another project: needs-grant, nothing minted (0.264833ms)
+✔ a folder no project holds: no-project, with what to do in Fabric's own words (0.130334ms)
+✔ a relative, missing or non-string folder: bad-folder, said of this computer (0.157041ms)
+✔ through the door (no binding) the folder's project is named, never a session (0.073959ms)
+✔ the read-then-mint race: a grant found revoked when read again after the mint ends the session — needs-grant (0.133625ms)
+✔ mint then journal: a journal that refuses the event takes the minted session with it, and the failure is thrown (0.261583ms)
+✔ a loop of 200 enrolls hands out the one unspent bearer: one mint, one journal event, one credential (1.946417ms)
+✔ pending bearers belong to one runtime identity, including the known/unknown boundary (0.550958ms)
+✔ concurrent same-runtime retries share one admitted pending bearer and journal event (0.356083ms)
+✔ a concurrent retry cannot receive a bearer while its admission will be refused (1.99675ms)
+✔ a failed pending journal releases admission and a retry gets a fresh, journalled bearer (0.345709ms)
+✔ pending admission in one binding does not serialize another binding (0.345208ms)
+✔ a loop that spends every bearer is capped: the binding keeps at most MAX_ENROLLED_PER_BINDING live sessions, the oldest end (4.017459ms)
+✔ past the cap the least recently active session ends, never one that called within the renewal window while an idle one exists, and it is told why (0.3.5 review i2 ER-4) (0.285ms)
+✔ the session hooks' rejoins hold at most one bearer per session: an unspent one is handed out again, a spent one is replaced (0.3.5 review i2 ER-5) (0.382583ms)
+✔ revoking the grant ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant (16.859084ms)
+✔ revoking the binding ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant (4.937708ms)
+✔ a revocation that lands between the mint and the re-read: the minted bearer never stands (1.663291ms)
+✔ an enrolled agent that leaves (DELETE) ends its session and its claims go; a rejoin bearer that leaves takes only itself (0.3.5 review i2 ER-4) (17.238417ms)
+✔ an evicted session's next call is told it was evicted and that its claims were released, not that Fabric restarted (0.3.5 review i2 ER-4) (4.600708ms)
+✔ a bearer minted and never presented does not stay: the next mint sweeps the ones past their claim window (0.3.5 review i2 ER-5) (0.285084ms)
+✔ a rejoin joins the live session of that runtime session — the same session, a second bearer, nothing journalled (0.118ms)
+✔ a rejoin with no live session of that runtime session asks nothing and mints nothing (0.186625ms)
+✔ an enrolled mint tells the surface it is an enrollment, its runner, its runtime session and its binding (ADR-0149 §3) (0.072209ms)
+✔ a board join mints one board session with the grants' earliest expiry; a loop of joins hands out the one unspent bearer (0.465791ms)
+✔ board joins are capped per binding on their own: the least recently active board session ends and is told what a board session can do; a coding agent's enrollment never evicts one (0.324583ms)
+✔ the read-then-mint race: a board.respond grant found revoked when read again after the mint ends the board session — nothing stands (0.065209ms)
+✔ concurrent board retries share only a fully checked unspent session (0.089959ms)
+✔ concurrent board joins never exceed their cap while distinct projects cannot share a spare (0.12825ms)
+✔ queued board retry never borrows pending bearer after revoked (0.660083ms)
+✔ queued board retry never borrows pending bearer after read-error (0.273875ms)
+✔ board and coding calls share binding serialization but preserve separate surfaces and runtime identities (0.167292ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 311.448334

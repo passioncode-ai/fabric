@@ -1,0 +1,26 @@
+{
+  "node": "N-019",
+  "done": [
+    "Pending SQL CAS store and actual isolated role/FIFO/restart/lost-response acceptance"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Active schema, production composition and native process/provider acceptance remain open"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/independent-review.json",
+    "All six actual SQL stages passed; full combined7b3 fast exit0"
+  ],
+  "tested": {
+    "head": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b",
+    "tree": "b364896fa7e365ad801934d13c2bd7c627da7357",
+    "checks": [
+      "Full bash scripts/ci.sh fast exit0,661.41s, same before/after tree; owned pending107/108 SQL included",
+      "Independent review source hashes match current SQL/client/final fixture"
+    ]
+  }
+}

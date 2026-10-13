@@ -92,6 +92,8 @@ export interface EnrolledSession {
   rejoinBearer?: string | null
   /** A board session (`fabric.board.join`, ADR-0149 §4) holds several board.respond grants: any one revoked ends it. */
   grantIds?: string[]
+  /** 'board': a board session — capped apart from a coding agent's enrollments, never evicted by one (wave-2 fix 11). */
+  surface?: 'board'
 }
 
 /**
@@ -254,7 +256,8 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   // that no client has spent yet is handed out again, and past the cap the binding's LEAST RECENTLY ACTIVE session
   // ends (0.3.5 review iteration 2, ER-4): by its last call, not its mint, so a long-running agent at work outlives the
   // short ones that already exited, and the one evicted is told why on its next call.
-  const live = deps.sessions.liveOf(binding.id)
+  // Board sessions have their own cap and cannot lend a coding session's bearer.
+  const live = deps.sessions.liveOf(binding.id).filter((s) => s.surface !== 'board')
   // Unknown identities can retry each other as before, but never borrow a known runtime's
   // bearer. A different runtime would otherwise inherit its session while its own hooks fail to rejoin.
   const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === folder.projectId &&
@@ -295,3 +298,82 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   return session(token, sessionId)
 }
 // #endregion session-enroll
+
+// #region board-join-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+/** Live board sessions one binding may hold; a further join ends the least recently active one (wave-2 fix 11). */
+export const MAX_BOARD_SESSIONS_PER_BINDING = 4
+
+/** What an evicted board session's next call is told: the true reason, in the tools a board session has. */
+export const boardEvictedReason = (cap: number): string =>
+  `this board session was ended to make room: this agent's access reached its limit of ${cap} board sessions, and this one was the least recently active. ` +
+  'Its responder slots were released — join again with fabric.board.join, then take the slot again with com.enroll'
+
+export type BoardJoinAnswer =
+  | { ok: true; session: { bearer: string; sessionId: string; projectId: string; capabilities: string[] } }
+  | { ok: false; code: string; message: string }
+
+export interface BoardJoinDeps {
+  /** The board's join check (`board_join_check`): the capabilities and grants this binding answers for on the Project. */
+  check(bindingId: string, projectId: string): Promise<{ capabilities: string[]; grants: string[] } | { error: { code: string; message: string } }>
+  /** The binding's live grants, for their expiry (a grant that expires fires no revocation). */
+  liveGrants(binding: BindingRow): Promise<GrantRow[]>
+  /** The board-session mint (`AgentSurface.mint` with a board origin). */
+  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'hub'; agent: string; bindingId: string; surface: 'board'; authorityUntil: number | null }): { token: string }
+  sessions: EnrolledSessions
+  /** Read again after the mint: the binding and each grant are still live (ADR-0134's read-then-mint). */
+  stillLive(bindingId: string, grantId: string): Promise<boolean>
+  maxBoardSessionsPerBinding?: number
+  now?: () => number
+}
+
+/**
+ * `fabric.board.join` (ADR-0149 §4) with the safeguards `enrollSession` has (ADR-0134 §3 and its amendments): the
+ * board's own check first; an unspent bearer for this binding, Project and grant set handed out again; a cap of the
+ * binding's BOARD sessions, the least recently active ending with a reason in a board session's own tools; the mint,
+ * registered before the grants are read again, so a revocation that landed in between ends it; and the grants'
+ * earliest expiry carried by the session, which ends at its first call past it.
+ */
+export async function joinBoardSession(binding: BindingRow, args: { projectId: string }, deps: BoardJoinDeps): Promise<BoardJoinAnswer> {
+  // Share coding enrollment's binding queue: an in-flight board mint is not a
+  // reusable bearer until its grant checks finish, and cap checks must be atomic.
+  return deps.sessions.enrolling(binding.id, () => joinBoardSessionOnce(binding, args, deps))
+}
+
+async function joinBoardSessionOnce(binding: BindingRow, args: { projectId: string }, deps: BoardJoinDeps): Promise<BoardJoinAnswer> {
+  const checked = await deps.check(binding.id, args.projectId)
+  if ('error' in checked) return { ok: false, code: checked.error.code, message: checked.error.message }
+  const grants = [...checked.grants].sort()
+  const now = (deps.now ?? Date.now)()
+  const answer = (bearer: string, sessionId: string): BoardJoinAnswer => ({ ok: true, session: { bearer, sessionId, projectId: args.projectId, capabilities: checked.capabilities } })
+  const live = deps.sessions.liveOf(binding.id).filter((s) => s.surface === 'board')
+  const same = (s: EnrolledSession) => JSON.stringify([...(s.grantIds ?? [s.grantId])].sort()) === JSON.stringify(grants)
+  const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === args.projectId && same(s))
+  if (spare) return answer(spare.bearer, spare.sessionId)
+  const cap = Math.max(1, deps.maxBoardSessionsPerBinding ?? MAX_BOARD_SESSIONS_PER_BINDING)
+  const byActivity = live.map((s) => ({ s, at: deps.sessions.activityOf(s) })).sort((a, b) => a.at - b.at)
+  for (const { s: old, at } of byActivity.slice(0, Math.max(0, live.length - cap + 1))) {
+    deps.sessions.endSession(old.sessionId, boardEvictedReason(cap))
+    ops.record({ op: 'hub.board.join-evicted', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: old.sessionId, cap, idle_s: Math.max(0, Math.round((now - at) / 1000)) }, ctx: { correlationId: ops.correlate() } })
+  }
+  // The earliest expiry of the grants it came in under: past it the session ends at its next call (AgentSurface).
+  const expiries = (await deps.liveGrants(binding)).filter((g) => grants.includes(g.id)).map((g) => Date.parse(g.expires_at)).filter(Number.isFinite)
+  const authorityUntil = expiries.length > 0 ? Math.min(...expiries) : null
+  const sessionId = randomUUID()
+  const { token } = deps.mint(args.projectId, sessionId, null, { cameIn: 'hub', agent: binding.agent_id, bindingId: binding.id, surface: 'board', authorityUntil })
+  // Registered before the re-read: a revocation from now on ends it through its listener, one before it is seen below.
+  deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grants[0] ?? '', grantIds: grants, projectId: args.projectId, mintedAt: now, surface: 'board' })
+  try {
+    for (const g of grants) {
+      if (!(await deps.stillLive(binding.id, g))) {
+        deps.sessions.endSession(sessionId)
+        return { ok: false, code: 'authority_changed', message: 'The operator\'s grants changed while this session was joining; nothing was started. Join again.' }
+      }
+    }
+  } catch (e) {
+    // A grant that could not be read again must not leave a usable session behind.
+    deps.sessions.endSession(sessionId)
+    throw e
+  }
+  return answer(token, sessionId)
+}
+// #endregion board-join-session

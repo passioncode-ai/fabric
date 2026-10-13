@@ -749,26 +749,37 @@ lands beside SCN-132.
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
-| `access.enroll.title` | Let {name} work in {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1005 | SCN-132 (enrollment) | proposed |
-| `access.enroll.message` | {name}, opened outside Fabric, asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1006 | SCN-132 (enrollment) | proposed |
-| `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, messages with other projects, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1007 | SCN-132 (enrollment) | proposed |
-| `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1008 | SCN-132 (enrollment) | proposed |
-| `access.enroll.thisProject` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1009 | SCN-132 (enrollment) | proposed |
+| `access.enroll.title` | Let {name} work in {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1048 | SCN-132 (enrollment) | proposed |
+| `access.enroll.message` | {name}, opened outside Fabric, asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1049 | SCN-132 (enrollment) | proposed |
+| `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, messages with other projects, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1050 | SCN-132 (enrollment) | proposed |
+| `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1051 | SCN-132 (enrollment) | proposed |
+| `access.enroll.thisProject` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1052 | SCN-132 (enrollment) | proposed |
 | `access.enroll.projectNamed` | {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 (enrollment) | proposed |
-| `access.enroll.floor` | Fabric cannot prove this is {name}: any program running as you can ask under that name. | apps/desktop/src/renderer/src/i18n/en.ts:1010 | SCN-132 (enrollment) | proposed |
-| `access.enroll.folder` | In the folder {root} | apps/desktop/src/renderer/src/i18n/en.ts:1011 | SCN-132 (enrollment) | proposed |
-| `access.enroll.folderInside` | In a folder inside {root} | apps/desktop/src/renderer/src/i18n/en.ts:1012 | SCN-132 (enrollment) | proposed |
-| `access.enroll.folderWorktree` | In a worktree of the repository {root} | apps/desktop/src/renderer/src/i18n/en.ts:1013 | SCN-132 (enrollment) | proposed |
-| `access.origin.coding` | A coding agent: {name} | apps/desktop/src/renderer/src/i18n/en.ts:1014 | SCN-132 (enrollment) | proposed |
-| `access.ask.enroll` | work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1015 | SCN-132 (enrollment) | proposed |
-| `access.ask.enrollThis` | work in this project | apps/desktop/src/renderer/src/i18n/en.ts:1016 | SCN-132 (enrollment) | proposed |
-| `access.grant.enroll` | works in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1017 | SCN-132 (enrollment) | proposed |
-| `access.grant.enrollGone` | works in a project that is no longer in your list | apps/desktop/src/renderer/src/i18n/en.ts:1018 | SCN-132 (enrollment) | proposed |
-| `access.grant.enrollUnread` | works in a project whose name could not be read | apps/desktop/src/renderer/src/i18n/en.ts:1019 | SCN-132 (enrollment) | proposed |
-| `access.queue.enrollTitle` | {name} asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1128 | SCN-132 (enrollment) | proposed |
-| `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1126 | SCN-132 (enrollment) | proposed |
-| `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1127 | SCN-132 (enrollment) | proposed |
+| `access.enroll.floor` | Fabric cannot prove this is {name}: any program running as you can ask under that name. | apps/desktop/src/renderer/src/i18n/en.ts:1054 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folder` | In the folder {root} | apps/desktop/src/renderer/src/i18n/en.ts:1055 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folderInside` | In a folder inside {root} | apps/desktop/src/renderer/src/i18n/en.ts:1056 | SCN-132 (enrollment) | proposed |
+| `access.enroll.folderWorktree` | In a worktree of the repository {root} | apps/desktop/src/renderer/src/i18n/en.ts:1057 | SCN-132 (enrollment) | proposed |
+| `access.origin.coding` | A coding agent: {name} | apps/desktop/src/renderer/src/i18n/en.ts:1058 | SCN-132 (enrollment) | proposed |
+| `access.ask.enroll` | work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1059 | SCN-132 (enrollment) | proposed |
+| `access.ask.enrollThis` | work in this project | apps/desktop/src/renderer/src/i18n/en.ts:1060 | SCN-132 (enrollment) | proposed |
+| `access.grant.enroll` | works in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1072 | SCN-132 (enrollment) | proposed |
+| `access.grant.enrollGone` | works in a project that is no longer in your list | apps/desktop/src/renderer/src/i18n/en.ts:1073 | SCN-132 (enrollment) | proposed |
+| `access.grant.enrollUnread` | works in a project whose name could not be read | apps/desktop/src/renderer/src/i18n/en.ts:1074 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrollTitle` | {name} asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1184 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1182 | SCN-132 (enrollment) | proposed |
+| `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1183 | SCN-132 (enrollment) | proposed |
 | `event.session.enrolled@1` | a coding agent opened outside Fabric joined the project | apps/desktop/src/renderer/src/i18n/en.ts:1204 | SCN-132 (enrollment) | proposed |
+| `access.ask.respond` | answer {capabilities} requests for {project} | apps/desktop/src/renderer/src/i18n/en.ts:1061 | SCN-145 (responder grant) | proposed |
+| `access.ask.respondThis` | answer {capabilities} requests for this project | apps/desktop/src/renderer/src/i18n/en.ts:1062 | SCN-145 (responder grant) | proposed |
+| `access.respond.title` | Let {name} answer {capabilities} requests for {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1063 | SCN-145 (responder grant) | proposed |
+| `access.respond.message` | {name} asks to answer the requests other projects send to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1064 | SCN-145 (responder grant) | proposed |
+| `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is never an approval. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant) | proposed |
+| `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
+| `access.respond.thisProjectTo` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1067 | SCN-145 (responder grant) | proposed |
+| `access.respond.revoke` | For a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1068 | SCN-145 (responder grant) | proposed |
+| `access.queue.respondTitle` | {name} asks to answer requests for {project} | apps/desktop/src/renderer/src/i18n/en.ts:1069 | SCN-145 (responder grant) | proposed |
+| `access.queue.responded` | You let {name} answer requests for {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1070 | SCN-145 (responder grant) | proposed |
+| `access.queue.respondDenied` | You did not let {name} answer requests for {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1071 | SCN-145 (responder grant) | proposed |
 
 The existing `access.allow`, `access.allowFor`, `access.deny`, `access.denyFor`, `access.denials.asked`,
 `access.agents.until`, `access.revokeFor`, `access.prompt.reasonLead`, `access.prompt.quoted`, `access.pending.reason`
@@ -777,6 +788,13 @@ Russian enrollment sentences carries its own preposition — `access.enroll.proj
 `access.enroll.thisProject` is «в этом проекте» — so a project whose name is not known reads as "this project" in both
 languages, never «без названия», which claimed the project had no name (0.3.5 review UX-12); and
 `event.session.enrolled@1` says «присоединился», not «подключился».
+
+The responder grant (SCN-145, ADR-0149 §2 and Amendment 2) has its own rows above. Its `access.respond.what` keeps the
+contract's caveat — the grant itself lets the agent spend, publish or delete nothing, it keeps its own tools, and a
+request is never an approval — and the project requests are sent TO has its own slot, `access.respond.projectTo` /
+`access.respond.thisProjectTo`, because Russian needs the dative there («присылают проекту «{name}»» / «этому проекту»)
+where the enrollment's slot is the locative («в проекте «{name}»»), wave-2 product findings 4 and 10 (2026-10-13).
+
 
 **Claims and «Where work is», added 2026-10-11 (0.4.0 wave 2: REQ-38, REQ-08, CO-256; SCN-140, SCN-141).** The project
 page's «Who is working on what» (SCR-31: one row per claim, «related» on both rows of a pair, «Release…» behind the
@@ -886,7 +904,12 @@ cell, on hover), never inside the sentence (UX-10). A count is "label: {count}",
 
 | Key | English | Location | Scenario | Status |
 |---|---|---|---|---|
-| `launch.comms.unavailable` | The board did not answer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.unavailable` | Comms did not answer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.reading` | Comms is loading… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.emptyBody` | Projects of this estate have not exchanged any messages yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.pollFailed` | Comms stopped answering. Showing what was confirmed at {time}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.textsMissing` | The texts did not come back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
+| `launch.comms.textsMissingBody` | The journal records messages between projects: {count}. Their texts were not in the archive this estate was restored from, so there is nothing to show here. Nothing was lost from the journal itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
 | `launch.comms.messageCount` | messages: {count} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyTo` | answers {sender}: “{words}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToFrom` | answers a message from {sender} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |

@@ -189,10 +189,13 @@ test('A7-035: a write whose answer was lost says it may have been stored; a read
   for (const answer of [new Error('fetch failed'), { data: null, error: { message: 'TypeError: fetch failed', code: '' } }, { data: 'garbage', error: null }]) {
     logged.length = 0
     const board = createBoard({ rpc: fake({ board_submit: answer, board_reply: answer, board_cancel: answer, board_read_ack: answer, board_list: answer, board_get: answer }).rpc })
-    for (const w of [await board.submit(caller, submitRequest), await board.reply(caller, replyArgs), await board.cancel(caller, cancelArgs), await board.readAck(caller, { message: M1 })]) {
+    for (const w of [await board.submit(caller, submitRequest), await board.reply(caller, replyArgs), await board.cancel(caller, cancelArgs)]) {
       assert.equal(w.error.code, 'not_available'); assert.equal(w.error.retryable, true)
       assert.match(w.error.message, /may have been stored/); assert.doesNotMatch(w.error.message, /nothing was changed/)
     }
+    // read_ack takes no key: it may have taken effect, and repeating it is safe (wave-2 fix 7).
+    const ack = await board.readAck(caller, { message: M1 })
+    assert.equal(ack.error.code, 'not_available'); assert.match(ack.error.message, /may have taken effect/); assert.doesNotMatch(ack.error.message, /nothing was changed/)
     for (const r of [await board.list(caller, {}), await board.get(caller, { message: M1 })])
       assert.equal(r.error.message, 'The board cannot be read right now; nothing was changed.')
     assert.equal(logged.length, 6, 'every failed call is in the operations log')
@@ -463,3 +466,51 @@ test('every board tool is served now that the pin carries its schema; one remove
   assert.equal(PINNED_COMMS_OPERATIONS.size, 17)
 })
 // #endregion project-board-service-lifecycle
+
+// #region project-board-service-w2-fixes — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+// The wave-2 fix round (COM-03): what the three blind readings found in the service, each seen red first.
+test('a board session reads its idempotency epoch like any Project session; only a viewer is never told one (fix 1)', async () => {
+  const rpc = fake({ board_status: { data: { ok: true, unread: 0, epoch: 3, responders: [] }, error: null } }).rpc
+  const board = createBoard({ rpc, statusCarriesEpoch: true })
+  assert.deepEqual((await board.status({ ...caller, surface: 'board' })).idempotency, { epoch: 3 }, 'a board session cannot learn the epoch every responder command needs')
+  assert.deepEqual((await board.status({ ...caller, surface: 'session' })).idempotency, { epoch: 3 })
+  assert.equal('idempotency' in await board.status({ ...caller, surface: 'viewer' }), false)
+})
+
+test('a call that takes no idempotency key and whose answer was lost says it is safe to send again — never "the same idempotency key" (fix 7)', async () => {
+  const lost = new Error('fetch failed')
+  const board = createBoard({ rpc: fake({ board_read_ack: lost, board_renew: lost, board_progress: lost, board_accept: lost }).rpc })
+  for (const [name, answer] of [['read_ack', await board.readAck(caller, { message: M1 })], ['renew', await board.renew(responder, { fence: fenceArgs() })], ['progress', await board.progress(responder, { fence: fenceArgs(), note: { text: 'halfway' } })]]) {
+    assert.equal(answer.error.code, 'not_available', name); assert.equal(answer.error.retryable, true, name)
+    assert.doesNotMatch(answer.error.message, /idempotency key/, `${name} told to resend with a key it does not take`)
+    assert.match(answer.error.message, /safe to send again/, name)
+  }
+  assert.match((await board.accept(responder, { fence: fenceArgs() })).error.message, /same idempotency key/, 'a stored write still says the key tells which')
+})
+
+test('a board session is respond-only (ADR-0149 Amendment 2): submit, cancel, read_ack, directory and a participant reply are refused before the door', async () => {
+  const { rpc, calls } = fake({ board_reply_fenced: { data: goodReceipt, error: null }, board_list: { data: { ok: true, messages: [], last_seq: 0, more: false }, error: null } })
+  const board = createBoard({ rpc })
+  const service = { ...responder, surface: 'board', responder: { ...responder.responder, cameIn: 'hub' } }
+  for (const [name, answer] of [
+    ['submit', await board.submit(service, submitRequest)],
+    ['cancel', await board.cancel(service, cancelArgs)],
+    ['read_ack', await board.readAck(service, { message: M1 })],
+    ['directory', await board.directory(service, {})],
+    ['participant reply', await board.reply(service, replyArgs)]
+  ]) assert.equal(answer.error.code, 'not_authorized', `a board session's ${name} was served`)
+  assert.equal(calls.length, 0, 'a refused board-session call reached the board')
+  assert.equal((await board.reply(service, { fence: fenceArgs(), body: { text: 'on it' } })).ok, true, 'the responder\'s fenced reply')
+  assert.equal((await board.list(service, {})).protocol, 'fabric-project-comms/0.1', 'reading its requests')
+  const { BOARD_SESSION_OPERATIONS } = await import('../src/main/boardService.ts')
+  assert.deepEqual([...BOARD_SESSION_OPERATIONS].sort(), ['com.accept', 'com.claim', 'com.complete', 'com.effect_begin', 'com.enroll', 'com.get', 'com.list',
+    'com.progress', 'com.reconcile', 'com.renew', 'com.reply', 'com.responder_replace', 'com.status'])
+})
+test('com.enroll\'s description names only routes a session has: no fabric.access.request, the operator\'s Settings → Agent access instead (wave-2 fix 16)', () => {
+  const described = new Map()
+  registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => responder)
+  assert.doesNotMatch(described.get('com.enroll'), /fabric\.access\.request/, 'a tool no project or board session has')
+  assert.match(described.get('com.enroll'), /Settings → Agent access/)
+  assert.match(described.get('com.enroll'), /stays queued/)
+})
+// #endregion project-board-service-w2-fixes

@@ -267,3 +267,13 @@ test('a coding agent enrolled in projects is not an agent with access to a produ
   assert.deepEqual(agentCounts(grants), { agents_with_access: 2, coding_agents_enrolled: 2 })
   assert.deepEqual(agentCounts([]), { agents_with_access: 0, coding_agents_enrolled: 0 })
 })
+
+test('a board.respond grant is neither an enrolled coding agent nor product access: only session.enroll counts as enrolled (wave-2 fix 4)', () => {
+  const grants = [
+    { agent_id: 'claude-code', callee: 'fabric', capability: 'session.enroll' },
+    { agent_id: 'example-service', callee: 'fabric', capability: 'board.respond' },
+    { agent_id: 'codex', callee: 'fabric', capability: 'board.respond' },
+    { agent_id: 'research-agent', callee: 'fabric-inbox', capability: 'read' }
+  ]
+  assert.deepEqual(agentCounts(grants), { agents_with_access: 1, coding_agents_enrolled: 1 })
+})

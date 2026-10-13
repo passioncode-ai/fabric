@@ -1,0 +1,68 @@
+{
+  "source": "ac874946db2487ab8101464d1abf1e8345eda199",
+  "ours": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "merge_base": "3d7e77520d9c08d2c96d4974c149d7e29e7ed6dd",
+  "reviewer": "pipeline_research",
+  "mode": "read-only sources; synthetic reproduction in owned temporary files",
+  "source_hashes": {
+    "apps/desktop/src/main/sessionEnroll.ts": "9b9f2c0d2337b5381f47e2b8ce3597143e196a81434c72eaf4e5349300d3eb9e",
+    "apps/desktop/src/main/pty.ts": "cf932afa28f09491f04082ae83d157b0100929e6b0b8bf34fd85716ec1d633ab",
+    "docs/handoffs/2026-10-13-com03-w2-fixes.md": "7d1bd276825580c164131f62165a990b516130032781a33788ca1f2ba978d426",
+    "docs/handoffs/2026-10-13-com03-w2-fixes.carryover.patch": "2b13d9a672ba6082facf06a810f4fd97ba02ad28f7ef56b1af13ac4dcb97dd71"
+  },
+  "findings": [
+    {
+      "id": "N021",
+      "status": "REPRODUCED",
+      "file": "apps/desktop/src/main/sessionEnroll.ts",
+      "function": "joinBoardSession",
+      "boundary": "missing existing per-binding serialization",
+      "calls": 8,
+      "live": 8,
+      "cap": 4,
+      "exit": 1,
+      "resolution": "Reuse EnrolledSessions.enrolling for board join and preserve filter plus runtime identity union; independent re-review required."
+    },
+    {
+      "id": "co282-collision",
+      "status": "DEFERRED_PATCH_ONLY",
+      "file": "docs/handoffs/2026-10-13-com03-w2-fixes.carryover.patch",
+      "boundary": "patch adds CO282 as resolved AgentWorkspace test race; ours already owns CO282 autonomy epic",
+      "resolution": "Do not apply deferred patch. Preserve canonical CO282 partial; foreign row needs correct owner ID reconciliation."
+    },
+    {
+      "id": "migration-name-collision",
+      "status": "FUTURE_ACTIVE_VS_PENDING",
+      "file": "docs/handoffs/2026-10-13-com03-w2-fixes.md",
+      "boundary": "future active 20261013000107_project_board_w2_fixes.sql vs our pending107_resource_reservations.sql",
+      "resolution": "Neither renumber historical receipts nor promote pending107/108; reconcile promotion identity/order after owning active migration acceptance."
+    }
+  ],
+  "canonical_counts": {
+    "incoming_rows": 285,
+    "incoming_work_remaining": 218,
+    "ours_rows": 286,
+    "ours_work_remaining": 219,
+    "union_without_deferred_patch_rows": 286,
+    "union_without_deferred_patch_work_remaining": 219
+  },
+  "deferred_only_ids": [
+    "CO-287",
+    "CO-288",
+    "CO-289",
+    "CO-290",
+    "CO-291"
+  ],
+  "checks": {
+    "three_way_source_simulation": {
+      "sessionEnroll.ts": 1,
+      "session-enroll.test.mjs": 0,
+      "pty.ts": 0,
+      "agentSurface.ts": 0,
+      "index.ts": 0
+    },
+    "full_suite": "NOT_RUN",
+    "DB": "NOT_RUN"
+  },
+  "ref_observation": "SHA-only fetch used. origin/main was subsequently observed at ac874946; this review did not request updating it."
+}

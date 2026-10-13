@@ -1,0 +1,100 @@
+✖ concurrent board retries share only a fully checked unspent session (1.982208ms)
+✖ concurrent board joins never exceed their cap while distinct projects cannot share a spare (0.294542ms)
+✖ queued board retry never borrows pending bearer after revoked (1.54775ms)
+✖ queued board retry never borrows pending bearer after read-error (0.363834ms)
+✖ board and coding calls share binding serialization but preserve separate surfaces and runtime identities (0.874459ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.788875
+
+✖ failing tests:
+
+test at apps/desktop/test/session-enroll.test.mjs:548:1
+✖ concurrent board retries share only a fully checked unspent session (1.982208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  8 !== 1
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/session-enroll.test.mjs:552:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/session-enroll.test.mjs:556:1
+✖ concurrent board joins never exceed their cap while distinct projects cannot share a spare (0.294542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  8 !== 4
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/session-enroll.test.mjs:563:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 4,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/session-enroll.test.mjs:566:50
+✖ queued board retry never borrows pending bearer after revoked (1.54775ms)
+  AssertionError [ERR_ASSERTION]: pending registration is not a reusable admission
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/session-enroll.test.mjs:581:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/session-enroll.test.mjs:566:50
+✖ queued board retry never borrows pending bearer after read-error (0.363834ms)
+  AssertionError [ERR_ASSERTION]: pending registration is not a reusable admission
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/session-enroll.test.mjs:581:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/session-enroll.test.mjs:595:1
+✖ board and coding calls share binding serialization but preserve separate surfaces and runtime identities (0.874459ms)
+  AssertionError [ERR_ASSERTION]: same-binding coding call waits behind the pending board join
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file:///private<owned-builder>/apps/desktop/test/session-enroll.test.mjs:604:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

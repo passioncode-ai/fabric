@@ -659,6 +659,12 @@ export class PtyManager {
     return s ? this.toPublic(s) : null
   }
 
+  /** The runner a session runs — the catalogue id its binding names — even when it was launched as a created agent
+   *  (`optionId` is then the created agent's id, M125). What the board's responder grant compares (ADR-0149 §3). */
+  runnerOf(sessionId: string): string | null {
+    return this.sessions.get(sessionId)?.runnerKind ?? null
+  }
+
   /**
    * The whole retained buffer, for a view that is attaching to this session.
    *

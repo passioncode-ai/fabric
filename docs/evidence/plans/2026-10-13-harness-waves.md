@@ -288,3 +288,17 @@ transport cancellation or restart-wide boundedness is implied.
 N-020 owns resourceLaunchAdapter.ts, its existing test and resource-launch-adapter.md.
 Independent review runs the seven new regressions against the exact old source, the
 corrected adapter plus R6 observation suite and source-bound negative receipts.
+
+
+### N-021 — preserve bounded board admission through COM03 integration
+
+Incoming ac874946 adds board-only sessions but bypasses the existing binding serializer.
+Reuse that serializer for complete board grant validation and minting. Keep independent
+board/coding caps, exact runtime identity and unrelated bindings parallel. Acceptance:
+five old-source RED regressions,33 corrected enrollment cases, four independent controls,
+and merged board/context/PTY seams. No new distributed lock or native guarantee is claimed.
+
+Incoming deferred migration107 collides with our preparation107; neither filename reserves
+an active ledger position. Its unapplied carryover patch also proposes an unrelated CO282.
+Do not apply it over this run's CO282. Preserve both historical artifacts, keep canonical
+286 rows/219 open, and reconcile owner IDs/order before activation or owner delivery.

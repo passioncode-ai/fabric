@@ -1,0 +1,28 @@
+{
+  "node": "N-021",
+  "incoming": "ac874946db2487ab8101464d1abf1e8345eda199",
+  "ours": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "merge_resolution": "Retain incoming coding surface!=board filter and N001 exact runtimeSessionId spare condition; original EnrolledSessions.enrolling unchanged.",
+  "before_source_sha256": "d2a66db99013e4c4da282ef55efb4120c210a6f0401db80a7cd88697a2e3411e",
+  "candidate_sha256": {
+    "apps/desktop/src/main/sessionEnroll.ts": "b2d6b7a5281d6f5d17ba704ad5660cf6cb84f44beacefa318af2b6f4b11ed00b",
+    "apps/desktop/test/session-enroll.test.mjs": "2d5b489064356ad4c2125b671522e24b66932119d616db404c8d97a52774f4f9"
+  },
+  "patch_sha256": "d6ee10d3d5159686d773c1fe5781163cbb03cbbe432dfd784df5777383aa504a",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test --test-name-pattern='concurrent board|queued board|board and coding calls' apps/desktop/test/session-enroll.test.mjs",
+      "source": "before.ts",
+      "exit": 1,
+      "failed": 5,
+      "log": "before-tests.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs",
+      "source": "candidate",
+      "exit": 0,
+      "log": "after-tests.log"
+    }
+  ],
+  "scope": "Builder synthetic local source tests only. Existing root dependencies symlinked; no DB/build/native/provider. Root worktree unchanged by this correction."
+}

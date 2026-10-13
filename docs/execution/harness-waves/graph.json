@@ -139,7 +139,8 @@
         "N-017",
         "N-018",
         "N-019",
-        "N-020"
+        "N-020",
+        "N-021"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -399,7 +400,7 @@
       "id": "N-019",
       "title": "Durable internal wait store",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-013",
@@ -412,7 +413,21 @@
         "docs/execution/harness-waves/resource-wait-store.md"
       ],
       "surface_class": "internal",
-      "check": "Real isolated PostgreSQL CAS, restart, FIFO, immutable binding and client privilege fixtures; independent source review"
+      "check": "Real isolated PostgreSQL CAS, restart, FIFO, immutable binding and client privilege fixtures; independent source review",
+      "proof": {
+        "head": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b",
+        "tree": "b364896fa7e365ad801934d13c2bd7c627da7357",
+        "graph_revision": "6",
+        "checks": [
+          "Full bash scripts/ci.sh fast exit0,661.41s, same before/after tree; owned pending107/108 SQL included",
+          "Independent review source hashes match current SQL/client/final fixture"
+        ]
+      },
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/independent-review.json",
+        "All six actual SQL stages passed; full combined7b3 fast exit0",
+        "proven at 7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b (tree b364896fa7e365ad801934d13c2bd7c627da7357)"
+      ]
     },
     {
       "id": "N-020",
@@ -445,6 +460,23 @@
           "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
         ]
       }
+    },
+    {
+      "id": "N-021",
+      "title": "Serialize board session admission per binding",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-001"
+      ],
+      "serves": "REQ-001",
+      "check": "33 enrollment regressions plus independent four-control concurrency probe and merged board seams",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/sessionEnroll.ts",
+        "apps/desktop/test/session-enroll.test.mjs"
+      ],
+      "surface_class": "internal"
     }
   ],
   "edges": [
@@ -612,6 +644,16 @@
       "from": "N-020",
       "to": "N-007",
       "payload": "Bounded per-entry I/O correction and independent negative acceptance"
+    },
+    {
+      "from": "N-001",
+      "to": "N-021",
+      "payload": "Accepted exact runtime identity and per-binding enrollment serializer"
+    },
+    {
+      "from": "N-021",
+      "to": "N-007",
+      "payload": "Merged board/coding serialization correction with exact-source independent acceptance"
     }
   ],
   "revisions": [
@@ -644,6 +686,17 @@
       "node": "N-020",
       "why": "closed with no re-plan",
       "precondition": "444f5f961b300ca99f0532229e8d00724db527fe"
+    },
+    {
+      "verb": "add",
+      "node": "N-021",
+      "why": "Incoming COM03 wave2 board join bypassed the serializer; concurrent retries exceeded its cap and exposed pending bearers"
+    },
+    {
+      "verb": "close",
+      "node": "N-019",
+      "why": "closed with no re-plan",
+      "precondition": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b"
     }
   ]
 }

@@ -1,7 +1,7 @@
 # CO-282 — portable harness waves handoff
 
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
-[the 20-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+[the 21-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource
 enforcement, cross-owner acceptance and native acceptance remain open.
 
@@ -70,10 +70,11 @@ a historical scope count, not completion of product requirements.
 
 ## Exact next work and dependencies
 
-1. Complete final combined fast acceptance on the frozen source, then record exact
-   source/receipt relationships and publish through the existing workspace publisher.
-   The owned resource SQL runner already passed all six stages after two fixture
-   corrections; no active migration or native launch was performed.
+1. The combined resource source7b3a6d25 passed the complete fast tier, tree
+   b364896fa7e365ad801934d13c2bd7c627da7357, exit0,661.41s;
+   [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/combined-7b3-fast.json).
+   The next source integrates main ac874946 and N021 board serialization; final combined
+   acceptance, source push/readback and workspace publication follow.
 2. The [activation prerequisites](../execution/harness-waves/resource-activation-prerequisites.md)
    identify the next bounded source work: trusted policy/sampler, actual input/scope
    ownership verifier, then one composed supported launch path. These local producers
@@ -110,3 +111,13 @@ needed for local fixture work. Keep credentials, private machine paths and depen
 out of delivery. Hosted CI was not dispatched. Workspace publication is separate and must
 follow its owning skill and current source relationship; a pushed branch does not establish
 publication, installed behavior or completion of CO-282.
+
+
+## COM03 wave2 integration and N021
+
+Main ac874946 is retained, including respond-only board tools, grants, runner identity
+and UI/docs/model outputs. [N021 receipts](../reports/2026-10-13-resource-admission-contract/raw/n021/README.md)
+cover the board-join concurrency correction; both coding identity and separate board cap
+survive. The incoming deferred carryover patch is not applied: it proposes another CO282.
+The deferred SQL107 also requires order reconciliation before active promotion. Canonical
+CO282 stays partial;286 rows/219 open is the validated union, not the future patch counts.

@@ -1,0 +1,145 @@
+✔ the installation file lives where every PassionCode app looks for it (0.437291ms)
+✔ the shared id is created once and never overwritten; unknown fields survive the switch (2.626583ms)
+✔ two processes racing to create it end with one id between them (195.833708ms)
+✔ a file that does not parse, or whose id is not a UUID v4, is never repaired and keeps analytics off (7.972125ms)
+✔ a build without an App Key sends nothing and creates no state (1.961583ms)
+✔ events carry counts and the installation id, never a planted name, path, e-mail or id (3.19125ms)
+✔ isDebug agrees with environment: a pre-release or a development run lands in the Debug view (11.141458ms)
+✔ environment: production only for an installed release version, sandbox otherwise (sshlg-growth decision 3) (0.131833ms)
+✔ cleanProps keeps numbers, booleans and known kinds only — a short lower-case name is still a name (0.465084ms)
+✔ turning the switch off drops what waits and stops sending; another app's switch is honoured on refresh (3.241416ms)
+✔ delivery: batches of 25; transport, 429 and 5xx keep the batch and back off; 400 and 404 drop it (3.117625ms)
+✔ at most 200 wait, and an event older than 23 hours is dropped before sending (4.090375ms)
+✔ app_installed once per app (first PassionCode app said), app_started each start, app_active once per UTC day (3.915834ms)
+✔ A7-012: nothing is queued or sent before the disclosure, and the person's answer is what discloses (3.350875ms)
+✔ A7-012: turning counts off at the disclosure sends nothing while the switch stays off, and the notice does not come back (3.046ms)
+✔ A7-012: an install from 0.3.2 sees the disclosure once and is not counted as a new install (3.506167ms)
+✔ A7-012: a state file that cannot be read asks again rather than sending (2.236584ms)
+✔ a coding agent enrolled in projects is not an agent with access to a product; each agent counts once (0.433125ms)
+✔ a board.respond grant is neither an enrolled coding agent nor product access: only session.enroll counts as enrolled (wave-2 fix 4) (0.039708ms)
+✔ canonical JSON: sorted keys, integers only, no lone surrogate, no undefined (4.51ms)
+✔ the digest is the contract's framing over canonical JSON, one value however it was spelled (0.319541ms)
+✔ Fabric's commsDigest reproduces every digest vector the contract publishes and refuses every call it refuses (DEC-0043, DEC-0073) (0.724625ms)
+✔ the input schema reaches the contract's verdict on every comms-submit fixture it grades (7.506625ms)
+✔ a forged estate or sender, an over-long body and a malformed call are refused before the door is called (0.885ms)
+✔ the caller's identity comes from the scope and the digest from the board, never from the input (0.742458ms)
+✔ a board that cannot be read answers not_available — never an empty page, never a ready status (0.993458ms)
+✔ a page is the contract's comms-page; its cursor continues for this reader and filter only (2.344208ms)
+✔ status reports health without reading a message (0.130417ms)
+✔ an id that is not a uuid is refused as unknown before the door; a uuid of any case reaches it (0.166167ms)
+✔ submit refuses an epoch past int32 and a non-uuid thread or reply before the door, and lower-cases ids (0.214084ms)
+✔ submit lower-cases the participants of a new thread and a request target (0.110625ms)
+✔ A7-035: a write whose answer was lost says it may have been stored; a read says nothing changed; both are logged (0.823208ms)
+✔ A7-017 residual: SQLSTATE class 22 is the caller's value; another SQLSTATE rolled back, so nothing changed (0.169208ms)
+✔ C3: a receipt carrying seq, or any key the contract does not name, never reaches an agent (0.371791ms)
+✔ com.reply and com.cancel: the digest is the contract's, ids are board ids, a forged field and a fenced reply are refused before the door (2.23025ms)
+✔ status comes from board_status: ready with unread and responders, an archived Project refused, an unreachable board unavailable (0.198792ms)
+✔ DEC-0073 com.status: a session omits its Project or names its own; another Project answers exactly as an unknown one (0.589917ms)
+✔ DEC-0073 com.submit of kind reply: its thread must be replyTo's own — a replyTo no message of the thread can have is invalid_arguments, the board's answer (0.163083ms)
+✔ DEC-0073 com.status: the idempotency epoch is a session's — a viewer principal never reads it (0.077916ms)
+✔ the gate: all seventeen tools registered; an operation outside the pin answers unsupported_capability before the door (0.396ms)
+✔ the pinned set follows the vendored pin: an unserved operation has no argument schema there, and status refuses an epoch (0.118334ms)
+✔ the cycle's board upkeep never throws: a pass that fails is logged and answers null (0.151541ms)
+✔ every zod mirror reaches the contract's verdict on every fixture the pin grades for its schema (DEC-0073) (3.545917ms)
+✔ a responder command: the holder from the scope, the project from the endpoint, the digest over the arguments sent, ids lower-cased (0.483ms)
+✔ a fenced reply goes to board_reply_fenced; a receipt with a holder or a seq never reaches the agent (0.124875ms)
+✔ com.directory: sessions only; the cursor is bound to the reader, its grant and the filter; nothing but ids, names, capabilities and responder state leaves (0.722916ms)
+✔ every board tool is served now that the pin carries its schema; one removed from the set is refused before the door (R-006 plant 9) (0.13325ms)
+✔ a board session reads its idempotency epoch like any Project session; only a viewer is never told one (fix 1) (0.057958ms)
+✔ a call that takes no idempotency key and whose answer was lost says it is safe to send again — never "the same idempotency key" (fix 7) (0.160333ms)
+✔ a board session is respond-only (ADR-0149 Amendment 2): submit, cancel, read_ack, directory and a participant reply are refused before the door (0.145584ms)
+✔ com.enroll's description names only routes a session has: no fabric.access.request, the operator's Settings → Agent access instead (wave-2 fix 16) (0.049458ms)
+✔ a board session lists exactly the thirteen respond-only com.* tools (ADR-0149 Amendment 2): no com.submit, com.cancel, com.read_ack or com.directory, no fabric_* tool (15.751083ms)
+✔ a session responds as itself: the holder — session, how it came in, runner, binding — comes from the scope, never the arguments (3.548083ms)
+✔ fabric.board.join mints a one-bearer board session for a binding with a grant; refused without; absent on the door (2.58ms)
+✔ a session's end releases its responder slots; a revoked grant releases the enrollments it admitted (COM03-10) (12.557208ms)
+✔ a board session is told its idempotency epoch by com.status (fix 1) (0.954792ms)
+✔ a board session's client leaving ends the session: its slots are released and it is no longer held (fix 2) (25.582542ms)
+✔ a launched session of a created agent responds as its runner — the catalogue id its binding names — not as the created agent (fix 12) (2.498625ms)
+✔ a board session whose board.respond grant expired is ended at its next call, its slots released, and told why (fix 14) (43.1525ms)
+✔ a board that cannot be read answers unavailable — never an empty list, never ok (1.068708ms)
+✔ a missing function (the migration not applied) is unavailable, not empty (0.066209ms)
+✔ an empty list is a true answer the board gave, and only the board may give it (0.288625ms)
+✔ the board’s refusals travel with their codes: not_found is not empty, invalid_arguments is not unavailable (0.058625ms)
+✔ an invalid cursor is refused before the door is called (0.065125ms)
+✔ a page is the board’s own paging contract: cursor in, cursor out, limit bounded at 100 (0.211958ms)
+✔ threads and messages in a shape this build cannot read are unavailable, not rendered by accident (0.12175ms)
+✔ a thread row without the aggregates is unavailable — never read as zero open requests (SCN-143, filter slice) (0.06175ms)
+✔ a redacted message keeps its place, id and digest, and says its body was removed (0.07925ms)
+✔ threads come back as the board shaped them (0.098083ms)
+✔ an empty board over a journal that records messages answers textsMissing with their count; a journal with none, or unreadable, adds nothing (0.179583ms)
+  ok   an unattended start whose facts could not be read gets no pack
+  ok   a person's terminal still gets the degraded pack, which says what it could not read
+  ok   an unattended start with every required source answered compiles as before
+  ok   what a session must carry is decided by the trigger the LAUNCH passes, not guessed from the journal
+  ok   the project source counts as met only when the project row EXISTS
+  ok   facts past one read are COUNTED: omittedFacts includes what the gateway did not return
+  ok   the budget includes oversized project/task input and rejects instead of truncating authority
+  ok   invalid and impossibly small budgets cannot produce a pack
+  ok   facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget
+  ok   an empty pack fits its exact size, including the final newline
+
+all green: an unattended start runs on its required context or not at all
+✔ apps/desktop/test/context-mandatory.test.mjs (141.224291ms)
+PASS launch failure: journal/spool/kill/revoke faults retain exact process identity and observation; no false stopped receipt
+PASS pre-spawn authority recheck and concurrent session identity fencing
+PASS exit dismissal: await receipt and finalizer; failure retains metadata and retryable close evidence
+PASS recovery exclusion: exited runtime generation keeps its pending capture until own receipt
+PASS launch place: a missing or non-folder cwd is refused before any launch effect
+PASS runner availability: async, shared, cached per PATH for its TTL, one runner per launch
+PASS a runner without modes records none
+PASS a recorded failure keeps the kind of the real error, not its text
+✔ apps/desktop/test/pty-launch-failure.test.mjs (530.433ms)
+✔ a coding agent of the catalogue asks once: one prompt, a poll secret, the runner as the registry fact (4.708208ms)
+✔ an id that is not a coding agent of the catalogue is refused before any prompt (0.241334ms)
+✔ a project that does not exist is refused before any prompt (0.08625ms)
+✔ the folder is Fabric's fact: resolved by Fabric, journalled as registry.project {id, name, root, how} (0.26525ms)
+✔ without a folder, registry.project still carries the project, with root and how null (0.15625ms)
+✔ a folder of another project, of no project, or not absolute is refused before any prompt (0.203584ms)
+✔ the hub tool fabric.access.request takes the folder and passes it through to Fabric's resolution (89.404708ms)
+✔ a catalogue runner whose program is not on this computer is refused before any prompt (0.7175ms)
+✔ without the enrollment dependency every enrollment ask is refused (0.148875ms)
+✔ the access overview names each enrollment grant's own project — an incremental grant on a second project too (3.6995ms)
+✔ board.respond: a coding agent or a registered service asks once, with the project named in the snapshot (0.642167ms)
+✔ board.respond: an unknown agent, an unknown project, a folder or a second project is refused before any prompt (0.167917ms)
+✔ a live grant on the folder's project mints one session for that project, no task, and journals it (2.322042ms)
+✔ no grant, a revoked grant, an expired grant or a grant on another project: needs-grant, nothing minted (0.260833ms)
+✔ a folder no project holds: no-project, with what to do in Fabric's own words (0.129959ms)
+✔ a relative, missing or non-string folder: bad-folder, said of this computer (0.306833ms)
+✔ through the door (no binding) the folder's project is named, never a session (0.113042ms)
+✔ the read-then-mint race: a grant found revoked when read again after the mint ends the session — needs-grant (0.242958ms)
+✔ mint then journal: a journal that refuses the event takes the minted session with it, and the failure is thrown (0.355459ms)
+✔ a loop of 200 enrolls hands out the one unspent bearer: one mint, one journal event, one credential (1.817875ms)
+✔ pending bearers belong to one runtime identity, including the known/unknown boundary (0.52125ms)
+✔ concurrent same-runtime retries share one admitted pending bearer and journal event (0.340083ms)
+✔ a concurrent retry cannot receive a bearer while its admission will be refused (2.40275ms)
+✔ a failed pending journal releases admission and a retry gets a fresh, journalled bearer (0.404583ms)
+✔ pending admission in one binding does not serialize another binding (1.47625ms)
+✔ a loop that spends every bearer is capped: the binding keeps at most MAX_ENROLLED_PER_BINDING live sessions, the oldest end (2.871584ms)
+✔ past the cap the least recently active session ends, never one that called within the renewal window while an idle one exists, and it is told why (0.3.5 review i2 ER-4) (0.281083ms)
+✔ the session hooks' rejoins hold at most one bearer per session: an unspent one is handed out again, a spent one is replaced (0.3.5 review i2 ER-5) (0.409583ms)
+✔ revoking the grant ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant (17.19625ms)
+✔ revoking the binding ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant (6.553375ms)
+✔ a revocation that lands between the mint and the re-read: the minted bearer never stands (1.894792ms)
+✔ an enrolled agent that leaves (DELETE) ends its session and its claims go; a rejoin bearer that leaves takes only itself (0.3.5 review i2 ER-4) (15.306042ms)
+✔ an evicted session's next call is told it was evicted and that its claims were released, not that Fabric restarted (0.3.5 review i2 ER-4) (4.296167ms)
+✔ a bearer minted and never presented does not stay: the next mint sweeps the ones past their claim window (0.3.5 review i2 ER-5) (0.234084ms)
+✔ a rejoin joins the live session of that runtime session — the same session, a second bearer, nothing journalled (0.0945ms)
+✔ a rejoin with no live session of that runtime session asks nothing and mints nothing (0.159125ms)
+✔ an enrolled mint tells the surface it is an enrollment, its runner, its runtime session and its binding (ADR-0149 §3) (0.065625ms)
+✔ a board join mints one board session with the grants' earliest expiry; a loop of joins hands out the one unspent bearer (0.52025ms)
+✔ board joins are capped per binding on their own: the least recently active board session ends and is told what a board session can do; a coding agent's enrollment never evicts one (0.3475ms)
+✔ the read-then-mint race: a board.respond grant found revoked when read again after the mint ends the board session — nothing stands (0.07025ms)
+✔ concurrent board retries share only a fully checked unspent session (0.084958ms)
+✔ concurrent board joins never exceed their cap while distinct projects cannot share a spare (0.122042ms)
+✔ queued board retry never borrows pending bearer after revoked (0.645958ms)
+✔ queued board retry never borrows pending bearer after read-error (0.428625ms)
+✔ board and coding calls share binding serialization but preserve separate surfaces and runtime identities (0.226625ms)
+ℹ tests 117
+ℹ suites 0
+ℹ pass 117
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2415.309541

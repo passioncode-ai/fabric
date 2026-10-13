@@ -1,0 +1,49 @@
+{
+  "transformation": "Remove machine checkout prefixes; trim trailing whitespace. Source and patch bytes preserved; review hashes identify original bytes. Terminal blank lines in merged-vitest.log removed.",
+  "files": {
+    "before.ts": {
+      "original_sha256": "d2a66db99013e4c4da282ef55efb4120c210a6f0401db80a7cd88697a2e3411e",
+      "stored_sha256": "d2a66db99013e4c4da282ef55efb4120c210a6f0401db80a7cd88697a2e3411e"
+    },
+    "before-test.mjs": {
+      "original_sha256": "c441ba654574c58fb442c41387db78dbb6e337304c1b60bec36f8bb720dad3fd",
+      "stored_sha256": "c441ba654574c58fb442c41387db78dbb6e337304c1b60bec36f8bb720dad3fd"
+    },
+    "before-tests.log": {
+      "original_sha256": "b3602aa34d5136be8eb2f271ef4ca8ec95de0f158b8896fe1e46ecc1e14719d5",
+      "stored_sha256": "1dda66099aa3b6e38168e6c6efe5982e3d1e22d9b6a62985157411b89dbfe302"
+    },
+    "after-tests.log": {
+      "original_sha256": "99d660550b2a8579d847fd1b634e26837afbadbe1deb6bae764e7e3cbd32e598",
+      "stored_sha256": "99d660550b2a8579d847fd1b634e26837afbadbe1deb6bae764e7e3cbd32e598"
+    },
+    "n021.patch": {
+      "original_sha256": "d6ee10d3d5159686d773c1fe5781163cbb03cbbe432dfd784df5777383aa504a",
+      "stored_sha256": "d6ee10d3d5159686d773c1fe5781163cbb03cbbe432dfd784df5777383aa504a"
+    },
+    "receipt.json": {
+      "original_sha256": "3a84c4052fc4106efa93b75b7eff2fdf2590939c2959764bee6959b5505b4392",
+      "stored_sha256": "3a84c4052fc4106efa93b75b7eff2fdf2590939c2959764bee6959b5505b4392"
+    },
+    "independent-review.json": {
+      "original_sha256": "95146ed90d3f25640132580c5e02cd2b6f93aa019b8c510ae015172de511ac98",
+      "stored_sha256": "95146ed90d3f25640132580c5e02cd2b6f93aa019b8c510ae015172de511ac98"
+    },
+    "adversarial.mjs": {
+      "original_sha256": "3a05d4ab36184a42e2a5a7dfd8c1dd443da55be14060808d7fd47e9a6ecce7c9",
+      "stored_sha256": "3a05d4ab36184a42e2a5a7dfd8c1dd443da55be14060808d7fd47e9a6ecce7c9"
+    },
+    "incoming-integration-review.json": {
+      "original_sha256": "010272b393fe99cf202b65c94960c1a700fb585d114de40b36c8af2d3ed900e7",
+      "stored_sha256": "010272b393fe99cf202b65c94960c1a700fb585d114de40b36c8af2d3ed900e7"
+    },
+    "merged-focused.log": {
+      "original_sha256": "26f0598f746af28a727377b15904b5fb9b0572a18589d077fe31c1322cf2ce37",
+      "stored_sha256": "26f0598f746af28a727377b15904b5fb9b0572a18589d077fe31c1322cf2ce37"
+    },
+    "merged-vitest.log": {
+      "original_sha256": "cdd00e9a7d48a7eb206a697a989e22db0cd1563d8e6e9de557883054fa1cc811",
+      "stored_sha256": "1d37794e1c90aec1d200f1522dcab33b1d6a65ec66247b94bc22249d1b51a9de"
+    }
+  }
+}

@@ -36,6 +36,10 @@ export type CommsRpc = (fn: string, args: Record<string, unknown>) => PromiseLik
 
 export interface CommsOperatorReadDeps {
   rpc: CommsRpc
+  /** How many `comms.message_submitted@1` events the estate's journal records, or null when it cannot be read. Read
+   *  only when the board holds no thread (SCN-146 alt path): a restore whose board history did not come back leaves
+   *  the journal's messages without their texts, and the screen must not say nothing was ever said. */
+  journalMessages?: (estateId: string) => Promise<number | null>
 }
 
 const failed = (code: CommsReadError['code'], message: string): { ok: false; error: CommsReadError } => ({ ok: false, error: { code, message } })
@@ -159,6 +163,15 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
         const thread = threadOf(row)
         if (!thread) return unavailable('the board answered with a thread row in a shape this build cannot read')
         threads.push(thread)
+      }
+      if (threads.length === 0 && deps.journalMessages) {
+        // Best effort: an unreadable count leaves the board's own answer standing, and is logged.
+        try {
+          const n = await deps.journalMessages(estateId)
+          if (typeof n === 'number' && Number.isSafeInteger(n) && n > 0) return { ok: true, threads, textsMissing: n }
+        } catch (e) {
+          ops.failed('comms.journal-count', e, { note: 'the journal\'s message count could not be read; Comms shows the board\'s empty answer' })
+        }
       }
       return { ok: true, threads }
     },

@@ -1,0 +1,8 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "before_tree": "b364896fa7e365ad801934d13c2bd7c627da7357",
+  "after_tree": "b364896fa7e365ad801934d13c2bd7c627da7357",
+  "exit": 0,
+  "seconds": 661.41,
+  "source_commit": "7b3a6d25701fb91c7303f74cc0bc971dc32e8d8b"
+}

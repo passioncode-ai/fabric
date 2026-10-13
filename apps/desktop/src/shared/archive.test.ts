@@ -151,3 +151,16 @@ describe('ADR-0075 private conversation recovery boundary', () => {
     }
   })
 })
+
+describe('the board\'s responder authority is replayed under the restore rule, not reproduced (ADR-0149 Amendment 1 §1, wave-2 fix 13)', () => {
+  it('epochs, slots, enrollments and attempts never claim that replaying the journal reproduces them exactly', () => {
+    const inventory = archiveInventory()
+    for (const name of ['board_epochs', 'board_responder_slots', 'board_enrollments', 'board_attempts']) {
+      const category = inventory.find(c => c.name === name)
+      expect(category?.recovery, name).toBe('journal')
+      expect(category?.owner, name).toContain('ADR-0149')
+      expect(category?.reason, name).not.toMatch(/reproduces it exactly/)
+      expect(category?.reason, name).toMatch(/restore/)
+    }
+  })
+})

@@ -238,3 +238,12 @@ hard-coded Claude settings path in published CLI around1865: this static finding
 is not a rerun regression. MCP profile/runtime ownership remains separate with
 Observatory writers, Fabric RM-23 visibility and lifecycle decisions. All new owner
 requests remain PREPARED / NOT_SENT at the project-access consent gate.
+
+
+## Incoming integration reconciliation — ac874946
+
+Before owner delivery, reconcile the deferred COM03 wave2 SQL filename107 with the
+resource preparation107, and the unapplied COM03 carryover patch's unrelated CO282
+with this plan's canonical CO282. Do not apply the patch, renumber historical receipts
+or interpret pending filenames as active reservations. See [N021 evidence](../../reports/2026-10-13-resource-admission-contract/raw/n021/README.md).
+Requests remain NOT_SENT: project consent was not granted to this session.

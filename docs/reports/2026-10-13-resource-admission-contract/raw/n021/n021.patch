@@ -1,0 +1,88 @@
+--- a/apps/desktop/src/main/sessionEnroll.ts
++++ b/apps/desktop/src/main/sessionEnroll.ts
+@@ -334,6 +334,12 @@
+  * earliest expiry carried by the session, which ends at its first call past it.
+  */
+ export async function joinBoardSession(binding: BindingRow, args: { projectId: string }, deps: BoardJoinDeps): Promise<BoardJoinAnswer> {
++  // Share coding enrollment's binding queue: an in-flight board mint is not a
++  // reusable bearer until its grant checks finish, and cap checks must be atomic.
++  return deps.sessions.enrolling(binding.id, () => joinBoardSessionOnce(binding, args, deps))
++}
++
++async function joinBoardSessionOnce(binding: BindingRow, args: { projectId: string }, deps: BoardJoinDeps): Promise<BoardJoinAnswer> {
+   const checked = await deps.check(binding.id, args.projectId)
+   if ('error' in checked) return { ok: false, code: checked.error.code, message: checked.error.message }
+   const grants = [...checked.grants].sort()
+--- a/apps/desktop/test/session-enroll.test.mjs
++++ b/apps/desktop/test/session-enroll.test.mjs
+@@ -543,3 +543,70 @@
+   assert.equal(refused.code, 'not_authorized')
+ })
+ // #endregion board-join-session
++
++// N-021: board and coding admissions share one binding serializer, with separate caps.
++test('concurrent board retries share only a fully checked unspent session', async () => {
++  const h = boardDeps()
++  const answers = await Promise.all(Array.from({ length: 8 }, () => joinBoardSession(binding, { projectId: P }, h.b)))
++  assert.ok(answers.every(r => r.ok))
++  assert.equal(new Set(answers.map(r => r.session.sessionId)).size, 1)
++  assert.equal(h.boardMinted.length, 1)
++  assert.equal(h.sessions.liveOf(binding.id).length, 1)
++})
++test('concurrent board joins never exceed their cap while distinct projects cannot share a spare', async () => {
++  const h = boardDeps(); let peak = 0
++  const mint = h.b.mint
++  h.b.mint = (...args) => { const token = mint(...args); peak = Math.max(peak, h.surface.held.size); return token }
++  const answers = await Promise.all(Array.from({ length: 8 }, (_, i) => joinBoardSession(binding, { projectId: `${P}-${i}` }, h.b)))
++  assert.ok(answers.every(r => r.ok))
++  assert.equal(h.boardMinted.length, 8)
++  assert.equal(h.sessions.liveOf(binding.id).length, MAX_BOARD_SESSIONS_PER_BINDING)
++  assert.ok(peak <= MAX_BOARD_SESSIONS_PER_BINDING)
++})
++for (const failure of ['revoked', 'read-error']) test(`queued board retry never borrows pending bearer after ${failure}`, async () => {
++  const h = boardDeps(); let finish, checks = 0, revoked = false, pendingEntered
++  const entered = new Promise(resolve => { pendingEntered = resolve })
++  h.b.check = async () => { checks++; return revoked ? { error: { code: 'not_authorized', message: 'revoked', retryable: false } } : { capabilities: ['finance.close'], grants: [RG] } }
++  let reads = 0
++  h.b.stillLive = async () => {
++    if (++reads !== 1) return true
++    pendingEntered()
++    return await new Promise((resolve, reject) => { finish = () => failure === 'read-error' ? reject(Error('synthetic grant read')) : resolve(false) })
++  }
++  const first = joinBoardSession(binding, { projectId: P }, h.b).then(value => ({ value }), error => ({ error }))
++  await entered
++  let secondSettled = false
++  const second = joinBoardSession(binding, { projectId: P }, h.b).then(value => { secondSettled = true; return value })
++  await new Promise(resolve => setImmediate(resolve))
++  assert.equal(secondSettled, false, 'pending registration is not a reusable admission')
++  assert.equal(checks, 1, 'the queued call checks authority after taking the same binding slot')
++  if (failure === 'revoked') revoked = true
++  finish()
++  const a = await first, b = await second
++  if (failure === 'revoked') {
++    assert.equal(a.value.code, 'authority_changed'); assert.equal(b.code, 'not_authorized')
++    assert.equal(h.boardMinted.length, 1); assert.equal(h.surface.held.size, 0)
++  } else {
++    assert.match(a.error.message, /synthetic/); assert.equal(b.ok, true)
++    assert.equal(h.boardMinted.length, 2); assert.equal(h.surface.state(b.session.bearer), 'unclaimed')
++    assert.equal(h.sessions.liveOf(binding.id).length, 1)
++  }
++})
++test('board and coding calls share binding serialization but preserve separate surfaces and runtime identities', async () => {
++  const h = boardDeps(); let finish, enteredResolve
++  const entered = new Promise(resolve => { enteredResolve = resolve })
++  h.b.stillLive = async () => { enteredResolve(); return await new Promise(resolve => { finish = resolve }) }
++  const board = joinBoardSession(binding, { projectId: P }, h.b)
++  await entered
++  const coding = enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'native-A' }, h.d)
++  const other = await enrollSession({ ...binding, id: 'different-binding' }, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'other' }, h.d)
++  assert.equal(other.ok, true, 'another binding remains independent')
++  assert.equal(h.minted.length, 1, 'same-binding coding call waits behind the pending board join')
++  finish(true)
++  const [b, c] = await Promise.all([board, coding])
++  assert.equal(b.ok, true); assert.equal(c.ok, true); assert.notEqual(b.session.bearer, c.session.bearer)
++  const unknown = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
++  assert.equal(unknown.ok, true); assert.notEqual(unknown.session.bearer, c.session.bearer)
++  assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface === 'board').length, 1)
++  assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface !== 'board').length, 2)
++})
