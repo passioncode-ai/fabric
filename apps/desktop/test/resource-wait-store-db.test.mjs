@@ -120,7 +120,7 @@ const rpc = { async rpc(name, args) {
   const names = new Set(['resource_wait_insert','resource_wait_read','resource_wait_page','resource_wait_cas'])
   assert.ok(names.has(name))
   const values = Object.entries(args).map(([k,v]) => `${k}=>${typeof v === 'number' ? v : typeof v === 'string' ? q(v) : j(v)}`).join(',')
-  return { data: call(`set role service_role; select ${name}(${values})`) }
+  return { data: call(`set role service_role; select to_json(${name}(${values}))`) }
 } }
 assert.deepEqual(await createResourceWaitStore(rpc, fifo).read(fifo, old.id), read(old), 'new client reconnects to durable unknown row')
 const runScope = configure('client'), work = make(runScope), client = createResourceWaitStore(rpc, runScope)
