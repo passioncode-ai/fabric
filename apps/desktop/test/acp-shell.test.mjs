@@ -411,4 +411,52 @@ test('a refusal is -32601 only for a method the client does not offer; any other
   assert.equal(sent.find((m) => m.id === 7).error.code, -32601)
   assert.equal(sent.find((m) => m.id === 8).error.code, -32603)
 })
+
+// CO-282 / N-002: in-memory ACP peer; no native runner or model is invoked.
+const modeSession = ({ advertised = true, refuse = false, defer = false, malformed = false, timeoutMs = 1000, sessionMode = 'plan' } = {}) => {
+  const input = new PassThrough(), output = new PassThrough(), stdin = new PassThrough(), stdout = new PassThrough()
+  const requests = []; let shown = '', exit = () => {}, alive = true, pendingAck
+  output.on('data', b => { shown += b })
+  const reply = (id, value) => stdout.write(JSON.stringify({ jsonrpc: '2.0', id, ...value }) + '\n')
+  stdin.on('data', bytes => {
+    for (const line of String(bytes).trim().split('\n')) {
+      const m = JSON.parse(line); requests.push(m)
+      if (m.id === undefined) continue
+      if (m.method === 'initialize') reply(m.id, { result: { agentCapabilities: { mcpCapabilities: { http: true } } } })
+      else if (m.method === 'session/new') reply(m.id, { result: { sessionId: 'mode-fixture', ...(advertised ? { modes: { currentModeId: 'default', availableModes: ['default','plan','yolo'].map(id => ({ id, name: id })) } } : {}) } })
+      else if (m.method === 'session/set_mode') {
+        pendingAck = () => reply(m.id, refuse ? { error: { code: -32602, message: 'mode refused' } } : { result: malformed ? null : {} })
+        if (!defer) pendingAck()
+      } else if (m.method === 'session/prompt') reply(m.id, { result: { stopReason: 'end_turn' } })
+    }
+  })
+  stdin.on('finish', () => { alive = false; queueMicrotask(() => exit(0)) })
+  const done = runAcpShell(spec({ sessionMode }), { input, output, timeouts: { requestMs: timeoutMs }, spawnAgent: () => ({ stdin, stdout, stderr: null, alive: () => alive, kill: () => { alive = false; exit(0) }, onExit: cb => { exit = cb } }) })
+  return { input, done, requests, ack: () => pendingAck(), shown: () => shown }
+}
+
+test('the native ACP mode is selected and acknowledged before the first prompt', async () => {
+  for (const sessionMode of ['plan', 'default', 'yolo']) {
+    const s = modeSession({ defer: true, sessionMode })
+    try {
+      await waitFor(() => s.requests.some(r => r.method === 'session/set_mode') || s.requests.some(r => r.method === 'session/prompt'), 1000)
+      const selected = s.requests.find(r => r.method === 'session/set_mode')
+      assert.deepEqual(selected?.params, { sessionId: 'mode-fixture', modeId: sessionMode })
+      assert.equal(s.requests.some(r => r.method === 'session/prompt'), false, 'the brief must not run while selection is unacknowledged')
+      s.ack()
+      assert.equal(await waitFor(() => s.requests.some(r => r.method === 'session/prompt'), 1000), true)
+    } finally { s.input.end(); await s.done }
+  }
+})
+
+for (const [name, options] of [
+  ['unadvertised', { advertised: false }], ['unknown', { sessionMode: 'unknown-fixture' }],
+  ['refused', { refuse: true }], ['malformed acknowledgement', { malformed: true }], ['timed out', { defer: true, timeoutMs: 100 }]
+]) test('a ' + name + ' ACP mode refuses the session without sending its brief', async () => {
+  const s = modeSession(options)
+  s.input.end()
+  assert.equal(await s.done, 3)
+  assert.equal(s.requests.some(r => r.method === 'session/prompt'), false)
+  assert.match(s.shown(), /mode/i)
+})
 // #endregion acp-shell

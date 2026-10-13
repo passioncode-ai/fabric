@@ -287,10 +287,11 @@ export const AGENTS: readonly AgentDescriptor[] = [
     // `mcpCapabilities.http = true`, so the session takes Fabric's surface over HTTP — no stdio bridge —
     // and the bearer verified server-side on initialize, tools/list and tools/call. The machine was
     // signed in, so `session/new` opened without `authenticate` (its one auth method is a terminal
-    // login). Its modes, from the same help: default asks before acting; `--plan` starts in plan mode;
-    // `--auto` ("Never Ask") decides everything itself. `--yolo` ("Ask When Needed") lets routine
-    // commands run unasked, so it is no gate either and is not offered. Through the ACP shell the mode
-    // the person picked arrives as `acpMode`, like Hermes.
+    // login). Native ACP probe 2026-10-13 (CO-282): global --plan/--auto are accepted but session/new
+    // still returns currentModeId=default. session/set_mode acknowledges plan/default/yolo and emits
+    // the matching current_mode_update; an invalid mode returns -32602. No model prompt was sent.
+    // The ACP shell negotiates that mode before the brief; acpMode separately controls permission
+    // replies. CLI spellings are not ACP mode ids: yolo here is the advertised "Auto-approve everything".
     id: 'kimi-code',
     label: 'Kimi Code',
     program: 'kimi',
@@ -301,9 +302,9 @@ export const AGENTS: readonly AgentDescriptor[] = [
     resultChannel: 'surface',
     defaultMode: 'ask',
     permissionModes: [
-      { id: 'plan', labelKey: 'agent.mode.plan', args: ['--plan'], containment: 'runner-gated', config: { acpMode: 'ask' } },
-      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated', config: { acpMode: 'ask' } },
-      { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto'], containment: 'none', config: { acpMode: 'bypass' }, warnKey: 'agent.mode.bypassWarn' }
+      { id: 'plan', labelKey: 'agent.mode.plan', args: [], containment: 'runner-gated', config: { acpMode: 'ask', acpSessionMode: 'plan' } },
+      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated', config: { acpMode: 'ask', acpSessionMode: 'default' } },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: [], containment: 'none', config: { acpMode: 'bypass', acpSessionMode: 'yolo' }, warnKey: 'agent.mode.bypassWarn' }
     ]
   },
   // #endregion kimi-surface
