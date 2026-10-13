@@ -35818,7 +35818,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2633
+        "line": 2634
       },
       "mermaid_source": "flowchart TD\n  E[com.enroll capability] -->|no grant| NA[not_authorized: ask the operator — FLW-85; nothing written]\n  E -->|live holder is another session| FX[fenced: use com.responder_replace]\n  E --> S[Slot: generation n, lease 60 s database time]\n  S --> C[com.claim]\n  C -->|nothing claimable| NC[ok, nothing stored: poll again with the same key]\n  C --> A[request claimed, attempt id, digest]\n  A -->|com.accept| AC[accepted]\n  AC -->|com.effect_begin| IP[in_progress, effect started]\n  AC -->|com.complete| DONE[completed or failed_known]\n  IP -->|com.complete observed| DONE\n  IP -->|com.complete not observed| OR[observation_required]\n  S -->|lease lapses| ST[stale]\n  ST -->|another granted session enrolls| N[generation n+1: claimed back to queued, in_progress to outcome_unknown, accepted held]\n  N -->|old holder's late call| F[fenced or lease_expired: nothing committed]\n  S -->|session ends| R[released: nothing moves; a claimed request is taken again as a lapsed claim]\n  R -->|next holder enrolls| N2[in_progress to outcome_unknown; claimed stays claimed; accepted held]\n  N --> RC[com.reconcile observed by the current holder: outcome_unknown to completed or failed_known]\n  S -->|grant revoked| AU[authority_changed: the request stays where it was]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35837,7 +35837,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2680
+        "line": 2681
       },
       "mermaid_source": "flowchart TD\n  Q[Agent asks board.respond on board:project/capability, 1 to 8, one project] -->|not a coding agent or registered agent, unknown project, two projects, a folder| X[Refused before anything is shown]\n  Q --> P[Prompt or queue: Let agent answer capabilities requests for project? — may take and answer them; cannot spend, publish or delete; same-user floor; a year unless revoked]\n  P -->|Deny, the default| D[Denied until cleared in SCR-76]\n  P -->|Allow| G[Grant listed in SCR-76: answer capabilities requests for project]\n  G -->|a coding agent| U1[Its sessions enroll with com.enroll — FLW-84]\n  G -->|a service| U2[fabric.board.join: a board session with the com.* tools only]\n  G -->|Revoke in SCR-76| V[Slots released; next responder call authority_changed; a board session holding it ends]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35858,7 +35858,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2706
+        "line": 2707
       },
       "mermaid_source": "flowchart TD\n  C[SCR-81: a pause control, owner only] -->|a member| M[One line: only the estate's owner can pause or resume; no controls]\n  C -->|press| S[SCR-82: what stops in this scope; what keeps going; a pause cannot stop work already started]\n  S -->|Esc or close| C\n  S -->|Open Agents & access| AA[SCR-76: revoke the agent — FLW-85; its slots released, the responder line reads absent]\n  S -->|Pause| B[Busy]\n  B -->|recorded| D[Paused, announced; the chip on the thread or responder line]\n  B -->|it was already paused| AL[It was already in that state. Nothing changed]\n  B -->|not the owner| NO[Only the estate's owner can pause or resume]\n  B -->|access changed since the window opened| AM[Reopen and try again; nothing changed]\n  B -->|the target is not in this estate| NF[Not found]\n  B -->|the answer was lost| MS[This may have been saved: read the pauses again and show what they say]\n  D -->|agents' new work in the scope| HD[Refused held — FLW-84; reports on started work go on]\n  D -->|Resume| R[Busy, then Resumed, announced; the chip gone; a refused call sent again with its key goes through]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -35879,7 +35879,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2740
+        "line": 2741
       },
       "mermaid_source": "flowchart TD\n  E[Settings or Agents & access] --> L[SCR-83: loading]\n  L -->|the directory did not answer| U[The directory did not answer — never an empty list; no switch offered]\n  L --> RD[Active projects, each with Listed for other projects]\n  RD -->|a member| RO[Switches read-only: only the estate's owner can change this]\n  RD -->|switch or What other projects see| PV[Preview: name, capabilities with responder state and paused — nothing else]\n  PV -->|no capability| PE[No capabilities: no agent may answer requests for it yet]\n  PV -->|confirm the switch| SV[Saving]\n  SV -->|recorded| OK[The switch shows the directory's answer, announced]\n  SV -->|already that way| AL[Nothing changed, nothing recorded]\n  SV -->|not the owner, or access changed| RF[Refused: reopen and try again]\n  SV -->|the answer was lost| MS[This may have been saved: read the directory again]",
       "status": "target_or_mixed_not_coverage_claim",

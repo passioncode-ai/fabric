@@ -2629,6 +2629,7 @@ flowchart TD
   |---|---|
   | SCR-81 Project comms | more, filtered-empty, filter-unavailable, responder checking/active/stale/absent/paused/unknown, outcome, settle offered/confirm/settled/refused, search idle/results/none/stopped-early/unavailable, pending none/list/unavailable, timeline, related |
 - **Scenarios (wave 4):** SCN-147, SCN-156, SCN-157
+- **Amended 2026-10-13 (wave 4's reads — BUILT, W4-1 to W4-6):** every branch above is on screen except three that are still only designed: the "paused" responder line and "Pause this thread" (FLW-91, W4-7 to W4-9) and the owner's "Settle with a summary" (W4-13). Until W4-13, `outcome_unknown` with no responder holding the slot ends at "No agent answers {capability} now, so nothing settles it until one does.", for the owner and a member alike. At 200 threads held, "Show older threads" gives way to "Showing the newest 200 threads. Narrow the filters to reach older ones." (SCR-81's built amendment).
 
 ### FLW-84: A responder takes a project's requests, and a replaced one is fenced
 - **Traces:** SCN-144 (COM-03); [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2–§6; contract DEC-0073
