@@ -1,0 +1,17 @@
+✔ actual persisted membership reader feeds actual N026 then manifest drift refuses currentness (311.370625ms)
+{"probe":"unresolved sibling count","hanging":1}
+✔ membership rejection cannot release slot while sibling RPC stays unresolved (50.728542ms)
+{"probe":"partial retained mapping","state":"unknown"}
+✔ structurally partial retained mapping cannot permit new allocation (18.235ms)
+{"probe":"distinct handle pending Git","calls":1}
+✔ manager retains unsettled lease transport across distinct handles (860.6945ms)
+{"probe":"synchronous sibling count","hanging":1}
+✔ synchronous second query throw retains the already pending first query (49.236042ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1006.854833

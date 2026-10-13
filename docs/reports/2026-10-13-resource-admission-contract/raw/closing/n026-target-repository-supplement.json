@@ -1,0 +1,44 @@
+{
+  "node": "N026",
+  "reviewer": "/root/pipeline_research",
+  "changeAuthor": "/root",
+  "recordedAt": "2026-10-13T07:53:36.096913+00:00",
+  "verdict": "SCOPED_ACCEPT",
+  "priorSourceSha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+  "sourceSha256": "a06566fe0a7a837b15cf21c42d3ad4df5e5b64cf339ee66f87f91423cb1e7893",
+  "delta": "Programmatic exact equality from staged accepted0db5 after only explanatory comment, local repoPath=a.repository.approvedRoot alias and identical comparison through alias. Existing Git helper still forces approvedRoot cwd. No command/dataflow semantics or checker source change.",
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<reviewer>/production-probes.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "\u2714 ordinary async rejected clock cannot crash process (60.19475ms)",
+        "\u2139 tests 8",
+        "\u2139 suites 0",
+        "\u2139 pass 8",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1194.323125"
+      ]
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "<reviewer>/index-flag-check.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "{\"probe\":\"assume-unchanged-index-flag\",\"before\":\"observed\",\"after\":\"changed\"}"
+      ]
+    }
+  ],
+  "limits": "No full suite, native/provider or release acceptance; existing scoped limits retained. Root owns release checker and combined gate."
+}

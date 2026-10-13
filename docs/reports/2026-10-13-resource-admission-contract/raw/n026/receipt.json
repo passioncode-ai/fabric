@@ -1,0 +1,66 @@
+{
+  "node": "N026",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "sourceBase": "f2576c109f1de55179e07c7398aa2c4564e12087",
+  "files": {
+    "apps/desktop/src/main/resourceInputSnapshot.ts": "beefff4978d48fa5ed827492206de8bd0182396eac066843ab578af5803b49fa",
+    "apps/desktop/test/resource-input-snapshot.test.mjs": "86bd8ec24a9381c1c1314f0c6d95adace8b68df9e8068898911d05c970af11dd",
+    "docs/execution/harness-waves/resource-input-snapshot.md": "b2255bdd5433e1f4cc9f6a5b317946979d6dcc56193e957a97b08d87bfe08273"
+  },
+  "dependencyHashes": {
+    "gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  },
+  "focused": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs",
+    "exitCode": 0,
+    "tests": 31,
+    "log": "focused.log"
+  },
+  "metadataRegression": {
+    "original": "resourceInputSnapshot.original.snapshot.txt",
+    "originalSha256": "cf376a0371742f61bc2ea0114c1c21180a0ee078f181fb130777839d8fe8842c",
+    "command": "node --experimental-strip-types --test --test-name-pattern='index flag|actual Git worktree root' apps/desktop/test/resource-input-snapshot.test.mjs",
+    "originalExitCode": 1,
+    "originalFailed": 3,
+    "log": "metadata-red.log",
+    "discovery": "Peer reproduced assume-unchanged; builder added skip-worktree and nested-root controls"
+  },
+  "sourceControls": [
+    {
+      "control": "raw-bytes",
+      "pattern": "actual binary bytes",
+      "exitCode": 1,
+      "sourceSha256": "aa3b4d33c169fe82c0e2fc6a4d8d7ee2a937491c25c6831516173e62d3870cb9"
+    },
+    {
+      "control": "final-stamp",
+      "pattern": "same-size modification after",
+      "exitCode": 1,
+      "sourceSha256": "d2c632a757fed5b66136dd4af5715ac245e4c4f4ab4ac98a126f7ca9c4630191"
+    },
+    {
+      "control": "slot",
+      "pattern": "timeout retains actual",
+      "exitCode": 1,
+      "sourceSha256": "63b8aadabf40092a253b8cb9686af0e95bcb151c022b4b3cf51b69352b4b620c"
+    },
+    {
+      "control": "async-clock",
+      "pattern": "ordinary async clock rejection",
+      "exitCode": 1,
+      "sourceSha256": "85b73eb648ad5697aa8eb9d53770c43050fdfb9cd0e4bb3cc25ad5297490929b"
+    }
+  ],
+  "cheapChecks": {
+    "scope": "PASS exit0 combined source overlay, scope.log",
+    "operations": "PASS exit0 combined source overlay, ops.log"
+  },
+  "patchSha256": "d33d126821197e3d157af94bd8c79b71ed43528d3285572452b8cf2e619b2736",
+  "limits": [
+    "Trusted selected closure only, no completeness/authority/launch claim",
+    "Lease injection is separately refreshed evidence; actual N023 transport composition NOT_RUN",
+    "No DB or runtime wiring",
+    "No arbitrary hostile race immunity or native cross-platform acceptance",
+    "Typecheck root-owned, NOT_RUN by builder"
+  ]
+}

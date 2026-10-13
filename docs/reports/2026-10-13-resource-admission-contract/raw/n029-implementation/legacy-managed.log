@@ -1,0 +1,3 @@
+PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery
+PASS launch receipt identity mismatch never spawns or dispatches against another generation
+PASS a typed refusal before spawn classifies by the result, not by a stale session record

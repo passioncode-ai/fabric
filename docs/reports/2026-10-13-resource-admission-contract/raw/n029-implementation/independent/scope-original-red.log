@@ -1,0 +1,43 @@
+✖ mismatched constructor estate refuses actual foreign scoped-store projection (4.984875ms)
+✖ changed scoped-store estate cannot supply prepared currentness (0.53475ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.146375
+
+✖ failing tests:
+
+test at ../../../..<independent-root>/scope-probes.mjs:3:1
+✖ mismatched constructor estate refuses actual foreign scoped-store projection (4.984875ms)
+  AssertionError [ERR_ASSERTION]: {"state":"observed","packetEstate":"55555555-5555-4555-8555-555555555555","readEstate":"11111111-1111-4111-8111-111111111111"}
+      at TestContext.<anonymous> (file://<independent-root>/scope-probes.mjs:5:51)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'observed',
+    expected: 'observed',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../..<independent-root>/scope-probes.mjs:7:1
+✖ changed scoped-store estate cannot supply prepared currentness (0.53475ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file://<independent-root>/scope-probes.mjs:9:40)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

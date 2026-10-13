@@ -1,0 +1,66 @@
+# Once-prepared managed launch input: bounded next slice
+
+Design only, source-owned local work. No implementation or activation acceptance. Read source receipt beside this proposal. No COM approval is needed to implement these internal seams; ownership/policy activation is a separate contract.
+
+## Observed production seam
+
+At the reviewed source, `managedLaunch.ts:63` obtains admission, then `:78` begins launch, `:91` prepares and `:94` opens. `index.ts:3163` supplies that factory; its prepare callback reads project/agent configuration after admission (`:3171`). `pty.ts:455` compiles the bundle before the final authority check (`:495`). `sessionBundle.ts:196` invokes its context callback and writes the returned exact markdown (`:198`). That callback in `index.ts:1060` rereads the task instruction, compiles the actual context (`:1068`) and appends `context.compiled@1` (`:1088`). The factory separately dispatches `input.instruction ?? receipt.instruction` (`managedLaunch.ts:132`). These are two instruction observations, with compilation after resource admission rather than before it.
+
+The chain resolves a substituted brief (`chainAdvance.ts:386`), admits separately (`:402`), journals that brief in `chain.dispatch` (`:429`) and passes a pre-admitted receipt plus override to startTask (`:444`). `index.ts:1773` applies existing task ingress preparation, then passes the override at `:1788`. Compiling context from a fresh project_tasks instruction does not identify the actual chain override.
+
+`compileContextPack` is the existing compiler, with sanitized source selection, bounded characters, required-source checks, compiler revision and exact markdown SHA (`contextPack.ts:210,455`). Reuse it. `executionPacket.ts:60` already materializes named parts and `:79` verifies their bytes; no second blob store is needed. `continuationDelivery.ts:78` hashes the instruction body, while `:87` adds a run/delivery header before PTY transport. Therefore a pre-admission identity can bind exact context and instruction BODY bytes; it cannot truthfully bind a later run-derived wire header before SQL allocates that run.
+
+## Smallest supported path
+
+Support ordinary newly admitted managed tasks, including operator and routine triggers, that choose a supported connected built-in runner. Required mode refuses an incoming pre-admitted receipt, chain trigger or instruction override before any reservation/admission call. In addition, the required `admitExisting` door refuses a missing prepared packet before calling the resource adapter, so chain's earlier separate admission cannot reserve resources and only then discover the unsupported path. There is no new launcher. Existing non-resource behavior, including chain overrides and ordinary terminals, stays on its existing path.
+
+Initially refuse required custom-agent bindings and nonconnected shells before admission unless the prepared target projection also freezes their actual instruction/configuration bytes. This is an explicit finite support boundary, not a claim all existing launch kinds are enforced. Runner/mode/folder identity must be captured and compared; otherwise a packet prepared for one runner can be consumed by another. Existing runner readiness and mode validation remain authoritative at PTY opening. Runtime fallback must not change the chosen target after this packet is bound.
+
+## Finite API
+
+Add one concrete module, `preparedLaunchInput.ts`, whose factory owns the existing ScopedStore, explicit preparation bounds and the actual `compileContextPack` call. It reads exact task fields through ScopedStore: id, project_id, instruction, option_id and brief fields; it refuses missing rows/read errors. It reads the project launch folder and supported target, validates sizes before compiling and captures the chosen permission mode/trigger. It does not accept caller-supplied context markdown. Use independent before/after task/target reads to reject cooperative changes without pretending an atomic database snapshot across compiler queries.
+
+Proposed methods:
+
+```ts
+prepare({ taskId, sessionId, trigger, permissionMode }): Promise<PreparedResult>
+current(packet): Promise<boolean> // reread exact task/target projection; no recompile
+owns(packet): boolean            // same producer instance, fixed identity, not authority
+release(packet): void           // local receipt lifecycle only; never release resources
+```
+
+An observed result owns an immutable same-instance packet with estate/project/task/session identity; trigger and target projection; `instructionBody`; `instructionSha256`; the actual immutable `ContextPack`; and `contentDigest = SHA256(domain, identity, target, instruction SHA, context SHA, compiler revision, required-source policy)`. All strings are hashed as their actual UTF-8 bytes. Preserve existing ingress transformation: no second trim/redaction changes dispatch body after preparation. Context is the compiler's sanitized markdown, not a claim that its displayed instruction is identical to raw body formatting. Set `executionAuthorized:false`. Bound active receipts and pending operations, retain timed-out I/O until settlement, reject late fresh work, copy constructor inputs, consume accidental ordinary rejected Promise clocks. No unbounded per-session cache.
+
+Extend the existing internal managed deps with `prepareInput` and pass the owned packet explicitly as a separate internal argument through `admit`, `prepare` and PTY/bundle compilation. In resource-required mode, absence/refusal/timeout fails closed before admission. Do not expose this packet as renderer IPC input or allow a task property to enable/disable the mode. `ResourceLaunchAdapter.prepare(input, packet)` receives the actual packet; the adapter retains its content digest beside the immutable binding and compares same-session retries. A changed packet cannot reuse a cached previous admission outcome. Existing SQL `p_binding.inputDigest` is not redefined as this partial content digest: the later trusted composite input producer must bind N026 selected-byte evidence AND this actual content digest. This slice can supply and enforce the packet's propagation without claiming full input closure or manufacturing that producer.
+
+After admission, compare the receipt's task/project/session/option/instruction body with the captured task projection before begin. If it differs, use the existing exact `cancelUnbegun` SQL proof; never spawn and never infer a resource release from a local refusal. Refresh packet currentness before the existing final resource/SQL authority checks, without recompiling. Unknown outcome retains capacity under existing compensation rules.
+
+For a supplied required packet, `sessionBundle.compile` writes exactly its context markdown and includes the instruction body as a named execution-packet part. Verify both digests before materialization, then verify stored parts. Never invoke the legacy context callback, never swallow a required packet error and never fall back to a fresh compile. Dispatch receives exactly that packet's instruction body. Keep the current delivery header and its durable claim/begin/write semantics; report body equality separately from wire framing.
+
+Extract the existing context lockfile journal emission into a concrete helper usable by both paths. Preparation compiles before reservation without minting a surface credential or starting a session. Once the admitted packet is consumed by the bundle, append the existing `context.compiled@1` metadata for those exact bytes before spawn. A failed journal write in required mode refuses. Do not invent a new event shape or mark a mere preparation as a session already launched. The non-resource callback keeps its present degraded-context rules.
+
+## Bounded implementation ownership
+
+1. New `preparedLaunchInput.ts` plus production-compiler/ScopedStore fixture tests and unique contract doc.
+2. Existing `managedLaunch.ts`, `admitExisting.ts`, `resourceLaunchAdapter.ts`: preparation before reservation, same-instance identity forwarding, retry digest binding, receipt/currentness refusal, no legacy fallback in required mode.
+3. Existing `index.ts`: actual store/compiler/journal wiring and factory consumers; no configured capacities, sampler timer, active SQL or automatic resource-mode activation.
+4. Existing `pty.ts` and `sessionBundle.ts`: optional internal prepared packet forwarding; exact-byte materialization and required failure behavior. Non-resource argument omission preserves existing behavior.
+5. Focused managed launch, adapter and actual bundle tests; root integrates map/plan/CI and full gate once reviewed.
+
+This is a finite internal seam change. Avoid a registry of arbitrary prep callbacks, another admission facade or a parallel launcher.
+
+## Required negative checks
+
+- Actual compiler invoked once before resource admission; legacy context callback throws if invoked in the prepared path. Files read back through existing packet verification exactly equal prepared markdown/body; dispatch receives the same body, including whitespace and multibyte content.
+- Change the task instruction between capture/admission; return differing receipt; no begin/spawn/dispatch. Exact never-begun cancellation attempted only when a real owned receipt exists.
+- Change task/target after admission before final spawn: currentness fails, existing compensation behavior preserves unresolved reservation. Context source changes after compile do not silently cause recompilation; this is a frozen snapshot, not complete knowledge freshness.
+- Resource-required pre-admitted chain, override, missing packet, wrong task/session/producer, changed packet on identical-session retry, unsupported runner/custom-agent/shell: refuse before resource RPC. Legacy versions keep existing behavior.
+- Missing task row, read error, required context failure, budget failure, corrupt context/instruction digest, journal rejection: no silent degraded required launch.
+- Thirty repeated timeout calls create one unresolved preparation; late settlement starts no fresh read, admission or mint. A fresh operation after settlement is permitted within the configured receipt bound.
+- No provider/native process needed: production compiler and bundle with real owned temp files, actual managed factory with injected RPC/spawn spies. Real SQL compensation/native transport remain later acceptance, not simulated claims.
+
+## Next chain slice and genuine prerequisites
+
+A later bounded chain slice prepares its resolved `brief` before `chainAdvance` calls admitExisting, passes that same packet to the persisted dispatch intent and startTask, verifies exact override bytes and restores the packet digest from durable chain evidence after restart. Until that path exists, required chain refuses early; the ordinary chain continues unchanged. Continuing an already-running answer is a separate existing delivery, not a new prepared launch or a reason to free a waiting worker slot.
+
+Implementation of the seams above is locally executable. Enabling enforced resources still requires trusted explicit policy/assignment, complete worker inventory, actual R1 ownership/run-fence semantics, complete selected-input composition and pending DDL activation. N023 is Git lease observation, N026 is selected-input evidence and N027 is aggregate accounting; none returns R1 held ownership. Semantic ADR and trusted composition must define their relationship without converting self-reported labels/digests into authority. No cross-owner COM approval blocks writing/testing these local functions. Human consent/credentials/provider gates arise only when actually activating or testing native paths.

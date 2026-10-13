@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "kind": "read-only scheduled workspace sync diagnosis",
+  "source_commit": "ac874946db2487ab8101464d1abf1e8345eda199",
+  "verified_workspace_commit": "3998a3371c0b8ae0e4d5fde439f430320967a9c0",
+  "deployment": "3f2d602b-42f6-41c3-91d0-f3b26eabbfda",
+  "local_parent_pin": "3f73a94947715e866aaa06fb14bf8046e8282cde",
+  "ended_at": "2026-10-13T07:16:47.010Z",
+  "failure": "final git push origin HEAD:main non-fast-forward, after verified child deployment and local parent pin commit",
+  "status_record": "failed",
+  "owned_checkout_status": "clean",
+  "evidence": [
+    "scheduled workspace-sync.log tail",
+    "sync-status.json",
+    "git show 3f73a949:docs/workspace-receipt.json",
+    "scripts/workspace.mjs:165-169,195-201 own-checkout refresh recovery"
+  ],
+  "recovery": "Preserve exact prior receipt and parent pin. Review/fetch current main; after current source integration and gates use ordinary authorized publisher from current source or next scheduled sync. Scheduler refreshes only its own checkout. Do not force-push or blindly resume stale detached parent; no lifecycle restart required.",
+  "limits": [
+    "No current deployment API recheck; verified deployment described from run log and stored receipt.",
+    "No deploy, repository mutation or service lifecycle action performed."
+  ]
+}

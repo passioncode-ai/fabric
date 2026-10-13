@@ -1,0 +1,37 @@
+{
+  "task": "N027",
+  "state": "candidate_frozen",
+  "files": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770",
+    "apps/desktop/src/main/resourcePoolAccounting.ts": "79b8e9a727ab1be0530f3aa7fa9c591c10b478cb87749708b3db926eeb52a358",
+    "apps/desktop/test/resource-pool-accounting.test.mjs": "e1d4f9eca6e8dfca39cad40d24f2ccbacd358cd5a3a8b69d50786f2e4cb65571",
+    "apps/desktop/test/resource-pool-accounting-db.test.mjs": "4d63382704fab12178a92270269b153417dea266b693cb34e13cbd223b90974f",
+    "docs/execution/harness-waves/resource-pool-accounting.md": "866e1395be0cb803165bdc5a927f3093b1a73b77b17bd060703e6582136ffb61"
+  },
+  "patchSha256": "5e2e5cf31e682afcc64b398bc0f39c4f3195f72f71919aefb828eb281ca99a4a",
+  "base107Sha256": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110",
+  "focused": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs",
+    "exit": 0,
+    "passed": 31,
+    "log": "unit.log"
+  },
+  "types": {
+    "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext --allowImportingTsExtensions --typeRoots <existing-desktop-dependencies>/@types apps/desktop/src/main/resourcePoolAccounting.ts",
+    "exit": 0,
+    "log": "types.log"
+  },
+  "sqlFixture": {
+    "command": "node --experimental-strip-types apps/desktop/test/resource-pool-accounting-db.test.mjs (owned runner environment after pending107)",
+    "syntaxExit": 0,
+    "execution": "NOT_RUN",
+    "reason": "Root shared DB slot and disk headroom required"
+  },
+  "independentReview": "pending final frozen rerun; reviewer clock rollback counterexample fixed; original snapshot retained",
+  "authority": {
+    "activeDDL": false,
+    "native": false,
+    "executionAuthorized": false,
+    "rootMutations": false
+  }
+}

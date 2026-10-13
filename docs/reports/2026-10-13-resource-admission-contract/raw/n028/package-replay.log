@@ -1,0 +1,52 @@
+✔ real manifest/scoped membership/pinned functions/persisted records produce correlation only (153.492667ms)
+✔ caller identity/scope expansion cannot enter assignment (47.497416ms)
+✔ foreign membership refuses before persistence (47.346709ms)
+✔ wrong estate-scoped client fails construction (38.458083ms)
+✔ actual manifest bytes changed refuses old identity and child patch (154.862458ms)
+✔ forged and restarted handles never regain identity (145.042375ms)
+✔ derived identity collision preserves original mapping (138.28225ms)
+✔ concurrent calls are bounded and duplicate session cannot be reallocated (153.071542ms)
+✔ partial immutable record and stale lock both refuse without cleanup guessing (35.685167ms)
+✔ mapping replacement cannot supply identity (142.202709ms)
+✔ source hash mismatch refuses actual helper with no record or foreign writes (94.837541ms)
+✔ long and malformed keys refuse before truncated derivation (44.131958ms)
+✔ timeout retains real unresolved membership and late settlement never allocates (103.818708ms)
+✔ accidental rejected native clock and key Promises are consumed (57.095083ms)
+✔ record cap is finite and no automatic reuse occurs (155.914333ms)
+✔ child patch replaces conflicting inherited key when composed last and contains no secrets (173.437458ms)
+✔ N023 unavailable transport remains unattributed with retained underlying reader (1220.776167ms)
+✔ one rejected membership query cannot release a still-pending sibling (91.800041ms)
+✔ syntactically valid incomplete retained record blocks allocation (36.149541ms)
+✔ unsafe storage permissions refuse and are never repaired implicitly (33.9245ms)
+✔ emitted assignment must pass actual N026 path and HEAD validation (718.681041ms)
+✔ installed source drift invalidates previously allocated identity (190.618875ms)
+✔ nested lease timeout cannot accumulate Git operations across two handles (1345.450958ms)
+✔ real owned Git lease observation remains unattributed even for matching derived label (392.905541ms)
+✔ helper refuses unsupported source without importing or executing its body (31.073334ms)
+✔ two actual managers cannot both allocate one session under exclusive lock (186.949792ms)
+✔ synchronous second query throw cannot release first pending query (91.004417ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6149.638667
+✔ actual persisted membership reader feeds actual N026 then manifest drift refuses currentness (236.091625ms)
+{"probe":"unresolved sibling count","hanging":1}
+✔ membership rejection cannot release slot while sibling RPC stays unresolved (45.719458ms)
+{"probe":"partial retained mapping","state":"unknown"}
+✔ structurally partial retained mapping cannot permit new allocation (6.47ms)
+{"probe":"distinct handle pending Git","calls":1}
+✔ manager retains unsettled lease transport across distinct handles (858.818958ms)
+{"probe":"synchronous sibling count","hanging":1}
+✔ synchronous second query throw retains the already pending first query (49.388ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1004.7095

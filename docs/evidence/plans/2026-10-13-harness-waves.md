@@ -329,3 +329,106 @@ These nodes do not install policy, activate DDL or create a complete worker inve
 from a PTY list. Source-owned task/input closure, actual run↔lease binding, production
 composition and native/write-boundary enforcement retain their explicit prerequisites.
 One heavy DB/build slot remains shared; temporary builders cannot mutate root inputs.
+
+
+### N-026 — selected input and mutable-scope snapshot
+
+Execute the existing [input/scope packet](../../execution/harness-waves/input-scope-next-packet.md)
+as a bounded local producer. A fixed trusted assignment selects exact paths and explicit
+bounds; real raw bytes, root/parent/open-file identity, HEAD and bounded index metadata
+are observed before and after. Optional identity/lease readers refresh independently.
+No renderer digest, task touches or inherited run string can override that assignment.
+The module always returns executionAuthorized:false. It neither claims complete dependency
+closure nor wires admission, acquires a lease, activates DDL or enforces hostile writers.
+
+Implementer and independent reviewer use separate temporary fixtures; parent integration
+waits for frozen hashes. Reuse the previous timeout/async-clock lessons. The early real-Git
+review found that stage entries alone miss assume-unchanged flags: retain its original RED
+and require corrected metadata-sensitive replay. One heavy slot remains shared; no installs.
+
+
+### N-027 — coherent bounded pool accounting read
+
+The independent composition review at193b0e1e found that R1 needs reserved totals
+while N025's publisher read intentionally exposes only eight policy/observation fields.
+Add a separate service-only RPC and actual read adapter. Preserve that existing contract.
+One MVCC snapshot must bind exact host/pool, policy digest, generation, observation and
+root-held reservation sums; children are already charged in their root and released rows
+do not count. Read at most the configured logical root bound plus one before aggregation.
+Truncation, absent observation, malformed totals and overflow remain unknown, never zero.
+
+The client validates full policy digest and exact generation; no overlap credit is a
+conservative accounting choice, not measured overlap evidence. Retain one outstanding RPC
+after timeout. No physical MVCC scan bound or future atomic admission is inferred.
+Real service-role SQL checks must cover privileges, other pool/host decoys, child/root
+accounting, bound/overflow refusal and coherent currentness. Active DDL remains separate.
+This source-owned producer is permitted by ADR0152 and is not blocked on COM.
+
+
+### N-028 — trusted run assignment and identity correlation
+
+Execute the [bounded assignment packet](../../execution/harness-waves/run-assignment-packet.md)
+in an isolated builder overlay stacked on accepted N026 bytes. Graph closure waits
+for committed integrated source; temporary dependent implementation does not claim that
+the predecessor is already delivered.
+
+Read the approved exact manifest and estate-scoped task/project membership, persist
+one immutable bounded local mapping, derive/read back the actual hash-pinned installed
+agent-sync function result with explicit short key, and refuse key/run/session collisions.
+Use independent N023 lease evidence with explicit unattributed-observation semantics.
+The child environment patch replaces inherited identity only at later trusted composition.
+All results remain executionAuthorized:false and ownership:unproven. No numeric fence,
+R1 held, native CLI acceptance, foreign lease mutation or production wiring is invented.
+
+Owned files use exclusive creation, bounded retained-record reads and a transaction lock.
+Partial writes, unsettled I/O, unavailable identity, changed manifest and restart remain
+unknown; no expired-ID reuse or stale-lock stealing. Actual installed-function readback
+is explicitly narrower than the full CLI, whose whoami also mutates local legacy notes.
+
+
+### N-029 — once-prepared managed launch input
+
+The [prepared launch packet](../../execution/harness-waves/prepared-launch-packet.md)
+changes the actual existing consumers: read supported task/target, compile the existing
+context once before required admission, propagate the same immutable instruction body
+and context through admission, PTY/bundle materialization and dispatch. Compare returned
+SQL identity/instruction before begin and refresh prepared currentness before the final
+resource/SQL guard. Refusal cannot infer cancellation or release without existing proof.
+
+Support only newly admitted managed ordinary tasks in this slice. Required mode refuses
+pre-admitted/chain/override and unsupported targets at the shared admission door before
+reservation. Existing ordinary non-resource paths preserve their behavior. Partial body
+and context identity is called contentDigest; it does not replace full inputDigest or bind
+the later run-derived delivery header before that run exists. No new compiler/blob store,
+resource configuration, active DDL, ownership grant or native acceptance is introduced.
+
+
+### N-030 — shared integration and retained checks
+
+One root integrator owns `scripts/ci.sh` after the four parallel producer/consumer
+modules. This avoids concurrent shared-script edits while independent reviews continue.
+Run focused checks as each module lands, then one combined fast gate in the single heavy
+slot. Actual accounting SQL is required for N027 acceptance; disk refusal is NOT_RUN.
+Persist exact source hashes and original failure controls, commit and push the task branch,
+then publish through the existing workspace contract and verify its exact source binding.
+No native admission, installed policy activation, product release or COM delivery follows
+from a source check. N009/N010 remain dependent on restored official board access.
+
+
+### N-031/N-032 — durable logical worker entry and actual launcher binding
+
+[ADR0154](../../adr/0154-logical-worker-pools-retain-unresolved-start-intents.md)
+defines an explicit Fabric-controlled logical pool, one durable unit per worker slot.
+N031 first persists bounded crash-gap-safe intents using actual N028 assignment readback.
+It returns incomplete inventory; a manifest or empty directory cannot prove coverage.
+Temporary implementation may stack on accepted N028 while the integration graph waits
+for committed receipts. No root mutation occurs during a frozen gate.
+
+N032 then binds actual required ordinary managed/PtyManager entry before native creation,
+actual owned unit identity and concrete no-spawn or process/provider retirement evidence.
+Known unretired units and uncertain termination are retained. A future complete conservative
+unit set requires proved controlled entry coverage and intact durable history, not every
+unit proved live; missing provider quiescence still prevents retirement. Existing ordinary
+non-resource launch behavior remains unchanged. No policy activation or complete inventory
+is inferred from the N031 primitive. N032 is design-only until its concrete source scope
+is reviewed; implementation needs no new operator permission within this authorized task.

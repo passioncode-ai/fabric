@@ -317,3 +317,54 @@ grant execute on function configure_resource_pool(text,text,text,jsonb,bigint,te
 revoke all on function cancel_resource_admission(uuid,text,uuid,uuid,text) from public,anon,authenticated;
 grant execute on function cancel_resource_admission(uuid,text,uuid,uuid,text) to service_role;
 -- #endregion local-resource-reservation
+
+-- #region resource-pool-accounting — docs: docs/execution/harness-waves/resource-pool-accounting.md#contract
+-- One statement snapshot; root envelopes already contain nested allocations.
+-- LIMIT bounds logical materialization, not physical MVCC/index work or runtime.
+create index resource_reservations_accounting_roots on resource_reservations(host_id,pool_id,reservation_id)
+ where state='held' and parent_id is null;
+create function read_resource_pool_accounting(p_host text,p_pool text,p_revision text,p_configuration_generation bigint,p_max_roots bigint)
+returns jsonb language sql stable security definer set search_path=public as $$
+with args as materialized (
+ select coalesce(p_host ~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+ and p_pool ~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+ and p_revision ~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+ and p_configuration_generation between 1 and 9007199254740991
+ and p_max_roots between 1 and 1024,false) as valid
+), pool as materialized (
+ select p.* from public.resource_pools p,args a where a.valid and p.host_id=p_host and p.pool_id=p_pool
+), roots as materialized (
+ select r.demand from public.resource_reservations r,pool p
+ where r.host_id=p.host_id and r.pool_id=p.pool_id and r.state='held' and r.parent_id is null
+ and p.policy_revision=p_revision and p.configuration_generation=p_configuration_generation
+ order by r.reservation_id limit (select case when valid then p_max_roots+1 else 0 end from args)
+), sums as materialized (
+ select count(*) as root_count,coalesce(sum((demand->>'workerSlots')::numeric),0) as n0,
+ coalesce(sum((demand->>'memoryBytes')::numeric),0) as n1,
+ coalesce(sum((demand->>'diskBytes')::numeric),0) as n2,
+ coalesce(sum((demand->>'cpuMilliCores')::numeric),0) as n3 from roots
+), times as materialized (
+ select floor(extract(epoch from statement_timestamp())*1000) as snapshot_ms
+)
+select case
+ when not a.valid then jsonb_build_object('state','refused','reason','invalid_request')
+ when p.host_id is null then jsonb_build_object('state','unknown','reason','pool_missing')
+ when p.policy_revision<>p_revision or p.configuration_generation<>p_configuration_generation then jsonb_build_object('state','refused','reason','policy_changed')
+ when s.root_count>p_max_roots then jsonb_build_object('state','unknown','reason','root_bound_exceeded')
+ when s.n0>9007199254740991 or s.n1>9007199254740991 or s.n2>9007199254740991 or s.n3>9007199254740991 then jsonb_build_object('state','unknown','reason','reserved_overflow')
+ when p.observed is null then jsonb_build_object('state','unknown','reason','observation_missing')
+ when not isfinite(p.observed_at) or p.observed_at>statement_timestamp()
+ or floor(extract(epoch from p.observed_at)*1000)<0 or t.snapshot_ms not between 0 and 9007199254740991
+ or t.snapshot_ms-floor(extract(epoch from p.observed_at)*1000)>p.max_age_ms
+ then jsonb_build_object('state','unknown','reason','observation_stale')
+ when s.n0+(p.observed->>'workerSlots')::numeric>(p.capacity->>'workerSlots')::numeric or s.n1+(p.observed->>'memoryBytes')::numeric>(p.capacity->>'memoryBytes')::numeric or s.n2+(p.observed->>'diskBytes')::numeric>(p.capacity->>'diskBytes')::numeric or s.n3+(p.observed->>'cpuMilliCores')::numeric>(p.capacity->>'cpuMilliCores')::numeric then jsonb_build_object('state','refused','reason','capacity_exceeded')
+ else jsonb_build_object('state','observed','hostId',p.host_id,'poolId',p.pool_id,
+ 'bindingRevision',p.policy_revision,'configurationGeneration',p.configuration_generation,
+ 'capacity',p.capacity,'maxAgeMs',p.max_age_ms,'observed',p.observed,
+ 'observedAtMs',floor(extract(epoch from p.observed_at)*1000),
+ 'reserved',jsonb_build_object('workerSlots',s.n0,'memoryBytes',s.n1,'diskBytes',s.n2,'cpuMilliCores',s.n3),'rootCount',s.root_count,'snapshotAtMs',t.snapshot_ms)
+ end from args a left join pool p on true cross join sums s cross join times t;
+$$;
+revoke all on function read_resource_pool_accounting(text,text,text,bigint,bigint) from public,anon,authenticated;
+grant execute on function read_resource_pool_accounting(text,text,text,bigint,bigint) to service_role;
+-- #endregion resource-pool-accounting

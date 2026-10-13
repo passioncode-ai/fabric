@@ -1,0 +1,9 @@
+ok   complete fact and source references are scrubbed before the 300-character cap
+ok   multiline PEM is scrubbed before flattening in both fact fields
+ok   each legacy rendered head, fact metadata and annotation text is scrubbed
+ok   legacy raw backend prose becomes a fixed read error receipt
+ok   ordinary bytes, formatting controls and citation identities retain existing behavior
+ok   budget selection uses cleaned lengths and repeated source sanitation is stable
+ok   an oversized essential context refuses a bundle instead of degrading to a blind session
+ok   actual compiler → bundle → verified packet keeps one cleaned byte identity and scoped transport key
+8 offline context privacy scenarios passed

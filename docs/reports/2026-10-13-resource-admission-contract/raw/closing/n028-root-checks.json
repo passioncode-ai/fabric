@@ -1,0 +1,23 @@
+{
+  "node": "N028",
+  "sourceSha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs",
+      "exitCode": 0,
+      "passed": 27,
+      "skipped": 0,
+      "log": "n028-root-focused.log"
+    },
+    {
+      "command": "pnpm_config_verify_deps_before_run=warn pnpm --dir apps/desktop typecheck",
+      "exitCode": 0,
+      "log": "n028-root-typecheck-fixed.log"
+    }
+  ],
+  "limits": [
+    "Uses existing dependency tree with reported drift; no install or reproducible fresh toolchain claim.",
+    "Post-read store scope follow-up pending; this receipt describes preceding frozen candidate.",
+    "No actual SQL/native/held authority."
+  ]
+}

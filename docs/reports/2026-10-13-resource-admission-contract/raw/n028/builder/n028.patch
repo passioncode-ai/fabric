@@ -1,0 +1,505 @@
+diff --git a/apps/desktop/src/main/resourceRunAssignment.ts b/apps/desktop/src/main/resourceRunAssignment.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/src/main/resourceRunAssignment.ts
+@@ -0,0 +1,238 @@
++// #region resource-run-assignment — docs: docs/execution/harness-waves/resource-run-assignment.md#contract
++import * as fs from 'node:fs/promises'
++import { constants } from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { createHash, randomBytes, randomUUID } from 'node:crypto'
++import { execFile } from 'node:child_process'
++import type { ScopedStore } from './scopedStore.ts'
++import { createResourceInputSnapshotReader, type InputAssignment, type InputIdentity } from './resourceInputSnapshot.ts'
++import { createGitLeaseSnapshotReader, leaseGit, type LeaseGitRunner, type LeaseSnapshotDeps } from './gitLeaseSnapshot.ts'
++
++export const AGENT_SYNC_IDENTITY_SOURCE_SHA256 = 'fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1'
++export interface RunAssignmentConfig {
++  estateId: string; projectId: string; installationId: string; invocationId: string
++  repositoryRoot: string; approvedRemote: string; repositoryName: string
++  manifestPath: string; manifestSha256: string; storageRoot: string; agentSyncScript: string
++  timeoutMs: number; maxRecords: number; maxRecordBytes: number; maxManifestBytes: number
++}
++export interface RunAssignmentDeps {
++  store: Pick<ScopedStore, 'scope' | 'select'>
++  /** Trusted infrastructure seams, never task-selected. */
++  key?: () => string
++  now?: () => number
++  lease?: LeaseSnapshotDeps
++}
++export interface RunAssignmentHandle { readonly runId: string }
++type Result<T> = { state: 'observed'; value: T; executionAuthorized: false; ownership: 'unproven' }
++  | { state: 'unknown' | 'refused'; reason: string; executionAuthorized: false; ownership: 'unproven' }
++interface Mapping { schema: 1; installationId: string; invocationId: string; key: string; runId: string; scriptSha256: string; manifestSha256: string; leaseTarget: { key: string; scopeMappingRevision: string; repositoryName: string; remoteDigest: string }; assignment: InputAssignment }
++const hash = (bytes: string | Buffer) => createHash('sha256').update(bytes).digest('hex')
++const record = (raw: unknown): Record<string, unknown> => {
++  if (!raw || typeof raw !== 'object' || Object.getPrototypeOf(raw) !== Object.prototype) throw Error('invalid_data')
++  const entries = Object.entries(Object.getOwnPropertyDescriptors(raw))
++  if (Reflect.ownKeys(raw).length !== entries.length || entries.some(([, d]) => !('value' in d))) throw Error('invalid_data')
++  return Object.fromEntries(entries.map(([k, d]) => [k, d.value]))
++}
++const id = (v: unknown): string => { if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v)) throw Error('invalid_id'); return v }
++const sha = (v: unknown): string => { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) throw Error('invalid_digest'); return v }
++const positive = (v: unknown, max: number): number => { if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 1 || v > max) throw Error('invalid_bound'); return v }
++const freeze = <T>(v: T): T => { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v) }; return v }
++function failure(reason: string): Result<never> { return { state: 'unknown', reason, executionAuthorized: false, ownership: 'unproven' } }
++function stamp(s: import('node:fs').Stats) { return [s.dev, s.ino, s.size, s.mtimeMs, s.ctimeMs].join(':') }
++function relative(raw: unknown): string {
++  if (typeof raw !== 'string' || raw.length > 1024 || raw.startsWith('/') || /[\\\x00-\x1f\x7f]/.test(raw) || raw.split('/').some(x => !x || x === '.' || x === '..' || x === '.git')) throw Error('invalid_path')
++  return raw
++}
++function nativePromise(value: unknown) {
++  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype && !Object.hasOwn(value, 'constructor')) {
++    try { void Promise.prototype.then.call(value, undefined, () => {}) } catch { /* A spoof is invalid clock data; never trusted as a Promise. */ }
++  }
++}
++/** This producer never acquires a lease, supplies R1 held or starts a child agent. */
++export function createResourceRunAssignmentManager(raw: RunAssignmentConfig, deps: RunAssignmentDeps) {
++  const c = freeze({ ...record(raw) }) as unknown as Readonly<RunAssignmentConfig>
++  for (const k of ['estateId','projectId','installationId','invocationId','repositoryName'] as const) id(c[k])
++  sha(c.manifestSha256)
++  for (const k of ['repositoryRoot','manifestPath','storageRoot','agentSyncScript'] as const) if (typeof c[k] !== 'string' || !path.isAbsolute(c[k]) || path.normalize(c[k]) !== c[k]) throw Error('invalid_path')
++  const remote = new URL(c.approvedRemote)
++  if (remote.protocol !== 'https:' || remote.username || remote.password || remote.search || remote.hash) throw Error('invalid_remote')
++  const timeout = positive(c.timeoutMs, 30000), count = positive(c.maxRecords, 4096), recordLimit = positive(c.maxRecordBytes, 131072), manifestLimit = positive(c.maxManifestBytes, 65536)
++  const scope = deps.store.scope
++  if (scope.kind !== 'estate' || scope.estateId !== c.estateId) throw Error('wrong_store_scope')
++  const handles = new WeakMap<object, { mapping: Mapping; bytes: string; leaseReader?: ReturnType<typeof createGitLeaseSnapshotReader> }>()
++  let busy = false
++  let leasePending: Promise<string> | null = null
++  const trackedLeaseGit: LeaseGitRunner = (args, options) => {
++    if (leasePending) return Promise.reject(Error('lease_io_outstanding'))
++    const pending=Promise.resolve().then(()=> (deps.lease?.git ?? leaseGit)(args,options)); leasePending=pending
++    const settled=()=>{if(leasePending===pending)leasePending=null}
++    void pending.then(settled,settled); return pending
++  }
++  function now() {
++    const v: unknown = (deps.now ?? Date.now)(); nativePromise(v)
++    if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 0) throw Error('clock_unknown')
++    return v
++  }
++  async function read(file: string, max: number): Promise<Buffer> {
++    const fd = await fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK)
++    try {
++      const before = await fd.stat()
++      if (!before.isFile() || before.nlink !== 1 || before.size > max) throw Error('file_unknown')
++      const bytes = Buffer.alloc(max + 1); let used = 0
++      while (used <= max) { const r = await fd.read(bytes, used, max + 1 - used, used); if (!r.bytesRead) break; used += r.bytesRead }
++      const after = await fd.stat(), linked = await fs.lstat(file)
++      if (used > max || stamp(before) !== stamp(after) || stamp(after) !== stamp(linked) || linked.isSymbolicLink()) throw Error('file_changed')
++      return bytes.subarray(0, used)
++    } finally { await fd.close() }
++  }
++  async function canonicalDirectory(dir: string) {
++    const stat=await fs.lstat(dir)
++    if (await fs.realpath(dir) !== dir || !stat.isDirectory() || (dir===c.storageRoot && (stat.mode & 0o777)!==0o700)) throw Error('directory_unknown')
++  }
++  async function membership(taskId: string) {
++    if (deps.store.scope.kind !== 'estate' || deps.store.scope.estateId !== c.estateId) throw Error('store_scope_changed')
++    const answers = await Promise.allSettled([
++      Promise.resolve().then(()=>deps.store.select('project_tasks', 'id,project_id').eq('id', taskId).maybeSingle()),
++      Promise.resolve().then(()=>deps.store.select('projects', 'id,repo_path').eq('id', c.projectId).maybeSingle())
++    ])
++    if (answers[0].status !== 'fulfilled' || answers[1].status !== 'fulfilled') throw Error('membership_unknown')
++    const task=answers[0].value, project=answers[1].value
++    if (task.error || project.error) throw Error('membership_unknown')
++    const t = record(task.data), p = record(project.data)
++    if (t.id !== taskId || t.project_id !== c.projectId || p.id !== c.projectId || p.repo_path !== c.repositoryRoot) throw Error('membership_changed')
++    await canonicalDirectory(c.repositoryRoot)
++  }
++  async function manifest(): Promise<Record<string, unknown>> {
++    const bytes = await read(c.manifestPath, manifestLimit)
++    if (hash(bytes) !== c.manifestSha256) throw Error('manifest_changed')
++    const m = record(JSON.parse(bytes.toString('utf8')))
++    if (Object.keys(m).sort().join(',') !== 'bounds,configuredKey,expectedHead,mutableScope,scopeMappingRevision,selectedInputs,selectionRevision') throw Error('invalid_manifest')
++    id(m.selectionRevision); id(m.scopeMappingRevision); id(m.configuredKey)
++    if (typeof m.expectedHead !== 'string' || !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(m.expectedHead)) throw Error('invalid_head')
++    const bounds = record(m.bounds)
++    const maxima: Record<string, number> = {maxPaths:128,maxDepth:32,maxPathBytes:1024,maxFileBytes:16*1024*1024,maxTotalBytes:32*1024*1024,maxMetadataBytes:1024*1024,timeoutMs:30000,maxAgeMs:300000}
++    if (Object.keys(bounds).sort().join() !== Object.keys(maxima).sort().join()) throw Error('invalid_bounds')
++    for (const [k,max] of Object.entries(maxima)) positive(bounds[k],max)
++    if (!Array.isArray(m.selectedInputs) || !Array.isArray(m.mutableScope) || m.selectedInputs.length < 1 || m.selectedInputs.length + m.mutableScope.length > Number(bounds.maxPaths)) throw Error('invalid_selection')
++    for (const [items, mutable] of [[m.selectedInputs,false],[m.mutableScope,true]] as const) {
++      const seen = new Set<string>()
++      for (const item of items) {
++        const row = record(item), p = relative(row.path)
++        if (p.length > Number(bounds.maxPathBytes) || p.split('/').length > Number(bounds.maxDepth) || seen.has(p)) throw Error('invalid_selection')
++        seen.add(p)
++        if (mutable ? Object.keys(row).sort().join() !== 'path,state' || !['file','absent'].includes(String(row.state)) : Object.keys(row).some(k => k !== 'path' && k !== 'allowUntracked') || ('allowUntracked' in row && row.allowUntracked !== true)) throw Error('invalid_selection')
++      }
++    }
++    return m
++  }
++  async function operation<T>(body: (check: () => void) => Promise<T>): Promise<Result<T>> {
++    if (busy) return failure('io_outstanding')
++    busy = true
++    let active = true, timer: ReturnType<typeof setTimeout> | undefined
++    const start = performance.now()
++    const check = () => { if (!active || performance.now() - start >= timeout) throw Error('operation_expired') }
++    const work = Promise.resolve().then(() => body(check)).then(value => { check(); return {state:'observed', value, executionAuthorized:false, ownership:'unproven'} as Result<T> }, () => failure('evidence_unavailable'))
++    // Keep occupancy through descriptor/lock cleanup, even after the caller times out.
++    void work.then(() => { busy=false }, () => { busy=false })
++    try { return await Promise.race([work, new Promise<Result<T>>(resolve => { timer=setTimeout(() => { active=false; resolve(failure('timeout')) },timeout) })]) }
++    catch { /* Late/expired evidence cannot become a correlation receipt. */ return failure('evidence_unavailable') }
++    finally { if (timer) clearTimeout(timer); active=false }
++  }
++  async function derive(key: string, scratch: string): Promise<string> {
++    const helper = fileURLToPath(new URL('../../../../scripts/resourceAgentSyncIdentity.py', import.meta.url))
++    const stdout = await new Promise<string>((resolve,reject) => execFile('python3', ['-I', helper, c.agentSyncScript, key], {
++      cwd:scratch, timeout, killSignal:'SIGKILL', maxBuffer:4096,
++      env:{PATH:process.env.PATH ?? '/usr/bin:/bin',AGENT_SYNC_RUN_ID:key}
++    }, (error,out) => error ? reject(Error('identity_unknown')) : resolve(out)))
++    const r=record(JSON.parse(stdout))
++    if (Object.keys(r).sort().join() !== 'key,runId,scriptSha256' || r.key!==key || r.runId!==`r-${key}` || r.scriptSha256!==AGENT_SYNC_IDENTITY_SOURCE_SHA256) throw Error('identity_unknown')
++    return r.runId as string
++  }
++  async function mapping(handle: RunAssignmentHandle) {
++    const held = handles.get(handle)
++    if (!held || held.mapping.invocationId !== c.invocationId) throw Error('foreign_handle')
++    await canonicalDirectory(c.storageRoot)
++    if ((await read(path.join(c.storageRoot, held.mapping.runId+'.json'), recordLimit)).toString('utf8') !== held.bytes) throw Error('mapping_changed')
++    if (hash(await read(c.agentSyncScript,2_000_000))!==AGENT_SYNC_IDENTITY_SOURCE_SHA256) throw Error('installed_source_changed')
++    await manifest(); await membership(held.mapping.assignment.taskId)
++    return held.mapping
++  }
++  return {
++    allocate(input: {taskId:string;sessionId:string}) {
++      return operation(async check => {
++        const inputCopy=record(input), taskId=id(inputCopy.taskId), sessionId=id(inputCopy.sessionId)
++        if (Object.keys(inputCopy).sort().join()!=='sessionId,taskId') throw Error('invalid_identity')
++        await canonicalDirectory(c.storageRoot); await membership(taskId); const m=await manifest(); now(); check()
++        const lockPath=path.join(c.storageRoot,'.allocate.lock')
++        const lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
++        const lockStat=await lock.stat()
++        let scratch:string|undefined
++        try {
++          const names:string[]=[]; const dir=await fs.opendir(c.storageRoot)
++          for await (const entry of dir) { if (entry.name==='.allocate.lock') continue; if (!/^r-[a-z0-9]{12}\.json$/.test(entry.name) || !entry.isFile() || names.length>=count) throw Error('registry_unavailable'); names.push(entry.name) }
++          if (names.length>=count) throw Error('registry_capacity')
++          const records:Mapping[]=[]
++          for (const name of names) {
++            check(); const old=record(JSON.parse((await read(path.join(c.storageRoot,name),recordLimit)).toString('utf8'))) as unknown as Mapping
++            if (Object.keys(old).sort().join()!=='assignment,installationId,invocationId,key,leaseTarget,manifestSha256,runId,schema,scriptSha256') throw Error('registry_unavailable')
++            id(old.installationId); id(old.invocationId); sha(old.manifestSha256)
++            const target=record(old.leaseTarget)
++            if (Object.keys(target).sort().join()!=='key,remoteDigest,repositoryName,scopeMappingRevision') throw Error('registry_unavailable')
++            id(target.key); id(target.scopeMappingRevision); id(target.repositoryName); sha(target.remoteDigest)
++            createResourceInputSnapshotReader(old.assignment,{identity:()=>null})
++            if (old.schema!==1 || old.runId+'.json'!==name || old.runId!==`r-${old.key}` || old.scriptSha256!==AGENT_SYNC_IDENTITY_SOURCE_SHA256 || !old.assignment || typeof old.assignment.sessionId!=='string') throw Error('registry_unavailable')
++            if (old.assignment.sessionId===sessionId) throw Error('session_reused'); records.push(old)
++          }
++          const key: unknown=(deps.key ?? (()=>randomBytes(8).toString('hex').slice(0,12)))(); nativePromise(key)
++          if (typeof key !== 'string' || !/^[a-z0-9]{12}$/.test(key)) throw Error('invalid_key')
++          if (records.some(r=>r.key===key)) throw Error('identity_collision')
++          scratch=await fs.mkdtemp(path.join(c.storageRoot,'identity-'))
++          const runId=await derive(key,scratch); await fs.rmdir(scratch); scratch=undefined
++          if (records.some(r=>r.runId===runId)) throw Error('identity_collision'); check()
++          const assignment={estateId:c.estateId,projectId:c.projectId,taskId,sessionId,attemptId:randomUUID(),selectionRevision:m.selectionRevision,
++            repository:{approvedRoot:c.repositoryRoot,approvedRemoteDigest:hash(c.approvedRemote),expectedHead:m.expectedHead},selectedInputs:m.selectedInputs,mutableScope:m.mutableScope,bounds:m.bounds} as InputAssignment
++          // Reuse the actual downstream validator; no divergent copy of its path/HEAD rules.
++          createResourceInputSnapshotReader(assignment,{identity:()=>null})
++          const saved:Mapping={schema:1,installationId:c.installationId,invocationId:c.invocationId,key,runId,scriptSha256:AGENT_SYNC_IDENTITY_SOURCE_SHA256,manifestSha256:c.manifestSha256,leaseTarget:{key:String(m.configuredKey),scopeMappingRevision:String(m.scopeMappingRevision),repositoryName:c.repositoryName,remoteDigest:hash(c.approvedRemote)},assignment}
++          const bytes=JSON.stringify(saved)+'\n'; if (Buffer.byteLength(bytes)>recordLimit) throw Error('mapping_bound')
++          const fd=await fs.open(path.join(c.storageRoot,runId+'.json'),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
++          try { check(); await fd.writeFile(bytes); await fd.sync() } finally { await fd.close() }
++          const directory=await fs.open(c.storageRoot,constants.O_RDONLY); try { await directory.sync() } finally { await directory.close() }
++          // Recheck task/config after persistence. A failed or expired allocation stays unresolved on disk.
++          await membership(taskId); await manifest(); check()
++          const handle=Object.freeze({runId}); handles.set(handle,{mapping:freeze(saved),bytes})
++          return {handle,assignment:freeze(assignment),leaseTarget:saved.leaseTarget}
++        } finally {
++          if (scratch) { try { await fs.rmdir(scratch) } catch { /* Unknown scratch is retained; never recursively delete foreign contents. */ } }
++          await lock.close()
++          const current=await fs.lstat(lockPath)
++          if (current.dev===lockStat.dev && current.ino===lockStat.ino) await fs.unlink(lockPath)
++          // A replaced lock belongs to another operation; leave it unresolved.
++        }
++      })
++    },
++    readIdentity(handle:RunAssignmentHandle):Promise<Result<InputIdentity>> {
++      return operation(async check=>{const r=await mapping(handle);check();const {estateId,projectId,taskId,sessionId,attemptId}=r.assignment;return {estateId,projectId,taskId,sessionId,attemptId}})
++    },
++    observeLease(handle:RunAssignmentHandle, expectedTip:string|null=null) {
++      return operation(async check=>{
++        const r=await mapping(handle); check()
++        if (expectedTip !== null && !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(expectedTip)) throw Error('invalid_tip')
++        const held=handles.get(handle)!
++        // Keep the N023 instance across calls: its outer timeout may precede actual Git settlement.
++        held.leaseReader ??= createGitLeaseSnapshotReader({approvedRemote:c.approvedRemote,key:r.leaseTarget.key,runId:r.runId,repositoryName:c.repositoryName,expectedTip:null,maxAgeMs:r.assignment.bounds.maxAgeMs,timeoutMs:timeout},{...deps.lease,git:trackedLeaseGit})
++        const observation=await held.leaseReader.read()
++        // N023's caller timeout is not transport settlement; keep this manager occupied across handles.
++        if(leasePending) await Promise.allSettled([leasePending])
++        check()
++        if (observation.status==='observed' && expectedTip!==null && observation.tip!==expectedTip) throw Error('tip_changed')
++        return {attribution:'unattributed' as const,observation}
++      })
++    },
++    childEnvironment(handle:RunAssignmentHandle) {
++      return operation(async check=>{const r=await mapping(handle);check();return Object.freeze({AGENT_SYNC_RUN_ID:r.key})})
++    }
++  }
++}
++// #endregion resource-run-assignment
+diff --git a/scripts/resourceAgentSyncIdentity.py b/scripts/resourceAgentSyncIdentity.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/resourceAgentSyncIdentity.py
+@@ -0,0 +1,58 @@
++#region resource-run-assignment — docs: docs/execution/harness-waves/resource-run-assignment.md#contract
++"""Pinned installed-function readback. Never import or execute agent-sync main/Sync."""
++import ast
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import stat
++import sys
++
++PIN = 'fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1'
++
++def main():
++    source, key = sys.argv[1:]
++    if not re.fullmatch('[a-z0-9]{12}', key) or os.environ.get('AGENT_SYNC_RUN_ID') != key:
++        raise ValueError('identity input')
++    fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    try:
++        before = os.fstat(fd)
++        if not stat.S_ISREG(before.st_mode) or before.st_size > 2_000_000:
++            raise ValueError('source type')
++        raw = bytearray()
++        while True:
++            part = os.read(fd, min(65536, 2_000_001 - len(raw)))
++            if not part:
++                break
++            raw.extend(part)
++            if len(raw) > 2_000_000:
++                raise ValueError('source bound')
++        after = os.fstat(fd)
++        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns):
++            raise ValueError('source changed')
++    finally:
++        os.close(fd)
++    if hashlib.sha256(raw).hexdigest() != PIN:
++        raise ValueError('unsupported source')
++    tree = ast.parse(raw)
++    names = {'_rid_from', '_session_key', 'run_id'}
++    functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
++    if len(functions) != 3 or {n.name for n in functions} != names:
++        raise ValueError('source definitions')
++    namespace = {'os': os, 're': re, 'hashlib': hashlib, 'Path': Path}
++    exec(compile(ast.Module(body=functions, type_ignores=[]), '<pinned-agent-sync-functions>', 'exec'), namespace)
++    # Explicit env branch returns before any marker read/write, discovery or tool call.
++    run = namespace['run_id'](Path.cwd())
++    if run != 'r-' + key:
++        raise ValueError('identity mismatch')
++    print(json.dumps({'key': key, 'runId': run, 'scriptSha256': PIN}))
++
++if __name__ == '__main__':
++    try:
++        main()
++    except Exception:
++        # Bounded refusal only; source paths, environment and installed data stay private.
++        print('identity_readback_unavailable', file=sys.stderr)
++        sys.exit(1)
++#endregion resource-run-assignment
+diff --git a/apps/desktop/test/resource-run-assignment.test.mjs b/apps/desktop/test/resource-run-assignment.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/apps/desktop/test/resource-run-assignment.test.mjs
+@@ -0,0 +1,68 @@
++import nodeTest from 'node:test'
++import {existsSync} from 'node:fs'
++import assert from 'node:assert/strict'
++import * as fs from 'node:fs/promises'
++import path from 'node:path'
++import os from 'node:os'
++import {createHash} from 'node:crypto'
++import {execFileSync} from 'node:child_process'
++import {createResourceRunAssignmentManager,AGENT_SYNC_IDENTITY_SOURCE_SHA256} from '../src/main/resourceRunAssignment.ts'
++const candidate=process.env.N028_AGENT_SYNC_SCRIPT ?? path.join(os.homedir(),'.codex/plugins/cache/agent-sync/agent-sync/1.22.2/skills/agent-sync/scripts/agent_sync.py')
++const installed=existsSync(candidate)?candidate:null
++const test=(name,fn)=>nodeTest(name,{skip:installed?false:'NOT_RUN: pinned installed agent-sync source unavailable; no installation attempted'},fn)
++const hash=b=>createHash('sha256').update(b).digest('hex')
++const pause=ms=>new Promise(r=>setTimeout(r,ms))
++async function fixture(t,extra={}) {
++ assert.ok(installed,'N028_AGENT_SYNC_SCRIPT must select exact pinned installed script')
++ assert.equal(hash(await fs.readFile(installed)),AGENT_SYNC_IDENTITY_SOURCE_SHA256)
++ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'n028-test-')))
++ t.after(()=>fs.rm(root,{recursive:true,force:true}))
++ const repo=path.join(root,'repo'),storeRoot=path.join(root,'records');await fs.mkdir(repo);await fs.mkdir(storeRoot,{mode:0o700})
++ execFileSync('git',['init','-q',repo]);execFileSync('git',['-C',repo,'-c','user.name=fixture','-c','user.email=fixture@invalid','commit','--allow-empty','-qm','fixture'])
++ const manifest={selectionRevision:'selection-1',scopeMappingRevision:'scope-1',configuredKey:'lane-key',expectedHead:execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),selectedInputs:[{path:'README.md'}],mutableScope:[{path:'output.txt',state:'absent'}],bounds:{maxPaths:8,maxDepth:8,maxPathBytes:512,maxFileBytes:1024,maxTotalBytes:4096,maxMetadataBytes:65536,timeoutMs:1000,maxAgeMs:60000}}
++ const manifestPath=path.join(root,'lane.json'),bytes=JSON.stringify(manifest);await fs.writeFile(manifestPath,bytes,{mode:0o600})
++ const config={estateId:'estate',projectId:'project',installationId:'install',invocationId:'invocation',repositoryRoot:repo,approvedRemote:'https://fixture.invalid/repo.git',repositoryName:'repo',manifestPath,manifestSha256:hash(bytes),storageRoot:storeRoot,agentSyncScript:installed,timeoutMs:3000,maxRecords:8,maxRecordBytes:32768,maxManifestBytes:32768,...extra}
++ const state={task:{id:'task',project_id:'project'},project:{id:'project',repo_path:repo},hang:null,calls:[]}
++ const store={scope:{kind:'estate',estateId:'estate'},select(table,columns){state.calls.push({table,columns});return {eq(key,value){state.calls.at(-1).filter={key,value};return {async maybeSingle(){if(state.hang) await state.hang;return {data:table==='project_tasks'?state.task:state.project,error:null}}}}}}}
++ const make=(deps={},c={})=>createResourceRunAssignmentManager({...config,...c},{store,key:()=> 'fabric000001',...deps})
++ return {root,repo,storeRoot,config,manifest,state,store,make,async allocate(manager=make(),sessionId='session'){const r=await manager.allocate({taskId:'task',sessionId});assert.equal(r.state,'observed',JSON.stringify(r));return {manager,...r.value}}}
++}
++test('real manifest/scoped membership/pinned functions/persisted records produce correlation only',async t=>{
++ const f=await fixture(t),a=await f.allocate();assert.equal(a.handle.runId,'r-fabric000001');assert.equal(a.assignment.projectId,'project')
++ assert.equal((await a.manager.readIdentity(a.handle)).value.sessionId,'session');assert.deepEqual((await a.manager.childEnvironment(a.handle)).value,{AGENT_SYNC_RUN_ID:'fabric000001'})
++ const stored=JSON.parse(await fs.readFile(path.join(f.storeRoot,a.handle.runId+'.json'),'utf8'));assert.equal(stored.assignment.attemptId,a.assignment.attemptId);assert.equal(stored.scriptSha256,AGENT_SYNC_IDENTITY_SOURCE_SHA256)
++ assert.equal((await fs.stat(path.join(f.storeRoot,a.handle.runId+'.json'))).mode & 0o777,0o600)
++ assert.equal((await fs.readdir(f.repo)).includes('.agent-sync'),false);assert.ok(f.state.calls.every(c=>c.filter.key==='id'))
++})
++test('caller identity/scope expansion cannot enter assignment',async t=>{const f=await fixture(t),m=f.make();assert.equal((await m.allocate({taskId:'task',sessionId:'session',projectId:'other'})).state,'unknown');assert.deepEqual(await fs.readdir(f.storeRoot),[])})
++test('foreign membership refuses before persistence',async t=>{const f=await fixture(t);f.state.task.project_id='foreign';assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.deepEqual(await fs.readdir(f.storeRoot),[])})
++test('wrong estate-scoped client fails construction',async t=>{const f=await fixture(t);f.store.scope.estateId='foreign';assert.throws(()=>f.make())})
++test('actual manifest bytes changed refuses old identity and child patch',async t=>{const f=await fixture(t),a=await f.allocate();await fs.appendFile(f.config.manifestPath,' ');assert.equal((await a.manager.readIdentity(a.handle)).state,'unknown');assert.equal((await a.manager.childEnvironment(a.handle)).state,'unknown')})
++test('forged and restarted handles never regain identity',async t=>{const f=await fixture(t),a=await f.allocate();assert.equal((await a.manager.readIdentity({...a.handle})).state,'unknown');assert.equal((await f.make({}, {invocationId:'next'}).readIdentity(a.handle)).state,'unknown');assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown')})
++test('derived identity collision preserves original mapping',async t=>{const f=await fixture(t),a=await f.allocate();const name=path.join(f.storeRoot,a.handle.runId+'.json'),before=await fs.readFile(name);assert.equal((await a.manager.allocate({taskId:'task',sessionId:'different'})).state,'unknown');assert.deepEqual(await fs.readFile(name),before)})
++test('concurrent calls are bounded and duplicate session cannot be reallocated',async t=>{const f=await fixture(t),m=f.make();const p=m.allocate({taskId:'task',sessionId:'session'});assert.equal((await m.allocate({taskId:'task',sessionId:'other'})).reason,'io_outstanding');assert.equal((await p).state,'observed');assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).state,'unknown')})
++test('partial immutable record and stale lock both refuse without cleanup guessing',async t=>{const f=await fixture(t);await fs.writeFile(path.join(f.storeRoot,'r-fabric000002.json'),'{');assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown');await fs.unlink(path.join(f.storeRoot,'r-fabric000002.json'));await fs.writeFile(path.join(f.storeRoot,'.allocate.lock'),'prior invocation');assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.equal(await fs.readFile(path.join(f.storeRoot,'.allocate.lock'),'utf8'),'prior invocation')})
++test('mapping replacement cannot supply identity',async t=>{const f=await fixture(t),a=await f.allocate();await fs.appendFile(path.join(f.storeRoot,a.handle.runId+'.json'),' ');assert.equal((await a.manager.readIdentity(a.handle)).state,'unknown')})
++test('source hash mismatch refuses actual helper with no record or foreign writes',async t=>{const f=await fixture(t),copy=path.join(f.root,'changed.py');await fs.writeFile(copy,(await fs.readFile(installed))+'\n');assert.equal((await f.make({}, {agentSyncScript:copy}).allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.deepEqual(await fs.readdir(f.storeRoot),[]);assert.equal((await fs.readdir(f.repo)).includes('.agent-sync'),false)})
++test('long and malformed keys refuse before truncated derivation',async t=>{const f=await fixture(t);for(const key of ['fabric000001-long','UPPER0000001','../../secret'])assert.equal((await f.make({key:()=>key}).allocate({taskId:'task',sessionId:'session'})).state,'unknown')})
++test('timeout retains real unresolved membership and late settlement never allocates',async t=>{const f=await fixture(t,{timeoutMs:30});let release;f.state.hang=new Promise(r=>release=r);const m=f.make(),result=await m.allocate({taskId:'task',sessionId:'session'});assert.equal(result.reason,'timeout');for(let i=0;i<50;i++)assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'io_outstanding');assert.equal(f.state.calls.length,2);release();await pause(30);assert.deepEqual(await fs.readdir(f.storeRoot),[])})
++test('accidental rejected native clock and key Promises are consumed',async t=>{const f=await fixture(t);assert.equal((await f.make({now:()=>Promise.reject(Error('clock'))}).allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.equal((await f.make({key:()=>Promise.reject(Error('key'))}).allocate({taskId:'task',sessionId:'session'})).state,'unknown');await pause(10)})
++test('record cap is finite and no automatic reuse occurs',async t=>{const f=await fixture(t,{maxRecords:1}),a=await f.allocate();assert.equal((await f.make({key:()=> 'fabric000002'}).allocate({taskId:'task',sessionId:'other'})).state,'unknown');assert.equal((await fs.readdir(f.storeRoot)).length,1)})
++test('child patch replaces conflicting inherited key when composed last and contains no secrets',async t=>{const f=await fixture(t),a=await f.allocate(),r=await a.manager.childEnvironment(a.handle);assert.deepEqual(Object.keys(r.value),['AGENT_SYNC_RUN_ID']);const env={AGENT_SYNC_RUN_ID:'parent',...{AGENT_SYNC_RUN_ID:'descriptor'},...{AGENT_SYNC_RUN_ID:'bundle'},...r.value};assert.equal(env.AGENT_SYNC_RUN_ID,'fabric000001');assert.equal(r.executionAuthorized,false);assert.equal(r.ownership,'unproven')})
++test('N023 unavailable transport remains unattributed with retained underlying reader',async t=>{const f=await fixture(t,{timeoutMs:1000});let calls=0,release;const pending=new Promise(r=>release=r);const a=await f.allocate(f.make({lease:{git:async()=>{calls++;await pending;throw Error('offline')}}}));await a.manager.observeLease(a.handle);for(let i=0;i<5;i++){await pause(5);await a.manager.observeLease(a.handle)}assert.equal(calls,1);release();await pause(30)})
++test('one rejected membership query cannot release a still-pending sibling',async t=>{
++ const f=await fixture(t,{timeoutMs:30});let release,calls=0;const pending=new Promise(r=>release=r)
++ const store={scope:f.store.scope,select(table){return {eq(){return {maybeSingle(){calls++;return table==='project_tasks'?Promise.reject(Error('database failure')):pending}}}}}}
++ const m=f.make({store}),r=await m.allocate({taskId:'task',sessionId:'session'});assert.equal(r.reason,'timeout');for(let i=0;i<20;i++)assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'io_outstanding');assert.equal(calls,2);release({data:f.state.project,error:null});await pause(20);assert.deepEqual(await fs.readdir(f.storeRoot),[])
++})
++test('syntactically valid incomplete retained record blocks allocation',async t=>{const f=await fixture(t);await fs.writeFile(path.join(f.storeRoot,'r-fabric000002.json'),JSON.stringify({schema:1,key:'fabric000002',runId:'r-fabric000002',scriptSha256:AGENT_SYNC_IDENTITY_SOURCE_SHA256,assignment:{sessionId:'other'}}));assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.equal((await fs.readdir(f.storeRoot)).length,1)})
++test('unsafe storage permissions refuse and are never repaired implicitly',async t=>{const f=await fixture(t);await fs.chmod(f.storeRoot,0o755);assert.equal((await f.make().allocate({taskId:'task',sessionId:'session'})).state,'unknown');assert.equal((await fs.stat(f.storeRoot)).mode&0o777,0o755)})
++test('emitted assignment must pass actual N026 path and HEAD validation',async t=>{for(const change of [m=>m.expectedHead='a'.repeat(64),m=>m.selectedInputs=[{path:'.GIT/config'}],m=>m.selectedInputs=[{path:'C:foo'}],m=>{m.selectedInputs=[{path:'same'}];m.mutableScope=[{path:'same',state:'absent'}]}]){const f=await fixture(t);change(f.manifest);const bytes=JSON.stringify(f.manifest);await fs.writeFile(f.config.manifestPath,bytes);const m=f.make({}, {manifestSha256:hash(bytes)});assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).state,'unknown')}})
++
++test('installed source drift invalidates previously allocated identity',async t=>{const f=await fixture(t),copy=path.join(f.root,'copy.py');await fs.copyFile(installed,copy);const a=await f.allocate(f.make({}, {agentSyncScript:copy}));await fs.appendFile(copy,'\n');assert.equal((await a.manager.childEnvironment(a.handle)).state,'unknown');assert.equal((await a.manager.readIdentity(a.handle)).state,'unknown')})
++test('nested lease timeout cannot accumulate Git operations across two handles',async t=>{const f=await fixture(t,{timeoutMs:1000});let calls=0,release,key=0;const pending=new Promise(r=>release=r);const m=f.make({key:()=>key++?'fabric000002':'fabric000001',lease:{git:async()=>{calls++;await pending;throw Error('offline')}}});const a=await f.allocate(m),b=await f.allocate(m,'second');await m.observeLease(a.handle);for(let i=0;i<10;i++)assert.equal((await m.observeLease(b.handle)).reason,'io_outstanding');assert.equal(calls,1);release();await pause(30)})
++test('real owned Git lease observation remains unattributed even for matching derived label',async t=>{const f=await fixture(t),bare=path.join(f.root,'authority.git');execFileSync('git',['init','--bare','-q',bare]);const tree=execFileSync('git',['--git-dir',bare,'hash-object','-w','-t','tree','--stdin'],{input:'',encoding:'utf8'}).trim();const at=new Date().toISOString();const payload={key:'lane-key',run:'r-fabric000001',repo:'repo',ts:at,since:at,ttl:60};const tip=execFileSync('git',['--git-dir',bare,'-c','user.name=fixture','-c','user.email=fixture@invalid','commit-tree',tree],{input:JSON.stringify(payload),encoding:'utf8'}).trim();execFileSync('git',['--git-dir',bare,'update-ref','refs/agent-sync/leases/lane-key',tip]);const a=await f.allocate(f.make({lease:{git:async(args,opts)=>execFileSync('git',args.map(x=>x===f.config.approvedRemote?bare:x),{cwd:opts.cwd,encoding:'utf8',timeout:opts.timeoutMs,maxBuffer:opts.maxBytes,stdio:['ignore','pipe','pipe']})}}));const r=await a.manager.observeLease(a.handle,tip);assert.equal(r.state,'observed');assert.equal(r.value.observation.status,'observed',JSON.stringify(r));assert.equal(r.value.attribution,'unattributed');assert.equal(r.ownership,'unproven');assert.equal((await a.manager.observeLease(a.handle,'a'.repeat(40))).state,'unknown')})
++
++nodeTest('helper refuses unsupported source without importing or executing its body',async t=>{const root=await fs.mkdtemp(path.join(os.tmpdir(),'n028-helper-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const source=path.join(root,'unsupported.py'),sentinel=path.join(root,'sentinel');await fs.writeFile(source,`open(${JSON.stringify(sentinel)},'w').write('bad')`);assert.throws(()=>execFileSync('python3',['-I',new URL('../../../scripts/resourceAgentSyncIdentity.py',import.meta.url).pathname,source,'fabric000001'],{cwd:root,env:{PATH:process.env.PATH,AGENT_SYNC_RUN_ID:'fabric000001'},stdio:'pipe'}));assert.equal((await fs.readdir(root)).includes('sentinel'),false)})
++test('two actual managers cannot both allocate one session under exclusive lock',async t=>{const f=await fixture(t),a=f.make(),b=f.make({key:()=> 'fabric000002'});const r=await Promise.all([a.allocate({taskId:'task',sessionId:'session'}),b.allocate({taskId:'task',sessionId:'session'})]);assert.equal(r.filter(x=>x.state==='observed').length,1);assert.equal((await fs.readdir(f.storeRoot)).filter(x=>x.endsWith('.json')).length,1)})
++test('synchronous second query throw cannot release first pending query',async t=>{const f=await fixture(t,{timeoutMs:30});let release,calls=0;const pending=new Promise(r=>release=r);const store={scope:f.store.scope,select(table){if(table==='projects')throw Error('sync builder failure');return {eq(){return {maybeSingle(){calls++;return pending}}}}}};const m=f.make({store});assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'timeout');for(let i=0;i<15;i++)assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'io_outstanding');assert.equal(calls,1);release({data:f.state.task,error:null});await pause(20)})
+diff --git a/docs/execution/harness-waves/resource-run-assignment.md b/docs/execution/harness-waves/resource-run-assignment.md
+new file mode 100644
+--- /dev/null
++++ b/docs/execution/harness-waves/resource-run-assignment.md
+@@ -0,0 +1,121 @@
++# Fabric run assignment correlation
++
++## Contract
++
++N028 provides a bounded local **correlation** producer, not admission or ownership authority.
++`createResourceRunAssignmentManager` in `apps/desktop/src/main/resourceRunAssignment.ts`
++reads an approved manifest's exact bytes, task/project membership through an existing
++estate-scoped `ScopedStore`, installed agent-sync function identity, and immutable local
++mapping files. Every outcome has `executionAuthorized:false` and `ownership:unproven`.
++There is no numeric fence, R1 held verdict, acquire/renew/release, database mutation or spawn.
++The internal assignment includes private configured paths solely to feed N026; it must not
++be exported to telemetry or public receipts. Refusals carry bounded reason codes only.
++
++The constructor fixes estate/project, installation ID, **app invocation** ID, canonical
++repository and owned storage roots, approved HTTPS remote/repository label, manifest path
++and exact SHA256, installed script path and finite limits. Invocation is not OS boot.
++Only an estate-scoped store with the matching estate is accepted; membership rereads use
++actual `project_tasks` and `projects` rows and match exact task/project/repository root.
++This establishes membership, not subject authorization, which stays with admission/guard.
++
++Manifest fields are `selectionRevision`, `scopeMappingRevision`, `configuredKey`,
++`expectedHead`, `selectedInputs`, `mutableScope`, and N026 `bounds`. Selection comes from
++trusted reviewed configuration, not task touches or renderer digests. It must exclude
++credentials. The producer invokes the **actual N026 constructor validator** before
++persisting an assignment and when reading existing records, avoiding a second path/HEAD
++contract. The snapshot itself remains N026's job; this module does not read selected bytes
++or establish complete closure. A manifest byte change refuses prior mapping use.
++
++## API and lifecycle
++
++- `allocate({taskId,sessionId})` performs real reads and pinned function readback, mints an
++  attempt UUID and records an assignment. Success returns an opaque in-process handle,
++  immutable N026-compatible assignment and configured lease target. Only trusted main
++  composition supplies task/session IDs; the method has no renderer or tool route.
++- `readIdentity(handle)` rereads the immutable record, approved manifest, installed source
++  digest and actual membership. It emits N026's five identity fields, accepts no expected
++  identity argument and refuses foreign/copied handles.
++- `observeLease(handle, expectedTip?)` invokes N023 with stored remote/key/derived run/repo.
++  The optional exact tip is a trusted caller constraint, not acquisition evidence. Even a
++  matching current lease is explicitly `attribution:unattributed`; there is no acquired state.
++  Default transport is N023's hardened HTTPS Git; trusted injected transport is only an
++  infrastructure seam. This module neither reads local lease-note files nor takes a lease.
++- `childEnvironment(handle)` refreshes mapping validity and returns **only** the nonsecret
++  `{AGENT_SYNC_RUN_ID:key}` patch. It does not accept/return the parent's whole environment.
++  Later trusted PTY composition must match requested session to the handle's assignment and
++  apply this patch last, after sanitized parent, descriptor and bundle environment. Current
++  `pty.ts` is unchanged; no actual child environment delivery is claimed.
++
++Opaque handles exist only in the creating manager. A restart loads records for collision
++and corruption checks, never as live handles. The same recorded session cannot be allocated
++again, even after restart; unresolved evidence stays unknown. Recovery/record deletion is
++outside this packet. There is no inference from matching journal text or parent run identity.
++Returned SQL task_run_id/run_ordinal and actual prepared instruction/context bytes remain
++future composition bindings; neither is invented before admission.
++
++## Installed-function readback
++
++`scripts/resourceAgentSyncIdentity.py` reads at most2MB from a regular no-follow source,
++checks before/after file identity and exact SHA256
++`fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1`
++(agent-sync1.22.2), then AST-extracts only `_rid_from`, `_session_key` and `run_id`.
++It evaluates those actual installed function bodies with their audited standard-library
++names and an explicit key in an owned empty scratch directory. It does not import the
++module, execute main/Sync, load project config/vault or call whoami (which can migrate
++local notes). Unknown source bytes refuse; this is intentionally a bounded version seam.
++
++Keys are exactly12 lowercase alphanumeric characters. The installed explicit-env branch
++returns `r-<key>` without reading a marker and without the long-key six-hex hash truncation.
++The producer validates actual helper output, not a callback echo. It invokes Python with
++`-I`, minimal environment, bounded output and child timeout; paths/keys are not credentials.
++Packaged helper delivery, full agent-sync CLI invocation and native child behavior are
++NOT_RUN. No installed plugin file changes. The helper path is a source-tree seam until
++packaging/composition is implemented.
++
++## Immutable storage and bounds
++
++The caller supplies an existing canonical0700 owned directory. Records are exclusive-created
++0600 `r-<key>.json` files, fsynced with the containing directory before success. Allocation
++holds one exclusive no-follow `.allocate.lock`, scans a bounded number of regular files,
++validates every full record and refuses duplicate session/key/derived run ID, corruption,
++unknown directory entries or the configured cap. A failed/partial write is retained; it is
++never overwritten or recycled. Only the operation's own inode-matched lock is removed.
++A prior crash lock is not stolen, repaired or deleted automatically. Parent/root replacement
++by an arbitrary hostile filesystem writer is not claimed impossible; this is cooperative
++local storage, not a security sandbox against the account owning the directory.
++
++Default key randomness reduces collision probability; persisted refusal is the guarantee.
++It covers this retained installation registry, not global authentication or uniqueness
++against another machine/self-reported writer. Foreign existing lease labels cannot prove
++that this assignment acquired anything. Storage exhaustion explicitly refuses new records;
++no unbounded cache or automatic expiry/reuse is introduced.
++
++One manager operation is admitted at a time. Caller timeout retains occupancy until actual
++membership calls, helper process and owned cleanup settle. Both membership reads settle
++before releasing occupancy even if one rejects. Nested N023 caller timeout retains the
++actual Git transport too, across different handles. N023 retains its own bounded scratch
++cleanup; this is not a claim of one physical filesystem request globally. Cached readers
++and immutable records are bounded by the configured record cap. Late outcomes do not
++satisfy timed-out callers. Accidental ordinary rejected Promise clocks/keys are consumed;
++hostile dependency objects and exotic Promise constructors are outside trusted DI.
++
++## Verification and remaining work
++
++Run `node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs`.
++Installed-function cases use `N028_AGENT_SYNC_SCRIPT`, or the installed1.22.2 Codex plugin
++path when present; absence explicitly skips those cases as NOT_RUN, never installs code.
++A portable helper refusal case still tests that unsupported source cannot execute its body.
++Real temporary filesystem/Git cases exercise immutable records, manifest drift, collisions,
++partial record/restart refusal, two managers, actual N023 observations, timeout occupancy
++and downstream N026 contract agreement. Scoped database transport is a fixture; actual DB
++membership transport is NOT_RUN. Installed-function bodies execute; full CLI remains NOT_RUN.
++
++Independent early review reproduced failed-query/hung-sibling accumulation, incomplete
++retained record acceptance and cross-handle nested Git accumulation. Builder focused checks
++also caught record-cap off-by-one. Preserve original sources/logs and unchanged negative
++controls; corrected focused receipts name actual hashes/counts outside this contract.
++
++No production composition, active migration, real lease acquisition or global enforcement
++is shipped. A Fabric-owned ownership/fence semantic decision, coherent N027 accounting,
++complete chosen-pool inventory and once-prepared input/dispatch remain separate. COM is
++not a prerequisite for these local modules; foreign protocol changes require their owners.

@@ -1,0 +1,123 @@
+// #region prepared-launch-input — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
+import { createHash } from 'node:crypto'
+import path from 'node:path'
+import type { ScopedStore } from './scopedStore.ts'
+import { compileContextPack, contextDemandFor, type ContextPack, type LaunchTrigger } from './contextPack.ts'
+import { AGENTS, executorReadiness, mayLaunch } from '../shared/agents.ts'
+
+export interface PreparedLaunchRequest { taskId: string; sessionId: string; trigger: LaunchTrigger; permissionMode: string | null }
+export interface PreparedLaunchPacket {
+  readonly estateId: string
+  readonly projectId: string
+  readonly taskId: string
+  readonly sessionId: string
+  readonly trigger: 'operator' | 'routine' | 'answer'
+  readonly target: { readonly optionId: string; readonly cwd: string; readonly permissionMode: string | null }
+  readonly instructionBody: string
+  readonly instructionSha256: string
+  readonly context: Readonly<ContextPack>
+  /** Content only, never the complete resource inputDigest or ownership proof. */
+  readonly contentDigest: string
+  readonly executionAuthorized: false
+}
+export type PreparedLaunchResult = { state: 'observed'; packet: PreparedLaunchPacket } | { state: 'unknown' | 'refused'; reason: string }
+export interface PreparedLaunchInputs {
+  prepare(input: PreparedLaunchRequest): Promise<PreparedLaunchResult>
+  current(packet: PreparedLaunchPacket): Promise<boolean>
+  owns(packet: unknown): packet is PreparedLaunchPacket
+  release(packet: PreparedLaunchPacket): void
+}
+export interface PreparedLaunchInputDeps {
+  store: ScopedStore
+  estateId: string
+  maxEntries: number
+  maxInstructionBytes: number
+  contextBudget: number
+  timeoutMs: number
+}
+const uuid = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v)
+const hash = (v: string) => createHash('sha256').update(v,'utf8').digest('hex')
+const digest = (p: Omit<PreparedLaunchPacket,'contentDigest'>) => hash(JSON.stringify(['prepared-launch-content-v1',p.estateId,p.projectId,p.taskId,p.sessionId,p.trigger,p.target,p.instructionSha256,p.context.sha256,p.context.compilerRevision,contextDemandFor(p.trigger)]))
+function freeze<T>(value: T): T { if(value && typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value)}return value }
+function positive(value: number,max: number): number { if(!Number.isSafeInteger(value)||value<1||value>max)throw Error('invalid prepared input bounds');return value }
+/** Integrity only. Same-instance ownership is separately checked by the producer. */
+export function preparedLaunchMatches(packet: PreparedLaunchPacket,expected: {sessionId:string;projectId:string;taskId:string|null;optionId?:string;permissionMode?:string|null;cwd?:string}): boolean {
+  try { return packet.executionAuthorized===false && packet.sessionId===expected.sessionId && packet.projectId===expected.projectId && packet.taskId===expected.taskId &&
+    (expected.optionId===undefined||packet.target.optionId===expected.optionId) &&
+    (expected.permissionMode===undefined||packet.target.permissionMode===expected.permissionMode) &&
+    (expected.cwd===undefined||packet.target.cwd===expected.cwd) && packet.instructionSha256===hash(packet.instructionBody) &&
+    packet.context.sha256===hash(packet.context.markdown) && packet.contentDigest===digest(packet)
+  } catch { return false }
+}
+interface Projection { projectId:string; instruction:string; optionId:string; cwd:string; brief:{what:string|null;why:string|null;expected:string|null} }
+/** Actual ScopedStore reads + actual context compiler, not caller-provided bytes.
+ * One retained I/O operation per producer; active receipts have a fixed bound. */
+export function createPreparedLaunchInputs(deps: PreparedLaunchInputDeps): PreparedLaunchInputs {
+  if(!uuid(deps.estateId))throw Error('invalid prepared estate')
+  const estateId=deps.estateId,store=deps.store,maxEntries=positive(deps.maxEntries,1024),maxBytes=positive(deps.maxInstructionBytes,1048576)
+  const budget=positive(deps.contextBudget,1048576),timeout=positive(deps.timeoutMs,30000)
+  const packets=new Map<string,{packet:PreparedLaunchPacket;projection:string}>()
+  let busy=false
+  async function execute<T>(work:(active:()=>boolean)=>Promise<T>,fallback:T):Promise<T>{
+    if(busy)return fallback
+    busy=true;let active=true,settled=false,finished=false,timer:ReturnType<typeof setTimeout>|undefined
+    const release=()=>{if(settled&&finished)busy=false},deadline=performance.now()+timeout
+    const pending=Promise.resolve().then(()=>work(()=>active&&performance.now()<deadline))
+    const drop = (value:unknown) => {
+      if (value && typeof value==='object' && 'state' in value && value.state==='observed' && 'packet' in value) {
+        const packet=value.packet
+        if(owns(packet))packets.delete(packet.sessionId)
+      }
+    }
+    void pending.then(value=>{if(!active||performance.now()>=deadline)drop(value);settled=true;release()},()=>{settled=true;release()})
+    try { const result=await Promise.race([pending,new Promise<T>(resolve=>{timer=setTimeout(()=>{active=false;resolve(fallback)},timeout)})]);if(active&&performance.now()<deadline)return result;drop(result);return fallback }
+    catch { /* Structured refusal never contains task bytes, paths or database errors. */ return fallback }
+    finally { active=false;finished=true;if(timer)clearTimeout(timer);release() }
+  }
+  async function projection(taskId:string,active:()=>boolean):Promise<Projection>{
+    if(!active())throw Error('preparation ended')
+    const {data:t,error}=await store.select('project_tasks','id,project_id,instruction,option_id,brief_what,brief_why,brief_expected').eq('id',taskId).maybeSingle()
+    if(!active()||error||!t||t.id!==taskId||!uuid(t.project_id)||typeof t.instruction!=='string'||Buffer.byteLength(t.instruction,'utf8')>maxBytes)throw Error('task unavailable')
+    const optionId=t.option_id||'claude-code'
+    if(typeof optionId!=='string'||!AGENTS.some(a=>a.id===optionId&&a.connectsToSurface)||!executorReadiness(optionId).ready)throw Error('unsupported prepared target')
+    const brief={what:t.brief_what??null,why:t.brief_why??null,expected:t.brief_expected??null}
+    if(Object.values(brief).some(v=>v!==null&&(typeof v!=='string'||Buffer.byteLength(v,'utf8')>maxBytes)))throw Error('brief unavailable')
+    const {data:p,error:pe}=await store.select('projects','id,repo_path').eq('id',t.project_id).maybeSingle()
+    if(!active()||pe||!p||p.id!==t.project_id||typeof p.repo_path!=='string'||p.repo_path.length>4096||p.repo_path.includes('\0')||!path.isAbsolute(p.repo_path))throw Error('project unavailable')
+    return {projectId:t.project_id,instruction:t.instruction,optionId,cwd:p.repo_path,brief:brief as Projection['brief']}
+  }
+  function owns(packet:unknown):packet is PreparedLaunchPacket {
+    if(!packet||typeof packet!=='object')return false
+    const session=Object.getOwnPropertyDescriptor(packet,'sessionId')?.value
+    return typeof session==='string'&&packets.get(session)?.packet===packet
+  }
+  return Object.freeze({
+    owns,
+    prepare(raw:PreparedLaunchRequest):Promise<PreparedLaunchResult>{
+      if(!uuid(raw.taskId)||!uuid(raw.sessionId)||!['operator','routine','answer'].includes(raw.trigger)||
+        (raw.permissionMode!==null&&typeof raw.permissionMode!=='string'))return Promise.resolve({state:'refused',reason:'unsupported_prepared_path'})
+      const input={taskId:raw.taskId,sessionId:raw.sessionId,trigger:raw.trigger as PreparedLaunchPacket['trigger'],permissionMode:raw.permissionMode}
+      if(packets.has(input.sessionId)||packets.size>=maxEntries)return Promise.resolve({state:'refused',reason:'prepared_identity_or_capacity'})
+      return execute<PreparedLaunchResult>(async active=>{
+        const before=await projection(input.taskId,active)
+        if(!mayLaunch(before.optionId,input.permissionMode).ok)throw Error('mode unavailable')
+        if(!active())throw Error('preparation ended')
+        const context=await compileContextPack({store,projectId:before.projectId,taskInstruction:before.instruction,taskBrief:before.brief,budget,mandatory:contextDemandFor(input.trigger)})
+        if(!active())throw Error('preparation ended')
+        const after=await projection(input.taskId,active)
+        if(JSON.stringify(before)!==JSON.stringify(after))return {state:'refused',reason:'prepared_source_changed'}
+        const fields={estateId,projectId:before.projectId,taskId:input.taskId,sessionId:input.sessionId,trigger:input.trigger,target:{optionId:before.optionId,cwd:before.cwd,permissionMode:input.permissionMode},instructionBody:before.instruction,instructionSha256:hash(before.instruction),context,executionAuthorized:false as const}
+        const packet=freeze({...fields,contentDigest:digest(fields)})
+        if(!active())throw Error('preparation ended')
+        packets.set(input.sessionId,{packet,projection:JSON.stringify(before)})
+        return {state:'observed',packet}
+      },{state:'unknown',reason:'prepared_input_unavailable'})
+    },
+    current(packet:PreparedLaunchPacket):Promise<boolean>{
+      if(!owns(packet))return Promise.resolve(false)
+      return execute(async active=>{const actual=await projection(packet.taskId,active);return active()&&owns(packet)&&JSON.stringify(actual)===packets.get(packet.sessionId)?.projection},false)
+    },
+    release(packet:PreparedLaunchPacket):void {if(owns(packet))packets.delete(packet.sessionId)},
+  })
+}
+// #endregion prepared-launch-input

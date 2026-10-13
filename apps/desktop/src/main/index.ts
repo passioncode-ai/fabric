@@ -17,6 +17,7 @@ import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager } from './pty'
 import { classifyFailure } from '../shared/failure.ts'
+import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
 import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
 import { createNativeStopRuntime } from './nativeStopRuntime.ts'
 import { createTranscriptRecovery } from './transcriptRecovery.ts'
@@ -52,7 +53,7 @@ import { windowKindArg } from '../shared/ipcWindowPolicy.ts'
 import { shouldReload } from './rendererRecovery.ts'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
-import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
+import { compileContextPack, contextDemandFor, type LaunchTrigger, type ContextPack } from './contextPack'
 import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
@@ -1034,7 +1035,36 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // projection rather than remembered, so a detach actually closes the door.
   await refreshFileRoots()
 
+  // #region prepared-launch-composition — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
+  // Content preparation bounds, not resource capacity defaults. No resource adapter
+  // is enabled here: a future trusted composition must share this producer with it.
+  const preparedInputs = createPreparedLaunchInputs({store,estateId:ACTIVE_ESTATE,
+    maxEntries:32,maxInstructionBytes:65536,contextBudget:12000,timeoutMs:10000})
+  const recordContext = async (sessionId:string,projectId:string,taskId:string|null,pack:ContextPack) => {
+      await journal.append({
+        estateId: ACTIVE_ESTATE,
+        type: 'context.compiled@1',
+        // `system`: Fabric selected this, nobody claimed it.
+        actor: { kind: 'system', id: 'context-pack' },
+        projectId,
+        payload: {
+          session_id: sessionId,
+          task_id: taskId,
+          sha256: pack.sha256,
+          chars: pack.chars,
+          fact_ids: pack.factIds,
+          fact_seqs: pack.factSeqs,
+          transcript_ids: pack.transcriptIds,
+          omitted_facts: pack.omittedFacts,
+          omitted_transcripts: pack.omittedTranscripts
+        }
+      })
+  }
+  // #endregion prepared-launch-composition
+
   const bundles = createBundleCompiler({
+    preparedInputs,
+    recordPreparedContext: packet => recordContext(packet.sessionId,packet.projectId,packet.taskId,packet.context),
     root: app.getPath('userData'),
     surface: {
       get endpoint() {
@@ -1085,24 +1115,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
             }
           : null
       })
-      await journal.append({
-        estateId: ACTIVE_ESTATE,
-        type: 'context.compiled@1',
-        // `system`: Fabric selected this, nobody claimed it.
-        actor: { kind: 'system', id: 'context-pack' },
-        projectId,
-        payload: {
-          session_id: sessionId,
-          task_id: taskId,
-          sha256: pack.sha256,
-          chars: pack.chars,
-          fact_ids: pack.factIds,
-          fact_seqs: pack.factSeqs,
-          transcript_ids: pack.transcriptIds,
-          omitted_facts: pack.omittedFacts,
-          omitted_transcripts: pack.omittedTranscripts
-        }
-      })
+      await recordContext(sessionId,projectId,taskId,pack)
       return pack.markdown
     }
   })
@@ -3163,12 +3176,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const launchManaged = createManagedLaunch({
     db, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR,
     authority: () => identity.held(),
-    admit: (taskId, sessionId, trigger) => {
+    admit: (taskId, sessionId, trigger, prepared) => {
       const held = identity.held()
       return admitExisting({ estateId: ACTIVE_ESTATE, taskId, actor: OPERATOR_ACTOR,
-        sessionId, trigger, personId: held?.personId, revision: held?.revision })
+        sessionId, trigger, personId: held?.personId, revision: held?.revision }, prepared)
     },
-    prepare: async (receipt, input) => {
+    prepare: async (receipt, input, prepared) => {
       const project = await readProject(receipt.project_id!)
       if (!project.repo_path) throw new Error('Choose an available project folder before starting an agent.')
       const optionId = receipt.option_id || 'claude-code'
@@ -3190,7 +3203,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         try {
           const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared)
           syncPower()
           return session
         } finally {

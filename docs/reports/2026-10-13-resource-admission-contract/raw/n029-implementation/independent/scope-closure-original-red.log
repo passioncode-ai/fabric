@@ -1,0 +1,28 @@
+{"state":"observed","actualReadEstates":["55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555","55555555-5555-4555-8555-555555555555"]}
+✖ equal-looking store.scope replacement cannot hide changed actual closure scope (5.355666ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.513583
+
+✖ failing tests:
+
+test at ../../../..<independent-root>/scope-closure.mjs:2:1
+✖ equal-looking store.scope replacement cannot hide changed actual closure scope (5.355666ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to:
+  
+  'observed'
+      at TestContext.<anonymous> (file://<independent-root>/scope-closure.mjs:5:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'observed',
+    expected: 'observed',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

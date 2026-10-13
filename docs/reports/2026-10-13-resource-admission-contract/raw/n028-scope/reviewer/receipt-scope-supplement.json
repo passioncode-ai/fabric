@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "node": "N028",
+  "reviewer": "/root/pipeline_research",
+  "implementationAuthor": "/root/observatory_research",
+  "recordedAt": "2026-10-13T07:34:42.498517+00:00",
+  "verdict": "SCOPED_ACCEPT_SCOPE_RECHECK_SUPPLEMENT",
+  "supersedesSourceAcceptance": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+  "source": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+  "test": "1556373fd76a571da94bfe0a372fc6b61bbf1c532fee1897836639afb2d9404d",
+  "findingOrigin": "Parent root identified N029 scope lesson also applies to N028; reviewer independently reproduced using actual ScopedStore. Original receipt is retained as historical acceptance, not rewritten.",
+  "review": "Captures original scope reference; exact binding checks before/after both settled reads, after filesystem canonicalization, and final operation boundary. No authorization or native claim added.",
+  "checks": [
+    {
+      "name": "unchanged independent scope negative against accepted7827",
+      "exit": 1,
+      "sourceSha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "test": "scope-supplement.mjs",
+      "log": "scope-supplement-original-red.log"
+    },
+    {
+      "name": "new scope control plus five prior independent controls",
+      "exit": 0,
+      "tests": 6,
+      "log": "scope-supplement-final.log"
+    }
+  ],
+  "limits": "Original receipt limitations remain. No DB/native/full gate. Author29-suite result separate from reviewer six-control result.",
+  "artifacts": {
+    "scope-supplement.mjs": "ee9c11d4310ad127ab33d0822c42aab6ed3ddfd56f70b273fcc567dc60a599b6",
+    "scope-supplement-original-red.log": "f725597438b71a02fe4a1d793b300e0c89df6dbef5e6eaa63dbdfb6c15da1a26",
+    "scope-supplement-final.log": "52ba38d6f0abc3593d17070352b807cd211bcbf2e7cd9ee92d7a77f68b2f4630"
+  }
+}

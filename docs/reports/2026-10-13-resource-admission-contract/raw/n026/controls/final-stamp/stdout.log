@@ -1,0 +1,30 @@
+✖ same-size modification after an earlier file was read invalidates whole snapshot (211.122208ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 428.504125
+
+✖ failing tests:
+
+test at controls/final-stamp/test/resource-input-snapshot.test.mjs:73:1
+✖ same-size modification after an earlier file was read invalidates whole snapshot (211.122208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + undefined
+  - 'file_changed'
+
+      at TestContext.<anonymous> (file:///private<owned-builder-fixture>/controls/final-stamp/test/resource-input-snapshot.test.mjs:76:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'file_changed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

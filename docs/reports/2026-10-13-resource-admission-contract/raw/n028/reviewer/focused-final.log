@@ -1,0 +1,35 @@
+✔ real manifest/scoped membership/pinned functions/persisted records produce correlation only (180.885417ms)
+✔ caller identity/scope expansion cannot enter assignment (41.905167ms)
+✔ foreign membership refuses before persistence (41.598166ms)
+✔ wrong estate-scoped client fails construction (37.232208ms)
+✔ actual manifest bytes changed refuses old identity and child patch (168.179875ms)
+✔ forged and restarted handles never regain identity (169.484833ms)
+✔ derived identity collision preserves original mapping (142.662209ms)
+✔ concurrent calls are bounded and duplicate session cannot be reallocated (147.699583ms)
+✔ partial immutable record and stale lock both refuse without cleanup guessing (55.2665ms)
+✔ mapping replacement cannot supply identity (223.685208ms)
+✔ source hash mismatch refuses actual helper with no record or foreign writes (71.6185ms)
+✔ long and malformed keys refuse before truncated derivation (39.277125ms)
+✔ timeout retains real unresolved membership and late settlement never allocates (97.336875ms)
+✔ accidental rejected native clock and key Promises are consumed (48.14475ms)
+✔ record cap is finite and no automatic reuse occurs (136.432166ms)
+✔ child patch replaces conflicting inherited key when composed last and contains no secrets (140.18575ms)
+✔ N023 unavailable transport remains unattributed with retained underlying reader (1206.59675ms)
+✔ one rejected membership query cannot release a still-pending sibling (93.689083ms)
+✔ syntactically valid incomplete retained record blocks allocation (34.829375ms)
+✔ unsafe storage permissions refuse and are never repaired implicitly (33.697458ms)
+✔ emitted assignment must pass actual N026 path and HEAD validation (488.887708ms)
+✔ installed source drift invalidates previously allocated identity (144.203916ms)
+✔ nested lease timeout cannot accumulate Git operations across two handles (1281.59ms)
+✔ real owned Git lease observation remains unattributed even for matching derived label (466.058167ms)
+✔ helper refuses unsupported source without importing or executing its body (34.824916ms)
+✔ two actual managers cannot both allocate one session under exclusive lock (145.3275ms)
+✔ synchronous second query throw cannot release first pending query (120.936ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5909.126125

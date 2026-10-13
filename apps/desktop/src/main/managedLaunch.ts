@@ -1,5 +1,6 @@
 // A launch owns one durable generation and one native session identity. Only
 // the caller that observed begin.granted may spawn or compensate that attempt.
+import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
 import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AdmissionReceipt, AdmitOutcome } from '../shared/admission.ts'
@@ -27,8 +28,8 @@ export interface ManagedLaunchDeps {
   estateId: string
   actor: { kind: string; id: string }
   authority(): { personId: string; revision: number } | null
-  admit(taskId: string, sessionId: string, trigger: LaunchInput['trigger']): Promise<AdmitOutcome>
-  prepare(receipt: AdmissionReceipt, input: LaunchInput): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
+  admit(taskId: string, sessionId: string, trigger: LaunchInput['trigger'], prepared?: PreparedLaunchPacket): Promise<AdmitOutcome>
+  prepare(receipt: AdmissionReceipt, input: LaunchInput, prepared?: PreparedLaunchPacket): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
   track(sessionId: string, taskId: string): void
   untrack(sessionId: string, taskId: string): void
   get(sessionId: string): { running: boolean } | null
@@ -43,6 +44,7 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
   if (resources && resources.mode !== 'required') throw Error('invalid resource launch dependency')
   return async function launch(input: LaunchInput): Promise<LaunchResult> {
     const sessionId = input.admission?.sessionId ?? randomUUID()
+    let prepared: PreparedLaunchPacket | undefined
     let receipt: AdmissionReceipt | undefined
     let runId: string | undefined
     let ownsBegin = false
@@ -60,8 +62,17 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       return data as Record<string, unknown>
     }
     try {
+    try {
+      if (resources) {
+        if (!resources.inputs || input.admission || input.instruction !== undefined || input.trigger === 'chain')
+          return failure('resource_prepared_path_unsupported', 'This resource launch requires a newly prepared ordinary task.')
+        const captured = await resources.inputs.prepare({taskId:input.taskId,sessionId,trigger:input.trigger,permissionMode:input.permissionMode??null})
+        if (captured.state !== 'observed' || !resources.inputs.owns(captured.packet))
+          return failure('resource_prepared_input_unavailable', 'The task input could not be prepared. Nothing was admitted.')
+        prepared = captured.packet
+      }
       const admitted = input.admission ? { admitted: true as const, receipt: input.admission.receipt }
-        : await deps.admit(input.taskId, sessionId, input.trigger)
+        : await deps.admit(input.taskId, sessionId, input.trigger, prepared)
       if (!admitted.admitted) return failure(admitted.reasonCode, admitted.says)
       receipt = admitted.receipt
       runId = receipt.task_run_id
@@ -70,6 +81,8 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       // Covers both ordinary admission and the chain's pre-admitted receipt.
       if (resources ? !resources.matches(receipt) : Object.prototype.hasOwnProperty.call(receipt, 'resource_reservation'))
         return failure('resource_receipt_unavailable', 'The resource receipt could not be confirmed. Nothing will be started automatically.')
+      if (prepared && (!preparedLaunchMatches(prepared,{sessionId,projectId:receipt.project_id,taskId:input.taskId,optionId:receipt.option_id||'claude-code'}) || receipt.instruction !== prepared.instructionBody || !await resources!.inputs!.current(prepared)))
+        throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
       const authority = deps.authority()
       const begun = await command('begin_task_run_launch', {
         p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
@@ -84,12 +97,13 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       if (begun.task_run_id !== runId || begun.session_id !== sessionId) return failure('invalid_receipt',
         'The launch receipt identifies another session. Nothing will be started automatically.')
       ownsBegin = true
-      const open = await deps.prepare(receipt, input)
+      const open = await deps.prepare(receipt, input, prepared)
       deps.track(sessionId, input.taskId)
       const session = await open(sessionId, async () => {
         // The trusted refresh may wait on I/O. Membership, capacity or the run's
         // fence may change while it waits, so SQL must be the last check here.
         if (resources && !await resources.current(receipt!)) return false
+        if (prepared && !await resources!.inputs!.current(prepared)) return false
         const valid = await command('validate_task_run_launch', {
           p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
         })
@@ -129,13 +143,14 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
     // receipt never compensates the process as a failed launch or replays text.
     const deliveryId = continuationDeliveryId('launch', runId!)
     try {
-      const sent = await deps.dispatch(input.taskId, runId!, sessionId, deliveryId, input.instruction ?? receipt!.instruction!)
+      const sent = await deps.dispatch(input.taskId, runId!, sessionId, deliveryId, prepared?.instructionBody ?? input.instruction ?? receipt!.instruction!)
       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: sent.state, says: sent.says }
     } catch (e) {
       ops.failed('launch.delivery-receipt', new Error('Instruction delivery remains unconfirmed'), { sessionId, cause: causeOf(e) })
       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: 'outcome_unknown',
         says: 'The session started. Instruction delivery is uncertain; nothing will be resent automatically.' }
     }
+    } finally { if (prepared) resources?.inputs?.release(prepared) }
   }
 }
 // #endregion managed-resource-preparation

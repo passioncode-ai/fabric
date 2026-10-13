@@ -1,0 +1,30 @@
+✖ timeout retains actual unresolved I/O through repeated calls and ignores late progress (127.747ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 257.638667
+
+✖ failing tests:
+
+test at controls/slot/test/resource-input-snapshot.test.mjs:92:1
+✖ timeout retains actual unresolved I/O through repeated calls and ignores late progress (127.747ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'timeout'
+  - 'io_outstanding'
+
+      at TestContext.<anonymous> (file:///private<owned-builder-fixture>/controls/slot/test/resource-input-snapshot.test.mjs:95:85)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'timeout',
+    expected: 'io_outstanding',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

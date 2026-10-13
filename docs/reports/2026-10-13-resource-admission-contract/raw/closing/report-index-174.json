@@ -1,0 +1,188 @@
+{
+  "previousHead": "259071ad36d74e31d15d1aa97f7bba2c109049fa",
+  "head": "099c052b3cd90749176341f04ae83b554802b01b",
+  "before": 172,
+  "after": 174,
+  "lost": [],
+  "added": [
+    "sshlg-skills/2026-10-13-code-graph-finalization",
+    "sshlg-skills/2026-10-13-native-skill-routing"
+  ],
+  "problems": [
+    {
+      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-metric-quality/README.md",
+      "id": "appvillis-dataroom-agent/2026-10-10-metric-quality",
+      "errors": [
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: finance, data-quality"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
+      "id": "appvillis-dataroom-agent/2026-10-10-monitoring-alert-lifecycle",
+      "errors": [
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: engineering"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-3m-sales/README.md",
+      "id": "nicegram-ad-manager-bot-2026-10-10-3m-sales",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`",
+        "id `nicegram-ad-manager-bot-2026-10-10-3m-sales` \u043d\u0435 \u0432 \u0444\u043e\u0440\u043c\u0435 <\u043f\u0440\u043e\u0435\u043a\u0442>/<\u0413\u0413\u0413\u0413-\u041c\u041c-\u0414\u0414>-<\u0442\u0435\u043c\u0430>",
+        "id `nicegram-ad-manager-bot-2026-10-10-3m-sales` \u043d\u0435 \u043d\u0430\u0447\u0438\u043d\u0430\u0435\u0442\u0441\u044f \u0441 \u043f\u0440\u043e\u0435\u043a\u0442\u0430 `nicegram-ad-manager-bot/`",
+        "status `final` \u043d\u0435 \u0438\u0437 draft, active, deprecated, superseded",
+        "\u0434\u0430\u0442\u0430 \u0432 id \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 as_of 2026-10-10"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: sales, funnel, releases, retrospective"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-prod-12w/README.md",
+      "id": "nicegram-ad-manager-bot-2026-10-10-prod-12w",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`",
+        "id `nicegram-ad-manager-bot-2026-10-10-prod-12w` \u043d\u0435 \u0432 \u0444\u043e\u0440\u043c\u0435 <\u043f\u0440\u043e\u0435\u043a\u0442>/<\u0413\u0413\u0413\u0413-\u041c\u041c-\u0414\u0414>-<\u0442\u0435\u043c\u0430>",
+        "id `nicegram-ad-manager-bot-2026-10-10-prod-12w` \u043d\u0435 \u043d\u0430\u0447\u0438\u043d\u0430\u0435\u0442\u0441\u044f \u0441 \u043f\u0440\u043e\u0435\u043a\u0442\u0430 `nicegram-ad-manager-bot/`",
+        "status `final` \u043d\u0435 \u0438\u0437 draft, active, deprecated, superseded",
+        "\u0434\u0430\u0442\u0430 \u0432 id \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 as_of 2026-10-10"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: production, funnel, moderation"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/repos/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
+      "id": "fabric-agent-adapter/2026-10-13-faa-38-windows-exit75",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `sources`",
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `fabric-agent-adapter` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)",
+        "kind `measurement` \u043d\u0435 \u0438\u0437 research, audit, analysis, benchmark, review, decision-input"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: lifecycle, windows"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric-workspace-kb-host-floor/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
+      "id": "fabric-agent-adapter/2026-10-13-faa-38-windows-exit75",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `sources`",
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `fabric-agent-adapter` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)",
+        "kind `measurement` \u043d\u0435 \u0438\u0437 research, audit, analysis, benchmark, review, decision-input"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: lifecycle, windows"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-metric-quality/README.md",
+      "id": "appvillis-dataroom-agent/2026-10-10-metric-quality",
+      "errors": [
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: finance, data-quality"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
+      "id": "appvillis-dataroom-agent/2026-10-10-monitoring-alert-lifecycle",
+      "errors": [
+        "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: engineering"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric-workspace-readable-reports/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/.worktrees/ws-release-pipeline/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    },
+    {
+      "file": "/Users/sshlg/DATA/fabric-workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
+      "errors": [
+        "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
+      ],
+      "warnings": [
+        "\u0442\u0435\u0433\u0438 \u043d\u0435 \u0438\u0437 _meta/taxonomy.md: hub, documentation, release, planning"
+      ]
+    }
+  ],
+  "delivery": "Default push refused: 52 local vs72 remote divergent commits; no unrelated history rewritten. Task index commit to dedicated handoff branch.",
+  "remoteBranch": "agent/fabric-harness-report-index-20261013",
+  "remoteVerifiedCommit": "099c052b3cd90749176341f04ae83b554802b01b"
+}

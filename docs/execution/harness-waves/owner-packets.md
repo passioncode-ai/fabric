@@ -285,3 +285,21 @@ Read-only source refresh. No tests, installation, owner message, or board submis
 7. Reuse the existing [PB159 consumer preparation](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/docs/evidence/completion-1013/mcp-profile-consumer/README.md#L15); it is a semantic fixture and bounded owner ask, not an Observatory profile writer or accepted wire schema. Its [next request50–57](https://github.com/ssheleg/sshlg-skills/blob/a17f829e8d652ce7f68423b67e0de00fb89b3693/docs/evidence/completion-1013/mcp-profile-consumer/README.md#L50) stays NOT_SENT until a genuine project-board receipt exists.
 
 REQ-006/007/008 and N-009/N-010 do not become complete from these source improvements. Installed agent-sync1.22.2's expired-own finding was not retested in this bounded remote refresh; its already recorded source snapshot remains separate evidence.
+
+
+## Owner refresh — 2026-10-13T07:38:32Z
+
+[Read-only remote receipt](../../reports/2026-10-13-resource-admission-contract/raw/closing/owner-refresh-0738/receipt.json)
+updates the05:23 snapshot. Pipeline#112 advances to
+`9fb9cfb34d83a1395d1d18dbe191d4135395b986`, still OPEN. Its three new commits
+add explicit wait identity, wait/resume transitions, next exit6 for watched dependency
+leaves, and refusal when graph file locking fails. A recorded watcher locator is data;
+the graph does not execute it or prove its process exists.
+
+The [candidate collector and round update](https://github.com/ssheleg/task-pipeline/blob/9fb9cfb34d83a1395d1d18dbe191d4135395b986/plugins/task-pipeline/skills/task-pipeline/scripts/graph.py#L1734)
+remains byte-identical at the inspected boundary; candidate-bound/idempotent acceptance
+is still open. The delta does not change iteration.md or lessons.py. Preserve credit
+for the previously implemented emitter and published hubB186; do not request duplicates.
+Other dispositions and released main hashes match05:23: #114 merged into#112's branch,
+hub208/209 merged,213/214 closed without merge. No new main release or native evidence
+was inferred. N009/N010 remain PREPARED / NOT_SENT while the official board is unavailable.

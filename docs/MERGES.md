@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 selected input and accounting wave · branch preparation, NOT MERGED
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- scope: N026 selected raw input snapshots; N027 coherent reserved accounting; N028 local assignment; N029 once-prepared managed inputs; N030 integration checks (preparation, acceptance tracked in graph)
+- evidence: docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md; index-flag original RED and fixed independent PASS; no launch authority or active DDL implied
+
 ### 2026-10-13 · CO-282 concrete producer wave · branch preparation, NOT MERGED
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - files: explicit host policy and real sampler, Git lease snapshot reader, configuration generation CAS, bounded pool publisher and isolated SQL fixtures

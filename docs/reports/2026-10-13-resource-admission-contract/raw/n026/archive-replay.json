@@ -1,0 +1,34 @@
+{
+  "command": "Fresh owned layout per raw/n026/README.md then python3 negative-controls.py",
+  "exitCode": 0,
+  "durationSeconds": 2.54,
+  "controls": [
+    {
+      "control": "raw-bytes",
+      "pattern": "actual binary bytes",
+      "exitCode": 1,
+      "sourceSha256": "aa3b4d33c169fe82c0e2fc6a4d8d7ee2a937491c25c6831516173e62d3870cb9"
+    },
+    {
+      "control": "final-stamp",
+      "pattern": "same-size modification after",
+      "exitCode": 1,
+      "sourceSha256": "d2c632a757fed5b66136dd4af5715ac245e4c4f4ab4ac98a126f7ca9c4630191"
+    },
+    {
+      "control": "slot",
+      "pattern": "timeout retains actual",
+      "exitCode": 1,
+      "sourceSha256": "63b8aadabf40092a253b8cb9686af0e95bcb151c022b4b3cf51b69352b4b620c"
+    },
+    {
+      "control": "async-clock",
+      "pattern": "ordinary async clock rejection",
+      "exitCode": 1,
+      "sourceSha256": "85b73eb648ad5697aa8eb9d53770c43050fdfb9cd0e4bb3cc25ad5297490929b"
+    }
+  ],
+  "matchesArchivedSourceHashesAndExits": true,
+  "tempRemoved": true,
+  "scope": "Archive replay only; deliberately mutated code returns RED as expected; current source acceptance separate"
+}

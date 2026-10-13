@@ -1,0 +1,19 @@
+{
+  "kind": "design-only",
+  "head": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "files": {
+    "apps/desktop/src/main/index.ts": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0",
+    "apps/desktop/src/main/managedLaunch.ts": "7d137c68be56a040fca2f27dc84beefea81a768f28dba7953bc00e74e3003d64",
+    "apps/desktop/src/main/admitExisting.ts": "ac427906ecbe3c69d3b91326c80fc2a86de3762fb6e335f4ec742327600fc541",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "afc02a3272b8927e09029427b10d5a2bbb5e02db8ca956ac9263f4563a55c99d",
+    "apps/desktop/src/main/sessionBundle.ts": "dee37f72ccc41e3f27dc8924b111dcd8d6bfa308075c0910e8787e7f1cce75e1",
+    "apps/desktop/src/main/pty.ts": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28",
+    "apps/desktop/src/main/contextPack.ts": "14f86b2de0962331ec2df19c54420b7f19a3b6442ca94898c65982a8519eccf7",
+    "apps/desktop/src/main/chainAdvance.ts": "3915002755b1e023556898af8de88c104353b6315cbde7208d7696fe3a77526e",
+    "apps/desktop/src/main/continuationDelivery.ts": "2a90f9fa17e16a43bfb61fb608b9c657496c63afcd5d9bcb5b4b246061cb02bc",
+    "apps/desktop/src/main/executionPacket.ts": "daede0db751e223d232062ffe890fb97657804638fc6410d4fba28aec426cf34"
+  },
+  "tests": "NOT_RUN design only",
+  "rootMutations": false,
+  "native": false
+}

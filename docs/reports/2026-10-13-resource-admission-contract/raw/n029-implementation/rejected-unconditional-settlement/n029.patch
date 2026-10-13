@@ -1,0 +1,874 @@
+--- /dev/null
++++ b/apps/desktop/src/main/preparedLaunchInput.ts
+@@ -0,0 +1,132 @@
++// #region prepared-launch-input — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
++import { createHash } from 'node:crypto'
++import path from 'node:path'
++import type { ScopedStore } from './scopedStore.ts'
++import { compileContextPack, contextDemandFor, type ContextPack, type LaunchTrigger } from './contextPack.ts'
++import { AGENTS, executorReadiness, mayLaunch } from '../shared/agents.ts'
++
++export interface PreparedLaunchRequest { taskId: string; sessionId: string; trigger: LaunchTrigger; permissionMode: string | null }
++export interface PreparedLaunchPacket {
++  readonly estateId: string
++  readonly projectId: string
++  readonly taskId: string
++  readonly sessionId: string
++  readonly trigger: 'operator' | 'routine' | 'answer'
++  readonly target: { readonly optionId: string; readonly cwd: string; readonly permissionMode: string | null }
++  readonly instructionBody: string
++  readonly instructionSha256: string
++  readonly context: Readonly<ContextPack>
++  /** Content only, never the complete resource inputDigest or ownership proof. */
++  readonly contentDigest: string
++  readonly executionAuthorized: false
++}
++export type PreparedLaunchResult = { state: 'observed'; packet: PreparedLaunchPacket } | { state: 'unknown' | 'refused'; reason: string }
++export interface PreparedLaunchInputs {
++  prepare(input: PreparedLaunchRequest): Promise<PreparedLaunchResult>
++  current(packet: PreparedLaunchPacket): Promise<boolean>
++  owns(packet: unknown): packet is PreparedLaunchPacket
++  release(packet: PreparedLaunchPacket): void
++}
++export interface PreparedLaunchInputDeps {
++  store: ScopedStore
++  estateId: string
++  maxEntries: number
++  maxInstructionBytes: number
++  contextBudget: number
++  timeoutMs: number
++}
++const uuid = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v)
++const hash = (v: string) => createHash('sha256').update(v,'utf8').digest('hex')
++const digest = (p: Omit<PreparedLaunchPacket,'contentDigest'>) => hash(JSON.stringify(['prepared-launch-content-v1',p.estateId,p.projectId,p.taskId,p.sessionId,p.trigger,p.target,p.instructionSha256,p.context.sha256,p.context.compilerRevision,contextDemandFor(p.trigger)]))
++function freeze<T>(value: T): T { if(value && typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value)}return value }
++function positive(value: number,max: number): number { if(!Number.isSafeInteger(value)||value<1||value>max)throw Error('invalid prepared input bounds');return value }
++/** Integrity only. Same-instance ownership is separately checked by the producer. */
++export function preparedLaunchMatches(packet: PreparedLaunchPacket,expected: {sessionId:string;projectId:string;taskId:string|null;optionId?:string;permissionMode?:string|null;cwd?:string}): boolean {
++  try { return packet.executionAuthorized===false && packet.sessionId===expected.sessionId && packet.projectId===expected.projectId && packet.taskId===expected.taskId &&
++    (expected.optionId===undefined||packet.target.optionId===expected.optionId) &&
++    (expected.permissionMode===undefined||packet.target.permissionMode===expected.permissionMode) &&
++    (expected.cwd===undefined||packet.target.cwd===expected.cwd) && packet.instructionSha256===hash(packet.instructionBody) &&
++    packet.context.sha256===hash(packet.context.markdown) && packet.contentDigest===digest(packet)
++  } catch { /* Corrupt packet integrity is a refusal; never expose its content in diagnostics. */ return false }
++}
++interface Projection { projectId:string; instruction:string; optionId:string; cwd:string; brief:{what:string|null;why:string|null;expected:string|null} }
++/** Actual ScopedStore reads + actual context compiler, not caller-provided bytes.
++ * One retained I/O operation per producer; active receipts have a fixed bound. */
++export function createPreparedLaunchInputs(deps: PreparedLaunchInputDeps): PreparedLaunchInputs {
++  if(!uuid(deps.estateId))throw Error('invalid prepared estate')
++  const estateId=deps.estateId,store=deps.store,maxEntries=positive(deps.maxEntries,1024),maxBytes=positive(deps.maxInstructionBytes,1048576)
++  const budget=positive(deps.contextBudget,1048576),timeout=positive(deps.timeoutMs,30000)
++  const boundScope=store.scope
++  function scopeKey():string {
++    const scope=store.scope
++    if(!scope||scope!==boundScope||scope.estateId!==estateId||!['estate','project'].includes(scope.kind)||
++      (scope.kind==='project'&&!uuid(scope.projectId)))throw Error('prepared store scope mismatch')
++    return JSON.stringify([scope.kind,scope.estateId,scope.kind==='project'?scope.projectId:null])
++  }
++  const expectedScope=scopeKey()
++  const scopeCurrent=()=>scopeKey()===expectedScope
++  const packets=new Map<string,{packet:PreparedLaunchPacket;projection:string}>()
++  let busy=false
++  async function execute<T>(work:(active:()=>boolean)=>Promise<T>,fallback:T):Promise<T>{
++    if(busy)return fallback
++    busy=true;let active=true,settled=false,finished=false,timer:ReturnType<typeof setTimeout>|undefined
++    const release=()=>{if(settled&&finished)busy=false},deadline=performance.now()+timeout
++    const pending=Promise.resolve().then(()=>work(()=>active&&performance.now()<deadline))
++    const drop = (value:unknown) => {
++      if (value && typeof value==='object' && 'state' in value && value.state==='observed' && 'packet' in value) {
++        const packet=value.packet
++        if(owns(packet))packets.delete(packet.sessionId)
++      }
++    }
++    void pending.then(value=>{if(!active||performance.now()>=deadline)drop(value);settled=true;release()},()=>{settled=true;release()})
++    try { const result=await Promise.race([pending,new Promise<T>(resolve=>{timer=setTimeout(()=>{active=false;resolve(fallback)},timeout)})]);if(active&&performance.now()<deadline)return result;drop(result);return fallback }
++    catch { /* Structured refusal never contains task bytes, paths or database errors. */ return fallback }
++    finally { active=false;finished=true;if(timer)clearTimeout(timer);release() }
++  }
++  async function projection(taskId:string,active:()=>boolean):Promise<Projection>{
++    if(!active()||!scopeCurrent())throw Error('preparation ended')
++    const {data:t,error}=await store.select('project_tasks','id,project_id,instruction,option_id,brief_what,brief_why,brief_expected').eq('id',taskId).maybeSingle()
++    if(!active()||!scopeCurrent()||error||!t||t.id!==taskId||!uuid(t.project_id)||typeof t.instruction!=='string'||Buffer.byteLength(t.instruction,'utf8')>maxBytes)throw Error('task unavailable')
++    const optionId=t.option_id||'claude-code'
++    if(typeof optionId!=='string'||!AGENTS.some(a=>a.id===optionId&&a.connectsToSurface)||!executorReadiness(optionId).ready)throw Error('unsupported prepared target')
++    const brief={what:t.brief_what??null,why:t.brief_why??null,expected:t.brief_expected??null}
++    if(Object.values(brief).some(v=>v!==null&&(typeof v!=='string'||Buffer.byteLength(v,'utf8')>maxBytes)))throw Error('brief unavailable')
++    const {data:p,error:pe}=await store.select('projects','id,repo_path').eq('id',t.project_id).maybeSingle()
++    if(!active()||!scopeCurrent()||pe||!p||p.id!==t.project_id||typeof p.repo_path!=='string'||p.repo_path.length>4096||p.repo_path.includes('\0')||!path.isAbsolute(p.repo_path))throw Error('project unavailable')
++    return {projectId:t.project_id,instruction:t.instruction,optionId,cwd:p.repo_path,brief:brief as Projection['brief']}
++  }
++  function owns(packet:unknown):packet is PreparedLaunchPacket {
++    if(!packet||typeof packet!=='object')return false
++    const session=Object.getOwnPropertyDescriptor(packet,'sessionId')?.value
++    return typeof session==='string'&&packets.get(session)?.packet===packet
++  }
++  return Object.freeze({
++    owns,
++    prepare(raw:PreparedLaunchRequest):Promise<PreparedLaunchResult>{
++      if(!uuid(raw.taskId)||!uuid(raw.sessionId)||!['operator','routine','answer'].includes(raw.trigger)||
++        (raw.permissionMode!==null&&typeof raw.permissionMode!=='string'))return Promise.resolve({state:'refused',reason:'unsupported_prepared_path'})
++      const input={taskId:raw.taskId,sessionId:raw.sessionId,trigger:raw.trigger as PreparedLaunchPacket['trigger'],permissionMode:raw.permissionMode}
++      if(packets.has(input.sessionId)||packets.size>=maxEntries)return Promise.resolve({state:'refused',reason:'prepared_identity_or_capacity'})
++      return execute<PreparedLaunchResult>(async active=>{
++        const before=await projection(input.taskId,active)
++        if(!mayLaunch(before.optionId,input.permissionMode).ok)throw Error('mode unavailable')
++        if(!active()||!scopeCurrent())throw Error('preparation ended')
++        const context=await compileContextPack({store,projectId:before.projectId,taskInstruction:before.instruction,taskBrief:before.brief,budget,mandatory:contextDemandFor(input.trigger)})
++        if(!active()||!scopeCurrent())throw Error('preparation ended')
++        const after=await projection(input.taskId,active)
++        if(JSON.stringify(before)!==JSON.stringify(after))return {state:'refused',reason:'prepared_source_changed'}
++        const fields={estateId,projectId:before.projectId,taskId:input.taskId,sessionId:input.sessionId,trigger:input.trigger,target:{optionId:before.optionId,cwd:before.cwd,permissionMode:input.permissionMode},instructionBody:before.instruction,instructionSha256:hash(before.instruction),context,executionAuthorized:false as const}
++        const packet=freeze({...fields,contentDigest:digest(fields)})
++        if(!active()||!scopeCurrent())throw Error('preparation ended')
++        packets.set(input.sessionId,{packet,projection:JSON.stringify(before)})
++        return {state:'observed',packet}
++      },{state:'unknown',reason:'prepared_input_unavailable'})
++    },
++    current(packet:PreparedLaunchPacket):Promise<boolean>{
++      if(!owns(packet))return Promise.resolve(false)
++      return execute(async active=>{const actual=await projection(packet.taskId,active);return active()&&owns(packet)&&JSON.stringify(actual)===packets.get(packet.sessionId)?.projection},false)
++    },
++    release(packet:PreparedLaunchPacket):void {if(owns(packet))packets.delete(packet.sessionId)},
++  })
++}
++// #endregion prepared-launch-input
+--- a/apps/desktop/src/main/managedLaunch.ts
++++ b/apps/desktop/src/main/managedLaunch.ts
+@@ -1,5 +1,6 @@
+ // A launch owns one durable generation and one native session identity. Only
+ // the caller that observed begin.granted may spawn or compensate that attempt.
++import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ import { randomUUID } from 'node:crypto'
+ import type { SupabaseClient } from '@supabase/supabase-js'
+ import type { AdmissionReceipt, AdmitOutcome } from '../shared/admission.ts'
+@@ -27,8 +28,8 @@
+   estateId: string
+   actor: { kind: string; id: string }
+   authority(): { personId: string; revision: number } | null
+-  admit(taskId: string, sessionId: string, trigger: LaunchInput['trigger']): Promise<AdmitOutcome>
+-  prepare(receipt: AdmissionReceipt, input: LaunchInput): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
++  admit(taskId: string, sessionId: string, trigger: LaunchInput['trigger'], prepared?: PreparedLaunchPacket): Promise<AdmitOutcome>
++  prepare(receipt: AdmissionReceipt, input: LaunchInput, prepared?: PreparedLaunchPacket): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
+   track(sessionId: string, taskId: string): void
+   untrack(sessionId: string, taskId: string): void
+   get(sessionId: string): { running: boolean } | null
+@@ -43,6 +44,7 @@
+   if (resources && resources.mode !== 'required') throw Error('invalid resource launch dependency')
+   return async function launch(input: LaunchInput): Promise<LaunchResult> {
+     const sessionId = input.admission?.sessionId ?? randomUUID()
++    let prepared: PreparedLaunchPacket | undefined
+     let receipt: AdmissionReceipt | undefined
+     let runId: string | undefined
+     let ownsBegin = false
+@@ -60,8 +62,17 @@
+       return data as Record<string, unknown>
+     }
+     try {
++    try {
++      if (resources) {
++        if (!resources.inputs || input.admission || input.instruction !== undefined || input.trigger === 'chain')
++          return failure('resource_prepared_path_unsupported', 'This resource launch requires a newly prepared ordinary task.')
++        const captured = await resources.inputs.prepare({taskId:input.taskId,sessionId,trigger:input.trigger,permissionMode:input.permissionMode??null})
++        if (captured.state !== 'observed' || !resources.inputs.owns(captured.packet))
++          return failure('resource_prepared_input_unavailable', 'The task input could not be prepared. Nothing was admitted.')
++        prepared = captured.packet
++      }
+       const admitted = input.admission ? { admitted: true as const, receipt: input.admission.receipt }
+-        : await deps.admit(input.taskId, sessionId, input.trigger)
++        : await deps.admit(input.taskId, sessionId, input.trigger, prepared)
+       if (!admitted.admitted) return failure(admitted.reasonCode, admitted.says)
+       receipt = admitted.receipt
+       runId = receipt.task_run_id
+@@ -70,6 +81,8 @@
+       // Covers both ordinary admission and the chain's pre-admitted receipt.
+       if (resources ? !resources.matches(receipt) : Object.prototype.hasOwnProperty.call(receipt, 'resource_reservation'))
+         return failure('resource_receipt_unavailable', 'The resource receipt could not be confirmed. Nothing will be started automatically.')
++      if (prepared && (!preparedLaunchMatches(prepared,{sessionId,projectId:receipt.project_id,taskId:input.taskId,optionId:receipt.option_id||'claude-code'}) || receipt.instruction !== prepared.instructionBody || !await resources!.inputs!.current(prepared)))
++        throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
+       const authority = deps.authority()
+       const begun = await command('begin_task_run_launch', {
+         p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
+@@ -84,12 +97,13 @@
+       if (begun.task_run_id !== runId || begun.session_id !== sessionId) return failure('invalid_receipt',
+         'The launch receipt identifies another session. Nothing will be started automatically.')
+       ownsBegin = true
+-      const open = await deps.prepare(receipt, input)
++      const open = await deps.prepare(receipt, input, prepared)
+       deps.track(sessionId, input.taskId)
+       const session = await open(sessionId, async () => {
+         // The trusted refresh may wait on I/O. Membership, capacity or the run's
+         // fence may change while it waits, so SQL must be the last check here.
+         if (resources && !await resources.current(receipt!)) return false
++        if (prepared && !await resources!.inputs!.current(prepared)) return false
+         const valid = await command('validate_task_run_launch', {
+           p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
+         })
+@@ -129,13 +143,14 @@
+     // receipt never compensates the process as a failed launch or replays text.
+     const deliveryId = continuationDeliveryId('launch', runId!)
+     try {
+-      const sent = await deps.dispatch(input.taskId, runId!, sessionId, deliveryId, input.instruction ?? receipt!.instruction!)
++      const sent = await deps.dispatch(input.taskId, runId!, sessionId, deliveryId, prepared?.instructionBody ?? input.instruction ?? receipt!.instruction!)
+       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: sent.state, says: sent.says }
+     } catch (e) {
+       ops.failed('launch.delivery-receipt', new Error('Instruction delivery remains unconfirmed'), { sessionId, cause: causeOf(e) })
+       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: 'outcome_unknown',
+         says: 'The session started. Instruction delivery is uncertain; nothing will be resent automatically.' }
+     }
++    } finally { if (prepared) resources?.inputs?.release(prepared) }
+   }
+ }
+ // #endregion managed-resource-preparation
+--- a/apps/desktop/src/main/admitExisting.ts
++++ b/apps/desktop/src/main/admitExisting.ts
+@@ -13,6 +13,7 @@
+ // work. That is what "one shared admission" means here: not a tidier arrangement
+ // of two paths, but the deletion of the second one.
+ 
++import type { PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ import type { SupabaseClient } from '@supabase/supabase-js'
+ import { admissionOutcome, type AdmitOutcome } from '../shared/admission.ts'
+ import type { ResourceLaunchAdapter } from './resourceLaunchAdapter.ts'
+@@ -35,8 +36,14 @@
+  * Absence preserves legacy admission, explicitly NOT_ENFORCED for resources. */
+ export function createAdmitExisting(db: Pick<SupabaseClient, 'rpc'>, resources?: ResourceLaunchAdapter) {
+   if (resources && resources.mode !== 'required') throw Error('invalid resource admission dependency')
+-  const admitExistingTask = async (input: AdmitInput): Promise<AdmitOutcome> => {
+-    if (resources) return resources.admit(input)
++  const admitExistingTask = async (input: AdmitInput, prepared?: PreparedLaunchPacket): Promise<AdmitOutcome> => {
++    if (resources) {
++      // The chain's separate pre-admission reaches this same door. Refuse here,
++      // before it can reserve capacity without the exact ordinary launch packet.
++      if (input.trigger === 'chain' || !resources.inputs?.owns(prepared) || prepared.estateId !== input.estateId || prepared.taskId !== input.taskId || prepared.sessionId !== input.sessionId || prepared.trigger !== input.trigger)
++        return { admitted: false, reasonCode: 'resource_prepared_input_required', says: 'This resource launch needs a prepared ordinary task input.', retryable: false }
++      return resources.admit(input, prepared)
++    }
+     const { data, error } = await db.rpc('admit_task_launch', {
+       p_estate_id: input.estateId,
+       p_task_id: input.taskId,
+--- a/apps/desktop/src/main/resourceLaunchAdapter.ts
++++ b/apps/desktop/src/main/resourceLaunchAdapter.ts
+@@ -1,4 +1,5 @@
+ // #region resource-launch-adapter — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
++import type { PreparedLaunchInputs, PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ import type { AdmissionReceipt, AdmitOutcome } from '../shared/admission.ts'
+ import { assessResourceAdmission, type ResourceChecks, type ResourceIdentity, type ResourceVector } from '../shared/resourceAdmission.ts'
+ import type { AdmitInput } from './admitExisting.ts'
+@@ -20,13 +21,14 @@
+ }
+ export interface ManagedResourceLaunch {
+   readonly mode: 'required'
++  readonly inputs?: PreparedLaunchInputs
+   matches(receipt: AdmissionReceipt): boolean
+   current(receipt: AdmissionReceipt): Promise<boolean>
+   cancelUnbegun(receipt: AdmissionReceipt): Promise<boolean>
+   releaseCompensated(receipt: AdmissionReceipt): Promise<boolean>
+ }
+ export interface ResourceLaunchAdapter extends ManagedResourceLaunch {
+-  admit(input: AdmitInput): Promise<AdmitOutcome>
++  admit(input: AdmitInput, prepared?: PreparedLaunchPacket): Promise<AdmitOutcome>
+ }
+ export interface ResourceLaunchAdapterDeps {
+   db: { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error?: unknown }> }
+@@ -35,7 +37,8 @@
+   maxEntries: number
+   /** Optional local diagnostics only; no authority or portable event publication. */
+   observations?: { sink: ResourceObservationSink; now?: () => number }
+-  prepare(input: Readonly<AdmitInput>): Promise<ResourceLaunchPreparation>
++  inputs?: PreparedLaunchInputs
++  prepare(input: Readonly<AdmitInput>, prepared?: PreparedLaunchPacket): Promise<ResourceLaunchPreparation>
+   /** Trusted currentness provider. Must independently refresh input/scope/fence,
+    * ownership and policy; never echo the supplied identity as proof. The SQL
+    * validate command separately checks the durable ledger and fresh pool reading.
+@@ -87,6 +90,7 @@
+ }
+ interface Entry {
+   input: Readonly<AdmitInput>
++  prepared?: PreparedLaunchPacket
+   binding?: Readonly<ResourceLaunchBinding>
+   receipt?: AdmissionReceipt
+   outcome: Promise<AdmitOutcome>
+@@ -99,6 +103,7 @@
+  */
+ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): ResourceLaunchAdapter {
+   if (!positive(deps.timeoutMs) || deps.timeoutMs > 30_000 || !positive(deps.maxEntries)) throw Error('invalid resource adapter bounds')
++  const inputs = deps.inputs
+   const entries = new Map<string, Entry>()
+   // #region resource-attempt-instrumentation — docs: docs/execution/harness-waves/resource-attempt-observation.md#contract
+   function observeAccidentalPromise(value: unknown): void {
+@@ -192,17 +197,20 @@
+   }
+   return {
+     mode: 'required',
+-    admit(raw) {
++    inputs,
++    admit(raw, prepared) {
+       let input: Readonly<AdmitInput>
+       try { input = freeze(copyInput(raw)) } catch { /* Refusal is returned to the caller; raw identity input is not safe diagnostic material. */ return Promise.resolve(refused('resource_input_invalid')) }
++      if (inputs && (!inputs.owns(prepared) || prepared.estateId !== input.estateId || prepared.taskId !== input.taskId || prepared.sessionId !== input.sessionId || prepared.trigger !== input.trigger))
++        return Promise.resolve(refused('resource_prepared_input_required'))
+       const previous = entries.get(input.sessionId)
+-      if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
++      if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) && previous.prepared === prepared ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
+       if (entries.size >= deps.maxEntries) return Promise.resolve(refused('resource_adapter_capacity'))
+-      const entry: Entry = { input, outcome: Promise.resolve(refused('resource_admission_unknown')), observedStartedAt: observedNow() }
++      const entry: Entry = { input, prepared, outcome: Promise.resolve(refused('resource_admission_unknown')), observedStartedAt: observedNow() }
+       entries.set(input.sessionId, entry)
+       entry.outcome = (async () => {
+         try {
+-          const preparation = await bounded(() => deps.prepare(input))
++          const preparation = await bounded(() => deps.prepare(input, prepared))
+           const decision = assessResourceAdmission(preparation.request, preparation.context, preparation.checks)
+           if (decision.state !== 'eligible') {
+             observe(entry, 'admission', decision.state, decision.state === 'unknown' ? 'preflight-unknown' : 'preflight-refused', entry.observedStartedAt ?? null)
+--- a/apps/desktop/src/main/index.ts
++++ b/apps/desktop/src/main/index.ts
+@@ -17,6 +17,7 @@
+ import { isFloorClass, Policy } from './policy'
+ import { launchOption, launchOptions, PtyManager } from './pty'
+ import { classifyFailure } from '../shared/failure.ts'
++import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
+ import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
+ import { createNativeStopRuntime } from './nativeStopRuntime.ts'
+ import { createTranscriptRecovery } from './transcriptRecovery.ts'
+@@ -52,7 +53,7 @@
+ import { shouldReload } from './rendererRecovery.ts'
+ import { createBundleCompiler } from './sessionBundle'
+ import { createTranscriptStore } from './transcripts'
+-import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
++import { compileContextPack, contextDemandFor, type LaunchTrigger, type ContextPack } from './contextPack'
+ import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
+ import { readSettings, writeSettings } from './settings'
+ import { createPowerKeeper, type PowerKeeper } from './power'
+@@ -1034,7 +1035,36 @@
+   // projection rather than remembered, so a detach actually closes the door.
+   await refreshFileRoots()
+ 
++  // #region prepared-launch-composition — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
++  // Content preparation bounds, not resource capacity defaults. No resource adapter
++  // is enabled here: a future trusted composition must share this producer with it.
++  const preparedInputs = createPreparedLaunchInputs({store,estateId:ACTIVE_ESTATE,
++    maxEntries:32,maxInstructionBytes:65536,contextBudget:12000,timeoutMs:10000})
++  const recordContext = async (sessionId:string,projectId:string,taskId:string|null,pack:ContextPack) => {
++      await journal.append({
++        estateId: ACTIVE_ESTATE,
++        type: 'context.compiled@1',
++        // `system`: Fabric selected this, nobody claimed it.
++        actor: { kind: 'system', id: 'context-pack' },
++        projectId,
++        payload: {
++          session_id: sessionId,
++          task_id: taskId,
++          sha256: pack.sha256,
++          chars: pack.chars,
++          fact_ids: pack.factIds,
++          fact_seqs: pack.factSeqs,
++          transcript_ids: pack.transcriptIds,
++          omitted_facts: pack.omittedFacts,
++          omitted_transcripts: pack.omittedTranscripts
++        }
++      })
++  }
++  // #endregion prepared-launch-composition
++
+   const bundles = createBundleCompiler({
++    preparedInputs,
++    recordPreparedContext: packet => recordContext(packet.sessionId,packet.projectId,packet.taskId,packet.context),
+     root: app.getPath('userData'),
+     surface: {
+       get endpoint() {
+@@ -1085,24 +1115,7 @@
+             }
+           : null
+       })
+-      await journal.append({
+-        estateId: ACTIVE_ESTATE,
+-        type: 'context.compiled@1',
+-        // `system`: Fabric selected this, nobody claimed it.
+-        actor: { kind: 'system', id: 'context-pack' },
+-        projectId,
+-        payload: {
+-          session_id: sessionId,
+-          task_id: taskId,
+-          sha256: pack.sha256,
+-          chars: pack.chars,
+-          fact_ids: pack.factIds,
+-          fact_seqs: pack.factSeqs,
+-          transcript_ids: pack.transcriptIds,
+-          omitted_facts: pack.omittedFacts,
+-          omitted_transcripts: pack.omittedTranscripts
+-        }
+-      })
++      await recordContext(sessionId,projectId,taskId,pack)
+       return pack.markdown
+     }
+   })
+@@ -3163,12 +3176,12 @@
+   const launchManaged = createManagedLaunch({
+     db, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR,
+     authority: () => identity.held(),
+-    admit: (taskId, sessionId, trigger) => {
++    admit: (taskId, sessionId, trigger, prepared) => {
+       const held = identity.held()
+       return admitExisting({ estateId: ACTIVE_ESTATE, taskId, actor: OPERATOR_ACTOR,
+-        sessionId, trigger, personId: held?.personId, revision: held?.revision })
++        sessionId, trigger, personId: held?.personId, revision: held?.revision }, prepared)
+     },
+-    prepare: async (receipt, input) => {
++    prepare: async (receipt, input, prepared) => {
+       const project = await readProject(receipt.project_id!)
+       if (!project.repo_path) throw new Error('Choose an available project folder before starting an agent.')
+       const optionId = receipt.option_id || 'claude-code'
+@@ -3190,7 +3203,7 @@
+         try {
+           const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+             input.taskId, input.permissionMode ?? null, agent, sessionId,
+-            async () => (await identity.guard()).ok && await validateLaunch(), route)
++            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared)
+           syncPower()
+           return session
+         } finally {
+--- a/apps/desktop/src/main/pty.ts
++++ b/apps/desktop/src/main/pty.ts
+@@ -1,3 +1,4 @@
++import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ // PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the
+ // main process and survive renderer reloads AND window closes; a reattaching
+ // view replays the scrollback buffer. Lifecycle is journalled:
+@@ -171,7 +172,8 @@
+     /** A created agent's brief and the servers it asked for (M125). */
+     agent?: { instructions: string; servers: string[] } | null,
+     /** The chosen mode's fragment of a per-session config (`config-content-env`). */
+-    modeConfig?: Readonly<Record<string, unknown>> | null
++    modeConfig?: Readonly<Record<string, unknown>> | null,
++    prepared?: PreparedLaunchPacket
+   ): Promise<SessionBundle | null>
+   /**
+    * Undo a compile. Called when the session that bundle was for never came into
+@@ -418,13 +420,16 @@
+     requestedSessionId?: string,
+     beforeSpawn?: () => Promise<boolean>,
+     /** The fallback walk that chose this runner (ADR-0125), journalled additively with the opening. */
+-    route: LaunchRoute | null = null
++    route: LaunchRoute | null = null,
++    prepared?: PreparedLaunchPacket
+   ): Promise<TerminalSession> {
+     const sessionId = requestedSessionId ?? randomUUID()
+     if (this.sessions.has(sessionId) || this.opening.has(sessionId)) throw new Error('session identity already used')
+     this.opening.add(sessionId)
+     try {
+     const runnerId = agent?.runnerId ?? optionId
++    if (prepared && (agent || !preparedLaunchMatches(prepared,{sessionId,projectId,taskId,optionId:runnerId,permissionMode,cwd})))
++      throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
+     for (const ref of [cwd, optionId, runnerId])
+       if (typeof ref !== 'string' || !ref.trim() || !checkAuthorityTarget(ref).ok)
+         throw new Error('Launch reference was refused before preparation.')
+@@ -459,7 +464,8 @@
+           runnerId,
+           descriptor?.surfaceAdapter ?? 'unimplemented',
+           agent,
+-          verdict.config
++          verdict.config,
++          prepared
+         )) ?? null)
+       : null
+     // #region required-runner-surface — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
+--- a/apps/desktop/src/main/sessionBundle.ts
++++ b/apps/desktop/src/main/sessionBundle.ts
+@@ -1,3 +1,4 @@
++import { preparedLaunchMatches, type PreparedLaunchInputs, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ // The per-session bundle: the file that tells one agent where Fabric's door is
+ // and hands it the key.
+ //
+@@ -39,6 +40,8 @@
+ }
+ 
+ export interface BundleCompilerDeps {
++  preparedInputs?: PreparedLaunchInputs
++  recordPreparedContext?: (packet: PreparedLaunchPacket) => Promise<void>
+   /** Where session directories live — the app's own data directory, never a repo. */
+   root: string
+   surface: BundleSurface
+@@ -94,8 +97,11 @@
+       optionId: string,
+       adapter: SurfaceAdapter,
+       agent: { instructions: string; servers: string[] } | null = null,
+-      modeConfig: Readonly<Record<string, unknown>> | null = null
++      modeConfig: Readonly<Record<string, unknown>> | null = null,
++      prepared?: PreparedLaunchPacket
+     ): Promise<SessionBundle | null> {
++      if (prepared && (!deps.preparedInputs?.owns(prepared) || !preparedLaunchMatches(prepared,{sessionId,projectId,taskId,optionId})))
++        throw Error('prepared launch input unavailable')
+       if (!deps.surface.endpoint) return null
+ 
+       // PF-10.01 — a session that MUST reach Fabric's surface is refused unless
+@@ -191,9 +197,11 @@
+         // and never in the repository — the same rule and for the same reason: it
+         // is Fabric's material, not the project's, and a pack committed to a repo
+         // would be a stale copy of a moving store.
+-        if (deps.context) {
++        if (prepared || deps.context) {
+           try {
+-            const pack = await deps.context(sessionId, projectId, taskId)
++            if (prepared && !deps.recordPreparedContext) throw Error('prepared context journal unavailable')
++            if (prepared) await deps.recordPreparedContext!(prepared)
++            const pack = prepared ? prepared.context.markdown : await deps.context!(sessionId, projectId, taskId)
+             if (pack !== null) {
+               writeFileSync(path.join(dir, 'context.md'), pack, { encoding: 'utf8', mode: 0o600 })
+               // PF-05.02 — the pack is ALSO materialized content-addressed, under
+@@ -206,7 +214,7 @@
+               const packet = materialize(
+                 packetRoot,
+                 { sessionId, projectId, taskId },
+-                [{ name: 'context', bytes: pack }]
++                [{ name: 'context', bytes: pack }, ...(prepared ? [{name:'instruction',bytes:prepared.instructionBody}] : [])]
+               )
+               const check = verify(packetRoot, packet)
+               if (!check.ok)
+@@ -216,6 +224,7 @@
+                 )
+             }
+           } catch (e) {
++            if (prepared) throw e
+             // A session must still start when its pack cannot be COMPILED — it
+             // begins without one and says so. A packet that FAILED TO VERIFY is
+             // different: that store is lying, and the error above escapes this
+--- a/apps/desktop/src/main/contextPack.ts
++++ b/apps/desktop/src/main/contextPack.ts
+@@ -213,11 +213,13 @@
+   if (!Number.isSafeInteger(budget) || budget <= 0) throw new ContextBudgetUnmet(budget, 0)
+   const maxSessions = input.maxSessions ?? DEFAULT_SESSIONS
+ 
+-  const [projectRead, reposRead, factsRead, sessionsRead] =
+-    await Promise.all([
+-      store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle(),
+-      store.select('project_repos', 'path,is_primary').eq('project_id', projectId),
+-      store
++  // #region context-read-settlement — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
++  // A failed sibling must not orphan pending reads and release the producer's
++  // bounded I/O slot. Thunks also contain synchronous query-construction errors.
++  const settled = await Promise.allSettled([
++      Promise.resolve().then(() => store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle()),
++      Promise.resolve().then(() => store.select('project_repos', 'path,is_primary').eq('project_id', projectId)),
++      Promise.resolve().then(() => store
+         // An EXACT count beside the rows: the gateway returns at most one page, and the facts it did not
+         // return are omitted as surely as the ones the budget stopped (iteration 2, memory finding 7).
+         .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,seq', { count: 'exact' })
+@@ -226,13 +228,20 @@
+         // bi-temporality exists to prevent.
+         .is('valid_to', null)
+         .eq('project_id', projectId)
+-        .order('recorded_at', { ascending: false }),
+-      store
++        .order('recorded_at', { ascending: false })),
++      Promise.resolve().then(() => store
+         .select('session_transcripts', 'session_id,annotation,ended_at,exit_code,captured_at,ending_provenance')
+         .eq('project_id', projectId)
+         .order('seq', { ascending: false })
+-        .limit(maxSessions)
+-    ])
++        .limit(maxSessions))
++    ] as const)
++  function readValue<T>(result: PromiseSettledResult<T>): T {
++    if (result.status === 'rejected') throw result.reason
++    return result.value
++  }
++  const projectRead=readValue(settled[0]), reposRead=readValue(settled[1]),
++    factsRead=readValue(settled[2]), sessionsRead=readValue(settled[3])
++  // #endregion context-read-settlement
+ 
+   // A receipt per source, and the errors are READ rather than destructured
+   // past. `availability` is then derived by `envelope`, so this function cannot
+--- /dev/null
++++ b/apps/desktop/test/prepared-launch-fixture.mjs
+@@ -0,0 +1,11 @@
++// Fixture for the production compiler/store boundary; no model/native calls.
++import {createScopedStore} from '../src/main/scopedStore.ts'
++import {createPreparedLaunchInputs} from '../src/main/preparedLaunchInput.ts'
++export const preparedIds={estate:'11111111-1111-4111-8111-111111111111',task:'22222222-2222-4222-8222-222222222222',session:'33333333-3333-4333-8333-333333333333',project:'44444444-4444-4444-8444-444444444444'}
++export function preparedFixture(options={}){
++ const id={...preparedIds,...options.ids},f={reads:[],task:{id:id.task,project_id:id.project,instruction:options.instruction??'bounded work',option_id:'claude-code',brief_what:null,brief_why:null,brief_expected:null},project:{id:id.project,repo_path:'/tmp',name:'Fixture',purpose:'Bounded preparation'}}
++ const db={from(table){return {select(columns){const filters=[],q={eq(k,v){filters.push([k,v]);return q},is(){return q},order(){return q},limit(){return q},maybeSingle(){return q},then(resolve,reject){const run=async()=>{f.reads.push({table,columns,filters});if(f.readHook){const r=await f.readHook(table,columns,filters);if(r!==undefined)return r}const data=table==='project_tasks'?f.task:table==='projects'?f.project:[];return {data:structuredClone(data),error:null,count:0}};return run().then(resolve,reject)}};return q}}}}
++ const store=createScopedStore(db,{kind:'estate',estateId:id.estate})
++ const deps={store,estateId:id.estate,maxEntries:8,maxInstructionBytes:65536,contextBudget:12000,timeoutMs:100,...options.deps}
++ return Object.assign(f,{id,store,deps,inputs:createPreparedLaunchInputs(deps),request:{taskId:id.task,sessionId:id.session,trigger:'operator',permissionMode:null}})
++}
+--- /dev/null
++++ b/apps/desktop/test/prepared-launch-input.test.mjs
+@@ -0,0 +1,67 @@
++import assert from 'node:assert/strict'
++import {test} from 'node:test'
++import {createHash} from 'node:crypto'
++import {preparedFixture} from './prepared-launch-fixture.mjs'
++import {createPreparedLaunchInputs,preparedLaunchMatches} from '../src/main/preparedLaunchInput.ts'
++const sha=s=>createHash('sha256').update(s,'utf8').digest('hex')
++test('actual scoped task and context compile once, exact body bytes and frozen ownership',async()=>{
++ const f=preparedFixture({instruction:'  hello\nмир 🌍  '}),r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed');const p=r.packet
++ assert.equal(p.instructionBody,f.task.instruction);assert.equal(p.instructionSha256,sha(f.task.instruction));assert.equal(p.context.sha256,sha(p.context.markdown));assert.equal(p.executionAuthorized,false)
++ assert.equal(f.reads.filter(x=>x.table==='memory_facts').length,1);assert.ok(f.reads.every(x=>x.filters.some(([k,v])=>k==='estate_id'&&v===f.id.estate)))
++ assert.ok(f.inputs.owns(p));assert.ok(Object.isFrozen(p.context.factIds));assert.ok(preparedLaunchMatches(p,{sessionId:f.id.session,projectId:f.id.project,taskId:f.id.task,optionId:'claude-code',cwd:'/tmp',permissionMode:null}))
++ assert.equal(f.inputs.owns({...p}),false);assert.equal(await f.inputs.current({...p}),false)
++ assert.equal(await f.inputs.current(p),true);assert.equal(f.reads.filter(x=>x.table==='memory_facts').length,1,'currentness never recompiles')
++ f.inputs.release(p);assert.equal(await f.inputs.current(p),false)
++})
++for(const field of ['instruction','option_id','brief_why'])test(`changed ${field} between compiler and second read refuses`,async()=>{
++ const f=preparedFixture();f.readHook=table=>{if(table==='memory_facts')f.task[field]='changed'}
++ assert.notEqual((await f.inputs.prepare(f.request)).state,'observed')
++})
++for(const kind of ['task-missing','task-error','project-error','budget','instruction-limit','shell','custom-agent','mode','chain','facts-routine'])test(`${kind} cannot yield required prepared packet`,async()=>{
++ const f=preparedFixture(kind==='budget'?{deps:{contextBudget:1}}:kind==='instruction-limit'?{deps:{maxInstructionBytes:1}}:{})
++ if(kind==='task-missing')f.task=null;if(kind==='task-error')f.readHook=t=>t==='project_tasks'?{error:{message:'private'},data:null}:undefined
++ if(kind==='project-error')f.readHook=t=>t==='projects'?{error:{message:'private'},data:null}:undefined
++ if(kind==='shell')f.task.option_id='shell';if(kind==='custom-agent')f.task.option_id=f.id.task
++ if(kind==='mode')f.request.permissionMode='invalid';if(kind==='chain')f.request.trigger='chain'
++ if(kind==='facts-routine'){f.request.trigger='routine';f.readHook=t=>t==='memory_facts'?{error:{message:'private'},data:null}:undefined}
++ const r=await f.inputs.prepare(f.request);assert.notEqual(r.state,'observed');assert.ok(!JSON.stringify(r).includes('private'))
++})
++test('before spawn currentness reads actual task/folder, not supplied identity echo',async()=>{
++ const f=preparedFixture(),r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed');f.project.repo_path='/changed';assert.equal(await f.inputs.current(r.packet),false)
++})
++test('30 timeouts retain one unsettled I/O, late resolution causes no more reads, fresh preparation succeeds',async()=>{
++ const f=preparedFixture({deps:{timeoutMs:5}});let resolve;f.readHook=()=>new Promise(r=>{resolve=r})
++ assert.equal((await f.inputs.prepare(f.request)).state,'unknown');for(let i=0;i<30;i++)assert.equal((await f.inputs.prepare(f.request)).state,'unknown');assert.equal(f.reads.length,1)
++ resolve({data:f.task,error:null});await new Promise(r=>setImmediate(r));assert.equal(f.reads.length,1);delete f.readHook
++ assert.equal((await f.inputs.prepare(f.request)).state,'observed')
++})
++test('active packet capacity and release are local bounds, no reservation release',async()=>{
++ const f=preparedFixture({deps:{maxEntries:1}}),r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed')
++ const next={...f.request,sessionId:f.id.project};assert.equal((await f.inputs.prepare(next)).state,'refused');f.inputs.release(r.packet);assert.equal((await f.inputs.prepare(next)).state,'observed')
++})
++test('constructor bounds copied, target/body digest corruption rejected',async()=>{
++ const f=preparedFixture();f.deps.contextBudget=1;const r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed')
++ for(const packet of [{...r.packet,instructionBody:'other'},{...r.packet,context:{...r.packet.context,markdown:'other'}},{...r.packet,contentDigest:'0'.repeat(64)}])assert.equal(preparedLaunchMatches(packet,{sessionId:f.id.session,projectId:f.id.project,taskId:f.id.task}),false)
++ assert.throws(()=>createPreparedLaunchInputs({...f.deps,maxEntries:0}))
++})
++
++test('mismatched or mutated actual store scope cannot label another Estate as the configured one',async()=>{
++ const f=preparedFixture();assert.throws(()=>createPreparedLaunchInputs({...f.deps,estateId:f.id.project}))
++ f.store.scope.estateId=f.id.project;assert.equal((await f.inputs.prepare(f.request)).state,'unknown')
++ const g=preparedFixture();g.readHook=t=>{if(t==='memory_facts')g.store.scope.estateId=g.id.project}
++ assert.notEqual((await g.inputs.prepare(g.request)).state,'observed')
++})
++
++test('actual compiler retains unsettled sibling after another context read rejects',async()=>{
++ const f=preparedFixture({deps:{timeoutMs:10}});let resolve, facts=0
++ f.readHook=table=>{if(table==='project_repos')throw Error('private sibling failure');if(table==='memory_facts'){facts++;return new Promise(r=>{resolve=r})}}
++ assert.equal((await f.inputs.prepare(f.request)).state,'unknown')
++ for(let i=0;i<10;i++)assert.equal((await f.inputs.prepare(f.request)).state,'unknown')
++ assert.equal(facts,1);resolve({data:[],error:null,count:0});await new Promise(r=>setImmediate(r));delete f.readHook
++ assert.equal((await f.inputs.prepare(f.request)).state,'observed')
++})
++
++test('replacing visible scope cannot hide mutation of the original ScopedStore closure scope',async()=>{
++ const f=preparedFixture(),captured=f.store.scope;f.store.scope={...captured};captured.estateId=f.id.project
++ assert.equal((await f.inputs.prepare(f.request)).state,'unknown');assert.equal(f.reads.length,0)
++})
+--- /dev/null
++++ b/apps/desktop/test/prepared-managed-launch.test.mjs
+@@ -0,0 +1,63 @@
++import assert from 'node:assert/strict'
++import {test} from 'node:test'
++import {mkdtempSync,readFileSync,rmSync,existsSync} from 'node:fs'
++import {tmpdir} from 'node:os'
++import path from 'node:path'
++import {preparedFixture} from './prepared-launch-fixture.mjs'
++import {createManagedLaunch} from '../src/main/managedLaunch.ts'
++import {createBundleCompiler} from '../src/main/sessionBundle.ts'
++import {readPart} from '../src/main/executionPacket.ts'
++import {createAdmitExisting} from '../src/main/admitExisting.ts'
++import {LaunchRefusedBeforeSpawn} from '../src/main/launchFailure.ts'
++function fixture(){
++ const f=preparedFixture({instruction:'  exact\nинструкция 🌍  '}),root=mkdtempSync(path.join(tmpdir(),'fabric-prepared-bundle-')),calls=[]
++ let live=false;const run=f.id.project,resources={mode:'required',inputs:f.inputs,matches:()=>true,current:async()=>{calls.push('resource-current');return true},cancelUnbegun:async()=>{calls.push('cancel');return true},releaseCompensated:async()=>{calls.push('release');return true}}
++ const bundles=createBundleCompiler({root,preparedInputs:f.inputs,recordPreparedContext:async packet=>{calls.push('journal');f.journaled=packet;if(f.journalFail)throw Error('private journal')},surface:{endpoint:'http://127.0.0.1:1/mcp',mint(){calls.push('mint');return {token:'synthetic'}},revokeSession(){calls.push('revoke')}},context:async()=>{throw Error('must never recompile')}})
++ const deps={estateId:f.id.estate,actor:{kind:'system',id:'fixture'},authority:()=>null,resources,
++  db:{rpc:async(name,args)=>{calls.push(name);if(name==='fail_task_launch')return {data:{compensated:true}};return {data:{granted:true,valid:true,bound:true,task_run_id:run,session_id:args.p_session_id}}}},
++  admit:async(taskId,sessionId,trigger,packet)=>{calls.push('admit');f.packet=packet;assert.ok(f.inputs.owns(packet));assert.equal(f.reads.filter(x=>x.table==='memory_facts').length,1);f.afterPrepared?.()
++   return {admitted:true,receipt:{admitted:true,task_id:taskId,session_id:sessionId,project_id:f.id.project,task_run_id:run,instruction:f.task.instruction,option_id:f.task.option_id}}},
++  prepare:async(receipt,input,packet)=>{assert.equal(packet,f.packet);return async(sessionId,guard)=>{
++   await bundles.compile(sessionId,f.id.project,f.id.task,'claude-code','mcp-config-flag',null,null,packet)
++   f.beforeSpawn?.();if(!await guard())throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_changed')
++   calls.push('spawn');live=true;return {sessionId}
++  }},track(){},untrack(){},get:()=>live?{running:true}:null,stop:async()=>{},dispatch:async(_t,_r,_s,_d,body)=>{calls.push('dispatch');f.dispatched=body;return {state:'delivering',says:'fixture'}}}
++ return Object.assign(f,{root,calls,resources,bundles,deps,launch:createManagedLaunch(deps),cleanup:()=>rmSync(root,{recursive:true,force:true})})
++}
++test('actual compiler, managed admission, actual bundle files and dispatch share same exact content',async()=>{
++ const f=fixture();try{const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,true,JSON.stringify(r));assert.equal(f.dispatched,f.packet.instructionBody);assert.equal(f.journaled,f.packet)
++ const packet=JSON.parse(readFileSync(path.join(f.root,'packets',`packet-${r.sessionId}.json`),'utf8'))
++ assert.equal(readPart(path.join(f.root,'packets'),packet,'instruction'),f.dispatched)
++ assert.equal(readPart(path.join(f.root,'packets'),packet,'context'),f.packet.context.markdown)
++ assert.equal(readFileSync(path.join(f.root,'sessions',r.sessionId,'context.md'),'utf8'),f.packet.context.markdown)
++ assert.equal(f.reads.filter(x=>x.table==='memory_facts').length,1);assert.ok(f.calls.indexOf('admit')<f.calls.indexOf('mint'));assert.equal(f.inputs.owns(f.packet),false)
++ }finally{f.cleanup()}
++})
++for(const field of ['instruction','option_id'])test(`receipt ${field} drift refuses before begin and uses exact cancellation hook`,async()=>{
++ const f=fixture();try{f.afterPrepared=()=>{f.task[field]='changed'};const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.ok(f.calls.includes('cancel'));assert.ok(!f.calls.includes('begin_task_run_launch'));assert.ok(!f.calls.includes('mint'))}finally{f.cleanup()}
++})
++test('actual task changes after bundle before owned spawn; no process and compensation remains exact',async()=>{
++ const f=fixture();try{f.beforeSpawn=()=>{f.task.instruction='changed'};const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.ok(!f.calls.includes('spawn'));assert.ok(f.calls.includes('fail_task_launch'));assert.ok(f.calls.includes('release'))}finally{f.cleanup()}
++})
++test('required context journal rejection rolls back bundle and cannot degrade to missing context',async()=>{
++ const f=fixture();try{f.journalFail=true;const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.ok(f.calls.includes('revoke'));assert.ok(!f.calls.includes('spawn'));assert.equal(existsSync(path.join(f.root,'sessions',f.packet.sessionId)),false)}finally{f.cleanup()}
++})
++for(const unsupported of [{trigger:'chain'},{trigger:'operator',instruction:'override'},{trigger:'operator',admission:{sessionId:'fixed',receipt:{}}}])test(`required ${JSON.stringify(unsupported)} refuses before any admission or preparation`,async()=>{
++ const f=fixture();try{const r=await f.launch({taskId:f.id.task,...unsupported});assert.equal(r.started,false);assert.equal(f.calls.length,0);assert.equal(f.reads.length,0)}finally{f.cleanup()}
++})
++test('shared required admission door refuses early chain and missing packet, never invokes resource or legacy RPC',async()=>{
++ let calls=0;const f=preparedFixture(),resources={mode:'required',inputs:f.inputs,admit:async()=>{calls++;return {admitted:true}}},door=createAdmitExisting({rpc(){calls++}},resources)
++ const input={estateId:f.id.estate,taskId:f.id.task,sessionId:f.id.session,trigger:'operator',actor:{kind:'system',id:'fixture'}}
++ assert.equal((await door(input)).admitted,false);const captured=await f.inputs.prepare(f.request);assert.equal(captured.state,'observed')
++ assert.equal((await door({...input,trigger:'chain'},captured.packet)).admitted,false);assert.equal(calls,0)
++ assert.equal((await door(input,captured.packet)).admitted,true);assert.equal(calls,1)
++})
++test('bundle refuses foreign/copy packet before mint, even when exact bytes match',async()=>{
++ const f=fixture();try{const r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed');await assert.rejects(f.bundles.compile(f.id.session,f.id.project,f.id.task,'claude-code','mcp-config-flag',null,null,{...r.packet}));assert.equal(f.calls.length,0)}finally{f.cleanup()}
++})
++
++test('task changes during resource refresh are checked afterward before SQL/native spawn',async()=>{
++ const f=fixture();try{f.resources.current=async()=>{f.task.instruction='changed while resource check awaited';return true}
++ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.ok(!f.calls.includes('spawn'));assert.ok(!f.calls.includes('validate_task_run_launch'))
++ }finally{f.cleanup()}
++})
+--- /dev/null
++++ b/apps/desktop/test/prepared-resource-adapter.test.mjs
+@@ -0,0 +1,20 @@
++import assert from 'node:assert/strict'
++import {test} from 'node:test'
++import {preparedFixture} from './prepared-launch-fixture.mjs'
++import {createResourceLaunchAdapter} from '../src/main/resourceLaunchAdapter.ts'
++const v=n=>({workerSlots:n,memoryBytes:n,diskBytes:n,cpuMilliCores:n})
++function fixture(){const f=preparedFixture(),calls=[],input={estateId:f.id.estate,taskId:f.id.task,sessionId:f.id.session,trigger:'operator',actor:{kind:'system',id:'fixture'}}
++ const identity={hostId:'host',poolId:'pool',localPolicyRevision:'policy',reservationId:'reservation',attemptId:'attempt',fence:1,ownerId:'owner',role:'builder',inputDigest:'a'.repeat(64),scopeDigest:'b'.repeat(64)}
++ const deps={inputs:f.inputs,maxEntries:2,timeoutMs:100,current:async()=>true,prepare:async(supplied,packet)=>{f.seen=packet;assert.ok(f.inputs.owns(packet));return {request:{...identity,demand:v(1)},ownDemand:v(1),context:{nowMs:10,policy:{hostId:'host',poolId:'pool',localPolicyRevision:'policy',capacity:v(10),maxAgeMs:100},snapshot:{id:'snapshot',hostId:'host',poolId:'pool',localPolicyRevision:'policy',atMs:10,reserved:v(0),observed:v(0),reservedObserved:v(0)}},checks:{ownership:()=>({state:'held',identity,snapshotId:'snapshot',atMs:10})}}},db:{rpc:async(name,args)=>{calls.push({name,args});return {data:{admitted:true,task_id:input.taskId,project_id:f.id.project,session_id:input.sessionId,task_run_id:f.id.project,run_ordinal:1,receipt_seq:1,instruction:f.task.instruction,resource_reservation:{reservation_id:'reservation',state:'held',run_ordinal:1}}}}}}
++ return Object.assign(f,{input,identity,calls,deps,adapter:createResourceLaunchAdapter(deps)})}
++test('bound resource adapter sees exact content packet while full inputDigest retains separate producer identity',async()=>{
++ const f=fixture(),p=await f.inputs.prepare(f.request);assert.equal(p.state,'observed');const r=await f.adapter.admit(f.input,p.packet);assert.equal(r.admitted,true);assert.equal(f.seen,p.packet)
++ assert.equal(f.calls[0].args.p_binding.inputDigest,f.identity.inputDigest);assert.notEqual(f.calls[0].args.p_binding.inputDigest,p.packet.contentDigest)
++ assert.deepEqual(await f.adapter.admit(f.input,p.packet),r);assert.equal(f.calls.length,1)
++})
++test('required prepared adapter refuses missing/foreign packet before preparation/RPC and changed packet on cached session',async()=>{
++ const f=fixture();assert.equal((await f.adapter.admit(f.input)).admitted,false);assert.equal(f.seen,undefined);assert.equal(f.calls.length,0)
++ const p=await f.inputs.prepare(f.request);assert.equal(p.state,'observed');assert.equal((await f.adapter.admit(f.input,{...p.packet})).admitted,false);assert.equal(f.calls.length,0)
++ assert.equal((await f.adapter.admit(f.input,p.packet)).admitted,true);f.inputs.release(p.packet);f.task.instruction='changed'
++ const next=await f.inputs.prepare(f.request);assert.equal(next.state,'observed');assert.equal((await f.adapter.admit(f.input,next.packet)).reasonCode,'resource_identity_conflict');assert.equal(f.calls.length,1)
++})
+--- a/apps/desktop/test/resource-launch-adapter.test.mjs
++++ b/apps/desktop/test/resource-launch-adapter.test.mjs
+@@ -1,5 +1,6 @@
+ import assert from 'node:assert/strict'
+ import { test } from 'node:test'
++import { preparedFixture } from './prepared-launch-fixture.mjs'
+ import { createResourceLaunchAdapter } from '../src/main/resourceLaunchAdapter.ts'
+ import { createAdmitExisting } from '../src/main/admitExisting.ts'
+ import { createManagedLaunch } from '../src/main/managedLaunch.ts'
+@@ -9,7 +10,7 @@
+   session: '33333333-3333-4333-8333-333333333333', project: '44444444-4444-4444-8444-444444444444', run: '55555555-5555-4555-8555-555555555555' }
+ const vector = (workerSlots = 1) => ({ workerSlots, memoryBytes: 100, diskBytes: 10, cpuMilliCores: 1000 })
+ const zero = { workerSlots: 0, memoryBytes: 0, diskBytes: 0, cpuMilliCores: 0 }
+-const input = () => ({ estateId: ids.estate, taskId: ids.task, sessionId: ids.session, actor: { kind: 'system', id: 'chain' }, trigger: 'chain' })
++const input = () => ({ estateId: ids.estate, taskId: ids.task, sessionId: ids.session, actor: { kind: 'system', id: 'chain' }, trigger: 'operator' })
+ function fixture() {
+   const calls = [], sessions = new Map(), f = { calls, sessions, spawned: 0, released: false, current: true, timeoutMs: 50, prepares: 0 }
+   const db = { rpc: async (name, args) => {
+@@ -17,7 +18,7 @@
+     if (f.rpc) { const result = f.rpc(name, args); if (result !== undefined) return await result }
+     if (name === 'admit_resource_task_launch' || name === 'admit_task_launch') {
+       const data = { admitted: true, task_id: args.p_task_id, session_id: args.p_session_id, project_id: ids.project,
+-        task_run_id: ids.run, run_ordinal: 2, receipt_seq: 12, instruction: 'bounded work', option_id: 'shell' }
++        task_run_id: ids.run, run_ordinal: 2, receipt_seq: 12, instruction: 'bounded work', option_id: 'claude-code' }
+       if (name === 'admit_resource_task_launch') data.resource_reservation = { reservation_id: args.p_binding.reservationId, state: 'held', run_ordinal: 2 }
+       f.changeReceipt?.(data)
+       return { data }
+@@ -48,10 +49,19 @@
+       return f.current
+     } }
+   const adapter = createResourceLaunchAdapter(deps)
+-  const admit = createAdmitExisting(db, adapter)
++  const prepared = preparedFixture(), inputs = prepared.inputs, packetCache = new Map()
++  const launchResources = { ...adapter, inputs }
++  const door = createAdmitExisting(db, launchResources)
++  const admit = Object.assign((raw, packet) => {
++    const input = structuredClone(raw)
++    if (packet) return door(input, packet)
++    const key = `${input.sessionId}:${input.trigger}`
++    if (!packetCache.has(key)) packetCache.set(key, inputs.prepare({taskId:input.taskId,sessionId:input.sessionId,trigger:input.trigger,permissionMode:null}))
++    return packetCache.get(key).then(result => door(input, result.state === 'observed' ? result.packet : undefined))
++  }, {resourceMode:door.resourceMode})
+   const managed = {
+-    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: adapter,
+-    admit: (taskId, sessionId, trigger) => admit({ estateId: ids.estate, taskId, sessionId, trigger, actor: { kind: 'system', id: 'test' } }),
++    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: launchResources,
++    admit: (taskId, sessionId, trigger, packet) => admit({ estateId: ids.estate, taskId, sessionId, trigger, actor: { kind: 'system', id: 'test' } }, packet),
+     prepare: async () => {
+       if (f.prepareFailure) throw Error('preparation failed')
+       return async (sessionId, guard) => {
+@@ -127,7 +137,7 @@
+   await adapter.admit(input()); const next = { ...input(), sessionId: ids.run }
+   assert.equal((await adapter.admit(next)).reasonCode, 'resource_adapter_capacity'); assert.equal(f.calls.length, 1)
+ })
+-for (const trigger of ['operator', 'routine', 'chain', 'answer']) test(`${trigger} managed launch revalidates resource identity before owned spawn`, async () => {
++for (const trigger of ['operator', 'routine', 'answer']) test(`${trigger} managed launch revalidates resource identity before owned spawn`, async () => {
+   const f = fixture(); let admission
+   if (trigger === 'chain') { const a = await f.admit(input()); admission = { receipt: a.receipt, sessionId: ids.session } }
+   const result = await createManagedLaunch(f.managed)({ taskId: ids.task, trigger, ...(admission ? { admission } : {}) })
+@@ -136,7 +146,7 @@
+   assert.ok(names(f).indexOf('current') < names(f).indexOf('validate_task_run_launch'))
+   assert.ok(names(f).indexOf('current') < names(f).indexOf('bind_task_run'))
+ })
+-for (const preAdmitted of [false, true]) test(`SQL fence changed during async currentness refuses ${preAdmitted ? 'pre-admitted' : 'ordinary'} spawn`, async () => {
++for (const preAdmitted of [false]) test(`SQL fence changed during async currentness refuses ${preAdmitted ? 'pre-admitted' : 'ordinary'} spawn`, async () => {
+   const f = fixture(); let sqlStillValid = true
+   f.currentHook = async () => {
+     await new Promise(resolve => setImmediate(resolve))
+--- /dev/null
++++ b/docs/execution/harness-waves/prepared-launch-input.md
+@@ -0,0 +1,48 @@
++# Once-prepared managed launch input
++
++## Contract
++
++N029 adds a concrete content producer and consumers to the existing managed launch. It does not enable resource enforcement in `index.ts`, configure a pool, activate pending migrations, start a provider or establish R1 ownership. The first supported required path is a newly admitted ordinary managed task. Required pre-admitted receipts, chain triggers and instruction overrides refuse before new admission. The shared `createAdmitExisting` door also refuses chain or missing/foreign prepared input before calling the resource adapter, covering the chain's separate earlier admission. Ordinary launches without a resource dependency retain their existing path and behavior.
++
++`createPreparedLaunchInputs` reads actual task instruction/brief/option and project folder through the existing ScopedStore and calls the actual `compileContextPack` once. It does not accept caller-provided context text. The configured Estate must match the store's real scope, and the original scope object reference and complete scope fields are compared around reads. Replacing the exposed scope cannot hide changes to the original object captured by ScopedStore. Task/target projections are read before and after compilation. Missing rows, errors, changes, invalid modes, unsupported custom-agent/nonconnected runner targets or exceeded bounds yield no packet. Connected, ready built-in catalogue runners are the bounded target set; actual installed availability and runtime/mode checks remain at the existing PTY door.
++
++The factory takes explicit receipt count, instruction-byte, compiler-character and timeout bounds. `index.ts` supplies 32 local receipts, 65536 instruction/brief UTF-8 bytes per field, the existing 12000-character compiler budget and a 10000 ms preparation deadline. These are content preparation bounds, not host capacity or permission defaults. Data has already crossed the existing command ingress; the prepared path adds no second trim/redaction to the instruction body. Source transport can return a larger field before the producer rejects it: the byte limit is not a network response allocation cap. The existing compiler's source-page/omission semantics remain unchanged.
++
++An observed result carries a deeply frozen, same-producer packet containing Estate/project/task/session, trigger, target option/folder/requested mode, exact `instructionBody`, its SHA-256, the actual ContextPack and domain-separated `contentDigest`. `executionAuthorized` is false. The content digest binds identity, target, body hash, context hash, compiler revision and required-source selection policy. It is not the complete resource `inputDigest`; no N023 lease observation or N026 selected-input receipt is upgraded to held ownership. Context markdown is sanitized/formatted by its existing compiler. Exact-body identity refers to the separately retained instruction, not to its rendered excerpt inside the context pack.
++
++Producer methods are `prepare(request)`, `owns(packet)`, `current(packet)` and `release(packet)`. Same-instance membership is an internal lifecycle check, not authentication. `current` rereads actual task/target/scope without recompiling context. It does not claim all memory sources remain current. A released/copied/foreign packet is refused. Local release deletes the packet receipt only; it cannot release a durable reservation. These checks provide cooperative currentness, not immunity to an arbitrary writer racing the final SQL call or native spawn.
++
++One producer has one outstanding I/O operation and bounded active receipts. Timeout stops waiting while retaining occupancy until the entire operation settles. Late results create no usable packet or later reads. A pending `current` operation likewise cannot return permission after release/timeout. The actual compiler now starts its four reads through safe Promise thunks and waits with `Promise.allSettled` before rethrowing any rejection. A failing query cannot release the outer producer slot while a sibling query remains unresolved. This bounds accumulation per producer instance, not across arbitrary independently created producers or native processes. The producer uses the monotonic process clock directly and introduces no injectable synchronous clock callback.
++
++## Existing consumers
++
++`createManagedLaunch` prepares before its admission callback whenever resources are required. Absence of a producer refuses. The same packet is passed to `createAdmitExisting`, the resource adapter's existing prepare callback, native preparation, PTY bundle compilation and dispatch. With a producer installed, the resource adapter checks packet ownership and identity before I/O and binds cached same-session retries to the same packet object. The low-level adapter still supports its prior standalone injected preflight contract without a producer; it cannot pass the shared required managed admission doors that now mandate one. The index remains unconfigured for actual resources.
++
++After admission, the managed coordinator checks the receipt's task/project/session/option/instruction against the captured content and refreshes task/target currentness before begin. A known owned receipt can ask the existing `cancelUnbegun` SQL command to prove cancellation. A local mismatch itself is not proof of release. Final spawn checks run resource currentness, then prepared-input currentness, then the existing SQL validation; an asynchronous resource refresh cannot hide a task change from the later content read. Existing process-start classification, compensation, binding, readiness, permission-mode and delivery guards remain in place.
++
++`PtyManager.open` accepts the optional internal packet, compares its actual project/task/session/runner/mode/folder and forwards it to the same BundleCompiler. The bundle checks producer membership and content integrity before minting. For a supplied packet it uses its exact context markdown and instruction body, never the legacy context callback. Existing `executionPacket` materializes and verifies both named `context` and `instruction` parts; `context.md` receives the same markdown. Required packet/journal failures escape the degraded-context catch and roll back the session credential/directory.
++
++The existing `context.compiled@1` journal emission was extracted in `index.ts`; its metadata still describes the exact compiler output. Preparation alone does not append a launched-session event or mint a credential. Consuming a prepared bundle journals that context before spawn. The ordinary callback preserves its previous compilation and degraded-source behavior. Journal/bundle operations retain their existing lifecycle; the preparation deadline is not a new deadline for all launch operations.
++
++Dispatch receives the packet's exact instruction BODY. The existing continuation transport later adds a run/delivery-derived header and maintains its own digest/claim/begin/write/ack boundary. N029 does not claim the pre-admission digest identifies the complete later wire bytes, and it does not replay an uncertain delivery. The packet is released locally when the managed operation ends; materialized content remains in the existing packet store under its existing lifetime.
++
++## Verification
++
++Focused production-source commands:
++
++- `node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs`
++- `node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs`
++- `node --experimental-strip-types apps/desktop/test/session-bundle.test.mjs`
++- `node --experimental-strip-types apps/desktop/test/context-pack.test.mjs`
++- `node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs`
++- `node --experimental-strip-types apps/desktop/test/context-privacy.test.mjs`
++
++New tests exercise actual ScopedStore and context compiler, exact UTF-8 body hashes, real bundle files and content-addressed readback, actual managed factory ordering, required shared-door refusal, separate content/full-input digests, changed receipt/target/task, task mutation during resource refresh, journal rollback, foreign/copied packets, bounded repeated timeout and compiler sibling rejection. The existing required adapter fixture now prepares real packets; former required pre-admitted-chain coverage is replaced by explicit early refusal, while the legacy managed/chain contract remains unchanged.
++
++Original consumer source fails the unchanged selected tests for preparation-before-admission, missing-packet shared-door refusal and foreign-packet bundle refusal. Independent review also reproduced misbound/mutated ScopedStore scope and nested compiler I/O accumulation; both received production regressions. Focused tests use synthetic SQL/spawn boundaries and actual owned local bundle files. They establish no native CLI/provider, actual SQL reservation/compensation or installed resource policy acceptance. The stack-backed context-pack command is NOT_RUN in the small source overlay; its import stopped before any stack action. Context mandatory/privacy checks run offline. Exact command results and hashes belong to the N029 receipt.
++
++## Remaining composition
++
++A trusted resource composition must share this producer with the adapter and managed/bundle consumers, define complete selected inputs and an explicit composite input digest, supply actual ownership/run-fence semantics, complete worker observations and trusted policy/assignment, and promote pending SQL under the owning migration policy. None is fabricated here. Source wiring is available but resource activation in `index.ts` remains absent.
++
++A later chain slice must prepare the resolved substituted brief before its separate admission, persist/bind that same digest in dispatch evidence and recover it after restart; until then required chain refuses early. Custom-agent configuration and complete runner/MCP/system-prompt dependency selection remain separate scope work. This packet covers actual context and task body, not a claim to identify every input that may influence a runner. Existing answer delivery to a running waiting worker remains a continuation, not a new prepared launch or permission to free that worker's resource slot.

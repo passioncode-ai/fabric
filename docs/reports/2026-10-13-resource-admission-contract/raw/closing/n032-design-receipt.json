@@ -1,0 +1,26 @@
+{
+  "node": "N032",
+  "state": "DESIGN_ONLY",
+  "sourceHead": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "sourceKind": "frozen working tree including uncommitted integration",
+  "files": {
+    "apps/desktop/src/main/managedLaunch.ts": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/nativeStopRuntime.ts": "e4cc5ccb7941b3b10f85a54d2a57da52aa4f3238a9af4861f249cee873798046",
+    "apps/desktop/src/main/processBoundary.ts": "d8e7f668d896e5a4ba7116e0ec038beb91ae490b5ca4070cd4a1f04bcd21856b",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/managedStop.ts": "a407607ea338b2774d3ae78000ec7e3fd54d5db517c76af0c063c67d31ee1291",
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/shared/scope.ts": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+    "supabase/migrations/20260927000062_managed_stop.sql": "af24f5285e17459f6c233a95ac360b9a1737e29706e48a0e89cc2be4e84b96c7",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770"
+  },
+  "designSha256": "45bcc7b5dd3bfa8c471091e28c97038706f344d87648208f5ad8e02a0006ecd9",
+  "checks": "bounded source reads only",
+  "rootEdits": false,
+  "implementation": false,
+  "native": false,
+  "SQL": "NOT_RUN",
+  "designCorrection": "Parent requested distinguish uncertain retirement from complete conservative charged-unit set; positive completeness requires actual coverage protocol"
+}

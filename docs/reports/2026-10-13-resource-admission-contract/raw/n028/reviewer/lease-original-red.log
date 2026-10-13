@@ -1,0 +1,32 @@
+{"probe":"distinct handle pending Git","calls":2}
+✖ manager retains unsettled lease transport across distinct handles (1349.473792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1464.977208
+
+✖ failing tests:
+
+test at ../../../..<REVIEWER>/lease-probe.mjs:28:1
+✖ manager retains unsettled lease transport across distinct handles (1349.473792ms)
+  AssertionError [ERR_ASSERTION]: one manager cannot start another Git operation while prior transport remains unresolved
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file://<REVIEWER>/lease-probe.mjs:34:83)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

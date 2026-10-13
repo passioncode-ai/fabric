@@ -1,0 +1,50 @@
+{
+  "normalization": "Only log fixture prefixes and trailing whitespace; preserved source/receipts unchanged",
+  "files": [
+    {
+      "path": "receipt.json",
+      "originalSha256": "fe32d3bd1a9f0c3d67fdd9901ac4be15201a4aea4085e2f4c8ea76cf8f29f681",
+      "storedSha256": "fe32d3bd1a9f0c3d67fdd9901ac4be15201a4aea4085e2f4c8ea76cf8f29f681"
+    },
+    {
+      "path": "unit.log",
+      "originalSha256": "589718da5afc5c2f221f26910afba785ec60b95df8abc2d082cbbc7a8999c772",
+      "storedSha256": "589718da5afc5c2f221f26910afba785ec60b95df8abc2d082cbbc7a8999c772"
+    },
+    {
+      "path": "types.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "rejected-clock-source.snapshot.txt",
+      "originalSha256": "4f169c3a1aba78a4c43d4e2a7789fea16664fc173c301ccd615c11bdd267f8dc",
+      "storedSha256": "4f169c3a1aba78a4c43d4e2a7789fea16664fc173c301ccd615c11bdd267f8dc"
+    },
+    {
+      "path": "before107.snapshot.txt",
+      "originalSha256": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110",
+      "storedSha256": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110"
+    },
+    {
+      "path": "independent/receipt-final.json",
+      "originalSha256": "619f361416ee5984c4e1190740c961c55bdee24f93f11d08a3070acf4e6c9883",
+      "storedSha256": "619f361416ee5984c4e1190740c961c55bdee24f93f11d08a3070acf4e6c9883"
+    },
+    {
+      "path": "independent/clock-rollback.mjs",
+      "originalSha256": "108b3673947e096f93a186d978a1d52d87e3f3700c848b770879132029f312bd",
+      "storedSha256": "108b3673947e096f93a186d978a1d52d87e3f3700c848b770879132029f312bd"
+    },
+    {
+      "path": "independent/production-probes.mjs",
+      "originalSha256": "5d481f03ec423b24df8ffc7d38706d6e49fb3407aa6781386adf1d9ab4c937c4",
+      "storedSha256": "5d481f03ec423b24df8ffc7d38706d6e49fb3407aa6781386adf1d9ab4c937c4"
+    },
+    {
+      "path": "independent/clock-before.log",
+      "originalSha256": "ef4e53a39b575fbdd011a61bb3e7bf38baa0655b00753a39e8be299dcbe4cbc7",
+      "storedSha256": "bb03b1f07b7167426f5b49b858b8b2215d4e166c8550305eceaef0c668c808e0"
+    }
+  ]
+}

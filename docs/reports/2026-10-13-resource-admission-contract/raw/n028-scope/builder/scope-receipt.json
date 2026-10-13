@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "node": "N028",
+  "status": "BUILDER_FIXED_PENDING_INDEPENDENT_REVIEW",
+  "discovery": "Parent and N029 reviewer identified mutable ScopedStore scope during await; independently reproduced here, not builder discovery",
+  "before": {
+    "apps/desktop/src/main/resourceRunAssignment.ts": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa"
+  },
+  "after": {
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1556373fd76a571da94bfe0a372fc6b61bbf1c532fee1897836639afb2d9404d"
+  },
+  "source_changes": "Capture original scope object; exact binding checks before membership, after allSettled, after canonical-directory await, and operation check/final receipt boundary. Pending sibling settlement unchanged.",
+  "red": {
+    "command": "node --experimental-strip-types --test --test-name-pattern='actual ScopedStore|replaced equal' apps/desktop/test/resource-run-assignment.test.mjs",
+    "exit": 1,
+    "tests": 2,
+    "fail": 2,
+    "log_sha256": "4644b0eb6e4b7d33c2899bb25f60f95c6f41e3d77c2e5b4e35193b1194427205"
+  },
+  "green": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs",
+    "exit": 0,
+    "tests": 29,
+    "pass": 29,
+    "skipped": 0,
+    "log_sha256": "1f3e1f8daabcaadbd8b8647872918b0bd826e64d2fe5425770e07ea215de7e97"
+  },
+  "patch_sha256": "e8780c4d5b9f24942bf661480bf465ec52296891141f602af1bf2316b8cb7bf2",
+  "limits": [
+    "Actual createScopedStore with fixture transport, no real DB",
+    "Original frozen acceptance and normalized package remain unchanged",
+    "No native, held, real lease or new authority claim",
+    "Root typecheck and full gate NOT_RUN here"
+  ]
+}

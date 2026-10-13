@@ -1,0 +1,234 @@
+{
+  "task": "N026 planning and bounded local composition prerequisites",
+  "source_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "scope": "Read-only planning accuracy. N026 implementation and acceptance belong to its builder/reviewer. This review allocates no new work and enables no production path.",
+  "verdict": "LOCAL_FOLLOW_ON_AVAILABLE_WITH_EXPLICIT_PREREQUISITES",
+  "material_planning_points": [
+    {
+      "id": "P1",
+      "point": "Do not treat N026 plus N025 as a complete R1 input producer. R1 requires reserved/observed/overlap vectors; read_resource_pool returns policy and observation only. Root-held reservation totals are computed inside resource_pool_problem, not exported by this read RPC.",
+      "source": [
+        "apps/desktop/src/shared/resourceAdmission.ts:42",
+        "apps/desktop/src/main/resourcePoolPublisher.ts:24",
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql:134"
+      ],
+      "minimum": "A bounded coherent host/pool accounting read through a dedicated trusted RPC, same root-charge semantics as SQL; explicit measured-zero overlap credit is safe, invented zero reserved is not. First path can refuse parent/nested requests, avoiding parent-accounting expansion."
+    },
+    {
+      "id": "P2",
+      "point": "Use N025 bindingRevision for R1/R2 policy identity, not policy.localPolicyRevision. Sampler/worker inventory deliberately retains the human revision. Translation must bind exact canonical policy plus SQL generation/readback, never attach a new generation to a cached sample.",
+      "source": [
+        "apps/desktop/src/main/resourcePoolPublisher.ts:69",
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql:200"
+      ]
+    },
+    {
+      "id": "P3",
+      "point": "N026 observed selected inputs and N023 observed lease do not imply ownership held. The local contract must explicitly choose cooperative snapshot semantics or enforce isolation; a numeric attempt fence cannot be derived from Git tip or claimed to fence external writers.",
+      "source": [
+        "apps/desktop/src/main/gitLeaseSnapshot.ts:34",
+        "apps/desktop/src/shared/resourceAdmission.ts:54"
+      ],
+      "minimum": "Fabric-owned bounded semantic decision plus trusted assignment/run mapping; no foreign protocol change needed for the cooperative case. Do not convert executionAuthorized:false to held solely by matching caller identity."
+    },
+    {
+      "id": "P4",
+      "point": "Current launch admits and begins before bundle compilation, while actual instruction dispatch occurs later and can use the chain override. Hashing receipt.instruction or allowing generic context compilation fallback is insufficient for a resource-required input guarantee.",
+      "source": [
+        "apps/desktop/src/main/managedLaunch.ts:63",
+        "apps/desktop/src/main/managedLaunch.ts:87",
+        "apps/desktop/src/main/managedLaunch.ts:132",
+        "apps/desktop/src/main/pty.ts:452",
+        "apps/desktop/src/main/sessionBundle.ts:194"
+      ],
+      "minimum": "Prepare and verify the actual immutable context/brief/instruction once before resource reservation, or explicitly finalize in a two-stage contract before acceptance. Pass the same bytes into bundle and dispatch. Required path refuses missing prepared bytes; legacy behavior stays separate."
+    }
+  ],
+  "minimal_dependency_order": [
+    {
+      "step": 1,
+      "module": "Trusted assignment and run-to-lease mapping",
+      "depends": [
+        "N026 accepted producer",
+        "Fabric-owned cooperative-snapshot versus isolation decision"
+      ],
+      "existing_seams": [
+        "managedLaunch.ts:45 session identity",
+        "gitLeaseSnapshot.ts:18 exact lease target",
+        "sessionEnv.ts:64 child inheritance"
+      ],
+      "work": "Fixed source-owned selection/scope and host/pool; explicit session-specific agent-sync key; derive/read back actual run ID; pin exact lease tip; allocate internal attempt/reservation/fence under a stated local owner. Persist or refuse missing restart mapping. No lease acquisition in this review.",
+      "negative_acceptance": "Inherited parent ID, colliding derived run ID, foreign session/task, lost/renewed tip, stale mapping and unknown recovery cannot produce held."
+    },
+    {
+      "step": 2,
+      "module": "Coherent accounting plus complete inventory for one explicit pool",
+      "depends": [
+        "Existing N022 policy/sampler and N025 publication",
+        "Reviewed pool membership policy"
+      ],
+      "existing_seams": [
+        "resourceHostSampler.ts:12 workers dependency",
+        "resourcePoolPublisher.ts:69 bindingRevision",
+        "pending107:134 resource_pool_problem",
+        "pty.ts:650 local sessions",
+        "runLifecycle.ts:155 unresolved runs"
+      ],
+      "work": "Dedicated bounded accounting read, exact policy/generation identity, trusted membership inventory for only the supported pool. Local PTY list is a candidate input, not proof that external/previous processes disappeared. Unknown prior pool workers keep inventory incomplete. No global process census required for a deliberately bounded pool.",
+      "negative_acceptance": "Missing inventory, restart unresolved run, policy/generation change, foreign pool, partial ledger and overflow remain unknown/refused; unknown never zero. Can progress in parallel with step1."
+    },
+    {
+      "step": 3,
+      "module": "Immutable launch preparation and one required managed composition",
+      "depends": [
+        "Steps1 and2",
+        "Accepted N026"
+      ],
+      "existing_seams": [
+        "index.ts:2458 createAdmitExisting",
+        "index.ts:2495 chain admission",
+        "index.ts:3163 createManagedLaunch",
+        "sessionBundle.ts:194 context materialization",
+        "managedLaunch.ts:132 final instruction"
+      ],
+      "work": "Reuse same required adapter at admission and launch, bind prepared actual bytes and assignment, attach returned task_run_id/run_ordinal, final currentness before SQL guard/spawn. Keep unsupported chain/direct shell/backend paths explicitly outside first lane, or refuse their resource-required use until bound. Preserve subject/provider checks, compensation and unknown outcomes.",
+      "negative_acceptance": "Changed prepared bytes, chain override mismatch, foreign receipt, async stale lease, lost begin and release uncertainty cannot spawn or free capacity incorrectly. Local synthetic and isolated SQL acceptance can precede active DDL."
+    },
+    {
+      "step": 4,
+      "module": "Activate and demonstrate the single supported path",
+      "depends": [
+        "Reviewed steps1-3",
+        "Migration-order reconciliation",
+        "Explicit host/pool configuration",
+        "Usable lease/transport and runner access"
+      ],
+      "work": "Existing lifecycle/recovery/wait dispatcher composition and one bounded native operational run; preserve pending reservations on restart. Expand only after scoped acceptance.",
+      "negative_acceptance": "Stop/restart/late response preserve uncertainty; native receipt binds exact configured source and path. No global/all-agent acceptance inferred."
+    }
+  ],
+  "run_identity_precision": [
+    "Installed agent-sync1.22.2 explicit AGENT_SYNC_RUN_ID is an input key, not the returned r-* owner. _session_key:868-870 and run_id:948-949 route to _rid_from:832-848.",
+    "Long-key derivation uses only six digest hex characters; a unique Fabric UUID is not proof of unique external r-* identity. Compare actual derived ID against trusted existing mappings or use an explicitly injective allowed short-key allocation with durable collision/reuse refusal. This is local mapping correctness, not a requested foreign protocol rewrite.",
+    "sessionEnvironment currently inherits AGENT_SYNC_RUN_ID; the supported child path must clear/replace it. Identity correlation remains cooperative, not authentication.",
+    "createStopHostIdentity bootId is a fresh app invocation ID, not OS boot time; use it only under its documented identity domain."
+  ],
+  "actual_external_or_human_boundaries": [
+    "Fabric board project-access consent remains the prerequisite to N009/N010 owner submissions; not a blocker for steps1-3 local source work.",
+    "Active pending107/108 migration ordering and production schema/configuration are integration prerequisites. No active migration or configuration authorization inferred here.",
+    "A private remote may require existing transport credentials; a real lease needs authorized remote write and must be acquired/released through its owner tool. No new sign-in or approval invented if already authorized.",
+    "Native provider sign-in/consent or spend above recorded authority remains a human gate when actually encountered. Synthetic/isolated tests do not satisfy native acceptance.",
+    "Foreign lease semantics, portable schema or Observatory adoption changes require their owners only if that broader scope is chosen."
+  ],
+  "historical_document_disposition": "activation-prerequisites is explicitly pinned ae197a and is valid history. Its packet1 absence and next-task statement must not be reinterpreted as current missing N022/N025 implementations. New handoff should link this source-specific order; do not rewrite historical audit into a fresh acceptance.",
+  "sources": [
+    {
+      "path": "apps/desktop/src/main/managedLaunch.ts",
+      "lines": "45-96,132",
+      "sha256": "7d137c68be56a040fca2f27dc84beefea81a768f28dba7953bc00e74e3003d64"
+    },
+    {
+      "path": "apps/desktop/src/main/index.ts",
+      "lines": "2458,2495-2496,3163-3204",
+      "sha256": "c112bdd68477848c69e871c861b314300f1ee0234a4618d5ff21015d31af28c0"
+    },
+    {
+      "path": "apps/desktop/src/main/sessionBundle.ts",
+      "lines": "194-229",
+      "sha256": "dee37f72ccc41e3f27dc8924b111dcd8d6bfa308075c0910e8787e7f1cce75e1"
+    },
+    {
+      "path": "apps/desktop/src/main/pty.ts",
+      "lines": "452-501,650-659",
+      "sha256": "8b1acafea4d7f2a6ba191921a51a264195d896c742b69438862d71ec27fb2b28"
+    },
+    {
+      "path": "apps/desktop/src/main/sessionEnv.ts",
+      "lines": "64-76",
+      "sha256": "1d5c26fbdfaf2de7bd99b84edd564fc314ffcfb816fc1dc567764d56ce9c8af2"
+    },
+    {
+      "path": "apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "lines": "18-46",
+      "sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b"
+    },
+    {
+      "path": "apps/desktop/src/main/resourceHostSampler.ts",
+      "lines": "12-16,92-100,180-187",
+      "sha256": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c"
+    },
+    {
+      "path": "apps/desktop/src/main/resourcePoolPublisher.ts",
+      "lines": "24,65-82,157",
+      "sha256": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6"
+    },
+    {
+      "path": "apps/desktop/src/shared/resourceAdmission.ts",
+      "lines": "12-23,35-66,192-217",
+      "sha256": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a"
+    },
+    {
+      "path": "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "lines": "67-79,134-146,184-219",
+      "sha256": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110"
+    },
+    {
+      "path": "apps/desktop/src/main/runLifecycle.ts",
+      "lines": "155-163",
+      "sha256": "4b713d9896787cfd512347c8d3618c4d6a89c1f63e16590ed806d81ff85241f4"
+    },
+    {
+      "path": "apps/desktop/src/main/stopHostIdentity.ts",
+      "lines": "5-16",
+      "sha256": "53f5f34a4ae5ac31b6e709984e449c9d227fe99d2b40cccbff00ae32f8c04ca3"
+    },
+    {
+      "path": "docs/execution/harness-waves/input-scope-next-packet.md",
+      "lines": "whole proposed packet",
+      "sha256": "66ea6039d99b3abf4fecfe9b0c96c09af3bbe55208f295c0f68a03c0de85827a"
+    },
+    {
+      "path": "docs/execution/harness-waves/resource-activation-prerequisites.md",
+      "lines": "historical audit pin and ordered continuation",
+      "sha256": "abd7669563f41550d7be34cc61e0db3cdc132b91938c1e1cb89e933ed4154396"
+    },
+    {
+      "path": "docs/adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+      "lines": "Decision1-6",
+      "sha256": "1c40fe938afc68ec3adba3027fb185455d71256ed077607c6afa8cd6b0c9b2d0"
+    }
+  ],
+  "checks": "Bounded source reads and searches only. No tests, database execution, configuration writes, cross-project queries, source edits or service actions.",
+  "ready_next_module": {
+    "name": "Coherent bounded resource accounting read for one explicit host/pool",
+    "status": "LOCALLY_IMPLEMENTABLE_NOW_UNDER_ADR0152",
+    "touch_seams": [
+      "supabase/pending-migrations/20261013000107_resource_reservations.sql:67 and134",
+      "apps/desktop/src/main/resourcePoolPublisher.ts:69 policy binding reference",
+      "apps/desktop/src/shared/resourceAdmission.ts:42 snapshot contract"
+    ],
+    "contract": "Separate dedicated service-only read; do not silently change the existing exact-eight-field publisher RPC. Read policy/generation/observation and root-held reservation sums from one coherent SQL snapshot; all resource dimensions belong to that same snapshot. Bind host/pool and full digest revision, bound numeric conversion, unknown stays unknown. Atomic SQL admission still rechecks under its lock, so advisory read is not capacity allocation. No raw table-read bypass or checker waiver. Initial no-parent path avoids unrelated hierarchical reader work.",
+    "positive_negative": "Actual isolated SQL coherent sums, root/child non-double-charge, empty ledger proven zero, foreign pool, malformed/overflow/stale observation and policy-generation change. No DB run requested in this review."
+  },
+  "design_authority_split": {
+    "existing_ADR_no_new_domain": [
+      "Coherent reserved/observed read and conservative zero overlap credit follow ADR0152 decisions1-3.",
+      "N025 digest-versus-human revision translation is existing policy identity enforcement, not a new policy decision.",
+      "Bind and transport the exact same prepared context/instruction bytes; use actual SQL run receipt, preserve begin/guard/compensation and unknown state under decisions3-4.",
+      "Build evidence-only assignment mapping and a bounded explicit-pool inventory without declaring held or enabling a path."
+    ],
+    "local_semantic_decision_required_before_authority": [
+      "ADR0152 does not define a cooperative Git lease as exclusive file ownership. Selecting cooperative snapshot guarantees versus enforceable isolation needs an explicit Fabric-owned design/ADR before translating N023/N026 into R1 held. This is not an operator gate or COM prerequisite by itself.",
+      "Define internal attempt fence ownership/allocation/restart semantics and pool membership boundary. Existing Git tip/app invocation ID/SQL run ordinal must not be silently conflated into that fence."
+    ],
+    "actual_cross_owner_only": [
+      "Changing agent-sync lease authority or publishing portable reservation/ownership/event semantics requires its owning project. Pure local readers, SQL snapshots, byte binding and fixture composition do not."
+    ]
+  },
+  "schedule_summary": "Next: coherent accounting read now; in parallel evidence-only assignment and immutable preparation design. Then accept N026 and complete exact-byte preparation/run mapping plus trusted pool inventory. Resolve the local ownership/fence semantics before R1 held conversion. Finally compose one supported path and its tests; production activation remains a separate migration/configuration/native boundary.",
+  "supersedes": {
+    "file": "review.json",
+    "sha256": "120676a916b2515ac1ba86aebfaa4d0417b20e38188c6d2e6cc97dc6860d3231",
+    "reason": "Adds exact ADR-based ready module and separates local implementation from new guarantee semantics."
+  }
+}

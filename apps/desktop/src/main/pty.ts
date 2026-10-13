@@ -1,3 +1,4 @@
+import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
 // PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the
 // main process and survive renderer reloads AND window closes; a reattaching
 // view replays the scrollback buffer. Lifecycle is journalled:
@@ -171,7 +172,8 @@ export interface BundleCompiler {
     /** A created agent's brief and the servers it asked for (M125). */
     agent?: { instructions: string; servers: string[] } | null,
     /** The chosen mode's fragment of a per-session config (`config-content-env`). */
-    modeConfig?: Readonly<Record<string, unknown>> | null
+    modeConfig?: Readonly<Record<string, unknown>> | null,
+    prepared?: PreparedLaunchPacket
   ): Promise<SessionBundle | null>
   /**
    * Undo a compile. Called when the session that bundle was for never came into
@@ -418,13 +420,16 @@ export class PtyManager {
     requestedSessionId?: string,
     beforeSpawn?: () => Promise<boolean>,
     /** The fallback walk that chose this runner (ADR-0125), journalled additively with the opening. */
-    route: LaunchRoute | null = null
+    route: LaunchRoute | null = null,
+    prepared?: PreparedLaunchPacket
   ): Promise<TerminalSession> {
     const sessionId = requestedSessionId ?? randomUUID()
     if (this.sessions.has(sessionId) || this.opening.has(sessionId)) throw new Error('session identity already used')
     this.opening.add(sessionId)
     try {
     const runnerId = agent?.runnerId ?? optionId
+    if (prepared && (agent || !preparedLaunchMatches(prepared,{sessionId,projectId,taskId,optionId:runnerId,permissionMode,cwd})))
+      throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
     for (const ref of [cwd, optionId, runnerId])
       if (typeof ref !== 'string' || !ref.trim() || !checkAuthorityTarget(ref).ok)
         throw new Error('Launch reference was refused before preparation.')
@@ -459,7 +464,8 @@ export class PtyManager {
           runnerId,
           descriptor?.surfaceAdapter ?? 'unimplemented',
           agent,
-          verdict.config
+          verdict.config,
+          prepared
         )) ?? null)
       : null
     // #region required-runner-surface — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts

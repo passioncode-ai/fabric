@@ -1,0 +1,57 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-026",
+  "node": "N-026",
+  "parent_id": "CO-282",
+  "module": "Selected raw input and mutable-scope snapshot",
+  "intent": "Observe explicitly selected actual inputs within fixed bounds",
+  "expected_result": "Detect selected bytes, path identity, HEAD/index and optional identity/lease changes without execution authority",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceInputSnapshot.ts",
+      "apps/desktop/test/resource-input-snapshot.test.mjs",
+      "docs/execution/harness-waves/resource-input-snapshot.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Detect selected bytes, path identity, HEAD/index and optional identity/lease changes without execution authority",
+      "paths": [
+        "apps/desktop/src/main/resourceInputSnapshot.ts",
+        "apps/desktop/test/resource-input-snapshot.test.mjs",
+        "docs/execution/harness-waves/resource-input-snapshot.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Real filesystem/Git exact selected bytes, immutable same-instance receipt and unchanged currentness"
+    },
+    {
+      "kind": "negative",
+      "check": "Index flags, mutations, aliases, symlinks, untracked/ignored selection, oversized reads, stale identity/lease, rejected clocks and timed-out I/O never authorize execution"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

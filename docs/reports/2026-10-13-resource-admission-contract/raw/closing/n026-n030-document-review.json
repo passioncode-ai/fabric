@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-13T07:42:48.324966+00:00",
+  "base_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "candidate": "uncommitted changing root, reviewed files bound by hashes; N029 freeze explicitly pending",
+  "verdict": "SCOPED_DOC_REVIEW_ONE_NARROW_WORDING_CORRECTION_NO_NATIVE_OR_WHOLE_WAVE_ACCEPTANCE",
+  "files": {
+    "docs/execution/harness-waves/graph.json": "713e977ce84564f958f0b170feff3690826beaf95d79299e863dc4e7a12a555f",
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "ff4c71121682891a7adf7d2233b9adbf2075bfa1152bcfb87232aaefba3e32ec",
+    "docs/handoffs/2026-10-13-harness-waves.md": "1eabf17976c64a537ef44c10cd9588a57a4bb081339f59b9c8afc28c8a141214",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "3b0ccea7758ef499a736d3fe006c1801c2548272abf6837a907fbc65a62e4fc9",
+    "docs/execution/harness-waves/resource-run-assignment.md": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b",
+    "docs/reports/map.html": "35e111c371c5d56f5b4a3c452f0fb2bc943383b6fc10007b9566c4be1998db57",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1556373fd76a571da94bfe0a372fc6b61bbf1c532fee1897836639afb2d9404d"
+  },
+  "checks": [
+    "Graph30nodes:23done,2blocked,5pending N026\u201330; historical23/25 checkpoint clearly distinguished by later continuation text",
+    "Local Markdown targets in handoff, plan, report and n026/n027/n028/n028-scope READMEs resolve",
+    "n028 manifest42entries and scope manifest25entries all actualbytes match",
+    "N028 actual e51e corrected source and1556 tests match supplemental accepted source; older27-test archive marked historical;29focused+6independent distinguished",
+    "N027 actualSQL remainsNOT_RUN; no activeDDL/native/ownership claim inferred; N029 still underreview rather than accepted",
+    "N026 replay lists required gitRun source/hash; N027 runtime dependency HostPolicy present in replay advice (other import types erased); N028scope includes actualScopedStore and sharedscope"
+  ],
+  "findings": [
+    {
+      "severity": "low factual wording",
+      "file": "docs/execution/harness-waves/resource-run-assignment.md:46-47",
+      "current": "Current pty.ts is unchanged; no actual child environment delivery is claimed.",
+      "replacement": "N028 does not wire this identity patch into PtyManager; no actual child environment delivery is claimed.",
+      "reason": "N029 now changes pty.ts in current root. The relevant unchanged behavior is absence of N028 identity patch delivery, not wholefile unchanged."
+    }
+  ],
+  "next_after_N029_freeze": [
+    "Update current handoff exact next task once scope supplement/N029 integration are complete, without rewriting historical acceptance",
+    "Bind later finalgate/commit to final module hashes; no acceptance transfer from in-progress N029 or original N0287827",
+    "Root gate/source publication and actualN027 SQL still determine closure; this review executes no heavy tests"
+  ],
+  "limits": [
+    "No heavyweight tests/DB/repeated focused suite or source writes",
+    "N029 source still evolving, so no finalimplementation acceptance",
+    "No wholeharness completion or native/provider enforcement"
+  ]
+}

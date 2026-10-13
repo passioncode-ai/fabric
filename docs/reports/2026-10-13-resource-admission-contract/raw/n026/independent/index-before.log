@@ -1,0 +1,20 @@
+{"probe":"assume-unchanged-index-flag","before":"observed","after":"same"}
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: index flag mutation must invalidate the prior snapshot
+
+'same' !== 'changed'
+
+    at file:///private<owned-review-fixture>/index-flag-check.mjs:15:48
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'same',
+  expected: 'changed',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

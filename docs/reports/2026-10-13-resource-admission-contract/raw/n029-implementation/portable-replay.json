@@ -1,0 +1,7 @@
+{
+  "kind": "builder archival path adaptation replay",
+  "exit": 1,
+  "expected": 1,
+  "productionBytesChanged": false,
+  "log": "portable-base-red.log"
+}

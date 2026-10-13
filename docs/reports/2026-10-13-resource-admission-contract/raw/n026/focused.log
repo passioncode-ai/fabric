@@ -1,0 +1,39 @@
+✔ actual binary bytes, explicit absence, immutable assignment and same-instance currentness (379.539292ms)
+✔ unrelated untracked bytes do not widen selected closure (206.911334ms)
+✔ selected absent path creation and missing parent creation invalidate capture (207.589625ms)
+✔ selected untracked is explicitly refused (99.000084ms)
+✔ selected untracked is explicitly allowed and hashed (180.494833ms)
+✔ ignored input cannot be allowed through untracked override (95.135292ms)
+✔ unsafe selection path refused /escape (57.271375ms)
+✔ unsafe selection path refused ../escape (61.202ms)
+✔ unsafe selection path refused src/../a.txt (75.133875ms)
+✔ unsafe selection path refused src//a.txt (66.303333ms)
+✔ unsafe selection path refused src/./a.txt (78.170917ms)
+✔ unsafe selection path refused .git/config (66.019458ms)
+✔ unsafe selection path refused src/.GIT/config (63.869792ms)
+✔ unsafe selection path refused src\a.txt (92.708709ms)
+✔ hardlink aliases and duplicate selections refuse (119.981834ms)
+✔ symlink final or parent cannot escape selected root including absent path (129.053458ms)
+✔ FIFO is refused before open and submodule entries refuse (160.892458ms)
+✔ HEAD change invalidates previous selected snapshot (179.63275ms)
+✔ index change invalidates previous selected snapshot (235.52725ms)
+✔ actual byte limits include multibyte data and growth after stat is capped (181.849625ms)
+✔ same-size modification after an earlier file was read invalidates whole snapshot (137.067458ms)
+✔ root/parent replacement after read is refused (135.046ms)
+✔ independent identity is read before and after, changed identity refuses (167.296416ms)
+✔ ordinary async clock rejection is consumed and clock rollback unknown (168.237791ms)
+✔ timeout retains actual unresolved I/O through repeated calls and ignores late progress (174.595583ms)
+✔ configured lease refreshes twice, exact binding and expiry checked without ownership grant (209.185209ms)
+✔ index flag --assume-unchanged invalidates selected snapshot (271.843666ms)
+✔ index flag --skip-worktree invalidates selected snapshot (224.5775ms)
+✔ approved root must be actual Git worktree root, not a nested directory (91.396625ms)
+✔ creation of formerly missing intermediate parent during snapshot is unknown (136.746208ms)
+✔ metadata output replacement character or over-budget output cannot produce a snapshot (152.026584ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4737.882958

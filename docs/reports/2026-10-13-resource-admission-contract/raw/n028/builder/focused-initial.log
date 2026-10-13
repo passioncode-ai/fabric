@@ -1,0 +1,46 @@
+✔ real manifest/scoped membership/pinned functions/persisted records produce correlation only (130.2195ms)
+✔ caller identity/scope expansion cannot enter assignment (33.482833ms)
+✔ foreign membership refuses before persistence (35.163833ms)
+✔ wrong estate-scoped client fails construction (36.532792ms)
+✔ actual manifest bytes changed refuses old identity and child patch (145.621875ms)
+✔ forged and restarted handles never regain identity (132.571292ms)
+✔ derived identity collision preserves original mapping (128.61875ms)
+✔ concurrent calls are bounded and duplicate session cannot be reallocated (128.515167ms)
+✔ partial immutable record and stale lock both refuse without cleanup guessing (34.498542ms)
+✔ mapping replacement cannot supply identity (123.125625ms)
+✔ source hash mismatch refuses actual helper with no record or foreign writes (65.139584ms)
+✔ long and malformed keys refuse before truncated derivation (35.555541ms)
+✔ timeout retains real unresolved membership and late settlement never allocates (94.569709ms)
+✔ accidental rejected native clock and key Promises are consumed (47.14175ms)
+✖ record cap is finite and no automatic reuse occurs (214.958667ms)
+✔ child patch replaces conflicting inherited key when composed last and contains no secrets (142.322458ms)
+✔ N023 unavailable transport remains unattributed with retained underlying reader (349.547792ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 16
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1980.857583
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-run-assignment.test.mjs:47:1
+✖ record cap is finite and no automatic reuse occurs (214.958667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'observed'
+  - 'unknown'
+
+      at TestContext.<anonymous> (file://<BUILDER>/apps/desktop/test/resource-run-assignment.test.mjs:47:137)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'observed',
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

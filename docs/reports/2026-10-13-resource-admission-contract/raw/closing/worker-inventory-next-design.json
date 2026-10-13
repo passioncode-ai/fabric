@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "DESIGN_ONLY_NOT_AUTHORIZED_IMPLEMENTATION",
+  "base_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "candidate": "current uncommitted root bytes bound below; no runtime tests",
+  "source_sha256": {
+    "apps/desktop/src/main/resourceHostSampler.ts": "4882a95eef3fc67dbb23cd1398bbc738c758b314f089baf7346acbff194dcb6c",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/processBoundary.ts": "d8e7f668d896e5a4ba7116e0ec038beb91ae490b5ca4070cd4a1f04bcd21856b",
+    "apps/desktop/src/main/nativeStopRuntime.ts": "e4cc5ccb7941b3b10f85a54d2a57da52aa4f3238a9af4861f249cee873798046",
+    "apps/desktop/src/main/ownedBackendProcessRegistry.ts": "e92c7d8a863b4c12ad60d49d79292a4f2e0518accff0d0053608a0eecc5f7c13",
+    "apps/desktop/src/main/stopHostIdentity.ts": "53f5f34a4ae5ac31b6e709984e449c9d227fe99d2b40cccbff00ae32f8c04ca3",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770"
+  },
+  "existing": [
+    {
+      "source": "apps/desktop/src/main/resourceHostSampler.ts:92-100,152-155,180-184",
+      "fact": "workers() consumes exact host/invocation/pool/human revision, fresh timestamp, complete:true and distinct worker IDs; absent/malformed inventory yields unknown, not zero. No inventory producer currently established."
+    },
+    {
+      "source": "apps/desktop/src/main/index.ts:3170-3207,4625-4632; apps/desktop/src/main/pty.ts:497-563",
+      "fact": "Managed and unmanaged/fallback paths converge on PtyManager.open; final guard precedes native spawn, sessions map materializes afterward. Counting only map misses opening/spawn uncertainty and older invocations."
+    },
+    {
+      "source": "apps/desktop/src/main/pty.ts:592-623; apps/desktop/src/main/processBoundary.ts:1-3,52-83; apps/desktop/src/main/nativeStopRuntime.ts:134-150",
+      "fact": "Process capture may fail after child exists; group observation is not sandbox proof and escaped descendants retain unknown. Provider quiescence is a distinct requirement, not root exit."
+    },
+    {
+      "source": "apps/desktop/src/main/ownedBackendProcessRegistry.ts:106-124,173-198,217-233; apps/desktop/src/main/backendLaunch.ts:29-43",
+      "fact": "Backend registry already persists run markers and refuses replay, but in-memory ownership may be unknown; not all backend activity belongs to PTY registry."
+    },
+    {
+      "source": "apps/desktop/src/main/stopHostIdentity.ts:5-16; apps/desktop/src/main/index.ts:1110,1169-1175",
+      "fact": "bootId denotes app invocation, not OS boot. Existing main explicitly refuses to infer other-host exit after restart."
+    }
+  ],
+  "proposal": {
+    "smallest_module": "New local resourceWorkerInventory.ts + focused real-FS lifecycle fixtures; name proposed only. One manager per explicitly enrolled host/pool, private durable state under owned userData, no new scheduler or portable schema.",
+    "policy_decision": "Define pool membership as Fabric-controlled logical execution units admitted by named launcher adapters. Not every OS process, foreign CLI, provider job or sibling app. Explicitly choose one unit=one worker slot (or amend N022 contract for weights); no duplicate IDs to simulate weighted workers. Host-wide physical CPU/memory/disk remains separate measured pressure.",
+    "api": [
+      "openInventory(boundPolicy, hostInstallation, invocation, coveredLauncherRegistry, ownedStorage)",
+      "reserveStart(actual admitted assignment) -> opaque intent after durable write; caller must own this before materialization",
+      "recordSpawn(intent, actual owned process/provider handle) or recordNoSpawn(intent, typed authoritative refusal)",
+      "observeRetirement(intent, actual process-tree AND provider quiescence evidence) -> retained terminal record; missing/timeout stays unknown",
+      "snapshot() -> N022 seven-field complete inventory only when coverage revision stable and every intent classified; otherwise structured unknown with retained identities, no exact count",
+      "recover() reads retained records and owner-specific actual observation; no absent-memory=ended, no stale PID kill/reuse, no automatic deletion"
+    ],
+    "invariants": [
+      "Durable intent before spawn prevents crash-gap false zero; max entries/bytes, no-follow private storage, serialized writes, fsync, corruption/cap unknown.",
+      "An open/starting/uncertain materialization or retirement prevents complete:true; safe upper bound is not silently reported as exact worker count.",
+      "Count each logical unit once across managed/fallback/PTY/ACP wrappers; MCP/helper processes belong to same execution only under explicit policy, never duplicate slot. Backend/provider execution requires its own registered adapter or explicit exclusion from this pool.",
+      "Coverage is code-owned from installed adapters/registration, not task-authored complete:true. A bypass capable of creating a pool member keeps activation closed.",
+      "On app restart, every retained unresolved unit remains unknown until that actual owner proves resolution. Host invocation change alone proves no death; an operator may explicitly retire pool only with defined reconciliation, never automatic cleanup.",
+      "No callback deadline frees underlying I/O occupancy; generation changes during snapshot invalidate it. N022 early inventory timestamp must remain bound/fresh at final sample. N025 SQL digest binding differs from N022 human localPolicyRevision and must be translated by actual publisher, not inventory guessing.",
+      "Observed workers and N027 reserved totals are distinct; overlapping charge credit stays zero without exact unit-to-reservation linkage and effect evidence."
+    ]
+  },
+  "bounded_order": [
+    "Root records pool/unit/coverage/retirement semantics in an ADR. This is local domain design within task scope, not COM approval.",
+    "Implement durable registry/reducer and real-FS restart/corruption/intent-gap fixtures; uses current N022 interface and N028 assignment handles. No native launch needed.",
+    "Wire opt-in PtyManager entry/exit/process identity and managed/unmanaged paths; prove no uncovered creation path for declared pool. Add backend/provider adapters only if included; excluded domains may not consume that pool.",
+    "Integrate N022 worker reader/N025 publication plus accounting linkage; execute owned synthetic native-boundary tests before any provider/native activation.",
+    "Activate only with explicit pool policy, applied reviewed SQL, complete local adapter coverage and actual recovery/native receipts. Unknown prior units remain a real local blocker to complete reading, not invented COM blocker."
+  ],
+  "negative_acceptance": [
+    "Crash between intent and spawn or spawn and record => restart unknown",
+    "Root exits while child/group or provider survives => retained unknown",
+    "One backend/PTY path not registered => pool completeness refused",
+    "Same session/process reported by two adapters => duplicate/identity conflict refused",
+    "PID recycled, changed invocation or missing process metadata never removes old unit",
+    "Policy/capacity/scope changes during snapshot => refuse; corrupt/partial storage and pending I/O retain unknown"
+  ],
+  "ownership_gap": {
+    "existing": "R1 resourceAdmission.ts:55-60,167-169,208-209 requires independent exact held proof with identity/snapshot/time; pending107 validates and binds caller fence but does not mint authority. N028 correlation and N023 matching lease observation cannot satisfy held.",
+    "cooperative_path": "Actual acquisition attempt under N028 child run identity, exact configured lease key and permitted Git remote; persist attempt/protocol/source provenance and resulting remote tip; fresh independent N023 readback plus expiry/renewal required. Installed1.22.2 _git_acquire:2213-2218 accepts same run before expiry check, so same-label CLI success is insufficient; owner correction or separately specified stricter acquisition adapter needed. Unknown push outcome reconciles by exact acquisition evidence, never label alone.",
+    "fence": "If Fabric elects local advisory cooperative ownership semantics, mint monotonically increasing safe integer in actual durable local authority record with compare-and-swap/exclusive ownership, linked to acquisition tip/assignment/input/scope. No SHA truncation, timestamp or restart-local counter. This has only the authority of the consumers that check it; cross-host durable admission needs shared authority and stale-fence rejection, not a local counter marketed global.",
+    "isolated_checkout": "Owned isolated worktree narrows accidental mutable overlap, not authenticated exclusivity against same-user writers or external agent; still needs exact membership/currentness and reviewed ownership semantics. Cooperating Git writers can spoof run labels; file lease is not a sandbox.",
+    "decision": "Root must explicitly choose R1 meaning for held (cooperative ownership vs isolated execution boundary). Do not silently widen current R1 contract or synthesize fence from N028 UUID. No new implementation authorized by this design."
+  },
+  "limits": [
+    "Read-only existing source inspection; no DB/native/provider/test suite, no owner messages/foreign writes.",
+    "This is a finite follow-on design after current N026\u201330 candidate, not a claim whole harness done or an implementation request."
+  ]
+}

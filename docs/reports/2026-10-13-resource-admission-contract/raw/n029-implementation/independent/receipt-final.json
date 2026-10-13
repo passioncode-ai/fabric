@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "node": "N029",
+  "recordedAt": "2026-10-13T07:45:26.214103+00:00",
+  "reviewer": "/root/pipeline_research",
+  "implementationAuthor": "/root/mcp_research",
+  "verdict": "SCOPED_ACCEPT_PREPARED_CONTENT_SEAMS",
+  "files": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+    "apps/desktop/src/main/managedLaunch.ts": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "apps/desktop/src/main/admitExisting.ts": "997665d476f41354815b226e2c04f53d2622977e8840aa00222be582804bb99e",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "f72f99ea9b275564eb39fedf6e3d9d0e6cb923a82e925d8d2ccb2329000d511a",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/sessionBundle.ts": "2d097ee9da7ede16a384edc9493d42eea593bfd0c4c096494a2ffa4996acff0f",
+    "apps/desktop/src/main/contextPack.ts": "b4b527743954e0cf7fdc726f2fba67c6421fc93e794ebb13390fcf2c76b82237",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "d5fe54f90d0a778a6983f8ef53eb3f4629a8a226b8b75c7220f139f4c589778c",
+    "apps/desktop/test/prepared-launch-input.test.mjs": "165ef90f84d28a34c5e5c9d7b10e356df6a14df116af80b5e9cc7398ee73acd9",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "8143afb513c30d8ad6d5757abc35cdd43a8156fdac07d99479fbb98980934d9f",
+    "apps/desktop/test/prepared-resource-adapter.test.mjs": "eb69726cab869f7a01599b5c15a7f22c7c9aecf89bdbc1781c0bf862f193a0d6",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "798c301562f776cbcc8dc1a06f00cb1e0575171113b06ea790ad7fe217d46f84",
+    "docs/execution/harness-waves/prepared-launch-input.md": "f2a652e757f0175d102e2f9853d238bd0d7302ebbd4f4536c94c1ad7343d9f91"
+  },
+  "finalChecks": [
+    {
+      "name": "unchanged independent scope/closure/required occupancy/legacy fail-fast controls",
+      "exit": 0,
+      "tests": 5,
+      "sourceHashes": {
+        "apps/desktop/src/main/preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+        "apps/desktop/src/main/contextPack.ts": "b4b527743954e0cf7fdc726f2fba67c6421fc93e794ebb13390fcf2c76b82237"
+      },
+      "log": "opt-in-corrected-controls.log"
+    }
+  ],
+  "priorCandidateChecks": [
+    {
+      "name": "focused99",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/prepared-launch-input.test.mjs",
+        "apps/desktop/test/prepared-managed-launch.test.mjs",
+        "apps/desktop/test/prepared-resource-adapter.test.mjs",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "apps/desktop/test/resource-attempt-observation.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "\u2714 pending operation blocks only its own entry and consumes a late rejection (6.279084ms)",
+        "\u2139 tests 99",
+        "\u2139 suites 0",
+        "\u2139 pass 99",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 380.648375"
+      ]
+    },
+    {
+      "name": "legacy-managed",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/managed-launch.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery",
+        "PASS launch receipt identity mismatch never spawns or dispatches against another generation",
+        "PASS a typed refusal before spawn classifies by the result, not by a stale session record"
+      ]
+    },
+    {
+      "name": "bundle-regression",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/session-bundle.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "  ok   verification failure revokes the bundle while durable packet records and shared blobs survive",
+        "  ok   unsupported adapter dispatch also rolls back after mint",
+        "  ok   optional context failure still degrades to a usable bundle with its normal discard lifecycle",
+        "  ok   a failed revocation cannot hide the primary error or prevent credential-file cleanup",
+        "  ok   unlink failure preserves the launch error, revokes authority and logs no dependency error secrets",
+        "  ok   all ACP catalogue modes compile into their effective protocol semantics",
+        "  ok   every connected catalogue runner refuses missing compiler/surface before spawn, mint and journal",
+        "",
+        "all green: a bundle exists exactly as long as the session it was made for"
+      ]
+    },
+    {
+      "name": "context-mandatory",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/context-mandatory.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "  ok   what a session must carry is decided by the trigger the LAUNCH passes, not guessed from the journal",
+        "  ok   the project source counts as met only when the project row EXISTS",
+        "  ok   facts past one read are COUNTED: omittedFacts includes what the gateway did not return",
+        "  ok   the budget includes oversized project/task input and rejects instead of truncating authority",
+        "  ok   invalid and impossibly small budgets cannot produce a pack",
+        "  ok   facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget",
+        "  ok   an empty pack fits its exact size, including the final newline",
+        "",
+        "all green: an unattended start runs on its required context or not at all"
+      ]
+    },
+    {
+      "name": "context-privacy",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/context-privacy.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "ok   complete fact and source references are scrubbed before the 300-character cap",
+        "ok   multiline PEM is scrubbed before flattening in both fact fields",
+        "ok   each legacy rendered head, fact metadata and annotation text is scrubbed",
+        "ok   legacy raw backend prose becomes a fixed read error receipt",
+        "ok   ordinary bytes, formatting controls and citation identities retain existing behavior",
+        "ok   budget selection uses cleaned lengths and repeated source sanitation is stable",
+        "ok   an oversized essential context refuses a bundle instead of degrading to a blind session",
+        "ok   actual compiler \u2192 bundle \u2192 verified packet keeps one cleaned byte identity and scoped transport key",
+        "8 offline context privacy scenarios passed"
+      ]
+    },
+    {
+      "name": "independent4",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<independent-root>/scope-probes.mjs",
+        "<independent-root>/scope-closure.mjs",
+        "<independent-root>/compiler-occupancy.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "\u2714 changed scoped-store estate cannot supply prepared currentness (9.009291ms)",
+        "\u2139 tests 4",
+        "\u2139 suites 0",
+        "\u2139 pass 4",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 147.151209"
+      ]
+    }
+  ],
+  "priorCandidateQualification": "99 focused + legacy managed/bundle/mandatory/privacy +4 independent checks ran on earlier frozen candidate. They did not detect the legacy global-settlement regression. Final independent acceptance reran five controls on opt-in correction; author100 focused/targeted types is author evidence, not reviewer execution. Root combined gate remains separate.",
+  "originalNegativeControls": [
+    {
+      "tests": 2,
+      "finding": "misbound estate and mutation after preparation",
+      "source": "before/apps/desktop/src/main/preparedLaunchInput.ts",
+      "log": "scope-original-red.log",
+      "exit": 1
+    },
+    {
+      "tests": 1,
+      "finding": "actual compiler rejection releases unresolved sibling",
+      "sources": [
+        "before/apps/desktop/src/main/preparedLaunchInput.ts",
+        "before/apps/desktop/src/main/contextPack.ts"
+      ],
+      "log": "compiler-original-red.log",
+      "exit": 1
+    },
+    {
+      "tests": 1,
+      "finding": "replaced visible scope hides foreign original closure scope",
+      "source": "before/apps/desktop/src/main/scope-closure-before.ts",
+      "log": "scope-closure-original-red.log",
+      "exit": 1
+    },
+    {
+      "tests": 1,
+      "finding": "root identified global allSettled legacy fail-fast regression; reviewer reproduced",
+      "source": "before/apps/desktop/src/main/context-after-settlement.ts",
+      "log": "legacy-settlement-red.log",
+      "exit": 1,
+      "control": "original compiler14f86 legacy-settlement-original-pass.log exit0"
+    },
+    {
+      "tests": 3,
+      "finding": "original consumer preparation/shared required admission/foreign bundle boundaries",
+      "sourceDirectory": "before/consumers",
+      "log": "consumer-original-red.log",
+      "exit": 1,
+      "authorship": "author-authored selected tests/loader independently rerun by reviewer"
+    }
+  ],
+  "sourceReview": [
+    "Required new ordinary managed launch prepares once before admission; shared required door refuses chain/override/pre-admitted or missing foreign packet",
+    "Captured original ScopedStore object and fields are checked around real reads; actual compiler bytes immutable and same-producer packet retained",
+    "Prepared caller opts into settlement of all four started compiler queries; ordinary callers retain Promise.all fail-fast semantics",
+    "Final ordering resource currentness, prepared content currentness, SQL validation; N015 async executable preparation still before final native guard",
+    "Bundle verifies owned packet and content digests, journals exact context, materializes context and instruction, propagates failures; dispatch takes exact body",
+    "Index forwards optional packet and shares producer with bundle but configures no resource adapter; existing nonresource launch remains ordinary"
+  ],
+  "limitations": [
+    "No stack-backed context-pack test, actual SQL, native/provider launch, full app typecheck/build by reviewer",
+    "No global enforcement, activeDDL, complete inputDigest, ownership/fence proof, chain/custom-agent prepared support",
+    "Currentness is cooperative task/target/scope refresh; no atomic transaction across source/compiler/SQL/native; frozen context sources are not recompiled",
+    "Native readiness, packaged behavior and root final combined gate remain separate receipts"
+  ],
+  "artifacts": {
+    "executed-final.json": "3dbed8da7f3080dd075229833b80afaaf47560155dddd6d8c2ce30f8a7b9739c",
+    "legacy-settlement.mjs": "6a80c8a62f0b3bf8f22f9f433e535368eb2ed1bce82ab66d4d59b21e8e2ba4b1",
+    "scope-probes.mjs": "3cd5a146817b84832791cfca4b49cd9dd926194f4f277645120e5eda32b6995e",
+    "fixture.mjs": "a12085d4e6813afb20197bc039bb58c72ebac57d46fdd5153c73f27c8009c467",
+    "context-privacy-final.log": "1bfffbd145e0dfc5931a6aef99c2c4d18cf4727da76c5f24e6de535ec9ff7ecf",
+    "consumer-original-red.log": "884a88b6a8fb45e5fb72a84b886a19e8f4f04b9b248a8fd3848c4ca6e1230bc0",
+    "legacy-settlement-red.log": "16201a1b9eb9a562e5695a76de9345b16a199cdbbf3d8a61ca76e35772e6eade",
+    "legacy-settlement-original-pass.log": "5d4478d54c310ad348f5cda8b52112691c27fd13f6a8c031ecb4515e7e56777c",
+    "context-mandatory-final.log": "0ed585748be8ce2a1a3a1f171e7eb4f44804fba6f6512bcf0ee044f58266b1a8",
+    "bundle-regression-final.log": "e5a0044084ab001e5734b1aff117b4b8f2bf944b39b82e5b165165de374dd7f7",
+    "scope-original-red.log": "1d1ce4947db10f3842c4144df64890f81ef1451886ea4566b7af25c80fa90066",
+    "opt-in-corrected-controls.log": "fe8e7ceffe45bdc2f00bb30beb30b9d5ef2a219baa7b4b161ffd62a7d3c0107f",
+    "independent4-final.log": "03ef55fe9f94e745fa947184c18c5bd0c6a523590f7052141eaeac0e962d8952",
+    "compiler-original-red.log": "b5d294ac1cbf042469c34903027726168935725821087cc98e0a84e8bdfef9b2",
+    "legacy-managed-final.log": "adefbbea745dffa0c7f14ec2cf2211e8bb8cfc34220c952b71bf86e747bb4c98",
+    "opt-in-corrected-execution.json": "da3e508c2f1b93754fed51dc99bdf60047c80274f5e674a54a593b282e24be2d",
+    "compiler-occupancy.mjs": "6ccf5f107201cac69cea74e918657fc9b827b8cc34364dc10b899d82f74eb9e0",
+    "scope-closure.mjs": "f9ed0e6c6b97bef79c76666ee5c0f7b96bd7cc0960a597802211dca9681109c6",
+    "focused99-final.log": "7e1a2c0b96a46656aa6bc9e8a0389baa72632d7b224ef98d9e3710de64cb349b",
+    "scope-closure-original-red.log": "f300ac722cad83b69fd6ba52440add00e41a1d0098cfe8efe271bc2f5fb2bd55",
+    "before/consumers/sessionBundle.ts": "dee37f72ccc41e3f27dc8924b111dcd8d6bfa308075c0910e8787e7f1cce75e1",
+    "before/consumers/resourceLaunchAdapter.ts": "afc02a3272b8927e09029427b10d5a2bbb5e02db8ca956ac9263f4563a55c99d",
+    "before/consumers/managedLaunch.ts": "7d137c68be56a040fca2f27dc84beefea81a768f28dba7953bc00e74e3003d64",
+    "before/consumers/admitExisting.ts": "ac427906ecbe3c69d3b91326c80fc2a86de3762fb6e335f4ec742327600fc541",
+    "before/apps/desktop/src/main/preparedLaunchInput.ts": "df3742feed346ebc72c700974b0de8485448c2a6cef0582b8242ecf007186c44",
+    "before/apps/desktop/src/main/contextPack.ts": "14f86b2de0962331ec2df19c54420b7f19a3b6442ca94898c65982a8519eccf7",
+    "before/apps/desktop/src/main/scope-closure-before.ts": "519dd8558b2e56e1393020b78addbd139fe1c3659feb131608109576b3ab5d92",
+    "before/apps/desktop/src/main/context-after-settlement.ts": "93eaa37061d54b5abbcebe3f02aa6e65d07be3c178b6c08c19f62de3703d1b30"
+  }
+}

@@ -1,0 +1,69 @@
+(node:10062) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./negative-loader.mjs", pathToFileURL("./")); register("./negative-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ actual compiler, managed admission, actual bundle files and dispatch share same exact content (3.851666ms)
+✖ shared required admission door refuses early chain and missing packet, never invokes resource or legacy RPC (0.228042ms)
+✖ bundle refuses foreign/copy packet before mint, even when exact bytes match (6.529333ms)
+(node:10062) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.009792
+
+✖ failing tests:
+
+test at apps/desktop/test/prepared-managed-launch.test.mjs:27:1
+✖ actual compiler, managed admission, actual bundle files and dispatch share same exact content (3.851666ms)
+  AssertionError [ERR_ASSERTION]: {"started":false,"taskId":"22222222-2222-4222-8222-222222222222","admissionRecorded":false,"reasonCode":"launch_receipt_unknown","says":"The launch receipt could not be confirmed. Nothing will be started or retried automatically.","retryable":false}
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<candidate-root>/apps/desktop/test/prepared-managed-launch.test.mjs:28:93)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/prepared-managed-launch.test.mjs:48:1
+✖ shared required admission door refuses early chain and missing packet, never invokes resource or legacy RPC (0.228042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file://<candidate-root>/apps/desktop/test/prepared-managed-launch.test.mjs:51:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/prepared-managed-launch.test.mjs:55:1
+✖ bundle refuses foreign/copy packet before mint, even when exact bytes match (6.529333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://<candidate-root>/apps/desktop/test/prepared-managed-launch.test.mjs:56:99)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

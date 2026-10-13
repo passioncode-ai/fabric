@@ -1,0 +1,12 @@
+{
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "exitCode": 1,
+  "durationSeconds": 236.56,
+  "headBefore": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "indexTreeBefore": "3dc0d39e9382367fc26dbc86c442e0eda45f624b",
+  "indexTreeAfter": "3dc0d39e9382367fc26dbc86c442e0eda45f624b",
+  "changedPaths": [],
+  "sourceUnchanged": true,
+  "log": "fabric-n030-fast.log",
+  "note": "Dependency reuse with drift warning; inspect exact NOT_RUN and failure stages in log. Tree is staged candidate, not a source commit until committed."
+}

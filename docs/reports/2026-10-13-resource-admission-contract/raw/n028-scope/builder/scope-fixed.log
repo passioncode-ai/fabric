@@ -1,0 +1,37 @@
+✔ real manifest/scoped membership/pinned functions/persisted records produce correlation only (316.765958ms)
+✔ caller identity/scope expansion cannot enter assignment (59.194958ms)
+✔ foreign membership refuses before persistence (64.903458ms)
+✔ wrong estate-scoped client fails construction (60.702792ms)
+✔ actual manifest bytes changed refuses old identity and child patch (288.598292ms)
+✔ forged and restarted handles never regain identity (200.369708ms)
+✔ derived identity collision preserves original mapping (208.563959ms)
+✔ concurrent calls are bounded and duplicate session cannot be reallocated (244.862375ms)
+✔ partial immutable record and stale lock both refuse without cleanup guessing (136.169416ms)
+✔ mapping replacement cannot supply identity (220.709959ms)
+✔ source hash mismatch refuses actual helper with no record or foreign writes (123.804791ms)
+✔ long and malformed keys refuse before truncated derivation (81.173625ms)
+✔ timeout retains real unresolved membership and late settlement never allocates (120.794208ms)
+✔ accidental rejected native clock and key Promises are consumed (60.265166ms)
+✔ record cap is finite and no automatic reuse occurs (156.394458ms)
+✔ child patch replaces conflicting inherited key when composed last and contains no secrets (193.844333ms)
+✔ N023 unavailable transport remains unattributed with retained underlying reader (1218.977584ms)
+✔ one rejected membership query cannot release a still-pending sibling (96.593334ms)
+✔ syntactically valid incomplete retained record blocks allocation (42.096958ms)
+✔ unsafe storage permissions refuse and are never repaired implicitly (41.77925ms)
+✔ emitted assignment must pass actual N026 path and HEAD validation (536.613541ms)
+✔ installed source drift invalidates previously allocated identity (171.975ms)
+✔ nested lease timeout cannot accumulate Git operations across two handles (1290.341583ms)
+✔ real owned Git lease observation remains unattributed even for matching derived label (381.636625ms)
+✔ helper refuses unsupported source without importing or executing its body (33.760459ms)
+✔ two actual managers cannot both allocate one session under exclusive lock (136.537541ms)
+✔ synchronous second query throw cannot release first pending query (90.5725ms)
+✔ actual ScopedStore estate mutation during membership invalidates refreshed identity (126.12475ms)
+✔ replaced equal-looking scope cannot substitute captured store binding (127.815625ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6958.809792

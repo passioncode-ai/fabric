@@ -355,3 +355,77 @@ runner explicitly returned NOT_RUN because free disk was below1.5GiB; this is no
 new SQL PASS. Unchanged resource code retains the separately recorded seven-stage
 PASS at f2576c1. This runtime correction and receipt attachment are a subsequent
 documentation-only delta, checked separately before publication; no runtime code changed.
+
+
+## Selected-input producer wave
+
+N026 reads actual selected raw bytes with bounded Git/index/path identity checks,
+independent identity/optional lease refresh and retained I/O occupancy. It always
+returns executionAuthorized:false; successful capture receipts carry selectionComplete:false.31 builder checks,
+8 independent checks and the actual index-flag regression pass; root TypeScript
+passes after a same-body control-flow declaration correction.
+[Source and negative receipts](raw/n026/README.md) preserve the failures and limits.
+
+A separate source-bound review found a missing coherent reserved-resource read:
+N025's eight-field publisher read cannot supply R1's reserved vector. N027 prepares
+that local read under ADR0152; no COM dependency is invented for it. Actual run/lease
+mapping, once-prepared instruction/context, complete explicit-pool membership and
+production composition remain later implementation, not completed capabilities.
+
+
+## Coherent pool accounting producer
+
+N027 adds a separate service-only pending SQL read for exact pool policy/generation,
+observation and root-held reservation totals. It preserves N025's eight-field read.
+The client derives the full-policy identity, refuses clock rollback, validates totals
+and retains unresolved RPC occupancy. Its result is an observation with no overlap
+credit and no execution authority.31 focused and7 independent checks pass; root
+TypeScript passes. [Receipts](raw/n027/README.md) retain the old-source RED.
+Actual SQL conformance remains NOT_RUN pending the owned cluster's disk requirement.
+
+N028 is the bounded assignment/correlation follow-on, stacked on accepted N026 bytes.
+[Its packet](../../execution/harness-waves/run-assignment-packet.md) names real manifest,
+membership, immutable mapping and installed-function readback. It does not promote
+cooperative labels to exclusive ownership or invent numeric fencing.
+
+
+## Run assignment and prepared-input integration
+
+N028 introduces immutable local assignment, actual estate-scoped membership reads,
+source-pinned installed agent-sync function readback and independent Git lease observation.
+Its [portable source archive and replay](raw/n028/README.md) preserves 27 focused and
+5 independent passing checks plus four original failure controls. Root desktop typecheck
+and the27 focused tests also passed. Root follow-up reproduced in-flight store scope drift on the first accepted source.
+The correction binds the actual scope object before and after reads; independent review
+reproduced the old failure and passed six controls on corrected sourcee51e8e04.
+The27-test frozen receipt remains historical; corrected source has29 focused checks.
+The [separate scope supplement](raw/n028-scope/README.md) preserves both source versions. Mapping and environment correlation grant no lease or launch.
+
+N029 is integrated after independent acceptance: once-prepared actual context/instruction
+flows through existing managed admission and bundle consumers. Independent review
+reproduced wrong estate scope and rejected compiler-query siblings accumulating after
+an outer failure. Root review additionally caught a legacy fail-fast regression in the
+first correction; only prepared compilation now opts into retained settlement. The
+[portable implementation archive](raw/n029-implementation/README.md) preserves the rejected
+99-test candidate, corrected100 focused passes and5 independent corrected controls.
+These results do not replace combined-wave acceptance.
+
+N030 owns the common CI script and final integration checks. The current plan audit
+reported30 nodes and no scope findings before N031/N032 planning after shared CI ownership was centralized.
+Actual N027 accounting SQL preflight returned exit2: less than1.5GiB free, preserving
+the runner's1GiB reserve. It remains NOT_RUN; source review cannot close that check.
+
+The scheduled workspace publication [reached its deployment but lost the parent-push
+race](raw/closing/scheduled-publication-race.json). That publication was sourceac874946,
+not this branch. No force push was used. The normal publisher remains the delivery path
+for the final integrated source; the earlier run does not establish this wave's publication.
+
+
+The first N030 fast gate stopped at236.56seconds on the static release provenance
+classifier ([receipt](raw/closing/n030-first-fast.json)). N026 already passed the assigned
+repository as Git cwd; the classifier did not recognize its local expression. An explicit
+`repoPath` alias preserves the command/dataflow and the checker unchanged. The release
+check passes;31 focused and8 independent plus the index regression pass on sourcea06566fe
+([supplement](raw/closing/n026-target-repository-supplement.json)). Full combined rerun
+remains required. ADR0154 and planned N031/N032 describe the next bounded worker-entry
+wave; their presence in the32-node graph is not implementation acceptance.

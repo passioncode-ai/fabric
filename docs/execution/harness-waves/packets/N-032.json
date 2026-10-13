@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-032",
+  "node": "N-032",
+  "parent_id": "CO-282",
+  "module": "Bind durable worker intents to actual required managed launch lifecycle",
+  "intent": "Bind durable worker intents to actual required managed launch lifecycle",
+  "expected_result": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/managedLaunch.ts",
+      "apps/desktop/src/main/pty.ts",
+      "apps/desktop/test/resource-worker-launch.test.mjs",
+      "docs/execution/harness-waves/resource-worker-launch.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged",
+      "paths": [
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/resource-worker-launch.test.mjs",
+        "docs/execution/harness-waves/resource-worker-launch.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged"
+    },
+    {
+      "kind": "negative",
+      "check": "Manifest-only completeness, timeout release, scope substitution, unproven retirement and restart false zero refuse"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

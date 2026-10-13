@@ -1,0 +1,31 @@
+{
+  "before": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+    "apps/desktop/src/main/contextPack.ts": "b4b527743954e0cf7fdc726f2fba67c6421fc93e794ebb13390fcf2c76b82237"
+  },
+  "after": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+    "apps/desktop/src/main/contextPack.ts": "b4b527743954e0cf7fdc726f2fba67c6421fc93e794ebb13390fcf2c76b82237"
+  },
+  "command": [
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "<independent-root>/scope-probes.mjs",
+    "<independent-root>/scope-closure.mjs",
+    "<independent-root>/compiler-occupancy.mjs",
+    "<independent-root>/legacy-settlement.mjs"
+  ],
+  "exit": 0,
+  "tail": [
+    "\u2714 changed scoped-store estate cannot supply prepared currentness (34.233667ms)",
+    "\u2139 tests 5",
+    "\u2139 suites 0",
+    "\u2139 pass 5",
+    "\u2139 fail 0",
+    "\u2139 cancelled 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0",
+    "\u2139 duration_ms 307.841292"
+  ]
+}

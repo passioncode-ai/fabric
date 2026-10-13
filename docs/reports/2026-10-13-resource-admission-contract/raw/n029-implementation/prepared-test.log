@@ -1,0 +1,26 @@
+✔ actual scoped task and context compile once, exact body bytes and frozen ownership (7.261667ms)
+✔ changed instruction between compiler and second read refuses (0.303875ms)
+✔ changed option_id between compiler and second read refuses (0.336875ms)
+✔ changed brief_why between compiler and second read refuses (0.195625ms)
+✔ task-missing cannot yield required prepared packet (0.119166ms)
+✔ task-error cannot yield required prepared packet (0.081125ms)
+✔ project-error cannot yield required prepared packet (0.086083ms)
+✔ budget cannot yield required prepared packet (0.174125ms)
+✔ instruction-limit cannot yield required prepared packet (0.104792ms)
+✔ shell cannot yield required prepared packet (0.105417ms)
+✔ custom-agent cannot yield required prepared packet (0.079083ms)
+✔ mode cannot yield required prepared packet (0.077416ms)
+✔ chain cannot yield required prepared packet (0.030459ms)
+✔ facts-routine cannot yield required prepared packet (0.108875ms)
+✔ before spawn currentness reads actual task/folder, not supplied identity echo (0.190834ms)
+✔ 30 timeouts retain one unsettled I/O, late resolution causes no more reads, fresh preparation succeeds (5.43225ms)
+✔ active packet capacity and release are local bounds, no reservation release (0.333666ms)
+✔ constructor bounds copied, target/body digest corruption rejected (0.259708ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.390041

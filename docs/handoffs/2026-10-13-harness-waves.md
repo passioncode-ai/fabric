@@ -1,7 +1,7 @@
 # CO-282 — portable harness waves handoff
 
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
-[the 25-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+[the current graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource
 enforcement, cross-owner acceptance and native acceptance remain open.
 
@@ -151,3 +151,62 @@ Compiler packet/chain instruction and run-to-lease binding must be resolved befo
 resource-required production composition; these are future composition prerequisites,
 not observed failures in ordinary launch behavior. No global writer enforcement or
 complete worker inventory is inferred from these primitives.
+
+
+## Selected-input and accounting continuation
+
+N026 source and focused independent acceptance are recorded in
+[the input receipt](../reports/2026-10-13-resource-admission-contract/raw/n026/README.md).
+Its initial TypeScript narrowing failure is fixed; combined gate and source delivery
+remain open for this continuation. N027 now owns the locally executable coherent
+reserved-accounting read. The historical23/25 count above belongs to the producer
+checkpoint and is not the expanded graph's completion count.
+
+The [source-specific prerequisite review](../reports/2026-10-13-resource-admission-contract/raw/n026/composition-prerequisite-review.json)
+orders further composition: coherent reserved accounting; actual run/lease assignment
+and explicit membership; once-prepared context/instruction; one composed managed path.
+A new Fabric-owned semantic decision must define cooperative ownership versus enforced
+isolation and attempt fencing before assigning a held verdict. Matching N023/N026
+observations alone cannot manufacture that authority. These local steps do not require
+COM permission; activation and owner acceptance keep their actual prerequisites.
+
+Report index generator preserved all172 previous IDs and produced174. The default
+push refused existing52/72 divergence; task-owned generated output is available at
+branch `agent/fabric-harness-report-index-20261013`, commit
+`099c052b3cd90749176341f04ae83b554802b01b` in `ssheleg/obsidian-memory-vault`.
+No foreign history was rewritten and the default wiki index is not claimed updated.
+
+N027 source is integrated with focused independent acceptance and desktop typecheck;
+[actual SQL remains separately scheduled](../reports/2026-10-13-resource-admission-contract/raw/n027/README.md).
+N028 implementation runs in a temporary overlay on the accepted N026 bytes, per
+[the assignment packet](../execution/harness-waves/run-assignment-packet.md). The
+expanded graph includes these pending integration/check tasks; no global completion
+or installed enforcement is implied.
+
+
+## Current integration continuation: N026–N030
+
+N026 selected input, N027 pool accounting and N028 local run assignment are integrated
+for combined verification. N028 source archive is [portable](../reports/2026-10-13-resource-admission-contract/raw/n028/README.md); its root typecheck and27 focused checks passed,
+with a subsequently accepted scope-drift correction: sourcee51e8e04 binds the actual
+ScopedStore closure object,29 focused checks and6 independent controls pass. N029 once-prepared launch input
+is integrated with100 focused and5 independent controls after fixing scope drift,
+pending compiler I/O and preserving ordinary compiler fail-fast behavior.
+N030 owns the shared CI script; graph/packet audit reports no scope findings.
+
+Exact next task: rerun the combined fast gate after the N026 target-repository alias
+correction; frozen N028/N029 archives are now integrated. Then bind
+source delivery and ordinary workspace publication. Actual accounting SQL is still
+NOT_RUN for insufficient disk headroom; do not weaken the runner reserve to make it green.
+The scheduled publisher's earlier failure was a rejected non-fast-forward parent push
+after child deployment; preserve its receipt, never force-push or claim it publishes this
+branch. Official Fabric board remains database-unavailable; no owner packet was sent.
+
+
+The first N030 combined run failed only at its reached release-provenance classifier;
+it is not a full-suite pass. Sourcea06566fe makes the already-enforced project repository
+explicit to that existing classifier; commands and checker are unchanged.31 focused,
+8 independent and the index control pass. [ADR0154](../adr/0154-logical-worker-pools-retain-unresolved-start-intents.md)
+and N031/N032 plan durable logical worker entry followed by actual launcher binding.
+N031 is under isolated implementation; N032 is a source-bound design. Both remain pending
+and neither supplies complete worker inventory or native resource enforcement.

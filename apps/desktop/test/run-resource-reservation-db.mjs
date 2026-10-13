@@ -33,6 +33,7 @@ try {
   test('./resource-reconciliation-db.test.mjs')
   test('./resource-wait-store-db.test.mjs')
   test('./resource-pool-publisher-db.test.mjs')
+  test('./resource-pool-accounting-db.test.mjs')
   console.log('PASS pending R2/R5 SQL plus recovery and legacy managed launch/stop on one disposable PostgreSQL cluster')
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'fast', '-w', 'stop'])

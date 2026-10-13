@@ -1,0 +1,67 @@
+{
+  "node": "N028",
+  "status": "BUILDER_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "baseCommit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "candidate": "four new files in owned temporary overlay; not a commit",
+  "files": {
+    "apps/desktop/src/main/resourceRunAssignment.ts": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+    "scripts/resourceAgentSyncIdentity.py": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa",
+    "docs/execution/harness-waves/resource-run-assignment.md": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b"
+  },
+  "dependencyHashes": {
+    "resourceInputSnapshot.ts": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+    "gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670"
+  },
+  "installedSource": {
+    "version": "agent-sync1.22.2",
+    "sha256": "fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1",
+    "method": "Actual hash-pinned AST-extracted _rid_from/_session_key/run_id bodies; explicit env; no full module import/CLI"
+  },
+  "focused": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs",
+    "exitCode": 0,
+    "tests": 27,
+    "passed": 27,
+    "skipped": 0,
+    "log": "focused.log",
+    "sha256": "e1fc6b6fbcda4b66471b64f17f0f84c2b59a2192dc473ef8f207f7f6c17a0409"
+  },
+  "originalFocusedFailure": {
+    "log": "focused-initial.log",
+    "sha256": "691060d1916559dce6f2f8b179cd334d6c7430d3b9ef7ff81f00b630b75fcb8e",
+    "tests": 17,
+    "passed": 16,
+    "failed": 1,
+    "finding": "Record cap off-by-one: existing count==limit allowed another immutable record",
+    "source": "pre-hardening.snapshot.txt",
+    "source_sha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6"
+  },
+  "independentEarlyFindings": {
+    "reviewer": "pipeline_research",
+    "status": "Reproduced original controls and reported corrected-source passes; final frozen review pending",
+    "findings": [
+      "Rejected membership query releases manager while sibling unresolved",
+      "Syntactically valid incomplete retained mapping accepted",
+      "Synchronous query-chain construction throw releases pending sibling",
+      "Nested N023 timeout permits another handle to start another unresolved Git operation"
+    ],
+    "artifacts": "Reviewer owns independent receipt/control sources; root will persist separately, no builder discovery claim."
+  },
+  "priorSourceSnapshots": {
+    "pre-hardening.snapshot.txt": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+    "pre-nested-transport.snapshot.txt": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+    "pre-sync-query.snapshot.txt": "49114aba0e181d80c829d9db76ca3ed90f85560fb3f5ac6f9dd3a2f44f7fd18e"
+  },
+  "patchSha256": "3920733517c35ea0584b3680d34ee81109da740741b49affc453b60c7444111c",
+  "limits": [
+    "Root typecheck/combined gates NOT_RUN by builder.",
+    "Scoped DB transport is fixture; no actual DB membership integration or migration.",
+    "Real owned filesystem/Git and installed functions exercised; full agent-sync CLI, packaged helper path, native child environment propagation and production composition NOT_RUN.",
+    "No foreign installed writes, real lease acquisition, numeric fence, R1held, launch permission or authenticated exclusive control.",
+    "Existing records are immutable and never recovered as handles; corruption/partial/stale lock/cap require explicit owned recovery, never guessed cleanup.",
+    "No fsync fault injection or hostile account-level filesystem race immunity claim.",
+    "Dependency files copied for temp execution are not patch-owned changes."
+  ]
+}

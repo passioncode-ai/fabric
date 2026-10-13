@@ -1,0 +1,30 @@
+✖ ordinary compiler keeps prompt rejection for legacy degraded handling (43.544667ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.810459
+
+✖ failing tests:
+
+test at ../../../..<independent-root>/legacy-settlement.mjs:3:1
+✖ ordinary compiler keeps prompt rejection for legacy degraded handling (43.544667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'pending'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file://<independent-root>/legacy-settlement.mjs:6:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

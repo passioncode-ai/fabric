@@ -1,0 +1,142 @@
+{
+  "files": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "9e0e74874c802ce515bede2f8da9b91b6c5abdf8549b58341a173d6d90d230aa",
+    "apps/desktop/src/main/managedLaunch.ts": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "apps/desktop/src/main/admitExisting.ts": "997665d476f41354815b226e2c04f53d2622977e8840aa00222be582804bb99e",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "f72f99ea9b275564eb39fedf6e3d9d0e6cb923a82e925d8d2ccb2329000d511a",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/sessionBundle.ts": "2d097ee9da7ede16a384edc9493d42eea593bfd0c4c096494a2ffa4996acff0f",
+    "apps/desktop/src/main/contextPack.ts": "93eaa37061d54b5abbcebe3f02aa6e65d07be3c178b6c08c19f62de3703d1b30",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "d5fe54f90d0a778a6983f8ef53eb3f4629a8a226b8b75c7220f139f4c589778c",
+    "apps/desktop/test/prepared-launch-input.test.mjs": "13ed7a62aab0a561c10fd0a9eca2889078a9f4f338c05ee9c48671f938de07cf",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "8143afb513c30d8ad6d5757abc35cdd43a8156fdac07d99479fbb98980934d9f",
+    "apps/desktop/test/prepared-resource-adapter.test.mjs": "eb69726cab869f7a01599b5c15a7f22c7c9aecf89bdbc1781c0bf862f193a0d6",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "798c301562f776cbcc8dc1a06f00cb1e0575171113b06ea790ad7fe217d46f84",
+    "docs/execution/harness-waves/prepared-launch-input.md": "204e031d1d448673c00eb58f663afc878b46a523149926516cc100a17a308141"
+  },
+  "checks": [
+    {
+      "name": "focused99",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/prepared-launch-input.test.mjs",
+        "apps/desktop/test/prepared-managed-launch.test.mjs",
+        "apps/desktop/test/prepared-resource-adapter.test.mjs",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "apps/desktop/test/resource-attempt-observation.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "\u2714 pending operation blocks only its own entry and consumes a late rejection (6.279084ms)",
+        "\u2139 tests 99",
+        "\u2139 suites 0",
+        "\u2139 pass 99",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 380.648375"
+      ]
+    },
+    {
+      "name": "legacy-managed",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/managed-launch.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery",
+        "PASS launch receipt identity mismatch never spawns or dispatches against another generation",
+        "PASS a typed refusal before spawn classifies by the result, not by a stale session record"
+      ]
+    },
+    {
+      "name": "bundle-regression",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/session-bundle.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "  ok   verification failure revokes the bundle while durable packet records and shared blobs survive",
+        "  ok   unsupported adapter dispatch also rolls back after mint",
+        "  ok   optional context failure still degrades to a usable bundle with its normal discard lifecycle",
+        "  ok   a failed revocation cannot hide the primary error or prevent credential-file cleanup",
+        "  ok   unlink failure preserves the launch error, revokes authority and logs no dependency error secrets",
+        "  ok   all ACP catalogue modes compile into their effective protocol semantics",
+        "  ok   every connected catalogue runner refuses missing compiler/surface before spawn, mint and journal",
+        "",
+        "all green: a bundle exists exactly as long as the session it was made for"
+      ]
+    },
+    {
+      "name": "context-mandatory",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/context-mandatory.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "  ok   what a session must carry is decided by the trigger the LAUNCH passes, not guessed from the journal",
+        "  ok   the project source counts as met only when the project row EXISTS",
+        "  ok   facts past one read are COUNTED: omittedFacts includes what the gateway did not return",
+        "  ok   the budget includes oversized project/task input and rejects instead of truncating authority",
+        "  ok   invalid and impossibly small budgets cannot produce a pack",
+        "  ok   facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget",
+        "  ok   an empty pack fits its exact size, including the final newline",
+        "",
+        "all green: an unattended start runs on its required context or not at all"
+      ]
+    },
+    {
+      "name": "context-privacy",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "apps/desktop/test/context-privacy.test.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "ok   complete fact and source references are scrubbed before the 300-character cap",
+        "ok   multiline PEM is scrubbed before flattening in both fact fields",
+        "ok   each legacy rendered head, fact metadata and annotation text is scrubbed",
+        "ok   legacy raw backend prose becomes a fixed read error receipt",
+        "ok   ordinary bytes, formatting controls and citation identities retain existing behavior",
+        "ok   budget selection uses cleaned lengths and repeated source sanitation is stable",
+        "ok   an oversized essential context refuses a bundle instead of degrading to a blind session",
+        "ok   actual compiler \u2192 bundle \u2192 verified packet keeps one cleaned byte identity and scoped transport key",
+        "8 offline context privacy scenarios passed"
+      ]
+    },
+    {
+      "name": "independent4",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<independent-root>/scope-probes.mjs",
+        "<independent-root>/scope-closure.mjs",
+        "<independent-root>/compiler-occupancy.mjs"
+      ],
+      "exit": 0,
+      "tail": [
+        "\u2714 changed scoped-store estate cannot supply prepared currentness (9.009291ms)",
+        "\u2139 tests 4",
+        "\u2139 suites 0",
+        "\u2139 pass 4",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 147.151209"
+      ]
+    }
+  ]
+}

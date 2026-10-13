@@ -45,6 +45,20 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 
 ## Recent log
 
+### 2026-10-13 · harness input wave · metadata and composition are separate evidence
+
+- Reused R006/R007: test the actual production reader against real Git changes.
+  The selected bytes stayed constant, but `git update-index --assume-unchanged`
+  changed promised metadata; the original reader incorrectly returned same. The
+  independent negative now detects it; index flags/stat-cache are included.
+- Reused retained-I/O and rejected-clock lessons from N022/N023/N025 in N026;
+  repeat timeout calls do not free an unresolved operation or fabricate time.
+- A module passing its own contract does not fill every composition input. The
+  review found N025's eight-field read lacks R1 reserved totals; N027 owns the
+  separate coherent read. Existing source work is not labelled COM-blocked.
+- [Evidence](../reports/2026-10-13-resource-admission-contract/raw/n026/README.md).
+  Lesson publication to Observatory remains NOT_SENT until the actual board works.
+
 ### 2026-10-13 · harness-waves continuation · local progress and operational authority
 
 - **Applied:** R-003/006/007 led the resource review to execute real SQL with adversarial client roles and restore/replay cases; pure preflight results explicitly cannot grant execution. R-009 keeps earlier candidate checks separate from the expanded source.
@@ -2915,3 +2929,16 @@ and the path is the one the product itself uses: the application connects with
 the service role, so `delete from memberships` is not a hypothetical route
 through an API. **A floor that only exists inside a command is not a floor when
 the caller can write the table directly** — and here the caller is us.
+
+
+### CO-282 N028/N029: reuse a discovered boundary across modules
+
+The N029 reviewer reproduced wrong estate scope and nested compiler query accumulation.
+Root applied that lesson to N028: checking `store.scope` only before asynchronous reads
+missed an in-flight mutation, while checking equal field values missed replacement of the
+object captured by ScopedStore's query closure. Preserved original RED controls led to
+reference plus exact-value checks before/after reads and final result; independent N028
+supplement passed6 controls. Keep historical acceptance receipts immutable and publish
+corrections separately. A timeout or rejected outer Promise does not prove sibling I/O
+finished; await settlement of every started request before releasing its occupancy slot.
+These lessons are evidenced locally, not submitted to Observatory while COM is unavailable.

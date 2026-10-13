@@ -1,0 +1,29 @@
+{"probe":"synchronous sibling count","hanging":5}
+✖ synchronous second query throw retains the already pending first query (11.064333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.049125
+
+✖ failing tests:
+
+test at ../../../..<REVIEWER>/sync-sibling.mjs:28:1
+✖ synchronous second query throw retains the already pending first query (11.064333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  5 !== 1
+
+      at TestContext.<anonymous> (file://<REVIEWER>/sync-sibling.mjs:36:82)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 5,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

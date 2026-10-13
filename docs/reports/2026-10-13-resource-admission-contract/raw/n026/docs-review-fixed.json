@@ -1,0 +1,30 @@
+{
+  "task": "N026 documentation correction rereview",
+  "verdict": "SCOPED_PASS",
+  "candidate": "uncommitted root worktree, bound by hashes",
+  "base_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "supersedes": {
+    "receipt_sha256": "23d02b432fc00c5467acd7b1da16da62847d0d3b4b935c3f56a6cb7d079ff191",
+    "findings_resolved": [
+      "selectionComplete applies only to successful capture receipts",
+      "owned-temp replay layout and renamed historical sources documented; exact historical builder source preserved"
+    ]
+  },
+  "current_source_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+  "changed_artifact_sha256": {
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md": "72bf12a4732044691d2cb058c2c3383e389977d0dfa2673796d0054b5e5cebd3",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/builder-accepted.snapshot.txt": "beefff4978d48fa5ed827492206de8bd0182396eac066843ab578af5803b49fa",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "4dbdc32cd6ff4f8e8b491433f8eb600f893e0ad94fa2fbe3d7095e9745a179f3"
+  },
+  "checks": [
+    "Builder accepted snapshot matches historical beefff49 receipt; initial original source snapshots match cf376a03.",
+    "Four original receipt/script artifacts remain byte-identical to prior review; no historical restamping.",
+    "Replay source/test/gitRun identities match their stated digests; fresh directory instructions avoid existing controls collision.",
+    "No private user/temp prefixes in corrected docs or new preserved source."
+  ],
+  "findings": [],
+  "limits": [
+    "No tests/replay/DB/fullgate rerun; only document/layout/hash rereview.",
+    "N026/N027 combined acceptance and source delivery remain open."
+  ]
+}

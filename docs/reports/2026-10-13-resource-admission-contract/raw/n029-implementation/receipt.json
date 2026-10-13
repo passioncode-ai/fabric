@@ -1,0 +1,105 @@
+{
+  "task": "N029",
+  "state": "frozen_candidate",
+  "files": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+    "apps/desktop/src/main/managedLaunch.ts": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "apps/desktop/src/main/admitExisting.ts": "997665d476f41354815b226e2c04f53d2622977e8840aa00222be582804bb99e",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "f72f99ea9b275564eb39fedf6e3d9d0e6cb923a82e925d8d2ccb2329000d511a",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/sessionBundle.ts": "2d097ee9da7ede16a384edc9493d42eea593bfd0c4c096494a2ffa4996acff0f",
+    "apps/desktop/src/main/contextPack.ts": "b4b527743954e0cf7fdc726f2fba67c6421fc93e794ebb13390fcf2c76b82237",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "d5fe54f90d0a778a6983f8ef53eb3f4629a8a226b8b75c7220f139f4c589778c",
+    "apps/desktop/test/prepared-launch-input.test.mjs": "165ef90f84d28a34c5e5c9d7b10e356df6a14df116af80b5e9cc7398ee73acd9",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "8143afb513c30d8ad6d5757abc35cdd43a8156fdac07d99479fbb98980934d9f",
+    "apps/desktop/test/prepared-resource-adapter.test.mjs": "eb69726cab869f7a01599b5c15a7f22c7c9aecf89bdbc1781c0bf862f193a0d6",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "798c301562f776cbcc8dc1a06f00cb1e0575171113b06ea790ad7fe217d46f84",
+    "docs/execution/harness-waves/prepared-launch-input.md": "f2a652e757f0175d102e2f9853d238bd0d7302ebbd4f4536c94c1ad7343d9f91"
+  },
+  "patchSha256": "cd2541b2d2a6260134280f52cbe1104ad1a2a76d6bbfe78fa2a11a020431099f",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs",
+      "exit": 0,
+      "passed": 100,
+      "log": "focused-all.log"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs",
+      "exit": 0,
+      "log": "legacy-managed.log",
+      "sourceStage": "corrected candidate"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/session-bundle.test.mjs",
+      "exit": 0,
+      "log": "bundle-regression.log",
+      "sourceStage": "corrected candidate"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs",
+      "exit": 0,
+      "log": "context-mandatory.log",
+      "sourceStage": "corrected candidate"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/context-privacy.test.mjs",
+      "exit": 0,
+      "log": "context-privacy.log",
+      "sourceStage": "corrected candidate"
+    },
+    {
+      "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --typeRoots <existing desktop dependencies>/@types <six changed entry modules; imports contextPack>",
+      "exit": 0,
+      "log": "types-all.log",
+      "sourceStage": "corrected candidate"
+    },
+    {
+      "command": "index.ts TypeScript transpileModule syntax diagnostics",
+      "exit": 0,
+      "limit": "not whole-project typecheck",
+      "sourceStage": "prior candidate; compiler opt-in correction covered by focused suite and targeted types"
+    },
+    {
+      "command": "node scripts/check-scope.mjs",
+      "exit": 0,
+      "log": "scope.log",
+      "sourceStage": "prior candidate; compiler opt-in correction covered by focused suite and targeted types"
+    },
+    {
+      "command": "node scripts/check-ops.mjs",
+      "exit": 0,
+      "log": "ops.log",
+      "sourceStage": "prior candidate; compiler opt-in correction covered by focused suite and targeted types"
+    }
+  ],
+  "negative": {
+    "command": "node --experimental-strip-types --loader ./negative-loader.mjs --test --test-name-pattern=\"shared required|bundle refuses|actual compiler, managed\" apps/desktop/test/prepared-managed-launch.test.mjs",
+    "exit": 1,
+    "failed": 3,
+    "log": "base-red.log",
+    "meaning": "original production consumers ignore/miss prepared input; same tests pass candidate",
+    "independent": "final review pending; rejected unconditional settlement preserved separately and corrected with prepared-only opt-in"
+  },
+  "notRun": [
+    "context-pack.test.mjs stack-backed (overlay helper import failed before stack action)",
+    "actual SQL",
+    "native/provider",
+    "whole-project types/build/full gate"
+  ],
+  "authority": {
+    "resourceModeActivated": false,
+    "activeDDL": false,
+    "native": false,
+    "completeInputDigest": false,
+    "R1HeldOwnership": false,
+    "rootWrites": false
+  },
+  "correctionPatchSha256": "3931377dcf05612148e14874c0076199dadb4a4ea32620b14c6f9fda3b11eacf",
+  "rejectedCandidate": {
+    "compilerSha256": "93eaa37061d54b5abbcebe3f02aa6e65d07be3c178b6c08c19f62de3703d1b30",
+    "reason": "Root found legacy rejection+hung sibling waited indefinitely; previous 99 PASS insufficient",
+    "preserved": "rejected-unconditional-settlement"
+  }
+}

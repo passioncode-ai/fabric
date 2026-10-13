@@ -1,0 +1,53 @@
+{
+  "hashes": {
+    "apps/desktop/src/main/resourceRunAssignment.ts": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+    "scripts/resourceAgentSyncIdentity.py": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa",
+    "docs/execution/harness-waves/resource-run-assignment.md": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b"
+  },
+  "checks": [
+    {
+      "name": "focused",
+      "exit": 0,
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<BUILDER>/apps/desktop/test/resource-run-assignment.test.mjs"
+      ],
+      "summary": [
+        "\u2139 tests 27",
+        "\u2139 suites 0",
+        "\u2139 pass 27",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 5909.126125"
+      ]
+    },
+    {
+      "name": "independent",
+      "exit": 0,
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<REVIEWER>/early-probes.mjs",
+        "<REVIEWER>/sync-sibling.mjs",
+        "<REVIEWER>/lease-probe.mjs",
+        "<REVIEWER>/composition-probe.mjs"
+      ],
+      "summary": [
+        "\u2139 tests 5",
+        "\u2139 suites 0",
+        "\u2139 pass 5",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1006.854833"
+      ]
+    }
+  ]
+}

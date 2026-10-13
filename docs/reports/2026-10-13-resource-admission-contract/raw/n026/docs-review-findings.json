@@ -1,0 +1,80 @@
+{
+  "task": "N026 integrated documentation and artifact review",
+  "base_commit": "193b0e1e3b7c6eb3622bf57a1a825f5832d1c19e",
+  "candidate": "uncommitted worktree; hashes bind observed files, not base HEAD",
+  "verdict": "SCOPED_DOCUMENT_CORRECTIONS",
+  "source_and_docs_sha256": {
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "ba8b73127f0bc0db3119b44e790ceb21a11a24d747ab29267aa0d40a7bef3e0a",
+    "docs/evidence/retro.md": "7794e2937582d72dc0d0356bf4d396d87a25a44cc044cf16338b225f22f2032b",
+    "docs/execution/harness-waves/graph.json": "80f3227876af70750ff0a4e0e3bf86f3d46dcb25da88f6c2b5aa594754aafff6",
+    "docs/handoffs/2026-10-13-harness-waves.md": "7804287a322bdf97bc59a8bc8da6a47ffc49b5b9c9cc765f4c2bf5a99e31b081",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "4b4ce50d5f16a1702a09cbd1dfdca3db02548afdaa1a26cb9e8f2d05936ff41d",
+    "docs/reports/map.html": "9d4d4cd91c44792cf99e68899eb8083de3e279d530305e76780acd156fc96f73",
+    "docs/execution/harness-waves/resource-input-snapshot.md": "b2255bdd5433e1f4cc9f6a5b317946979d6dcc56193e957a97b08d87bfe08273",
+    "apps/desktop/src/main/resourceInputSnapshot.ts": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+    "apps/desktop/test/resource-input-snapshot.test.mjs": "86bd8ec24a9381c1c1314f0c6d95adace8b68df9e8068898911d05c970af11dd",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/resourceInputSnapshot.original.snapshot.txt": "cf376a0371742f61bc2ea0114c1c21180a0ee078f181fb130777839d8fe8842c",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/ops.log": "2ce64a05047e3d57744dfe1604880757f8ff1298e281898c18a12b481b4368be",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/negative-controls.json": "16d06ccc096d577b59c0d0e578da93758d73195e178d8e9b5458dc988457c935",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/negative-controls.py": "d10f1aebb3e3d4f33c9535a4fd61d01efac71ee27a04fa4c33366ba29ddfeaf3",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/root-typecheck.json": "8d1e9d68037148ee8d99559620b6b449c8a374916f1732e542003bdf4e78aa91",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/normalization.json": "f13e2efab91f862ac4281a8b591e0e49ac76be1e7ec7a5c19832a0e13b133b39",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md": "8f23791dacb078c00097b29d30a4126d50c39922e93c35e98dd7e3850dc0fcd7",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/scope.log": "61d3a064ba4ca3f94dbbfa8baca913f0efc9515d760b9579d374103c9e47bd0a",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/typecheck-rejected.log": "fe3d8bfe5bb4f9cdeedfb337c57eb92daf2410d0fb0202aa4b4dd36f49517dee",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/composition-prerequisite-review.json": "72fe44a9ed6c20cd007c7bc28f368b0cbdc34efdd90c8b24e9f38a63a7081fcf",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/metadata-red.log": "bced217f1cab95945216edb951d1bfc3381c40738e79b1b2227c6c6d7aec8b59",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/typecheck-fixed.log": "3674210048467f00670d72713715cbfcc260b0da3a9f12b8192984cb849911dd",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/focused.log": "0ba01971641485f0dcab15b306edb8fcb164305d2823c3c34716a7f12316a02f",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/receipt.json": "7f541df10efed455519658a2417914d4b58d9faeb2131e31f33045f0f6c3956a",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/receipt-final.json": "4bf08b3c468080de46a88323e6c396c78e5cc556b8b6e8e01d06816662e44e89",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/receipt-type-narrowing-supplement.json": "522f89f3a271135050ec5f31ffe95a40c5edf54991534e1cbf5f6581c3ecfbb0",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/early-index-omission.snapshot.txt": "cf376a0371742f61bc2ea0114c1c21180a0ee078f181fb130777839d8fe8842c",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/production-probes.mjs": "6b9ff4ab0095d59f1ba03255774e403a7d6c2652fe1749f7297ef674e6ccea46",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/index-before.log": "cd722ce1c10128cfa5b2b920d2f47522ec7dc39f61f98e76889cd2bd54bc9ccc",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/independent/index-flag-check.mjs": "35a1a551eeec758f0b99a00a8d45f057c61ca85aa27098371a1a73beae20abc0",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/async-clock/candidate.snapshot.txt": "85b73eb648ad5697aa8eb9d53770c43050fdfb9cd0e4bb3cc25ad5297490929b",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/async-clock/stdout.log": "bed985c349b52eec449fa51368506b107f9535031b584d1a46d4f3b9194b9157",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/raw-bytes/candidate.snapshot.txt": "aa3b4d33c169fe82c0e2fc6a4d8d7ee2a937491c25c6831516173e62d3870cb9",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/raw-bytes/stdout.log": "4134933571c6e2229084bc872c4e8444f69ba08eeb638d0687df69c05fe42f29",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/final-stamp/candidate.snapshot.txt": "d2c632a757fed5b66136dd4af5715ac245e4c4f4ab4ac98a126f7ca9c4630191",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/final-stamp/stdout.log": "9242b151dd6528b4e6fd60173d6c466c3e3b30fb6bd2ab21bdd6a6b369df3783",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/slot/candidate.snapshot.txt": "63b8aadabf40092a253b8cb9686af0e95bcb151c022b4b3cf51b69352b4b620c",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n026/controls/slot/stdout.log": "a01267bef71f459582ff03b821cb3a2bd75fdcdb630c457e7358e2b5ac92f818"
+  },
+  "checks": {
+    "source_test_document_receipt_hashes": "MATCH including root0db51b7 and independent type supplement",
+    "normalization_entries": 20,
+    "normalization_stored_hashes": "ALL_MATCH",
+    "private_prefixes": "NONE in raw/n026",
+    "graph": {
+      "total": 27,
+      "done": 23,
+      "pending": 2,
+      "blocked": 2
+    },
+    "relative_markdown_file_targets": 100,
+    "missing_targets": []
+  },
+  "findings": [
+    {
+      "severity": "document_contract_correction",
+      "file": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+      "claim": "always returns executionAuthorized:false and selectionComplete:false",
+      "source": "apps/desktop/src/main/resourceInputSnapshot.ts:40,103,193",
+      "correction": "Only successful capture receipts carry selectionComplete:false; refusal/unknown/current variants do not. No authority claim is affected."
+    },
+    {
+      "severity": "artifact_replay_layout",
+      "file": "docs/reports/2026-10-13-resource-admission-contract/raw/n026/negative-controls.py",
+      "finding": "Historical builder script expects adjacent apps/desktop sources and fresh controls directories; archived layout provides snapshots/logs, not that execution tree. Independent receipt also names early-index-omission.ts while archived source uses .snapshot.txt.",
+      "correction": "Document owned-temp replay layout and exact filename restoration/hash verification; preserve original source/receipt/script bytes. The current final type-narrowing source differs from builder beefff candidate; replay that historical source only with verified reconstruction or preserved bytes. Existing observed acceptance remains valid."
+    }
+  ],
+  "limits": [
+    "Read-only doc/receipt review, not independent N026 implementation acceptance; pipeline reviewer owns that.",
+    "No tests/DB/heavy suite. N026/N027 remain pending combined gate/source delivery.",
+    "Historical23/25 is explicitly labelled; no new completion/native/held ownership claim found.",
+    "Other project report-index push is attributed to root receipt, not independently network verified."
+  ]
+}

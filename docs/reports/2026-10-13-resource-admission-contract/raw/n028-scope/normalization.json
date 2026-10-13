@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "note": "Original historical receipts unchanged upstream; imported paths normalized, embedded original digests intentionally not rewritten. Supplemental evidence is distinct from original n028 package.",
+  "files": [
+    {
+      "origin": "builder/scope-receipt.json",
+      "stored": "builder/scope-receipt.json",
+      "original_sha256": "b5b8f4ca5e36fd0d7a5b4948e38bddf1105cff89919280ef91aec0483fa2e7f5",
+      "stored_sha256": "b5b8f4ca5e36fd0d7a5b4948e38bddf1105cff89919280ef91aec0483fa2e7f5",
+      "normalization": []
+    },
+    {
+      "origin": "builder/scope-correction.patch",
+      "stored": "builder/scope-correction.patch",
+      "original_sha256": "e8780c4d5b9f24942bf661480bf465ec52296891141f602af1bf2316b8cb7bf2",
+      "stored_sha256": "e8780c4d5b9f24942bf661480bf465ec52296891141f602af1bf2316b8cb7bf2",
+      "normalization": []
+    },
+    {
+      "origin": "builder/scope-original-red.log",
+      "stored": "builder/scope-original-red.log",
+      "original_sha256": "4644b0eb6e4b7d33c2899bb25f60f95c6f41e3d77c2e5b4e35193b1194427205",
+      "stored_sha256": "7f5795a59a46eda3862b210dd34260bcacff0cc95e39d5dffd48e11bdb9322c6",
+      "normalization": [
+        "Literal private prefix replaced by <SCOPE_BUILDER>",
+        "Trailing log whitespace stripped, final LF"
+      ]
+    },
+    {
+      "origin": "builder/scope-fixed.log",
+      "stored": "builder/scope-fixed.log",
+      "original_sha256": "1f3e1f8daabcaadbd8b8647872918b0bd826e64d2fe5425770e07ea215de7e97",
+      "stored_sha256": "1f3e1f8daabcaadbd8b8647872918b0bd826e64d2fe5425770e07ea215de7e97",
+      "normalization": [
+        "Trailing log whitespace stripped, final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-scope-supplement.json",
+      "stored": "reviewer/receipt-scope-supplement.json",
+      "original_sha256": "dce6f9e8d9d0548da5f31b7dccd6a167ee0dc090600ee3233c85bfbe0331e47f",
+      "stored_sha256": "dce6f9e8d9d0548da5f31b7dccd6a167ee0dc090600ee3233c85bfbe0331e47f",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/scope-supplement.mjs",
+      "stored": "reviewer/scope-supplement.mjs.snapshot.txt",
+      "original_sha256": "ee9c11d4310ad127ab33d0822c42aab6ed3ddfd56f70b273fcc567dc60a599b6",
+      "stored_sha256": "488b10db03699d75843a3c879d23c716717284a5d629a9234fcb734229b62361",
+      "normalization": [
+        "Literal private prefix replaced by <HOME>"
+      ]
+    },
+    {
+      "origin": "reviewer/scope-supplement-original-red.log",
+      "stored": "reviewer/scope-supplement-original-red.log",
+      "original_sha256": "f725597438b71a02fe4a1d793b300e0c89df6dbef5e6eaa63dbdfb6c15da1a26",
+      "stored_sha256": "159c563ff253dde2f19f9f7c21a58bbd72014db262c3d78ae65395d0c441ba45",
+      "normalization": [
+        "Literal private prefix replaced by <REVIEWER>",
+        "Trailing log whitespace stripped, final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/scope-supplement-final.log",
+      "stored": "reviewer/scope-supplement-final.log",
+      "original_sha256": "52ba38d6f0abc3593d17070352b807cd211bcbf2e7cd9ee92d7a77f68b2f4630",
+      "stored_sha256": "52ba38d6f0abc3593d17070352b807cd211bcbf2e7cd9ee92d7a77f68b2f4630",
+      "normalization": [
+        "Trailing log whitespace stripped, final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/scope-supplement.mjs",
+      "stored": "probes/scope-supplement.mjs",
+      "original_sha256": "ee9c11d4310ad127ab33d0822c42aab6ed3ddfd56f70b273fcc567dc60a599b6",
+      "stored_sha256": "9c891798519b38778389ae42ecbb02ead9beb9b14e8cf6e9ed15171822fd7246",
+      "normalization": [
+        "Required environment variable replaces fixed private installed path; body unchanged",
+        "Literal private prefix replaced by <HOME>",
+        "Actual ScopedStore import now resolves alongside N028_SOURCE; same archived production dependency"
+      ]
+    },
+    {
+      "origin": "reviewer/early-probes.mjs",
+      "stored": "probes/early-probes.mjs",
+      "original_sha256": "817d79b79880338e480e2999b6a2f3e895482a934bf83a89fae2c90b2b1d94a3",
+      "stored_sha256": "4a910f5598a3e6910978d2e94ca36c0a0c80f6dad0a7bff400f52043c7a255ed",
+      "normalization": [
+        "Required environment variable replaces fixed private installed path; body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/sync-sibling.mjs",
+      "stored": "probes/sync-sibling.mjs",
+      "original_sha256": "bafb646ba87473aee1a6c490eb37f1074aedbee58c1928a0c9e56697bdbf870c",
+      "stored_sha256": "70af6638fbe33f57dbaefe1fbd4b5b1edeeea6c212a0f593df61e0eec441a2ed",
+      "normalization": [
+        "Required environment variable replaces fixed private installed path; body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/lease-probe.mjs",
+      "stored": "probes/lease-probe.mjs",
+      "original_sha256": "a219f078db485bb073a5846e5d6e3f38f3fc3248b0cc17f30ec94d0b21eb94fd",
+      "stored_sha256": "e27d419f7c07b10f5a5c105162d3509b4f505e3241edc38a68eb74631a7b15f2",
+      "normalization": [
+        "Required environment variable replaces fixed private installed path; body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/composition-probe.mjs",
+      "stored": "probes/composition-probe.mjs",
+      "original_sha256": "614fdb4e6109ee718446a584d3467f235651c26b966d476fac6f7bb52c3a7f74",
+      "stored_sha256": "61ce1bebdf700d59f9e1606ce1447b7c887ed8931d32d879807ed09f2ca4eaa6",
+      "normalization": [
+        "Required environment variable replaces fixed private installed path; body unchanged"
+      ]
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/resourceRunAssignment.before.snapshot.txt",
+      "stored": "before/resourceRunAssignment.snapshot.txt",
+      "original_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "stored_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "original_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "stored_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/test/resource-run-assignment.test.mjs",
+      "stored": "accepted/apps/desktop/test/resource-run-assignment.test.mjs.snapshot.txt",
+      "original_sha256": "1556373fd76a571da94bfe0a372fc6b61bbf1c532fee1897836639afb2d9404d",
+      "stored_sha256": "1556373fd76a571da94bfe0a372fc6b61bbf1c532fee1897836639afb2d9404d",
+      "normalization": []
+    },
+    {
+      "origin": "builder/scripts/resourceAgentSyncIdentity.py",
+      "stored": "accepted/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "original_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "stored_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/gitRun.ts",
+      "stored": "accepted/apps/desktop/src/main/gitRun.ts.snapshot.txt",
+      "original_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "stored_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/scopedStore.ts",
+      "stored": "accepted/apps/desktop/src/main/scopedStore.ts.snapshot.txt",
+      "original_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "stored_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/shared/scope.ts",
+      "stored": "accepted/apps/desktop/src/shared/scope.ts.snapshot.txt",
+      "original_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "stored_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "normalization": []
+    }
+  ]
+}

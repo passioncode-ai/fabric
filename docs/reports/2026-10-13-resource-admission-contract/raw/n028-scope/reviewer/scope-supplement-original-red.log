@@ -1,0 +1,25 @@
+✖ actual scoped membership drift during settled read refuses existing identity (151.417709ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 266.370541
+
+✖ failing tests:
+
+test at ../../../..<REVIEWER>/scope-supplement.mjs:29:1
+✖ actual scoped membership drift during settled read refuses existing identity (151.417709ms)
+  AssertionError [ERR_ASSERTION]: {"state":"observed","value":{"estateId":"estate","projectId":"project","taskId":"task","sessionId":"session","attemptId":"62f6803a-bdc0-4e7b-a09b-54971287bebf"},"executionAuthorized":false,"ownership":"unproven"}
+      at TestContext.<anonymous> (file://<REVIEWER>/scope-supplement.mjs:34:60)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'observed',
+    expected: 'observed',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

@@ -1,3 +1,4 @@
+import { preparedLaunchMatches, type PreparedLaunchInputs, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
 // The per-session bundle: the file that tells one agent where Fabric's door is
 // and hands it the key.
 //
@@ -39,6 +40,8 @@ export interface BundleSurface {
 }
 
 export interface BundleCompilerDeps {
+  preparedInputs?: PreparedLaunchInputs
+  recordPreparedContext?: (packet: PreparedLaunchPacket) => Promise<void>
   /** Where session directories live — the app's own data directory, never a repo. */
   root: string
   surface: BundleSurface
@@ -94,8 +97,11 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
       optionId: string,
       adapter: SurfaceAdapter,
       agent: { instructions: string; servers: string[] } | null = null,
-      modeConfig: Readonly<Record<string, unknown>> | null = null
+      modeConfig: Readonly<Record<string, unknown>> | null = null,
+      prepared?: PreparedLaunchPacket
     ): Promise<SessionBundle | null> {
+      if (prepared && (!deps.preparedInputs?.owns(prepared) || !preparedLaunchMatches(prepared,{sessionId,projectId,taskId,optionId})))
+        throw Error('prepared launch input unavailable')
       if (!deps.surface.endpoint) return null
 
       // PF-10.01 — a session that MUST reach Fabric's surface is refused unless
@@ -191,9 +197,11 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
         // and never in the repository — the same rule and for the same reason: it
         // is Fabric's material, not the project's, and a pack committed to a repo
         // would be a stale copy of a moving store.
-        if (deps.context) {
+        if (prepared || deps.context) {
           try {
-            const pack = await deps.context(sessionId, projectId, taskId)
+            if (prepared && !deps.recordPreparedContext) throw Error('prepared context journal unavailable')
+            if (prepared) await deps.recordPreparedContext!(prepared)
+            const pack = prepared ? prepared.context.markdown : await deps.context!(sessionId, projectId, taskId)
             if (pack !== null) {
               writeFileSync(path.join(dir, 'context.md'), pack, { encoding: 'utf8', mode: 0o600 })
               // PF-05.02 — the pack is ALSO materialized content-addressed, under
@@ -206,7 +214,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               const packet = materialize(
                 packetRoot,
                 { sessionId, projectId, taskId },
-                [{ name: 'context', bytes: pack }]
+                [{ name: 'context', bytes: pack }, ...(prepared ? [{name:'instruction',bytes:prepared.instructionBody}] : [])]
               )
               const check = verify(packetRoot, packet)
               if (!check.ok)
@@ -216,6 +224,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 )
             }
           } catch (e) {
+            if (prepared) throw e
             // A session must still start when its pack cannot be COMPILED — it
             // begins without one and says so. A packet that FAILED TO VERIFY is
             // different: that store is lying, and the error above escapes this

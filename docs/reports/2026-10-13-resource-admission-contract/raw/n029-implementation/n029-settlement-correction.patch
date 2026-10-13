@@ -1,0 +1,84 @@
+--- a/apps/desktop/src/main/contextPack.ts
++++ b/apps/desktop/src/main/contextPack.ts
+@@ -77,6 +77,9 @@
+ }
+ 
+ export interface ContextPackInput {
++  /** Trusted prepared-launch caller retains all started I/O before releasing
++   * its bounded slot. Legacy callers keep fail-fast/degraded behavior. */
++  settleStartedReads?: boolean
+   store: ScopedStore
+   projectId: string
+   taskInstruction?: string | null
+@@ -216,7 +219,7 @@
+   // #region context-read-settlement — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
+   // A failed sibling must not orphan pending reads and release the producer's
+   // bounded I/O slot. Thunks also contain synchronous query-construction errors.
+-  const settled = await Promise.allSettled([
++  const reads = [
+       Promise.resolve().then(() => store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle()),
+       Promise.resolve().then(() => store.select('project_repos', 'path,is_primary').eq('project_id', projectId)),
+       Promise.resolve().then(() => store
+@@ -234,13 +237,15 @@
+         .eq('project_id', projectId)
+         .order('seq', { ascending: false })
+         .limit(maxSessions))
+-    ] as const)
++    ] as const
++  const settled = input.settleStartedReads === true ? await Promise.allSettled(reads) : null
+   function readValue<T>(result: PromiseSettledResult<T>): T {
+     if (result.status === 'rejected') throw result.reason
+     return result.value
+   }
+-  const projectRead=readValue(settled[0]), reposRead=readValue(settled[1]),
+-    factsRead=readValue(settled[2]), sessionsRead=readValue(settled[3])
++  const [projectRead,reposRead,factsRead,sessionsRead] = settled
++    ? [readValue(settled[0]),readValue(settled[1]),readValue(settled[2]),readValue(settled[3])] as const
++    : await Promise.all(reads)
+   // #endregion context-read-settlement
+ 
+   // A receipt per source, and the errors are READ rather than destructured
+--- a/apps/desktop/src/main/preparedLaunchInput.ts
++++ b/apps/desktop/src/main/preparedLaunchInput.ts
+@@ -111,7 +111,7 @@
+         const before=await projection(input.taskId,active)
+         if(!mayLaunch(before.optionId,input.permissionMode).ok)throw Error('mode unavailable')
+         if(!active()||!scopeCurrent())throw Error('preparation ended')
+-        const context=await compileContextPack({store,projectId:before.projectId,taskInstruction:before.instruction,taskBrief:before.brief,budget,mandatory:contextDemandFor(input.trigger)})
++        const context=await compileContextPack({settleStartedReads:true,store,projectId:before.projectId,taskInstruction:before.instruction,taskBrief:before.brief,budget,mandatory:contextDemandFor(input.trigger)})
+         if(!active()||!scopeCurrent())throw Error('preparation ended')
+         const after=await projection(input.taskId,active)
+         if(JSON.stringify(before)!==JSON.stringify(after))return {state:'refused',reason:'prepared_source_changed'}
+--- a/apps/desktop/test/prepared-launch-input.test.mjs
++++ b/apps/desktop/test/prepared-launch-input.test.mjs
+@@ -1,6 +1,7 @@
+ import assert from 'node:assert/strict'
+ import {test} from 'node:test'
+ import {createHash} from 'node:crypto'
++import {compileContextPack} from '../src/main/contextPack.ts'
+ import {preparedFixture} from './prepared-launch-fixture.mjs'
+ import {createPreparedLaunchInputs,preparedLaunchMatches} from '../src/main/preparedLaunchInput.ts'
+ const sha=s=>createHash('sha256').update(s,'utf8').digest('hex')
+@@ -65,3 +66,11 @@
+  const f=preparedFixture(),captured=f.store.scope;f.store.scope={...captured};captured.estateId=f.id.project
+  assert.equal((await f.inputs.prepare(f.request)).state,'unknown');assert.equal(f.reads.length,0)
+ })
++
++test('legacy compiler still rejects promptly with a hung sibling; retained settlement is prepared-only',async()=>{
++ const f=preparedFixture();let resolve
++ f.readHook=t=>{if(t==='project_repos')throw Error('synthetic unavailable');if(t==='memory_facts')return new Promise(r=>{resolve=r})}
++ const outcome=compileContextPack({store:f.store,projectId:f.id.project}).then(()=>false,()=>true)
++ assert.equal(await Promise.race([outcome,new Promise(r=>setTimeout(()=>r(false),30))]),true)
++ resolve?.({data:[],error:null,count:0})
++})
+--- a/docs/execution/harness-waves/prepared-launch-input.md
++++ b/docs/execution/harness-waves/prepared-launch-input.md
+@@ -12,7 +12,7 @@
+ 
+ Producer methods are `prepare(request)`, `owns(packet)`, `current(packet)` and `release(packet)`. Same-instance membership is an internal lifecycle check, not authentication. `current` rereads actual task/target/scope without recompiling context. It does not claim all memory sources remain current. A released/copied/foreign packet is refused. Local release deletes the packet receipt only; it cannot release a durable reservation. These checks provide cooperative currentness, not immunity to an arbitrary writer racing the final SQL call or native spawn.
+ 
+-One producer has one outstanding I/O operation and bounded active receipts. Timeout stops waiting while retaining occupancy until the entire operation settles. Late results create no usable packet or later reads. A pending `current` operation likewise cannot return permission after release/timeout. The actual compiler now starts its four reads through safe Promise thunks and waits with `Promise.allSettled` before rethrowing any rejection. A failing query cannot release the outer producer slot while a sibling query remains unresolved. This bounds accumulation per producer instance, not across arbitrary independently created producers or native processes. The producer uses the monotonic process clock directly and introduces no injectable synchronous clock callback.
++One producer has one outstanding I/O operation and bounded active receipts. Timeout stops waiting while retaining occupancy until the entire operation settles. Late results create no usable packet or later reads. A pending `current` operation likewise cannot return permission after release/timeout. The actual compiler now starts its four reads through safe Promise thunks and uses the trusted internal `settleStartedReads:true` option in prepared calls to wait with `Promise.allSettled` before rethrowing any rejection. Ordinary compiler callers retain the default fail-fast `Promise.all` behavior, so a rejected source does not trap their existing degraded-context path behind a hung sibling. A failing query cannot release the outer producer slot while a sibling query remains unresolved. This bounds accumulation per producer instance, not across arbitrary independently created producers or native processes. The producer uses the monotonic process clock directly and introduces no injectable synchronous clock callback.
+ 
+ ## Existing consumers
+ 

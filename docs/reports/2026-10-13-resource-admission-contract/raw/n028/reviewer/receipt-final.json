@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "node": "N028",
+  "reviewer": "/root/pipeline_research",
+  "implementationAuthor": "/root/observatory_research",
+  "independentProductionAuthorship": true,
+  "recordedAt": "2026-10-13T07:21:11.941218+00:00",
+  "verdict": "SCOPED_ACCEPT_CORRELATION_PRODUCER",
+  "sources": {
+    "apps/desktop/src/main/resourceRunAssignment.ts": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+    "scripts/resourceAgentSyncIdentity.py": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+    "apps/desktop/test/resource-run-assignment.test.mjs": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa",
+    "docs/execution/harness-waves/resource-run-assignment.md": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b"
+  },
+  "checks": [
+    {
+      "name": "focused",
+      "exit": 0,
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<BUILDER>/apps/desktop/test/resource-run-assignment.test.mjs"
+      ],
+      "summary": [
+        "\u2139 tests 27",
+        "\u2139 suites 0",
+        "\u2139 pass 27",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 5909.126125"
+      ]
+    },
+    {
+      "name": "independent",
+      "exit": 0,
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "<REVIEWER>/early-probes.mjs",
+        "<REVIEWER>/sync-sibling.mjs",
+        "<REVIEWER>/lease-probe.mjs",
+        "<REVIEWER>/composition-probe.mjs"
+      ],
+      "summary": [
+        "\u2139 tests 5",
+        "\u2139 suites 0",
+        "\u2139 pass 5",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1006.854833"
+      ]
+    }
+  ],
+  "sourceReview": [
+    "Exact estate/task/project/root membership, full immutable record validation and actual N026 constructor agreement",
+    "Installed source SHA256 checked before actual three-function AST execution; explicit environment branch avoids Sync/main/config/notes; rechecked before existing handle use",
+    "Exclusive lock and immutable records preserve unknown partial/collision/restart outcomes; no automatic stale lock stealing",
+    "Promise.allSettled wrapped query construction retains asynchronous and synchronous sibling uncertainty; manager-wide pending Git retention spans handles",
+    "Child environment API returns one-key patch only; actual PTY final overlay and session binding remain unimplemented",
+    "Docs preserve unproven ownership, unattributed lease read, executionAuthorized false and private raw assignment boundaries"
+  ],
+  "negativeControls": [
+    {
+      "finding": "rejected membership query releases pending sibling",
+      "source": "before/apps/desktop/src/main/resourceRunAssignment.ts",
+      "sourceSha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "test": "early-probes.mjs",
+      "log": "early-original-red.log",
+      "observed": "pending count 5; expected 1; same two-test file final PASS"
+    },
+    {
+      "finding": "structurally partial retained record permits allocation",
+      "source": "before/apps/desktop/src/main/resourceRunAssignment.ts",
+      "sourceSha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "test": "early-probes.mjs",
+      "log": "early-original-red.log",
+      "observed": "observed allocation; expected refusal/unknown; final PASS"
+    },
+    {
+      "finding": "cross-handle nested lease timeout accumulates pending Git",
+      "source": "before/apps/desktop/src/main/lease-occupancy-before.ts",
+      "sourceSha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "test": "lease-probe.mjs",
+      "log": "lease-original-red.log",
+      "observed": "calls 2; expected 1; final PASS"
+    },
+    {
+      "finding": "synchronous second query construction releases first pending query",
+      "source": "before/apps/desktop/src/main/lease-occupancy-before.ts",
+      "sourceSha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "test": "sync-sibling.mjs",
+      "log": "sync-sibling-original-red.log",
+      "observed": "pending count 5; expected 1; final PASS"
+    }
+  ],
+  "additionalIndependentComposition": "Actual N028 persisted mapping and refreshed membership identity feeds actual N026 snapshot on owned real Git/selected bytes; manifest drift then refuses currentness.",
+  "limitations": [
+    "No actual SQL/PostgREST membership transport; estate-scoped store is a query fixture",
+    "No full agent-sync CLI, native child launch, installed plugin changes, real lease acquire/renew/release, ownership guarantee, fence, R1 held, activeDDL or production composition",
+    "Cooperative owned storage; no hostile filesystem atomicity claim",
+    "Source-tree Python helper packaging and supported installed source upgrade require later integration",
+    "Root typecheck and full gate not performed by this reviewer",
+    "Installed dependent test cases explicitly NOT_RUN if pinned plugin absent; this review ran 27 with zero skipped"
+  ],
+  "artifacts": {
+    "early-probes.mjs": "817d79b79880338e480e2999b6a2f3e895482a934bf83a89fae2c90b2b1d94a3",
+    "sync-sibling.mjs": "bafb646ba87473aee1a6c490eb37f1074aedbee58c1928a0c9e56697bdbf870c",
+    "lease-probe.mjs": "a219f078db485bb073a5846e5d6e3f38f3fc3248b0cc17f30ec94d0b21eb94fd",
+    "composition-probe.mjs": "614fdb4e6109ee718446a584d3467f235651c26b966d476fac6f7bb52c3a7f74",
+    "focused-final.log": "1c2e366aedd80eba75a1448b473343d99c6f5a6f8fabe7fdb95e71318f808a5a",
+    "independent-final.log": "6b61c4b7f38fa01eaf37e902083491187a098b6f8bd6416bf5427475701779fb",
+    "early-original-red.log": "36b8c5787e6398a34b7b1790836f293ba7eaca38524a2c2805905068b53dffe6",
+    "sync-sibling-original-red.log": "1b64cf4703e81f437fd276b3ab430d706f0b38b4c8662e198d2ebe74d956e09e",
+    "lease-original-red.log": "f334105caa8127b071b490c7191b5c710d174cff3d4deaccedb6433ec6ee7dca"
+  }
+}

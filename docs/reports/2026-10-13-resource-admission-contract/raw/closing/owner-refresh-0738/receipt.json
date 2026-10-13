@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-13T07:38:32.012634+00:00",
+  "scope": "read-only remote metadata and bounded source comparison since 05:23; no tests/install/messages/owner writes",
+  "pull_requests": [
+    {
+      "baseRefName": "main",
+      "headRefOid": "70b0ed052f225982122a1904713a8422d9381ce6",
+      "mergeCommit": {
+        "oid": "edc6b9c590bd86ff19cb5201f1d22114e6b3c5c3"
+      },
+      "mergedAt": "2026-10-12T23:08:10Z",
+      "number": 208,
+      "state": "MERGED",
+      "updatedAt": "2026-10-12T23:08:10Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/208"
+    },
+    {
+      "baseRefName": "main",
+      "headRefOid": "b5d00e881b0ee4d34045d694dbd392341310a3a3",
+      "mergeCommit": {
+        "oid": "15341c0b8636e85f068299df0b573cdb6ac0b5bc"
+      },
+      "mergedAt": "2026-10-12T23:27:05Z",
+      "number": 209,
+      "state": "MERGED",
+      "updatedAt": "2026-10-12T23:27:06Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/209"
+    },
+    {
+      "baseRefName": "main",
+      "headRefOid": "18a2a7703b7926cdafd62dd6dd8a2d0067820503",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 213,
+      "state": "CLOSED",
+      "updatedAt": "2026-10-13T02:09:54Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/213"
+    },
+    {
+      "baseRefName": "main",
+      "headRefOid": "ff33a3b1ccac249077085785ec61f130d70ee355",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 214,
+      "state": "CLOSED",
+      "updatedAt": "2026-10-13T02:09:55Z",
+      "url": "https://github.com/ssheleg/sshlg-skills/pull/214"
+    },
+    {
+      "baseRefName": "main",
+      "headRefOid": "9fb9cfb34d83a1395d1d18dbe191d4135395b986",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 112,
+      "state": "OPEN",
+      "updatedAt": "2026-10-13T07:30:28Z",
+      "url": "https://github.com/ssheleg/task-pipeline/pull/112"
+    },
+    {
+      "baseRefName": "feat/release-iteration",
+      "headRefOid": "6e0e57e607db0a61226b9b5427bf0d74ba93c66d",
+      "mergeCommit": {
+        "oid": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb"
+      },
+      "mergedAt": "2026-10-13T05:11:24Z",
+      "number": 114,
+      "state": "MERGED",
+      "updatedAt": "2026-10-13T05:11:24Z",
+      "url": "https://github.com/ssheleg/task-pipeline/pull/114"
+    }
+  ],
+  "main": {
+    "task-pipeline": {
+      "date": "2026-10-12T16:31:53Z",
+      "sha": "52fa75dbe1a3d169c02c612516b30028929559f9"
+    },
+    "sshlg-skills": {
+      "date": "2026-10-13T04:50:54Z",
+      "sha": "a17f829e8d652ce7f68423b67e0de00fb89b3693"
+    }
+  },
+  "latest_releases": {
+    "task-pipeline": {
+      "published_at": "2026-10-12T17:25:52Z",
+      "tag_name": "v1.93.3",
+      "target_commitish": "main"
+    },
+    "sshlg-skills": {
+      "published_at": "2026-10-13T04:59:54Z",
+      "tag_name": "v1.62.2",
+      "target_commitish": "main"
+    }
+  },
+  "comparison": {
+    "before": "25dc4f898c143d410cb8cc0b8f17e4edd73da6eb",
+    "after": "9fb9cfb34d83a1395d1d18dbe191d4135395b986",
+    "ahead_by": 3,
+    "new_behavior": [
+      "Graph waiting_on has unique wait identity, kind and watcher locator; wait/resume records transitions, stale wait id refuses, waiting nodes cannot certify/close/recover",
+      "next returns6 when unresolved dependency leaves are all watched waits; locator is data, never executed by graph",
+      "Graph mutation now refuses failed/unavailable file lock rather than proceeding unlocked",
+      "Owner board/release regression and process test harness additions; install here-string test fix"
+    ],
+    "remaining_findings": [
+      "Candidate certification still stamps collector HEAD and increments round on every submission; exact stamp/history block unchanged (SHA256 below)",
+      "No new lesson emitter requested; iteration.md and lessons.py unchanged in delta, so prior kind-filter/adoption and producer-store roundtrip acceptance remain open",
+      "Watcher record is not proof an external watcher is running or action was taken; no native acceptance inferred",
+      "Hub source/main/release unchanged since05:23; published B186 source credit retained, installed/native and hard-coded Claude lookup followups unchanged"
+    ],
+    "certification_block_sha256": "9cde2a5fdf6af02c4fc247fef7c2d3f78fabd3dd542f80080fc412991ad46f27",
+    "current_graph_source_sha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+    "current_lines": {
+      "waiting_refusal": 1676,
+      "collector_HEAD_and_round": 1734,
+      "wait_transition": 1229
+    }
+  },
+  "conclusion": "Only pipeline112 source head and capabilities changed.112 remains OPEN;114 merged into112 branch, not main. Hub208/209 stay merged;213/214 stay closed without merge. No new main merge or release, no closure of N009/N010."
+}

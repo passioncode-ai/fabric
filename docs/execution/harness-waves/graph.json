@@ -659,6 +659,153 @@
           "Independent scoped producer reviews; original rejected cases retained"
         ]
       }
+    },
+    {
+      "id": "N-026",
+      "title": "Selected raw input and mutable-scope snapshot",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-023"
+      ],
+      "serves": "REQ-006",
+      "check": "node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceInputSnapshot.ts",
+        "apps/desktop/test/resource-input-snapshot.test.mjs",
+        "docs/execution/harness-waves/resource-input-snapshot.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-027",
+      "title": "Coherent bounded pool reservation accounting read",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-025"
+      ],
+      "serves": "REQ-006",
+      "check": "node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs and owned resource SQL runner",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourcePoolAccounting.ts",
+        "apps/desktop/test/resource-pool-accounting.test.mjs",
+        "apps/desktop/test/resource-pool-accounting-db.test.mjs",
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+        "apps/desktop/test/run-resource-reservation-db.mjs",
+        "docs/execution/harness-waves/resource-pool-accounting.md"
+      ]
+    },
+    {
+      "id": "N-028",
+      "title": "Trusted local run assignment and agent-sync identity correlation",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-026"
+      ],
+      "serves": "REQ-006",
+      "check": "Focused owned filesystem/Git/installed-function-readback tests and independent source review",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceRunAssignment.ts",
+        "apps/desktop/test/resource-run-assignment.test.mjs",
+        "scripts/resourceAgentSyncIdentity.py",
+        "docs/execution/harness-waves/resource-run-assignment.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-029",
+      "title": "Compile actual managed launch input once before resource admission",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-014",
+        "N-003"
+      ],
+      "serves": "REQ-006",
+      "check": "Actual compiler, bundle byte readback, shared admission and managed launch negative fixtures",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/preparedLaunchInput.ts",
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/admitExisting.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/main/sessionBundle.ts",
+        "apps/desktop/src/main/contextPack.ts",
+        "apps/desktop/test/prepared-launch-fixture.mjs",
+        "apps/desktop/test/prepared-launch-input.test.mjs",
+        "apps/desktop/test/prepared-managed-launch.test.mjs",
+        "apps/desktop/test/prepared-resource-adapter.test.mjs",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/prepared-launch-input.md"
+      ],
+      "surface_class": "internal"
+    },
+    {
+      "id": "N-030",
+      "title": "Integrate and verify input, accounting, assignment and preparation wave",
+      "owner": "verifier",
+      "status": "pending",
+      "blocked_by": [
+        "N-026",
+        "N-027",
+        "N-028",
+        "N-029",
+        "N-007"
+      ],
+      "serves": "REQ-005",
+      "check": "bash scripts/ci.sh fast; source-bound focused receipts; fresh remote branch readback; workspace publication status",
+      "evidence": null,
+      "touches": [
+        "scripts/ci.sh",
+        "apps/desktop/src/main/resourceInputSnapshot.ts",
+        "docs/adr/0154-logical-worker-pools-retain-unresolved-start-intents.md",
+        "docs/adr/README.md",
+        "docs/evidence/plans/task-pipeline-persistence-contract.md"
+      ]
+    },
+    {
+      "id": "N-031",
+      "title": "Persist actual assigned start intents before worker creation",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-028"
+      ],
+      "serves": "REQ-009",
+      "check": "Production registry with actual N028 assignment and real owned filesystem: identity drift, collision, partial writes, restart and retained I/O; incomplete inventory remains explicit",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceWorkerInventory.ts",
+        "apps/desktop/test/resource-worker-inventory.test.mjs",
+        "docs/execution/harness-waves/resource-worker-inventory.md"
+      ]
+    },
+    {
+      "id": "N-032",
+      "title": "Bind durable worker intents to actual required managed launch lifecycle",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-031",
+        "N-029",
+        "N-030"
+      ],
+      "serves": "REQ-009",
+      "check": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/resource-worker-launch.test.mjs",
+        "docs/execution/harness-waves/resource-worker-launch.md"
+      ]
     }
   ],
   "edges": [
@@ -881,6 +1028,76 @@
       "from": "N-025",
       "to": "N-007",
       "payload": "Concrete producer correction and exact scoped review/test evidence"
+    },
+    {
+      "from": "N-023",
+      "to": "N-026",
+      "payload": "Exact cooperative lease snapshot contract, no execution authority"
+    },
+    {
+      "from": "N-025",
+      "to": "N-027",
+      "payload": "Immutable full policy digest and exact generation readback"
+    },
+    {
+      "from": "N-026",
+      "to": "N-028",
+      "payload": "Selected-input assignment contract without execution or ownership authority"
+    },
+    {
+      "from": "N-014",
+      "to": "N-029",
+      "payload": "Existing managed launch currentness-before-final-SQL and compensation boundaries"
+    },
+    {
+      "from": "N-003",
+      "to": "N-029",
+      "payload": "Existing bounded required context compiler"
+    },
+    {
+      "from": "N-026",
+      "to": "N-030",
+      "payload": "selected input producer"
+    },
+    {
+      "from": "N-027",
+      "to": "N-030",
+      "payload": "coherent resource accounting"
+    },
+    {
+      "from": "N-028",
+      "to": "N-030",
+      "payload": "trusted run assignment"
+    },
+    {
+      "from": "N-029",
+      "to": "N-030",
+      "payload": "prepared launch consumers"
+    },
+    {
+      "from": "N-007",
+      "to": "N-030",
+      "payload": "existing CI retention wiring"
+    },
+    {
+      "from": "N-028",
+      "to": "N-031",
+      "payload": "Actual refreshed run assignment handle and installed identity"
+    },
+    {
+      "from": "N-031",
+      "to": "N-032",
+      "payload": "Durable provenance-bound start intents"
+    },
+    {
+      "from": "N-029",
+      "to": "N-032",
+      "payload": "Once-prepared managed input consumers"
+    },
+    {
+      "from": "N-030",
+      "to": "N-032",
+      "payload": "Integrated source gate and delivery checkpoint"
     }
   ],
   "revisions": [
@@ -986,6 +1203,46 @@
       "node": "N-008",
       "why": "closed with no re-plan",
       "precondition": "f2576c109f1de55179e07c7398aa2c4564e12087"
+    },
+    {
+      "verb": "add",
+      "node": "N-026",
+      "why": "Existing selected-input next packet is locally executable while external owner board and publication remain unavailable or occupied"
+    },
+    {
+      "verb": "add",
+      "node": "N-027",
+      "why": "Independent composition review found publisher read lacks coherent reserved vector required by R1; this is a local ADR0152 producer, not blocked on COM"
+    },
+    {
+      "verb": "add",
+      "node": "N-028",
+      "why": "Existing actual run-to-lease mapping prerequisite is locally executable; bounded correlation cannot manufacture R1held or a numeric fence"
+    },
+    {
+      "verb": "add",
+      "node": "N-029",
+      "why": "Existing production seam compiles after admission and may dispatch different instruction; bind same actual body/context through required managed consumers while preserving legacy behavior"
+    },
+    {
+      "verb": "add",
+      "node": "N-030",
+      "why": "Root integrator owns shared CI wiring; parallel module authors do not concurrently edit the shared script"
+    },
+    {
+      "verb": "wave",
+      "node": "N-029",
+      "why": "Independent actual compiler RED reproduced rejected Promise.all releasing producer occupancy with a hung sibling; narrow all-started settlement accounting adds contextPack.ts, ordered after N003"
+    },
+    {
+      "verb": "add",
+      "node": "N-031",
+      "why": "Actual host sampler cannot infer complete workers from PTY map; ADR0154 starts crash-gap-safe durable registration while N030 checks independent frozen source"
+    },
+    {
+      "verb": "add",
+      "node": "N-032",
+      "why": "Concrete launcher coverage is required after intent persistence; neither manifest nor in-memory count proves complete inventory; design now, source after current gate"
     }
   ]
 }

@@ -1,0 +1,91 @@
+{
+  "task": "N029",
+  "state": "frozen_candidate",
+  "files": {
+    "apps/desktop/src/main/preparedLaunchInput.ts": "9e0e74874c802ce515bede2f8da9b91b6c5abdf8549b58341a173d6d90d230aa",
+    "apps/desktop/src/main/managedLaunch.ts": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "apps/desktop/src/main/admitExisting.ts": "997665d476f41354815b226e2c04f53d2622977e8840aa00222be582804bb99e",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "f72f99ea9b275564eb39fedf6e3d9d0e6cb923a82e925d8d2ccb2329000d511a",
+    "apps/desktop/src/main/index.ts": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22",
+    "apps/desktop/src/main/pty.ts": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f",
+    "apps/desktop/src/main/sessionBundle.ts": "2d097ee9da7ede16a384edc9493d42eea593bfd0c4c096494a2ffa4996acff0f",
+    "apps/desktop/src/main/contextPack.ts": "93eaa37061d54b5abbcebe3f02aa6e65d07be3c178b6c08c19f62de3703d1b30",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "d5fe54f90d0a778a6983f8ef53eb3f4629a8a226b8b75c7220f139f4c589778c",
+    "apps/desktop/test/prepared-launch-input.test.mjs": "13ed7a62aab0a561c10fd0a9eca2889078a9f4f338c05ee9c48671f938de07cf",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "8143afb513c30d8ad6d5757abc35cdd43a8156fdac07d99479fbb98980934d9f",
+    "apps/desktop/test/prepared-resource-adapter.test.mjs": "eb69726cab869f7a01599b5c15a7f22c7c9aecf89bdbc1781c0bf862f193a0d6",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "798c301562f776cbcc8dc1a06f00cb1e0575171113b06ea790ad7fe217d46f84",
+    "docs/execution/harness-waves/prepared-launch-input.md": "204e031d1d448673c00eb58f663afc878b46a523149926516cc100a17a308141"
+  },
+  "patchSha256": "701d5f3fa6d339add9aeac561c96e0348ee502375e2df7a95c1a05a15f80d51d",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs",
+      "exit": 0,
+      "passed": 99,
+      "log": "focused-all.log"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs",
+      "exit": 0,
+      "log": "legacy-managed.log"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/session-bundle.test.mjs",
+      "exit": 0,
+      "log": "bundle-regression.log"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs",
+      "exit": 0,
+      "log": "context-mandatory.log"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/context-privacy.test.mjs",
+      "exit": 0,
+      "log": "context-privacy.log"
+    },
+    {
+      "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --typeRoots <existing desktop dependencies>/@types <six changed entry modules; imports contextPack>",
+      "exit": 0,
+      "log": "types-all.log"
+    },
+    {
+      "command": "index.ts TypeScript transpileModule syntax diagnostics",
+      "exit": 0,
+      "limit": "not whole-project typecheck"
+    },
+    {
+      "command": "node scripts/check-scope.mjs",
+      "exit": 0,
+      "log": "scope.log"
+    },
+    {
+      "command": "node scripts/check-ops.mjs",
+      "exit": 0,
+      "log": "ops.log"
+    }
+  ],
+  "negative": {
+    "command": "node --experimental-strip-types --loader ./negative-loader.mjs --test --test-name-pattern=\"shared required|bundle refuses|actual compiler, managed\" apps/desktop/test/prepared-managed-launch.test.mjs",
+    "exit": 1,
+    "failed": 3,
+    "log": "base-red.log",
+    "meaning": "original production consumers ignore/miss prepared input; same tests pass candidate",
+    "independent": "initial Scope mismatch/mutation, closure-scope substitution and compiler sibling I/O accumulation preserved by reviewer; final review pending"
+  },
+  "notRun": [
+    "context-pack.test.mjs stack-backed (overlay helper import failed before stack action)",
+    "actual SQL",
+    "native/provider",
+    "whole-project types/build/full gate"
+  ],
+  "authority": {
+    "resourceModeActivated": false,
+    "activeDDL": false,
+    "native": false,
+    "completeInputDigest": false,
+    "R1HeldOwnership": false,
+    "rootWrites": false
+  }
+}

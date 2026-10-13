@@ -1,0 +1,31 @@
+{
+  "schema": "fabric-independent-review-supplement/1",
+  "node": "N026",
+  "recordedAt": "2026-10-13T06:49:36.173472+00:00",
+  "reviewer": "pipeline_research",
+  "changeAuthor": "root",
+  "verdict": "SCOPED_ACCEPT",
+  "sourceSha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+  "priorSourceSha256": "beefff4978d48fa5ed827492206de8bd0182396eac066843ab578af5803b49fa",
+  "priorReceiptSha256": "4bf08b3c468080de46a88323e6c396c78e5cc556b8b6e8e01d06816662e44e89",
+  "delta": "Exact single-line arrow-to-function declaration change of refuse(reason):never; identical throw body. Programmatic source equality after that one replacement PASS.",
+  "checks": [
+    {
+      "command": "N026_SOURCE=<root source> node --experimental-strip-types --test production-probes.mjs",
+      "exit": 0,
+      "tests": 8,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "command": "N026_SOURCE=<root source> node --experimental-strip-types index-flag-check.mjs",
+      "exit": 0,
+      "result": "actual index flag change yields changed"
+    }
+  ],
+  "findings": [],
+  "limitations": [
+    "No full suite or typecheck run by this reviewer; root owns typecheck/final gates.",
+    "All prior scoped limitations remain."
+  ]
+}

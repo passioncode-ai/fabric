@@ -1,0 +1,12 @@
+  ok   an unattended start whose facts could not be read gets no pack
+  ok   a person's terminal still gets the degraded pack, which says what it could not read
+  ok   an unattended start with every required source answered compiles as before
+  ok   what a session must carry is decided by the trigger the LAUNCH passes, not guessed from the journal
+  ok   the project source counts as met only when the project row EXISTS
+  ok   facts past one read are COUNTED: omittedFacts includes what the gateway did not return
+  ok   the budget includes oversized project/task input and rejects instead of truncating authority
+  ok   invalid and impossibly small budgets cannot produce a pack
+  ok   facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget
+  ok   an empty pack fits its exact size, including the final newline
+
+all green: an unattended start runs on its required context or not at all

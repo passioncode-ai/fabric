@@ -1,0 +1,61 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-030",
+  "node": "N-030",
+  "parent_id": "CO-282",
+  "module": "Shared integration and retained verification",
+  "intent": "Integrate independently reviewed modules without concurrent CI edits",
+  "expected_result": "Source-bound combined checks and durable branch/publication receipts",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "scripts/ci.sh",
+      "apps/desktop/src/main/resourceInputSnapshot.ts",
+      "docs/adr/0154-logical-worker-pools-retain-unresolved-start-intents.md",
+      "docs/adr/README.md",
+      "docs/evidence/plans/task-pipeline-persistence-contract.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Source-bound combined checks and durable branch/publication receipts",
+      "paths": [
+        "scripts/ci.sh",
+        "apps/desktop/src/main/resourceInputSnapshot.ts",
+        "docs/adr/0154-logical-worker-pools-retain-unresolved-start-intents.md",
+        "docs/adr/README.md",
+        "docs/evidence/plans/task-pipeline-persistence-contract.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Focused module receipts, combined fast check, real accounting SQL, exact remote branch and workspace source readback"
+    },
+    {
+      "kind": "negative",
+      "check": "No skipped transport check, unavailable board or publication mismatch is reported as passing"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

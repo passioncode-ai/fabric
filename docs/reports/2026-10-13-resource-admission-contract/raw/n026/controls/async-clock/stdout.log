@@ -1,0 +1,18 @@
+✖ ordinary async clock rejection is consumed and clock rollback unknown (102.195792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 258.283583
+
+✖ failing tests:
+
+test at controls/async-clock/test/resource-input-snapshot.test.mjs:88:1
+✖ ordinary async clock rejection is consumed and clock rollback unknown (102.195792ms)
+  Error: synthetic
+      at now (file:///private<owned-builder-fixture>/controls/async-clock/test/resource-input-snapshot.test.mjs:89:77)
+      at clock (file:///private<owned-builder-fixture>/controls/async-clock/src/main/resourceInputSnapshot.ts:55:26)
+      at inspect (file:///private<owned-builder-fixture>/controls/async-clock/src/main/resourceInputSnapshot.ts:105:65)

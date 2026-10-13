@@ -1,0 +1,63 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-027",
+  "node": "N-027",
+  "parent_id": "CO-282",
+  "module": "Coherent bounded pool reservation accounting read",
+  "intent": "Read coherent policy, observation and held root accounting without execution authority",
+  "expected_result": "Complete bounded root-held accounting from one SQL snapshot; unknown never becomes zero",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourcePoolAccounting.ts",
+      "apps/desktop/test/resource-pool-accounting.test.mjs",
+      "apps/desktop/test/resource-pool-accounting-db.test.mjs",
+      "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+      "apps/desktop/test/run-resource-reservation-db.mjs",
+      "docs/execution/harness-waves/resource-pool-accounting.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Complete bounded root-held accounting from one SQL snapshot; unknown never becomes zero",
+      "paths": [
+        "apps/desktop/src/main/resourcePoolAccounting.ts",
+        "apps/desktop/test/resource-pool-accounting.test.mjs",
+        "apps/desktop/test/resource-pool-accounting-db.test.mjs",
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+        "apps/desktop/test/run-resource-reservation-db.mjs",
+        "docs/execution/harness-waves/resource-pool-accounting.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "ActualSQL exactscope, policy/generation, root-held sums and preserved publisher contract"
+    },
+    {
+      "kind": "negative",
+      "check": "Deniedroles, wrongscope, truncation, overflow, stalegeneration, malformedrows and unresolvedRPC never authorize execution"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

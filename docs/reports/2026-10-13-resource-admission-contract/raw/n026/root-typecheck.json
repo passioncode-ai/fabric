@@ -1,0 +1,10 @@
+{
+  "sourceSha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+  "command": "pnpm --filter @fabric/desktop typecheck",
+  "environment": "pnpm_config_verify_deps_before_run=warn; existing dependencies reused, no install",
+  "originalExit": 2,
+  "failure": "TS18047 regexp result possibly null because control-flow did not narrow through inferred arrow binding",
+  "fix": "Named never-returning refusal function, same throw body",
+  "fixedExit": 0,
+  "limitation": "focused source acceptance; combined gate and clean-install reproducibility separate"
+}

@@ -1,0 +1,8 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json
+src/main/resourceInputSnapshot.ts(124,218): error TS18047: 'm' is possibly 'null'.
+src/main/resourceInputSnapshot.ts(124,229): error TS18047: 'm' is possibly 'null'.
+src/main/resourceInputSnapshot.ts(124,240): error TS18047: 'm' is possibly 'null'.
+<fabric-source>/apps/desktop:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @fabric/desktop@0.3.5 typecheck: `tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json`
+Exit status 2

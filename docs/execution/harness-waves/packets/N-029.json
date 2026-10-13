@@ -1,0 +1,83 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-029",
+  "node": "N-029",
+  "parent_id": "CO-282",
+  "module": "Compile actual managed launch input once before resource admission",
+  "intent": "Bind actual instruction body and context once through supported managed consumers",
+  "expected_result": "Same prepared bytes before reservation, bundle and dispatch; drift and unsupported required paths refuse",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/preparedLaunchInput.ts",
+      "apps/desktop/src/main/managedLaunch.ts",
+      "apps/desktop/src/main/admitExisting.ts",
+      "apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "apps/desktop/src/main/index.ts",
+      "apps/desktop/src/main/pty.ts",
+      "apps/desktop/src/main/sessionBundle.ts",
+      "apps/desktop/src/main/contextPack.ts",
+      "apps/desktop/test/prepared-launch-fixture.mjs",
+      "apps/desktop/test/prepared-launch-input.test.mjs",
+      "apps/desktop/test/prepared-managed-launch.test.mjs",
+      "apps/desktop/test/prepared-resource-adapter.test.mjs",
+      "apps/desktop/test/resource-launch-adapter.test.mjs",
+      "docs/execution/harness-waves/prepared-launch-input.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Same prepared bytes before reservation, bundle and dispatch; drift and unsupported required paths refuse",
+      "paths": [
+        "apps/desktop/src/main/preparedLaunchInput.ts",
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/admitExisting.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/main/sessionBundle.ts",
+        "apps/desktop/src/main/contextPack.ts",
+        "apps/desktop/test/prepared-launch-fixture.mjs",
+        "apps/desktop/test/prepared-launch-input.test.mjs",
+        "apps/desktop/test/prepared-managed-launch.test.mjs",
+        "apps/desktop/test/prepared-resource-adapter.test.mjs",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/prepared-launch-input.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Actual compiler once, existing packet-store byte readback and actual managed dispatch use identical body/context; legacyregressions pass"
+    },
+    {
+      "kind": "negative",
+      "check": "Changedreceipt/target/packet, missingpreparedinputs, chain/override, failedjournal/verification and unresolvedtimeout do not reserve orspawn outside existingproof"
+    },
+    {
+      "kind": "negative",
+      "check": "Actual compiler query rejection or synchronous construction failure cannot release occupancy before all started sibling requests settle"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

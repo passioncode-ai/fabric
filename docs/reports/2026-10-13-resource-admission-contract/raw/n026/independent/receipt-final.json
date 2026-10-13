@@ -1,0 +1,76 @@
+{
+  "schema": "fabric-independent-review/1",
+  "node": "N026",
+  "recordedAt": "2026-10-13T06:48:11.219505+00:00",
+  "reviewer": "pipeline_research",
+  "implementationAuthor": "mcp_research",
+  "independent": true,
+  "verdict": "SCOPED_ACCEPT",
+  "findings": [],
+  "files": {
+    "apps/desktop/src/main/resourceInputSnapshot.ts": "beefff4978d48fa5ed827492206de8bd0182396eac066843ab578af5803b49fa",
+    "apps/desktop/test/resource-input-snapshot.test.mjs": "86bd8ec24a9381c1c1314f0c6d95adace8b68df9e8068898911d05c970af11dd",
+    "docs/execution/harness-waves/resource-input-snapshot.md": "b2255bdd5433e1f4cc9f6a5b317946979d6dcc56193e957a97b08d87bfe08273"
+  },
+  "checks": [
+    {
+      "command": "N026_SOURCE=<frozen source> node --experimental-strip-types --test production-probes.mjs",
+      "exit": 0,
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "artifactSha256": "6b9ff4ab0095d59f1ba03255774e403a7d6c2652fe1749f7297ef674e6ccea46",
+      "coverage": [
+        "raw binary changed",
+        "explicit absent path appeared",
+        "parent symlink refused",
+        "untracked default deny/explicit allow plus mutation",
+        "constructor assignment copy/foreign receipt",
+        "actual HEAD change",
+        "30 repeated timeouts one unresolved call then late settle/fresh read",
+        "ordinary rejected native Promise clock"
+      ]
+    },
+    {
+      "command": "N026_SOURCE=<frozen source> node --experimental-strip-types index-flag-check.mjs",
+      "exit": 0,
+      "result": "capture observed -> actual git update-index --assume-unchanged -> current changed",
+      "artifactSha256": "35a1a551eeec758f0b99a00a8d45f057c61ca85aa27098371a1a73beae20abc0"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs",
+      "exit": 0,
+      "tests": 31,
+      "passed": 31,
+      "failed": 0
+    }
+  ],
+  "negativeControl": {
+    "sourceSha256": "cf376a0371742f61bc2ea0114c1c21180a0ee078f181fb130777839d8fe8842c",
+    "source": "early-index-omission.ts",
+    "command": "N026_SOURCE=<preserved source> node --experimental-strip-types index-flag-check.mjs",
+    "exit": 1,
+    "result": "current incorrectly same after index flag change; identical test passes final source",
+    "log": "index-before.log"
+  },
+  "nonEvidence": [
+    {
+      "case": "actual invalid-UTF8 filename creation",
+      "result": "UNSUPPORTED_LOCAL_FILESYSTEM EILSEQ; not claimed as a reproduced production defect",
+      "replacementControl": "builder focused metadata replacement-character refusal test independently rerun PASS"
+    }
+  ],
+  "sourceReview": [
+    "frozen diff preserves raw file bytes checks, weak receipt provenance, identity and optional lease rechecks",
+    "logical index stage/flags/stat-cache view, exact Git worktree root, and replacement-character refusal close early metadata leads",
+    "no R1held, executionAuthorized remains false, selectionComplete false; mutable-scope selection and authenticated run mapping not invented",
+    "bounded raw file reads; nofollow/nonblock and parent/root/absence rechecks; timeout slot remains until actual I/O cleanup settles",
+    "doc explicitly states cooperative snapshot, trusted DI, no hostile filesystem atomicity or continuous ownership"
+  ],
+  "limitations": [
+    "No DB, active migration, launcher wiring, installed/native runtime acceptance or global inventory tested.",
+    "Trusted identity/selection/run-to-lease producer remains unimplemented; this primitive cannot authorize work.",
+    "No independent full typecheck or whole-repository CI in reviewer scope; parent retains integrated gates.",
+    "Builder-owned four source mutants not independently rerun; acceptance uses independent actual index-flag negative control plus31focused and8independent probes."
+  ]
+}

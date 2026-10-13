@@ -13,6 +13,7 @@
 // work. That is what "one shared admission" means here: not a tidier arrangement
 // of two paths, but the deletion of the second one.
 
+import type { PreparedLaunchPacket } from './preparedLaunchInput.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { admissionOutcome, type AdmitOutcome } from '../shared/admission.ts'
 import type { ResourceLaunchAdapter } from './resourceLaunchAdapter.ts'
@@ -35,8 +36,14 @@ export interface AdmitInput {
  * Absence preserves legacy admission, explicitly NOT_ENFORCED for resources. */
 export function createAdmitExisting(db: Pick<SupabaseClient, 'rpc'>, resources?: ResourceLaunchAdapter) {
   if (resources && resources.mode !== 'required') throw Error('invalid resource admission dependency')
-  const admitExistingTask = async (input: AdmitInput): Promise<AdmitOutcome> => {
-    if (resources) return resources.admit(input)
+  const admitExistingTask = async (input: AdmitInput, prepared?: PreparedLaunchPacket): Promise<AdmitOutcome> => {
+    if (resources) {
+      // The chain's separate pre-admission reaches this same door. Refuse here,
+      // before it can reserve capacity without the exact ordinary launch packet.
+      if (input.trigger === 'chain' || !resources.inputs?.owns(prepared) || prepared.estateId !== input.estateId || prepared.taskId !== input.taskId || prepared.sessionId !== input.sessionId || prepared.trigger !== input.trigger)
+        return { admitted: false, reasonCode: 'resource_prepared_input_required', says: 'This resource launch needs a prepared ordinary task input.', retryable: false }
+      return resources.admit(input, prepared)
+    }
     const { data, error } = await db.rpc('admit_task_launch', {
       p_estate_id: input.estateId,
       p_task_id: input.taskId,

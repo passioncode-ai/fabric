@@ -1,0 +1,72 @@
+{
+  "schema": "fabric-independent-review/1",
+  "node": "N027",
+  "recordedAt": "2026-10-13T07:05:48.386176+00:00",
+  "reviewer": "pipeline_research",
+  "author": "mcp_research",
+  "independent": true,
+  "verdict": "SCOPED_SOURCE_ACCEPT_SQL_NOT_RUN",
+  "findings": [],
+  "files": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770",
+    "apps/desktop/src/main/resourcePoolAccounting.ts": "79b8e9a727ab1be0530f3aa7fa9c591c10b478cb87749708b3db926eeb52a358",
+    "apps/desktop/test/resource-pool-accounting.test.mjs": "e1d4f9eca6e8dfca39cad40d24f2ccbacd358cd5a3a8b69d50786f2e4cb65571",
+    "apps/desktop/test/resource-pool-accounting-db.test.mjs": "4d63382704fab12178a92270269b153417dea266b693cb34e13cbd223b90974f",
+    "docs/execution/harness-waves/resource-pool-accounting.md": "866e1395be0cb803165bdc5a927f3093b1a73b77b17bd060703e6582136ffb61"
+  },
+  "checks": [
+    {
+      "command": "N027_SOURCE=<frozen client> node --experimental-strip-types --test production-probes.mjs",
+      "exit": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "artifactSha256": "5d481f03ec423b24df8ffc7d38706d6e49fb3407aa6781386adf1d9ab4c937c4"
+    },
+    {
+      "command": "N027_SOURCE=<frozen client> node --experimental-strip-types clock-rollback.mjs",
+      "exit": 0,
+      "result": "1000->950 clock rollback, observation880/maxAge100 => unknown",
+      "artifactSha256": "108b3673947e096f93a186d978a1d52d87e3f3700c848b770879132029f312bd"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs",
+      "exit": 0,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0
+    },
+    {
+      "check": "original pending107 byte prefix unchanged",
+      "result": true,
+      "baseSha256": "6f84532c683c50eaaca0390c494d9823287c65a236d719999b92f90adeb1e110"
+    }
+  ],
+  "negativeControl": {
+    "source": "accounting-before.ts",
+    "sourceSha256": "4f169c3a1aba78a4c43d4e2a7789fea16664fc173c301ccd615c11bdd267f8dc",
+    "command": "N027_SOURCE=<preserved early client> node --experimental-strip-types clock-rollback.mjs",
+    "exit": 1,
+    "result": "observed incorrectly returned when rollback revives evidence stale at start",
+    "log": "clock-before.log"
+  },
+  "staticReview": [
+    "new service-only stable security-definer SQL uses one statement with materialized scoped pool/root subset/numeric aggregates/time",
+    "root-held predicate excludes nested and released rows; sums span every Estate in exact host/pool; partial root-only index supports ordered subset",
+    "LIMIT max+1 refuses truncation, numeric sums checked before safe JSON export, policy revision/config generation and observation freshness checked",
+    "new function revoke public/anon/authenticated and execute service_role; existing publisher read response and all old SQL bytes preserved",
+    "client derives full-policy digest, validates expected generation/capacity/maxAge, explicit overlap-credit refusal to claim measurement, observed plus reserved BigInt arithmetic",
+    "retained unsettled RPC slot, clock rollback correction, ordinary rejected native Promise clock consumed, immutable snapshot, no ownership or execution authorization",
+    "actual SQL fixture uses real admission/cancellation for roots+children+twoEstates; overflow/race modifications explicitly owner-only synthetic boundaries; pair-interleaving probe qualified as timing-dependent"
+  ],
+  "actualSQL": {
+    "status": "NOT_RUN",
+    "reason": "root owns shared cluster/heavy slot and disk scheduling; no duplicate DB execution"
+  },
+  "limitations": [
+    "Source acceptance is not SQL conformance or native/activeDDL acceptance; root actualSQL stage still required.",
+    "No independently repeated TypeScript typecheck; builder reports targeted strict types and root owns integration gates.",
+    "No complete inventory, ownership proof, R1 context, launcher wiring or global enforcement certified.",
+    "Physical database work/runtime is not bounded by LIMIT alone; documentation preserves this limit."
+  ]
+}

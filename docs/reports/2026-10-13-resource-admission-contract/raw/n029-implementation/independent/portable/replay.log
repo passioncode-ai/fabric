@@ -1,0 +1,15 @@
+{"pending":1}
+✔ actual compiler rejection cannot release its pending sibling query (27.086542ms)
+✔ ordinary compiler keeps prompt rejection for legacy degraded handling (2.616291ms)
+{"state":"unknown","actualReadEstates":[]}
+✔ equal-looking store.scope replacement cannot hide changed actual closure scope (1.49875ms)
+✔ mismatched constructor estate refuses actual foreign scoped-store projection (0.892667ms)
+✔ changed scoped-store estate cannot supply prepared currentness (13.290875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 191.170542

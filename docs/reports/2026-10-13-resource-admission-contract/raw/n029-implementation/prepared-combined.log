@@ -1,0 +1,41 @@
+✔ actual scoped task and context compile once, exact body bytes and frozen ownership (6.774208ms)
+✔ changed instruction between compiler and second read refuses (0.28475ms)
+✔ changed option_id between compiler and second read refuses (0.811ms)
+✔ changed brief_why between compiler and second read refuses (0.896084ms)
+✔ task-missing cannot yield required prepared packet (0.420042ms)
+✔ task-error cannot yield required prepared packet (0.152292ms)
+✔ project-error cannot yield required prepared packet (1.705333ms)
+✔ budget cannot yield required prepared packet (0.213667ms)
+✔ instruction-limit cannot yield required prepared packet (0.111167ms)
+✔ shell cannot yield required prepared packet (0.162416ms)
+✔ custom-agent cannot yield required prepared packet (0.086875ms)
+✔ mode cannot yield required prepared packet (0.069209ms)
+✔ chain cannot yield required prepared packet (0.030084ms)
+✔ facts-routine cannot yield required prepared packet (0.125292ms)
+✔ before spawn currentness reads actual task/folder, not supplied identity echo (0.2015ms)
+✔ 30 timeouts retain one unsettled I/O, late resolution causes no more reads, fresh preparation succeeds (5.976458ms)
+✔ active packet capacity and release are local bounds, no reservation release (0.278209ms)
+✔ constructor bounds copied, target/body digest corruption rejected (0.217167ms)
+✔ mismatched or mutated actual store scope cannot label another Estate as the configured one (0.139583ms)
+✔ actual compiler retains unsettled sibling after another context read rejects (11.568833ms)
+✔ actual compiler, managed admission, actual bundle files and dispatch share same exact content (8.772333ms)
+✔ receipt instruction drift refuses before begin and uses exact cancellation hook (0.752417ms)
+✔ receipt option_id drift refuses before begin and uses exact cancellation hook (0.48125ms)
+✔ actual task changes after bundle before owned spawn; no process and compensation remains exact (2.34325ms)
+✔ required context journal rejection rolls back bundle and cannot degrade to missing context (1.404917ms)
+✔ required {"trigger":"chain"} refuses before any admission or preparation (0.237ms)
+✔ required {"trigger":"operator","instruction":"override"} refuses before any admission or preparation (0.203791ms)
+✔ required {"trigger":"operator","admission":{"sessionId":"fixed","receipt":{}}} refuses before any admission or preparation (0.228ms)
+✔ shared required admission door refuses early chain and missing packet, never invokes resource or legacy RPC (0.315542ms)
+✔ bundle refuses foreign/copy packet before mint, even when exact bytes match (0.473584ms)
+✔ task changes during resource refresh are checked afterward before SQL/native spawn (2.212292ms)
+✔ bound resource adapter sees exact content packet while full inputDigest retains separate producer identity (5.687708ms)
+✔ required prepared adapter refuses missing/foreign packet before preparation/RPC and changed packet on cached session (1.679958ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 236.668625

@@ -1,0 +1,61 @@
+--- a/apps/desktop/src/main/resourceRunAssignment.ts
++++ b/apps/desktop/src/main/resourceRunAssignment.ts
+@@ -90,18 +90,23 @@
+     const stat=await fs.lstat(dir)
+     if (await fs.realpath(dir) !== dir || !stat.isDirectory() || (dir===c.storageRoot && (stat.mode & 0o777)!==0o700)) throw Error('directory_unknown')
+   }
++  function checkStoreScope() {
++    if (deps.store.scope !== scope || scope.kind !== 'estate' || scope.estateId !== c.estateId) throw Error('store_scope_changed')
++  }
+   async function membership(taskId: string) {
+-    if (deps.store.scope.kind !== 'estate' || deps.store.scope.estateId !== c.estateId) throw Error('store_scope_changed')
++    checkStoreScope()
+     const answers = await Promise.allSettled([
+       Promise.resolve().then(()=>deps.store.select('project_tasks', 'id,project_id').eq('id', taskId).maybeSingle()),
+       Promise.resolve().then(()=>deps.store.select('projects', 'id,repo_path').eq('id', c.projectId).maybeSingle())
+     ])
++    checkStoreScope()
+     if (answers[0].status !== 'fulfilled' || answers[1].status !== 'fulfilled') throw Error('membership_unknown')
+     const task=answers[0].value, project=answers[1].value
+     if (task.error || project.error) throw Error('membership_unknown')
+     const t = record(task.data), p = record(project.data)
+     if (t.id !== taskId || t.project_id !== c.projectId || p.id !== c.projectId || p.repo_path !== c.repositoryRoot) throw Error('membership_changed')
+     await canonicalDirectory(c.repositoryRoot)
++    checkStoreScope()
+   }
+   async function manifest(): Promise<Record<string, unknown>> {
+     const bytes = await read(c.manifestPath, manifestLimit)
+@@ -131,7 +136,7 @@
+     busy = true
+     let active = true, timer: ReturnType<typeof setTimeout> | undefined
+     const start = performance.now()
+-    const check = () => { if (!active || performance.now() - start >= timeout) throw Error('operation_expired') }
++    const check = () => { checkStoreScope(); if (!active || performance.now() - start >= timeout) throw Error('operation_expired') }
+     const work = Promise.resolve().then(() => body(check)).then(value => { check(); return {state:'observed', value, executionAuthorized:false, ownership:'unproven'} as Result<T> }, () => failure('evidence_unavailable'))
+     // Keep occupancy through descriptor/lock cleanup, even after the caller times out.
+     void work.then(() => { busy=false }, () => { busy=false })
+--- a/apps/desktop/test/resource-run-assignment.test.mjs
++++ b/apps/desktop/test/resource-run-assignment.test.mjs
+@@ -1,5 +1,6 @@
+ import nodeTest from 'node:test'
+ import {existsSync} from 'node:fs'
++import {createScopedStore} from '../src/main/scopedStore.ts'
+ import assert from 'node:assert/strict'
+ import * as fs from 'node:fs/promises'
+ import path from 'node:path'
+@@ -66,3 +67,15 @@
+ nodeTest('helper refuses unsupported source without importing or executing its body',async t=>{const root=await fs.mkdtemp(path.join(os.tmpdir(),'n028-helper-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const source=path.join(root,'unsupported.py'),sentinel=path.join(root,'sentinel');await fs.writeFile(source,`open(${JSON.stringify(sentinel)},'w').write('bad')`);assert.throws(()=>execFileSync('python3',['-I',new URL('../../../scripts/resourceAgentSyncIdentity.py',import.meta.url).pathname,source,'fabric000001'],{cwd:root,env:{PATH:process.env.PATH,AGENT_SYNC_RUN_ID:'fabric000001'},stdio:'pipe'}));assert.equal((await fs.readdir(root)).includes('sentinel'),false)})
+ test('two actual managers cannot both allocate one session under exclusive lock',async t=>{const f=await fixture(t),a=f.make(),b=f.make({key:()=> 'fabric000002'});const r=await Promise.all([a.allocate({taskId:'task',sessionId:'session'}),b.allocate({taskId:'task',sessionId:'session'})]);assert.equal(r.filter(x=>x.state==='observed').length,1);assert.equal((await fs.readdir(f.storeRoot)).filter(x=>x.endsWith('.json')).length,1)})
+ test('synchronous second query throw cannot release first pending query',async t=>{const f=await fixture(t,{timeoutMs:30});let release,calls=0;const pending=new Promise(r=>release=r);const store={scope:f.store.scope,select(table){if(table==='projects')throw Error('sync builder failure');return {eq(){return {maybeSingle(){calls++;return pending}}}}}};const m=f.make({store});assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'timeout');for(let i=0;i<15;i++)assert.equal((await m.allocate({taskId:'task',sessionId:'session'})).reason,'io_outstanding');assert.equal(calls,1);release({data:f.state.task,error:null});await pause(20)})
++
++test('actual ScopedStore estate mutation during membership invalidates refreshed identity',async t=>{
++ const f=await fixture(t);let mutate=false;const scope={kind:'estate',estateId:'estate'}
++ const db={from(table){return {select(){return this},eq(){return this},async maybeSingle(){await Promise.resolve();if(mutate)scope.estateId='foreign';return {data:table==='project_tasks'?f.state.task:f.state.project,error:null}}}}}
++ const store=createScopedStore(db,scope),a=await f.allocate(f.make({store}));mutate=true
++ const result=await a.manager.readIdentity(a.handle);assert.equal(result.state,'unknown','membership after scope drift cannot certify original estate')
++ assert.equal(scope.estateId,'foreign');assert.equal((await fs.readdir(f.storeRoot)).filter(n=>n.endsWith('.json')).length,1)
++})
++test('replaced equal-looking scope cannot substitute captured store binding',async t=>{
++ const f=await fixture(t),a=await f.allocate();f.store.scope={kind:'estate',estateId:'estate'}
++ assert.equal((await a.manager.readIdentity(a.handle)).state,'unknown')
++})

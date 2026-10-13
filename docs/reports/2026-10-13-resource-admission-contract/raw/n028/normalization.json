@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "node": "N028",
+  "note": "Historical receipt content preserved except documented literal path normalization. Digests inside receipts continue to identify original bytes; never interpreted as hashes of normalized files. Snapshot names do not create source ownership.",
+  "files": [
+    {
+      "origin": "builder/receipt.json",
+      "stored": "builder/receipt.json",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "c4a1e307301f4ff01c17d5fe1cebf1a93465bb625cfd86f8cf2d2400c27fe8ab",
+      "stored_sha256": "c4a1e307301f4ff01c17d5fe1cebf1a93465bb625cfd86f8cf2d2400c27fe8ab",
+      "normalization": []
+    },
+    {
+      "origin": "builder/receipt-accepted.json",
+      "stored": "builder/receipt-accepted.json",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "e8b0cc66055571309c5541ad3abb8fca1529af70658a2f625260a12cf5f2f3df",
+      "stored_sha256": "e8b0cc66055571309c5541ad3abb8fca1529af70658a2f625260a12cf5f2f3df",
+      "normalization": []
+    },
+    {
+      "origin": "builder/focused-initial.log",
+      "stored": "builder/focused-initial.log",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "691060d1916559dce6f2f8b179cd334d6c7430d3b9ef7ff81f00b630b75fcb8e",
+      "stored_sha256": "77ad3716c09762dc9c3c50d0ed3cc8d3d84e3c1adec6d5f5066b5e5971ad5475",
+      "normalization": [
+        "Literal private prefix replaced with <BUILDER>",
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    },
+    {
+      "origin": "builder/focused.log",
+      "stored": "builder/focused.log",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "e1fc6b6fbcda4b66471b64f17f0f84c2b59a2192dc473ef8f207f7f6c17a0409",
+      "stored_sha256": "e1fc6b6fbcda4b66471b64f17f0f84c2b59a2192dc473ef8f207f7f6c17a0409",
+      "normalization": []
+    },
+    {
+      "origin": "builder/pre-hardening.snapshot.txt",
+      "stored": "builder/pre-hardening.snapshot.txt",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "stored_sha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "normalization": []
+    },
+    {
+      "origin": "builder/pre-nested-transport.snapshot.txt",
+      "stored": "builder/pre-nested-transport.snapshot.txt",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "stored_sha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "normalization": []
+    },
+    {
+      "origin": "builder/pre-sync-query.snapshot.txt",
+      "stored": "builder/pre-sync-query.snapshot.txt",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "49114aba0e181d80c829d9db76ca3ed90f85560fb3f5ac6f9dd3a2f44f7fd18e",
+      "stored_sha256": "49114aba0e181d80c829d9db76ca3ed90f85560fb3f5ac6f9dd3a2f44f7fd18e",
+      "normalization": []
+    },
+    {
+      "origin": "builder/n028.patch",
+      "stored": "builder/n028.patch",
+      "role": "historical evidence; original receipt hash references remain original",
+      "original_sha256": "3920733517c35ea0584b3680d34ee81109da740741b49affc453b60c7444111c",
+      "stored_sha256": "3920733517c35ea0584b3680d34ee81109da740741b49affc453b60c7444111c",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "reviewer/before/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/apps/desktop/src/main/lease-occupancy-before.ts",
+      "stored": "reviewer/before/apps/desktop/src/main/lease-occupancy-before.ts.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "stored_sha256": "5e4db1c5a7e0407c7cf2b0b53b1fc2d8767f96b1c0cb303abe12adf3499b003b",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "reviewer/before/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "reviewer/before/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "stored_sha256": "d611318b465d51d0313fbf02977fb9605dd179e30cb3c9a32f408380872d3ce6",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/apps/desktop/src/main/sync-sibling-before.ts",
+      "stored": "reviewer/before/apps/desktop/src/main/sync-sibling-before.ts.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "stored_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/before/scripts/resourceAgentSyncIdentity.py",
+      "stored": "reviewer/before/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "d9506e9d1b82499d3ab153d9cdcbe2c926f06c34a3401594f0af8bf43ada382d",
+      "stored_sha256": "d9506e9d1b82499d3ab153d9cdcbe2c926f06c34a3401594f0af8bf43ada382d",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/composition-probe.mjs",
+      "stored": "reviewer/composition-probe.mjs.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "614fdb4e6109ee718446a584d3467f235651c26b966d476fac6f7bb52c3a7f74",
+      "stored_sha256": "344b4951a6eff94959851fab6a38d2165afde04ac3fe523a1d9b8bc392ba1a54",
+      "normalization": [
+        "Literal private prefix replaced with <HOME>"
+      ]
+    },
+    {
+      "origin": "reviewer/composition-probe.mjs",
+      "stored": "probes/composition-probe.mjs",
+      "role": "portable derivative independent probe",
+      "original_sha256": "614fdb4e6109ee718446a584d3467f235651c26b966d476fac6f7bb52c3a7f74",
+      "stored_sha256": "185f069e32fddf767a7c62f7a9e27876eea03670eb0a99b504f575ef255ee257",
+      "normalization": [
+        "Pinned installed path replaced by required N028_AGENT_SYNC_SCRIPT; assertion only, probe body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/early-before.log",
+      "stored": "reviewer/early-before.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "ecb0a55ec76118c3941506badec6890c8ac562d599cbe3e13f69caf5a174ff31",
+      "stored_sha256": "ecb0a55ec76118c3941506badec6890c8ac562d599cbe3e13f69caf5a174ff31",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/early-original-red.log",
+      "stored": "reviewer/early-original-red.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "36b8c5787e6398a34b7b1790836f293ba7eaca38524a2c2805905068b53dffe6",
+      "stored_sha256": "21d932f4ecfe117056c42d74bb7ec705d6140f729421ee65a13f7a7c65d0a892",
+      "normalization": [
+        "Literal private prefix replaced with <REVIEWER>",
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/early-probes.mjs",
+      "stored": "reviewer/early-probes.mjs.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "817d79b79880338e480e2999b6a2f3e895482a934bf83a89fae2c90b2b1d94a3",
+      "stored_sha256": "c21631555ebdfb8282314e568a49a2a3d6716ac9f14892f63a0c81d5123d681f",
+      "normalization": [
+        "Literal private prefix replaced with <HOME>"
+      ]
+    },
+    {
+      "origin": "reviewer/early-probes.mjs",
+      "stored": "probes/early-probes.mjs",
+      "role": "portable derivative independent probe",
+      "original_sha256": "817d79b79880338e480e2999b6a2f3e895482a934bf83a89fae2c90b2b1d94a3",
+      "stored_sha256": "b01323abc5cf5588bed5220043c61b9987ddde98a0b0e626b46f4d2c77e0412d",
+      "normalization": [
+        "Pinned installed path replaced by required N028_AGENT_SYNC_SCRIPT; assertion only, probe body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/executed-final.json",
+      "stored": "reviewer/executed-final.json",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "2db31303e807bbf8d8ef1f7f05ede9ad5ce974ff598217b047dd762f7db9fdb3",
+      "stored_sha256": "b6dd4a2eb80dca2a6e620c580ca792c8d1c8a9076f10bde5622da89b7ffb7197",
+      "normalization": [
+        "Literal private prefix replaced with <BUILDER>",
+        "Literal private prefix replaced with <REVIEWER>"
+      ]
+    },
+    {
+      "origin": "reviewer/focused-final.log",
+      "stored": "reviewer/focused-final.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "1c2e366aedd80eba75a1448b473343d99c6f5a6f8fabe7fdb95e71318f808a5a",
+      "stored_sha256": "1c2e366aedd80eba75a1448b473343d99c6f5a6f8fabe7fdb95e71318f808a5a",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/independent-final.log",
+      "stored": "reviewer/independent-final.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "6b61c4b7f38fa01eaf37e902083491187a098b6f8bd6416bf5427475701779fb",
+      "stored_sha256": "6b61c4b7f38fa01eaf37e902083491187a098b6f8bd6416bf5427475701779fb",
+      "normalization": []
+    },
+    {
+      "origin": "reviewer/lease-before.log",
+      "stored": "reviewer/lease-before.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "9619d427091ef40169e697c2eca95083cf680b90a3ff34c89fe74790ac235e59",
+      "stored_sha256": "a3805a9752e0ad3c08441d864c3f8a9978f0631f59aadcf6e0176ef3ff2f5d79",
+      "normalization": [
+        "Literal private prefix replaced with <REVIEWER>",
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/lease-original-red.log",
+      "stored": "reviewer/lease-original-red.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "f334105caa8127b071b490c7191b5c710d174cff3d4deaccedb6433ec6ee7dca",
+      "stored_sha256": "db541cb1143d3168ba1a9362c5719f8af09f09476641a77e6eebf45d4ac859fd",
+      "normalization": [
+        "Literal private prefix replaced with <REVIEWER>",
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/lease-probe.mjs",
+      "stored": "reviewer/lease-probe.mjs.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "a219f078db485bb073a5846e5d6e3f38f3fc3248b0cc17f30ec94d0b21eb94fd",
+      "stored_sha256": "43efb10f910dd4936b7d4b704ee23bba2f9d70b90c1acfddf834c6799a4084d6",
+      "normalization": [
+        "Literal private prefix replaced with <HOME>"
+      ]
+    },
+    {
+      "origin": "reviewer/lease-probe.mjs",
+      "stored": "probes/lease-probe.mjs",
+      "role": "portable derivative independent probe",
+      "original_sha256": "a219f078db485bb073a5846e5d6e3f38f3fc3248b0cc17f30ec94d0b21eb94fd",
+      "stored_sha256": "e640d0b27f47975ca42e0702adc3e86bf724330f7d551b5f0881a64a063569d2",
+      "normalization": [
+        "Pinned installed path replaced by required N028_AGENT_SYNC_SCRIPT; assertion only, probe body unchanged"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-final.json",
+      "stored": "reviewer/receipt-final.json",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "ca00961df89e0c1ecff7cb42a262425faf15dd20e8d529a39b2cd735ac512b3a",
+      "stored_sha256": "cc887e7f8d8c18dc09e4c093452ac76f5a470bf082336007cbcae1bac22c7dc5",
+      "normalization": [
+        "Literal private prefix replaced with <BUILDER>",
+        "Literal private prefix replaced with <REVIEWER>"
+      ]
+    },
+    {
+      "origin": "reviewer/sync-sibling-original-red.log",
+      "stored": "reviewer/sync-sibling-original-red.log",
+      "role": "reviewer historical receipt/log",
+      "original_sha256": "1b64cf4703e81f437fd276b3ab430d706f0b38b4c8662e198d2ebe74d956e09e",
+      "stored_sha256": "4b74a677918777ea193daaf86f659c36c990462470459b100355d62f4593c4bf",
+      "normalization": [
+        "Literal private prefix replaced with <REVIEWER>",
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    },
+    {
+      "origin": "reviewer/sync-sibling.mjs",
+      "stored": "reviewer/sync-sibling.mjs.snapshot.txt",
+      "role": "historical evidence; not executable source",
+      "original_sha256": "bafb646ba87473aee1a6c490eb37f1074aedbee58c1928a0c9e56697bdbf870c",
+      "stored_sha256": "6f600e57354dcd9df279483bc385ba54aa44d31b5ef3c4d583e2399188734e7d",
+      "normalization": [
+        "Literal private prefix replaced with <HOME>"
+      ]
+    },
+    {
+      "origin": "reviewer/sync-sibling.mjs",
+      "stored": "probes/sync-sibling.mjs",
+      "role": "portable derivative independent probe",
+      "original_sha256": "bafb646ba87473aee1a6c490eb37f1074aedbee58c1928a0c9e56697bdbf870c",
+      "stored_sha256": "bf41056ce3d3350db8b2e56b82483e18fe97e4db421900cd2e8460d87720e253",
+      "normalization": [
+        "Pinned installed path replaced by required N028_AGENT_SYNC_SCRIPT; assertion only, probe body unchanged"
+      ]
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "stored_sha256": "7827f362f25b364601919f068cd7d0503f79007375cf302b254b06a8e33e6d65",
+      "normalization": []
+    },
+    {
+      "origin": "builder/scripts/resourceAgentSyncIdentity.py",
+      "stored": "accepted/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "stored_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/test/resource-run-assignment.test.mjs",
+      "stored": "accepted/apps/desktop/test/resource-run-assignment.test.mjs.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa",
+      "stored_sha256": "1ea9cd1692a619102847e88ede8698ec852d6f09e72ca77e1d41e931a134f7fa",
+      "normalization": []
+    },
+    {
+      "origin": "builder/docs/execution/harness-waves/resource-run-assignment.md",
+      "stored": "accepted/docs/execution/harness-waves/resource-run-assignment.md.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b",
+      "stored_sha256": "bca4a495a44f4a652c1331e837f3448ff8bff468755e2a24494579b7d810ea3b",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "accepted/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "builder/apps/desktop/src/main/gitRun.ts",
+      "stored": "accepted/apps/desktop/src/main/gitRun.ts.snapshot.txt",
+      "role": "exact accepted source or dependency archive; replay only",
+      "original_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "stored_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "normalization": []
+    },
+    {
+      "origin": "packaging/accepted-replay.log",
+      "stored": "package-replay.log",
+      "role": "new portable accepted replay: exit0,27focused+5independent,zero skips",
+      "original_sha256": "14c33ad3b6e8e4774ad5392d048e46bd3d8ca47b8d04070766ad3fe30093469e",
+      "stored_sha256": "14c33ad3b6e8e4774ad5392d048e46bd3d8ca47b8d04070766ad3fe30093469e",
+      "normalization": [
+        "Log trailing whitespace stripped; one final LF"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+// #region resource-run-assignment — docs: docs/execution/harness-waves/resource-run-assignment.md#contract
+import * as fs from 'node:fs/promises'
+import { constants } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createHash, randomBytes, randomUUID } from 'node:crypto'
+import { execFile } from 'node:child_process'
+import type { ScopedStore } from './scopedStore.ts'
+import { createResourceInputSnapshotReader, type InputAssignment, type InputIdentity } from './resourceInputSnapshot.ts'
+import { createGitLeaseSnapshotReader, leaseGit, type LeaseGitRunner, type LeaseSnapshotDeps } from './gitLeaseSnapshot.ts'
+
+export const AGENT_SYNC_IDENTITY_SOURCE_SHA256 = 'fba3e2d99cad3982b3d81cab9c2ae7a255265ddddcd249aee81dca866e457ee1'
+export interface RunAssignmentConfig {
+  estateId: string; projectId: string; installationId: string; invocationId: string
+  repositoryRoot: string; approvedRemote: string; repositoryName: string
+  manifestPath: string; manifestSha256: string; storageRoot: string; agentSyncScript: string
+  timeoutMs: number; maxRecords: number; maxRecordBytes: number; maxManifestBytes: number
+}
+export interface RunAssignmentDeps {
+  store: Pick<ScopedStore, 'scope' | 'select'>
+  /** Trusted infrastructure seams, never task-selected. */
+  key?: () => string
+  now?: () => number
+  lease?: LeaseSnapshotDeps
+}
+export interface RunAssignmentHandle { readonly runId: string }
+type Result<T> = { state: 'observed'; value: T; executionAuthorized: false; ownership: 'unproven' }
+  | { state: 'unknown' | 'refused'; reason: string; executionAuthorized: false; ownership: 'unproven' }
+interface Mapping { schema: 1; installationId: string; invocationId: string; key: string; runId: string; scriptSha256: string; manifestSha256: string; leaseTarget: { key: string; scopeMappingRevision: string; repositoryName: string; remoteDigest: string }; assignment: InputAssignment }
+const hash = (bytes: string | Buffer) => createHash('sha256').update(bytes).digest('hex')
+const record = (raw: unknown): Record<string, unknown> => {
+  if (!raw || typeof raw !== 'object' || Object.getPrototypeOf(raw) !== Object.prototype) throw Error('invalid_data')
+  const entries = Object.entries(Object.getOwnPropertyDescriptors(raw))
+  if (Reflect.ownKeys(raw).length !== entries.length || entries.some(([, d]) => !('value' in d))) throw Error('invalid_data')
+  return Object.fromEntries(entries.map(([k, d]) => [k, d.value]))
+}
+const id = (v: unknown): string => { if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v)) throw Error('invalid_id'); return v }
+const sha = (v: unknown): string => { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) throw Error('invalid_digest'); return v }
+const positive = (v: unknown, max: number): number => { if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 1 || v > max) throw Error('invalid_bound'); return v }
+const freeze = <T>(v: T): T => { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v) }; return v }
+function failure(reason: string): Result<never> { return { state: 'unknown', reason, executionAuthorized: false, ownership: 'unproven' } }
+function stamp(s: import('node:fs').Stats) { return [s.dev, s.ino, s.size, s.mtimeMs, s.ctimeMs].join(':') }
+function relative(raw: unknown): string {
+  if (typeof raw !== 'string' || raw.length > 1024 || raw.startsWith('/') || /[\\\x00-\x1f\x7f]/.test(raw) || raw.split('/').some(x => !x || x === '.' || x === '..' || x === '.git')) throw Error('invalid_path')
+  return raw
+}
+function nativePromise(value: unknown) {
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype && !Object.hasOwn(value, 'constructor')) {
+    try { void Promise.prototype.then.call(value, undefined, () => {}) } catch { /* A spoof is invalid clock data; never trusted as a Promise. */ }
+  }
+}
+/** This producer never acquires a lease, supplies R1 held or starts a child agent. */
+export function createResourceRunAssignmentManager(raw: RunAssignmentConfig, deps: RunAssignmentDeps) {
+  const c = freeze({ ...record(raw) }) as unknown as Readonly<RunAssignmentConfig>
+  for (const k of ['estateId','projectId','installationId','invocationId','repositoryName'] as const) id(c[k])
+  sha(c.manifestSha256)
+  for (const k of ['repositoryRoot','manifestPath','storageRoot','agentSyncScript'] as const) if (typeof c[k] !== 'string' || !path.isAbsolute(c[k]) || path.normalize(c[k]) !== c[k]) throw Error('invalid_path')
+  const remote = new URL(c.approvedRemote)
+  if (remote.protocol !== 'https:' || remote.username || remote.password || remote.search || remote.hash) throw Error('invalid_remote')
+  const timeout = positive(c.timeoutMs, 30000), count = positive(c.maxRecords, 4096), recordLimit = positive(c.maxRecordBytes, 131072), manifestLimit = positive(c.maxManifestBytes, 65536)
+  const scope = deps.store.scope
+  if (scope.kind !== 'estate' || scope.estateId !== c.estateId) throw Error('wrong_store_scope')
+  const handles = new WeakMap<object, { mapping: Mapping; bytes: string; leaseReader?: ReturnType<typeof createGitLeaseSnapshotReader> }>()
+  let busy = false
+  let leasePending: Promise<string> | null = null
+  const trackedLeaseGit: LeaseGitRunner = (args, options) => {
+    if (leasePending) return Promise.reject(Error('lease_io_outstanding'))
+    const pending=Promise.resolve().then(()=> (deps.lease?.git ?? leaseGit)(args,options)); leasePending=pending
+    const settled=()=>{if(leasePending===pending)leasePending=null}
+    void pending.then(settled,settled); return pending
+  }
+  function now() {
+    const v: unknown = (deps.now ?? Date.now)(); nativePromise(v)
+    if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 0) throw Error('clock_unknown')
+    return v
+  }
+  async function read(file: string, max: number): Promise<Buffer> {
+    const fd = await fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK)
+    try {
+      const before = await fd.stat()
+      if (!before.isFile() || before.nlink !== 1 || before.size > max) throw Error('file_unknown')
+      const bytes = Buffer.alloc(max + 1); let used = 0
+      while (used <= max) { const r = await fd.read(bytes, used, max + 1 - used, used); if (!r.bytesRead) break; used += r.bytesRead }
+      const after = await fd.stat(), linked = await fs.lstat(file)
+      if (used > max || stamp(before) !== stamp(after) || stamp(after) !== stamp(linked) || linked.isSymbolicLink()) throw Error('file_changed')
+      return bytes.subarray(0, used)
+    } finally { await fd.close() }
+  }
+  async function canonicalDirectory(dir: string) {
+    const stat=await fs.lstat(dir)
+    if (await fs.realpath(dir) !== dir || !stat.isDirectory() || (dir===c.storageRoot && (stat.mode & 0o777)!==0o700)) throw Error('directory_unknown')
+  }
+  async function membership(taskId: string) {
+    if (deps.store.scope.kind !== 'estate' || deps.store.scope.estateId !== c.estateId) throw Error('store_scope_changed')
+    const answers = await Promise.allSettled([
+      deps.store.select('project_tasks', 'id,project_id').eq('id', taskId).maybeSingle(),
+      deps.store.select('projects', 'id,repo_path').eq('id', c.projectId).maybeSingle()
+    ])
+    if (answers[0].status !== 'fulfilled' || answers[1].status !== 'fulfilled') throw Error('membership_unknown')
+    const task=answers[0].value, project=answers[1].value
+    if (task.error || project.error) throw Error('membership_unknown')
+    const t = record(task.data), p = record(project.data)
+    if (t.id !== taskId || t.project_id !== c.projectId || p.id !== c.projectId || p.repo_path !== c.repositoryRoot) throw Error('membership_changed')
+    await canonicalDirectory(c.repositoryRoot)
+  }
+  async function manifest(): Promise<Record<string, unknown>> {
+    const bytes = await read(c.manifestPath, manifestLimit)
+    if (hash(bytes) !== c.manifestSha256) throw Error('manifest_changed')
+    const m = record(JSON.parse(bytes.toString('utf8')))
+    if (Object.keys(m).sort().join(',') !== 'bounds,configuredKey,expectedHead,mutableScope,scopeMappingRevision,selectedInputs,selectionRevision') throw Error('invalid_manifest')
+    id(m.selectionRevision); id(m.scopeMappingRevision); id(m.configuredKey)
+    if (typeof m.expectedHead !== 'string' || !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(m.expectedHead)) throw Error('invalid_head')
+    const bounds = record(m.bounds)
+    const maxima: Record<string, number> = {maxPaths:128,maxDepth:32,maxPathBytes:1024,maxFileBytes:16*1024*1024,maxTotalBytes:32*1024*1024,maxMetadataBytes:1024*1024,timeoutMs:30000,maxAgeMs:300000}
+    if (Object.keys(bounds).sort().join() !== Object.keys(maxima).sort().join()) throw Error('invalid_bounds')
+    for (const [k,max] of Object.entries(maxima)) positive(bounds[k],max)
+    if (!Array.isArray(m.selectedInputs) || !Array.isArray(m.mutableScope) || m.selectedInputs.length < 1 || m.selectedInputs.length + m.mutableScope.length > Number(bounds.maxPaths)) throw Error('invalid_selection')
+    for (const [items, mutable] of [[m.selectedInputs,false],[m.mutableScope,true]] as const) {
+      const seen = new Set<string>()
+      for (const item of items) {
+        const row = record(item), p = relative(row.path)
+        if (p.length > Number(bounds.maxPathBytes) || p.split('/').length > Number(bounds.maxDepth) || seen.has(p)) throw Error('invalid_selection')
+        seen.add(p)
+        if (mutable ? Object.keys(row).sort().join() !== 'path,state' || !['file','absent'].includes(String(row.state)) : Object.keys(row).some(k => k !== 'path' && k !== 'allowUntracked') || ('allowUntracked' in row && row.allowUntracked !== true)) throw Error('invalid_selection')
+      }
+    }
+    return m
+  }
+  async function operation<T>(body: (check: () => void) => Promise<T>): Promise<Result<T>> {
+    if (busy) return failure('io_outstanding')
+    busy = true
+    let active = true, timer: ReturnType<typeof setTimeout> | undefined
+    const start = performance.now()
+    const check = () => { if (!active || performance.now() - start >= timeout) throw Error('operation_expired') }
+    const work = Promise.resolve().then(() => body(check)).then(value => { check(); return {state:'observed', value, executionAuthorized:false, ownership:'unproven'} as Result<T> }, () => failure('evidence_unavailable'))
+    // Keep occupancy through descriptor/lock cleanup, even after the caller times out.
+    void work.then(() => { busy=false }, () => { busy=false })
+    try { return await Promise.race([work, new Promise<Result<T>>(resolve => { timer=setTimeout(() => { active=false; resolve(failure('timeout')) },timeout) })]) }
+    catch { /* Late/expired evidence cannot become a correlation receipt. */ return failure('evidence_unavailable') }
+    finally { if (timer) clearTimeout(timer); active=false }
+  }
+  async function derive(key: string, scratch: string): Promise<string> {
+    const helper = fileURLToPath(new URL('../../../../scripts/resourceAgentSyncIdentity.py', import.meta.url))
+    const stdout = await new Promise<string>((resolve,reject) => execFile('python3', ['-I', helper, c.agentSyncScript, key], {
+      cwd:scratch, timeout, killSignal:'SIGKILL', maxBuffer:4096,
+      env:{PATH:process.env.PATH ?? '/usr/bin:/bin',AGENT_SYNC_RUN_ID:key}
+    }, (error,out) => error ? reject(Error('identity_unknown')) : resolve(out)))
+    const r=record(JSON.parse(stdout))
+    if (Object.keys(r).sort().join() !== 'key,runId,scriptSha256' || r.key!==key || r.runId!==`r-${key}` || r.scriptSha256!==AGENT_SYNC_IDENTITY_SOURCE_SHA256) throw Error('identity_unknown')
+    return r.runId as string
+  }
+  async function mapping(handle: RunAssignmentHandle) {
+    const held = handles.get(handle)
+    if (!held || held.mapping.invocationId !== c.invocationId) throw Error('foreign_handle')
+    await canonicalDirectory(c.storageRoot)
+    if ((await read(path.join(c.storageRoot, held.mapping.runId+'.json'), recordLimit)).toString('utf8') !== held.bytes) throw Error('mapping_changed')
+    if (hash(await read(c.agentSyncScript,2_000_000))!==AGENT_SYNC_IDENTITY_SOURCE_SHA256) throw Error('installed_source_changed')
+    await manifest(); await membership(held.mapping.assignment.taskId)
+    return held.mapping
+  }
+  return {
+    allocate(input: {taskId:string;sessionId:string}) {
+      return operation(async check => {
+        const inputCopy=record(input), taskId=id(inputCopy.taskId), sessionId=id(inputCopy.sessionId)
+        if (Object.keys(inputCopy).sort().join()!=='sessionId,taskId') throw Error('invalid_identity')
+        await canonicalDirectory(c.storageRoot); await membership(taskId); const m=await manifest(); now(); check()
+        const lockPath=path.join(c.storageRoot,'.allocate.lock')
+        const lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+        const lockStat=await lock.stat()
+        let scratch:string|undefined
+        try {
+          const names:string[]=[]; const dir=await fs.opendir(c.storageRoot)
+          for await (const entry of dir) { if (entry.name==='.allocate.lock') continue; if (!/^r-[a-z0-9]{12}\.json$/.test(entry.name) || !entry.isFile() || names.length>=count) throw Error('registry_unavailable'); names.push(entry.name) }
+          if (names.length>=count) throw Error('registry_capacity')
+          const records:Mapping[]=[]
+          for (const name of names) {
+            check(); const old=record(JSON.parse((await read(path.join(c.storageRoot,name),recordLimit)).toString('utf8'))) as unknown as Mapping
+            if (Object.keys(old).sort().join()!=='assignment,installationId,invocationId,key,leaseTarget,manifestSha256,runId,schema,scriptSha256') throw Error('registry_unavailable')
+            id(old.installationId); id(old.invocationId); sha(old.manifestSha256)
+            const target=record(old.leaseTarget)
+            if (Object.keys(target).sort().join()!=='key,remoteDigest,repositoryName,scopeMappingRevision') throw Error('registry_unavailable')
+            id(target.key); id(target.scopeMappingRevision); id(target.repositoryName); sha(target.remoteDigest)
+            createResourceInputSnapshotReader(old.assignment,{identity:()=>null})
+            if (old.schema!==1 || old.runId+'.json'!==name || old.runId!==`r-${old.key}` || old.scriptSha256!==AGENT_SYNC_IDENTITY_SOURCE_SHA256 || !old.assignment || typeof old.assignment.sessionId!=='string') throw Error('registry_unavailable')
+            if (old.assignment.sessionId===sessionId) throw Error('session_reused'); records.push(old)
+          }
+          const key: unknown=(deps.key ?? (()=>randomBytes(8).toString('hex').slice(0,12)))(); nativePromise(key)
+          if (typeof key !== 'string' || !/^[a-z0-9]{12}$/.test(key)) throw Error('invalid_key')
+          if (records.some(r=>r.key===key)) throw Error('identity_collision')
+          scratch=await fs.mkdtemp(path.join(c.storageRoot,'identity-'))
+          const runId=await derive(key,scratch); await fs.rmdir(scratch); scratch=undefined
+          if (records.some(r=>r.runId===runId)) throw Error('identity_collision'); check()
+          const assignment={estateId:c.estateId,projectId:c.projectId,taskId,sessionId,attemptId:randomUUID(),selectionRevision:m.selectionRevision,
+            repository:{approvedRoot:c.repositoryRoot,approvedRemoteDigest:hash(c.approvedRemote),expectedHead:m.expectedHead},selectedInputs:m.selectedInputs,mutableScope:m.mutableScope,bounds:m.bounds} as InputAssignment
+          // Reuse the actual downstream validator; no divergent copy of its path/HEAD rules.
+          createResourceInputSnapshotReader(assignment,{identity:()=>null})
+          const saved:Mapping={schema:1,installationId:c.installationId,invocationId:c.invocationId,key,runId,scriptSha256:AGENT_SYNC_IDENTITY_SOURCE_SHA256,manifestSha256:c.manifestSha256,leaseTarget:{key:String(m.configuredKey),scopeMappingRevision:String(m.scopeMappingRevision),repositoryName:c.repositoryName,remoteDigest:hash(c.approvedRemote)},assignment}
+          const bytes=JSON.stringify(saved)+'\n'; if (Buffer.byteLength(bytes)>recordLimit) throw Error('mapping_bound')
+          const fd=await fs.open(path.join(c.storageRoot,runId+'.json'),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+          try { check(); await fd.writeFile(bytes); await fd.sync() } finally { await fd.close() }
+          const directory=await fs.open(c.storageRoot,constants.O_RDONLY); try { await directory.sync() } finally { await directory.close() }
+          // Recheck task/config after persistence. A failed or expired allocation stays unresolved on disk.
+          await membership(taskId); await manifest(); check()
+          const handle=Object.freeze({runId}); handles.set(handle,{mapping:freeze(saved),bytes})
+          return {handle,assignment:freeze(assignment),leaseTarget:saved.leaseTarget}
+        } finally {
+          if (scratch) { try { await fs.rmdir(scratch) } catch { /* Unknown scratch is retained; never recursively delete foreign contents. */ } }
+          await lock.close()
+          const current=await fs.lstat(lockPath)
+          if (current.dev===lockStat.dev && current.ino===lockStat.ino) await fs.unlink(lockPath)
+          // A replaced lock belongs to another operation; leave it unresolved.
+        }
+      })
+    },
+    readIdentity(handle:RunAssignmentHandle):Promise<Result<InputIdentity>> {
+      return operation(async check=>{const r=await mapping(handle);check();const {estateId,projectId,taskId,sessionId,attemptId}=r.assignment;return {estateId,projectId,taskId,sessionId,attemptId}})
+    },
+    observeLease(handle:RunAssignmentHandle, expectedTip:string|null=null) {
+      return operation(async check=>{
+        const r=await mapping(handle); check()
+        if (expectedTip !== null && !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(expectedTip)) throw Error('invalid_tip')
+        const held=handles.get(handle)!
+        // Keep the N023 instance across calls: its outer timeout may precede actual Git settlement.
+        held.leaseReader ??= createGitLeaseSnapshotReader({approvedRemote:c.approvedRemote,key:r.leaseTarget.key,runId:r.runId,repositoryName:c.repositoryName,expectedTip:null,maxAgeMs:r.assignment.bounds.maxAgeMs,timeoutMs:timeout},{...deps.lease,git:trackedLeaseGit})
+        const observation=await held.leaseReader.read()
+        // N023's caller timeout is not transport settlement; keep this manager occupied across handles.
+        if(leasePending) await Promise.allSettled([leasePending])
+        check()
+        if (observation.status==='observed' && expectedTip!==null && observation.tip!==expectedTip) throw Error('tip_changed')
+        return {attribution:'unattributed' as const,observation}
+      })
+    },
+    childEnvironment(handle:RunAssignmentHandle) {
+      return operation(async check=>{const r=await mapping(handle);check();return Object.freeze({AGENT_SYNC_RUN_ID:r.key})})
+    }
+  }
+}
+// #endregion resource-run-assignment

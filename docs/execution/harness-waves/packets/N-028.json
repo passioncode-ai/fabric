@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-028",
+  "node": "N-028",
+  "parent_id": "CO-282",
+  "module": "Trusted local run assignment and agent-sync identity correlation",
+  "intent": "Produce actual trusted local identity and cooperative lease correlation",
+  "expected_result": "Immutable bounded mapping and independent identity/lease evidence without launch or held authority",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "637d414e26bf3200cbf2da7dca3ab93b9b7ca852ad1d50a6d8518e335be42898"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceRunAssignment.ts",
+      "apps/desktop/test/resource-run-assignment.test.mjs",
+      "scripts/resourceAgentSyncIdentity.py",
+      "docs/execution/harness-waves/resource-run-assignment.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Immutable bounded mapping and independent identity/lease evidence without launch or held authority",
+      "paths": [
+        "apps/desktop/src/main/resourceRunAssignment.ts",
+        "apps/desktop/test/resource-run-assignment.test.mjs",
+        "scripts/resourceAgentSyncIdentity.py",
+        "docs/execution/harness-waves/resource-run-assignment.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Actualmanifest/membership, exclusiveownedfiles and pinnedinstalledfunction readback supply stableassignment"
+    },
+    {
+      "kind": "negative",
+      "check": "Changedmanifest, foreignmembership, derivedidentitycollision, partialwrite, restart, expiredlease and timedoutI/O never yield authority"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

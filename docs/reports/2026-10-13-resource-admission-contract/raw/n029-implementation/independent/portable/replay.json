@@ -1,0 +1,7 @@
+{
+  "kind": "builder archival adaptation of reviewer fixture",
+  "exit": 0,
+  "independentExecution": false,
+  "log": "replay.log",
+  "changed": "fixture import path only; assertions unchanged"
+}

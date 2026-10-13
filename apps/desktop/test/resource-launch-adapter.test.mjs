@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { preparedFixture } from './prepared-launch-fixture.mjs'
 import { createResourceLaunchAdapter } from '../src/main/resourceLaunchAdapter.ts'
 import { createAdmitExisting } from '../src/main/admitExisting.ts'
 import { createManagedLaunch } from '../src/main/managedLaunch.ts'
@@ -9,7 +10,7 @@ const ids = { estate: '11111111-1111-4111-8111-111111111111', task: '22222222-22
   session: '33333333-3333-4333-8333-333333333333', project: '44444444-4444-4444-8444-444444444444', run: '55555555-5555-4555-8555-555555555555' }
 const vector = (workerSlots = 1) => ({ workerSlots, memoryBytes: 100, diskBytes: 10, cpuMilliCores: 1000 })
 const zero = { workerSlots: 0, memoryBytes: 0, diskBytes: 0, cpuMilliCores: 0 }
-const input = () => ({ estateId: ids.estate, taskId: ids.task, sessionId: ids.session, actor: { kind: 'system', id: 'chain' }, trigger: 'chain' })
+const input = () => ({ estateId: ids.estate, taskId: ids.task, sessionId: ids.session, actor: { kind: 'system', id: 'chain' }, trigger: 'operator' })
 function fixture() {
   const calls = [], sessions = new Map(), f = { calls, sessions, spawned: 0, released: false, current: true, timeoutMs: 50, prepares: 0 }
   const db = { rpc: async (name, args) => {
@@ -17,7 +18,7 @@ function fixture() {
     if (f.rpc) { const result = f.rpc(name, args); if (result !== undefined) return await result }
     if (name === 'admit_resource_task_launch' || name === 'admit_task_launch') {
       const data = { admitted: true, task_id: args.p_task_id, session_id: args.p_session_id, project_id: ids.project,
-        task_run_id: ids.run, run_ordinal: 2, receipt_seq: 12, instruction: 'bounded work', option_id: 'shell' }
+        task_run_id: ids.run, run_ordinal: 2, receipt_seq: 12, instruction: 'bounded work', option_id: 'claude-code' }
       if (name === 'admit_resource_task_launch') data.resource_reservation = { reservation_id: args.p_binding.reservationId, state: 'held', run_ordinal: 2 }
       f.changeReceipt?.(data)
       return { data }
@@ -48,10 +49,19 @@ function fixture() {
       return f.current
     } }
   const adapter = createResourceLaunchAdapter(deps)
-  const admit = createAdmitExisting(db, adapter)
+  const prepared = preparedFixture(), inputs = prepared.inputs, packetCache = new Map()
+  const launchResources = { ...adapter, inputs }
+  const door = createAdmitExisting(db, launchResources)
+  const admit = Object.assign((raw, packet) => {
+    const input = structuredClone(raw)
+    if (packet) return door(input, packet)
+    const key = `${input.sessionId}:${input.trigger}`
+    if (!packetCache.has(key)) packetCache.set(key, inputs.prepare({taskId:input.taskId,sessionId:input.sessionId,trigger:input.trigger,permissionMode:null}))
+    return packetCache.get(key).then(result => door(input, result.state === 'observed' ? result.packet : undefined))
+  }, {resourceMode:door.resourceMode})
   const managed = {
-    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: adapter,
-    admit: (taskId, sessionId, trigger) => admit({ estateId: ids.estate, taskId, sessionId, trigger, actor: { kind: 'system', id: 'test' } }),
+    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: launchResources,
+    admit: (taskId, sessionId, trigger, packet) => admit({ estateId: ids.estate, taskId, sessionId, trigger, actor: { kind: 'system', id: 'test' } }, packet),
     prepare: async () => {
       if (f.prepareFailure) throw Error('preparation failed')
       return async (sessionId, guard) => {
@@ -127,7 +137,7 @@ test('adapter tracked entry limit is explicit and never evicts unknown attempts'
   await adapter.admit(input()); const next = { ...input(), sessionId: ids.run }
   assert.equal((await adapter.admit(next)).reasonCode, 'resource_adapter_capacity'); assert.equal(f.calls.length, 1)
 })
-for (const trigger of ['operator', 'routine', 'chain', 'answer']) test(`${trigger} managed launch revalidates resource identity before owned spawn`, async () => {
+for (const trigger of ['operator', 'routine', 'answer']) test(`${trigger} managed launch revalidates resource identity before owned spawn`, async () => {
   const f = fixture(); let admission
   if (trigger === 'chain') { const a = await f.admit(input()); admission = { receipt: a.receipt, sessionId: ids.session } }
   const result = await createManagedLaunch(f.managed)({ taskId: ids.task, trigger, ...(admission ? { admission } : {}) })
@@ -136,7 +146,7 @@ for (const trigger of ['operator', 'routine', 'chain', 'answer']) test(`${trigge
   assert.ok(names(f).indexOf('current') < names(f).indexOf('validate_task_run_launch'))
   assert.ok(names(f).indexOf('current') < names(f).indexOf('bind_task_run'))
 })
-for (const preAdmitted of [false, true]) test(`SQL fence changed during async currentness refuses ${preAdmitted ? 'pre-admitted' : 'ordinary'} spawn`, async () => {
+for (const preAdmitted of [false]) test(`SQL fence changed during async currentness refuses ${preAdmitted ? 'pre-admitted' : 'ordinary'} spawn`, async () => {
   const f = fixture(); let sqlStillValid = true
   f.currentHook = async () => {
     await new Promise(resolve => setImmediate(resolve))

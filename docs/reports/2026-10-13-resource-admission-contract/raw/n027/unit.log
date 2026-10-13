@@ -1,0 +1,39 @@
+✔ actual validated policy binds exact read, immutable coherent observation grants no authority (2.00725ms)
+✔ changed hostId refuses exact policy binding (0.184083ms)
+✔ changed poolId refuses exact policy binding (0.135125ms)
+✔ changed bindingRevision refuses exact policy binding (0.141167ms)
+✔ changed configurationGeneration refuses exact policy binding (0.125125ms)
+✔ changed maxAgeMs refuses exact policy binding (0.122042ms)
+✔ changed capacity refuses exact policy binding (0.124042ms)
+✔ malformed missing observation remains unknown (0.159334ms)
+✔ malformed missing reserved remains unknown (0.142875ms)
+✔ malformed negative axis remains unknown (0.151916ms)
+✔ malformed fractional axis remains unknown (0.118708ms)
+✔ malformed unsafe axis remains unknown (0.163209ms)
+✔ malformed extra field remains unknown (0.085583ms)
+✔ malformed null remains unknown (0.074042ms)
+✔ malformed root bound remains unknown (0.073583ms)
+✔ malformed noninteger count remains unknown (0.479083ms)
+✔ malformed false zero roots remains unknown (0.166083ms)
+✔ malformed getter remains unknown (0.107417ms)
+✔ stale cannot refresh observation age (0.093333ms)
+✔ future snapshot cannot refresh observation age (0.067333ms)
+✔ future observation cannot refresh observation age (0.065667ms)
+✔ fractional time cannot refresh observation age (0.08075ms)
+✔ complete zero-root reading has legitimate zero reservation (0.092ms)
+✔ conservative observed plus reserved refuses capacity and catches safe-axis sum overflow (0.18375ms)
+✔ server unknown/refusal remains explicit, unrecognized reasons never escape (0.12125ms)
+✔ timeout retains one outstanding request across 30 retries; late response ignored, fresh read works (4.739542ms)
+✔ concurrent reads serialize and an ambiguous rejection releases only after settlement (0.389583ms)
+✔ ordinary rejected async clock refuses without unhandled rejection or I/O (0.29675ms)
+✔ clock failure after RPC and transport error both remain bounded unknown (0.350708ms)
+✔ full policy differences produce different binding, no independently supplied digest (0.397333ms)
+✔ wall clock rollback cannot revive an observation stale at operation start (0.150375ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.667792

@@ -1,4 +1,5 @@
 // #region resource-launch-adapter — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
+import type { PreparedLaunchInputs, PreparedLaunchPacket } from './preparedLaunchInput.ts'
 import type { AdmissionReceipt, AdmitOutcome } from '../shared/admission.ts'
 import { assessResourceAdmission, type ResourceChecks, type ResourceIdentity, type ResourceVector } from '../shared/resourceAdmission.ts'
 import type { AdmitInput } from './admitExisting.ts'
@@ -20,13 +21,14 @@ export interface ResourceLaunchBinding {
 }
 export interface ManagedResourceLaunch {
   readonly mode: 'required'
+  readonly inputs?: PreparedLaunchInputs
   matches(receipt: AdmissionReceipt): boolean
   current(receipt: AdmissionReceipt): Promise<boolean>
   cancelUnbegun(receipt: AdmissionReceipt): Promise<boolean>
   releaseCompensated(receipt: AdmissionReceipt): Promise<boolean>
 }
 export interface ResourceLaunchAdapter extends ManagedResourceLaunch {
-  admit(input: AdmitInput): Promise<AdmitOutcome>
+  admit(input: AdmitInput, prepared?: PreparedLaunchPacket): Promise<AdmitOutcome>
 }
 export interface ResourceLaunchAdapterDeps {
   db: { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error?: unknown }> }
@@ -35,7 +37,8 @@ export interface ResourceLaunchAdapterDeps {
   maxEntries: number
   /** Optional local diagnostics only; no authority or portable event publication. */
   observations?: { sink: ResourceObservationSink; now?: () => number }
-  prepare(input: Readonly<AdmitInput>): Promise<ResourceLaunchPreparation>
+  inputs?: PreparedLaunchInputs
+  prepare(input: Readonly<AdmitInput>, prepared?: PreparedLaunchPacket): Promise<ResourceLaunchPreparation>
   /** Trusted currentness provider. Must independently refresh input/scope/fence,
    * ownership and policy; never echo the supplied identity as proof. The SQL
    * validate command separately checks the durable ledger and fresh pool reading.
@@ -87,6 +90,7 @@ function freeze<T>(value: T): T {
 }
 interface Entry {
   input: Readonly<AdmitInput>
+  prepared?: PreparedLaunchPacket
   binding?: Readonly<ResourceLaunchBinding>
   receipt?: AdmissionReceipt
   outcome: Promise<AdmitOutcome>
@@ -99,6 +103,7 @@ interface Entry {
  */
 export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): ResourceLaunchAdapter {
   if (!positive(deps.timeoutMs) || deps.timeoutMs > 30_000 || !positive(deps.maxEntries)) throw Error('invalid resource adapter bounds')
+  const inputs = deps.inputs
   const entries = new Map<string, Entry>()
   // #region resource-attempt-instrumentation — docs: docs/execution/harness-waves/resource-attempt-observation.md#contract
   function observeAccidentalPromise(value: unknown): void {
@@ -192,17 +197,20 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
   }
   return {
     mode: 'required',
-    admit(raw) {
+    inputs,
+    admit(raw, prepared) {
       let input: Readonly<AdmitInput>
       try { input = freeze(copyInput(raw)) } catch { /* Refusal is returned to the caller; raw identity input is not safe diagnostic material. */ return Promise.resolve(refused('resource_input_invalid')) }
+      if (inputs && (!inputs.owns(prepared) || prepared.estateId !== input.estateId || prepared.taskId !== input.taskId || prepared.sessionId !== input.sessionId || prepared.trigger !== input.trigger))
+        return Promise.resolve(refused('resource_prepared_input_required'))
       const previous = entries.get(input.sessionId)
-      if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
+      if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) && previous.prepared === prepared ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
       if (entries.size >= deps.maxEntries) return Promise.resolve(refused('resource_adapter_capacity'))
-      const entry: Entry = { input, outcome: Promise.resolve(refused('resource_admission_unknown')), observedStartedAt: observedNow() }
+      const entry: Entry = { input, prepared, outcome: Promise.resolve(refused('resource_admission_unknown')), observedStartedAt: observedNow() }
       entries.set(input.sessionId, entry)
       entry.outcome = (async () => {
         try {
-          const preparation = await bounded(() => deps.prepare(input))
+          const preparation = await bounded(() => deps.prepare(input, prepared))
           const decision = assessResourceAdmission(preparation.request, preparation.context, preparation.checks)
           if (decision.state !== 'eligible') {
             observe(entry, 'admission', decision.state, decision.state === 'unknown' ? 'preflight-unknown' : 'preflight-refused', entry.observedStartedAt ?? null)

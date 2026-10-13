@@ -1,0 +1,66 @@
+✖ index flag --assume-unchanged invalidates selected snapshot (204.958833ms)
+✖ index flag --skip-worktree invalidates selected snapshot (270.505875ms)
+✖ approved root must be actual Git worktree root, not a nested directory (110.061042ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 711.268167
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-input-snapshot.test.mjs:107:60
+✖ index flag --assume-unchanged invalidates selected snapshot (204.958833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'same' !== 'changed'
+
+      at TestContext.<anonymous> (file:///private<owned-builder-fixture>/apps/desktop/test/resource-input-snapshot.test.mjs:109:56)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'same',
+    expected: 'changed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-input-snapshot.test.mjs:107:60
+✖ index flag --skip-worktree invalidates selected snapshot (270.505875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'same' !== 'changed'
+
+      at TestContext.<anonymous> (file:///private<owned-builder-fixture>/apps/desktop/test/resource-input-snapshot.test.mjs:109:56)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'same',
+    expected: 'changed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-input-snapshot.test.mjs:111:1
+✖ approved root must be actual Git worktree root, not a nested directory (110.061042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'observed'
+  - 'refused'
+
+      at TestContext.<anonymous> (file:///private<owned-builder-fixture>/apps/desktop/test/resource-input-snapshot.test.mjs:113:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'observed',
+    expected: 'refused',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

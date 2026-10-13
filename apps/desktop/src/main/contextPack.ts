@@ -77,6 +77,9 @@ export function packPart(pack: ContextPack): { name: 'context'; bytes: string; s
 }
 
 export interface ContextPackInput {
+  /** Trusted prepared-launch caller retains all started I/O before releasing
+   * its bounded slot. Legacy callers keep fail-fast/degraded behavior. */
+  settleStartedReads?: boolean
   store: ScopedStore
   projectId: string
   taskInstruction?: string | null
@@ -213,11 +216,13 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
   if (!Number.isSafeInteger(budget) || budget <= 0) throw new ContextBudgetUnmet(budget, 0)
   const maxSessions = input.maxSessions ?? DEFAULT_SESSIONS
 
-  const [projectRead, reposRead, factsRead, sessionsRead] =
-    await Promise.all([
-      store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle(),
-      store.select('project_repos', 'path,is_primary').eq('project_id', projectId),
-      store
+  // #region context-read-settlement — docs: docs/execution/harness-waves/prepared-launch-input.md#contract
+  // A failed sibling must not orphan pending reads and release the producer's
+  // bounded I/O slot. Thunks also contain synchronous query-construction errors.
+  const reads = [
+      Promise.resolve().then(() => store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle()),
+      Promise.resolve().then(() => store.select('project_repos', 'path,is_primary').eq('project_id', projectId)),
+      Promise.resolve().then(() => store
         // An EXACT count beside the rows: the gateway returns at most one page, and the facts it did not
         // return are omitted as surely as the ones the budget stopped (iteration 2, memory finding 7).
         .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,seq', { count: 'exact' })
@@ -226,13 +231,22 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
         // bi-temporality exists to prevent.
         .is('valid_to', null)
         .eq('project_id', projectId)
-        .order('recorded_at', { ascending: false }),
-      store
+        .order('recorded_at', { ascending: false })),
+      Promise.resolve().then(() => store
         .select('session_transcripts', 'session_id,annotation,ended_at,exit_code,captured_at,ending_provenance')
         .eq('project_id', projectId)
         .order('seq', { ascending: false })
-        .limit(maxSessions)
-    ])
+        .limit(maxSessions))
+    ] as const
+  const settled = input.settleStartedReads === true ? await Promise.allSettled(reads) : null
+  function readValue<T>(result: PromiseSettledResult<T>): T {
+    if (result.status === 'rejected') throw result.reason
+    return result.value
+  }
+  const [projectRead,reposRead,factsRead,sessionsRead] = settled
+    ? [readValue(settled[0]),readValue(settled[1]),readValue(settled[2]),readValue(settled[3])] as const
+    : await Promise.all(reads)
+  // #endregion context-read-settlement
 
   // A receipt per source, and the errors are READ rather than destructured
   // past. `availability` is then derived by `envelope`, so this function cannot
