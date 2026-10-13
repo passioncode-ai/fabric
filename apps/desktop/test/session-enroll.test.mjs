@@ -383,3 +383,60 @@ test('an enrolled mint tells the surface it is an enrollment, its runner, its ru
   await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
   assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id }])
 })
+
+// #region board-join-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+// `fabric.board.join` (ADR-0149 §4) with ADR-0134's safeguards (wave-2 fix 11): an unspent bearer handed out again, a
+// cap of its own, the grant read again after the mint, and an eviction text that names tools a board session has.
+const { joinBoardSession, MAX_BOARD_SESSIONS_PER_BINDING, boardEvictedReason } = await import(path.join(SRC, 'sessionEnroll.ts'))
+const RG = 'rg-1'
+const respondGrant = (over = {}) => ({ id: RG, callee: 'fabric', capability: 'board.respond', resource: `board:${P}/finance.close`, revoked_at: null, expires_at: new Date(Date.now() + 3600000).toISOString(), ...over })
+function boardDeps(over = {}) {
+  const h = deps()
+  const minted = []
+  return {
+    ...h, boardMinted: minted,
+    b: {
+      check: async () => ({ capabilities: ['finance.close'], grants: [RG] }),
+      liveGrants: async () => [respondGrant()],
+      mint: (projectId, sessionId, taskId, origin) => { minted.push({ projectId, sessionId, origin }); return h.surface.mint(projectId, sessionId) },
+      sessions: h.sessions,
+      stillLive: async () => true,
+      ...over
+    }
+  }
+}
+
+test('a board join mints one board session with the grants\' earliest expiry; a loop of joins hands out the one unspent bearer', async () => {
+  const h = boardDeps()
+  const first = await joinBoardSession(binding, { projectId: P }, h.b)
+  assert.equal(first.ok, true); assert.deepEqual(first.session.capabilities, ['finance.close'])
+  for (let i = 0; i < 50; i++) assert.equal((await joinBoardSession(binding, { projectId: P }, h.b)).session.bearer, first.session.bearer)
+  assert.equal(h.boardMinted.length, 1, 'every join minted a new board session')
+  assert.equal(h.boardMinted[0].origin.surface, 'board'); assert.equal(h.boardMinted[0].origin.cameIn, 'hub')
+  assert.ok(Math.abs(h.boardMinted[0].origin.authorityUntil - (Date.now() + 3600000)) < 5000, 'the session does not know when its grant expires')
+})
+
+test('board joins are capped per binding on their own: the least recently active board session ends and is told what a board session can do; a coding agent\'s enrollment never evicts one', async () => {
+  const h = boardDeps()
+  const ids = []
+  for (let i = 0; i < MAX_BOARD_SESSIONS_PER_BINDING + 2; i++) { const j = await joinBoardSession(binding, { projectId: P }, h.b); ids.push(j.session.sessionId); h.surface.claimAll() }
+  assert.equal(h.sessions.liveOf(binding.id).length, MAX_BOARD_SESSIONS_PER_BINDING)
+  const told = h.surface.why.get(ids[0])
+  assert.equal(told, boardEvictedReason(MAX_BOARD_SESSIONS_PER_BINDING))
+  assert.match(told, /fabric\.board\.join/); assert.doesNotMatch(told, /fabric_work_list/, 'a board session was told to use a tool it does not have')
+  // Nine coding-agent enrollments of the same binding leave the board sessions alone.
+  const e = deps({ liveGrants: async () => [grant()] })
+  const sessions = h.sessions
+  for (let i = 0; i < MAX_ENROLLED_PER_BINDING + 1; i++) { await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, { ...e.d, sessions, mint: (projectId, sessionId) => h.surface.mint(projectId, sessionId) }); h.surface.claimAll() }
+  assert.equal(sessions.liveOf(binding.id).filter((r) => r.surface === 'board').length, MAX_BOARD_SESSIONS_PER_BINDING, 'a coding agent\'s enrollment evicted a board session')
+})
+
+test('the read-then-mint race: a board.respond grant found revoked when read again after the mint ends the board session — nothing stands', async () => {
+  const h = boardDeps({ stillLive: async () => false })
+  const r = await joinBoardSession(binding, { projectId: P }, h.b)
+  assert.equal(r.ok, false); assert.equal(r.code, 'authority_changed')
+  assert.equal(h.sessions.liveOf(binding.id).length, 0); assert.equal(h.surface.held.size, 0, 'the minted bearer still stands')
+  const refused = await joinBoardSession(binding, { projectId: P }, boardDeps({ check: async () => ({ error: { code: 'not_authorized', message: 'no', retryable: false } }) }).b)
+  assert.equal(refused.code, 'not_authorized')
+})
+// #endregion board-join-session

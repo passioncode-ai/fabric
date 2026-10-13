@@ -57,6 +57,22 @@ export const PINNED_COMMS_OPERATIONS: ReadonlySet<CommsOperation> = new Set<Comm
 export const STATUS_CARRIES_EPOCH = true
 // #endregion comms-pinned-operations
 
+// #region board-session-operations — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+/**
+ * What a board session (`fabric.board.join`, surface 'board') is given — ADR-0149 Amendment 2, from ADR-0117 §3: a
+ * board enrollment is a respond-only participation. `board.respond` promises that the agent may take and answer the
+ * requests other Projects send to this one; so it reads its Project's status and the threads it takes part in, holds
+ * the slot and moves the requests it holds, and replies only as a responder (the fenced form). It never sends as the
+ * Project (`com.submit`), cancels the Project's requests (`com.cancel`), clears the read marks the Project's coding
+ * agents share (`com.read_ack`) or reads the directory (`com.directory`). The service refuses those for a board
+ * caller too, before the door, so the narrowing does not rest on the server's tool list alone.
+ */
+export const BOARD_SESSION_OPERATIONS: ReadonlySet<CommsOperation> = new Set<CommsOperation>([
+  'com.status', 'com.list', 'com.get', 'com.reply', 'com.enroll', 'com.claim', 'com.renew', 'com.accept', 'com.progress',
+  'com.effect_begin', 'com.complete', 'com.reconcile', 'com.responder_replace'
+])
+// #endregion board-session-operations
+
 /** The contract's canonical JSON. Throws on anything it does not admit rather than guessing a spelling. */
 export function commsCanonical(value: unknown): string {
   if (value === null || typeof value === 'boolean') return JSON.stringify(value)
@@ -208,8 +224,13 @@ export interface BoardDeps {
 const UNAVAILABLE = refusal('not_available', 'The board cannot be read right now; nothing was changed.', true)
 /** A write whose answer was lost may have committed (A7-035): the same key, sent again, tells which. */
 const UNCONFIRMED = refusal('not_available', 'The board did not confirm this; it may have been stored. Send it again with the same idempotency key to learn which.', true)
+/** The same, for a call that takes no idempotency key or stores no receipt (read_ack, renew, progress): repeating it is
+ *  harmless — a read mark is set once, a renewal only extends, a note is posted once per attempt and key. */
+const UNCONFIRMED_KEYLESS = refusal('not_available', 'The board did not confirm this; it may have taken effect. It is safe to send again.', true)
+/** A board session (ADR-0149 Amendment 2) is respond-only: what it is not given is refused before the door. */
+const RESPOND_ONLY = refusal('not_authorized', 'A board session answers requests only: it does not send, cancel, mark read or read the directory as its Project.')
 const SQLSTATE = /^[0-9A-Z]{5}$/
-type Kind = 'read' | 'write'
+type Kind = 'read' | 'write' | 'keyless'
 
 export function createBoard(deps: BoardDeps) {
   const key = deps.cursorKey ?? randomBytes(32)
@@ -237,30 +258,32 @@ export function createBoard(deps: BoardDeps) {
     let res: { data: unknown; error: unknown }
     try { res = await deps.rpc(fn, args) } catch (e) {
       ops.failed('board.rpc-threw', e, { note: `the board command ${fn} could not be reached; the caller was told not_available (${kind})` })
-      return kind === 'write' ? UNCONFIRMED : UNAVAILABLE
+      return kind === 'write' ? UNCONFIRMED : kind === 'keyless' ? UNCONFIRMED_KEYLESS : UNAVAILABLE
     }
     if (res.error) {
       const code = typeof (res.error as { code?: unknown }).code === 'string' ? (res.error as { code: string }).code : ''
       if (SQLSTATE.test(code) && code.startsWith('22')) return refusal('invalid_arguments', 'The board could not take a value in these arguments.')
       ops.failed('board.rpc-unreadable', res.error, { note: `the board command ${fn} failed (${code || 'no SQLSTATE'}); the caller was told not_available (${kind})` })
-      return SQLSTATE.test(code) || kind === 'read' ? UNAVAILABLE : UNCONFIRMED
+      return SQLSTATE.test(code) || kind === 'read' ? UNAVAILABLE : kind === 'keyless' ? UNCONFIRMED_KEYLESS : UNCONFIRMED
     }
     if (res.data === null || typeof res.data !== 'object') {
       ops.failed('board.rpc-unreadable', new Error('no object answer'), { note: `the board command ${fn} gave no readable answer; the caller was told not_available (${kind})` })
-      return kind === 'write' ? UNCONFIRMED : UNAVAILABLE
+      return kind === 'write' ? UNCONFIRMED : kind === 'keyless' ? UNCONFIRMED_KEYLESS : UNAVAILABLE
     }
     return res.data as Record<string, unknown>
   }
 
   /** A write's answer, passed on only as the contract's receipt (or the board's own refusal). */
-  const receipt = (fn: string, data: Record<string, unknown> | Refusal): Record<string, unknown> | Refusal => {
+  const receipt = (fn: string, data: Record<string, unknown> | Refusal, kind: Kind = 'write'): Record<string, unknown> | Refusal => {
     if (isRefusal(data)) return data
     const checked = commsReceiptSchema.safeParse(data)
     if (checked.success) return checked.data
     ops.failed('board.receipt-shape', new Error(checked.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.code}`).join('; ')),
       { note: `the board command ${fn} answered a receipt the contract does not name; the caller was told not_available` })
-    return UNCONFIRMED
+    return kind === 'keyless' ? UNCONFIRMED_KEYLESS : UNCONFIRMED
   }
+  /** Whether this caller is a board session (ADR-0149 Amendment 2): respond-only. */
+  const respondOnly = (caller: BoardCaller): boolean => caller.surface === 'board'
 
   /** A board id for a message, thread or request: an id that cannot exist here is refused as unknown, before the door. */
   const idempotencyDigest = (operation: CommsOperation, value: unknown): string | Refusal => {
@@ -288,7 +311,7 @@ export function createBoard(deps: BoardDeps) {
    * One responder command (COM-03): the contract's argument shape, ids normalised, the digest over the arguments as
    * sent to the board, the holder from the scope, and the answer passed on only as the contract's receipt.
    */
-  const responderCall = async <T extends z.ZodType>(caller: BoardCaller, op: CommsOperation, fn: string, schema: T, input: unknown): Promise<Record<string, unknown> | Refusal> => {
+  const responderCall = async <T extends z.ZodType>(caller: BoardCaller, op: CommsOperation, fn: string, schema: T, input: unknown, kind: Kind = 'write'): Promise<Record<string, unknown> | Refusal> => {
     const holder = holderOf(caller)
     if (!holder) return refusal('not_authorized', 'This session cannot answer requests: only a Project session or a board session can respond.')
     const parsed = schema.safeParse(input ?? {})
@@ -317,7 +340,7 @@ export function createBoard(deps: BoardDeps) {
     if (body?.text !== undefined && Buffer.byteLength(body.text, 'utf8') > BODY_MAX_BYTES) return refusal('body_too_large', 'The message body is larger than 65,536 bytes.')
     const digest = idempotencyDigest(op, args)
     if (typeof digest !== 'string') return digest
-    return receipt(fn, await call(fn, { p_estate: caller.estateId, p_holder: holder, p_project: caller.projectId, p_args: args, p_digest: digest }, 'write'))
+    return receipt(fn, await call(fn, { p_estate: caller.estateId, p_holder: holder, p_project: caller.projectId, p_args: args, p_digest: digest }, kind), kind)
   }
 
   const dirMac = (caller: BoardCaller, capability: string | null, after: string): string =>
@@ -325,6 +348,7 @@ export function createBoard(deps: BoardDeps) {
 
   return {
     async submit(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      if (respondOnly(caller)) return RESPOND_ONLY
       const parsed = commsSubmitSchema.safeParse(input)
       if (!parsed.success) {
         const big = parsed.error.issues.some((i) => i.path.join('.') === 'body.text' && i.code === 'too_big')
@@ -361,6 +385,8 @@ export function createBoard(deps: BoardDeps) {
         if ('replyTo' in input || 'idempotency' in input) return refusal('invalid_arguments', 'A reply is a participant\'s (idempotency and replyTo) or a responder\'s (fence), not both.')
         return responderCall(caller, 'com.reply', 'board_reply_fenced', commsReplyResponderSchema, input)
       }
+      // A board session replies only as a responder, with the fence of a request it holds (ADR-0149 Amendment 2).
+      if (respondOnly(caller)) return refusal('not_authorized', 'A board session replies only as a responder: com.reply with the fence of a request it holds.')
       const parsed = commsReplySchema.safeParse(input)
       if (!parsed.success) {
         const big = parsed.error.issues.some((i) => i.path.join('.') === 'body.text' && i.code === 'too_big')
@@ -377,6 +403,7 @@ export function createBoard(deps: BoardDeps) {
 
     /** `com.cancel`: only the Project that sent the request. */
     async cancel(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      if (respondOnly(caller)) return RESPOND_ONLY
       const parsed = commsCancelSchema.safeParse(input)
       if (!parsed.success) return refusal('invalid_arguments', 'The cancellation does not match the board\'s cancel shape.')
       const request = boardId(parsed.data.request)
@@ -390,9 +417,9 @@ export function createBoard(deps: BoardDeps) {
     // ── the responder tools (COM-03, migration 87; contract DEC-0073) ────────────────────────────────────────
     enroll: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.enroll', 'board_enroll', commsEnrollSchema, input),
     claim: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.claim', 'board_claim', commsClaimSchema, input),
-    renew: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.renew', 'board_renew', commsFencedSchema, input),
+    renew: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.renew', 'board_renew', commsFencedSchema, input, 'keyless'),
     accept: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.accept', 'board_accept', commsFencedSchema, input),
-    progress: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.progress', 'board_progress', commsProgressSchema, input),
+    progress: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.progress', 'board_progress', commsProgressSchema, input, 'keyless'),
     effectBegin: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.effect_begin', 'board_effect_begin', commsEffectBeginSchema, input),
     complete: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.complete', 'board_complete', commsCompleteSchema, input),
     reconcile: (caller: BoardCaller, input: unknown) => responderCall(caller, 'com.reconcile', 'board_reconcile', commsReconcileSchema, input),
@@ -406,6 +433,7 @@ export function createBoard(deps: BoardDeps) {
     async directory(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       if ((caller.surface ?? 'session') === 'viewer' || caller.principal.provenance !== 'trusted')
         return refusal('not_authorized', 'Only a session of a Project of this estate reads the directory.')
+      if (respondOnly(caller)) return RESPOND_ONLY
       const parsed = commsDirectoryArgsSchema.safeParse(input ?? {})
       if (!parsed.success) return refusal('invalid_arguments', 'com.directory takes capability?, cursor? and limit? (1–100).')
       const capability = parsed.data.capability ?? null
@@ -487,11 +515,13 @@ export function createBoard(deps: BoardDeps) {
     },
 
     async readAck(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
+      // Read marks are shared per Project: a service must not clear the unread its coding agents rely on.
+      if (respondOnly(caller)) return RESPOND_ONLY
       const parsed = commsMessageRefSchema.safeParse(input)
       if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
       const message = boardId(parsed.data.message)
       if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
-      return receipt('board_read_ack', await call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message }, 'write'))
+      return receipt('board_read_ack', await call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message }, 'keyless'), 'keyless')
     },
 
     /**
@@ -517,9 +547,10 @@ export function createBoard(deps: BoardDeps) {
       }
       return {
         protocol: COMMS_PROTOCOL, board: { state: 'ready' }, project: caller.projectId, responders, transport: { telegram: 'off' }, unread,
-        // The epoch is a session's: a viewer principal (Dashboards, C9) reads com.status without `idempotency` — it
-        // submits nothing (contract DEC-0073).
-        ...(statusCarriesEpoch && (caller.surface ?? 'session') === 'session' ? { idempotency: { epoch } } : {})
+        // The epoch is every submitting surface's — a Project session's and a board session's, whose responder commands
+        // all carry it (ADR-0149 Amendment 1 §5). Only a viewer principal (Dashboards, C9) reads com.status without
+        // `idempotency`: it submits nothing (contract DEC-0073).
+        ...(statusCarriesEpoch && (caller.surface ?? 'session') !== 'viewer' ? { idempotency: { epoch } } : {})
       }
     }
   }
