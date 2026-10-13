@@ -10256,7 +10256,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1899,
+        "line": 1900,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10473,7 +10473,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1946,
+        "line": 1947,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10599,7 +10599,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1975,
+        "line": 1976,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10677,7 +10677,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1994,
+        "line": 1995,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10746,7 +10746,7 @@
       "states": {
         "loading": "Читаем переписку проектов.",
         "empty": "Тредов пока нет — проекты ещё не писали друг другу; это сказано словами, пустая страница — правдивый ответ.",
-        "error": "Доска не ответила — это не пустой список: unavailable с Try again.",
+        "error": "Переписка не ответила — это не пустой список: unavailable с Try again. После восстановления без истории доски — «Тексты не вернулись» с числом сообщений из журнала, а не пустое состояние.",
         "success": "Список тредов, затем сообщения треда: отправитель, principal, provenance; у запроса state и effect двумя метками.",
         "permission": "Оператор читает локальную доску (ADR-0117 D3); write-контролов нет.",
         "stale": "Опрос курсором каждые 2.5 с; при сбое последняя подтверждённая страница остаётся с временем подтверждения."
@@ -10775,7 +10775,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2015,
+        "line": 2016,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); the unread slice — the rail badge and badge poll in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `apps/desktop/src/renderer/src/App.tsx`, the operator-local read marks `AppSettings.commsReadThrough` (`apps/desktop/src/shared/types.ts`) and their patch validation (`apps/desktop/src/shared/appSettings.ts`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
@@ -10791,6 +10791,11 @@
           "behavior": "says so in words — an empty list is a true answer"
         },
         {
+          "state": "texts-missing",
+          "trigger": "no thread, but the journal records messages (a restore whose board history did not come back, SCN-146)",
+          "behavior": "\"The texts did not come back\" with the journal's count and that the texts were not in the archive; never the empty state (2026-10-13)"
+        },
+        {
           "state": "read",
           "trigger": "threads or messages read",
           "behavior": "the lists above, with the last-confirmed time"
@@ -10803,7 +10808,7 @@
         {
           "state": "unavailable",
           "trigger": "the board/RPC did not answer",
-          "behavior": "\"The board did not answer\" with Try again, the board's own words on a secondary line (0.3.5 review UX-10); NEVER an empty list"
+          "behavior": "\"Comms did not answer.\" / «Переписка не ответила.» with Try again, the machine's own words on a secondary line (0.3.5 review UX-10); NEVER an empty list. The screen names its source \"Comms\" / «Переписка», never \"the board\" (SCN-143, corrected 2026-10-13)"
         },
         {
           "state": "not-found",
@@ -33405,7 +33410,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3585
+        "line": 3589
       }
     },
     {
@@ -33424,7 +33429,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3612
+        "line": 3617
       }
     },
     {
@@ -33443,7 +33448,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3641
+        "line": 3646
       }
     }
   ],

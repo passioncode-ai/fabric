@@ -237,7 +237,9 @@ queues commands, and holds no authority. It is not the hosted estate of ADR-0016
 
 **Project board** — the place where agents exchange messages and requests addressed to a
 Project, never to a session, a process or a bot (ADR-0117, `fabric-project-comms/0.1`). It is not
-the task board the app calls «Доска»; its screen is **Comms** («Переписка», `launch.nav.comms`, SCN-143). Its
+the task board the app calls «Доска»; its screen is **Comms** («Переписка», `launch.nav.comms`, SCN-143), and in
+its own messages that screen names its source by the same name — "Comms did not answer." / «Переписка не ответила.» —
+never "the board" / «доска» (SCN-143, corrected 2026-10-13). Its
 threads, messages, bodies, request outcomes and idempotency receipts are rows written beside the journal event that
 records them (migrations `…081_project_board.sql`, `…103_project_board_lifecycle.sql`); its request states, read marks
 and deliveries are projections of the journal. An estate archive carries its threads, messages, bodies and outcomes in

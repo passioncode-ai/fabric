@@ -23,6 +23,7 @@
 import { linkSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { randomInt, randomUUID } from 'node:crypto'
 import path from 'node:path'
+import { SESSION_ENROLL } from '../shared/access.ts'
 
 export const ANALYTICS_HOST = 'https://analytics.sshlg.me'
 export const SDK_VERSION = 'fabric-analytics@1'
@@ -124,9 +125,15 @@ export function cleanProps(props: Record<string, unknown>): Props {
  * counted apart, as `coding_agents_enrolled`, so `agents_with_access` stays what it says — the agents that may use a
  * connected product. Each is a count of distinct agents, not of grants.
  */
-export function agentCounts(grants: ReadonlyArray<{ agent_id: string; callee: string }>): { agents_with_access: number; coding_agents_enrolled: number } {
+export function agentCounts(grants: ReadonlyArray<{ agent_id: string; callee: string; capability?: string }>): { agents_with_access: number; coding_agents_enrolled: number } {
   const withAccess = new Set<string>(), enrolled = new Set<string>()
-  for (const g of grants) (g.callee === 'fabric' ? enrolled : withAccess).add(g.agent_id)
+  for (const g of grants) {
+    if (g.callee !== 'fabric') withAccess.add(g.agent_id)
+    // Classified by capability (wave-2 fix 4): only `session.enroll` is an enrollment. A `board.respond` grant
+    // (ADR-0149 §2) lets an agent answer a Project's requests; it is neither an enrolled coding agent nor product
+    // access, so it is counted in neither. A row read without its capability is the enrollment it always was.
+    else if ((g.capability ?? SESSION_ENROLL) === SESSION_ENROLL) enrolled.add(g.agent_id)
+  }
   return { agents_with_access: withAccess.size, coding_agents_enrolled: enrolled.size }
 }
 

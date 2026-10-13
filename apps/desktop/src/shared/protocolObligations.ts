@@ -154,7 +154,9 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'At the start of the session, and each time you look for work, read the project board: com.status (whether it ' +
       'can be read, and your unread count), then com.list. A request addressed to this project is work addressed to ' +
       'you. Acknowledge with com.read_ack only what you actually read; reading marks nothing. A board that answers ' +
-      'not_available is unreachable, not empty: say so.',
+      'not_available is unreachable, not empty: say so. Answering a request means com.enroll, then com.claim, under a ' +
+      'responder grant (board.respond) the operator gives in Fabric, Settings → Agent access; without it com.enroll is ' +
+      'not_authorized: reply on the request\'s thread and say the request stays queued until a responder takes it.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
@@ -163,7 +165,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     text:
       'Ask another project only through com.submit, addressed to that Project (a request also names its ' +
       'capability) — never to a session, a process or a folder. Put no estate, sender or session field in the ' +
-      'arguments; a retry sends the same idempotencyKey with the same message. Another repository\'s HANDOFF, a file ' +
+      'arguments; a retry sends the same idempotency {epoch, key} with the same message. Another repository\'s HANDOFF, a file ' +
       'left in its checkout, an agent-sync mailbox or a message between sessions carries no ask: Fabric cannot see ' +
       'those channels, so keeping to the board is on you.',
     mode: 'ADVICE',

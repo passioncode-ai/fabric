@@ -30,7 +30,7 @@ import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
-import { EnrolledSessions, enrollSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
@@ -938,13 +938,15 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         }),
         // #region board-join-wiring — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
         // A board session ends with its binding or any of its board.respond grants (EnrolledSessions, as ADR-0134 §3).
-        joinBoard: async (binding, args) => {
-          const sessionId = randomUUID()
-          const joined = await surface.joinBoard(binding, args.projectId, sessionId)
-          if ('error' in joined) return { ok: false, code: joined.error.code, message: joined.error.message }
-          enrolled.add({ sessionId, bearer: joined.token, bindingId: binding.id, grantId: joined.grants[0] ?? '', grantIds: joined.grants, projectId: args.projectId, mintedAt: Date.now() })
-          return { ok: true, session: { bearer: joined.token, sessionId, projectId: args.projectId, capabilities: joined.capabilities } }
-        }
+        // ADR-0134's safeguards too (wave-2 fix 11): spare-bearer reuse, a board-session cap, the grants read again after
+        // the mint, and the grants' earliest expiry, past which the session ends at its next call.
+        joinBoard: (binding, args) => joinBoardSession(binding, args, {
+          check: (bindingId, projectId) => surface.boardJoinCheck(bindingId, projectId),
+          liveGrants: (b) => hubAccess.liveGrantsOf(b),
+          mint: (projectId, sessionId, taskId, origin) => surface.mint(projectId, sessionId, taskId, origin),
+          sessions: enrolled,
+          stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId)
+        })
         // #endregion board-join-wiring
       }),
       callback: (product, req, res) => connector.callback(product, req, res)
@@ -954,7 +956,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       resolveSource: (projectId, source) => resolveBacklogSource(source, { repos: () => projectReposWithRemotes(projectId) }),
       leaseRefs: (projectId) => projectLeaseRefs(projectId),
       // An enrolled session ends the way a revocation ends it; a launched one is only revoked (its terminal goes on).
-      endSession: (sessionId) => enrolled.endSession(sessionId)
+      endSession: (sessionId, reason) => enrolled.endSession(sessionId, reason)
     },
     // A session's claims end with it (REQ-38): its terminal exited, its enrollment was revoked or evicted, the app quits.
     onSessionEnded: async (sessionId, why) => {
@@ -1001,8 +1003,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // Live grants, callee and agent only: `agentCounts` keeps a coding agent's enrollment apart from product access.
     const agents = async (): Promise<ReturnType<typeof agentCounts> | null> => {
       try {
-        const r = await db.from('access_grants').select('agent_id,callee').eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null).gt('expires_at', new Date().toISOString()).limit(10_000)
-        return r.error ? null : agentCounts((r.data ?? []) as Array<{ agent_id: string; callee: string }>)
+        const r = await db.from('access_grants').select('agent_id,callee,capability').eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null).gt('expires_at', new Date().toISOString()).limit(10_000)
+        return r.error ? null : agentCounts((r.data ?? []) as Array<{ agent_id: string; callee: string; capability: string }>)
       } catch (e) {
         ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
       }
@@ -3385,7 +3387,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // client the agent surface uses for the board's participant half. The read logic
   // (unavailable is never empty; the board's refusals travel unchanged) lives in
   // `commsOperatorRead.ts`, where the tests can reach it without a database.
-  const commsRead = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
+  const commsRead = createCommsOperatorRead({
+    rpc: (fn, args) => db.rpc(fn, args),
+    // SCN-146 alt path: read only when the board holds no thread — messages the journal records without their texts.
+    journalMessages: async (estateId) => {
+      const r = await db.from('journal').select('seq', { count: 'exact', head: true }).eq('estate_id', estateId).eq('type', 'comms.message_submitted@1')
+      return r.error || typeof r.count !== 'number' ? null : r.count
+    }
+  })
   handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsRead.threads(ACTIVE_ESTATE))
   handle(IPC.commsList, (_e, threadId: string | null, afterSeq: number, limit?: number): Promise<Returns<FabricApi['comms']['list']>> =>
     commsRead.list(ACTIVE_ESTATE, threadId ?? null, afterSeq, limit))

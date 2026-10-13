@@ -88,6 +88,9 @@ export const sayIncremental = (t: Say): string => t('access.incremental')
  *  project" in English, «в проекте «Atlas»» / «в этом проекте» in Russian — so a project whose name is not known reads
  *  as this project in both, never «без названия» (0.3.5 review UX-12). */
 const projectWords = (t: Say, name: string): string => (name ? t('access.enroll.projectNamed', { name }) : t('access.enroll.thisProject'))
+/** The project requests are sent TO (wave-2 product finding 4): its own form, because Russian needs the dative there
+ *  («присылают проекту «Atlas»»), where the enroll form is the locative («в проекте «Atlas»»). */
+const projectTo = (t: Say, name: string): string => (name ? t('access.respond.projectTo', { name }) : t('access.respond.thisProjectTo'))
 
 /** The queue row's title: "<name> asks to use <product>", or for an enrollment (ADR-0134) "<name> asks to work in <project>". */
 export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string }; respond?: RespondFacts }): string =>
@@ -147,12 +150,11 @@ export function sayRequest(t: Say, x: { agent: AgentFacts; ask: AskLine[]; reaso
 } {
   // ADR-0149 §2: answering a Project's requests — what it may do, what it may not, and how long it lasts.
   if (x.respond) {
-    const project = projectWords(t, x.respond.projectName)
     return {
       origin: sayOrigin(t, x.agent),
       folder: null,
       asks: x.ask.map((l) => sayAsk(t, l)),
-      what: t('access.respond.what', { project }),
+      what: t('access.respond.what', { project: projectTo(t, x.respond.projectName) }),
       reason: t('access.pending.reason', { reason: x.reason }),
       floor: sayFloor(t, x),
       notes: [...(x.incremental ? [sayIncremental(t)] : []), t('access.respond.revoke'), t('access.denyStands')]
@@ -245,7 +247,7 @@ export function consentPrompt(t: Say, input: {
     return {
       title: t('access.respond.title', { name, capabilities, project }),
       message: t('access.respond.title', { name, capabilities, project }),
-      statement: t('access.respond.message', { name, project }),
+      statement: t('access.respond.message', { name, project: projectTo(t, input.respond.projectName) }),
       detail: [said.origin, said.what as string, '', t('access.prompt.reasonLead'), t('access.prompt.quoted', { reason: input.reason }), '', said.floor, '', ...said.notes].join('\n'),
       buttons: [t('access.deny'), t('access.allow')],
       defaultId: 0,

@@ -76,6 +76,18 @@ const BOARD_ARCHIVED: Readonly<Record<string, string>> = {
 }
 
 /**
+ * The board's responder authority (ADR-0149 §6 and Amendment 1 §1): rebuilt from the journal, but deliberately NOT
+ * reproduced — in a restored estate the projector switches authority off (wave-2 fix 13), and some columns are
+ * operational, written by commands and never journalled.
+ */
+const BOARD_AUTHORITY: Readonly<Record<string, string>> = {
+  board_epochs: 'replayed under the restore rule, not reproduced: an epoch the source opened projects closed in a restored estate, so the next submit opens a fresh one (its epoch 1 left no event); the key counter is operational and does not travel',
+  board_responder_slots: 'replayed under the restore rule, not reproduced: the generation projects and only grows, but in a restored estate no enrollment holds the slot, and its lease is operational and does not travel',
+  board_enrollments: 'replayed under the restore rule, not reproduced: in a restored estate every enrollment projects released (cause restore), so no responder holds authority there until the operator grants it again',
+  board_attempts: 'replayed under the restore rule, not reproduced: in a restored estate every attempt projects ended, and its lease is operational and does not travel'
+}
+
+/**
  * Never carried, and why. These are decisions, not gaps.
  *
  * Authority does not travel because a restored grant is a forged one. Live facts
@@ -165,6 +177,15 @@ export function archiveInventory(): ArchiveCategory[] {
         owner: 'ADR-0149 · the project board',
         retention: 'for the life of the estate; a body until it is redacted',
         reason: BOARD_ARCHIVED[name]
+      }
+    if (name in BOARD_AUTHORITY)
+      return {
+        name,
+        kind: 'table',
+        recovery: 'journal',
+        owner: 'ADR-0149 · the project board (restore rule)',
+        retention: 'rebuilt on demand; authority switched off in a restored estate',
+        reason: BOARD_AUTHORITY[name]
       }
     if (name in CARRIED)
       return {

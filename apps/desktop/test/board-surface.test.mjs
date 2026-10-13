@@ -8,7 +8,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { AgentSurface } from '../src/main/agentSurface.ts'
 import { HUB_TOOLS, hubServerFor } from '../src/main/hubTools.ts'
-import { COMMS_OPERATIONS } from '../src/main/boardService.ts'
+import { BOARD_SESSION_OPERATIONS, COMMS_OPERATIONS } from '../src/main/boardService.ts'
 
 const ESTATE = '87000000-0000-4000-8000-000000000001', PROJECT = '87000000-0000-4000-8000-000000000012', BINDING = '87000000-0000-4000-8000-000000000402'
 const GRANT = '87000000-0000-4000-8000-000000000602'
@@ -25,17 +25,21 @@ function surfaceWith(answers = {}) {
 }
 const enrolledScope = (extra = {}) => ({ estateId: ESTATE, projectId: PROJECT, sessionId: 'session-b', taskId: null, cameIn: 'enrolled', agent: 'codex', runtimeSessionId: null, surface: 'session', bindingId: BINDING, ...extra })
 
-test('a board session lists exactly the seventeen com.* tools: no fabric_* tool, fabric_whoami not found', async () => {
+test('a board session lists exactly the thirteen respond-only com.* tools (ADR-0149 Amendment 2): no com.submit, com.cancel, com.read_ack or com.directory, no fabric_* tool', async () => {
   const { surface } = surfaceWith()
   await linked(surface.serverFor(enrolledScope({ cameIn: 'hub', agent: 'example-agent', surface: 'board' })), async (client) => {
     const names = (await client.listTools()).tools.map((t) => t.name).sort()
-    assert.deepEqual(names, [...COMMS_OPERATIONS].sort())
+    assert.deepEqual(names, ['com.accept', 'com.claim', 'com.complete', 'com.effect_begin', 'com.enroll', 'com.get', 'com.list', 'com.progress',
+      'com.reconcile', 'com.renew', 'com.reply', 'com.responder_replace', 'com.status'])
+    assert.deepEqual(names, [...BOARD_SESSION_OPERATIONS].sort())
+    for (const absent of ['com.submit', 'com.cancel', 'com.read_ack', 'com.directory']) assert.ok(!names.includes(absent), `${absent} on a board session`)
     const whoami = await client.callTool({ name: 'fabric_whoami', arguments: {} }).catch((e) => ({ isError: true, thrown: String(e) }))
     assert.equal(whoami.isError, true, 'fabric_whoami answered on a board session')
   })
   await linked(surface.serverFor(enrolledScope()), async (client) => {
     const names = (await client.listTools()).tools.map((t) => t.name)
     assert.ok(names.includes('fabric_whoami') && names.includes('com.enroll'), 'a project session keeps its tools and the board\'s')
+    for (const op of COMMS_OPERATIONS) assert.ok(names.includes(op), `a project session lost ${op}`)
   })
 })
 
@@ -90,5 +94,67 @@ test('a session\'s end releases its responder slots; a revoked grant releases th
   down.mint(PROJECT, 'session-y', null)
   down.revokeSession('session-y')
   await down.releaseBoardGrant(GRANT)
+})
+
+// The wave-2 fix round (COM-03), each seen red first.
+test('a board session is told its idempotency epoch by com.status (fix 1)', async () => {
+  const { surface } = surfaceWith({ board_status: { data: { ok: true, unread: 0, epoch: 2, responders: [] }, error: null } })
+  await linked(surface.serverFor(enrolledScope({ cameIn: 'hub', agent: 'example-agent', surface: 'board' })), async (client) => {
+    const out = JSON.parse((await client.callTool({ name: 'com.status', arguments: {} })).content[0].text)
+    assert.deepEqual(out.idempotency, { epoch: 2 }, 'a board session cannot learn the epoch its responder commands need')
+  })
+})
+
+// A client leaving: a DELETE with its bearer and its mcp-session-id (the leave path of agentSurface.ts).
+async function leave(surface, token) {
+  const st = surface['states'].get(token); st.claimedAt = Date.now(); st.mcpSessionId = 'mcp-1'
+  let body = ''
+  surface['leave'](token, st, { headers: { 'mcp-session-id': 'mcp-1' } }, { writeHead() {}, end(b) { body = b } }, { refused() {} })
+  await new Promise((r) => setTimeout(r, 10))
+  return JSON.parse(body)
+}
+
+test('a board session\'s client leaving ends the session: its slots are released and it is no longer held (fix 2)', async () => {
+  const { surface, calls } = surfaceWith({ board_join_check: { data: { ok: true, capabilities: ['finance.close'], grants: [GRANT] }, error: null } })
+  const joined = await surface.joinBoard({ id: BINDING, agent_id: 'example-agent' }, PROJECT, 'board-1')
+  const left = await leave(surface, joined.token)
+  assert.equal(left.sessionEnded, true, 'a board session\'s leave dropped only the bearer')
+  assert.deepEqual(calls.find((c) => c.fn === 'board_release_session'), { fn: 'board_release_session', args: { p_estate: ESTATE, p_session: 'board-1' } })
+  assert.deepEqual(surface.heldSessions(PROJECT), [], 'an ended board session is still listed as held')
+  // A launched session's bearer still takes only itself.
+  const launched = surface.mint(PROJECT, 'launched-1', null)
+  assert.equal((await leave(surface, launched.token)).sessionEnded, false)
+})
+
+test('a launched session of a created agent responds as its runner — the catalogue id its binding names — not as the created agent (fix 12)', async () => {
+  const slot = { ok: true, repeated: false, slot: { project: PROJECT, capability: 'analytics.retention', generation: 1, leaseExpiresAt: '2026-10-13T07:00:00.000Z' } }
+  const calls = []
+  const db = { rpc: async (fn, args) => { calls.push({ fn, args }); return { data: slot, error: null } } }
+  const ptys = { get: () => ({ optionId: 'agent-7f3a' }), runnerOf: () => 'claude-code', list: () => [] }
+  const surface = new AgentSurface({ db, journal: { append: async () => ({ seq: 1 }) }, ptys: () => ptys, estateId: ESTATE })
+  await linked(surface.serverFor({ estateId: ESTATE, projectId: PROJECT, sessionId: 'launched-7', taskId: null, cameIn: 'launched', agent: null, runtimeSessionId: null, surface: 'session', bindingId: null }), async (client) => {
+    await client.callTool({ name: 'com.enroll', arguments: { idempotency: { epoch: 1, key: 'enroll-00001' }, capability: 'analytics.retention' } })
+  })
+  const enroll = calls.find((c) => c.fn === 'board_enroll')
+  assert.equal(enroll.args.p_holder.agent, 'claude-code', 'board_grant_for compares the runner\'s binding, so the created agent\'s id can never respond')
+})
+
+test('a board session whose board.respond grant expired is ended at its next call, its slots released, and told why (fix 14)', async () => {
+  let now = Date.parse('2026-10-13T08:00:00Z')
+  const calls = []
+  const db = { rpc: async (fn, args) => { calls.push({ fn, args }); return fn === 'board_join_check' ? { data: { ok: true, capabilities: ['finance.close'], grants: [GRANT] }, error: null } : { data: { ok: true, released: 1 }, error: null } } }
+  const surface = new AgentSurface({ db, journal: { append: async () => ({ seq: 1 }) }, ptys: () => undefined, estateId: ESTATE, now: () => now })
+  await surface.start()
+  try {
+    const joined = await surface.joinBoard({ id: BINDING, agent_id: 'example-agent' }, PROJECT, 'board-x', { authorityUntil: now + 60_000 })
+    now += 61_000
+    const res = await fetch(surface.endpoint, { method: 'POST', headers: { authorization: `Bearer ${joined.token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } }) })
+    assert.equal(res.status, 401, 'an expired grant\'s board session was served')
+    assert.match(await res.text(), /expired/)
+    await new Promise((r) => setTimeout(r, 10))
+    assert.ok(calls.some((c) => c.fn === 'board_release_session' && c.args.p_session === 'board-x'), 'its slots were not released')
+    assert.deepEqual(surface.heldSessions(PROJECT), [])
+  } finally { await surface.stop() }
 })
 // #endregion board-session-join

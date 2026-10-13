@@ -24,7 +24,13 @@ const reply = (value: unknown) => ({
 })
 type Handler = (caller: BoardCaller, args: unknown) => Promise<unknown>
 
-export function registerBoardTools(server: McpServer, board: Board, caller: () => BoardCaller, served: ReadonlySet<CommsOperation> = PINNED_COMMS_OPERATIONS): void {
+export function registerBoardTools(target: McpServer, board: Board, caller: () => BoardCaller, served: ReadonlySet<CommsOperation> = PINNED_COMMS_OPERATIONS,
+  only?: ReadonlySet<CommsOperation>): void {
+  // `only` (a board session, ADR-0149 Amendment 2: BOARD_SESSION_OPERATIONS): the tools outside it are not registered
+  // at all, so they are not listed either. Every registration below stays a literal call on `server`.
+  const server = only
+    ? { registerTool: ((name: string, ...rest: unknown[]) => (only.has(name as CommsOperation) ? (target.registerTool as (...a: unknown[]) => unknown)(name, ...rest) : undefined)) as McpServer['registerTool'] }
+    : target
   // The gate (spec §1.3): an operation outside the pin, or one this board has no handler for, is refused in the
   // contract's words before anything is read or stored.
   const gate = (op: CommsOperation, handler?: Handler) => async (args: unknown) =>
@@ -96,7 +102,7 @@ export function registerBoardTools(server: McpServer, board: Board, caller: () =
     title: 'Hold your Project\'s responder slot for a capability',
     description:
       'fabric-project-comms/0.1 com.enroll (comms-enroll). Arguments: idempotency {epoch: the one com.status names, key}; capability. ' +
-      'Takes the slot of your Project for that capability, if the operator let this agent answer it (else not_authorized — ask with fabric.access.request, callee fabric, capability board.respond, resource board:<project>/<capability>). ' +
+      'Takes the slot of your Project for that capability, if the operator let this agent answer it (else not_authorized: the operator grants board.respond for this project and capability in Fabric, Settings → Agent access; until then reply to the request and say it stays queued). ' +
       'The receipt\'s slot carries the generation your fences name and the lease expiry (database time). A live holder answers fenced; a lapsed one is replaced. ' +
       'Leaving or ending this session releases the slot.',
     inputSchema: open

@@ -60,12 +60,22 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/not_available[\s\S]*not empty/)
   })
 
+  it('says how a request is answered: com.enroll then com.claim under the operator\'s board.respond grant (Settings → Agent access); without it, reply and say it stays queued (wave-2 fix 16)', () => {
+    const o = byId('board.read-at-start')
+    expect(o.text).toMatch(/com\.enroll[\s\S]*com\.claim/)
+    expect(o.text).toMatch(/board\.respond/)
+    expect(o.text).toMatch(/Settings → Agent access/)
+    expect(o.text).toMatch(/reply[\s\S]*stays queued/)
+  })
+
   it('sends a cross-project ask only through com.submit to a Project, never a session, a process or a folder', () => {
     const o = byId('board.cross-project')
     expect(o.mode).toBe('ADVICE')
     expect(o.text).toMatch(/only through com\.submit/)
     expect(o.text).toMatch(/never to a session, a process or a folder/)
-    expect(o.text).toMatch(/same idempotencyKey/)
+    // The wire field is idempotency {epoch, key} (wave-2 fix 10): an agent that followed "idempotencyKey" was refused.
+    expect(o.text).toMatch(/the same idempotency \{epoch, key\}/)
+    expect(o.text).not.toMatch(/idempotencyKey/)
     // A second channel is named, so "a HANDOFF in their repository" is not mistaken for an allowed route.
     expect(o.text).toMatch(/HANDOFF/)
   })

@@ -66,7 +66,7 @@ import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { mayChain } from '../shared/loopBound.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
-import { createBoard, type Board, type BoardCaller } from './boardService.ts'
+import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { Journal } from '@fabric/journal'
@@ -207,6 +207,9 @@ export interface AgentScope {
   surface: 'session' | 'board'
   /** The hub binding an enrolled or board session came in under; null for a launched session (ADR-0149 §3). */
   bindingId: string | null
+  /** When the authority the session came in under ends (a board session: its earliest board.respond grant's expiry, ms):
+   *  its next call past it ends the session (ADR-0149 Amendment 2). Absent: no expiry is known here. */
+  authorityUntil?: number | null
 }
 
 /** How a session was minted: launched (the default) or enrolled, with its runner. */
@@ -218,16 +221,19 @@ export interface MintOrigin {
   rejoin?: boolean
   /** The binding it came in under (enrolled, board session), for the board's responder grant (ADR-0149 §3). */
   bindingId?: string | null
-  /** 'board': a board session (`fabric.board.join`), given only the `com.*` tools. */
+  /** 'board': a board session (`fabric.board.join`), given only the respond-only `com.*` tools. */
   surface?: 'session' | 'board'
+  /** When the authority it came in under ends, ms (AgentScope.authorityUntil). */
+  authorityUntil?: number | null
 }
 
 /** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
 export interface SurfaceWorkDeps {
   resolveSource(projectId: string, source: { repository: string; path: string; id: string }): Promise<SourceResolution>
   leaseRefs(projectId: string): Promise<(LeaseRefsRead & { repository: string }) | null>
-  /** Ends a session the way its own end would (an enrolled one through EnrolledSessions); default: revoke it here. */
-  endSession?(sessionId: string): void
+  /** Ends a session the way its own end would (an enrolled one through EnrolledSessions); default: revoke it here.
+   *  `reason`, when given, is what the session's next call is told. */
+  endSession?(sessionId: string, reason?: string): void
 }
 
 /**
@@ -514,7 +520,8 @@ export class AgentSurface {
       agent: origin?.agent ?? known?.agent ?? null,
       runtimeSessionId: origin?.runtimeSessionId ?? known?.runtimeSessionId ?? null,
       surface: origin?.surface ?? known?.surface ?? 'session',
-      bindingId: origin?.bindingId ?? known?.bindingId ?? null
+      bindingId: origin?.bindingId ?? known?.bindingId ?? null,
+      authorityUntil: origin?.authorityUntil ?? null
     }
     const now = this.now()
     if (!known)
@@ -639,11 +646,16 @@ export class AgentSurface {
    * one bearer, the `com.*` tools only. Answers the bearer with the capabilities and the grants it came in under (a
    * revocation of any of them ends the session), or the board's refusal.
    */
-  async joinBoard(binding: { id: string; agent_id: string }, projectId: string, sessionId: string): Promise<{ token: string; capabilities: string[]; grants: string[] } | { error: { code: string; message: string } }> {
+  async joinBoard(binding: { id: string; agent_id: string }, projectId: string, sessionId: string, opts: { authorityUntil?: number | null } = {}): Promise<{ token: string; capabilities: string[]; grants: string[] } | { error: { code: string; message: string } }> {
     const checked = await this.board.joinCheck(this.deps.estateId, binding.id, projectId)
     if ('error' in checked) return { error: { code: checked.error.code, message: checked.error.message } }
-    const { token } = this.mint(projectId, sessionId, null, { cameIn: 'hub', agent: binding.agent_id, bindingId: binding.id, surface: 'board' })
+    const { token } = this.mint(projectId, sessionId, null, { cameIn: 'hub', agent: binding.agent_id, bindingId: binding.id, surface: 'board', authorityUntil: opts.authorityUntil ?? null })
     return { token, capabilities: checked.capabilities, grants: checked.grants }
+  }
+
+  /** The board's own join check (the grants a binding holds on one Project), for the hub's read-again after a mint. */
+  boardJoinCheck(bindingId: string, projectId: string): ReturnType<Board['joinCheck']> {
+    return this.board.joinCheck(this.deps.estateId, bindingId, projectId)
   }
 
   /** A board.respond grant was revoked: the enrollments it admitted are released (COM03-10). Best effort. */
@@ -746,6 +758,19 @@ export class AgentSurface {
     }
 
     const now = this.now()
+
+    // #region board-session-expiry — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
+    // A grant that EXPIRES fires no revocation listener: the session it admitted is ended at its next call, the way a
+    // revocation ends it — its slots released, its next bearer told why (ADR-0149 Amendment 2, wave-2 fix 14).
+    if (st.scope.authorityUntil != null && now >= st.scope.authorityUntil) {
+      const why = 'this board session ended: the operator\'s board.respond grant it joined under expired. The operator grants it again in Fabric, Settings → Agent access; then join again with fabric.board.join'
+      const end = this.deps.work?.endSession
+      if (end) end(st.scope.sessionId, why)
+      else this.revokeSession(st.scope.sessionId, why)
+      AgentSurface.refuse(res, 401, why, {}, attempt)
+      return
+    }
+    // #endregion board-session-expiry
 
     // A credential minted for a session that never arrived is not a credential
     // waiting patiently, it is a credential lying around. Spawn can fail, and
@@ -909,7 +934,9 @@ export class AgentSurface {
       return
     }
     const sessionId = st.scope.sessionId
-    const endsSession = st.scope.cameIn === 'enrolled' && !st.rejoin
+    // A board session (fabric.board.join) is a session its client owns, like an enrolled one: leaving ends it, so its
+    // responder slots are released and it stops being listed as held (wave-2 fix 2).
+    const endsSession = (st.scope.cameIn === 'enrolled' || st.scope.surface === 'board') && !st.rejoin
     if (endsSession) (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(sessionId)
     else this.drop(token)
     ops.record({ op: 'agentSurface.session-left', outcome: 'ok', level: 'info', detail: { ended_session: endsSession, rejoin: st.rejoin },
@@ -1242,7 +1269,8 @@ export class AgentSurface {
     // ADR-0149 §4 and ADR-0115's rule: a board session is given a server with the board's tools and nothing else, so no
     // session tool — fabric_whoami included — is reachable from it.
     if (scope.surface === 'board') {
-      registerBoardTools(server, this.board, () => this.boardCaller(scope))
+      // Respond-only (ADR-0149 Amendment 2): the tools board.respond promises, nothing that writes as the Project.
+      registerBoardTools(server, this.board, () => this.boardCaller(scope), PINNED_COMMS_OPERATIONS, BOARD_SESSION_OPERATIONS)
       return server
     }
 
@@ -2607,7 +2635,8 @@ export class AgentSurface {
       now: this.now
     })
 
-    registerBoardTools(server, this.board, () => this.boardCaller(scope, ptys()?.get(scope.sessionId)?.optionId ?? null))
+    // The runner underneath, never a created agent's id (M125): board_grant_for compares the runner's binding (ADR-0149 §3).
+    registerBoardTools(server, this.board, () => this.boardCaller(scope, ptys()?.runnerOf?.(scope.sessionId) ?? ptys()?.get(scope.sessionId)?.optionId ?? null))
 
     return server
   }

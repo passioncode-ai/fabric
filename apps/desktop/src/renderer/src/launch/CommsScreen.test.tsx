@@ -90,6 +90,15 @@ describe('the thread list', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it('after a restore whose board history did not come back, says the texts are missing — never that nothing was said (SCN-146 alt path)', async () => {
+    stub({ ok: true, threads: [], textsMissing: 7 })
+    show()
+    await screen.findByText(en['launch.comms.textsMissing'])
+    expect(screen.getByText(en['launch.comms.textsMissingBody'].replace('{count}', '7'))).toBeTruthy()
+    expect(screen.queryByText(en['launch.comms.emptyBody'])).toBeNull()
+    expect(screen.queryByText(en['launch.comms.empty'])).toBeNull()
+  })
+
   it('a board that does not answer is unavailable with Try again, NEVER the empty list', async () => {
     stub({ ok: false, error: { code: 'unavailable', message: 'timeout' } })
     show()
