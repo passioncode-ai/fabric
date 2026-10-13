@@ -2,6 +2,7 @@
 import type { AdmissionReceipt, AdmitOutcome } from '../shared/admission.ts'
 import { assessResourceAdmission, type ResourceChecks, type ResourceIdentity, type ResourceVector } from '../shared/resourceAdmission.ts'
 import type { AdmitInput } from './admitExisting.ts'
+import { resourceObservationDigest, resourceObservationDuration, type ResourceAttemptObservation, type ResourceObservationSink } from './resourceAttemptObservation.ts'
 
 export interface ResourceLaunchPreparation {
   request: unknown
@@ -32,6 +33,8 @@ export interface ResourceLaunchAdapterDeps {
   /** Both are explicit local bounds, not machine capacity defaults. */
   timeoutMs: number
   maxEntries: number
+  /** Optional local diagnostics only; no authority or portable event publication. */
+  observations?: { sink: ResourceObservationSink; now?: () => number }
   prepare(input: Readonly<AdmitInput>): Promise<ResourceLaunchPreparation>
   /** Trusted currentness provider. Must independently refresh input/scope/fence,
    * ownership and policy; never echo the supplied identity as proof. The SQL
@@ -87,6 +90,8 @@ interface Entry {
   binding?: Readonly<ResourceLaunchBinding>
   receipt?: AdmissionReceipt
   outcome: Promise<AdmitOutcome>
+  observedStartedAt?: number | null
+  observedSnapshot?: string
 }
 /** Optional at composition only. Once installed this adapter never calls legacy
  * admission, even if pending migration107 is missing. No index.ts wiring yet.
@@ -94,6 +99,40 @@ interface Entry {
 export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): ResourceLaunchAdapter {
   if (!positive(deps.timeoutMs) || deps.timeoutMs > 30_000 || !positive(deps.maxEntries)) throw Error('invalid resource adapter bounds')
   const entries = new Map<string, Entry>()
+  // #region resource-attempt-instrumentation — docs: docs/execution/harness-waves/resource-attempt-observation.md#contract
+  function observeAccidentalPromise(value: unknown): void {
+    if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Promise.prototype &&
+        !Object.getOwnPropertyDescriptor(value, 'constructor')) {
+      void Promise.prototype.then.call(value, undefined, () => {})
+    }
+  }
+  function observedNow(): number | null {
+    if (!deps.observations) return null
+    try {
+      const at: unknown = (deps.observations.now ?? (() => performance.now()))()
+      observeAccidentalPromise(at)
+      return typeof at === 'number' && Number.isFinite(at) && at >= 0 ? at : null
+    }
+    catch { /* Diagnostic clock is unavailable; the sample stays unknown, never zero or authority. */ return null }
+  }
+  function observe(entry: Entry, phase: ResourceAttemptObservation['phase'], outcome: ResourceAttemptObservation['outcome'],
+    reason: ResourceAttemptObservation['reason'], start: number | null): void {
+    if (!deps.observations) return
+    try {
+      const result = deps.observations.sink.record({
+        attemptDigest: resourceObservationDigest([entry.input.estateId, entry.input.taskId, entry.input.sessionId]),
+        phase, outcome, reason, durationMs: resourceObservationDuration(start, observedNow()),
+        requested: entry.binding ? { ...entry.binding.demand } : null,
+        reserved: entry.receipt && entry.binding ? { ...entry.binding.demand } : null,
+        snapshotDigest: entry.observedSnapshot ?? null,
+        policyDigest: entry.binding ? resourceObservationDigest([entry.binding.identity.hostId, entry.binding.identity.poolId, entry.binding.identity.localPolicyRevision]) : null
+      })
+      // The sink contract is synchronous. Still absorb an accidental ordinary
+      // native Promise rejection; do not inspect arbitrary thenable accessors.
+      observeAccidentalPromise(result)
+    } catch { /* A failed local diagnostic sink cannot alter admission/currentness/release authority. No raw input is logged. */ }
+  }
+  // #endregion resource-attempt-instrumentation
   async function bounded<T>(call: () => T | PromiseLike<T>): Promise<T> {
     let timer: ReturnType<typeof setTimeout> | undefined
     try { return await Promise.race([Promise.resolve().then(call), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(Error('resource timeout')), deps.timeoutMs) })]) }
@@ -127,11 +166,16 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
   async function settle(receipt: AdmissionReceipt, command: string): Promise<boolean> {
     const entry = find(receipt)
     if (!entry?.binding || !entry.receipt) return false
+    const started = observedNow(), phase = command === 'cancel_resource_admission' ? 'cancel' : 'release'
     try {
       const answer = data(await rpc(command, { p_estate: entry.input.estateId, p_reservation: entry.binding.identity.reservationId,
         p_run: entry.receipt.task_run_id, p_session: entry.input.sessionId, p_fence: String(entry.binding.identity.fence) }))
-      return answer.released === true && positive(answer.receipt_seq)
-    } catch { /* No confirmed release receipt: retain capacity and report uncertainty to the coordinator. */ return false }
+      const released = answer.released === true && positive(answer.receipt_seq)
+      observe(entry, phase, released ? 'accepted' : 'unknown', released ? 'released' : 'release-unconfirmed', started)
+      return released
+    } catch { /* No confirmed release receipt: retain capacity and report uncertainty to the coordinator. */
+      observe(entry, phase, 'unknown', 'release-unknown', started); return false
+    }
   }
   return {
     mode: 'required',
@@ -141,26 +185,37 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
       const previous = entries.get(input.sessionId)
       if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
       if (entries.size >= deps.maxEntries) return Promise.resolve(refused('resource_adapter_capacity'))
-      const entry: Entry = { input, outcome: Promise.resolve(refused('resource_admission_unknown')) }
+      const entry: Entry = { input, outcome: Promise.resolve(refused('resource_admission_unknown')), observedStartedAt: observedNow() }
       entries.set(input.sessionId, entry)
       entry.outcome = (async () => {
         try {
           const preparation = await bounded(() => deps.prepare(input))
           const decision = assessResourceAdmission(preparation.request, preparation.context, preparation.checks)
-          if (decision.state !== 'eligible') return refused(`resource_${decision.state}`)
+          if (decision.state !== 'eligible') {
+            observe(entry, 'admission', decision.state, decision.state === 'unknown' ? 'preflight-unknown' : 'preflight-refused', entry.observedStartedAt ?? null)
+            return refused(`resource_${decision.state}`)
+          }
           const binding = freeze({ input, identity: decision.identity, demand: decision.demand,
             ownDemand: ownVector(preparation.ownDemand, decision.demand), parentId: decision.parent?.reservationId ?? null })
           entry.binding = binding
+          if (deps.observations) entry.observedSnapshot = resourceObservationDigest([binding.identity.hostId, binding.identity.poolId, binding.identity.localPolicyRevision, decision.snapshotId])
           const { hostId, poolId, ...identity } = binding.identity
           const rawReceipt = await rpc('admit_resource_task_launch', { p_estate_id: input.estateId, p_task_id: input.taskId,
             p_actor: { ...input.actor }, p_session_id: input.sessionId, p_host: hostId, p_pool: poolId,
             p_binding: { ...identity }, p_demand: { ...binding.demand }, p_own_demand: { ...binding.ownDemand },
             p_parent: binding.parentId, p_trigger: input.trigger, p_person_id: input.personId ?? null, p_revision: input.revision ?? null })
           const verdict = data(rawReceipt)
-          if (verdict.admitted === false) return refused('resource_admission_refused')
+          if (verdict.admitted === false) {
+            observe(entry, 'admission', 'refused', 'admission-refused', entry.observedStartedAt ?? null)
+            return refused('resource_admission_refused')
+          }
           entry.receipt = readReceipt(rawReceipt, entry)
+          observe(entry, 'admission', 'accepted', 'admitted', entry.observedStartedAt ?? null)
           return { admitted: true as const, receipt: entry.receipt }
-        } catch { /* The returned unknown outcome prevents retry/spawn; transport details can contain credentials. */ return refused('resource_admission_unknown') }
+        } catch { /* The returned unknown outcome prevents retry/spawn; transport details can contain credentials. */
+          observe(entry, 'admission', 'unknown', 'admission-unknown', entry.observedStartedAt ?? null)
+          return refused('resource_admission_unknown')
+        }
       })()
       return entry.outcome
     },
@@ -168,8 +223,14 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
     async current(receipt) {
       const entry = find(receipt)
       if (!entry?.binding || !entry.receipt) return false
-      try { return await bounded(() => deps.current(entry.binding!, entry.receipt!)) === true }
-      catch { /* Failed currentness is a returned refusal, never permission to continue. */ return false }
+      const started = observedNow()
+      try {
+        const current = await bounded(() => deps.current(entry.binding!, entry.receipt!)) === true
+        observe(entry, 'currentness', current ? 'accepted' : 'refused', current ? 'current' : 'not-current', started)
+        return current
+      } catch { /* Failed currentness is a returned refusal, never permission to continue. */
+        observe(entry, 'currentness', 'unknown', 'currentness-unknown', started); return false
+      }
     },
     // SQL establishes never-begun proof under the same lock as begin. A lost
     // begin response is NOT proof; cancellation can safely refuse in that case.
