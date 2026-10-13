@@ -17,7 +17,7 @@
       "id": "N-001",
       "title": "Session enrollment identity",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-001",
       "blocked_by": [],
       "touches": [
@@ -25,13 +25,16 @@
         "apps/desktop/test/session-enroll.test.mjs"
       ],
       "surface_class": "internal",
-      "check": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs"
+      "check": "node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-002",
       "title": "Effective adapter modes and surface admission",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-002",
       "blocked_by": [],
       "touches": [
@@ -43,13 +46,16 @@
         "apps/desktop/test/acp-shell.test.mjs"
       ],
       "surface_class": "internal",
-      "check": "node apps/desktop/test/session-bundle.test.mjs"
+      "check": "node apps/desktop/test/session-bundle.test.mjs",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-003",
       "title": "Hard context budget",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-003",
       "blocked_by": [],
       "touches": [
@@ -58,46 +64,58 @@
         "apps/desktop/test/context-privacy.test.mjs"
       ],
       "surface_class": "internal",
-      "check": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs"
+      "check": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-004",
       "title": "All-host evidence matrix",
       "owner": "researcher",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-004",
       "blocked_by": [],
       "touches": [
         "docs/execution/harness-waves/host-matrix.md"
       ],
       "surface_class": "internal",
-      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-005",
       "title": "Owner integration packets",
       "owner": "researcher",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-006",
       "blocked_by": [],
       "touches": [
         "docs/execution/harness-waves/owner-packets.md"
       ],
       "surface_class": "internal",
-      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-006",
       "title": "Shared admission and feedback design",
       "owner": "decomposer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [],
       "touches": [
         "docs/execution/harness-waves/admission-feedback.md"
       ],
       "surface_class": "internal",
-      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "docs/reports/2026-10-13-harness-wave-review/README.md at integrated repair source a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9; scoped node deliverable only, not upstream behavior acceptance"
+      ]
     },
     {
       "id": "N-007",

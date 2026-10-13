@@ -1,0 +1,40 @@
+# CO-282 — portable harness waves handoff
+
+One entry: [execution plan](../evidence/plans/2026-10-13-harness-waves.md).
+Objective: modular autonomous work with bounded resources, asynchronous independent review,
+source-bound feedback and explicit support per host. Status: first Fabric repair wave;
+CO-282 remains open, not universal runtime acceptance.
+
+Source baseline a5b78e4919d82c6eae88bee72e59eba3e0c1fbae; integrated repair source
+a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Main delivery branch: `agent/harness-waves-20261013`.
+All outputs and packets are repository-relative under `docs/execution/harness-waves`.
+[Review and limitations](../reports/2026-10-13-harness-wave-review/README.md).
+
+Completed: detailed ten-node graph/packets; three reviewed repairs (pending bearer identity
+and admission race; whole-context budget; negotiated ACP mode and mandatory surface);
+all-host evidence matrix; owner packets and shared admission/feedback specification.
+One ACP patch was rejected and repaired before integration; earlier green checks were not reused.
+
+Decisions: existing ADR/grant authority outranks observed lessons; board is the sole
+cross-project request record; no runtime support inferred from installation; no broad
+copying of global homes; builders/reviewers share the run's scarce test capacity.
+
+Next local verification: freeze source, run `pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast`
+and preserve exact result. Use existing compatible dependencies only; no install required.
+Final result will be appended to the wave review before branch delivery.
+
+Next implementation wave: submit [owner packets](../execution/harness-waves/owner-packets.md)
+to owning Projects through Fabric COM, refresh their source heads, then finish pipeline
+receipt provenance, Observatory lesson contract and host-aware hub/MCP selection in those
+owners. N-009/N-010 remain blocked, packets NOT_SENT: this CLI has no Fabric whoami/COM tools.
+Registration/consent is a human gate under the standing board instruction; no bypass was used.
+
+Fabric follow-ups: effective generated-home skill loading, per-host identity/hooks/resume,
+MCP isolation and multi-instance gateway support; admission/feedback remains a specification
+pending its protocol-owner contract. Exact positive/negative tests are in the matrix and
+admission document. Do not implement duplicate upstream queues or policy copies here.
+
+No integration, release, installed skill update or workspace publication was performed.
+The source review branches preserve independent-review targets; root verifies remote SHAs
+before reporting delivery. Dependency links are local-only and must never be committed.
+No foreign worktree, credential or service lifecycle was changed.

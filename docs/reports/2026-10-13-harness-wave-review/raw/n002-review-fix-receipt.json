@@ -1,0 +1,45 @@
+{
+  "schema": "fabric/n002-review-fix-receipt/1",
+  "observed_on": "2026-10-13",
+  "reviewed_candidate": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+  "fixed_candidate": "ce9090efaa8c8ddd4e505b56563189f3c79582b4",
+  "finding": "A same-session current_mode_update could contradict the selected mode while an empty success response still allowed the first prompt.",
+  "change": "Track only matching-session mode updates. Before first prompt, reject an observed current mode different from the requested mode. An empty acknowledgement without an update remains valid; foreign-session updates do not alter local mode evidence.",
+  "red": {
+    "command": "node --test --test-name-pattern='contradictory ACP|matching mode updates' apps/desktop/test/acp-shell.test.mjs",
+    "exit_code": 1,
+    "failed_tests": 2,
+    "passed_tests": 1,
+    "cases": [
+      "plan requested, yolo reported: previously first prompt sent and exit 0",
+      "default requested, yolo reported: previously first prompt sent and exit 0"
+    ],
+    "output_sha256": "700c173ece46e724df5297957449f29b117aab33e364bcb56cd69b4540cac563"
+  },
+  "green": {
+    "command": "node --test --test-name-pattern='native ACP mode|ACP mode refuses|contradictory ACP|matching mode updates' apps/desktop/test/acp-shell.test.mjs",
+    "exit_code": 0,
+    "tests": 9,
+    "passed": 9,
+    "failed": 0,
+    "output_sha256": "4e142559693bf697f8778c9f3d0d4fc8257be993904af3f9ce8901dbac9bff3f"
+  },
+  "other_checks": [
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit_code": 0,
+      "region_markers": 340
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "limits": [
+    "In-memory peer, no provider/model calls",
+    "No new native CLI probe for this fix",
+    "Full 32-test ACP suite receipt on previous candidate remains historical; this follow-up ran the nine affected cases",
+    "Independent narrow rereview required"
+  ],
+  "provenance": "Summarized from existing tool results; no tests rerun while writing this receipt."
+}

@@ -18,7 +18,7 @@ bundle or a passing fake into native agent acceptance.
 - Delivery: `sessionBundle.ts`, `pty.ts`, `acpShell.ts` in that main directory;
   `apps/desktop/src/shared/agents.ts` owns the runner catalogue.
 - Context: `contextPack.ts` (`compileContextPack`, `MandatoryContextUnmet`).
-- Capability and skill discovery: `adapterSkills.ts`, `executorReadiness.ts`;
+- Capability and skill discovery: `adapterSkills.ts`, `executorReadiness` in `apps/desktop/src/shared/agents.ts`;
   launcher declaration, effective configuration and successful execution are separate evidence.
 - MCP routing: `gateway.ts`, `apps/desktop/src/shared/servers.ts`; configuration is not health.
 - Contracts: `workspace/knowledge/agents-first.md`, `authority.md`, `principles.md`;

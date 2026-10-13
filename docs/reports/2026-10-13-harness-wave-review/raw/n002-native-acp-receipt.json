@@ -1,0 +1,84 @@
+{
+  "schema": "fabric/n002-native-probe-receipt/1",
+  "observed_on": "2026-10-13",
+  "runner": "kimi-code",
+  "version": "2.1.1",
+  "source_baseline": "5ecf79ea",
+  "resulting_patch": "67b763586ddfdb34878b29a6fb6117a0cc90ec52",
+  "methods": [
+    "initialize",
+    "session/new",
+    "session/set_mode"
+  ],
+  "no_prompt_sent": true,
+  "mcp_servers_passed": 0,
+  "no_provider_model_call_requested": true,
+  "sign_in_initiated": false,
+  "evidence_level": "native ACP initialization and mode negotiation; no model behavior or full executor acceptance",
+  "global_cli_flags": [
+    {
+      "flags": [],
+      "initialize_ok": true,
+      "session_new_ok": true,
+      "current_mode_id": "default"
+    },
+    {
+      "flags": [
+        "--plan"
+      ],
+      "initialize_ok": true,
+      "session_new_ok": true,
+      "current_mode_id": "default"
+    },
+    {
+      "flags": [
+        "--auto"
+      ],
+      "initialize_ok": true,
+      "session_new_ok": true,
+      "current_mode_id": "default"
+    }
+  ],
+  "session_set_mode": [
+    {
+      "mode_id": "plan",
+      "acknowledged": true,
+      "result": {},
+      "current_mode_update": "plan",
+      "timeout": false
+    },
+    {
+      "mode_id": "default",
+      "acknowledged": true,
+      "result": {},
+      "current_mode_update": "default",
+      "timeout": false
+    },
+    {
+      "mode_id": "yolo",
+      "acknowledged": true,
+      "result": {},
+      "current_mode_update": "yolo",
+      "timeout": false
+    },
+    {
+      "mode_id": "invalid-fixture-mode",
+      "acknowledged": false,
+      "error_code": -32602,
+      "timeout": false
+    }
+  ],
+  "measurement_correction": "An initial buffered readline plus select implementation missed buffered acknowledgements. The rerun used unbuffered os.read framing and observed all three acknowledgements and matching mode updates without timeout. False timeouts are not runner findings.",
+  "reproduction": {
+    "script": "n002-native-acp-probe.py",
+    "command": "python3 n002-native-acp-probe.py",
+    "sha256": "3257999d7aba7dae19900e645ccdf55f885f5bbd587692df8f49f57635f03e29",
+    "status": "Sanitized reproduction reconstructed from executed inline probes; this saved file was not rerun. Its digest identifies reproduction bytes, not the original execution."
+  },
+  "limitations": [
+    "session/new can persist empty native sessions",
+    "Native mode enforcement during model/tool execution was not tested",
+    "No all-host acceptance claim",
+    "Existing authenticated installation was used; no sign-in flow was invoked"
+  ]
+}
