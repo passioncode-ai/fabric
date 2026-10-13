@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T04:03:00Z · `—` · agent/com-w2-fixes-land → main · fast-forward (squash of agent/com-w2-fixes onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: COM-03 wave-2 fix round (ADR-0149 Amendment 2), the TypeScript and docs half; three blind readings of e09ad8fb..3d7e7752. A board session is respond-only (13 tools: no com.submit/cancel/read_ack/directory, refused in the service too), is told its idempotency epoch, ends when its client leaves (slots released) and at its first call past its grants' expiry; fabric.board.join reuses an unspent bearer, caps board sessions per binding apart from coding enrollments (eviction text in its own tools) and reads the grants again after the mint; a launched created-agent session answers as its runner; keyless calls (read_ack, renew, progress) say it is safe to resend; coding_agents_enrolled classifies by capability; the archive inventory gives board_epochs/slots/enrollments/attempts their restore-rule class; board.read-at-start says how to answer (com.enroll + com.claim under board.respond, Settings → Agent access), board.cross-project names idempotency {epoch, key}; the board.respond consent keeps the contract's caveat and Russian says «присылают проекту «…»»; Comms names its source Comms / «Переписка» and says "The texts did not come back" after a restore without board history. SCN-143 preamble, SCN-145/SCN-146/SCR-76/SCR-81 amendments, CONTEXT, CHANGELOG (schema 87, three migrations; outcome unknown), strings and terminology, inventory COM-03 note, lane 13, COM-03 row. NOT on main: the SQL half — migration 88 and the repin to contract DEC-0078 f00a768 — pushed on agent/com-w2-fixes-db, held until its owned-cluster DB tier runs (disk under 3 GB; CO-287).
+
 ### 2026-10-13T12:30:00Z · `—` · agent/com03-registers → main · fast-forward
 - run: r-fc848dc29
 - files: 6
