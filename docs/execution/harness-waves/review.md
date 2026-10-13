@@ -34,3 +34,32 @@ of that reviewer's own implementation.
 Root final document review by `/root/pipeline_research` caught a graph evidence address that
 conflated implementation and report commits, and missing independent N-004…006 receipts.
 This correction separates them; no old review was stamped with a new source commit.
+
+## Combined source and resource decomposition review
+
+Reviewer `/root/mcp_research`, frozen source
+`829570ab586be73043bbd975280e89b20596a7fc`: scoped PASS, no blocking defect found
+in enrollment identity, context budgeting or compiler-to-bundle refusal. Application
+sources are unchanged through `d6219f2b77b53c2342ff02257d59dd2ea8b3f25b` (`git diff
+829570ab d6219f2b -- apps/desktop` empty). This reviewer authored N-002, so examination
+of ACP/PTY/catalogue code is contributor review; independent N-002 acceptance remains
+with `/root/pipeline_research` above. N-001/N-003 and the resource proposal were independently
+examined by this reviewer.
+
+Commands, all exit 0:
+
+- `node apps/desktop/test/context-privacy.test.mjs`: 8 scenarios.
+- `node apps/desktop/test/context-mandatory.test.mjs`: 10 scenarios.
+- `node --test --test-name-pattern='pending bearers belong|concurrent same-runtime|concurrent retry|failed pending journal|pending admission in one binding' apps/desktop/test/session-enroll.test.mjs`: 5 passed.
+
+Frozen report digest: `89b948a5665f7e5146e1b2cdc6d7dcea5a7a8edb5bf4d86b5c9275eda60fe1a9`.
+Frozen handoff digest: `a24542b13890ad441374d47b1c9862dd63d555211bb8e272712c3cf631702aa1`.
+Frozen graph digest: `049cbfdaf285642af06365d41b76e0e918fd38e6abe4878fdb8cdd06347d470b`.
+Two wording corrections landed in d6219f2b: no model prompt/API invocation does not prove
+all network traffic absent; branch integration does not mean a merge to main.
+
+The [resource proposal](resource-implementation.md), SHA-256
+`3291038317158688727c433aa7b1798c3061bfb07ae3924b2eae00cb0c054282`, also passed scoped
+independent review as a decomposition. Existing quota/backend-cap and launch/stop/outbox
+claims match source; R1–R6 tests remain proposed and NOT_RUN. No native/provider behavior,
+full CI, deployment or machine-wide enforcement is established by this review.
