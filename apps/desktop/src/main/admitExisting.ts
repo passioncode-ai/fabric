@@ -15,6 +15,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { admissionOutcome, type AdmitOutcome } from '../shared/admission.ts'
+import type { ResourceLaunchAdapter } from './resourceLaunchAdapter.ts'
 
 export interface AdmitInput {
   estateId: string
@@ -29,8 +30,13 @@ export interface AdmitInput {
   trigger: 'operator' | 'chain' | 'routine' | 'answer'
 }
 
-export function createAdmitExisting(db: SupabaseClient) {
-  return async function admitExistingTask(input: AdmitInput): Promise<AdmitOutcome> {
+// #region resource-admission-selection — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
+/** Trusted composition selects the required adapter; task inputs cannot toggle it.
+ * Absence preserves legacy admission, explicitly NOT_ENFORCED for resources. */
+export function createAdmitExisting(db: Pick<SupabaseClient, 'rpc'>, resources?: ResourceLaunchAdapter) {
+  if (resources && resources.mode !== 'required') throw Error('invalid resource admission dependency')
+  const admitExistingTask = async (input: AdmitInput): Promise<AdmitOutcome> => {
+    if (resources) return resources.admit(input)
     const { data, error } = await db.rpc('admit_task_launch', {
       p_estate_id: input.estateId,
       p_task_id: input.taskId,
@@ -42,4 +48,6 @@ export function createAdmitExisting(db: SupabaseClient) {
     })
     return admissionOutcome(data, error)
   }
+  return Object.assign(admitExistingTask, { resourceMode: resources ? 'required' as const : 'legacy_not_enforced' as const })
 }
+// #endregion resource-admission-selection
