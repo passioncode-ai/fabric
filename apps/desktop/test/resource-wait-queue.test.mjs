@@ -289,3 +289,17 @@ test('retained permit after completed operation is revoked before inspecting any
   await f.add(); assert.equal((await f.queue().pass(scope)).state, 'refused_before_start')
   assert.equal(await savedPermit(), false); assert.equal(inspections, 1)
 })
+
+test('ordinary rejected async clock is refused without an unhandled process rejection', async () => {
+  const { spawnSync } = await import('node:child_process')
+  const module = process.env.RESOURCE_WAIT_MODULE || new URL('../src/main/resourceWaitQueue.ts', import.meta.url).href
+  const code = `import {createResourceWaitQueue} from ${JSON.stringify(module)};
+    const q=createResourceWaitQueue({store:{},now:()=>Promise.reject(Error('synthetic clock')),
+      workerId:'worker',pageSize:1,claimMs:100,timeoutMs:10});
+    const result=await q.enqueue(${JSON.stringify(input())});
+    await new Promise(r=>setImmediate(r));
+    console.log(JSON.stringify(result));`
+  const run = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', code], { encoding: 'utf8', timeout: 10000 })
+  assert.equal(run.status, 0, 'a refused clock must not crash Node')
+  assert.deepEqual(JSON.parse(run.stdout), { state: 'unknown' })
+})

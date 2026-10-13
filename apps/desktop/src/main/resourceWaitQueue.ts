@@ -136,7 +136,19 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
     operation = op
     try { return await call(op) } finally { op.valid = false; op.finished = true; release(op) }
   }
-  const now = () => { const n = deps.now(); if (!integer(n)) throw Error('invalid clock'); return n }
+  const now = () => {
+    const n: unknown = deps.now()
+    // Refuse accidental async clock providers, but consume an ordinary native
+    // Promise rejection. Do not read arbitrary then/constructor accessors.
+    // Exotic Promise subclasses/constructor overrides are outside this DI contract.
+    if (n && typeof n === 'object' && Object.getPrototypeOf(n) === Promise.prototype &&
+        !Object.prototype.hasOwnProperty.call(n, 'constructor')) {
+      try { void Promise.prototype.then.call(n, undefined, () => {}) }
+      catch { /* A prototype spoof remains an invalid clock, never an admitted value. */ }
+    }
+    if (!integer(n)) throw Error('invalid clock')
+    return n
+  }
   async function bounded<T>(op: Operation, call: () => Promise<T>): Promise<T> {
     if (!op.valid) throw Error('wait operation revoked')
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -186,7 +198,7 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
         const row = rowOf(await bounded(op, () => deps.store.insert(input)))
         if (!same(row.input, input) || row.updatedAt > now()) return { state: 'unknown' }
         return { state: row.state, id: input.id }
-      } catch { return { state: 'unknown' } }
+      } catch { /* Structured unknown is the receipt; raw dependency errors may contain secrets. */ return { state: 'unknown' } }
     },
     async cancel(op: Operation, raw: ResourceWaitInput): Promise<ResourceWaitOutcome> {
       try {
@@ -196,7 +208,7 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
         if (row.state !== 'waiting' && row.state !== 'claimed') return { state: row.state, id: input.id }
         const next = await change(op, row, { state: 'cancelled', claim: null })
         return { state: next ? 'cancelled' : 'contended', id: input.id }
-      } catch { return { state: 'unknown' } }
+      } catch { /* Structured unknown is the receipt; raw dependency errors may contain secrets. */ return { state: 'unknown' } }
     },
     async pass(op: Operation, rawScope: WaitQueueScope): Promise<ResourceWaitOutcome> {
       let begun: ResourceWaitRecord | null = null
@@ -242,7 +254,7 @@ export function createResourceWaitQueue(deps: ResourceWaitDeps) {
             permitGranted = op.valid && !!current && same(current, boundary) && t >= boundary.updatedAt &&
               t < until && t < boundary.input.deadlineAt
             return permitGranted
-          } catch { return false }
+          } catch { /* Refuse the permit without exposing private dependency diagnostics. */ return false }
         }
         const effect = await bounded(op, () => deps.dispatch(boundary.input, permit))
         const state: ResourceWaitState = effect === 'started' && permitGranted ? 'dispatched' :

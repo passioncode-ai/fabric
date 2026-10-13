@@ -86,7 +86,7 @@ time only. The four regression tests selected by `--test-name-pattern
 "ten repeated|late nested|nested permit dependency|retained permit"` all failed
 against that implementation (exit 1), then all passed after retaining operation
 ownership and revoking late permits (exit 0). The corrected complete suite passes
-25 tests, including the three mechanism-removal controls. The initial mutation
+26 tests, including the three mechanism-removal controls. The initial mutation
 control marker issue above is a harness correction, not a production defect.
 
 The retained-slot tests repeat each entry point ten times after timeout and check
@@ -107,3 +107,10 @@ board upkeep does not satisfy those requirements.
 Retros applied: R-006 requires the executable negative controls; R-007 requires
 this explicit fake-store boundary; R-003 reserves real database-role probes for
 the future SQL producer. Root owns the shared plan, CI wiring, map and handoff.
+
+Independent review also found an accidental async clock provider could return a
+rejected Promise: the kernel returned unknown but Node then terminated on the
+unhandled rejection. The `ordinary rejected async clock` child-process test failed
+on `57d7f36e` (exit 1) and passes after the narrow native-Promise observation fix.
+The clock remains synchronous and invalid async values never authorize work;
+arbitrary thenable accessors and exotic Promise subclasses are not invoked.
