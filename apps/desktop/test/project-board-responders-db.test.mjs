@@ -477,7 +477,18 @@ await test('a restored board: claimed → queued, in_progress → outcome_unknow
 
 // ── R-003: what no API role may do ────────────────────────────────────────────────────────────────────────
 // ── the wave-2 fix round (ADR-0149 Amendment 2, migration 88): each seen red without migration 88 ───────────────
+// Each case takes a fresh holder first: a slot lease is 60 s of database time, and under load the cases before these
+// (the restore above all) outlast it — a case must not depend on how long the previous one took.
+let freshN = 0
+const freshHolder = () => {
+  lapse()
+  const H = { session_id: id(4000 + ++freshN), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+  const en = cmd('board_enroll', H, { idempotency: idem(), capability: CAP })
+  assert.equal(en.ok, true, JSON.stringify(en))
+  Object.assign(HB, H)
+}
 await test('fix 9: a replay of another session\'s key needs a live grant when the caller holds no enrollment', () => {
+  freshHolder()
   const r = submitRequest()
   const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
   const args = { fence: fence(c) }, d = digest()
@@ -488,6 +499,7 @@ await test('fix 9: a replay of another session\'s key needs a live grant when th
 })
 
 await test('fix 8: the current holder on a request whose outcome became unknown meets reconcile_required, not fenced', () => {
+  freshHolder()
   const r = submitRequest()
   const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
   cmd('board_accept', HB, { fence: fence(c) })
@@ -518,6 +530,7 @@ await test('fix 5: renew and progress are refused under a CLOSED epoch (DEC-0073
 await test('fix 6: no deadlock — a stale enroll races a cancel on a claimed request, a release of a two-slot session races a claim, 50 times each (no 40P01)', async () => {
   const deadlocks = []
   for (let i = 0; i < 50; i++) {
+    freshHolder()
     const r = submitRequest()
     const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
     assert.equal(c.request?.state, 'claimed', JSON.stringify(c))
@@ -528,7 +541,6 @@ await test('fix 6: no deadlock — a stale enroll races a cancel on a claimed re
     const outs = await Promise.all([enroll, cancel].map(s => runPsqlAsync('psql', psqlArgs, s, { label: 'enroll vs cancel' })))
     for (const o of outs) if (/40P01|deadlock/i.test(o.stderr)) deadlocks.push(`enroll/cancel ${i}: ${o.stderr.trim().slice(0, 200)}`)
     for (const o of outs) assert.equal(o.code, 0, o.stderr)
-    Object.assign(HB, HN)
   }
   for (let i = 0; i < 50; i++) {
     // A session holding two slots (CAP and CAP2, both granted to codex binding BB) is released while another session claims on the second.
