@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 handoff to Claude Code · task-branch preparation
+- authority: operator asked this run to finish so Claude can continue
+- result: prior full-fast resource waiter expired NOT_RUN with unchangedfaf64b69 source; no new watcher, native probe or implementation started
+- entry: docs/handoffs/2026-10-13-harness-waves.md; exact next task and all remaining acceptance boundaries preserved
+- checks: handoff map/link consistency only; expanded full gate and publication remain owed; not a main merge
+
 ### 2026-10-13 · CO-282 native startup and owner readback · task-branch preparation
 - scope: preserve source-guided restricted Kimi failures, exact owner readback and overlap design review; correct historical design status without changing product code
 - evidence: original HOME preserved; data/cache-path native initialize attempts fail before reply, cause unknown; task-pipeline selected certification/lesson bytes unchanged at540679ea

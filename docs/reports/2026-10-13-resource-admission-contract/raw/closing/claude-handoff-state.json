@@ -1,0 +1,17 @@
+{
+  "asOf": "2026-10-13T14:19:03.815138+00:00",
+  "scope": "Read-only handoff resource observation, not a gate run",
+  "sourceHead": "faf64b691f29f02ccbc8514a9ea42d1741361632",
+  "freeBytes": 2874232832,
+  "loadAverage": [
+    188.3310546875,
+    158.2763671875,
+    100.3818359375
+  ],
+  "expectedNextExecutor": "Claude Code per operator",
+  "watchers": "Prior full-fast waiter and board-readiness waiter have expired; no replacement started",
+  "fullGate": "NOT_RUN",
+  "publication": "NOT_RUN for expanded candidate",
+  "ownerRequests": "PREPARED_NOT_SENT; no new official board read on this handoff",
+  "leases": "Task lease held only while writing this handoff; release follows commit/push"
+}

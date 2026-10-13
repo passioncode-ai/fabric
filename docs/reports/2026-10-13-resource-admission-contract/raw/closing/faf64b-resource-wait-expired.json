@@ -1,0 +1,31 @@
+{
+  "expectedHead": "faf64b691f29f02ccbc8514a9ea42d1741361632",
+  "indexTree": "bfc138d4420dfff1c70c519614003401b837c55c",
+  "workspaceHead": "3998a3371c0b8ae0e4d5fde439f430320967a9c0",
+  "originMain": "d162e844e7a29e4997d2d9071aaa0ff07d2c228d",
+  "trackedAndUnignoredPathCount": 6145,
+  "sourceManifestSha256": "c0b59692b3cfedac98680dbae2b53ef69f3ed2a1478f82417678bbc6840bcf84",
+  "startedAt": 1791894651.279286,
+  "pid": 69375,
+  "waitDeadlineUTC": "2026-10-13T13:19:50.676815Z",
+  "executionDeadlineSeconds": 4500,
+  "requiredFreeBytes": 3221225472,
+  "maximumLoad1": 56,
+  "requiredConsecutiveSamples": 2,
+  "sampleIntervalSeconds": 30,
+  "scriptSha256": "55fef15d71c8026941b52729c8ef4aab82d522ca6256bfc613a1185dffa4c901",
+  "limits": [
+    "Full fast only; no automatic graph closure, commit, merge, publication, installed update or consent",
+    "Shared dependencies and linked toolchain closure remain unverified",
+    "Source set excludes only known graph lock and Git-ignored outputs/dependencies"
+  ],
+  "status": "NOT_RUN_RESOURCE_WAIT_EXPIRED",
+  "exitCode": null,
+  "sourceUnchanged": true,
+  "changedPaths": [],
+  "headAfter": "faf64b691f29f02ccbc8514a9ea42d1741361632",
+  "indexTreeAfter": "bfc138d4420dfff1c70c519614003401b837c55c",
+  "workspaceHeadAfter": "3998a3371c0b8ae0e4d5fde439f430320967a9c0",
+  "workspaceStatusAfter": "",
+  "originMainAfter": "d162e844e7a29e4997d2d9071aaa0ff07d2c228d"
+}

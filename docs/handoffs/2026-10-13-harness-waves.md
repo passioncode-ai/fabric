@@ -1,5 +1,27 @@
 # CO-282 — portable harness waves handoff
 
+## Handoff to Claude Code — operator request, 14:16 UTC
+
+The operator asked this run to finish and let Claude continue. **This is a handoff, not task completion.** The latest implementation/evidence checkpoint delivered before this handoff is `faf64b691f29f02ccbc8514a9ea42d1741361632`, tree `bfc138d4420dfff1c70c519614003401b837c55c`, on branch `agent/harness-integrated-20261013`, [PR31](https://github.com/passioncode-ai/fabric/pull/31). Resume that branch; find its existing checkout with `git worktree list`, preserving unrelated work. This handoff commit changes documentation/evidence only.
+
+**First task:** read the [requirement closure table](../execution/harness-waves/requirement-closure.md), then collect current resource and official Fabric readiness. The complete expanded `bash scripts/ci.sh fast` still has not run. Its [bounded waiter expired](../reports/2026-10-13-resource-admission-contract/raw/closing/faf64b-resource-wait-expired.json) at13:20UTC with `NOT_RUN_RESOURCE_WAIT_EXPIRED`, source unchanged. That is neither a failure in product tests nor a PASS. The13:19:50UTC deadline below is historical and must not be reused as a future deadline. No replacement watcher or new native probe was started after the operator requested handoff.
+
+[Handoff resource observation](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-handoff-state.json): disk and load still fail the prior3GiB/load1≤56 admission thresholds. The prior full-fast and board-readiness waiters are expired. Do not wait on their PIDs or infer that a full check will still start. Reassess prerequisites before scheduling one bounded heavy-check slot; verify exact candidate inputs before and after it. Until then do not close N030/N032–36 or publish the expanded candidate as accepted.
+
+### Resume constraints and remaining work
+
+- Graph39 remains28 scoped done /3 blocked /8 pending. N037 actual host behavior, N038 owner certification and N039 expanded convergence remain open. The detailed packets and acceptance receipts are linked below; do not reconstruct them from chat.
+- Owner requests N009/N010/N038 remain PREPARED/NOT_SENT. Current board health is not re-probed in this handoff. Last official read said the hub could not check credentials; the earlier readiness waiter expired while its DB check was unavailable. Use official `fabric_whoami` → `com.status` → `com.list` when access returns; refresh owner source heads before dispatch, never edit another owner's code as a workaround.
+- Preserve restricted native Kimi failures and the distinct npm/Node initialize success. Neither closes instruction/MCP/mode/identity/recovery acceptance. Do not repeat the same probes without a new specific hypothesis, repurpose HOME/CODEX_HOME, relax credential isolation or silently change the installed runner.
+- REQ009 still needs the scoped overlap/authority/input-closure/activation work in the [design packet](../execution/harness-waves/own-intent-overlap-packet.md). Pending DDL remains inactive; first-launch overlap is design-only. Local source work is not blocked merely by COM, but its tests and later activation still need their actual prerequisites.
+- The workspace checkout is `3998a3371c0b8ae0e4d5fde439f430320967a9c0` while the committed parent pin remains historical. This pre-existing `M workspace` was intentionally excluded; do not stage it opportunistically. Preserve untracked `docs/execution/harness-waves/.graph.lock`. Normal workspace publication/pinning follows accepted source and the owning publication skill.
+- This run releases its task/resource leases after delivery. Reacquire before guarded edits; agent-sync's record plane is locally degraded because its backend credentials are unavailable, while Git lease arbitration remains separate. No main merge, release, live migration, install or cross-project adoption is included.
+
+### Checks actually completed in the last continuation
+
+Focused docs gate PASS after fixing six archive links; final813-file link check PASS, region references PASS,39-node plan audit with zero findings, final map649 anchors. Remote object readback verified all76 documentation changes and45 manifest artifact hashes atfaf64b69; it was not a fresh checkout or a full/native test. The last full-fast source remains6c8b3718, as documented below. The current handoff is checked for source-map and link consistency only; its full candidate gate remains owed.
+
+
 ## Current checkpoint and acceptance boundary
 
 **CO-282 remains partial.** Source checkpoint [fa5fbd7dc43e1d097c336fbff3617c68af508e43](https://github.com/passioncode-ai/fabric/commit/fa5fbd7dc43e1d097c336fbff3617c68af508e43) contains the expanded N035 controlled-pool composition and N036 check/fixture corrections. It is a source checkpoint, not final acceptance, main integration, installed runtime or workspace publication.
@@ -14,7 +36,7 @@ N037 has begun with a [restricted local CLI inventory](../reports/2026-10-13-res
 
 [Corrected Hermes initialize-only probe](../reports/2026-10-13-resource-admission-contract/raw/n037-acp-corrected/receipt.json) preserves HOME and observes protocolVersion1/exit0 without creating a session. Earlier child-HOME substitutions are retained as nonconforming history. Corrected native Kimi data-path and cache-path probes both exit SIGSEGV before initialize under the preserved restrictive sandbox; cause unknown. A distinct npm2.1.1/Node26.10.0 initialize-only comparison replies successfully; it does not certify the failed native binary and no installed runner changed. Native behavior acceptance remains open. See [current startup evidence](../reports/2026-10-13-resource-admission-contract/README.md#native-startup-and-owner-readback-continuation).
 
-## Exact next actions
+## Prior continuation actions — superseded by the handoff above
 
 1. Run the complete `bash scripts/ci.sh fast` on the current committed candidate once at least3GiB free and load1≤56 are observed twice30seconds apart. The owned waiter checks the exact HEAD/tree, complete path/hash set and actual workspace checkout before and after execution; it grants no merge/publication. The fa5 and1810405b waiters were cancelled before any full gate executed, not marked PASS. Preserve the original resource-wait deadline13:19:50UTC on2026-10-13 when rearming; expiration is NOT_RUN, not acceptance. No earlier PASS or source-only check closes N030/N032–N036.
 2. Follow the explicit acceptance obligations N037 for native hosts, N038 for owner candidate/round certification and N039 for expanded requirement convergence. Independent local analysis remains available while owner integration requests are prepared/NOT_SENT; do not treat COM consent as a blocker for local code or invent native acceptance from a matrix.
