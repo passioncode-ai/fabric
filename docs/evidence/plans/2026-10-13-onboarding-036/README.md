@@ -12,7 +12,7 @@ install worked; coding agents ticked by default are the **found and ready** ones
 the fallback order (ADR-0125) with the reason beside it; design is drawn as the **in-repository prototype**
 (`docs/reports/product.html`, `scripts/product/`), not in Figma.
 
-**Inputs.** [Wave 0 funnel review](wave-0-funnel-review.md) (23 findings); the real-app walk in Russian
+**Inputs.** [Wave 0 funnel review](wave-0-funnel-review.md) (23 findings); [wave 0 inventory](wave-0-inventory.md) (30 open items, measured); the real-app walk in Russian
 (`scripts/walk/start-paths.mjs`, recorded beside it); SCN-126…SCN-131, SCN-136; 0.4.0's REQ-39, REQ-40, REQ-41
 ([plan](../2026-10-11-release-040-agents-first.md)) — this run builds them; ADR-0100, ADR-0125, ADR-0129, ADR-0134;
 [products](../../../../workspace/knowledge/products.md).
@@ -85,7 +85,7 @@ private files need their own decision; git signals only in 0.3.6. Cloud and orga
 | Wave | Closes | Exit check |
 |---|---|---|
 | 1 · Spec | SCN-126 rewritten, SCN-127/128 amended, new SCN for steps 2–3 and the landing; flows FLW-69/70/71 and new ones; screens and `docs/ux/product-model.json`; the prototype drawn for every screen and state (`scripts/product/`, `node scripts/sync-product-ux.mjs`, `node scripts/build-product-report.mjs`); en/ru copy through the brand pack; the visual record | `python3 docs/ux/lint.py`, product gates green; **the operator approves the prototype** |
-| 2 · Main process | scan: owner from the remote, uncommitted-change and activity signals, folders without git, the tracked/untracked record; the multi-folder open picker; product detection (`/Applications`, the lifecycle broker's targets, `services/*.json`) and install actions; the connection step's checklist and its observation of the Setup console's outcomes (SCN-138); first-run progress kept | unit tests seen failing first, `ci.sh fast` |
+| 2 · Main process | **the Setup console** (0.4.0 REQ-11, not built — the connection step runs in it); scan: owner from the remote, uncommitted-change and activity signals, folders without git, the tracked/untracked record; the multi-folder open picker; product detection (`/Applications`, the lifecycle broker's targets, `services/*.json`) and install actions; the connection step's checklist and its observation of the Setup console's outcomes (SCN-138); first-run progress kept | unit tests seen failing first, `ci.sh fast` |
 | 3 · Renderer | the five-step wizard, the start menu, open-project, scan results, the result list, the sidebar's projects, copy fixes | component tests, the walk re-run in ru and en, screenshots against the prototype |
 | 4 · First impact | the setup session started from step 5 and from the result list; the setup preset asks the agent to post its note to the board and file tasks; the project opens on its live board | a walk on a disposable stack ending on a board note |
 | 5 · Release | three verification iterations (release gate), CHANGELOG, docs, wiki, map; **0.3.6** tagged and published; installed here; the operator's data reset; the operator walks it from zero | the release run green; the installed bundle verified |
