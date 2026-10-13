@@ -41,3 +41,8 @@ apps/desktop/resources/build-manifest.json
 # depend on whether a gate had been run locally.
 __pycache__/
 *.pyc
+
+# task-pipeline's run-graph lock (an empty runtime file beside graph.json). Untracked
+# and unignored, it entered the design-map fingerprint the same way, so a stamp made
+# while a run held the lock failed in every clean checkout (PR #31, 2026-10-13).
+.graph.lock
