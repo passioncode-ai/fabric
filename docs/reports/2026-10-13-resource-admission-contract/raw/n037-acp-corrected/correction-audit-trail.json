@@ -1,0 +1,21 @@
+{
+  "prior": {
+    "classification": "NONCONFORMING_EXECUTED_PROBE_NOT_ACCEPTANCE",
+    "reason": "Prior child HOME substitution contrary to standing instruction; original record retained, not counted",
+    "scriptSha256": "66ded3b3a4e6dfcb7072ead37b2d6779174a948634e8003dd483fa234c5a68ac",
+    "publicReceiptSha256": "8d20f192fd1e7eec6d858f162b9725b6c116fd098be97d54d5bd0c089388a0f0",
+    "conformanceCorrectionSha256": "2364ad23907860c4126adc2cbe0cb4a656e02e93ad9033b4fe58f3496fe62da8"
+  },
+  "correction": {
+    "classification": "INITIALIZE_ONLY_OBSERVED_NOT_FULL_N037_ACCEPTANCE",
+    "hermes": "One actual corrected run: original HOME passed unchanged; only documented HERMES_HOME redirected; network denied and writes restricted to owned directory; reply protocolVersion1, exit0",
+    "kimi": "NOT_RUN corrected; supported host-specific data/config override not established by bounded source/help read. Prior nonconforming reply is not substituted as corrected evidence."
+  },
+  "acceptanceLimits": [
+    "No session/prompt/auth/setup/login sent",
+    "No actual loaded instruction, MCP use, provider/model, mode or resume evidence",
+    "Captured entry SHA is only the 1117-byte installed launcher, not complete interpreter/dependency closure",
+    "No syscall audit of attempted denied reads",
+    "No code/root/runtime configuration writes"
+  ]
+}

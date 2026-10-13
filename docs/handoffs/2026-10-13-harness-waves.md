@@ -12,6 +12,8 @@ The factory implements one controlled ordinary creation domain with conservative
 
 N037 has begun with a [restricted local CLI inventory](../reports/2026-10-13-resource-admission-contract/raw/n037-cli/receipt.json). Four agent versions were observed; Kilo could not report its version under write denial, and Cline was not on the checked PATH. This is partial reconnaissance only; the node remains pending.
 
+[Corrected Hermes initialize-only probe](../reports/2026-10-13-resource-admission-contract/raw/n037-acp-corrected/receipt.json) preserves HOME and observes protocolVersion1/exit0 without creating a session. Earlier child-HOME substitutions are retained as nonconforming history; corrected Kimi is NOT_RUN. Native behavior acceptance remains open.
+
 ## Exact next actions
 
 1. Finish this requirement-closure documentation correction, commit/push the source checkpoint, then arm one bounded resource watcher for at least 3 GiB free and its configured load ceiling. It must verify that committed checkpoint before running the complete `bash scripts/ci.sh fast`; changed source invalidates the scheduled run. The prior fa5 watcher was cancelled before any full gate executed. No earlier PASS or source-only check closes N030/N032–N036.

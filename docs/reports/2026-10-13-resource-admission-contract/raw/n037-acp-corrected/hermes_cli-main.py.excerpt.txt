@@ -1,0 +1,13 @@
+28: import re
+29: import sys
+30: 
+31: # Inline path math so ``python hermes_cli/main.py`` (script mode: sys.path[0]
+32: # is hermes_cli/, not the repo root) can import hermes_cli._startup_fast.
+33: _bootstrap_root = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
+34: if _bootstrap_root not in sys.path:
+35:     sys.path.insert(0, _bootstrap_root)
+36: from hermes_cli import _startup_fast  # noqa: E402
+37: 
+38: # A literal ``~``/``$VAR`` in HERMES_HOME (fish, or any quoted value) must become absolute
+39: # before the first reader — otherwise it resolves against cwd and scaffolds <cwd>/~/.hermes.
+40: _startup_fast.normalize_hermes_home_env()

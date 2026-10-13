@@ -7,6 +7,11 @@
       "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-cli/receipt.json",
       "sha256": "be6440d4f4dafcdfd0c3386fe8e5183b690fa7abeccb5216720ca561c20ae1d4",
       "scope": "Installed local CLI self-description in restricted empty-home context only; not instruction, MCP, native launch, model/provider or effective configured-home acceptance"
+    },
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-acp-corrected/receipt.json",
+      "sha256": "d3a0cc81d2a382451d5cde83aad78493af0ba43e1691278e2879462579a4a725",
+      "scope": "Actual Hermes initialize-only protocolVersion1 reply, original HOME preserved, documented HERMES_HOME used; no session/prompt/auth/provider or full N037 acceptance"
     }
   ],
   "observed": {
@@ -25,5 +30,5 @@
     "Required unsupported capabilities need authorized scope disposition"
   ],
   "next": "Run feasible bounded native probes independently; sign-in or consent gates apply only to their dependent probes; never infer loaded behavior from CLI help",
-  "probeConformance": "NONCONFORMING: version/help child environment replaced HOME; shell/session unchanged, but this violates the run environment constraint. Actual observations remain history and do not certify N037. Corrected no-HOME-remapping probe follows separately."
+  "probeConformance": "Earlier version/help and ACP child-HOME substitutions remain NONCONFORMING history. Corrected Hermes initialization preserves HOME; corrected Kimi NOT_RUN because supported path override is unestablished."
 }

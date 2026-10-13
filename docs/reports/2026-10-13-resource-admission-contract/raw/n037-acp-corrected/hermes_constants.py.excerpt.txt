@@ -1,0 +1,16 @@
+107: def get_hermes_home() -> Path:
+108:     """Hermes home: context-local override → ``HERMES_HOME`` env var → platform default."""
+109:     override = get_hermes_home_override()
+110:     if override:
+111:         return _expand_hermes_home(override)
+112:     if not os.environ.get("HERMES_HOME", "").strip():
+113:         _warn_profile_fallback_once()
+114:     return get_process_hermes_home()
+156: def get_process_hermes_home() -> Path:
+157:     """Hermes home of the running process, ignoring task overrides.
+158: 
+159:     For process-level assets (theme YAML, dashboard plugin manifests) that must stay visible while a
+160:     request is scoped to another profile (e.g. embedded ``/chat`` under ``--open-profile``).
+161:     """
+162:     val = os.environ.get("HERMES_HOME", "").strip()
+163:     return _expand_hermes_home(val) if val else _get_platform_default_hermes_home()

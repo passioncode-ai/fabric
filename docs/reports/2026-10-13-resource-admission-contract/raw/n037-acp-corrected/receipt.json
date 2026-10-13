@@ -1,0 +1,81 @@
+{
+  "scope": "Corrected Hermes HERMES_HOME-only ACP initialize; original HOME preserved, CODEX_HOME untouched; not native instruction/MCP/session/auth/provider acceptance",
+  "scriptSha256": "139fea219f95b8b26b4983bfcae17c1887b6a370cd33c1e725d1f214dbbd7937",
+  "network": "sandbox denied network*",
+  "writes": "only respective owned temporary home",
+  "environment": "minimal no inherited tokens; original HOME value passed unchanged, HERMES_HOME alone redirected; real credential dirs and keychain filesystem/Mach access denied",
+  "deadlineSecondsPerHost": 30,
+  "maxOutputBytesPerStream": 65536,
+  "sequential": true,
+  "results": [
+    {
+      "host": "hermes",
+      "command": [
+        "/opt/homebrew/Cellar/hermes-agent/2026.9.21_2/bin/hermes",
+        "acp"
+      ],
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "agentCapabilities": {
+            "loadSession": true,
+            "promptCapabilities": {
+              "image": true
+            },
+            "sessionCapabilities": {
+              "fork": {},
+              "list": {},
+              "resume": {}
+            }
+          },
+          "agentInfo": {
+            "name": "hermes-agent",
+            "version": "0.21.4"
+          },
+          "authMethods": [
+            {
+              "args": [
+                "--setup"
+              ],
+              "description": "Open Hermes' interactive model/provider setup in a terminal. Use this when Hermes has not been configured on this machine yet.",
+              "id": "hermes-setup",
+              "name": "Configure Hermes provider",
+              "type": "terminal"
+            }
+          ],
+          "protocolVersion": 1
+        }
+      },
+      "reason": null,
+      "exit": 0,
+      "seconds": 3.105,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 721663101,
+        "size": 1117,
+        "mtimeNs": 1791207251867848469,
+        "sameAfter": true
+      },
+      "originalHomePreserved": true,
+      "entrySha256": "2a1325d43e078370bc29ecb292ba8f84f00d02f4a9c32023ef8a8909e9303d02",
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    }
+  ]
+}

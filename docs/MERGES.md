@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 corrected initialize-only probe · task-branch preparation
+- scope: preserve HOME using installed-source-confirmed HERMES_HOME; retain rejected child-HOME probe and explicit Kimi NOT_RUN
+- evidence: actual Hermes initialize protocolVersion1/exit0 without session, prompt or authentication; launcher identity only, not full closure
+- remains: N037 native instruction/MCP/mode/recovery acceptance, expanded fast and workspace publication
+- entry: docs/handoffs/2026-10-13-harness-waves.md; no product/runtime modification
+
 ### 2026-10-13 · CO-282 requirement closure correction · task-branch preparation
 - scope: explicit native-host, owner-certification and expanded-convergence receipt obligations N037–39; ten-row requirement closure table; current handoff separated from historical snapshots
 - evidence: independent fa5fbd7d review and remote source/link readback; no runtime code change or new full-gate acceptance

@@ -1,0 +1,18 @@
+{
+  "classification": "CORRECTED_INITIALIZE_ONLY_RECONNAISSANCE",
+  "files": {
+    "hermes_constants.py.excerpt.txt": "00828d5640825a9108f02ac2eeb1c4ddb518d4cddaeb8af8385ba915452c2625",
+    "hermes-stdout.txt": "874392cc465b597997662848a2db12864846833bbe323db22a3e3ef4b8e8a67c",
+    "README.md": "861e5f849b765b31001d097c283c79b0355afb79f0c7ac57711666399e151ad0",
+    "source-support.json": "d7d9ccdae69749b7f957484e067106703373b46289f81fe2cea8cc326dc3cf4a",
+    "hermes-sandbox.public.sb": "221cbeab6a85813d767e56f447754117508e7342e8b9932aac4d7a56a0598e63",
+    "correction-audit-trail.json": "8f741c4fa357d57fe94aa7e46e5637c9895c6e4085bb8e164eef3069ddb6fb67",
+    "probe.py": "139fea219f95b8b26b4983bfcae17c1887b6a370cd33c1e725d1f214dbbd7937",
+    "hermes_cli-main.py.excerpt.txt": "6f29cefe3920b85defb7bade1e20290c00c719b4c1ca3db231d357ceadb811f9",
+    "hermes-stderr.txt": "93a1e9110721f0a5d03c37e27be937ad293a0b89ba87f0522c8fd9b8eedc4a55",
+    "receipt.json": "d3a0cc81d2a382451d5cde83aad78493af0ba43e1691278e2879462579a4a725"
+  },
+  "excluded": [
+    "hermes-owned-home/"
+  ]
+}

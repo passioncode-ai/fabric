@@ -1,0 +1,31 @@
+{
+  "installedRoot": "/opt/homebrew/Cellar/hermes-agent/2026.9.21_2/libexec/lib/python3.13/site-packages",
+  "sources": {
+    "hermes_constants.py": {
+      "sha256": "88702a34d378eb163d4be347e022ffcd7d3cdfe762b399595292e36389e3e69c",
+      "bytes": 73135,
+      "lines": [
+        [
+          107,
+          114
+        ],
+        [
+          156,
+          163
+        ]
+      ]
+    },
+    "hermes_cli/main.py": {
+      "sha256": "648fdd918ae0f86d768561442a993193278692c1fe12d56eab63e276a6d732bf",
+      "bytes": 151407,
+      "lines": [
+        [
+          28,
+          40
+        ]
+      ]
+    }
+  },
+  "hermes": "HERMES_HOME explicitly supported in actual installed source",
+  "kimi": "NOT_RUN corrected: no supported storage/config redirect established from bounded prior help; no unsupported env guessed, no broad binary scan"
+}
