@@ -73,8 +73,12 @@ export function createResourceReconciliation(deps: ResourceReconciliationDeps) {
       .eq('estate_id', scope.estateId).eq('host_id', scope.hostId).eq('pool_id', scope.poolId)
   }
   let inflight: Promise<ResourceRecoveryResult> | undefined
+  // A deadline ends our wait, not the database operation. Keep one I/O owner
+  // until the underlying promise actually settles, including after a timeout.
+  let outstanding: Promise<unknown> | undefined
   async function execute(): Promise<ResourceRecoveryResult> {
     const items: ResourceRecoveryItem[] = []
+    if (outstanding) return { scan: 'unavailable', next: cursor(), items, reason: 'prior_io_unresolved' }
     const deadline = performance.now() + timeoutMs
     let expired = false
     async function bounded<T>(call: () => PromiseLike<T>): Promise<T> {
@@ -82,7 +86,12 @@ export function createResourceReconciliation(deps: ResourceReconciliationDeps) {
       if (expired || remaining <= 0) { expired = true; throw Error('recovery deadline') }
       let timer: ReturnType<typeof setTimeout> | undefined
       try {
-        const result = await Promise.race([Promise.resolve().then(call), new Promise<never>((_, reject) => {
+        const operation = Promise.resolve().then(call)
+        outstanding = operation
+        const settled = () => { if (outstanding === operation) outstanding = undefined }
+        // Observe both paths without creating an unhandled rejecting cleanup promise.
+        void operation.then(settled, settled)
+        const result = await Promise.race([operation, new Promise<never>((_, reject) => {
           timer = setTimeout(() => { expired = true; reject(Error('recovery deadline')) }, remaining)
         })])
         if (expired || performance.now() >= deadline) { expired = true; throw Error('recovery deadline') }

@@ -53,8 +53,13 @@ starve later entries. The cursor can be stored and supplied to a new instance; t
 caller owns checkpoint persistence. A completed held-row query wraps the next sweep
 to the beginning, so parents retained for children and other old held rows are retried.
 A timeout returns the last attempted cursor and does not consume late results. It
-cannot cancel an already submitted database transaction; SQL idempotency remains
-necessary across instances and uncertain retries.
+cannot cancel an already submitted database transaction. A timed-out operation retains
+the instance's one I/O slot until its underlying promise actually settles. Further sweeps
+return `prior_io_unresolved` immediately without starting queries or commands. Late
+settlement opens the slot but never becomes a result for the timed-out sweep. This
+bound is per instance: composition must reuse the instance, not replace it to bypass
+a stuck operation. SQL idempotency remains necessary across actual process restarts
+and uncertain retries.
 
 `scan: complete` means the current held-row query reached its end, **not** that all
 resources are released, all unknown effects resolved, or a concurrent insertion was
@@ -71,13 +76,19 @@ This is not a snapshot scan or a fairness guarantee under continuous insertion.
 node --experimental-strip-types --test apps/desktop/test/resource-reconciliation.test.mjs
 ```
 
-Result on this source iteration: **35 passed, 0 failed**, exit 0. Tests invoke the
+Result on this source iteration: **37 passed, 0 failed**, exit 0. Tests invoke the
 production kernel with an injected database transport and inspect its actual scoped
 queries/RPC arguments. They cover durable readback, a recreated controller, concurrent
 sweeps, bounded resume and wrapping, held parents, malformed identities/pages/receipts,
 unknown release, failed readback, missing schema, timeout and late completion. The
 transport's controlled SQL verdict is a fixture, not a second implementation of Stop.
 No native process, model, live database or schema activation ran.
+
+Independent review rejected initial `fbab9257`: repeated sweeps after timeout could
+accumulate uncancellable database promises. The correction keeps the outstanding
+operation separate from the finished sweep. Query and release regressions each make
+ten further calls while the original operation never settles, require exactly one
+operation, then settle it late and require a fresh read before continuing.
 
 Real SQL integration for this new caller: **NOT_RUN**, pending the serialized owned
 PostgreSQL test slot. Existing R2 SQL acceptance is linked from the

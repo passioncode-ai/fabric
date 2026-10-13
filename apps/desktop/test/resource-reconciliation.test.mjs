@@ -149,3 +149,31 @@ test('foreign restored cursor, unbounded config and implicit defaults refuse', (
     { initialCursor: { ...scope, poolId: 'foreign', afterSeq: 10 } }, { initialCursor: { ...scope, afterSeq: Number.MAX_SAFE_INTEGER + 1 } }])
     assert.throws(() => f.make(overrides))
 })
+
+for (const boundary of ['query', 'release']) test(`uncancellable ${boundary} owns the I/O slot until actual settlement`, async () => {
+  const f = fixture(3, { timeoutMs: 20 }); let finish, operations = 0
+  const hang = () => { operations++; return new Promise(resolve => { finish = resolve }) }
+  if (boundary === 'query') f.readHook = hang
+  else f.rpcHook = hang
+  const recovery = f.make(), first = await recovery.sweep()
+  assert.equal(first.reason, 'deadline')
+  const readsAtDeadline = f.reads.length, callsAtDeadline = f.calls.length
+  for (let i = 0; i < 10; i++) {
+    const blocked = await recovery.sweep()
+    assert.equal(blocked.reason, 'prior_io_unresolved')
+    assert.deepEqual(blocked.next, first.next)
+    assert.deepEqual(blocked.items, [])
+  }
+  assert.equal(operations, 1)
+  assert.equal(f.reads.length, readsAtDeadline)
+  assert.equal(f.calls.length, callsAtDeadline)
+  f.readHook = undefined; f.rpcHook = undefined
+  // Neither a late successful read nor a late release receipt is consumed as
+  // this sweep's proof. Actual settlement only opens the next fresh query.
+  finish(boundary === 'query' ? { data: [makeRow(1)] } : { data: { released: true, repeated: false, receipt_seq: 1010 } })
+  await new Promise(resolve => setImmediate(resolve))
+  const next = await recovery.sweep()
+  assert.notEqual(next.reason, 'prior_io_unresolved')
+  assert.ok(f.reads.length > readsAtDeadline)
+  assert.ok(next.items.every(item => item.state === 'retained'))
+})
