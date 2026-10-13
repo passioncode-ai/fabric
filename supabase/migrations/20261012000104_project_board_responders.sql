@@ -842,16 +842,18 @@ end $$;
 -- `fabric.board.join` (COM03-09): the capabilities a binding may answer for one Project, from its live grants.
 create function board_join_check(p_estate uuid, p_binding uuid, p_project uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
-declare v_caps jsonb;
+declare v_caps jsonb; v_grants jsonb;
 begin
   if p_estate is null or p_binding is null or p_project is null then return board_refusal('invalid_arguments', 'Name the binding and the Project.'); end if;
   if not board_is_project(p_estate, p_project) then return board_refusal('not_authorized', 'This binding may not join that Project''s board.'); end if;
-  select coalesce(jsonb_agg(distinct substr(g.resource, length('board:' || p_project::text || '/') + 1)), '[]'::jsonb) into v_caps
+  select coalesce(jsonb_agg(distinct substr(g.resource, length('board:' || p_project::text || '/') + 1)), '[]'::jsonb), coalesce(jsonb_agg(distinct g.id), '[]'::jsonb) into v_caps, v_grants
     from access_grants g join access_bindings b on b.estate_id = g.estate_id and b.id = g.binding_id
    where g.estate_id = p_estate and g.binding_id = p_binding and g.callee = 'fabric' and g.capability = 'board.respond'
      and g.resource like 'board:' || p_project::text || '/%' and g.revoked_at is null and g.expires_at > clock_timestamp() and b.revoked_at is null;
   if jsonb_array_length(v_caps) = 0 then return board_refusal('not_authorized', 'This binding may not join that Project''s board.'); end if;
-  return jsonb_build_object('ok', true, 'capabilities', (select jsonb_agg(c order by c) from jsonb_array_elements_text(v_caps) c));
+  -- The grants too: a board session ends when any of them is revoked (the host's EnrolledSessions).
+  return jsonb_build_object('ok', true, 'capabilities', (select jsonb_agg(c order by c) from jsonb_array_elements_text(v_caps) c),
+    'grants', (select jsonb_agg(g order by g) from jsonb_array_elements_text(v_grants) g));
 end $$;
 
 -- The capabilities a Project takes requests for, as Fabric lists them: those an operator granted board.respond on.

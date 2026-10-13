@@ -6,7 +6,7 @@
 //
 //   door token  → fabric.access.request, fabric.access.status, fabric.session.enroll (names the project only)
 //   binding     → fabric.access.request (more, for its own agent), fabric.access.status,
-//                 fabric.access.grants, agent.call, fabric.session.enroll (ADR-0134)
+//                 fabric.access.grants, agent.call, fabric.session.enroll (ADR-0134), fabric.board.join (ADR-0149 §4)
 //
 // WHICH PROCESS HOLDS THE PORT is not proven by the port. While Fabric is down, any program can listen on
 // the hub's port and pose as it, so the descriptions below tell an agent what `hub.ts` says of hub.json:
@@ -57,12 +57,16 @@ export interface HubToolDeps {
   call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal) => Promise<ToolAnswer>
   /** `fabric.session.enroll` (ADR-0134). Absent, the tool refuses: this Fabric admits no coding agent from outside. */
   enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean }) => Promise<EnrollAnswer>
+  /** `fabric.board.join` (ADR-0149 §4). Absent, the tool refuses: this Fabric gives no board sessions. */
+  joinBoard?: (binding: BindingRow, args: { projectId: string }) => Promise<
+    | { ok: true; session: { bearer: string; sessionId: string; projectId: string; capabilities: string[] } }
+    | { ok: false; code: string; message: string }>
 }
 
 /** The tool names each principal is given — written down so a test can compare it with what is served. */
 export const HUB_TOOLS = {
   door: ['fabric.access.request', 'fabric.access.status', 'fabric.session.enroll'],
-  binding: ['agent.call', 'fabric.access.grants', 'fabric.access.request', 'fabric.access.status', 'fabric.session.enroll']
+  binding: ['agent.call', 'fabric.access.grants', 'fabric.access.request', 'fabric.access.status', 'fabric.board.join', 'fabric.session.enroll']
 } as const
 
 const requestSchema = z
@@ -190,6 +194,25 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
         })
     )
 
+
+    // #region hub-board-join — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
+    server.registerTool(
+      'fabric.board.join',
+      {
+        title: 'Take part in a Project\'s board',
+        description:
+          'For a service agent that answers a Project\'s requests (fabric-project-comms/0.1): with a live board.respond grant on that Project (ask with fabric.access.request, callee fabric, capability board.respond, resource board:<project id>/<capability>), the answer carries a board session — a one-session bearer whose MCP server has the com.* tools and nothing else — and the capabilities you may answer. ' +
+          'Use it as Authorization: Bearer against this hub; it is spent by one MCP initialize, and revoking any of those grants ends it. Without a grant the answer is not_authorized.' + VERIFY_HUB,
+        inputSchema: z.object({ projectId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) }).strict()
+      },
+      async (args) =>
+        guard('board.join', async () => {
+          if (!deps.joinBoard) return refusal('hub-unavailable', 'this Fabric gives no board sessions')
+          const r = await deps.joinBoard(binding, { projectId: (args as { projectId: string }).projectId.toLowerCase() })
+          return r.ok ? answer({ session: r.session }) : refusal(r.code, r.message)
+        })
+    )
+    // #endregion hub-board-join
 
     server.registerTool(
       'agent.call',

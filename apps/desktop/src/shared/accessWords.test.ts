@@ -302,3 +302,52 @@ describe('shortFolder', () => {
     expect(shortFolder('/Users/someone/code/atlas', '/Users/someone/code')).toBe('~/atlas')
   })
 })
+
+// ADR-0149 §2: answering a Project's requests is asked in the operator's words — who, which capabilities, which
+// project, what it may and may not do, how long — and never shows the machine's ids (board.respond, board:<uuid>/…).
+const RESPOND_PROJECT = '0b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+const respondRow = (name: string | null = 'Atlas', over: Record<string, unknown> = {}) => ({
+  id: 'r-respond', agent_id: 'codex', callee: 'fabric', capabilities: ['board.respond'],
+  resources: [`board:${RESPOND_PROJECT}/analytics.retention`, `board:${RESPOND_PROJECT}/analytics.cohorts`],
+  reason: 'I answer analytics requests', asked_by_binding: null, requested_at: '2026-10-13T00:00:00.000Z', expires_at: '2026-10-13T00:10:00.000Z',
+  registry: { key: 'codex', kind: 'runner', name: 'Codex', installed_by: 'a coding agent on this computer', repository: null, ...(name === null ? {} : { project: { id: RESPOND_PROJECT, name, root: null, how: null } }) },
+  ...over
+})
+describe('a responder grant, as main sends it (ADR-0149 §2)', () => {
+  it('normalises exactly board.respond on 1–8 resources of one project, sorted; refuses anything else before a prompt', () => {
+    const ok = normaliseAccessRequest({ agentId: 'codex', callee: 'fabric', capabilities: ['board.respond'], resources: [`board:${RESPOND_PROJECT}/b.x`, `board:${RESPOND_PROJECT}/a.x`], reason: 'answer' })
+    expect(ok).toEqual({ ok: true, value: { agentId: 'codex', callee: 'fabric', capabilities: ['board.respond'], resources: [`board:${RESPOND_PROJECT}/a.x`, `board:${RESPOND_PROJECT}/b.x`], reason: 'answer' } })
+    const bad = (resources: unknown, capabilities: unknown = ['board.respond']) => normaliseAccessRequest({ agentId: 'codex', callee: 'fabric', capabilities, resources, reason: 'answer' }).ok
+    expect(bad([`board:${RESPOND_PROJECT}/a.x`, `board:1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d/a.x`])).toBe(false)
+    expect(bad(Array.from({ length: 9 }, (_, i) => `board:${RESPOND_PROJECT}/c${i}.x`))).toBe(false)
+    expect(bad([`project:${RESPOND_PROJECT}`])).toBe(false)
+    expect(bad([`board:${RESPOND_PROJECT}/__proto__`])).toBe(false)
+    expect(bad([`board:${RESPOND_PROJECT}/a.x`], ['board.respond', 'session.enroll'])).toBe(false)
+    expect(normaliseAccessRequest({ agentId: 'codex', callee: 'fabric-inbox', capabilities: ['board.respond'], resources: [`board:${RESPOND_PROJECT}/a.x`], reason: 'x' }).ok).toBe(false)
+  })
+  it('one line per ask: the project and its capabilities; facts say respond, never enroll; Allow is plain Allow', () => {
+    const f = pendingFacts(respondRow(), false)
+    expect(f.respond).toEqual({ projectName: 'Atlas', capabilities: ['analytics.cohorts', 'analytics.retention'] })
+    expect(f.enroll).toBeUndefined()
+    expect(askLines(respondRow())).toEqual([{ kind: 'respond', project: { id: RESPOND_PROJECT, name: 'Atlas' }, capabilities: ['analytics.cohorts', 'analytics.retention'] }])
+    expect(sayAllow(tEn, f)).toBe('Allow')
+    expect(consentPrompt(tEn, f).title).toBe('Let Codex answer analytics.cohorts and analytics.retention requests for Atlas?')
+    expect(consentPrompt(tRu, f).title).toBe('Разрешить Codex отвечать на запросы analytics.cohorts и analytics.retention в проекте «Atlas»?')
+    expect(consentPrompt(tEn, f).detail).toContain('It cannot spend, publish or delete through this.')
+    expect(sayGrant(tEn, askLines(respondRow())[0])).toBe('answer analytics.cohorts and analytics.retention requests for Atlas')
+    expect(sayGrant(tEn, askLines(respondRow(null))[0], () => 'Atlas')).toBe('answer analytics.cohorts and analytics.retention requests for Atlas')
+    expect(sayAsk(tEn, askLines(respondRow(null))[0])).toBe('answer analytics.cohorts and analytics.retention requests for this project')
+  })
+  it('says nothing of the machine, and every Russian sentence is Russian once the untrusted values are gone', () => {
+    for (const t of [tEn, tRu]) for (const row of [respondRow(), respondRow(null)]) {
+      const f = pendingFacts(row, false)
+      const p = consentPrompt(t, f), r = sayRequest(t, f)
+      const words = [p.title, p.message, p.statement, p.detail, ...p.buttons, ...r.asks, r.what ?? '', r.floor, ...r.notes, sayQueueTitle(t, f), sayDecided(t, f, 'allowed'), sayDecided(t, f, 'denied')]
+      for (const w of words) expect(w).not.toMatch(/board\.respond|board:|session\.enroll|project:/)
+      if (t === tRu) for (const w of words) {
+        const stripped = w.replace(/analytics\.(cohorts|retention)|Codex|Atlas|Fabric|I answer analytics requests/g, ' ')
+        expect(stripped).not.toMatch(/[A-Za-z]{2,}/)
+      }
+    }
+  })
+})

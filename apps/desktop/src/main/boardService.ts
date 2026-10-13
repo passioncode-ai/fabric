@@ -445,10 +445,11 @@ export function createBoard(deps: BoardDeps) {
       return isRefusal(r) ? null : Number(r.released ?? 0)
     },
     /** `fabric.board.join`: the capabilities a binding may answer for one Project, or a refusal. */
-    async joinCheck(estateId: string, bindingId: string, projectId: string): Promise<{ capabilities: string[] } | Refusal> {
+    async joinCheck(estateId: string, bindingId: string, projectId: string): Promise<{ capabilities: string[]; grants: string[] } | Refusal> {
       const r = await call('board_join_check', { p_estate: estateId, p_binding: bindingId, p_project: projectId }, 'read')
       if (isRefusal(r)) return r
-      return Array.isArray(r.capabilities) ? { capabilities: r.capabilities.filter((c): c is string => typeof c === 'string') } : UNAVAILABLE
+      const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((c): c is string => typeof c === 'string') : [])
+      return Array.isArray(r.capabilities) && Array.isArray(r.grants) ? { capabilities: strings(r.capabilities), grants: strings(r.grants) } : UNAVAILABLE
     },
 
     async list(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {

@@ -352,7 +352,7 @@ await test('com.status responders: active, stale (a lapsed lease, not a failure)
 })
 
 await test('fabric.board.join: a binding joins only a Project it holds board.respond on, and learns its capabilities (COM03-09)', () => {
-  assert.deepEqual(call('board_join_check', q(E), q(BD), q(THIRD)), { ok: true, capabilities: ['finance.close'] })
+  assert.deepEqual(call('board_join_check', q(E), q(BD), q(THIRD)), { ok: true, capabilities: ['finance.close'], grants: [GD] })
   assert.equal(call('board_join_check', q(E), q(BD), q(RESPONDER)).error?.code, 'not_authorized')
   assert.equal(call('board_join_check', q(OTHER), q(BD), q(THIRD)).error?.code, 'not_authorized')
   const en = cmd('board_enroll', HD, { idempotency: idem(), capability: 'finance.close' }, digest(), THIRD)
