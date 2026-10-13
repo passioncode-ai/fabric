@@ -97,7 +97,8 @@ They use unresolved promises and fake time, not real network cancellation.
 ## Remaining integration
 
 The pending108 SQL store and real-role fixture now exist in [N019](resource-wait-store.md);
-its complete corrected database acceptance is separate from this pure-kernel receipt.
+its corrected real SQL caller now passes in an owned cluster; that evidence remains
+separate from this pure-kernel receipt and does not activate the store.
 Active durable queue configuration,
 R2/pending107 activation, R3 production composition/currentness and exact receipt
 hydration remain required. R4 proof is required before reclaiming live resources;

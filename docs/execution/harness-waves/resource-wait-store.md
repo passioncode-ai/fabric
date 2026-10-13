@@ -1,6 +1,6 @@
 # Pending durable resource wait store
 
-Status: **IMPLEMENTATION CANDIDATE; DATABASE ACCEPTANCE INCOMPLETE; NOT ACTIVE**.
+Status: **IMPLEMENTED; OWNED-CLUSTER DATABASE FIXTURE PASS; NOT ACTIVE**.
 N-019 provides the storage producer for the [R5 kernel](resource-wait-queue.md).
 Pending108 follows pending107 and preserves reserved105–106; neither this document
 nor the fixture applies migrations to the application's database.
@@ -68,14 +68,31 @@ The proposed fixture is
 [`resource-wait-store-db.test.mjs`](../../../apps/desktop/test/resource-wait-store-db.test.mjs).
 Root's existing `run-resource-reservation-db.mjs` applies pending107 then108
 explicitly on its owned Unix-socket-only PostgreSQL cluster and runs the fixture.
-The initial owned-cluster run applied108 successfully, but its first capacity
-race refused both test inputs: the preceding recovery fixture had already reserved
-`attempt-12` and `attempt-14`. Diagnostic SQL confirmed one reservation per attempt,
-valid input shapes and false never-started predicates. The fixture now namespaces
-new attempts and explicitly tests rejection of a pre-existing resource-ledger
-attempt; no production validation was weakened. The initial runner exited1.
-The next run exited2 before cluster creation at its free-space guard, so full
-FIFO/CAS/concurrency/privilege and client+kernel acceptance remains **NOT_RUN**. No active migration manifest, app composition,
+Two fixture corrections were required before acceptance. The initial capacity
+race reused `attempt-12`/`attempt-14` from the preceding recovery fixture;
+production SQL correctly refused those reserved attempts. New fixture attempts
+now have a distinct namespace, and an explicit cross-ledger reuse case remains.
+The compensation case then called `fail_task_launch(false)` before actual managed
+`begin_task_run_launch`. Queue `dispatch_started` is not managed launch permission.
+The fixture now verifies `process_evidence` refusal before begin, performs the
+actual begin command, and compares forged journal evidence with genuine
+operational compensation. Production SQL/client validation was unchanged.
+
+After these corrections, on 2026-10-13:
+
+```sh
+node apps/desktop/test/run-resource-reservation-db.mjs
+```
+
+Exit **0** on one disposable Unix-socket-only PostgreSQL cluster. All six fixture
+stages passed: continuation dispatch, managed launch, managed stop, R2 reservations,
+R4 recovery and pending108 wait storage. The N-019 fixture covers configured capacity
+and concurrent insert/CAS, scoped FIFO, immutable identity, prior native-session
+exclusion, unknown-effect retention, genuine versus forged compensation, production
+client+kernel recreation, committed begin with a lost RPC reply and zero redispatch,
+and actual anon/authenticated RPC/table denial plus service-role direct-write denial.
+This is a builder execution receipt; independent review is recorded separately.
+No active migration manifest, app composition,
 cycle, board, timer or native process is changed here.
 
 ## Next integration

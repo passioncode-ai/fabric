@@ -115,6 +115,11 @@ assert.equal(cas(read(competed), { state: 'dispatch_started' }), false)
 for (const genuine of [false, true]) {
   const i = make(configure(genuine ? 'compensated' : 'forged')); insert(i); begin(i)
   const admitted = legacyAdmit(i); assert.equal(admitted.admitted, true)
+  // Queue dispatch ownership is not managed launch permission. The actual
+  // compensation command requires the exact run to have entered launching.
+  const unbegun = call(`select fail_task_launch('${E}','${admitted.task_run_id}','${i.sessionId}',${j(actor)},false)`)
+  assert.equal(unbegun.compensated, false); assert.equal(unbegun.reason_code, 'process_evidence')
+  assert.equal(call(`select begin_task_run_launch('${E}','${admitted.task_run_id}','${i.sessionId}',${j(actor)})`).granted, true)
   if (genuine) assert.equal(call(`select fail_task_launch('${E}','${admitted.task_run_id}','${i.sessionId}',${j(actor)},false)`).compensated, true)
   else sql(`select append_event('${E}','run.ended@1',${j(actor)},${j({ task_run_id: admitted.task_run_id, task_id: i.taskId, outcome: 'failed_known', launch_failure: true })},'1','${P}','${admitted.task_run_id}')`)
   assert.equal(cas(read(i), { state: 'refused_before_start' }), genuine)

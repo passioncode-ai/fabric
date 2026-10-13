@@ -13,7 +13,7 @@
     },
     {
       "address": "scripts/ci.sh",
-      "sha256": "5c4b8e488246c93a50b873e6e15b722bf247f26dc09a1845b7f4f3b3a9d3766a"
+      "sha256": "caa9c86a8ed68f02c72f37bfe10890eebfec1f8dfb5f9f0df991e487565d3cde"
     }
   ],
   "decision_refs": [

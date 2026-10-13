@@ -1,0 +1,26 @@
+{
+  "node": "N-019",
+  "base": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "state": "BUILDER_OWNED_CLUSTER_PASS_PENDING_INDEPENDENT_REVIEW",
+  "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+  "exit": 0,
+  "source_hashes": {
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+    "apps/desktop/src/main/resourceWaitStore.ts": "284d1e291300e65799157bbf94b6934355474161181c8b9ab539d9f10f8701b6",
+    "apps/desktop/test/resource-wait-store-db.test.mjs": "92d57e00009c3ad3e805eea7c70ab5dcaf985b9dd6bc63fc6eaad8a65155ff42",
+    "docs/execution/harness-waves/resource-wait-store.md": "0c5486244b926a0f2b8001dd51874e01286e9e6be72f07553f65d8a76041f702"
+  },
+  "initial_failure_log": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/before.log",
+  "initial_fixture": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/before-fixture.mjs",
+  "pass_log": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/after.log",
+  "production_changes": false,
+  "correction": "Fixture now asserts actual pre-begin compensation refusal then enters managed launching before both forged and genuine compensation cases.",
+  "authorship": "mcp_research authored producer and correction; this is not independent acceptance.",
+  "boundaries": [
+    "pending migration only",
+    "no active database mutation",
+    "no native process/provider calls",
+    "no production scheduler wiring",
+    "R5 not complete"
+  ]
+}

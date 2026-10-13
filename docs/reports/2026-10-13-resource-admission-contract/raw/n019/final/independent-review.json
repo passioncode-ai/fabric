@@ -1,0 +1,74 @@
+{
+  "node": "N-019",
+  "verdict": "ACCEPT_SCOPED",
+  "reviewer": "pipeline_research",
+  "review_kind": "independent source-and-execution-evidence review",
+  "authorship": {
+    "production_and_fixture": "mcp_research",
+    "reviewer_authored_candidate": false,
+    "reviewer_contribution": "Prior review findings and lost-CAS fixture suggestion; did not author reviewed SQL/client/correction."
+  },
+  "base": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "candidate_binding": "working-tree source hashes, not an invented final commit",
+  "source_hashes": {
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca",
+    "apps/desktop/src/main/resourceWaitStore.ts": "284d1e291300e65799157bbf94b6934355474161181c8b9ab539d9f10f8701b6",
+    "apps/desktop/test/resource-wait-store-db.test.mjs": "92d57e00009c3ad3e805eea7c70ab5dcaf985b9dd6bc63fc6eaad8a65155ff42",
+    "docs/execution/harness-waves/resource-wait-store.md": "0c5486244b926a0f2b8001dd51874e01286e9e6be72f07553f65d8a76041f702"
+  },
+  "checks": [
+    {
+      "check": "Exact four source SHA256 verification",
+      "result": "PASS"
+    },
+    {
+      "check": "Diff from frozen 9495aab4564dcd65fe93d7577d0e6cbb05c662b9; no original assertion removed or weakened",
+      "result": "PASS"
+    },
+    {
+      "check": "Namespaced new wait attempts; explicit real resource-ledger attempt collision still refused",
+      "result": "PASS"
+    },
+    {
+      "check": "Migration62 fail_task_launch requires launching generation; new pre-begin process_evidence negative and real begin preserve forged-versus-operational compensation distinction",
+      "result": "PASS"
+    },
+    {
+      "check": "Real SQL RPC executes dispatch_started CAS before synthetic lost response; durable read verifies commit; recreated production client/kernel yields outcome_unknown and zero dispatcher calls",
+      "result": "PASS"
+    },
+    {
+      "check": "Sequential awaited fixture reaches anon/authenticated table and RPC denials plus service_role direct-write denial before final PASS",
+      "result": "PASS"
+    },
+    {
+      "check": "Runner propagates child failures; after.log includes six fixture PASS lines plus final aggregate PASS",
+      "result": "PASS"
+    }
+  ],
+  "execution_evidence": {
+    "executor": "mcp_research via root-owned disposable cluster",
+    "command": "node apps/desktop/test/run-resource-reservation-db.mjs",
+    "exit": 0,
+    "independently_rerun": false,
+    "pass_lines": [
+      "PASS PostgreSQL dispatch migration: concurrent claim, stale generation, pre/post-boundary crash, completion, safe retry, unknown fence, identity/scope, ended run, privileges",
+      "PASS managed launch SQL: concurrency, one-shot begin, idempotency, authority, legacy atomic bind, compensation, unknown ownership, replay, privileges",
+      "PASS managed Stop SQL: concurrent intent, typed trusted observations, independent exit receipt, retained uncertainty, exact generation, immutable endings, proof-gated readmission, replay, privileges",
+      "PASS R2 resource SQL: configured pool, safe integers, unknown readings, concurrent shared/child capacity, frozen retry, exact proof release, replay, marker restore refusal, client privileges",
+      "PASS production resource recovery kernel: service-role SQL release/readback, recreated scanner, held unresolved, parent/child, changed fence refusal",
+      "PASS pending108 real SQL: bounded FIFO/CAS, immutable identities, native-session exclusion, races, unknown fences, compensation proof, client+kernel restart, role denials",
+      "PASS pending R2/R5 SQL plus recovery and legacy managed launch/stop on one disposable PostgreSQL cluster"
+    ],
+    "before_log_sha256": "168cd34b9e4944d20752aede54f68a39818c8309d2daaacabbca20332b282e0b",
+    "after_log_sha256": "c02c4362586c9993ead25037ab736e207bb180ca00845d657faade4c073df73d",
+    "builder_receipt_sha256": "8b481ee94233164a3b0ff462d9eb50320284b2b3a8880d4fbc6ef5d25dc6f898"
+  },
+  "findings": [],
+  "limitations": [
+    "No independent DB rerun; source review verifies builder-run evidence and exact bytes.",
+    "Pending107/108 only; no active schema or production scheduler activation.",
+    "No native process/provider acceptance.",
+    "R5 full runtime integration remains open."
+  ]
+}

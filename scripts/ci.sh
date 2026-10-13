@@ -7,11 +7,13 @@
 # to. Everything CI does is here, so it can be run, broken on purpose, and
 # watched refusing, on a laptop, before a runner ever sees it.
 #
-# TWO TIERS, and the split is not cosmetic. The fast tier needs no database:
-# types, the design and documentation gates, the register arithmetic, and every
-# test that is pure. Run it locally before the source commit; hosted execution
+# TWO TIERS, and the split is not cosmetic. The fast tier needs no live database:
+# types, the design and documentation gates, register arithmetic, module tests,
+# and owned disposable PostgreSQL fixtures when their prerequisites are present.
+# Missing fixture prerequisites are explicitly NOT_RUN, never SQL acceptance.
+# Run it locally before the source commit; hosted execution
 # follows the repository nightly policy, not a new push/PR dispatch. The full
-# tier runs the owned-cluster suites (six in the fast tier, fourteen in the full tier), then starts a DISPOSABLE Supabase
+# tier adds the remaining owned-cluster suites, then starts a DISPOSABLE Supabase
 # stack (its own project id, ports and volumes — scripts/test-stack.mjs), runs
 # every probe that talks to a database against it, and removes it on exit. It
 # never starts, migrates, reads or writes the operator's live stack (project

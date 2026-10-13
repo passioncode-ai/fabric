@@ -40,7 +40,7 @@ pass67 tests and five independent adversarial checks.
 [Portable receipt](../reports/2026-10-13-resource-admission-contract/raw/n020/README.md).
 N019: actual SQL application succeeded but the first fixture incorrectly reused
 R4 attempt IDs; the ledger correctly refused both. Fixture c6f5ce5b namespaces them
-and retains an explicit collision-refusal test. Corrected full SQL acceptance is pending.
+and retains an explicit collision-refusal test. The next fixture correction calls actual managed begin before testing compensation and also verifies pre-begin refusal. All six stages of the owned resource SQL runner now pass, exit0; [builder receipt](../reports/2026-10-13-resource-admission-contract/raw/n019/final/receipt.json).
 
 Source review and module tests do not establish active schema, installed runtime,
 production composition, all-host behavior or owner adoption.
@@ -70,11 +70,10 @@ a historical scope count, not completion of product requirements.
 
 ## Exact next work and dependencies
 
-1. Re-run the existing one-cluster resource DB runner after its disk reserve is
-   available; it applies pending107/108 and tests real R2/R4/R5 roles, races and restart.
-   Then run the final combined fast tier, close reviewed nodes with source-bound
-   receipts, push and publish through the existing workspace publisher. Do not
-   waive the 1.5GiB fixture gate or claim a prior tree covers subsequent changes.
+1. Complete final combined fast acceptance on the frozen source, then record exact
+   source/receipt relationships and publish through the existing workspace publisher.
+   The owned resource SQL runner already passed all six stages after two fixture
+   corrections; no active migration or native launch was performed.
 2. The [activation prerequisites](../execution/harness-waves/resource-activation-prerequisites.md)
    identify the next bounded source work: trusted policy/sampler, actual input/scope
    ownership verifier, then one composed supported launch path. These local producers

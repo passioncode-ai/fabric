@@ -1,0 +1,39 @@
+{
+  "source": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+  "checks": [
+    {
+      "name": "module-focused",
+      "exit": 0,
+      "original_sha256": "32422c10c3b6ec34ce97b470cb43a4b7c7e82eea2c69e5cce799b7168f5a76df",
+      "stored_sha256": "32422c10c3b6ec34ce97b470cb43a4b7c7e82eea2c69e5cce799b7168f5a76df",
+      "log": "module-focused.log"
+    },
+    {
+      "name": "types",
+      "exit": 0,
+      "original_sha256": "3d34a134e4b78c4ffed7b8f1a83acbf852562ccbaba7c5c16ca0a619414a2291",
+      "stored_sha256": "3d34a134e4b78c4ffed7b8f1a83acbf852562ccbaba7c5c16ca0a619414a2291",
+      "log": "types.log"
+    },
+    {
+      "name": "documentation",
+      "exit": 0,
+      "original_sha256": "9e09f8a13b05d0ccd3443a0dd3e9ed528ba49cd55d91dfa02bce9ad773cf7308",
+      "stored_sha256": "c08445c52d07f9c29530c439fed3a774abd46a97ea6bbcfb5d7a88049665e6f6",
+      "log": "documentation.log"
+    }
+  ],
+  "other_checks": [
+    "regions379",
+    "ops143IPC/402catches",
+    "probe templates",
+    "plan_audit20nodes"
+  ],
+  "limits": [
+    "No full fast gate on444f yet",
+    "Corrected pending108 SQL still requires acceptance",
+    "Historical source-bound check records, not a receipt for subsequent edits"
+  ],
+  "normalization": "Private worktree path removed, trailing whitespace stripped"
+}

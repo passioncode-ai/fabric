@@ -1,0 +1,11 @@
+{
+  "source": "444f5f961b300ca99f0532229e8d00724db527fe",
+  "command": "independent remote sparse clone; validate direct relative artifact links against committed tree",
+  "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+  "relative_links_checked": 48,
+  "missing": [],
+  "uses_object_alternates": false,
+  "scope": "Handoff/plan/report direct files and git tree; no full build, native checks or workspace deployment",
+  "exit": 0,
+  "probe_note": "Resolved macOS /tmp alias before containment comparison; initial probe path error was not an artifact failure"
+}

@@ -303,7 +303,7 @@
       "id": "N-016",
       "title": "Restart resource reconciliation",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-013"
@@ -314,13 +314,27 @@
         "docs/execution/harness-waves/resource-reconciliation.md"
       ],
       "surface_class": "internal",
-      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source",
+      "proof": {
+        "head": "444f5f961b300ca99f0532229e8d00724db527fe",
+        "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+        "graph_revision": "1",
+        "checks": [
+          "37 kernel checks and actual R4 SQL privilege/readback in ae197 full fast; source equality reverified at444f",
+          "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
+        ]
+      },
+      "evidence": [
+        "37 kernel checks and actual R4 SQL privilege/readback in ae197 full fast; source equality reverified at444f",
+        "Source reconciliation: docs/reports/2026-10-13-resource-admission-contract/raw/closing/module-reconciliation.json; independent receipts retained in raw/r4, raw/r5, raw/r6, raw/n020",
+        "proven at 444f5f961b300ca99f0532229e8d00724db527fe (tree 3e9e60922058522faa58831492136ab0cd33c057)"
+      ]
     },
     {
       "id": "N-017",
       "title": "Fenced never-started wait kernel",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-012",
@@ -332,13 +346,27 @@
         "docs/execution/harness-waves/resource-wait-queue.md"
       ],
       "surface_class": "internal",
-      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source",
+      "proof": {
+        "head": "444f5f961b300ca99f0532229e8d00724db527fe",
+        "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+        "graph_revision": "2",
+        "checks": [
+          "26 focused plus independent timeout/clock/late-permit controls; exact66bf kernel and tests",
+          "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
+        ]
+      },
+      "evidence": [
+        "26 focused plus independent timeout/clock/late-permit controls; exact66bf kernel and tests",
+        "Source reconciliation: docs/reports/2026-10-13-resource-admission-contract/raw/closing/module-reconciliation.json; independent receipts retained in raw/r4, raw/r5, raw/r6, raw/n020",
+        "proven at 444f5f961b300ca99f0532229e8d00724db527fe (tree 3e9e60922058522faa58831492136ab0cd33c057)"
+      ]
     },
     {
       "id": "N-018",
       "title": "Bounded resource observation",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-005",
       "blocked_by": [
         "N-012",
@@ -351,7 +379,21 @@
         "docs/execution/harness-waves/resource-attempt-observation.md"
       ],
       "surface_class": "internal",
-      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source"
+      "check": "Independent production-function review and negative fixtures; root combined fast on exact integrated source",
+      "proof": {
+        "head": "444f5f961b300ca99f0532229e8d00724db527fe",
+        "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+        "graph_revision": "3",
+        "checks": [
+          "17 observations plus43 original adapter and1041 independent controls; source comment-only reconciliation, superseding N020 adapter67 tests",
+          "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
+        ]
+      },
+      "evidence": [
+        "17 observations plus43 original adapter and1041 independent controls; source comment-only reconciliation, superseding N020 adapter67 tests",
+        "Source reconciliation: docs/reports/2026-10-13-resource-admission-contract/raw/closing/module-reconciliation.json; independent receipts retained in raw/r4, raw/r5, raw/r6, raw/n020",
+        "proven at 444f5f961b300ca99f0532229e8d00724db527fe (tree 3e9e60922058522faa58831492136ab0cd33c057)"
+      ]
     },
     {
       "id": "N-019",
@@ -376,7 +418,7 @@
       "id": "N-020",
       "title": "Bound unresolved launch adapter I/O",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-014",
@@ -389,7 +431,20 @@
       ],
       "surface_class": "internal",
       "check": "node --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/resource-attempt-observation.test.mjs",
-      "evidence": []
+      "evidence": [
+        "67 adapter/observation tests, seven old-source REDs, five independent probes; current source exactd4ae",
+        "Source reconciliation: docs/reports/2026-10-13-resource-admission-contract/raw/closing/module-reconciliation.json; independent receipts retained in raw/r4, raw/r5, raw/r6, raw/n020",
+        "proven at 444f5f961b300ca99f0532229e8d00724db527fe (tree 3e9e60922058522faa58831492136ab0cd33c057)"
+      ],
+      "proof": {
+        "head": "444f5f961b300ca99f0532229e8d00724db527fe",
+        "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+        "graph_revision": "4",
+        "checks": [
+          "67 adapter/observation tests, seven old-source REDs, five independent probes; current source exactd4ae",
+          "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
+        ]
+      }
     }
   ],
   "edges": [
@@ -542,6 +597,21 @@
       "from": "N-019",
       "to": "N-007",
       "payload": "Durable wait-store source and actual SQL acceptance receipt"
+    },
+    {
+      "from": "N-014",
+      "to": "N-020",
+      "payload": "Accepted launch adapter identity and final-authority contract"
+    },
+    {
+      "from": "N-018",
+      "to": "N-020",
+      "payload": "Observation-aware adapter source and diagnostic contract"
+    },
+    {
+      "from": "N-020",
+      "to": "N-007",
+      "payload": "Bounded per-entry I/O correction and independent negative acceptance"
     }
   ],
   "revisions": [
@@ -550,6 +620,30 @@
       "node": "N-007",
       "why": "Resource implementation wave expands the candidate beyond the accepted first-wave source; combined acceptance and handoff must be renewed after N-012 onward.",
       "precondition": "supersedes proofs downstream of N-007"
+    },
+    {
+      "verb": "close",
+      "node": "N-016",
+      "why": "closed with no re-plan",
+      "precondition": "444f5f961b300ca99f0532229e8d00724db527fe"
+    },
+    {
+      "verb": "close",
+      "node": "N-017",
+      "why": "closed with no re-plan",
+      "precondition": "444f5f961b300ca99f0532229e8d00724db527fe"
+    },
+    {
+      "verb": "close",
+      "node": "N-018",
+      "why": "closed with no re-plan",
+      "precondition": "444f5f961b300ca99f0532229e8d00724db527fe"
+    },
+    {
+      "verb": "close",
+      "node": "N-020",
+      "why": "closed with no re-plan",
+      "precondition": "444f5f961b300ca99f0532229e8d00724db527fe"
     }
   ]
 }

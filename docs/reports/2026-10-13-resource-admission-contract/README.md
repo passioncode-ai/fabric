@@ -234,14 +234,30 @@ had already reserved both generic attempt IDs. [Builder diagnosis](raw/n019/rece
 well formed and both identities already reserved. Candidate c6f5ce5b namespaces wait
 fixture IDs and explicitly checks that a pre-existing reservation identity still refuses.
 A subsequent run returned NOT_RUN before startup at the1.5GiB disk reserve gate.
-No capacity assertion or role restriction was weakened. Final corrected SQL acceptance
-is recorded separately; a prepared fixture is not an accepted durable queue.
+No capacity assertion or role restriction was weakened. Corrected SQL acceptance remains incomplete and must be recorded separately;
+a prepared fixture is not an accepted durable queue.
 
 [Activation prerequisites](../../execution/harness-waves/resource-activation-prerequisites.md)
 name actual producers and missing policy/sampling/ownership evidence. Local preparation
 is not blocked by COM consent. Active migration order, native execution and owner
 contracts retain their separate gates. No further placeholder store is required for R4
 capacity safety: durable SQL release authority plus retained uncertainty already exists.
+
+
+## Corrected N019 actual SQL acceptance
+
+After disk recovered, the automatic bounded watcher resumed the single owned cluster.
+The next failure was another fixture error: queue dispatch_started was mistaken for
+managed begin. The fixture now asserts pre-begin compensation refusal, calls the real
+managed begin, then contrasts operational compensation with forged journal evidence.
+Production SQL and client bytes were unchanged.
+
+[Final builder receipt](raw/n019/final/receipt.json) and [complete log](raw/n019/final/after.log)
+record exit0 for all six stages; [independent review](raw/n019/final/independent-review.json) accepts the exact source hashes. Coverage includes scoped FIFO/CAS concurrency, prior-session
+exclusion, real client/kernel restart, committed CAS with a lost response and zero
+redispatch, and actual role denials. Previous failed/NOT_RUN receipts remain historical.
+This is pending-DDL acceptance in a disposable cluster; active schema, policy, sampler,
+exclusive ownership producer, production scheduler and native acceptance remain open.
 
 ---
 

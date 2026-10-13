@@ -6,7 +6,8 @@ UI path, migration activation, provider call or native-host acceptance is added.
 The pending SQL dependency is R2 commit
 `0b0ad6a9dd9e14a58762e0fc5aaf982bd5789af1`,
 `supabase/pending-migrations/20261013000107_resource_reservations.sql`.
-Migration positions 104–106 remain prerequisites to its eventual activation.
+COM-03 has integrated migration104 (ledger87); reserved positions105–106
+remain ordering prerequisites to eventual activation.
 
 <a id="contract"></a>
 ## Contract

@@ -1,0 +1,26 @@
+{
+  "node": "N-017",
+  "done": [
+    "Scoped internal module and stated module acceptance, not full resource runtime capability"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Production composition, active pending107/108, native/provider/all-host and owner adoption remain open; N019/N007 separate"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "26 focused plus independent timeout/clock/late-permit controls; exact66bf kernel and tests",
+    "Source reconciliation: docs/reports/2026-10-13-resource-admission-contract/raw/closing/module-reconciliation.json; independent receipts retained in raw/r4, raw/r5, raw/r6, raw/n020"
+  ],
+  "tested": {
+    "head": "444f5f961b300ca99f0532229e8d00724db527fe",
+    "tree": "3e9e60922058522faa58831492136ab0cd33c057",
+    "checks": [
+      "26 focused plus independent timeout/clock/late-permit controls; exact66bf kernel and tests",
+      "Root combined four-module suite130 PASS; types/docs/regions/probes/ops passed at committed bytes"
+    ]
+  }
+}

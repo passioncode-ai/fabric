@@ -1,0 +1,21 @@
+{
+  "transform": "Private worktree paths removed; temporary artifact paths replaced by repository-relative paths; trailing whitespace stripped.",
+  "files": {
+    "before-fixture.mjs": {
+      "original_sha256": "7f56f63775e0f20f4bec58c3b0491e50f20c120c75c7284bf3545cf846b09af7",
+      "stored_sha256": "7f56f63775e0f20f4bec58c3b0491e50f20c120c75c7284bf3545cf846b09af7"
+    },
+    "before.log": {
+      "original_sha256": "168cd34b9e4944d20752aede54f68a39818c8309d2daaacabbca20332b282e0b",
+      "stored_sha256": "7a3f3a96c8e34fc2b94c55a0891f03e934dfdebd191ad8e9ca40ee97f92d7338"
+    },
+    "receipt.json": {
+      "original_sha256": "8b481ee94233164a3b0ff462d9eb50320284b2b3a8880d4fbc6ef5d25dc6f898",
+      "stored_sha256": "9e41c0ef3ac586a97812b6962505718c768655092d0bd9bc89baab7bf9d0c7d4"
+    },
+    "after.log": {
+      "original_sha256": "c02c4362586c9993ead25037ab736e207bb180ca00845d657faade4c073df73d",
+      "stored_sha256": "c02c4362586c9993ead25037ab736e207bb180ca00845d657faade4c073df73d"
+    }
+  }
+}
