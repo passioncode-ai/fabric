@@ -12,7 +12,7 @@ same file, fields and rules.
 
 Fabric counts installs, days of use and what is connected. PassionCode can then see how its apps are used, and
 one person using several PassionCode apps counts once. Events go to the self-hosted Aptabase at
-`https://analytics.sshlg.me` (`ssheleg/sshlg-analytics`, its `docs/client-contract.md`).
+`https://analytics.sshlg.me` (its client contract lives in the analytics service's private repository).
 
 ## Nothing before the disclosure
 

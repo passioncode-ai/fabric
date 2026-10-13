@@ -15,7 +15,7 @@ never another agent's key — call its capability; the owner pays; a grant is un
 together; per-project limits are dynamic; the estate total is USD 1,000 a month; human gates stay human.
 **Plan of adoption and the per-agent changes:** [2026-10-11-delegation-model](../evidence/plans/2026-10-11-delegation-model/README.md).
 
-> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories (and private repository names), paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
 
 ## Context
 
@@ -276,7 +276,7 @@ What this changes in the decision above:
 
 ### Amendment 5 — 2026-10-12: webpilot under amendment 4 (BL-015)
 
-webpilot's proposals (`ssheleg/webpilot`, `docs/integrations/fabric-delegation-proposals.md`, `cae3993`), agreed with
+webpilot's proposals (kept in its private repository at `cae3993`), agreed with
 webpilot-5c on 2026-10-12:
 
 - webpilot's flow code `approval-required` collides with DEC-0039's and is renamed `flow-approval-required`; its act

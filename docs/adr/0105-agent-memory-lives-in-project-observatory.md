@@ -11,7 +11,7 @@ Fabric's gateway, and that embeddings use a local model by default and OpenAI pe
 
 **Design:**
 - Project Observatory, `docs/plans/2026-10-03-agent-memory.md`, with decision DEC-0250
-  (`ssheleg/project-observatory` at `26db19f`). That plan carries the as-is receipts, the
+  (Observatory's private repository at `26db19f`; its name redacted 2026-10-13 under ADR-0096). That plan carries the as-is receipts, the
   memory model, the `memory/0.1` capability list, the security model, the eval set and
   modules M0–M10.
 

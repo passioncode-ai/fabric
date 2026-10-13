@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T11:00:00Z · `—` · agent/priv-02-redaction → main · fast-forward
+- run: r-faa9aae98a19
+- files: 10
+- conflicts: none
+- summary: PRIV-02, HEAD redaction under ADR-0096 (no history rewrite): the delegation roll-call audit and its adoption plan name every project outside the public PassionCode products by a neutral role (the writing agent, the media agent, the store-publishing agent, the growth service, the traffic agent, the data-room agent, the brand agent, the messenger bot and business platform, the analytics stack and agent, the marketing agent, the browser agent, the research agent, the event server and others), with their paths, environment names, figures, session names and private links dropped; verdicts unchanged. Private `ssheleg/*` repository names leave ADR-0105, ADR-0144, the 2026-08-16 brief, docs/ANALYTICS.md and a comment in analytics.ts. ADR-0147's verbatim operator request is paraphrased in English (ADR-0096 §5).
+
 ### 2026-10-13T09:00:00Z · `—` · agent/priv-01-redaction → main · fast-forward
 - run: r-faa9aae98a19
 - files: 15
