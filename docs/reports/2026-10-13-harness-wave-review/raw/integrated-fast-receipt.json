@@ -1,0 +1,27 @@
+{
+  "schema": "fabric/local-check-receipt/1",
+  "candidate_commit": "179e71e94682a8d609c32647473ca09f3130d146",
+  "candidate_tree": "d41e70d134bc2469c8f324afe3adae8b1cb24a5b",
+  "base_commit": "4e227922909e14f5df3cf32895c02ac518dfa5bc",
+  "command": "pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "exit_code": 0,
+  "log_sha256": "424d434986fe352c9a4a4148ddd934cc893728933c022fa80dbec20bab30a11b",
+  "observed_summary": {
+    "compiler_reconciliation_tests": 53,
+    "enrollment_tests": 25,
+    "mcp_tests": 45,
+    "acp_tests": 35,
+    "terminal": "fast tier green"
+  },
+  "limits": [
+    "Not full tier or native/provider/all-host acceptance",
+    "Build reports toolchain UNVERIFIED; reproducibility not established",
+    "Executed before commit on exact frozen tree; commit created with identical tree",
+    "Later documentation integration requires separate input checks"
+  ],
+  "environment": {
+    "node": "v26.10.0",
+    "dependencies": "Existing ignored worktree links, no install",
+    "heavy_slots": 1
+  }
+}

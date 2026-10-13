@@ -6,7 +6,7 @@ report:
   project: fabric
   domains: [architecture]
   as_of: 2026-10-13
-  status: draft
+  status: active
   valid_until: 2026-10-27
   summary: >-
     Detailed modular execution plan and first Fabric repair wave. Pending-session identity,
@@ -264,3 +264,46 @@ Its [segmented gate receipt](raw/old-base-segmented-gate.json) records the missi
 dependency link and stale generated plan projection, their repairs and successful remaining
 checks. No single old-base full invocation returned0. The integrated branch includes those
 prerequisite/projection repairs before its full run; no test assertion was weakened.
+
+
+## Verified integration and delivery — 2026-10-13
+
+The complete fast gate returned0 on frozen tree `d41e70d134bc2469c8f324afe3adae8b1cb24a5b`,
+then committed without byte changes as `179e71e94682a8d609c32647473ca09f3130d146`.
+[Exact receipt](raw/integrated-fast-receipt.json):53 compiler/reconciliation tests,
+25 enrollment,45 MCP and35 ACP tests pass, alongside the remaining fast-tier checks.
+The build labels its toolchain UNVERIFIED; reproducible release, full Docker tier and
+native/provider/all-host execution are not claimed. This supersedes the earlier pending
+combined-gate status, not its historical failed-attempt receipts.
+
+The independent integration fixtures passed all three negative controls on the merged
+MCP source. [Corrected receipt](raw/n011-integration-independent.json) preserves exact
+source digests and outputs. Its [superseded metadata](raw/n011-integration-independent-superseded.json)
+incorrectly called the checkout base the tested candidate commit; the correction distinguishes
+the base from the uncommitted tested bytes. It does not relabel or rerun those tests.
+
+The delivery branch rebased onto main `938acc62ddb9e6298c60e1374c6d7cf9424ad77e`
+as `12ff522b`; the tested commit remains on `agent/harness-integrated-tested-20261013`.
+Application and script bytes are identical. Documentation preserves incoming CO-212 closure
+and our CO-282 open row:215 of282 carry-over rows retain work. Source-aware plan/mockup
+regeneration preserves the unchanged M131 claim. Because the compiler reads these registers,
+its prior result cannot certify this documentation union; a fresh check receipt follows.
+
+Three source branches were pushed successfully: original wave `de50e9e0`, tested union
+`179e71e9`, final integration `12ff522b`. Delivery is a reviewable branch, not main, an
+installed Fabric build or a published workspace. The remaining owner packets are NOT_SENT
+at the same project-consent gate; six resource-enforcement packets remain proposed.
+
+
+## Final document-input checks
+
+After the938acc62 documentation union, the53 compiler/reconciliation tests were rerun:
+53 pass,0 skipped,exit0. [Receipt](raw/final-compiler-receipt.json) binds the full enumerated
+fixture input set and workspace parser commit. `pnpm gates:docs` also returned0; graph and
+packet audit found no findings; register215/282, plan projection, source-aware mockup receipts
+and coverage checks returned0. This is affected-input verification after the full-fast source
+candidate, not a claim that the later documentation commit itself ran full fast again.
+
+[PR31](https://github.com/passioncode-ai/fabric/pull/31) is the integration entry. A newer
+main privacy-redaction commit appeared after the frozen938acc62 union; it must be preserved
+at landing. No historical acceptance is automatically transferred to changed source.

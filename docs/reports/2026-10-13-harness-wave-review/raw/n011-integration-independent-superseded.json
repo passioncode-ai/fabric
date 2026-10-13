@@ -1,0 +1,31 @@
+{
+  "scope": "N011 integration independent persisted negative fixtures only; no real network or native/provider acceptance",
+  "candidate_commit": "4e227922909e14f5df3cf32895c02ac518dfa5bc",
+  "source_sha256": {
+    "apps/desktop/src/main/fabricMcp.ts": "ffe797ba0a97224b19dec24a425c6bbfa807e3a30a8c67d3221d20d3dede75c4",
+    "apps/desktop/src/main/fabricMcpClient.ts": "bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1",
+    "apps/desktop/test/fabric-mcp.test.mjs": "a01bb5df0555a41234f79007f93842fad2210fe29ce460ac56b40ca3d2f4dede"
+  },
+  "runs": [
+    {
+      "fixture": "docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-boundaries.mjs",
+      "command": "node --experimental-strip-types --input-type=module < docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-boundaries.mjs",
+      "exit": 0,
+      "stdout": "SHA256 apps/desktop/src/main/fabricMcp.ts ffe797ba0a97224b19dec24a425c6bbfa807e3a30a8c67d3221d20d3dede75c4\nSHA256 apps/desktop/src/main/fabricMcpClient.ts bc570b0acc72c2093fe841f0c2cda36f48b73c30190171c8e7d663a44f8013a1\nSHA256 apps/desktop/test/fabric-mcp.test.mjs a01bb5df0555a41234f79007f93842fad2210fe29ce460ac56b40ca3d2f4dede\nCLOSE_RACE {\"opened\":1,\"left\":1,\"calls\":0,\"state\":\"starting\",\"negativeControlPassed\":true}\nSDK_GET_429 {\"sent\":[{\"method\":\"POST\",\"rpc\":\"initialize\"},{\"method\":\"POST\",\"rpc\":\"notifications/initialized\"},{\"method\":\"GET\",\"rpc\":null}],\"outcome\":{\"code\":429},\"negativeControlPassed\":true}\n",
+      "stderr": ""
+    },
+    {
+      "fixture": "docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-late-consent.mjs",
+      "command": "node --experimental-strip-types --input-type=module < docs/reports/2026-10-13-harness-wave-review/raw/n011-independent-late-consent.mjs",
+      "exit": 0,
+      "stdout": "SHA256 fabricMcp.ts ffe797ba0a97224b19dec24a425c6bbfa807e3a30a8c67d3221d20d3dede75c4\nLATE_CONSENT {\"savedCount\":1,\"pendingKept\":false,\"newRequestsAfterClose\":0,\"opens\":0,\"negativeControlPassed\":true}\n",
+      "stderr": ""
+    }
+  ],
+  "negative_controls": [
+    "CLOSE_RACE",
+    "SDK_GET_429",
+    "LATE_CONSENT"
+  ],
+  "verdict": "PASS"
+}

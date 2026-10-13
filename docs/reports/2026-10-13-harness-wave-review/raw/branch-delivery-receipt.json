@@ -1,0 +1,25 @@
+{
+  "schema": "fabric/branch-delivery/1",
+  "remote": "git@github.com:passioncode-ai/fabric.git",
+  "branches": {
+    "agent/harness-waves-20261013": "de50e9e0fddf9f5fa37cd063fb3659cdc274bbff",
+    "agent/harness-integrated-tested-20261013": "179e71e94682a8d609c32647473ca09f3130d146",
+    "agent/harness-integrated-20261013": "12ff522b04aafaeaa485a91c5ceb53f04d9e0d18"
+  },
+  "push_exit": 0,
+  "ls_remote_exit": 0,
+  "fresh_clone": {
+    "source": "network remote, no local alternates",
+    "branch": "agent/harness-integrated-20261013",
+    "checkout": "12ff522b04aafaeaa485a91c5ceb53f04d9e0d18",
+    "exit": 0,
+    "entry_exists": [
+      "docs/handoffs/2026-10-13-harness-waves.md",
+      "docs/execution/harness-waves/graph.json"
+    ]
+  },
+  "limits": [
+    "Closeout receipts follow on delivery branch",
+    "Not merge, runtime installation or workspace publication"
+  ]
+}

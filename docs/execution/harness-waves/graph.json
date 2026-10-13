@@ -121,7 +121,7 @@
       "id": "N-007",
       "title": "Independent combined acceptance",
       "owner": "reviewer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-010",
       "blocked_by": [
         "N-001",
@@ -137,13 +137,16 @@
         "scripts/ci.sh"
       ],
       "surface_class": "internal",
-      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "Independent scoped source review plus complete fast gate exit0 on179e71e94682a8d609c32647473ca09f3130d146, tree d41e70d134bc2469c8f324afe3adae8b1cb24a5b. Receipt: docs/reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json. Later docs-only reconciliation requires separate checks; full/native/provider acceptance excluded."
+      ]
     },
     {
       "id": "N-008",
       "title": "Durable delivery and continuation",
       "owner": "manager",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-005",
       "blocked_by": [
         "N-007"
@@ -152,7 +155,10 @@
         "docs/handoffs/2026-10-13-harness-waves.md"
       ],
       "surface_class": "internal",
-      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates"
+      "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
+      "evidence": [
+        "Branch source 12ff522b04aafaeaa485a91c5ceb53f04d9e0d18 pushed and read back through git ls-remote; independent fresh network clone with no alternates checked out exact SHA and resolved handoff/graph. Final closeout documentation follows on same branch. Owner admission and workspace publication explicitly incomplete."
+      ]
     },
     {
       "id": "N-009",

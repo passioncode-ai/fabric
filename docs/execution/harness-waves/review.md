@@ -131,3 +131,23 @@ stays Claude-only. Both MCP test sets survive as45 unique cases. Exact hashes ar
 This was read-only; final CI and native acceptance remain distinct. The same reviewer
 verified these four harness suites were in full CI but absent from fast; new sequential
 fast wiring is included in N-007's current packet.
+
+
+## Complete fast acceptance
+
+Root executed the full fast tier on frozen tree d41e70d134bc2469c8f324afe3adae8b1cb24a5b,
+then committed identical bytes as179e71e94682a8d609c32647473ca09f3130d146:exit0.
+[Receipt](../../reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json).
+Independent source review above and the three persisted negative fixtures remain separately
+attributed; root execution is not another independent reviewer. The later938acc62 union
+changes documentation/compiler inputs only and requires its own checks.
+
+
+## Delivery cold-reader review
+
+`/root/observatory_research` checked source179e71e9 and delivered12ff522b plus closeout
+artifacts: source/tree binding, apps/packages/scripts byte equality, corrected/superseded
+N-011 receipt hashes and three source digests, handoff links/fragments and graph9done/2blocked.
+No test or remote push was repeated by that reviewer. One wording correction was required:
+the handoff now explicitly exempts the authorized Codex MCP registration from its unchanged
+host-configuration statement, and limits the no-install claim to Node dependencies.
