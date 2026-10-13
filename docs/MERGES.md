@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T12:30:00Z · `—` · agent/com03-registers → main · fast-forward
+- run: r-fc848dc29
+- files: 6
+- conflicts: none
+- summary: Registers after COM-03: lane 13 names COM-03 built (be70cef0/3d7e7752, migration 87, DEC-0073 at edc88a6) with COM-04/COM-05 next, COM-02 dropped; carry-over CO-283…CO-286 (replace attempt id, three disk NOT_RUNs, the a046f57 repin, the directory unlisting stub); 218 of 285 open; next free CO-287.
+
 ### 2026-10-13 · CO-282 resource continuation · prepared, NOT MERGED
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - files: local resource preflight, pending reservation SQL, opt-in managed adapter, PTY preparation order, fixtures and source-bound reports
