@@ -169,3 +169,26 @@ test('symbol fields and asynchronous proof are unsupported and cannot admit', ()
   const f = fixture(); f.request[Symbol('extra')] = true; rejected(f)
   const other = fixture(); other.checks.ownership = () => Promise.resolve(other.ownership); rejected(other)
 })
+for (const checker of ['ownership', 'parent']) test(`rejected async ${checker} proof cannot terminate the host`, async () => {
+  const { spawnSync } = await import('node:child_process')
+  const f = checker === 'parent' ? nested() : fixture()
+  const script = `
+    import { assessResourceAdmission } from ${JSON.stringify(new URL('../src/shared/resourceAdmission.ts', import.meta.url).href)};
+    const f = ${JSON.stringify(f)};
+    const checks = { ownership: () => f.ownership, parent: () => f.parent };
+    checks[${JSON.stringify(checker)}] = async () => { throw new Error('synthetic proof failure'); };
+    const result = assessResourceAdmission(f.request, f.context, checks);
+    if (result.state === 'eligible') process.exit(2);
+    await new Promise(resolve => setImmediate(resolve));
+  `
+  const child = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script], { encoding: 'utf8' })
+  assert.equal(child.status, 0, child.stderr)
+})
+test('proof thenable accessors are not invoked when unsupported evidence is refused', () => {
+  for (const checker of ['ownership', 'parent']) {
+    const f = checker === 'parent' ? nested() : fixture(); let called = false
+    const unsupported = Object.defineProperty({}, 'then', { get() { called = true; throw new Error('must not execute') } })
+    f.checks[checker] = () => unsupported
+    rejected(f); assert.equal(called, false)
+  }
+})

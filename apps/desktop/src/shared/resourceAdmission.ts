@@ -151,6 +151,17 @@ function proof(call: () => unknown, expected: ResourceIdentity, snapshotId: stri
   let raw: unknown
   try { raw = call() } catch { fail('evidence-unavailable', 'unknown') }
   if (raw === null || raw === undefined) fail('evidence-unavailable', 'unknown')
+  // A trusted synchronous provider can accidentally be declared async. Refuse its
+  // value, but observe an ordinary native Promise's rejection so it cannot kill
+  // the host after this function returns. Never read an arbitrary `then` getter.
+  // Exotic Promise subclasses/constructor overrides are outside this DI contract;
+  // attaching to them can itself execute user code through Symbol.species.
+  if (typeof raw === 'object' && Object.getPrototypeOf(raw) === Promise.prototype &&
+      !Object.getOwnPropertyDescriptor(raw, 'constructor')) {
+    try { void Promise.prototype.then.call(raw, undefined, () => {}) }
+    catch { /* A prototype spoof is not a branded Promise and remains refused. */ }
+    fail('invalid-evidence')
+  }
   const state = record(raw, ['state'], ['identity', 'snapshotId', 'atMs', ...extra])
   if (state.state === 'unknown') fail('evidence-unavailable', 'unknown')
   if (state.state === 'refused') fail('ownership-refused')
