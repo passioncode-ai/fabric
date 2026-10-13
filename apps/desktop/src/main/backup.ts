@@ -18,12 +18,15 @@
 // backup that carried a bundle would carry a credential.
 
 import { createHash } from 'node:crypto'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   ARCHIVE_SCHEMA,
+  BOARD_ARCHIVE_FILE,
   archiveInventory,
+  boardArchiveText,
+  readBoardArchive,
   digestInput,
   notRestored,
   readArchive,
@@ -33,6 +36,7 @@ import {
 
 const MANIFEST = 'manifest.json'
 const BODY = 'journal.ndjson'
+const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 
 export interface BackupResult {
   ok: boolean
@@ -77,7 +81,25 @@ export async function journalBySeq(page: (afterSeq: number) => PromiseLike<Journ
   }
 }
 
+/** What became of the project board's history in a restore (ADR-0149 §6). */
+export type BoardRestore =
+  | { history: 'restored'; messages: number; missing: number; redacted: number }
+  /** The archive was written before board history travelled: the messages' events came back, their texts did not. */
+  | { history: 'missing' }
+  | { history: 'refused'; reasonCode: string; says: string }
+
 export function createBackups(db: SupabaseClient) {
+  /** The board's history into a restored estate; the archive was verified before the estate was restored. */
+  const restoreBoard = async (dir: string, archiveDigest: string, target: string): Promise<BoardRestore> => {
+    if (!existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) return { history: 'missing' }
+    const board = readBoardArchive(readFileSync(path.join(dir, BOARD_ARCHIVE_FILE), 'utf8'), archiveDigest, sha256)
+    if (!board.ok) return { history: 'refused', reasonCode: board.why, says: board.says }
+    const { data, error } = await db.rpc('restore_board_history', { p_target: target, p_history: board.history })
+    const r = data as Record<string, unknown> | null
+    if (error || !r) return { history: 'refused', reasonCode: 'unavailable', says: error?.message ?? 'the board history restore returned no verdict' }
+    if (r.ok !== true) return { history: 'refused', reasonCode: String(r.reason_code), says: String(r.says) }
+    return { history: 'restored', messages: Number(r.messages), missing: Number(r.missing), redacted: Number(r.redacted) }
+  }
   return {
     /** What a restore will NOT bring back, for the screen beside the button. */
     excluded: notRestored,
@@ -121,7 +143,14 @@ export function createBackups(db: SupabaseClient) {
         eventCount: rows.length,
         digest
       }
+      // The project board's history as of the same watermark (ADR-0149 §6, CO-212): its threads, messages and
+      // bodies are primary rows no journal event rebuilds. A backup that cannot read them fails rather than
+      // leaving them out silently.
+      const board = await db.rpc('board_history_export', { p_estate_id: estateId, p_watermark: watermarkSeq })
+      if (board.error || !board.data || typeof board.data !== 'object' || 'error' in (board.data as object))
+        return { ok: false, says: `the project board's history could not be read: ${board.error?.message ?? JSON.stringify(board.data)}` }
       mkdirSync(dir, { recursive: true })
+      writeFileSync(path.join(dir, BOARD_ARCHIVE_FILE), boardArchiveText(board.data, digest, sha256), { mode: 0o600 })
       // The BODY first. A manifest on disk beside a body that is still being
       // written is an archive that verifies against nothing; written this way, an
       // interrupted backup has no manifest and is refused as unreadable rather
@@ -157,7 +186,11 @@ export function createBackups(db: SupabaseClient) {
         )
         .update(lines.join('\n'))
         .digest('hex')
-      return readArchive(raw, { lines: lines.length, digest })
+      const read = readArchive(raw, { lines: lines.length, digest })
+      if (!read.ok || !existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) return read
+      // An archive written before board history travelled has no board.json; one that has it must match.
+      const board = readBoardArchive(readFileSync(path.join(dir, BOARD_ARCHIVE_FILE), 'utf8'), read.manifest.digest, sha256)
+      return board.ok ? read : { ok: false, why: board.why === 'corrupt' ? 'corrupt' : 'unreadable', says: board.says }
     },
 
     /**
@@ -172,7 +205,7 @@ export function createBackups(db: SupabaseClient) {
       dir: string
       intoEstateId: string
       name?: string
-    }): Promise<{ ok: boolean; reasonCode?: string; says?: string; events?: number }> {
+    }): Promise<{ ok: boolean; reasonCode?: string; says?: string; events?: number; board?: BoardRestore }> {
       const read = this.verify(input.dir)
       if (!read.ok) return { ok: false, reasonCode: read.why, says: read.says }
 
@@ -206,7 +239,7 @@ export function createBackups(db: SupabaseClient) {
           reasonCode: receipt.reason_code as string,
           says: receipt.says as string
         }
-      return { ok: true, events: Number(receipt.events ?? 0) }
+      return { ok: true, events: Number(receipt.events ?? 0), board: await restoreBoard(input.dir, read.manifest.digest, input.intoEstateId) }
     }
   }
 }

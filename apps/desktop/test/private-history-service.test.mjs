@@ -5,7 +5,10 @@ import assert from 'node:assert/strict'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { createPrivateHistory } from '../src/main/privateHistory.ts'
+import { boardArchiveText } from '../src/shared/archive.ts'
 import { A, OWNER, OTHER_PERSON, archive, bytes, id, line, ordinary } from './fixtures/ceo-private-archive/vectors.mjs'
 
 const CB = id(20)
@@ -137,6 +140,37 @@ try {
     assert.deepEqual([none.history.pending(), none.history.restoredEstates()], [[], []])
   }
   pass('pending and restored Estates are read from the operation files, for the held Person only')
+
+  // ── ADR-0149 §6 / CO-212: the board's texts travel in board.json, checked before any write ─────────
+  {
+    const sha = t => createHash('sha256').update(t, 'utf8').digest('hex')
+    const withBoard = (mutate = x => x) => {
+      const dir = archiveDir()
+      const digest = JSON.parse(readFileSync(path.join(dir, 'manifest.json'), 'utf8')).digest
+      writeFileSync(path.join(dir, 'board.json'), mutate(boardArchiveText({ schema: 'FabricBoardHistory@1', threads: [], messages: [], outcomes: [] }, digest, sha)))
+      return dir
+    }
+    const s = service()
+    const r = await s.history.restore(withBoard(), 'With its messages')
+    assert.equal(r.ok, true); assert.equal(r.board_history, 'restored')
+    assert.deepEqual(s.calls, ['restore_estate_verified', 'ceo_import_private_archive', 'restore_board_history'], 'the private import sees the restored prefix untouched')
+    const old = service()
+    const r2 = await old.history.restore(archiveDir(), 'From before')
+    assert.equal(r2.board_history, 'missing'); assert.equal(old.calls.includes('restore_board_history'), false)
+    for (const bad of [t => t.replace('"messages":[]', '"messages":[{}]'), t => t.replace(/"archiveDigest":"[0-9a-f]+"/, `"archiveDigest":"${'0'.repeat(64)}"`)]) {
+      const t = service()
+      const refused = await t.history.restore(withBoard(bad), 'Tampered')
+      assert.deepEqual([refused.ok, refused.reason_code], [false, 'integrity_mismatch'])
+      assert.deepEqual(t.calls, [], 'a tampered board file reached the database')
+    }
+    const lost = service({ answers: { restore_board_history: ['lost', { ok: false, reason_code: 'already_restored' }] } })
+    const unknown = await lost.history.restore(withBoard(), 'Lost reply')
+    assert.equal(unknown.state, 'result_unknown')
+    const checked = await lost.history.check(unknown.operation_id)
+    assert.equal(checked.board_history, 'restored', 'a repeat after a lost reply is the same history')
+    assert.deepEqual(lost.calls, ['restore_estate_verified', 'ceo_import_private_archive', 'restore_board_history', 'restore_board_history'])
+  }
+  pass('the board history travels in board.json: restored, missing from an old archive, refused when tampered, repeated after a lost reply')
 
   console.log(`PASS private history service: ${groups} groups, no database`)
 } finally { for (const r of roots) rmSync(r, { recursive: true, force: true }) }

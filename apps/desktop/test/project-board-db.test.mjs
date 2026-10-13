@@ -36,7 +36,8 @@ const list = (estate, reader, after = 0, limit = 50, thread = null) =>
   JSON.parse(sql(`set role service_role; select board_list('${estate}','${reader}',${thread ? `'${thread}'` : 'null'},${after},${limit})`))
 const get = (estate, reader, message) => JSON.parse(sql(`set role service_role; select board_get('${estate}','${reader}','${message}')`))
 const ack = (estate, reader, message) => JSON.parse(sql(`set role service_role; select board_read_ack('${estate}','${reader}',${j(agent())},'${message}')`))
-const unread = (estate, reader) => Number(sql(`set role service_role; select board_unread('${estate}','${reader}')`))
+const status = (estate, reader) => JSON.parse(sql(`set role service_role; select board_status('${estate}','${reader}')`))
+const unread = (estate, reader) => status(estate, reader).unread
 const events = (estate, type) => Number(sql(`select count(*) from journal where estate_id='${estate}' and type='${type}'`))
 let keyN = 0
 const key = () => `key-${String(++keyN).padStart(6, '0')}`
@@ -63,7 +64,11 @@ await test('two estates cannot reach each other: estate B is refused before esta
 
 await test('a request opens a thread; the target reads it queued; the journal carries the digest and never the body', () => {
   const r = submit(A, PA1, request(PA2, [PA2]), digest(10))
-  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.repeated, false); assert.equal(r.request, r.message)
+  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.repeated, false)
+  // C3 (migration 86): a receipt names the request as an object and never the estate seq.
+  assert.deepEqual(r.request, { id: r.message, state: 'queued', effect: 'not_started', revision: 1 })
+  assert.equal('seq' in r, false, 'the receipt carries the estate seq')
+  assert.match(r.at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/)
   threadA = r.thread; requestA = r.message
   const page = list(A, PA2)
   assert.equal(page.messages.length, 1)
@@ -169,7 +174,8 @@ await test('reading marks nothing; an explicit read mark counts once, and a non-
   list(A, PA2); get(A, PA2, requestA)
   assert.equal(unread(A, PA2), n, 'reading changed the unread count')
   const first = ack(A, PA2, requestA), again = ack(A, PA2, requestA)
-  assert.equal(first.repeated, false); assert.equal(again.repeated, true); assert.equal(again.seq, first.seq)
+  assert.equal(first.repeated, false); assert.equal(again.repeated, true); assert.equal(again.message, first.message)
+  assert.equal('seq' in first || 'seq' in again, false, 'a read receipt carries the estate seq')
   assert.equal(unread(A, PA2), n - 1)
   assert.equal(events(A, 'comms.read_acked@1'), 1)
   assert.equal(ack(A, PA3, requestA).error.code, 'not_authorized')
@@ -293,6 +299,9 @@ await test('replace kept the door: service_role reads, authenticated is refused,
   assert.equal(again.repeated, true, 'idempotency survived the function replace')
 })
 
+// #endregion project-board-core
+
+await import('./project-board-lifecycle-cases.mjs').then(m => m.run({ sql, refuses, test, url, psqlArgs, id, A, B, PA1, PA2, PA3, PB1, j, lit, agent, digest, append, submit, list, get, ack, status, events, key, request, message, threadsOp }))
+
 console.log(`${count} passed, ${failed.length} failed`)
 if (failed.length) process.exit(1)
-// #endregion project-board-core

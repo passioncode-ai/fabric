@@ -109,6 +109,7 @@ import { createCeoConversationHost } from './ceoConversationHost.ts'
 import { createCeoChatBinding } from './ceoChatBinding.ts'
 import { DEFAULT_ESTATE, activeEstateUnreadable, readActiveEstate, recordActiveEstate } from './activeEstate.ts'
 import { createBackups } from './backup.ts'
+import { tickBoard } from './boardService.ts'
 import { createPrivateHistory, type PrivateHistory } from './privateHistory.ts'
 
 /**
@@ -2534,6 +2535,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       },
       { failed: (step, e) => ops.failed(step, e) }
     )
+    // The project board's upkeep (COM-02.3, ADR-0149 §7): deadlines, epoch rotation, retention. Its own step:
+    // it starts no agent work, so it does not change the window this receipt describes; a failure is logged.
+    await tickBoard((fn, args) => db.rpc(fn, args), ACTIVE_ESTATE)
     try {
       await journal.append({
         estateId: ACTIVE_ESTATE,

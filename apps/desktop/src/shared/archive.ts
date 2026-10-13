@@ -64,6 +64,18 @@ const CARRIED: Readonly<Record<string, string>> = {
 }
 
 /**
+ * The project board's primary rows (ADR-0149 §6, CO-212): written beside their journal events, never rebuilt
+ * from them, so they travel in the archive's `board.json` and are matched to the restored journal event by event.
+ * A body redacted before the export is absent from the file; a redaction made after the export cannot reach it.
+ */
+const BOARD_ARCHIVED: Readonly<Record<string, string>> = {
+  board_threads: 'a thread and its fixed participants, carried in board.json and checked against the restored journal\'s first message of the thread',
+  board_messages: 'a message\'s envelope, carried in board.json and checked field by field against the restored journal event at its seq',
+  board_bodies: 'the text of a message, carried in board.json as it was at the export: redacted before it, absent; redacted after it, still in the file',
+  board_outcomes: 'what ended a request (a cancel\'s reason, an outcome summary), carried in board.json and checked against the transition at its seq'
+}
+
+/**
  * Never carried, and why. These are decisions, not gaps.
  *
  * Authority does not travel because a restored grant is a forged one. Live facts
@@ -88,6 +100,11 @@ const EXCLUDED: Readonly<Record<string, string>> = {
   ceo_private_import_receipts: 'a private import receipt is local evidence of one command in one Estate; the owner-private companion carries history, never this receipt (ADR-0079)',
   ceo_content_provenance: 'private provenance of imported text travels only inside the owner-private companion, as its origin fields; an Estate archive never carries it (ADR-0079)',
 
+  // The board's authority and live state (ADR-0149 §6): idempotency receipts, the outbox and its cursors never travel.
+  board_idempotency: 'receipts of board calls. Restored, a key would stand for a call nobody made in the new estate; its epochs rotate instead',
+  board_outbox: 'the transactional outbox of board events, about deliveries to mirrors of this estate; a restored estate starts its own',
+  board_consumer_cursors: 'how far each mirror of THIS estate has read; a restored estate has no mirror yet',
+  board_write_authorizations: 'transaction-only authorization of the board commands must never survive in a portable archive',
   estates: 'a restore creates a NEW estate. Carrying the old row back would make the copy claim to be the original',
   event_types: 'the vocabulary ships with the migrations. An archive that carried it could restore an estate onto a schema that does not speak it',
   persons: 'identity belongs to the auth plane; an archive that carried it would carry people',
@@ -138,6 +155,15 @@ const DISK: readonly ArchiveCategory[] = [
  */
 export function archiveInventory(): ArchiveCategory[] {
   const tables = Object.keys(TABLE_SCOPE).map((name): ArchiveCategory => {
+    if (name in BOARD_ARCHIVED)
+      return {
+        name,
+        kind: 'table',
+        recovery: 'archive',
+        owner: 'ADR-0149 · the project board',
+        retention: 'for the life of the estate; a body until it is redacted',
+        reason: BOARD_ARCHIVED[name]
+      }
     if (name in CARRIED)
       return {
         name,
@@ -264,3 +290,39 @@ export function readArchive(
     }
   return { ok: true, manifest: raw as ArchiveManifest }
 }
+
+// #region board-archive — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#decision
+/** The project board's history beside an archive (ADR-0149 §6, CO-212). */
+export const BOARD_ARCHIVE_SCHEMA = 'FabricBoardArchive@1'
+export const BOARD_ARCHIVE_FILE = 'board.json'
+
+/**
+ * `board.json` is `{schema, archiveDigest, digest, history}`: `archiveDigest` binds it to the one archive whose
+ * manifest has that digest (a board file moved between archives is refused), and `digest` is the SHA-256 of the
+ * history's JSON text, so a file altered after it was written is refused before a restore touches anything.
+ * The manifest itself is unchanged: its six keys are a contract the private-history archive checks in SQL.
+ */
+export type BoardArchiveRead =
+  | { ok: true; history: Record<string, unknown> }
+  | { ok: false; why: 'unreadable' | 'wrong_schema' | 'corrupt'; says: string }
+
+export function boardArchiveText(history: unknown, archiveDigest: string, sha256: (text: string) => string): string {
+  const text = JSON.stringify(history)
+  return `{"schema":${JSON.stringify(BOARD_ARCHIVE_SCHEMA)},"archiveDigest":${JSON.stringify(archiveDigest)},"digest":${JSON.stringify(sha256(text))},"history":${text}}\n`
+}
+
+export function readBoardArchive(raw: string, archiveDigest: string, sha256: (text: string) => string): BoardArchiveRead {
+  let b: Record<string, unknown>
+  try { b = JSON.parse(raw) as Record<string, unknown> } catch {
+    // Not silence: the refusal is the answer, and nothing has been written.
+    return { ok: false, why: 'unreadable', says: 'the board history file is not JSON' }
+  }
+  if (!b || typeof b !== 'object' || b.schema !== BOARD_ARCHIVE_SCHEMA || !b.history || typeof b.history !== 'object')
+    return { ok: false, why: 'wrong_schema', says: `the board history file is not ${BOARD_ARCHIVE_SCHEMA}` }
+  if (b.archiveDigest !== archiveDigest)
+    return { ok: false, why: 'corrupt', says: 'the board history file belongs to another archive' }
+  if (b.digest !== sha256(JSON.stringify(b.history)))
+    return { ok: false, why: 'corrupt', says: 'the board history file does not match its own digest, so something changed after it was written' }
+  return { ok: true, history: b.history as Record<string, unknown> }
+}
+// #endregion board-archive

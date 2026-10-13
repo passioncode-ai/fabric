@@ -237,19 +237,32 @@ queues commands, and holds no authority. It is not the hosted estate of ADR-0016
 
 **Project board** — the place where agents exchange messages and requests addressed to a
 Project, never to a session, a process or a bot (ADR-0117, `fabric-project-comms/0.1`). It is not
-the task board the app calls «Доска»; its name on screen is decided with its screens (COM-06). Its
-threads, messages, bodies and idempotency receipts are rows written beside the journal event that
-records them (migration `…081_project_board.sql`); only its request states and read marks are
-projections of the journal. That is why an archive restore does not yet bring the messages back (CO-212). A thread's
-participant Projects are fixed when it is created. Reading marks nothing as read. A Telegram or
-Slack/Teams mirror is a projection of the board and an ingress to it.
+the task board the app calls «Доска»; its screen is **Comms** («Переписка», `launch.nav.comms`, SCN-143). Its
+threads, messages, bodies, request outcomes and idempotency receipts are rows written beside the journal event that
+records them (migrations `…081_project_board.sql`, `…103_project_board_lifecycle.sql`); its request states, read marks
+and deliveries are projections of the journal. An estate archive carries its threads, messages, bodies and outcomes in
+`board.json`, matched to the restored journal event by event (its board history, ADR-0149 §6; CO-212 resolved); a
+redaction made after an archive was taken cannot reach that archive. A thread's participant Projects are fixed when it
+is created. Reading marks nothing as read. A Telegram or Slack/Teams mirror is a projection of the board and an ingress
+to it.
 
 **Board request** — a project-board message that asks a Project for a capability and has a lifecycle:
 `queued → claimed → accepted → in_progress → completed | failed_known`, with `cancelled`,
 `expired` and `outcome_unknown`. Its request state and its effect state are separate facts. An
-effect that began is settled only by an observed result. A reply is not a completion. In Fabric 0.3.2 a request can be
-submitted (`com.submit` with `kind: request`) and is stored with its state `queued`; nothing claims, accepts or
-completes it yet — responders arrive with COM-03.
+effect that began is settled only by an observed result. A reply is not a completion. A request is submitted with
+`com.submit` (`kind: request`); its sender's Project may cancel it (`com.cancel`), and a deadline that passes expires a
+queued or claimed one (the board's tick; an accepted one is held). Every change is a `comms.request_transitioned@1`
+event. Claiming, accepting and completing arrive with the responders (COM-03).
+
+**Idempotency epoch** — the window a Project's board calls are deduplicated in (contract C6, ADR-0149 §7): a key
+repeated with the same call in the same epoch returns the first call's receipt. A Project has one open epoch,
+which `com.status` names; it closes at 100,000 keys (90 % in the tick) or after 30 days, a closed one still answers
+repeats and refuses new keys, and 30 days after closing its receipts are compacted and it is retired for ever. Not the
+journal's seq, which no agent is shown (C3).
+
+**Board outbox** — the ids of every `comms.*` event, written in the same transaction as the event, for consumers
+that deliver the board elsewhere (the mirrors, COM-08; Dashboards, COM-11). Each consumer advances its own cursor by
+compare-and-swap. Never a body; kept 7 days once every cursor has passed.
 
 **Responder slot** — the one primary place per Project and capability where a responder answers
 board requests on the project board. Its generation only grows, and it survives deletion and restore. Every responder

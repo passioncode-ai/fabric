@@ -24,7 +24,9 @@ function journalDb(c) {
   return { from: () => ({ select: () => ({ eq: (_col, estate) => ({ gt: (_seq, after) => ({ order: () => ({ limit: async (n) => {
     const rows = JSON.parse(c.sql(`select coalesce(jsonb_agg(r order by (r->>'seq')::bigint),'[]') from (select jsonb_build_object('seq',seq,'type',type,'schema_rev',schema_rev,'actor',actor,'project_id',project_id,'run_id',run_id,'node_id',node_id,'payload',payload,
       'occurred_at',to_char(occurred_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'+00:00') as r from journal where estate_id=${uuid(estate)} and seq>${Number(after)} order by seq limit ${Number(n)}) page`))
-    return { data: rows, error: null } } }) }) }) }) }) }
+    return { data: rows, error: null } } }) }) }) }) }),
+    // The board's history beside the journal (ADR-0149 §6): the real export, as service_role.
+    rpc: async (name, args) => ({ data: JSON.parse(c.sql(`set role service_role;select ${name}(${uuid(args.p_estate_id)},${Number(args.p_watermark)})`)), error: null }) }
 }
 /** Named-argument RPC over psql; `drop` loses the reply AFTER the database answered. */
 function rpcOver(c, faults = {}) {
@@ -61,18 +63,18 @@ try {
   assert.equal(src.rpc(`ceo_send_message(${uuid(S)},${uuid(U)},1,${jsonb(actor(U))},${jsonb(env)})`).ok, true)
   const onSource = service(src, { estateId: S, personId: U, revision: 1, actor: actor(U) })
 
-  // ── 1. Export: three private files, complete or not at all ──────────────────────
+  // ── 1. Export: four private files, complete or not at all ──────────────────────
   const exported = await onSource.history.exportHistory()
   assert.equal(exported.ok, true, JSON.stringify(exported))
   assert.deepEqual([exported.conversations, exported.messages], [1, 1])
-  assert.deepEqual(readdirSync(exported.dir).sort(), ['ceo-private.json', 'journal.ndjson', 'manifest.json'])
+  assert.deepEqual(readdirSync(exported.dir).sort(), ['board.json', 'ceo-private.json', 'journal.ndjson', 'manifest.json'])
   assert.equal(statSync(exported.dir).mode & 0o777, 0o700)
   for (const f of readdirSync(exported.dir)) assert.equal(statSync(path.join(exported.dir, f)).mode & 0o777, 0o600, f)
   assert.deepEqual(onSource.history.exports().map(e => e.dir), [exported.dir])
   assert.deepEqual(onSource.calls, ['ceo_export_private_archive'], 'export writes nothing to the database')
   const inspected = onSource.history.inspect(exported.dir)
   assert.equal(inspected.ok, true); assert.deepEqual(inspected.companion, { owner: U, conversations: 1, messages: 1 })
-  pass('export takes the real ordinary archive, the SQL companion and the codec\'s decode into three private files')
+  pass('export takes the real ordinary archive with its board history, the SQL companion and the codec\'s decode into four private files')
 
   // A failed export leaves nothing that could be offered.
   {
@@ -111,7 +113,8 @@ try {
     assert.equal(count(b, 'memberships', again.target_estate_id), 1)
     assert.deepEqual(await onB.history.check(first.operation_id), again, 'a later check returns the same result')
     assert.deepEqual(onB.history.restored(), [again.target_estate_id], 'a completed restore is the one Estate that may be opened')
-    assert.deepEqual(onB.calls, ['restore_estate_verified', 'restore_estate_verified', 'ceo_import_private_archive'])
+    assert.deepEqual(onB.calls, ['restore_estate_verified', 'restore_estate_verified', 'ceo_import_private_archive', 'restore_board_history'])
+    assert.equal(again.board_history, 'restored', 'the board history (ADR-0149 §6) came back after the private import')
   }
   pass('a lost restore reply is resolved by the same operation: one target, history imported, zero pending requests')
   {
@@ -158,7 +161,8 @@ try {
     const r = await asV.history.restore(exported.dir, 'Atlas, without U')
     assert.equal(r.ok, true, JSON.stringify(r))
     assert.deepEqual([r.private_history, r.private_history_skipped], [false, 'not_your_history'])
-    assert.deepEqual(asV.calls, ['restore_estate_verified'], 'only the ordinary restore is sent')
+    assert.deepEqual(asV.calls, ['restore_estate_verified', 'restore_board_history'], 'only the ordinary restore and its board history are sent')
+    assert.equal(r.board_history, 'restored')
     assert.equal(count(c, 'estate_restore_boundaries'), 1)
     assert.equal(count(c, 'ceo_messages', r.target_estate_id), 0, "U's messages are not in V's restored Estate")
     assert.equal(count(c, 'ceo_private_import_receipts'), 0)

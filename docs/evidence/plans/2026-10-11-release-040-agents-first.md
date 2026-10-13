@@ -508,10 +508,10 @@ wave, duplicate clusters follow their member, a closable stale row goes to wave 
 |---|---|---|---|
 | 0 · Decisions and registers | REQ-34; ADRs 1–8 written, vision and CONTEXT amended, P-16 = 0.4.0 | 33 — stale rows closed with receipts (CO-001, CO-088, CO-115, CO-163, M0, M16, M105, S11, P-01, AD01 …), lease-blocked UXAC rows | every later wave builds on them; no code |
 | 1 · Walking skeleton: the harness | REQ-01, REQ-02, REQ-05 (core), REQ-31, REQ-32 | 21 — CO-091, CO-090, CO-199, CO-200, CO-201, CO-242, AR-3.1/3.2/3.4, the port's W1–W3/W5 merged as the base | the spine every other node hangs on, on integral data |
-| 2 · Pack and log protocol | REQ-03, REQ-04, REQ-06, REQ-07, REQ-08, REQ-33, REQ-37 (the decision), REQ-38 | 18 — CO-194, CO-229, CO-233, CO-236, CO-176, CO-244, CO-220, AS-03, AS-06, COM-04, COM-05 | all speak the session surface of wave 1 |
+| 2 · Pack and log protocol | REQ-03, REQ-04, REQ-06, REQ-07, REQ-08, REQ-33, REQ-37 (the decision), REQ-38 | 21 — CO-194, CO-229, CO-233, CO-236, CO-176, CO-244, CO-220, AS-03, AS-06, COM-02/03 and CO-212 (re-cut 2026-10-13), then COM-04, COM-05 | all speak the session surface of wave 1; the board's core precedes the adapters that use it |
 | 3 · Setup console and first run | REQ-09…REQ-12, REQ-35, REQ-24 (start screens), REQ-39, REQ-40, REQ-41 | 16 — CO-177, CO-180, CO-219, CO-235, N1, CO-186, AS-13, M199, SCN-081…085/088 | needs the harness to prove «connected» |
 | 4 · Agents, workflows, spend | REQ-13…REQ-15, REQ-36, REQ-37 (Fabric's hub part), REQ-45 | 34 — AR-2, AR-5, AR-7, AR-11, M18, M37, CO-099, CO-188, CO-227, SCN-112…114, SCN-121…123 | need the surface and the journal events |
-| 5 · Manager and Fabric as a service | REQ-16…REQ-18, REQ-42 | 36 — P-13 (CO-168, M126, AR-4, SCN-110/111), M153, M166, M194, P-06, P-07, COM-02/03, CO-212 | read everything waves 1–4 journal |
+| 5 · Manager and Fabric as a service | REQ-16…REQ-18, REQ-42 | 33 — P-13 (CO-168, M126, AR-4, SCN-110/111), M153, M166, M194, P-06, P-07 | read everything waves 1–4 journal |
 | 6 · Screens | REQ-19…REQ-23, the rest of REQ-24 | 36 — CO-179, CO-225, CO-231, CO-232, CO-239, CO-240, the back/route-history cluster (CO-149, L3c, AX05*), read age and feed cursor clusters, CO-215/CO-216's screen findings | final shapes once the features exist |
 | 7 · Platforms and self-update | REQ-25, REQ-26 | 3 — P-12, CO-245, CO-246 (the port's W4 rides wave 2) | the port merges early (wave 1 base), its per-OS paths and the updater close here |
 | 8 · Release | REQ-27…REQ-30, REQ-44 | — | three iterations over the whole |
@@ -550,6 +550,15 @@ their scenarios written (SCN-138…SCN-142, FLW-78…FLW-82, SCR-77…SCR-80) an
 ADR-0144 decided the delegation model and every owning agent filed its row; release approval moved to checks
 (fabric#28, ADR-0145), so the pipeline's reserved ADR is now 0146. Carried: CO-256 (enrolled sessions not yet listed),
 CO-257 (enrollment files after an uninstall), CO-259.
+
+**Re-cut, 2026-10-13 — the board's core precedes its adapters.** COM-04 and COM-05 sat in wave 2 while COM-03, which
+blocks both, sat in wave 5 with COM-02 and CO-212. COM-02, COM-03 and CO-212 move to wave 2, ahead of COM-04/COM-05
+(the inventory's `recut20261013`): COM-02.3 landed ([ADR-0149](../../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md),
+migration 86) and resolves CO-212; COM-03 is stacked on it. COM-06 and COM-07 were "after 0.4.0" and open, yet their
+first slices shipped (the operator's Comms screen `3bba5412`; filters `bbaec717`; unread marks `e4318bf2`; time filters
+`50cb3b18`, `2edc2242`): both are now partial in wave 6, the rest of each packet after 0.4.0; COM-12 is partial
+(fabric-workspace PR #182). Counts per 0.4.0 wave after this re-cut: W0 21, W1 18, W2 21, W3 18, W4 34, W5 33, W6 42,
+W7 8 (195).
 
 **The rest of the board — the program after 0.4.0.** 504 of the 701 items do not close in 0.4.0: they are umbrella
 milestones, unbuilt scenarios and multi-packet plans (memory and context, MEM-P0…P7; the board's COM-06…14 and
