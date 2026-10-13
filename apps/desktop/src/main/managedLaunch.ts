@@ -8,6 +8,7 @@ import { continuationDeliveryId } from './continuationDelivery.ts'
 import { LaunchRefusedBeforeSpawn, ProcessLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
+import type { ManagedResourceLaunch } from './resourceLaunchAdapter.ts'
 
 export type LaunchResult =
   | { started: true; taskId: string; runId: string; sessionId: string; deliveryId: string; deliveryState: ContinuationResult['state']; says: string }
@@ -32,9 +33,14 @@ export interface ManagedLaunchDeps {
   untrack(sessionId: string, taskId: string): void
   get(sessionId: string): { running: boolean } | null
   stop(sessionId: string): Promise<void>
+  /** Optional only at trusted composition. Resource-marked receipts refuse without it. */
+  resources?: ManagedResourceLaunch
   dispatch(taskId: string, runId: string, sessionId: string, deliveryId: string, text: string): Promise<ContinuationResult>
 }
+// #region managed-resource-preparation — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
 export function createManagedLaunch(deps: ManagedLaunchDeps) {
+  const resources = deps.resources
+  if (resources && resources.mode !== 'required') throw Error('invalid resource launch dependency')
   return async function launch(input: LaunchInput): Promise<LaunchResult> {
     const sessionId = input.admission?.sessionId ?? randomUUID()
     let receipt: AdmissionReceipt | undefined
@@ -61,12 +67,20 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       runId = receipt.task_run_id
       if (!runId || receipt.task_id !== input.taskId || receipt.session_id !== sessionId || !receipt.project_id || typeof receipt.instruction !== 'string')
         return failure('invalid_receipt', 'The admission receipt is incomplete. Inspect the task before starting again.')
+      // Covers both ordinary admission and the chain's pre-admitted receipt.
+      if (resources ? !resources.matches(receipt) : Object.prototype.hasOwnProperty.call(receipt, 'resource_reservation'))
+        return failure('resource_receipt_unavailable', 'The resource receipt could not be confirmed. Nothing will be started automatically.')
       const authority = deps.authority()
       const begun = await command('begin_task_run_launch', {
         p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
       })
-      if (begun.granted !== true) return failure(String(begun.reason_code ?? 'launch_already_begun'),
-        'This launch was not granted. Refresh the task; another caller may already be starting it.')
+      if (begun.granted !== true) {
+        // Only SQL may prove this generation never consumed begin. A racing
+        // winner or an ambiguous response cannot be cancelled by a local guess.
+        if (resources) { try { await resources.cancelUnbegun(receipt) } catch { /* retain reservation */ } }
+        return failure(String(begun.reason_code ?? 'launch_already_begun'),
+          'This launch was not granted. Refresh the task; another caller may already be starting it.')
+      }
       if (begun.task_run_id !== runId || begun.session_id !== sessionId) return failure('invalid_receipt',
         'The launch receipt identifies another session. Nothing will be started automatically.')
       ownsBegin = true
@@ -76,7 +90,8 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
         const valid = await command('validate_task_run_launch', {
           p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
         })
-        return valid.valid === true && valid.task_run_id === runId && valid.session_id === sessionId
+        if (!(valid.valid === true && valid.task_run_id === runId && valid.session_id === sessionId)) return false
+        return resources ? await resources.current(receipt!) : true
       })
       processStarted = true
       if (session.sessionId !== sessionId) throw Error('native session identity mismatch')
@@ -86,8 +101,11 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       // The launch RESULT classifies, never a snapshot: a clean refusal before any child is "not
       // started" even though the backend registry's own snapshot reads outcome_unknown (B1).
       processStarted ||= error instanceof ProcessLaunchFailure || (!(error instanceof LaunchRefusedBeforeSpawn) && Boolean(deps.get(sessionId)))
-      if (!ownsBegin) return failure('launch_receipt_unknown',
-        'The launch receipt could not be confirmed. Nothing will be started or retried automatically.')
+      if (!ownsBegin) {
+        if (resources && receipt) { try { await resources.cancelUnbegun(receipt) } catch { /* SQL proof unavailable: retain reservation */ } }
+        return failure('launch_receipt_unknown',
+          'The launch receipt could not be confirmed. Nothing will be started or retried automatically.')
+      }
       // Request cancellation independently of the durable failure command. A
       // signal is not proof of exit; the generation stays owned until observed.
       if (processStarted) { try { await deps.stop(sessionId) } catch { /* still unknown */ } }
@@ -96,6 +114,9 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
         const result = await command('fail_task_launch', { p_process_started: processStarted })
         compensated = result.compensated === true
       } catch { /* a lost response never authorises another spawn */ }
+      if (resources && receipt && compensated && !processStarted) {
+        try { compensated = await resources.releaseCompensated(receipt) } catch { compensated = false }
+      }
       if (!processStarted) deps.untrack(sessionId, input.taskId)
       return failure(processStarted || !compensated ? 'launch_outcome_unknown' : 'launch_failed_before_spawn',
         processStarted ? 'The session started, but launch setup failed. Check its termination before continuing.'
@@ -115,3 +136,4 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
     }
   }
 }
+// #endregion managed-resource-preparation
