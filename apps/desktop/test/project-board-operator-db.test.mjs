@@ -123,10 +123,10 @@ await test('responders: active names the agent and since when; a lapsed lease is
 // ── the thread list: a bounded page, newest first (COM07-03) ─────────────────────────────────────────────────
 const threads = []
 await test('thread page: newest activity first by (lastSeq, id); no thread twice and none lost across three pages while messages arrive between them', () => {
-  // Seven threads in ONE transaction: their last messages share a time, so only (lastSeq, id) orders them.
-  const created = sql(`begin;\n${Array.from({ length: 7 }, (_, i) => submitArgs(E, A, { idempotency: idem(), thread: { new: { participants: [B], subject: `page ${i}` } }, kind: 'message', body: { text: `page thread ${i}` } }).replace('set role service_role; ', '')).join('\n')}\ncommit;`)
+  // Nine threads in ONE transaction: their last messages share a time, so only (lastSeq, id) orders them.
+  const created = sql(`begin;\n${Array.from({ length: 9 }, (_, i) => submitArgs(E, A, { idempotency: idem(), thread: { new: { participants: [B], subject: `page ${i}` } }, kind: 'message', body: { text: `page thread ${i}` } }).replace('set role service_role; ', '')).join('\n')}\ncommit;`)
   for (const line of created.split('\n').filter(Boolean)) threads.push(JSON.parse(line).thread)
-  assert.equal(threads.length, 7)
+  assert.equal(threads.length, 9)
   const foreign = submit(OTHER, F, { idempotency: idem(), thread: { new: { participants: [F], subject: 'elsewhere' } }, kind: 'message', body: { text: 'not this estate' } })
   const scope = new Set(threads)
   const p1 = page(E, {}, null, 3)
@@ -136,9 +136,11 @@ await test('thread page: newest activity first by (lastSeq, id); no thread twice
   into(E, A, p1.threads[0].id, 'a thread already read moves again')   // a thread already read
   const p2 = page(E, {}, p1.before, 3)
   assert.ok(sortedDesc(p2.threads), 'page 2 is not ordered')
-  into(E, A, threads[1], 'a thread read on page 2 moves to the top')
+  into(E, A, threads[1], 'another thread not yet read moves to the top')
+  assert.equal(p2.more, true, 'page 2 leaves older threads')
   const p3 = page(E, {}, p2.before, 3)
   assert.ok(sortedDesc(p3.threads), 'page 3 is not ordered')
+  assert.equal(p3.more, false); assert.equal(p3.before, null, 'the last page names no next one')
   const read = [...p1.threads, ...p2.threads, ...p3.threads].map(t => t.id).filter(t => scope.has(t))
   assert.equal(new Set(read).size, read.length, `a thread appeared twice across the pages: ${read}`)
   // Every thread is either on a page or, having moved above the cursor, on page 1 read again — none falls between.

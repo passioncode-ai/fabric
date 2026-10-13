@@ -3393,11 +3393,24 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     journalMessages: async (estateId) => {
       const r = await db.from('journal').select('seq', { count: 'exact', head: true }).eq('estate_id', estateId).eq('type', 'comms.message_submitted@1')
       return r.error || typeof r.count !== 'number' ? null : r.count
-    }
+    },
+    // `comms:open-artifact`: the read module refuses every scheme but https before this is reached.
+    openExternal: (url) => shell.openExternal(url)
   })
   handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsRead.threads(ACTIVE_ESTATE))
   handle(IPC.commsList, (_e, threadId: string | null, afterSeq: number, limit?: number): Promise<Returns<FabricApi['comms']['list']>> =>
     commsRead.list(ACTIVE_ESTATE, threadId ?? null, afterSeq, limit))
+  // Wave 4's reads (migration 89). The renderer's arguments are unknown here: each method checks them before the door.
+  handle(IPC.commsThreadPage, (_e, filter: unknown, before: unknown, limit?: number): Promise<Returns<FabricApi['comms']['threadPage']>> =>
+    commsRead.threadPage(ACTIVE_ESTATE, filter, before, typeof limit === 'number' ? limit : 50))
+  handle(IPC.commsHeads, (): Promise<Returns<FabricApi['comms']['heads']>> => commsRead.heads(ACTIVE_ESTATE))
+  handle(IPC.commsResponders, (): Promise<Returns<FabricApi['comms']['responders']>> => commsRead.responders(ACTIVE_ESTATE))
+  handle(IPC.commsFacts, (_e, messages: unknown): Promise<Returns<FabricApi['comms']['facts']>> => commsRead.facts(ACTIVE_ESTATE, messages))
+  handle(IPC.commsTimeline, (_e, requestId: unknown): Promise<Returns<FabricApi['comms']['timeline']>> => commsRead.timeline(ACTIVE_ESTATE, requestId))
+  handle(IPC.commsRelated, (_e, threadId: unknown): Promise<Returns<FabricApi['comms']['related']>> => commsRead.related(ACTIVE_ESTATE, threadId))
+  handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsRead.search(ACTIVE_ESTATE, query, before))
+  handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsRead.pending(ACTIVE_ESTATE))
+  handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
   // #endregion comms-screen
 
   /** Releases with their basis (ADR-0084): the releases, then the tasks and decisions they name,

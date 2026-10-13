@@ -164,7 +164,16 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     },
     comms: {
       threads: () => ipc.invoke(IPC.commsThreads),
-      list: (threadId, afterSeq, limit) => ipc.invoke(IPC.commsList, threadId, afterSeq, limit)
+      list: (threadId, afterSeq, limit) => ipc.invoke(IPC.commsList, threadId, afterSeq, limit),
+      threadPage: (filter, before, limit) => ipc.invoke(IPC.commsThreadPage, filter, before, limit),
+      heads: () => ipc.invoke(IPC.commsHeads),
+      responders: () => ipc.invoke(IPC.commsResponders),
+      facts: (messages) => ipc.invoke(IPC.commsFacts, messages),
+      timeline: (requestId) => ipc.invoke(IPC.commsTimeline, requestId),
+      related: (threadId) => ipc.invoke(IPC.commsRelated, threadId),
+      search: (query, before) => ipc.invoke(IPC.commsSearch, query, before),
+      pending: () => ipc.invoke(IPC.commsPending),
+      openArtifact: (url) => ipc.invoke(IPC.commsOpenArtifact, url)
     },
     quota: {
       read: () => ipc.invoke(IPC.quotaRead)
