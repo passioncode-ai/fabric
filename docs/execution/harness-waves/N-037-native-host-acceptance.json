@@ -1,0 +1,29 @@
+{
+  "node": "N-037",
+  "status": "PARTIAL_NOT_ACCEPTED",
+  "sourceCheckpoint": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "evidence": [
+    {
+      "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n037-cli/receipt.json",
+      "sha256": "be6440d4f4dafcdfd0c3386fe8e5183b690fa7abeccb5216720ca561c20ae1d4",
+      "scope": "Installed local CLI self-description in restricted empty-home context only; not instruction, MCP, native launch, model/provider or effective configured-home acceptance"
+    }
+  ],
+  "observed": {
+    "claude": "2.1.296",
+    "codex": "0.162.1",
+    "hermes": "0.21.4 (2026.9.21)",
+    "kimi": "2.1.1",
+    "kilo": "found; version/help denied filesystem write, version NOT_OBSERVED",
+    "cline": "not found on probed PATH",
+    "shell": "not an autonomous executor"
+  },
+  "remaining": [
+    "Actual instruction/skill discovery and MCP isolation in admitted configuration",
+    "Mode semantics and supported native identity continuity",
+    "Resume/compaction and cancellation/recovery behavior",
+    "Required unsupported capabilities need authorized scope disposition"
+  ],
+  "next": "Run feasible bounded native probes independently; sign-in or consent gates apply only to their dependent probes; never infer loaded behavior from CLI help",
+  "probeConformance": "NONCONFORMING: version/help child environment replaced HOME; shell/session unchanged, but this violates the run environment constraint. Actual observations remain history and do not certify N037. Corrected no-HOME-remapping probe follows separately."
+}

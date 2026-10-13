@@ -1,0 +1,27 @@
+{
+  "scope": "NONCONFORMING historical initialize-only observation, NOT N037 acceptance",
+  "executedScript": true,
+  "executedOnce": true,
+  "receiptNormalization": {
+    "originalSha256": "e832a9df4beede6b89439ad39966d2601fd3834cc0885862508ad85f8eb13077",
+    "publicSha256": "8d20f192fd1e7eec6d858f162b9725b6c116fd098be97d54d5bd0c089388a0f0",
+    "rule": "private home/artifact prefixes only"
+  },
+  "files": {
+    "probe.py": "66ded3b3a4e6dfcb7072ead37b2d6779174a948634e8003dd483fa234c5a68ac",
+    "receipt.json": "8d20f192fd1e7eec6d858f162b9725b6c116fd098be97d54d5bd0c089388a0f0",
+    "README.md": "cdbc111a47074f487718635476298e5d636a7852f9c24226d7cf5f18de41158a",
+    "hermes-sandbox.public.sb": "221cbeab6a85813d767e56f447754117508e7342e8b9932aac4d7a56a0598e63",
+    "kimi-sandbox.public.sb": "221cbeab6a85813d767e56f447754117508e7342e8b9932aac4d7a56a0598e63",
+    "hermes-stdout.txt": "874392cc465b597997662848a2db12864846833bbe323db22a3e3ef4b8e8a67c",
+    "hermes-stderr.txt": "f870cc9789e9e6cc324d174ce4f27cd878bc259d04945d4fcca6f2b58cff01ce",
+    "kimi-stdout.txt": "e9255d022c867b529152c6f17be2bb6aec177cee3a52333c08f85947746dcec0",
+    "kimi-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "conformance-correction.json": "2364ad23907860c4126adc2cbe0cb4a656e02e93ad9033b4fe58f3496fe62da8"
+  },
+  "excluded": [
+    "receipt.private-original.json",
+    "hermes-owned-home/",
+    "kimi-owned-home/"
+  ]
+}

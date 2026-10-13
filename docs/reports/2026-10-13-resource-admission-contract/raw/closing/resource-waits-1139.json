@@ -1,0 +1,24 @@
+{
+  "observedAt": 1791891477.6998699,
+  "freeBytes": 619409408,
+  "combinedGate": "NOT_RUN after checkpoint fa5fbd7d; waiting for >=3GiB; earlier failed executions remain separately archived",
+  "boardReadiness": {
+    "observedAt": "2026-10-13T11:37:18.969455+00:00",
+    "pid": 25379,
+    "state": "database_unavailable",
+    "mode": "HTTP readiness only while DB unavailable; otherwise bounded official MCP read, then child closed",
+    "authority": "no consent, restart, board submission or credential export",
+    "next": "parent resumes official board discovery on ready",
+    "expiresAfterSeconds": 5400
+  },
+  "safeCleanup": {
+    "scope": "Only this run owned disposable sparse clone; clean, historical local branch proved ancestor of verified remote checkpoint in full owning repository",
+    "head": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+    "clean": true,
+    "historicalRef": "refs/heads/agent/harness-integrated-20261013 444f5f961b300ca99f0532229e8d00724db527fe",
+    "at": 1791891373.936351,
+    "freeBefore": 505724928,
+    "freeAfter": 623075328
+  },
+  "publication": "NOT_RUN for expanded checkpoint; complete source gate and headroom still prerequisites"
+}

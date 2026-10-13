@@ -1,0 +1,48 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-037",
+  "node": "N-037",
+  "parent_id": "CO-282",
+  "module": "Required native host acceptance",
+  "intent": "Resolve required native host capabilities through scoped evidence, retaining unsupported and unverified cells",
+  "expected_result": "Per-host versions, actual launch path, instruction/MCP/mode/identity/resume evidence and explicit remaining limits; no universal support inferred from matrix completion",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/N-037-native-host-acceptance.json"
+    ]
+  },
+  "outputs": [
+    "docs/execution/harness-waves/N-037-native-host-acceptance.json"
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Required supported-host positive/negative probes bind actual version, effective configuration, source and trace; declared unsupported capabilities have explicit owner-approved scope disposition and cannot silently satisfy a required behavior"
+    },
+    {
+      "kind": "negative",
+      "check": "Compiler/fake/global installation evidence cannot pass native cells; missing sign-in, consent, context or stable identity stays unresolved; shell remains not applicable, not an agent PASS"
+    }
+  ],
+  "guards": [
+    "Local receipt obligation only; no foreign owner code, canonical status, registry, credential, installation or service changes",
+    "Source acceptance, native execution, authorization and publication remain distinct; no caller label proves reviewer independence",
+    "One heavy check slot; respect resource and actual sign-in/consent boundaries; independent read-only work continues",
+    "Never repurpose HOME, home or CODEX_HOME; preserve system environment paths, use only supported host-specific path controls in owned fixtures; no credentials/model/provider activity without actual authority"
+  ],
+  "resume": {
+    "next": "Review current host matrix and collect feasible local/native evidence independently; defer only probes requiring unavailable consent/sign-in/transport, not all host work"
+  }
+}

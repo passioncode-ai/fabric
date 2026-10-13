@@ -10,7 +10,7 @@ all hosts or upstream projects already comply. The carry-over ledger owns CO-282
 
 Fabric baseline: `a5b78e4919d82c6eae88bee72e59eba3e0c1fbae`.
 The [dated research snapshot](../../reports/2026-10-13-autonomy-layer-map/README.md)
-remains immutable. The [09:19UTC owner refresh](../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json) confirms hub #209 and task-pipeline #112 merged; pipeline main78c42124 carries source1.94.0, while the latest release and inspected Codex/Claude payloads remain1.93.3. PR114 acceptance is not established here. The reviewed graph/lesson/iteration bytes are unchanged from the earlier candidate, so the remaining provenance findings persist. Do not turn installation, configured routes, a compiled
+remains immutable. The [09:19UTC owner refresh](../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json) confirms hub #209 and task-pipeline #112 merged; pipeline main78c42124 carries source1.94.0, while the latest release and inspected Codex/Claude payloads remain1.93.3. The prior PR114 work is included through merged PR112; its acceptance is evaluated against the current owner source, not treated as a second unfinished PR. The reviewed graph/lesson/iteration bytes are unchanged from the earlier candidate, so the remaining provenance findings persist. Do not turn installation, configured routes, a compiled
 bundle or a passing fake into native agent acceptance.
 
 - Identity: `apps/desktop/src/main/sessionEnroll.ts` (`enrollSession`, `ofRuntime`).
@@ -516,3 +516,10 @@ N036 also separates ordinary filesystem setup budget from explicit timeout regre
 The actual N036 rerun caught an implicit default coupling omitted by static review: a1100ms injected delay no longer crossed the5000ms default. Two timed cases now explicitly retain their original1000ms. Corrected29/29pass on exact integrated sources; the28/29failure is preserved. The full combined gate remains owed.
 
 The [worker-slot overlap proposal](../../execution/harness-waves/own-intent-overlap-packet.md) is a bounded subsequent design, not implemented or admitted work. It requires an atomic published member cut, injective SQL joins and actual source identity; R1 held/full-input/native/configuration and retirement remain separate. [Source pins](../../execution/harness-waves/own-intent-overlap-source-pins.json).
+
+
+## Requirement closure correction after checkpoint fa5fbd7d
+
+The [closure table](../../execution/harness-waves/requirement-closure.md) addresses every REQ separately from graph completion counts. Independent review found REQ004 had only a completed evidence matrix, REQ006 had only completed packet/provenance artifacts, and REQ010 only historical candidate acceptance. Their behavior is still owed. N037 owns native host acceptance without blocking independent local work on COM; N038 owns the official task-pipeline candidate/round receipt and stays blocked while NOT_SENT; N039 owns expanded convergence after N030/N037/N038/N009/N010. None retroactively invalidates or overstates the narrow evidence of completed nodes.
+
+The graph now has39nodes:28done,3blocked and8pending. These new nodes own only their local acceptance receipts, not foreign implementation or status. Before closure, preserve explicit REQ009 activation/full-ownership/full-input/native requirements even if source convergence passes. Source checkpoint fa5fbd7d is remotely verified; the complete expanded gate and workspace publication are still pending disk headroom.

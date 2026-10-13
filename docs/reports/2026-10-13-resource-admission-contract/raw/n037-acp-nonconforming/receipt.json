@@ -1,0 +1,170 @@
+{
+  "scope": "ACP initialize only; not native instruction/MCP/session/auth/provider acceptance",
+  "scriptSha256": "66ded3b3a4e6dfcb7072ead37b2d6779174a948634e8003dd483fa234c5a68ac",
+  "network": "sandbox denied network*",
+  "writes": "only respective owned temporary home",
+  "environment": "minimal no inherited tokens; real credential dirs and keychain filesystem/Mach access denied",
+  "deadlineSecondsPerHost": 30,
+  "maxOutputBytesPerStream": 65536,
+  "sequential": true,
+  "results": [
+    {
+      "host": "hermes",
+      "command": [
+        "/opt/homebrew/Cellar/hermes-agent/2026.9.21_2/bin/hermes",
+        "acp"
+      ],
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "agentCapabilities": {
+            "loadSession": true,
+            "promptCapabilities": {
+              "image": true
+            },
+            "sessionCapabilities": {
+              "fork": {},
+              "list": {},
+              "resume": {}
+            }
+          },
+          "agentInfo": {
+            "name": "hermes-agent",
+            "version": "0.21.4"
+          },
+          "authMethods": [
+            {
+              "args": [
+                "--setup"
+              ],
+              "description": "Open Hermes' interactive model/provider setup in a terminal. Use this when Hermes has not been configured on this machine yet.",
+              "id": "hermes-setup",
+              "name": "Configure Hermes provider",
+              "type": "terminal"
+            }
+          ],
+          "protocolVersion": 1
+        }
+      },
+      "reason": null,
+      "exit": 0,
+      "seconds": 1.057,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 721663101,
+        "size": 1117,
+        "mtimeNs": 1791207251867848469,
+        "sameAfter": true
+      },
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    },
+    {
+      "host": "kimi",
+      "command": [
+        "{REAL_HOME}/.kimi-code/bin/kimi",
+        "acp"
+      ],
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientCapabilities": {},
+          "clientInfo": {
+            "name": "fabric-n037-offline-initialize",
+            "version": "1"
+          }
+        }
+      },
+      "reply": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "protocolVersion": 1,
+          "agentCapabilities": {
+            "loadSession": true,
+            "promptCapabilities": {
+              "image": true,
+              "audio": false,
+              "embeddedContext": true
+            },
+            "sessionCapabilities": {
+              "list": {},
+              "resume": {},
+              "close": {},
+              "delete": {},
+              "fork": {},
+              "additionalDirectories": {}
+            },
+            "mcpCapabilities": {
+              "http": true,
+              "sse": true
+            },
+            "auth": {
+              "logout": {}
+            }
+          },
+          "authMethods": [
+            {
+              "id": "login",
+              "type": "terminal",
+              "name": "Login with Kimi account",
+              "description": "Open the device-code login flow in a terminal.",
+              "args": [
+                "--login"
+              ],
+              "env": {},
+              "_meta": {
+                "terminal-auth": {
+                  "type": "terminal",
+                  "label": "Login with Kimi account",
+                  "command": "{REAL_HOME}/.kimi-code/bin/kimi",
+                  "args": [
+                    "login"
+                  ],
+                  "env": {}
+                }
+              }
+            }
+          ],
+          "agentInfo": {
+            "name": "Kimi Code CLI",
+            "version": "2.1.1"
+          }
+        }
+      },
+      "reason": null,
+      "exit": 0,
+      "seconds": 1.023,
+      "identity": {
+        "kind": "resolved-path-and-stat-not-cryptographic",
+        "dev": 16777231,
+        "ino": 737307530,
+        "size": 188155456,
+        "mtimeNs": 1791244378222093244,
+        "sameAfter": true
+      },
+      "sessionCreated": false,
+      "promptSent": false,
+      "authSent": false
+    }
+  ]
+}

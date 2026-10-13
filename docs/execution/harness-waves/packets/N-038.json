@@ -1,0 +1,47 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-038",
+  "node": "N-038",
+  "parent_id": "CO-282",
+  "module": "Owner candidate and round acceptance",
+  "intent": "Receive and verify the existing task-pipeline owner correction/acceptance for artifact-bound asynchronous certification",
+  "expected_result": "Official project-addressed admission and exact owner source/receipt prove candidate/input/dispatch binding, independent review provenance and idempotent rounds; no foreign implementation or duplicate canonical owner task",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/N-038-owner-certification-acceptance.json"
+    ]
+  },
+  "outputs": [
+    "docs/execution/harness-waves/N-038-owner-certification-acceptance.json"
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Matching admitted candidate reports aggregate once; distinct admitted rounds advance once; source-pinned owner tests and actual receipt schema bind all relevant identities and digests"
+    },
+    {
+      "kind": "negative",
+      "check": "Candidate A reports collected at B, changed input closure, duplicate retries, relabeled review kinds and superseded attempts cannot create current acceptance; NOT_SENT/acknowledged/installed-only never passes"
+    }
+  ],
+  "guards": [
+    "Local receipt obligation only; no foreign owner code, canonical status, registry, credential, installation or service changes",
+    "Source acceptance, native execution, authorization and publication remain distinct; no caller label proves reviewer independence",
+    "One heavy check slot; respect resource and actual sign-in/consent boundaries; independent read-only work continues"
+  ],
+  "resume": {
+    "next": "Refresh existing owner source read-only and prepare precise packet; remain blocked until official owner admission and actual qualifying acceptance receipt, then verify without copying owner status"
+  }
+}

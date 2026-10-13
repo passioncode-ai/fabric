@@ -1,5 +1,30 @@
 # CO-282 — portable harness waves handoff
 
+## Current checkpoint and acceptance boundary
+
+**CO-282 remains partial.** Source checkpoint [fa5fbd7dc43e1d097c336fbff3617c68af508e43](https://github.com/passioncode-ai/fabric/commit/fa5fbd7dc43e1d097c336fbff3617c68af508e43) contains the expanded N035 controlled-pool composition and N036 check/fixture corrections. It is a source checkpoint, not final acceptance, main integration, installed runtime or workspace publication.
+
+The graph counts in this source checkpoint are historical. The [requirement closure table](../execution/harness-waves/requirement-closure.md) and [graph](../execution/harness-waves/graph.json) carry the current acceptance obligations; completed evidence artifacts do not close unfinished behavior. N007/N008 retain historical producer-wave receipts; their done states do not certify this expanded candidate. The last full-fast source checkpoint is [6c8b3718](https://github.com/passioncode-ai/fabric/commit/6c8b3718302dd7a3e981ce792f9c0c13db780b27), [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json).
+
+N035 has scoped source review, 18 focused tests, 3 independent controls, targeted types and integrated operations checks; [integration](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json), [portable evidence](../reports/2026-10-13-resource-admission-contract/raw/n035/README.md). The corrected legacy fixture passes 29/29 with explicit deadline regressions: [corrected receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json). Preserve the [28/29 failure](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json), earlier full-gate failures and superseded static review. N027 has separate eight-stage owned SQL acceptance; [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json). None substitutes for the complete expanded gate.
+
+The factory implements one controlled ordinary creation domain with conservative retained logical occupancy. It does not activate the app entry, grant R1 held ownership/full input closure, retire uncertain workers or cover every host. Capacity-one overlap is [design only](../execution/harness-waves/own-intent-overlap-packet.md). Pending SQL requires current migration-owner/order reconciliation; historical pending filenames are not an available production allocation.
+
+N037 has begun with a [restricted local CLI inventory](../reports/2026-10-13-resource-admission-contract/raw/n037-cli/receipt.json). Four agent versions were observed; Kilo could not report its version under write denial, and Cline was not on the checked PATH. This is partial reconnaissance only; the node remains pending.
+
+## Exact next actions
+
+1. Finish this requirement-closure documentation correction, commit/push the source checkpoint, then arm one bounded resource watcher for at least 3 GiB free and its configured load ceiling. It must verify that committed checkpoint before running the complete `bash scripts/ci.sh fast`; changed source invalidates the scheduled run. The prior fa5 watcher was cancelled before any full gate executed. No earlier PASS or source-only check closes N030/N032–N036.
+2. Follow the explicit acceptance obligations N037 for native hosts, N038 for owner candidate/round certification and N039 for expanded requirement convergence. Independent local analysis remains available while owner integration requests are prepared/NOT_SENT; do not treat COM consent as a blocker for local code or invent native acceptance from a matrix.
+3. After the actual full gate, bind the result to the tested commit/tree, perform cold-reader/graph closeout and exact remote readback, then run the normal workspace publication procedure. Preserve source acceptance, branch delivery, publication, installation and native acceptance as separate results.
+4. Restore board readiness only through the owning lifecycle/consent path. The linked [09:08 observation](../reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json) is historical, not current health. Latest coordinator report says DB unavailable and consent unresolved; this review did not probe runtime. When access is actually available, use `fabric_whoami` → `com.status` → `com.list`, refresh [owner packet](../execution/harness-waves/owner-packets.md) heads, then submit to the owning projects. Consent and migration-owner coordination do not block independent local source analysis.
+
+## Historical receipts and continuation snapshots
+
+The following sections preserve dated receipts and source pins. Their observations apply to those snapshots; the current block above supersedes their next-action and current-status wording.
+
+
+
 Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
 [the current graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
 First-wave repairs and bounded local resource implementations exist; active resource

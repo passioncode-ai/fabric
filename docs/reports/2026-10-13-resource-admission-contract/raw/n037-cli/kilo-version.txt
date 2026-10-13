@@ -1,0 +1,12 @@
+
+EPERM: operation not permitted, mkdir '/var/empty/kilo'
+    path: "/var/empty/kilo",
+ syscall: "mkdir",
+   errno: -1,
+    code: "EPERM"
+
+      at async suA (/$bunfs/root/src/index.js:316:42355)
+      at async <anonymous> (/$bunfs/root/src/index.js:316:48054)
+      at async <anonymous> (/$bunfs/root/src/index.js:8806:7735)
+
+Bun v1.3.14 (macOS arm64)

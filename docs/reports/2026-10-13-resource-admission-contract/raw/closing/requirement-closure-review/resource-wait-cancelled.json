@@ -1,0 +1,13 @@
+{
+  "phase": "resource-wait-cancelled",
+  "pid": 46037,
+  "at": 1791890812.7199411,
+  "freeBytes": 346841088,
+  "load1": 11.2724609375,
+  "readySamples": 0,
+  "requiredFreeBytes": 3221225472,
+  "maximumLoad1": 56,
+  "waitDeadlineSeconds": 1800,
+  "cancelledAt": 1791890817.945892,
+  "reason": "Independent requirement-closure audit requires documentation/graph correction before gate; no full gate executed"
+}

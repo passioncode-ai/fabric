@@ -1,0 +1,8 @@
+{
+  "status": "NONCONFORMING_EXECUTED_PROBE_NOT_ACCEPTANCE",
+  "reason": "Executed child environment substituted HOME with owned temporary home. Later parent clarification correctly identifies standing developer prohibition. Shell/session environment was not mutated; this distinction does not establish conformance.",
+  "history": "Original execution and receipt retained; no rerun, no fabricated NOT_RUN for actual past execution.",
+  "compliantProbe": "NOT_RUN",
+  "scope": "Only observed initialize replies; cannot use as compliant N037 acceptance.",
+  "next": "Do not rerun until an actual documented host-specific isolation path or unchanged-HOME sandbox route is established without relaxing credential/network/write boundaries."
+}

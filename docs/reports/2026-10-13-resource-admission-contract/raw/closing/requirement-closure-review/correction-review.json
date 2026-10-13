@@ -1,0 +1,321 @@
+{
+  "kind": "independent-docs-diff-review",
+  "baseCommit": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "asOf": "2026-10-13T11:31:59.404597+00:00",
+  "reviewer": "/root/mcp_research",
+  "verdict": "SCOPED_PASS_DOCUMENTATION_ONLY",
+  "rootWrites": false,
+  "tests": "NOT_RUN; bounded document/source assertions and changed-link checks only",
+  "disclosure": "Reviewer authored earlier N035 production, but did not author this requirement-closure documentation diff; no self-certification of runtime behavior.",
+  "sourceSha256": {
+    "docs/execution/harness-waves/requirement-closure.md": "ce9973263c473b3b8869fc81110fb6a42533d55e75d57cdaba76da1b457154c4",
+    "docs/execution/harness-waves/graph.json": "11a206eefb35058fb83d66ad5bd4fe81b35d2c0f863fc74415d11ba4c19c9909",
+    "docs/execution/harness-waves/packets/N-009.json": "ca680ca8327cfbe7dc71ad6763d11a7627bd5969f96f3984aff4c928a316ea65",
+    "docs/execution/harness-waves/packets/N-010.json": "ceed81c93b961f6461370058c20914ee63e97c5454af64a58dcd304fe914423e",
+    "docs/execution/harness-waves/packets/N-030.json": "95c4f6b78f9f8152242ed9cc6fe81dc1be41bf65a989cddc25efd5ed91c29dbe",
+    "docs/execution/harness-waves/packets/N-032.json": "79c75581a8cf8327b0464b0ebe39b7cbd6c53f0048e53cc045563b0a2223112f",
+    "docs/execution/harness-waves/packets/N-033.json": "3c7faf14db57ddad0c02f6662037c08f7aef02ec87938a6e9c62a3768e91e28b",
+    "docs/execution/harness-waves/packets/N-034.json": "7ffc81a19ac703a9456459b5a5a4ca1d344ce84c2b970c999356ee4564a12636",
+    "docs/execution/harness-waves/packets/N-035.json": "d8cd514b6ee08c75f82e869c7e398e5ef294bff848d229c26d4226c9a12e0156",
+    "docs/execution/harness-waves/packets/N-036.json": "cb48bd751b844a913ef52ba5c270c2b82813e1539caf544df8d39fe4e024b953",
+    "docs/execution/harness-waves/packets/N-037.json": "34b14b1323ee0f603380796ab827c91aa0f71298af9c8b3d35f2c186839becba",
+    "docs/execution/harness-waves/packets/N-038.json": "2c1f691622e9aa5ca7ffcad8433ae374ab636d83cc0eb047a0c8f4cba454f7f1",
+    "docs/execution/harness-waves/packets/N-039.json": "75900ec26d20ddf2158ef496b768cf0dbb3029ba150850d06efd7a79a6b37595",
+    "docs/handoffs/2026-10-13-harness-waves.md": "de789139b3145a3f08d1fc5ccf12e091d21f72b58674bc563b49f953b8173713",
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac",
+    "docs/reports/2026-10-13-resource-admission-contract/README.md": "eeb98c2ca6b44f4b40b50aa12332a22a72291920df6e8175f63b21a6ff54e75c",
+    "docs/reports/map.html": "c2fb87ee30c5bd90e03e4e7fd1d57611eb3b86053131405d95b35f3968940635",
+    "docs/MERGES.md": "f128c20e402c894da7eba9ad2554ea4979d8bdab11442f93abed96b0eb2983f6",
+    "docs/evidence/retro.md": "460cd64deb782cd0e29b7d536ca90edbee4f5d22a318c0d412524cc0699daf26"
+  },
+  "findings": [],
+  "coverage": {
+    "requirements": [
+      "REQ-001",
+      "REQ-002",
+      "REQ-003",
+      "REQ-004",
+      "REQ-005",
+      "REQ-006",
+      "REQ-007",
+      "REQ-008",
+      "REQ-009",
+      "REQ-010"
+    ],
+    "graphNodes": 39,
+    "graphCounts": {
+      "done": 28,
+      "blocked": 3,
+      "pending": 8
+    },
+    "N037": "Pending with only completed N004 predecessor; COM is not a dependency or blanket local blocker.",
+    "N038": "Blocked, evidence null, NOT_SENT explicit; no foreign acceptance/status claimed.",
+    "N039": "Pending behind named compatible local/native/owner receipts; unresolved REQ009 remains explicit even if convergence passes.",
+    "handoff": "Current status precedes a labelled historical section; fa5 checkpoint and historical fullgate are distinguished; new fullgate/publication pending.",
+    "reportMapMergeRetro": "No new source/runtime PASS claimed; artifact completion vs behavior lesson and local task-branch preparation stated.",
+    "packets": [
+      {
+        "id": "N-009",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-010",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-030",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-032",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-033",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-034",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-035",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-036",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-037",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-038",
+        "planBindingCurrent": true
+      },
+      {
+        "id": "N-039",
+        "planBindingCurrent": true
+      }
+    ],
+    "links": [
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "../../evidence/plans/2026-10-13-harness-waves.md#requirements",
+        "target": "docs/evidence/plans/2026-10-13-harness-waves.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "host-matrix.md#identity-hooks-and-recovery",
+        "target": "docs/execution/harness-waves/host-matrix.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "host-matrix.md#transport-instructions-and-mcp",
+        "target": "docs/execution/harness-waves/host-matrix.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "../../evidence/plans/2026-10-13-harness-waves.md#requirements",
+        "target": "docs/evidence/plans/2026-10-13-harness-waves.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "host-matrix.md#follow-up-receipt-format-and-convergence",
+        "target": "docs/execution/harness-waves/host-matrix.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "graph.json",
+        "target": "docs/execution/harness-waves/graph.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "owner-packets.md#pipeline-artifact-bound-asynchronous-certification",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "owner-packets.md#pipeline-and-observatory-lessons-remain-evidence-until-adopted",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "owner-packets.md#hub-observatory-and-fabric-host-aware-capability-selection",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "resource-controlled-pool.md#boundaries-and-next-accounting-work",
+        "target": "docs/execution/harness-waves/resource-controlled-pool.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/execution/harness-waves/requirement-closure.md",
+        "href": "graph.json",
+        "target": "docs/execution/harness-waves/graph.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/requirement-closure.md",
+        "target": "docs/execution/harness-waves/requirement-closure.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/graph.json",
+        "target": "docs/execution/harness-waves/graph.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/own-intent-overlap-packet.md",
+        "target": "docs/execution/harness-waves/own-intent-overlap-packet.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/owner-packets.md",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/evidence/plans/2026-10-13-harness-waves.md",
+        "href": "../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/evidence/plans/2026-10-13-harness-waves.md",
+        "href": "../../execution/harness-waves/requirement-closure.md",
+        "target": "docs/execution/harness-waves/requirement-closure.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/requirement-closure-review/audit.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/requirement-closure-review/audit.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/requirement-closure.md",
+        "target": "docs/execution/harness-waves/requirement-closure.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/branch-fa5fbd7-delivery.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/branch-fa5fbd7-delivery.json",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/map.html",
+        "href": "../execution/harness-waves/requirement-closure.md",
+        "target": "docs/execution/harness-waves/requirement-closure.md",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/map.html",
+        "href": "#iteration-2026-10-13-harness-controlled-pool",
+        "target": "docs/reports/map.html",
+        "exists": true,
+        "fragmentValid": true
+      },
+      {
+        "from": "docs/reports/map.html",
+        "href": "../handoffs/2026-10-13-harness-waves.md",
+        "target": "docs/handoffs/2026-10-13-harness-waves.md",
+        "exists": true,
+        "fragmentValid": true
+      }
+    ]
+  },
+  "limits": [
+    "Changed canonical document links/fragments only; archived draft links and unchanged historical paragraphs were not re-certified.",
+    "No native/COM/service/owner refresh, execution, full gate or workspace publication performed.",
+    "workspace submodule working state is outside this docs-only review.",
+    "Root owns cheap documentation gates and final exact-commit binding."
+  ]
+}

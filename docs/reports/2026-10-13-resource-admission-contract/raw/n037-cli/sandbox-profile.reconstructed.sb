@@ -1,0 +1,1 @@
+(version 1)(allow default)(deny network*)(deny file-write*)(deny file-read* (subpath "{HOME}/.codex") (subpath "{HOME}/.claude") (subpath "{HOME}/.kimi") (subpath "{HOME}/.hermes") (subpath "{HOME}/.config") (subpath "{HOME}/Library/Keychains"))

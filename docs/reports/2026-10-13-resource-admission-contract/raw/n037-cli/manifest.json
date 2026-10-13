@@ -1,0 +1,28 @@
+{
+  "kind": "RECONSTRUCTED_FROM_EXECUTED_CODE_NOT_RERUN",
+  "binaryHashes": "NOT_CAPTURED",
+  "files": {
+    "hermes-version.txt": "d340e1a7b0c6458ea5cf89a38ae63f66d6c43809e581a37f782f01f714c711ea",
+    "hermes-help.txt": "311a0a2ff72edab34f291bfd069a2d1c304a7a484370ac7e7d48f2995bb83b0c",
+    "claude-help.txt": "49474e844451a88768a9b1c1c04abc97145509109558fcc12370b7f65f49edf3",
+    "codex-version.txt": "f59b16df5827e14f3aecdc94db12b72406993e27352042eb9a7d8dad179b8262",
+    "executable-identity.json": "cf93ad032d71819c64c347e9bcc85cee8c997246404d55d1b7b04da7a646f8da",
+    "codex-help.txt": "bf30b061f700ae54682f1707c48f4c826e722c1a4bc6958b2594dc400ac27f0b",
+    "bash-version.txt": "d5eba2b20fb33d3ceb8e9e7d5788f07577b631160caab3bd8854e164597a7ce7",
+    "kimi-version.txt": "890cc14a28e75b36743e52e764312acaed925f5e1d4489bc4baa5a921f170b4b",
+    "probe-portable.py": "b7a4c59e5c279197c942b5790eaf249e83f09bb08bb0107da8a1c0d589f7879c",
+    "kimi-help.txt": "b9f69b65933a5d342b3c4ef0465acfe0bfd4ee86c4cba7943312e97cb703484f",
+    "zsh-version.txt": "e9ceb4c31856247b7d28ecbb3c046282b0347b83f082c0bfce9b307b8bfb5bb2",
+    "claude-version.txt": "fd6d25e8a1402a31083245b9adfab94d0888437d71a6da71c671494ecc8260e4",
+    "REPRODUCTION.md": "7ec5e5b5c5734bcc0213e4d32e98568de7b7f966070393bba87d3382857bb10e",
+    "sandbox-profile.reconstructed.sb": "dcd63f9ab276689362f36102460defeca0e93a72a61f9a1205d8f79eb7d9a33e",
+    "executed-code.public-reconstruction.py.txt": "f7b5fc461765e89ab54ebd0e62000719a03e43cf1e29f8b8c9bb26d647932c66",
+    "kilo-help.txt": "f698ce66a946721f0d788354bb0b79de79f02d5a1cd29bf9ed63990979709816",
+    "receipt.json": "be6440d4f4dafcdfd0c3386fe8e5183b690fa7abeccb5216720ca561c20ae1d4",
+    "kilo-version.txt": "f698ce66a946721f0d788354bb0b79de79f02d5a1cd29bf9ed63990979709816",
+    "next-probes.md": "d0fb1a979d800d2b17b6cd07c3d6ae91f1edd5407a38f68dac34bf375a68952f"
+  },
+  "exclude": [
+    "executed-code.reconstructed.py.txt"
+  ]
+}

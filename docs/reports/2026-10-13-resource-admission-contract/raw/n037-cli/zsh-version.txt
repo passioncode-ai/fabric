@@ -1,0 +1,2 @@
+zsh 5.9 (arm64-apple-darwin25.0)
+

@@ -1,0 +1,47 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-039",
+  "node": "N-039",
+  "parent_id": "CO-282",
+  "module": "Final expanded convergence receipt",
+  "intent": "Join local delivery and required external/native receipts against their exact compatible inputs for the expanded wave",
+  "expected_result": "One local convergence receipt names tested Fabric commit/tree, dependency source pins, docs/graph and delivered branch/publication, with each requirement disposition explicit; no implied activation or full CO-282 completion",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "a660ac3f276bf33b96b6c2966b9615a70a850137c22ccd9f86aa6f8fb845ccac"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/execution/harness-waves/N-039-expanded-convergence.json"
+    ]
+  },
+  "outputs": [
+    "docs/execution/harness-waves/N-039-expanded-convergence.json"
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "N030 combined gate/delivery/publication and N037/N038/N009/N010 receipts are source-compatible, accessible and within stated scopes; current source/docs/requirement table agree"
+    },
+    {
+      "kind": "negative",
+      "check": "Historical N007/N008, checkpoint-only push, stale dependency or missing owner/native evidence cannot pass; input changes invalidate affected receipts; unresolved REQ009 remains explicit even if convergence passes"
+    }
+  ],
+  "guards": [
+    "Local receipt obligation only; no foreign owner code, canonical status, registry, credential, installation or service changes",
+    "Source acceptance, native execution, authorization and publication remain distinct; no caller label proves reviewer independence",
+    "One heavy check slot; respect resource and actual sign-in/consent boundaries; independent read-only work continues"
+  ],
+  "resume": {
+    "next": "Assemble current source/input closure and check links now; await named receipts and actual final gate, then verify convergence without rerunning unrelated accepted work or borrowing historical PASS"
+  }
+}

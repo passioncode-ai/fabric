@@ -1,0 +1,15 @@
+{
+  "source": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "verdict": "PARTIAL_REQUIREMENTS_WITH_TRACEABILITY_GAPS",
+  "tests": "NOT_RUN read-only documentation audit",
+  "rootEdits": false,
+  "files": {
+    "docs/evidence/plans/2026-10-13-harness-waves.md": "5d9d328ec2bbba82dcd8cac0cebad470de9886171faaddeafa7a37e584a1fa2c",
+    "docs/execution/harness-waves/graph.json": "4ad2df5b4e224a5f52d7acab0454af364c23c102e9c6da9e53bf241b084c2ff2",
+    "docs/handoffs/2026-10-13-harness-waves.md": "e13d6f16fdb7fbb5818f5c34e0ecb9389a14f423e858c2649c8976d977bfa530",
+    "docs/execution/harness-waves/owner-packets.md": "27b5839220fae892b480b90cf35c099708577fc18121a00d9d75a279b3a9ba1d",
+    "docs/execution/harness-waves/host-matrix.md": "32935f3baf2d5043fdf87c32f69b01eeab3f09c34087967ef92cf14f59bfdbeb"
+  },
+  "draft": "handoff-current-next.md",
+  "links": "repository-relative links drafted for docs/handoffs; immutable receipts preserved"
+}

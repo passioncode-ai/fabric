@@ -538,3 +538,15 @@ N036 moves the unchanged compiler suite after source-only checks and captures on
 ### Corrected fixture result
 
 The setup-budget candidate was not semantically equivalent for every deadline test: [28/29failed run](raw/closing/n035-legacy-first.json). An implicit1000ms deadline under a1100ms injected delay became5000ms. Two timed tests now explicitly retain1000ms. [Corrected29/29run](raw/closing/n035-legacy-corrected.json), with all five production hashes unchanged, passes. This supersedes only the pending legacy fixture execution; final full fast and publication are still outstanding.
+
+
+## Requirement closure correction
+
+[Independent checkpoint audit](raw/closing/requirement-closure-review/audit.md) found that completed matrix/packet artifacts did not represent unfinished REQ004/006/010 behavior. The [closure table](../../execution/harness-waves/requirement-closure.md) and N037–39 now expose those acceptance obligations. Graph39 =28done/3blocked/8pending. [Independent remote delivery](raw/closing/branch-fa5fbd7-delivery.json) verifies fa5fbd7d, nine N035 source hashes and136 relative file targets; it ran no new tests and grants no runtime acceptance. The resource wait was cancelled before a full gate executed so this correction could be committed. No current full-gate PASS or publication is claimed.
+
+
+### Bounded N037 installed CLI readback
+
+[Native executable self-description receipt](raw/n037-cli/receipt.json) records12 sequential version/help invocations with network and filesystem writes denied and no inherited token environment. Claude2.1.296, Codex0.162.1, Hermes0.21.4 and Kimi2.1.1 reported their versions. Kilo exists but these commands refused a write to the empty test home; its version remains unobserved. Cline was absent from the checked PATH. These probes do not establish configured-home discovery, model instruction consumption, MCP isolation or recovery. N037 remains PARTIAL_NOT_ACCEPTED in its [local receipt](../../execution/harness-waves/N-037-native-host-acceptance.json).
+
+[Probe procedure correction](raw/n037-acp-nonconforming/conformance-correction.json): the version/help child environment replaced HOME. Although the parent shell/session was unchanged and no provider call occurred, this violates this run's environment constraint. A subsequent initialize-only ACP probe made the same substitution before the correction reached its worker. Both remain historical observations, not accepted N037 evidence; corrected probes must preserve HOME and use only supported host-specific paths inside owned writable fixtures.

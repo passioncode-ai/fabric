@@ -45,6 +45,14 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 
 ## Recent log
 
+### 2026-10-13 · CO-282 carry environment constraints into native probe packets
+
+The CLI/ACP reviewer used a disposable child HOME to isolate fixtures; parent shell state was unchanged, but the standing constraint prohibits repurposing HOME/CODEX_HOME. The correction arrived after execution. Keep the original trace explicitly nonconforming, never infer accepted native behavior, and require host-specific supported path controls plus sandbox denial before the corrected probe. Write the exact replay script before execution and carry the environment prohibition in every delegated native packet. Isolation intent does not substitute for the actual applicable contract.
+
+### 2026-10-13 · CO-282 requirement closure is separate from artifact completion
+
+A completed capability matrix and an owner packet can leave the underlying behavior unverified while every serving graph node says done. Independent fa5fbd7d review found that gap for REQ004/006 and historical-only coverage for REQ010. Add explicit scoped acceptance obligations and reconcile every REQ against current receipts before final closure; preserve useful historical node evidence instead of rewriting it as universal acceptance. This observation changes this run's closure table, not another project's policy.
+
 ### 2026-10-13 · CO-282 fixture defaults are part of a negative test
 
 A static byte comparison of unchanged test bodies missed their dependency on fixture defaults. Raising ordinary setup budgets to5000ms also changed an implicit1000ms deadline under a1100ms injected native delay; the actual rerun failed28/29. Two timed cases now explicitly retain1000ms while ordinary setup gets headroom. The corrected29-case run passes; original failed run remains archived. Reused R006: acceptance comes from reaching the actual negative boundary, not only unchanged assertions. No production timeout was changed and load was not proved the sole cause of the earlier failures.

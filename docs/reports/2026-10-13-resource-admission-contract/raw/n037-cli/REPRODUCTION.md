@@ -1,0 +1,9 @@
+# CLI probe reproduction and provenance
+
+The executed code was an inline Python heredoc, not a saved script. `executed-code.public-reconstruction.py.txt` is reconstructed from the exact executed tool input, with the one private home prefix replaced by `{ORIGINAL_HOME}`. It is NOT_RERUN. The private exact transcription `executed-code.reconstructed.py.txt` MUST NOT be published; it has the original literal path, no credentials.
+
+`probe-portable.py` is an explicitly unexecuted derivative: the fixed denied-home prefix and stdout redaction prefix now use `os.path.expanduser('~')`. Other commands, minimal child environment, process-group timeout, output cap, serial order and sandbox controls match the reconstructed code. Syntax parsed only, no CLI rerun. Execute only with explicit current task authorization: `python3 probe-portable.py`. This writes its own small report under temp. `sandbox-profile.reconstructed.sb` is the exact policy shape with `{HOME}` substitution; the original command passed it inline using `sandbox-exec -p`, not as a file.
+
+Neither probe read executable bytes for identity hashes. `executable-identity.json` records only the previously observed resolved paths and explicit TOCTOU/dependency limitations. This is native CLI self-description, not an effective configured-home, model, provider, loaded instruction, MCP, session or executable-integrity certificate. Filesystem deny rules are not a syscall audit. `receipt.json` was supplemented after execution with help literal matches and scope notes; its recordedAt is receipt construction, not per-probe UTC start time.
+
+Public archive: copy all manifest-listed files only. Exclude the private exact reconstruction. Outputs contain public CLI help/version/errors, with the private home prefix normalized; no environment secrets were inherited.

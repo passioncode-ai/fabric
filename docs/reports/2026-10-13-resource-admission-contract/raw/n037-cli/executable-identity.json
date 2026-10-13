@@ -1,0 +1,13 @@
+{
+  "basis": "shutil.which+os.path.realpath observed immediately before the executed probes; executable paths were not stored per Popen and binary hashes were NOT_CAPTURED at execution. No claim of immutable executable identity or complete dependency closure. Resolved paths below are a bounded prior identity observation, not cryptographic executable pins.",
+  "resolvedBeforeProbe": {
+    "claude": "/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe",
+    "codex": "/opt/homebrew/Caskroom/codex/0.162.1/bin/codex",
+    "kilo": "/opt/homebrew/lib/node_modules/@kilocode/cli/bin/kilo",
+    "hermes": "/opt/homebrew/Cellar/hermes-agent/2026.9.21_2/bin/hermes",
+    "kimi": "{ORIGINAL_HOME}/.kimi-code/bin/kimi",
+    "bash": "/bin/bash",
+    "zsh": "/bin/zsh",
+    "cline": null
+  }
+}

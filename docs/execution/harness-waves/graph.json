@@ -964,6 +964,56 @@
         "docs/execution/harness-waves/resource-pool-registry.md",
         "docs/execution/harness-waves/resource-worker-inventory.md"
       ]
+    },
+    {
+      "id": "N-037",
+      "title": "Required native host acceptance",
+      "owner": "verifier",
+      "status": "pending",
+      "blocked_by": [
+        "N-004"
+      ],
+      "serves": "REQ-004",
+      "check": "Required supported-host positive/negative probes bind actual version, effective configuration, source and trace; declared unsupported capabilities have explicit owner-approved scope disposition and cannot silently satisfy a required behavior; Compiler/fake/global installation evidence cannot pass native cells; missing sign-in, consent, context or stable identity stays unresolved; shell remains not applicable, not an agent PASS",
+      "evidence": null,
+      "touches": [
+        "docs/execution/harness-waves/N-037-native-host-acceptance.json"
+      ]
+    },
+    {
+      "id": "N-038",
+      "title": "Owner candidate and round acceptance",
+      "owner": "verifier",
+      "status": "blocked",
+      "blocked_by": [
+        "N-005"
+      ],
+      "serves": "REQ-006",
+      "check": "Matching admitted candidate reports aggregate once; distinct admitted rounds advance once; source-pinned owner tests and actual receipt schema bind all relevant identities and digests; Candidate A reports collected at B, changed input closure, duplicate retries, relabeled review kinds and superseded attempts cannot create current acceptance; NOT_SENT/acknowledged/installed-only never passes",
+      "evidence": null,
+      "touches": [
+        "docs/execution/harness-waves/N-038-owner-certification-acceptance.json"
+      ],
+      "blocked_reason": "Official owner board admission and source-bound owner certification receipt absent; packet NOT_SENT. Local source investigation remains allowed."
+    },
+    {
+      "id": "N-039",
+      "title": "Final expanded convergence receipt",
+      "owner": "verifier",
+      "status": "pending",
+      "blocked_by": [
+        "N-030",
+        "N-037",
+        "N-038",
+        "N-009",
+        "N-010"
+      ],
+      "serves": "REQ-010",
+      "check": "N030 combined gate/delivery/publication and N037/N038/N009/N010 receipts are source-compatible, accessible and within stated scopes; current source/docs/requirement table agree; Historical N007/N008, checkpoint-only push, stale dependency or missing owner/native evidence cannot pass; input changes invalidate affected receipts; unresolved REQ009 remains explicit even if convergence passes",
+      "evidence": null,
+      "touches": [
+        "docs/execution/harness-waves/N-039-expanded-convergence.json"
+      ]
     }
   ],
   "edges": [
@@ -1291,6 +1341,41 @@
       "from": "N-033",
       "to": "N-036",
       "payload": "Reviewed child-environment fixture before setup-budget-only correction"
+    },
+    {
+      "from": "N-004",
+      "to": "N-037",
+      "payload": "N-004 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-005",
+      "to": "N-038",
+      "payload": "N-005 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-030",
+      "to": "N-039",
+      "payload": "N-030 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-037",
+      "to": "N-039",
+      "payload": "N-037 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-038",
+      "to": "N-039",
+      "payload": "N-038 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-009",
+      "to": "N-039",
+      "payload": "N-009 exact-source receipt and explicit acceptance limits"
+    },
+    {
+      "from": "N-010",
+      "to": "N-039",
+      "payload": "N-010 exact-source receipt and explicit acceptance limits"
     }
   ],
   "revisions": [
@@ -1527,6 +1612,21 @@
       "verb": "add",
       "node": "N-036",
       "why": "Serialize fixture corrections after N033 source acceptance; no concurrent test-path owner"
+    },
+    {
+      "verb": "add",
+      "node": "N-037",
+      "why": "Independent fa5fbd7d audit found completed artifacts without explicit remaining requirement acceptance"
+    },
+    {
+      "verb": "add",
+      "node": "N-038",
+      "why": "Independent fa5fbd7d audit found completed artifacts without explicit remaining requirement acceptance"
+    },
+    {
+      "verb": "add",
+      "node": "N-039",
+      "why": "Independent fa5fbd7d audit found completed artifacts without explicit remaining requirement acceptance"
     }
   ]
 }

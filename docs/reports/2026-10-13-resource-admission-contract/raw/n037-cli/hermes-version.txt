@@ -1,0 +1,6 @@
+Hermes Agent v0.21.4 (2026.9.21)
+Install directory: /opt/homebrew/Cellar/hermes-agent/2026.9.21_2/libexec/lib/python3.13/site-packages
+Install method: unknown
+Python: 3.13.16
+OpenAI SDK: 2.24.0
+

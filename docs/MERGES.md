@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 requirement closure correction · task-branch preparation
+- scope: explicit native-host, owner-certification and expanded-convergence receipt obligations N037–39; ten-row requirement closure table; current handoff separated from historical snapshots
+- evidence: independent fa5fbd7d review and remote source/link readback; no runtime code change or new full-gate acceptance
+- remains: low disk prevents combined gate/publication; official owner access and native acceptance remain open
+- entry: docs/handoffs/2026-10-13-harness-waves.md; not a main merge
+
 ### 2026-10-13 · CO-282 concrete controlled composition and early refusals · task-branch preparation
 - scope: N035 actual producer composition/private spawn tickets; N036 identical compiler checks scheduled after source-only refusals, six duplicate invocations removed
 - findings: second combined gate exit1 after2078.94seconds, six catch explanations corrected; final source gate remains owed

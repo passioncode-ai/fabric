@@ -1,0 +1,942 @@
+{
+  "kind": "remote-delivery-readback",
+  "asOf": "2026-10-13T11:27:41.308961+00:00",
+  "verdict": "PASS_DELIVERY_ONLY",
+  "repository": "passioncode-ai/fabric",
+  "branch": "agent/harness-integrated-20261013",
+  "targetCommit": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "remoteCommit": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "detachedCheckoutCommit": "fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+  "clean": true,
+  "method": "Existing owned clean independent blob:none sparse clone; depth1 fetch and exact detached checkout. Code/test hashes verified from remote-backed Git blobs; only selected docs materialized. No install/build/tests.",
+  "entry": "https://github.com/passioncode-ai/fabric/blob/fa5fbd7dc43e1d097c336fbff3617c68af508e43/docs/handoffs/2026-10-13-harness-waves.md",
+  "sourceManifest": {
+    "path": "docs/reports/2026-10-13-resource-admission-contract/raw/n035/source-manifest.json",
+    "sha256": "c9849bd30b328ff9db86a2ed5e2e415764608169dbef0588be7828631d410082",
+    "files": [
+      {
+        "path": "apps/desktop/src/main/resourceControlledPool.ts",
+        "expectedSha256": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+        "remoteBlobSha256": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "apps/desktop/src/main/resourcePoolRegistry.ts",
+        "expectedSha256": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1",
+        "remoteBlobSha256": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "apps/desktop/src/main/resourceWorkerInventory.ts",
+        "expectedSha256": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+        "remoteBlobSha256": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "apps/desktop/src/main/resourceManagedUnit.ts",
+        "expectedSha256": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+        "remoteBlobSha256": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "apps/desktop/src/main/pty.ts",
+        "expectedSha256": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+        "remoteBlobSha256": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "apps/desktop/test/resource-controlled-pool.test.mjs",
+        "expectedSha256": "a659f206c1b8953f870eca0b9ba602955af630d71fe13154fe9a903e72b66103",
+        "remoteBlobSha256": "a659f206c1b8953f870eca0b9ba602955af630d71fe13154fe9a903e72b66103",
+        "match": true,
+        "materializedInSparseCheckout": false
+      },
+      {
+        "path": "docs/execution/harness-waves/resource-controlled-pool.md",
+        "expectedSha256": "f6721817a9a481dd6c82d154e4fdeb678df3a1bb35e1f7ffabbcebf973bcd6c8",
+        "remoteBlobSha256": "f6721817a9a481dd6c82d154e4fdeb678df3a1bb35e1f7ffabbcebf973bcd6c8",
+        "match": true,
+        "materializedInSparseCheckout": true
+      },
+      {
+        "path": "docs/execution/harness-waves/resource-pool-registry.md",
+        "expectedSha256": "81b2d159a20fa1c4c9b0515e06ee027a8799569edbbc4731c2caa9992ce41acb",
+        "remoteBlobSha256": "81b2d159a20fa1c4c9b0515e06ee027a8799569edbbc4731c2caa9992ce41acb",
+        "match": true,
+        "materializedInSparseCheckout": true
+      },
+      {
+        "path": "docs/execution/harness-waves/resource-worker-inventory.md",
+        "expectedSha256": "10832763e99b2aa98484176f0f5a09e21b6cb6636280edc1203c8616496d9083",
+        "remoteBlobSha256": "10832763e99b2aa98484176f0f5a09e21b6cb6636280edc1203c8616496d9083",
+        "match": true,
+        "materializedInSparseCheckout": true
+      }
+    ]
+  },
+  "graph": {
+    "path": "docs/execution/harness-waves/graph.json",
+    "sha256": "4ad2df5b4e224a5f52d7acab0454af364c23c102e9c6da9e53bf241b084c2ff2",
+    "nodes": 36,
+    "counts": {
+      "done": 28,
+      "blocked": 2,
+      "pending": 6
+    },
+    "pending": [
+      "N-030",
+      "N-032",
+      "N-033",
+      "N-034",
+      "N-036",
+      "N-035"
+    ],
+    "blocked": [
+      "N-009",
+      "N-010"
+    ]
+  },
+  "entryLinks": {
+    "checkedCount": 136,
+    "allTracked": true,
+    "checks": [
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../evidence/plans/2026-10-13-harness-waves.md",
+        "target": "docs/evidence/plans/2026-10-13-harness-waves.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/graph.json",
+        "target": "docs/execution/harness-waves/graph.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/resource-reservation.md#verification",
+        "target": "docs/execution/harness-waves/resource-reservation.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/resource-launch-adapter.md",
+        "target": "docs/execution/harness-waves/resource-launch-adapter.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+        "target": "docs/adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n020/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n020/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n019/final/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json",
+        "target": "docs/reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-harness-wave-review/raw/branch-delivery-receipt.json",
+        "target": "docs/reports/2026-10-13-harness-wave-review/raw/branch-delivery-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json",
+        "target": "docs/reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-harness-wave-review/README.md",
+        "target": "docs/reports/2026-10-13-harness-wave-review/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/publication-reuse-packet.md",
+        "target": "docs/execution/harness-waves/publication-reuse-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/controlled-pool-next-packet.md",
+        "target": "docs/execution/harness-waves/controlled-pool-next-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/merged-1b63-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-1b63-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/controlled-pool-next-packet.md",
+        "target": "docs/execution/harness-waves/controlled-pool-next-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recurrence.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recurrence.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/owner-packets.md",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../evidence/retro.md",
+        "target": "docs/evidence/retro.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/admission-feedback.md",
+        "target": "docs/execution/harness-waves/admission-feedback.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/host-matrix.md",
+        "target": "docs/execution/harness-waves/host-matrix.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n021/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n021/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/producer-fresh-checkout/portable-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-fresh-checkout/portable-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/input-scope-next-packet.md",
+        "target": "docs/execution/harness-waves/input-scope-next-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n026/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n026/composition-prerequisite-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n026/composition-prerequisite-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n027/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n027/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/run-assignment-packet.md",
+        "target": "docs/execution/harness-waves/run-assignment-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n028/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n028/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n030-branch-delivery.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-branch-delivery.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../adr/0154-logical-worker-pools-retain-unresolved-start-intents.md",
+        "target": "docs/adr/0154-logical-worker-pools-retain-unresolved-start-intents.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/handoffs/2026-10-13-harness-waves.md",
+        "href": "../execution/harness-waves/own-intent-overlap-packet.md",
+        "target": "docs/execution/harness-waves/own-intent-overlap-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../2026-10-13-harness-wave-review/README.md",
+        "target": "docs/reports/2026-10-13-harness-wave-review/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+        "target": "docs/adr/0152-resource-preflight-and-durable-reservation-are-distinct.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/graph.json",
+        "target": "docs/execution/harness-waves/graph.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r1-review-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r2-rejected/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r2-rejected/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r2-fixed/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r2-fixed/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r3-review-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r3-review-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/resource-launch-adapter.md#contract",
+        "target": "docs/execution/harness-waves/resource-launch-adapter.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n015/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n015/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/owner-packets.md#agent-sync--expired-own-git-lease-reported-as-acquired",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/preflight-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/preflight-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/pre-com03-fast-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/pre-com03-fast-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/com03-merge-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/com03-merge-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/owner-packets.md#latest-skill-hub-release-reconciliation--2026-10-13",
+        "target": "docs/execution/harness-waves/owner-packets.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/live-stack-diagnostic.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-diagnostic.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/com03-fast-rejected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/com03-fast-rejected.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r4/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r4/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r4/sql-corrected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r4/sql-corrected.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r5/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r5/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r5/normalization.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r5/normalization.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r6/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r6/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r6/independent-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r6/independent-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/r6/synthetic.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/r6/synthetic.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/probe-fixed-prerequisite-rejected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/probe-fixed-prerequisite-rejected.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/recovery-wave-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/recovery-wave-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n020/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n020/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n019/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n019/fabric-harness-wait-store-db.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/fabric-harness-wait-store-db.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/resource-activation-prerequisites.md",
+        "target": "docs/execution/harness-waves/resource-activation-prerequisites.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n019/final/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n019/final/after.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/after.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n019/final/independent-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n019/final/independent-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/merged-1b63-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/merged-1b63-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n022/independent-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n022/independent-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n023/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n023/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n024/root-sql-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/root-sql-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n024/independent-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n024/independent-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n025/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/producer-f257-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/producer-f257-fast.txt",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.txt",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n025/rpc-read/independent/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n025/rpc-read/independent/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/live-stack-recovery.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recovery.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/input-scope-next-packet.md",
+        "target": "docs/execution/harness-waves/input-scope-next-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/producer-fresh-checkout/portable-receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-fresh-checkout/portable-receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/live-stack-recurrence.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recurrence.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/producer-closeout-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/producer-closeout-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n026/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n026/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n027/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n027/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/run-assignment-packet.md",
+        "target": "docs/execution/harness-waves/run-assignment-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n028/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n028/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n028-scope/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n028-scope/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n029-implementation/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n029-implementation/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/scheduled-publication-race.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/scheduled-publication-race.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n030-first-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-first-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n026-target-repository-supplement.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n026-target-repository-supplement.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n030-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n030-branch-delivery.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n030-branch-delivery.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n031/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n031/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n031-root-checks.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-root-checks.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n031-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n027-sql.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n027-sql.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n032-intent-events/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n032-intent-events/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n032-consumer/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n032-consumer/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/main-7bdd-union.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/main-7bdd-union.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n032-attachment-correction/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n032-attachment-correction/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n033/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n033/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-root-source-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-root-source-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/board-readiness-0908.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-first-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-first-fast.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-resource-observation.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-resource-observation.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-integration-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-integration-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/owner-refresh-0919/receipt.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "../../execution/harness-waves/publication-reuse-packet.md",
+        "target": "docs/execution/harness-waves/publication-reuse-packet.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n034/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n034/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n034-first-fast.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n034-first-fast.log",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.log",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n034-gate-corrections.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n034-gate-corrections.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/ci-order-static-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/ci-order-static-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/compiler-double-check-root-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/compiler-double-check-root-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/observatory-readback-1004.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/n035/README.md",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n035-integration.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-legacy-pressure.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-legacy-pressure.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n033-budget-static-review.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-budget-static-review.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n035-legacy-first.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json",
+        "trackedAtCommit": true
+      },
+      {
+        "entry": "docs/reports/2026-10-13-resource-admission-contract/README.md",
+        "href": "raw/closing/n035-legacy-corrected.json",
+        "target": "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json",
+        "trackedAtCommit": true
+      }
+    ],
+    "anchorChecks": "NOT_RUN: target file existence only, no broad documentation suite."
+  },
+  "boundaries": [
+    "Full combined gate remains pending; branch delivery is not acceptance, main merge, installation or publication.",
+    "No fresh full clone: reused authorized independent sparse clone after verifying clean status, remote and recovery reflog.",
+    "N035 nine hashes match final source manifest; other files and current native runtime not acceptance-tested."
+  ],
+  "commands": [
+    "git status --porcelain=v1",
+    "git remote -v",
+    "git reflog -3",
+    "git fetch --depth=1 --filter=blob:none --no-tags origin agent/harness-integrated-20261013",
+    "git checkout --detach fa5fbd7dc43e1d097c336fbff3617c68af508e43",
+    "git ls-remote --exit-code origin refs/heads/agent/harness-integrated-20261013",
+    "git show <exact-SHA>:<manifest/source/graph>",
+    "git ls-tree -r --name-only <exact-SHA> -- docs"
+  ]
+}
