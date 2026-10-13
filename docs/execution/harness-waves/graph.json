@@ -121,7 +121,7 @@
       "id": "N-007",
       "title": "Independent combined acceptance",
       "owner": "reviewer",
-      "status": "done",
+      "status": "pending",
       "serves": "REQ-010",
       "blocked_by": [
         "N-001",
@@ -130,7 +130,9 @@
         "N-004",
         "N-005",
         "N-006",
-        "N-011"
+        "N-011",
+        "N-012",
+        "N-013"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -138,15 +140,15 @@
       ],
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
-      "evidence": [
-        "Independent scoped source review plus complete fast gate exit0 on179e71e94682a8d609c32647473ca09f3130d146, tree d41e70d134bc2469c8f324afe3adae8b1cb24a5b. Receipt: docs/reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json. Later docs-only reconciliation requires separate checks; full/native/provider acceptance excluded."
-      ]
+      "evidence": null,
+      "proof": null,
+      "certification": null
     },
     {
       "id": "N-008",
       "title": "Durable delivery and continuation",
       "owner": "manager",
-      "status": "done",
+      "status": "pending",
       "serves": "REQ-005",
       "blocked_by": [
         "N-007"
@@ -156,9 +158,9 @@
       ],
       "surface_class": "internal",
       "check": "Independent reviewer verifies named output against plan contract; receipt names candidate SHA, report digest, checks and unresolved gates",
-      "evidence": [
-        "Branch source 12ff522b04aafaeaa485a91c5ceb53f04d9e0d18 pushed and read back through git ls-remote; independent fresh network clone with no alternates checked out exact SHA and resolved handoff/graph. Final closeout documentation follows on same branch. Owner admission and workspace publication explicitly incomplete."
-      ]
+      "evidence": null,
+      "proof": null,
+      "certification": null
     },
     {
       "id": "N-009",
@@ -207,6 +209,38 @@
       "evidence": [
         "Exact three source SHA-256 values and independent three-negative-fixture PASS in docs/execution/harness-waves/review.md. Builder43/43 and typecheck exit0; live enrollment and owner acceptance remain open."
       ]
+    },
+    {
+      "id": "N-012",
+      "title": "Internal resource preflight contract",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-006"
+      ],
+      "touches": [
+        "apps/desktop/src/shared/resourceAdmission.ts",
+        "apps/desktop/test/resource-admission.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs"
+    },
+    {
+      "id": "N-013",
+      "title": "Internal durable resource reservation",
+      "owner": "implementer",
+      "status": "pending",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-012"
+      ],
+      "touches": [
+        "supabase/pending-migrations/20261013000107_resource_reservations.sql",
+        "docs/execution/harness-waves/resource-reservation.md"
+      ],
+      "surface_class": "internal",
+      "check": "Owned PostgreSQL fixture applies pending107 explicitly; never the operator stack"
     }
   ],
   "edges": [
@@ -259,6 +293,34 @@
       "from": "N-011",
       "to": "N-007",
       "payload": "Committed cooldown patch, failing-before/passing-after HTTP fixture and independent review"
+    },
+    {
+      "from": "N-006",
+      "to": "N-012",
+      "payload": "Reviewed admission specification and R1 local-only boundary"
+    },
+    {
+      "from": "N-012",
+      "to": "N-013",
+      "payload": "Internal resource units and preflight boundary; SQL remains authoritative and conservative"
+    },
+    {
+      "from": "N-012",
+      "to": "N-007",
+      "payload": "Frozen resource implementation and independent negative acceptance"
+    },
+    {
+      "from": "N-013",
+      "to": "N-007",
+      "payload": "Frozen resource implementation and independent negative acceptance"
+    }
+  ],
+  "revisions": [
+    {
+      "verb": "invalidate",
+      "node": "N-007",
+      "why": "Resource implementation wave expands the candidate beyond the accepted first-wave source; combined acceptance and handoff must be renewed after N-012 onward.",
+      "precondition": "supersedes proofs downstream of N-007"
     }
   ]
 }

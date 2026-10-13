@@ -61,6 +61,7 @@ in R1/R2 review. Session limits in the parent specification are not machine-wide
 defaults. No new repository, public protocol name or migration filename is
 allocated by this document.
 
+<a id="r1-resource-demand-and-decision-contract"></a>
 ## R1 — Resource demand and decision contract
 
 **Owner:** Fabric admission module; fabric-agent-contract owns any portable wire
@@ -278,3 +279,19 @@ acceptance until the required paths enforce the contract or explicitly refuse.
 [board-cancel]: https://github.com/passioncode-ai/fabric/blob/4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b/apps/desktop/src/main/boardService.ts#L280-L288
 [observer]: https://github.com/passioncode-ai/fabric/blob/4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b/apps/desktop/src/main/runtimeObserver.ts#L212-L234
 [cycle-receipt]: https://github.com/passioncode-ai/fabric/blob/4808f83b7538a0ed4bc24d8da3cac3e2eafefd2b/apps/desktop/src/main/index.ts#L2542-L2557
+
+
+## Implementation continuation — local R1/R2
+
+The operator-authorized continuation starts R1 as N-012 and R2 as N-013 in the living graph.
+The detailed proposal above remains the historical design, not an assertion of implementation.
+[ADR-0152](../../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md) settles
+only the local preflight/durable-authority distinction and pending-migration boundary.
+N-012 uses a separate internal `resourceAdmission.ts`, preserving the existing DB receipt.
+N-013 starts from migration62's current stop/compensation-protected functions; the older44/61
+links above are historical seams, not sufficient function bodies to copy.
+
+Migration107 stays outside the active migration directory until reserved104–106 ordering
+resolves. Isolated fixture application may verify its source without activating the schema
+or changing the supported range. Portable owner acceptance and native enforcement remain open.
+Board unavailability does not block these local-only implementations.

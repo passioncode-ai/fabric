@@ -36,6 +36,15 @@ upstream heads and distinguish existing implementation from remaining gaps. The
 specification; [resource packets](../execution/harness-waves/resource-implementation.md)
 sequence R1 → R2 → {R3,R4,R6} → R5. Their runtime acceptance is NOT_RUN.
 
+## Continuation in progress
+
+The first-wave completion above is historical. The living graph now has13 nodes: N-012/R1
+and N-013/R2 local implementation are underway, and N-007/N-008 acceptance was invalidated
+for the expanded source candidate. [Resource-wave review](../reports/2026-10-13-resource-admission-contract/README.md)
+and ADR-0152 own this continuation. Board access blocks external owner requests, not local
+injected code or owned SQL fixtures. The pending107 migration preserves reserved104–106;
+its source acceptance is distinct from active schema and R3–R6 runtime enforcement.
+
 ## Exact next work
 
 1. Finish source-branch integration under repository policy, preserving CO-282 as partial.

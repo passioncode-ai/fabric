@@ -104,6 +104,8 @@ by collecting the same report multiple times.
 | N-007 | Independent review and combined focused/repository gates | Tests refer to exact integrated source; known fixture scope declared | Old reports and unrelated green checks cannot certify changed candidate |
 | N-009 | Observatory lesson producer/consumer acceptance, after owner board admission | Scoped lesson written, retrieved and cited with provenance | Unadopted note cannot override an ADR; missing filter cannot silently broaden retrieval |
 | N-010 | Skills/MCP owner acceptance, after owner board admission | Effective host discovery and admitted MCP set have native receipts | Installed or configured alone cannot certify loaded skills or isolated tools |
+| N-012 | Internal resource preflight decision, resource packet R1 | Injected host/pool limits, fresh observations and verified ownership produce eligibility for reservation only | Malformed, stale, wrong-scope, missing-ownership and mismatched nested accounting inputs refuse or remain unknown; no fabricated permit or reservation |
+| N-013 | Internal durable resource ledger, resource packet R2 | Atomic admission/reservation, identical retry recovery and proof-bound release in an owned database fixture | Capacity races, changed retries, foreign/stale release, child capacity minting and restored journal claims cannot bypass the ledger; pending DDL never implies active schema |
 | N-008 | Final handoff with source, outputs, open gates and exact next action | Fresh checkout resolves all local links and packets | No claim of installed, native, integrated or released from a branch push |
 
 ## Host acceptance matrix: evidence to collect
@@ -174,3 +176,37 @@ calls or live stack use; ACP keeps its existing force-exit runner policy. Positi
 fast executes all four suites. Negative evidence: deleting the mechanisms already failed
 the corresponding saved regressions; CI wiring is inspected separately from behavior.
 The final candidate must preserve main4e227922 session hooks and pass the combined gate.
+
+
+### N-012 — independent continuation at the board gate
+
+The operator authorized continued implementation without questions. Resource packet R1
+explicitly permits an injected local interface before portable schema acceptance. Therefore
+board admission does not block this bounded work. Implement `resourceAdmission.ts` and its
+production-function tests, with all host/pool scope and capacity policy injected. No global
+capacity defaults, DB fields, public protocol version, quota mutation or launch integration
+are selected here. The result is eligibility for reservation, never authority or atomic
+reservation. R2/R3 must provide durability and actual entry-path enforcement separately.
+
+Touches: `apps/desktop/src/shared/resourceAdmission.ts`,
+`apps/desktop/test/resource-admission.test.mjs`, fast CI wiring and the resource packet.
+Independent review targets malformed runtime inputs, exact capacity boundaries, unknown
+readings, ownership/fence/input binding and nested demand accounting. The builder owns two
+new files in an isolated worktree; root owns integration/docs, a different reviewer owns
+adversarial acceptance. One expensive-check slot still applies.
+
+
+### N-013 — pending durable implementation without migration-order bypass
+
+R2 may be implemented and exercised against an owned database before external board admission.
+Its correct base is migration62's operational authority, not a copy of61. Reserve host/pool
+capacity atomically with an admitted attempt, recover identical retries, and preserve exact
+run/session/generation proof on release. Configuration and observations are trusted internal
+inputs; a caller cannot raise its own pool limits. Children consume a parent envelope.
+
+The migration-order gate requires append order, while104–106 are reserved by existing work.
+Therefore the new107 SQL belongs under `supabase/pending-migrations/` and is explicitly
+applied only by owned fixtures. Active migrations, their ledger and schema support remain
+unchanged. Promotion depends on resolution of those owning reservations; no owner is silently
+renumbered. This splits useful source/test progress from an actual activation dependency.
+R3–R6 retain their separate packet obligations; R2 is not their runtime acceptance.
