@@ -1,6 +1,6 @@
 # ADR-0156 — The estate's owner may pause the project board — a thread, a project's answering or one responder slot — and list or unlist projects; a pause stops new work, never the recording of what happened
 
-**Status:** proposed · 2026-10-13 · wave 4 of [the comms plan](../evidence/plans/2026-10-04-project-communications.md)
+**Status:** accepted · 2026-10-13 (proposed and accepted the same day, per the operator's go; see "Acceptance" below) · wave 4 of [the comms plan](../evidence/plans/2026-10-04-project-communications.md)
 (COM-06 operator controls, with COM-07 and COM-05) · amends
 [ADR-0117](0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (the operator's read-only access gains owner
 writes; its §4 caller widens in its Amendment 4) and
@@ -8,9 +8,15 @@ writes; its §4 caller widens in its Amendment 4) and
 §4 (the listing control is built) · adopts, as the host's, contract DEC-0079 (the host hold) and DEC-0081 (owner
 settlement) of fabric-agent-contract, merged by `a59d04b` · operator decisions of 2026-10-12: D9 (pause and stop
 controls, approved for a later wave) and D6 (the directory discloses names, ids, capabilities and responder state, local
-to the estate). **Nothing here is built.** It becomes accepted when the operator confirms §2's reading of D9 (a pause
-and resume, with "stop" meaning a pause plus a revocation) and the newest-first list order of SCN-143's wave-4
-amendment; it is built by wave 4's nodes W4-7 to W4-10 and W4-13, each with its tests.
+to the estate). It is built by wave 4's nodes W4-7 to W4-10 and W4-13, each with its tests; until each lands, what it
+builds is not on screen or at the door.
+
+**Acceptance (2026-10-13).** This record waited on two readings of the operator's D9, the wave-4 spec's §10 items 1
+and 2: that "stop" is a pause plus a revocation (§2 and §4: pause and resume only, and no board-level kill), and that
+the thread list runs newest activity first with its filters applied by the board (SCN-143's wave-4 amendment). The
+operator answered the wave-4 plan with «по рекомендациям» — go with the recommendations — and both readings were the
+spec's recommendations, so both are recorded here as accepted per that go, and the record with them. Nothing else in
+it changed at acceptance.
 
 ## Context
 
