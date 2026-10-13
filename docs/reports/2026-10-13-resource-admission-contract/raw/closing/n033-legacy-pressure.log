@@ -1,0 +1,73 @@
+✔ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (1290.670334ms)
+✔ actual private admission binding attempt mismatch refuses before begin; intent remains (653.851417ms)
+✔ foreign prepared/receipt/unit/native handles never manufacture binding (921.387375ms)
+✔ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (772.940084ms)
+✔ spawn succeeded then journal uncertainty retains unit and cannot compensate no-process (1046.745542ms)
+✖ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (2439.42175ms)
+✔ native handle observes held object, not a replacement with the same session id (1394.169583ms)
+✔ PID start reuse and escaped descendants remain unknown, not active or retired (808.744708ms)
+✔ root/tree exit without provider proof stays retained and inventory incomplete (1572.1435ms)
+✔ unit timeout retains one actual assignment read; repeated preparation never reallocates (285.132166ms)
+✔ observation timeout retains one native snapshot and late settlement cannot append (2621.105333ms)
+✔ missing unit dependency and substituted actual collaborators refuse before new effects (535.294792ms)
+✔ resource refresh cannot hide changed actual intent coverage before final SQL (852.669208ms)
+✔ lost reply after actual durable admission attachment prevents begin and preserves evidence (1255.280042ms)
+✔ one logical unit cannot bind an own demand of multiple worker slots (2241.502375ms)
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (4933.525334ms)
+✔ assignment is exposed only after confirmed preparation: successful refresh (3520.195667ms)
+✔ assignment is exposed only after confirmed preparation: late failed refresh (1914.304917ms)
+✔ actual child key overrides parent, descriptor and bundle without changing other environment (2230.612584ms)
+✔ changed actual mapping during resource refresh refuses before SQL and spawn (1566.418084ms)
+✔ child environment extra-key refuses before begin without reading getters (884.121834ms)
+✔ child environment getter refuses before begin without reading getters (3674.366167ms)
+✔ child environment refused refuses before begin without reading getters (1118.504791ms)
+✔ child environment rejected refuses before begin without reading getters (831.795833ms)
+✔ timed out environment read remains occupied and cannot expose native token after late settlement (2426.441917ms)
+✔ PTY refuses copied token and invalid environment schema before any spawn (786.759125ms)
+✔ ordinary legacy PTY keeps descriptor and bundle environment precedence (4237.237459ms)
+✔ late native allocation after admission deadline remains private until confirmed reconciliation (2899.565208ms)
+✔ changed producer key during final refresh refuses before SQL and spawn (559.01725ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 27
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50551.494625
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
+✖ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (2439.42175ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(f.calls.includes('validate_task_run_launch'))
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:107:191)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (4933.525334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:150:147)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

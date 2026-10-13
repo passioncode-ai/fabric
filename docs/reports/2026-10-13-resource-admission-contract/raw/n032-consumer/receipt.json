@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "status": "BUILDER_FOCUSED_PASS_INDEPENDENT_SCOPED_ACCEPT",
+  "authorship": "mcp_research authored consumer, not independent reviewer",
+  "sourceManifest": "source-manifest.json",
+  "checks": {
+    "correctedFocused": {
+      "exit": 0,
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "focused-corrected.json"
+    },
+    "correctedTargetedTypes": {
+      "exit": 0,
+      "receipt": "types-corrected.json"
+    },
+    "unchangedConsumerRegressions": {
+      "legacyManagedExit": 0,
+      "bundleExit": 0,
+      "receipt": "checks.json"
+    },
+    "historicalFocused": {
+      "exit": 1,
+      "passed": 76,
+      "failed": 1,
+      "reason": "new immediate-exit fixture expected two records but actual known process attachment correctly retained third; corrected exact event-set assertion preserves no dispatch/release",
+      "log": "focused.log"
+    }
+  },
+  "storageDependency": {
+    "module": "resourceWorkerInventory.ts",
+    "sha256": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "owner": "observatory_research",
+    "receipt": "separately archived by root"
+  },
+  "negativeControls": "negative-receipt.json",
+  "limitations": [
+    "source preparation only; index forwards optional handle but installs no resource composition",
+    "SQL/R1/native fixtures are synthetic; no provider/model/real-process execution",
+    "always complete:false/executionAuthorized:false; no retirement or complete coverage",
+    "full root gates/actual SQL/native activation separate; no claim run here"
+  ],
+  "rejectedAssignment": "rejected-unconfirmed-assignment/manifest.json",
+  "independent": {
+    "receipt": "independent/receipt-units-final.json",
+    "originalSha256": "79b0eeda21c60d4fdb459fe49ccbde96da45c09be004dfb9f1e4034e4acf5d0a",
+    "controlsPassed": 2,
+    "originalConfirmationNegativeExit": 1,
+    "portableDerivativeSyntaxExit": 0,
+    "portableDerivativeExecution": "packaging replay PASS exit0,2tests; separate from independent acceptance"
+  },
+  "packagingReplay": "portable-controls.json"
+}

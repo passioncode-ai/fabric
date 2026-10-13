@@ -3181,7 +3181,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return admitExisting({ estateId: ACTIVE_ESTATE, taskId, actor: OPERATOR_ACTOR,
         sessionId, trigger, personId: held?.personId, revision: held?.revision }, prepared)
     },
-    prepare: async (receipt, input, prepared) => {
+    prepare: async (receipt, input, prepared, unit) => {
       const project = await readProject(receipt.project_id!)
       if (!project.repo_path) throw new Error('Choose an available project folder before starting an agent.')
       const optionId = receipt.option_id || 'claude-code'
@@ -3203,7 +3203,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         try {
           const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit)
           syncPower()
           return session
         } finally {

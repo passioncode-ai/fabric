@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "author": "pipeline_research",
+  "node": "N033",
+  "state": "implemented; independently scoped accepted N033 delta",
+  "base": "N032 corrected admission confirmation c070dc0ee71da5eae7f9767e7c0bebd418c691ecd3b959a6dee0ada7aed846c2 + accepted PTY88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+  "sources": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": {
+      "beforeSha256": "c070dc0ee71da5eae7f9767e7c0bebd418c691ecd3b959a6dee0ada7aed846c2",
+      "sha256": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177"
+    },
+    "apps/desktop/src/main/pty.ts": {
+      "beforeSha256": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+      "sha256": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202"
+    },
+    "apps/desktop/test/resource-worker-launch.test.mjs": {
+      "beforeSha256": "8bafb5c28c3b1512371d9030366345713a6d2274a65840054b43ddf8370aa884",
+      "sha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a"
+    },
+    "docs/execution/harness-waves/resource-worker-launch.md": {
+      "beforeSha256": "83564a2a7c16ea1489fa012026361dad181fcffd0568b1d4bb40883de0b90cff",
+      "sha256": "f3bf88178488bdd51d1c8de5b073d6ef5eebb50ddc035ae9b9120d94dc755734"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs",
+      "exit": 0,
+      "pass": 90,
+      "skip": 0,
+      "log": "n033-combined-focused-final.log"
+    },
+    {
+      "command": "apps/desktop/node_modules/.bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --typeRoots apps/desktop/node_modules/@types apps/desktop/src/main/resourceManagedUnit.ts apps/desktop/src/main/pty.ts",
+      "exit": 0,
+      "log": "n033-combined-types.log"
+    },
+    {
+      "command": "python3 replay.py --source-root <source-checkout>",
+      "exit": 0,
+      "fixedPass": 2,
+      "originalExpectedFailures": 2,
+      "log": "n033-portable-replay.log"
+    }
+  ],
+  "feedbackReused": [
+    "N028 actual childEnvironment producer rather than manual run-ID transformation",
+    "N032 caller-visible confirmation rather than internally allocated capability after timeout",
+    "captured dependency method identity and retained unsettled I/O",
+    "N015 final asynchronous prep/currentness before SQL guard then synchronous spawn",
+    "plain exact data validation without accessor execution"
+  ],
+  "earlierChecks": [
+    {
+      "log": "n033-focused.log",
+      "result": "27 PASS before stacking peer correction and final additional key drift control"
+    },
+    {
+      "log": "n033-combined-focused.log",
+      "result": "one fixture failure: peer reserve wrapper did not forward new environment argument; corrected only wrapper to forward all args, no assertion weakening"
+    }
+  ],
+  "patches": {
+    "n033.patch": "93bc0ec34d838f134ac6f9262692da025959690ab49e9a2ae01f713b7714364a",
+    "n032-corrected-plus-n033.patch": "9373afeb677b01b6bc1ae567be6fe5f905ff6879134f7baab7aca34c729d2214"
+  },
+  "limits": [
+    "native spawn/SQL are synthetic; real producer, filesystem and pinned installed derivation used",
+    "no actual provider, DB, activation or lease acquisition",
+    "sampled currentness; no atomic protection against changes across all awaits",
+    "no complete inventory, held ownership, full input closure or numeric Git fence",
+    "same-process trusted composition; not hostile injected-code authentication"
+  ],
+  "artifactHashes": {
+    "source-manifest.json": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "n033-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "original-resourceManagedUnit.snapshot.txt": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "n033-focused.log": "2539298a0501a6b915070513b33bba570627f2898661e8293bbb83f893cfe219",
+    "n033-combined-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "n033-original-red.log": "cef8faa15c53fc2750bb498520667c14bfe89e018939b4a4d06c984d79d0270e",
+    "original-pty.snapshot.txt": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "README.md": "03ca5e0bd0b1093a1d2cfe006fecc41d2c1aefc90840fb2b6a0d9ef2c3e532db",
+    "n033-combined-focused-final.log": "9c766f238ace97d19fa36200c2e60d9350a6a197cf70bd6cc2d8ea80343bee2a",
+    "replay.py": "5bf1d00f8e8be6360757c311512c50b8df7a02de9aa463446ff19859ab8afdac",
+    "n033-combined-focused.log": "297a2ddfaca19e808e6fcb29654d751f353151f11f09bd7f97a9a037244ad44c",
+    "final-test.snapshot.txt": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+    "archive-manifest.json": "b8941d23151e7e92d3bb1f0b15ef5378db81657c8b2ed8ba108e3c5569ad5968",
+    "n033-portable-replay.log": "bd833474a8b5ca7d9598ba0da284af77af03e667b774e15f5a737828d0b0b8cd",
+    "n032-independent/original.snapshot.txt": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "n032-independent/normalization.json": "277236331c053af9602454771ec0d6d274e684c0c36b7fad9c5ce18725fe5ba8",
+    "n032-independent/original-red.log": "8124dc80e0607f094a23f76fb13420b6fd4424b247c1a5fe56e19cd6a35287f3",
+    "n032-independent/fixed-pass.log": "90fd6dbf097190443d38b13d1557c1fa52fe21ebc3bb7245f2afc3126bc337e5",
+    "n032-independent/admission-control.mjs.snapshot.txt": "01401302332d5fd890f606829fdce8f6094badfc8957c78654097b2b131c93b9",
+    "n032-independent/fixed-pass-rerun.log": "af2c1dc2485e76ac783241e1786bda6a8ba5df5bedaa99532cbc0ed5ee5345ca",
+    "n032-independent/receipt.json": "2ebeda8f780a2e651bbd9037565b12558ebc9d88f107daedf5ee7a673c59f466"
+  },
+  "independentReceipt": {
+    "path": "independent/receipt.json",
+    "originalSha256": "07318844a287d61399c68f19e766478f0fb28d3687ea642a7936b006e2d7f709",
+    "storedSha256": "07318844a287d61399c68f19e766478f0fb28d3687ea642a7936b006e2d7f709",
+    "reviewer": "mcp_research",
+    "scope": "N033 delta only; reviewer authored N032 baseline"
+  }
+}

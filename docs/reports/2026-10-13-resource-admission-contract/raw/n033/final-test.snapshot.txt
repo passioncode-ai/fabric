@@ -1,0 +1,232 @@
+import nodeTest from 'node:test'
+import assert from 'node:assert/strict'
+import * as fs from 'node:fs/promises'
+import {existsSync} from 'node:fs'
+import path from 'node:path'
+import os from 'node:os'
+import {execFileSync} from 'node:child_process'
+import {createHash,randomUUID} from 'node:crypto'
+import {preparedFixture} from './prepared-launch-fixture.mjs'
+import {createResourceRunAssignmentManager,AGENT_SYNC_IDENTITY_SOURCE_SHA256} from '../src/main/resourceRunAssignment.ts'
+import {createResourceWorkerInventory} from '../src/main/resourceWorkerInventory.ts'
+import {createResourceManagedUnit} from '../src/main/resourceManagedUnit.ts'
+import {createResourceLaunchAdapter} from '../src/main/resourceLaunchAdapter.ts'
+import {createManagedLaunch} from '../src/main/managedLaunch.ts'
+import {createAdmitExisting} from '../src/main/admitExisting.ts'
+import {PtyManager} from '../src/main/pty.ts'
+import {AGENTS} from '../src/shared/agents.ts'
+import {readResourceHostPolicy,resourceDigest} from '../src/main/resourceHostPolicy.ts'
+import {createProcessBoundary} from '../src/main/processBoundary.ts'
+const script=process.env.N028_AGENT_SYNC_SCRIPT??path.join(os.homedir(),'.codex/plugins/cache/agent-sync/agent-sync/1.22.2/skills/agent-sync/scripts/agent_sync.py')
+const test=(name,fn)=>nodeTest(name,{skip:existsSync(script)?false:'NOT_RUN pinned installed agent-sync source unavailable'},fn)
+const hash=b=>createHash('sha256').update(b).digest('hex'),wait=ms=>new Promise(r=>setTimeout(r,ms))
+const vector=(slots=1)=>({workerSlots:slots,memoryBytes:10,diskBytes:10,cpuMilliCores:10}),zero={workerSlots:0,memoryBytes:0,diskBytes:0,cpuMilliCores:0}
+async function fixture(t,options={}){
+ assert.equal(hash(await fs.readFile(script)),AGENT_SYNC_IDENTITY_SOURCE_SHA256)
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'fabric-owned-unit-')));t.after(()=>fs.rm(root,{recursive:true,force:true}))
+ const repo=path.join(root,'repo'),records=path.join(root,'records'),inventory=path.join(root,'inventory'),bin=path.join(root,'bin')
+ for(const dir of [repo,records,inventory,bin])await fs.mkdir(dir,{mode:0o700})
+ await fs.writeFile(path.join(bin,'claude'),'#!/bin/sh\nexit 0\n',{mode:0o755});const envPath=process.env.PATH;process.env.PATH=bin+path.delimiter+envPath;t.after(()=>{process.env.PATH=envPath})
+ execFileSync('git',['init','-q',repo]);execFileSync('git',['-C',repo,'-c','user.name=fixture','-c','user.email=fixture@invalid','commit','--allow-empty','-qm','fixture'])
+ const f=preparedFixture();f.project.repo_path=repo;f.root=root;f.inventory=inventory;f.calls=[];f.snapshots=0;f.spawned=0
+ const manifest={selectionRevision:'s1',scopeMappingRevision:'m1',configuredKey:'lane',expectedHead:execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),selectedInputs:[{path:'README.md'}],mutableScope:[{path:'out.txt',state:'absent'}],bounds:{maxPaths:8,maxDepth:8,maxPathBytes:512,maxFileBytes:1024,maxTotalBytes:4096,maxMetadataBytes:65536,timeoutMs:1000,maxAgeMs:60000}}
+ const manifestPath=path.join(root,'lane.json');await fs.writeFile(manifestPath,JSON.stringify(manifest))
+ const host={hostInstanceId:'host',bootId:'boot'},policy={hostId:'host',poolId:'pool',localPolicyRevision:'human-policy',capacity:vector(10),demandProfiles:{builder:vector(),reviewer:vector(),test:vector()},diskPath:repo,diskDeviceId:'1',maxAgeMs:1000,sampleWindowMs:10,timeoutMs:100}
+ const bindingRevision=`policy-sha256-v1:${resourceDigest(readResourceHostPolicy(policy,'host'))}`
+ const assignments=createResourceRunAssignmentManager({estateId:f.id.estate,projectId:f.id.project,installationId:'host',invocationId:'boot',repositoryRoot:repo,approvedRemote:'https://fixture.invalid/repo.git',repositoryName:'repo',manifestPath,manifestSha256:hash(JSON.stringify(manifest)),storageRoot:records,agentSyncScript:script,timeoutMs:1000,maxRecords:16,maxRecordBytes:32768,maxManifestBytes:32768},{store:f.store,key:()=>randomUUID().replaceAll('-','').slice(0,12)})
+ const actualEnvironment=assignments.childEnvironment
+ assignments.childEnvironment=async handle=>{f.calls.push('child-environment');if(f.environmentHook)return f.environmentHook(handle,()=>actualEnvironment.call(assignments,handle));return actualEnvironment.call(assignments,handle)}
+ const coverage={schema:1,hostId:'host',poolId:'pool',localPolicyRevision:'human-policy',adapters:[{id:'managed',sourceSha256:hash(await fs.readFile(new URL('../src/main/resourceManagedUnit.ts',import.meta.url)))}]},coveragePath=path.join(root,'coverage.json');await fs.writeFile(coveragePath,JSON.stringify(coverage))
+ const intents=createResourceWorkerInventory({estateId:f.id.estate,hostId:'host',poolId:'pool',localPolicyRevision:'human-policy',invocationId:'boot',storageRoot:inventory,coveragePath,coverageSha256:hash(JSON.stringify(coverage)),timeoutMs:500,maxRecords:48,maxRecordBytes:8192,maxCoverageBytes:8192,maxRegistryBytes:131072},{assignments,host})
+ if(options.loseAttachment){const original=intents.attachAdmission;intents.attachAdmission=async(...args)=>{const r=await original(...args);assert.equal(r.state,'recorded');return {state:'unknown',complete:false,executionAuthorized:false,reason:'lost_reply'}}}
+ const row=(pid,parent,group,start)=>({pid,parent,group,start,status:'S'})
+ f.rows=[row(999,1,999,'host-start'),row(200,999,200,'owned-start')]
+ const boundary=createProcessBoundary({ownPid:999,snapshot:async()=>{f.snapshots++;if(f.snapshotWait)await f.snapshotWait;if(f.captureUnknown)throw Error('synthetic unavailable');return f.rows},signal:()=>{throw Error('no native signal allowed')}})
+ const ptys=new PtyManager({append:async event=>{f.calls.push(event.type);if(f.journalFailure&&event.type==='terminal.opened@1')throw Error('synthetic journal');return {seq:1}}},f.id.estate,{onData(){},onExit(){}},{compile:async()=>({args:[],env:f.bundleEnv??{}}),discard(){}},(_program,_args,spawnOptions)=>{
+  f.spawnEnvironment=spawnOptions.env
+  f.calls.push('native-spawn');f.spawned++;if(f.spawnFailure)throw Error('synthetic spawn failure')
+  return {pid:200,write(){},resize(){},kill(){f.calls.push('signal-request')},onData(){return {dispose(){}}},onExit(fn){f.exit=fn;if(f.immediateExit)queueMicrotask(()=>{f.rows=f.rows.slice(0,1);void fn({exitCode:0,signal:0})});return {dispose(){}}}}
+ },undefined,()=>({kind:'person',id:'fixture'}),{},boundary)
+ if(options.delayNativeAllocation){
+  const reserve=ptys.reserveOwnedUnit.bind(ptys);f.nativeAllocations=[]
+  ptys.reserveOwnedUnit=(...args)=>{const token=reserve(...args);f.nativeAllocations.push(token)
+   // A synchronous boundary can finish after the caller's operation deadline.
+   if(f.delayNative){const until=performance.now()+1100;while(performance.now()<until){};f.delayNative=false}
+   return token
+  }
+ }
+ const run='55555555-5555-4555-8555-555555555555'
+ const db={rpc:async(name,args)=>{f.calls.push(name);f.lastArgs={name,args};if(f.rpcHook){const value=await f.rpcHook(name,args);if(value!==undefined)return value}
+  if(name==='admit_resource_task_launch')return {data:{admitted:true,task_id:args.p_task_id,session_id:args.p_session_id,project_id:f.id.project,task_run_id:run,run_ordinal:1,receipt_seq:2,instruction:f.task.instruction,option_id:f.task.option_id,resource_reservation:{reservation_id:args.p_binding.reservationId,state:'held',run_ordinal:1}}}
+  if(name==='begin_task_run_launch')return {data:{granted:true,task_run_id:run,session_id:args.p_session_id}}
+  if(name==='validate_task_run_launch')return {data:{valid:f.valid!==false,task_run_id:run,session_id:args.p_session_id}}
+  if(name==='bind_task_run')return {data:{bound:true,task_run_id:run,session_id:args.p_session_id}}
+  if(name==='fail_task_launch'){f.failedStarted=args.p_process_started;return {data:{compensated:args.p_process_started===false}}}
+  if(name==='cancel_resource_admission'||name==='release_resource_reservation')return {data:{released:true,receipt_seq:3}}
+  throw Error('unexpected rpc')
+ }}
+ let units
+ const resourceDeps={db,inputs:f.inputs,timeoutMs:1000,maxEntries:16,current:async()=>{f.calls.push('resource-current');if(f.currentHook)await f.currentHook();return true},prepare:async(input,packet)=>{
+  const handle=units.assignmentFor(packet);assert.ok(handle,'actual N028 handle is available to trusted preflight');const identity=await assignments.readIdentity(handle);assert.equal(identity.state,'observed')
+  const binding={hostId:'host',poolId:'pool',localPolicyRevision:bindingRevision,reservationId:'reservation-'+input.sessionId,attemptId:f.wrongAttempt??identity.value.attemptId,fence:1,ownerId:'fixture',role:'builder',inputDigest:'b'.repeat(64),scopeDigest:'c'.repeat(64)}
+  // Synthetic R1 ownership/capacity only; no native or DB authority is claimed by this fixture.
+  return {request:{...binding,demand:vector(f.ownSlots??1)},ownDemand:vector(f.ownSlots??1),context:{nowMs:100,policy:{hostId:'host',poolId:'pool',localPolicyRevision:bindingRevision,capacity:vector(10),maxAgeMs:10},snapshot:{id:'snapshot',hostId:'host',poolId:'pool',localPolicyRevision:bindingRevision,atMs:100,reserved:zero,observed:zero,reservedObserved:zero}},checks:{ownership:()=>({state:'held',identity:binding,snapshotId:'snapshot',atMs:100})}}
+ }}
+ const resources=createResourceLaunchAdapter(resourceDeps),unitDeps={assignments,intents,resources,ptys,host}
+ units=createResourceManagedUnit({estateId:f.id.estate,rawPolicy:policy,adapterId:'managed',timeoutMs:options.timeoutMs??1000,maxEntries:16},unitDeps)
+ const admit=createAdmitExisting(db,resources)
+ const deps={db,estateId:f.id.estate,actor:{kind:'system',id:'fixture'},authority:()=>null,resources,units,
+  admit:(taskId,sessionId,trigger,packet)=>admit({estateId:f.id.estate,taskId,sessionId,trigger,actor:{kind:'system',id:'fixture'}},packet),
+  prepare:async(receipt,input,packet,native)=>{f.packet=packet;f.native=native;return (sessionId,guard)=>ptys.open(f.id.project,repo,'claude-code',f.id.task,null,null,sessionId,guard,null,packet,native)},
+  track(){},untrack(){},get:id=>ptys.get(id),stop:async()=>{f.calls.push('stop-request')},dispatch:async()=>{f.calls.push('dispatch');return {state:'delivering',says:'fixture'}}}
+ return Object.assign(f,{assignments,intents,ptys,resources,units,unitDeps,deps,host,coveragePath,manifestPath,records,policy,launch:createManagedLaunch(deps),
+  async direct(){const packet=(await f.inputs.prepare(f.request)).packet;assert.ok(packet);const unit=await units.prepare(packet);assert.equal(unit.state,'observed',JSON.stringify(unit));const admitted=await deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true);assert.equal(await units.attachAdmission(unit.value,admitted.receipt),true);return {packet,unit:unit.value,receipt:admitted.receipt,native:units.native(unit.value)}},
+  async events(){return Promise.all((await fs.readdir(inventory)).filter(x=>x.endsWith('.json')).map(async x=>JSON.parse(await fs.readFile(path.join(inventory,x),'utf8'))))}})
+}
+
+test('actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch',async t=>{
+ const f=await fixture(t),r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,true,JSON.stringify(r));assert.equal(f.spawned,1)
+ const events=await f.events();assert.deepEqual(events.map(e=>e.kind).sort(),['admission.attached','intent.registered','process.attached'])
+ const admission=events.find(e=>e.kind==='admission.attached'),intent=events.find(e=>e.kind==='intent.registered')
+ assert.equal(admission.attachment.taskRunId,r.runId);assert.notEqual(intent.runId,r.runId);assert.equal(intent.assignment.sessionId,r.sessionId);assert.equal(admission.attachment.contentDigest,f.packet.contentDigest)
+ assert.equal(f.calls[f.calls.indexOf('native-spawn')-1],'validate_task_run_launch');assert.ok(f.calls.indexOf('dispatch')>f.calls.indexOf('bind_task_run'))
+ assert.equal((await f.intents.snapshot()).complete,false)
+})
+test('actual private admission binding attempt mismatch refuses before begin; intent remains',async t=>{
+ const f=await fixture(t);f.wrongAttempt=randomUUID();const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('begin_task_run_launch'));assert.ok(f.calls.includes('cancel_resource_admission'));assert.equal((await f.events()).length,1)
+})
+test('foreign prepared/receipt/unit/native handles never manufacture binding',async t=>{
+ const f=await fixture(t),x=await f.direct();assert.equal(await f.units.attachAdmission(x.unit,{...x.receipt}),false);assert.equal(await f.units.current({...x.unit}),false);assert.equal(f.units.assignmentFor({...x.packet}),null);assert.equal((await f.ptys.observeOwnedUnit({...x.native})).state,'unknown')
+ await assert.rejects(f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,{...x.native}));assert.equal(f.spawned,0)
+})
+for(const mode of ['capture','journal'])test(`spawn succeeded then ${mode} uncertainty retains unit and cannot compensate no-process`,async t=>{
+ const f=await fixture(t);if(mode==='capture')f.captureUnknown=true;else f.journalFailure=true
+ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(r.reasonCode,'launch_outcome_unknown');assert.equal(f.spawned,1);assert.equal(f.failedStarted,true);assert.ok(!f.calls.includes('release_resource_reservation'));assert.ok(!f.calls.includes('dispatch'));assert.equal((await f.events()).length,2)
+})
+test('final SQL guard follows all unit/currentness awaits; invalidation cannot spawn',async t=>{
+ const f=await fixture(t);f.currentHook=async()=>{f.valid=false};const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(f.calls.includes('validate_task_run_launch'))
+})
+test('native handle observes held object, not a replacement with the same session id',async t=>{
+ const f=await fixture(t),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
+ assert.equal((await f.units.observe(x.unit)).state,'observed');const session=f.ptys.sessions.get(f.id.session);f.ptys.sessions.set(f.id.session,{...session});assert.equal((await f.ptys.observeOwnedUnit(x.native)).state,'unknown');assert.equal((await f.units.observe(x.unit)).state,'unknown')
+})
+test('PID start reuse and escaped descendants remain unknown, not active or retired',async t=>{
+ const f=await fixture(t),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
+ f.rows[1].start='reused';assert.equal((await f.units.observe(x.unit)).state,'unknown');f.rows[1].start='owned-start'
+ f.rows.push({pid:201,parent:200,group:201,start:'escaped',status:'S'});assert.equal((await f.units.observe(x.unit)).state,'unknown');f.rows.pop();assert.equal((await f.units.observe(x.unit)).state,'unknown');assert.equal((await f.events()).length,2)
+})
+test('root/tree exit without provider proof stays retained and inventory incomplete',async t=>{
+ const f=await fixture(t),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
+ await f.exit({exitCode:0,signal:0});f.rows=f.rows.slice(0,1);const r=await f.units.observe(x.unit);assert.equal(r.state,'observed');assert.equal(r.value.processState,'quiescent');assert.equal(r.value.providerQuiescent,null);assert.equal(r.complete,false);assert.equal((await f.events()).length,3)
+ assert.equal('retire' in f.units,false);assert.equal((await f.intents.snapshot()).value.unresolved.length,1)
+})
+test('unit timeout retains one actual assignment read; repeated preparation never reallocates',async t=>{
+ const f=await fixture(t,{timeoutMs:20}),p=(await f.inputs.prepare(f.request)).packet;const releases=[];f.readHook=table=>new Promise(r=>{releases.push(()=>r({data:table==='project_tasks'?f.task:f.project,error:null}))})
+ const first=await f.units.prepare(p);assert.equal(first.state,'unknown');const reads=f.reads.length;for(let i=0;i<20;i++)assert.equal((await f.units.prepare(p)).state,'unknown');assert.equal(f.reads.length,reads);releases.forEach(r=>r());delete f.readHook;await wait(30);assert.equal((await f.events()).length,0)
+})
+test('observation timeout retains one native snapshot and late settlement cannot append',async t=>{
+ const f=await fixture(t),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
+ let release;f.snapshotWait=new Promise(r=>release=r);const first=f.units.observe(x.unit);await wait(1100);assert.equal((await first).state,'unknown');const count=f.snapshots
+ for(let i=0;i<20;i++)assert.equal((await f.units.observe(x.unit)).state,'unknown');assert.equal(f.snapshots,count);release();delete f.snapshotWait;await wait(20);assert.equal((await f.events()).length,2);assert.equal((await f.units.observe(x.unit)).state,'observed')
+})
+test('missing unit dependency and substituted actual collaborators refuse before new effects',async t=>{
+ const f=await fixture(t);delete f.deps.units;const r=await createManagedLaunch(f.deps)({taskId:f.id.task,trigger:'operator'});assert.equal(r.reasonCode,'resource_unit_dependency_required');assert.equal(f.calls.length,0)
+ const p=(await f.inputs.prepare(f.request)).packet;f.unitDeps.resources={...f.resources};assert.equal((await f.units.prepare(p)).state,'unknown');assert.equal((await f.events()).length,0)
+})
+
+test('resource refresh cannot hide changed actual intent coverage before final SQL',async t=>{
+ const f=await fixture(t);f.currentHook=async()=>{await fs.appendFile(f.coveragePath,' ')};const r=await f.launch({taskId:f.id.task,trigger:'operator'})
+ assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('validate_task_run_launch'));assert.equal((await f.events()).length,2)
+})
+test('lost reply after actual durable admission attachment prevents begin and preserves evidence',async t=>{
+ const f=await fixture(t,{loseAttachment:true});const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('begin_task_run_launch'));assert.deepEqual((await f.events()).map(e=>e.kind).sort(),['admission.attached','intent.registered'])
+})
+
+test('one logical unit cannot bind an own demand of multiple worker slots',async t=>{
+ const f=await fixture(t);f.ownSlots=2;const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('begin_task_run_launch'))
+})
+
+test('exit before bind cannot turn an actually spawned unit into never-spawned compensation',async t=>{
+ const f=await fixture(t);f.immediateExit=true;const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,1);assert.equal(f.failedStarted,true);assert.ok(!f.calls.includes('dispatch'));assert.ok(!f.calls.includes('release_resource_reservation'));assert.deepEqual((await f.events()).map(e=>e.kind).sort(),['admission.attached','intent.registered','process.attached'])
+})
+
+for(const fail of [false,true])test(`assignment is exposed only after confirmed preparation: ${fail?'late failed refresh':'successful refresh'}`,async t=>{
+ const f=await fixture(t,{timeoutMs:1500}),packet=(await f.inputs.prepare(f.request)).packet;assert.ok(packet)
+ let count=0,release,entered;const pending=new Promise(r=>release=r),atRefresh=new Promise(r=>entered=r)
+ f.readHook=async table=>{if(table==='project_tasks'&&++count===5){entered();await pending}return undefined}
+ const preparing=f.units.prepare(packet);await atRefresh
+ assert.equal(f.units.assignmentFor(packet),null,'in-flight final refresh cannot expose assignment')
+ if(!fail)release()
+ const outcome=await preparing;assert.equal(outcome.state,fail?'unknown':'observed')
+ if(fail){release();await wait(100)}delete f.readHook
+ if(fail){
+  assert.equal(f.units.assignmentFor(packet),null,'late settled preparation cannot confirm a returned failure')
+  const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,false)
+  assert.ok(!f.calls.includes('admit_resource_task_launch'));assert.equal(f.spawned,0)
+ }else{
+  const handle=f.units.assignmentFor(packet);assert.ok(handle);assert.equal((await f.assignments.readIdentity(handle)).state,'observed')
+  const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
+ }
+})
+
+// N033 exercises the actual N028 producer and the actual synchronous PTY spawn seam.
+test('actual child key overrides parent, descriptor and bundle without changing other environment',async t=>{
+ const f=await fixture(t),descriptor=AGENTS.find(x=>x.id==='claude-code'),prior=descriptor.env,parent=process.env.AGENT_SYNC_RUN_ID
+ descriptor.env={...(prior??{}),AGENT_SYNC_RUN_ID:'descriptor-conflict',N033_DESCRIPTOR:'preserved'}
+ process.env.AGENT_SYNC_RUN_ID='parent-conflict';f.bundleEnv={AGENT_SYNC_RUN_ID:'bundle-conflict',N033_BUNDLE:'preserved'}
+ t.after(()=>{descriptor.env=prior;if(parent===undefined)delete process.env.AGENT_SYNC_RUN_ID;else process.env.AGENT_SYNC_RUN_ID=parent})
+ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,true,JSON.stringify(r))
+ const record=JSON.parse(await fs.readFile(path.join(f.records,(await fs.readdir(f.records)).find(x=>x.endsWith('.json'))),'utf8'))
+ assert.equal(f.spawnEnvironment.AGENT_SYNC_RUN_ID,record.key);assert.notEqual(f.spawnEnvironment.AGENT_SYNC_RUN_ID,record.runId)
+ assert.equal(f.spawnEnvironment.N033_DESCRIPTOR,'preserved');assert.equal(f.spawnEnvironment.N033_BUNDLE,'preserved')
+ assert.equal(f.calls[f.calls.indexOf('native-spawn')-1],'validate_task_run_launch')
+})
+test('changed actual mapping during resource refresh refuses before SQL and spawn',async t=>{
+ const f=await fixture(t);f.currentHook=async()=>{const file=path.join(f.records,(await fs.readdir(f.records)).find(x=>x.endsWith('.json')));await fs.appendFile(file,' ')}
+ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('validate_task_run_launch'))
+})
+for(const mode of ['extra-key','getter','refused','rejected'])test(`child environment ${mode} refuses before begin without reading getters`,async t=>{
+ const f=await fixture(t);let getters=0
+ f.environmentHook=async(_handle,actual)=>{if(mode==='rejected')throw Error('synthetic secret not logged');const r=await actual();if(mode==='refused')return {...r,state:'unknown'}
+  return {...r,value:mode==='getter'?Object.defineProperty({},'AGENT_SYNC_RUN_ID',{enumerable:true,get(){getters++;return 'aaaaaaaaaaaa'}}):{...r.value,INJECTED:'no'}}}
+ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.equal(getters,0);assert.ok(!f.calls.includes('begin_task_run_launch'))
+})
+test('timed out environment read remains occupied and cannot expose native token after late settlement',async t=>{
+ const f=await fixture(t,{timeoutMs:1000}),packet=(await f.inputs.prepare(f.request)).packet,prepared=await f.units.prepare(packet);assert.equal(prepared.state,'observed')
+ const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
+ let release,entered;const held=new Promise(r=>release=r),atRead=new Promise(r=>entered=r);let reads=0
+ f.environmentHook=async(_handle,actual)=>{reads++;entered();await held;return actual()}
+ const attaching=f.units.attachAdmission(prepared.value,admitted.receipt);await atRead;assert.equal(f.units.native(prepared.value),null)
+ assert.equal(await attaching,false);for(let i=0;i<10;i++)assert.equal(await f.units.attachAdmission(prepared.value,admitted.receipt),false);assert.equal(reads,1)
+ release();await wait(100);assert.equal(f.units.native(prepared.value),null);assert.equal(f.spawned,0)
+})
+test('PTY refuses copied token and invalid environment schema before any spawn',async t=>{
+ const f=await fixture(t),x=await f.direct();let getters=0
+ assert.throws(()=>f.ptys.reserveOwnedUnit(x.packet,{AGENT_SYNC_RUN_ID:'aaaaaaaaaaaa',INJECTED:'no'}))
+ assert.throws(()=>f.ptys.reserveOwnedUnit(x.packet,Object.defineProperty({},'AGENT_SYNC_RUN_ID',{enumerable:true,get(){getters++;return 'aaaaaaaaaaaa'}})))
+ await assert.rejects(f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,{...x.native}));assert.equal(f.spawned,0);assert.equal(getters,0)
+})
+test('ordinary legacy PTY keeps descriptor and bundle environment precedence',async t=>{
+ const f=await fixture(t),descriptor=AGENTS.find(x=>x.id==='claude-code'),prior=descriptor.env,parent=process.env.AGENT_SYNC_RUN_ID
+ descriptor.env={...(prior??{}),AGENT_SYNC_RUN_ID:'descriptor-legacy'};process.env.AGENT_SYNC_RUN_ID='parent-legacy';f.bundleEnv={AGENT_SYNC_RUN_ID:'bundle-legacy'}
+ t.after(()=>{descriptor.env=prior;if(parent===undefined)delete process.env.AGENT_SYNC_RUN_ID;else process.env.AGENT_SYNC_RUN_ID=parent})
+ await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session)
+ assert.equal(f.spawnEnvironment.AGENT_SYNC_RUN_ID,'bundle-legacy');assert.equal(f.spawned,1)
+})
+
+test('late native allocation after admission deadline remains private until confirmed reconciliation',async t=>{
+ const f=await fixture(t,{delayNativeAllocation:true}),packet=(await f.inputs.prepare(f.request)).packet
+ const unit=await f.units.prepare(packet);assert.equal(unit.state,'observed')
+ const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
+ f.delayNative=true;assert.equal(await f.units.attachAdmission(unit.value,admitted.receipt),false)
+ assert.equal(f.nativeAllocations.length,1);assert.equal(f.units.native(unit.value),null,'failed admission operation exposes no native token')
+ assert.equal(await f.units.current(unit.value),false);assert.equal((await f.units.observe(unit.value)).state,'unknown');assert.equal(f.spawned,0)
+ assert.deepEqual((await f.events()).map(e=>e.kind).sort(),['admission.attached','intent.registered'])
+ assert.equal(await f.units.attachAdmission(unit.value,admitted.receipt),true)
+ assert.equal(f.units.native(unit.value),f.nativeAllocations[0]);assert.equal(f.nativeAllocations.length,1)
+})
+
+test('changed producer key during final refresh refuses before SQL and spawn',async t=>{
+ const f=await fixture(t);f.currentHook=async()=>{f.environmentHook=async(_handle,actual)=>{const r=await actual();return {...r,value:{AGENT_SYNC_RUN_ID:r.value.AGENT_SYNC_RUN_ID==='aaaaaaaaaaaa'?'bbbbbbbbbbbb':'aaaaaaaaaaaa'}}}}
+ const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.ok(!f.calls.includes('validate_task_run_launch'))
+})

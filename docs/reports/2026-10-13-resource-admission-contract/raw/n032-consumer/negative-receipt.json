@@ -1,0 +1,36 @@
+[
+  {
+    "name": "original-missing-unit",
+    "exit": 1,
+    "expected": 1,
+    "snapshot": "before/apps/desktop/src/main/managedLaunch.ts",
+    "snapshotSha256": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--loader",
+      "./negative-loader.mjs",
+      "--test",
+      "--test-name-pattern=required managed launch without unit dependency",
+      "apps/desktop/test/prepared-managed-launch.test.mjs"
+    ],
+    "log": "original-missing-unit.log"
+  },
+  {
+    "name": "prior-unit-refresh-order",
+    "exit": 1,
+    "expected": 1,
+    "snapshot": "before-unit-refresh-order.ts.snapshot.txt",
+    "snapshotSha256": "2480141037f5bc3005c883e38bcda2844000bfcc23b4265c6f93fca5343cb840",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--loader",
+      "./negative-loader.mjs",
+      "--test",
+      "--test-name-pattern=resource refresh cannot hide changed actual intent coverage",
+      "apps/desktop/test/resource-worker-launch.test.mjs"
+    ],
+    "log": "prior-unit-refresh-order.log"
+  }
+]

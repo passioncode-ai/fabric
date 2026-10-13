@@ -1,0 +1,1 @@
+apps/desktop/src/main/resourceHostPolicy.ts(4,37): error TS2307: Cannot find module '../shared/resourceAdmission.ts' or its corresponding type declarations.

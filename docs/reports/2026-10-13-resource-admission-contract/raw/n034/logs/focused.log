@@ -1,0 +1,69 @@
+✔ real FS provision, exact retry, snapshot and clean historical handoff (1224.56125ms)
+✔ single writer excludes same and new invocation without stale takeover (328.864333ms)
+✔ missing ledger with preserved external anchor never becomes empty pool (330.081209ms)
+✔ unsealed head without lock is not a clean handoff (372.681458ms)
+✔ same host pool cannot fork by estate or boot (168.228334ms)
+✔ copied and foreign writer handles do not authorize storage changes (727.308167ms)
+✔ count and byte bounds reject growth and never exclude caller unit (1071.447958ms)
+✔ conflicting same unit and wrong invocation refuse (815.592417ms)
+✔ deleted committed record is unknown, never empty (307.844584ms)
+✔ surplus orphan and unknown version are refused (232.332292ms)
+✔ replaced writer inode with identical bytes refuses old handle (454.261ms)
+✔ symlink and special-file records refuse without reading a FIFO (272.052916ms)
+✔ malformed/accessor inputs rejected without evaluating getter (572.353583ms)
+✔ external root and host changes refuse (418.071875ms)
+✔ failed event fsync exact retry reestablishes event and head durability (880.89025ms)
+✔ lost head rename result reconciles exact operation without duplicate declaration (720.571875ms)
+✖ timeout retains one actual outstanding operation across 30 retries (192.740875ms)
+✔ seal blocks new calls synchronously and waits actual pending work (237.504416ms)
+✖ seal timeout never releases an unresolved writer after late dependency settlement (264.10925ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 17
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10401.222041
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-pool-registry.test.mjs:115:1
+✖ timeout retains one actual outstanding operation across 30 retries (192.740875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'observed'
+  
+      at Object.open (file:///private$N034_OVERLAY/apps/desktop/test/resource-pool-registry.test.mjs:20:37)
+      at async TestContext.<anonymous> (file:///private$N034_OVERLAY/apps/desktop/test/resource-pool-registry.test.mjs:119:13)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'observed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/resource-pool-registry.test.mjs:132:1
+✖ seal timeout never releases an unresolved writer after late dependency settlement (264.10925ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'observed'
+  
+      at Object.open (file:///private$N034_OVERLAY/apps/desktop/test/resource-pool-registry.test.mjs:20:135)
+      at async TestContext.<anonymous> (file:///private$N034_OVERLAY/apps/desktop/test/resource-pool-registry.test.mjs:136:13)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'observed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

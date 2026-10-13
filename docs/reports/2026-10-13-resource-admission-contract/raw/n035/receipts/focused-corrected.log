@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: concrete factory declares before resource admission and consumes ticket immediately after final SQL
+ok 1 - concrete factory declares before resource admission and consumes ticket immediately after final SQL
+  ---
+  duration_ms: 4763.639958
+  type: 'test'
+  ...
+# Subtest: actual N022 sampler consumes complete closed-domain registry reading, not zero from empty process map
+ok 2 - actual N022 sampler consumes complete closed-domain registry reading, not zero from empty process map
+  ---
+  duration_ms: 5516.030875
+  type: 'test'
+  ...
+# Subtest: clean restart retains historical units across invocation change
+ok 3 - clean restart retains historical units across invocation change
+  ---
+  duration_ms: 3111.889625
+  type: 'test'
+  ...
+# Subtest: capacity one counts own pending intent conservatively and permanently prevents clean handoff
+ok 4 - capacity one counts own pending intent conservatively and permanently prevents clean handoff
+  ---
+  duration_ms: 1987.778792
+  type: 'test'
+  ...
+# Subtest: uncertain delivery after actual spawn poisons creation domain without retiring declaration
+ok 5 - uncertain delivery after actual spawn poisons creation domain without retiring declaration
+  ---
+  duration_ms: 3885.377833
+  type: 'test'
+  ...
+# Subtest: late unresolved preflight remains charged; repeated calls start no more work
+ok 6 - late unresolved preflight remains charged; repeated calls start no more work
+  ---
+  duration_ms: 3698.270458
+  type: 'test'
+  ...
+# Subtest: close during final SQL revokes exact native ticket synchronously before spawn
+ok 7 - close during final SQL revokes exact native ticket synchronously before spawn
+  ---
+  duration_ms: 2003.625167
+  type: 'test'
+  ...
+# Subtest: forged capability and tickets never create a controlled origin or native permission
+ok 8 - forged capability and tickets never create a controlled origin or native permission
+  ---
+  duration_ms: 793.645
+  type: 'test'
+  ...
+# Subtest: generic provisioned registry cannot be promoted to controlled historical coverage
+ok 9 - generic provisioned registry cannot be promoted to controlled historical coverage
+  ---
+  duration_ms: 1002.362458
+  type: 'test'
+  ...
+# Subtest: missing controlled ledger preserves external anchor and never resets history
+ok 10 - missing controlled ledger preserves external anchor and never resets history
+  ---
+  duration_ms: 3085.422917
+  type: 'test'
+  ...
+# Subtest: snapshot corruption permanently poisons even after disk bytes are restored
+ok 11 - snapshot corruption permanently poisons even after disk bytes are restored
+  ---
+  duration_ms: 511.696208
+  type: 'test'
+  ...
+# Subtest: actual collaborator replacement refuses before any admission or spawn
+ok 12 - actual collaborator replacement refuses before any admission or spawn
+  ---
+  duration_ms: 411.695375
+  type: 'test'
+  ...
+# Subtest: actual managed delivery retryable permanently poisons without losing started result
+ok 13 - actual managed delivery retryable permanently poisons without losing started result
+  ---
+  duration_ms: 3164.663167
+  type: 'test'
+  ...
+# Subtest: actual managed delivery rejected permanently poisons without losing started result
+ok 14 - actual managed delivery rejected permanently poisons without losing started result
+  ---
+  duration_ms: 2925.440875
+  type: 'test'
+  ...
+# Subtest: actual managed delivery queued permanently poisons without losing started result
+ok 15 - actual managed delivery queued permanently poisons without losing started result
+  ---
+  duration_ms: 2639.810666
+  type: 'test'
+  ...
+# Subtest: actual managed delivery malformed permanently poisons without losing started result
+ok 16 - actual managed delivery malformed permanently poisons without losing started result
+  ---
+  duration_ms: 2407.390458
+  type: 'test'
+  ...
+# Subtest: actual captured native ticket refuses copied token, wrong manager and second consumption
+ok 17 - actual captured native ticket refuses copied token, wrong manager and second consumption
+  ---
+  duration_ms: 3081.824167
+  type: 'test'
+  ...
+# Subtest: intent currentness failure after declaration retains orphan as charged storage
+ok 18 - intent currentness failure after declaration retains orphan as charged storage
+  ---
+  duration_ms: 852.097
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46452.567209

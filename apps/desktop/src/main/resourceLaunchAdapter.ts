@@ -22,6 +22,8 @@ export interface ResourceLaunchBinding {
 export interface ManagedResourceLaunch {
   readonly mode: 'required'
   readonly inputs?: PreparedLaunchInputs
+  /** Exact owned entry only: this is local binding evidence, never new authority. */
+  readBinding(receipt: AdmissionReceipt, prepared: PreparedLaunchPacket): Readonly<ResourceLaunchBinding> | null
   matches(receipt: AdmissionReceipt): boolean
   current(receipt: AdmissionReceipt): Promise<boolean>
   cancelUnbegun(receipt: AdmissionReceipt): Promise<boolean>
@@ -104,6 +106,7 @@ interface Entry {
 export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): ResourceLaunchAdapter {
   if (!positive(deps.timeoutMs) || deps.timeoutMs > 30_000 || !positive(deps.maxEntries)) throw Error('invalid resource adapter bounds')
   const inputs = deps.inputs
+  const ownsPrepared = inputs?.owns
   const entries = new Map<string, Entry>()
   // #region resource-attempt-instrumentation — docs: docs/execution/harness-waves/resource-attempt-observation.md#contract
   function observeAccidentalPromise(value: unknown): void {
@@ -239,6 +242,12 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
         }
       })()
       return entry.outcome
+    },
+    readBinding(receipt, prepared) {
+      const entry = find(receipt)
+      if (!inputs || deps.inputs !== inputs || inputs.owns !== ownsPrepared ||
+          !entry?.binding || entry.receipt !== receipt || entry.prepared !== prepared || ownsPrepared?.call(inputs, prepared) !== true) return null
+      return entry.binding
     },
     matches: receipt => !!find(receipt),
     async current(receipt) {

@@ -1,0 +1,266 @@
+✔ concrete factory declares before resource admission and consumes ticket immediately after final SQL (2080.622083ms)
+✔ actual N022 sampler consumes complete closed-domain registry reading, not zero from empty process map (2334.763541ms)
+✔ clean restart retains historical units across invocation change (2607.697375ms)
+✔ capacity one counts own pending intent conservatively and permanently prevents clean handoff (1694.722875ms)
+✔ uncertain delivery after actual spawn poisons creation domain without retiring declaration (1912.968125ms)
+✖ late unresolved preflight remains charged; repeated calls start no more work (628.423458ms)
+✖ close during final SQL revokes exact native ticket synchronously before spawn (4519.648625ms)
+✔ forged capability and tickets never create a controlled origin or native permission (373.569375ms)
+✔ generic provisioned registry cannot be promoted to controlled historical coverage (774.981834ms)
+✔ missing controlled ledger preserves external anchor and never resets history (955.893042ms)
+✔ snapshot corruption permanently poisons even after disk bytes are restored (1465.815708ms)
+✔ actual collaborator replacement refuses before any admission or spawn (715.1005ms)
+✔ actual managed delivery retryable permanently poisons without losing started result (4607.864458ms)
+✔ actual managed delivery rejected permanently poisons without losing started result (3451.013333ms)
+✔ actual managed delivery queued permanently poisons without losing started result (2816.41275ms)
+✔ actual managed delivery malformed permanently poisons without losing started result (3116.232542ms)
+✔ real FS provision, exact retry, snapshot and clean historical handoff (2116.692917ms)
+✔ single writer excludes same and new invocation without stale takeover (309.171792ms)
+✔ missing ledger with preserved external anchor never becomes empty pool (147.432209ms)
+✔ unsealed head without lock is not a clean handoff (178.134ms)
+✔ same host pool cannot fork by estate or boot (70.971458ms)
+✔ copied and foreign writer handles do not authorize storage changes (233.954375ms)
+✔ count and byte bounds reject growth and never exclude caller unit (386.896291ms)
+✔ conflicting same unit and wrong invocation refuse (804.668292ms)
+✔ deleted committed record is unknown, never empty (538.124ms)
+✔ surplus orphan and unknown version are refused (210.881584ms)
+✔ replaced writer inode with identical bytes refuses old handle (159.287209ms)
+✔ symlink record refuses without following its target (1085.583375ms)
+✔ malformed/accessor inputs rejected without evaluating getter (202.091625ms)
+✔ external root and host changes refuse (316.925459ms)
+✔ failed event fsync exact retry reestablishes event and head durability (1221.622667ms)
+✔ lost head rename result reconciles exact operation without duplicate declaration (667.258292ms)
+✔ timeout retains one actual outstanding operation across 30 retries (2053.46125ms)
+✔ seal blocks new calls synchronously and waits actual pending work (412.21475ms)
+✔ seal timeout never releases an unresolved writer after late dependency settlement (1758.381917ms)
+✔ head cardinality and predecessor tampering refuse (488.22225ms)
+✔ oversized record read and cumulative append bound refuse (950.697ms)
+✔ symbolic linked installation root and parent refuse (3.200458ms)
+✔ seal cache never lends a success acknowledgement to a copied handle (177.01375ms)
+✔ head digest binds exact canonical bytes, not only parsed semantics (268.409541ms)
+✔ discarded unsealed writer keeps lock without a FileHandle GC exception (901.558333ms)
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (705.644542ms)
+✔ empty and registered pools never claim complete zero or active workers (469.245208ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (517.404542ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (348.015458ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (1533.189916ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (3744.21125ms)
+✔ two managers share exclusive registration and can only retain one event (1223.492ms)
+✔ membership drift after durable registration retains an unresolved intent (930.156ms)
+✔ coverage drift after durable write never returns usable intent (553.156417ms)
+✔ host or actual producer substitution during reads refuses (906.294ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (1177.609375ms)
+✔ event bounds and unsafe storage refuse without automatic repair (604.678875ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (754.582375ms)
+✔ retained duplicate run or event IDs make whole registry unknown (2129.87475ms)
+✔ N022 identifier constraints, aggregate bytes and record permissions remain strict (447.394666ms)
+✔ host changes while post-write membership settles leave immutable evidence unknown (352.318792ms)
+✔ exact retry reestablishes event and directory durability after event fsync refusal (420.609667ms)
+✔ exact retry reestablishes event and directory durability after directory fsync refusal (905.118792ms)
+✔ N032 durable ordered attachments preserve exact parent digests and retry bytes without authority (541.131833ms)
+✔ N032 attachment ordering, copied handles and conflicting tuple refuse without overwrite (887.037125ms)
+✔ N032 malformed counters, digest labels, process identity and accessors refuse (736.145333ms)
+✔ N032 retained orphan, changed parent and duplicate attachment make registry unknown (2232.219041ms)
+✔ N032 total-file capacity includes attachments and exact retry remains allowed at cap (748.942875ms)
+✔ N032 failed attachment sync cannot be upgraded by a read without fresh barriers (1204.335708ms)
+✔ N032 attachment membership drift after write preserves uncertain event without permission (4474.099875ms)
+✔ N032 restart snapshot retains conservative chain but cannot restore attachment authority (1588.734833ms)
+✔ N032 new unit registration cannot exceed total files or bytes occupied by prior attachments (4129.925917ms)
+✔ N032 rejects cross-unit admission and exact owned-process identity collisions before writing (3156.367542ms)
+✔ N032 retained cross-unit admission collision refuses full scan despite valid parent chains (1836.109958ms)
+✖ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (2160.088042ms)
+✖ actual private admission binding attempt mismatch refuses before begin; intent remains (1322.514709ms)
+✔ foreign prepared/receipt/unit/native handles never manufacture binding (2967.019583ms)
+✖ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (1598.936125ms)
+✔ spawn succeeded then journal uncertainty retains unit and cannot compensate no-process (2215.159208ms)
+✖ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (1447.621083ms)
+✔ native handle observes held object, not a replacement with the same session id (1365.034541ms)
+✔ PID start reuse and escaped descendants remain unknown, not active or retired (1665.179583ms)
+✔ root/tree exit without provider proof stays retained and inventory incomplete (2252.177584ms)
+✔ unit timeout retains one actual assignment read; repeated preparation never reallocates (874.420167ms)
+✔ observation timeout retains one native snapshot and late settlement cannot append (4029.797166ms)
+✔ missing unit dependency and substituted actual collaborators refuse before new effects (475.705209ms)
+✔ resource refresh cannot hide changed actual intent coverage before final SQL (1266.400917ms)
+✖ lost reply after actual durable admission attachment prevents begin and preserves evidence (1326.1365ms)
+✔ one logical unit cannot bind an own demand of multiple worker slots (1201.9565ms)
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (1216.432459ms)
+✔ assignment is exposed only after confirmed preparation: successful refresh (1974.721417ms)
+✔ assignment is exposed only after confirmed preparation: late failed refresh (2033.663417ms)
+✔ actual child key overrides parent, descriptor and bundle without changing other environment (2087.850042ms)
+✔ changed actual mapping during resource refresh refuses before SQL and spawn (1244.259709ms)
+✔ child environment extra-key refuses before begin without reading getters (1348.898292ms)
+✔ child environment getter refuses before begin without reading getters (1079.116416ms)
+✔ child environment refused refuses before begin without reading getters (756.734916ms)
+✔ child environment rejected refuses before begin without reading getters (1405.033208ms)
+✔ timed out environment read remains occupied and cannot expose native token after late settlement (2296.987292ms)
+✔ PTY refuses copied token and invalid environment schema before any spawn (1290.494584ms)
+✔ ordinary legacy PTY keeps descriptor and bundle environment precedence (134.939584ms)
+✔ late native allocation after admission deadline remains private until confirmed reconciliation (2837.020166ms)
+✔ changed producer key during final refresh refuses before SQL and spawn (1441.732375ms)
+ℹ tests 99
+ℹ suites 0
+ℹ pass 91
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138406.823666
+
+✖ failing tests:
+
+test at test/resource-controlled-pool.test.mjs:89:1
+✖ late unresolved preflight remains charged; repeated calls start no more work (628.423458ms)
+  AssertionError [ERR_ASSERTION]: {"state":"unknown","complete":false,"executionAuthorized":false}
+  + actual - expected
+  
+  + 'unknown'
+  - 'observed'
+  
+      at Object.open (file:///private<N035_OVERLAY>/apps/desktop/test/resource-controlled-pool.test.mjs:65:78)
+      at async TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-controlled-pool.test.mjs:90:61)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'observed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/resource-controlled-pool.test.mjs:93:1
+✖ close during final SQL revokes exact native ticket synchronously before spawn (4519.648625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'unknown'
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-controlled-pool.test.mjs:96:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (2160.088042ms)
+  AssertionError [ERR_ASSERTION]: {"started":false,"taskId":"22222222-2222-4222-8222-222222222222","admissionRecorded":false,"reasonCode":"resource_intent_unconfirmed","says":"The start intent remains unconfirmed. Nothing was admitted.","retryable":false}
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:88:90)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ actual private admission binding attempt mismatch refuses before begin; intent remains (1322.514709ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(f.calls.includes('cancel_resource_admission'))
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:96:234)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (1598.936125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'resource_intent_unconfirmed'
+  - 'launch_outcome_unknown'
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:104:101)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'resource_intent_unconfirmed',
+    expected: 'launch_outcome_unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (1447.621083ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(f.calls.includes('validate_task_run_launch'))
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:107:191)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ lost reply after actual durable admission attachment prevents begin and preserves evidence (1326.1365ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'admission.attached',
+  -   'intent.registered'
+  - ]
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:142:228)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'admission.attached', 'intent.registered' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/resource-worker-launch.test.mjs:21:23
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (1216.432459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///private<N035_OVERLAY>/apps/desktop/test/resource-worker-launch.test.mjs:150:147)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at listOnTimeout (node:internal/timers:644:9)
+      at process.processTimers (node:internal/timers:618:7)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

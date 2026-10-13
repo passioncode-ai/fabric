@@ -1,0 +1,11 @@
+{
+  "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+  "apps/desktop/src/main/resourcePoolRegistry.ts": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1",
+  "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+  "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+  "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+  "apps/desktop/test/resource-controlled-pool.test.mjs": "a659f206c1b8953f870eca0b9ba602955af630d71fe13154fe9a903e72b66103",
+  "docs/execution/harness-waves/resource-controlled-pool.md": "f6721817a9a481dd6c82d154e4fdeb678df3a1bb35e1f7ffabbcebf973bcd6c8",
+  "docs/execution/harness-waves/resource-pool-registry.md": "81b2d159a20fa1c4c9b0515e06ee027a8799569edbbc4731c2caa9992ce41acb",
+  "docs/execution/harness-waves/resource-worker-inventory.md": "10832763e99b2aa98484176f0f5a09e21b6cb6636280edc1203c8616496d9083"
+}

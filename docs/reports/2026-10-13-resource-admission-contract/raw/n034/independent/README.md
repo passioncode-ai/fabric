@@ -1,0 +1,1 @@
+Independent N034 focused controls prepared only; NOT_RUN until source frozen and root slot permits. Actual production registry and owned filesystem. No DB/provider. First checks exact opaque seal receipt binding; second checks canonical head byte commitment. No source acceptance from static review.

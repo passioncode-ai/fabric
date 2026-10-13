@@ -1,0 +1,11 @@
+{
+  "apps/desktop/src/main/resourceControlledPool.ts": null,
+  "apps/desktop/src/main/resourcePoolRegistry.ts": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9",
+  "apps/desktop/src/main/resourceWorkerInventory.ts": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+  "apps/desktop/src/main/resourceManagedUnit.ts": "9cb01e413f75116e9c275f915e33b2e29ddeb4a7f6c1d6270901f89d90851b55",
+  "apps/desktop/src/main/pty.ts": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202",
+  "apps/desktop/test/resource-controlled-pool.test.mjs": null,
+  "docs/execution/harness-waves/resource-controlled-pool.md": null,
+  "docs/execution/harness-waves/resource-pool-registry.md": "bec5b9ea7429ceb9a5ade2d6dc8bbe5f1a8fc7cc066a19f6836e02ff0be7dcea",
+  "docs/execution/harness-waves/resource-worker-inventory.md": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7"
+}

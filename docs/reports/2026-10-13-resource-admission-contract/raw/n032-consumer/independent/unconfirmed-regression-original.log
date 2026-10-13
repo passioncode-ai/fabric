@@ -1,0 +1,32 @@
+✖ unconfirmed final refresh exposes no assignment during or after failure to shared admission (1775.910458ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2140.615875
+
+✖ failing tests:
+
+test at ../../../../private$N032_INDEPENDENT/unconfirmed-assignment-regression.mjs:20:23
+✖ unconfirmed final refresh exposes no assignment during or after failure to shared admission (1775.910458ms)
+  AssertionError [ERR_ASSERTION]: no assignment before prepare has returned observed
+  + actual - expected
+  
+  + {
+  +   runId: 'r-00c474e51bce'
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///private$N032_INDEPENDENT/unconfirmed-assignment-regression.mjs:84:35)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { runId: 'r-00c474e51bce' },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-13T09:19:30.713359+00:00",
+  "status": "READ_ONLY_OWNER_REFRESH",
+  "baseline": {
+    "as_of": "2026-10-13T07:38:32.012634+00:00",
+    "receiptSha256": "7fcc1e068a8162214e19df031246137efec8702d1e12e07071acf69302e9fd18"
+  },
+  "remote": {
+    "pipeline-pr112": {
+      "base": {
+        "ref": "main"
+      },
+      "head": {
+        "sha": "216bcbc410cca4a660e56197f2021169eacabb22"
+      },
+      "html_url": "https://github.com/ssheleg/task-pipeline/pull/112",
+      "merge_commit_sha": "4d750573ce53ea4c7ffa2bde192ee35b59acefa7",
+      "merged_at": "2026-10-13T08:03:33Z",
+      "number": 112,
+      "state": "closed",
+      "updated_at": "2026-10-13T08:03:33Z"
+    },
+    "pipeline-main": {
+      "date": "2026-10-13T09:07:36Z",
+      "sha": "78c42124db910c56e74c8fbd524bdc9a4f8fb6c9"
+    },
+    "hub-main": {
+      "date": "2026-10-13T04:50:54Z",
+      "sha": "a17f829e8d652ce7f68423b67e0de00fb89b3693"
+    },
+    "pipeline-release": {
+      "html_url": "https://github.com/ssheleg/task-pipeline/releases/tag/v1.93.3",
+      "published_at": "2026-10-12T17:25:52Z",
+      "tag_name": "v1.93.3",
+      "target_commitish": "main"
+    },
+    "hub-release": {
+      "html_url": "https://github.com/ssheleg/sshlg-skills/releases/tag/v1.62.2",
+      "published_at": "2026-10-13T04:59:54Z",
+      "tag_name": "v1.62.2",
+      "target_commitish": "main"
+    },
+    "pipeline-repo": {
+      "default_branch": "main",
+      "full_name": "ssheleg/task-pipeline"
+    },
+    "hub-repo": {
+      "default_branch": "main",
+      "full_name": "ssheleg/sshlg-skills"
+    }
+  },
+  "conclusions": [
+    "Task-pipeline PR112 is now merged at4d750573; default main advanced to78c42124, package source1.94.0. Latest GitHub release remains1.93.3.",
+    "Hub default maina17f829e and latest GitHub release1.62.2 unchanged.",
+    "Direct blob comparison (not divergent squash merge-base diff) shows graph.py, lessons.py and iteration.md identical to previously inspected PR1129fb9cfb bytes. Existing source-level remaining findings are not resolved by the merge.",
+    "Codex and Claude1.93.3 payload graph bytes684316d6 differ from new maincb0fedf1; lessons.py absent in both. Claude installed registry still1.93.3; no1.94 installed/native/session adoption proved.",
+    "Main HANDOFF release-candidate header retains pre-integration instructions; remote PR metadata supersedes that status only.",
+    "Gateway config counts are declarations, not schema-context load or running upstream counts. No exact-name gateway process or known launchctl label observed; no health probe, restart or all-server initialize performed."
+  ],
+  "gateway": {
+    "declared": 17,
+    "enabled": 14,
+    "disabled": 3,
+    "enabledTransportKeys": {
+      "http": 9,
+      "stdio": 5
+    },
+    "roles": 7,
+    "processNameCount": 0,
+    "pgrepExit": 1,
+    "knownLaunchctlLabelExit": 113,
+    "healthProbed": false,
+    "statusScriptExecuted": false,
+    "statusSourceSha256": "6ceceab5d923c6de9487d5b21d257443aef1b19950156f97c70693d15b5023e8"
+  },
+  "installed": "installed-readback.json",
+  "sourceComparison": "selected-source-comparison.json",
+  "scope": [
+    "no cross-project writes/messages/COM",
+    "no root edits",
+    "no installs or heavy tests",
+    "no secrets/raw configuration retained"
+  ],
+  "remaining": [
+    "Source main merge is credited; release/npm/install/native/lesson-consumption acceptance remain separate",
+    "Gateway availability needs its authorized lifecycle/status owner if actual service health is required; this refresh makes no universal service-down claim"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "reviewer": "pipeline_research",
+  "author": "observatory_research",
+  "verdict": "SCOPED_ACCEPT_N032_ATTACHMENT_STORAGE",
+  "hashes": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7"
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 0,
+      "pass": 29,
+      "skip": 0,
+      "log": "events-focused.log"
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-concurrency=1 <REVIEWER>/event-controls.mjs",
+      "exit": 0,
+      "pass": 3,
+      "skip": 0,
+      "log": "event-controls.log"
+    }
+  ],
+  "controls": [
+    "Exact parent bytes drift refuses subsequent process append",
+    "All attachment files count toward future registration capacity",
+    "Acknowledged three-event read restores six real file/directory sync barriers; injected sync rejection remains unknown"
+  ],
+  "controlHashes": {
+    "event-controls.mjs": "a371a2ae3a85ef61be904471d072f11606d0b0574f1dfcdac29a38c443ebcc4c",
+    "event-controls.log": "6bc696f52031d8e4449fc5757ca526c396fd1b9cf65799abce16ea6d8607538c",
+    "events-focused.log": "c3e8be316ae56049f880935d42b123bfcc9d56f41e291c015574d617e56b919d"
+  },
+  "reviewNotes": [
+    "Previously suggested base-row counting defect retracted: current draft already used allRows; coverage control passes, no original defect claim.",
+    "Cross-unit attachment uniqueness reviewed after author domain confirmation. Builder negatives remain builder-attributed, not independently rerun here."
+  ],
+  "limitations": [
+    "Storage only: synthetic attachment facts and membership transport with actual N028/filesystem modules.",
+    "No authority/complete inventory/native launch/SQL or N032 consumer acceptance.",
+    "Frozen N031 prior receipt remains separate."
+  ]
+}

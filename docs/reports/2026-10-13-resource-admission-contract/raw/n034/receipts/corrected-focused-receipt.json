@@ -1,0 +1,34 @@
+{
+  "runs": [
+    {
+      "log": "correction-original-red.log",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "--test-name-pattern=seal cache|head digest|discarded unsealed",
+        "apps/desktop/test/resource-pool-registry.test.mjs"
+      ],
+      "exitCode": 1
+    },
+    {
+      "log": "corrected-focused.log",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "apps/desktop/test/resource-pool-registry.test.mjs"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "durationSeconds": 26.908,
+  "deadlineSeconds": 180,
+  "sourceSha256": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9"
+}

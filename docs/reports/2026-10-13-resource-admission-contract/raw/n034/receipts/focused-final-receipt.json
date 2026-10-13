@@ -1,0 +1,6 @@
+{
+  "command": "nice -n 10 node --experimental-strip-types --test apps/desktop/test/resource-pool-registry.test.mjs",
+  "exitCode": 1,
+  "durationSeconds": 14.508,
+  "deadlineSeconds": 180
+}

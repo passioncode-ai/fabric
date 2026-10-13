@@ -1,0 +1,5 @@
+{
+  "apps/desktop/src/main/resourcePoolRegistry.ts": "76189e55216b1ba8f64fccf761e8a175c41f207f5db67ea2c6c87d13feb65d74",
+  "apps/desktop/test/resource-pool-registry.test.mjs": "a2b3a96ae0053b424d5d40cc5ee70472a15fcbff5386adbc4ffdbfd64ebfc19c",
+  "docs/execution/harness-waves/resource-pool-registry.md": "9d259db0ef9a3402e9f717a2ef301fc931e69e6e8281d558b6262d354053eb8f"
+}

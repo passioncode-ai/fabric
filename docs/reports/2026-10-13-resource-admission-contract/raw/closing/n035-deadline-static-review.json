@@ -1,0 +1,62 @@
+{
+  "verdict": "STATIC_SCOPED_PASS_CORRECTED_DEADLINE_FIXTURE",
+  "reviewer": "pipeline_research",
+  "authorship": "Independent of root fixture correction; author of earlier N033 test bodies. Earlier static review missed implicit deadline coupling and is explicitly superseded for this claim.",
+  "source": "apps/desktop/test/resource-worker-launch.test.mjs",
+  "sha256": "2d9ec95050dcc3d8491ebf50730017bd8fafc46f82c50c50d197602038c56831",
+  "priorSha256": "10d80a95751cc27c4ffe4269d2630b41d7bac056812b9be5bd4cf3dfc465f700",
+  "checks": [
+    "Reversing exactly two explicit timeoutMs:1000 additions restores prior 10d80a95 bytes exactly.",
+    "All deliberate deadline consumers inspected: prepare timeout20; observe timeout1000/wait1100; prepare final-refresh1500; environment attachment1000; synchronous native allocation1000/busywait1100.",
+    "All other waits30/20/100 are post-release settlement waits, not attempts to cross an implicit default operation deadline.",
+    "All fixture options/default users inspected; no additional induced-delay or never-settling controls rely on default5000 to encode an expected timeout.",
+    "Assertions, induced delays, other fixture configuration and production bytes are not changed by this two-option delta."
+  ],
+  "limitations": [
+    "No tests executed in this review. Root reported corrected29/29 exit0; archived run receipt inspected separately.",
+    "Earlier identical-test-body argument was insufficient: helper option/default coupling changes body semantics. Prior static review must not be treated as proof of deadline preservation.",
+    "Remaining short setup deadlines may still refuse under host pressure; no claim of load-independent reliability."
+  ],
+  "n035-legacy-first.json": {
+    "command": "nice -n10 node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-worker-launch.test.mjs",
+    "exitCode": 1,
+    "durationSeconds": 19.18,
+    "before": {
+      "apps/desktop/test/resource-worker-launch.test.mjs": "10d80a95751cc27c4ffe4269d2630b41d7bac056812b9be5bd4cf3dfc465f700",
+      "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+      "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+      "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+      "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644"
+    },
+    "after": {
+      "apps/desktop/test/resource-worker-launch.test.mjs": "10d80a95751cc27c4ffe4269d2630b41d7bac056812b9be5bd4cf3dfc465f700",
+      "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+      "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+      "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+      "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644"
+    },
+    "unchanged": true,
+    "scope": "all29legacyworkerlaunchcases on integrated N035 plus ordinary fixture budget correction; no build/DB/native provider; final fullgate remains owed"
+  },
+  "n035-legacy-corrected.json": {
+    "command": "nice -n10 node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-worker-launch.test.mjs",
+    "exitCode": 0,
+    "durationSeconds": 13.97,
+    "before": {
+      "apps/desktop/test/resource-worker-launch.test.mjs": "2d9ec95050dcc3d8491ebf50730017bd8fafc46f82c50c50d197602038c56831",
+      "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+      "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+      "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+      "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644"
+    },
+    "after": {
+      "apps/desktop/test/resource-worker-launch.test.mjs": "2d9ec95050dcc3d8491ebf50730017bd8fafc46f82c50c50d197602038c56831",
+      "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+      "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+      "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+      "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644"
+    },
+    "unchanged": true,
+    "scope": "29legacy scenarios on actual integrated N035, explicit original deadlines restored in two implicitly timed regressions; no native/DB/provider acceptance"
+  }
+}

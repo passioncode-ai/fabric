@@ -1,0 +1,32 @@
+{
+  "status": "STATIC_SCOPED_PASS",
+  "reviewer": "/root/pipeline_research",
+  "disclosure": "Reviewer proposed duplicate-call reduction; independent reviewer of root ordering and catch comments",
+  "files": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": {
+      "indexSha256": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177",
+      "workingSha256": "9cb01e413f75116e9c275f915e33b2e29ddeb4a7f6c1d6270901f89d90851b55"
+    },
+    "scripts/test/build-unified-plan.test.mjs": {
+      "indexSha256": "64693185f103d44d5bc6b0f4823576898fc652ef59b75206cbcc0c392f225f44",
+      "workingSha256": "235218cf438667c59e52ccb5ac41a7560a20149a25258bac13d815e35b8a4c18"
+    },
+    "scripts/ci.sh": {
+      "indexSha256": "b85f570d34ea88aa439614ad539b77058edc12db5313026ddf7c435265f5d6b4",
+      "workingSha256": "6c4c5bc410fee0fc4281ba97a9d797fb815c272a35b6f4237b9ddd84177f3d0d"
+    }
+  },
+  "checks": [
+    "Unit delta only block comments/whitespace",
+    "Compiler delta exactly six same-call result captures",
+    "CI command inventory identical after excluding moved one command",
+    "Moved exact command remains once after check-commands before build",
+    "No shell environment assignment/cd/trap or conditions crossed in moved interval"
+  ],
+  "runtimeTestsRun": false,
+  "limitations": [
+    "Full final fast gate pending",
+    "No measured time saving",
+    "Comment erasure equality scoped to this reviewed diff; not a general TS parser"
+  ]
+}

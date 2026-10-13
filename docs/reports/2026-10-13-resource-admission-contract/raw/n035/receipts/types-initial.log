@@ -1,0 +1,2 @@
+src/main/pty.ts(10,38): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './transcripts.js'?
+src/main/pty.ts(19,66): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../shared/types.js'?

@@ -1,0 +1,67 @@
+{
+  "repository": "ssheleg/task-pipeline",
+  "before": "9fb9cfb34d83a1395d1d18dbe191d4135395b986",
+  "after": "78c42124db910c56e74c8fbd524bdc9a4f8fb6c9",
+  "files": [
+    {
+      "path": "package.json",
+      "beforeSha256": "53fdc7309eedf1fa46d64f6c04e587a98c21f04fa8500fa84bb1555839acd388",
+      "afterSha256": "83e14941dcc41e67a6c28782432fb27ec4c18cf6589117d36a2a5b86fe6b7299",
+      "unchanged": false,
+      "beforeVersion": "1.93.3",
+      "afterVersion": "1.94.0",
+      "diffExcerpt": [
+        "--- \n",
+        "+++ \n",
+        "@@ -2,3 +2,3 @@\n",
+        "   \"name\": \"task-pipeline-skill\",",
+        "-  \"version\": \"1.93.3\",",
+        "+  \"version\": \"1.94.0\",",
+        "   \"description\": \"Full-cycle delivery pipeline for coding agents: a mandatory built-in intake grill, then 10 gated stages (docs, brainstorm+decompose, spec, plan, build, tests, lint/deploy, post-deploy, docs/wiki, acceptance). Every stage's doctrine ships inside the skill \u2014 no companion plugin required. This package is the installer CLI.\","
+      ]
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/graph.py",
+      "beforeSha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+      "afterSha256": "cb0fedf14b3c3b8b7f4c51e0396b101266df827279bd369a7f6d1d60e0266e11",
+      "unchanged": true
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/scripts/lessons.py",
+      "beforeSha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "afterSha256": "9fbe0fcaa48d92f2c245d12cc58ec543a0a157d6a6c6fda620b081aff56c2348",
+      "unchanged": true
+    },
+    {
+      "path": "plugins/task-pipeline/skills/task-pipeline/references/iteration.md",
+      "beforeSha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "afterSha256": "7f11287c14373e51a13887b6f7e0dffdbcddada68aa5268e19e736752501a784",
+      "unchanged": true
+    },
+    {
+      "path": "docs/HANDOFF.md",
+      "beforeSha256": "a30d79ac280b5e53af9df6fab9ecd206fe76d6a75f8958647d9475ae3b78ef47",
+      "afterSha256": "5753f44d53730e42abde357217ce894530964e02b52c1707f4cc5c177d810417",
+      "unchanged": false,
+      "diffExcerpt": [
+        "--- \n",
+        "+++ \n",
+        "@@ -1 +1,14 @@\n",
+        "+## Release candidate \u2014 v1.94.0 (2026-10-13)",
+        "+",
+        "+Five version surfaces now name v1.94.0 for the accepted release-iteration feature",
+        "+and its independent fixes. This is a release candidate, not a publication claim.",
+        "+Published release remains v1.93.3 until an exact-SHA release run and npm payload",
+        "+readback prove otherwise. R30 owner gates merged through PR120 at9fb9cfb after genuine candidate checks.",
+        "+The final feature PR112 still governs main integration.",
+        "+",
+        "+Next: review this metadata diff, integrate via the feature branch, run the required",
+        "+checks on PR112's final head, then tag the normally merged source. Verify annotated",
+        "+tag, every release job, npm payload and installed copies before closing the hub pins.",
+        "+Historical verification rows below retain their original observations.",
+        "+",
+        " # Start here \u2014 task-pipeline"
+      ]
+    }
+  ]
+}

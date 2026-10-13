@@ -45,6 +45,38 @@ row order breaking same-day ties; these dates do not establish exact within-day 
 
 ## Recent log
 
+### 2026-10-13 · CO-282 fixture defaults are part of a negative test
+
+A static byte comparison of unchanged test bodies missed their dependency on fixture defaults. Raising ordinary setup budgets to5000ms also changed an implicit1000ms deadline under a1100ms injected native delay; the actual rerun failed28/29. Two timed cases now explicitly retain1000ms while ordinary setup gets headroom. The corrected29-case run passes; original failed run remains archived. Reused R006: acceptance comes from reaching the actual negative boundary, not only unchanged assertions. No production timeout was changed and load was not proved the sole cause of the earlier failures.
+
+
+### 2026-10-13 · CO-282 actual outcome types and earlier refusal checks
+
+The concrete factory reused the retained-uncertainty lesson, but independent review found its success predicate compared against a raw database delivery state after the continuation layer had already mapped it to another result domain. Use the actual consumer type and an explicit successful-state allowlist; preserve a started native result even when delivery is uncertain, while refusing a clean handoff. A caller-visible timeout or ambiguous unlink cannot prove all underlying work stopped. Current focused execution and original negative replay remain separate from final integration acceptance.
+
+The existing observability lesson fired again: two combined candidates spent2047.37 and2078.94seconds before static refusals. N036 moves the identical expensive compiler command behind source-only gates and removes six duplicate checker invocations in assertions. This is a concrete check-order correction, not a gate waiver or a measured performance claim. R004 applies to six legacy cases that failed during setup under load: they remain unaccepted until the intended targets are reached and checked. No new standing rule or automatic lesson authority is inferred; Observatory delivery remains NOT_SENT.
+
+
+### 2026-10-13 · CO-282 retained registry review
+
+Passing assertions do not imply a clean check process: the initial N034 real-filesystem run passed22 assertions but exited1 when abandoned lifetime FileHandles were collected. Its lock is an O_EXCL file, not flock; retain the identity-checked lock file while closing temporary descriptors explicitly. Independent review also requires validating the exact handle before returning any cached seal receipt, and hashing verified canonical stored bytes. Keep all three original failures and test actual clean exit. This lesson applies to retained filesystem ownership and idempotent result caches; it does not authorize deleting a crashed writer or changing policy. N034 consumes the earlier caller-visible confirmation lesson; source receipts follow in the resource report.
+
+### 2026-10-13 · actual consumer boundaries · success must cross the return boundary
+
+- Reused the N031 retained-uncertainty lesson at two N032 boundaries. Independent
+  review found that a failed final preparation could still expose an assignment;
+  another review found a native token allocated just past the admission deadline.
+  Both corrections separate retained internal work from caller-visible confirmed
+  success. Preserve exact retry; do not discard durable intent or mint a new unit.
+- Composition review then found a real missing consumer: N028's child environment
+  producer was implemented but unused by PTY. N033 carries its exact allowlisted
+  run key through the owned token and applies it last; legacy precedence remains.
+  A producer's existence is not evidence that the actual consumer receives it.
+- These are source-bound review findings, not new global policy or proof of native
+  agent behavior. The original failed controls, corrected tests and later combined
+  gate remain separate receipts. Observatory publication is still NOT_SENT.
+
+
 ### 2026-10-13 · durable worker entry · retained bytes are not a durability receipt
 
 - Reused R006/R007 and the earlier retained-uncertainty lesson: independent review

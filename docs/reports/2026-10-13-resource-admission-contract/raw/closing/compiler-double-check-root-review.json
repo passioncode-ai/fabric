@@ -1,0 +1,10 @@
+{
+  "kind": "root-read-only-diff-review",
+  "patchSha256": "c639920fe2349d2f5688a1df02cc4973dc937e534a80675725845e7a77b0204b",
+  "changedLines": 6,
+  "conclusion": "Each change replaces two immediate identical check() evaluations with one captured result in the same lexical test; all assertions and fixture operations otherwise identical. Diagnostic stderr belongs to the same result as asserted status.",
+  "newTestsAdded": false,
+  "testsRun": false,
+  "timingSavings": "NOT_MEASURED",
+  "next": "Apply only after frozen candidate completes; actual compiler suite remains required."
+}

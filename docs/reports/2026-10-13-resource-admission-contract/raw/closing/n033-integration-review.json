@@ -1,0 +1,87 @@
+{
+  "kind": "read-only-integrated-byte-audit",
+  "head": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+  "headAloneDoesNotPinWorkingFiles": true,
+  "checks": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": {
+      "expected": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177",
+      "actual": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177",
+      "source": "N033"
+    },
+    "apps/desktop/src/main/managedLaunch.ts": {
+      "expected": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+      "actual": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+      "source": "N032"
+    },
+    "apps/desktop/src/main/pty.ts": {
+      "expected": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202",
+      "actual": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202",
+      "source": "N033"
+    },
+    "apps/desktop/src/main/index.ts": {
+      "expected": "846e7523b16e82e46df0742a3d91235bf9bc99242ff85e7dc621c73179b68bc0",
+      "actual": "846e7523b16e82e46df0742a3d91235bf9bc99242ff85e7dc621c73179b68bc0",
+      "source": "N032"
+    },
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": {
+      "expected": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+      "actual": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+      "source": "N032"
+    },
+    "apps/desktop/test/resource-worker-launch.test.mjs": {
+      "expected": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+      "actual": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+      "source": "N033"
+    },
+    "apps/desktop/test/resource-launch-adapter.test.mjs": {
+      "expected": "56568a1b72e41a0acb798a0e46a824945c78c0cc4f4292ba92c35ab16c2ad805",
+      "actual": "56568a1b72e41a0acb798a0e46a824945c78c0cc4f4292ba92c35ab16c2ad805",
+      "source": "N032"
+    },
+    "apps/desktop/test/prepared-managed-launch.test.mjs": {
+      "expected": "ec1da860a901eab13765f8633ccedbffad361b05ce580af918c111228f9a1f21",
+      "actual": "ec1da860a901eab13765f8633ccedbffad361b05ce580af918c111228f9a1f21",
+      "source": "N032"
+    },
+    "apps/desktop/test/prepared-launch-fixture.mjs": {
+      "expected": "eeaa30b610d3cfeaaf5c6be1b593ee5663dbe6c783abd7cd9cd729149b8bfeb4",
+      "actual": "eeaa30b610d3cfeaaf5c6be1b593ee5663dbe6c783abd7cd9cd729149b8bfeb4",
+      "source": "N032"
+    },
+    "docs/execution/harness-waves/resource-worker-launch.md": {
+      "expected": "f3bf88178488bdd51d1c8de5b073d6ef5eebb50ddc035ae9b9120d94dc755734",
+      "actual": "f3bf88178488bdd51d1c8de5b073d6ef5eebb50ddc035ae9b9120d94dc755734",
+      "source": "N033"
+    },
+    "apps/desktop/src/main/resourceWorkerInventory.ts": {
+      "expected": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+      "actual": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+      "source": "N032-storage"
+    }
+  },
+  "allMatch": true,
+  "ciSha256": "fd69bb948d99108ca5b3863ab5142981a86a8e23e8178b901e13c9addbbd2c55",
+  "ciReferences": [
+    {
+      "line": 351,
+      "text": "node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs"
+    }
+  ],
+  "testsRun": false,
+  "verdict": "SCOPED_INTEGRATION_MATCH",
+  "authorshipDisclosure": "Reviewer authored N032 baseline/correction; this is byte integration verification, not independent reacceptance of that code.",
+  "staticChecks": [
+    "Prepared confirmation remains based on returned observed outcome",
+    "Admission confirmation remains based on returned true outcome; native/current/observe guards retained",
+    "Actual N028 child environment read/capture/refresh retained",
+    "PTY last env spread is unit.childEnvironment, after parent/descriptor/bundle",
+    "No new await between final beforeSpawn result and synchronous this.spawn",
+    "CI calls actual resource-worker-launch.test.mjs at scripts/ci.sh:351 under set -euo pipefail"
+  ],
+  "limitations": [
+    "No tests or heavy checks executed for this audit",
+    "Fixture explicitly skips if pinned installed agent-sync source absent; CI command wiring alone is not execution proof",
+    "Head does not alone pin current working files; exact file and CI hashes recorded",
+    "No native/provider/activation acceptance"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "node": "N-027",
+  "done": [
+    "Coherent reserved-resource accounting verified against actual pending107 SQL and eight-stage disposable PostgreSQL fixture"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Pending DDL is not active; no live database, installed runtime, provider/native acceptance or all-host enforcement"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.log"
+  ],
+  "tested": {
+    "head": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+    "tree": "3253ccc739b2387da2cf713bdc0746f905f4caac",
+    "checks": [
+      "Eight actual owned PostgreSQL stages PASS, exit0,28.86s; source hashes unchanged and match committed Git objects",
+      "Earlier exact full fast receipt at same source6c8b3718 remains separate from this later SQL run"
+    ]
+  }
+}

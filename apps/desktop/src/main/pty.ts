@@ -1,3 +1,5 @@
+import { bindControlledSpawnTicket, consumeControlledSpawnTicket } from './resourceControlledPool.ts'
+import { resourceData } from './resourceHostPolicy.ts'
 import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
 // PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the
 // main process and survive renderer reloads AND window closes; a reattaching
@@ -299,10 +301,22 @@ export async function launchOption(id: string, availability: RunnerAvailability 
 }
 // #endregion runner-availability
 
+// #region managed-owned-unit — docs: docs/execution/harness-waves/resource-worker-launch.md#contract
+/** Local object capability: a copied session id or PID cannot create this handle. */
+export interface OwnedPtyUnit { readonly sessionId: string }
+interface OwnedUnitEntry {
+  childEnvironment: Readonly<{AGENT_SYNC_RUN_ID:string}>; controlledTicket?:object
+  packet: PreparedLaunchPacket
+  attempted: boolean
+  session?: LiveSession
+}
+// #endregion managed-owned-unit
+
 export class PtyManager {
   private sessions = new Map<string, LiveSession>()
   private opening = new Set<string>()
-  private processBoundary = createProcessBoundary()
+  private processBoundary: ReturnType<typeof createProcessBoundary>
+  private ownedUnits = new WeakMap<OwnedPtyUnit, OwnedUnitEntry>()
 
   private journal: Journal
   private estateId: string
@@ -341,7 +355,8 @@ export class PtyManager {
     actor: () => { kind: 'person'; id: string } = () => {
       throw new Error('a terminal cannot be journalled before a subject is established')
     },
-    deliveryTiming: DeliveryQueueTiming = {}
+    deliveryTiming: DeliveryQueueTiming = {},
+    processBoundary: ReturnType<typeof createProcessBoundary> = createProcessBoundary()
   ) {
     this.journal = journal
     this.estateId = estateId
@@ -351,6 +366,7 @@ export class PtyManager {
     this.transcripts = transcripts
     this.actor = actor
     this.deliveryTiming = deliveryTiming
+    this.processBoundary = processBoundary
   }
 
   /** The record of what a session did, or null. Reading it ENDS the capture. */
@@ -421,12 +437,17 @@ export class PtyManager {
     beforeSpawn?: () => Promise<boolean>,
     /** The fallback walk that chose this runner (ADR-0125), journalled additively with the opening. */
     route: LaunchRoute | null = null,
-    prepared?: PreparedLaunchPacket
+    prepared?: PreparedLaunchPacket,
+    ownedUnit?: OwnedPtyUnit
   ): Promise<TerminalSession> {
     const sessionId = requestedSessionId ?? randomUUID()
     if (this.sessions.has(sessionId) || this.opening.has(sessionId)) throw new Error('session identity already used')
     this.opening.add(sessionId)
     try {
+    const unit = ownedUnit ? this.ownedUnits.get(ownedUnit) : undefined
+    if (ownedUnit && (!unit || unit.attempted || !prepared || unit.packet !== prepared || ownedUnit.sessionId !== sessionId))
+      throw new LaunchRefusedBeforeSpawn(sessionId,'resource_unit_unavailable')
+    if (unit) unit.attempted = true
     const runnerId = agent?.runnerId ?? optionId
     if (prepared && (agent || !preparedLaunchMatches(prepared,{sessionId,projectId,taskId,optionId:runnerId,permissionMode,cwd})))
       throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
@@ -505,6 +526,9 @@ export class PtyManager {
       try { allowed = await beforeSpawn() } catch (e) { discardBundle(); throw e }
       if (!allowed) { discardBundle(); throw new LaunchAuthorityChanged(sessionId) }
     }
+    if(unit?.controlledTicket&&(!ownedUnit||!prepared||!consumeControlledSpawnTicket(unit.controlledTicket,this,prepared,ownedUnit))){
+      discardBundle();throw new LaunchRefusedBeforeSpawn(sessionId,'controlled_ticket_unavailable')
+    }
     let pty: IPty
     try {
       pty = this.spawn(launch.file, launch.args, {
@@ -518,7 +542,9 @@ export class PtyManager {
         // whatever the agent itself needs — `goose` takes its mode from
         // GOOSE_MODE rather than from a flag, and a descriptor that could not
         // say so is what made "a third agent is one row" false.
-        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...(bundle?.env ?? {}) }
+        // The actual N028 child key wins over every inherited/configured layer.
+        // This immutable token was refreshed before the final SQL guard.
+        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...(bundle?.env ?? {}), ...(unit?.childEnvironment ?? {}) }
       })
     } catch (e) {
       // The bundle was written and its credential minted before spawn was even
@@ -555,6 +581,8 @@ export class PtyManager {
       exitFinalized: false
     }
     this.sessions.set(sessionId, session)
+    // Bind synchronously to this exact object before capture/journal can fail.
+    if (unit) unit.session = session
     try {
       // Subscribe before storage can throw. A failed setup still owns a process
       // and must remain observable until an actual exit arrives.
@@ -710,6 +738,35 @@ export class PtyManager {
     if (!s || !s.running || !(cols > 0 && rows > 0)) return
     s.pty.resize(cols, rows)
   }
+
+  // #region managed-owned-observation — docs: docs/execution/harness-waves/resource-worker-launch.md#contract
+  reserveOwnedUnit(packet: PreparedLaunchPacket, environment: Readonly<{AGENT_SYNC_RUN_ID:string}>, controlledTicket?:object): OwnedPtyUnit {
+    const data=resourceData(environment,['AGENT_SYNC_RUN_ID'])
+    if(typeof data.AGENT_SYNC_RUN_ID!=='string'||!/^[a-z0-9]{12}$/.test(data.AGENT_SYNC_RUN_ID))throw new Error('unit environment unavailable')
+    const childEnvironment=Object.freeze({AGENT_SYNC_RUN_ID:data.AGENT_SYNC_RUN_ID})
+    if (!preparedLaunchMatches(packet,{sessionId:packet.sessionId,projectId:packet.projectId,taskId:packet.taskId}) ||
+        this.sessions.has(packet.sessionId) || this.opening.has(packet.sessionId)) throw new Error('unit identity unavailable')
+    const token = Object.freeze({sessionId:packet.sessionId})
+    if(controlledTicket&&!bindControlledSpawnTicket(controlledTicket,this,packet,token))throw new Error('controlled ticket unavailable')
+    this.ownedUnits.set(token,{packet,childEnvironment,controlledTicket,attempted:false})
+    return token
+  }
+
+  async observeOwnedUnit(handle: OwnedPtyUnit) {
+    const held = this.ownedUnits.get(handle), session = held?.session
+    const unknown = () => ({state:'unknown' as const,complete:false as const,executionAuthorized:false as const})
+    if (!held || !session || this.sessions.get(handle.sessionId) !== session || !session.process) return unknown()
+    const process = session.process
+    const observed = await this.processBoundary.observe(process,!session.running)
+    if (this.ownedUnits.get(handle) !== held || held.session !== session ||
+        this.sessions.get(handle.sessionId) !== session || session.process !== process || observed.state === 'unknown') return unknown()
+    return {state:'observed' as const,complete:false as const,executionAuthorized:false as const,
+      sessionId:handle.sessionId,projectId:session.projectId,optionId:session.optionId,
+      processIdentity:Object.freeze({pid:process.pid,group:process.group,start:process.start}),
+      processState:observed.state,rootExited:observed.rootExited,processTreeQuiescent:observed.state==='quiescent',
+      providerQuiescent:null}
+  }
+  // #endregion managed-owned-observation
 
   /**
    * End a running session. The record SURVIVES: the tile stays, showing how it

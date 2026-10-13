@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { preparedFixture } from './prepared-launch-fixture.mjs'
+import { preparedFixture, coordinatorUnits } from './prepared-launch-fixture.mjs'
 import { createResourceLaunchAdapter } from '../src/main/resourceLaunchAdapter.ts'
 import { createAdmitExisting } from '../src/main/admitExisting.ts'
 import { createManagedLaunch } from '../src/main/managedLaunch.ts'
@@ -60,7 +60,7 @@ function fixture() {
     return packetCache.get(key).then(result => door(input, result.state === 'observed' ? result.packet : undefined))
   }, {resourceMode:door.resourceMode})
   const managed = {
-    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: launchResources,
+    db, estateId: ids.estate, actor: { kind: 'system', id: 'test' }, authority: () => null, resources: launchResources, units: coordinatorUnits(launchResources),
     admit: (taskId, sessionId, trigger, packet) => admit({ estateId: ids.estate, taskId, sessionId, trigger, actor: { kind: 'system', id: 'test' } }, packet),
     prepare: async () => {
       if (f.prepareFailure) throw Error('preparation failed')
@@ -297,4 +297,13 @@ test('pending operation blocks only its own entry and consumes a late rejection'
   await new Promise(resolve => setImmediate(resolve))
   f.currentHook = undefined
   assert.equal(await adapter.current(a.receipt), true)
+})
+
+test('readBinding exposes only the actual frozen entry for exact owned receipt and prepared packet',async()=>{
+ const f=fixture(),p=preparedFixture(),captured=await p.inputs.prepare(p.request);assert.equal(captured.state,'observed');f.deps.inputs=p.inputs
+ const a=createResourceLaunchAdapter(f.deps),r=await a.admit(input(),captured.packet);assert.equal(r.admitted,true)
+ const b=a.readBinding(r.receipt,captured.packet);assert.ok(b);assert.ok(Object.isFrozen(b.identity));assert.equal(b.identity.attemptId,'a-'+ids.session)
+ assert.equal(a.readBinding({...r.receipt},captured.packet),null);assert.equal(a.readBinding(r.receipt,{...captured.packet}),null)
+ assert.throws(()=>{p.inputs.owns=()=>true});f.deps.inputs={...p.inputs};assert.equal(a.readBinding(r.receipt,captured.packet),null);f.deps.inputs=p.inputs
+ p.inputs.release(captured.packet);assert.equal(a.readBinding(r.receipt,captured.packet),null)
 })

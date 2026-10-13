@@ -1,0 +1,85 @@
+fixed exit 0
+TAP version 13
+# Subtest: actual child key overrides parent, descriptor and bundle without changing other environment
+ok 1 - actual child key overrides parent, descriptor and bundle without changing other environment
+  ---
+  duration_ms: 2172.628375
+  type: 'test'
+  ...
+# Subtest: child environment extra-key refuses before begin without reading getters
+ok 2 - child environment extra-key refuses before begin without reading getters
+  ---
+  duration_ms: 795.467625
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3411.923666
+
+
+original exit 1
+TAP version 13
+# Subtest: actual child key overrides parent, descriptor and bundle without changing other environment
+not ok 1 - actual child key overrides parent, descriptor and bundle without changing other environment
+  ---
+  duration_ms: 1145.905958
+  type: 'test'
+  location: '<OWNED_TEMP>/fabric-n033-replay-1aq7izog/apps/desktop/test/resource-worker-launch.test.mjs:21:23'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'bundle-conflict'
+    - 'e2d120dfc054'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'e2d120dfc054'
+  actual: 'bundle-conflict'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<OWNED_TEMP>/fabric-n033-replay-1aq7izog/apps/desktop/test/resource-worker-launch.test.mjs:180:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: child environment extra-key refuses before begin without reading getters
+not ok 2 - child environment extra-key refuses before begin without reading getters
+  ---
+  duration_ms: 667.323375
+  type: 'test'
+  location: '<OWNED_TEMP>/fabric-n033-replay-1aq7izog/apps/desktop/test/resource-worker-launch.test.mjs:21:23'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<OWNED_TEMP>/fabric-n033-replay-1aq7izog/apps/desktop/test/resource-worker-launch.test.mjs:192:71)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2630.36075
+
+
+fixed PASS; original EXPECTED_RED (two actual assertions)

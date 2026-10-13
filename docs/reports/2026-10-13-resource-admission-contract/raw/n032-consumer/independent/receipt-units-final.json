@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "reviewer": "pipeline_research",
+  "author": "mcp_research",
+  "verdict": "SCOPED_ACCEPT_N032_MANAGED_CONSUMER",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "apps/desktop/src/main/managedLaunch.ts": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+    "apps/desktop/src/main/pty.ts": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "apps/desktop/src/main/index.ts": "846e7523b16e82e46df0742a3d91235bf9bc99242ff85e7dc621c73179b68bc0",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+    "apps/desktop/test/resource-worker-launch.test.mjs": "c6435a0cc6ec1a316ee6cc0c3325d017905b8db866b8e81ff61a0f923d5e87d1",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "56568a1b72e41a0acb798a0e46a824945c78c0cc4f4292ba92c35ab16c2ad805",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "ec1da860a901eab13765f8633ccedbffad361b05ce580af918c111228f9a1f21",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "eeaa30b610d3cfeaaf5c6be1b593ee5663dbe6c783abd7cd9cd729149b8bfeb4",
+    "docs/execution/harness-waves/resource-worker-launch.md": "f74b213020cc79a5034f0cbc44dbaa02a94f08830e73549cfe31fdb2e54a28f6"
+  },
+  "dependencies": {
+    "resourceWorkerInventory.ts": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "resourceLaunchAdapter.ts": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+    "preparedLaunchInput.ts": "06193bf803a490e85b1de3f686d9d45e17ac84f0468c3db95b583bc4eb72bf94",
+    "processBoundary.ts": "d8e7f668d896e5a4ba7116e0ec038beb91ae490b5ca4070cd4a1f04bcd21856b",
+    "resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870"
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test --test-concurrency=1 $N032_INDEPENDENT/unconfirmed-assignment-regression.mjs $N032_INDEPENDENT/native-inflight.mjs",
+      "exit": 0,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0,
+      "log": "units-final-controls.log"
+    }
+  ],
+  "independentControls": [
+    "Real N028 final refresh held then failed after durable intent: no assignment during/after unknown prepare, actual shared admission adapter reaches no resource RPC, no spawn",
+    "Actual PtyManager/processBoundary pause during observation: same-session LiveSession object replacement returns unknown and does not append process attachment"
+  ],
+  "resolvedFinding": {
+    "lead": "root",
+    "independentReproduction": "pipeline_research",
+    "receipt": "receipt-assignment-blocker.json",
+    "receiptSha256": "a11af0784a3e859496dfc36b7e1c1b36940c793fda8d0702629519d1f7c050ea",
+    "originalSourceSha256": "c71dfa002780a0ab0f1177ad3d229d70d97e5cc05a4017eae1e6f71808966a74",
+    "negativeReplayCommand": "N032_UNIT_SOURCE=$N032_INDEPENDENT/unit-preconfirmation-replay.ts node --experimental-strip-types --test $N032_INDEPENDENT/unconfirmed-assignment-regression.mjs",
+    "negativeExit": 1,
+    "negativeLog": "unconfirmed-regression-pinned-red.log",
+    "correction": "confirmed set only from the returned observed preparation result; lookup rejects unconfirmed/busy and other handle operations reject unconfirmed. Late body settlement cannot promote unknown preparation."
+  },
+  "sourceReview": [
+    "Exact actual resource Entry readback requires owned receipt and prepared references; attempt matches actual N028 handle",
+    "Full validated policy derives stored binding revision; one own worker slot enforced",
+    "N031 chain derives admission data from actual adapter and process data from held LiveSession, remains incomplete",
+    "Ordering resource currentness then unit then prepared then final SQL; no inserted await between final guard and synchronous native spawn",
+    "Post-spawn observation uncertainty retains process-started failure classification; no provider retirement or invented release",
+    "Legacy path without required resources remains unchanged by guarded unit branches",
+    "Docs explicitly distinguish sampled currentness from atomic external state and leave R1 held/full-input authority open"
+  ],
+  "storageAcceptance": {
+    "receipt": "receipt-events.json",
+    "sha256": "9b5ce0b2d5e715a75c64bc7fedd3079aac4f42c25223f98230f1b9c938c5e054",
+    "sourceSha256": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "independentFocusedPass": 29,
+    "independentControlsPass": 3
+  },
+  "builderAttribution": [
+    "Author reports79 focused and targeted types PASS; these are not counted as independently rerun here.",
+    "Author earlier missing-unit and ordering negatives remain author evidence."
+  ],
+  "artifacts": {
+    "unconfirmed-assignment-regression.mjs": "90d9ab8b4442e85f5267a2d922ed81bc67911bbb25bb5be43dce2790b75b6e5d",
+    "native-inflight.mjs": "08831be68e02d7aa6ad7e7619767f2152ab0adaf360cdac1daf412a14ab8dcda",
+    "units-final-controls.log": "b5555d7bc92f22044d51f31bf9105cab65b622e65de03c61e5240385efb2b0fb",
+    "unit-before-confirmation.snapshot.txt": "c71dfa002780a0ab0f1177ad3d229d70d97e5cc05a4017eae1e6f71808966a74",
+    "unit-preconfirmation-replay.ts": "a3b7ab4fdff14267456c35d9f3b4af51cf22c45a0678f2eced86678cca08aff2",
+    "unconfirmed-regression-pinned-red.log": "413f74f34c38a850b93cce42b5e0b61c08ebe0ebec810694824fb5764623c4a5"
+  },
+  "limitations": [
+    "Actual production modules with synthetic SQL/capacity/ownership/native spawn/process transport; no DB or provider/native activation",
+    "No complete worker inventory, global entry coverage, R1 held authority, complete selected-input authority, installed wiring or active DDL",
+    "External currentness is sampled, not atomic across all awaited mutable facts",
+    "Parent owns final integrated typechecks/combined gate, documentation/register integration and publication",
+    "One doc-only sampled-currentness clarification followed final tests; all source/test bytes unchanged and final manifest verified"
+  ]
+}

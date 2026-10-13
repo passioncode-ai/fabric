@@ -9,3 +9,12 @@ export function preparedFixture(options={}){
  const deps={store,estateId:id.estate,maxEntries:8,maxInstructionBytes:65536,contextBudget:12000,timeoutMs:100,...options.deps}
  return Object.assign(f,{id,store,deps,inputs:createPreparedLaunchInputs(deps),request:{taskId:id.task,sessionId:id.session,trigger:'operator',permissionMode:null}})
 }
+
+// Coordinator-only dependency for the older N029/R3 tests. It proves no worker
+// storage or native ownership; resource-managed-unit.test exercises those real collaborators.
+export function coordinatorUnits(resources){
+ const handles=new WeakSet()
+ return {resources,async prepare(packet){const h=Object.freeze({sessionId:packet.sessionId});handles.add(h);return {state:'observed',value:h,complete:false,executionAuthorized:false}},
+  async attachAdmission(h){return handles.has(h)},async current(h){return handles.has(h)},native(h){return handles.has(h)?h:null},
+  async observe(h){return {state:handles.has(h)?'observed':'unknown',complete:false,executionAuthorized:false}}}
+}

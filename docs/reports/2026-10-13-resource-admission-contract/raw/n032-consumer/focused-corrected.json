@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "apps/desktop/test/resource-worker-launch.test.mjs",
+    "apps/desktop/test/prepared-managed-launch.test.mjs",
+    "apps/desktop/test/resource-launch-adapter.test.mjs"
+  ],
+  "exit": 0
+}

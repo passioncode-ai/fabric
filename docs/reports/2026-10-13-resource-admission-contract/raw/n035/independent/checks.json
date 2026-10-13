@@ -1,0 +1,37 @@
+[
+  {
+    "label": "corrected",
+    "command": [
+      "nice",
+      "-n",
+      "10",
+      "node",
+      "--experimental-strip-types",
+      "--test",
+      "--test-reporter=tap",
+      "--test-concurrency=1",
+      "<INDEPENDENT_OVERLAY>/apps/desktop/test/controls.mjs"
+    ],
+    "exitCode": 0,
+    "seconds": 17.917418875033036
+  },
+  {
+    "label": "original",
+    "command": [
+      "nice",
+      "-n",
+      "10",
+      "node",
+      "--loader",
+      "<INDEPENDENT_OVERLAY>/negative-loader.mjs",
+      "--experimental-strip-types",
+      "--test",
+      "--test-reporter=tap",
+      "--test-concurrency=1",
+      "--test-name-pattern=mapped failed delivery",
+      "<INDEPENDENT_OVERLAY>/apps/desktop/test/controls.mjs"
+    ],
+    "exitCode": 1,
+    "seconds": 5.893282208999153
+  }
+]

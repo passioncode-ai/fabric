@@ -1,0 +1,10 @@
+{
+  "command": [
+    "FABRIC_REPO=<candidate>",
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "controls.mjs"
+  ],
+  "exit": 0
+}

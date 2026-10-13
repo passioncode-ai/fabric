@@ -92,8 +92,6 @@ node scripts/repin-public-history.mjs --summary >/dev/null
 node --test scripts/test/sibling-commits.test.mjs
 node scripts/check-sibling-commits.mjs
 node scripts/check-adoption-plan.mjs
-# Unified execution context: source drift, coverage and cross-task findings block dispatch.
-node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs scripts/test/reconcile-unified-start.test.mjs
 node scripts/check-adoption-bindings.mjs
 # Existed since the R0 operator audit and nothing ran it (the FA-10 class).
 node scripts/check-operator-plan.mjs
@@ -183,6 +181,10 @@ step "commands: an event type with a command has one writer"
 # door is a second set of rules; they diverge the first time somebody in a hurry
 # fixes one of them.
 node scripts/check-commands.mjs
+
+# Run the expensive fixture compiler after source-only refusals; no gate is skipped.
+# Unified execution context: source drift, coverage and cross-task findings block dispatch.
+node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs scripts/test/reconcile-unified-start.test.mjs
 
 step "build — what ships is what the probes read"
 # Added 2026-09-06. `preload-sandbox.test.mjs` reads the SHIPPED bundle, and
@@ -348,6 +350,9 @@ node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot
 node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-pool-registry.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-controlled-pool.test.mjs
 node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs
 # #endregion harness-regressions
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
@@ -634,7 +639,7 @@ python3 test/audit_regressions/fix-pf-10.02.py
 if [ "$TIER" = "fast" ]; then
   printf '\n\033[1mfast tier green.\033[0m The stack-backed probes did not run — use `scripts/ci.sh full`.\n'
   if [ "${#owned_fast_not_run[@]}" -gt 0 ]; then
-    printf 'NOT_RUN: the owned-database step did not run (%s) — this green does not cover it; set FABRIC_PG_BIN.\n' "${owned_fast_not_run[*]}"
+    printf 'NOT_RUN: the owned-database step did not run (%s) — this green does not cover it; see the runner prerequisite reason above.\n' "${owned_fast_not_run[*]}"
   fi
   exit 0
 fi

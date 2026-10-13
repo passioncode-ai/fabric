@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "status": "FROZEN_PENDING_INDEPENDENT_REVIEW",
+  "scope": "N032 immutable attachment storage extension only; N031 original acceptance separate",
+  "source_hashes": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7"
+  },
+  "base_hashes": {
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "2ff89b1f8721354b53f40df4d65b51eff4bda377a71ee0db03cb866f8bb5c076",
+    "apps/desktop/test/resource-worker-inventory.test.mjs": "b29e4a4276bec38723ada070eafe789466f69959f0fc7deca253e9d8f85c1f8b",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "114e95502ce9e385a533466f8684dbe9ab463dfff6b1edbca400806d294d7328"
+  },
+  "patch_sha256": "b56882c66021f4f1fcdc2bf1470b8eb11d946d38584acafd7983c15b0c69c96a",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 0,
+      "pass": 29,
+      "skip": 0,
+      "log": "focused-final.log"
+    },
+    {
+      "command": "node apps/desktop/node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler --allowImportingTsExtensions --types node --typeRoots apps/desktop/node_modules/@types apps/desktop/src/main/resourceWorkerInventory.ts",
+      "exit": 0,
+      "log": "types-final.log"
+    }
+  ],
+  "negative_controls": [
+    {
+      "kind": "source plant admission parent digest guard removed",
+      "source_sha256": "866ab493a5f755b558176f41c72124eb4a1600ab25bdb5bd486f0113ef70aedd",
+      "command": "node --experimental-strip-types --test --test-name-pattern='N032 retained orphan' apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 1,
+      "log": "controls/parent-digest-removed/negative.log"
+    },
+    {
+      "kind": "actual evolving source before cross-unit uniqueness correction; reviewer lead and consumer-confirmed domain constraint",
+      "source_sha256": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+      "command": "node --experimental-strip-types --test --test-name-pattern='N032.*cross-unit' apps/desktop/test/resource-worker-inventory.test.mjs",
+      "exit": 1,
+      "fail": 2,
+      "log": "controls/cross-unit-before/negative.log"
+    }
+  ],
+  "limitations": [
+    "Synthetic attachment facts, actual N028/FS/Git/function fixtures; SQL/native consumer independently owned, not certified here",
+    "Original focused source first29 test predecessor27 and one capacity control passed; final29 rerun shown",
+    "Initial scoped typecheck failed from missing type-only resourceAdmission dependency; actual dependency added unchanged and corrected typecheck passed",
+    "A control was accidentally run against current source and passed; accidental-current-source-control-pass.log is not RED evidence",
+    "No complete worker inventory, no retirement, no held authority, no active DDL/native launch/installed wiring",
+    "No root writes or combined gate; integration owned by parent"
+  ],
+  "dependency_hashes": {
+    "apps/desktop/src/shared/scope.ts": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/src/main/gitLeaseSnapshot.ts": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "apps/desktop/src/main/gitRun.ts": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+    "apps/desktop/src/main/scopedStore.ts": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+    "apps/desktop/src/main/resourceInputSnapshot.ts": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+    "apps/desktop/src/main/resourceHostPolicy.ts": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "scripts/resourceAgentSyncIdentity.py": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a"
+  }
+}

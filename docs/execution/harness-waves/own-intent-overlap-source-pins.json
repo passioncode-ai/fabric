@@ -1,0 +1,23 @@
+{
+  "reviewer": "/root/pipeline_research",
+  "status": "DESIGN_ONLY",
+  "sourceSha256": {
+    "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+    "apps/desktop/src/main/resourcePoolPublisher.ts": "1db98eeddf38514075c751d5894b18af8dc79a8ed57a20f08d0266990bd495a6",
+    "apps/desktop/src/main/resourcePoolAccounting.ts": "79b8e9a727ab1be0530f3aa7fa9c591c10b478cb87749708b3db926eeb52a358",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+    "apps/desktop/src/shared/resourceAdmission.ts": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770",
+    "supabase/pending-migrations/20261013000108_resource_wait_queue.sql": "c573fd1a0576facda59bd06f1b6714b448279783b8a85e6ea1d30d512d4d7eca"
+  },
+  "testsRun": false,
+  "rootWrites": false,
+  "packetBytes": 11619,
+  "openDesignDetails": [
+    "Exact versioned SQL schema/RPC names and migration allocation",
+    "Cut head progression across writer/configuration epochs",
+    "Private sampler receipt integration without caller-provided sample",
+    "Candidate proof adapter API bound to actual producer and independently required ownership"
+  ]
+}

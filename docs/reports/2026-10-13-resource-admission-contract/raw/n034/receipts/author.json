@@ -1,0 +1,49 @@
+{
+  "status": "SCOPED_ACCEPT_STORAGE_ONLY",
+  "scope": "N034 incomplete storage slice A; no N031 consumer, native permission, retirement, DB or activation",
+  "source": {
+    "apps/desktop/src/main/resourcePoolRegistry.ts": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9",
+    "apps/desktop/test/resource-pool-registry.test.mjs": "176bd739e131250809e276fab42935548ce31565d9cbf77ab1d39d75a96f2a0a",
+    "docs/execution/harness-waves/resource-pool-registry.md": "bec5b9ea7429ceb9a5ade2d6dc8bbe5f1a8fc7cc066a19f6836e02ff0be7dcea"
+  },
+  "focused": {
+    "passed": 25,
+    "failed": 0,
+    "exitCode": 0,
+    "durationMs": 23454.069
+  },
+  "negativeControl": {
+    "sourceSha256": "76189e55216b1ba8f64fccf761e8a175c41f207f5db67ea2c6c87d13feb65d74",
+    "controls": 3,
+    "exitCode": 1,
+    "findings": [
+      "cached seal acknowledgement lent to foreign handle",
+      "head digest ignored noncanonical raw bytes",
+      "unclosed writer FileHandle caused GC exception"
+    ]
+  },
+  "history": [
+    {
+      "log": "logs/focused.log",
+      "state": "UNPINNED_DIAGNOSTIC",
+      "assertionsPassed": 17,
+      "assertionsFailed": 2,
+      "note": "Two 150ms setup timeouts under host load; not product acceptance."
+    },
+    {
+      "log": "logs/focused-final.log",
+      "state": "PINNED_REJECTED_CANDIDATE",
+      "assertionsPassed": 22,
+      "processExitCode": 1,
+      "note": "GC FileHandle exceptions after assertions. Not PASS."
+    }
+  ],
+  "types": {
+    "exitCode": 0,
+    "durationSeconds": 3.552,
+    "scope": "strict targeted source and imported dependencies",
+    "bootstrap": "Initial wrong compiler path MODULE_NOT_FOUND retained separately"
+  },
+  "complete": false,
+  "executionAuthorized": false
+}

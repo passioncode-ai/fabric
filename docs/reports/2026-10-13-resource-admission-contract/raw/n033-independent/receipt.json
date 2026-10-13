@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "verdict": "SCOPED_ACCEPT_N033_DELTA",
+  "reviewer": "mcp_research",
+  "author": "pipeline_research",
+  "disclosure": "Reviewer authored N032 baseline and admission-confirmation correction; this independent verdict covers only N033 child-environment delta. Builder fixture scaffolding reused, independent assertions added.",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177",
+    "apps/desktop/src/main/pty.ts": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202",
+    "apps/desktop/test/resource-worker-launch.test.mjs": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+    "docs/execution/harness-waves/resource-worker-launch.md": "f3bf88178488bdd51d1c8de5b073d6ef5eebb50ddc035ae9b9120d94dc755734"
+  },
+  "checks": [
+    {
+      "command": "FABRIC_REPO=<candidate> node --experimental-strip-types --test controls.mjs",
+      "exit": 0,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0,
+      "log": "controls.log"
+    }
+  ],
+  "independentControls": [
+    "Required final child key preserves removal of all six inherited Fabric spine credentials and inherited launched-session marker; synthetic values only",
+    "Actual captured producer method replacement during awaited environment read refuses before begin/spawn",
+    "Non-enumerable extra environment key refuses exact one-key projection before begin/spawn"
+  ],
+  "sourceReview": [
+    "Actual N028 childEnvironment called with retained exact assignment handle; method and producer identity captured and checked across awaits",
+    "resourceData enforces plain own one-key data; value validated as bounded twelve-character key; immutable copy attached to opaque WeakMap token",
+    "Final PTY environment applies actual token after sanitized parent, descriptor and bundle; legacy no-token precedence unchanged",
+    "All new environment reads await before final SQL guard; synchronous spawn interval unchanged",
+    "Admission-confirmation correction retained; environment timeout cannot mint/expose an unconfirmed native handle",
+    "Docs distinguish child correlation from lease acquisition or full coverage; same-process trusted infrastructure boundary explicit"
+  ],
+  "builderEvidenceNotIndependentlyRerun": [
+    "90 focused tests and targeted types",
+    "two original-source negative controls"
+  ],
+  "limitations": [
+    "No native/provider execution, active policy, installed DDL or production acceptance",
+    "Independent tests exercise production modules with synthetic SQL/R1/native transport",
+    "No independent self-certification of N032 baseline or correction",
+    "Parent owns combined final-tree typechecks/fullfast/publication"
+  ],
+  "artifacts": {
+    "controls.log": "f54bec99a18f86ef13d8307e93f58c1bbcc7d70e80ad39456c1e7e7b8b3eb33a",
+    "source-manifest.json": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "controls.mjs": "9c91d81662f2eea829c30138e08643b26008ed75399e65dc283e4f2b0adf40fa",
+    "command.json": "e0b49307863acd958a3f3daf9fd0a718949e8f688826c934398ad6863c14edac"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "at": "2026-10-13T09:31:41.068918+00:00",
+  "loadAverage": [
+    425.89794921875,
+    386.0986328125,
+    278.09521484375
+  ],
+  "logicalCpu": 14,
+  "ownCheckPid": 12065,
+  "ownedTree": [
+    {
+      "pid": 2089,
+      "ppid": 9294,
+      "elapsed": "00:14",
+      "cpuPercent": 0.0,
+      "program": "node"
+    },
+    {
+      "pid": 3128,
+      "ppid": 2089,
+      "elapsed": "00:10",
+      "cpuPercent": 0.1,
+      "program": "Python"
+    },
+    {
+      "pid": 4828,
+      "ppid": 3128,
+      "elapsed": "00:01",
+      "cpuPercent": 0.0,
+      "program": "(Python)"
+    },
+    {
+      "pid": 9236,
+      "ppid": 12619,
+      "elapsed": "13:52",
+      "cpuPercent": 0.0,
+      "program": "node"
+    },
+    {
+      "pid": 9294,
+      "ppid": 9236,
+      "elapsed": "13:51",
+      "cpuPercent": 0.0,
+      "program": "node"
+    },
+    {
+      "pid": 12065,
+      "ppid": 51783,
+      "elapsed": "20:51",
+      "cpuPercent": 0.0,
+      "program": "Python"
+    },
+    {
+      "pid": 12619,
+      "ppid": 12065,
+      "elapsed": "20:48",
+      "cpuPercent": 0.0,
+      "program": "bash"
+    },
+    {
+      "pid": 12629,
+      "ppid": 12619,
+      "elapsed": "20:48",
+      "cpuPercent": 0.0,
+      "program": "caffeinate"
+    }
+  ],
+  "response": "One owned heavy gate already running at nice10; no new parallel heavy checks or foreign process changes"
+}

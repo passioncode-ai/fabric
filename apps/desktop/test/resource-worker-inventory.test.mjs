@@ -24,9 +24,9 @@ async function assignmentFixture(t,extra={}) {
  const manifest={selectionRevision:'selection-1',scopeMappingRevision:'scope-1',configuredKey:'lane-key',expectedHead:execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),selectedInputs:[{path:'README.md'}],mutableScope:[{path:'output.txt',state:'absent'}],bounds:{maxPaths:8,maxDepth:8,maxPathBytes:512,maxFileBytes:1024,maxTotalBytes:4096,maxMetadataBytes:65536,timeoutMs:1000,maxAgeMs:60000}}
  const manifestPath=path.join(root,'lane.json'),bytes=JSON.stringify(manifest);await fs.writeFile(manifestPath,bytes,{mode:0o600})
  const config={estateId:'estate',projectId:'project',installationId:'install',invocationId:'invocation',repositoryRoot:repo,approvedRemote:'https://fixture.invalid/repo.git',repositoryName:'repo',manifestPath,manifestSha256:hash(bytes),storageRoot:storeRoot,agentSyncScript:installed,timeoutMs:3000,maxRecords:8,maxRecordBytes:32768,maxManifestBytes:32768,...extra}
- const state={task:{id:'task',project_id:'project'},project:{id:'project',repo_path:repo},hang:null,calls:[]}
+ const state={task:{id:'task',project_id:'project'},project:{id:'project',repo_path:repo},hang:null,calls:[],key:'fabric000001'}
  const store={scope:{kind:'estate',estateId:'estate'},select(table,columns){state.calls.push({table,columns});return {eq(key,value){state.calls.at(-1).filter={key,value};return {async maybeSingle(){if(state.hang) await state.hang;return {data:table==='project_tasks'?state.task:state.project,error:null}}}}}}}
- const make=(deps={},c={})=>createResourceRunAssignmentManager({...config,...c},{store,key:()=> 'fabric000001',...deps})
+ const make=(deps={},c={})=>createResourceRunAssignmentManager({...config,...c},{store,key:()=>state.key,...deps})
  return {root,repo,storeRoot,config,manifest,state,store,make,async allocate(manager=make(),sessionId='session'){const r=await manager.allocate({taskId:'task',sessionId});assert.equal(r.state,'observed',JSON.stringify(r));return {manager,...r.value}}}
 }
 
@@ -118,4 +118,74 @@ for(const failedKind of ['event','directory'])test(`exact retry reestablishes ev
  const f=await fixture(t),m=f.make(),dummy=await fs.open(path.join(f.root,'dummy'),'w'),proto=Object.getPrototypeOf(dummy);await dummy.close();const original=proto.sync;let fail=true;const counts={event:0,directory:0}
  proto.sync=async function(){const kind=(await this.stat()).isDirectory()?'directory':'event';counts[kind]++;if(fail&&kind===failedKind){fail=false;throw Error('injected sync refusal')}return original.call(this)}
  try{assert.equal((await m.register(f.allocated.handle,'managed')).state,'unknown');const names=await files(f);assert.equal(names.length,1);const bytes=await fs.readFile(path.join(f.storage,names[0])),before={...counts};const retry=await m.register(f.allocated.handle,'managed');assert.equal(retry.state,'recorded');assert.ok(counts.event>before.event);assert.ok(counts.directory>before.directory);assert.deepEqual(await fs.readFile(path.join(f.storage,names[0])),bytes)}finally{proto.sync=original}
+})
+
+const admission=()=>({taskRunId:'11111111-1111-4111-8111-111111111111',runOrdinal:1,reservationId:'reservation',fence:1,inputDigest:'1'.repeat(64),scopeDigest:'2'.repeat(64),contentDigest:'3'.repeat(64),bindingRevision:'policy-sha256-v1:'+'4'.repeat(64)})
+const processFacts=()=>({pid:123,group:123,start:'fixture-start-1'})
+async function registered(t,overrides={}){const f=await fixture(t,overrides),m=f.make(),r=await m.register(f.allocated.handle,'managed');assert.equal(r.state,'recorded');return {...f,m,intent:r.value}}
+test('N032 durable ordered attachments preserve exact parent digests and retry bytes without authority',async t=>{
+ const f=await registered(t),a=await f.m.attachAdmission(f.intent.handle,admission());assert.equal(a.state,'recorded');assert.equal(a.value.event.parentRecordSha256,f.intent.recordSha256)
+ const p=await f.m.attachProcess(f.intent.handle,processFacts());assert.equal(p.state,'recorded');assert.equal(p.value.event.parentRecordSha256,a.value.recordSha256);assert.equal(p.complete,false);assert.equal(p.executionAuthorized,false)
+ assert.deepEqual(await f.m.attachAdmission(f.intent.handle,admission()),a);assert.deepEqual(await f.m.attachProcess(f.intent.handle,processFacts()),p);assert.equal((await files(f)).length,3)
+ const read=await f.m.readAttachments(f.intent.handle);assert.equal(read.state,'recorded');assert.deepEqual(read.value,{admission:a.value,process:p.value});assert.equal((await f.m.readIntent(f.intent.handle)).state,'recorded')
+ const snap=await f.m.snapshot();assert.equal(snap.value.unresolved.length,1);assert.equal(snap.value.complete,false);assert.deepEqual(snap.value.knownActive,[]);assert.equal(snap.value.unresolved[0].process.recordSha256,p.value.recordSha256)
+})
+test('N032 attachment ordering, copied handles and conflicting tuple refuse without overwrite',async t=>{
+ const f=await registered(t);assert.equal((await f.m.attachProcess(f.intent.handle,processFacts())).state,'unknown');assert.equal((await f.m.attachAdmission({...f.intent.handle},admission())).state,'unknown');assert.equal((await files(f)).length,1)
+ const a=await f.m.attachAdmission(f.intent.handle,admission());assert.equal(a.state,'recorded');assert.equal((await f.m.attachAdmission(f.intent.handle,{...admission(),fence:2})).state,'unknown');assert.equal((await files(f)).length,2)
+ await f.m.attachProcess(f.intent.handle,processFacts());assert.equal((await f.m.attachProcess(f.intent.handle,{...processFacts(),start:'changed'})).state,'unknown');assert.equal((await files(f)).length,3)
+})
+test('N032 malformed counters, digest labels, process identity and accessors refuse',async t=>{
+ const f=await registered(t)
+ for(const value of [{...admission(),fence:0},{...admission(),runOrdinal:1.5},{...admission(),fence:Number.MAX_SAFE_INTEGER+1},{...admission(),bindingRevision:'policy'},{...admission(),inputDigest:'unknown'},Object.defineProperty(admission(),'fence',{get(){throw Error('must-not-read')}})])assert.equal((await f.m.attachAdmission(f.intent.handle,value)).state,'unknown')
+ assert.equal((await files(f)).length,1);await f.m.attachAdmission(f.intent.handle,admission())
+ for(const value of [{...processFacts(),pid:1},{...processFacts(),group:124},{...processFacts(),start:'\nsecret'},{...processFacts(),start:''}])assert.equal((await f.m.attachProcess(f.intent.handle,value)).state,'unknown');assert.equal((await files(f)).length,2)
+})
+test('N032 retained orphan, changed parent and duplicate attachment make registry unknown',async t=>{
+ for(const mutate of ['orphan','parent','duplicate','binding']){
+  const f=await registered(t),a=await f.m.attachAdmission(f.intent.handle,admission()),name=`${a.value.event.unitId}.${a.value.event.eventId}.json`,file=path.join(f.storage,name),e=JSON.parse(await fs.readFile(file,'utf8'))
+  if(mutate==='orphan'){const base=(await files(f)).find(x=>x!==name);await fs.unlink(path.join(f.storage,base))}
+  if(mutate==='parent'){e.parentRecordSha256='f'.repeat(64);await fs.writeFile(file,JSON.stringify(e))}
+  if(mutate==='binding'){e.poolId='other';await fs.writeFile(file,JSON.stringify(e))}
+  if(mutate==='duplicate'){e.eventId='22222222-2222-4222-8222-222222222222';await fs.writeFile(path.join(f.storage,`${e.unitId}.${e.eventId}.json`),JSON.stringify(e),{mode:0o600})}
+  assert.equal((await f.m.snapshot()).state,'unknown');assert.equal((await f.m.readAttachments(f.intent.handle)).state,'unknown')
+ }
+})
+test('N032 total-file capacity includes attachments and exact retry remains allowed at cap',async t=>{
+ const f=await registered(t,{maxRecords:2});assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'recorded');assert.equal((await f.m.attachProcess(f.intent.handle,processFacts())).state,'unknown');assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'recorded');assert.equal((await files(f)).length,2)
+})
+test('N032 failed attachment sync cannot be upgraded by a read without fresh barriers',async t=>{
+ const f=await registered(t),probe=await fs.open(path.join(f.root,'probe'),'w'),proto=Object.getPrototypeOf(probe),sync=proto.sync;await probe.close();let calls=0
+ proto.sync=async function(){calls++;throw Error('fixture sync failure')}
+ try{assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'unknown');assert.equal((await files(f)).length,2);const before=calls;assert.equal((await f.m.readAttachments(f.intent.handle)).state,'unknown');assert.ok(calls>before)}finally{proto.sync=sync}
+ const good=await f.m.readAttachments(f.intent.handle);assert.equal(good.state,'recorded');assert.ok(good.value.admission);assert.equal((await files(f)).length,2)
+})
+test('N032 attachment membership drift after write preserves uncertain event without permission',async t=>{
+ const f=await registered(t),select=f.store.select;let reads=0
+ f.store.select=function(...args){const q=select.apply(this,args),eq=q.eq;q.eq=function(...a){const out=eq.apply(this,a),read=out.maybeSingle;out.maybeSingle=async()=>{if(++reads>=3)f.state.task={id:'task',project_id:'foreign'};return read()};return out};return q}
+ assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'unknown');assert.equal((await files(f)).length,2)
+})
+test('N032 restart snapshot retains conservative chain but cannot restore attachment authority',async t=>{
+ const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());const later=f.make({invocationId:'later'},{assignments:f.manager,host:{hostInstanceId:'host',bootId:'later'}})
+ const snap=await later.snapshot();assert.equal(snap.state,'recorded');assert.equal(snap.value.unresolved[0].classification,'prior_binding_unresolved');assert.ok(snap.value.unresolved[0].process);assert.equal(snap.complete,false);assert.equal((await later.readAttachments(f.intent.handle)).state,'unknown')
+})
+
+test('N032 new unit registration cannot exceed total files or bytes occupied by prior attachments',async t=>{
+ for(const bound of ['files','bytes']){
+  const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2')
+  let size=0;for(const file of await files(f))size+=(await fs.stat(path.join(f.storage,file))).size
+  const limited=f.make(bound==='files'?{maxRecords:3}:{maxRegistryBytes:size})
+  assert.equal((await limited.register(next.handle,'managed')).state,'unknown');assert.equal((await files(f)).length,3);assert.equal((await limited.snapshot()).state,'recorded')
+ }
+})
+
+test('N032 rejects cross-unit admission and exact owned-process identity collisions before writing',async t=>{
+ const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2'),r=await f.m.register(next.handle,'managed');assert.equal(r.state,'recorded')
+ assert.equal((await f.m.attachAdmission(r.value.handle,{...admission(),reservationId:'other'})).state,'unknown');assert.equal((await f.m.attachAdmission(r.value.handle,{...admission(),taskRunId:'22222222-2222-4222-8222-222222222222'})).state,'unknown');assert.equal((await files(f)).length,4)
+ const a={...admission(),reservationId:'other',taskRunId:'22222222-2222-4222-8222-222222222222'};assert.equal((await f.m.attachAdmission(r.value.handle,a)).state,'recorded');assert.equal((await f.m.attachProcess(r.value.handle,processFacts())).state,'unknown');assert.equal((await files(f)).length,5)
+ assert.equal((await f.m.attachProcess(r.value.handle,{...processFacts(),start:'later'})).state,'recorded');assert.equal((await files(f)).length,6)
+})
+test('N032 retained cross-unit admission collision refuses full scan despite valid parent chains',async t=>{
+ const f=await registered(t);const first=await f.m.attachAdmission(f.intent.handle,admission());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2'),r=await f.m.register(next.handle,'managed'),a=await f.m.attachAdmission(r.value.handle,{...admission(),reservationId:'other',taskRunId:'22222222-2222-4222-8222-222222222222'});assert.equal(a.state,'recorded')
+ const e={...a.value.event,attachment:{...a.value.event.attachment,taskRunId:first.value.event.attachment.taskRunId}};await fs.writeFile(path.join(f.storage,`${e.unitId}.${e.eventId}.json`),JSON.stringify(e)+'\n');assert.equal((await f.m.snapshot()).state,'unknown')
 })

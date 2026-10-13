@@ -1,0 +1,56 @@
+✔ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (830.412291ms)
+✔ actual private admission binding attempt mismatch refuses before begin; intent remains (331.329666ms)
+✔ foreign prepared/receipt/unit/native handles never manufacture binding (374.839708ms)
+✔ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (836.452834ms)
+✔ spawn succeeded then journal uncertainty retains unit and cannot compensate no-process (300.817ms)
+✔ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (315.6225ms)
+✔ native handle observes held object, not a replacement with the same session id (299.857583ms)
+✔ PID start reuse and escaped descendants remain unknown, not active or retired (293.468416ms)
+✔ root/tree exit without provider proof stays retained and inventory incomplete (306.937334ms)
+✔ unit timeout retains one actual assignment read; repeated preparation never reallocates (105.325708ms)
+✔ observation timeout retains one native snapshot and late settlement cannot append (5532.462667ms)
+✔ missing unit dependency and substituted actual collaborators refuse before new effects (118.965375ms)
+✔ resource refresh cannot hide changed actual intent coverage before final SQL (367.708375ms)
+✔ lost reply after actual durable admission attachment prevents begin and preserves evidence (286.230542ms)
+✔ one logical unit cannot bind an own demand of multiple worker slots (247.508666ms)
+✔ exit before bind cannot turn an actually spawned unit into never-spawned compensation (601.966083ms)
+✔ assignment is exposed only after confirmed preparation: successful refresh (301.108ms)
+✔ assignment is exposed only after confirmed preparation: late failed refresh (1688.478042ms)
+✔ actual child key overrides parent, descriptor and bundle without changing other environment (380.569625ms)
+✔ changed actual mapping during resource refresh refuses before SQL and spawn (289.691292ms)
+✔ child environment extra-key refuses before begin without reading getters (256.88575ms)
+✔ child environment getter refuses before begin without reading getters (359.556ms)
+✔ child environment refused refuses before begin without reading getters (192.858458ms)
+✔ child environment rejected refuses before begin without reading getters (253.528166ms)
+✔ timed out environment read remains occupied and cannot expose native token after late settlement (1458.978584ms)
+✔ PTY refuses copied token and invalid environment schema before any spawn (487.034875ms)
+✔ ordinary legacy PTY keeps descriptor and bundle environment precedence (45.988917ms)
+✖ late native allocation after admission deadline remains private until confirmed reconciliation (1583.43925ms)
+✔ changed producer key during final refresh refuses before SQL and spawn (408.709333ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 28
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19022.382458
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
+✖ late native allocation after admission deadline remains private until confirmed reconciliation (1583.43925ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:223:28)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

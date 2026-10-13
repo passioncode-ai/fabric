@@ -1,0 +1,12 @@
+{
+  "scripts/workspace.mjs": "62728df5d392f932ec791b2930b121364120dca43ae953bbddb6e7ca43dd6915",
+  "scripts/workspace-release.mjs": "a8b56931939403866d40179d1b0e9f89602b99573dbf8ac3733f39727ab3c747",
+  "scripts/workspace-snapshot.mjs": "7d84ded3543596d08136e8157d9d3654a442de4740edcc7e0da002f6c97e63b9",
+  "scripts/ci.sh": "fd69bb948d99108ca5b3863ab5142981a86a8e23e8178b901e13c9addbbd2c55",
+  "scripts/build-manifest.mjs": "4d06fda6d23cbb2f049bdfef07c8c825db2b3197e6032eef8ec17f796d149892",
+  "scripts/lib/toolchain.mjs": "3e52aba50821eccf7846a16d8e4f4978152d2d20ff21e8bd78d0e0fb39f30091",
+  "scripts/test/build-unified-plan.test.mjs": "64693185f103d44d5bc6b0f4823576898fc652ef59b75206cbcc0c392f225f44",
+  "apps/desktop/test/run-resource-reservation-db.mjs": "a24413d3b0e5bad431258465df2a95bd80e029875c98a450261ee1ebeda9e42c",
+  "docs/handoffs/2026-10-13-harness-waves.md": "ddbb249efde0d90b9542adf701c7d2b087fea9161e51ed6e73050806591fb9f1",
+  "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json": "9db6fd8697b35f3b257851d66ee2832cdbc02c58b31e6b1d61ae2d5239a36017"
+}

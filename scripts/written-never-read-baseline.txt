@@ -61,11 +61,9 @@ RunStatusView.runRef
 Subject.authUser
 Subject.displayName
 SwitchOperation.newGeneration
-Target.taskRunId
 TaskRow.brief_draft
 TaskRow.moved_at
 TaskRow.moved_by
-TaskRun.taskRunId
 UsageObservation.contextIdentity
 UsageObservation.nextProbeAt
 UsageWindow.resetAt

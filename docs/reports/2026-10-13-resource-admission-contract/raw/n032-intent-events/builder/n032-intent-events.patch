@@ -1,0 +1,338 @@
+--- a/apps/desktop/src/main/resourceWorkerInventory.ts
++++ b/apps/desktop/src/main/resourceWorkerInventory.ts
+@@ -19,6 +19,30 @@
+   estateId:string;hostId:string;poolId:string;localPolicyRevision:string;invocationId:string
+   adapterId:string;adapterSourceSha256:string;coverageSha256:string;runId:string;assignment:Identity
+ }
++export interface WorkerAdmissionAttachment {
++ taskRunId:string;runOrdinal:number;reservationId:string;fence:number
++ inputDigest:string;scopeDigest:string;contentDigest:string;bindingRevision:string
++}
++export interface WorkerProcessAttachment {pid:number;group:number;start:string}
++type AttachmentKind='admission.attached'|'process.attached'
++type AttachmentEvent=Omit<Intent,'kind'> & {kind:AttachmentKind;parentRecordSha256:string;attachment:WorkerAdmissionAttachment|WorkerProcessAttachment}
++type SavedAttachment={event:AttachmentEvent;bytes:string}
++type IntentRow={event:Intent;bytes:string;admission?:SavedAttachment;process?:SavedAttachment}
++function attachment(kind:AttachmentKind,raw:unknown):WorkerAdmissionAttachment|WorkerProcessAttachment{
++ if(kind==='admission.attached'){
++  const r=object(raw,['taskRunId','runOrdinal','reservationId','fence','inputDigest','scopeDigest','contentDigest','bindingRevision'])
++  uuid(r.taskRunId);id(r.reservationId)
++  for(const key of ['runOrdinal','fence'])if(!Number.isSafeInteger(r[key])||(r[key] as number)<1)throw Error('invalid_counter')
++  for(const key of ['inputDigest','scopeDigest','contentDigest'])digest(r[key])
++  if(typeof r.bindingRevision!=='string'||!/^policy-sha256-v1:[a-f0-9]{64}$/.test(r.bindingRevision))throw Error('invalid_binding_revision')
++  return freeze({...r}) as unknown as WorkerAdmissionAttachment
++ }
++ const r=object(raw,['pid','group','start'])
++ if(!Number.isSafeInteger(r.pid)||(r.pid as number)<=1||r.group!==r.pid||typeof r.start!=='string'||!r.start.trim()||r.start.length>128||/[^\x20-\x7e]/.test(r.start))throw Error('invalid_process')
++ return freeze({...r}) as unknown as WorkerProcessAttachment
++}
++const payloadEqual=(a:object,b:object)=>Object.keys(a).every(k=>a[k as keyof typeof a]===b[k as keyof typeof b])
++const allRows=(rows:IntentRow[])=>rows.flatMap(r=>[r,...(r.admission?[r.admission]:[]),...(r.process?[r.process]:[])])
+ const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex')
+ const digest=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{64}$/.test(v))throw Error('invalid_digest');return v}
+ const uuid=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v))throw Error('invalid_uuid');return v}
+@@ -99,16 +123,51 @@
+   const a=identity(r.assignment);if(r.unitId!==a.attemptId||r.estateId!==a.estateId)throw Error('identity_conflict')
+   return freeze({...r,assignment:a}) as unknown as Intent
+  }
++ function validateAttachment(raw:unknown,name:string):AttachmentEvent{
++  const r=object(raw,['schema','kind','unitId','eventId','estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId','adapterSourceSha256','coverageSha256','runId','assignment','parentRecordSha256','attachment'])
++  if(r.kind!=='admission.attached'&&r.kind!=='process.attached')throw Error('event_unknown')
++  const {parentRecordSha256,attachment:rawAttachment,...common}=r
++  validate({...common,kind:'intent.registered'},name);digest(parentRecordSha256)
++  return freeze({...r,attachment:attachment(r.kind,rawAttachment)}) as unknown as AttachmentEvent
++ }
++ function sameBinding(base:Intent,event:AttachmentEvent){
++  return Object.keys(base).every(k=>k==='kind'||k==='eventId'||(k==='assignment'?same(base.assignment,event.assignment):base[k as keyof Intent]===event[k as keyof AttachmentEvent]))
++ }
++ function uniqueAttachments(rows:IntentRow[]){
++  const runs=new Set<string>(),reservations=new Set<string>(),processes=new Set<string>()
++  for(const row of rows){
++   if(row.admission){const a=row.admission.event.attachment as WorkerAdmissionAttachment
++    if(runs.has(a.taskRunId)||reservations.has(a.reservationId))throw Error('attachment_identity_conflict')
++    runs.add(a.taskRunId);reservations.add(a.reservationId)
++   }
++   if(row.process){const a=row.process.event.attachment as WorkerProcessAttachment,key=JSON.stringify([row.event.hostId,row.event.invocationId,a.pid,a.group,a.start])
++    if(processes.has(key))throw Error('process_identity_conflict');processes.add(key)
++   }
++  }
++ }
+  async function scan(check:()=>void,locked=false){
+-  await directory();check();const events:{event:Intent;bytes:string}[]=[];const units=new Set<string>(),sessions=new Set<string>(),runs=new Set<string>(),eventIds=new Set<string>(),dir=await fs.opendir(c.storageRoot)
+-  let totalBytes=0
++  await directory();check();const events:IntentRow[]=[],attached:SavedAttachment[]=[];const units=new Set<string>(),sessions=new Set<string>(),runs=new Set<string>(),eventIds=new Set<string>(),dir=await fs.opendir(c.storageRoot)
++  let totalBytes=0,count=0
+   for await(const file of dir){
+    check();if(file.name==='.register.lock'&&locked)continue
+-   if(!file.isFile()||!file.name.endsWith('.json')||events.length>=c.maxRecords)throw Error('registry_unknown')
+-   const bytes=(await read(path.join(c.storageRoot,file.name),Math.min(c.maxRecordBytes,c.maxRegistryBytes-totalBytes),true)).toString('utf8');check();totalBytes+=Buffer.byteLength(bytes);const event=validate(JSON.parse(bytes),file.name)
+-   if(units.has(event.unitId)||sessions.has(event.assignment.sessionId)||runs.has(event.runId)||eventIds.has(event.eventId))throw Error('registry_conflict')
+-   units.add(event.unitId);sessions.add(event.assignment.sessionId);runs.add(event.runId);eventIds.add(event.eventId);events.push({event,bytes})
+-  }
++   if(!file.isFile()||!file.name.endsWith('.json')||count++>=c.maxRecords)throw Error('registry_unknown')
++   const bytes=(await read(path.join(c.storageRoot,file.name),Math.min(c.maxRecordBytes,c.maxRegistryBytes-totalBytes),true)).toString('utf8');check();totalBytes+=Buffer.byteLength(bytes);const raw=JSON.parse(bytes)
++   const event=raw?.kind==='intent.registered'?validate(raw,file.name):validateAttachment(raw,file.name)
++   if(eventIds.has(event.eventId))throw Error('registry_conflict');eventIds.add(event.eventId)
++   if(event.kind!=='intent.registered'){attached.push({event,bytes});continue}
++   if(units.has(event.unitId)||sessions.has(event.assignment.sessionId)||runs.has(event.runId))throw Error('registry_conflict')
++   units.add(event.unitId);sessions.add(event.assignment.sessionId);runs.add(event.runId);events.push({event,bytes})
++  }
++  for(const item of attached){
++   const row=events.find(r=>r.event.unitId===item.event.unitId),key=item.event.kind==='admission.attached'?'admission':'process'
++   if(!row||row[key]||!sameBinding(row.event,item.event))throw Error('attachment_conflict')
++   row[key]=item
++  }
++  for(const row of events){
++   if(row.admission&&row.admission.event.parentRecordSha256!==hash(row.bytes))throw Error('parent_changed')
++   if(row.process&&(!row.admission||row.process.event.parentRecordSha256!==hash(row.admission.bytes)))throw Error('parent_changed')
++  }
++  uniqueAttachments(events)
+   return events
+  }
+  async function assignment(handle:RunAssignmentHandle,check:()=>void){
+@@ -129,6 +188,48 @@
+  function current(event:Intent,adapters:Map<string,string>){
+   return event.estateId===c.estateId&&event.hostId===c.hostId&&event.poolId===c.poolId&&event.localPolicyRevision===c.localPolicyRevision&&event.invocationId===c.invocationId&&event.coverageSha256===c.coverageSha256&&adapters.get(event.adapterId)===event.adapterSourceSha256
+  }
++ async function heldRow(handle:WorkerIntentHandle,check:()=>void,locked=false){
++  const held=handles.get(handle);if(!held)throw Error('foreign_handle')
++  const a=await assignment(held.assignment,check),adapters=await coverage(),rows=await scan(check,locked);check()
++  if(rows.some(r=>!current(r.event,adapters)))throw Error('prior_binding_unresolved')
++  const row=rows.find(r=>r.event.eventId===held.event.eventId)
++  if(!row||row.bytes!==held.bytes||!same(a,held.event.assignment))throw Error('intent_changed')
++  return {held,row,rows}
++ }
++ async function recheck(held:{event:Intent;assignment:RunAssignmentHandle},check:()=>void){
++  const a=await assignment(held.assignment,check),adapters=await coverage();check()
++  if(!same(a,held.event.assignment)||!current(held.event,adapters))throw Error('binding_changed')
++ }
++ function attachmentReceipt(item:SavedAttachment|undefined){return item?{event:item.event,recordSha256:hash(item.bytes)}:null}
++ function attach(handle:WorkerIntentHandle,kind:AttachmentKind,raw:unknown){return operation(async check=>{
++  const value=attachment(kind,raw)
++  await directory();check();const lockPath=path.join(c.storageRoot,'.register.lock'),lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
++  let lockStat:Awaited<ReturnType<typeof lock.stat>>|undefined
++  try{
++   lockStat=await lock.stat();const {held,row,rows}=await heldRow(handle,check,true)
++   const key=kind==='admission.attached'?'admission':'process',parent=key==='admission'?row:row.admission
++   if(!parent)throw Error('admission_missing')
++   const prior=row[key]
++   if(prior&&!payloadEqual(prior.event.attachment,value))throw Error('attachment_conflict')
++   let saved:SavedAttachment
++   if(prior){saved=prior}else{
++    if(allRows(rows).length>=c.maxRecords)throw Error('registry_capacity')
++    const event:AttachmentEvent={...row.event,kind,eventId:randomUUID(),parentRecordSha256:hash(parent.bytes),attachment:value},bytes=JSON.stringify(event)+'\n'
++    if(Buffer.byteLength(bytes)>c.maxRecordBytes||allRows(rows).reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
++    uniqueAttachments(rows.map(r=>r===row?{...r,[key]:{event,bytes}}:r))
++    check();const fd=await fs.open(path.join(c.storageRoot,`${event.unitId}.${event.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
++    try{check();await fd.writeFile(bytes)}finally{await fd.close()}
++    saved={event:freeze(event),bytes}
++   }
++   // A predecessor can survive a failed sync; every acknowledged chain reestablishes its barriers.
++   for(const item of [row,...(key==='process'&&row.admission?[row.admission]:[]),saved])await durable(path.join(c.storageRoot,`${item.event.unitId}.${item.event.eventId}.json`),item.bytes,check)
++   await recheck(held,check)
++   return attachmentReceipt(saved)!
++  }finally{
++   await lock.close()
++   if(lockStat){const linked=await fs.lstat(lockPath);if(linked.dev===lockStat.dev&&linked.ino===lockStat.ino)await fs.unlink(lockPath)}
++  }
++ })}
+  return {
+   register(handle:RunAssignmentHandle,adapterId:string){return operation(async check=>{
+    id(adapterId);const a=await assignment(handle,check),adapters=await coverage();check();const adapterSource=adapters.get(adapterId);if(!adapterSource)throw Error('adapter_unknown')
+@@ -143,9 +244,9 @@
+      saved=prior.event;bytes=prior.bytes
+      if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId)throw Error('intent_conflict')
+     }else{
+-     if(rows.length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
++     if(allRows(rows).length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
+      saved={schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
+-     bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||rows.reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
++     bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||allRows(rows).reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
+      check();const fd=await fs.open(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+      try{check();await fd.writeFile(bytes)}finally{await fd.close()}
+     }
+@@ -169,10 +270,18 @@
+    const after=await assignment(held.assignment,check);await coverage();check();if(!same(a,after))throw Error('assignment_changed')
+    return {event:held.event,recordSha256:hash(held.bytes)}
+   })},
++  attachAdmission(handle:WorkerIntentHandle,value:WorkerAdmissionAttachment){return attach(handle,'admission.attached',value)},
++  attachProcess(handle:WorkerIntentHandle,value:WorkerProcessAttachment){return attach(handle,'process.attached',value)},
++  readAttachments(handle:WorkerIntentHandle){return operation(async check=>{
++   const {held,row}=await heldRow(handle,check)
++   for(const item of allRows([row]))await durable(path.join(c.storageRoot,`${item.event.unitId}.${item.event.eventId}.json`),item.bytes,check)
++   await recheck(held,check)
++   return {admission:attachmentReceipt(row.admission),process:attachmentReceipt(row.process)}
++  })},
+   snapshot(){return operation(async check=>{
+    const adapters=await coverage(),rows=await scan(check);await coverage();check()
+    return {complete:false as const,reason:'launcher_coverage_unproven' as const,knownActive:[] as readonly string[],
+-    unresolved:rows.map(({event,bytes})=>({event,recordSha256:hash(bytes),unitId:event.unitId,eventId:event.eventId,classification:current(event,adapters)?'intent_unresolved':'prior_binding_unresolved'}))}
++    unresolved:rows.map(({event,bytes,admission,process})=>({event,recordSha256:hash(bytes),admission:attachmentReceipt(admission),process:attachmentReceipt(process),unitId:event.unitId,eventId:event.eventId,classification:current(event,adapters)?'intent_unresolved':'prior_binding_unresolved'}))}
+   })}
+  }
+ }
+--- a/apps/desktop/test/resource-worker-inventory.test.mjs
++++ b/apps/desktop/test/resource-worker-inventory.test.mjs
+@@ -24,9 +24,9 @@
+  const manifest={selectionRevision:'selection-1',scopeMappingRevision:'scope-1',configuredKey:'lane-key',expectedHead:execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),selectedInputs:[{path:'README.md'}],mutableScope:[{path:'output.txt',state:'absent'}],bounds:{maxPaths:8,maxDepth:8,maxPathBytes:512,maxFileBytes:1024,maxTotalBytes:4096,maxMetadataBytes:65536,timeoutMs:1000,maxAgeMs:60000}}
+  const manifestPath=path.join(root,'lane.json'),bytes=JSON.stringify(manifest);await fs.writeFile(manifestPath,bytes,{mode:0o600})
+  const config={estateId:'estate',projectId:'project',installationId:'install',invocationId:'invocation',repositoryRoot:repo,approvedRemote:'https://fixture.invalid/repo.git',repositoryName:'repo',manifestPath,manifestSha256:hash(bytes),storageRoot:storeRoot,agentSyncScript:installed,timeoutMs:3000,maxRecords:8,maxRecordBytes:32768,maxManifestBytes:32768,...extra}
+- const state={task:{id:'task',project_id:'project'},project:{id:'project',repo_path:repo},hang:null,calls:[]}
++ const state={task:{id:'task',project_id:'project'},project:{id:'project',repo_path:repo},hang:null,calls:[],key:'fabric000001'}
+  const store={scope:{kind:'estate',estateId:'estate'},select(table,columns){state.calls.push({table,columns});return {eq(key,value){state.calls.at(-1).filter={key,value};return {async maybeSingle(){if(state.hang) await state.hang;return {data:table==='project_tasks'?state.task:state.project,error:null}}}}}}}
+- const make=(deps={},c={})=>createResourceRunAssignmentManager({...config,...c},{store,key:()=> 'fabric000001',...deps})
++ const make=(deps={},c={})=>createResourceRunAssignmentManager({...config,...c},{store,key:()=>state.key,...deps})
+  return {root,repo,storeRoot,config,manifest,state,store,make,async allocate(manager=make(),sessionId='session'){const r=await manager.allocate({taskId:'task',sessionId});assert.equal(r.state,'observed',JSON.stringify(r));return {manager,...r.value}}}
+ }
+ 
+@@ -119,3 +119,73 @@
+  proto.sync=async function(){const kind=(await this.stat()).isDirectory()?'directory':'event';counts[kind]++;if(fail&&kind===failedKind){fail=false;throw Error('injected sync refusal')}return original.call(this)}
+  try{assert.equal((await m.register(f.allocated.handle,'managed')).state,'unknown');const names=await files(f);assert.equal(names.length,1);const bytes=await fs.readFile(path.join(f.storage,names[0])),before={...counts};const retry=await m.register(f.allocated.handle,'managed');assert.equal(retry.state,'recorded');assert.ok(counts.event>before.event);assert.ok(counts.directory>before.directory);assert.deepEqual(await fs.readFile(path.join(f.storage,names[0])),bytes)}finally{proto.sync=original}
+ })
++
++const admission=()=>({taskRunId:'11111111-1111-4111-8111-111111111111',runOrdinal:1,reservationId:'reservation',fence:1,inputDigest:'1'.repeat(64),scopeDigest:'2'.repeat(64),contentDigest:'3'.repeat(64),bindingRevision:'policy-sha256-v1:'+'4'.repeat(64)})
++const processFacts=()=>({pid:123,group:123,start:'fixture-start-1'})
++async function registered(t,overrides={}){const f=await fixture(t,overrides),m=f.make(),r=await m.register(f.allocated.handle,'managed');assert.equal(r.state,'recorded');return {...f,m,intent:r.value}}
++test('N032 durable ordered attachments preserve exact parent digests and retry bytes without authority',async t=>{
++ const f=await registered(t),a=await f.m.attachAdmission(f.intent.handle,admission());assert.equal(a.state,'recorded');assert.equal(a.value.event.parentRecordSha256,f.intent.recordSha256)
++ const p=await f.m.attachProcess(f.intent.handle,processFacts());assert.equal(p.state,'recorded');assert.equal(p.value.event.parentRecordSha256,a.value.recordSha256);assert.equal(p.complete,false);assert.equal(p.executionAuthorized,false)
++ assert.deepEqual(await f.m.attachAdmission(f.intent.handle,admission()),a);assert.deepEqual(await f.m.attachProcess(f.intent.handle,processFacts()),p);assert.equal((await files(f)).length,3)
++ const read=await f.m.readAttachments(f.intent.handle);assert.equal(read.state,'recorded');assert.deepEqual(read.value,{admission:a.value,process:p.value});assert.equal((await f.m.readIntent(f.intent.handle)).state,'recorded')
++ const snap=await f.m.snapshot();assert.equal(snap.value.unresolved.length,1);assert.equal(snap.value.complete,false);assert.deepEqual(snap.value.knownActive,[]);assert.equal(snap.value.unresolved[0].process.recordSha256,p.value.recordSha256)
++})
++test('N032 attachment ordering, copied handles and conflicting tuple refuse without overwrite',async t=>{
++ const f=await registered(t);assert.equal((await f.m.attachProcess(f.intent.handle,processFacts())).state,'unknown');assert.equal((await f.m.attachAdmission({...f.intent.handle},admission())).state,'unknown');assert.equal((await files(f)).length,1)
++ const a=await f.m.attachAdmission(f.intent.handle,admission());assert.equal(a.state,'recorded');assert.equal((await f.m.attachAdmission(f.intent.handle,{...admission(),fence:2})).state,'unknown');assert.equal((await files(f)).length,2)
++ await f.m.attachProcess(f.intent.handle,processFacts());assert.equal((await f.m.attachProcess(f.intent.handle,{...processFacts(),start:'changed'})).state,'unknown');assert.equal((await files(f)).length,3)
++})
++test('N032 malformed counters, digest labels, process identity and accessors refuse',async t=>{
++ const f=await registered(t)
++ for(const value of [{...admission(),fence:0},{...admission(),runOrdinal:1.5},{...admission(),fence:Number.MAX_SAFE_INTEGER+1},{...admission(),bindingRevision:'policy'},{...admission(),inputDigest:'unknown'},Object.defineProperty(admission(),'fence',{get(){throw Error('must-not-read')}})])assert.equal((await f.m.attachAdmission(f.intent.handle,value)).state,'unknown')
++ assert.equal((await files(f)).length,1);await f.m.attachAdmission(f.intent.handle,admission())
++ for(const value of [{...processFacts(),pid:1},{...processFacts(),group:124},{...processFacts(),start:'\nsecret'},{...processFacts(),start:''}])assert.equal((await f.m.attachProcess(f.intent.handle,value)).state,'unknown');assert.equal((await files(f)).length,2)
++})
++test('N032 retained orphan, changed parent and duplicate attachment make registry unknown',async t=>{
++ for(const mutate of ['orphan','parent','duplicate','binding']){
++  const f=await registered(t),a=await f.m.attachAdmission(f.intent.handle,admission()),name=`${a.value.event.unitId}.${a.value.event.eventId}.json`,file=path.join(f.storage,name),e=JSON.parse(await fs.readFile(file,'utf8'))
++  if(mutate==='orphan'){const base=(await files(f)).find(x=>x!==name);await fs.unlink(path.join(f.storage,base))}
++  if(mutate==='parent'){e.parentRecordSha256='f'.repeat(64);await fs.writeFile(file,JSON.stringify(e))}
++  if(mutate==='binding'){e.poolId='other';await fs.writeFile(file,JSON.stringify(e))}
++  if(mutate==='duplicate'){e.eventId='22222222-2222-4222-8222-222222222222';await fs.writeFile(path.join(f.storage,`${e.unitId}.${e.eventId}.json`),JSON.stringify(e),{mode:0o600})}
++  assert.equal((await f.m.snapshot()).state,'unknown');assert.equal((await f.m.readAttachments(f.intent.handle)).state,'unknown')
++ }
++})
++test('N032 total-file capacity includes attachments and exact retry remains allowed at cap',async t=>{
++ const f=await registered(t,{maxRecords:2});assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'recorded');assert.equal((await f.m.attachProcess(f.intent.handle,processFacts())).state,'unknown');assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'recorded');assert.equal((await files(f)).length,2)
++})
++test('N032 failed attachment sync cannot be upgraded by a read without fresh barriers',async t=>{
++ const f=await registered(t),probe=await fs.open(path.join(f.root,'probe'),'w'),proto=Object.getPrototypeOf(probe),sync=proto.sync;await probe.close();let calls=0
++ proto.sync=async function(){calls++;throw Error('fixture sync failure')}
++ try{assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'unknown');assert.equal((await files(f)).length,2);const before=calls;assert.equal((await f.m.readAttachments(f.intent.handle)).state,'unknown');assert.ok(calls>before)}finally{proto.sync=sync}
++ const good=await f.m.readAttachments(f.intent.handle);assert.equal(good.state,'recorded');assert.ok(good.value.admission);assert.equal((await files(f)).length,2)
++})
++test('N032 attachment membership drift after write preserves uncertain event without permission',async t=>{
++ const f=await registered(t),select=f.store.select;let reads=0
++ f.store.select=function(...args){const q=select.apply(this,args),eq=q.eq;q.eq=function(...a){const out=eq.apply(this,a),read=out.maybeSingle;out.maybeSingle=async()=>{if(++reads>=3)f.state.task={id:'task',project_id:'foreign'};return read()};return out};return q}
++ assert.equal((await f.m.attachAdmission(f.intent.handle,admission())).state,'unknown');assert.equal((await files(f)).length,2)
++})
++test('N032 restart snapshot retains conservative chain but cannot restore attachment authority',async t=>{
++ const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());const later=f.make({invocationId:'later'},{assignments:f.manager,host:{hostInstanceId:'host',bootId:'later'}})
++ const snap=await later.snapshot();assert.equal(snap.state,'recorded');assert.equal(snap.value.unresolved[0].classification,'prior_binding_unresolved');assert.ok(snap.value.unresolved[0].process);assert.equal(snap.complete,false);assert.equal((await later.readAttachments(f.intent.handle)).state,'unknown')
++})
++
++test('N032 new unit registration cannot exceed total files or bytes occupied by prior attachments',async t=>{
++ for(const bound of ['files','bytes']){
++  const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2')
++  let size=0;for(const file of await files(f))size+=(await fs.stat(path.join(f.storage,file))).size
++  const limited=f.make(bound==='files'?{maxRecords:3}:{maxRegistryBytes:size})
++  assert.equal((await limited.register(next.handle,'managed')).state,'unknown');assert.equal((await files(f)).length,3);assert.equal((await limited.snapshot()).state,'recorded')
++ }
++})
++
++test('N032 rejects cross-unit admission and exact owned-process identity collisions before writing',async t=>{
++ const f=await registered(t);await f.m.attachAdmission(f.intent.handle,admission());await f.m.attachProcess(f.intent.handle,processFacts());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2'),r=await f.m.register(next.handle,'managed');assert.equal(r.state,'recorded')
++ assert.equal((await f.m.attachAdmission(r.value.handle,{...admission(),reservationId:'other'})).state,'unknown');assert.equal((await f.m.attachAdmission(r.value.handle,{...admission(),taskRunId:'22222222-2222-4222-8222-222222222222'})).state,'unknown');assert.equal((await files(f)).length,4)
++ const a={...admission(),reservationId:'other',taskRunId:'22222222-2222-4222-8222-222222222222'};assert.equal((await f.m.attachAdmission(r.value.handle,a)).state,'recorded');assert.equal((await f.m.attachProcess(r.value.handle,processFacts())).state,'unknown');assert.equal((await files(f)).length,5)
++ assert.equal((await f.m.attachProcess(r.value.handle,{...processFacts(),start:'later'})).state,'recorded');assert.equal((await files(f)).length,6)
++})
++test('N032 retained cross-unit admission collision refuses full scan despite valid parent chains',async t=>{
++ const f=await registered(t);const first=await f.m.attachAdmission(f.intent.handle,admission());f.state.key='fabric000002';const next=await f.allocate(f.manager,'session-2'),r=await f.m.register(next.handle,'managed'),a=await f.m.attachAdmission(r.value.handle,{...admission(),reservationId:'other',taskRunId:'22222222-2222-4222-8222-222222222222'});assert.equal(a.state,'recorded')
++ const e={...a.value.event,attachment:{...a.value.event.attachment,taskRunId:first.value.event.attachment.taskRunId}};await fs.writeFile(path.join(f.storage,`${e.unitId}.${e.eventId}.json`),JSON.stringify(e)+'\n');assert.equal((await f.m.snapshot()).state,'unknown')
++})
+--- a/docs/execution/harness-waves/resource-worker-inventory.md
++++ b/docs/execution/harness-waves/resource-worker-inventory.md
+@@ -2,7 +2,8 @@
+ 
+ ## Contract
+ 
+-N031 implements crash-gap-safe local **registration**, not a complete worker inventory.
++N031 implements crash-gap-safe local **registration**. The separate N032 extension stores
++constrained admission and process attachments; neither provides a complete worker inventory.
+ One configured Fabric-controlled logical unit is intended to charge one worker slot in
+ future composition. Nothing here inventories every OS process, foreign CLI, helper,
+ provider job or sibling application. Every API result carries `complete:false` and
+@@ -51,10 +52,13 @@
+ An immutable schema1 `intent.registered` event binds unit/event IDs, estate/host/pool/human
+ policy/invocation, adapter declaration/source digest, coverage digest, actual N028 run ID
+ and all five assignment identity fields. File name is `<unit UUID>.<event UUID>.json`.
+-No timestamp, numeric fence, lifecycle state, SQL run/reservation or prepared-content digest
+-is invented. Future lifecycle evidence can append a new versioned event without overwriting
+-this registration. Unknown event kinds/versions currently refuse, rather than being ignored.
+-That future reader upgrade must define aggregate semantics explicitly.
++Registration invents no timestamp, numeric fence, lifecycle state, SQL run/reservation or
++prepared-content digest. N032 adds only schema1 `admission.attached` and `process.attached`
++events. Each inherits every registration binding, has a new event UUID and chains the exact
++predecessor bytes through `parentRecordSha256`. One unit has at most one registration, one
++admission and one process attachment, in that order. Orphans, duplicate kinds, changed
++parents/bindings and other unknown kinds/versions refuse the entire registry. The original
++registration format remains unchanged; an older N031-only reader refuses the new kinds.
+ 
+ An exact current-invocation retry returns original bytes/event ID/digest; it neither refreshes
+ an age nor creates another event. A retry reopens the exact retained bytes without following
+@@ -63,6 +67,46 @@
+ refuse. Changed manifest or earlier invocation prevents new registration from bypassing
+ retained uncertainty. A restarted manager can inspect retained events; it cannot restore an
+ old opaque handle. No stale lock stealing, automatic deletion, record reuse or retirement exists.
++
++
++## N032 constrained attachment storage
++
++`attachAdmission(intentHandle, value)` accepts exactly `taskRunId` (UUID), `runOrdinal`
++(positive safe integer), `reservationId` (resource identifier), `fence` (positive safe integer),
++`inputDigest`, `scopeDigest`, `contentDigest` (SHA256), and `bindingRevision`
++(`policy-sha256-v1:<SHA256>`). This SQL binding remains distinct from the intent's human
++`localPolicyRevision`. The separate managed-unit consumer must obtain and compare actual
++scoped reservation/launch-binding facts before calling storage; this writer checks shape,
++provenance and durable correlation, never whether caller-supplied attachment facts are true.
++
++`attachProcess(intentHandle, {pid,group,start})` requires an admission predecessor, safe
++`pid>1`, `group===pid` and nonempty printable ASCII start identity at most128characters.
++The managed-unit consumer obtains these facts from its actual owned-process handle. This
++storage API alone cannot authenticate a PID, prove spawning, prove provider quiescence or
++retire a unit. Only trusted main composition may invoke these attachment methods.
++
++Both methods return the immutable `{event,recordSha256}` in a recorded result. Attachment
++payload is `event.attachment`. Exact retry preserves original bytes/UUID/digest; conflicting
++payload refuses. In this ordinary managed-unit scope, each retained unit has a distinct
++SQL task-run ID and reservation ID. Reusing either across units refuses before write and
++during scans. Exact host/invocation/PID/group/start reuse also refuses; a different start
++identity is distinct but its truth still requires actual owned capture by the consumer.
++File and directory durability are reestablished for the full predecessor
++chain, including complete bytes left by an earlier failed sync. A failure retains every
++written record as uncertain, with no overwrite, cleanup or silent adoption.
++
++`readAttachments(intentHandle)` returns nullable `{admission,process}` receipts after actual
++N028/host/coverage validation and durable readback of the full chain. These are persisted
++storage facts, not live SQL/process validation. It never upgrades execution authority.
++`snapshot()` reports attachments alongside each unresolved registration and still returns
++`complete:false`, `knownActive:[]`. Prior-invocation valid chains remain unresolved; they
++cannot restore handles or imply a retired/live process. `maxRecords` counts all retained
++files including attachments; byte limits include the full chain.
++
++The focused suite names N032 ordering, conflict, exact-retry, malformed tuple, orphan/parent,
++total-file bound, fsync/readback, postwrite membership drift and restart controls. It uses
++synthetic attachment facts deliberately: native/SQL truth verification belongs to the
++separately reviewed consumer. N031's earlier acceptance does not certify this extension.
+ 
+ ## Storage and asynchronous bounds
+ 

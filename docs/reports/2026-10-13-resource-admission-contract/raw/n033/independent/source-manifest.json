@@ -1,0 +1,18 @@
+{
+  "apps/desktop/src/main/resourceManagedUnit.ts": {
+    "beforeSha256": "c070dc0ee71da5eae7f9767e7c0bebd418c691ecd3b959a6dee0ada7aed846c2",
+    "sha256": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177"
+  },
+  "apps/desktop/src/main/pty.ts": {
+    "beforeSha256": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "sha256": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202"
+  },
+  "apps/desktop/test/resource-worker-launch.test.mjs": {
+    "beforeSha256": "8bafb5c28c3b1512371d9030366345713a6d2274a65840054b43ddf8370aa884",
+    "sha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a"
+  },
+  "docs/execution/harness-waves/resource-worker-launch.md": {
+    "beforeSha256": "83564a2a7c16ea1489fa012026361dad181fcffd0568b1d4bb40883de0b90cff",
+    "sha256": "f3bf88178488bdd51d1c8de5b073d6ef5eebb50ddc035ae9b9120d94dc755734"
+  }
+}

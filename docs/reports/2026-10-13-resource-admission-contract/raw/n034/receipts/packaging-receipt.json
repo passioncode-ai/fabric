@@ -1,0 +1,19 @@
+{
+  "kind": "PACKAGING_REPLAY_NOT_INDEPENDENT_REVIEW",
+  "runs": [
+    {
+      "candidate": "current",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "durationSeconds": 4.76,
+      "log": "packaging-current.log"
+    },
+    {
+      "candidate": "rejected",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "durationSeconds": 5.524,
+      "log": "packaging-rejected.log"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "scope": "N032 immutable admission/process attachment storage only",
+  "source_sha256": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+  "independent_acceptance": "reviewer/receipt-events.json",
+  "portable_packaging_replays": [
+    {
+      "variant": "candidate",
+      "pass": 29,
+      "skip": 0,
+      "exit": 0,
+      "log": "portable-candidate.log"
+    },
+    {
+      "variant": "independent",
+      "pass": 3,
+      "skip": 0,
+      "exit": 0,
+      "log": "portable-independent.log"
+    }
+  ],
+  "files": {
+    "README.md": "57044ce46f1bcbb4ae1ac135324263a55a3610e2b0a21ce8ee64d19e4ff5e824",
+    "builder/accidental-current-source-control-pass.log": "f1447d9f454785b053b89cfe0631f36b246fa54ebc286e5127a49cd2c696a89e",
+    "builder/before-cross-unit-collisions.snapshot.txt": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+    "builder/focused-capacity.log": "8811c02927aed6c30a74fc97bd6dc08358febdad590a9492567be851d8f97ab7",
+    "builder/focused-collisions.log": "70ab5c663771ac8aa3beeefe2e9e489e4e9f3cfd621549e131462125e3a8d64f",
+    "builder/focused-final.log": "da369d09ad051cfde959360202a9dfbe0e8f760a552030585c8d11ea3dc894e7",
+    "builder/focused-n032-final.log": "a2867b6c10db62d11be522ecf33eeb4e2972fab9efb81e8d264c8916bc1d44e5",
+    "builder/focused-n032.log": "c100af81dc95d24eb8153aac471be392a7329ce04e97d620b074025556f1d450",
+    "builder/n032-intent-events.patch": "b56882c66021f4f1fcdc2bf1470b8eb11d946d38584acafd7983c15b0c69c96a",
+    "builder/receipt.json": "99ac9a4e43949caa411859a48b0ced80447c7982b3cc5d095dc0e9bed70db2c4",
+    "builder/types-final.log": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "builder/types-n032.log": "2f0b1dd623630d42ab90cfe6fddcb7269dcafd50b3a9bb379d9686a080bd2e97",
+    "candidate/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+    "candidate/apps/desktop/src/main/gitRun.ts.snapshot.txt": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+    "candidate/apps/desktop/src/main/resourceHostPolicy.ts.snapshot.txt": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+    "candidate/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+    "candidate/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "candidate/apps/desktop/src/main/resourceWorkerInventory.ts.snapshot.txt": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+    "candidate/apps/desktop/src/main/scopedStore.ts.snapshot.txt": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+    "candidate/apps/desktop/src/shared/resourceAdmission.ts.snapshot.txt": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+    "candidate/apps/desktop/src/shared/scope.ts.snapshot.txt": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+    "candidate/apps/desktop/test/resource-worker-inventory.test.mjs.snapshot.txt": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+    "candidate/docs/execution/harness-waves/resource-worker-inventory.md.snapshot.txt": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7",
+    "candidate/scripts/resourceAgentSyncIdentity.py.snapshot.txt": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+    "controls/cross-unit-before/negative.log": "17d64a733814e9a3bbd79c51b0eaeca42f808c5899e8ec613330cdc4c6417278",
+    "controls/cross-unit-before/source.snapshot.txt": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+    "controls/cross-unit-before/test.snapshot.txt": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+    "controls/parent-digest-removed/negative.log": "ba150b811d1bca73cce05ea8853061d99c9cc1a3b2805b629336367d0be8107a",
+    "controls/parent-digest-removed/source.snapshot.txt": "866ab493a5f755b558176f41c72124eb4a1600ab25bdb5bd486f0113ef70aedd",
+    "controls/parent-digest-removed/test.snapshot.txt": "0e0eb023f874fa4e2b4c47e982e454b6f161d12054277a29d8e42671355fe9a9",
+    "event-controls.mjs": "0fb3294d97268476d31b7e8429e3d16be4a078408961bb16df5463c4aa6bb20c",
+    "normalization.json": "3ba5f757b35236571b57a47b6c212c03f2c8703c8a0629704a8af0baa6df730c",
+    "portable-candidate.log": "7872a4d3b1586c384dfa404e9a8a67ed15dd33c22c3b2fa6d782ee3b5c059935",
+    "portable-independent.log": "38d6f2efef148377d7416bdba701f7f75409d483f8409487f9969ce1d5baa1df",
+    "replay.py": "17cff58f0e99dd502e894d90bfadcfe7ddcdb994a76552efd2c26bf054596c4f",
+    "reviewer/event-controls.log": "6bc696f52031d8e4449fc5757ca526c396fd1b9cf65799abce16ea6d8607538c",
+    "reviewer/event-controls.mjs.snapshot.txt": "920dbfb0aa9609a55efb2e0091f77973e5ccff18bac8058c2493b445feb21a03",
+    "reviewer/events-focused.log": "c3e8be316ae56049f880935d42b123bfcc9d56f41e291c015574d617e56b919d",
+    "reviewer/receipt-events.json": "d1106554e069ece0c8e17129fa5939a5652f1b70225c8e69b1b0a1073b337004"
+  }
+}

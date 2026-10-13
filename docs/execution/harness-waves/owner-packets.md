@@ -303,3 +303,12 @@ for the previously implemented emitter and published hubB186; do not request dup
 Other dispositions and released main hashes match05:23: #114 merged into#112's branch,
 hub208/209 merged,213/214 closed without merge. No new main release or native evidence
 was inferred. N009/N010 remain PREPARED / NOT_SENT while the official board is unavailable.
+
+
+## Owner refresh —09:19UTC and Observatory10:04UTC
+
+The [source/install refresh](../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json) supersedes the earlier OPEN disposition: pipeline#112 merged at08:03UTC, merge4d750573; inspected main78c42124db910c56e74c8fbd524bdc9a4f8fb6c9 declares1.94.0. Latest release and inspected installed Codex/Claude payloads remain1.93.3; installed lessons.py is absent. Graph/lesson/iteration bytes at the inspected boundaries retain the candidate provenance and kind-filter findings. Request the missing acceptance and correction, not duplicate emitter implementation. Published hub remains1.62.2 at a17f829e. Gateway inventory17declared/14enabled/3disabled/7roles is configuration evidence, not proof every upstream is healthy or running.
+
+The [specific Observatory service readback](../../reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json) reports degraded0.24.4 and10consecutive collector tick timeouts. Registry freshness must remain explicit: current HTTP/service status cannot update observation timestamps or transform missing/incomplete collectors into zero. Owner follow-up should cover bounded collector scheduling/backpressure and freshness metadata without resetting foreign services, dropping sources or treating old Heroku load diagnostics as current host measurements. This run invoked no collector or doctor.
+
+Delivery remains **PREPARED / NOT_SENT**. Official project-access consent was still waiting on the bounded watcher; MCP registration does not authorize the binding. Source snapshots above are dated, not substituted for owner acknowledgement, installed adoption or native positive/negative acceptance.

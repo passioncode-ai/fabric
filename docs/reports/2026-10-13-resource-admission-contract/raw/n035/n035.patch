@@ -1,0 +1,867 @@
+diff --git a/apps/desktop/src/main/resourceControlledPool.ts b/apps/desktop/src/main/resourceControlledPool.ts
+new file mode 100644
+index 00000000..f6f96bee
+--- /dev/null
++++ b/apps/desktop/src/main/resourceControlledPool.ts
+@@ -0,0 +1,168 @@
++// #region controlled-resource-pool — docs: docs/execution/harness-waves/resource-controlled-pool.md#contract
++import * as fs from 'node:fs/promises'
++import path from 'node:path'
++import { createResourcePoolRegistry, CONTROLLED_POOL_ORIGIN, type PoolRegistryConfig } from './resourcePoolRegistry.ts'
++import { createResourceRunAssignmentManager, type RunAssignmentConfig } from './resourceRunAssignment.ts'
++import { createResourceWorkerInventory, type WorkerIntentConfig, type WorkerIntentHandle } from './resourceWorkerInventory.ts'
++import { createPreparedLaunchInputs, type PreparedLaunchInputDeps, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
++import { createResourceLaunchAdapter, type ResourceLaunchAdapterDeps, type ResourceLaunchPreparation } from './resourceLaunchAdapter.ts'
++import { createResourceManagedUnit, type ResourceManagedUnitConfig, type ManagedUnits } from './resourceManagedUnit.ts'
++import { createResourceHostSampler } from './resourceHostSampler.ts'
++import { createAdmitExisting } from './admitExisting.ts'
++import { createManagedLaunch, type ManagedLaunchDeps, type LaunchInput } from './managedLaunch.ts'
++import { readResourceHostPolicy, resourceId, resourceInteger } from './resourceHostPolicy.ts'
++import type { InputIdentity } from './resourceInputSnapshot.ts'
++import type { AdmitInput } from './admitExisting.ts'
++import type { AdmissionReceipt } from '../shared/admission.ts'
++import type { PtyManager, OwnedPtyUnit } from './pty.ts'
++
++type CapabilityState = { maxEpochs:number; valid():boolean; ticketValid():boolean; issue(packet:PreparedLaunchPacket,intent:WorkerIntentHandle,receipt:AdmissionReceipt):boolean; ptys:PtyManager }
++const capabilities = new WeakMap<object,CapabilityState>()
++type Ticket = { owner:CapabilityState; packet:PreparedLaunchPacket; intent:WorkerIntentHandle; receipt:AdmissionReceipt; native?:OwnedPtyUnit; consumed:boolean }
++const tickets = new WeakMap<object,Ticket>()
++/** Internal source boundary. No exported constructor/mint accepts caller assertions. */
++export function controlledPoolOrigin(capability:object): Readonly<{maxEpochs:number}>|null {
++  const held=capabilities.get(capability)
++  return held?.valid() ? Object.freeze({maxEpochs:held.maxEpochs}) : null
++}
++export function issueControlledSpawnTicket(capability:object,packet:PreparedLaunchPacket,intent:WorkerIntentHandle,receipt:AdmissionReceipt):object {
++  const owner=capabilities.get(capability)
++  if(!owner?.ticketValid()||!owner.issue(packet,intent,receipt))throw Error('controlled ticket unavailable')
++  const token=Object.freeze({});tickets.set(token,{owner,packet,intent,receipt,consumed:false});return token
++}
++export function bindControlledSpawnTicket(ticket:object,ptys:PtyManager,packet:PreparedLaunchPacket,native:OwnedPtyUnit):boolean {
++  const t=tickets.get(ticket)
++  if(!t||!t.owner.ticketValid()||t.owner.ptys!==ptys||t.packet!==packet||t.consumed||(t.native&&t.native!==native))return false
++  t.native=native;return true
++}
++export function consumeControlledSpawnTicket(ticket:object,ptys:PtyManager,packet:PreparedLaunchPacket,native:OwnedPtyUnit):boolean {
++  const t=tickets.get(ticket)
++  if(!t||!t.owner.ticketValid()||t.owner.ptys!==ptys||t.packet!==packet||t.native!==native||t.consumed)return false
++  t.consumed=true;return true
++}
++export interface ControlledPoolConfig {
++  lifecycle:'provision'|'reopen';rawPolicy:unknown;estateId:string;adapterId:string
++  timeoutMs:number;maxEpochs:number
++  assignment:Omit<RunAssignmentConfig,'estateId'|'installationId'|'invocationId'|'storageRoot'>
++  registry:Pick<PoolRegistryConfig,'maxUnits'|'maxRecordBytes'|'maxRegistryBytes'|'timeoutMs'>
++  inventory:Pick<WorkerIntentConfig,'coveragePath'|'coverageSha256'|'timeoutMs'|'maxRecords'|'maxRecordBytes'|'maxCoverageBytes'|'maxRegistryBytes'>
++  inputs:Pick<PreparedLaunchInputDeps,'maxEntries'|'maxInstructionBytes'|'contextBudget'|'timeoutMs'>
++  units:Pick<ResourceManagedUnitConfig,'maxEntries'|'timeoutMs'>
++  resource:Pick<ResourceLaunchAdapterDeps,'maxEntries'|'timeoutMs'>
++}
++export interface ControlledPoolDeps {
++  /** Trusted composition input. This is not proof an arbitrary caller chose the canonical app root. */
++  app:{getPath(name:'userData'):string};host:{hostInstanceId:string;bootId:string}
++  store:PreparedLaunchInputDeps['store'];db:ManagedLaunchDeps['db'];ptys:PtyManager
++  actor:ManagedLaunchDeps['actor'];authority:ManagedLaunchDeps['authority'];guard():Promise<boolean>
++  track:ManagedLaunchDeps['track'];untrack:ManagedLaunchDeps['untrack'];stop:ManagedLaunchDeps['stop'];dispatch:ManagedLaunchDeps['dispatch']
++  preflight:{prepare(input:Readonly<AdmitInput>,packet:PreparedLaunchPacket,evidence:{assignment:Readonly<InputIdentity>;inventory:Readonly<ControlledWorkerReading>}):Promise<ResourceLaunchPreparation>;current:ResourceLaunchAdapterDeps['current']}
++}
++export interface ControlledWorkerReading {hostId:string;bootId:string;poolId:string;localPolicyRevision:string;atMs:number;complete:true;workers:readonly string[]
++}
++const unknown=()=>({state:'unknown' as const,complete:false as const,executionAuthorized:false as const})
++/** Concrete creation domain only. Neither policy activation nor R1 ownership is provided here. */
++export async function createControlledManagedPool(raw:ControlledPoolConfig,deps:ControlledPoolDeps) {
++  // Copy trusted configuration so a later task cannot retarget the closed factory.
++  const c=JSON.parse(JSON.stringify(raw)) as ControlledPoolConfig
++  const {app,host,store,db,ptys,preflight}=deps
++  const policy=readResourceHostPolicy(c.rawPolicy,host.hostInstanceId),estateId=resourceId(c.estateId),boot=resourceId(host.bootId)
++  const timeout=resourceInteger(c.timeoutMs,1,30000),maxEpochs=resourceInteger(c.maxEpochs,1,128)
++  if(c.lifecycle!=='provision'&&c.lifecycle!=='reopen')throw Error('invalid lifecycle')
++  const methods={getPath:app.getPath,open:ptys.open,get:ptys.get,reserve:ptys.reserveOwnedUnit,observe:ptys.observeOwnedUnit,
++    select:store.select,rpc:db.rpc,prepare:preflight.prepare,current:preflight.current,authority:deps.authority,guard:deps.guard,
++    track:deps.track,untrack:deps.untrack,stop:deps.stop,dispatch:deps.dispatch}
++  const actor=Object.freeze({...deps.actor})
++  const scope=store.scope, root=methods.getPath.call(app,'userData')
++  let poisoned=false,closing=false,closed=false,initializing=true
++  let active:Promise<unknown>|null=null
++  function bound(){
++    if(deps.app!==app||deps.host!==host||deps.store!==store||deps.db!==db||deps.ptys!==ptys||deps.preflight!==preflight||
++      app.getPath!==methods.getPath||methods.getPath.call(app,'userData')!==root||host.hostInstanceId!==policy.hostId||host.bootId!==boot||
++      store.scope!==scope||scope.kind!=='estate'||scope.estateId!==estateId||store.select!==methods.select||db.rpc!==methods.rpc||
++      ptys.open!==methods.open||ptys.get!==methods.get||ptys.reserveOwnedUnit!==methods.reserve||ptys.observeOwnedUnit!==methods.observe||
++      preflight.prepare!==methods.prepare||preflight.current!==methods.current||deps.authority!==methods.authority||deps.guard!==methods.guard||
++      deps.track!==methods.track||deps.untrack!==methods.untrack||deps.stop!==methods.stop||deps.dispatch!==methods.dispatch)throw Error('controlled binding unavailable')
++  }
++  function live(){bound();if(poisoned||closing||closed)throw Error('controlled domain unavailable')}
++  const capability=Object.freeze({})
++  let units:ManagedUnits|undefined
++  const inputs=createPreparedLaunchInputs({...c.inputs,estateId,store})
++  let readAssignment:((packet:PreparedLaunchPacket)=>Promise<Readonly<InputIdentity>>)|undefined
++  let readInventory:(()=>Promise<Readonly<ControlledWorkerReading>>)|undefined
++  const resources=createResourceLaunchAdapter({...c.resource,db,inputs,
++    prepare:async(input,packet)=>{live();if(!packet||!readAssignment||!readInventory)throw Error('controlled evidence unavailable');const assignment=await readAssignment(packet);live();const inventory=await readInventory();live();const value=await methods.prepare.call(preflight,input,packet,{assignment,inventory});live();return value},
++    current:async(binding,receipt)=>{live();const value=await methods.current.call(preflight,binding,receipt);live();return value}})
++  capabilities.set(capability,{maxEpochs,ptys,valid:()=>{try{bound();return !poisoned&&!closed}catch{ /* Invalid binding cannot expose a controlled capability. */ return false}},
++    ticketValid:()=>{try{live();return !initializing}catch{ /* Invalid binding cannot expose a controlled capability. */ return false}},
++    issue:(packet,intent,receipt)=>!initializing&&inputs.owns(packet)&&resources.readBinding(receipt,packet)?.identity.attemptId===intent.unitId})
++  const registry=createResourcePoolRegistry({...c.registry,installationRoot:root,hostId:policy.hostId,poolId:policy.poolId,estateId},{host,controlled:capability})
++  // Startup has the same permanent uncertainty rule. Late I/O cannot return a usable factory.
++  let startupActive=true,timer:ReturnType<typeof setTimeout>|undefined
++  const check=()=>{live();if(!startupActive)throw Error('controlled startup expired')}
++  const startup=async()=>{
++    check();if(await fs.realpath(root)!==root)throw Error('noncanonical installation');check()
++    if(c.lifecycle==='provision'){const provision=await registry.provision();check();if(provision.state!=='observed')throw Error('provision unconfirmed')}
++    const acquired=await registry.acquire();check();if(acquired.state!=='observed')throw Error('writer unavailable')
++    const owned=acquired.value
++    const described=await registry.describe(owned);check();if(described.state!=='observed'||described.value.controlledOrigin!==CONTROLLED_POOL_ORIGIN)throw Error('controlled origin unavailable')
++    const makeDir=async(parent:string,name:string)=>{const target=path.join(parent,name);try{await fs.mkdir(target,{mode:0o700})}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error}check();const s=await fs.lstat(target);check();if(!s.isDirectory()||s.isSymbolicLink()||await fs.realpath(target)!==target)throw Error('unsafe controlled directory');check();return target}
++    const domains=await makeDir(root,'resource-controlled-epochs'), domain=await makeDir(domains,described.value.locationKey), epoch=await makeDir(domain,described.value.writerEpoch)
++    const assignmentRoot=await makeDir(epoch,'assignments'),intentRoot=await makeDir(epoch,'intents')
++    const assignments=createResourceRunAssignmentManager({...c.assignment,estateId,installationId:policy.hostId,invocationId:boot,storageRoot:assignmentRoot},{store})
++    const intents=createResourceWorkerInventory({...c.inventory,estateId,hostId:policy.hostId,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,invocationId:boot,storageRoot:intentRoot},{assignments,host,controlled:{registry,writer:owned,rawPolicy:policy}})
++    const coverage=await intents.readCoverage();check();if(coverage.state!=='recorded')throw Error('coverage unavailable')
++    const epochSaved=await registry.admitEpoch(owned,{policy,coverageBytes:coverage.value.bytes});check();if(epochSaved.state!=='observed')throw Error('epoch unconfirmed')
++    units=createResourceManagedUnit({...c.units,estateId,rawPolicy:policy,adapterId:c.adapterId},{assignments,intents,resources,ptys,host,controlled:capability})
++    readAssignment=async packet=>{live();const handle=units!.assignmentFor(packet);if(!handle)throw Error('assignment unavailable');const read=await assignments.readIdentity(handle);live();if(read.state!=='observed')throw Error('assignment unavailable');return read.value}
++    const admit=createAdmitExisting(db,resources)
++    const launch=createManagedLaunch({db,estateId,actor,resources,units,
++      authority:()=>{live();return methods.authority()},
++      admit:(taskId,sessionId,trigger,packet)=>{live();const held=methods.authority();return admit({estateId,taskId,sessionId,trigger,actor,personId:held?.personId,revision:held?.revision},packet)},
++      prepare:async(_receipt,input,packet,native)=>{live();if(!packet||!native||packet.projectId!==c.assignment.projectId)throw Error('controlled input unavailable')
++        return (sessionId,guard)=>{live();return methods.open.call(ptys,packet.projectId,packet.target.cwd,packet.target.optionId,input.taskId,packet.target.permissionMode,null,sessionId,async()=>{live();if(!await methods.guard())return false;live();return guard()},null,packet,native)}},
++      track:methods.track,untrack:methods.untrack,get:id=>methods.get.call(ptys,id),stop:methods.stop,dispatch:methods.dispatch})
++    async function inventory(){live();const read=await registry.snapshot(owned);live();if(read.state!=='observed'||read.value.controlledOrigin!==CONTROLLED_POOL_ORIGIN)throw Error('inventory unavailable')
++      return Object.freeze({hostId:policy.hostId,bootId:boot,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,atMs:Date.now(),complete:true as const,workers:Object.freeze(read.value.units.map(u=>u.unitId))})}
++    readInventory=inventory
++    const sampler=createResourceHostSampler(policy,policy.hostId,{identity:()=>({hostId:host.hostInstanceId,bootId:host.bootId}),workers:inventory})
++    async function operation<T>(body:()=>Promise<T>,success:(v:T)=>boolean):Promise<T|ReturnType<typeof unknown>>{
++      try{live()}catch{ /* Permanent structured uncertainty avoids leaking private dependency details. */ poisoned=true;return unknown()}
++      if(active){poisoned=true;return unknown()}
++      let open=true,watch:ReturnType<typeof setTimeout>|undefined
++      const pending=Promise.resolve().then(body).then(value=>{live();if(!open)throw Error('controlled outcome uncertain');if(!success(value))poisoned=true;return value}).catch(()=>{ /* Retain uncertain creation ownership without logging private task data. */ poisoned=true;return unknown()})
++      active=pending;void pending.then(()=>{if(active===pending)active=null})
++      try{return await Promise.race([pending,new Promise<ReturnType<typeof unknown>>(resolve=>{watch=setTimeout(()=>{open=false;poisoned=true;resolve(unknown())},timeout)})])}
++      finally{open=false;if(watch)clearTimeout(watch)}
++    }
++    let closeResult:Promise<ReturnType<typeof unknown>|{state:'sealed';complete:false;executionAuthorized:false}>|null=null
++    const api=Object.freeze({
++      launch:(input:LaunchInput)=>operation(()=>launch(input),value=>value.started&&(value.deliveryState==='delivering'||value.deliveryState==='acked')),
++      snapshot:()=>operation(async()=>Object.freeze({...await sampler.sample(),executionAuthorized:false as const}),value=>value.state==='observed'),
++      close(){
++        if(closeResult)return closeResult
++        closing=true // Revoke all new operations and tickets before the first await.
++        closeResult=(async()=>{let expired=false,watch:ReturnType<typeof setTimeout>|undefined
++          try{
++            if(active){
++              const settled=await Promise.race([active.then(()=>true),new Promise<false>(resolve=>{watch=setTimeout(()=>{expired=true;poisoned=true;resolve(false)},timeout)})])
++              if(!settled)return unknown()
++            }
++            if(watch)clearTimeout(watch)
++            if(poisoned||expired||active)return unknown()
++            bound()
++            // Once sealing starts its own retained-I/O deadline controls unlink.
++            // An outer timer must not return early and let a late seal release ownership.
++            const result=await registry.seal(owned)
++            if(result.state!=='observed'){poisoned=true;return unknown()}
++            closed=true;return {state:'sealed' as const,complete:false as const,executionAuthorized:false as const}
++          }catch{ /* Permanent structured uncertainty avoids leaking private dependency details. */ poisoned=true;return unknown()}finally{if(watch)clearTimeout(watch)}})()
++        return closeResult
++      }
++    })
++    check();initializing=false;return {state:'observed' as const,value:api,executionAuthorized:false as const}
++  }
++  try{return await Promise.race([startup(),new Promise<ReturnType<typeof unknown>>(resolve=>{timer=setTimeout(()=>{startupActive=false;poisoned=true;resolve(unknown())},timeout)})])}
++  catch{ /* Permanent structured uncertainty avoids leaking private dependency details. */ poisoned=true;return unknown()}finally{startupActive=false;if(timer)clearTimeout(timer)}
++}
++// #endregion controlled-resource-pool
+diff --git a/apps/desktop/src/main/resourcePoolRegistry.ts b/apps/desktop/src/main/resourcePoolRegistry.ts
+index f54aa98a..14ff8cad 100644
+--- a/apps/desktop/src/main/resourcePoolRegistry.ts
++++ b/apps/desktop/src/main/resourcePoolRegistry.ts
+@@ -1,10 +1,11 @@
+ // #region resource-pool-registry — docs: docs/execution/harness-waves/resource-pool-registry.md#contract
++import { controlledPoolOrigin } from './resourceControlledPool.ts'
+ import * as fs from 'node:fs/promises'
+ import { constants } from 'node:fs'
+ import type { FileHandle } from 'node:fs/promises'
+ import path from 'node:path'
+ import { createHash, randomUUID } from 'node:crypto'
+-import { resourceData, resourceId, resourceInteger } from './resourceHostPolicy.ts'
++import { resourceData, resourceId, resourceInteger, readResourceHostPolicy, resourceDigest, type ResourceHostPolicy } from './resourceHostPolicy.ts'
+ 
+ export interface PoolRegistryConfig {
+   installationRoot: string; hostId: string; poolId: string; estateId: string
+@@ -14,15 +15,18 @@ export interface RetainedStorageUnit {
+   unitId: string; originInvocationId: string; policyBindingRevision: string
+   intentRecordSha256: string; coverageSha256: string
+ }
++export interface ControlledPoolEpochEvidence { policy: ResourceHostPolicy; coverageBytes: string }
++interface Epoch { schema: 1; kind: 'controlled-pool-epoch'; registryId: string; epochId: string; invocationId: string; policy: Readonly<ResourceHostPolicy>; coverageBytes: string }
++export const CONTROLLED_POOL_ORIGIN = 'fabric-controlled-managed-ordinary/v1' as const
+ export interface PoolRegistryWriter { readonly kind: 'resource-pool-writer' }
+ type Result<T> = { state: 'observed'; value: T; complete: false; executionAuthorized: false } |
+   { state: 'unknown'; complete: false; executionAuthorized: false }
+ type Head = { schema: 1; kind: 'pool-head'; registryId: string; hostId: string; poolId: string; estateId: string;
+-  genesisSha256: string; sequence: number; lastDigest: string; retainedCount: number; writerEpoch: string | null; sealed: boolean }
+-type RecordRow = { schema: 1; kind: 'unit.retained'; registryId: string; sequence: number; previousDigest: string; unit: RetainedStorageUnit }
++  genesisSha256: string; sequence: number; lastDigest: string; retainedCount: number; writerEpoch: string | null; sealed: boolean; epochs?: Array<{ epochId: string; sha256: string }> }
++type RecordRow = { schema: 1; kind: 'unit.retained'; registryId: string; sequence: number; previousDigest: string; unit: RetainedStorageUnit; producerEpoch?: string }
+ type Pending = { unit: RetainedStorageUnit; record: RecordRow; head: Head; oldHead: Head }
+ type Writer = { handle: PoolRegistryWriter; ino: number; dev: number; bytes: string; epoch: string;
+-  genesis: string; registryId: string; pending: Pending | null; closed: boolean }
++  genesis: string; registryId: string; pending: Pending | null; closed: boolean; epochAttempted?: boolean; epochConfirmed?: boolean }
+ type Operation = { deadline: number; expired: boolean }
+ const unknown = (): Result<never> => ({ state: 'unknown', complete: false, executionAuthorized: false })
+ const observed = <T>(value: T): Result<T> => ({ state: 'observed', value, complete: false, executionAuthorized: false })
+@@ -41,6 +45,8 @@ function unit(raw: unknown): RetainedStorageUnit {
+  * retirement, process count or complete coverage is established by this API. */
+ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+   host: { hostInstanceId: string; bootId: string }
++  /** Storage provenance only; this option alone never establishes factory coverage. */
++  controlled?: object
+   beforeIO?: (label: string) => unknown; afterIO?: (label: string) => unknown
+ }) {
+   const r = resourceData(raw, ['installationRoot', 'hostId', 'poolId', 'estateId', 'maxUnits', 'maxRecordBytes', 'maxRegistryBytes', 'timeoutMs'])
+@@ -48,6 +54,9 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+   const c = Object.freeze({ installationRoot: r.installationRoot, hostId: uuid(r.hostId), poolId: resourceId(r.poolId), estateId: uuid(r.estateId),
+     maxUnits: resourceInteger(r.maxUnits, 1, 4096), maxRecordBytes: resourceInteger(r.maxRecordBytes, 512, 65536),
+     maxRegistryBytes: resourceInteger(r.maxRegistryBytes, 4096, 16777216), timeoutMs: resourceInteger(r.timeoutMs, 1, 30000) })
++  const controlled = deps.controlled, origin = controlled ? controlledPoolOrigin(controlled) : null
++  if (controlled && !origin) refuse()
++  const maxEpochs = origin?.maxEpochs ?? null
+   const host = deps.host, hostId = uuid(host.hostInstanceId), bootId = uuid(host.bootId), before = deps.beforeIO, after = deps.afterIO
+   if (hostId !== c.hostId) refuse()
+   const key = digest(encode(['resource-pool-location/v1', c.hostId, c.poolId]))
+@@ -58,7 +67,7 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+   let rootIdentity: { dev: number; ino: number } | null = null
+   let sealResult: Promise<Result<null>> | null = null, sealHandle: PoolRegistryWriter | null = null
+   function check(op: Operation) {
+-    if (op.expired || performance.now() > op.deadline || deps.host !== host || host.hostInstanceId !== hostId || host.bootId !== bootId || deps.beforeIO !== before || deps.afterIO !== after) refuse()
++    if (op.expired || performance.now() > op.deadline || deps.host !== host || host.hostInstanceId !== hostId || host.bootId !== bootId || deps.beforeIO !== before || deps.afterIO !== after || deps.controlled !== controlled || (controlled && controlledPoolOrigin(controlled)?.maxEpochs !== maxEpochs)) refuse()
+   }
+   async function io<T>(op: Operation, label: string, fn: () => Promise<T>, cleanup?: (value: T) => Promise<unknown>): Promise<T> {
+     check(op); if (before) await before(label); check(op)
+@@ -120,14 +129,20 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+     if ((await read(op, path.join(c.installationRoot, 'stop-host', 'installation-id'), 128)).trim() !== hostId) refuse()
+   }
+   const binding = (registryId: string, genesisSha256: string) => ({ schema: 1, kind: 'pool-binding', registryId, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256 })
+-  const genesis = (registryId: string) => ({ schema: 1, kind: 'pool-genesis', registryId, hostId, poolId: c.poolId, estateId: c.estateId })
++  const genesis = (registryId: string) => ({ schema: 1, kind: 'pool-genesis', registryId, hostId, poolId: c.poolId, estateId: c.estateId, ...(controlled ? { controlledOrigin: CONTROLLED_POOL_ORIGIN } : {}) })
+   function head(rawHead: unknown, registryId: string, g: string): Head {
+-    const h = resourceData(rawHead, ['schema', 'kind', 'registryId', 'hostId', 'poolId', 'estateId', 'genesisSha256', 'sequence', 'lastDigest', 'retainedCount', 'writerEpoch', 'sealed'])
++    const h = resourceData(rawHead, ['schema', 'kind', 'registryId', 'hostId', 'poolId', 'estateId', 'genesisSha256', 'sequence', 'lastDigest', 'retainedCount', 'writerEpoch', 'sealed', ...(controlled ? ['epochs'] : [])])
+     if (h.schema !== 1 || h.kind !== 'pool-head' || h.registryId !== registryId || h.hostId !== hostId || h.poolId !== c.poolId || h.estateId !== c.estateId || h.genesisSha256 !== g || typeof h.sealed !== 'boolean') refuse()
+     const sequence = resourceInteger(h.sequence, 0, c.maxUnits)
+     if (h.retainedCount !== sequence) refuse()
++    let epochs: Array<{ epochId: string; sha256: string }> | undefined
++    if (controlled) {
++      if (!Array.isArray(h.epochs) || h.epochs.length > maxEpochs!) refuse()
++      epochs = h.epochs.map(raw => { const e = resourceData(raw, ['epochId', 'sha256']); return { epochId: uuid(e.epochId), sha256: sha(e.sha256) } })
++      if (new Set(epochs.map(e => e.epochId)).size !== epochs.length) refuse()
++    }
+     return { schema: 1, kind: 'pool-head', registryId, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256: g, sequence,
+-      lastDigest: sha(h.lastDigest), retainedCount: sequence, writerEpoch: h.writerEpoch === null ? null : uuid(h.writerEpoch), sealed: h.sealed }
++      lastDigest: sha(h.lastDigest), retainedCount: sequence, writerEpoch: h.writerEpoch === null ? null : uuid(h.writerEpoch), sealed: h.sealed, ...(epochs ? { epochs } : {}) }
+   }
+   async function base(op: Operation) {
+     await root(op); await directory(op, anchors); await directory(op, pools); await directory(op, dir)
+@@ -135,22 +150,43 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+     if (anchorBytes !== encode(binding(registryId, g)) || await read(op, path.join(dir, 'genesis.json')) !== encode(genesis(registryId))) refuse()
+     return { registryId, g }
+   }
++  function epoch(raw: unknown, registryId: string): Epoch {
++    const e = resourceData(raw, ['schema','kind','registryId','epochId','invocationId','policy','coverageBytes'])
++    if (e.schema !== 1 || e.kind !== 'controlled-pool-epoch' || e.registryId !== registryId || typeof e.coverageBytes !== 'string' || Buffer.byteLength(e.coverageBytes) > c.maxRecordBytes) refuse()
++    const policy = readResourceHostPolicy(e.policy, hostId)
++    if (policy.poolId !== c.poolId) refuse()
++    const m = resourceData(JSON.parse(e.coverageBytes), ['schema','hostId','poolId','localPolicyRevision','adapters'])
++    if (m.schema !== 1 || m.hostId !== hostId || m.poolId !== c.poolId || m.localPolicyRevision !== policy.localPolicyRevision || !Array.isArray(m.adapters) || !m.adapters.length || m.adapters.length > 32) refuse()
++    const ids = m.adapters.map(a => { const row = resourceData(a,['id','sourceSha256']); sha(row.sourceSha256); return resourceId(row.id) })
++    if (new Set(ids).size !== ids.length) refuse()
++    return Object.freeze({ schema:1,kind:'controlled-pool-epoch',registryId,epochId:uuid(e.epochId),invocationId:uuid(e.invocationId),policy,coverageBytes:e.coverageBytes })
++  }
++  const epochFile = (id: string) => 'epoch.' + id + '.json'
+   const recordFile = (seq: number) => 'unit.' + String(seq).padStart(8, '0') + '.json'
+   async function scan(op: Operation, b: { registryId: string; g: string }, pending: Pending | null = null) {
+     const headBytes = await read(op, path.join(dir, 'head.json')), h = head(JSON.parse(headBytes), b.registryId, b.g)
+     if (headBytes !== encode(h)) refuse()
+     const files: string[] = [], stream = await io(op, 'list-open', () => fs.opendir(dir), stream => stream.close())
+-    try { for (;;) { const row = await io(op, 'list-next', () => stream.read()); if (!row) break; files.push(row.name); if (files.length > c.maxUnits + 5) refuse() } }
++    try { for (;;) { const row = await io(op, 'list-next', () => stream.read()); if (!row) break; files.push(row.name); if (files.length > c.maxUnits + (maxEpochs ?? 0) + 5) refuse() } }
+     finally { await stream.close() }
+     const allowed = new Set(['genesis.json', 'head.json', 'writer.lock'])
+     let last = b.g, bytes = 0
+-    const units: RetainedStorageUnit[] = [], ids = new Set<string>()
++    const units: RetainedStorageUnit[] = [], ids = new Set<string>(), epochs: Epoch[] = []
++    for (const ref of h.epochs ?? []) {
++      const name = epochFile(ref.epochId); allowed.add(name)
++      const text = await read(op, path.join(dir,name)); bytes += Buffer.byteLength(text); if (bytes > c.maxRegistryBytes || digest(text) !== ref.sha256) refuse()
++      const e = epoch(JSON.parse(text),b.registryId); if (e.epochId !== ref.epochId || encode(e) !== text) refuse(); epochs.push(e)
++    }
+     for (let n = 1; n <= h.sequence; n++) {
+       const name = recordFile(n); allowed.add(name)
+       const text = await read(op, path.join(dir, name)); bytes += Buffer.byteLength(text); if (bytes > c.maxRegistryBytes) refuse()
+-      const rr = resourceData(JSON.parse(text), ['schema', 'kind', 'registryId', 'sequence', 'previousDigest', 'unit']), u = unit(rr.unit)
++      const rr = resourceData(JSON.parse(text), ['schema', 'kind', 'registryId', 'sequence', 'previousDigest', 'unit', ...(controlled ? ['producerEpoch'] : [])]), u = unit(rr.unit)
+       if (rr.schema !== 1 || rr.kind !== 'unit.retained' || rr.registryId !== b.registryId || rr.sequence !== n || rr.previousDigest !== last || ids.has(u.unitId)) refuse()
+-      if (text !== encode({ schema: 1, kind: 'unit.retained', registryId: b.registryId, sequence: n, previousDigest: last, unit: u })) refuse()
++      if (controlled) {
++        const origin = epochs.find(e => e.epochId === rr.producerEpoch)
++        if (!origin || origin.invocationId !== u.originInvocationId || `policy-sha256-v1:${resourceDigest(origin.policy)}` !== u.policyBindingRevision || digest(origin.coverageBytes) !== u.coverageSha256) refuse()
++      }
++      if (text !== encode({ schema: 1, kind: 'unit.retained', registryId: b.registryId, sequence: n, previousDigest: last, unit: u, ...(controlled ? { producerEpoch: rr.producerEpoch } : {}) })) refuse()
+       ids.add(u.unitId); units.push(u); last = digest(text)
+     }
+     if (h.lastDigest !== last) refuse()
+@@ -163,7 +199,7 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+       if (files.includes(scratch)) { if (await read(op, path.join(dir, scratch)) !== encode(pending.head)) refuse(); allowed.add(scratch) }
+     }
+     if (files.some(name => !allowed.has(name))) refuse()
+-    return { head: h, units: Object.freeze(units), bytes }
++    return { head: h, units: Object.freeze(units), epochs: Object.freeze(epochs), bytes }
+   }
+   async function writer(op: Operation, handle: PoolRegistryWriter) {
+     const w = owned.get(handle); if (!w || w.closed) refuse()
+@@ -191,7 +227,7 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+       await io(op, 'ledger-mkdir', () => fs.mkdir(dir, { mode: 0o700 })); await syncDir(op, pools)
+       await durable(op, path.join(dir, 'genesis.json'), encode(genesis(id)))
+       const h: Head = { schema: 1, kind: 'pool-head', registryId: id, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256: g,
+-        sequence: 0, lastDigest: g, retainedCount: 0, writerEpoch: null, sealed: true }
++        sequence: 0, lastDigest: g, retainedCount: 0, writerEpoch: null, sealed: true, ...(controlled ? { epochs: [] } : {}) }
+       await durable(op, path.join(dir, 'head.json'), encode(h)); return Object.freeze({ registryId: id, genesisSha256: g })
+     }),
+     acquire: () => execute(async op => {
+@@ -213,12 +249,35 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+         await fd.close()
+       }
+     }),
++    describe: (handle: PoolRegistryWriter) => execute(async op => {
++      const w = await writer(op,handle)
++      return Object.freeze({ registryId:w.registryId,genesisSha256:w.genesis,writerEpoch:w.epoch,locationKey:key,controlledOrigin:controlled ? CONTROLLED_POOL_ORIGIN : null })
++    }),
++    admitEpoch: async (handle: PoolRegistryWriter, evidence: ControlledPoolEpochEvidence) => {
++      const result = await execute(async op => {
++        if (!controlled) refuse()
++        const w = await writer(op,handle); if (w.pending || (w.epochAttempted && !w.epochConfirmed)) refuse()
++        const raw = resourceData(evidence,['policy','coverageBytes'])
++        const e = epoch({schema:1,kind:'controlled-pool-epoch',registryId:w.registryId,epochId:w.epoch,invocationId:bootId,...raw},w.registryId), text = encode(e)
++        const state = await scan(op,{registryId:w.registryId,g:w.genesis}), prior = state.epochs.find(old=>old.epochId===w.epoch)
++        if (state.head.sealed || state.head.writerEpoch !== w.epoch || (prior && encode(prior)!==text)) refuse()
++        if (!prior && (state.epochs.length >= maxEpochs! || state.bytes + Buffer.byteLength(text) > c.maxRegistryBytes)) refuse()
++        w.epochAttempted = true
++        await durable(op,path.join(dir,epochFile(w.epoch)),text,Boolean(prior))
++        const next = prior ? state.head : {...state.head,epochs:[...state.head.epochs!,{epochId:w.epoch,sha256:digest(text)}]}
++        await writeHead(op,w,next); await scan(op,{registryId:w.registryId,g:w.genesis})
++        return Object.freeze({epochId:w.epoch,sha256:digest(text)})
++      })
++      if (result.state === 'observed') get(handle).epochConfirmed = true
++      return result
++    },
+     append: (handle: PoolRegistryWriter, rawUnit: RetainedStorageUnit) => execute(async op => {
+       const u = unit(rawUnit), w = await writer(op, handle)
+-      if (u.originInvocationId !== bootId) refuse()
++      if (u.originInvocationId !== bootId || (controlled && !w.epochConfirmed)) refuse()
+       if (w.pending && encode(w.pending.unit) !== encode(u)) refuse()
+       const state = await scan(op, { registryId: w.registryId, g: w.genesis }, w.pending)
+       if (state.head.sealed || state.head.writerEpoch !== w.epoch) refuse()
++      if (controlled) { const e = state.epochs.find(e=>e.epochId===w.epoch); if (!e || `policy-sha256-v1:${resourceDigest(e.policy)}` !== u.policyBindingRevision || digest(e.coverageBytes) !== u.coverageSha256) refuse() }
+       if (!w.pending) {
+         const existing = state.units.findIndex(old => old.unitId === u.unitId)
+         if (existing >= 0) {
+@@ -228,7 +287,7 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+           return Object.freeze({ retainedDeclarationCount: state.units.length, headSha256: digest(encode(state.head)) })
+         }
+         if (state.head.sequence >= c.maxUnits) refuse()
+-        const record: RecordRow = { schema: 1, kind: 'unit.retained', registryId: w.registryId, sequence: state.head.sequence + 1, previousDigest: state.head.lastDigest, unit: u }
++        const record: RecordRow = { schema: 1, kind: 'unit.retained', registryId: w.registryId, sequence: state.head.sequence + 1, previousDigest: state.head.lastDigest, unit: u, ...(controlled ? { producerEpoch:w.epoch } : {}) }
+         if (state.bytes + Buffer.byteLength(encode(record)) > c.maxRegistryBytes) refuse()
+         w.pending = { unit: u, record, oldHead: state.head, head: { ...state.head, sequence: record.sequence, retainedCount: record.sequence, lastDigest: digest(encode(record)) } }
+       }
+@@ -244,7 +303,7 @@ export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+       const state = await scan(op, { registryId: w.registryId, g: w.genesis })
+       if (state.head.sealed || state.head.writerEpoch !== w.epoch) refuse()
+       await writer(op, handle)
+-      return Object.freeze({ retainedDeclarationCount: state.units.length, headSha256: digest(encode(state.head)), units: state.units })
++      return Object.freeze({ retainedDeclarationCount: state.units.length, headSha256: digest(encode(state.head)), units: state.units, ...(controlled ? { controlledOrigin:CONTROLLED_POOL_ORIGIN,epochs:state.epochs } : {}) })
+     }),
+     seal: (handle: PoolRegistryWriter): Promise<Result<null>> => {
+       if (sealResult) return handle === sealHandle ? sealResult : Promise.resolve(unknown())
+diff --git a/apps/desktop/src/main/resourceWorkerInventory.ts b/apps/desktop/src/main/resourceWorkerInventory.ts
+index e8e7ca8e..2039343a 100644
+--- a/apps/desktop/src/main/resourceWorkerInventory.ts
++++ b/apps/desktop/src/main/resourceWorkerInventory.ts
+@@ -3,9 +3,11 @@ import * as fs from 'node:fs/promises'
+ import { constants } from 'node:fs'
+ import path from 'node:path'
+ import { createHash, randomUUID } from 'node:crypto'
+-import { resourceId as id } from './resourceHostPolicy.ts'
++import { resourceId as id, readResourceHostPolicy, resourceDigest } from './resourceHostPolicy.ts'
+ import type { createResourceRunAssignmentManager, RunAssignmentHandle } from './resourceRunAssignment.ts'
+ 
++import type { createResourcePoolRegistry, PoolRegistryWriter } from './resourcePoolRegistry.ts'
++export interface ControlledIntentStore { registry:ReturnType<typeof createResourcePoolRegistry>; writer:PoolRegistryWriter; rawPolicy:unknown }
+ type Assignments = Pick<ReturnType<typeof createResourceRunAssignmentManager>, 'readIdentity'>
+ type Identity = { estateId:string;projectId:string;taskId:string;sessionId:string;attemptId:string }
+ export interface WorkerIntentConfig {
+@@ -62,21 +64,25 @@ const unknown=(reason:string)=>({state:'unknown' as const,reason,complete:false
+ const stamp=(s:{dev:number;ino:number;size:number;mtimeMs:number;ctimeMs:number})=>[s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs].join(':')
+ /** Trusted main supplies the actual N028 producer and host identity object. Neither
+  * dependency is a task/tool argument; object identity is retained across every await. */
+-export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assignments:Assignments;host:{hostInstanceId:string;bootId:string}}){
++export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assignments:Assignments;host:{hostInstanceId:string;bootId:string};controlled?:ControlledIntentStore}){
+  const keys=['estateId','hostId','poolId','localPolicyRevision','invocationId','storageRoot','coveragePath','coverageSha256','timeoutMs','maxRecords','maxRecordBytes','maxCoverageBytes','maxRegistryBytes']
+  const c=Object.freeze({...object(raw,keys)}) as unknown as Readonly<WorkerIntentConfig>
+  for(const k of ['estateId','hostId','poolId','localPolicyRevision','invocationId'] as const)id(c[k])
+  digest(c.coverageSha256)
+  for(const k of ['storageRoot','coveragePath'] as const)if(typeof c[k]!=='string'||!path.isAbsolute(c[k])||path.normalize(c[k])!==c[k])throw Error('invalid_path')
+  for(const [key,max] of [['timeoutMs',30000],['maxRecords',1024],['maxRecordBytes',65536],['maxCoverageBytes',65536],['maxRegistryBytes',8*1024*1024]] as const)if(!Number.isSafeInteger(c[key])||c[key]<1||c[key]>max)throw Error('invalid_bound')
+- object(deps,['assignments','host'])
+- const assignments=deps.assignments,readIdentity=assignments.readIdentity,host=deps.host
++ object(deps,['assignments','host',...(deps.controlled?['controlled']:[])])
++ const assignments=deps.assignments,readIdentity=assignments.readIdentity,host=deps.host,controlled=deps.controlled
++ const registry=controlled?.registry,registryAppend=registry?.append,writer=controlled?.writer
++ const policy=controlled?readResourceHostPolicy(controlled.rawPolicy,c.hostId):null
++ if(policy&&(policy.poolId!==c.poolId||policy.localPolicyRevision!==c.localPolicyRevision))throw Error('controlled_policy_conflict')
++ const pendingRegistrations=new Map<string,{event:Intent;bytes:string}>()
+  if(typeof readIdentity!=='function')throw Error('invalid_assignments')
+  const handles=new WeakMap<object,{event:Intent;bytes:string;assignment:RunAssignmentHandle}>()
+  let busy=false
+  function binding(){
+-  object(deps,['assignments','host']);object(host,['hostInstanceId','bootId'])
+-  if(deps.assignments!==assignments||assignments.readIdentity!==readIdentity||deps.host!==host||host.hostInstanceId!==c.hostId||host.bootId!==c.invocationId)throw Error('binding_changed')
++  object(deps,['assignments','host',...(deps.controlled?['controlled']:[])]);object(host,['hostInstanceId','bootId'])
++  if(deps.assignments!==assignments||assignments.readIdentity!==readIdentity||deps.host!==host||host.hostInstanceId!==c.hostId||host.bootId!==c.invocationId||deps.controlled!==controlled||(controlled&&(controlled.registry!==registry||controlled.writer!==writer||registry!.append!==registryAppend)))throw Error('binding_changed')
+  }
+  binding()
+  async function directory(){const s=await fs.lstat(c.storageRoot);if(!s.isDirectory()||s.isSymbolicLink()||(s.mode&0o777)!==0o700||await fs.realpath(c.storageRoot)!==c.storageRoot)throw Error('storage_unknown')}
+@@ -106,14 +112,15 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
+   try{await directory.sync()}finally{await directory.close()}
+   check()
+  }
+- async function coverage(){
++ async function coverageRead(){
+   const bytes=await read(c.coveragePath,c.maxCoverageBytes);if(hash(bytes)!==c.coverageSha256)throw Error('coverage_changed')
+   const m=object(JSON.parse(bytes.toString('utf8')),['schema','hostId','poolId','localPolicyRevision','adapters'])
+   if(m.schema!==1||m.hostId!==c.hostId||m.poolId!==c.poolId||m.localPolicyRevision!==c.localPolicyRevision||!Array.isArray(m.adapters)||!m.adapters.length||m.adapters.length>32)throw Error('coverage_unknown')
+   const result=new Map<string,string>()
+   for(const raw of m.adapters){const a=object(raw,['id','sourceSha256']),key=id(a.id);if(result.has(key))throw Error('duplicate_adapter');result.set(key,digest(a.sourceSha256))}
+-  return result
++  return {adapters:result,bytes:bytes.toString('utf8')}
+  }
++ async function coverage(){return (await coverageRead()).adapters}
+  function validate(raw:unknown,name:string):Intent{
+   const r=object(raw,['schema','kind','unitId','eventId','estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId','adapterSourceSha256','coverageSha256','runId','assignment'])
+   if(r.schema!==1||r.kind!=='intent.registered'||name!==`${uuid(r.unitId)}.${uuid(r.eventId)}.json`)throw Error('event_unknown')
+@@ -231,6 +238,7 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
+   }
+  })}
+  return {
++  readCoverage(){return operation(async check=>{const read=await coverageRead();check();return {bytes:read.bytes,sha256:hash(read.bytes)}})},
+   register(handle:RunAssignmentHandle,adapterId:string){return operation(async check=>{
+    id(adapterId);const a=await assignment(handle,check),adapters=await coverage();check();const adapterSource=adapters.get(adapterId);if(!adapterSource)throw Error('adapter_unknown')
+    await directory();check();const lockPath=path.join(c.storageRoot,'.register.lock'),lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+@@ -245,15 +253,27 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
+      if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId)throw Error('intent_conflict')
+     }else{
+      if(allRows(rows).length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
+-     saved={schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
++     saved=pendingRegistrations.get(a.attemptId)?.event??{schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
++     if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId||!current(saved,adapters))throw Error('pending_intent_conflict')
+      bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||allRows(rows).reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
++     if(controlled){
++      if(!pendingRegistrations.has(a.attemptId)&&pendingRegistrations.size>=c.maxRecords)throw Error('pending_intent_bound')
++      pendingRegistrations.set(a.attemptId,{event:saved,bytes})
++      const declaration=await registryAppend!.call(registry,writer!,{unitId:saved.unitId,originInvocationId:saved.invocationId,policyBindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,intentRecordSha256:hash(bytes),coverageSha256:saved.coverageSha256});check()
++      if(declaration.state!=='observed')throw Error('controlled_declaration_unconfirmed')
++     }
+      check();const fd=await fs.open(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+      try{check();await fd.writeFile(bytes)}finally{await fd.close()}
+     }
++    if(controlled&&prior){
++     const declaration=await registryAppend!.call(registry,writer!,{unitId:saved.unitId,originInvocationId:saved.invocationId,policyBindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,intentRecordSha256:hash(bytes),coverageSha256:saved.coverageSha256});check()
++     if(declaration.state!=='observed')throw Error('controlled_declaration_unconfirmed')
++    }
+     // Existing bytes may follow a failed fsync: exact retries must establish the same durability barrier.
+     await durable(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),bytes,check)
+     const after=await assignment(handle,check);const latest=await coverage();check()
+     if(!same(a,after)||!current(saved,latest))throw Error('binding_changed')
++    pendingRegistrations.delete(a.attemptId)
+     const token=Object.freeze({unitId:saved.unitId,eventId:saved.eventId});handles.set(token,{event:freeze(saved),bytes,assignment:handle})
+     return {handle:token,unitId:saved.unitId,eventId:saved.eventId,recordSha256:hash(bytes)}
+    }finally{
+diff --git a/apps/desktop/src/main/resourceManagedUnit.ts b/apps/desktop/src/main/resourceManagedUnit.ts
+index caa22cd6..3cb1021b 100644
+--- a/apps/desktop/src/main/resourceManagedUnit.ts
++++ b/apps/desktop/src/main/resourceManagedUnit.ts
+@@ -1,4 +1,5 @@
+ // #region resource-managed-unit — docs: docs/execution/harness-waves/resource-worker-launch.md#contract
++import { issueControlledSpawnTicket } from './resourceControlledPool.ts'
+ import type { createResourceRunAssignmentManager, RunAssignmentHandle } from './resourceRunAssignment.ts'
+ import type { createResourceWorkerInventory, WorkerIntentHandle } from './resourceWorkerInventory.ts'
+ import type { PreparedLaunchPacket } from './preparedLaunchInput.ts'
+@@ -29,7 +30,7 @@ interface Entry {
+   packet:PreparedLaunchPacket;handle:ManagedUnitHandle;busy:boolean;confirmed:boolean;outcome?:Promise<Result<ManagedUnitHandle>>
+   assignment?:RunAssignmentHandle;attemptId?:string;intent?:WorkerIntentHandle;intentDigest?:string
+   admissionConfirmed?:boolean;receipt?:AdmissionReceipt;binding?:Readonly<ResourceLaunchBinding>;attachment?:Record<string,unknown>
+-  childEnvironment?:Readonly<{AGENT_SYNC_RUN_ID:string}>;native?:OwnedPtyUnit;admissionDigest?:string;processDigest?:string
++  ticket?:object;childEnvironment?:Readonly<{AGENT_SYNC_RUN_ID:string}>;native?:OwnedPtyUnit;admissionDigest?:string;processDigest?:string
+ }
+ const unknown=(reason:string):Unknown=>({state:'unknown',reason,complete:false,executionAuthorized:false})
+ const result=<T>(value:T):Result<T>=>({state:'observed',value,complete:false,executionAuthorized:false})
+@@ -38,9 +39,9 @@ const uuid=(v:unknown)=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a
+ const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b)
+ /** Source preparation only. Concrete collaborators retain their actual handles;
+  * no callback declares execution ended, ownership held or pool coverage complete. */
+-export function createResourceManagedUnit(raw:ResourceManagedUnitConfig,deps:{assignments:Assignments;intents:Intents;resources:ManagedResourceLaunch;ptys:PtyManager;host:{hostInstanceId:string;bootId:string}}):ManagedUnits {
++export function createResourceManagedUnit(raw:ResourceManagedUnitConfig,deps:{assignments:Assignments;intents:Intents;resources:ManagedResourceLaunch;ptys:PtyManager;host:{hostInstanceId:string;bootId:string};controlled?:object}):ManagedUnits {
+   const rawConfig=resourceData(raw,['estateId','rawPolicy','adapterId','maxEntries','timeoutMs'])
+-  const {assignments,intents,resources,ptys,host}=deps, inputs=resources.inputs
++  const {assignments,intents,resources,ptys,host,controlled}=deps, inputs=resources.inputs
+   const policy=readResourceHostPolicy(rawConfig.rawPolicy,host.hostInstanceId)
+   const c=Object.freeze({estateId:resourceId(rawConfig.estateId),adapterId:resourceId(rawConfig.adapterId),
+     hostId:policy.hostId,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,bindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,
+@@ -53,7 +54,7 @@ export function createResourceManagedUnit(raw:ResourceManagedUnitConfig,deps:{as
+   const boot=host.bootId
+   const entries=new Map<string,Entry>(),handles=new WeakMap<ManagedUnitHandle,Entry>()
+   function bound(){
+-    if(deps.assignments!==assignments||deps.intents!==intents||deps.resources!==resources||deps.ptys!==ptys||deps.host!==host||
++    if(deps.controlled!==controlled||deps.assignments!==assignments||deps.intents!==intents||deps.resources!==resources||deps.ptys!==ptys||deps.host!==host||
+       host.hostInstanceId!==c.hostId||host.bootId!==boot||resources.inputs!==inputs||inputs!.owns!==methods.owns||
+       assignments.allocate!==methods.allocate||assignments.readIdentity!==methods.readIdentity||assignments.childEnvironment!==methods.childEnvironment||intents.register!==methods.register||intents.readIntent!==methods.readIntent||
+       intents.attachAdmission!==methods.attachAdmission||intents.attachProcess!==methods.attachProcess||intents.readAttachments!==methods.readAttachments||resources.readBinding!==methods.readBinding||
+@@ -143,7 +144,8 @@ export function createResourceManagedUnit(raw:ResourceManagedUnitConfig,deps:{as
+         const environment=await childEnvironment(e,check)
+         if(e.childEnvironment&&!same(e.childEnvironment,environment))throw Error('child environment changed')
+         e.childEnvironment??=environment
+-        e.native??=methods.reserve.call(ptys,e.packet,e.childEnvironment)
++        if(controlled)e.ticket??=issueControlledSpawnTicket(controlled,e.packet,e.intent!,receipt)
++        e.native??=methods.reserve.call(ptys,e.packet,e.childEnvironment,e.ticket)
+         return true
+       },false)
+       // Retain ambiguous records/tokens privately; only the caller-visible
+diff --git a/apps/desktop/src/main/pty.ts b/apps/desktop/src/main/pty.ts
+index 27ffcedf..9b61f899 100644
+--- a/apps/desktop/src/main/pty.ts
++++ b/apps/desktop/src/main/pty.ts
+@@ -1,3 +1,4 @@
++import { bindControlledSpawnTicket, consumeControlledSpawnTicket } from './resourceControlledPool.ts'
+ import { resourceData } from './resourceHostPolicy.ts'
+ import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
+ // PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the
+@@ -304,7 +305,7 @@ export async function launchOption(id: string, availability: RunnerAvailability
+ /** Local object capability: a copied session id or PID cannot create this handle. */
+ export interface OwnedPtyUnit { readonly sessionId: string }
+ interface OwnedUnitEntry {
+-  childEnvironment: Readonly<{AGENT_SYNC_RUN_ID:string}>
++  childEnvironment: Readonly<{AGENT_SYNC_RUN_ID:string}>; controlledTicket?:object
+   packet: PreparedLaunchPacket
+   attempted: boolean
+   session?: LiveSession
+@@ -525,6 +526,9 @@ export class PtyManager {
+       try { allowed = await beforeSpawn() } catch (e) { discardBundle(); throw e }
+       if (!allowed) { discardBundle(); throw new LaunchAuthorityChanged(sessionId) }
+     }
++    if(unit?.controlledTicket&&(!ownedUnit||!prepared||!consumeControlledSpawnTicket(unit.controlledTicket,this,prepared,ownedUnit))){
++      discardBundle();throw new LaunchRefusedBeforeSpawn(sessionId,'controlled_ticket_unavailable')
++    }
+     let pty: IPty
+     try {
+       pty = this.spawn(launch.file, launch.args, {
+@@ -736,14 +740,15 @@ export class PtyManager {
+   }
+ 
+   // #region managed-owned-observation — docs: docs/execution/harness-waves/resource-worker-launch.md#contract
+-  reserveOwnedUnit(packet: PreparedLaunchPacket, environment: Readonly<{AGENT_SYNC_RUN_ID:string}>): OwnedPtyUnit {
++  reserveOwnedUnit(packet: PreparedLaunchPacket, environment: Readonly<{AGENT_SYNC_RUN_ID:string}>, controlledTicket?:object): OwnedPtyUnit {
+     const data=resourceData(environment,['AGENT_SYNC_RUN_ID'])
+     if(typeof data.AGENT_SYNC_RUN_ID!=='string'||!/^[a-z0-9]{12}$/.test(data.AGENT_SYNC_RUN_ID))throw new Error('unit environment unavailable')
+     const childEnvironment=Object.freeze({AGENT_SYNC_RUN_ID:data.AGENT_SYNC_RUN_ID})
+     if (!preparedLaunchMatches(packet,{sessionId:packet.sessionId,projectId:packet.projectId,taskId:packet.taskId}) ||
+         this.sessions.has(packet.sessionId) || this.opening.has(packet.sessionId)) throw new Error('unit identity unavailable')
+     const token = Object.freeze({sessionId:packet.sessionId})
+-    this.ownedUnits.set(token,{packet,childEnvironment,attempted:false})
++    if(controlledTicket&&!bindControlledSpawnTicket(controlledTicket,this,packet,token))throw new Error('controlled ticket unavailable')
++    this.ownedUnits.set(token,{packet,childEnvironment,controlledTicket,attempted:false})
+     return token
+   }
+ 
+diff --git a/apps/desktop/test/resource-controlled-pool.test.mjs b/apps/desktop/test/resource-controlled-pool.test.mjs
+new file mode 100644
+index 00000000..d3877914
+--- /dev/null
++++ b/apps/desktop/test/resource-controlled-pool.test.mjs
+@@ -0,0 +1,133 @@
++import test from 'node:test'
++import assert from 'node:assert/strict'
++import * as fs from 'node:fs/promises'
++import path from 'node:path'
++import os from 'node:os'
++import {execFileSync} from 'node:child_process'
++import {createHash,randomUUID} from 'node:crypto'
++import {preparedFixture} from './prepared-launch-fixture.mjs'
++import {createControlledManagedPool,controlledPoolOrigin,issueControlledSpawnTicket,bindControlledSpawnTicket,consumeControlledSpawnTicket} from '../src/main/resourceControlledPool.ts'
++import {createResourcePoolRegistry} from '../src/main/resourcePoolRegistry.ts'
++import {PtyManager} from '../src/main/pty.ts'
++import {createProcessBoundary} from '../src/main/processBoundary.ts'
++import {readResourceHostPolicy,resourceDigest} from '../src/main/resourceHostPolicy.ts'
++import {AGENT_SYNC_IDENTITY_SOURCE_SHA256} from '../src/main/resourceRunAssignment.ts'
++const script=process.env.N028_AGENT_SYNC_SCRIPT??path.join(os.homedir(),'.codex/plugins/cache/agent-sync/agent-sync/1.22.2/skills/agent-sync/scripts/agent_sync.py')
++const hash=b=>createHash('sha256').update(b).digest('hex'),wait=ms=>new Promise(r=>setTimeout(r,ms))
++const vector=(slots=1)=>({workerSlots:slots,memoryBytes:10,diskBytes:10,cpuMilliCores:10}),zero={workerSlots:0,memoryBytes:0,diskBytes:0,cpuMilliCores:0}
++async function fixture(t,options={}){
++ assert.equal(hash(await fs.readFile(script)),AGENT_SYNC_IDENTITY_SOURCE_SHA256)
++ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'fabric-controlled-pool-')));t.after(()=>fs.rm(root,{recursive:true,force:true}))
++ const repo=path.join(root,'repo'),bin=path.join(root,'bin')
++ for(const dir of [repo,bin,path.join(root,'stop-host')])await fs.mkdir(dir,{mode:0o700})
++ const host={hostInstanceId:randomUUID(),bootId:randomUUID()};await fs.writeFile(path.join(root,'stop-host/installation-id'),host.hostInstanceId+'\n')
++ await fs.writeFile(path.join(bin,'claude'),'#!/bin/sh\nexit 0\n',{mode:0o755});const envPath=process.env.PATH;process.env.PATH=bin+path.delimiter+envPath;t.after(()=>{process.env.PATH=envPath})
++ execFileSync('git',['init','-q',repo]);execFileSync('git',['-C',repo,'-c','user.name=fixture','-c','user.email=fixture@invalid','commit','--allow-empty','-qm','fixture'])
++ const f=preparedFixture();f.project.repo_path=repo;f.root=root;f.calls=[];f.snapshots=0;f.spawned=0
++ const manifest={selectionRevision:'s1',scopeMappingRevision:'m1',configuredKey:'lane',expectedHead:execFileSync('git',['-C',repo,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),selectedInputs:[{path:'README.md'}],mutableScope:[{path:'out.txt',state:'absent'}],bounds:{maxPaths:8,maxDepth:8,maxPathBytes:512,maxFileBytes:1024,maxTotalBytes:4096,maxMetadataBytes:65536,timeoutMs:5000,maxAgeMs:60000}}
++ const manifestPath=path.join(root,'lane.json');await fs.writeFile(manifestPath,JSON.stringify(manifest))
++ const policy={hostId:host.hostInstanceId,poolId:'controlled',localPolicyRevision:'human-policy',capacity:vector(10),demandProfiles:{builder:vector(),reviewer:vector(),test:vector()},diskPath:repo,diskDeviceId:String((await fs.stat(repo)).dev),maxAgeMs:10000,sampleWindowMs:100,timeoutMs:5000}
++ const bindingRevision=`policy-sha256-v1:${resourceDigest(readResourceHostPolicy(policy,host.hostInstanceId))}`
++ const coverage={schema:1,hostId:host.hostInstanceId,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,adapters:[{id:'managed',sourceSha256:hash(await fs.readFile(new URL('../src/main/resourceManagedUnit.ts',import.meta.url)))}]},coveragePath=path.join(root,'coverage.json');await fs.writeFile(coveragePath,JSON.stringify(coverage))
++ const row=(pid,parent,group,start)=>({pid,parent,group,start,status:'S'})
++ f.rows=[row(999,1,999,'host-start'),row(200,999,200,'owned-start')]
++ const boundary=createProcessBoundary({ownPid:999,snapshot:async()=>{f.snapshots++;if(f.snapshotWait)await f.snapshotWait;if(f.captureUnknown)throw Error('synthetic unavailable');return f.rows},signal:()=>{throw Error('no native signal allowed')}})
++ const ptys=new PtyManager({append:async event=>{f.calls.push(event.type);if(f.journalFailure&&event.type==='terminal.opened@1')throw Error('synthetic journal');return {seq:1}}},f.id.estate,{onData(){},onExit(){}},{compile:async()=>({args:[],env:f.bundleEnv??{}}),discard(){}},(_program,_args,spawnOptions)=>{
++  f.spawnEnvironment=spawnOptions.env
++  f.calls.push('native-spawn');f.spawned++;if(f.spawnFailure)throw Error('synthetic spawn failure')
++  return {pid:200,write(){},resize(){},kill(){f.calls.push('signal-request')},onData(){return {dispose(){}}},onExit(fn){f.exit=fn;if(f.immediateExit)queueMicrotask(()=>{f.rows=f.rows.slice(0,1);void fn({exitCode:0,signal:0})});return {dispose(){}}}}
++ },undefined,()=>({kind:'person',id:'fixture'}),{},boundary)
++ const run='55555555-5555-4555-8555-555555555555'
++ const db={rpc:async(name,args)=>{f.calls.push(name);f.lastArgs={name,args};if(f.rpcHook){const value=await f.rpcHook(name,args);if(value!==undefined)return value}
++  if(name==='admit_resource_task_launch')return {data:{admitted:true,task_id:args.p_task_id,session_id:args.p_session_id,project_id:f.id.project,task_run_id:run,run_ordinal:1,receipt_seq:2,instruction:f.task.instruction,option_id:f.task.option_id,resource_reservation:{reservation_id:args.p_binding.reservationId,state:'held',run_ordinal:1}}}
++  if(name==='begin_task_run_launch')return {data:{granted:true,task_run_id:run,session_id:args.p_session_id}}
++  if(name==='validate_task_run_launch')return {data:{valid:f.valid!==false,task_run_id:run,session_id:args.p_session_id}}
++  if(name==='bind_task_run')return {data:{bound:true,task_run_id:run,session_id:args.p_session_id}}
++  if(name==='fail_task_launch'){f.failedStarted=args.p_process_started;return {data:{compensated:args.p_process_started===false}}}
++  if(name==='cancel_resource_admission'||name==='release_resource_reservation')return {data:{released:true,receipt_seq:3}}
++  throw Error('unexpected rpc')
++ }}
++ const config={lifecycle:'provision',rawPolicy:policy,estateId:f.id.estate,adapterId:'managed',timeoutMs:15000,maxEpochs:8,
++  assignment:{projectId:f.id.project,repositoryRoot:repo,approvedRemote:'https://fixture.invalid/repo.git',repositoryName:'repo',manifestPath,manifestSha256:hash(JSON.stringify(manifest)),agentSyncScript:script,timeoutMs:5000,maxRecords:16,maxRecordBytes:32768,maxManifestBytes:32768},
++  registry:{maxUnits:16,maxRecordBytes:8192,maxRegistryBytes:131072,timeoutMs:5000},inventory:{coveragePath,coverageSha256:hash(JSON.stringify(coverage)),timeoutMs:5000,maxRecords:48,maxRecordBytes:8192,maxCoverageBytes:8192,maxRegistryBytes:131072},inputs:{maxEntries:16,maxInstructionBytes:8192,contextBudget:8192,timeoutMs:5000},units:{maxEntries:16,timeoutMs:5000},resource:{maxEntries:16,timeoutMs:5000}}
++ const deps={app:{getPath:()=>root},host,store:f.store,db,ptys,actor:{kind:'system',id:'fixture'},authority:()=>null,guard:async()=>true,track(){},untrack(){},stop:async()=>{f.calls.push('stop-request')},dispatch:async()=>({state:f.delivery??'delivering',says:'fixture'}),preflight:{
++  current:async()=>{if(f.currentHook)await f.currentHook();return true},
++  prepare:async(input,packet,evidence)=>{
++   f.evidence=evidence
++   if(f.prepareHook)await f.prepareHook()
++   const binding={hostId:host.hostInstanceId,poolId:policy.poolId,localPolicyRevision:bindingRevision,reservationId:'reservation-'+input.sessionId,attemptId:evidence.assignment.attemptId,fence:1,ownerId:'fixture',role:'builder',inputDigest:'b'.repeat(64),scopeDigest:'c'.repeat(64)}
++   // Synthetic R1/SQL transport only. Actual N028/N031/registry/managed/PTY modules run.
++   const observed={...zero,workerSlots:evidence.inventory.workers.length}
++   return {request:{...binding,demand:vector()},ownDemand:vector(),context:{nowMs:100,policy:{hostId:host.hostInstanceId,poolId:policy.poolId,localPolicyRevision:bindingRevision,capacity:vector(options.capacity??10),maxAgeMs:10},snapshot:{id:'snapshot',hostId:host.hostInstanceId,poolId:policy.poolId,localPolicyRevision:bindingRevision,atMs:100,reserved:zero,observed,reservedObserved:zero}},checks:{ownership:()=>({state:'held',identity:binding,snapshotId:'snapshot',atMs:100})}}
++  }}}
++ const ledger=async()=>path.join(root,'resource-pools',(await fs.readdir(path.join(root,'resource-pools')))[0])
++ return Object.assign(f,{config,deps,host,policy,ptys,coveragePath,ledger,
++  async open(){const r=await createControlledManagedPool(config,deps);assert.equal(r.state,'observed',JSON.stringify(r));return r.value},
++  async records(){const dir=await ledger();return Promise.all((await fs.readdir(dir)).filter(x=>/^unit\./.test(x)).map(async x=>JSON.parse(await fs.readFile(path.join(dir,x),'utf8'))))}})
++}
++test('concrete factory declares before resource admission and consumes ticket immediately after final SQL',async t=>{
++ const f=await fixture(t),pool=await f.open(),r=await pool.launch({taskId:f.id.task,trigger:'operator'})
++ assert.equal(r.started,true,JSON.stringify(r));assert.equal(f.spawned,1);assert.deepEqual(f.evidence.inventory.workers,[f.evidence.assignment.attemptId]);assert.equal(f.calls[f.calls.indexOf('native-spawn')-1],'validate_task_run_launch')
++ const records=await f.records();assert.equal(records.length,1);assert.equal(records[0].unit.unitId,f.evidence.assignment.attemptId)
++ assert.equal((await pool.close()).state,'sealed')
++})
++test('actual N022 sampler consumes complete closed-domain registry reading, not zero from empty process map',async t=>{
++ const f=await fixture(t),pool=await f.open();assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).started,true)
++ const s=await pool.snapshot();assert.equal(s.state,'observed',JSON.stringify(s));assert.equal(s.observed.workerSlots,1);assert.equal(s.executionAuthorized,false);assert.equal((await pool.close()).state,'sealed')
++})
++test('clean restart retains historical units across invocation change',async t=>{
++ const f=await fixture(t),pool=await f.open();assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).started,true);assert.equal((await pool.close()).state,'sealed')
++ f.config.lifecycle='reopen';f.deps.host={...f.host,bootId:randomUUID()};const next=await f.open();const s=await next.snapshot();assert.equal(s.state,'observed');assert.equal(s.observed.workerSlots,1);assert.equal((await next.close()).state,'sealed')
++})
++test('capacity one counts own pending intent conservatively and permanently prevents clean handoff',async t=>{
++ const f=await fixture(t,{capacity:1}),pool=await f.open(),r=await pool.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.equal((await f.records()).length,1);assert.equal((await pool.close()).state,'unknown');assert.equal((await pool.snapshot()).state,'unknown')
++ assert.ok((await fs.readdir(await f.ledger())).includes('writer.lock'))
++})
++test('uncertain delivery after actual spawn poisons creation domain without retiring declaration',async t=>{
++ const f=await fixture(t),pool=await f.open();f.delivery='outcome_unknown';const result=await pool.launch({taskId:f.id.task,trigger:'operator'});assert.equal(result.started,true);assert.equal(result.deliveryState,'outcome_unknown');assert.equal(f.spawned,1);assert.equal((await f.records()).length,1);assert.equal((await pool.close()).state,'unknown')
++})
++test('late unresolved preflight remains charged; repeated calls start no more work',async t=>{
++ const f=await fixture(t);f.config.resource.timeoutMs=1000;const pool=await f.open();let release,calls=0;f.prepareHook=()=>{calls++;return new Promise(r=>release=r)}
++ assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).started,false);for(let i=0;i<12;i++)assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).state,'unknown');assert.equal(calls,1);assert.equal((await pool.close()).state,'unknown');release();await wait(30);assert.equal(f.spawned,0);assert.ok((await fs.readdir(await f.ledger())).includes('writer.lock'))
++})
++test('close during final SQL revokes exact native ticket synchronously before spawn',async t=>{
++ const f=await fixture(t),pool=await f.open();let close
++ f.rpcHook=async name=>{if(name==='validate_task_run_launch')close=pool.close()}
++ const result=await pool.launch({taskId:f.id.task,trigger:'operator'});assert.ok(f.calls.includes('validate_task_run_launch'),'actual final SQL boundary reached');assert.ok(result.state==='unknown'||result.started===false);assert.equal(f.spawned,0);assert.equal((await close).state,'unknown')
++})
++test('forged capability and tickets never create a controlled origin or native permission',async t=>{
++ const f=await fixture(t);assert.equal(controlledPoolOrigin({}),null);assert.throws(()=>issueControlledSpawnTicket({}, {}, {}, {}));assert.equal(bindControlledSpawnTicket({},f.ptys,{},{}),false);assert.equal(consumeControlledSpawnTicket({},f.ptys,{},{}),false)
++ assert.throws(()=>createResourcePoolRegistry({...f.config.registry,installationRoot:f.root,hostId:f.host.hostInstanceId,poolId:f.policy.poolId,estateId:f.id.estate},{host:f.host,controlled:{maxEpochs:8}}))
++})
++test('generic provisioned registry cannot be promoted to controlled historical coverage',async t=>{
++ const f=await fixture(t),r=createResourcePoolRegistry({...f.config.registry,installationRoot:f.root,hostId:f.host.hostInstanceId,poolId:f.policy.poolId,estateId:f.id.estate},{host:f.host});assert.equal((await r.provision()).state,'observed');f.config.lifecycle='reopen';assert.equal((await createControlledManagedPool(f.config,f.deps)).state,'unknown')
++})
++test('missing controlled ledger preserves external anchor and never resets history',async t=>{
++ const f=await fixture(t),pool=await f.open();assert.equal((await pool.close()).state,'sealed');await fs.rm(await f.ledger(),{recursive:true});assert.equal((await createControlledManagedPool(f.config,f.deps)).state,'unknown');f.config.lifecycle='reopen';assert.equal((await createControlledManagedPool(f.config,f.deps)).state,'unknown')
++})
++test('snapshot corruption permanently poisons even after disk bytes are restored',async t=>{
++ const f=await fixture(t),pool=await f.open(),file=path.join(await f.ledger(),'head.json'),before=await fs.readFile(file);await fs.writeFile(file,'{}');assert.equal((await pool.snapshot()).state,'unknown');await fs.writeFile(file,before);assert.equal((await pool.close()).state,'unknown')
++})
++test('actual collaborator replacement refuses before any admission or spawn',async t=>{
++ const f=await fixture(t),pool=await f.open();f.deps.ptys={...f.ptys};assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).state,'unknown');assert.equal(f.spawned,0);assert.ok(!f.calls.includes('admit_resource_task_launch'))
++})
++
++for(const state of ['retryable','rejected','queued','malformed'])test(`actual managed delivery ${state} permanently poisons without losing started result`,async t=>{
++ const f=await fixture(t),pool=await f.open();f.delivery=state;const result=await pool.launch({taskId:f.id.task,trigger:'operator'});assert.equal(result.started,true);assert.equal(result.deliveryState,state);assert.equal(f.spawned,1);assert.equal((await pool.close()).state,'unknown');assert.equal((await f.records()).length,1)
++})
++
++test('actual captured native ticket refuses copied token, wrong manager and second consumption',async t=>{
++ const f=await fixture(t),reserve=f.ptys.reserveOwnedUnit.bind(f.ptys);let held
++ f.ptys.reserveOwnedUnit=(packet,env,ticket)=>{const native=reserve(packet,env,ticket);held={packet,native,ticket};return native}
++ const pool=await f.open();assert.equal((await pool.launch({taskId:f.id.task,trigger:'operator'})).started,true);assert.ok(held.ticket)
++ assert.equal(bindControlledSpawnTicket({...held.ticket},f.ptys,held.packet,held.native),false)
++ assert.equal(consumeControlledSpawnTicket(held.ticket,{},held.packet,held.native),false)
++ assert.equal(consumeControlledSpawnTicket(held.ticket,f.ptys,{...held.packet},held.native),false)
++ assert.equal(consumeControlledSpawnTicket(held.ticket,f.ptys,held.packet,held.native),false)
++ assert.equal((await pool.close()).state,'sealed')
++})
++test('intent currentness failure after declaration retains orphan as charged storage',async t=>{
++ const f=await fixture(t),pool=await f.open();let declared=false
++ f.readHook=async(table)=>{if(table==='project_tasks'&&(await f.records()).length){declared=true;return {data:{...f.task,project_id:randomUUID()},error:null}}}
++ const result=await pool.launch({taskId:f.id.task,trigger:'operator'});assert.equal(declared,true);assert.equal(result.started,false);assert.equal(f.spawned,0);assert.equal((await f.records()).length,1);assert.equal((await pool.close()).state,'unknown')
++})
+diff --git a/docs/execution/harness-waves/resource-controlled-pool.md b/docs/execution/harness-waves/resource-controlled-pool.md
+new file mode 100644
+index 00000000..9a53e7c8
+--- /dev/null
++++ b/docs/execution/harness-waves/resource-controlled-pool.md
+@@ -0,0 +1,43 @@
++# Controlled ordinary managed pool
++
++## Contract
++
++N035 is source preparation, not production activation. The concrete factory owns an exclusive N034 writer, actual N028 assignments, N029 prepared inputs, declaration-first N031 intents, R1/R2 adapter, N032 units and the existing managed launcher. It calls the actual PTY entry; no second native launcher or index/default wiring is added. Sources: `apps/desktop/src/main/resourceControlledPool.ts`, `resourcePoolRegistry.ts`, `resourceWorkerInventory.ts`, `resourceManagedUnit.ts`, `pty.ts`. Focused checks: `apps/desktop/test/resource-controlled-pool.test.mjs` (18 focused checks passed on the frozen candidate; exact hashes and logs travel with N035 evidence).
++
++`createControlledManagedPool(config,deps)` constructs one fixed ordinary-required creation domain and returns only `launch`, `snapshot`, `close`. App `getPath(userData)`, host identity, store, SQL transport, authority/guard, tracking, stopping, dispatch and preflight are trusted composition inputs. Root is checked canonical and bound throughout; an injected app object does not prove an arbitrary caller chose the production installation root. Production composition must supply the actual canonical app/runtime inputs. This does not prove universal exclusion of other programs, legacy or unmanaged launches on that host or named pool.
++
++## Durable domain
++
++Provision and reopen are explicit, different lifecycle operations. Provision is a trusted lifecycle action, never autonomous proof that an empty directory was never used. Controlled genesis differs from generic genesis. Its constructor requires a private actual-factory capability; exported readback/issue/bind/consume functions recognize private WeakMap objects and have no public mint. Neither a caller-selected marker nor a copied object upgrades an existing generic ledger.
++
++Each writer epoch stores the full normalized host policy plus exact validated coverage bytes, linked into the canonical head. Every retained unit links to that epoch and its invocation, policy binding revision and coverage digest. The coverage manifest is validated audit provenance, not an independent execution measurement of the file named by its source hash. Actual module composition and private writer ownership define the controlled creation path. Registry locations remain stable across invocations and policies; epochs and declarations are bounded and never retired here.
++
++N031 constructs the exact canonical intent bytes and directly appends their declaration through the captured actual writer before writing or acknowledging the intent event. If later event creation, durability or currentness fails, the declaration remains. It counts a conservative unretired logical unit, not proof of a running process. Historical declarations do not need old task membership or live N031 handles; supplemental event loss does not decrease occupancy, but prevents operating that handle.
++
++Completeness assumes trusted intact storage and exclusive use of this creation domain. Loss/rollback of BOTH ledger and its external anchor can erase history even while stop-host identity survives; no external monotonic authority detects that. Missing ledger with intact anchor, surplus/partial files, corrupt chains, unknown versions, unclean writer lock and exceeded bounds refuse. There is no lock stealing or automatic reset.
++
++## Native boundary
++
++After actual admission attachment, the private factory issues a one-use ticket bound to the owned prepared packet, exact admission receipt, intent and actual PTY manager. PTY binds the exact native token once. After all asynchronous currentness checks and the final existing SQL check, PTY synchronously consumes that same ticket immediately before spawn, with no intervening await. Closing, poison, copied/foreign tokens, redirection and reuse refuse. Existing noncontrolled callers have no ticket and retain their behavior.
++
++Actual raw task body/context remain the N029 packet throughout bundle/dispatch. Trusted preflight receives independently refreshed N028 identity and a conservative registry inventory, not mutable producer handles. It must still supply actual ownership/fence/full-input authority; N028 attribution and N026 selected bytes are not R1 held or complete dependency selection. Sampled refreshes are not atomic validation across every await.
++
++## Conservative inventory and handoff
++
++The factory feeds the actual N022 sampler all retained declarations, including orphaned, historical and possibly alive units. `complete:true` is internal worker-set coverage for this closed creation domain, never all host processes or actual liveness. Physical CPU/memory/disk sampling still sees other host workloads. `snapshot` is observation with `executionAuthorized:false`, not permission to reserve or launch. No process exit, signal, missing PID or provider uncertainty retires a unit.
++
++Every failed/refused/unknown/timed-out/busy factory operation permanently poisons the invocation, including snapshot failure and successful spawn with uncertain delivery. Exact retries cannot clear poison. A poisoned factory cannot create more work or cleanly seal; unresolved I/O and writer ownership remain retained. This deliberately reduces availability.
++
++`close` revokes tickets/new calls synchronously, waits for its actual creation promise with a deadline, checks permanent poison, then delegates to N034 sealing with its own retained-I/O deadline. There is no outer seal timer allowing late continuation to start a seal. A drain timeout prevents subsequent seal initiation. An uncertain syscall acknowledgement after a safely written seal may mean the lock was already removed; unknown close is not proof the lock still exists. No clean result is returned without the N034 receipt. This drains creation/registry work, not all continuing PTY/journal/provider callbacks.
++
++## Boundaries and next accounting work
++
++Capacity one remains conservatively blocked: the new declared intent is already observed, while R1 and pending SQL also add requested demand. Held reservation plus observed unit can also double-charge. This slice does not subtract the caller's attempt, fabricate zero reserved capacity or relax the SQL gate. Efficient overlap accounting requires a separate source-bound phase/ticket and SQL reservation/observation contract; a capacity refusal can permanently strand this invocation.
++
++No active migration, policy installation, timer, global activation, provider call, process retirement or native production acceptance is included. Pending SQL tests and production composition remain separate. Generic registry/inventory APIs keep `complete:false`; only the concrete closed-domain reader projects complete conservative worker-set evidence.
++
++## Candidate validation boundary
++
++The corrected focused command is `node --experimental-strip-types --test --test-reporter=tap --test-concurrency=1 apps/desktop/test/resource-controlled-pool.test.mjs`: 18 passed, exit0. Targeted strict TypeScript in the repository's Bundler resolution mode passed. These are real filesystem and actual module checks with synthetic SQL/R1/process transport; no native provider acceptance follows.
++
++The first combined candidate run was **91/99, exit1**, not acceptance. Its generic registry25 and inventory29 checks passed; six existing worker-launch cases failed during short setup/currentness deadlines before their intended assertions, and two new fixture cases required corrected setup budgets/target assertions. The earlier NodeNext type command used the wrong resolution mode for existing PTY type imports. All original logs remain preserved. The six existing launch cases still require the final integrated gate; this document does not declare them passing. Independent review and final integration status belong to the source-bound receipt and parent graph.
+diff --git a/docs/execution/harness-waves/resource-pool-registry.md b/docs/execution/harness-waves/resource-pool-registry.md
+index d01021e8..781379e8 100644
+--- a/docs/execution/harness-waves/resource-pool-registry.md
++++ b/docs/execution/harness-waves/resource-pool-registry.md
+@@ -3,8 +3,9 @@
+ ## Contract
+ 
+ `apps/desktop/src/main/resourcePoolRegistry.ts` is a real-filesystem storage substrate.
+-It does not yet consume N031 intents, integrate a controlled launch factory, produce
+-observed worker inventory, retire a unit, or authorize execution. **Every result has
++The generic API does not produce observed worker inventory, retire a unit, or authorize
++execution. N035 adds a private controlled-origin extension consumed by the
++[concrete factory](resource-controlled-pool.md#contract), which connects declaration-first N031 registration. **Every registry result has
+ `complete: false` and `executionAuthorized: false`.** An observed result proves only
+ this storage operation under the stated cooperative filesystem assumptions.
+ 
+@@ -77,20 +78,29 @@ latency. Timeout bounds caller waiting, not an uncancellable system call.
+ The installation root must already be canonical and trusted. Path and inode checks
+ are sampled currentness checks; they are not atomic filesystem snapshots or hostile
+ administrator protection. The separate anchor detects ledger removal while the
+-anchor remains. Deletion or rollback of the entire installation and its anchor by
+-an outside authority is not detectable without an external durable authority.
++anchor remains. Deletion or rollback of both ledger and external anchor is not
++detectable without an external durable authority, even if stop-host identity remains.
+ Changing process privileges, network filesystems and adversarial concurrent path
+ replacement are not certified by these tests. No raw filesystem errors enter the
+ result union.
+ 
+-## Composition still required
+-
+-N031 remains the actual intent producer and its existing storage is unchanged.
+-This module is not a second acknowledged worker ledger. A future reviewed consumer
+-must route the actual N031 append boundary through this registry and prove exclusive
+-entry coverage before any complete conservative inventory can be claimed. That
+-consumer must preserve the opaque actual N028/N032 assignment and native bindings,
+-not copy a caller's expected identity or use empty `knownActive` as coverage proof.
++## Controlled composition and remaining activation
++
++N034's original storage-only acceptance remains in its source-bound archive. N035
++adds `describe` and a factory-private `admitEpoch` path: an inert module readback
++recognizes an opaque construction capability; caller-authored markers cannot select it.
++Controlled genesis cannot adopt a generic ledger. Each canonical immutable epoch
++contains full validated policy and exact coverage bytes, referenced from the head;
++retained declarations bind that epoch. `maxEpochs` separately bounds historical growth.
++Failed epoch publication stays unknown; no automatic repair or downgrade is added.
++
++The actual N031 writer now optionally appends its canonical retained declaration
++before its supplementary intent event. The actual N035 factory alone owns that writer
++and projects complete conservative coverage for its controlled creation domain.
++Registry API results remain incomplete. Orphan declarations stay charged. This is
++not proof that a process exists or that the whole host is controlled. See the
++[factory contract](resource-controlled-pool.md#durable-domain) for root trust,
++permanent poison, ticket checks and clean-handoff restrictions.
+ No live configuration, `index.ts` wiring, SQL migration or installed behavior changes.
+ 
+ The eventual accounting contract must also resolve **own-intent double charging**:
+diff --git a/docs/execution/harness-waves/resource-worker-inventory.md b/docs/execution/harness-waves/resource-worker-inventory.md
+index bfd52006..1acc6544 100644
+--- a/docs/execution/harness-waves/resource-worker-inventory.md
++++ b/docs/execution/harness-waves/resource-worker-inventory.md
+@@ -136,17 +136,22 @@ claimed. Existing `N028_AGENT_SYNC_SCRIPT` selects the pinned installed source;
+ installation yields explicit skips, never an installation action. Receipt counts/hashes and
+ original RED controls live with the source delivery evidence, not as timeless doc assertions.
+ 
+-The next contract is **N032 concrete launcher adapter** (design/implementation status is
+-owned by the parent graph, not this document). It must own the managed-required logical pool,
+-exclusive writer/entry coverage, durable registration before any possible spawn, actual
+-SQL admission/reservation identity and prepared content binding, actual session/native process
+-identity and independent provider/process retirement observations. All admitted units must
+-stay conservatively charged until genuine never-spawn or retirement evidence exists. That
+-conservative unretired set is distinct from an exact observed-live count. Existing
+-`PtyManager.observeProcess` supplies owned local process observations, while
+-`nativeStopRuntime` treats provider quiescence separately; root exit alone is insufficient.
+-N031 does not connect those producers, count unobserved units as live or claim the future
+-coverage protocol already exists. Restart/unknown provider outcomes remain retained.
++The concrete N032 adapter binds actual SQL admission and the private PTY handle;
++N033 binds its child attribution environment. N035 adds an optional source-owned
++controlled store: N031 constructs canonical intent bytes, appends their declaration
++through the captured actual N034 writer, then writes and confirms the intent event.
++A bounded retained pending event preserves its exact UUID/bytes after an ambiguous
++append; an exact retry reestablishes declaration and event durability. Failure after
++declaration leaves an orphan charged. `readCoverage()` returns the actual validated
++manifest bytes for immutable epoch provenance, with the same incomplete result union.
++
++Only the [N035 closed factory](resource-controlled-pool.md#contract), not a manifest,
++empty `knownActive` or this store's generic API, establishes its conservative worker-set
++projection. Every N031 result remains `complete:false`. Current epoch handles still
++refresh actual N028 membership and coverage; historical N034 declarations remain
++charged independently. Provider/process retirement is not implemented: root exit,
++signal or missing process cannot remove a declaration. Production activation, coherent
++overlap accounting and full ownership/input authority remain separate.
+ 
+ Retrospective lessons applied: preserve exact source receipts; exercise actual production
+ readers and filesystem refusals; keep mutable scope closure bound across awaits; retain

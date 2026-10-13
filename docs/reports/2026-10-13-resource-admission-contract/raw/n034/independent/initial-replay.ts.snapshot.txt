@@ -1,0 +1,265 @@
+// #region resource-pool-registry — docs: docs/execution/harness-waves/resource-pool-registry.md#contract
+import * as fs from 'node:fs/promises'
+import { constants } from 'node:fs'
+import type { FileHandle } from 'node:fs/promises'
+import path from 'node:path'
+import { createHash, randomUUID } from 'node:crypto'
+import { resourceData, resourceId, resourceInteger } from 'file://$ROOT_CHECKOUT/apps/desktop/src/main/resourceHostPolicy.ts'
+
+export interface PoolRegistryConfig {
+  installationRoot: string; hostId: string; poolId: string; estateId: string
+  maxUnits: number; maxRecordBytes: number; maxRegistryBytes: number; timeoutMs: number
+}
+export interface RetainedStorageUnit {
+  unitId: string; originInvocationId: string; policyBindingRevision: string
+  intentRecordSha256: string; coverageSha256: string
+}
+export interface PoolRegistryWriter { readonly kind: 'resource-pool-writer' }
+type Result<T> = { state: 'observed'; value: T; complete: false; executionAuthorized: false } |
+  { state: 'unknown'; complete: false; executionAuthorized: false }
+type Head = { schema: 1; kind: 'pool-head'; registryId: string; hostId: string; poolId: string; estateId: string;
+  genesisSha256: string; sequence: number; lastDigest: string; retainedCount: number; writerEpoch: string | null; sealed: boolean }
+type RecordRow = { schema: 1; kind: 'unit.retained'; registryId: string; sequence: number; previousDigest: string; unit: RetainedStorageUnit }
+type Pending = { unit: RetainedStorageUnit; record: RecordRow; head: Head; oldHead: Head }
+type Writer = { handle: PoolRegistryWriter; fd: FileHandle; ino: number; dev: number; bytes: string; epoch: string;
+  genesis: string; registryId: string; pending: Pending | null; closed: boolean }
+type Operation = { deadline: number; expired: boolean }
+const unknown = (): Result<never> => ({ state: 'unknown', complete: false, executionAuthorized: false })
+const observed = <T>(value: T): Result<T> => ({ state: 'observed', value, complete: false, executionAuthorized: false })
+const encode = (v: unknown) => JSON.stringify(v) + '\n'
+const digest = (v: string) => createHash('sha256').update(v).digest('hex')
+function refuse(): never { throw Error('resource registry unavailable') }
+function uuid(v: unknown): string { if (typeof v !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(v)) refuse(); return v }
+function sha(v: unknown): string { if (typeof v !== 'string' || !/^[0-9a-f]{64}$/.test(v)) refuse(); return v }
+function unit(raw: unknown): RetainedStorageUnit {
+  const r = resourceData(raw, ['unitId', 'originInvocationId', 'policyBindingRevision', 'intentRecordSha256', 'coverageSha256'])
+  if (typeof r.policyBindingRevision !== 'string' || !/^policy-sha256-v1:[0-9a-f]{64}$/.test(r.policyBindingRevision)) refuse()
+  return Object.freeze({ unitId: uuid(r.unitId), originInvocationId: uuid(r.originInvocationId), policyBindingRevision: r.policyBindingRevision,
+    intentRecordSha256: sha(r.intentRecordSha256), coverageSha256: sha(r.coverageSha256) })
+}
+/** Storage declarations only. No N031 producer integration, native authority,
+ * retirement, process count or complete coverage is established by this API. */
+export function createResourcePoolRegistry(raw: PoolRegistryConfig, deps: {
+  host: { hostInstanceId: string; bootId: string }
+  beforeIO?: (label: string) => unknown; afterIO?: (label: string) => unknown
+}) {
+  const r = resourceData(raw, ['installationRoot', 'hostId', 'poolId', 'estateId', 'maxUnits', 'maxRecordBytes', 'maxRegistryBytes', 'timeoutMs'])
+  if (typeof r.installationRoot !== 'string' || !path.isAbsolute(r.installationRoot) || path.normalize(r.installationRoot) !== r.installationRoot || r.installationRoot.includes('\0') || r.installationRoot.length > 4096) refuse()
+  const c = Object.freeze({ installationRoot: r.installationRoot, hostId: uuid(r.hostId), poolId: resourceId(r.poolId), estateId: uuid(r.estateId),
+    maxUnits: resourceInteger(r.maxUnits, 1, 4096), maxRecordBytes: resourceInteger(r.maxRecordBytes, 512, 65536),
+    maxRegistryBytes: resourceInteger(r.maxRegistryBytes, 4096, 16777216), timeoutMs: resourceInteger(r.timeoutMs, 1, 30000) })
+  const host = deps.host, hostId = uuid(host.hostInstanceId), bootId = uuid(host.bootId), before = deps.beforeIO, after = deps.afterIO
+  if (hostId !== c.hostId) refuse()
+  const key = digest(encode(['resource-pool-location/v1', c.hostId, c.poolId]))
+  const anchors = path.join(c.installationRoot, 'resource-pool-bindings'), pools = path.join(c.installationRoot, 'resource-pools')
+  const dir = path.join(pools, key), anchorFile = path.join(anchors, key + '.json'), lockFile = path.join(dir, 'writer.lock')
+  const owned = new WeakMap<PoolRegistryWriter, Writer>()
+  let active: Promise<unknown> | null = null, closing = false, acquired = false
+  let rootIdentity: { dev: number; ino: number } | null = null
+  let sealResult: Promise<Result<null>> | null = null
+  function check(op: Operation) {
+    if (op.expired || performance.now() > op.deadline || deps.host !== host || host.hostInstanceId !== hostId || host.bootId !== bootId || deps.beforeIO !== before || deps.afterIO !== after) refuse()
+  }
+  async function io<T>(op: Operation, label: string, fn: () => Promise<T>, cleanup?: (value: T) => Promise<unknown>): Promise<T> {
+    check(op); if (before) await before(label); check(op)
+    const value = await fn()
+    try { if (after) await after(label); check(op); return value }
+    catch (e) { if (cleanup) await cleanup(value); throw e }
+  }
+  async function execute<T>(body: (op: Operation) => Promise<T>): Promise<Result<T>> {
+    if (active || closing) return unknown()
+    const op = { deadline: performance.now() + c.timeoutMs, expired: false }
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const task = Promise.resolve().then(() => body(op)).then(value => { check(op); return observed(value) }).catch(() => unknown())
+    active = task
+    void task.finally(() => { if (active === task) active = null })
+    try { return await Promise.race([task, new Promise<Result<T>>(resolve => { timer = setTimeout(() => { op.expired = true; resolve(unknown()) }, c.timeoutMs) })]) }
+    finally { if (timer) clearTimeout(timer) }
+  }
+  async function directory(op: Operation, file: string, create = false) {
+    if (create) await io(op, 'mkdir', async () => { try { await fs.mkdir(file, { mode: 0o700 }) } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e } })
+    const stat = await io(op, 'directory-stat', () => fs.lstat(file))
+    if (!stat.isDirectory() || stat.isSymbolicLink() || await io(op, 'directory-realpath', () => fs.realpath(file)) !== file) refuse()
+    return stat
+  }
+  async function syncDir(op: Operation, file: string) {
+    const fd = await io(op, 'directory-open', () => fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW), fd => fd.close())
+    try { await io(op, 'directory-sync', () => fd.sync()) } finally { await fd.close() }
+  }
+  async function read(op: Operation, file: string, limit = c.maxRecordBytes) {
+    const fd = await io(op, 'read-open', () => fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK), fd => fd.close())
+    try {
+      const s = await io(op, 'read-stat', () => fd.stat())
+      if (!s.isFile() || s.size > limit || s.nlink !== 1) refuse()
+      const buf = Buffer.alloc(limit + 1); let size = 0
+      while (size <= limit) { const n = await io(op, 'read', () => fd.read(buf, size, limit + 1 - size, size)); if (!n.bytesRead) break; size += n.bytesRead }
+      const end = await io(op, 'read-stat', () => fd.stat()), named = await io(op, 'read-path-stat', () => fs.lstat(file))
+      if (size > limit || s.dev !== end.dev || s.ino !== end.ino || s.size !== end.size || s.mtimeMs !== end.mtimeMs || end.dev !== named.dev || end.ino !== named.ino) refuse()
+      const text = new TextDecoder('utf-8', { fatal: true }).decode(buf.subarray(0, size))
+      return text
+    } finally { await fd.close() }
+  }
+  async function durable(op: Operation, file: string, bytes: string, retry = false) {
+    if (Buffer.byteLength(bytes) > c.maxRecordBytes) refuse()
+    let fd: FileHandle
+    try { fd = await io(op, 'write-open', () => fs.open(file, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600), fd => fd.close()) }
+    catch (e) {
+      if (!retry || (e as NodeJS.ErrnoException).code !== 'EEXIST' || await read(op, file) !== bytes) throw e
+      fd = await io(op, 'retry-open', () => fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW), fd => fd.close())
+      try { await io(op, 'file-sync', () => fd.sync()) } finally { await fd.close() }
+      await syncDir(op, path.dirname(file)); return
+    }
+    try { await io(op, 'write', () => fd.writeFile(bytes)); await io(op, 'file-sync', () => fd.sync()) } finally { await fd.close() }
+    await syncDir(op, path.dirname(file))
+  }
+  async function root(op: Operation) {
+    const s = await directory(op, c.installationRoot)
+    if (rootIdentity && (s.dev !== rootIdentity.dev || s.ino !== rootIdentity.ino)) refuse()
+    rootIdentity ??= { dev: s.dev, ino: s.ino }
+    await directory(op, path.join(c.installationRoot, 'stop-host'))
+    if ((await read(op, path.join(c.installationRoot, 'stop-host', 'installation-id'), 128)).trim() !== hostId) refuse()
+  }
+  const binding = (registryId: string, genesisSha256: string) => ({ schema: 1, kind: 'pool-binding', registryId, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256 })
+  const genesis = (registryId: string) => ({ schema: 1, kind: 'pool-genesis', registryId, hostId, poolId: c.poolId, estateId: c.estateId })
+  function head(rawHead: unknown, registryId: string, g: string): Head {
+    const h = resourceData(rawHead, ['schema', 'kind', 'registryId', 'hostId', 'poolId', 'estateId', 'genesisSha256', 'sequence', 'lastDigest', 'retainedCount', 'writerEpoch', 'sealed'])
+    if (h.schema !== 1 || h.kind !== 'pool-head' || h.registryId !== registryId || h.hostId !== hostId || h.poolId !== c.poolId || h.estateId !== c.estateId || h.genesisSha256 !== g || typeof h.sealed !== 'boolean') refuse()
+    const sequence = resourceInteger(h.sequence, 0, c.maxUnits)
+    if (h.retainedCount !== sequence) refuse()
+    return { schema: 1, kind: 'pool-head', registryId, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256: g, sequence,
+      lastDigest: sha(h.lastDigest), retainedCount: sequence, writerEpoch: h.writerEpoch === null ? null : uuid(h.writerEpoch), sealed: h.sealed }
+  }
+  async function base(op: Operation) {
+    await root(op); await directory(op, anchors); await directory(op, pools); await directory(op, dir)
+    const a = JSON.parse(await read(op, anchorFile)), registryId = uuid(a.registryId), g = digest(encode(genesis(registryId)))
+    if (encode(a) !== encode(binding(registryId, g)) || await read(op, path.join(dir, 'genesis.json')) !== encode(genesis(registryId))) refuse()
+    return { registryId, g }
+  }
+  const recordFile = (seq: number) => 'unit.' + String(seq).padStart(8, '0') + '.json'
+  async function scan(op: Operation, b: { registryId: string; g: string }, pending: Pending | null = null) {
+    const h = head(JSON.parse(await read(op, path.join(dir, 'head.json'))), b.registryId, b.g)
+    const files: string[] = [], stream = await io(op, 'list-open', () => fs.opendir(dir), stream => stream.close())
+    try { for (;;) { const row = await io(op, 'list-next', () => stream.read()); if (!row) break; files.push(row.name); if (files.length > c.maxUnits + 5) refuse() } }
+    finally { await stream.close() }
+    const allowed = new Set(['genesis.json', 'head.json', 'writer.lock'])
+    let last = b.g, bytes = 0
+    const units: RetainedStorageUnit[] = [], ids = new Set<string>()
+    for (let n = 1; n <= h.sequence; n++) {
+      const name = recordFile(n); allowed.add(name)
+      const text = await read(op, path.join(dir, name)); bytes += Buffer.byteLength(text); if (bytes > c.maxRegistryBytes) refuse()
+      const rr = resourceData(JSON.parse(text), ['schema', 'kind', 'registryId', 'sequence', 'previousDigest', 'unit']), u = unit(rr.unit)
+      if (rr.schema !== 1 || rr.kind !== 'unit.retained' || rr.registryId !== b.registryId || rr.sequence !== n || rr.previousDigest !== last || ids.has(u.unitId)) refuse()
+      if (text !== encode({ schema: 1, kind: 'unit.retained', registryId: b.registryId, sequence: n, previousDigest: last, unit: u })) refuse()
+      ids.add(u.unitId); units.push(u); last = digest(text)
+    }
+    if (h.lastDigest !== last) refuse()
+    if (pending) {
+      const committed = encode(h) === encode(pending.head), previous = encode(h) === encode(pending.oldHead)
+      if (!committed && !previous) refuse()
+      const name = recordFile(pending.record.sequence)
+      if (files.includes(name)) { if (await read(op, path.join(dir, name)) !== encode(pending.record)) refuse(); allowed.add(name) }
+      const scratch = '.head.' + pending.head.writerEpoch + '.tmp'
+      if (files.includes(scratch)) { if (await read(op, path.join(dir, scratch)) !== encode(pending.head)) refuse(); allowed.add(scratch) }
+    }
+    if (files.some(name => !allowed.has(name))) refuse()
+    return { head: h, units: Object.freeze(units), bytes }
+  }
+  async function writer(op: Operation, handle: PoolRegistryWriter) {
+    const w = owned.get(handle); if (!w || w.closed) refuse()
+    const b = await base(op), s = await io(op, 'writer-stat', () => fs.lstat(lockFile)), fd = await io(op, 'writer-fd-stat', () => w.fd.stat())
+    if (b.registryId !== w.registryId || b.g !== w.genesis || s.dev !== w.dev || s.ino !== w.ino || fd.dev !== w.dev || fd.ino !== w.ino || await read(op, lockFile) !== w.bytes) refuse()
+    return w
+  }
+  async function writeHead(op: Operation, w: Writer, h: Head) {
+    await writer(op, w.handle)
+    const file = path.join(dir, 'head.json'), bytes = encode(h)
+    if (await read(op, file) === bytes) { await durable(op, file, bytes, true); return }
+    const scratch = path.join(dir, '.head.' + w.epoch + '.tmp')
+    await durable(op, scratch, bytes, true); await writer(op, w.handle)
+    await io(op, 'head-rename', () => fs.rename(scratch, file)); await syncDir(op, dir)
+  }
+  function get(handle: PoolRegistryWriter) { const w = owned.get(handle); if (!w || w.closed) refuse(); return w }
+  return {
+    provision: () => execute(async op => {
+      await root(op); await directory(op, anchors, true); await directory(op, pools, true); await syncDir(op, c.installationRoot)
+      const id = randomUUID(), g = digest(encode(genesis(id)))
+      // The external anchor is committed first. Partial provisioning never resets it.
+      await durable(op, anchorFile, encode(binding(id, g)))
+      await io(op, 'ledger-mkdir', () => fs.mkdir(dir, { mode: 0o700 })); await syncDir(op, pools)
+      await durable(op, path.join(dir, 'genesis.json'), encode(genesis(id)))
+      const h: Head = { schema: 1, kind: 'pool-head', registryId: id, hostId, poolId: c.poolId, estateId: c.estateId, genesisSha256: g,
+        sequence: 0, lastDigest: g, retainedCount: 0, writerEpoch: null, sealed: true }
+      await durable(op, path.join(dir, 'head.json'), encode(h)); return Object.freeze({ registryId: id, genesisSha256: g })
+    }),
+    acquire: () => execute(async op => {
+      if (acquired) refuse()
+      const b = await base(op), epoch = randomUUID(), bytes = encode({ schema: 1, kind: 'pool-writer', registryId: b.registryId, epoch, invocationId: bootId })
+      const fd = await io(op, 'writer-open', () => fs.open(lockFile, constants.O_RDWR | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600), fd => fd.close())
+      acquired = true
+      try {
+        await io(op, 'writer-write', () => fd.writeFile(bytes)); await io(op, 'writer-sync', () => fd.sync()); await syncDir(op, dir)
+        const s = await io(op, 'writer-fd-stat', () => fd.stat()), handle = Object.freeze({ kind: 'resource-pool-writer' as const })
+        const w: Writer = { handle, fd, ino: s.ino, dev: s.dev, bytes, epoch, genesis: b.g, registryId: b.registryId, pending: null, closed: false }
+        owned.set(handle, w)
+        const state = await scan(op, b); if (!state.head.sealed) refuse()
+        await writeHead(op, w, { ...state.head, sealed: false, writerEpoch: epoch })
+        return handle
+      } catch (e) { await fd.close(); throw e } // Uncertain acquire retains its lock, never steals/releases it.
+    }),
+    append: (handle: PoolRegistryWriter, rawUnit: RetainedStorageUnit) => execute(async op => {
+      const u = unit(rawUnit), w = await writer(op, handle)
+      if (u.originInvocationId !== bootId) refuse()
+      if (w.pending && encode(w.pending.unit) !== encode(u)) refuse()
+      const state = await scan(op, { registryId: w.registryId, g: w.genesis }, w.pending)
+      if (state.head.sealed || state.head.writerEpoch !== w.epoch) refuse()
+      if (!w.pending) {
+        const existing = state.units.findIndex(old => old.unitId === u.unitId)
+        if (existing >= 0) {
+          if (encode(state.units[existing]) !== encode(u)) refuse()
+          const file = path.join(dir, recordFile(existing + 1)), bytes = await read(op, file)
+          await durable(op, file, bytes, true); await durable(op, path.join(dir, 'head.json'), encode(state.head), true)
+          return Object.freeze({ retainedDeclarationCount: state.units.length, headSha256: digest(encode(state.head)) })
+        }
+        if (state.head.sequence >= c.maxUnits) refuse()
+        const record: RecordRow = { schema: 1, kind: 'unit.retained', registryId: w.registryId, sequence: state.head.sequence + 1, previousDigest: state.head.lastDigest, unit: u }
+        if (state.bytes + Buffer.byteLength(encode(record)) > c.maxRegistryBytes) refuse()
+        w.pending = { unit: u, record, oldHead: state.head, head: { ...state.head, sequence: record.sequence, retainedCount: record.sequence, lastDigest: digest(encode(record)) } }
+      }
+      const pending = w.pending
+      await durable(op, path.join(dir, recordFile(pending.record.sequence)), encode(pending.record), true)
+      await writeHead(op, w, pending.head)
+      await writer(op, handle); await scan(op, { registryId: w.registryId, g: w.genesis })
+      check(op); w.pending = null
+      return Object.freeze({ retainedDeclarationCount: pending.head.retainedCount, headSha256: digest(encode(pending.head)) })
+    }),
+    snapshot: (handle: PoolRegistryWriter) => execute(async op => {
+      const w = await writer(op, handle); if (w.pending) refuse()
+      const state = await scan(op, { registryId: w.registryId, g: w.genesis })
+      if (state.head.sealed || state.head.writerEpoch !== w.epoch) refuse()
+      await writer(op, handle)
+      return Object.freeze({ retainedDeclarationCount: state.units.length, headSha256: digest(encode(state.head)), units: state.units })
+    }),
+    seal: (handle: PoolRegistryWriter): Promise<Result<null>> => {
+      if (sealResult) return sealResult
+      try { get(handle) } catch {
+        // A foreign handle receives structured uncertainty without revoking the real writer.
+        return Promise.resolve(unknown())
+      }
+      closing = true // Revoke admission of new operations before the first await.
+      const pending = active, op = { deadline: performance.now() + c.timeoutMs, expired: false }
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const task = (async () => {
+        if (pending) await pending
+        check(op); const w = get(handle); if (w.pending) refuse()
+        await writer(op, handle); const state = await scan(op, { registryId: w.registryId, g: w.genesis })
+        if (state.head.sealed || state.head.writerEpoch !== w.epoch) refuse()
+        await writeHead(op, w, { ...state.head, sealed: true }); await writer(op, handle)
+        await io(op, 'writer-unlink', () => fs.unlink(lockFile), async () => { w.closed = true; await w.fd.close() }); w.closed = true
+        await w.fd.close(); await syncDir(op, dir); return observed(null)
+      })().catch(() => unknown()) // Structured uncertainty; raw filesystem errors may contain private paths.
+      sealResult = Promise.race([task, new Promise<Result<null>>(resolve => { timer = setTimeout(() => { op.expired = true; resolve(unknown()) }, c.timeoutMs) })]).finally(() => { if (timer) clearTimeout(timer) })
+      return sealResult
+    },
+  }
+}
+// #endregion resource-pool-registry

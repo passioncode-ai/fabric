@@ -1,0 +1,24 @@
+{
+  "name": "types",
+  "command": [
+    "apps/desktop/node_modules/.bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--target",
+    "ES2022",
+    "--module",
+    "ESNext",
+    "--moduleResolution",
+    "Bundler",
+    "--allowImportingTsExtensions",
+    "--typeRoots",
+    "$FABRIC_REPO/apps/desktop/node_modules/@types",
+    "apps/desktop/src/main/resourceManagedUnit.ts",
+    "apps/desktop/src/main/managedLaunch.ts",
+    "apps/desktop/src/main/pty.ts",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts"
+  ],
+  "exit": 0,
+  "log": "types-corrected.log"
+}

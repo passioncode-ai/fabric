@@ -1,0 +1,27 @@
+{
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--target",
+    "ES2022",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--allowImportingTsExtensions",
+    "--esModuleInterop",
+    "--types",
+    "node",
+    "src/main/resourceControlledPool.ts"
+  ],
+  "cwd": "apps/desktop",
+  "exitCode": 2,
+  "durationSeconds": 7.932298792002257,
+  "deadlineSeconds": 180
+}

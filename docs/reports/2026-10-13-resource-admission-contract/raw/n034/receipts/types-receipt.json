@@ -1,0 +1,26 @@
+{
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--target",
+    "ES2022",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--allowImportingTsExtensions",
+    "--types",
+    "node",
+    "src/main/resourcePoolRegistry.ts"
+  ],
+  "cwd": "apps/desktop",
+  "exitCode": 0,
+  "durationSeconds": 3.552,
+  "deadlineSeconds": 90
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "artifact": "controls.log",
+    "originalSha256": "f54bec99a18f86ef13d8307e93f58c1bbcc7d70e80ad39456c1e7e7b8b3eb33a",
+    "storedSha256": "f54bec99a18f86ef13d8307e93f58c1bbcc7d70e80ad39456c1e7e7b8b3eb33a",
+    "normalization": "none"
+  },
+  {
+    "artifact": "source-manifest.json",
+    "originalSha256": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "storedSha256": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "normalization": "none"
+  },
+  {
+    "artifact": "controls.mjs.snapshot.txt",
+    "originalSha256": "9c91d81662f2eea829c30138e08643b26008ed75399e65dc283e4f2b0adf40fa",
+    "storedSha256": "9c91d81662f2eea829c30138e08643b26008ed75399e65dc283e4f2b0adf40fa",
+    "normalization": "none"
+  },
+  {
+    "artifact": "command.json",
+    "originalSha256": "e0b49307863acd958a3f3daf9fd0a718949e8f688826c934398ad6863c14edac",
+    "storedSha256": "e0b49307863acd958a3f3daf9fd0a718949e8f688826c934398ad6863c14edac",
+    "normalization": "none"
+  },
+  {
+    "artifact": "receipt.json",
+    "originalSha256": "07318844a287d61399c68f19e766478f0fb28d3687ea642a7936b006e2d7f709",
+    "storedSha256": "07318844a287d61399c68f19e766478f0fb28d3687ea642a7936b006e2d7f709",
+    "normalization": "none"
+  }
+]

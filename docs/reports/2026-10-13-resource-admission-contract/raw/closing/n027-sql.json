@@ -1,0 +1,17 @@
+{
+  "state": "completed",
+  "exitCode": 0,
+  "durationSeconds": 28.86,
+  "sourceHashes": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "56fa68066de782962e6e16829b64711c2d232c4e0497812ce677bc1646f4d770",
+    "apps/desktop/src/main/resourcePoolAccounting.ts": "79b8e9a727ab1be0530f3aa7fa9c591c10b478cb87749708b3db926eeb52a358",
+    "apps/desktop/test/resource-pool-accounting-db.test.mjs": "4d63382704fab12178a92270269b153417dea266b693cb34e13cbd223b90974f",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "a24413d3b0e5bad431258465df2a95bd80e029875c98a450261ee1ebeda9e42c"
+  },
+  "sourceUnchanged": true,
+  "command": "node --experimental-strip-types apps/desktop/test/run-resource-reservation-db.mjs",
+  "scope": "Owned Unix-socket PostgreSQL fixture only, pending migrations; no live database",
+  "at": "2026-10-13T08:57:32.361103+00:00",
+  "sourceCommit": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+  "sourceCommitReadback": "All four exact bound source hashes match committed Git objects"
+}

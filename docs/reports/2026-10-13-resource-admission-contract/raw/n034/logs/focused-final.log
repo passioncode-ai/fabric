@@ -1,0 +1,43 @@
+✔ real FS provision, exact retry, snapshot and clean historical handoff (1199.28325ms)
+✔ single writer excludes same and new invocation without stale takeover (326.613542ms)
+✔ missing ledger with preserved external anchor never becomes empty pool (100.137875ms)
+✔ unsealed head without lock is not a clean handoff (518.367709ms)
+✔ same host pool cannot fork by estate or boot (129.790166ms)
+✔ copied and foreign writer handles do not authorize storage changes (494.883084ms)
+✔ count and byte bounds reject growth and never exclude caller unit (471.76425ms)
+✔ conflicting same unit and wrong invocation refuse (502.901625ms)
+✔ deleted committed record is unknown, never empty (390.619291ms)
+✔ surplus orphan and unknown version are refused (239.217458ms)
+✔ replaced writer inode with identical bytes refuses old handle (204.062416ms)
+✔ symlink record refuses without following its target (381.636416ms)
+✔ malformed/accessor inputs rejected without evaluating getter (1003.401ms)
+✔ external root and host changes refuse (214.08725ms)
+✔ failed event fsync exact retry reestablishes event and head durability (763.391167ms)
+✔ lost head rename result reconciles exact operation without duplicate declaration (638.366083ms)
+✔ timeout retains one actual outstanding operation across 30 retries (1693.554459ms)
+✔ seal blocks new calls synchronously and waits actual pending work (174.54175ms)
+✔ seal timeout never releases an unresolved writer after late dependency settlement (1901.147791ms)
+✔ head cardinality and predecessor tampering refuse (851.600542ms)
+✔ oversized record read and cumulative append bound refuse (1693.095458ms)
+✔ symbolic linked installation root and parent refuse (18.508791ms)
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 15 ($OWNED_TEST_TMP/resource-pools/abe1c02716a0d930aa2c2f8f4c42327599ab21efc1063dc998a79b1e4b7b7fcc/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 18 ($OWNED_TEST_TMP/resource-pools/4888957c180786a636090eaf87d257764ad1f43366a7ea8438b6dff9d6c1d44d/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 16 ($OWNED_TEST_TMP/resource-pools/5c2be6972a04f8c1e617c0c6c19841309aa0a49ed066cb3d4c801e0c59b90faa/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 17 ($OWNED_TEST_TMP/resource-pools/79a32ad187e786d560e7f4b41f0b061be25b6ab85de49480ba6886ee743a979f/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 19 ($OWNED_TEST_TMP/resource-pools/49738ce6055b6035c5ef9889735bc1ff0256545cc949ca9bb3e93168da04dfd1/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+ℹ Error: A resource generated asynchronous activity after the test ended. This activity created the error "Error: A FileHandle object was closed during garbage collection. This used to be allowed with a deprecation warning but is now considered an error. Please close FileHandle objects explicitly. File descriptor: 14 ($OWNED_TEST_TMP/resource-pools/6024744039971f47f340ad25da3da66c282f8c1777eaf96cae98980a87d8dbc6/writer.lock)" which triggered an uncaughtException event, caught by the test runner.
+✖ apps/desktop/test/resource-pool-registry.test.mjs (14324.837166ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14333.479125
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-pool-registry.test.mjs:1:1
+✖ apps/desktop/test/resource-pool-registry.test.mjs (14324.837166ms)
+  'test failed'

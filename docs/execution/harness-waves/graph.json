@@ -697,13 +697,17 @@
       "id": "N-027",
       "title": "Coherent bounded pool reservation accounting read",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-025"
       ],
       "serves": "REQ-006",
       "check": "node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs and owned resource SQL runner",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.log",
+        "proven at 6c8b3718302dd7a3e981ce792f9c0c13db780b27 (tree 3253ccc739b2387da2cf713bdc0746f905f4caac)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourcePoolAccounting.ts",
         "apps/desktop/test/resource-pool-accounting.test.mjs",
@@ -711,7 +715,16 @@
         "supabase/pending-migrations/20261013000107_resource_reservations.sql",
         "apps/desktop/test/run-resource-reservation-db.mjs",
         "docs/execution/harness-waves/resource-pool-accounting.md"
-      ]
+      ],
+      "proof": {
+        "head": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+        "tree": "3253ccc739b2387da2cf713bdc0746f905f4caac",
+        "graph_revision": "32",
+        "checks": [
+          "Eight actual owned PostgreSQL stages PASS, exit0,28.86s; source hashes unchanged and match committed Git objects",
+          "Earlier exact full fast receipt at same source6c8b3718 remains separate from this later SQL run"
+        ]
+      }
     },
     {
       "id": "N-028",
@@ -802,7 +815,9 @@
         "N-027",
         "N-028",
         "N-029",
-        "N-007"
+        "N-007",
+        "N-035",
+        "N-036"
       ],
       "serves": "REQ-005",
       "check": "bash scripts/ci.sh fast; source-bound focused receipts; fresh remote branch readback; workspace publication status",
@@ -819,18 +834,31 @@
       "id": "N-031",
       "title": "Persist actual assigned start intents before worker creation",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-028"
       ],
       "serves": "REQ-009",
       "check": "Production registry with actual N028 assignment and real owned filesystem: identity drift, collision, partial writes, restart and retained I/O; incomplete inventory remains explicit",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n031/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json",
+        "proven at 6c8b3718302dd7a3e981ce792f9c0c13db780b27 (tree 3253ccc739b2387da2cf713bdc0746f905f4caac)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceWorkerInventory.ts",
         "apps/desktop/test/resource-worker-inventory.test.mjs",
         "docs/execution/harness-waves/resource-worker-inventory.md"
-      ]
+      ],
+      "proof": {
+        "head": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+        "tree": "3253ccc739b2387da2cf713bdc0746f905f4caac",
+        "graph_revision": "30",
+        "checks": [
+          "Full fast exit0,1208.8s on unchanged tree",
+          "18 focused and independent 4 controls PASS; original fsync failures preserved"
+        ]
+      }
     },
     {
       "id": "N-032",
@@ -857,6 +885,83 @@
         "apps/desktop/test/prepared-launch-fixture.mjs",
         "apps/desktop/test/resource-worker-inventory.test.mjs",
         "docs/execution/harness-waves/resource-worker-launch.md",
+        "docs/execution/harness-waves/resource-worker-inventory.md"
+      ]
+    },
+    {
+      "id": "N-033",
+      "title": "Propagate the actual assigned run into controlled child environment",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-032"
+      ],
+      "serves": "REQ-001",
+      "check": "Actual N028 childEnvironment wins over inherited descriptor and bundle values; stale forged or missing assignment refuses before final guard; legacy remains unchanged",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceManagedUnit.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/resource-worker-launch.test.mjs",
+        "docs/execution/harness-waves/resource-worker-launch.md"
+      ]
+    },
+    {
+      "id": "N-034",
+      "title": "Retain a bounded controlled-pool history across clean handoff",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-031"
+      ],
+      "serves": "REQ-009",
+      "check": "Actual bounded filesystem registry: independent lock, deletion, retry, timeout and clean-restart controls; all outputs remain incomplete and unauthorized",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourcePoolRegistry.ts",
+        "apps/desktop/test/resource-pool-registry.test.mjs",
+        "docs/execution/harness-waves/resource-pool-registry.md"
+      ]
+    },
+    {
+      "id": "N-036",
+      "title": "Fail early and remove duplicate compiler checks",
+      "owner": "verifier",
+      "status": "pending",
+      "blocked_by": [
+        "N-033"
+      ],
+      "serves": "REQ-005",
+      "check": "Same compiler scenarios and shell command set; single capture per checker assertion; full fast and exact source review",
+      "evidence": null,
+      "touches": [
+        "scripts/ci.sh",
+        "scripts/test/build-unified-plan.test.mjs",
+        "apps/desktop/test/resource-worker-launch.test.mjs"
+      ]
+    },
+    {
+      "id": "N-035",
+      "title": "Compose the concrete controlled-pool creation path",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [
+        "N-032",
+        "N-034",
+        "N-033"
+      ],
+      "serves": "REQ-009",
+      "check": "Actual factory, retained declaration-first writes and single-use post-SQL spawn tickets; independent negative review and real-filesystem tests; no runtime activation claim",
+      "evidence": null,
+      "touches": [
+        "apps/desktop/src/main/resourceControlledPool.ts",
+        "apps/desktop/src/main/resourcePoolRegistry.ts",
+        "apps/desktop/src/main/resourceWorkerInventory.ts",
+        "apps/desktop/src/main/resourceManagedUnit.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/resource-controlled-pool.test.mjs",
+        "docs/execution/harness-waves/resource-controlled-pool.md",
+        "docs/execution/harness-waves/resource-pool-registry.md",
         "docs/execution/harness-waves/resource-worker-inventory.md"
       ]
     }
@@ -1146,6 +1251,46 @@
       "from": "N-029",
       "to": "N-032",
       "payload": "Once-prepared managed input consumers"
+    },
+    {
+      "from": "N-032",
+      "to": "N-033",
+      "payload": "Reviewed actual owned unit and PTY private-token contract"
+    },
+    {
+      "from": "N-031",
+      "to": "N-034",
+      "payload": "Durable incomplete intent contract and explicit controlled-pool boundary"
+    },
+    {
+      "from": "N-032",
+      "to": "N-035",
+      "payload": "Actual managed-unit preparation, confirmed admission and PTY capability path"
+    },
+    {
+      "from": "N-034",
+      "to": "N-035",
+      "payload": "Retained bounded registry, exclusive writer and immutable history"
+    },
+    {
+      "from": "N-033",
+      "to": "N-035",
+      "payload": "Actual child run binding and owned PTY capability contract"
+    },
+    {
+      "from": "N-035",
+      "to": "N-030",
+      "payload": "Reviewed concrete controlled creation factory and focused receipts"
+    },
+    {
+      "from": "N-036",
+      "to": "N-030",
+      "payload": "Preserved CI gate sequence and single-call compiler assertions"
+    },
+    {
+      "from": "N-033",
+      "to": "N-036",
+      "payload": "Reviewed child-environment fixture before setup-budget-only correction"
     }
   ],
   "revisions": [
@@ -1314,6 +1459,74 @@
       "verb": "wave",
       "node": "N-032",
       "why": "Reviewed real consumer scope includes exact owned resource binding and typed immutable lifecycle events; N029/N031 are source prerequisites. N030 SQL/publication is retained separately, not an input of local source preparation."
+    },
+    {
+      "verb": "close",
+      "node": "N-031",
+      "why": "closed with no re-plan",
+      "precondition": "6c8b3718302dd7a3e981ce792f9c0c13db780b27"
+    },
+    {
+      "verb": "add",
+      "node": "N-033",
+      "why": "Read-only composition review found N028 childEnvironment never reaches actual controlled PTY, so a child could inherit the parent run label"
+    },
+    {
+      "verb": "close",
+      "node": "N-027",
+      "why": "closed with no re-plan",
+      "precondition": "6c8b3718302dd7a3e981ce792f9c0c13db780b27"
+    },
+    {
+      "verb": "add",
+      "node": "N-034",
+      "why": "Reviewed controlled-pool packet requires durable expected history and lifetime exclusion before any complete factory; local substrate is independently implementable while source gate runs"
+    },
+    {
+      "verb": "add",
+      "node": "N-036",
+      "why": "Two unchanged-tree full gates each spent over2000seconds before source-only refusals; six assertions invoked the same compiler check twice"
+    },
+    {
+      "verb": "add",
+      "node": "N-035",
+      "why": "N034 storage cannot prove creation coverage; compose actual producers and preserve uncertainty across writer handoff"
+    },
+    {
+      "verb": "add",
+      "node": "N-035",
+      "why": "Add dependency edge after plan audit: serialize shared source ownership and carry the reviewed artifact",
+      "from": "N-033",
+      "payload": "Actual child run binding and owned PTY capability contract"
+    },
+    {
+      "verb": "add",
+      "node": "N-030",
+      "why": "Add dependency edge after plan audit: serialize shared source ownership and carry the reviewed artifact",
+      "from": "N-035",
+      "payload": "Reviewed concrete controlled creation factory and focused receipts"
+    },
+    {
+      "verb": "add",
+      "node": "N-030",
+      "why": "Add dependency edge after plan audit: serialize shared source ownership and carry the reviewed artifact",
+      "from": "N-036",
+      "payload": "Preserved CI gate sequence and single-call compiler assertions"
+    },
+    {
+      "verb": "add",
+      "node": "N-035",
+      "why": "Extend source scope to update two existing contracts in the same concrete composition change; historical N034 archive remains immutable"
+    },
+    {
+      "verb": "add",
+      "node": "N-036",
+      "why": "Failed intended-target checks on real filesystem require separate ordinary setup budget; keep explicit timed regressions and production deadlines unchanged"
+    },
+    {
+      "verb": "add",
+      "node": "N-036",
+      "why": "Serialize fixture corrections after N033 source acceptance; no concurrent test-path owner"
     }
   ]
 }

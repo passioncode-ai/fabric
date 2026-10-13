@@ -1,0 +1,55 @@
+{
+  "kind": "source-correction",
+  "author": "mcp_research",
+  "status": "BUILDER_PASS_INDEPENDENT_SCOPED_ACCEPT",
+  "findingLead": "observatory_research",
+  "originalSourceSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+  "correctedSourceSha256": "c070dc0ee71da5eae7f9767e7c0bebd418c691ecd3b959a6dee0ada7aed846c2",
+  "red": {
+    "exit": 1,
+    "log": "attach-original-red.log",
+    "assertion": "attachAdmission returned false yet native exposed actual private PTY token"
+  },
+  "green": {
+    "exit": 0,
+    "log": "attach-corrected-green.log"
+  },
+  "selectedCommand": [
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "--test-name-pattern=late native allocation after admission deadline",
+    "apps/desktop/test/resource-worker-launch.test.mjs"
+  ],
+  "focused": {
+    "exit": 0,
+    "pass": 80,
+    "fail": 0,
+    "skip": 0,
+    "log": "focused-corrected.log"
+  },
+  "types": {
+    "exit": 0,
+    "receipt": "checks.json"
+  },
+  "semantics": "first native/current/observe access requires caller-visible successful attachment; ambiguous internal token retained for exact same-receipt reconciliation, not reallocated",
+  "limits": [
+    "synthetic SQL/R1/native transport with actual source modules/files",
+    "no production process/provider or active configuration",
+    "previously confirmed capability is not retroactively revoked by a later unrelated failure",
+    "complete:false and retirement unsupported unchanged"
+  ],
+  "independent": {
+    "receipt": "independent/receipt.json",
+    "originalReceiptSha256": "2ebeda8f780a2e651bbd9037565b12558ebc9d88f107daedf5ee7a673c59f466",
+    "originalExit": 1,
+    "correctedExit": 0,
+    "earlierCorrectedSetupFailure": "preserved, cause unconfirmed; not product negative evidence"
+  },
+  "portableNegativeReplay": {
+    "exit": 1,
+    "expected": 1,
+    "log": "portable-negative.log",
+    "kind": "author packaging replay of preserved original source"
+  }
+}

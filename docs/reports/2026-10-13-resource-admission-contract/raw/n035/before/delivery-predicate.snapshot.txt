@@ -1,0 +1,168 @@
+// #region controlled-resource-pool — docs: docs/execution/harness-waves/resource-controlled-pool.md#contract
+import * as fs from 'node:fs/promises'
+import path from 'node:path'
+import { createResourcePoolRegistry, CONTROLLED_POOL_ORIGIN, type PoolRegistryConfig } from './resourcePoolRegistry.ts'
+import { createResourceRunAssignmentManager, type RunAssignmentConfig } from './resourceRunAssignment.ts'
+import { createResourceWorkerInventory, type WorkerIntentConfig, type WorkerIntentHandle } from './resourceWorkerInventory.ts'
+import { createPreparedLaunchInputs, type PreparedLaunchInputDeps, type PreparedLaunchPacket } from './preparedLaunchInput.ts'
+import { createResourceLaunchAdapter, type ResourceLaunchAdapterDeps, type ResourceLaunchPreparation } from './resourceLaunchAdapter.ts'
+import { createResourceManagedUnit, type ResourceManagedUnitConfig, type ManagedUnits } from './resourceManagedUnit.ts'
+import { createResourceHostSampler } from './resourceHostSampler.ts'
+import { createAdmitExisting } from './admitExisting.ts'
+import { createManagedLaunch, type ManagedLaunchDeps, type LaunchInput } from './managedLaunch.ts'
+import { readResourceHostPolicy, resourceId, resourceInteger } from './resourceHostPolicy.ts'
+import type { InputIdentity } from './resourceInputSnapshot.ts'
+import type { AdmitInput } from './admitExisting.ts'
+import type { AdmissionReceipt } from '../shared/admission.ts'
+import type { PtyManager, OwnedPtyUnit } from './pty.ts'
+
+type CapabilityState = { maxEpochs:number; valid():boolean; ticketValid():boolean; issue(packet:PreparedLaunchPacket,intent:WorkerIntentHandle,receipt:AdmissionReceipt):boolean; ptys:PtyManager }
+const capabilities = new WeakMap<object,CapabilityState>()
+type Ticket = { owner:CapabilityState; packet:PreparedLaunchPacket; intent:WorkerIntentHandle; receipt:AdmissionReceipt; native?:OwnedPtyUnit; consumed:boolean }
+const tickets = new WeakMap<object,Ticket>()
+/** Internal source boundary. No exported constructor/mint accepts caller assertions. */
+export function controlledPoolOrigin(capability:object): Readonly<{maxEpochs:number}>|null {
+  const held=capabilities.get(capability)
+  return held?.valid() ? Object.freeze({maxEpochs:held.maxEpochs}) : null
+}
+export function issueControlledSpawnTicket(capability:object,packet:PreparedLaunchPacket,intent:WorkerIntentHandle,receipt:AdmissionReceipt):object {
+  const owner=capabilities.get(capability)
+  if(!owner?.ticketValid()||!owner.issue(packet,intent,receipt))throw Error('controlled ticket unavailable')
+  const token=Object.freeze({});tickets.set(token,{owner,packet,intent,receipt,consumed:false});return token
+}
+export function bindControlledSpawnTicket(ticket:object,ptys:PtyManager,packet:PreparedLaunchPacket,native:OwnedPtyUnit):boolean {
+  const t=tickets.get(ticket)
+  if(!t||!t.owner.ticketValid()||t.owner.ptys!==ptys||t.packet!==packet||t.consumed||(t.native&&t.native!==native))return false
+  t.native=native;return true
+}
+export function consumeControlledSpawnTicket(ticket:object,ptys:PtyManager,packet:PreparedLaunchPacket,native:OwnedPtyUnit):boolean {
+  const t=tickets.get(ticket)
+  if(!t||!t.owner.ticketValid()||t.owner.ptys!==ptys||t.packet!==packet||t.native!==native||t.consumed)return false
+  t.consumed=true;return true
+}
+export interface ControlledPoolConfig {
+  lifecycle:'provision'|'reopen';rawPolicy:unknown;estateId:string;adapterId:string
+  timeoutMs:number;maxEpochs:number
+  assignment:Omit<RunAssignmentConfig,'estateId'|'installationId'|'invocationId'|'storageRoot'>
+  registry:Pick<PoolRegistryConfig,'maxUnits'|'maxRecordBytes'|'maxRegistryBytes'|'timeoutMs'>
+  inventory:Pick<WorkerIntentConfig,'coveragePath'|'coverageSha256'|'timeoutMs'|'maxRecords'|'maxRecordBytes'|'maxCoverageBytes'|'maxRegistryBytes'>
+  inputs:Pick<PreparedLaunchInputDeps,'maxEntries'|'maxInstructionBytes'|'contextBudget'|'timeoutMs'>
+  units:Pick<ResourceManagedUnitConfig,'maxEntries'|'timeoutMs'>
+  resource:Pick<ResourceLaunchAdapterDeps,'maxEntries'|'timeoutMs'>
+}
+export interface ControlledPoolDeps {
+  /** Trusted composition input. This is not proof an arbitrary caller chose the canonical app root. */
+  app:{getPath(name:'userData'):string};host:{hostInstanceId:string;bootId:string}
+  store:PreparedLaunchInputDeps['store'];db:ManagedLaunchDeps['db'];ptys:PtyManager
+  actor:ManagedLaunchDeps['actor'];authority:ManagedLaunchDeps['authority'];guard():Promise<boolean>
+  track:ManagedLaunchDeps['track'];untrack:ManagedLaunchDeps['untrack'];stop:ManagedLaunchDeps['stop'];dispatch:ManagedLaunchDeps['dispatch']
+  preflight:{prepare(input:Readonly<AdmitInput>,packet:PreparedLaunchPacket,evidence:{assignment:Readonly<InputIdentity>;inventory:Readonly<ControlledWorkerReading>}):Promise<ResourceLaunchPreparation>;current:ResourceLaunchAdapterDeps['current']}
+}
+export interface ControlledWorkerReading {hostId:string;bootId:string;poolId:string;localPolicyRevision:string;atMs:number;complete:true;workers:readonly string[]
+}
+const unknown=()=>({state:'unknown' as const,complete:false as const,executionAuthorized:false as const})
+/** Concrete creation domain only. Neither policy activation nor R1 ownership is provided here. */
+export async function createControlledManagedPool(raw:ControlledPoolConfig,deps:ControlledPoolDeps) {
+  // Copy trusted configuration so a later task cannot retarget the closed factory.
+  const c=JSON.parse(JSON.stringify(raw)) as ControlledPoolConfig
+  const {app,host,store,db,ptys,preflight}=deps
+  const policy=readResourceHostPolicy(c.rawPolicy,host.hostInstanceId),estateId=resourceId(c.estateId),boot=resourceId(host.bootId)
+  const timeout=resourceInteger(c.timeoutMs,1,30000),maxEpochs=resourceInteger(c.maxEpochs,1,128)
+  if(c.lifecycle!=='provision'&&c.lifecycle!=='reopen')throw Error('invalid lifecycle')
+  const methods={getPath:app.getPath,open:ptys.open,get:ptys.get,reserve:ptys.reserveOwnedUnit,observe:ptys.observeOwnedUnit,
+    select:store.select,rpc:db.rpc,prepare:preflight.prepare,current:preflight.current,authority:deps.authority,guard:deps.guard,
+    track:deps.track,untrack:deps.untrack,stop:deps.stop,dispatch:deps.dispatch}
+  const actor=Object.freeze({...deps.actor})
+  const scope=store.scope, root=methods.getPath.call(app,'userData')
+  let poisoned=false,closing=false,closed=false,initializing=true
+  let active:Promise<unknown>|null=null
+  function bound(){
+    if(deps.app!==app||deps.host!==host||deps.store!==store||deps.db!==db||deps.ptys!==ptys||deps.preflight!==preflight||
+      app.getPath!==methods.getPath||methods.getPath.call(app,'userData')!==root||host.hostInstanceId!==policy.hostId||host.bootId!==boot||
+      store.scope!==scope||scope.kind!=='estate'||scope.estateId!==estateId||store.select!==methods.select||db.rpc!==methods.rpc||
+      ptys.open!==methods.open||ptys.get!==methods.get||ptys.reserveOwnedUnit!==methods.reserve||ptys.observeOwnedUnit!==methods.observe||
+      preflight.prepare!==methods.prepare||preflight.current!==methods.current||deps.authority!==methods.authority||deps.guard!==methods.guard||
+      deps.track!==methods.track||deps.untrack!==methods.untrack||deps.stop!==methods.stop||deps.dispatch!==methods.dispatch)throw Error('controlled binding unavailable')
+  }
+  function live(){bound();if(poisoned||closing||closed)throw Error('controlled domain unavailable')}
+  const capability=Object.freeze({})
+  let units:ManagedUnits|undefined
+  const inputs=createPreparedLaunchInputs({...c.inputs,estateId,store})
+  let readAssignment:((packet:PreparedLaunchPacket)=>Promise<Readonly<InputIdentity>>)|undefined
+  let readInventory:(()=>Promise<Readonly<ControlledWorkerReading>>)|undefined
+  const resources=createResourceLaunchAdapter({...c.resource,db,inputs,
+    prepare:async(input,packet)=>{live();if(!packet||!readAssignment||!readInventory)throw Error('controlled evidence unavailable');const assignment=await readAssignment(packet);live();const inventory=await readInventory();live();const value=await methods.prepare.call(preflight,input,packet,{assignment,inventory});live();return value},
+    current:async(binding,receipt)=>{live();const value=await methods.current.call(preflight,binding,receipt);live();return value}})
+  capabilities.set(capability,{maxEpochs,ptys,valid:()=>{try{bound();return !poisoned&&!closed}catch{return false}},
+    ticketValid:()=>{try{live();return !initializing}catch{return false}},
+    issue:(packet,intent,receipt)=>!initializing&&inputs.owns(packet)&&resources.readBinding(receipt,packet)?.identity.attemptId===intent.unitId})
+  const registry=createResourcePoolRegistry({...c.registry,installationRoot:root,hostId:policy.hostId,poolId:policy.poolId,estateId},{host,controlled:capability})
+  // Startup has the same permanent uncertainty rule. Late I/O cannot return a usable factory.
+  let startupActive=true,timer:ReturnType<typeof setTimeout>|undefined
+  const check=()=>{live();if(!startupActive)throw Error('controlled startup expired')}
+  const startup=async()=>{
+    check();if(await fs.realpath(root)!==root)throw Error('noncanonical installation');check()
+    if(c.lifecycle==='provision'){const provision=await registry.provision();check();if(provision.state!=='observed')throw Error('provision unconfirmed')}
+    const acquired=await registry.acquire();check();if(acquired.state!=='observed')throw Error('writer unavailable')
+    const owned=acquired.value
+    const described=await registry.describe(owned);check();if(described.state!=='observed'||described.value.controlledOrigin!==CONTROLLED_POOL_ORIGIN)throw Error('controlled origin unavailable')
+    const makeDir=async(parent:string,name:string)=>{const target=path.join(parent,name);try{await fs.mkdir(target,{mode:0o700})}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error}check();const s=await fs.lstat(target);check();if(!s.isDirectory()||s.isSymbolicLink()||await fs.realpath(target)!==target)throw Error('unsafe controlled directory');check();return target}
+    const domains=await makeDir(root,'resource-controlled-epochs'), domain=await makeDir(domains,described.value.locationKey), epoch=await makeDir(domain,described.value.writerEpoch)
+    const assignmentRoot=await makeDir(epoch,'assignments'),intentRoot=await makeDir(epoch,'intents')
+    const assignments=createResourceRunAssignmentManager({...c.assignment,estateId,installationId:policy.hostId,invocationId:boot,storageRoot:assignmentRoot},{store})
+    const intents=createResourceWorkerInventory({...c.inventory,estateId,hostId:policy.hostId,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,invocationId:boot,storageRoot:intentRoot},{assignments,host,controlled:{registry,writer:owned,rawPolicy:policy}})
+    const coverage=await intents.readCoverage();check();if(coverage.state!=='recorded')throw Error('coverage unavailable')
+    const epochSaved=await registry.admitEpoch(owned,{policy,coverageBytes:coverage.value.bytes});check();if(epochSaved.state!=='observed')throw Error('epoch unconfirmed')
+    units=createResourceManagedUnit({...c.units,estateId,rawPolicy:policy,adapterId:c.adapterId},{assignments,intents,resources,ptys,host,controlled:capability})
+    readAssignment=async packet=>{live();const handle=units!.assignmentFor(packet);if(!handle)throw Error('assignment unavailable');const read=await assignments.readIdentity(handle);live();if(read.state!=='observed')throw Error('assignment unavailable');return read.value}
+    const admit=createAdmitExisting(db,resources)
+    const launch=createManagedLaunch({db,estateId,actor,resources,units,
+      authority:()=>{live();return methods.authority()},
+      admit:(taskId,sessionId,trigger,packet)=>{live();const held=methods.authority();return admit({estateId,taskId,sessionId,trigger,actor,personId:held?.personId,revision:held?.revision},packet)},
+      prepare:async(_receipt,input,packet,native)=>{live();if(!packet||!native||packet.projectId!==c.assignment.projectId)throw Error('controlled input unavailable')
+        return (sessionId,guard)=>{live();return methods.open.call(ptys,packet.projectId,packet.target.cwd,packet.target.optionId,input.taskId,packet.target.permissionMode,null,sessionId,async()=>{live();if(!await methods.guard())return false;live();return guard()},null,packet,native)}},
+      track:methods.track,untrack:methods.untrack,get:id=>methods.get.call(ptys,id),stop:methods.stop,dispatch:methods.dispatch})
+    async function inventory(){live();const read=await registry.snapshot(owned);live();if(read.state!=='observed'||read.value.controlledOrigin!==CONTROLLED_POOL_ORIGIN)throw Error('inventory unavailable')
+      return Object.freeze({hostId:policy.hostId,bootId:boot,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,atMs:Date.now(),complete:true as const,workers:Object.freeze(read.value.units.map(u=>u.unitId))})}
+    readInventory=inventory
+    const sampler=createResourceHostSampler(policy,policy.hostId,{identity:()=>({hostId:host.hostInstanceId,bootId:host.bootId}),workers:inventory})
+    async function operation<T>(body:()=>Promise<T>,success:(v:T)=>boolean):Promise<T|ReturnType<typeof unknown>>{
+      try{live()}catch{poisoned=true;return unknown()}
+      if(active){poisoned=true;return unknown()}
+      let open=true,watch:ReturnType<typeof setTimeout>|undefined
+      const pending=Promise.resolve().then(body).then(value=>{live();if(!open||!success(value))throw Error('controlled outcome uncertain');return value}).catch(()=>{poisoned=true;return unknown()})
+      active=pending;void pending.then(()=>{if(active===pending)active=null})
+      try{return await Promise.race([pending,new Promise<ReturnType<typeof unknown>>(resolve=>{watch=setTimeout(()=>{open=false;poisoned=true;resolve(unknown())},timeout)})])}
+      finally{open=false;if(watch)clearTimeout(watch)}
+    }
+    let closeResult:Promise<ReturnType<typeof unknown>|{state:'sealed';complete:false;executionAuthorized:false}>|null=null
+    const api=Object.freeze({
+      launch:(input:LaunchInput)=>operation(()=>launch(input),value=>value.started&&value.deliveryState!=='outcome_unknown'&&value.deliveryState!=='failed_before_write'),
+      snapshot:()=>operation(async()=>Object.freeze({...await sampler.sample(),executionAuthorized:false as const}),value=>value.state==='observed'),
+      close(){
+        if(closeResult)return closeResult
+        closing=true // Revoke all new operations and tickets before the first await.
+        closeResult=(async()=>{let expired=false,watch:ReturnType<typeof setTimeout>|undefined
+          try{
+            if(active){
+              const settled=await Promise.race([active.then(()=>true),new Promise<false>(resolve=>{watch=setTimeout(()=>{expired=true;poisoned=true;resolve(false)},timeout)})])
+              if(!settled)return unknown()
+            }
+            if(watch)clearTimeout(watch)
+            if(poisoned||expired||active)return unknown()
+            bound()
+            // Once sealing starts its own retained-I/O deadline controls unlink.
+            // An outer timer must not return early and let a late seal release ownership.
+            const result=await registry.seal(owned)
+            if(result.state!=='observed'){poisoned=true;return unknown()}
+            closed=true;return {state:'sealed' as const,complete:false as const,executionAuthorized:false as const}
+          }catch{poisoned=true;return unknown()}finally{if(watch)clearTimeout(watch)}})()
+        return closeResult
+      }
+    })
+    check();initializing=false;return {state:'observed' as const,value:api,executionAuthorized:false as const}
+  }
+  try{return await Promise.race([startup(),new Promise<ReturnType<typeof unknown>>(resolve=>{timer=setTimeout(()=>{startupActive=false;poisoned=true;resolve(unknown())},timeout)})])}
+  catch{poisoned=true;return unknown()}finally{startupActive=false;if(timer)clearTimeout(timer)}
+}
+// #endregion controlled-resource-pool

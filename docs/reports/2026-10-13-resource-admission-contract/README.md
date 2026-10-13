@@ -455,3 +455,86 @@ identity and exact owned admission binding, with durable attachments and retaine
 unknown outcomes. Its first slice keeps complete:false; complete controlled entry coverage
 and positive provider retirement require later concrete evidence. No installed policy,
 live DDL or new product UI is activated by either module.
+
+## Managed consumer integration and actual SQL follow-up
+
+N031 is committed and pushed at `6c8b3718302dd7a3e981ce792f9c0c13db780b27`,
+tree `3253ccc739b2387da2cf713bdc0746f905f4caac`; full fast passed unchanged in1208.8seconds
+([receipt](raw/closing/n031-fast.json)). Its bounded primitive node is closed.
+The earlier disk refusal remains historical evidence. At08:57UTC sufficient headroom
+allowed the unchanged N027 sources to run all eight actual disposable PostgreSQL stages;
+exit0,28.86seconds, including concurrent reservations, coherent accounting, recovery and
+role denials ([receipt](raw/closing/n027-sql.json), [log](raw/closing/n027-sql.log)).
+This closes pending-SQL source acceptance, not active migration or the live Fabric DB.
+
+N032 storage and concrete consumer archives are retained under
+[immutable events](raw/n032-intent-events/README.md) and
+[managed consumer](raw/n032-consumer/README.md). The latter includes the original failed
+prepare-capability control: state produced inside an operation cannot be exposed until
+its public final validation confirms success. Two portable controls are packaging replays,
+separate from the independent review. The post-timeout admission correction and N033 actual child run-label propagation are
+integrated for the final combined gate. Their distinct correction archives and independent
+receipts follow; the earlier archives do not certify newer source bytes.
+
+The source merge preserves main `7bdd94de` without overwriting either register history:
+291 carry-over rows and643 HTML IDs, generated matrix semantics and18 plan IDs conserved
+([receipt](raw/closing/main-7bdd-union.json)). The graph currently has34 nodes:28 done,
+2 external-owner blocked and4 pending. N034 adds the bounded pool storage slice. N032/N033 need final source acceptance; N030 needs
+combined delivery and publication. Complete worker inventory, full dependency closure,
+held ownership authority, configured activation and native/provider acceptance remain open.
+
+### Final N032/N033 module review
+
+The [N032 correction archive](raw/n032-attachment-correction/README.md) preserves the
+actual post-deadline native allocation failure on94105e9d and corrected c070dc0e; an
+independent reviewer verifies confirmation gating and exact-retry identity. An earlier
+review setup returned unknown before the target assertion; the cause is unconfirmed and
+its log is retained, not relabelled as a product failure or erased.
+
+The [N033 archive](raw/n033/README.md) pins final unit484ff39f and PTY50b07767:
+90 focused checks and targeted strict types PASS, two original-source assertions RED,
+portable replay PASS, and three additional independent controls PASS. The reviewer authored
+N032, so independent acceptance explicitly covers only the N033 delta. The root also
+recorded a [separate source review](raw/closing/n033-root-source-review.json). These
+receipts precede the final combined full-fast run and do not assert native/installed use.
+
+At09:08UTC live DB readiness recovered outside this run; official MCP is now waiting
+for project consent ([readback](raw/closing/board-readiness-0908.json)). No project grant
+or COM submission is inferred from MCP registration or HTTP200.
+
+
+### Combined check correction and measured resource constraint
+
+The first N032/N033 full-fast attempt exited1 after2047.37seconds on unchanged staged tree4ff14f1d. Its sole reported failing gate required deleting two obsolete shrinking-baseline entries, `Target.taskRunId` and `TaskRun.taskRunId`; both now have readers. Later gates did not run. [Receipt](raw/closing/n033-first-fast.json), [original log](raw/closing/n033-first-fast.log). The correction removes only those entries; it does not waive the gate. A new combined run is required.
+
+A [read-only observation](raw/closing/n033-resource-observation.json) measured load average425.90 on14 logical CPUs while this run had one nice10 heavy gate and eight processes in its observed owned tree. This does not attribute total machine load to any other session. Further heavy work stays serial. [Integrated byte review](raw/closing/n033-integration-review.json) matches11 actual source/test/doc files and preserves the independent-review authorship boundary.
+
+[Owner refresh at09:19UTC](raw/owner-refresh-0919/receipt.json) credits task-pipeline PR112 merge and main1.94.0 source, but installed payload/release1.93.3 remain distinct. Gateway17 declared/14 enabled/3 disabled is configuration, not simultaneous process count or health. The [publication optimization packet](../../execution/harness-waves/publication-reuse-packet.md) identifies a possible exact-input compiler receipt; no existing check is skipped.
+
+
+### N034 storage review and correction wave
+
+[The N034 archive](raw/n034/README.md) retains the initial22-assertion/exit1 candidate and the corrected source `dd38dcb6`. The correction binds cached seal acknowledgement to the exact handle, requires canonical head bytes, and retains the lifetime O_EXCL lock file while explicitly closing temporary descriptors. Author25 focused actual-filesystem checks and strict targeted types pass; three controls fail on initial source. A separate reviewer passes two controls on corrected source and reproduces both failures on the original. Portable archive replay checks packaging only.
+
+Root integrated the exact three reviewed file hashes and wired the actual test file into fast CI. Every result still declares `complete: false` and `executionAuthorized: false`; trusted storage declarations do not establish N031 provenance or actual pool membership. The combined gate and committed source binding remain required before graph closure.
+
+
+## Verification correction and controlled composition wave
+
+The second combined candidate remained byte-stable but full fast exited1 after2078.94seconds at six unexplained catch blocks: [receipt](raw/closing/n034-first-fast.json), [log](raw/closing/n034-first-fast.log). Their caller-visible fail-closed refusals/capability withholding now have reason comments, with runtime parity independently inspected. [Scoped corrections](raw/closing/n034-gate-corrections.json), [CI static review](raw/closing/ci-order-static-review.json). Later stages were NOT_RUN.
+
+N036 moves the unchanged compiler suite after source-only checks and captures one result in each of six duplicate-check assertions. [Root review](raw/closing/compiler-double-check-root-review.json) does not substitute for execution or measure speedup. N035 concrete factory preparation is a dependent wave with actual producers and private tickets; independent review caught an incorrect delivery-state domain, now requiring only acked/delivering for successful handoff. Final source-bound execution acceptance remains pending. The graph has36nodes:28done,2blocked,6pending at this snapshot.
+
+[Observatory status](raw/closing/observatory-readback-1004.json) is degraded with collector timeouts; it is a current service read, not a freshness guarantee for historical collected facts. Prepared owner packets retain their NOT_SENT boundary.
+
+
+## N035 integrated source and remaining final gate
+
+[Portable N035 archive](raw/n035/README.md):18 corrected actual-module/real-filesystem checks and strict targeted types pass. Independent controls3/3pass; exact oldfactory fails the same delivery-state assertion. Root copied9exact reviewed source files and verified47manifest entries plus the archive manifest; [integration readback](raw/closing/n035-integration.json). The check-ops gate passes on the integrated source. These are local composition results with synthetic native/SQL boundaries, not activation. Original test failures and wrong compiler-mode setup remain archived.
+
+[Legacy rerun](raw/closing/n033-legacy-pressure.json) ended27/29, exit1; the two failures did not reach intended final SQL/native-spawn boundaries. The host was simultaneously under heavy load and low disk; that observation alone does not prove causality. [Fixture review](raw/closing/n033-budget-static-review.json) verifies only five ordinary setup budgets changed and all test bodies/explicit deadlines remained identical. Actual corrected execution and final full fast are still required.
+
+
+### Corrected fixture result
+
+The setup-budget candidate was not semantically equivalent for every deadline test: [28/29failed run](raw/closing/n035-legacy-first.json). An implicit1000ms deadline under a1100ms injected delay became5000ms. Two timed tests now explicitly retain1000ms. [Corrected29/29run](raw/closing/n035-legacy-corrected.json), with all five production hashes unchanged, passes. This supersedes only the pending legacy fixture execution; final full fast and publication are still outstanding.

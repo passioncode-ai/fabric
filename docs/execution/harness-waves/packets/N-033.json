@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-033",
+  "node": "N-033",
+  "parent_id": "CO-282",
+  "module": "Propagate the actual assigned run into controlled child environment",
+  "intent": "Propagate the actual assigned run into controlled child environment",
+  "expected_result": "Actual N028 childEnvironment wins over inherited descriptor and bundle values; stale forged or missing assignment refuses before final guard; legacy remains unchanged",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "5d9d328ec2bbba82dcd8cac0cebad470de9886171faaddeafa7a37e584a1fa2c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "5d9d328ec2bbba82dcd8cac0cebad470de9886171faaddeafa7a37e584a1fa2c"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourceManagedUnit.ts",
+      "apps/desktop/src/main/pty.ts",
+      "apps/desktop/test/resource-worker-launch.test.mjs",
+      "docs/execution/harness-waves/resource-worker-launch.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Actual N028 childEnvironment wins over inherited descriptor and bundle values; stale forged or missing assignment refuses before final guard; legacy remains unchanged",
+      "paths": [
+        "apps/desktop/src/main/resourceManagedUnit.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/resource-worker-launch.test.mjs",
+        "docs/execution/harness-waves/resource-worker-launch.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Actual N028 childEnvironment wins over inherited descriptor and bundle values; stale forged or missing assignment refuses before final guard; legacy remains unchanged"
+    },
+    {
+      "kind": "negative",
+      "check": "Forged stale or missing actual assignment refuses before native creation; parent descriptor bundle labels never override actual confirmed child label"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

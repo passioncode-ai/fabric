@@ -1,0 +1,29 @@
+{
+  "reviewer": "root",
+  "authors": [
+    "pipeline_research",
+    "mcp_research"
+  ],
+  "scope": "Independent source review of N032 returned-result confirmation and N033 actual child environment path; execution will be covered by frozen combined gate",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": "484ff39f30534a099976d0d2f1345735302c863f5908afb19881778cdfa0d177",
+    "apps/desktop/src/main/pty.ts": "50b07767121d8c1f29d8e447c4bb28188f988be3d87e1aa28ba74c310d97e202",
+    "apps/desktop/src/main/managedLaunch.ts": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+    "apps/desktop/src/main/resourceRunAssignment.ts": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+    "apps/desktop/test/resource-worker-launch.test.mjs": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a"
+  },
+  "findings": [],
+  "checks": [
+    "attachAdmission confirms only the caller-visible true result; native/current/observe refuse unconfirmed internal allocation",
+    "Confirmed same-receipt retry reuses retained token; no new unit or dropped durable intent",
+    "Actual N028 childEnvironment method and object identities captured; exact key schema is checked without reading accessors",
+    "Owned token copies and freezes the one allowed run-key field; final PTY spread occurs after parent/descriptor/bundle values",
+    "Managed units.current rechecks child mapping before prepared-current and final SQL; no await added between final SQL validation and synchronous spawn",
+    "Legacy no-unit PTY path retains original environment precedence"
+  ],
+  "limits": [
+    "Static review is not independent test execution or native acceptance",
+    "N032 earlier reviewers and current module authors have distinct scopes",
+    "Observatory reviewer unavailable after tool review failure; no acceptance attributed to that failed turn"
+  ]
+}

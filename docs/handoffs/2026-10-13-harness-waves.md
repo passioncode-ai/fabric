@@ -8,10 +8,12 @@ enforcement, cross-owner acceptance and native acceptance remain open.
 ## Current source and bounded results
 
 Integration branch: `agent/harness-integrated-20261013` in `passioncode-ai/fabric`;
-latest pushed source checkpoint `8e683c3a71d094fa46dc1369ad74e5413cd4f13e`;
-[full-fast receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n030-fast.json)
-binds tree `d13d7773cead07b7b6f1424898ebca3033f787de`, exit0,744.68seconds.
-Resource accounting SQL remains NOT_RUN, so N027/N030 are still open. Earlier producer
+last fully gated pushed source checkpoint `6c8b3718302dd7a3e981ce792f9c0c13db780b27`;
+[full-fast receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json)
+binds tree `3253ccc739b2387da2cf713bdc0746f905f4caac`, exit0,1208.8seconds.
+A later source-bound owned PostgreSQL run passed all eight stages in28.86seconds;
+[N027 receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n027-sql.json).
+N027 is closed as pending-SQL source acceptance; N030 still tracks combined delivery/publication. Earlier producer
 source `f2576c109f1de55179e07c7398aa2c4564e12087` and recovery source
 `ae197a1552231a9252754f9ee296736f94269471` is historical.
 Merge `cc123baf67753d817282fdd686365051ae897d66` preserves main privacy changes through
@@ -73,6 +75,39 @@ serialization, whole-context limits, acknowledged ACP mode and required Fabric s
 and MCP cooldown/late-link cleanup. Its nine locally delivered nodes out of eleven were
 a historical scope count, not completion of product requirements.
 
+## Latest board readiness
+
+At09:08UTC the bounded watcher observed the local DB answering HTTP200 and official
+`fabric_whoami` returning `waiting` for project-access consent. Recovery happened outside
+this run; this run did not restart the stack. [Readback](../reports/2026-10-13-resource-admission-contract/raw/closing/board-readiness-0908.json).
+MCP registration was approved, but project consent remains a separate human gate. Owner
+packets N009/N010 remain NOT_SENT. The single bounded watcher rechecks every120seconds,
+closes each MCP child, and stops after90minutes or ready/denied; it grants nothing itself.
+
+## Latest combined check and owner refresh
+
+The first N032/N033 combined fast run failed after2047.37seconds on the written-never-read ratchet: `Target.taskRunId` and `TaskRun.taskRunId` now have readers and must leave its shrinking baseline. [Unchanged-tree failure receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.json), [original log](../reports/2026-10-13-resource-admission-contract/raw/closing/n033-first-fast.log). This is not a full-gate PASS; later stages did not run. Only those two obsolete entries are removed. A fresh combined run remains required.
+
+The [owner refresh](../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json) confirms pipeline PR112 merged/source1.94.0; release and inspected installed payloads remain1.93.3. This is source progress, not owner adoption or native consumption. [Publication check reuse](../execution/harness-waves/publication-reuse-packet.md) is a bounded future optimization proposal; current publication gates are preserved.
+
+## Current wave and bounded next architecture
+
+N032 integrates actual immutable intent/admission/process binding; N033 fixes actual
+child run-label propagation. N034 implements the bounded pool-history storage slice under independent review, with incomplete/unauthorized outputs; it does not yet attach the concrete controlled factory. Their source acceptance is tracked in the graph and does
+not replace complete occupancy or writer authority. The next architecture is captured
+in [the controlled-pool packet](../execution/harness-waves/controlled-pool-next-packet.md):
+fixed installation/pool identity, exclusive persistent writer, a durable complete event
+head, clean handoff and conservative retention across restarts. An unclean crash refuses
+instead of stealing an owner. Capacity-one/own-intent double charging needs exact
+source-bound overlap semantics; a subset cannot be called zero or complete.
+
+N026/N028 now implement selected snapshots and run correlation. Remaining R1held work
+needs actual acquisition provenance and a locally issued serialized generation checked
+at the supported effects; no integer can be invented from a Git SHA. Cooperative claims
+are not OS filesystem enforcement. Complete dependency closure and activation remain
+separate from these implemented bounded primitives. These are local architectural
+prerequisites, not falsely blocked by a missing COM message.
+
 ## Exact next work and dependencies
 
 1. Verified merged source1b63e81c11e3327c26f930e93656ac7a2b11fcb6 passed fast
@@ -84,21 +119,14 @@ a historical scope count, not completion of product requirements.
    [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/producer-f257-fast.json).
    Source is pushed; N022–25 and N007 are closed against that bounded result. Their activation
    boundaries remain explicit; no module result activates the installed runtime.
-2. The [activation prerequisites](../execution/harness-waves/resource-activation-prerequisites.md)
-   and the [next input/scope packet](../execution/harness-waves/input-scope-next-packet.md)
-   identify the next bounded source work: source-owned input/scope snapshot and actual
-   run-to-lease binding, complete trusted worker inventory, then one composed supported launch path.
-   N022/N025 now supply the bounded policy/sampler/publication modules; their historical
-   absence at the audit pin is not a new task. These local producers
-   are executable without portable-protocol approval. Existing ref viewers and
-   overlap warnings cannot be substituted for exclusive current ownership.
+2. Finish the corrected N032/N033 combined gate, bind its result to the final source, then complete branch delivery and workspace publication. N026/N028 already implement bounded selected snapshots and run correlation; N029 already supplies once-prepared content. Continue local implementation from [the controlled-pool packet](../execution/harness-waves/controlled-pool-next-packet.md). Complete inventory, actual cooperative ownership/fencing and full dependency closure remain separate requirements; ref observations and overlap warnings are not held authority.
 3. Before activation, resolve migration ordering with the owners of reserved positions
    105–106 after COM-03 applied104; pending 107 is not active DDL. Recheck current admission/Stop protections,
    migration ledger, schema contract, fresh/upgrade/restore and privilege behavior.
    Configure trusted host/pool policy and a fresh sampler explicitly. Production composition,
    all global launch paths, compiled input-closure binding and native termination/recovery proof still
    need implementation and acceptance. A reservation grants neither spend nor file leases.
-4. Current runtime blocker: OrbStack stopped again with ENOSPC. One start briefly
+4. Historical runtime blocker before the09:08UTC readiness readback: OrbStack stopped again with ENOSPC. One start briefly
    restored healthy Fabric DB, HTTP200 and official MCP project-consent `waiting`.
    The distinct boot at06:07:18UTC ended at06:09:23UTC with storage-full writes;
    [recurrence receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/live-stack-recurrence.json).
@@ -149,7 +177,7 @@ CO282 stays partial. This checkpoint is not a main merge or product release.
 Workspace publication and the report index follow through their owning commands;
 `docs/workspace-receipt.json` owns the publication identity, not this narrative.
 
-Next local implementation: the [selected-input packet](../execution/harness-waves/input-scope-next-packet.md).
+At that checkpoint, the next local implementation was the [selected-input packet](../execution/harness-waves/input-scope-next-packet.md).
 It names source ordering, trusted assignment, exact bytes and negative cases.
 Compiler packet/chain instruction and run-to-lease binding must be resolved before
 resource-required production composition; these are future composition prerequisites,
@@ -157,7 +185,9 @@ not observed failures in ordinary launch behavior. No global writer enforcement 
 complete worker inventory is inferred from these primitives.
 
 
-## Selected-input and accounting continuation
+## Historical selected-input and accounting continuation
+
+This is the earlier continuation snapshot. Current results at the top supersede its pending SQL and integration statuses; original failures and source receipts remain history.
 
 N026 source and focused independent acceptance are recorded in
 [the input receipt](../reports/2026-10-13-resource-admission-contract/raw/n026/README.md).
@@ -188,7 +218,9 @@ expanded graph includes these pending integration/check tasks; no global complet
 or installed enforcement is implied.
 
 
-## N026–N030 checkpoint and current worker-entry continuation
+## Historical N026–N030 checkpoint and worker-entry planning
+
+The following describes an earlier checkpoint, not current next actions. N031 is accepted at6c8b3718; actual N027 SQL subsequently passed. N032/N033 require the corrected combined gate. Latest official COM readback is waiting for project consent, not database-unavailable.
 
 N026 selected input, N027 pool accounting and N028 local run assignment are integrated
 for combined verification. N028 source archive is [portable](../reports/2026-10-13-resource-admission-contract/raw/n028/README.md); its root typecheck and27 focused checks passed,
@@ -220,3 +252,31 @@ retry defect was reproduced and corrected. Root integration is underway; its acc
 does not cover N032's subsequent event extension. N032's reviewed concrete scope is now
 under isolated implementation. Both graph rows remain pending until their delivery
 receipts; neither supplies complete worker inventory or native resource enforcement.
+
+
+## Continuation at10:39UTC: failed gate corrected, next source wave
+
+The N032/N033/N034 combined gate failed after2078.94seconds at the observability checker, with unchanged indexed tree3610a84313f47747eaa245084967dae311af217f. [Failure](../reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.json) and [log](../reports/2026-10-13-resource-admission-contract/raw/closing/n034-first-fast.log) preserve the result. Six catch blocks now explain their fail-closed typed refusal or capability withholding; no runtime behavior changed. Focused ops/ratchet/shell checks pass. No subsequent full-gate PASS yet.
+
+N035 composes the actual controlled creation domain, currently under correction and verification. N036 preserves all gates while moving the expensive compiler after source-only refusals and removing six duplicate calls; actual performance savings remain unmeasured. The graph now has36nodes:28done,2blocked,6pending. Native activation, effective capacity-one overlap, all-host entry coverage and owner acceptance remain separate work.
+
+[Observatory readback](../reports/2026-10-13-resource-admission-contract/raw/closing/observatory-readback-1004.json) found service degraded and the last10collector ticks timed out; a current service response does not make historical registry observations fresh. No collector or service was restarted.
+
+
+## Integrated N035 and resource-pressure continuation
+
+N035 exact9-file candidate is copied with [integration evidence](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json) and [portable producer/reviewer archive](../reports/2026-10-13-resource-admission-contract/raw/n035/README.md).18focused plus3independent controls/type checks passed; oldfactory replay is expected RED. No active runtime or complete host-coverage claim. The next mandatory action is the combined final source gate, then source commit/push, exact-HEAD focused binding and graph closeout, followed by normal workspace publication.
+
+The standalone old launch fixture rerun was27/29, exit1; no acceptance was inferred. Five ordinary setup budgets now allow5000ms while explicit deadline tests and production config are untouched, statically reviewed. The full test must actually pass. At10:48UTC disk headroom fell below200MiB and one peer shell received ENOSPC. Root removed only its generated isolated-worktree apps/desktop/out (30,429,687bytes); the next gate must rebuild it. No foreign work/process/service was changed. A new heavy gate requires restored disk headroom.
+
+
+## Corrected legacy fixture verification
+
+The first setup-budget candidate failed28/29 because one1100ms native-delay regression implicitly relied on the old1000ms fixture default. This is a fixture coupling, not a product failure. Both timed cases now declare1000ms explicitly; corrected29/29pass on unchanged integrated N035 source in the [receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-corrected.json). [Original failed candidate](../reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json) remains. Static unchanged-body review had not established semantic timing parity. The resource-waiting full gate was cancelled before execution for this correction and must be rearmed on the new candidate.
+
+The [next overlap proposal](../execution/harness-waves/own-intent-overlap-packet.md) is DESIGN ONLY; no new SQL, capacity credit, runtime activation or retirement has been implemented by that packet.
+
+
+## Durable source checkpoint before final acceptance
+
+This expanded source iteration is checkpointed on the working branch while the final combined gate remains pending for disk headroom. It is not a completed pipeline stage, main integration, installation, publication or acceptance of N030/N032–N036. N035 focused18, independent3, targeted types, integrated ops and corrected legacy29 pass within their recorded scopes. The cancelled resource wait ran no full gate. Preserve both earlier full-gate failures and every fixture correction. Resume by running the complete fast command on this committed candidate when resources allow; exact committed-HEAD execution avoids borrowing a historical-HEAD result.

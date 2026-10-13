@@ -1,0 +1,29 @@
+{
+  "kind": "packaging_replay",
+  "independentAcceptance": false,
+  "originalIndependentReceipt": "independent/receipt-units-final.json",
+  "command": [
+    "FABRIC_REPO=<integrated-checkout>",
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "--test-concurrency=1",
+    "<archive>/replay/unconfirmed-assignment-regression.mjs",
+    "<archive>/replay/native-inflight.mjs"
+  ],
+  "exit": 0,
+  "sourceHashes": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "apps/desktop/src/main/managedLaunch.ts": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+    "apps/desktop/src/main/pty.ts": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "apps/desktop/src/main/index.ts": "846e7523b16e82e46df0742a3d91235bf9bc99242ff85e7dc621c73179b68bc0",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+    "apps/desktop/test/resource-worker-launch.test.mjs": "c6435a0cc6ec1a316ee6cc0c3325d017905b8db866b8e81ff61a0f923d5e87d1",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "56568a1b72e41a0acb798a0e46a824945c78c0cc4f4292ba92c35ab16c2ad805",
+    "apps/desktop/test/prepared-managed-launch.test.mjs": "ec1da860a901eab13765f8633ccedbffad361b05ce580af918c111228f9a1f21",
+    "apps/desktop/test/prepared-launch-fixture.mjs": "eeaa30b610d3cfeaaf5c6be1b593ee5663dbe6c783abd7cd9cd729149b8bfeb4",
+    "docs/execution/harness-waves/resource-worker-launch.md": "f74b213020cc79a5034f0cbc44dbaa02a94f08830e73549cfe31fdb2e54a28f6"
+  },
+  "sourceUnchangedAfter": true,
+  "log": "portable-controls.log"
+}

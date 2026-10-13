@@ -1,0 +1,10 @@
+✔ N032 rejects cross-unit admission and exact owned-process identity collisions before writing (701.806708ms)
+✔ N032 retained cross-unit admission collision refuses full scan despite valid parent chains (557.98725ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1500.883875

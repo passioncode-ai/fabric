@@ -1,0 +1,44 @@
+[
+  {
+    "original": "receipt.json",
+    "stored": "receipt.json",
+    "originalSha256": "2ebeda8f780a2e651bbd9037565b12558ebc9d88f107daedf5ee7a673c59f466",
+    "storedSha256": "2ebeda8f780a2e651bbd9037565b12558ebc9d88f107daedf5ee7a673c59f466",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  },
+  {
+    "original": "original-red.log",
+    "stored": "original-red.log",
+    "originalSha256": "67d54c5aadd8f77f091dc5cdbf929dba217b2d9e612dcd500538341395799d0e",
+    "storedSha256": "8124dc80e0607f094a23f76fb13420b6fd4424b247c1a5fe56e19cd6a35287f3",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  },
+  {
+    "original": "fixed-pass.log",
+    "stored": "fixed-pass.log",
+    "originalSha256": "6d226d6ec64b580cb3524580de318c53631ea1e00513dbdd14d299272ba7f4b5",
+    "storedSha256": "90fd6dbf097190443d38b13d1557c1fa52fe21ebc3bb7245f2afc3126bc337e5",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  },
+  {
+    "original": "fixed-pass-rerun.log",
+    "stored": "fixed-pass-rerun.log",
+    "originalSha256": "af2c1dc2485e76ac783241e1786bda6a8ba5df5bedaa99532cbc0ed5ee5345ca",
+    "storedSha256": "af2c1dc2485e76ac783241e1786bda6a8ba5df5bedaa99532cbc0ed5ee5345ca",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  },
+  {
+    "original": "admission-control.mjs",
+    "stored": "admission-control.mjs.snapshot.txt",
+    "originalSha256": "8a4a448906de7217388d6b98e25c1d81a1bb5a7ea9c0ccdb1e92671921e66cd5",
+    "storedSha256": "01401302332d5fd890f606829fdce8f6094badfc8957c78654097b2b131c93b9",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  },
+  {
+    "original": "original.snapshot.txt",
+    "stored": "original.snapshot.txt",
+    "originalSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "storedSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "note": "private path labels only; archived absolute-import probe is historical, author portable replay supplied separately"
+  }
+]

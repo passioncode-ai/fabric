@@ -1,0 +1,17 @@
+{
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "--test-reporter=tap",
+    "--test-concurrency=1",
+    "test/resource-controlled-pool.test.mjs"
+  ],
+  "cwd": "apps/desktop",
+  "exitCode": 0,
+  "durationSeconds": 46.7962766669807,
+  "deadlineSeconds": 180
+}

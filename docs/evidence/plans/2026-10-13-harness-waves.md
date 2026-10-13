@@ -10,8 +10,7 @@ all hosts or upstream projects already comply. The carry-over ledger owns CO-282
 
 Fabric baseline: `a5b78e4919d82c6eae88bee72e59eba3e0c1fbae`.
 The [dated research snapshot](../../reports/2026-10-13-autonomy-layer-map/README.md)
-remains immutable. This plan records a later slice: hub #209 is now merged; task-pipeline
-#112/#114 remain candidate work. Do not turn installation, configured routes, a compiled
+remains immutable. The [09:19UTC owner refresh](../../reports/2026-10-13-resource-admission-contract/raw/owner-refresh-0919/receipt.json) confirms hub #209 and task-pipeline #112 merged; pipeline main78c42124 carries source1.94.0, while the latest release and inspected Codex/Claude payloads remain1.93.3. PR114 acceptance is not established here. The reviewed graph/lesson/iteration bytes are unchanged from the earlier candidate, so the remaining provenance findings persist. Do not turn installation, configured routes, a compiled
 bundle or a passing fake into native agent acceptance.
 
 - Identity: `apps/desktop/src/main/sessionEnroll.ts` (`enrollSession`, `ofRuntime`).
@@ -451,3 +450,69 @@ without source changes. [Receipt](../../reports/2026-10-13-resource-admission-co
 N026, N028 and N029 close as bounded source modules. N027 remains open because its
 real SQL runner refused insufficient disk headroom; N030 retains SQL/publication work.
 Browser/stack-backed acceptance and toolchain reproducibility remain unverified.
+
+### N-033 — actual child run-label propagation
+
+Composition review found that the actual N028 `childEnvironment(handle)` producer was
+not consumed by N032/PTyManager: the spawned process could inherit its parent's run
+label. N033 passes only the confirmed producer's allowlisted `AGENT_SYNC_RUN_ID` through
+the private owned unit token and applies it after inherited, descriptor and bundle values.
+Stale, substituted or missing binding refuses before the final SQL guard. No asynchronous
+operation is inserted between that guard and synchronous spawn; legacy paths stay unchanged.
+The packet closes correlation propagation only, not authenticated identity or R1held.
+
+### N031 committed checkpoint and incoming source union
+
+N031 source `6c8b3718302dd7a3e981ce792f9c0c13db780b27`, tree
+`3253ccc739b2387da2cf713bdc0746f905f4caac`, passed full fast in1208.8seconds without
+source changes and is remote-read back. The node is closed only for durable bounded
+intent storage. [Receipt](../../reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json).
+Main `7bdd94de8d19c807f9cb4419299e2ad8b1a53cdb` is being integrated into the task branch;
+all291 carry-over IDs and643 actual HTML IDs are retained, with unchanged generated
+matrix semantics and18 plan IDs. [Union check](../../reports/2026-10-13-resource-admission-contract/raw/closing/main-7bdd-union.json).
+This source merge does not claim a merge into main or a current workspace publication.
+
+### Subsequent controlled-pool boundary
+
+The [next controlled-pool packet](../../execution/harness-waves/controlled-pool-next-packet.md)
+records the remaining completeness design and actual negatives before implementation.
+A stable pool identity, exclusive lifetime writer and committed history/cardinality are
+required; an empty directory, current PTY map or adapter manifest proves none of them.
+All historical unretired intents remain charged; current run authority is a separate check.
+Own-intent/reservation overlap must be bound to actual source identity to avoid falsely
+admitting capacity, while avoiding double-charge refusal at capacity one. The current
+N031/N032 implementation intentionally remains incomplete and inactive.
+
+
+### N-034 — retained controlled-pool registry, storage slice only
+
+The first locally executable slice of the controlled-pool packet owns a new real-filesystem registry, its tests and contract. An immutable installation-level anchor precedes the ledger; a lifetime O_EXCL writer file, canonical head/cardinality and predecessor chain detect missing history. The writer drains before a sealed clean handoff. Unclean restart never steals an owner. All old unretired declarations remain counted across invocation/policy changes. Actual append retry must retain its identity and confirm file and directory barriers; caller timeout retains the occupied I/O slot. Capacity, bytes and scans are finite.
+
+Every output remains incomplete and unauthorized. Trusted storage declarations are not N031 provenance, worker observations, complete entry coverage or R1 held authority. Concrete factory composition is the dependent next slice, not a property invented by this storage layer. Independent review already found and required correction of cached seal receipt replay with a foreign handle and noncanonical head bytes; the original test process also exposed abandoned FileHandle lifetime errors. Original failures remain evidence, and clean process exit is required in addition to passing assertions.
+
+
+### N-035 — concrete controlled-pool creation path
+
+Compose the actual N028 assignment, N029 prepared inputs, N031 intent store, N034 retained registry, N032 managed unit, resource adapter, shared admission, managed launcher and PTY path. The factory owns its writer, dependencies and single-use creation tickets; it exposes only launch, snapshot and close. No default activation is added in index. Its app-identity input remains explicitly trusted; this source slice does not prove an unforgeable canonical installation root on every host.
+
+A fresh controlled genesis and bounded immutable writer-epoch descriptors retain full validated policy and concrete coverage provenance. A preexisting generic ledger cannot become complete by relabelling it. N031 constructs canonical intent bytes from actual assignment, durably appends the matching retained declaration FIRST, then acknowledges the supplementary intent event. Orphan declarations remain charged. Current handles stay strict; older unretired declarations survive old membership/policy/invocation changes.
+
+Only the concrete factory can produce a complete conservative logical set for this domain. A private ticket binds exact confirmed preparation, intent, admission, writer epoch and native token. PTY consumes it synchronously after final SQL and immediately before spawn; no asynchronous operation crosses that interval. Close revokes new tickets synchronously.
+
+A permanent uncertainty latch avoids false clean-drain claims: any failed, busy, refused, timed-out or unknown operation, including failed snapshot and started-with-unknown-delivery, prevents sealing this invocation. Retry never clears it. Close during an active operation conservatively poisons that operation because its final currentness check sees closing. Clean handoff therefore requires an already successful settled creation path and a final latch/count check. The creation-drain deadline cannot leave a late sealing continuation. Once sealing starts, the registry owns its own deadline; an ambiguous unlink acknowledgement remains unknown and does not guarantee the lock still exists. This is creation/registry handoff, not termination of PTY, journal callbacks or providers. No retirement or stale-lock stealing is added.
+
+Completeness does not fix conservative capacity-one refusal. Existing local admission and SQL charge observed intent plus request/reservations. A separate exact phase/identity-bound overlap contract is required before efficient activation; never subtract a caller-echoed attempt or unknown occupancy. R1 held authority, complete dependency closure, active migrations, configured runtime and native/provider acceptance remain separate and are not manufactured here.
+
+Checks: actual modules and real owned filesystem with synthetic native boundary; declaration-first failures/orphans, exact lost-reply retry, controlled-vs-generic genesis, copied/reused/foreign tickets, close during SQL, permanent uncertainty latch, late close continuation, historical membership removal, missing records, changed captured dependencies, clean restart and explicit capacity-one refusal. Preserve existing generic storage and legacy launch suites. Independent review precedes integration; one heavy test slot.
+
+Only actual delivery states `acked` and `delivering` qualify as successful launch outcomes. A native start with retryable, rejected, queued, malformed or unknown delivery remains visible in its actual launch result while permanently poisoning clean handoff. Private post-SQL ticket validation proves this captured same-process capability lifecycle, not a synchronous filesystem epoch refresh.
+
+### N-036 — bounded verification efficiency
+
+Move the unchanged three-suite unified compiler command after source-only gates and before the build. Two failed unchanged-tree runs spent2047.37 and2078.94seconds before the ratchet and observability refusals respectively. Six compiler-test assertions previously invoked the same `check()` twice; capture one result per assertion without removing scenarios. Independent review checks executable shell-command parity and exact six replacements. The complete final gate remains mandatory; no timing savings or receipt reuse is claimed.
+
+N036 also separates ordinary filesystem setup budget from explicit timeout regressions in the worker-launch fixture. A same-source rerun passed27/29; two failures never reached final SQL/native spawn. Five ordinary fixture deadlines use5000ms; explicit20/1000/1500ms regression overrides and all production deadlines remain unchanged. This is a proposed fixture correction requiring the actual rerun, not acceptance from static inspection.
+
+The actual N036 rerun caught an implicit default coupling omitted by static review: a1100ms injected delay no longer crossed the5000ms default. Two timed cases now explicitly retain their original1000ms. Corrected29/29pass on exact integrated sources; the28/29failure is preserved. The full combined gate remains owed.
+
+The [worker-slot overlap proposal](../../execution/harness-waves/own-intent-overlap-packet.md) is a bounded subsequent design, not implemented or admitted work. It requires an atomic published member cut, injective SQL joins and actual source identity; R1 held/full-input/native/configuration and retirement remain separate. [Source pins](../../execution/harness-waves/own-intent-overlap-source-pins.json).

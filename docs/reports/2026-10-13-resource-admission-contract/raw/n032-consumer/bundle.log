@@ -1,0 +1,66 @@
+session bundle: a credential lives and dies with its session
+  ok   mcp.json is written 0600
+  ok   the session directory is 0700, so the session ids are not listable either
+  ok   the bundle carries the credential it was minted with
+  ok   the session is launched with --strict-mcp-config
+  ok   the session is launched with a preamble naming fabric_whoami
+  ok   and it arrives as a single argument rather than as words the runner would read as flags
+  ok   the context pack is written 0600, beside the credential
+  ok   the pack holds what the compiler produced
+  ok   the pack is compiled per session, before the session starts
+  ok   on Windows the brief rides in a 0600 file beside mcp.json, and no argument carries a line break
+  ok   and it dies with the session
+  ok   a session still gets its bundle when its pack cannot be compiled
+  ok   and no half-written pack is left for it to read
+  ok   the credential is still written — the surface is what the session needs to work at all
+  ok   an unattended start whose required context could not be read is refused, not started blind
+  ok   and its credential is revoked and its directory removed
+  ok   discard removes the session directory
+  ok   discard revokes the credential, not just the file
+  ok   a spawn that throws surfaces as SpawnFailure, not a silent dead session
+  ok   a spawn that never happened revokes its credential and removes its bundle
+  ok   a declared server the gateway does not serve refuses the launch, naming it
+  ok   and nothing was left behind — no directory for a session that will not exist
+  ok   a granted server points at the gateway and carries the ROLE key, never an upstream one
+  ok   and Fabric is still there beside it
+  ok   an agent gets what it ASKED for, not everything the project grants
+  ok   and its brief comes first, with Fabric preamble last so the rules are the final word
+  ok   a grant withdrawn after the agent was created stops it at launch, naming the server
+  ok   an agent that is not a ready executor is refused the surface before anything else is asked
+  ok   and a READY agent carrying an adapter nobody wrote refuses the launch, naming both
+  ok   and an agent that connects to nothing takes no arguments from us
+  ok   every session connected to the surface carries FABRIC_LAUNCHED_SESSION=1 in its environment, whatever its adapter; a plain session does not
+  ok   Kilo is handed Fabric as a remote server with the bearer of this session
+  ok   and the permissions of the chosen mode are in the same document
+  ok   and the brief with the Fabric preamble is a 0600 file inside the session directory
+  ok   and nothing goes into the arguments, where any process listing would show the credential
+  ok   and discarding it revokes the credential and removes the brief with the directory
+  ok   the terminal runs the ACP shell, which starts hermes in its ACP mode
+  ok   and no credential is in any argument
+  ok   the session document carries the surface with the bearer of this session, in ask mode
+  ok   and the stdio bridge it offers an agent without HTTP MCP takes the bearer from its environment
+  ok   and Hermes skips its own configured MCP servers, as --strict-mcp-config does
+  ok   a bypass mode reaches the shell as bypass
+  ok   Cline, not yet connected on a probed build, is refused the surface
+  ok   an ACP session carries the granted server over HTTP, at the gateway, with the role key
+  ok   and the same server through its own stdio bridge, the role key in the bridge environment and in the gateway header
+  ok   Codex gets its own CODEX_HOME inside the session directory
+  ok   the Codex home is 0700 with its config 0600, like every other bundle secret
+  ok   the surface is served under a RANDOM per-session name, the bearer in an equally random env var
+  ok   and the credential itself is never written to the config file
+  ok   and the preamble reaches the model through AGENTS.md, the one channel the probe found
+  ok   and nothing goes into the arguments, where any process listing would show it
+  ok   and discarding it revokes the credential and removes the home with the directory
+  ok   a granted server points at the gateway and carries the ROLE key, never an upstream one
+  ok   a partial mkdir before creation failure preserves the original error and releases the bundle
+  ok   a partial mkdir failure preserves the original error and releases the bundle
+  ok   a partial config write failure preserves the original error and releases the bundle
+  ok   verification failure revokes the bundle while durable packet records and shared blobs survive
+  ok   unsupported adapter dispatch also rolls back after mint
+  ok   optional context failure still degrades to a usable bundle with its normal discard lifecycle
+  ok   a failed revocation cannot hide the primary error or prevent credential-file cleanup
+  ok   unlink failure preserves the launch error, revokes authority and logs no dependency error secrets
+  ok   all ACP catalogue modes compile into their effective protocol semantics
+  ok   every connected catalogue runner refuses missing compiler/surface before spawn, mint and journal
+
+all green: a bundle exists exactly as long as the session it was made for

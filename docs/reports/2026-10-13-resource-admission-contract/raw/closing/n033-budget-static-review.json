@@ -1,0 +1,21 @@
+{
+  "verdict": "STATIC_SCOPED_PASS",
+  "reviewer": "/root/pipeline_research",
+  "originalSha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+  "candidateSha256": "10d80a95751cc27c4ffe4269d2630b41d7bac056812b9be5bd4cf3dfc465f700",
+  "changes": 5,
+  "checks": [
+    "All test bodies from first test onward byte-identical",
+    "Exactly five fixture timeout substitutions plus named5000 constant/comment",
+    "Explicit unit deadline overrides20/1500/1000 remain byte-identical",
+    "Policy timeout100 unchanged",
+    "No assertion, wait, release condition or fixture cleanup changed",
+    "No production files/config modified by this test delta"
+  ],
+  "limitations": [
+    "Tests NOT_RUN by reviewer",
+    "Increased ordinary fixture operational timeouts, not production defaults",
+    "27/29 previous run remains failure; load causality not proven merely by this change",
+    "Need actual rerun after headroom recovers"
+  ]
+}

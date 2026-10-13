@@ -1,0 +1,32 @@
+✖ late native allocation after admission deadline remains private until confirmed reconciliation (1398.288375ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1684.712875
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-launch.test.mjs:20:23
+✖ late native allocation after admission deadline remains private until confirmed reconciliation (1398.288375ms)
+  AssertionError [ERR_ASSERTION]: failed admission operation exposes no native token
+  + actual - expected
+  
+  + {
+  +   sessionId: '33333333-3333-4333-8333-333333333333'
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file://$N032_CORRECTION/apps/desktop/test/resource-worker-launch.test.mjs:173:52)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { sessionId: '33333333-3333-4333-8333-333333333333' },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

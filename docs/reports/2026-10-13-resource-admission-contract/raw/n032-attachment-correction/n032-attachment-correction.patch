@@ -1,0 +1,91 @@
+--- a/apps/desktop/src/main/resourceManagedUnit.ts
++++ b/apps/desktop/src/main/resourceManagedUnit.ts
+@@ -28,7 +28,7 @@
+ interface Entry {
+   packet:PreparedLaunchPacket;handle:ManagedUnitHandle;busy:boolean;confirmed:boolean;outcome?:Promise<Result<ManagedUnitHandle>>
+   assignment?:RunAssignmentHandle;attemptId?:string;intent?:WorkerIntentHandle;intentDigest?:string
+-  receipt?:AdmissionReceipt;binding?:Readonly<ResourceLaunchBinding>;attachment?:Record<string,unknown>
++  admissionConfirmed?:boolean;receipt?:AdmissionReceipt;binding?:Readonly<ResourceLaunchBinding>;attachment?:Record<string,unknown>
+   native?:OwnedPtyUnit;admissionDigest?:string;processDigest?:string
+ }
+ const unknown=(reason:string):Unknown=>({state:'unknown',reason,complete:false,executionAuthorized:false})
+@@ -115,7 +115,7 @@
+     },
+     async attachAdmission(handle,receipt){
+       let e:Entry;try{e=entryOf(handle)}catch{return false}
+-      return operation(e,async check=>{
++      const confirmed = await operation(e,async check=>{
+         await refresh(e,check)
+         const binding=methods.readBinding.call(resources,receipt,e.packet);check()
+         if(!binding||binding.ownDemand.workerSlots!==1||binding.input.estateId!==c.estateId||binding.input.taskId!==e.packet.taskId||binding.input.sessionId!==e.packet.sessionId||
+@@ -134,9 +134,13 @@
+         e.native??=methods.reserve.call(ptys,e.packet)
+         return true
+       },false)
++      // Retain ambiguous records/tokens privately; only the caller-visible
++      // successful operation confirms this capability for first use.
++      if(confirmed)e.admissionConfirmed=true
++      return confirmed
+     },
+     async current(handle){
+-      let e:Entry;try{e=entryOf(handle)}catch{return false}
++      let e:Entry;try{e=entryOf(handle);if(!e.admissionConfirmed)return false}catch{return false}
+       return operation(e,async check=>{
+         await refresh(e,check)
+         if(!e.receipt||!e.binding||!e.native||methods.readBinding.call(resources,e.receipt,e.packet)!==e.binding)throw Error('binding unavailable')
+@@ -144,9 +148,9 @@
+         return read.state==='recorded'&&read.value.admission!==null&&read.value.admission.recordSha256===e.admissionDigest&&same(read.value.admission.event.attachment,e.attachment)
+       },false)
+     },
+-    native(handle){try{const e=entryOf(handle);return e.busy?null:e.native??null}catch{return null}},
++    native(handle){try{const e=entryOf(handle);return e.busy||!e.admissionConfirmed?null:e.native??null}catch{return null}},
+     async observe(handle){
+-      let e:Entry;try{e=entryOf(handle)}catch{return unknown('foreign_unit')}
++      let e:Entry;try{e=entryOf(handle);if(!e.admissionConfirmed)return unknown('admission_unconfirmed')}catch{return unknown('foreign_unit')}
+       return operation(e,async check=>{
+         await refresh(e,check);if(!e.native||!e.admissionDigest)throw Error('native binding unavailable')
+         const observed=await methods.observe.call(ptys,e.native);check()
+--- a/apps/desktop/test/resource-worker-launch.test.mjs
++++ b/apps/desktop/test/resource-worker-launch.test.mjs
+@@ -43,6 +43,14 @@
+   f.calls.push('native-spawn');f.spawned++;if(f.spawnFailure)throw Error('synthetic spawn failure')
+   return {pid:200,write(){},resize(){},kill(){f.calls.push('signal-request')},onData(){return {dispose(){}}},onExit(fn){f.exit=fn;if(f.immediateExit)queueMicrotask(()=>{f.rows=f.rows.slice(0,1);void fn({exitCode:0,signal:0})});return {dispose(){}}}}
+  },undefined,()=>({kind:'person',id:'fixture'}),{},boundary)
++ if(options.delayNativeAllocation){
++  const reserve=ptys.reserveOwnedUnit.bind(ptys);f.nativeAllocations=[]
++  ptys.reserveOwnedUnit=packet=>{const token=reserve(packet);f.nativeAllocations.push(token)
++   // A synchronous boundary can finish after the caller's operation deadline.
++   if(f.delayNative){const until=performance.now()+1100;while(performance.now()<until){};f.delayNative=false}
++   return token
++  }
++ }
+  const run='55555555-5555-4555-8555-555555555555'
+  const db={rpc:async(name,args)=>{f.calls.push(name);f.lastArgs={name,args};if(f.rpcHook){const value=await f.rpcHook(name,args);if(value!==undefined)return value}
+   if(name==='admit_resource_task_launch')return {data:{admitted:true,task_id:args.p_task_id,session_id:args.p_session_id,project_id:f.id.project,task_run_id:run,run_ordinal:1,receipt_seq:2,instruction:f.task.instruction,option_id:f.task.option_id,resource_reservation:{reservation_id:args.p_binding.reservationId,state:'held',run_ordinal:1}}}
+@@ -156,3 +164,15 @@
+   const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
+  }
+ })
++
++test('late native allocation after admission deadline remains private until confirmed reconciliation',async t=>{
++ const f=await fixture(t,{delayNativeAllocation:true}),packet=(await f.inputs.prepare(f.request)).packet
++ const unit=await f.units.prepare(packet);assert.equal(unit.state,'observed')
++ const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
++ f.delayNative=true;assert.equal(await f.units.attachAdmission(unit.value,admitted.receipt),false)
++ assert.equal(f.nativeAllocations.length,1);assert.equal(f.units.native(unit.value),null,'failed admission operation exposes no native token')
++ assert.equal(await f.units.current(unit.value),false);assert.equal((await f.units.observe(unit.value)).state,'unknown');assert.equal(f.spawned,0)
++ assert.deepEqual((await f.events()).map(e=>e.kind).sort(),['admission.attached','intent.registered'])
++ assert.equal(await f.units.attachAdmission(unit.value,admitted.receipt),true)
++ assert.equal(f.units.native(unit.value),f.nativeAllocations[0]);assert.equal(f.nativeAllocations.length,1)
++})
+--- a/docs/execution/harness-waves/resource-worker-launch.md
++++ b/docs/execution/harness-waves/resource-worker-launch.md
+@@ -14,7 +14,7 @@
+ 
+ The resource adapter's `readBinding(receipt,prepared)` returns its existing frozen entry only for the original owned receipt object and original still-owned prepared packet. A copied receipt with identical values is insufficient. The unit attaches the actual reservation/attempt/fence/input/scope/policy binding to the same N028 attempt, SQL run ordinal and prepared content digest. The full input digest remains distinct from the raw content digest. `ownDemand.workerSlots` must equal one; a larger total demand envelope remains conservative reservation accounting and is not reported as multiple live units.
+ 
+-N031 `admission.attached` and `process.attached` records are immutable parent-digest chains with exact-retry durability barriers. Their writer validates storage/provenance, not SQL or native authority. This adapter supplies admission fields from the actual private resource entry and process fields from `PtyManager`'s held object. A lost attachment reply blocks begin, retains evidence and uses only the existing SQL cancellation path; it cannot invent retirement.
++N031 `admission.attached` and `process.attached` records are immutable parent-digest chains with exact-retry durability barriers. Their writer validates storage/provenance, not SQL or native authority. This adapter supplies admission fields from the actual private resource entry and process fields from `PtyManager`'s held object. A lost attachment reply blocks begin, retains evidence and uses only the existing SQL cancellation path; it cannot invent retirement. Native capability, currentness and observation remain unavailable until attachAdmission has returned true after its final deadline/binding check. A late internal allocation stays private; exact same-receipt reconciliation can confirm it without minting another token.
+ 
+ ### Existing launch sequence
+ 

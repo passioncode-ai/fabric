@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "verdict": "SCOPED_ACCEPT_N034_STORAGE_ONLY",
+  "reviewer": "pipeline_research",
+  "author": "mcp_research",
+  "independence": "Reviewer did not write production source or builder tests. Independent control assertions and owned-FS setup authored separately; same existing module API exercised.",
+  "sourceHashes": {
+    "apps/desktop/src/main/resourcePoolRegistry.ts": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9",
+    "apps/desktop/test/resource-pool-registry.test.mjs": "176bd739e131250809e276fab42935548ce31565d9cbf77ab1d39d75a96f2a0a",
+    "docs/execution/harness-waves/resource-pool-registry.md": "bec5b9ea7429ceb9a5ade2d6dc8bbe5f1a8fc7cc066a19f6836e02ff0be7dcea"
+  },
+  "originalSourceSha256": "76189e55216b1ba8f64fccf761e8a175c41f207f5db67ea2c6c87d13feb65d74",
+  "checks": [
+    {
+      "name": "corrected",
+      "sourceSha256": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9",
+      "exit": 0,
+      "log": "corrected.log"
+    },
+    {
+      "name": "original",
+      "sourceSha256": "7b2f497421dd5adcacd45b2d94079b8c78c8f13b9c8bd1cf32695290a5f3c9f4",
+      "exit": 1,
+      "log": "original.log"
+    }
+  ],
+  "assertions": {
+    "corrected": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "original": {
+      "pass": 0,
+      "fail": 2,
+      "skip": 0
+    }
+  },
+  "findingsResolved": [
+    "Cached seal acknowledgement now checks exact original handle before returning; copied handle refuses while same original retry succeeds.",
+    "Canonical anchor/head bytes are now checked before accepted digest; raw whitespace drift refuses.",
+    "Builder-found FileHandle GC failure fixed by persistent O_EXCL file ownership plus original inode/bytes readback and short-lived explicitly closed descriptors. No stale lock removal added."
+  ],
+  "sourceReview": [
+    "Separate fixed host/pool anchor is written durably before ledger genesis; missing ledger cannot reprovision over existing anchor.",
+    "Estate/invocation/policy do not select alternative pool paths; all bounded historical declarations retained.",
+    "Writer exclusion depends on persistent O_EXCL lock file, not holding an fd. Each fresh writer read validates original dev/ino and canonical bytes and final path identity.",
+    "Append links sequence/predecessor/head/cardinality; pending retry only exact same declaration; orphan/conflicting/overflow states refuse.",
+    "Timeout retains ordinary active promise until actual I/O settles; seal blocks admission synchronously and drains outstanding work; no stale takeover/retirement API.",
+    "All results remain incomplete and non-authorizing; actual N031 integration and source-covered launcher completeness remain separate."
+  ],
+  "builderEvidenceNotIndependentlyRerun": [
+    "25 focused assertions clean exit0",
+    "three initial-source correction controls including forced-GC failure",
+    "targeted TypeScript checks, if later performed, are not covered by this receipt"
+  ],
+  "limits": [
+    "No N031 write integration, actual controlled-pool coverage or retirement.",
+    "No DB/provider/native launch, migration/policy activation or all-host acceptance.",
+    "Trusted cooperative filesystem; no hostile administration/whole-installation rollback resistance or atomic global snapshot.",
+    "No proof of actual workers from retained storage declarations.",
+    "Original replay changes only resourceHostPolicy import target to permit isolated old source; original exact bytes retained separately."
+  ],
+  "artifactHashes": {
+    "initial-76189.snapshot.txt": "76189e55216b1ba8f64fccf761e8a175c41f207f5db67ea2c6c87d13feb65d74",
+    "controls.mjs": "b8ba550ab1cfc44ac93e0c9015603dfb8b758ac73f7e0b73f4872e8d88eac7bc",
+    "checks.json": "aed86a50e693ea9ba568cf039f24b70ecc6ae0f6af4b3fccca8f2b78563e95aa",
+    "README.md": "0917469fad8397d85d9fb23c900e0dd7eb0520b38f901cedc35f30153413a3d2",
+    "original.log": "c11eaf65fa7419c96862f8d8cc7d9846582e6bdf3f6abbdeeb6a86233d8f9cf2",
+    "corrected.log": "f5932c6c29f2af978dc733f100f054a053a3f794ef494ecce0f657e8b833f49f",
+    "initial-replay.ts": "7b2f497421dd5adcacd45b2d94079b8c78c8f13b9c8bd1cf32695290a5f3c9f4"
+  }
+}

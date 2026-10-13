@@ -1,0 +1,34 @@
+✔ actual N028 identity persists one immutable intent; exact retry preserves bytes and event (526.689167ms)
+✔ empty and registered pools never claim complete zero or active workers (407.832667ms)
+✔ foreign/copied assignment and intent handles cannot manufacture provenance (393.623625ms)
+✔ unknown and conflicting same-unit adapter refuse without overwriting (565.844ms)
+✔ prior invocation remains unresolved and cannot be registered as new or restored handle (471.541333ms)
+✔ partial/corrupt/future events and stale lock refuse without cleanup (1071.591167ms)
+✔ two managers share exclusive registration and can only retain one event (470.672167ms)
+✔ membership drift after durable registration retains an unresolved intent (692.167417ms)
+✔ coverage drift after durable write never returns usable intent (711.763208ms)
+✔ host or actual producer substitution during reads refuses (536.230291ms)
+✔ timeout retains actual N028 pending membership until settlement and late outcome cannot register (634.668542ms)
+✔ event bounds and unsafe storage refuse without automatic repair (393.822833ms)
+✔ duplicate event identity and altered stored bytes refuse existing handle (338.493292ms)
+✔ retained duplicate run or event IDs make whole registry unknown (1132.358708ms)
+✔ N022 identifier constraints, aggregate bytes and record permissions remain strict (404.963459ms)
+✔ host changes while post-write membership settles leave immutable evidence unknown (361.545875ms)
+✔ exact retry reestablishes event and directory durability after event fsync refusal (451.701334ms)
+✔ exact retry reestablishes event and directory durability after directory fsync refusal (419.250916ms)
+✔ N032 durable ordered attachments preserve exact parent digests and retry bytes without authority (882.985916ms)
+✔ N032 attachment ordering, copied handles and conflicting tuple refuse without overwrite (814.56775ms)
+✔ N032 malformed counters, digest labels, process identity and accessors refuse (675.714167ms)
+✔ N032 retained orphan, changed parent and duplicate attachment make registry unknown (1805.050708ms)
+✔ N032 total-file capacity includes attachments and exact retry remains allowed at cap (542.516625ms)
+✔ N032 failed attachment sync cannot be upgraded by a read without fresh barriers (580.293917ms)
+✔ N032 attachment membership drift after write preserves uncertain event without permission (482.852041ms)
+✔ N032 restart snapshot retains conservative chain but cannot restore attachment authority (533.538958ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16738.878875

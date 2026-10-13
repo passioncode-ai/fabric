@@ -1,0 +1,10 @@
+✔ cached clean seal result belongs only to original opaque writer (768.3275ms)
+✔ changed raw head bytes cannot retain the exact head digest claim (1639.434959ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3785.881458

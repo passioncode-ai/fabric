@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-13T09:08:05.909432+00:00",
+  "pid": 81791,
+  "state": "waiting",
+  "mode": "HTTP readiness only while DB unavailable; otherwise bounded official MCP read, then child closed",
+  "authority": "no consent, restart, board submission or credential export",
+  "next": "parent resumes official board discovery on ready",
+  "expiresAfterSeconds": 5400,
+  "interpretation": "Local DB readiness recovered externally; official fabric_whoami reports waiting for project consent. No registration consent substitute or board submission."
+}

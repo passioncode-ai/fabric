@@ -1,0 +1,7 @@
+{
+  "command": "node <FABRIC_ROOT>/scripts/check-ops.mjs",
+  "cwd": "<N035_OVERLAY>",
+  "exitCode": 0,
+  "durationSeconds": 0.175,
+  "sourceManifest": "../source-manifest.json"
+}

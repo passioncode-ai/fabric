@@ -1,0 +1,104 @@
+✔ actual compiler, managed admission, actual bundle files and dispatch share same exact content (19.175125ms)
+✔ receipt instruction drift refuses before begin and uses exact cancellation hook (1.13825ms)
+✔ receipt option_id drift refuses before begin and uses exact cancellation hook (0.896ms)
+✔ actual task changes after bundle before owned spawn; no process and compensation remains exact (4.143416ms)
+✔ required context journal rejection rolls back bundle and cannot degrade to missing context (5.420541ms)
+✔ required {"trigger":"chain"} refuses before any admission or preparation (0.432125ms)
+✔ required {"trigger":"operator","instruction":"override"} refuses before any admission or preparation (0.411542ms)
+✔ required {"trigger":"operator","admission":{"sessionId":"fixed","receipt":{}}} refuses before any admission or preparation (0.361208ms)
+✔ shared required admission door refuses early chain and missing packet, never invokes resource or legacy RPC (0.566208ms)
+✔ bundle refuses foreign/copy packet before mint, even when exact bytes match (0.873791ms)
+✔ task changes during resource refresh are checked afterward before SQL/native spawn (5.737958ms)
+✔ required managed launch without unit dependency refuses before preparation or admission (1.08525ms)
+✔ absent adapter is explicitly legacy NOT_ENFORCED and preserves launch (2.580958ms)
+✔ required factory uses R1 and the combined atomic RPC with exact SQL fields (13.450917ms)
+✔ preflight unknown-ownership refuses before any RPC (1.268209ms)
+✔ preflight stale-reading refuses before any RPC (0.886042ms)
+✔ preflight malformed-demand refuses before any RPC (20.495ms)
+✔ preflight own-demand-over-envelope refuses before any RPC (0.722334ms)
+✔ preflight zero-own-worker refuses before any RPC (0.605458ms)
+✔ required missing-rpc never falls back or retries a new attempt (1.206667ms)
+✔ required throw never falls back or retries a new attempt (0.786917ms)
+✔ required timeout never falls back or retries a new attempt (62.289875ms)
+✔ required empty never falls back or retries a new attempt (4.817583ms)
+✔ required refused never falls back or retries a new attempt (1.989334ms)
+✔ malformed task_id receipt cannot authorize launch (1.193583ms)
+✔ malformed session_id receipt cannot authorize launch (1.156208ms)
+✔ malformed task_run_id receipt cannot authorize launch (0.646083ms)
+✔ malformed project_id receipt cannot authorize launch (0.3325ms)
+✔ malformed run_ordinal receipt cannot authorize launch (1.493042ms)
+✔ malformed receipt_seq receipt cannot authorize launch (10.829167ms)
+✔ malformed instruction receipt cannot authorize launch (9.228875ms)
+✔ malformed resource_id receipt cannot authorize launch (2.269541ms)
+✔ malformed resource_state receipt cannot authorize launch (4.207333ms)
+✔ malformed resource_ordinal receipt cannot authorize launch (0.829375ms)
+✔ same identity shares one inflight admission; changed estate or actor conflicts (2.418292ms)
+✔ adapter tracked entry limit is explicit and never evicts unknown attempts (1.136667ms)
+✔ operator managed launch revalidates resource identity before owned spawn (8.443709ms)
+✔ routine managed launch revalidates resource identity before owned spawn (0.934917ms)
+✔ answer managed launch revalidates resource identity before owned spawn (0.555375ms)
+✔ SQL fence changed during async currentness refuses ordinary spawn (3.209958ms)
+✔ currentness changed prevents spawn and releases only after compensation (0.8ms)
+✔ currentness throw prevents spawn and releases only after compensation (0.620167ms)
+✔ currentness timeout prevents spawn and releases only after compensation (52.245583ms)
+✔ a chain cannot supply an untracked legacy or altered receipt in required mode (0.446833ms)
+✔ resource-marked receipt refuses when managed currentness dependency is absent (1.149292ms)
+✔ never-begun cancellation asks SQL for proof with exact immutable identity (2.050167ms)
+✔ lost begin reply does not infer never-spawned; SQL cancellation may refuse (1.193708ms)
+✔ spawn-unknown cannot claim released capacity (1.989375ms)
+✔ compensation-lost cannot claim released capacity (1.670958ms)
+✔ release-lost cannot claim released capacity (2.104542ms)
+✔ input and returned receipt mutation cannot change exact cancel identity (1.055166ms)
+✔ nested R1 proof routes child allocation to the same SQL parent without a new pool (0.812459ms)
+✔ late successful RPC after timeout never enables a later spawn (52.694625ms)
+✔ one outstanding entry operation across methods: current, late resolve (10.677791ms)
+✔ one outstanding entry operation across methods: current, late reject (7.5455ms)
+✔ one outstanding entry operation across methods: cancelUnbegun, late resolve (7.289791ms)
+✔ one outstanding entry operation across methods: cancelUnbegun, late reject (9.130917ms)
+✔ one outstanding entry operation across methods: releaseCompensated, late resolve (8.711292ms)
+✔ one outstanding entry operation across methods: releaseCompensated, late reject (6.872375ms)
+✔ pending operation blocks only its own entry and consumes a late rejection (6.650458ms)
+✔ readBinding exposes only the actual frozen entry for exact owned receipt and prepared packet (1.877208ms)
+✔ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (671.147542ms)
+✔ actual private admission binding attempt mismatch refuses before begin; intent remains (287.278916ms)
+✔ foreign prepared/receipt/unit/native handles never manufacture binding (463.135459ms)
+✔ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (503.884583ms)
+✔ spawn succeeded then journal uncertainty retains unit and cannot compensate no-process (577.780458ms)
+✔ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (703.917375ms)
+✔ native handle observes held object, not a replacement with the same session id (1044.098583ms)
+✔ PID start reuse and escaped descendants remain unknown, not active or retired (843.346417ms)
+✔ root/tree exit without provider proof stays retained and inventory incomplete (1135.809166ms)
+✔ unit timeout retains one actual assignment read; repeated preparation never reallocates (216.264417ms)
+✔ observation timeout retains one native snapshot and late settlement cannot append (1847.235417ms)
+✔ missing unit dependency and substituted actual collaborators refuse before new effects (92.921709ms)
+✔ resource refresh cannot hide changed actual intent coverage before final SQL (620.128959ms)
+✔ lost reply after actual durable admission attachment prevents begin and preserves evidence (628.730416ms)
+✔ one logical unit cannot bind an own demand of multiple worker slots (474.428417ms)
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (1016.026041ms)
+ℹ tests 77
+ℹ suites 0
+ℹ pass 76
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11544.816958
+
+✖ failing tests:
+
+test at apps/desktop/test/resource-worker-launch.test.mjs:20:23
+✖ exit before bind cannot turn an actually spawned unit into never-spawned compensation (1016.026041ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3 !== 2
+  
+      at TestContext.<anonymous> (file://$N032_OVERLAY/apps/desktop/test/resource-worker-launch.test.mjs:138:310)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

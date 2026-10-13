@@ -1,0 +1,27 @@
+{
+  "node": "N-031",
+  "done": [
+    "Durable actual assigned worker intent storage with crash-gap-safe fsync retry and retained bounded I/O"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "No active DDL, configured required composition, native provider or all-host enforcement",
+    "Resource accounting SQL remains NOT_RUN; this node does not certify N027"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n031/README.md",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n031-fast.json"
+  ],
+  "tested": {
+    "head": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+    "tree": "3253ccc739b2387da2cf713bdc0746f905f4caac",
+    "checks": [
+      "Full fast exit0,1208.8s on unchanged tree",
+      "18 focused and independent 4 controls PASS; original fsync failures preserved"
+    ]
+  }
+}

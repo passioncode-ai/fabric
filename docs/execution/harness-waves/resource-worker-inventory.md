@@ -2,7 +2,8 @@
 
 ## Contract
 
-N031 implements crash-gap-safe local **registration**, not a complete worker inventory.
+N031 implements crash-gap-safe local **registration**. The separate N032 extension stores
+constrained admission and process attachments; neither provides a complete worker inventory.
 One configured Fabric-controlled logical unit is intended to charge one worker slot in
 future composition. Nothing here inventories every OS process, foreign CLI, helper,
 provider job or sibling application. Every API result carries `complete:false` and
@@ -51,10 +52,13 @@ cannot produce `complete:true`, even if every listed unit were known.
 An immutable schema1 `intent.registered` event binds unit/event IDs, estate/host/pool/human
 policy/invocation, adapter declaration/source digest, coverage digest, actual N028 run ID
 and all five assignment identity fields. File name is `<unit UUID>.<event UUID>.json`.
-No timestamp, numeric fence, lifecycle state, SQL run/reservation or prepared-content digest
-is invented. Future lifecycle evidence can append a new versioned event without overwriting
-this registration. Unknown event kinds/versions currently refuse, rather than being ignored.
-That future reader upgrade must define aggregate semantics explicitly.
+Registration invents no timestamp, numeric fence, lifecycle state, SQL run/reservation or
+prepared-content digest. N032 adds only schema1 `admission.attached` and `process.attached`
+events. Each inherits every registration binding, has a new event UUID and chains the exact
+predecessor bytes through `parentRecordSha256`. One unit has at most one registration, one
+admission and one process attachment, in that order. Orphans, duplicate kinds, changed
+parents/bindings and other unknown kinds/versions refuse the entire registry. The original
+registration format remains unchanged; an older N031-only reader refuses the new kinds.
 
 An exact current-invocation retry returns original bytes/event ID/digest; it neither refreshes
 an age nor creates another event. A retry reopens the exact retained bytes without following
@@ -63,6 +67,46 @@ surviving complete bytes after a failed sync alone never prove durability. Confl
 refuse. Changed manifest or earlier invocation prevents new registration from bypassing
 retained uncertainty. A restarted manager can inspect retained events; it cannot restore an
 old opaque handle. No stale lock stealing, automatic deletion, record reuse or retirement exists.
+
+
+## N032 constrained attachment storage
+
+`attachAdmission(intentHandle, value)` accepts exactly `taskRunId` (UUID), `runOrdinal`
+(positive safe integer), `reservationId` (resource identifier), `fence` (positive safe integer),
+`inputDigest`, `scopeDigest`, `contentDigest` (SHA256), and `bindingRevision`
+(`policy-sha256-v1:<SHA256>`). This SQL binding remains distinct from the intent's human
+`localPolicyRevision`. The separate managed-unit consumer must obtain and compare actual
+scoped reservation/launch-binding facts before calling storage; this writer checks shape,
+provenance and durable correlation, never whether caller-supplied attachment facts are true.
+
+`attachProcess(intentHandle, {pid,group,start})` requires an admission predecessor, safe
+`pid>1`, `group===pid` and nonempty printable ASCII start identity at most128characters.
+The managed-unit consumer obtains these facts from its actual owned-process handle. This
+storage API alone cannot authenticate a PID, prove spawning, prove provider quiescence or
+retire a unit. Only trusted main composition may invoke these attachment methods.
+
+Both methods return the immutable `{event,recordSha256}` in a recorded result. Attachment
+payload is `event.attachment`. Exact retry preserves original bytes/UUID/digest; conflicting
+payload refuses. In this ordinary managed-unit scope, each retained unit has a distinct
+SQL task-run ID and reservation ID. Reusing either across units refuses before write and
+during scans. Exact host/invocation/PID/group/start reuse also refuses; a different start
+identity is distinct but its truth still requires actual owned capture by the consumer.
+File and directory durability are reestablished for the full predecessor
+chain, including complete bytes left by an earlier failed sync. A failure retains every
+written record as uncertain, with no overwrite, cleanup or silent adoption.
+
+`readAttachments(intentHandle)` returns nullable `{admission,process}` receipts after actual
+N028/host/coverage validation and durable readback of the full chain. These are persisted
+storage facts, not live SQL/process validation. It never upgrades execution authority.
+`snapshot()` reports attachments alongside each unresolved registration and still returns
+`complete:false`, `knownActive:[]`. Prior-invocation valid chains remain unresolved; they
+cannot restore handles or imply a retired/live process. `maxRecords` counts all retained
+files including attachments; byte limits include the full chain.
+
+The focused suite names N032 ordering, conflict, exact-retry, malformed tuple, orphan/parent,
+total-file bound, fsync/readback, postwrite membership drift and restart controls. It uses
+synthetic attachment facts deliberately: native/SQL truth verification belongs to the
+separately reviewed consumer. N031's earlier acceptance does not certify this extension.
 
 ## Storage and asynchronous bounds
 
@@ -92,17 +136,22 @@ claimed. Existing `N028_AGENT_SYNC_SCRIPT` selects the pinned installed source; 
 installation yields explicit skips, never an installation action. Receipt counts/hashes and
 original RED controls live with the source delivery evidence, not as timeless doc assertions.
 
-The next contract is **N032 concrete launcher adapter** (design/implementation status is
-owned by the parent graph, not this document). It must own the managed-required logical pool,
-exclusive writer/entry coverage, durable registration before any possible spawn, actual
-SQL admission/reservation identity and prepared content binding, actual session/native process
-identity and independent provider/process retirement observations. All admitted units must
-stay conservatively charged until genuine never-spawn or retirement evidence exists. That
-conservative unretired set is distinct from an exact observed-live count. Existing
-`PtyManager.observeProcess` supplies owned local process observations, while
-`nativeStopRuntime` treats provider quiescence separately; root exit alone is insufficient.
-N031 does not connect those producers, count unobserved units as live or claim the future
-coverage protocol already exists. Restart/unknown provider outcomes remain retained.
+The concrete N032 adapter binds actual SQL admission and the private PTY handle;
+N033 binds its child attribution environment. N035 adds an optional source-owned
+controlled store: N031 constructs canonical intent bytes, appends their declaration
+through the captured actual N034 writer, then writes and confirms the intent event.
+A bounded retained pending event preserves its exact UUID/bytes after an ambiguous
+append; an exact retry reestablishes declaration and event durability. Failure after
+declaration leaves an orphan charged. `readCoverage()` returns the actual validated
+manifest bytes for immutable epoch provenance, with the same incomplete result union.
+
+Only the [N035 closed factory](resource-controlled-pool.md#contract), not a manifest,
+empty `knownActive` or this store's generic API, establishes its conservative worker-set
+projection. Every N031 result remains `complete:false`. Current epoch handles still
+refresh actual N028 membership and coverage; historical N034 declarations remain
+charged independently. Provider/process retirement is not implemented: root exit,
+signal or missing process cannot remove a declaration. Production activation, coherent
+overlap accounting and full ownership/input authority remain separate.
 
 Retrospective lessons applied: preserve exact source receipts; exercise actual production
 readers and filesystem refusals; keep mutable scope closure bound across awaits; retain

@@ -1,0 +1,14 @@
+{
+  "base": {
+    "ref": "main"
+  },
+  "head": {
+    "sha": "216bcbc410cca4a660e56197f2021169eacabb22"
+  },
+  "html_url": "https://github.com/ssheleg/task-pipeline/pull/112",
+  "merge_commit_sha": "4d750573ce53ea4c7ffa2bde192ee35b59acefa7",
+  "merged_at": "2026-10-13T08:03:33Z",
+  "number": 112,
+  "state": "closed",
+  "updated_at": "2026-10-13T08:03:33Z"
+}

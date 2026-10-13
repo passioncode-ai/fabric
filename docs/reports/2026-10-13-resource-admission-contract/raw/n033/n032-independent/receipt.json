@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "reviewer": "pipeline_research",
+  "authorship": "independent of mcp_research N032 correction; reviewer authored separate N033 delta",
+  "verdict": "SCOPED_ACCEPT_N032_ADMISSION_CONFIRMATION",
+  "sourceSha256": "c070dc0ee71da5eae7f9767e7c0bebd418c691ecd3b959a6dee0ada7aed846c2",
+  "originalSourceSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+  "checks": [
+    {
+      "source": "original94105",
+      "fixture": "admission-control.mjs",
+      "exit": 1,
+      "result": "EXPECTED_RED actual allocated token exposed after false admission outcome",
+      "log": "original-red.log"
+    },
+    {
+      "source": "c070dc0e",
+      "fixture": "admission-control.mjs",
+      "exit": 1,
+      "result": "earlier preparation unknown before target, cause unconfirmed; retained, not negative product evidence",
+      "log": "fixed-pass.log"
+    },
+    {
+      "source": "c070dc0e",
+      "fixture": "admission-control.mjs",
+      "exit": 0,
+      "result": "PASS unchanged rerun, hidden native/current/observe after deadline, copied receipt refused, exact receipt reconciles original token without second mint/spawn",
+      "log": "fixed-pass-rerun.log"
+    }
+  ],
+  "limitations": [
+    "real producer/FS and native capability allocation; synthetic SQL/spawn boundary",
+    "no actual child/provider, DDL or complete coverage acceptance",
+    "N033 reviewed separately by root and mcp_research"
+  ],
+  "artifactHashes": {
+    "original-replay.ts": "7dcb57d375b56b27a9a5eaae2f815e08f7d7384f8c95f24a7ac21d07ca017bf0",
+    "original.snapshot.txt": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "admission-control.mjs": "8a4a448906de7217388d6b98e25c1d81a1bb5a7ea9c0ccdb1e92671921e66cd5",
+    "original-red.log": "67d54c5aadd8f77f091dc5cdbf929dba217b2d9e612dcd500538341395799d0e",
+    "fixed-pass.log": "6d226d6ec64b580cb3524580de318c53631ea1e00513dbdd14d299272ba7f4b5",
+    "fixed-pass-rerun.log": "af2c1dc2485e76ac783241e1786bda6a8ba5df5bedaa99532cbc0ed5ee5345ca"
+  }
+}

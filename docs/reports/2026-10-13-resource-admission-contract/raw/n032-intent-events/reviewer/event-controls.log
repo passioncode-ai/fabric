@@ -1,0 +1,11 @@
+✔ attachment parent byte drift cannot retain acknowledged chain or append process (690.679583ms)
+✔ attachment files consume total registration capacity across logical units (826.038125ms)
+✔ readAttachments restores all three real durability barriers and fails closed on fsync error (667.153542ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2406.153792

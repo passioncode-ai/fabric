@@ -1,0 +1,13 @@
+# N032 managed consumer evidence
+
+The builder authored this consumer. These are focused source-bound receipts, not production acceptance. Candidate and historical source snapshots use `.snapshot.txt`; `source-manifest.json` binds original bytes. `archive-manifest.json` distinguishes stored path-normalized diagnostic bytes from original hashes. Independent controls are archived separately when received.
+
+`focused-corrected.json` records 79 passing tests. The earlier 76/77 run is preserved: its added immediate-exit expectation was corrected to require all three retained event kinds, while keeping no-dispatch/no-release checks. It was not a production fix.
+
+For original-negative replay, set `N032_TARGET` to the real path of the candidate module in an integrated checkout and `N032_SNAPSHOT` to the corresponding archived original, then run the command from `negative-receipt.json` with `--loader` pointing at this archive's `negative-loader.mjs`. Relative TypeScript imports resolve against the candidate module URL. The original missing-unit and prior refresh-order controls must fail; the corrected integrated sources must pass. Focused fixtures require the existing pinned agent-sync source (or `N028_AGENT_SYNC_SCRIPT`); missing source skips explicitly without installation.
+
+Production source is wired through existing consumers only. No active resource policy, complete pool coverage, retirement, provider acceptance, real process launch or installed SQL migration is asserted.
+
+Independent review is `independent/receipt-units-final.json`: two source-bound controls passed; the prior c71dfa preparation leak failed the same regression. Root supplied the initial finding and pipeline_research reproduced it. Author evidence and independent evidence remain separate. Historical harness mistakes in the independent receipt were not source defects.
+
+The executable `replay/*.mjs` derivatives change only private absolute imports to `FABRIC_REPO` lookup. Run from a checkout integrating both N032 patches: `FABRIC_REPO="$PWD" node --experimental-strip-types --test --test-concurrency=1 <archive>/replay/unconfirmed-assignment-regression.mjs <archive>/replay/native-inflight.mjs`. Derivatives were syntax checked and subsequently executed as a packaging replay: both passed on exact frozen candidate bytes (`portable-controls.json`). This author-run packaging replay is separate from independent acceptance, which used the original fixtures. For negative replay, use the existing loader with `N032_TARGET` pointing at the candidate `resourceManagedUnit.ts` and `N032_SNAPSHOT` pointing at `independent/unit-before-confirmation.snapshot.txt`; the unchanged assignment regression must fail.

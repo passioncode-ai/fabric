@@ -1,0 +1,14 @@
+{
+  "command": "nice -n 10 python3 wrapper: pnpm_config_verify_deps_before_run=warn bash scripts/ci.sh fast",
+  "exitCode": 1,
+  "durationSeconds": 2078.94,
+  "headBefore": "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+  "mergeParent": "7bdd94de8d19c807f9cb4419299e2ad8b1a53cdb",
+  "indexTreeBefore": "3610a84313f47747eaa245084967dae311af217f",
+  "indexTreeAfter": "3610a84313f47747eaa245084967dae311af217f",
+  "changedPaths": [],
+  "sourceUnchanged": true,
+  "log": "fabric-n034-fast.log",
+  "deadlineSeconds": 4500,
+  "note": "N032/N033/N034 and ratchet correction; actual staged merged candidate. Dependency reuse with explicit drift warning; exact NOT_RUNs remain separate from source checks."
+}

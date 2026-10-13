@@ -4,6 +4,25 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 concrete controlled composition and early refusals · task-branch preparation
+- scope: N035 actual producer composition/private spawn tickets; N036 identical compiler checks scheduled after source-only refusals, six duplicate invocations removed
+- findings: second combined gate exit1 after2078.94seconds, six catch explanations corrected; final source gate remains owed
+- review: actual delivery-state domain error retained and corrected; clean close cannot certify uncertain creation or delivery
+- entry: docs/handoffs/2026-10-13-harness-waves.md; no runtime activation, main merge or publication claim
+
+### 2026-10-13 · CO-282 retained pool history and gate repair · task-branch preparation
+- scope: N034 bounded registry storage, exact two-entry written-never-read baseline shrink, source-bound owner refresh and corrected historical handoff labels
+- review: foreign seal receipt, canonical-head and descriptor-lifetime negatives retained; registry remains incomplete and unauthorized
+- checks: first combined N032/N033 fast exit1 after2047.37seconds on obsolete ratchet entries; correction and expanded combined acceptance follow, not a claimed PASS
+- entry: docs/handoffs/2026-10-13-harness-waves.md; no main merge, installation or product release
+
+### 2026-10-13 · CO-282 managed worker binding and main reconciliation · task-branch preparation
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- sources: N031 checkpoint6c8b3718 plus main7bdd94de; this is integration into the task branch, not a merge into main
+- preservation: all291 carry-over rows and643 actual map IDs retained; generated matrix semantics and18 plan IDs unchanged
+- verification: N031 full fast exit0,1208.8s; later N027 eight-stage owned PostgreSQL exit0,28.86s; concrete N032/N033 combined source gate follows
+- boundary: pending DDL and conservative incomplete inventory do not activate the runtime; entry docs/handoffs/2026-10-13-harness-waves.md
+
 ### 2026-10-13 · CO-282 durable worker intents and managed binding · branch preparation, NOT MERGED
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - scope: N031 crash-gap-safe intent records and N032 concrete managed/PTY binding; ADR0154 keeps incomplete inventory and uncertain retirement explicit
@@ -32,6 +51,16 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: bounded recovery, CAS wait kernel/store, observation reduction, timeout retention and source-bound evidence
 - conflicts: preserved main7e51da91 including COM03 and CO283–286; generated projections rebuilt from the219/286 union
 - summary: recovery checkpoint ae197a15 full fast PASS. Later N019/N020 acceptance is recorded separately; pending107/108 are not active. Graph20 nodes retains owner admission/native/production composition gates. Entry: docs/handoffs/2026-10-13-harness-waves.md.
+### 2026-10-13T06:55:00Z · `—` · agent/ledger-co279-co281 → main · fast-forward
+- run: r-ac49ed619
+- files: docs/evidence/specs/2026-08-16-software-fabric-carryover.md, docs/adr/README.md, docs/reports/map.html, docs/MERGES.md
+- conflicts: none
+- summary: registers only. CO-279 records D-1 (`project.context.set`, by a person only) and D-12 (the hub refuses with `session-closed` / `context-mismatch`, no project id; outside-purpose is a mark only) from the org-contexts testing round; CO-281's open question corrected (the SIGTERM bound already runs from the signal); ADR-0109's register row says amended 2026-10-13 (`learning-note/1`, DEC-0072).
+### 2026-10-13T06:41:00Z · `—` · agent/com-w2-registers-land → main · fast-forward (squash of agent/com-w2-registers onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: Registers after the COM-03 wave-2 fix round, filed once another run released the carry-over ledger's claim: CO-283…CO-285 updated (CO-283 and CO-285 resolve when agent/com-w2-fixes-db lands), CO-287 (the SQL half waiting for its DB tier: responders 23/23, project-board 33/33, restore-authority green on 299b8a6c; write-rules, ceo-private-archive, function-privileges and the plants wait for disk) and CO-288 (board sessions get no board rules) open, CO-289…CO-291 resolved elsewhere with receipts (fabric-workspace #195/#196, fabric-agent-adapter 0.28.0 #99, agent/onboarding-036-w1 5ad30a04); CO-282 left to its run. Lane 13: 220 of 290; next free CO-292. Handoff and the COM-03 row updated. No code.
 
 ### 2026-10-13T04:03:00Z · `—` · agent/com-w2-fixes-land → main · fast-forward (squash of agent/com-w2-fixes onto origin/main)
 - run: r-faa9aae98a19

@@ -1,0 +1,6 @@
+{
+  "checks.json.snapshot.txt": "1b2b7c5c1519da75e0ab2f9d23107a883e393015f0ba0e2307cd5d3c3bc0d947",
+  "focused.log.snapshot.txt": "9333a7eff1ddbcd7b4b4a99dfe535c97a50bfd5cacc3457387fb130bc7d0304d",
+  "resourceManagedUnit.ts.snapshot.txt": "3ab36c93ce3dc4942c5b568647a2b0b2d89dc8170dab0544fe148ed9c458f787",
+  "resource-worker-launch.test.mjs.snapshot.txt": "a815a35819380842098fe217eaefe03ebf1cbc7365a11dc6d45fd2bbf34dfe2b"
+}

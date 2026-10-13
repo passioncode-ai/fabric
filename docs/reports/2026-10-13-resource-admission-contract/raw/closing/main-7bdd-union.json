@@ -1,0 +1,32 @@
+{
+  "inputs": [
+    "6c8b3718302dd7a3e981ce792f9c0c13db780b27",
+    "7bdd94de8d19c807f9cb4419299e2ad8b1a53cdb"
+  ],
+  "checks": {
+    "docs/evidence/specs/2026-08-16-software-fabric-carryover.md": {
+      "baselineCounts": [
+        286,
+        290
+      ],
+      "result": 291,
+      "missing": [],
+      "duplicates": []
+    },
+    "docs/reports/map.html": {
+      "baselineCounts": [
+        641,
+        617
+      ],
+      "result": 643,
+      "missing": [],
+      "duplicates": []
+    },
+    "docs/evidence/plans/2026-09-07-mockup-completeness/resolution-matrix.json": "semantic structure unchanged excluding source sha256/line",
+    "docs/reports/plan.json": {
+      "idCount": 18,
+      "idsUnchanged": true
+    }
+  },
+  "method": "HTML parser for actual attributes; escaped markup examples are text"
+}

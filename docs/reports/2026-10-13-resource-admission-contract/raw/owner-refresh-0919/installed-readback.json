@@ -1,0 +1,40 @@
+{
+  "payloads": [
+    {
+      "host": ".codex",
+      "versionedPayload": "1.93.3",
+      "graphSha256": "684316d6f6f6b4e890a3da4c2cced42026cdee211470d6d3cb0a9351a41e46fb",
+      "lessonsPresent": false,
+      "loadedRuntimeAdoptionProved": false
+    },
+    {
+      "host": ".claude",
+      "versionedPayload": "1.93.3",
+      "graphSha256": "684316d6f6f6b4e890a3da4c2cced42026cdee211470d6d3cb0a9351a41e46fb",
+      "lessonsPresent": false,
+      "loadedRuntimeAdoptionProved": false
+    }
+  ],
+  "claudeRegistry": {
+    "agent-sync": [
+      {
+        "version": "1.22.2",
+        "scope": "user"
+      }
+    ],
+    "make-skill": [
+      {
+        "version": "0.31.2",
+        "scope": "user"
+      }
+    ],
+    "task-pipeline": [
+      {
+        "version": "1.93.3",
+        "scope": "user"
+      }
+    ]
+  },
+  "hubInstalledVersion": "UNVERIFIED; executable absent from PATH is not proof of absence",
+  "installationPerformed": false
+}

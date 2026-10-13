@@ -3,7 +3,7 @@ import {test} from 'node:test'
 import {mkdtempSync,readFileSync,rmSync,existsSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
-import {preparedFixture} from './prepared-launch-fixture.mjs'
+import {preparedFixture,coordinatorUnits} from './prepared-launch-fixture.mjs'
 import {createManagedLaunch} from '../src/main/managedLaunch.ts'
 import {createBundleCompiler} from '../src/main/sessionBundle.ts'
 import {readPart} from '../src/main/executionPacket.ts'
@@ -13,7 +13,7 @@ function fixture(){
  const f=preparedFixture({instruction:'  exact\nинструкция 🌍  '}),root=mkdtempSync(path.join(tmpdir(),'fabric-prepared-bundle-')),calls=[]
  let live=false;const run=f.id.project,resources={mode:'required',inputs:f.inputs,matches:()=>true,current:async()=>{calls.push('resource-current');return true},cancelUnbegun:async()=>{calls.push('cancel');return true},releaseCompensated:async()=>{calls.push('release');return true}}
  const bundles=createBundleCompiler({root,preparedInputs:f.inputs,recordPreparedContext:async packet=>{calls.push('journal');f.journaled=packet;if(f.journalFail)throw Error('private journal')},surface:{endpoint:'http://127.0.0.1:1/mcp',mint(){calls.push('mint');return {token:'synthetic'}},revokeSession(){calls.push('revoke')}},context:async()=>{throw Error('must never recompile')}})
- const deps={estateId:f.id.estate,actor:{kind:'system',id:'fixture'},authority:()=>null,resources,
+ const deps={estateId:f.id.estate,actor:{kind:'system',id:'fixture'},authority:()=>null,resources,units:coordinatorUnits(resources),
   db:{rpc:async(name,args)=>{calls.push(name);if(name==='fail_task_launch')return {data:{compensated:true}};return {data:{granted:true,valid:true,bound:true,task_run_id:run,session_id:args.p_session_id}}}},
   admit:async(taskId,sessionId,trigger,packet)=>{calls.push('admit');f.packet=packet;assert.ok(f.inputs.owns(packet));assert.equal(f.reads.filter(x=>x.table==='memory_facts').length,1);f.afterPrepared?.()
    return {admitted:true,receipt:{admitted:true,task_id:taskId,session_id:sessionId,project_id:f.id.project,task_run_id:run,instruction:f.task.instruction,option_id:f.task.option_id}}},
@@ -60,4 +60,8 @@ test('task changes during resource refresh are checked afterward before SQL/nati
  const f=fixture();try{f.resources.current=async()=>{f.task.instruction='changed while resource check awaited';return true}
  const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.ok(!f.calls.includes('spawn'));assert.ok(!f.calls.includes('validate_task_run_launch'))
  }finally{f.cleanup()}
+})
+
+test('required managed launch without unit dependency refuses before preparation or admission',async()=>{
+ const f=fixture();try{delete f.deps.units;const r=await createManagedLaunch(f.deps)({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(r.reasonCode,'resource_unit_dependency_required');assert.deepEqual(f.calls,[]);assert.deepEqual(f.reads,[])}finally{f.cleanup()}
 })

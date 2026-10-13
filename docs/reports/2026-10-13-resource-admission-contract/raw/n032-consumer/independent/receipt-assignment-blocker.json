@@ -1,0 +1,20 @@
+{
+  "reviewer": "pipeline_research",
+  "lead": "root",
+  "status": "CONFIRMED_N032_ASSIGNMENT_EXPOSURE",
+  "originalSourceSha256": "c71dfa002780a0ab0f1177ad3d229d70d97e5cc05a4017eae1e6f71808966a74",
+  "replaySourceSha256": "a3b7ab4fdff14267456c35d9f3b4af51cf22c45a0678f2eced86678cca08aff2",
+  "derivation": "Relative imports only resolved to existing candidate dependencies; function body preserved.",
+  "regressionSha256": "90d9ab8b4442e85f5267a2d922ed81bc67911bbb25bb5be43dce2790b75b6e5d",
+  "command": "N032_UNIT_SOURCE=$N032_INDEPENDENT/unit-preconfirmation-replay.ts node --experimental-strip-types --test $N032_INDEPENDENT/unconfirmed-assignment-regression.mjs",
+  "exit": 1,
+  "log": "unconfirmed-regression-pinned-red.log",
+  "finding": "Actual N028 final refresh pending/failed after intent persistence exposes assignmentFor handle; shared createAdmitExisting and actual ResourceLaunchAdapter then reach synthetic admit_resource_task_launch after unknown unit preparation. Ordinary createManagedLaunch stops on unknown, zero native spawns demonstrated.",
+  "limits": [
+    "Synthetic SQL/capacity/ownership and process transport, actual production module composition.",
+    "No demonstrated spawn authorization bypass.",
+    "First count4 harness failed before target state; retained separately.",
+    "One environment-loader edit failed; env-not-applied log not exact pinned negative evidence."
+  ],
+  "fixRequired": "Confirmed state must follow returned observed prepare outcome only; late settlement or intent existence insufficient; busy lookup null."
+}

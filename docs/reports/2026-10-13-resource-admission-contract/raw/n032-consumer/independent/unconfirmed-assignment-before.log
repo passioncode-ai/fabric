@@ -1,0 +1,32 @@
+✖ failed final unit preparation cannot expose assignment to shared admission (1876.183834ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2660.053542
+
+✖ failing tests:
+
+test at ../../../../private$N032_INDEPENDENT/unconfirmed-assignment.mjs:20:23
+✖ failed final unit preparation cannot expose assignment to shared admission (1876.183834ms)
+  AssertionError [ERR_ASSERTION]: unconfirmed prepare must not expose actual assignment to resource preparation
+  + actual - expected
+  
+  + {
+  +   runId: 'r-ef150cbae84f'
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///private$N032_INDEPENDENT/unconfirmed-assignment.mjs:85:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { runId: 'r-ef150cbae84f' },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

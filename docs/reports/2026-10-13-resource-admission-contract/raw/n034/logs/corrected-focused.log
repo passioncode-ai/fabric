@@ -1,0 +1,33 @@
+✔ real FS provision, exact retry, snapshot and clean historical handoff (2883.142875ms)
+✔ single writer excludes same and new invocation without stale takeover (817.949958ms)
+✔ missing ledger with preserved external anchor never becomes empty pool (155.557541ms)
+✔ unsealed head without lock is not a clean handoff (278.671666ms)
+✔ same host pool cannot fork by estate or boot (347.203333ms)
+✔ copied and foreign writer handles do not authorize storage changes (516.254292ms)
+✔ count and byte bounds reject growth and never exclude caller unit (1254.518292ms)
+✔ conflicting same unit and wrong invocation refuse (1079.591792ms)
+✔ deleted committed record is unknown, never empty (578.41275ms)
+✔ surplus orphan and unknown version are refused (264.893666ms)
+✔ replaced writer inode with identical bytes refuses old handle (357.618792ms)
+✔ symlink record refuses without following its target (579.213375ms)
+✔ malformed/accessor inputs rejected without evaluating getter (661.588375ms)
+✔ external root and host changes refuse (549.594708ms)
+✔ failed event fsync exact retry reestablishes event and head durability (1758.523458ms)
+✔ lost head rename result reconciles exact operation without duplicate declaration (1338.595625ms)
+✔ timeout retains one actual outstanding operation across 30 retries (2267.443292ms)
+✔ seal blocks new calls synchronously and waits actual pending work (1132.755375ms)
+✔ seal timeout never releases an unresolved writer after late dependency settlement (1793.48475ms)
+✔ head cardinality and predecessor tampering refuse (421.388209ms)
+✔ oversized record read and cumulative append bound refuse (1410.198708ms)
+✔ symbolic linked installation root and parent refuse (5.652041ms)
+✔ seal cache never lends a success acknowledgement to a copied handle (191.120375ms)
+✔ head digest binds exact canonical bytes, not only parsed semantics (403.11075ms)
+✔ discarded unsealed writer keeps lock without a FileHandle GC exception (1566.899625ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23454.069

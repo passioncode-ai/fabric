@@ -10,6 +10,8 @@ import { LaunchRefusedBeforeSpawn, ProcessLaunchFailure } from './launchFailure.
 import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
 import type { ManagedResourceLaunch } from './resourceLaunchAdapter.ts'
+import type { ManagedUnits, ManagedUnitHandle } from './resourceManagedUnit.ts'
+import type { OwnedPtyUnit } from './pty.ts'
 
 export type LaunchResult =
   | { started: true; taskId: string; runId: string; sessionId: string; deliveryId: string; deliveryState: ContinuationResult['state']; says: string }
@@ -29,22 +31,25 @@ export interface ManagedLaunchDeps {
   actor: { kind: string; id: string }
   authority(): { personId: string; revision: number } | null
   admit(taskId: string, sessionId: string, trigger: LaunchInput['trigger'], prepared?: PreparedLaunchPacket): Promise<AdmitOutcome>
-  prepare(receipt: AdmissionReceipt, input: LaunchInput, prepared?: PreparedLaunchPacket): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
+  prepare(receipt: AdmissionReceipt, input: LaunchInput, prepared?: PreparedLaunchPacket, unit?: OwnedPtyUnit): Promise<(sessionId: string, beforeSpawn: () => Promise<boolean>) => Promise<{ sessionId: string }>>
   track(sessionId: string, taskId: string): void
   untrack(sessionId: string, taskId: string): void
   get(sessionId: string): { running: boolean } | null
   stop(sessionId: string): Promise<void>
   /** Optional only at trusted composition. Resource-marked receipts refuse without it. */
   resources?: ManagedResourceLaunch
+  /** Paired with the same required adapter; absent on ordinary legacy launches. */
+  units?: ManagedUnits
   dispatch(taskId: string, runId: string, sessionId: string, deliveryId: string, text: string): Promise<ContinuationResult>
 }
 // #region managed-resource-preparation — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
 export function createManagedLaunch(deps: ManagedLaunchDeps) {
-  const resources = deps.resources
+  const resources = deps.resources, units = deps.units
   if (resources && resources.mode !== 'required') throw Error('invalid resource launch dependency')
   return async function launch(input: LaunchInput): Promise<LaunchResult> {
     const sessionId = input.admission?.sessionId ?? randomUUID()
     let prepared: PreparedLaunchPacket | undefined
+    let unit: ManagedUnitHandle | undefined
     let receipt: AdmissionReceipt | undefined
     let runId: string | undefined
     let ownsBegin = false
@@ -64,12 +69,16 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
     try {
     try {
       if (resources) {
+        if (!units || units.resources !== resources) return failure('resource_unit_dependency_required', 'The managed resource unit could not be established. Nothing was admitted.')
         if (!resources.inputs || input.admission || input.instruction !== undefined || input.trigger === 'chain')
           return failure('resource_prepared_path_unsupported', 'This resource launch requires a newly prepared ordinary task.')
         const captured = await resources.inputs.prepare({taskId:input.taskId,sessionId,trigger:input.trigger,permissionMode:input.permissionMode??null})
         if (captured.state !== 'observed' || !resources.inputs.owns(captured.packet))
           return failure('resource_prepared_input_unavailable', 'The task input could not be prepared. Nothing was admitted.')
         prepared = captured.packet
+        const intent = await units.prepare(prepared)
+        if (intent.state !== 'observed') return failure('resource_intent_unconfirmed', 'The start intent remains unconfirmed. Nothing was admitted.')
+        unit = intent.value
       }
       const admitted = input.admission ? { admitted: true as const, receipt: input.admission.receipt }
         : await deps.admit(input.taskId, sessionId, input.trigger, prepared)
@@ -83,6 +92,7 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
         return failure('resource_receipt_unavailable', 'The resource receipt could not be confirmed. Nothing will be started automatically.')
       if (prepared && (!preparedLaunchMatches(prepared,{sessionId,projectId:receipt.project_id,taskId:input.taskId,optionId:receipt.option_id||'claude-code'}) || receipt.instruction !== prepared.instructionBody || !await resources!.inputs!.current(prepared)))
         throw new LaunchRefusedBeforeSpawn(sessionId,'prepared_input_changed')
+      if (unit && !await units!.attachAdmission(unit,receipt)) throw new LaunchRefusedBeforeSpawn(sessionId,'resource_attachment_unconfirmed')
       const authority = deps.authority()
       const begun = await command('begin_task_run_launch', {
         p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
@@ -97,12 +107,15 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       if (begun.task_run_id !== runId || begun.session_id !== sessionId) return failure('invalid_receipt',
         'The launch receipt identifies another session. Nothing will be started automatically.')
       ownsBegin = true
-      const open = await deps.prepare(receipt, input, prepared)
+      const nativeUnit = unit ? units!.native(unit) : undefined
+      if (unit && !nativeUnit) throw new LaunchRefusedBeforeSpawn(sessionId,'resource_unit_unavailable')
+      const open = await deps.prepare(receipt, input, prepared, nativeUnit ?? undefined)
       deps.track(sessionId, input.taskId)
       const session = await open(sessionId, async () => {
         // The trusted refresh may wait on I/O. Membership, capacity or the run's
         // fence may change while it waits, so SQL must be the last check here.
         if (resources && !await resources.current(receipt!)) return false
+        if (unit && !await units!.current(unit)) return false
         if (prepared && !await resources!.inputs!.current(prepared)) return false
         const valid = await command('validate_task_run_launch', {
           p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
@@ -111,6 +124,7 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       })
       processStarted = true
       if (session.sessionId !== sessionId) throw Error('native session identity mismatch')
+      if (unit && (await units!.observe(unit)).state !== 'observed') throw Error('native unit observation unavailable')
       const bound = await command('bind_task_run')
       if (bound.bound !== true || bound.task_run_id !== runId || bound.session_id !== sessionId || !deps.get(sessionId)?.running) throw Error('binding or liveness not confirmed')
     } catch (error) {

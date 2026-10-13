@@ -1,0 +1,57 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-034",
+  "node": "N-034",
+  "parent_id": "CO-282",
+  "module": "Retain a bounded controlled-pool history across clean handoff",
+  "intent": "Retain a bounded controlled-pool history across clean handoff",
+  "expected_result": "Actual bounded filesystem registry: independent lock, deletion, retry, timeout and clean-restart controls; all outputs remain incomplete and unauthorized",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "5d9d328ec2bbba82dcd8cac0cebad470de9886171faaddeafa7a37e584a1fa2c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "5d9d328ec2bbba82dcd8cac0cebad470de9886171faaddeafa7a37e584a1fa2c"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/resourcePoolRegistry.ts",
+      "apps/desktop/test/resource-pool-registry.test.mjs",
+      "docs/execution/harness-waves/resource-pool-registry.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Actual bounded filesystem registry: independent lock, deletion, retry, timeout and clean-restart controls; all outputs remain incomplete and unauthorized",
+      "paths": [
+        "apps/desktop/src/main/resourcePoolRegistry.ts",
+        "apps/desktop/test/resource-pool-registry.test.mjs",
+        "docs/execution/harness-waves/resource-pool-registry.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Real filesystem append/snapshot, canonical history, all historical declarations retained and clean handoff"
+    },
+    {
+      "kind": "negative",
+      "check": "Foreign writer or seal handle, missing full ledger/record, noncanonical bytes, incomplete fsync, retained timeout and unclean restart refuse; no complete or authorized result"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read producer receipts and current plan; implement only owned module",
+    "after_change": "Independent review, fix findings, bind exact source hashes"
+  }
+}

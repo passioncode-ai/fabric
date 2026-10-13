@@ -1,0 +1,19 @@
+{
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "--experimental-strip-types",
+    "--test",
+    "--test-concurrency=1",
+    "test/resource-controlled-pool.test.mjs",
+    "test/resource-pool-registry.test.mjs",
+    "test/resource-worker-inventory.test.mjs",
+    "test/resource-worker-launch.test.mjs"
+  ],
+  "cwd": "apps/desktop",
+  "exitCode": 1,
+  "durationSeconds": 138.6571225830121,
+  "deadlineSeconds": 180
+}

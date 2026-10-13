@@ -1,0 +1,30 @@
+✖ independent final-deadline rejection hides actual allocated token; exact retry alone confirms (470.828583ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1077.290042
+
+✖ failing tests:
+
+test at n032-independent/admission-control.mjs:20:23
+✖ independent final-deadline rejection hides actual allocated token; exact retry alone confirms (470.828583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'observed'
+  
+      at TestContext.<anonymous> (file://<N033_OVERLAY>/n032-independent/admission-control.mjs:85:50)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'observed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

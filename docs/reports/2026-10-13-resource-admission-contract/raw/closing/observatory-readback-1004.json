@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-10-13T10:04:00Z",
+  "source": "fabric-dashboards MCP service_status(project-observatory.default)",
+  "readTimeApproximate": true,
+  "key": "project-observatory.default",
+  "state": "degraded",
+  "version": "0.24.4",
+  "build": "sha256:5685aa3781497d68a173f708c2848a9f4f05730cfd9c84e77372e64a72319726",
+  "reasons": [
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:disk-guard",
+        "reason": "4 source(s) not fully read — build-output: stopped at its time budget; the rest is looked at next pass, oldest first (+3 more)"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:git-hygiene",
+        "reason": "2 source(s) not fully read — repository:PROWL-AI/prowlagent: no default branch could be resolved: origin/HEAD is unset, there is no main or master, and no branch of origin has been fetched (+1 more)"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:heroku",
+        "reason": "1 source(s) not fully read — heroku: `heroku auth:token` did not finish in 30s, nor in 60s when asked again 5s later; load average 13.5 (5-minute 11.6) — the CLI did not answer, so no app could be read"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:leak-scan",
+        "reason": "1 source(s) not fully read — no reason given"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:local",
+        "reason": "2 source(s) not fully read — folder:agent-stack-instruction-budget: remote: `git remote get-url` exited 128: fatal: not a git repository: (null); branch: `git rev-parse --abbrev-ref` exited 128: fatal: not a git repository: (null); last_commit: `git log -1` exited 128: fatal: not a git repository: …"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "collector:remote-env",
+        "reason": "1 source(s) not fully read — heroku: `heroku auth:token` did not finish in 30s, nor in 60s when asked again 5s later; load average 13.5 (5-minute 11.6) — the CLI did not answer, so no app could be read"
+      }
+    },
+    {
+      "code": "reason.degraded",
+      "params": {
+        "source": "tick-history",
+        "reason": "10 of the last 10 ticks did not finish (timeout: 10); the registry, findings and dashboard may lag behind the estate — `store/logs/tick.log` names the slow steps"
+      }
+    }
+  ],
+  "limits": [
+    "Service status is current readback; collector reasons contain older observations and are not fresh estate coverage.",
+    "No doctor, collector rerun, lifecycle change, secret read or cross-project write.",
+    "Ten last ticks reported timed out; do not treat dashboard counts as comprehensive current truth."
+  ]
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "path": "n033-focused.log",
+    "originalSha256": "2539298a0501a6b915070513b33bba570627f2898661e8293bbb83f893cfe219",
+    "storedSha256": "2539298a0501a6b915070513b33bba570627f2898661e8293bbb83f893cfe219",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "n033-types.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "n033-combined-focused.log",
+    "originalSha256": "47c2885fc88a36bdeee48aca2ea4498a09ea08da84f146627a820fd492af7a65",
+    "storedSha256": "297a2ddfaca19e808e6fcb29654d751f353151f11f09bd7f97a9a037244ad44c",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "n033-combined-focused-final.log",
+    "originalSha256": "9c766f238ace97d19fa36200c2e60d9350a6a197cf70bd6cc2d8ea80343bee2a",
+    "storedSha256": "9c766f238ace97d19fa36200c2e60d9350a6a197cf70bd6cc2d8ea80343bee2a",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "n033-combined-types.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "n033-original-red.log",
+    "originalSha256": "6eda9a596845215c670b1ca038bd3e3a19da1764fc0d5a4e40b494ae90cd37d1",
+    "storedSha256": "cef8faa15c53fc2750bb498520667c14bfe89e018939b4a4d06c984d79d0270e",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "source-manifest.json",
+    "originalSha256": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "storedSha256": "559086e588ecde4b010fba8ea400a89942c0dc53de2b51b43c65fb27e34bec24",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "original-resourceManagedUnit.snapshot.txt",
+    "originalSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "storedSha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "normalization": "none"
+  },
+  {
+    "path": "original-pty.snapshot.txt",
+    "originalSha256": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "storedSha256": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "normalization": "none"
+  },
+  {
+    "path": "final-test.snapshot.txt",
+    "originalSha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+    "storedSha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+    "normalization": "none"
+  },
+  {
+    "path": "n033-portable-replay.log",
+    "originalSha256": "df7b396ca0a0a109694447e1b62657603e087f6f11c4d096bde9049060bbe03f",
+    "storedSha256": "bd833474a8b5ca7d9598ba0da284af77af03e667b774e15f5a737828d0b0b8cd",
+    "normalization": "private path labels only"
+  },
+  {
+    "path": "replay.py",
+    "originalSha256": "5bf1d00f8e8be6360757c311512c50b8df7a02de9aa463446ff19859ab8afdac",
+    "storedSha256": "5bf1d00f8e8be6360757c311512c50b8df7a02de9aa463446ff19859ab8afdac",
+    "normalization": "none"
+  }
+]

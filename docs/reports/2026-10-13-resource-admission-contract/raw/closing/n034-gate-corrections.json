@@ -1,0 +1,15 @@
+{
+  "scope": "six fail-closed catch explanations; unchanged compiler suite moved after source-only gates; six duplicate checker calls removed",
+  "checks": {
+    "check-ops": "exit0, 437 catches explained or recording",
+    "check-written-never-read": "exit0, 1523 fields,47 baseline",
+    "bash-n": "exit0"
+  },
+  "moduleBehavior": "catch comments only; source hashes differ from prior byte-level N033 acceptance",
+  "timingSavings": "NOT_MEASURED",
+  "hashes": {
+    "apps/desktop/src/main/resourceManagedUnit.ts": "9cb01e413f75116e9c275f915e33b2e29ddeb4a7f6c1d6270901f89d90851b55",
+    "scripts/ci.sh": "6c4c5bc410fee0fc4281ba97a9d797fb815c272a35b6f4237b9ddd84177f3d0d",
+    "scripts/test/build-unified-plan.test.mjs": "235218cf438667c59e52ccb5ac41a7560a20149a25258bac13d815e35b8a4c18"
+  }
+}

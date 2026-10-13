@@ -1,0 +1,165 @@
+// #region resource-managed-unit — docs: docs/execution/harness-waves/resource-worker-launch.md#contract
+import type { createResourceRunAssignmentManager, RunAssignmentHandle } from 'file://$FABRIC_REPO/apps/desktop/src/main/resourceRunAssignment.ts'
+import type { createResourceWorkerInventory, WorkerIntentHandle } from 'file://$FABRIC_N032_INTENT_EVENTS_FIXDU5E3/apps/desktop/src/main/resourceWorkerInventory.ts'
+import type { PreparedLaunchPacket } from 'file://$FABRIC_REPO/apps/desktop/src/main/preparedLaunchInput.ts'
+import type { AdmissionReceipt } from 'file://$FABRIC_REPO/apps/desktop/src/shared/admission.ts'
+import type { ManagedResourceLaunch, ResourceLaunchBinding } from 'file://$FABRIC_N032_UNITS_GCS1V_Z5/apps/desktop/src/main/resourceLaunchAdapter.ts'
+import type { PtyManager, OwnedPtyUnit } from 'file://$FABRIC_N032_UNITS_GCS1V_Z5/apps/desktop/src/main/pty.ts'
+import { resourceData, resourceId, resourceInteger, readResourceHostPolicy, resourceDigest } from 'file://$FABRIC_REPO/apps/desktop/src/main/resourceHostPolicy.ts'
+
+type Assignments = ReturnType<typeof createResourceRunAssignmentManager>
+type Intents = ReturnType<typeof createResourceWorkerInventory>
+export interface ResourceManagedUnitConfig {
+  estateId:string;rawPolicy:unknown;adapterId:string
+  maxEntries:number;timeoutMs:number
+}
+export interface ManagedUnitHandle { readonly sessionId:string }
+type Unknown = {state:'unknown';reason:string;complete:false;executionAuthorized:false}
+type Result<T> = {state:'observed';value:T;complete:false;executionAuthorized:false}|Unknown
+export interface ManagedUnits {
+  readonly resources:ManagedResourceLaunch
+  prepare(packet:PreparedLaunchPacket):Promise<Result<ManagedUnitHandle>>
+  assignmentFor(packet:PreparedLaunchPacket):RunAssignmentHandle|null
+  attachAdmission(handle:ManagedUnitHandle,receipt:AdmissionReceipt):Promise<boolean>
+  current(handle:ManagedUnitHandle):Promise<boolean>
+  native(handle:ManagedUnitHandle):OwnedPtyUnit|null
+  observe(handle:ManagedUnitHandle):Promise<Result<{unitId:string;processState:'active'|'quiescent';providerQuiescent:null}>>
+}
+interface Entry {
+  packet:PreparedLaunchPacket;handle:ManagedUnitHandle;busy:boolean;confirmed:boolean;outcome?:Promise<Result<ManagedUnitHandle>>
+  assignment?:RunAssignmentHandle;attemptId?:string;intent?:WorkerIntentHandle;intentDigest?:string
+  receipt?:AdmissionReceipt;binding?:Readonly<ResourceLaunchBinding>;attachment?:Record<string,unknown>
+  native?:OwnedPtyUnit;admissionDigest?:string;processDigest?:string
+}
+const unknown=(reason:string):Unknown=>({state:'unknown',reason,complete:false,executionAuthorized:false})
+const result=<T>(value:T):Result<T>=>({state:'observed',value,complete:false,executionAuthorized:false})
+const digest=(v:unknown)=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v)
+const uuid=(v:unknown)=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v)
+const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b)
+/** Source preparation only. Concrete collaborators retain their actual handles;
+ * no callback declares execution ended, ownership held or pool coverage complete. */
+export function createResourceManagedUnit(raw:ResourceManagedUnitConfig,deps:{assignments:Assignments;intents:Intents;resources:ManagedResourceLaunch;ptys:PtyManager;host:{hostInstanceId:string;bootId:string}}):ManagedUnits {
+  const rawConfig=resourceData(raw,['estateId','rawPolicy','adapterId','maxEntries','timeoutMs'])
+  const {assignments,intents,resources,ptys,host}=deps, inputs=resources.inputs
+  const policy=readResourceHostPolicy(rawConfig.rawPolicy,host.hostInstanceId)
+  const c=Object.freeze({estateId:resourceId(rawConfig.estateId),adapterId:resourceId(rawConfig.adapterId),
+    hostId:policy.hostId,poolId:policy.poolId,localPolicyRevision:policy.localPolicyRevision,bindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,
+    maxEntries:resourceInteger(rawConfig.maxEntries,1,1024),timeoutMs:resourceInteger(rawConfig.timeoutMs,1,30000)})
+  resourceId(host.bootId)
+  const methods={allocate:assignments.allocate,readIdentity:assignments.readIdentity,register:intents.register,readIntent:intents.readIntent,
+    attachAdmission:intents.attachAdmission,attachProcess:intents.attachProcess,readAttachments:intents.readAttachments,
+    readBinding:resources.readBinding,owns:inputs?.owns,reserve:ptys.reserveOwnedUnit,observe:ptys.observeOwnedUnit}
+  if(!inputs||Object.values(methods).some(m=>typeof m!=='function'))throw Error('unit dependencies unavailable')
+  const boot=host.bootId
+  const entries=new Map<string,Entry>(),handles=new WeakMap<ManagedUnitHandle,Entry>()
+  function bound(){
+    if(deps.assignments!==assignments||deps.intents!==intents||deps.resources!==resources||deps.ptys!==ptys||deps.host!==host||
+      host.hostInstanceId!==c.hostId||host.bootId!==boot||resources.inputs!==inputs||inputs!.owns!==methods.owns||
+      assignments.allocate!==methods.allocate||assignments.readIdentity!==methods.readIdentity||intents.register!==methods.register||intents.readIntent!==methods.readIntent||
+      intents.attachAdmission!==methods.attachAdmission||intents.attachProcess!==methods.attachProcess||intents.readAttachments!==methods.readAttachments||resources.readBinding!==methods.readBinding||
+      ptys.reserveOwnedUnit!==methods.reserve||ptys.observeOwnedUnit!==methods.observe)throw Error('unit binding changed')
+  }
+  bound()
+  async function operation<T>(entry:Entry,body:(check:()=>void)=>Promise<T>,fallback:T):Promise<T>{
+    if(entry.busy)return fallback
+    entry.busy=true;let active=true,timer:ReturnType<typeof setTimeout>|undefined;const deadline=performance.now()+c.timeoutMs
+    const check=()=>{bound();if(!active||performance.now()>=deadline)throw Error('unit deadline')}
+    const pending=Promise.resolve().then(()=>body(check)).then(value=>{check();return value},()=>fallback)
+    const settled=()=>{entry.busy=false};void pending.then(settled,settled)
+    try{return await Promise.race([pending,new Promise<T>(resolve=>{timer=setTimeout(()=>{active=false;resolve(fallback)},c.timeoutMs)})])}
+    catch { /* Structured uncertainty retains the intent; raw dependency errors may contain private input. */ return fallback }
+    finally{active=false;if(timer)clearTimeout(timer)}
+  }
+  function entryOf(handle:ManagedUnitHandle){bound();const e=handles.get(handle);if(!e||!e.confirmed)throw Error('foreign or unconfirmed unit');return e}
+  async function refresh(e:Entry,check:()=>void){
+    check();if(!e.assignment||!e.intent||!e.attemptId)throw Error('intent unavailable')
+    const identity=await methods.readIdentity.call(assignments,e.assignment);check()
+    if(identity.state!=='observed'||identity.value.estateId!==c.estateId||identity.value.projectId!==e.packet.projectId||
+      identity.value.taskId!==e.packet.taskId||identity.value.sessionId!==e.packet.sessionId||identity.value.attemptId!==e.attemptId)throw Error('assignment changed')
+    const read=await methods.readIntent.call(intents,e.intent);check()
+    if(read.state!=='recorded')throw Error('intent unavailable')
+    const event=read.value.event
+    if(read.value.recordSha256!==e.intentDigest||event.unitId!==e.attemptId||event.runId!==e.assignment.runId||event.estateId!==c.estateId||
+      event.hostId!==c.hostId||event.poolId!==c.poolId||event.invocationId!==boot||event.localPolicyRevision!==c.localPolicyRevision||
+      event.adapterId!==c.adapterId||!same(event.assignment,identity.value))throw Error('intent mismatch')
+    return read
+  }
+  const api:ManagedUnits = {
+    resources,
+    prepare(packet){
+      try{bound();if(methods.owns!.call(inputs,packet)!==true||packet.estateId!==c.estateId)throw Error('foreign packet')}
+      catch {return Promise.resolve(unknown('prepared_input_unavailable'))}
+      const prior=entries.get(packet.sessionId)
+      if(prior)return prior.packet===packet?prior.outcome!:Promise.resolve(unknown('unit_identity_conflict'))
+      if(entries.size>=c.maxEntries)return Promise.resolve(unknown('unit_capacity'))
+      const handle=Object.freeze({sessionId:packet.sessionId}),e:Entry={packet,handle,busy:false,confirmed:false};entries.set(packet.sessionId,e);handles.set(handle,e)
+      e.outcome=operation(e,async check=>{
+        check();const a=await methods.allocate.call(assignments,{taskId:packet.taskId,sessionId:packet.sessionId});check()
+        if(a.state!=='observed'||a.value.assignment.estateId!==c.estateId||a.value.assignment.projectId!==packet.projectId)throw Error('assignment unavailable')
+        e.assignment=a.value.handle;e.attemptId=a.value.assignment.attemptId
+        const registered=await methods.register.call(intents,e.assignment,c.adapterId);check()
+        if(registered.state!=='recorded')throw Error('intent unconfirmed')
+        e.intent=registered.value.handle;e.intentDigest=registered.value.recordSha256
+        await refresh(e,check);return result(handle)
+      },unknown('intent_unconfirmed')).then(outcome=>{
+        // Confirm only the outcome returned to the caller. A timed-out body's
+        // late success must never expose an assignment to resource admission.
+        if(outcome.state==='observed'&&outcome.value===handle)e.confirmed=true
+        return outcome
+      })
+      return e.outcome
+    },
+    assignmentFor(packet){
+      try{bound();const e=entries.get(packet.sessionId);return e?.packet===packet&&e.confirmed&&!e.busy&&e.intent&&methods.owns!.call(inputs,packet)===true?e.assignment??null:null}
+      catch {return null}
+    },
+    async attachAdmission(handle,receipt){
+      let e:Entry;try{e=entryOf(handle)}catch{return false}
+      return operation(e,async check=>{
+        await refresh(e,check)
+        const binding=methods.readBinding.call(resources,receipt,e.packet);check()
+        if(!binding||binding.ownDemand.workerSlots!==1||binding.input.estateId!==c.estateId||binding.input.taskId!==e.packet.taskId||binding.input.sessionId!==e.packet.sessionId||
+          binding.identity.attemptId!==e.attemptId||binding.identity.hostId!==c.hostId||binding.identity.poolId!==c.poolId||binding.identity.localPolicyRevision!==c.bindingRevision||
+          receipt.project_id!==e.packet.projectId||receipt.instruction!==e.packet.instructionBody||!uuid(receipt.task_run_id)||!Number.isSafeInteger(receipt.run_ordinal)||receipt.run_ordinal!<1)throw Error('admission mismatch')
+        if(e.receipt&&e.receipt!==receipt)throw Error('receipt changed')
+        const attachment={taskRunId:receipt.task_run_id!,runOrdinal:receipt.run_ordinal!,reservationId:binding.identity.reservationId,fence:binding.identity.fence,
+          inputDigest:binding.identity.inputDigest,scopeDigest:binding.identity.scopeDigest,contentDigest:e.packet.contentDigest,bindingRevision:c.bindingRevision}
+        if(!digest(attachment.inputDigest)||!digest(attachment.scopeDigest))throw Error('invalid digest')
+        const saved=await methods.attachAdmission.call(intents,e.intent!,attachment);check()
+        if(saved.state!=='recorded')throw Error('attachment unconfirmed')
+        const read=await methods.readAttachments.call(intents,e.intent!);check()
+        if(read.state!=='recorded'||!read.value.admission||!same(read.value.admission.event.attachment,attachment))throw Error('attachment mismatch')
+        await refresh(e,check)
+        e.receipt=receipt;e.binding=binding;e.attachment=Object.freeze(attachment);e.admissionDigest=read.value.admission.recordSha256
+        e.native??=methods.reserve.call(ptys,e.packet)
+        return true
+      },false)
+    },
+    async current(handle){
+      let e:Entry;try{e=entryOf(handle)}catch{return false}
+      return operation(e,async check=>{
+        await refresh(e,check)
+        if(!e.receipt||!e.binding||!e.native||methods.readBinding.call(resources,e.receipt,e.packet)!==e.binding)throw Error('binding unavailable')
+        const read=await methods.readAttachments.call(intents,e.intent!);check()
+        return read.state==='recorded'&&read.value.admission!==null&&read.value.admission.recordSha256===e.admissionDigest&&same(read.value.admission.event.attachment,e.attachment)
+      },false)
+    },
+    native(handle){try{const e=entryOf(handle);return e.busy?null:e.native??null}catch{return null}},
+    async observe(handle){
+      let e:Entry;try{e=entryOf(handle)}catch{return unknown('foreign_unit')}
+      return operation(e,async check=>{
+        await refresh(e,check);if(!e.native||!e.admissionDigest)throw Error('native binding unavailable')
+        const observed=await methods.observe.call(ptys,e.native);check()
+        if(observed.state!=='observed'||observed.sessionId!==e.packet.sessionId||observed.projectId!==e.packet.projectId||observed.optionId!==e.packet.target.optionId)throw Error('process unavailable')
+        const saved=await methods.attachProcess.call(intents,e.intent!,observed.processIdentity);check()
+        if(saved.state!=='recorded')throw Error('process attachment unconfirmed')
+        const read=await methods.readAttachments.call(intents,e.intent!);check()
+        if(read.state!=='recorded'||read.value.admission?.recordSha256!==e.admissionDigest||!read.value.process||!same(read.value.process.event.attachment,observed.processIdentity))throw Error('process binding mismatch')
+        await refresh(e,check);e.processDigest=read.value.process.recordSha256
+        return result({unitId:e.attemptId!,processState:observed.processState,providerQuiescent:null})
+      },unknown('process_unconfirmed'))
+    }
+  }
+  return Object.freeze(api)
+}
+// #endregion resource-managed-unit

@@ -1,0 +1,296 @@
+{
+  "schema": 1,
+  "status": "independently accepted bounded attachment storage",
+  "files": [
+    {
+      "origin": "apps/desktop/src/shared/scope.ts",
+      "stored": "candidate/apps/desktop/src/shared/scope.ts.snapshot.txt",
+      "original_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "stored_sha256": "8c4cbc61eec187c5e812160326ff6c3c8ac91558c1832e1ba973d2db5d82e855",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/shared/resourceAdmission.ts",
+      "stored": "candidate/apps/desktop/src/shared/resourceAdmission.ts.snapshot.txt",
+      "original_sha256": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+      "stored_sha256": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceRunAssignment.ts",
+      "stored": "candidate/apps/desktop/src/main/resourceRunAssignment.ts.snapshot.txt",
+      "original_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "stored_sha256": "e51e8e044f9d72505ea72e17bfdb297451b0df3a78fb8d929c86449d2d0ed366",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/gitLeaseSnapshot.ts",
+      "stored": "candidate/apps/desktop/src/main/gitLeaseSnapshot.ts.snapshot.txt",
+      "original_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "stored_sha256": "507a05e35bcd1de92667de65a6d1ecd228cff69d916b4e521f7ae3a04e8a015b",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/gitRun.ts",
+      "stored": "candidate/apps/desktop/src/main/gitRun.ts.snapshot.txt",
+      "original_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "stored_sha256": "015e2a23c0f5a3a803fb34dd0e01d996e65572769ee296bd1fd5176c63da8670",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/scopedStore.ts",
+      "stored": "candidate/apps/desktop/src/main/scopedStore.ts.snapshot.txt",
+      "original_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "stored_sha256": "7174fdf749ec973daebe6928f240b24de76803304606d0da665eb291440a2d53",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceInputSnapshot.ts",
+      "stored": "candidate/apps/desktop/src/main/resourceInputSnapshot.ts.snapshot.txt",
+      "original_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "stored_sha256": "0db51b7184489b8bb1c41fdfb6122f65cf047bae105289fd73b18884c9ece5b6",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "candidate/apps/desktop/src/main/resourceWorkerInventory.ts.snapshot.txt",
+      "original_sha256": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+      "stored_sha256": "e80649c9f4c3b4e8095e6f45b1e7325e138111645819e44df4f096671c08ba32",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/src/main/resourceHostPolicy.ts",
+      "stored": "candidate/apps/desktop/src/main/resourceHostPolicy.ts.snapshot.txt",
+      "original_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "stored_sha256": "cf38e8a1cc3ab88fb331e0b66cb7bcd86628a9b53225d339d5d58fe41232b870",
+      "normalization": []
+    },
+    {
+      "origin": "scripts/resourceAgentSyncIdentity.py",
+      "stored": "candidate/scripts/resourceAgentSyncIdentity.py.snapshot.txt",
+      "original_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "stored_sha256": "6f32177e0e8e267cc3d789a1ffd3f919c382b6ab57da4f2a7a70a16dc0168d1a",
+      "normalization": []
+    },
+    {
+      "origin": "apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "candidate/apps/desktop/test/resource-worker-inventory.test.mjs.snapshot.txt",
+      "original_sha256": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+      "stored_sha256": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+      "normalization": []
+    },
+    {
+      "origin": "docs/execution/harness-waves/resource-worker-inventory.md",
+      "stored": "candidate/docs/execution/harness-waves/resource-worker-inventory.md.snapshot.txt",
+      "original_sha256": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7",
+      "stored_sha256": "ca6a643abf073113903f216e93b73ee1ab33d8b56ad928fe9dc568a7abf972f7",
+      "normalization": []
+    },
+    {
+      "origin": "receipt.json",
+      "stored": "builder/receipt.json",
+      "original_sha256": "99ac9a4e43949caa411859a48b0ced80447c7982b3cc5d095dc0e9bed70db2c4",
+      "stored_sha256": "99ac9a4e43949caa411859a48b0ced80447c7982b3cc5d095dc0e9bed70db2c4",
+      "normalization": []
+    },
+    {
+      "origin": "n032-intent-events.patch",
+      "stored": "builder/n032-intent-events.patch",
+      "original_sha256": "b56882c66021f4f1fcdc2bf1470b8eb11d946d38584acafd7983c15b0c69c96a",
+      "stored_sha256": "b56882c66021f4f1fcdc2bf1470b8eb11d946d38584acafd7983c15b0c69c96a",
+      "normalization": []
+    },
+    {
+      "origin": "focused-final.log",
+      "stored": "builder/focused-final.log",
+      "original_sha256": "da369d09ad051cfde959360202a9dfbe0e8f760a552030585c8d11ea3dc894e7",
+      "stored_sha256": "da369d09ad051cfde959360202a9dfbe0e8f760a552030585c8d11ea3dc894e7",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "types-final.log",
+      "stored": "builder/types-final.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "types-n032.log",
+      "stored": "builder/types-n032.log",
+      "original_sha256": "2f0b1dd623630d42ab90cfe6fddcb7269dcafd50b3a9bb379d9686a080bd2e97",
+      "stored_sha256": "2f0b1dd623630d42ab90cfe6fddcb7269dcafd50b3a9bb379d9686a080bd2e97",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "focused-n032.log",
+      "stored": "builder/focused-n032.log",
+      "original_sha256": "c100af81dc95d24eb8153aac471be392a7329ce04e97d620b074025556f1d450",
+      "stored_sha256": "c100af81dc95d24eb8153aac471be392a7329ce04e97d620b074025556f1d450",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "focused-n032-final.log",
+      "stored": "builder/focused-n032-final.log",
+      "original_sha256": "a2867b6c10db62d11be522ecf33eeb4e2972fab9efb81e8d264c8916bc1d44e5",
+      "stored_sha256": "a2867b6c10db62d11be522ecf33eeb4e2972fab9efb81e8d264c8916bc1d44e5",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "focused-capacity.log",
+      "stored": "builder/focused-capacity.log",
+      "original_sha256": "8811c02927aed6c30a74fc97bd6dc08358febdad590a9492567be851d8f97ab7",
+      "stored_sha256": "8811c02927aed6c30a74fc97bd6dc08358febdad590a9492567be851d8f97ab7",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "focused-collisions.log",
+      "stored": "builder/focused-collisions.log",
+      "original_sha256": "70ab5c663771ac8aa3beeefe2e9e489e4e9f3cfd621549e131462125e3a8d64f",
+      "stored_sha256": "70ab5c663771ac8aa3beeefe2e9e489e4e9f3cfd621549e131462125e3a8d64f",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "accidental-current-source-control-pass.log",
+      "stored": "builder/accidental-current-source-control-pass.log",
+      "original_sha256": "f1447d9f454785b053b89cfe0631f36b246fa54ebc286e5127a49cd2c696a89e",
+      "stored_sha256": "f1447d9f454785b053b89cfe0631f36b246fa54ebc286e5127a49cd2c696a89e",
+      "normalization": [
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "before-cross-unit-collisions.snapshot.txt",
+      "stored": "builder/before-cross-unit-collisions.snapshot.txt",
+      "original_sha256": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+      "stored_sha256": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+      "normalization": []
+    },
+    {
+      "origin": "controls/parent-digest-removed/apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "controls/parent-digest-removed/source.snapshot.txt",
+      "original_sha256": "866ab493a5f755b558176f41c72124eb4a1600ab25bdb5bd486f0113ef70aedd",
+      "stored_sha256": "866ab493a5f755b558176f41c72124eb4a1600ab25bdb5bd486f0113ef70aedd",
+      "normalization": []
+    },
+    {
+      "origin": "controls/parent-digest-removed/apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "controls/parent-digest-removed/test.snapshot.txt",
+      "original_sha256": "0e0eb023f874fa4e2b4c47e982e454b6f161d12054277a29d8e42671355fe9a9",
+      "stored_sha256": "0e0eb023f874fa4e2b4c47e982e454b6f161d12054277a29d8e42671355fe9a9",
+      "normalization": []
+    },
+    {
+      "origin": "controls/parent-digest-removed/negative.log",
+      "stored": "controls/parent-digest-removed/negative.log",
+      "original_sha256": "eb1cc0040489e10aed1ec25b2adb633a6b81a7c62dd44895acc8d4bb8f1bec66",
+      "stored_sha256": "ba150b811d1bca73cce05ea8853061d99c9cc1a3b2805b629336367d0be8107a",
+      "normalization": [
+        "Literal private prefix normalized to <BUILDER>",
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "controls/cross-unit-before/apps/desktop/src/main/resourceWorkerInventory.ts",
+      "stored": "controls/cross-unit-before/source.snapshot.txt",
+      "original_sha256": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+      "stored_sha256": "7d92f9a01abf8cf17d68181d936b8862600a92d22cebf54a1d7c673ef0264f55",
+      "normalization": []
+    },
+    {
+      "origin": "controls/cross-unit-before/apps/desktop/test/resource-worker-inventory.test.mjs",
+      "stored": "controls/cross-unit-before/test.snapshot.txt",
+      "original_sha256": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+      "stored_sha256": "61661c0b6a6029caebfcc2e74ab6a40cef6b49bdb7f707d29d100e6f8c2e6d25",
+      "normalization": []
+    },
+    {
+      "origin": "controls/cross-unit-before/negative.log",
+      "stored": "controls/cross-unit-before/negative.log",
+      "original_sha256": "f19142f4718f6897acded5211c15be2267b0eb5a5ebf932966278aa51a6346e5",
+      "stored_sha256": "17d64a733814e9a3bbd79c51b0eaeca42f808c5899e8ec613330cdc4c6417278",
+      "normalization": [
+        "Literal private prefix normalized to <BUILDER>",
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "packaging portable candidate",
+      "stored": "portable-candidate.log",
+      "original_sha256": "7872a4d3b1586c384dfa404e9a8a67ed15dd33c22c3b2fa6d782ee3b5c059935",
+      "stored_sha256": "7872a4d3b1586c384dfa404e9a8a67ed15dd33c22c3b2fa6d782ee3b5c059935",
+      "normalization": [
+        "Private temp paths and trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/event-controls.log",
+      "stored": "reviewer/event-controls.log",
+      "original_sha256": "6bc696f52031d8e4449fc5757ca526c396fd1b9cf65799abce16ea6d8607538c",
+      "stored_sha256": "6bc696f52031d8e4449fc5757ca526c396fd1b9cf65799abce16ea6d8607538c",
+      "normalization": [
+        "Literal private prefixes normalized",
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/event-controls.mjs",
+      "stored": "reviewer/event-controls.mjs.snapshot.txt",
+      "original_sha256": "a371a2ae3a85ef61be904471d072f11606d0b0574f1dfcdac29a38c443ebcc4c",
+      "stored_sha256": "920dbfb0aa9609a55efb2e0091f77973e5ccff18bac8058c2493b445feb21a03",
+      "normalization": [
+        "Literal private prefixes normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/events-focused.log",
+      "stored": "reviewer/events-focused.log",
+      "original_sha256": "c3e8be316ae56049f880935d42b123bfcc9d56f41e291c015574d617e56b919d",
+      "stored_sha256": "c3e8be316ae56049f880935d42b123bfcc9d56f41e291c015574d617e56b919d",
+      "normalization": [
+        "Literal private prefixes normalized",
+        "Log trailing whitespace normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/receipt-events.json",
+      "stored": "reviewer/receipt-events.json",
+      "original_sha256": "9b5ce0b2d5e715a75c64bc7fedd3079aac4f42c25223f98230f1b9c938c5e054",
+      "stored_sha256": "d1106554e069ece0c8e17129fa5939a5652f1b70225c8e69b1b0a1073b337004",
+      "normalization": [
+        "Literal private prefixes normalized"
+      ]
+    },
+    {
+      "origin": "reviewer/event-controls.mjs",
+      "stored": "event-controls.mjs",
+      "original_sha256": "a371a2ae3a85ef61be904471d072f11606d0b0574f1dfcdac29a38c443ebcc4c",
+      "stored_sha256": "0fb3294d97268476d31b7e8429e3d16be4a078408961bb16df5463c4aa6bb20c",
+      "normalization": [
+        "Three import expressions made relative to N032_EVENTS_SOURCE URL; fixture body/assertions unchanged"
+      ]
+    },
+    {
+      "origin": "packaging portable independent",
+      "stored": "portable-independent.log",
+      "original_sha256": "38d6f2efef148377d7416bdba701f7f75409d483f8409487f9969ce1d5baa1df",
+      "stored_sha256": "38d6f2efef148377d7416bdba701f7f75409d483f8409487f9969ce1d5baa1df",
+      "normalization": [
+        "Private temp paths and trailing whitespace normalized"
+      ]
+    }
+  ]
+}

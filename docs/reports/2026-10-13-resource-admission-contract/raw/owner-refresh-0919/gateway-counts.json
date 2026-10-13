@@ -1,0 +1,16 @@
+{
+  "declared": 17,
+  "enabled": 14,
+  "disabled": 3,
+  "enabledTransportKeys": {
+    "http": 9,
+    "stdio": 5
+  },
+  "roles": 7,
+  "processNameCount": 0,
+  "pgrepExit": 1,
+  "knownLaunchctlLabelExit": 113,
+  "healthProbed": false,
+  "statusScriptExecuted": false,
+  "statusSourceSha256": "6ceceab5d923c6de9487d5b21d257443aef1b19950156f97c70693d15b5023e8"
+}

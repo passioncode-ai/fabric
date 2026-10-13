@@ -75,7 +75,7 @@ test('real research inputs compile all manifest sources, keep 14 COM rows held a
   }
   assert(plan.tasks.filter(t=>t.canonical_ids.some(id=>/^COM-/.test(id))).every(t=>t.dispatch==='owned-elsewhere'))
   assert.equal(readFileSync(join(f.root,input,'plan.json'),'utf8'),'historical input cut must remain unchanged\n')
-  assert.equal(f.check().status,0,f.check().stderr)
+  const checked=f.check();assert.equal(checked.status,0,checked.stderr)
   const next=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'next'],{cwd:f.root,encoding:'utf8'})
   assert.equal(next.status,0,next.stderr)
   const frontier=JSON.parse(next.stdout);assert.equal(frontier.ready.length,0);assert(!frontier.ready.some(t=>/^COM-/.test(t.id)))
@@ -166,7 +166,7 @@ test('production parity refuses authority forgeries across every dispatching CLI
       assert.notEqual(r.status,0,name+' '+args.join(' '));assert.match(r.stderr,/compiled graph differs from committed inputs/,name);assert.equal(r.stdout,'',name)
     }
   }
-  writeFileSync(file,JSON.stringify(original));assert.equal(f.check().status,0,f.check().stderr)
+  writeFileSync(file,JSON.stringify(original));const checked=f.check();assert.equal(checked.status,0,checked.stderr)
 }))
 test('emit-plan reconstructs exact production graph without writing or overwriting any cut',()=>fixture(f=>{
   assert.equal(f.compile().status,0)
@@ -193,7 +193,7 @@ test('emit-plan reconstructs exact production graph without writing or overwriti
 }))
 test('committed owner qualification activates only its bounded leaf and keeps parent impacts open',()=>fixture(f=>{
   const source=ownerSource(f);publishOwner(f,source)
-  const result=f.compile();assert.equal(result.status,0,result.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  const result=f.compile();assert.equal(result.status,0,result.stderr);const checked=f.check();assert.equal(checked.status,0,checked.stderr)
   const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'))
   assert.equal(plan.owner_reconciliation.path,reconciliationPath);assert.equal(plan.owner_reconciliation.commit,f.revision)
   assert(plan.sources.some(s=>s.path===reconciliationPath&&s.commit===f.revision))
@@ -219,7 +219,7 @@ test('complete immutable existing directory inventory qualifies only with every 
   const paths=['docs/example-subject/model.js','docs/example-subject/nested/schema.json'];for(const path of paths){mkdirSync(dirname(join(f.root,path)),{recursive:true});writeFileSync(join(f.root,path),'{}\n')}f.commit()
   const source=ownerSource(f),packet=source.packets[0];packet.context.scope=['docs/example-subject']
   for(const path of paths)packet.basis_sources.push({path,revision:packet.basis_revision,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')})
-  publishOwner(f,source);const result=f.compile();assert.equal(result.status,0,result.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  publishOwner(f,source);const result=f.compile();assert.equal(result.status,0,result.stderr);const checked=f.check();assert.equal(checked.status,0,checked.stderr)
   const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'));for(const path of paths)assert(plan.sources.some(s=>s.path===path))
   const packetView=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'packet',packet.id],{cwd:f.root,encoding:'utf8'});assert.equal(packetView.status,0,packetView.stderr)
   const view=JSON.parse(packetView.stdout);for(const path of paths)assert(view.source_pins.some(s=>s.path===path))
@@ -317,7 +317,7 @@ test('new blocking impact remains blocking without an exact owner applicability 
   impacts.push({id:'I-new',targets:['P-08'],severity:'blocking',disposition:'open',evidence:'New current source observation',action:'Owner must investigate new scope'})
   writeFileSync(path,JSON.stringify(impacts));f.commit()
   const source=ownerSource(f);source.packets[0].impact_scope=source.packets[0].impact_scope.filter(i=>i.id!=='I-new');publishOwner(f,source)
-  const c=f.compile();assert.equal(c.status,0,c.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  const c=f.compile();assert.equal(c.status,0,c.stderr);const checked=f.check();assert.equal(checked.status,0,checked.stderr)
   const next=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'next'],{cwd:f.root,encoding:'utf8'})
   assert.equal(next.status,0,next.stderr);const frontier=JSON.parse(next.stdout);assert.equal(frontier.ready.length,0)
   assert(frontier.held.find(t=>t.id==='P-08.qualify-source').reasons.includes('impact I-new'))
@@ -342,7 +342,7 @@ test('published descendant content retains pinned parser identity; unrelated wor
   const result=f.compile();assert.equal(result.status,0,result.stderr)
   const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'))
   assert.equal(plan.canonical_inventory.parser.commit,pin)
-  assert.equal(f.check().status,0,f.check().stderr)
+  const checked=f.check();assert.equal(checked.status,0,checked.stderr)
   git('checkout','--orphan','unrelated-fixture')
   git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','unrelated history, identical parser bytes')
   const refused=f.check();assert.notEqual(refused.status,0);assert.match(refused.stderr,/not a descendant/)

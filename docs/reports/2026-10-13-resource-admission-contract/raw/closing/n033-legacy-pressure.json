@@ -1,0 +1,13 @@
+{
+  "command": "nice -n 10 node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-worker-launch.test.mjs",
+  "exitCode": 1,
+  "durationMs": 50551.494625,
+  "tests": 29,
+  "pass": 27,
+  "fail": 2,
+  "testSha256": "3d13f5f5d5977a37fca141596fb55c28f7a2f192d32f104d473a676b9b92d71a",
+  "unitSha256": "9cb01e413f75116e9c275f915e33b2e29ddeb4a7f6c1d6270901f89d90851b55",
+  "limits": "two failed checks did not reach final SQL/native spawn assertions; no product success claimed; no production deadline changed",
+  "diskFreeObservedMiB": 144,
+  "loadAverageObserved": 493.16
+}

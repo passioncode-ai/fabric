@@ -1,0 +1,37 @@
+✔ actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch (518.508792ms)
+✔ actual private admission binding attempt mismatch refuses before begin; intent remains (257.288125ms)
+✔ foreign prepared/receipt/unit/native handles never manufacture binding (282.909125ms)
+✔ spawn succeeded then capture uncertainty retains unit and cannot compensate no-process (270.051125ms)
+✔ spawn succeeded then journal uncertainty retains unit and cannot compensate no-process (367.279916ms)
+✔ final SQL guard follows all unit/currentness awaits; invalidation cannot spawn (349.840208ms)
+✔ native handle observes held object, not a replacement with the same session id (405.957166ms)
+✔ PID start reuse and escaped descendants remain unknown, not active or retired (290.467083ms)
+✔ root/tree exit without provider proof stays retained and inventory incomplete (220.074084ms)
+✔ unit timeout retains one actual assignment read; repeated preparation never reallocates (91.247583ms)
+✔ observation timeout retains one native snapshot and late settlement cannot append (1431.812833ms)
+✔ missing unit dependency and substituted actual collaborators refuse before new effects (52.94ms)
+✔ resource refresh cannot hide changed actual intent coverage before final SQL (237.594125ms)
+✔ lost reply after actual durable admission attachment prevents begin and preserves evidence (176.604708ms)
+✔ one logical unit cannot bind an own demand of multiple worker slots (193.918292ms)
+✔ exit before bind cannot turn an actually spawned unit into never-spawned compensation (214.617792ms)
+✔ assignment is exposed only after confirmed preparation: successful refresh (221.515333ms)
+✔ assignment is exposed only after confirmed preparation: late failed refresh (1663.400042ms)
+✔ actual child key overrides parent, descriptor and bundle without changing other environment (640.440333ms)
+✔ changed actual mapping during resource refresh refuses before SQL and spawn (455.693375ms)
+✔ child environment extra-key refuses before begin without reading getters (315.288083ms)
+✔ child environment getter refuses before begin without reading getters (456.646417ms)
+✔ child environment refused refuses before begin without reading getters (305.220625ms)
+✔ child environment rejected refuses before begin without reading getters (349.9905ms)
+✔ timed out environment read remains occupied and cannot expose native token after late settlement (1308.98225ms)
+✔ PTY refuses copied token and invalid environment schema before any spawn (412.858417ms)
+✔ ordinary legacy PTY keeps descriptor and bundle environment precedence (77.226916ms)
+✔ late native allocation after admission deadline remains private until confirmed reconciliation (1739.680208ms)
+✔ changed producer key during final refresh refuses before SQL and spawn (408.792209ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13867.76925

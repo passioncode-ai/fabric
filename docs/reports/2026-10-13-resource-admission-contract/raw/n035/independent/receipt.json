@@ -1,0 +1,92 @@
+{
+  "reviewer": "/root/pipeline_research",
+  "verdict": "SCOPED_ACCEPT_N035_SOURCE_COMPOSITION",
+  "sourceSha256": {
+    "resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+    "resourcePoolRegistry.ts": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1",
+    "resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+    "resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+    "pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff"
+  },
+  "docSha256": "f6721817a9a481dd6c82d154e4fdeb678df3a1bb35e1f7ffabbcebf973bcd6c8",
+  "authorTestSha256": "a659f206c1b8953f870eca0b9ba602955af630d71fe13154fe9a903e72b66103",
+  "independentControlsSha256": "c30601c538cb456bee09afe1a90e93761ddf37c47d47d2fc8be2161386a47ac9",
+  "originalFactorySha256": "4776250ba0d6545ec9332d78b56f0d5e956c7a5c79adb8d248817fce4c57842a",
+  "execution": [
+    {
+      "label": "corrected",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--experimental-strip-types",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "<INDEPENDENT_OVERLAY>/apps/desktop/test/controls.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 17.917418875033036
+    },
+    {
+      "label": "original",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--loader",
+        "<INDEPENDENT_OVERLAY>/negative-loader.mjs",
+        "--experimental-strip-types",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "--test-name-pattern=mapped failed delivery",
+        "<INDEPENDENT_OVERLAY>/apps/desktop/test/controls.mjs"
+      ],
+      "exitCode": 1,
+      "seconds": 5.893282208999153
+    }
+  ],
+  "findings": [
+    {
+      "id": "delivery-state-domain",
+      "status": "FIXED_AND_REPRODUCED",
+      "original": "Mapped retryable resulted clean sealed",
+      "fixed": "Only acked/delivering permit success; every other delivery poisons and preserves actual LaunchResult"
+    }
+  ],
+  "independence": "Reviewer did not author N035 production. Reused disclosed author real-FS/actual module fixture setup; authored three assertions/control cases independently. Prior N033 contributor; review scoped to N035 delta. SQL/dispatch/process transport synthetic, actual N028/N031/N032/N034/managed/PTY functions used.",
+  "checks": [
+    "Failed mapped retryable/rejected/queued/malformed preserve started true but close unknown, one declaration and retained writer.lock",
+    "Close during pending dispatch revokes domain; even subsequent acked result cannot clean seal, snapshot remains unknown",
+    "Genuine unconsumed ticket rejects copied ticket/wrong PTY/copied packet/copied native/rebind before actual spawn; real spawn still once, consumed ticket replay false",
+    "Original exact source expected RED at actual sealed versus expected unknown, not loader failure",
+    "Exact five frozen production hashes unchanged after execution",
+    "Static private-capability genesis, declaration-first, historical epoch count, final synchronous ticket placement, poison/close and dependency captures reviewed"
+  ],
+  "harnessCorrection": "Initial reviewer string substitution accidentally produced timeout50000 beyond config maximum. Initial source/logs retained as fixture-invalid-bound*. Corrected only to original author15000; assertions unchanged. These initial failures are not product evidence.",
+  "limitations": [
+    "Six author initial legacy setup timeouts NOT cleared by this review; root must rerun required legacy/full gate",
+    "Author18PASS and strict types are separately authored evidence, not independent reruns",
+    "No live SQL, native provider, runtime activation or active migrations",
+    "No R1held ownership/full-input selection/efficient capacity-one contract",
+    "Complete covers only configured cooperative factory domain; app/root/preflight remain trusted DI",
+    "Close during active operation intentionally poisons. Unknown seal acknowledgement cannot prove lock remains if syscall completed.",
+    "Storage rollback of entire ledger+anchor not detected; no hostile same-user filesystem guarantee"
+  ],
+  "finalNineFileManifest": {
+    "apps/desktop/src/main/resourceControlledPool.ts": "55dd413ea96abd8316537600a0ff32bd7fa23188a93c7764450625b575f22644",
+    "apps/desktop/src/main/resourcePoolRegistry.ts": "20a100240fcdf52ebbd3c690d0e73c2ac7d16f90f3c97c37823026b2cbbec1f1",
+    "apps/desktop/src/main/resourceWorkerInventory.ts": "d9b8f90f551ecebe657adb50f94108494473b82841bc1d02827d8afd512a1e61",
+    "apps/desktop/src/main/resourceManagedUnit.ts": "989765a8377a37abb1025fd31670f92e57e11dd6dee77bc40379aa1aef8172c6",
+    "apps/desktop/src/main/pty.ts": "7347daaeba6c8112a8d15919d0f112ad38886bc3625c5dd54f9d8734bd5cf2ff",
+    "apps/desktop/test/resource-controlled-pool.test.mjs": "a659f206c1b8953f870eca0b9ba602955af630d71fe13154fe9a903e72b66103",
+    "docs/execution/harness-waves/resource-controlled-pool.md": "f6721817a9a481dd6c82d154e4fdeb678df3a1bb35e1f7ffabbcebf973bcd6c8",
+    "docs/execution/harness-waves/resource-pool-registry.md": "81b2d159a20fa1c4c9b0515e06ee027a8799569edbbc4731c2caa9992ce41acb",
+    "docs/execution/harness-waves/resource-worker-inventory.md": "10832763e99b2aa98484176f0f5a09e21b6cb6636280edc1203c8616496d9083"
+  },
+  "portableReplay": "python3 replay.py --source-root <exact candidate checkout> --output <owned output directory>",
+  "portableReplayExecution": "Runner added after original commands completed; script itself NOT_RERUN; same controls and exact-source negative loader executed successfully as recorded"
+}

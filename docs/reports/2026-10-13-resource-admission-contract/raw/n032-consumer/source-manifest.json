@@ -1,0 +1,42 @@
+{
+  "apps/desktop/src/main/resourceManagedUnit.ts": {
+    "sha256": "94105e9df96a4a658d1c64318fb1619863f4b1abb77e067b2f25592860a70374",
+    "beforeSha256": null
+  },
+  "apps/desktop/src/main/managedLaunch.ts": {
+    "sha256": "5d4d4697b77369bc8c620e23e75747709ec0562d4e7ba3c4a58c08f4442431fa",
+    "beforeSha256": "ea79624ea73e5ae9c6b487fcd29471bbcd26762b7cbc81547bcd03b28c01e651"
+  },
+  "apps/desktop/src/main/pty.ts": {
+    "sha256": "88a4524a19dee0d4e07c4866bbae3b497bba74b040b5f864551db424dd155a9b",
+    "beforeSha256": "2fc51e6b725f7bc86b1328c5461e66a57537a77ddcd51dcf4af47ad6a10de20f"
+  },
+  "apps/desktop/src/main/index.ts": {
+    "sha256": "846e7523b16e82e46df0742a3d91235bf9bc99242ff85e7dc621c73179b68bc0",
+    "beforeSha256": "ce16805350fbf10325ef45e82ac56e5c9cf80bf8eef10e9ef2e00fb1715b1e22"
+  },
+  "apps/desktop/src/main/resourceLaunchAdapter.ts": {
+    "sha256": "343f7847eda2d137cf59a25eff7208e2cd2944f5bd3228b2e2832d27b9808157",
+    "beforeSha256": "f72f99ea9b275564eb39fedf6e3d9d0e6cb923a82e925d8d2ccb2329000d511a"
+  },
+  "apps/desktop/test/resource-worker-launch.test.mjs": {
+    "sha256": "c6435a0cc6ec1a316ee6cc0c3325d017905b8db866b8e81ff61a0f923d5e87d1",
+    "beforeSha256": null
+  },
+  "apps/desktop/test/resource-launch-adapter.test.mjs": {
+    "sha256": "56568a1b72e41a0acb798a0e46a824945c78c0cc4f4292ba92c35ab16c2ad805",
+    "beforeSha256": "798c301562f776cbcc8dc1a06f00cb1e0575171113b06ea790ad7fe217d46f84"
+  },
+  "apps/desktop/test/prepared-managed-launch.test.mjs": {
+    "sha256": "ec1da860a901eab13765f8633ccedbffad361b05ce580af918c111228f9a1f21",
+    "beforeSha256": "8143afb513c30d8ad6d5757abc35cdd43a8156fdac07d99479fbb98980934d9f"
+  },
+  "apps/desktop/test/prepared-launch-fixture.mjs": {
+    "sha256": "eeaa30b610d3cfeaaf5c6be1b593ee5663dbe6c783abd7cd9cd729149b8bfeb4",
+    "beforeSha256": "d5fe54f90d0a778a6983f8ef53eb3f4629a8a226b8b75c7220f139f4c589778c"
+  },
+  "docs/execution/harness-waves/resource-worker-launch.md": {
+    "sha256": "f74b213020cc79a5034f0cbc44dbaa02a94f08830e73549cfe31fdb2e54a28f6",
+    "beforeSha256": null
+  }
+}

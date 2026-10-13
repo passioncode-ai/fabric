@@ -3,9 +3,11 @@ import * as fs from 'node:fs/promises'
 import { constants } from 'node:fs'
 import path from 'node:path'
 import { createHash, randomUUID } from 'node:crypto'
-import { resourceId as id } from './resourceHostPolicy.ts'
+import { resourceId as id, readResourceHostPolicy, resourceDigest } from './resourceHostPolicy.ts'
 import type { createResourceRunAssignmentManager, RunAssignmentHandle } from './resourceRunAssignment.ts'
 
+import type { createResourcePoolRegistry, PoolRegistryWriter } from './resourcePoolRegistry.ts'
+export interface ControlledIntentStore { registry:ReturnType<typeof createResourcePoolRegistry>; writer:PoolRegistryWriter; rawPolicy:unknown }
 type Assignments = Pick<ReturnType<typeof createResourceRunAssignmentManager>, 'readIdentity'>
 type Identity = { estateId:string;projectId:string;taskId:string;sessionId:string;attemptId:string }
 export interface WorkerIntentConfig {
@@ -19,6 +21,30 @@ interface Intent {
   estateId:string;hostId:string;poolId:string;localPolicyRevision:string;invocationId:string
   adapterId:string;adapterSourceSha256:string;coverageSha256:string;runId:string;assignment:Identity
 }
+export interface WorkerAdmissionAttachment {
+ taskRunId:string;runOrdinal:number;reservationId:string;fence:number
+ inputDigest:string;scopeDigest:string;contentDigest:string;bindingRevision:string
+}
+export interface WorkerProcessAttachment {pid:number;group:number;start:string}
+type AttachmentKind='admission.attached'|'process.attached'
+type AttachmentEvent=Omit<Intent,'kind'> & {kind:AttachmentKind;parentRecordSha256:string;attachment:WorkerAdmissionAttachment|WorkerProcessAttachment}
+type SavedAttachment={event:AttachmentEvent;bytes:string}
+type IntentRow={event:Intent;bytes:string;admission?:SavedAttachment;process?:SavedAttachment}
+function attachment(kind:AttachmentKind,raw:unknown):WorkerAdmissionAttachment|WorkerProcessAttachment{
+ if(kind==='admission.attached'){
+  const r=object(raw,['taskRunId','runOrdinal','reservationId','fence','inputDigest','scopeDigest','contentDigest','bindingRevision'])
+  uuid(r.taskRunId);id(r.reservationId)
+  for(const key of ['runOrdinal','fence'])if(!Number.isSafeInteger(r[key])||(r[key] as number)<1)throw Error('invalid_counter')
+  for(const key of ['inputDigest','scopeDigest','contentDigest'])digest(r[key])
+  if(typeof r.bindingRevision!=='string'||!/^policy-sha256-v1:[a-f0-9]{64}$/.test(r.bindingRevision))throw Error('invalid_binding_revision')
+  return freeze({...r}) as unknown as WorkerAdmissionAttachment
+ }
+ const r=object(raw,['pid','group','start'])
+ if(!Number.isSafeInteger(r.pid)||(r.pid as number)<=1||r.group!==r.pid||typeof r.start!=='string'||!r.start.trim()||r.start.length>128||/[^\x20-\x7e]/.test(r.start))throw Error('invalid_process')
+ return freeze({...r}) as unknown as WorkerProcessAttachment
+}
+const payloadEqual=(a:object,b:object)=>Object.keys(a).every(k=>a[k as keyof typeof a]===b[k as keyof typeof b])
+const allRows=(rows:IntentRow[])=>rows.flatMap(r=>[r,...(r.admission?[r.admission]:[]),...(r.process?[r.process]:[])])
 const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex')
 const digest=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{64}$/.test(v))throw Error('invalid_digest');return v}
 const uuid=(v:unknown):string=>{if(typeof v!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v))throw Error('invalid_uuid');return v}
@@ -38,21 +64,25 @@ const unknown=(reason:string)=>({state:'unknown' as const,reason,complete:false 
 const stamp=(s:{dev:number;ino:number;size:number;mtimeMs:number;ctimeMs:number})=>[s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs].join(':')
 /** Trusted main supplies the actual N028 producer and host identity object. Neither
  * dependency is a task/tool argument; object identity is retained across every await. */
-export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assignments:Assignments;host:{hostInstanceId:string;bootId:string}}){
+export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assignments:Assignments;host:{hostInstanceId:string;bootId:string};controlled?:ControlledIntentStore}){
  const keys=['estateId','hostId','poolId','localPolicyRevision','invocationId','storageRoot','coveragePath','coverageSha256','timeoutMs','maxRecords','maxRecordBytes','maxCoverageBytes','maxRegistryBytes']
  const c=Object.freeze({...object(raw,keys)}) as unknown as Readonly<WorkerIntentConfig>
  for(const k of ['estateId','hostId','poolId','localPolicyRevision','invocationId'] as const)id(c[k])
  digest(c.coverageSha256)
  for(const k of ['storageRoot','coveragePath'] as const)if(typeof c[k]!=='string'||!path.isAbsolute(c[k])||path.normalize(c[k])!==c[k])throw Error('invalid_path')
  for(const [key,max] of [['timeoutMs',30000],['maxRecords',1024],['maxRecordBytes',65536],['maxCoverageBytes',65536],['maxRegistryBytes',8*1024*1024]] as const)if(!Number.isSafeInteger(c[key])||c[key]<1||c[key]>max)throw Error('invalid_bound')
- object(deps,['assignments','host'])
- const assignments=deps.assignments,readIdentity=assignments.readIdentity,host=deps.host
+ object(deps,['assignments','host',...(deps.controlled?['controlled']:[])])
+ const assignments=deps.assignments,readIdentity=assignments.readIdentity,host=deps.host,controlled=deps.controlled
+ const registry=controlled?.registry,registryAppend=registry?.append,writer=controlled?.writer
+ const policy=controlled?readResourceHostPolicy(controlled.rawPolicy,c.hostId):null
+ if(policy&&(policy.poolId!==c.poolId||policy.localPolicyRevision!==c.localPolicyRevision))throw Error('controlled_policy_conflict')
+ const pendingRegistrations=new Map<string,{event:Intent;bytes:string}>()
  if(typeof readIdentity!=='function')throw Error('invalid_assignments')
  const handles=new WeakMap<object,{event:Intent;bytes:string;assignment:RunAssignmentHandle}>()
  let busy=false
  function binding(){
-  object(deps,['assignments','host']);object(host,['hostInstanceId','bootId'])
-  if(deps.assignments!==assignments||assignments.readIdentity!==readIdentity||deps.host!==host||host.hostInstanceId!==c.hostId||host.bootId!==c.invocationId)throw Error('binding_changed')
+  object(deps,['assignments','host',...(deps.controlled?['controlled']:[])]);object(host,['hostInstanceId','bootId'])
+  if(deps.assignments!==assignments||assignments.readIdentity!==readIdentity||deps.host!==host||host.hostInstanceId!==c.hostId||host.bootId!==c.invocationId||deps.controlled!==controlled||(controlled&&(controlled.registry!==registry||controlled.writer!==writer||registry!.append!==registryAppend)))throw Error('binding_changed')
  }
  binding()
  async function directory(){const s=await fs.lstat(c.storageRoot);if(!s.isDirectory()||s.isSymbolicLink()||(s.mode&0o777)!==0o700||await fs.realpath(c.storageRoot)!==c.storageRoot)throw Error('storage_unknown')}
@@ -82,14 +112,15 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
   try{await directory.sync()}finally{await directory.close()}
   check()
  }
- async function coverage(){
+ async function coverageRead(){
   const bytes=await read(c.coveragePath,c.maxCoverageBytes);if(hash(bytes)!==c.coverageSha256)throw Error('coverage_changed')
   const m=object(JSON.parse(bytes.toString('utf8')),['schema','hostId','poolId','localPolicyRevision','adapters'])
   if(m.schema!==1||m.hostId!==c.hostId||m.poolId!==c.poolId||m.localPolicyRevision!==c.localPolicyRevision||!Array.isArray(m.adapters)||!m.adapters.length||m.adapters.length>32)throw Error('coverage_unknown')
   const result=new Map<string,string>()
   for(const raw of m.adapters){const a=object(raw,['id','sourceSha256']),key=id(a.id);if(result.has(key))throw Error('duplicate_adapter');result.set(key,digest(a.sourceSha256))}
-  return result
+  return {adapters:result,bytes:bytes.toString('utf8')}
  }
+ async function coverage(){return (await coverageRead()).adapters}
  function validate(raw:unknown,name:string):Intent{
   const r=object(raw,['schema','kind','unitId','eventId','estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId','adapterSourceSha256','coverageSha256','runId','assignment'])
   if(r.schema!==1||r.kind!=='intent.registered'||name!==`${uuid(r.unitId)}.${uuid(r.eventId)}.json`)throw Error('event_unknown')
@@ -99,16 +130,51 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
   const a=identity(r.assignment);if(r.unitId!==a.attemptId||r.estateId!==a.estateId)throw Error('identity_conflict')
   return freeze({...r,assignment:a}) as unknown as Intent
  }
+ function validateAttachment(raw:unknown,name:string):AttachmentEvent{
+  const r=object(raw,['schema','kind','unitId','eventId','estateId','hostId','poolId','localPolicyRevision','invocationId','adapterId','adapterSourceSha256','coverageSha256','runId','assignment','parentRecordSha256','attachment'])
+  if(r.kind!=='admission.attached'&&r.kind!=='process.attached')throw Error('event_unknown')
+  const {parentRecordSha256,attachment:rawAttachment,...common}=r
+  validate({...common,kind:'intent.registered'},name);digest(parentRecordSha256)
+  return freeze({...r,attachment:attachment(r.kind,rawAttachment)}) as unknown as AttachmentEvent
+ }
+ function sameBinding(base:Intent,event:AttachmentEvent){
+  return Object.keys(base).every(k=>k==='kind'||k==='eventId'||(k==='assignment'?same(base.assignment,event.assignment):base[k as keyof Intent]===event[k as keyof AttachmentEvent]))
+ }
+ function uniqueAttachments(rows:IntentRow[]){
+  const runs=new Set<string>(),reservations=new Set<string>(),processes=new Set<string>()
+  for(const row of rows){
+   if(row.admission){const a=row.admission.event.attachment as WorkerAdmissionAttachment
+    if(runs.has(a.taskRunId)||reservations.has(a.reservationId))throw Error('attachment_identity_conflict')
+    runs.add(a.taskRunId);reservations.add(a.reservationId)
+   }
+   if(row.process){const a=row.process.event.attachment as WorkerProcessAttachment,key=JSON.stringify([row.event.hostId,row.event.invocationId,a.pid,a.group,a.start])
+    if(processes.has(key))throw Error('process_identity_conflict');processes.add(key)
+   }
+  }
+ }
  async function scan(check:()=>void,locked=false){
-  await directory();check();const events:{event:Intent;bytes:string}[]=[];const units=new Set<string>(),sessions=new Set<string>(),runs=new Set<string>(),eventIds=new Set<string>(),dir=await fs.opendir(c.storageRoot)
-  let totalBytes=0
+  await directory();check();const events:IntentRow[]=[],attached:SavedAttachment[]=[];const units=new Set<string>(),sessions=new Set<string>(),runs=new Set<string>(),eventIds=new Set<string>(),dir=await fs.opendir(c.storageRoot)
+  let totalBytes=0,count=0
   for await(const file of dir){
    check();if(file.name==='.register.lock'&&locked)continue
-   if(!file.isFile()||!file.name.endsWith('.json')||events.length>=c.maxRecords)throw Error('registry_unknown')
-   const bytes=(await read(path.join(c.storageRoot,file.name),Math.min(c.maxRecordBytes,c.maxRegistryBytes-totalBytes),true)).toString('utf8');check();totalBytes+=Buffer.byteLength(bytes);const event=validate(JSON.parse(bytes),file.name)
-   if(units.has(event.unitId)||sessions.has(event.assignment.sessionId)||runs.has(event.runId)||eventIds.has(event.eventId))throw Error('registry_conflict')
-   units.add(event.unitId);sessions.add(event.assignment.sessionId);runs.add(event.runId);eventIds.add(event.eventId);events.push({event,bytes})
+   if(!file.isFile()||!file.name.endsWith('.json')||count++>=c.maxRecords)throw Error('registry_unknown')
+   const bytes=(await read(path.join(c.storageRoot,file.name),Math.min(c.maxRecordBytes,c.maxRegistryBytes-totalBytes),true)).toString('utf8');check();totalBytes+=Buffer.byteLength(bytes);const raw=JSON.parse(bytes)
+   const event=raw?.kind==='intent.registered'?validate(raw,file.name):validateAttachment(raw,file.name)
+   if(eventIds.has(event.eventId))throw Error('registry_conflict');eventIds.add(event.eventId)
+   if(event.kind!=='intent.registered'){attached.push({event,bytes});continue}
+   if(units.has(event.unitId)||sessions.has(event.assignment.sessionId)||runs.has(event.runId))throw Error('registry_conflict')
+   units.add(event.unitId);sessions.add(event.assignment.sessionId);runs.add(event.runId);events.push({event,bytes})
   }
+  for(const item of attached){
+   const row=events.find(r=>r.event.unitId===item.event.unitId),key=item.event.kind==='admission.attached'?'admission':'process'
+   if(!row||row[key]||!sameBinding(row.event,item.event))throw Error('attachment_conflict')
+   row[key]=item
+  }
+  for(const row of events){
+   if(row.admission&&row.admission.event.parentRecordSha256!==hash(row.bytes))throw Error('parent_changed')
+   if(row.process&&(!row.admission||row.process.event.parentRecordSha256!==hash(row.admission.bytes)))throw Error('parent_changed')
+  }
+  uniqueAttachments(events)
   return events
  }
  async function assignment(handle:RunAssignmentHandle,check:()=>void){
@@ -129,7 +195,50 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
  function current(event:Intent,adapters:Map<string,string>){
   return event.estateId===c.estateId&&event.hostId===c.hostId&&event.poolId===c.poolId&&event.localPolicyRevision===c.localPolicyRevision&&event.invocationId===c.invocationId&&event.coverageSha256===c.coverageSha256&&adapters.get(event.adapterId)===event.adapterSourceSha256
  }
+ async function heldRow(handle:WorkerIntentHandle,check:()=>void,locked=false){
+  const held=handles.get(handle);if(!held)throw Error('foreign_handle')
+  const a=await assignment(held.assignment,check),adapters=await coverage(),rows=await scan(check,locked);check()
+  if(rows.some(r=>!current(r.event,adapters)))throw Error('prior_binding_unresolved')
+  const row=rows.find(r=>r.event.eventId===held.event.eventId)
+  if(!row||row.bytes!==held.bytes||!same(a,held.event.assignment))throw Error('intent_changed')
+  return {held,row,rows}
+ }
+ async function recheck(held:{event:Intent;assignment:RunAssignmentHandle},check:()=>void){
+  const a=await assignment(held.assignment,check),adapters=await coverage();check()
+  if(!same(a,held.event.assignment)||!current(held.event,adapters))throw Error('binding_changed')
+ }
+ function attachmentReceipt(item:SavedAttachment|undefined){return item?{event:item.event,recordSha256:hash(item.bytes)}:null}
+ function attach(handle:WorkerIntentHandle,kind:AttachmentKind,raw:unknown){return operation(async check=>{
+  const value=attachment(kind,raw)
+  await directory();check();const lockPath=path.join(c.storageRoot,'.register.lock'),lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+  let lockStat:Awaited<ReturnType<typeof lock.stat>>|undefined
+  try{
+   lockStat=await lock.stat();const {held,row,rows}=await heldRow(handle,check,true)
+   const key=kind==='admission.attached'?'admission':'process',parent=key==='admission'?row:row.admission
+   if(!parent)throw Error('admission_missing')
+   const prior=row[key]
+   if(prior&&!payloadEqual(prior.event.attachment,value))throw Error('attachment_conflict')
+   let saved:SavedAttachment
+   if(prior){saved=prior}else{
+    if(allRows(rows).length>=c.maxRecords)throw Error('registry_capacity')
+    const event:AttachmentEvent={...row.event,kind,eventId:randomUUID(),parentRecordSha256:hash(parent.bytes),attachment:value},bytes=JSON.stringify(event)+'\n'
+    if(Buffer.byteLength(bytes)>c.maxRecordBytes||allRows(rows).reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
+    uniqueAttachments(rows.map(r=>r===row?{...r,[key]:{event,bytes}}:r))
+    check();const fd=await fs.open(path.join(c.storageRoot,`${event.unitId}.${event.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
+    try{check();await fd.writeFile(bytes)}finally{await fd.close()}
+    saved={event:freeze(event),bytes}
+   }
+   // A predecessor can survive a failed sync; every acknowledged chain reestablishes its barriers.
+   for(const item of [row,...(key==='process'&&row.admission?[row.admission]:[]),saved])await durable(path.join(c.storageRoot,`${item.event.unitId}.${item.event.eventId}.json`),item.bytes,check)
+   await recheck(held,check)
+   return attachmentReceipt(saved)!
+  }finally{
+   await lock.close()
+   if(lockStat){const linked=await fs.lstat(lockPath);if(linked.dev===lockStat.dev&&linked.ino===lockStat.ino)await fs.unlink(lockPath)}
+  }
+ })}
  return {
+  readCoverage(){return operation(async check=>{const read=await coverageRead();check();return {bytes:read.bytes,sha256:hash(read.bytes)}})},
   register(handle:RunAssignmentHandle,adapterId:string){return operation(async check=>{
    id(adapterId);const a=await assignment(handle,check),adapters=await coverage();check();const adapterSource=adapters.get(adapterId);if(!adapterSource)throw Error('adapter_unknown')
    await directory();check();const lockPath=path.join(c.storageRoot,'.register.lock'),lock=await fs.open(lockPath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
@@ -143,16 +252,28 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
      saved=prior.event;bytes=prior.bytes
      if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId)throw Error('intent_conflict')
     }else{
-     if(rows.length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
-     saved={schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
-     bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||rows.reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
+     if(allRows(rows).length>=c.maxRecords||rows.some(r=>r.event.assignment.sessionId===a.sessionId||r.event.runId===handle.runId))throw Error('registry_capacity_or_conflict')
+     saved=pendingRegistrations.get(a.attemptId)?.event??{schema:1,kind:'intent.registered',unitId:a.attemptId,eventId:randomUUID(),estateId:c.estateId,hostId:c.hostId,poolId:c.poolId,localPolicyRevision:c.localPolicyRevision,invocationId:c.invocationId,adapterId,adapterSourceSha256:adapterSource,coverageSha256:c.coverageSha256,runId:handle.runId,assignment:a}
+     if(!same(saved.assignment,a)||saved.adapterId!==adapterId||saved.runId!==handle.runId||!current(saved,adapters))throw Error('pending_intent_conflict')
+     bytes=JSON.stringify(saved)+'\n';if(Buffer.byteLength(bytes)>c.maxRecordBytes||allRows(rows).reduce((n,r)=>n+Buffer.byteLength(r.bytes),0)+Buffer.byteLength(bytes)>c.maxRegistryBytes)throw Error('event_bound')
+     if(controlled){
+      if(!pendingRegistrations.has(a.attemptId)&&pendingRegistrations.size>=c.maxRecords)throw Error('pending_intent_bound')
+      pendingRegistrations.set(a.attemptId,{event:saved,bytes})
+      const declaration=await registryAppend!.call(registry,writer!,{unitId:saved.unitId,originInvocationId:saved.invocationId,policyBindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,intentRecordSha256:hash(bytes),coverageSha256:saved.coverageSha256});check()
+      if(declaration.state!=='observed')throw Error('controlled_declaration_unconfirmed')
+     }
      check();const fd=await fs.open(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600)
      try{check();await fd.writeFile(bytes)}finally{await fd.close()}
+    }
+    if(controlled&&prior){
+     const declaration=await registryAppend!.call(registry,writer!,{unitId:saved.unitId,originInvocationId:saved.invocationId,policyBindingRevision:`policy-sha256-v1:${resourceDigest(policy)}`,intentRecordSha256:hash(bytes),coverageSha256:saved.coverageSha256});check()
+     if(declaration.state!=='observed')throw Error('controlled_declaration_unconfirmed')
     }
     // Existing bytes may follow a failed fsync: exact retries must establish the same durability barrier.
     await durable(path.join(c.storageRoot,`${saved.unitId}.${saved.eventId}.json`),bytes,check)
     const after=await assignment(handle,check);const latest=await coverage();check()
     if(!same(a,after)||!current(saved,latest))throw Error('binding_changed')
+    pendingRegistrations.delete(a.attemptId)
     const token=Object.freeze({unitId:saved.unitId,eventId:saved.eventId});handles.set(token,{event:freeze(saved),bytes,assignment:handle})
     return {handle:token,unitId:saved.unitId,eventId:saved.eventId,recordSha256:hash(bytes)}
    }finally{
@@ -169,10 +290,18 @@ export function createResourceWorkerInventory(raw:WorkerIntentConfig,deps:{assig
    const after=await assignment(held.assignment,check);await coverage();check();if(!same(a,after))throw Error('assignment_changed')
    return {event:held.event,recordSha256:hash(held.bytes)}
   })},
+  attachAdmission(handle:WorkerIntentHandle,value:WorkerAdmissionAttachment){return attach(handle,'admission.attached',value)},
+  attachProcess(handle:WorkerIntentHandle,value:WorkerProcessAttachment){return attach(handle,'process.attached',value)},
+  readAttachments(handle:WorkerIntentHandle){return operation(async check=>{
+   const {held,row}=await heldRow(handle,check)
+   for(const item of allRows([row]))await durable(path.join(c.storageRoot,`${item.event.unitId}.${item.event.eventId}.json`),item.bytes,check)
+   await recheck(held,check)
+   return {admission:attachmentReceipt(row.admission),process:attachmentReceipt(row.process)}
+  })},
   snapshot(){return operation(async check=>{
    const adapters=await coverage(),rows=await scan(check);await coverage();check()
    return {complete:false as const,reason:'launcher_coverage_unproven' as const,knownActive:[] as readonly string[],
-    unresolved:rows.map(({event,bytes})=>({event,recordSha256:hash(bytes),unitId:event.unitId,eventId:event.eventId,classification:current(event,adapters)?'intent_unresolved':'prior_binding_unresolved'}))}
+    unresolved:rows.map(({event,bytes,admission,process})=>({event,recordSha256:hash(bytes),admission:attachmentReceipt(admission),process:attachmentReceipt(process),unitId:event.unitId,eventId:event.eventId,classification:current(event,adapters)?'intent_unresolved':'prior_binding_unresolved'}))}
   })}
  }
 }

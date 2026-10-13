@@ -1,0 +1,14 @@
+[
+  {
+    "name": "corrected",
+    "sourceSha256": "dd38dcb6dc7951b711eef933c80bef728ea37b6cf87037a8219933c792f341c9",
+    "exit": 0,
+    "log": "corrected.log"
+  },
+  {
+    "name": "original",
+    "sourceSha256": "7b2f497421dd5adcacd45b2d94079b8c78c8f13b9c8bd1cf32695290a5f3c9f4",
+    "exit": 1,
+    "log": "original.log"
+  }
+]
