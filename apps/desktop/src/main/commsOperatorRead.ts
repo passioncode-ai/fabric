@@ -449,6 +449,7 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
       try {
         parsed = typeof url === 'string' ? new URL(url) : null
       } catch {
+        // A link that does not parse is no https: link: it is refused just below, and that refusal is recorded.
         parsed = null
       }
       if (!parsed || parsed.protocol !== 'https:') {
