@@ -461,18 +461,16 @@ export class PtyManager {
           verdict.config
         )) ?? null)
       : null
-    // Audit 2026-10-05 A6-006: for these adapters the session's permissions travel IN the bundle (Kilo's
-    // Ask is a config fragment, and Kilo's own default allows everything; a Hermes session is the ACP
-    // shell itself). Codex has no modes, but its CONNECTION is likewise only the bundle: with no bundle —
-    // the agent surface is not running — the agent would start with its own defaults while the journal
-    // recorded the mode the person chose, or start unconnected while its row declares it connected.
-    // Refused, and said why.
-    const adapter = descriptor?.surfaceAdapter
-    if (option.connectsToSurface && !bundle && (adapter === 'config-content-env' || adapter === 'acp-session' || adapter === 'codex-config-home'))
+    // #region required-runner-surface — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
+    // Every connected runner needs its bundle, including Claude: a bare process can run
+    // without the required surface and preamble while appearing connected in the journal.
+    // CO-282 / N-002 refuses before spawn rather than silently inheriting machine defaults.
+    if (option.connectsToSurface && !bundle)
       throw new RunnerUnavailable(
         `${option.label} was not started: Fabric's agent surface is not running, and this agent's permissions ` +
         `and connection are given with it. Start the session again once the surface is up (Settings → Agent access).`
       )
+    // #endregion required-runner-surface
     // Asked before the spawn and outside its catch: a changed authority is a refused request, not a
     // spawn that failed — a fallback walk must never retry it on another runner (ADR-0125 §4).
     // A check that THROWS (the launch receipt could not be read, the identity guard failed) takes the

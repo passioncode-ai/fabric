@@ -212,10 +212,9 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // different: that store is lying, and the error above escapes this
             // catch by name.
             if (e instanceof Error && e.message.startsWith('execution packet does not verify')) throw e
-            // And an UNATTENDED start whose required context did not answer is
-            // refused, not started blind (S14; release review 2026-10-03). A
-            // person's terminal never demands sources, so this cannot fire for
-            // the session a person is watching.
+            // Required context failures refuse the start (S14). This also covers
+            // ContextBudgetUnmet: even an attended terminal must not silently lose
+            // essential instructions or required warnings to an invalid budget.
             if (e instanceof MandatoryContextUnmet) throw e
             ops.failed('sessionBundle.failure', e, { note: `context pack failed for session ${sessionId}:` })
           }
@@ -289,6 +288,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               }
             }
           }
+          // #region acp-session-modes — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
           case 'acp-session': {
             // ADR-0119 §1/§2, P-10: the PTY runs Fabric's ACP terminal shell, which starts the agent
             // in its ACP mode and opens the session with Fabric's surface — over HTTP when the agent
@@ -317,6 +317,8 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               },
               brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
               mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask',
+              // Native session mode is a separate ACP request, acknowledged before the first prompt.
+              ...(typeof modeConfig?.acpSessionMode === 'string' ? { sessionMode: modeConfig.acpSessionMode } : {}),
               // The project's granted gateway servers, each with its hop's role key (audit 2026-10-05
               // A6-004: they were dropped, so a Hermes agent created with servers reached none of them).
               // Both spellings travel and the shell picks by what the agent declares: HTTP servers for an
@@ -343,6 +345,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               env: { ...shell.env, ...(descriptor.acp.env ?? {}), FABRIC_ACP_SESSION: JSON.stringify(spec) }
             }
           }
+          // #endregion acp-session-modes
           // #region codex-config-home — docs: docs/reports/2026-10-11-codex-kimi-surface-probes/README.md#codex-01621--what-it-takes
           case 'codex-config-home': {
             // Probed 2026-10-11 (report docs/reports/2026-10-11-codex-kimi-surface-probes): Codex reads
