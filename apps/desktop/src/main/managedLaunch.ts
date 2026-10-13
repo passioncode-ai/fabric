@@ -87,11 +87,13 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       const open = await deps.prepare(receipt, input)
       deps.track(sessionId, input.taskId)
       const session = await open(sessionId, async () => {
+        // The trusted refresh may wait on I/O. Membership, capacity or the run's
+        // fence may change while it waits, so SQL must be the last check here.
+        if (resources && !await resources.current(receipt!)) return false
         const valid = await command('validate_task_run_launch', {
           p_person_id: authority?.personId ?? null, p_revision: authority?.revision ?? null
         })
-        if (!(valid.valid === true && valid.task_run_id === runId && valid.session_id === sessionId)) return false
-        return resources ? await resources.current(receipt!) : true
+        return valid.valid === true && valid.task_run_id === runId && valid.session_id === sessionId
       })
       processStarted = true
       if (session.sessionId !== sessionId) throw Error('native session identity mismatch')

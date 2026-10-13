@@ -133,8 +133,29 @@ for (const trigger of ['operator', 'routine', 'chain', 'answer']) test(`${trigge
   const result = await createManagedLaunch(f.managed)({ taskId: ids.task, trigger, ...(admission ? { admission } : {}) })
   assert.equal(result.started, true); assert.equal(f.spawned, 1); noLegacy(f)
   assert.equal(names(f).filter(n => n === 'admit_resource_task_launch').length, 1)
-  assert.ok(names(f).indexOf('current') > names(f).indexOf('validate_task_run_launch'))
+  assert.ok(names(f).indexOf('current') < names(f).indexOf('validate_task_run_launch'))
   assert.ok(names(f).indexOf('current') < names(f).indexOf('bind_task_run'))
+})
+for (const preAdmitted of [false, true]) test(`SQL fence changed during async currentness refuses ${preAdmitted ? 'pre-admitted' : 'ordinary'} spawn`, async () => {
+  const f = fixture(); let sqlStillValid = true
+  f.currentHook = async () => {
+    await new Promise(resolve => setImmediate(resolve))
+    sqlStillValid = false
+    return true // Resource/input refresh succeeded, but SQL authority changed while it waited.
+  }
+  f.rpc = (name, args) => name === 'validate_task_run_launch'
+    ? { data: { valid: sqlStillValid, task_run_id: ids.run, session_id: args.p_session_id } } : undefined
+  let admission
+  if (preAdmitted) {
+    const a = await f.admit(input()); assert.equal(a.admitted, true)
+    admission = { receipt: a.receipt, sessionId: ids.session }
+  }
+  const result = await createManagedLaunch(f.managed)({ taskId: ids.task, trigger: preAdmitted ? 'chain' : 'operator', ...(admission ? { admission } : {}) })
+  assert.equal(result.started, false)
+  assert.equal(f.spawned, 0, 'a successful refresh cannot reuse the SQL verdict taken before it')
+  assert.equal(names(f).includes('bind_task_run'), false)
+  assert.ok(names(f).indexOf('validate_task_run_launch') > names(f).indexOf('current'))
+  assert.ok(names(f).indexOf('release_resource_reservation') > names(f).indexOf('fail_task_launch'))
 })
 for (const failure of ['changed', 'throw', 'timeout']) test(`currentness ${failure} prevents spawn and releases only after compensation`, async () => {
   const f = fixture()
