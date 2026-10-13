@@ -160,7 +160,7 @@ Status lifecycle, written at three checkpoints only (stage 4, 5, 10):
 | 0 Harvest | Doc sources beyond this repo | wiki (stage 9 writes `projects/software-fabric/`); the flagship SEO agent's `docs/audit/` read-only; graph not built |
 | 0 Duplicates | which copy the build reads | n/a — greenfield, single tree |
 | 0 Fixtures | recreate command | `supabase db reset` — migrations + seed from zero. Local Docker stack is the only persistent state |
-| 0 Source | `git rev-list --count HEAD..@{u}` | n/a — repository initialised this run, no upstream yet. Remote `ssheleg/software-fabric`, private, created at the first push |
+| 0 Source | `git rev-list --count HEAD..@{u}` | n/a — repository initialised this run, no upstream yet. Remote on the maintainer's personal account (name redacted 2026-10-13 under ADR-0096), private, created at the first push |
 | 0 Work-list | register + read command | `docs/evidence/backlog.md`; later the goal graph itself |
 | 0 Setup audit | entry audit over existing docs | **no** — greenfield, nothing to audit. Recorded, not re-asked |
 | 0 Docs regime | home, writer, lease, gate | `docs/adr/`; `agent-sync` initialised this run; `scripts/check-docs.sh` at stage 5 |

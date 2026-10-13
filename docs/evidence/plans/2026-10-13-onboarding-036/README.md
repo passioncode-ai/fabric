@@ -39,7 +39,7 @@ quit resumes there (F-04). With no ready agent, step 5 opens the project without
   Change…). Read-only, bounded, cancellable, with a live count, a «slow» line after 10 s and a «denied» state with
   Open System Settings (F-06).
 - **Grouped for a person with many repositories and much junk:** sections by **owner** from the git remote
-  (`github.com/passioncode-ai`, `github.com/ssheleg`, …, largest first), then **Local repositories** (no remote),
+  (`github.com/passioncode-ai`, `github.com/<another owner>`, …, largest first), then **Local repositories** (no remote),
   then **Folders without git** (collapsed, unticked). Inside a section one row per **product**: name, one line of
   what it says it is, last activity («3 дня назад»), badges for uncommitted changes and worktrees; its worktrees and
   nested repositories fold under it (F-05).

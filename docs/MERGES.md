@@ -9,6 +9,16 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: see branch diff against a5b78e4919d82c6eae88bee72e59eba3e0c1fbae
 - conflicts: combined both MCP test groups, both merge-log entries and map lanes onto main 4e227922; fast gate passed on preserved commit 179e71e9; onboarding and CO-212 documentation reconciled onto 938acc62, fresh53 compiler/reconciliation tests and documentation checks pass; newer main privacy redaction must be retained at landing
 - summary: Four reviewed repairs: pending enrollment identity/serialization, whole-context budget and refusal propagation, acknowledged ACP mode with contradictory-mode refusal, MCP Retry-After and close/late-consent boundaries. Eleven-node execution plan, host evidence matrix, upstream owner packets and resource/feedback specification. CO-282 remains partial. This entry is prepared inside the source iteration as required by the map contract; it does not assert a merge or installed runtime. Entry point: docs/handoffs/2026-10-13-harness-waves.md.
+### 2026-10-13T11:30:00Z · `—` · agent/priv-co258 → main · fast-forward
+- run: r-fc848dc29
+- files: 6
+- conflicts: none
+- summary: Carry-over ledger redacted under ADR-0096: CO-258 drops a private repository link and a session name; the usage-counts row drops a private agent's name; the onboarding plan's owner example is neutral. The rest of the private-name sweep (PRIV-02) is the redaction pass's.
+### 2026-10-13T11:00:00Z · `—` · agent/priv-02-redaction → main · fast-forward
+- run: r-faa9aae98a19
+- files: 10
+- conflicts: none
+- summary: PRIV-02, HEAD redaction under ADR-0096 (no history rewrite): the delegation roll-call audit and its adoption plan name every project outside the public PassionCode products by a neutral role (the writing agent, the media agent, the store-publishing agent, the growth service, the traffic agent, the data-room agent, the brand agent, the messenger bot and business platform, the analytics stack and agent, the marketing agent, the browser agent, the research agent, the event server and others), with their paths, environment names, figures, session names and private links dropped; verdicts unchanged. Private `ssheleg/*` repository names leave ADR-0105, ADR-0144, the 2026-08-16 brief, docs/ANALYTICS.md and a comment in analytics.ts. ADR-0147's verbatim operator request is paraphrased in English (ADR-0096 §5).
 
 ### 2026-10-13T09:00:00Z · `—` · agent/priv-01-redaction → main · fast-forward
 - run: r-faa9aae98a19

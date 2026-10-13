@@ -1,8 +1,8 @@
 # ADR-0147 — Runner and model profiles: one catalogue, named profiles, one resolution order
 
 **Status:** accepted.
-**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's request relayed by a private product agent («продумай всю систему…
-раскидай по проектам и поставь всем задачи»): runner and model profiles across the estate are Fabric's main task
+**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's request relayed by a private product agent (to think the whole system through, split it across the projects and give
+every agent its task): runner and model profiles across the estate are Fabric's main task
 (CO-261, release 0.4.0 REQ-45), decided here and in a fabric-agent-contract decision written by its owner session
 (fabric-agent-contract-75). **Input:** the proposal
 `2026-10-11-runner-and-model-profiles.md`
@@ -12,7 +12,7 @@
 [ADR-0144](0144-one-delegation-model-fabric-issues-the-chain-the-callee-checks-it-observatory-meters-it.md) (the grant
 and the meter), DEC-0037/0038 (spend levels and `modelClasses`).
 
-> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
+> **Redacted 2026-10-13 under [ADR-0096](0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words, and the operator's request is paraphrased in English (ADR-0096 §5); details kept in the operator's private records. Nothing this record finds or decides changed.
 
 ## Context
 
@@ -80,7 +80,7 @@ matter).
 
 ### Amendment 1 — 2026-10-11: the OpenAI refusal is one key's, not the account's
 
-Corrected by the private product agent the same day: sshlg-analytics-agent's OpenRouter key reaches `openai/gpt-6-luna` (HTTP 200),
+Corrected by the private product agent the same day: a private analytics agent's OpenRouter key reaches `openai/gpt-6-luna` (HTTP 200),
 and only that agent's key is refused «blocked for a previous policy violation». The Context's sentence and T17's first
 item are therefore a key matter — that agent's BL-063 (a new key through Observatory's door, a re-probe, the old key
 revoked), waiting for the operator's yes — not the account's standing. The plaintext keys of BL-060 stay as stated.

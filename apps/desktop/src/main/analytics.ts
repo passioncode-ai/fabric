@@ -15,7 +15,7 @@
  *   included. The answer is kept per app as `disclosed_at` in this app's own state file: another PassionCode
  *   app's disclosure does not disclose Fabric. A start that happened before the answer is reported after it.
  * - **Delivery never blocks Fabric:** batches of at most 25 to `POST /api/v0/events` (ingestion contract,
- *   ssheleg/sshlg-analytics docs/client-contract.md); transport errors, 429 and 5xx keep the batch and retry
+ *   the analytics service's client contract, in its private repository); transport errors, 429 and 5xx keep the batch and retry
  *   after 60 s, then 10 min; 400 and 404 drop it. At most 200 events wait, in memory only; an event older
  *   than 23 h is dropped (the server refuses a day-old one). Each send is one `analytics.flush` line in the
  *   operations log with its outcome and count.
