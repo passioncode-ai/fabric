@@ -322,6 +322,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     })
 
   let sessionId: string | null = null
+  let observedSessionMode: string | null = null
   let turn: Promise<unknown> | null = null
   const rpc = peer(proc, io.timeouts?.requestMs ?? REQUEST_TIMEOUT_MS, {
     async request(method, params) {
@@ -341,7 +342,11 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     },
     notification(method, params) {
       if (method !== 'session/update' || !record(params)) return
-      const text = describeUpdate(params.update)
+      const update = params.update
+      if (sessionId !== null && params.sessionId === sessionId && record(update) &&
+          update.sessionUpdate === 'current_mode_update' && typeof update.currentModeId === 'string')
+        observedSessionMode = update.currentModeId
+      const text = describeUpdate(update)
       if (text) out(text)
     },
     closed() { /* The exit listener reports the end. */ },
@@ -475,6 +480,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       out('\nFabric: the agent did not advertise the requested session mode; no prompt was sent.\n')
       return stop(3)
     }
+    observedSessionMode = null
     try {
       const ack = await rpc.request('session/set_mode', { sessionId, modeId: spec.sessionMode })
       if (!record(ack)) throw new Error('invalid mode acknowledgement')
@@ -484,6 +490,12 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       return stop(3)
     }
     if (stopping) return stopping
+    // An empty success result may omit an update. A known contradictory mode from this
+    // session cannot be overridden by that acknowledgement or by a foreign session's update.
+    if (observedSessionMode !== null && observedSessionMode !== spec.sessionMode) {
+      out('\nFabric: the agent reported a different session mode; no prompt was sent.\n')
+      return stop(3)
+    }
   }
   opened = true
   out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${carried.length ? ` with ${carried.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
