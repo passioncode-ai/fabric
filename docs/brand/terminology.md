@@ -58,6 +58,7 @@ PassionCode.ai is the full name. PassionCode is the approved short family label 
 | magic | hides the contract and checks | name the recipe, adapter or check |
 | AI-powered | says nothing about the capability | name the agent role or outcome |
 | ecosystem | vague unless the participants are named | name the components or contributors |
+| ответчик | in Russian it is the defendant in a lawsuit, not an agent that answers requests | «отвечающий» («отвечающий №n»), or «агент, отвечающий на {capability}» |
 
 ## Glossary
 
@@ -94,8 +95,13 @@ These terms describe ADR-0115; secrets remain in the main process.
 
 ## Project communications terms (English / Russian)
 
-These terms describe ADR-0117 and SCN-143 (corrected 2026-10-13).
+These terms describe ADR-0117 and SCN-143 (corrected 2026-10-13), and ADR-0156 with SCN-147…SCN-149 (wave 4, 2026-10-13; designed, not built).
 
 | English | Russian | Meaning |
 |---|---|---|
 | Comms | Переписка | The operator's screen for what projects tell each other, and the word that screen uses for its own source ("Comms did not answer." / «Переписка не ответила.»). Never "the board" / «доска» in its text: the rail's Board / «Доска» is the task board |
+| Pause | пауза («поставить на паузу», «на паузе») | The estate owner's **Board hold** on a thread, a project's answering or one responder slot (ADR-0156; designed, wave 4): it stops new work and never what agents report about work already taken. Never "stop", "freeze" or «заморозить»: a pause cannot stop an effect already running |
+| Resume | возобновить («Возобновлено.») | Lifting a pause; agents' refused calls go through when sent again |
+| Responder #n | отвечающий №n | The agent holding a project's responder slot for a capability, and the slot's generation; never «ответчик» |
+| Settle with a summary | закрыть с итогом | The estate owner's settlement of a request whose outcome is unknown and whose slot no responder holds (contract DEC-0081; designed, wave 4): observed only, with what the owner observed; never "close", «отменить» or "resolve" |
+| Project directory | каталог проектов | The Settings screen where the owner chooses which projects other projects can find ("Listed for other projects" / «Виден другим проектам»); unlisting hides a project from the list only |
