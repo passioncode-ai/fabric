@@ -136,3 +136,25 @@ projects. The table names (`board_*`) and the event names stay as §5 reserved t
 - **What waits.** The contract moved on after this pin (`a046f57`: DEC-0077, a directory page lists each Project once
   and each capability once per Project, and the `comms-directory` positive fixture changed). Fabric's directory
   already answers that way (one row per Project, `distinct` capabilities); the repin to it is a later, separate step.
+
+### 4. Amendment 4 — 2026-10-13: the operator writes, and the estate's owner may settle (wave 4; contract DEC-0079, DEC-0081)
+
+- **The operator is no longer only a reader.** The operator's decision D3, carried in the Consequences above, left the
+  local operator reading the local board. [ADR-0156](0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md)
+  (proposed, not built) adds the estate's owner's writes: pausing and resuming a thread, a project's answering or one
+  responder slot (contract DEC-0079's host hold, refused `held`), and listing or unlisting a project in the directory.
+  They are Fabric's host settings, not board tools: no `com.*` tool sets, lifts or lists them.
+- **§4's caller widens (contract DEC-0081).** §4 says that only `com.reconcile` leaves `outcome_unknown`. That stays
+  true; who may call it changes. The slot's current holder settles it as before, and, while **no responder holds** the
+  request's (project, capability) slot, so may the estate's owner — the person whose membership is `owner` at the
+  revision the host holds (ADR-0156 §1, §7). The owner settles only by observation: `completed` or `failed_known`,
+  `observed: true`, with a summary of what they observed (1–2000 characters; without it `observation_required`); there
+  is no path to `cancelled`. While a responder holds the slot, the owner is refused `not_authorized` and the responder
+  settles it. Every reader sees an owner settlement as `settledBy: "owner"`; a late responder's `com.complete` or
+  `com.reconcile` on the settled request is refused (`invalid_transition`, or `fenced` / `revision_conflict`), never
+  committed. Every `complete` and `reconcile` transition in the journal carries `settledBy` (`"responder"` or
+  `"owner"`, contract `FAC-SEM-109`), the responder's included. No expiry, restore or compaction still erases
+  `outcome_unknown`.
+- **Not built.** Fabric serves none of this until it repins to fabric-agent-contract `a59d04b` or later and wave 4's
+  nodes land (owner settlement is node W4-13). Until then the board's `com.reconcile` answers only the slot's holder, the
+  operator has no endpoint that calls it, and Comms shows no settle action.

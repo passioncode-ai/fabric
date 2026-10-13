@@ -53,3 +53,9 @@ FLW-35
 FLW-60
 FLW-65
 FLW-66
+# Wave 4 of the project board (2026-10-13, COM-06; ADR-0156): FLW-91 (pause and resume) and FLW-92 (list or unlist
+# with a preview) are designed before any of their code exists — the docs-first node W4-D, so the UX sources stand
+# before the board UI is built. Their screens, SCR-82 (the pause sheet) and SCR-83 (the project directory), cite no
+# file because none is written. Strike FLW-91 when W4-9 lands SCR-82, and FLW-92 when W4-10 lands SCR-83.
+FLW-91
+FLW-92

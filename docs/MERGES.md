@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 task branch takes main d162e844 · task-branch preparation
+- sources: handoff c4ba3f11 plus main d162e844 (wave-4 docs, ADR-0156); integration into the task branch, not a merge into main
+- conflicts: ADR register (rows 0152/0154/0156 kept, next free ADR-0158, 0153/0155 marked unused), this log and the map changelog unioned, completeness.html regenerated
+- checks: full `bash scripts/ci.sh fast` on the merged candidate follows under a resource-bounded waiter; no PASS claimed here
+
 ### 2026-10-13 · CO-282 handoff to Claude Code · task-branch preparation
 - authority: operator asked this run to finish so Claude can continue
 - result: prior full-fast resource waiter expired NOT_RUN with unchangedfaf64b69 source; no new watcher, native probe or implementation started
@@ -75,6 +80,13 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: bounded recovery, CAS wait kernel/store, observation reduction, timeout retention and source-bound evidence
 - conflicts: preserved main7e51da91 including COM03 and CO283–286; generated projections rebuilt from the219/286 union
 - summary: recovery checkpoint ae197a15 full fast PASS. Later N019/N020 acceptance is recorded separately; pending107/108 are not active. Graph20 nodes retains owner admission/native/production composition gates. Entry: docs/handoffs/2026-10-13-harness-waves.md.
+
+### 2026-10-13T10:30:00Z · `—` · agent/com-w4-docs-land → main · fast-forward (squash of agent/com-w4-docs onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: Project-board wave 4, docs first (W4-D) — designed, NOT built. ADR-0156 (proposed; adopts contract DEC-0079 `held` and DEC-0081 owner settlement, fabric-agent-contract a59d04b); ADR-0117 Amendment 4 (operator writes; com.reconcile's caller widens to the estate owner while no responder holds the slot); ADR-0149 Amendment 3 (listing control, pauses over responders). SCN-143 amended, SCN-144/145 alternative paths, SCN-147/148/149/156/157; FLW-83/84 amended, FLW-91/92; SCR-81 amended, SCR-82, SCR-83. CONTEXT Board hold and Project directory listing; terminology (pause/«пауза», «отвечающий №n», «ответчик» banned); operating surfaces §10; comms plan COM-03/05/06/07. Next free ADR-0158; pipeline reservation ADR-0157.
+
 ### 2026-10-13T06:55:00Z · `—` · agent/ledger-co279-co281 → main · fast-forward
 - run: r-ac49ed619
 - files: docs/evidence/specs/2026-08-16-software-fabric-carryover.md, docs/adr/README.md, docs/reports/map.html, docs/MERGES.md
