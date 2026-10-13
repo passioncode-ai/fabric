@@ -47,9 +47,11 @@ The **same adapter instance** must be passed to both `createAdmitExisting` and
 `ManagedLaunchDeps.resources`, including the chain's separate admission caller.
 The coordinator checks a known resource receipt before begin, including its
 pre-admitted chain path. A marked resource receipt with no adapter refuses.
-After the existing SQL launch validation, the existing before-spawn callback
+Before the final SQL launch validation, the existing before-spawn callback
 asks the trusted provider to refresh input closure, mutable scope, fence,
-ownership and policy. Only literal `true` allows that callback to proceed.
+ownership and policy. Only literal `true` allows that callback to proceed to
+SQL, which rechecks current authority and resource state after the asynchronous
+refresh completes. A prior SQL verdict is never reused across that refresh.
 The provider must read independent current evidence, not echo its expected input
 (`apps/desktop/src/main/managedLaunch.ts:71`, `:94`).
 
@@ -82,8 +84,9 @@ Executed against production TypeScript without starting a CLI, database or model
 node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/managed-launch.test.mjs
 ```
 
-Result: **42 passed, 0 failed**, exit 0 (about 297 ms). The existing coordinator
-script is reported by Node as one file-level test; this is not 42 native scenarios.
+Result after the review correction: **44 passed, 0 failed**, exit 0. The existing
+coordinator script is reported by Node as one file-level test; this is not
+44 native scenarios.
 
 The adapter fixtures cover actual R1 preflight, exact combined-RPC fields,
 malformed and released receipts, absent SQL, transport uncertainty, bounded waits,
@@ -93,6 +96,13 @@ compensation/cancellation ordering. The existing coordinator fault suite checks
 legacy behavior. These are injected transport/launch tests, not active SQL or native
 acceptance. The synthetic `answer` launch trigger test exercises the coordinator's
 accepted input type; production answers currently resume an existing session.
+
+Independent review of `29639beb` reproduced a spawn after SQL authority changed
+during the asynchronous currentness callback; its original 42 tests passed and
+asserted the wrong ordering. The correction makes SQL the final check inside
+`beforeSpawn`. Both ordinary and pre-admitted regression cases change the SQL
+verdict while currentness waits and require zero spawns. This closes that added
+asynchronous gap, not the separately documented native PTY resolution gap.
 
 ## Remaining integration
 
