@@ -153,6 +153,14 @@ remain explicit follow-ups in the matrix and admission specification. Cline plai
 and shell are not promoted to autonomous executors. The remaining protocol/scheduler and
 lesson changes require owning-project work; this Fabric repair wave cannot certify them.
 
+### Later enrollment transport limit
+
+A later official `fabric_whoami` read returned HTTP429, `call budget exhausted before body
+admission`. This run closed its temporary MCP client to stop its polling. The last confirmed
+consent state was waiting; no grant, denial or board delivery is inferred from the transport
+failure. The registered Codex MCP configuration remains in place. Backoff behavior is a
+local follow-up; no server budget was raised to bypass the limit.
+
 ## Canonical feedback maintenance
 
 The [project retrospective](../../evidence/retro.md) now records this wave's two executable

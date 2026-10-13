@@ -129,7 +129,8 @@
         "N-003",
         "N-004",
         "N-005",
-        "N-006"
+        "N-006",
+        "N-011"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md"
@@ -181,6 +182,21 @@
       ],
       "surface_class": "internal",
       "check": "Owner board admission followed by real upstream positive/negative acceptance; NOT_SENT never passes"
+    },
+    {
+      "id": "N-011",
+      "title": "MCP Retry-After and cooldown",
+      "owner": "implementer",
+      "status": "running",
+      "serves": "REQ-008",
+      "blocked_by": [],
+      "touches": [
+        "apps/desktop/src/main/fabricMcp.ts",
+        "apps/desktop/src/main/fabricMcpClient.ts",
+        "apps/desktop/test/fabric-mcp.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs"
     }
   ],
   "edges": [
@@ -228,6 +244,11 @@
       "from": "N-005",
       "to": "N-010",
       "payload": "Owner integration packet and acceptance contract"
+    },
+    {
+      "from": "N-011",
+      "to": "N-007",
+      "payload": "Committed cooldown patch, failing-before/passing-after HTTP fixture and independent review"
     }
   ]
 }

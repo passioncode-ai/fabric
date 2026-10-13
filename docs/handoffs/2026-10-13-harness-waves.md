@@ -10,7 +10,7 @@ a2965695f5bdfcc5452fce0c8ff9bd342fd6ffb9. Main delivery branch: `agent/harness-w
 All outputs and packets are repository-relative under `docs/execution/harness-waves`.
 [Review and limitations](../reports/2026-10-13-harness-wave-review/README.md).
 
-Completed: detailed ten-node graph/packets; three reviewed repairs (pending bearer identity
+Completed: detailed graph/packets (initial ten nodes; N-011 added for observed MCP retry failure); three reviewed repairs (pending bearer identity
 and admission race; whole-context budget; negotiated ACP mode and mandatory surface);
 all-host evidence matrix; owner packets and shared admission/feedback specification.
 One ACP patch was rejected and repaired before integration; earlier green checks were not reused.
@@ -43,3 +43,12 @@ No foreign worktree, credential or service lifecycle was changed.
 Canonical lessons are in [the project retrospective](../evidence/retro.md); its stamp table
 was bounded to ten with all118 moved rows preserved in the Q3 archive. Historical evidence
 repair and Observatory lesson-store publication are not claimed.
+
+Later MCP observation: HTTP429 `call budget exhausted before body admission`; the temporary
+stdio client was closed to stop its retry traffic. This does not grant or deny access.
+Enrollment polling/backoff is being examined as a local resource-efficiency finding.
+
+N-011 now owns the local MCP cooldown repair before N-007 combined acceptance. Two injected
+HTTP429 negative tests failed before production edits: Retry-After lost at the SDK boundary,
+and whoami/connect retry before the server deadline. Aggregate live saturation cause is
+unmeasured. Shared cross-process poll leadership is not implemented by this bounded patch.

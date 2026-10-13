@@ -53,8 +53,11 @@ bundle or a passing fake into native agent acceptance.
 | Observatory | Structured lessons, search/filter contract, outcomes, spend/latency observations | A note cannot amend policy or grant authority |
 
 Cross-project asks go through the Fabric project board, addressed to a project. The board
-is not available to this session: after operator-approved MCP registration the official
-`fabric_whoami` returned `no-project`. Project binding is the remaining human step. Owner packets can be prepared here but are NOT_SENT;
+is not available to this session. Operator-approved MCP registration completed. The official
+`fabric_whoami` first returned `no-project`, then recognized the project and returned
+`waiting` for operator project-access consent. A later read returned HTTP429 call-budget
+exhaustion; this run closed its temporary MCP child to stop its polling. No enrollment or
+board submission succeeded. Owner packets can be prepared here but are NOT_SENT;
 writing another project's HANDOFF or messaging its session is not a substitute. This is a
 real dependency for upstream integration, not a reason to stop independent Fabric repairs.
 
@@ -74,6 +77,11 @@ real dependency for upstream integration, not a reason to stop independent Fabri
 5. **Wave 4, integration review/fix loops:** N-007 replays boundary cases and runs the
    repository gate on the combined candidate. N-008 documents exact outcomes and handoff.
    A failing or unavailable check is never rounded up to PASS. Repeat 2–4 for findings.
+6. **Observed follow-up, N-011:** an official pending MCP client reached HTTP429. Source
+   inspection shows server Retry-After is lost and failed-state polling retries in3s.
+   Reproduce that boundary with an injected HTTP peer, honor server cooldown without
+   whoami bypass, independently review, then include it in N-007. Aggregate incident
+   attribution remains unmeasured; no budget increase or consent bypass is authorized.
 
 The graph and [packets](../../execution/harness-waves/packets/) are the dispatch form.
 They do not replace the canonical CO register or create editable copies of upstream tasks.
@@ -92,6 +100,7 @@ by collecting the same report multiple times.
 | N-004 | Evidence matrix and effective-context isolation review | Each host row cites source and observed test level | Missing sign-in, unsupported hooks or unprobed isolation cannot become native PASS |
 | N-005 | Cross-owner change packets for existing pipeline/hub/Observatory work | Candidate receipts, scoped lesson round trip and host discovery contract | Foreign HEAD, old digest, report replay, unadopted lesson and unfiltered search are rejected |
 | N-006 | Admission/lifecycle specification using existing scheduler seams | One admission pool accounts for builders/reviewers and watchers release work | Retry storm, orphan watcher, expired lease, full disk and duplicate dispatch cannot create unbounded work |
+| N-011 | Respect MCP HTTP429 Retry-After and bound failure retries | Valid server cooldown delays reconnect; connection can resume after deadline | Missing/malformed/unbounded header uses a bounded fallback; repeated whoami cannot bypass cooldown; no secret in error metadata |
 | N-007 | Independent review and combined focused/repository gates | Tests refer to exact integrated source; known fixture scope declared | Old reports and unrelated green checks cannot certify changed candidate |
 | N-009 | Observatory lesson producer/consumer acceptance, after owner board admission | Scoped lesson written, retrieved and cited with provenance | Unadopted note cannot override an ADR; missing filter cannot silently broaden retrieval |
 | N-010 | Skills/MCP owner acceptance, after owner board admission | Effective host discovery and admitted MCP set have native receipts | Installed or configured alone cannot certify loaded skills or isolated tools |
@@ -126,8 +135,9 @@ finding to the source owner; a consumer never silently overwrites the canonical 
 
 Batch nonblocking questions at review boundaries with options, consequence and affected
 nodes. Stop only dependent work for an unresolved decision. Current round: no operator
-choice is needed for the three demonstrated repairs. Board registration/native sign-ins
-remain consent gates; no adapter workaround is an answer to consent.
+choice is needed for the three demonstrated repairs. Board registration is completed;
+project-access consent and native sign-ins remain human gates. No adapter workaround is
+an answer to consent, and a later transport failure does not establish a grant or denial.
 
 ## Resource and recovery policy for this run
 
