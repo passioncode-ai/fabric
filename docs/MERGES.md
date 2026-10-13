@@ -4,6 +4,17 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13T06:55:00Z · `—` · agent/ledger-co279-co281 → main · fast-forward
+- run: r-ac49ed619
+- files: docs/evidence/specs/2026-08-16-software-fabric-carryover.md, docs/adr/README.md, docs/reports/map.html, docs/MERGES.md
+- conflicts: none
+- summary: registers only. CO-279 records D-1 (`project.context.set`, by a person only) and D-12 (the hub refuses with `session-closed` / `context-mismatch`, no project id; outside-purpose is a mark only) from the org-contexts testing round; CO-281's open question corrected (the SIGTERM bound already runs from the signal); ADR-0109's register row says amended 2026-10-13 (`learning-note/1`, DEC-0072).
+### 2026-10-13T06:41:00Z · `—` · agent/com-w2-registers-land → main · fast-forward (squash of agent/com-w2-registers onto origin/main)
+- run: r-faa9aae98a19
+- files: see the commit
+- conflicts: none
+- summary: Registers after the COM-03 wave-2 fix round, filed once another run released the carry-over ledger's claim: CO-283…CO-285 updated (CO-283 and CO-285 resolve when agent/com-w2-fixes-db lands), CO-287 (the SQL half waiting for its DB tier: responders 23/23, project-board 33/33, restore-authority green on 299b8a6c; write-rules, ceo-private-archive, function-privileges and the plants wait for disk) and CO-288 (board sessions get no board rules) open, CO-289…CO-291 resolved elsewhere with receipts (fabric-workspace #195/#196, fabric-agent-adapter 0.28.0 #99, agent/onboarding-036-w1 5ad30a04); CO-282 left to its run. Lane 13: 220 of 290; next free CO-292. Handoff and the COM-03 row updated. No code.
+
 ### 2026-10-13T04:03:00Z · `—` · agent/com-w2-fixes-land → main · fast-forward (squash of agent/com-w2-fixes onto origin/main)
 - run: r-faa9aae98a19
 - files: see the commit
