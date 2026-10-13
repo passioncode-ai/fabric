@@ -1,6 +1,6 @@
 # Pending durable resource wait store
 
-Status: **IMPLEMENTATION CANDIDATE; DATABASE ACCEPTANCE NOT_RUN; NOT ACTIVE**.
+Status: **IMPLEMENTATION CANDIDATE; DATABASE ACCEPTANCE INCOMPLETE; NOT ACTIVE**.
 N-019 provides the storage producer for the [R5 kernel](resource-wait-queue.md).
 Pending108 follows pending107 and preserves reserved105–106; neither this document
 nor the fixture applies migrations to the application's database.
@@ -66,10 +66,16 @@ long-lived kernel instance for its retained operation/backpressure bound.
 
 The proposed fixture is
 [`resource-wait-store-db.test.mjs`](../../../apps/desktop/test/resource-wait-store-db.test.mjs).
-Root's existing `run-resource-reservation-db.mjs` will apply pending107 then108
-explicitly on its owned Unix-socket-only PostgreSQL cluster and run the fixture.
-Until that receipt exists, SQL syntax/concurrency/privileges and the production
-client+kernel seam are **NOT_RUN**. No active migration manifest, app composition,
+Root's existing `run-resource-reservation-db.mjs` applies pending107 then108
+explicitly on its owned Unix-socket-only PostgreSQL cluster and runs the fixture.
+The initial owned-cluster run applied108 successfully, but its first capacity
+race refused both test inputs: the preceding recovery fixture had already reserved
+`attempt-12` and `attempt-14`. Diagnostic SQL confirmed one reservation per attempt,
+valid input shapes and false never-started predicates. The fixture now namespaces
+new attempts and explicitly tests rejection of a pre-existing resource-ledger
+attempt; no production validation was weakened. The initial runner exited1.
+The next run exited2 before cluster creation at its free-space guard, so full
+FIFO/CAS/concurrency/privilege and client+kernel acceptance remains **NOT_RUN**. No active migration manifest, app composition,
 cycle, board, timer or native process is changed here.
 
 ## Next integration

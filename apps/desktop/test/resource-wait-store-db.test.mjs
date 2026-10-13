@@ -20,7 +20,7 @@ let counter = 10
 function make(scope, overrides = {}) {
   const taskId = uuid(counter++), sessionId = uuid(counter++)
   sql(`select append_event('${scope.estateId}','task.created@1',${j(actor)},${j({ id: taskId, title: 'Wait task', instruction: 'Instruction', option_id: 'claude-code', preset: 'guided', preset_edited: true, origin: { kind: 'operator', ref: 'wait-fixture' } })},'1','${scope.estateId === E ? P : P2}')`)
-  return { scope, id: `wait-${counter}`, taskId, sessionId, attemptId: `attempt-${counter}`, ownerId: 'host-owner', fence: 1,
+  return { scope, id: `wait-${counter}`, taskId, sessionId, attemptId: `wait-store-attempt-${counter}`, ownerId: 'host-owner', fence: 1,
     inputDigest: 'a'.repeat(64), scopeDigest: 'b'.repeat(64), conditionKey: 'resources', resumePoint: 'managed-admission', action: 'managed_task_launch',
     demand: { workerSlots: 1, memoryBytes: 1, diskBytes: 0, cpuMilliCores: 1 }, createdAt: Date.now() - 1000, deadlineAt: Date.now() + 300000, ...overrides }
 }
@@ -57,6 +57,11 @@ assert.equal(cas(read(winner), { state: 'waiting' }), false, 'terminal cannot re
 
 // Session and attempt conflicts across scopes cannot silently create new bindings.
 const s = configure('identities'), s2 = configure('identities-other', 20, E2)
+// The shared cluster deliberately contains earlier R2/R4 reservations. Their
+// attempts must remain excluded; new fixture attempts have a distinct namespace.
+const reservedAttempt = call("select to_json(binding->>'attemptId') from resource_reservations order by reservation_id limit 1")
+assert.equal(typeof reservedAttempt, 'string')
+assert.equal(insert(make(s, { attemptId: reservedAttempt })).ok, false, 'an existing resource-ledger attempt cannot queue')
 const original = make(s); assert.equal(insert(original).ok, true)
 for (const identity of [{ sessionId: original.sessionId }, { attemptId: original.attemptId }])
   assert.equal(insert(make(s2, identity)).ok, false)
