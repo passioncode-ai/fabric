@@ -79,6 +79,23 @@ const make = overrides => createResourceReconciliation({ ...scope, db, pageSize:
 
 const unresolved = await admit(), ended = await admit()
 await compensate(ended)
+// The fixture's service role deliberately lacks BYPASSRLS. GRANT SELECT alone
+// must not silently turn held operational rows into an empty successful scan.
+assert.equal(await sql("select rolbypassrls from pg_roles where rolname='service_role'"), 'f')
+assert.equal(await sql(`select count(*) from resource_reservations where estate_id='${estateId}' and host_id=${quote(scope.hostId)} and pool_id=${quote(scope.poolId)} and state='held'`, true), '2',
+  'service-role RLS read policy must expose both held rows before the scanner runs')
+assert.equal(await sql(`select count(*) from resource_pools where host_id=${quote(scope.hostId)} and pool_id=${quote(scope.poolId)}`, true), '1')
+for (const role of ['anon', 'authenticated']) {
+  for (const table of ['resource_reservations', 'resource_pools']) {
+    assert.equal(await sql(`select has_table_privilege('${role}','${table}','SELECT')`), 'f')
+    const denied = await runPsqlAsync('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'],
+      `set role ${role}; select count(*) from ${table};`, { label: 'resource recovery role denial', timeoutMs: 10000 })
+    assert.notEqual(denied.code, 0, `${role} cannot read ${table}`)
+  }
+}
+for (const table of ['resource_reservations', 'resource_pools'])
+  for (const privilege of ['INSERT', 'UPDATE', 'DELETE'])
+    assert.equal(await sql(`select has_table_privilege('service_role','${table}','${privilege}')`), 'f', 'writes remain RPC-only')
 const first = await make().sweep()
 assert.equal(first.items.find(i => i.reservationId === unresolved.reservationId)?.state, 'retained')
 assert.equal(first.items.find(i => i.reservationId === ended.reservationId)?.state, 'released')
