@@ -413,7 +413,7 @@ test('a refusal is -32601 only for a method the client does not offer; any other
 })
 
 // CO-282 / N-002: in-memory ACP peer; no native runner or model is invoked.
-const modeSession = ({ advertised = true, refuse = false, defer = false, malformed = false, timeoutMs = 1000, sessionMode = 'plan' } = {}) => {
+const modeSession = ({ advertised = true, refuse = false, defer = false, malformed = false, timeoutMs = 1000, sessionMode = 'plan', modeUpdates = [] } = {}) => {
   const input = new PassThrough(), output = new PassThrough(), stdin = new PassThrough(), stdout = new PassThrough()
   const requests = []; let shown = '', exit = () => {}, alive = true, pendingAck
   output.on('data', b => { shown += b })
@@ -425,7 +425,10 @@ const modeSession = ({ advertised = true, refuse = false, defer = false, malform
       if (m.method === 'initialize') reply(m.id, { result: { agentCapabilities: { mcpCapabilities: { http: true } } } })
       else if (m.method === 'session/new') reply(m.id, { result: { sessionId: 'mode-fixture', ...(advertised ? { modes: { currentModeId: 'default', availableModes: ['default','plan','yolo'].map(id => ({ id, name: id })) } } : {}) } })
       else if (m.method === 'session/set_mode') {
-        pendingAck = () => reply(m.id, refuse ? { error: { code: -32602, message: 'mode refused' } } : { result: malformed ? null : {} })
+        pendingAck = () => {
+          for (const update of modeUpdates) stdout.write(JSON.stringify({ jsonrpc: '2.0', method: 'session/update', params: { sessionId: update.sessionId ?? 'mode-fixture', update: { sessionUpdate: 'current_mode_update', currentModeId: update.mode } } }) + '\n')
+          reply(m.id, refuse ? { error: { code: -32602, message: 'mode refused' } } : { result: malformed ? null : {} })
+        }
         if (!defer) pendingAck()
       } else if (m.method === 'session/prompt') reply(m.id, { result: { stopReason: 'end_turn' } })
     }
@@ -458,5 +461,20 @@ for (const [name, options] of [
   assert.equal(await s.done, 3)
   assert.equal(s.requests.some(r => r.method === 'session/prompt'), false)
   assert.match(s.shown(), /mode/i)
+})
+
+for (const sessionMode of ['plan', 'default']) test('a contradictory ACP mode update refuses ' + sessionMode + ' before its brief', async () => {
+  const s = modeSession({ sessionMode, modeUpdates: [{ mode: 'yolo' }] })
+  s.input.end()
+  assert.equal(await s.done, 3)
+  assert.equal(s.requests.some(r => r.method === 'session/prompt'), false)
+  assert.match(s.shown(), /different session mode/i)
+})
+
+test('matching mode updates apply only to this ACP session; a foreign update cannot override them', async () => {
+  const s = modeSession({ sessionMode: 'plan', modeUpdates: [{ mode: 'plan' }, { sessionId: 'other-session', mode: 'yolo' }] })
+  s.input.end()
+  assert.equal(await s.done, 0)
+  assert.equal(s.requests.filter(r => r.method === 'session/prompt').length, 1)
 })
 // #endregion acp-shell
