@@ -327,6 +327,9 @@ node --experimental-strip-types apps/desktop/test/chain-advance-reads.test.mjs
 node --experimental-strip-types apps/desktop/test/list-reads.test.mjs
 node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs
 node apps/desktop/test/session-bundle.test.mjs
+# fabric-agent-adapter session hooks (ADR-0134 amendment 5): fabric_session_observe takes what the hooks send, null
+# facts included — a real MCP client and server over the real registerWorkTools.
+node --experimental-strip-types --test apps/desktop/test/session-observe-wire.test.mjs
 node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
 node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs

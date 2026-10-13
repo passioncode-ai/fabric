@@ -119,7 +119,8 @@ plan survives as org #1 and builds first.
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
   nothing is registered by hand. A coding agent you open yourself reaches the same harness through
   `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`,
-  or `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex`; on Windows through
+  or `codex mcp add fabric -- "<Fabric>/bin/fabric-mcp" --runner codex`, or for Kimi Code `mcpServers.fabric` =
+  `{"command": "<Fabric>/bin/fabric-mcp", "args": ["--runner", "kimi-code"]}` in `~/.kimi-code/mcp.json`; on Windows through
   `cmd /c "<install folder>\resources\bin\fabric-mcp.cmd" --runner …` (the install folder under
   `%LOCALAPPDATA%\Programs\`), not yet tried on a Windows machine, CO-267);
   `<Fabric>/bin` is `Fabric.app/Contents/Resources/bin` on macOS and the install folder's `resources/bin` on Windows

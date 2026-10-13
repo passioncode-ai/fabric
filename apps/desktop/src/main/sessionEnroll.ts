@@ -59,7 +59,8 @@ export const evictedReason = (cap: number): string =>
   `this session was ended to make room: this coding agent's access reached its limit of ${cap} enrolled sessions, and this one was the least recently active. Its claims were released — read fabric_work_list before you go on`
 
 export const NO_PROJECT_MESSAGE =
-  'This folder is not a project in Fabric yet. Open it in Fabric (+ Project → Open a project), then start the agent again.'
+  'This folder is not a project in Fabric yet. Adding it is the person\'s step, in Fabric (+ Project → Open a project); ' +
+  'never create a project or attach a folder yourself. Once it is a project, start the agent again.'
 
 export type FolderFact =
   | { ok: true; real: string; projectId: string; how: 'exact' | 'ancestor' | 'worktree'; root: string }
