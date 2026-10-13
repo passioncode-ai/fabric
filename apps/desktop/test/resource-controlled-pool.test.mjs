@@ -1,6 +1,7 @@
-import test from 'node:test'
+import nodeTest from 'node:test'
 import assert from 'node:assert/strict'
 import * as fs from 'node:fs/promises'
+import {existsSync} from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import {execFileSync} from 'node:child_process'
@@ -13,6 +14,7 @@ import {createProcessBoundary} from '../src/main/processBoundary.ts'
 import {readResourceHostPolicy,resourceDigest} from '../src/main/resourceHostPolicy.ts'
 import {AGENT_SYNC_IDENTITY_SOURCE_SHA256} from '../src/main/resourceRunAssignment.ts'
 const script=process.env.N028_AGENT_SYNC_SCRIPT??path.join(os.homedir(),'.codex/plugins/cache/agent-sync/agent-sync/1.22.2/skills/agent-sync/scripts/agent_sync.py')
+const test=(name,fn)=>nodeTest(name,{skip:existsSync(script)?false:'NOT_RUN: pinned installed agent-sync source unavailable; no installation attempted'},fn)
 const hash=b=>createHash('sha256').update(b).digest('hex'),wait=ms=>new Promise(r=>setTimeout(r,ms))
 const vector=(slots=1)=>({workerSlots:slots,memoryBytes:10,diskBytes:10,cpuMilliCores:10}),zero={workerSlots:0,memoryBytes:0,diskBytes:0,cpuMilliCores:0}
 async function fixture(t,options={}){
