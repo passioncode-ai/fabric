@@ -38,7 +38,9 @@
         "apps/desktop/src/main/sessionBundle.ts",
         "apps/desktop/src/main/pty.ts",
         "apps/desktop/src/shared/agents.ts",
-        "apps/desktop/test/session-bundle.test.mjs"
+        "apps/desktop/test/session-bundle.test.mjs",
+        "apps/desktop/src/main/acpShell.ts",
+        "apps/desktop/test/acp-shell.test.mjs"
       ],
       "surface_class": "internal",
       "check": "node apps/desktop/test/session-bundle.test.mjs"
@@ -52,7 +54,8 @@
       "blocked_by": [],
       "touches": [
         "apps/desktop/src/main/contextPack.ts",
-        "apps/desktop/test/context-mandatory.test.mjs"
+        "apps/desktop/test/context-mandatory.test.mjs",
+        "apps/desktop/test/context-privacy.test.mjs"
       ],
       "surface_class": "internal",
       "check": "node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs"

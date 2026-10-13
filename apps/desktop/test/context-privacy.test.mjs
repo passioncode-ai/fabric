@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { compileContextPack, COMPILER_REVISION, packPart } from '../src/main/contextPack.ts'
+import { compileContextPack, COMPILER_REVISION, packPart, ContextBudgetUnmet } from '../src/main/contextPack.ts'
 import { createBundleCompiler } from '../src/main/sessionBundle.ts'
 import { readPart, verify } from '../src/main/executionPacket.ts'
 import { PREAMBLE } from '../src/shared/preamble.ts'
@@ -51,9 +51,9 @@ await test('complete fact and source references are scrubbed before the 300-char
     assert.deepEqual(data, before)
     assert.equal(pack.sha256, digest(pack.markdown))
     assert.equal(pack.chars, pack.markdown.length)
-    assert.equal(pack.compilerRevision, 3)
+    assert.equal(pack.compilerRevision, 4)
   }
-  assert.equal(COMPILER_REVISION, 3)
+  assert.equal(COMPILER_REVISION, 4)
 })
 
 await test('multiline PEM is scrubbed before flattening in both fact fields', async () => {
@@ -121,13 +121,28 @@ await test('budget selection uses cleaned lengths and repeated source sanitation
   const clean = structuredClone(data)
   clean.memory_facts[0].claim = redact(clean.memory_facts[0].claim).text
   const head = await compile({...rows(), memory_facts:[], session_transcripts:[]})
-  const budget = head.markdown.length + 180
+  const budget = head.markdown.length + 400
   const once = await compile(data, {budget})
   const twice = await compile(clean, {budget})
   assert.deepEqual(once.factIds, [factId])
   assert.equal(once.omittedFacts, 0)
+  assert.ok(once.chars <= budget)
   assert.equal(stableMarkdown(once.markdown), stableMarkdown(twice.markdown))
   assert.equal(redact(once.markdown).text, once.markdown)
+})
+
+await test('an oversized essential context refuses a bundle instead of degrading to a blind session', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'fabric-context-budget-'))
+  let revoked = 0
+  try {
+    const compiler = createBundleCompiler({ root, surface: {
+      endpoint: 'http://127.0.0.1:1/mcp', mint: () => ({ token: 'synthetic-test-token' }),
+      revokeSession() { revoked++ }
+    }, context: async () => (await compile(rows(), { taskInstruction: 'x'.repeat(13000) })).markdown })
+    await assert.rejects(compiler.compile(sessionId, projectId, null, 'claude-code', 'mcp-config-flag'),
+      e => e instanceof ContextBudgetUnmet)
+    assert.equal(revoked, 1)
+  } finally { rmSync(root, { recursive: true, force: true }) }
 })
 
 await test('actual compiler → bundle → verified packet keeps one cleaned byte identity and scoped transport key', async () => {

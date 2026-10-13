@@ -9,7 +9,7 @@
   "inputs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+      "sha256": "3ea7a09ea08b941551ae592881da8076b842331922bb603c7a74478fa232e857"
     },
     {
       "address": "apps/desktop/src/main/contextPack.ts",
@@ -23,13 +23,14 @@
   "decision_refs": [
     {
       "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
-      "sha256": "4fbe31599e6300f3f8b129525db1e85190fe273ae257d1ba11b1e32de0fb0459"
+      "sha256": "3ea7a09ea08b941551ae592881da8076b842331922bb603c7a74478fa232e857"
     }
   ],
   "source_scope": {
     "edit_targets": [
       "apps/desktop/src/main/contextPack.ts",
-      "apps/desktop/test/context-mandatory.test.mjs"
+      "apps/desktop/test/context-mandatory.test.mjs",
+      "apps/desktop/test/context-privacy.test.mjs"
     ]
   },
   "outputs": [
@@ -37,7 +38,8 @@
       "contract": "Final markdown and reported chars obey budget including mandatory head and omission footer",
       "paths": [
         "apps/desktop/src/main/contextPack.ts",
-        "apps/desktop/test/context-mandatory.test.mjs"
+        "apps/desktop/test/context-mandatory.test.mjs",
+        "apps/desktop/test/context-privacy.test.mjs"
       ]
     }
   ],
