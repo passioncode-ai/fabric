@@ -145,8 +145,25 @@ await test('one fenced claim per request: concurrent enrolls on a lapsed slot gi
   const ids = claims.map(c => c.request?.id).filter(Boolean)
   assert.equal(new Set(ids).size, ids.length, 'two claims took the same request')
   assert.equal(sql(`select count(*) from (select request_id from board_attempts where estate_id='${E}' and ended_seq is null group by request_id having count(*) > 1) x`), '0')
+  // The database itself refuses a second live attempt for one request, whatever a command does (the backstop to the slot lock).
+  const live = sql(`select request_id || '|' || generation || '|' || enrollment_id from board_attempts where estate_id='${E}' and ended_seq is null limit 1`).split('|')
+  refuses(`insert into board_attempts (estate_id, id, request_id, generation, enrollment_id, claimed_seq) values ('${E}', '${id(995)}', '${live[0]}', ${live[1]}, '${live[2]}', 1)`, /board_attempts_one_live|duplicate key/)
   // Leave B as the holder for the cases below.
   if (winner !== HB) { lapse(); assert.equal(cmd('board_enroll', HB, { idempotency: idem(), capability: CAP }).ok, true) }
+})
+
+await test('the fence compares the generation itself: a slot that moved on under a live attempt fences the call (C4)', () => {
+  const r = submitRequest()
+  const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })
+  assert.equal(c.request?.state, 'claimed', JSON.stringify(c))
+  // As if a takeover's projection had not reached the attempt yet: the slot's generation moves, the attempt stays live.
+  sql(`update board_responder_slots set generation = generation + 1 where estate_id='${E}' and project_id='${RESPONDER}' and capability='${CAP}'`)
+  try {
+    assert.equal(cmd('board_accept', HB, { fence: fence(c) }).error?.code, 'fenced')
+    assert.match(state(r.id), /^claimed\|/)
+  } finally {
+    sql(`update board_responder_slots set generation = generation - 1 where estate_id='${E}' and project_id='${RESPONDER}' and capability='${CAP}'`)
+  }
 })
 
 // ── the fence, field by field ──────────────────────────────────────────────────────────────────────────────
