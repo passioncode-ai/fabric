@@ -2,9 +2,11 @@
 
 The decision is [ADR-0144](../../../adr/0144-one-delegation-model-fabric-issues-the-chain-the-callee-checks-it-observatory-meters-it.md)
 (CO-258, release 0.4.0 REQ-37). Its inputs: the roll call of 25 sessions
-([copylot-agent `9f729f4`](https://github.com/ssheleg/copylot-agent/blob/9f729f4/docs/handoffs/2026-10-11-delegation-rollcall.md))
+(kept in Copylot's private repository at `9f729f4`)
 and the [audit](2026-10-11-roll-call-audit.md) of every claim against the owner's default branch. This page is a dated record: the
 per-agent rows say what each owning session changes, and their status lives on that agent's own board, not here.
+
+> **Redacted 2026-10-13 under [ADR-0096](../../../adr/0096-dated-records-are-redacted-for-publication.md):** the names of the operator's private agents, their sessions, repositories, paths and limits are replaced by neutral words; details kept in the operator's private records. Nothing this record finds or decides changed.
 
 ## In one paragraph
 
@@ -41,14 +43,14 @@ Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers
 | project-observatory (-85, -3d) | stdio has no caller; HTTP bindings; keyserver's self-named caller header; no `grant check` | be the meter (step 3); keyserver trusts the token, not `X-Observatory-Caller`; stdio MCP stays the operator's local agent; correct `ARCHITECTURE.md:604` (identity is the hub's, the gateway is gone) | 3, 4 |
 | fabric-dashboards (-76) | calls every service with that service's descriptor token, which can mint login codes | read feeds, well-known and usage with the descriptor token as the host (allowed); every capability call (control, `doctor`/`update` that act) through a minted token; FD-40 builds on the grant-check of step 3 | 5 |
 | fabric-inbox (-df) | per-key Cloudflare Access identity; `X-Fabric-Accounts` narrowing; confirm codes | accept `Fabric-Delegation` on hub-forwarded calls and attribute to its chain (not to the `fabric` key alone); keep its keys for people and outside callers; map refusals; confirm codes stay for people, `approval/1` between agents | 4, 6 |
-| asset-foundry (-e9, -ec) | one local token; bridge key per project; per-project budgets; calls frame-agent with a caller token | accept the token (caller = agent, project from the grant); budgets per grant beside per project; calls to frame-agent through a minted token; Telegram second press → `approval/1` between agents | 4, 5, 6 |
-| frame-agent (-84) | per-caller tokens by CLI; calls Copylot and Foundry with their descriptor tokens; global daily cap | accept the token instead of `client add` for estate agents; calls to Copylot/Foundry through minted tokens (no descriptor tokens); forward `traceparent` (it only echoes it); per-caller caps from the grant; BL-057 by the kit's session lifetime | 4, 5 |
+| asset-foundry (-e9, -ec) | one local token; bridge key per project; per-project budgets; calls a private product agent with a caller token | accept the token (caller = agent, project from the grant); budgets per grant beside per project; calls to that agent through a minted token; Telegram second press → `approval/1` between agents | 4, 5, 6 |
+| a private product agent | per-caller tokens by CLI; calls Copylot and Foundry with their descriptor tokens; global daily cap | accept the token instead of `client add` for estate agents; calls to Copylot/Foundry through minted tokens (no descriptor tokens); forward `traceparent` (it only echoes it); per-caller caps from the grant; BL-057 by the kit's session lifetime | 4, 5 |
 | mobile-publisher-agent (-61) | one agent token; sends Foundry's own service-token file to Foundry; Copylot session token + owner header | stop sending Foundry's token — mint for Foundry and Copylot; accept the token on its own MCP (`auth:"own"` stays for people); plan-hash approval → `approval/1` when the approver is reached from another agent | 4, 5, 6 |
 | sshlg-growth (-79) | a bearer per role; one unscoped revenue token beside per-producer ones | roles become capability sets on the wire; accept the token; retire the unscoped revenue token (per-producer only) | 4 |
 | traffic-growth-agent (-af) | per-client `SurfaceToken` with scopes; shared Prowl token; $50/month per account (tenant), provider spend only — corrected by its owner, `packages/providers/src/budget.ts` `MONTHLY_CEILING_USD` | accept the token, its scopes = capabilities; per-caller limits from the grant; Prowl through Prowl's own per-key model (an outside provider: its key stays, held by the owner) | 4 |
 | appvillis-dataroom-agent (-b1) | `Principal(consumer, scopes)`; relay with a shared env token | accept the token, scopes = capabilities; relay token per producer | 4 |
 | sshlg-brand-agent (-85, -a8) | `service.token` on the feed only; board without auth (AU1); HMAC grant key shared with webpilot; falls back to webpilot's shared token | board behind the token (AU1); calls to webpilot through minted tokens, no fallback; HMAC grants → `approval/1` (the shared key retired with webpilot) | 4, 5, 6 |
-| sshlg-personal-os (-62) | local-lifecycle: credential hash × tools × targets; communicator: one token; adops-bot confirm-gate | lifecycle accepts the token beside its policy (its `allowedCallers` = the grant's actor); communicator accepts the token; adops-bot confirm-gate → `approval/1` for agent callers | 4, 6 |
+| the operator's private agents (one repository) | the lifecycle broker: credential hash × tools × targets; the operator's notification agent: one token; an ad-operations bot's confirm-gate | the lifecycle broker accepts the token beside its policy (its allowed callers = the grant's actor); the notification agent accepts the token; the bot's confirm-gate → `approval/1` for agent callers | 4, 6 |
 | nicegramappbot (-35) | one service token, which also mints a write-capable operator session | accept the token on MCP; the descriptor token stops minting a write session for agents (people only, by login code) | 4 |
 | prowl (0xdev-d3) | per-user key or OAuth | an outside provider: no change to its model; estate agents call it with the owner's key held by the owner's agent (never borrowed) | — |
 | nicegram-business (-7b) | per-connection MCP token (MCP off in prod); enforced `actor` | when its MCP returns, accept the token alongside per-connection tokens; its human delegation stays its own | 4 (deferred with its MCP) |
@@ -85,13 +87,13 @@ Each owner filed its row on its own board and named it back; the status lives th
 | traffic-growth-agent | B-001 | PROWL-AI/traffic-growth-agent PR #14, `343b0b0f` |
 | appvillis-dataroom-agent | DR-003 | ssheleg/appvillis-dataroom-agent `docs/backlog.md` |
 | sshlg-brand-agent | AU7 (closes AU1 when done) | `main`, `f6f892b` |
-| sshlg-personal-os | BL-1117 | PR #253, `5c32def8` |
+| the operator's private agents | BL-1117 | details kept in the operator's private records |
 | nicegramappbot | FD1 | `main`, `98a2785` |
 | sshlg-analytics-agent | W-13 | `docs/plans/WORKPLAN.md`, `2738a16`, `28554f1` |
 | webpilot | BL-015 | branch `claude/fabric-service-20261005`, `1994eeb` |
 | mobile-publisher-agent | BL-360 | PR #41, `6ab0af5` |
 | agent-stack (sshlg-skills) | B-155, the interop doctrine | ssheleg/agent-stack#42 |
-| frame-agent | BL-059 (folds BL-056, BL-057) | branch `agent/bl-059-delegation`, `93f2772` |
+| a private product agent | BL-059 (folds BL-056, BL-057) | details kept in the operator's private records |
 | nicegram-business | B-765 (deferred until its MCP returns) | nicegram/nicegram-business PR #379, `393ebf4b` |
 | prowl-research.default (PROWL-AI/research-agent, a local HTTP MCP — not ssheleg/research-agent, not prowl.chat) | B-020 (step 4, callee side; its contract pin moves to the merged DEC-0039/0041) | its own board |
 
