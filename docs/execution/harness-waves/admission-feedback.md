@@ -118,3 +118,10 @@ measure on its own.
 
 Implementation remains follow-up work in the admitted owner path. N-006 may close
 as a reviewed specification while CO-282 and its runtime obligations remain open.
+
+## Bounded implementation sequence
+
+The [six resource packets](resource-implementation.md) map this proposal onto existing
+managed launch, durable admission, observed stop and outbox seams. They name exact pinned
+sources, dependencies and negative tests. Their completion criteria are proposed, NOT_RUN;
+this link does not promote the design into implemented resource enforcement.

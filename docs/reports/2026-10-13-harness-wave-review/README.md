@@ -86,7 +86,7 @@ no source records are rewritten.
 Original candidate `67b763586ddfdb34878b29a6fb6117a0cc90ec52` was rejected by independent review.
 The builder's local no-model probe of Kimi 2.1.1 showed global flags are accepted but
 `session/new` still reports default mode. `session/set_mode` acknowledges plan/default/yolo;
-an unknown mode is refused. No prompt, provider request or spend was used for this probe.
+an unknown mode is refused. No model prompt/API invocation was issued by this probe. It did not instrument all network traffic or independently meter provider spend.
 The implementation negotiates and acknowledges mode before the brief/prompt, and refuses
 connected launches without their required Fabric surface. Reviewer's injected peer acknowledged plan/default while reporting yolo; the shell sent
 its brief despite the contradiction. The original 32 passing tests did not cover this.
@@ -110,7 +110,7 @@ All these scopes concern launch/protocol behavior, not model obedience or contin
 caught and fixed: an artificial matrix barrier, missing N-009/N-010 task descriptions,
 NOT_SENT incorrectly eligible to count as owner acceptance, and unnamed repair checks.
 N-009/N-010 remain blocked on actual owner admission and behavior acceptance. Completing
-packets or this report does not complete REQ-006…009. No external owner status was edited. N-004…006 independently reviewed by `/root/observatory_research` at4808f83b; the exact document digests and contribution disclosure are in [review rounds](../../execution/harness-waves/review.md).
+packets or this report does not complete REQ-006…009. No external owner status was edited. N-004…006 independently reviewed by `/root/observatory_research` at 4808f83b; the exact document digests and contribution disclosure are in [review rounds](../../execution/harness-waves/review.md).
 
 ## Combined gate
 
@@ -119,7 +119,25 @@ TypeScript dependency. Existing dependencies were then exposed through ignored w
 links, with pnpm dependency repair disabled (`pnpm_config_verify_deps_before_run=warn`);
 no dependency installation was attempted. A development-tree run passed types/design and
 many documentation checks, then correctly refused a changed map source stamp while work
-was in progress. Neither run certifies the final candidate. A frozen run at4808f83b then caught four errors in this change’s carry-over registration: a blank line split the table, the status vocabulary was invalid, and the asserted count was stale. The row is now parseable with `partially` status, counted and assigned to lane6; focused register and plan-ID checks pass. Final frozen-candidate receipt follows the corrected run.
+was in progress. Neither run certifies the final candidate. A frozen run at 4808f83b then caught four errors in this change’s carry-over registration: a blank line split the table, the status vocabulary was invalid, and the asserted count was stale. The row is now parseable with `partially` status, counted and assigned to lane 6; focused register and plan-ID checks pass. Final frozen-candidate receipt follows the corrected run.
+
+## Resource implementation decomposition
+
+[Six bounded packets](../../execution/harness-waves/resource-implementation.md) extend the
+existing managed admission/launch/stop/outbox seams. Quota checks and the eight-process
+backend cap are not a common builder/reviewer pool. The packets separate atomic reservation,
+all-entry enforcement, observed release, durable waits and attributed feedback. Every proposed
+acceptance is NOT_RUN. Protocol schemas remain with their existing owner.
+
+## Local stack incident
+
+The operator reported failed journal replay and project registration with `fetch failed`.
+Read-only diagnostics found a running OrbStack marker alongside an unresponsive Docker API
+and HTTP 503 from the Fabric REST endpoint. Later checks returned Docker `OK`, REST 200
+and `running healthy` for the database; no restart or data mutation was performed by this
+run. Recovery cause remains unconfirmed. The official MCP then returned `no-project`, so
+API health did not complete the user's project-binding flow.
+[Timestamped sanitized observations](raw/local-stack-receipt.json) preserve that distinction.
 
 ## Open acceptance and continuation
 
@@ -142,6 +160,9 @@ Negative concurrency tests found a second enrollment defect adjacent to the firs
 The context compiler's old counters omitted overhead despite apparently bounded selection.
 Source hashes made independent review transferable across the integration commit.
 The global gate should start after a frozen snapshot, while module reviews can start early.
+Sequential mutation/check scripts must use fail-fast shell execution: an ENOSPC failure in
+`git add` otherwise lets a later check run against an unintended candidate. The failed add
+was retried only after verifying preserved edits and available space; no files were discarded.
 
 ## Skills used
 

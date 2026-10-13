@@ -1,0 +1,28 @@
+{
+  "as_of": "2026-10-13T00:59:53.525857+00:00",
+  "kind": "read-only local runtime observations",
+  "observations": [
+    {
+      "probe": "docker_ping",
+      "exit": 0,
+      "stdout": "OK",
+      "stderr": ""
+    },
+    {
+      "probe": "fabric_api",
+      "exit": 0,
+      "stdout": "200",
+      "stderr": ""
+    },
+    {
+      "probe": "database_health",
+      "exit": 0,
+      "stdout": "running healthy",
+      "stderr": ""
+    }
+  ],
+  "prior_observation": "Docker API timed out at5s and Fabric REST returned503; official MCP credential check returned503.",
+  "latest_enrollment": "Official fabric_whoami returned no-project after API recovery. No enrollment or COM submission succeeded.",
+  "actions": "No Fabric/OrbStack/service restart, database reset, volume prune or credential read performed by this run. Recovery cause is unconfirmed.",
+  "limits": "Healthy HTTP/container observations do not prove UI project binding, enrollment, board reachability, data completeness or installation of source fixes."
+}

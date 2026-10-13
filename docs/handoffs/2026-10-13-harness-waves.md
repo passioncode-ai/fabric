@@ -28,15 +28,15 @@ to owning Projects through Fabric COM, refresh their source heads, then finish p
 receipt provenance, Observatory lesson contract and host-aware hub/MCP selection in those
 owners. N-009/N-010 remain blocked, packets NOT_SENT: MCP registration was explicitly approved and completed. The official MCP
 `fabric_whoami` answered `no-project`; the operator must bind this checkout through
-Fabric’s Open a project flow, then grant access if asked. The registered MCP was called
+Fabric’s Open a project flow, then grant access if asked. The user encountered a database outage during that flow. Read-only diagnostics now show Docker OK, REST200 and database healthy; the latest official MCP result is still `no-project`. No service was restarted by this run. The registered MCP was called
 through the adapter skill’s stdio client; no hub token was read or direct hub bypass used.
 
 Fabric follow-ups: effective generated-home skill loading, per-host identity/hooks/resume,
 MCP isolation and multi-instance gateway support; admission/feedback remains a specification
 pending its protocol-owner contract. Exact positive/negative tests are in the matrix and
-admission document. Do not implement duplicate upstream queues or policy copies here.
+admission document. The [six resource packets](../execution/harness-waves/resource-implementation.md) define the sequence R1 → R2 → {R3, R4, R6} → R5 with exact source seams and negative tests; all runtime acceptance is NOT_RUN. Do not implement duplicate upstream queues or policy copies here.
 
-No integration, release, installed skill update or workspace publication was performed.
+No merge to main, release, installed skill update or workspace publication was performed.
 The source review branches preserve independent-review targets; root verifies remote SHAs
 before reporting delivery. Dependency links are local-only and must never be committed.
 No foreign worktree, credential or service lifecycle was changed.
