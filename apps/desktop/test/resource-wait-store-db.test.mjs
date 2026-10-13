@@ -142,6 +142,22 @@ await assert.rejects(client.read({ ...runScope, estateId: E2 }, work.id), /scope
 await assert.rejects(createResourceWaitStore({ rpc: async () => ({ data: true, error: { secret: 'private' } }) }, runScope).read(runScope, work.id), /unavailable/)
 await assert.rejects(createResourceWaitStore({ rpc: async () => ({ data: { ok: true } }) }, runScope).page(runScope, 1), /unavailable/)
 
+// Commit begin in PostgreSQL, then lose its reply. A new client cannot replay it.
+const lostScope = configure('lost-cas'), lostWork = make(lostScope)
+let lostDispatches = 0
+const lostRpc = { async rpc(name, args) {
+  const response = await rpc.rpc(name, args)
+  if (name === 'resource_wait_cas' && args.p_next.state === 'dispatch_started') throw Error('synthetic lost CAS reply')
+  return response
+} }
+const lostDeps = { ...deps, store: createResourceWaitStore(lostRpc, lostScope),
+  dispatch: async () => { lostDispatches++; return 'unknown' } }
+assert.equal((await createResourceWaitQueue(lostDeps).enqueue(lostWork)).state, 'waiting')
+assert.equal((await createResourceWaitQueue(lostDeps).pass(lostScope)).state, 'unknown')
+assert.equal(read(lostWork).state, 'dispatch_started')
+const restarted = createResourceWaitQueue({ ...lostDeps, store: createResourceWaitStore(rpc, lostScope) })
+assert.equal((await restarted.pass(lostScope)).state, 'outcome_unknown'); assert.equal(lostDispatches, 0)
+
 // Role denials are attempted, not inferred from source grants.
 for (const role of ['anon','authenticated']) {
   for (const stmt of [
