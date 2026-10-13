@@ -1,0 +1,24 @@
+{
+  "source_version": "1.22.1",
+  "source_sha256": "455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302",
+  "command": "python3 reproduce.py <agent_sync.py> --expect defect",
+  "exit_code": 0,
+  "result": "DEFECT_REPRODUCED",
+  "method": "actual guard/acquire/held/renew source with simulated Git authority, fixed clock, isolated config and temporary state",
+  "live_remote_acceptance": "NOT_RUN",
+  "real_claims_created": 0,
+  "state_cleanup": "owned temporary state removed",
+  "first_attempt": "fixture timestamp and fd-relative cleanup corrected; see attempt-1.txt",
+  "original_receipt_sha256": "e9bf1b158da783de8743e6981f7fb6dd8e7a3019f58c6236dd2509550e9131ae",
+  "original_files": {
+    "reproduce.py": "1d8056c05e86d7d81e73cf5de4c24f39f4fe382ce5f9374d82175a5dd6bf80a4",
+    "stdout.json": "3c408c201503963db8915568339abb6b47e5e52d7475e89baef0771062428dc6",
+    "attempt-1.txt": "436b03141293c88d2698f2075e6a6afa9180ed6ae929e655ddaf4e4e7ff0ea17"
+  },
+  "files": {
+    "reproduce.py": "1d8056c05e86d7d81e73cf5de4c24f39f4fe382ce5f9374d82175a5dd6bf80a4",
+    "attempt-1.txt": "436b03141293c88d2698f2075e6a6afa9180ed6ae929e655ddaf4e4e7ff0ea17",
+    "stdout.json": "3c408c201503963db8915568339abb6b47e5e52d7475e89baef0771062428dc6"
+  },
+  "normalization": "Only private paths in first failed fixture output were redacted; reproducible script and final output byte-identical."
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-015",
+  "node": "N-015",
+  "parent_id": "CO-282",
+  "module": "Final PTY launch preparation order",
+  "intent": "Complete async preparation before final managed launch validation",
+  "expected_result": "No awaited executable resolution after a successful beforeSpawn boundary",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "e5d526fd5d49d6dba38c04c3f6de87f0ccbcc6352e0ad140acadde1f4f1ed364"
+    },
+    {
+      "address": "docs/execution/harness-waves/resource-implementation.md",
+      "sha256": "5d8385e5b3fb5de1edf9bdc0d2c7bc8cf2c55899de8b851c2d2c7ac30394bfd9"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "e5d526fd5d49d6dba38c04c3f6de87f0ccbcc6352e0ad140acadde1f4f1ed364"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/pty.ts",
+      "apps/desktop/test/pty-launch-failure.test.mjs"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "No awaited executable resolution after a successful beforeSpawn boundary",
+      "paths": [
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/pty-launch-failure.test.mjs"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Existing native preparation and surface behavior preserved; final guard immediately precedes owned spawn"
+    },
+    {
+      "kind": "negative",
+      "check": "Async preparation invalidating authority cannot occur after successful final guard; native tests not run stay explicit"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Inspect actual PTY open implementation and available injected seams",
+    "after_change": "Independent review; rerun affected launch tests, retain platform evidence limits"
+  }
+}

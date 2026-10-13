@@ -1,0 +1,4 @@
+{
+  "apps/desktop/src/main/pty.ts": "5adf11d78f9f42c24376832fe3fe13f221bb5c5687b0c3a79595fd512f4917c9",
+  "apps/desktop/test/pty-launch-failure.test.mjs": "2fe3d4b4c690970035027524f5c710cf0aefa98ce6b2e8ea639ece26c98a20c5"
+}

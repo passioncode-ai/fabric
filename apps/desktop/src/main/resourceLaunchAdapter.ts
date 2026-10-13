@@ -122,7 +122,7 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
       if (!entry?.receipt || !entry.binding) return undefined
       const verified = readReceipt(receipt, entry)
       return JSON.stringify(verified) === JSON.stringify(entry.receipt) ? entry : undefined
-    } catch { return undefined }
+    } catch { /* Malformed receipt is an explicit non-match; never log its untrusted contents. */ return undefined }
   }
   async function settle(receipt: AdmissionReceipt, command: string): Promise<boolean> {
     const entry = find(receipt)
@@ -131,13 +131,13 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
       const answer = data(await rpc(command, { p_estate: entry.input.estateId, p_reservation: entry.binding.identity.reservationId,
         p_run: entry.receipt.task_run_id, p_session: entry.input.sessionId, p_fence: String(entry.binding.identity.fence) }))
       return answer.released === true && positive(answer.receipt_seq)
-    } catch { return false }
+    } catch { /* No confirmed release receipt: retain capacity and report uncertainty to the coordinator. */ return false }
   }
   return {
     mode: 'required',
     admit(raw) {
       let input: Readonly<AdmitInput>
-      try { input = freeze(copyInput(raw)) } catch { return Promise.resolve(refused('resource_input_invalid')) }
+      try { input = freeze(copyInput(raw)) } catch { /* Refusal is returned to the caller; raw identity input is not safe diagnostic material. */ return Promise.resolve(refused('resource_input_invalid')) }
       const previous = entries.get(input.sessionId)
       if (previous) return JSON.stringify(previous.input) === JSON.stringify(input) ? previous.outcome : Promise.resolve(refused('resource_identity_conflict'))
       if (entries.size >= deps.maxEntries) return Promise.resolve(refused('resource_adapter_capacity'))
@@ -160,7 +160,7 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
           if (verdict.admitted === false) return refused('resource_admission_refused')
           entry.receipt = readReceipt(rawReceipt, entry)
           return { admitted: true as const, receipt: entry.receipt }
-        } catch { return refused('resource_admission_unknown') }
+        } catch { /* The returned unknown outcome prevents retry/spawn; transport details can contain credentials. */ return refused('resource_admission_unknown') }
       })()
       return entry.outcome
     },
@@ -169,7 +169,7 @@ export function createResourceLaunchAdapter(deps: ResourceLaunchAdapterDeps): Re
       const entry = find(receipt)
       if (!entry?.binding || !entry.receipt) return false
       try { return await bounded(() => deps.current(entry.binding!, entry.receipt!)) === true }
-      catch { return false }
+      catch { /* Failed currentness is a returned refusal, never permission to continue. */ return false }
     },
     // SQL establishes never-begun proof under the same lock as begin. A lost
     // begin response is NOT proof; cancellation can safely refuse in that case.

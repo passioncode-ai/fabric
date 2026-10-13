@@ -1,0 +1,60 @@
+{
+  "candidate_commit": "9b83706ed61373c205113dc84518a8c3a371f889",
+  "source_sha256": {
+    "apps/desktop/src/main/pty.ts": "5adf11d78f9f42c24376832fe3fe13f221bb5c5687b0c3a79595fd512f4917c9",
+    "apps/desktop/test/pty-launch-failure.test.mjs": "2fe3d4b4c690970035027524f5c710cf0aefa98ce6b2e8ea639ece26c98a20c5"
+  },
+  "post_run_hashes_match": true,
+  "verdict": "SCOPED_ACCEPT",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs",
+      "cwd": "<repository-root>",
+      "exit_code": 0
+    },
+    {
+      "command": "node --experimental-strip-types --import ./docs/reports/2026-10-13-resource-admission-contract/raw/n015/negative-loader.mjs apps/desktop/test/pty-launch-failure.test.mjs",
+      "cwd": "<repository-root>",
+      "exit_code": 1,
+      "expected_failure": "Assertion at test line34: no asynchronous executable preparation may yield after the final authority verdict; actual false vs expected true",
+      "substitution": "Only pty.ts production source replaced at original module URL by exact ae23efc24e4d83800aeb8b7d26e1074a7fcd2dab bytes; imports retain original resolution, current test unchanged."
+    }
+  ],
+  "source_review": [
+    "programForPty awaited before final beforeSpawn callback; no await after its returned verdict and before synchronous spawn",
+    "executable preparation errors still discard minted bundle and become SpawnFailure",
+    "guard rejection preserves original error; false returns LaunchAuthorityChanged; both discard bundle",
+    "native spawn failure still discards and becomes SpawnFailure; outer finally releases opening identity",
+    "bundle command/args and environment precedence unchanged; mandatory runner surface check remains before preparation; post-spawn event hooks/capture/journal/cleanup unchanged"
+  ],
+  "limits": [
+    "synthetic native spawn, no provider or real agent launched",
+    "no Windows or native PTY acceptance",
+    "removes one post-verdict event-loop yield; does not turn asynchronous authority lookup into atomic remote lock",
+    "no full resource runtime enforcement or active SQL migration acceptance"
+  ],
+  "original_receipt_sha256": "a85f8cb575de04414c62c8363b69bfcc82413842706e6063f537fda80d24af2d",
+  "original_artifact_hashes": {
+    "fixed-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "input-hashes.json": "5063885eb52f38826cb8bf37eca1dec477b0a961b387ed92d124a279dbfe7b5e",
+    "negative-exit.txt": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "negative-loader.mjs": "f0111df96d5e3600c26f404f35325b76962db2eec6ff1fa67e807dfee1b215ef",
+    "negative-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fixed-stdout.log": "0716c3488b9f2584819bce88bca511a9f2c31e3c04836fb352bdc561bda370c8",
+    "negative-stderr.log": "47ad97e9933e05cb510cc6d979dd82389f985c14dc827feab1a94188621ca436",
+    "pty-before.ts": "c09fe5d23c66d4fb75c099797b9b9d4f678f60e60eabd83f86776593d570ae44",
+    "fixed-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "normalization": "Private checkout/artifact paths parameterized or redacted; original source and artifact digests retained.",
+  "portable_artifacts": {
+    "fixed-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "input-hashes.json": "5063885eb52f38826cb8bf37eca1dec477b0a961b387ed92d124a279dbfe7b5e",
+    "negative-exit.txt": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "negative-loader.mjs": "32264c0807656c18921816a71a601acbf4c7574e2b872c21d5934f804b175f19",
+    "negative-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fixed-stdout.log": "0716c3488b9f2584819bce88bca511a9f2c31e3c04836fb352bdc561bda370c8",
+    "negative-stderr.log": "ab4d3d4a0ec9ab16d23fb9c86f8ad1350496803b47bd6bfca7823f5324d0b731",
+    "pty-before.ts": "c09fe5d23c66d4fb75c099797b9b9d4f678f60e60eabd83f86776593d570ae44",
+    "fixed-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

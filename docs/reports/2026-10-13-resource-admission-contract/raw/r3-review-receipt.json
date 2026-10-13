@@ -1,0 +1,34 @@
+{
+  "rejected_candidate": "29639beb72902a567a1bd69f08f48dcd7ecb20bc",
+  "accepted_candidate": "ae23efc24e4d83800aeb8b7d26e1074a7fcd2dab",
+  "integrated_commit": "981c5afc",
+  "source_sha256": {
+    "apps/desktop/src/main/admitExisting.ts": "ac427906ecbe3c69d3b91326c80fc2a86de3762fb6e335f4ec742327600fc541",
+    "apps/desktop/src/main/managedLaunch.ts": "bc33ecb79d2ebcc3bed97a2adce506192407b89d50d88f33315a917ce6eacf85",
+    "apps/desktop/src/main/resourceLaunchAdapter.ts": "50a5e3d3a7b6d0f3e9d9228ca8c9eec65dcc781ec26d25898a461e7e17a6bb4a",
+    "apps/desktop/test/resource-launch-adapter.test.mjs": "9e31fc759a3c28e911e7b590cfd345509f1e476b45c8527202bef2a22392184b",
+    "docs/execution/harness-waves/resource-launch-adapter.md": "2efe6cd520029756d8fa7f165425dadded9157299b0baf5a0b930a11114e048b"
+  },
+  "reviewer": "pipeline_research",
+  "verdict": "SCOPED ACCEPT after fixing asynchronous currentness ordering",
+  "builder_tests": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/managed-launch.test.mjs",
+    "passed": 44,
+    "failed": 0,
+    "exit": 0
+  },
+  "independent_reproduction": {
+    "script": "r3-currentness-repro.mjs",
+    "command": "node --experimental-strip-types docs/reports/2026-10-13-resource-admission-contract/raw/r3-currentness-repro.mjs <repository-root>",
+    "rejected_exit": 1,
+    "fixed_root_exit": 0,
+    "fixed_output": "r3-currentness-fixed.json",
+    "original_script_sha256": "7cc5f0bab1533f46a32b34d714f16e50386234cf1247160bf50a08199fdfa334",
+    "normalization": "Imports parameterized by checkout argument; printed candidate relabelled rejected_candidate to avoid certifying the corrected run with an old SHA."
+  },
+  "limits": [
+    "Injected adapter/coordinator only",
+    "No active migration or production composition",
+    "Current input readers, final PTY boundary and native/provider acceptance remain open"
+  ]
+}

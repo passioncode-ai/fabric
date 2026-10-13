@@ -1,0 +1,32 @@
+{
+  "as_of": "2026-10-13",
+  "checks": [
+    {
+      "command": "pnpm_config_verify_deps_before_run=warn pnpm typecheck",
+      "exit": 0,
+      "scope": "source before N-015 order-only correction; final fast rechecks combined source"
+    },
+    {
+      "command": "pnpm_config_verify_deps_before_run=warn pnpm gates:docs",
+      "exit": 0,
+      "scope": "resource-wave docs before final reservation reconciliation; final fast rechecks final source"
+    },
+    {
+      "command": "python3 test/audit_regressions/fix-pf-06.03.py",
+      "before_exit": 1,
+      "after_exit": 0,
+      "fix": "own watcher acquired previously foreign-held file; authority allocated ADR0153; unused prose reservation moved by existing rule"
+    },
+    {
+      "command": "node scripts/unified-plan.mjs check",
+      "exit": 1,
+      "scope": "default historical 2026-10-04 research snapshot, no current pointer; refused stale source and uncovered canonical work. Historical snapshot not rewritten; no dispatch attempted."
+    }
+  ],
+  "logs_sha256": {
+    "fabric-harness-resource-typecheck.log": "a4ba0c815f1029b6a3a926bb2fe3d332edf2f32b457f31b26f4d3b777198c5f6",
+    "fabric-harness-resource-docs.log": "d120fb2e8d8fc475972af7fd16fc76b11fe1a54ead37f70c2830f5871e26e3ee",
+    "fabric-harness-resource-plancheck.log": "c274ba047816042bca81c0841c0b08547f21e404321f2d4d1c7e7b6a2e22c5b0"
+  },
+  "toolchain": "UNVERIFIED reproducibility; existing dependencies used, no installation"
+}

@@ -1,0 +1,53 @@
+PASS PostgreSQL dispatch migration: concurrent claim, stale generation, pre/post-boundary crash, completion, safe retry, unknown fence, identity/scope, ended run, privileges
+PASS managed launch SQL: concurrency, one-shot begin, idempotency, authority, legacy atomic bind, compensation, unknown ownership, replay, privileges
+PASS managed Stop SQL: concurrent intent, typed trusted observations, independent exit receipt, retained uncertainty, exact generation, immutable endings, proof-gated readmission, replay, privileges
+PASS R2 resource SQL: configured pool, safe integers, unknown readings, concurrent shared/child capacity, frozen retry, exact proof release, replay, marker restore refusal, client privileges
+{
+  "checks": [
+    "transaction rollback conserves reservation/run authority",
+    "cross-estate global reservation identity admits once",
+    "cross-estate global session identity admits once",
+    "all8 binding changes, estate and session mismatches refuse",
+    "foreign-owner and released-parent nesting refuse",
+    "numeric safe maximum plus one refuses without overflow",
+    "old/equal-changing/stale observations cannot manufacture fresh capacity",
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1.0",
+      "finish": "cancel",
+      "canonicalReleased": true
+    },
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1.0",
+      "finish": "release",
+      "canonicalReleased": true
+    },
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1.00",
+      "finish": "cancel",
+      "canonicalReleased": true
+    },
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1.00",
+      "finish": "release",
+      "canonicalReleased": true
+    },
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1e0",
+      "finish": "cancel",
+      "canonicalReleased": true
+    },
+    {
+      "case": "decimal-fence-fixed",
+      "spelling": "1e0",
+      "finish": "release",
+      "canonicalReleased": true
+    }
+  ],
+  "scope": "owned PostgreSQL only; real pending production functions; no active migration/native/provider acceptance"
+}
+PASS pending R2 SQL plus legacy managed launch/stop on one disposable PostgreSQL cluster

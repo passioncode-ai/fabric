@@ -1,0 +1,6 @@
+{
+  "supabase/pending-migrations/20261013000107_resource_reservations.sql": "551a2359e9ff8e9ac574b0fc15609b9f9283ca8229e0352da70cedf7d260d13b",
+  "apps/desktop/test/resource-reservation-db.test.mjs": "2a321d9764c5d6d01195bbae9775d7aa650c36e51239f8bf48e4d0424fe15dea",
+  "apps/desktop/test/run-resource-reservation-db.mjs": "0cdaf91794a6f55684751b410b31c9ea635547307bd9a63c6ab829b788f47c43",
+  "docs/execution/harness-waves/resource-reservation.md": "749f159b1a25e648f983c7dbcdd2a054268f3b64f431213a0a7a908ff0ffce65"
+}

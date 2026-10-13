@@ -4,7 +4,7 @@ This implements an opt-in internal adapter, not active resource enforcement.
 `index.ts` does not configure it. No capacity defaults, sampler, public protocol,
 UI path, migration activation, provider call or native-host acceptance is added.
 The pending SQL dependency is R2 commit
-`2b72bd37626270ee8c7a12378cac11670aaf9122`,
+`0b0ad6a9dd9e14a58762e0fc5aaf982bd5789af1`,
 `supabase/pending-migrations/20261013000107_resource_reservations.sql`.
 Migration positions 104–106 remain prerequisites to its eventual activation.
 
@@ -15,7 +15,7 @@ Migration positions 104–106 remain prerequisites to its eventual activation.
 at trusted main-process composition. No task input selects or disables it.
 The function reports `resourceMode: required` or `legacy_not_enforced`; the
 latter preserves existing launches and makes no resource claim
-(`apps/desktop/src/main/admitExisting.ts:36`).
+(`apps/desktop/src/main/admitExisting.ts#createAdmitExisting`).
 
 `createResourceLaunchAdapter` takes explicit operation timeout and retained-entry
 bounds, a trusted preparation provider and a trusted currentness provider.
@@ -24,7 +24,7 @@ Preparation supplies the actual R1 request/context/independent checks plus
 quantity is a nonnegative safe integer, own demand cannot exceed the envelope,
 and its worker-slot count must be positive. Provider quotas remain separate.
 R1's `eligible` result is still advisory; only the combined SQL command allocates
-capacity (`apps/desktop/src/main/resourceLaunchAdapter.ts:148`).
+capacity (`apps/desktop/src/main/resourceLaunchAdapter.ts#createResourceLaunchAdapter`).
 
 The adapter calls only `admit_resource_task_launch` in required mode. It passes
 host/pool separately and the eight internal binding fields: reservationId,
@@ -33,7 +33,7 @@ The response must bind the exact task/session and reservation, a valid run/proje
 a positive matching run ordinal, a positive admission sequence, an instruction,
 and a **held** resource reservation. Released or malformed receipts refuse.
 Missing RPC, errors, timeouts and unknown evidence never invoke legacy admission
-(`apps/desktop/src/main/resourceLaunchAdapter.ts:107`, `:148`).
+(`apps/desktop/src/main/resourceLaunchAdapter.ts#createResourceLaunchAdapter`).
 
 An immutable retained entry binds each session to its complete input. Identical
 concurrent/repeated requests share one outcome; a changed identity refuses. An
@@ -41,7 +41,7 @@ ambiguous result is retained, not retried with a fresh reservation. Late RPC
 success after timeout cannot populate an admitted entry. Entries are not evicted
 to make room for new work: exhaustion refuses until the owner explicitly replaces
 this preparation adapter. Durable uncertain-outcome recovery and lifecycle-driven
-entry retirement remain unimplemented (`apps/desktop/src/main/resourceLaunchAdapter.ts:138`).
+entry retirement remain unimplemented (`apps/desktop/src/main/resourceLaunchAdapter.ts#createResourceLaunchAdapter`).
 
 The **same adapter instance** must be passed to both `createAdmitExisting` and
 `ManagedLaunchDeps.resources`, including the chain's separate admission caller.
@@ -53,13 +53,13 @@ ownership and policy. Only literal `true` allows that callback to proceed to
 SQL, which rechecks current authority and resource state after the asynchronous
 refresh completes. A prior SQL verdict is never reused across that refresh.
 The provider must read independent current evidence, not echo its expected input
-(`apps/desktop/src/main/managedLaunch.ts:71`, `:94`).
+(`apps/desktop/src/main/managedLaunch.ts#createManagedLaunch`).
 
 This is a dependency seam, not an implementation of those evidence readers.
 It also relies on the existing owned `open` adapter consuming `beforeSpawn`.
-PTY executable resolution still has an asynchronous step after that callback;
-this packet neither changes `pty.ts` nor claims the final native boundary is
-fully integrated.
+The later N-015 correction moves executable preparation before that callback
+(`apps/desktop/src/main/pty.ts#PtyManager`). Its production-manager regression
+uses a synthetic spawn; native Windows and full runtime enforcement remain unverified.
 
 ## Cancellation and release
 
@@ -67,13 +67,13 @@ For an ungranted or uncertain begin, `cancelUnbegun` asks SQL to prove that no
 spawn permission was consumed under its existing begin lock. Local absence or a
 lost response never substitutes for that proof. A racing winner remains owned.
 The request retains exact estate/reservation/run/session/fence identity
-(`apps/desktop/src/main/managedLaunch.ts:80`, `:105`; `apps/desktop/src/main/resourceLaunchAdapter.ts:127`).
+(`apps/desktop/src/main/managedLaunch.ts#createManagedLaunch`; `apps/desktop/src/main/resourceLaunchAdapter.ts#createResourceLaunchAdapter`).
 
 Only confirmed `fail_task_launch` compensation with `processStarted === false`
 invokes `releaseCompensated`. SQL independently checks its durable stop/compensation
 state. A lost release answer makes the launch outcome unknown. No hook releases
 capacity on a stop signal, PTY exit, task-claim release, timeout or missing process
-(`apps/desktop/src/main/managedLaunch.ts:117`). These hooks do not implement R4 crash reconciliation or
+(`apps/desktop/src/main/managedLaunch.ts#createManagedLaunch`). These hooks do not implement R4 crash reconciliation or
 provider termination evidence.
 
 ## Focused verification
@@ -111,8 +111,8 @@ asynchronous gap, not the separately documented native PTY resolution gap.
 - Supply explicit pool/host policy, coherent readings, real independent ownership
   and input-closure providers; configure the same adapter at every managed
   admission call site. No global enablement switch is introduced here.
-- Plumb the compiled context closure to the final native boundary and address
-  the asynchronous PTY resolution gap before claiming final-boundary enforcement.
+- Plumb the compiled context closure to the final native boundary before claiming
+  full runtime enforcement; N-015 closes the identified post-verdict preparation yield.
 - Free terminals still bypass managed launch. Backend adapters are reusable but
   have no production composition here; their existing local cap remains unchanged.
 - Provider quiescence, Windows tree observation, durable recovery and reservation

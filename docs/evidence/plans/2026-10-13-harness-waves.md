@@ -210,3 +210,29 @@ applied only by owned fixtures. Active migrations, their ledger and schema suppo
 unchanged. Promotion depends on resolution of those owning reservations; no owner is silently
 renumbered. This splits useful source/test progress from an actual activation dependency.
 R3–R6 retain their separate packet obligations; R2 is not their runtime acceptance.
+
+
+### N-014 — opt-in launch adapter preparation
+
+Prepare the internal adapter for R3/R4 without claiming their full runtime acceptance.
+An explicitly required configuration must combine R1 eligibility with R2 atomic admission,
+validate the exact resource receipt before both ordinary and pre-admitted chain launch,
+and retain reservation capacity on any ambiguous outcome. No configuration keeps the
+legacy behavior explicitly outside resource enforcement. Never fall back from required
+resource admission to the legacy RPC when schema, policy or evidence is unavailable.
+
+The adapter may cancel a never-begun admission or release after operational compensation;
+a signal, session disappearance or expired lease cannot prove process/provider quiescence.
+The pending migration, production composition, current input closure, fresh resource sampler,
+free-terminal/backend coverage and native/provider acceptance remain separate prerequisites.
+Tests use injected clients and production functions; they cannot certify those missing paths.
+
+
+### N-015 — native launch preparation order
+
+Close the separately identified local R3 prerequisite: `pty.ts` must complete asynchronous
+executable resolution (including the always-async wrapper on other hosts) before invoking its final managed `beforeSpawn` check.
+No asynchronous preparation may intervene between an accepted final check and the actual
+owned spawn. Preserve mandatory Fabric surface, modes, enrollment markers and existing
+platform behavior. A source-order or injected-function regression has its explicit scope;
+it never certifies native Windows, provider quiescence or machine-wide resource enforcement.

@@ -177,3 +177,32 @@ Neither hub head contains the other (both ancestry checks exit1); combined L1+L5
 installation and native-host readback remain unverified. MCP loading doctrine is unchanged:
 these PRs do not implement the Observatory profile writer, gateway selection or Fabric
 session policy. Their owner routes remain in force. No cross-project board packet was sent.
+
+## Agent-sync — expired own Git lease reported as acquired
+
+**Owner:** agent-sync. **Delivery:** PREPARED / NOT_SENT; Fabric project board is not admitted.
+**Observed version:** 1.22.1, `scripts/agent_sync.py` SHA-256
+`455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302`.
+
+Source review: `_git_acquire` lines2213–2218 accepts its own run id before checking
+expiry. It writes the old payload locally and touches the renewal throttle marker,
+without refreshing the remote ref. `guard` lines4240–4250 trusts that result and
+reports the resource claim taken. `held` lines3421–3423 correctly excludes expired
+leases; `_refresh_lease` lines2799–2807 correctly refuses resurrection. Explicit
+`acquire` calls the same defective path, so its success is not independent proof.
+
+This run observed that discrepancy for its own plan, carry-over and retrospective
+resource claims while the main task lease remained live. The tool allowed edits
+under a false resource-success report. Recovery reaped only those provably owned,
+expired refs, checked their removal, and acquired fresh refs. No foreign lease was
+reaped or overwritten. Fresh currentness must be verified from the lease plane,
+not the success wording. This is disclosed coordination debt, not retroactive proof
+that the preceding resource claims were live. No foreign overlap was observed.
+
+Proposed correction: expired-own acquisition follows strict remote read and SHA-fenced
+CAS, creating a fresh payload or refusing. Re-acquiring a live own lease must not reset
+the throttle unless it refreshes the authoritative lease. Regression: controlled clock,
+expired same-run resource and live task lease; require fresh CAS or refusal. An owned
+bare-repository fixture then checks a competing writer/CAS loss, malformed remote,
+unreadable remote, and live-own timestamp behavior. Installed tool files are unchanged.
+The [isolated executable regression](../../reports/2026-10-13-resource-admission-contract/raw/agent-sync-expired/receipt.json) now reproduces actual guard/acquire code reporting success with zero CAS and an expired resource. Git/clock/state are isolated; live remote competition tests and a released fix remain NOT_RUN / NOT_IMPLEMENTED. Exit0 explicitly means DEFECT_REPRODUCED.

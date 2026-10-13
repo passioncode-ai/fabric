@@ -132,7 +132,9 @@
         "N-006",
         "N-011",
         "N-012",
-        "N-013"
+        "N-013",
+        "N-014",
+        "N-015"
       ],
       "touches": [
         "docs/execution/harness-waves/review.md",
@@ -214,7 +216,7 @@
       "id": "N-012",
       "title": "Internal resource preflight contract",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-006"
@@ -224,23 +226,73 @@
         "apps/desktop/test/resource-admission.test.mjs"
       ],
       "surface_class": "internal",
-      "check": "node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs"
+      "check": "node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs",
+      "evidence": [
+        "R1 accepted atd984d983 and same source integratedc5bb122f;106focused tests and independent BigInt/binding/promise fixtures. Exact hashes, rejected candidate and scope: docs/reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json. Advisory only; atomic/native enforcement excluded."
+      ]
     },
     {
       "id": "N-013",
       "title": "Internal durable resource reservation",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "serves": "REQ-009",
       "blocked_by": [
         "N-012"
       ],
       "touches": [
         "supabase/pending-migrations/20261013000107_resource_reservations.sql",
-        "docs/execution/harness-waves/resource-reservation.md"
+        "docs/execution/harness-waves/resource-reservation.md",
+        "apps/desktop/test/resource-reservation-db.test.mjs",
+        "apps/desktop/test/run-resource-reservation-db.mjs"
       ],
       "surface_class": "internal",
-      "check": "Owned PostgreSQL fixture applies pending107 explicitly; never the operator stack"
+      "check": "node apps/desktop/test/run-resource-reservation-db.mjs",
+      "evidence": [
+        "R2 corrected0b0ad6a9 integratedaba21213; independent ownedSQLacceptance and rejected numeric-fence counterexample retained in docs/reports/2026-10-13-resource-admission-contract/raw/r2-fixed/receipt.json. Pending only; activation/native not accepted."
+      ]
+    },
+    {
+      "id": "N-014",
+      "title": "Opt-in resource launch adapter preparation",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-012",
+        "N-013"
+      ],
+      "touches": [
+        "apps/desktop/src/main/admitExisting.ts",
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/resource-launch-adapter.md"
+      ],
+      "surface_class": "internal",
+      "check": "Production-function positive/negative tests with injected client; no production wiring or native claim",
+      "evidence": [
+        "R3/R4 opt-in adapter preparation acceptedae23efc2 integrated981c5afc after finalSQLordering fix;44focused tests plus independentrepro in docs/reports/2026-10-13-resource-admission-contract/raw/r3-review-receipt.json. Global composition and fullR3/R4 remain open."
+      ]
+    },
+    {
+      "id": "N-015",
+      "title": "Final PTY launch preparation order",
+      "owner": "implementer",
+      "status": "done",
+      "serves": "REQ-009",
+      "blocked_by": [
+        "N-014"
+      ],
+      "touches": [
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/test/pty-launch-failure.test.mjs"
+      ],
+      "surface_class": "internal",
+      "check": "Production final-boundary regression or explicitly scoped source-order check; native Windows separate",
+      "evidence": [
+        "Independent SCOPED ACCEPT9b83706e integrated79aa9e5b. Same production-manager test passes fixed and fails with exact parentPTYbytes; docs/reports/2026-10-13-resource-admission-contract/raw/n015/receipt.json. No native/provider/Windows acceptance."
+      ]
     }
   ],
   "edges": [
@@ -313,6 +365,31 @@
       "from": "N-013",
       "to": "N-007",
       "payload": "Frozen resource implementation and independent negative acceptance"
+    },
+    {
+      "from": "N-012",
+      "to": "N-014",
+      "payload": "Preflight result and exact input binding"
+    },
+    {
+      "from": "N-013",
+      "to": "N-014",
+      "payload": "Frozen internal RPC and operational release contracts"
+    },
+    {
+      "from": "N-014",
+      "to": "N-007",
+      "payload": "Opt-in seam tests, source digest and explicit activation gaps"
+    },
+    {
+      "from": "N-014",
+      "to": "N-015",
+      "payload": "Known asynchronous native preparation gap after adapter currentness fix"
+    },
+    {
+      "from": "N-015",
+      "to": "N-007",
+      "payload": "Frozen final-boundary fix and scoped regression"
     }
   ],
   "revisions": [

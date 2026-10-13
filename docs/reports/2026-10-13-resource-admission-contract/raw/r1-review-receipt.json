@@ -1,0 +1,40 @@
+{
+  "candidate_commit": "d984d98358b82824695e0636d8f3e0c50ec6eb82",
+  "integrated_commit": "c5bb122f",
+  "rejected_commit": "7797d1fb1651ecd01d2a36c95380fffbcb44a359",
+  "source_sha256": "d620be510115f963f3637bcb1c9badbb810a1d9464c785ba39ac5e591da9440a",
+  "test_sha256": "09f60721d7b2cd6cc653a720e527e588365671b5234091821adc524f39e0dd9e",
+  "builder": {
+    "command": "node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs",
+    "passed": 106,
+    "exit": 0
+  },
+  "reviewer": "/root/observatory_research",
+  "verdict": "scoped ACCEPT",
+  "independent_cases": {
+    "arithmetic_BigInt": 5016,
+    "identity_binding": 12,
+    "getter_prototype": 12,
+    "missing_readings": 10,
+    "nested_accounting": 25,
+    "promise_boundaries": 8
+  },
+  "discovery": "Rejected-Promise issue was builder-discovered and independently reproduced; no independent discovery claim",
+  "replay": "node --experimental-strip-types <raw-script> <repository-root>; rejected review script pins original source; fixed script pins accepted source",
+  "scope": [
+    "Pure advisory function with trusted synchronous dependency injection",
+    "No IO, atomic reservation, execution authorization, launcher or native/provider acceptance",
+    "Exotic Promise subclasses and constructor overrides unsupported"
+  ],
+  "artifacts": {
+    "review.mjs": "9140921635ddea11e4a4a97acc6cc686cb5ee5314cf6aabd21dd56410ff009bb",
+    "stdout.json": "4816fe072348e70c617e21aaee1da69817b8bbfa7521ecc15dbfda3ba13fb89d",
+    "async-proof.mjs": "bd140d494fbadd3461e963a1a43cb489f26312d37e8d8c10b7e5fff2795f80d2",
+    "async-proof-stdout.json": "54b98d8d624ea51dac5ee0510c5ef9490c3252f6f346163ee114c31ae656e4ba",
+    "review-fixed.mjs": "6f4baf82d91936261962bd5aa33210eaad5d14afaef945726998b12b0af97d4c",
+    "stdout-fixed.json": "0df61ffb678aa042c0b4afc8e34091e19f4c71c4eaf7f67c17ece4d044052cd2",
+    "async-proof-stdout-fixed.json": "ae1509617b0ce3fb25ca8dbbe7a233e8c7b6be989071666ce59fc1208102b31c",
+    "proof-boundaries-fixed.mjs": "8b9d1751c61da005a26ff59ec24b00fc75b34879d459c94ad53bfe149ef72560",
+    "proof-boundaries-fixed-stdout.json": "90b44d4afdfa6fbae92bbe8b83da2d3c0a2f908b42425fcef2f5d88199bd4477"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "candidate_commit": "0b0ad6a9dd9e14a58762e0fc5aaf982bd5789af1",
+  "source_sha256": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "8c47dfd3b7ccf6d506b4d19db7a417e60ae1c061715f9693555b22130633c8e1",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "086c0a708003c8b632a3db2313f06c91680f009dfa9efffc141c0cbf63ce84c4",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "0cdaf91794a6f55684751b410b31c9ea635547307bd9a63c6ab829b788f47c43",
+    "docs/execution/harness-waves/resource-reservation.md": "fcf86cc099c42d9347f15f87d10b2cc169333132c7dcf0282d4f1527c1bf7b1c"
+  },
+  "post_run_hashes_match": true,
+  "verdict": "SCOPED_ACCEPT",
+  "supersedes_rejected_receipt_sha256": "f07d741baf80d2d1afa29b0d9b5f0ef30dea00c0144532db4571325a76a82109",
+  "command": "FABRIC_REVIEW_ROOT=<checkout> node docs/reports/2026-10-13-resource-admission-contract/raw/r2-fixed/runner.mjs",
+  "exit_code": 0,
+  "independent_checks": [
+    "same original rollback/global identity/binding/nested-owner/numeric capacity/observation fixtures",
+    "raw JSON fence1.0/1.00/1e0 each admitted then same-run canonical1 retry; stored numeric integer1; all six cancel/compensated-release cases canonical1 succeed"
+  ],
+  "canonical_checks": [
+    "continuation full schema",
+    "pending resource SQL fixture application",
+    "legacy managed launch",
+    "legacy managed stop",
+    "resource reservation DB regression"
+  ],
+  "diff_review": "Only production delta canonicalizes already-validated safe numeric integer to bigint JSONB before retry/storage; preserves malformed/fractional/out-of-range rejection. Pending schema has no deployed legacy rows requiring backfill.",
+  "limits": [
+    "pending DDL only, not an active migration",
+    "no native/provider/live database/production rollout acceptance",
+    "single machine disposable PostgreSQL, not distributed production stress"
+  ],
+  "cleanup": "runner finally stopped and removed owned disposable cluster; heavy slot released",
+  "original_receipt_sha256": "e04bdcf1c767f47dcd709732b6b09f1a90bf5494eae2d763c2a534720a443953",
+  "original_artifact_hashes": {
+    "runner.mjs": "9238a10ab06b19b032ed61806ea2806e1533d086a64dfc62d8da7bbf84de1a1e",
+    "adversarial.mjs": "6f1c8e428cd0af788b1e024e009edd1f57f773ab05f3179293730d1c17164ebf",
+    "input-hashes.json": "36cda3fc7627fee7657ee58cf9fa34b4b7560d2b9bbb26e3f30a3a4826dba701",
+    "candidate.txt": "3ffc4e0f961128a1ab6ebc7b7c17f3a3ae9d6371eb7696a72556640afef2b63b",
+    "stdout.log": "67df6597f5fee475ecd858f87ad8c1033fd880c0e6a4e9e05f67a3f49241b8f8",
+    "stderr.log": "b101e2d6769b94ce37d524a20c7b8064e8219340f0223adbba33ab2999e8200d"
+  },
+  "portable_artifacts": {
+    "input-hashes.json": "36cda3fc7627fee7657ee58cf9fa34b4b7560d2b9bbb26e3f30a3a4826dba701",
+    "stderr.log": "b101e2d6769b94ce37d524a20c7b8064e8219340f0223adbba33ab2999e8200d",
+    "runner.mjs": "f740244a79a7d0f638bdcfe3240b363345270e9dc2cae943597f1e992beb44ae",
+    "stdout.log": "67df6597f5fee475ecd858f87ad8c1033fd880c0e6a4e9e05f67a3f49241b8f8",
+    "adversarial.mjs": "fa3f2d13c467102c91e82b39ad5cbb7469e3a8a4076c837ad0802bdae56a1eb2",
+    "candidate.txt": "3ffc4e0f961128a1ab6ebc7b7c17f3a3ae9d6371eb7696a72556640afef2b63b"
+  },
+  "normalization": "Repository/artifact paths parameterized or redacted for portable public evidence; original local receipt digest preserved. Verdict and source hashes unchanged."
+}

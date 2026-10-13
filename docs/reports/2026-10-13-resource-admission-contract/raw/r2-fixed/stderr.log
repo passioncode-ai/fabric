@@ -1,0 +1,14 @@
+NOTICE:  event trigger "deny_anon_on_new_tables" does not exist, skipping
+NOTICE:  trigger "floored_effect_needs_live_reservation" for relation "effect_intents" does not exist, skipping
+NOTICE:  trigger "effect_success_needs_an_observation" for relation "effect_intents" does not exist, skipping
+NOTICE:  policy "effect_attempts_read" for relation "effect_attempts" does not exist, skipping
+NOTICE:  policy "session_heartbeats_read" for relation "session_heartbeats" does not exist, skipping
+NOTICE:  policy "deliveries_read" for relation "deliveries" does not exist, skipping
+NOTICE:  trigger "task_run_is_terminal" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "task_runs_read" for relation "task_runs" does not exist, skipping
+NOTICE:  policy "memory_occurrences_read" for relation "memory_occurrences" does not exist, skipping
+NOTICE:  trigger "memory_fact_is_not_a_slot" for relation "memory_facts" does not exist, skipping
+NOTICE:  function memory_fact_is_not_a_slot() does not exist, skipping
+NOTICE:  trigger "an_estate_keeps_an_owner" for relation "memberships" does not exist, skipping
+NOTICE:  trigger "membership_revision_moves" for relation "memberships" does not exist, skipping
+NOTICE:  policy "membership_commands_read" for relation "membership_commands" does not exist, skipping

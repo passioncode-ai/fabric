@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "sourceCommit": "7797d1fb1651ecd01d2a36c95380fffbcb44a359",
+  "sourceHash": "f7d9250f4cb669681889d38d27f6e6fda47f3037261fb48c2fca7c6a174debfd",
+  "seed": 104729,
+  "counts": {
+    "arithmetic": 5016,
+    "eligible": 2,
+    "refused": 4998,
+    "bindings": 12,
+    "untrusted": 12,
+    "missing": 10,
+    "nested": 25
+  },
+  "boundaries": "Pure advisory function with trusted injected proofs; no production dispatcher, atomic reservation, database or native/provider enforcement tested."
+}

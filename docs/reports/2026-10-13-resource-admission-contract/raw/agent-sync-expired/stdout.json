@@ -1,0 +1,40 @@
+{
+  "status": "DEFECT_REPRODUCED",
+  "source_sha256": "455d99c97894e4b5033399fac3fc5c638375dffae531982f22a8bd6899e56302",
+  "source_version": "1.22.1",
+  "execution": "actual source methods with simulated Git authority and owned temporary notes",
+  "cases": [
+    {
+      "case": "expired-own-resource",
+      "reported_success": true,
+      "message": "held by this run (TASK-fixture); resource claim taken for docs/plan.md",
+      "simulated_cas_pushes": 0,
+      "remote_ref_changed": false,
+      "remote_remaining_seconds": -60.0,
+      "local_remaining_seconds": -60.0,
+      "resource_in_held": false,
+      "main_task_in_held": true,
+      "renew_marker_set_to_now": true,
+      "explicit_renew_succeeded": false,
+      "renew_reports_expired": true
+    },
+    {
+      "case": "live-own-resource",
+      "reported_success": true,
+      "message": "explicit live-own acquire",
+      "simulated_cas_pushes": 0,
+      "remote_ref_changed": false,
+      "remote_remaining_seconds": 50.0,
+      "local_remaining_seconds": 50.0,
+      "resource_in_held": true,
+      "main_task_in_held": true,
+      "renew_marker_set_to_now": true
+    }
+  ],
+  "safety": {
+    "real_network_or_process_attempts": 0,
+    "outside_write_attempts": 0
+  },
+  "real_claims_created": 0,
+  "runtime_or_hosted_CAS_acceptance": "NOT_RUN"
+}

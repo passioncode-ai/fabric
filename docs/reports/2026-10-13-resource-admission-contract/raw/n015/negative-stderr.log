@@ -1,0 +1,18 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: no asynchronous executable preparation may yield after the final authority verdict
+
+false !== true
+
+    at file://[review-checkout]/apps/desktop/test/pty-launch-failure.test.mjs:34:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

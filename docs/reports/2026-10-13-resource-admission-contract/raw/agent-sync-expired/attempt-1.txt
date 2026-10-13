@@ -1,0 +1,1 @@
+Fixture setup error before product assertion: timestamp used ISO +00:00 rather than the source parser Z format, so no live task was recognized. Initial fd-relative cleanup was rejected by the write audit. Corrected timestamp and absolute owned-path cleanup; removed only the owned leftover temporary directory. No actual Git/network/config calls.

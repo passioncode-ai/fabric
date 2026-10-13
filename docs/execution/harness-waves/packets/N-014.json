@@ -1,0 +1,65 @@
+{
+  "schema_version": "task-pipeline/execution-packet/1",
+  "id": "N-014",
+  "node": "N-014",
+  "parent_id": "CO-282",
+  "module": "Opt-in resource launch adapter preparation",
+  "intent": "Prepare opt-in resource enforcement at managed launch seams without enabling global policy",
+  "expected_result": "Required resource mode fails closed; unconfigured mode remains legacy and unenforced",
+  "inputs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "e5d526fd5d49d6dba38c04c3f6de87f0ccbcc6352e0ad140acadde1f4f1ed364"
+    },
+    {
+      "address": "docs/execution/harness-waves/resource-implementation.md",
+      "sha256": "5d8385e5b3fb5de1edf9bdc0d2c7bc8cf2c55899de8b851c2d2c7ac30394bfd9"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/evidence/plans/2026-10-13-harness-waves.md",
+      "sha256": "e5d526fd5d49d6dba38c04c3f6de87f0ccbcc6352e0ad140acadde1f4f1ed364"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/main/admitExisting.ts",
+      "apps/desktop/src/main/managedLaunch.ts",
+      "apps/desktop/src/main/resourceLaunchAdapter.ts",
+      "apps/desktop/test/resource-launch-adapter.test.mjs",
+      "docs/execution/harness-waves/resource-launch-adapter.md"
+    ]
+  },
+  "outputs": [
+    {
+      "contract": "Required resource mode fails closed; unconfigured mode remains legacy and unenforced",
+      "paths": [
+        "apps/desktop/src/main/admitExisting.ts",
+        "apps/desktop/src/main/managedLaunch.ts",
+        "apps/desktop/src/main/resourceLaunchAdapter.ts",
+        "apps/desktop/test/resource-launch-adapter.test.mjs",
+        "docs/execution/harness-waves/resource-launch-adapter.md"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "positive",
+      "check": "Both fresh and pre-admitted managed paths verify exact reservation before spawn; proven never-spawned compensation can release"
+    },
+    {
+      "kind": "negative",
+      "check": "Missing schema, stale or mismatched input, malformed receipts and unknown outcomes never fall back, spawn or free capacity"
+    }
+  ],
+  "guards": [
+    "Own only listed paths; no foreign registry, process, credential or installation changes",
+    "No native PASS from compiler/fake acceptance; bind reports to candidate SHA",
+    "One heavy check slot; do not duplicate installs"
+  ],
+  "resume": {
+    "next": "Read current resource-admission and reservation sources, then finish adapter and focused tests",
+    "after_change": "Independent seam review; keep production wiring and native acceptance open"
+  }
+}

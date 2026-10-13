@@ -334,6 +334,8 @@ node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs
 node --experimental-strip-types --test apps/desktop/test/session-enroll-request.test.mjs
 node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/acp-shell.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs
 # #endregion harness-regressions
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
 # facts included — a real MCP client and server over the real registerWorkTools.
@@ -384,11 +386,12 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # NOT_RUN. Set FABRIC_PG_BIN to run it.
 owned_fast_failed=()
 owned_fast_not_run=()
+# The pending resource proposal is fixture-applied by its own runner only; this does not activate its schema.
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
 # installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
 # grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
 # append, one writer, the presented grant reserved, the rebuild under the estate lock.
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?
@@ -396,9 +399,9 @@ for runner in run-estate-identity-db run-read-schema-db run-function-privileges-
   if [ "$code" = "2" ] && [ "$TIER" = "full" ]; then
     # The full tier passes through this step too, and its own owned-cluster loop does not repeat
     # these five: NOT_RUN fails there, as it does for every other runner in that tier.
-    owned_fast_failed+=("$runner (NOT_RUN: no PostgreSQL binaries, FABRIC_PG_BIN)")
+    owned_fast_failed+=("$runner (NOT_RUN: owned-cluster prerequisites unavailable; see runner output)")
   elif [ "$code" = "2" ]; then
-    printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
+    printf 'NOT_RUN %s: owned-cluster prerequisites unavailable; see runner output\n' "$runner"
     owned_fast_not_run+=("$runner")
   elif [ "$code" != "0" ]; then
     owned_fast_failed+=("$runner (exit $code)")

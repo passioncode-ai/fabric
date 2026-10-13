@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-13 · CO-282 resource continuation · prepared, NOT MERGED
+- run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
+- files: local resource preflight, pending reservation SQL, opt-in managed adapter, PTY preparation order, fixtures and source-bound reports
+- conflicts: main privacy redactions through f4e21d18 preserved in cc123baf; existing entries and map anchors retained
+- summary: R1/R2/N014/N015 received scoped independent acceptance after three rejected boundary cases. Active migration, policy/sampler, full recovery/native enforcement and external owner acceptance remain open. Fifteen-node graph; final combined gates and durable delivery follow this prepared iteration. Entry: docs/handoffs/2026-10-13-harness-waves.md.
+
 ### 2026-10-13 · CO-282 · agent/harness-waves-20261013 · prepared, NOT MERGED
 - run: codex-01a13268-1c4e-7ab2-9cf0-efb3e2cfc734
 - files: see branch diff against a5b78e4919d82c6eae88bee72e59eba3e0c1fbae

@@ -1,0 +1,8 @@
+PASS launch failure: journal/spool/kill/revoke faults retain exact process identity and observation; no false stopped receipt
+PASS pre-spawn authority recheck and concurrent session identity fencing
+PASS exit dismissal: await receipt and finalizer; failure retains metadata and retryable close evidence
+PASS recovery exclusion: exited runtime generation keeps its pending capture until own receipt
+PASS launch place: a missing or non-folder cwd is refused before any launch effect
+PASS runner availability: async, shared, cached per PATH for its TTL, one runner per launch
+PASS a runner without modes records none
+PASS a recorded failure keeps the kind of the real error, not its text

@@ -1,0 +1,29 @@
+PASS PostgreSQL dispatch migration: concurrent claim, stale generation, pre/post-boundary crash, completion, safe retry, unknown fence, identity/scope, ended run, privileges
+PASS managed launch SQL: concurrency, one-shot begin, idempotency, authority, legacy atomic bind, compensation, unknown ownership, replay, privileges
+PASS managed Stop SQL: concurrent intent, typed trusted observations, independent exit receipt, retained uncertainty, exact generation, immutable endings, proof-gated readmission, replay, privileges
+PASS R2 resource SQL: configured pool, safe integers, unknown readings, concurrent shared/child capacity, frozen retry, exact proof release, replay, marker restore refusal, client privileges
+{
+  "checks": [
+    "transaction rollback conserves reservation/run authority",
+    "cross-estate global reservation identity admits once",
+    "cross-estate global session identity admits once",
+    "all8 binding changes, estate and session mismatches refuse",
+    "foreign-owner and released-parent nesting refuse",
+    "numeric safe maximum plus one refuses without overflow",
+    "old/equal-changing/stale observations cannot manufacture fresh capacity",
+    {
+      "case": "decimal-fence",
+      "canonicalNumber": {
+        "released": false,
+        "reason_code": "resource_identity_conflict"
+      },
+      "literalSpelling": {
+        "released": true,
+        "repeated": false,
+        "receipt_seq": 33
+      }
+    }
+  ],
+  "scope": "owned PostgreSQL only; real pending production functions; no active migration/native/provider acceptance"
+}
+PASS pending R2 SQL plus legacy managed launch/stop on one disposable PostgreSQL cluster

@@ -1,0 +1,46 @@
+{
+  "candidate_commit": "2b72bd37626270ee8c7a12378cac11670aaf9122",
+  "source_sha256": {
+    "supabase/pending-migrations/20261013000107_resource_reservations.sql": "551a2359e9ff8e9ac574b0fc15609b9f9283ca8229e0352da70cedf7d260d13b",
+    "apps/desktop/test/resource-reservation-db.test.mjs": "2a321d9764c5d6d01195bbae9775d7aa650c36e51239f8bf48e4d0424fe15dea",
+    "apps/desktop/test/run-resource-reservation-db.mjs": "0cdaf91794a6f55684751b410b31c9ea635547307bd9a63c6ab829b788f47c43",
+    "docs/execution/harness-waves/resource-reservation.md": "749f159b1a25e648f983c7dbcdd2a054268f3b64f431213a0a7a908ff0ffce65"
+  },
+  "verdict": "REJECT: numeric fence representation mismatch",
+  "command": "FABRIC_REVIEW_ROOT=<checkout> node docs/reports/2026-10-13-resource-admission-contract/raw/r2-rejected/runner.mjs",
+  "exit_code": 0,
+  "assertion_note": "Canonical suites and independent asserted cases passed; decimal fence case deliberately records both replies and is a semantic counterexample despite command exit 0.",
+  "finding": {
+    "input": "Accepted binding.fence JSONB number 1.0",
+    "canonical_cancel": "p_fence text 1 returns released:false, resource_identity_conflict",
+    "literal_cancel": "p_fence text 1.0 returns released:true",
+    "impact": "Safe numeric identity may strand reservation across caller number normalization; no oversubscription or authorization bypass observed."
+  },
+  "scope": [
+    "one owned disposable PostgreSQL cluster",
+    "canonical continuation/pending SQL/legacy managed launch and stop/resource suites",
+    "independent atomic rollback, global identity contention, binding changes, parent identity/state, numeric maximum and freshness cases"
+  ],
+  "limits": [
+    "pending DDL not active migration",
+    "no live database, native process, provider, production rollout or full runtime integration acceptance",
+    "fixture runner preserves canonical runner logic with original-repo imports and one appended independent test"
+  ],
+  "cleanup": "runner finally stopped and removed owned cluster; heavy slot released",
+  "original_receipt_sha256": "f07d741baf80d2d1afa29b0d9b5f0ef30dea00c0144532db4571325a76a82109",
+  "original_artifact_hashes": {
+    "runner.mjs": "3edace17c6a535e95b00c0621912a607deefd8206b4b9ad75e633fbda8b8bdf9",
+    "adversarial.mjs": "9aea0aee8bca85e822b29318c2a5a6619f865b70fe72bd1a1656b16e596a6f1c",
+    "input-hashes.json": "e20e97e43372a2de1941000235038a95adc9afae9e47e13ccc060fdf4a92a453",
+    "stdout.log": "e79ad2ac4a775bdb68ee3235d1117eb2f88ae5475dffd7c35e55f4565604c09b",
+    "stderr.log": "b101e2d6769b94ce37d524a20c7b8064e8219340f0223adbba33ab2999e8200d"
+  },
+  "portable_artifacts": {
+    "input-hashes.json": "e20e97e43372a2de1941000235038a95adc9afae9e47e13ccc060fdf4a92a453",
+    "stderr.log": "b101e2d6769b94ce37d524a20c7b8064e8219340f0223adbba33ab2999e8200d",
+    "runner.mjs": "f740244a79a7d0f638bdcfe3240b363345270e9dc2cae943597f1e992beb44ae",
+    "stdout.log": "e79ad2ac4a775bdb68ee3235d1117eb2f88ae5475dffd7c35e55f4565604c09b",
+    "adversarial.mjs": "e46c2a3b6335b0606d3997ad5b1575fd86106011f43064e2875f7632b7a3bf40"
+  },
+  "normalization": "Repository/artifact paths parameterized or redacted for portable public evidence; original local receipt digest preserved. Verdict and source hashes unchanged."
+}

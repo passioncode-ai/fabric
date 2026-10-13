@@ -117,7 +117,7 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
         compensated = result.compensated === true
       } catch { /* a lost response never authorises another spawn */ }
       if (resources && receipt && compensated && !processStarted) {
-        try { compensated = await resources.releaseCompensated(receipt) } catch { compensated = false }
+        try { compensated = await resources.releaseCompensated(receipt) } catch { /* No release receipt means capacity remains uncertain, even after launch compensation. */ compensated = false }
       }
       if (!processStarted) deps.untrack(sessionId, input.taskId)
       return failure(processStarted || !compensated ? 'launch_outcome_unknown' : 'launch_failed_before_spawn',

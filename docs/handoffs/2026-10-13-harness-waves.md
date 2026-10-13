@@ -1,95 +1,97 @@
 # CO-282 — portable harness waves handoff
 
-Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md), then
-[the review](../reports/2026-10-13-harness-wave-review/README.md) and
-[the graph](../execution/harness-waves/graph.json). CO-282 remains partially complete:
-Fabric repairs are implemented; cross-owner acceptance and shared scheduling are open.
+Start with [the execution plan](../evidence/plans/2026-10-13-harness-waves.md) and
+[the 15-node graph](../execution/harness-waves/graph.json). **CO-282 is partial.**
+First-wave repairs and bounded local resource implementations exist; active resource
+enforcement, cross-owner acceptance and native acceptance remain open.
 
-## Delivered source
+## Current source and bounded results
 
-Repository: `git@github.com:passioncode-ai/fabric.git`.
+Integration branch: `agent/harness-integrated-20261013` in `passioncode-ai/fabric`;
+source snapshot `79aa9e5ba92babe2f914fcd130515fe400ace7c8`.
+Merge `cc123baf67753d817282fdd686365051ae897d66` preserves main privacy changes through
+`f4e21d18fd5b077291652b0508fde2ba43378b1a`. This snapshot is not a main merge,
+installation, publication or final branch-delivery receipt.
 
-| Branch | Source | Status / entry |
+| Unit | Source and evidence | Acceptance boundary |
 |---|---|---|
-| `agent/harness-waves-20261013` | de50e9e0fddf9f5fa37cd063fb3659cdc274bbff | Pushed historical source and segmented checks |
-| `agent/harness-integrated-tested-20261013` | 179e71e94682a8d609c32647473ca09f3130d146 | Pushed immutable full-fast PASS candidate |
-| `agent/harness-integrated-20261013` | 12ff522b04aafaeaa485a91c5ceb53f04d9e0d18, followed by delivery receipts | Pushed integration on main938acc62; this handoff is the entry |
+| N-012 / R1 | Accepted `d984d98358b82824695e0636d8f3e0c50ec6eb82`, integrated as `c5bb122f`; [review receipt](../reports/2026-10-13-resource-admission-contract/raw/r1-review-receipt.json) | Advisory local eligibility only; 106 focused tests and independent arithmetic/binding checks. It cannot reserve capacity or authorize execution. |
+| N-013 / R2 | Fixed and independently accepted `0b0ad6a9dd9e14a58762e0fc5aaf982bd5789af1`, integrated as `aba21213`; [reservation implementation and checks](../execution/harness-waves/resource-reservation.md#verification) | Pending SQL tested in an owned isolated database. Numeric fence normalization closes the review finding; the ledger is not active in the installed schema. |
+| N-014 / R3 preparation | Fix `ae23efc24e4d83800aeb8b7d26e1074a7fcd2dab`, integrated as `79aa9e5b`; [adapter contract and checks](../execution/harness-waves/resource-launch-adapter.md) | 44 focused tests pass. Async currentness now precedes final SQL validation; ordinary and pre-admitted negative cases require zero spawns. No production composition or universal entry-path enforcement. |
+| N-015 final PTY preparation | `9b83706ed61373c205113dc84518a8c3a371f889` | Independent production-manager regression passes fixed and fails on exact parent source; synthetic spawn only, no native/Windows claim. |
 
-The full-fast candidate tree is d41e70d134bc2469c8f324afe3adae8b1cb24a5b.
-Its [receipt](../reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json)
-records exit0,53 compiler checks,25 enrollment,45 MCP and35 ACP tests plus the rest of fast.
-Toolchain reproducibility is UNVERIFIED; full Docker tier/native/provider checks NOT_RUN.
-Later documentation changes need separate checks and never inherit unchanged-input claims
-for the compiler. Production/script bytes are unchanged by the938acc62 reconciliation.
+The [resource-wave review](../reports/2026-10-13-resource-admission-contract/README.md)
+collects the continuation evidence. [ADR-0152](../adr/0152-resource-preflight-and-durable-reservation-are-distinct.md)
+permits local injected code and isolated durable implementation before external board
+admission. Source acceptance, active schema, configured policy and native behavior are
+separate claims. N-007/N-008 must close against the expanded candidate, not inherit the
+first-wave completion. Final graph reconciliation and delivery receipts follow integration.
 
-Four repairs: pending-bearer identity and serialized admission; exact whole-context budget
-with mandatory refusal; acknowledged ACP mode and required Fabric surface; MCP cooldown,
-late-link disposal and preservation of already-issued consent without further requests.
-Independent review rejected two initially green candidates before their corrections.
-Rejected source and replay scripts remain in the review report's raw directory.
+**Expanded-candidate full fast gate: NOT_RUN at this handoff update.** Typecheck passed before the narrow N-015 order correction; the final fast tier
+will validate the combined source. Root integration owns final checks, source-bound
+receipts, push and publication outcomes. Do not reuse historical compiler or application
+results without checking the relevant inputs.
 
-The modular plan has11 nodes plus six resource implementation packets. The
-[host matrix](../execution/harness-waves/host-matrix.md) separates configuration from native
-consumption. [Owner packets](../execution/harness-waves/owner-packets.md) retain exact
-upstream heads and distinguish existing implementation from remaining gaps. The
-[admission/feedback contract](../execution/harness-waves/admission-feedback.md) is a
-specification; [resource packets](../execution/harness-waves/resource-implementation.md)
-sequence R1 → R2 → {R3,R4,R6} → R5. Their runtime acceptance is NOT_RUN.
+## Historical first-wave receipts
 
-## Continuation in progress
+These immutable receipts remain useful; they do not certify the expanded resource wave.
 
-The first-wave completion above is historical. The living graph now has13 nodes: N-012/R1
-and N-013/R2 local implementation are underway, and N-007/N-008 acceptance was invalidated
-for the expanded source candidate. [Resource-wave review](../reports/2026-10-13-resource-admission-contract/README.md)
-and ADR-0152 own this continuation. Board access blocks external owner requests, not local
-injected code or owned SQL fixtures. The pending107 migration preserves reserved104–106;
-its source acceptance is distinct from active schema and R3–R6 runtime enforcement.
+- `agent/harness-waves-20261013` at `de50e9e0fddf9f5fa37cd063fb3659cdc274bbff`:
+  pushed historical source and segmented checks.
+- `agent/harness-integrated-tested-20261013` at
+  `179e71e94682a8d609c32647473ca09f3130d146`: historical full-fast PASS, tree
+  `d41e70d134bc2469c8f324afe3adae8b1cb24a5b`.
+  [Receipt](../reports/2026-10-13-harness-wave-review/raw/integrated-fast-receipt.json)
+  records exit 0, 53 compiler checks, 25 enrollment, 45 MCP and 35 ACP tests plus the rest
+  of fast. Docker/native/provider checks were NOT_RUN; toolchain reproducibility unverified.
+- Integration `12ff522b04aafaeaa485a91c5ceb53f04d9e0d18` and subsequent closeout:
+  [branch delivery readback](../reports/2026-10-13-harness-wave-review/raw/branch-delivery-receipt.json),
+  [affected-input compiler receipt](../reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json)
+  and [PR 31](https://github.com/passioncode-ai/fabric/pull/31).
 
-## Exact next work
+The [first-wave review](../reports/2026-10-13-harness-wave-review/README.md) preserves
+rejected candidates and negative replay fixtures. Repairs cover enrollment identity and
+serialization, whole-context limits, acknowledged ACP mode and required Fabric surface,
+and MCP cooldown/late-link cleanup. Its nine locally delivered nodes out of eleven were
+a historical scope count, not completion of product requirements.
 
-1. Finish source-branch integration under repository policy, preserving CO-282 as partial.
-   Inspect the appended final receipts before choosing any repeated check. Main merge,
-   Fabric installation and workspace publication are not implied by a pushed branch.
-2. At the human project-access gate, the operator confirms access in Fabric. Then use the
-   official registered MCP: `fabric_whoami` → `com.status` → `com.list` → project-addressed
-   `com.submit` for the prepared owner packets. Registration was explicitly approved and
-   completed; it does not grant project access. Do not replace the board with foreign edits
-   or direct session messages. N-009/N-010 remain blocked / NOT_SENT.
-3. Refresh owning-project heads before work: pipeline receipt provenance and idempotency;
-   Observatory lesson contract; skill-hub host selection and MCP profiles. Some older findings
-   are already addressed in source. Follow each packet's negative acceptance, not old prose.
-4. Implement Fabric resource packets only after their protocol dependencies have owner
-   acceptance. Use one shared builder/reviewer budget, per-module review as soon as ready,
-   durable wait reasons and exact-source verdict invalidation. No blanket native PASS.
+## Exact next work and dependencies
 
-## Feedback, prerequisites and boundaries
+1. Finish expanded-source review and gates, reconcile the 15-node graph, then record exact
+   delivery and publication outcomes. Preserve the source and historical receipts above.
+2. Continue independently executable local work from the
+   [resource packets](../execution/harness-waves/resource-implementation.md): R4 recovery,
+   R5 durable waits/deduplicated wakes/fairness and R6 measurements/evidence-bound feedback.
+   Use their real dependencies and per-module acceptance; no blanket requirement to await
+   external protocol approval before writing internal implementations.
+3. Before activation, resolve migration ordering with the owners of reserved positions
+   104–106; pending 107 is not active DDL. Recheck current admission/Stop protections,
+   migration ledger, schema contract, fresh/upgrade/restore and privilege behavior.
+   Configure trusted host/pool policy and a fresh sampler explicitly. Production composition,
+   all global launch paths, compiled input-closure binding and native termination/recovery proof still
+   need implementation and acceptance. A reservation grants neither spend nor file leases.
+4. The latest bounded official MCP reread returned `waiting` for operator project-access consent and was closed. Board access remains
+   unavailable at this update; no owner requests or foreign writes have occurred. Existing
+   registration authorization does not grant project access. If Fabric requires operator
+   project-access consent, retain that human gate; after access, use the official
+   `fabric_whoami` → `com.status` → `com.list` → project-addressed `com.submit` route.
+   N-009/N-010 remain blocked / NOT_SENT, never inferred accepted from local code.
+5. Refresh upstream heads before submitting the
+   [owner packets](../execution/harness-waves/owner-packets.md): pipeline provenance and
+   idempotency, Observatory lesson contract, hub host routing and MCP profiles. Portable
+   protocol publication and cross-owner adoption require their actual owner acceptance.
 
-Canonical lessons: [retro](../evidence/retro.md);118 archived rows plus10 active rows conserve
-all127 historical rows and this run's stamp. Archive provenance debt is disclosed; Observatory
-lesson-store delivery is NOT_SENT. Read relevant lessons before each packet and record which
-changed behavior. ADR/grant authority outranks observed lessons; repetition alone does not
-promote a rule.
+## Working boundaries
 
-The observed local stack recovered from REST503 to200 without any restart by this run.
-The official MCP progressed from no-project to awaiting consent and later429. The temporary
-client was closed to stop retries. The cooldown fix is source-only, not installed. Apart from the explicitly approved Codex MCP registration, no unrelated private host
-configuration was changed. No supervisor, foreign process, credential or service lifecycle
-was changed.
+Read the relevant [retro lessons](../evidence/retro.md) before each packet and record which
+changed behavior. ADR/grant authority outranks observations; repetition does not promote a
+lesson into policy. The [admission/feedback specification](../execution/harness-waves/admission-feedback.md)
+and [host matrix](../execution/harness-waves/host-matrix.md) preserve the distinction between
+configuration, discovery and observed native consumption.
 
-Only owned worktrees and ignored dependency links were used, with one heavy-check slot and
-no Node dependency installation. Keep credentials and generated build output out of Git. Hosted CI was
-not dispatched. Workspace publication remains separate: the initialized child is detached at
-its recorded pin and `workspace status` reports stale. Follow the publication skill after source
-integration and owning-project coordination; do not publish over another session's work.
-
-
-Delivery readback: [receipt](../reports/2026-10-13-harness-wave-review/raw/branch-delivery-receipt.json)
-records all three remote tips and a separate network clone checking out the integration source.
-N-001…008 and N-011 are locally delivered; N-009/N-010 remain blocked. This is9 of11 scoped
-nodes, not9 of11 product requirements: REQ-007/008 and resource/native acceptance stay open.
-
-
-Final affected-input acceptance: [compiler receipt](../reports/2026-10-13-harness-wave-review/raw/final-compiler-receipt.json)
-records53/53,0 skips after938acc62; document/graph/register/projection checks pass.
-Integration entry: [PR31](https://github.com/passioncode-ai/fabric/pull/31). The newer main privacy-redaction commit a1de7f43 is now preserved in the branch.
-Application source remains unchanged; the one changed compiler fixture input is rechecked.
+Keep one heavy-check slot, clean owned fixtures, retain uncertainty and invalidate verdicts
+when their inputs change. No live database/provider, service restart or foreign process is
+needed for local fixture work. Keep credentials, private machine paths and dependency trees
+out of delivery. Hosted CI was not dispatched. Workspace publication is separate and must
+follow its owning skill and current source relationship; a pushed branch does not establish
+publication, installed behavior or completion of CO-282.
