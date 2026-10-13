@@ -15,6 +15,28 @@ AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: 'launch-fixture', conne
 for (const adapter of ['config-content-env', 'acp-session'])
   AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: `bundle-only-${adapter}`, label: `Fixture ${adapter}`, connectsToSurface: true, surfaceAdapter: adapter, resultChannel: 'surface' })
 
+// Exercise the production manager, with only native spawn replaced. Even the
+// non-Windows executable preparation returns a Promise: awaiting it after the
+// final guard lets another queued job invalidate an already accepted verdict.
+// This is an event-loop ordering regression, not native Windows acceptance.
+{
+  let authorityCurrent = true, currentAtSpawn = null
+  const revoked = [], sessionId = randomUUID()
+  const manager = new PtyManager({ append: async () => ({ seq: 1 }) }, randomUUID(), { onData() {}, onExit() {} }, {
+    compile: async () => ({ dir: '/not-used', args: [] }),
+    discard: sid => revoked.push(sid)
+  }, () => { currentAtSpawn = authorityCurrent; throw Error('synthetic spawn boundary') },
+  undefined, () => ({ kind: 'person', id: 'operator' }))
+  await assert.rejects(manager.open(randomUUID(), process.cwd(), 'launch-fixture', null, null, null, sessionId, async () => {
+    queueMicrotask(() => queueMicrotask(() => { authorityCurrent = false }))
+    return authorityCurrent
+  }), SpawnFailure)
+  assert.equal(currentAtSpawn, true, 'no asynchronous executable preparation may yield after the final authority verdict')
+  assert.equal(authorityCurrent, false, 'the invalidation job actually ran')
+  assert.deepEqual(revoked, [sessionId], 'failed native spawn still discards the bundle')
+  assert.equal(manager.list().length, 0)
+}
+
 // 0.3.3 verification ER-1: a pre-spawn check that THROWS (the launch receipt could not be read) takes the
 // minted session credential back, as a refusal does; 0.3.2 did, and 0.3.3's move of the check had lost it.
 {

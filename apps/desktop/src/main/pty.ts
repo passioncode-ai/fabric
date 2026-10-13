@@ -482,6 +482,18 @@ export class PtyManager {
       try { this.bundles?.discard(sessionId) }
       catch (e) { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId, cause: causeOf(e) }) }
     }
+    // #region final-pty-authority — docs: docs/evidence/plans/2026-10-13-harness-waves.md#task-contracts
+    // Finish asynchronous executable preparation before the final authority
+    // check. Windows PATH resolution can wait; even an already-resolved Promise
+    // yields to queued invalidations. Nothing may await between this check and
+    // the synchronous native spawn below.
+    let launch: Awaited<ReturnType<typeof programForPty>>
+    try {
+      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
+    } catch (e) {
+      discardBundle()
+      throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
+    }
     if (beforeSpawn) {
       let allowed: boolean
       try { allowed = await beforeSpawn() } catch (e) { discardBundle(); throw e }
@@ -489,7 +501,6 @@ export class PtyManager {
     }
     let pty: IPty
     try {
-      const launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
       pty = this.spawn(launch.file, launch.args, {
         name: 'xterm-256color',
         cols: 120,
@@ -510,6 +521,7 @@ export class PtyManager {
       discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
     }
+    // #endregion final-pty-authority
     const now = Date.now()
     const session: LiveSession = {
       sessionId,
