@@ -135,6 +135,109 @@ test('a loop of 200 enrolls hands out the one unspent bearer: one mint, one jour
   assert.equal(h.surface.held.size, 1)
 })
 
+test('pending bearers belong to one runtime identity, including the known/unknown boundary', async () => {
+  for (const identities of [['rt-A', 'rt-B'], ['rt-A', null], [null, 'rt-B']]) {
+    const h = deps()
+    const enroll = (runtimeSessionId) => enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId }, h.d)
+    const [a, b] = await Promise.all(identities.map(enroll))
+    assert.equal(a.ok, true)
+    assert.equal(b.ok, true)
+    assert.notEqual(a.session.sessionId, b.session.sessionId)
+    assert.notEqual(a.session.bearer, b.session.bearer)
+    assert.equal(h.journaled.length, 2)
+    for (const [i, original] of [a, b].entries()) {
+      const retry = await enroll(identities[i])
+      assert.equal(retry.session.bearer, original.session.bearer, 'only that identity reuses its pending bearer')
+    }
+    h.surface.claimAll()
+    for (const [i, original] of [a, b].entries()) {
+      const runtimeSessionId = identities[i]
+      const rejoin = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId, rejoinOnly: true }, h.d)
+      if (runtimeSessionId === null) assert.equal(rejoin.code, 'no-session')
+      else assert.equal(rejoin.session.sessionId, original.session.sessionId, 'a hook rejoins its own session')
+    }
+  }
+})
+
+test('concurrent same-runtime retries share one admitted pending bearer and journal event', async () => {
+  const h = deps()
+  const results = await Promise.all(Array.from({ length: 20 }, () =>
+    enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }, h.d)))
+  assert.ok(results.every((r) => r.ok))
+  assert.equal(new Set(results.map((r) => r.session.bearer)).size, 1)
+  assert.equal(h.minted.length, 1)
+  assert.equal(h.journaled.length, 1)
+})
+
+test('a concurrent retry cannot receive a bearer while its admission will be refused', async () => {
+  let releaseCheck, reachedCheck
+  const checking = new Promise((resolve) => { reachedCheck = resolve })
+  const decision = new Promise((resolve) => { releaseCheck = resolve })
+  const h = deps({ stillLive: async () => { reachedCheck(); return decision } })
+  const args = { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }
+  const first = enrollSession(binding, args, h.d)
+  await checking
+  const retry = enrollSession(binding, args, h.d)
+  // Let the retry reach the already registered, but not yet admitted, session.
+  await new Promise((resolve) => setImmediate(resolve))
+  releaseCheck(false)
+  const results = await Promise.all([first, retry])
+  assert.ok(results.every((r) => !r.ok && r.code === 'needs-grant'))
+  assert.equal(h.surface.held.size, 0)
+  assert.equal(h.sessions.size(), 0)
+  assert.equal(h.journaled.length, 0)
+})
+
+test('a failed pending journal releases admission and a retry gets a fresh, journalled bearer', async () => {
+  let rejectJournal, reachedJournal
+  const journalling = new Promise((resolve) => { reachedJournal = resolve })
+  const firstJournal = new Promise((_, reject) => { rejectJournal = reject })
+  const h = deps()
+  const normalJournal = h.d.journal
+  let calls = 0
+  h.d.journal = async (...args) => {
+    if (++calls === 1) { reachedJournal(); return firstJournal }
+    return normalJournal(...args)
+  }
+  const args = { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }
+  const first = enrollSession(binding, args, h.d)
+  const refusal = assert.rejects(first, /journal refused/)
+  await journalling
+  const retry = enrollSession(binding, args, h.d)
+  await new Promise((resolve) => setImmediate(resolve))
+  rejectJournal(new Error('journal refused'))
+  await refusal
+  const result = await retry
+  assert.equal(result.ok, true)
+  assert.equal(h.surface.state(result.session.bearer), 'unclaimed', 'the returned bearer survived admission')
+  assert.equal(h.minted.length, 2, 'the failed mint is not lent to the retry')
+  assert.equal(h.journaled.length, 1)
+  assert.equal(h.sessions.size(), 1)
+})
+
+test('pending admission in one binding does not serialize another binding', async () => {
+  let releaseCheck, reachedCheck
+  const checking = new Promise((resolve) => { reachedCheck = resolve })
+  const decision = new Promise((resolve) => { releaseCheck = resolve })
+  const h = deps({ stillLive: async (id) => {
+    if (id === binding.id) { reachedCheck(); return decision }
+    return true
+  } })
+  const first = enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-A' }, h.d)
+  await checking
+  let secondFinished = false
+  const second = enrollSession({ ...binding, id: 'b-other' }, {
+    cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-B'
+  }, h.d).then((r) => { secondFinished = true; return r })
+  try {
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.equal(secondFinished, true, 'only admission for the same binding queues')
+  } finally {
+    releaseCheck(true)
+    await Promise.all([first, second])
+  }
+})
+
 test('a loop that spends every bearer is capped: the binding keeps at most MAX_ENROLLED_PER_BINDING live sessions, the oldest end', async () => {
   const h = deps()
   const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
