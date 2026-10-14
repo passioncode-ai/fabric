@@ -21,6 +21,7 @@ import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
 import { FabricStrip } from './FabricStrip'
+import { MachineDetail } from '../OperatorError'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
 
 type Filter = 'open' | 'later' | 'done' | 'all'
@@ -216,7 +217,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       {review && (
         <div className="lp-callout" role="status"><b>{t('launch.board.reviewTitle')}</b><p>{t('launch.board.reviewBody')}</p></div>
       )}
-      {problem && <div className="lp-callout" role="alert"><b>{t('needsYou.unreadable', { reason: problem })}</b></div>}
+      {problem && <div className="lp-callout" role="alert"><b>{t('needsYou.unreadable')}</b><MachineDetail text={problem} /></div>}
       {accessSaid && (
         <div className="lp-callout" role="status" tabIndex={-1} ref={accessSaidRef}>
           <b>{accessSaid.text}</b>{accessSaid.detail && <p>{accessSaid.detail}</p>}

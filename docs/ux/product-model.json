@@ -33848,7 +33848,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3601
+        "line": 3602
       }
     },
     {
@@ -33867,7 +33867,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3629
+        "line": 3630
       }
     },
     {
@@ -33886,7 +33886,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3660
+        "line": 3661
       }
     },
     {
@@ -33905,7 +33905,7 @@
       "errors_recovery": "each read fails on its own and says so where its answer would be; what was read stays on screen. The settle sheet never resends by itself: a lost answer is resolved by reading the request again, and the same idempotency key makes a second press the same settlement.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3697
+        "line": 3698
       }
     },
     {
@@ -33926,7 +33926,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3727
+        "line": 3729
       }
     },
     {
@@ -33947,7 +33947,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3754
+        "line": 3756
       }
     },
     {
@@ -33966,7 +33966,7 @@
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3780
+        "line": 3782
       }
     },
     {
@@ -33985,7 +33985,7 @@
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3804
+        "line": 3807
       }
     },
     {
@@ -34004,7 +34004,7 @@
       "errors_recovery": "a failed reading says «Неизвестно, кто работает: <причина>» and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3828
+        "line": 3832
       }
     },
     {
@@ -34023,7 +34023,7 @@
       "errors_recovery": "the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3850
+        "line": 3855
       }
     },
     {
@@ -34042,7 +34042,7 @@
       "errors_recovery": "enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3872
+        "line": 3878
       }
     }
   ],

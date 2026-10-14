@@ -39,7 +39,8 @@ import type { ProjectRow } from '../../../shared/types'
 import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { FabricStrip } from './FabricStrip'
-import { MachineDetail } from '../OperatorError'
+import { FailureNote, MachineDetail } from '../OperatorError'
+import { runnerLabel } from '../runnerLabel'
 import { ALL_THREADS, MAX_HELD, PAGE as LIST_PAGE, appendOlder, boardFilterOf, cursorOf, mergeFirstPage, type Held, type ThreadFilters } from './commsList'
 import {
   ArtifactList,
@@ -120,6 +121,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   /** The filtered read the board did not answer: the list stays what was last confirmed (P12). */
   const [filterFailed, setFilterFailed] = useState(false)
   const [olderBusy, setOlderBusy] = useState(false)
+  /** The machine's words when the last older page did not come; "Show older threads" stays to ask it again (UX-7). */
+  const [olderFailed, setOlderFailed] = useState<string | null>(null)
   const [opened, setOpened] = useState<Opened | null>(null)
   const [filters, setFilters] = useState<ThreadFilters>(ALL_THREADS)
   /** The filters the held list answers: a poll for other filters never merges into it. */
@@ -186,6 +189,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
         setThreadsConfirmedAt(new Date().toISOString())
         setThreadsStale(false)
         setFilterFailed(false)
+        // A list for other filters starts over: an older page that failed for the last ones is no longer this list's.
+        if (fresh) setOlderFailed(null)
       } else if (!confirmed.current) {
         setThreadsError(reply.error)
       } else if (!sameFilters(answered.current, asked)) {
@@ -215,7 +220,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
       if (r?.ok) setResponders({ kind: 'read', responders: r.responders })
       else setResponders((s) => (s.kind === 'read' ? s : { kind: 'unknown' }))
       if (p?.ok) {
-        setPending({ kind: 'read', projects: p.projects, stale: false })
+        setPending({ kind: 'read', projects: p.projects, more: p.more, stale: false })
         setPendingConfirmedAt(new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
       } else setPending((s) => (s.kind === 'read' ? { ...s, stale: true } : { kind: 'unavailable' }))
     }
@@ -255,9 +260,10 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
     try {
       const reply = await window.fabric.comms.threadPage(boardFilterOf(filters, now()), cursor, LIST_PAGE)
       if (reply.ok && sameFilters(answered.current, filters)) setHeld((h) => (h ? appendOlder(h, reply) : h))
-      else if (!reply.ok) setThreadsStale(true)
-    } catch {
-      setThreadsStale(true)
+      // An older page that did not come is said beside its button — never as the list's end (2026-10-14 review UX-7).
+      setOlderFailed(reply.ok ? null : reply.error.message)
+    } catch (e) {
+      setOlderFailed(e instanceof Error ? e.message : String(e))
     } finally {
       setOlderBusy(false)
     }
@@ -271,7 +277,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   // The agents the screen knows: those on the threads held and those holding a slot; the chosen one stays offered.
   const providers = [...new Set([...(threads ?? []).flatMap((th) => th.providers),
     ...(responders.kind === 'read' ? responders.responders.flatMap((r) => (r.agent ? [r.agent] : [])) : []),
-    ...(filters.provider ? [filters.provider] : [])])].sort()
+    ...(filters.provider ? [filters.provider] : [])])].sort((a, b) => runnerLabel(a, t).localeCompare(runnerLabel(b, t), locale))
   const filtered = !sameFilters(filters, ALL_THREADS)
   const answeredFiltered = !sameFilters(answeredFilters, ALL_THREADS)
   /** The list on screen answers the filters chosen now (not a read still in flight for a change). */
@@ -352,7 +358,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
                   {t('launch.comms.filters.provider')}
                   <select value={filters.provider ?? ''} onChange={(e) => setFilters((f) => ({ ...f, provider: e.target.value || null }))}>
                     <option value="">{t('launch.comms.filters.allProviders')}</option>
-                    {providers.map((p) => <option key={p} value={p}>{p}</option>)}
+                    {providers.map((p) => <option key={p} value={p}>{runnerLabel(p, t)}</option>)}
                   </select>
                 </label>
                 <label>
@@ -409,6 +415,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
               </button>
               )
             })}
+            {olderFailed !== null && held !== null && held.more && !capped && <FailureNote role="status" said={t('launch.comms.moreFailed')} detail={olderFailed} />}
             {held !== null && held.more && !capped && (
               <div className="lp-actions">
                 <button type="button" className="lp-button" disabled={olderBusy} onClick={() => void showOlder()}>{t('launch.comms.more')}</button>

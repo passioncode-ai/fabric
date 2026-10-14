@@ -3,6 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
+import { ru } from '../i18n/ru'
 import { HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './HomeWork'
 import type { HomeView } from '../../../shared/homeLive'
 
@@ -46,6 +47,16 @@ describe('home: who is doing what', () => {
     show(<HomeAgents reading={{ view: null, problem: 'database away' }} onOpen={() => {}} onSession={() => {}} onAll={() => {}} />)
     expect(screen.getByRole('alert').textContent).toContain('database away')
     expect(screen.queryByText(/No agent is working/)).toBeNull()
+  })
+
+  it('a failed reading is OUR sentence in the operator\'s language, with the machine\'s words on their own line (UX-5)', () => {
+    const problem = 'the claimed tasks could not be read: relation "project_tasks" does not exist'
+    render(<I18nProvider locale="ru"><HomeAgents reading={{ view: null, problem }} onOpen={() => {}} onSession={() => {}} onAll={() => {}} /></I18nProvider>)
+    render(<I18nProvider locale="ru"><HomeWorkLanes reading={{ view: null, problem }} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
+    const said = screen.getAllByText(ru['launch.home.work.unreadable']!)
+    expect(said).toHaveLength(2)
+    for (const s of said) expect(s.textContent).not.toContain('project_tasks')
+    expect(screen.getAllByText(problem)).toHaveLength(2)
   })
 
   it('the lanes and the counts come from the same reading', () => {

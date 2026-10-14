@@ -20,6 +20,7 @@ import { Banner, Button, EmptyState, Field, Panel, Row, StateChip, Toolbar } fro
 import { useT } from './i18n'
 import { titleOf } from './attentionTitle'
 import { since } from './duration'
+import { MachineDetail } from './OperatorError'
 
 export function BoardPanel({
   projectId = null,
@@ -68,7 +69,7 @@ export function BoardPanel({
     <Panel id="sec-needs-you" title={t('needsYou.title')}>
       <p className="muted">{t('needsYou.lede')}</p>
 
-      {problem && <Banner tone="error">{t('needsYou.unreadable', { reason: problem })}</Banner>}
+      {problem && <Banner tone="error">{t('needsYou.unreadable')}<MachineDetail text={problem} /></Banner>}
 
       {/* A source that failed must never render as a quiet board. This is the
           difference between "nothing needs you" and "we could not look". */}

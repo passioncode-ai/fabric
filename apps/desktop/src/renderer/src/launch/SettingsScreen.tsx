@@ -11,6 +11,7 @@ import type { AppSettings, SettingsPatch } from '../../../shared/types'
 import { FallbackOrderSetting } from '../FallbackOrderSetting'
 import { UsageCountsSetting } from '../UsageCountsSetting'
 import { useT } from '../i18n'
+import { FailureNote, MachineDetail } from '../OperatorError'
 
 /** The agents on this machine: Fabric's own detection, joined with Switchboard's catalogue when it answers. */
 export function AgentCatalogPanel(): React.JSX.Element {
@@ -28,14 +29,20 @@ export function AgentCatalogPanel(): React.JSX.Element {
       : sb
         ? t('settings.agents.sourceSwitchboard')
         : 'failed' in catalog
-          ? t('settings.agents.sourceFailed', { reason: catalog.failed })
+          ? t('settings.agents.sourceFailed')
           : catalog.value.source === 'absent' && catalog.value.reason === 'too-old'
             ? t('settings.agents.sourceTooOld')
             : catalog.value.source === 'absent' && catalog.value.reason === 'unknown-schema'
               ? t('settings.agents.sourceUnknownSchema', { detail: catalog.value.detail ?? '' })
             : catalog.value.source === 'absent' && catalog.value.reason === 'not-installed'
               ? t('settings.agents.sourceNone')
-              : t('settings.agents.sourceFailed', { reason: (catalog.value.source === 'absent' && catalog.value.detail) || '' })
+              : t('settings.agents.sourceFailed')
+  // Why Switchboard's catalogue was not read, in the machine's words, on its own line under our sentence (UX-5).
+  const sourceDetail =
+    catalog === null || sb ? null
+      : 'failed' in catalog ? catalog.failed
+        : catalog.value.source === 'absent' && catalog.value.reason !== 'too-old' && catalog.value.reason !== 'not-installed' ? catalog.value.detail
+          : null
   const stateOf = (r: ExecutorRow) =>
     r.state === 'found' ? t('settings.agents.found', { version: r.version ?? '' }) : r.state === 'unresponsive' ? t('settings.agents.unresponsive') : t('settings.agents.missing')
   return (
@@ -47,8 +54,9 @@ export function AgentCatalogPanel(): React.JSX.Element {
         </div>
       </div>
       <p className="lp-meta" role="status">{source}</p>
+      <MachineDetail text={sourceDetail} />
       {found === null && <p className="lp-meta">{t('settings.agents.looking')}</p>}
-      {found && 'failed' in found && <p className="lp-meta" role="alert">{t('settings.agents.unreadable', { reason: found.failed })}</p>}
+      {found && 'failed' in found && <FailureNote said={t('settings.agents.unreadable')} detail={found.failed} />}
       <ol className="lp-settings-list">
         {rows.map((r) => {
           const s = byId.get(r.id)

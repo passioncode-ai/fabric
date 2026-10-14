@@ -10,6 +10,7 @@ import { liveIsFresh, liveRows, rhythmDays, rhythmTotals, RHYTHM_DAYS, type Live
 import { describeEvent, useLocale, useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
 import { since } from '../duration'
+import { FailureNote } from '../OperatorError'
 
 const sameDay = (iso: string, now: Date): boolean => new Date(iso).toDateString() === now.toDateString()
 /** A time today, a date otherwise: "09:18" beside "yesterday's" 09:18 would read as today. In the
@@ -83,7 +84,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
         </div>
         <button type="button" className="lp-button primary" onClick={onBoard}>{t('launch.home.board.open')}</button>
       </div>
-      {problem && <p className="lp-meta" role="alert">{t('needsYou.unreadable', { reason: problem })}</p>}
+      {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
       {!cut && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {cut && cut.total === 0 && unread.length === 0 && (
