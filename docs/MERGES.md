@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T17:10:00Z · `—` · agent/stack-start-retry-20261014 → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: Fabric would not open on the operator's Mac: OrbStack had stopped (an update pending), then the next start met «container is not ready: starting». startStack now waits out those two transient refusals (stackStartRetry.ts, 4 × 10 s) and shows every other refusal at once.
+
 ### 2026-10-14T06:30:00Z · `—` · agent/operator-project-20261014 → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit

@@ -13,6 +13,7 @@ import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES } from './stackServices.ts'
+import { startWithRetry } from '../shared/stackStartRetry.ts'
 import { homedir } from 'node:os'
 import { pathAdditions } from './platform.ts'
 
@@ -97,7 +98,17 @@ export function stopStartingStack(): void {
   starting = null
 }
 
+/**
+ * Starts the stack, waiting out the moments it is still coming up (`stackStartRetry.ts`): a container that is
+ * «not ready: starting» right after Docker returns is retried, never shown as «The local stack refused to start».
+ */
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
+  await startWithRetry(() => startStackOnce(onLine), {
+    onRetry: (attempt) => onLine?.(`The stack is still starting — trying again (${attempt})…`)
+  })
+}
+
+async function startStackOnce(onLine?: (line: string) => void): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
   const child = run('supabase', ['start', '-x', STACK_EXCLUDED_SERVICES.join(',')], {
     cwd: repoRoot(),

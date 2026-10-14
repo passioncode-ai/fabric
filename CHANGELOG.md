@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Fabric waits for a stack that is still starting** instead of refusing to open: right after Docker (OrbStack)
+  comes back, «container is not ready: starting» and «supabase start is already running» are waited out and retried
+  (up to four tries, ten seconds apart, said on the splash); any other refusal is shown at once, as before.
 - **Comms reads a long board a page at a time** (wave 4, [ADR-0156](docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §8):
   threads newest activity first, 50 a page, with "Show older threads"; the filters — project, kind, coding agent, open
   request, activity — are answered by Comms itself, so they work on a board too large to hold, and a filter Comms did
