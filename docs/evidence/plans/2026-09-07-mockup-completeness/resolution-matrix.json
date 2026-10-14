@@ -271,7 +271,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 28,
           "symbol": "data",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -963,7 +963,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -2328,7 +2328,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 52,
           "symbol": "goals",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -2787,14 +2787,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -4391,35 +4391,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -4510,35 +4510,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -4689,35 +4689,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 152,
           "symbol": "publishProject",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -4809,28 +4809,28 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         }
       ],
@@ -5736,14 +5736,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -6244,14 +6244,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 52,
           "symbol": "goals",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -6412,21 +6412,21 @@
           "file": "scripts/product/governance.mjs",
           "line": 47,
           "symbol": "pipeline",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 15,
           "symbol": "skillGate",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         }
       ],
@@ -6643,14 +6643,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 57,
           "symbol": "usage",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         }
       ],
@@ -6683,21 +6683,21 @@
           "file": "scripts/product/governance.mjs",
           "line": 76,
           "symbol": "settings",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 87,
           "symbol": "localDiagnostics",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -6765,35 +6765,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -6964,28 +6964,28 @@
           "file": "scripts/product/governance.mjs",
           "line": 108,
           "symbol": "notifications",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 113,
           "symbol": "notificationExtras",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -7505,14 +7505,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 76,
           "symbol": "settings",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -7654,14 +7654,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 70,
           "symbol": "governor",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         }
       ],
@@ -7898,14 +7898,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 114,
           "symbol": "notifierComposer",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
@@ -7980,14 +7980,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 57,
           "symbol": "usage",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         }
       ],
@@ -8020,35 +8020,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 152,
           "symbol": "publishProject",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
+          "sha256": "c97024badbd9a53e1b07961c1c730dd062c22a400659e15948c0ab62cc9030bc",
           "source_inspected": true
         },
         {

@@ -1272,6 +1272,8 @@ export interface FabricApi {
      *  reported success while the write was refused is how a malformed
      *  `settings.json` used to take the operator's workspace path with it. */
     write(next: SettingsPatch): Promise<SettingsWrite>
+    /** The coding agents Switchboard catalogues on this machine, or why it cannot say (0.6.31+, read-only). */
+    agentCatalog(): Promise<import('./agentCatalog.ts').SwitchboardCatalog>
   }
   feed: {
     replay(fromSeq: number): Promise<FeedEvent[]>
@@ -1704,6 +1706,7 @@ export const IPC = {
   windowsOpenFile: 'windows:open-file',
   settingsRead: 'settings:read',
   settingsWrite: 'settings:write',
+  settingsAgentCatalog: 'settings:agentCatalog',
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
   commsThreads: 'comms:threads',

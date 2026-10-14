@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T06:30:00Z · `—` · agent/operator-project-20261014 → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: Settings wave 3 — SCR-52 becomes a screen: the coding agents on this computer (Fabric's detection joined with Switchboard 0.6.31+'s read-only catalogue, the source said; 0.6.30 measured as too old), launch fallback, sleep, look, data and access. agentCatalog.ts, agentCatalogRead.ts, SettingsScreen.tsx, SCN-160; governance.mjs receipts re-signed.
+
 ### 2026-10-14T05:40:00Z · `—` · agent/operator-project-20261014 → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit

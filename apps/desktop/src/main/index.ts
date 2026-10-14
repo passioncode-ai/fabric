@@ -354,6 +354,7 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
+import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { settingsPatch } from '../shared/appSettings.ts'
@@ -4449,6 +4450,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.filesList, (event, dir: string): Returns<FabricApi['files']['list']> => listDirectory(dir, fileRoots, scopeOf(event)))
 
   handle(IPC.settingsRead, (): Returns<FabricApi['settings']['read']> => readSettings())
+  // Read-only: Switchboard's catalogue of coding agents for Settings (0.6.31+; agentCatalogRead.ts).
+  handle(IPC.settingsAgentCatalog, (): Promise<Returns<FabricApi['settings']['agentCatalog']>> =>
+    readMachineAgentCatalog(sessionEnvironment(process.env)))
   handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
     // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
     const checked = settingsPatch(raw)

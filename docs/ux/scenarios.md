@@ -163,6 +163,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-157 | See what waits for a project | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
 | SCN-158 | See on the home who is doing what, in plain words | Home | P-01 | ST-037, FLW-21, SCR-30 | draft | unobserved |
 | SCN-159 | Open a project and see where it came from, where it is and where it goes | Projects | P-01 | ST-032, FLW-21, SCR-31 | draft | unobserved |
+| SCN-160 | See which coding agents this computer runs, and set how it behaves | Settings | P-01 | FLW-40, SCR-52 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3866,4 +3867,24 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/shared/projectPath.ts`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; tests `apps/desktop/src/shared/projectPath.test.ts`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx`
+- **Product:** unobserved
+
+### SCN-160: See which coding agents this computer runs, and set how it behaves
+- **Persona:** P-01
+- **Feature:** Settings
+- **Traces:** FLW-40, SCR-52 (JTBD-02)
+- **Entry point:** Settings in the navigation
+- **Preconditions:** none
+- **Steps:**
+  1. Operator opens Settings -> a screen (not a band over another page) with «Агенты для кода на этом компьютере», «Запуск», «Компьютер», «Вид», «Данные и доступ»; the page it replaced stays as it was underneath.
+  2. Operator reads the agents -> every agent Fabric knows: installed with its version and path, installed but not answering, or not installed with the vendor's install command. When Switchboard 0.6.31+ publishes its catalogue (`switchboard --json agents status`), its default and switched-off agents are marked and agents only Switchboard knows are added; the line above the list says which source is shown.
+  3. Operator sets «Не давать компьютеру засыпать», the fallback order, theme, language or usage counts -> each saves through the settings write and says so if it did not.
+- **Expected result:** the operator knows which agents can run here and changes how this computer behaves in one place.
+- **Alt paths:** Switchboard absent -> «Switchboard не установлен — показано то, что Fabric нашёл…»; older than 0.6.31 -> «Switchboard старше 0.6.31 и не публикует каталог…»; its read fails -> the reason is said.
+- **UI elements:** `SettingsScreen` (SCR-52) — `AgentCatalogPanel`, `FallbackOrderSetting`, the sleep select with its note, theme and language selects, `UsageCountsSetting`, history and agent-access buttons.
+- **States covered:** loading («Читаю каталог агентов…»), empty (no agent installed — each row says «не установлен» with its install command), error (detection failed — said; catalogue unreadable — said), success
+- **Errors & recovery:** enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** `apps/desktop/src/shared/agentCatalog.ts`, `apps/desktop/src/main/agentCatalogRead.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, `apps/desktop/src/renderer/src/App.tsx`; tests `apps/desktop/src/shared/agentCatalog.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`. Measured 2026-10-14 on the operator's Mac: Switchboard 0.6.30 → `too-old`.
 - **Product:** unobserved

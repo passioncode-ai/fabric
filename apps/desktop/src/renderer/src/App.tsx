@@ -50,9 +50,8 @@ import { markOf } from '../../shared/feedMarks.ts'
 import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
-import { UsageCountsSetting } from './UsageCountsSetting'
+import { SettingsScreen } from './launch/SettingsScreen'
 import { UsageCountsNotice } from './UsageCountsNotice'
-import { FallbackOrderSetting } from './FallbackOrderSetting'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
@@ -789,7 +788,7 @@ function Shell({
         chatOpen={chatOpen}
       >
       {showSettings && (
-        <SettingsBar
+        <SettingsScreen
           settings={settings}
           onOpenHistory={() => setPanel('history')}
           onOpenAccess={() => setPanel('access')}
@@ -852,7 +851,8 @@ function Shell({
       )}
 
       <div className={searchOpen || chatOpen || historyOpen || accessOpen ? 'shell shell-with-panel' : 'shell'}>
-      <main className="content">
+      {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
+      <main className="content" hidden={showSettings}>
         {active.kind === 'board' && (
           <BoardScreen
             key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
@@ -1119,73 +1119,6 @@ function Shell({
         {accessOpen && <AgentAccessPanel onClose={() => setPanel((p) => closePanel(p, 'access'))} />}
       </div>
       </LaunchShell>
-    </div>
-  )
-}
-
-function SettingsBar({
-  settings,
-  onChange,
-  onOpenHistory,
-  onOpenAccess
-}: {
-  settings: AppSettings
-  onOpenHistory: () => void
-  onOpenAccess: () => void
-  onChange: (next: SettingsPatch) => Promise<void> | void
-}): React.JSX.Element {
-  const t = useT()
-  return (
-    <div className="settings-bar">
-      <Button tone="ghost" onClick={onOpenHistory}>{t('settings.history')}</Button>
-      <Button tone="ghost" onClick={onOpenAccess}>{t('settings.agentAccess')}</Button>
-      <Field label={t('settings.theme')}>
-        {(id) => (
-          <select
-            id={id}
-            value={settings.theme}
-            onChange={(e) => void onChange({ theme: e.target.value as AppSettings['theme'] })}
-          >
-            <option value="dark">{t('settings.themeDark')}</option>
-            <option value="light">{t('settings.themeLight')}</option>
-            <option value="system">{t('settings.themeSystem')}</option>
-          </select>
-        )}
-      </Field>
-      <Field label={t('settings.language')}>
-        {(id) => (
-          <select
-            id={id}
-            value={settings.locale}
-            onChange={(e) => void onChange({ locale: e.target.value as AppSettings['locale'] })}
-          >
-            <option value="en">{t('settings.localeEn')}</option>
-            <option value="ru">{t('settings.localeRuUntranslated')}</option>
-          </select>
-        )}
-      </Field>
-      <Field label={t('power.label')}>
-        {(id) => (
-          <select
-            id={id}
-            value={settings.keepAwake}
-            onChange={(e) =>
-              void onChange({ keepAwake: e.target.value as AppSettings['keepAwake'] })
-            }
-          >
-            <option value="always">{t('power.always')}</option>
-            <option value="while-working">{t('power.while-working')}</option>
-            <option value="never">{t('power.never')}</option>
-          </select>
-        )}
-      </Field>
-      {/* Said here rather than discovered: the blocker stops the MACHINE
-          suspending and lets the screen sleep, and macOS ignores it with the
-          lid closed on battery. A setting that promises what the OS will not
-          do is worse than no setting. */}
-      <span className="settings-note">{t('power.note')}</span>
-      <UsageCountsSetting />
-      <FallbackOrderSetting value={settings.runnerFallback} onChange={onChange} />
     </div>
   )
 }

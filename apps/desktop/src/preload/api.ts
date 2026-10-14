@@ -157,7 +157,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     },
     settings: {
       read: () => ipc.invoke(IPC.settingsRead),
-      write: (next) => ipc.invoke(IPC.settingsWrite, next)
+      write: (next) => ipc.invoke(IPC.settingsWrite, next),
+      agentCatalog: () => ipc.invoke(IPC.settingsAgentCatalog)
     },
     feed: {
       replay: (fromSeq) => ipc.invoke(IPC.feedReplay, fromSeq)

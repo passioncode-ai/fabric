@@ -1162,12 +1162,12 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Purpose:** Настроить тему, локаль, поведение пробуждения, хранение и допустимые проектные ограничения.
 - **Elements:** Глобальная настройка → проектный override → проверка сужения прав → новая ревизия. Повышение прав не следует из настройки интерфейса. Переключатель «Делиться счётчиками использования» — один для всех приложений PassionCode (SCN-134, [ANALYTICS.md](../ANALYTICS.md)).
 - **Primary action:** Глобальная настройка
-- **Scenarios:** SCN-071, SCN-134, SCN-135
+- **Scenarios:** SCN-071, SCN-134, SCN-135, SCN-160
 - **Flows:** FLW-40
 - **Implementation tasks:** M72, M73, M152
 - **Prototype:** [Адрес макета](../reports/product.html#view-estate-settings); контракт [mockup-contract.md](mockup-contract.md).
 - **Status:** designed
-- **Coverage:** apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx (the 0.3.3 parts; the rest of the screen is designed, not built)
+- **Coverage:** apps/desktop/src/renderer/src/launch/SettingsScreen.tsx (2026-10-14: the screen, the agents on this computer from Switchboard's catalogue or Fabric's own detection, sleep, look, data and access), apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx; the estate-scoped half (estate name, default memory, CEO trust, project priority) is designed, not built
 
 | State | Trigger | Animation | Behavior |
 |---|---|---|---|

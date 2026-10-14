@@ -1,0 +1,67 @@
+// Settings as a screen (SCR-52, 2026-10-14): the agents on this computer with the source said, Switchboard's default
+// shown, a catalogue that cannot be read never shown as "no agents", and the existing controls still saving.
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { I18nProvider } from '../i18n'
+import { en } from '../i18n/en'
+import { AgentCatalogPanel, SettingsScreen } from './SettingsScreen'
+import type { AppSettings } from '../../../shared/types'
+
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+
+const executors = [
+  { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.4.1', path: '/opt/homebrew/bin/claude', install: null },
+  { id: 'goose', label: 'Goose', connected: false, state: 'missing', version: null, path: null, install: 'brew install block-goose-cli' }
+]
+const stub = (catalog: () => Promise<unknown>, found: () => Promise<unknown> = async () => executors) =>
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+    fabric: {
+      start: { executors: found },
+      settings: { agentCatalog: catalog },
+      analytics: { status: async () => ({ enabled: false, answered: true }) }
+    }
+  }))
+const show = (ui: React.ReactNode) => render(<I18nProvider locale="en">{ui}</I18nProvider>)
+
+describe('the agents on this computer', () => {
+  it("joins Switchboard's catalogue: its default, and an agent only Switchboard knows", async () => {
+    stub(async () => ({ source: 'switchboard', revision: '3', defaultId: 'claude-code', agents: [
+      { id: 'claude-code', name: 'Claude Code', installed: true, path: null, enabled: true, isDefault: true, install: null, url: null },
+      { id: 'kilo', name: 'Kilo Code', installed: false, path: null, enabled: false, isDefault: false, install: 'npm i -g kilo', url: null }
+    ] }))
+    show(<AgentCatalogPanel />)
+    await waitFor(() => expect(screen.getByText(en['settings.agents.sourceSwitchboard'])).toBeTruthy())
+    expect(screen.getByText(en['settings.agents.default'])).toBeTruthy()
+    expect(screen.getByText('Kilo Code')).toBeTruthy()
+    expect(screen.getByText('npm i -g kilo')).toBeTruthy()
+    expect(screen.getByText(en['settings.agents.found'].replace('{version}', '2.4.1'))).toBeTruthy()
+  })
+
+  it("says an old Switchboard is too old, and still shows what Fabric found", async () => {
+    stub(async () => ({ source: 'absent', reason: 'too-old', detail: null }))
+    show(<AgentCatalogPanel />)
+    await waitFor(() => expect(screen.getByText(en['settings.agents.sourceTooOld'])).toBeTruthy())
+    expect(screen.getByText('Claude Code')).toBeTruthy()
+    expect(screen.getByText('brew install block-goose-cli')).toBeTruthy()
+    expect(screen.queryByText(en['settings.agents.default'])).toBeNull()
+  })
+
+  it('a detection that fails is said, never an empty list', async () => {
+    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }), async () => { throw new Error('PATH unreadable') })
+    show(<AgentCatalogPanel />)
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('PATH unreadable'))
+    expect(screen.getByText(en['settings.agents.sourceNone'])).toBeTruthy()
+  })
+})
+
+describe('the settings screen', () => {
+  it('saves the sleep choice through the same write', async () => {
+    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
+    const onChange = vi.fn()
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
+    expect(onChange).toHaveBeenCalledWith({ keepAwake: 'always' })
+    expect(screen.getByText(en['settings.screen.title'])).toBeTruthy()
+  })
+})

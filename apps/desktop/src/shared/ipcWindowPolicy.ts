@@ -143,6 +143,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   windowsOpenFile: MAIN_ONLY,
   settingsRead: EVERY_WINDOW,
   settingsWrite: MAIN_ONLY,
+  settingsAgentCatalog: MAIN_ONLY,
   terminalMemoryBackends: MAIN_ONLY,
   feedReplay: MAIN_ONLY,
   commsThreads: MAIN_ONLY,
