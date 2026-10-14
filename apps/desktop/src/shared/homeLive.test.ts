@@ -87,3 +87,33 @@ describe('orderProjects', () => {
     expect(out).toEqual([P3, P2, P1])
   })
 })
+
+describe('composeHome — work Fabric launched itself', () => {
+  it('a running task with no claim is in work, with its session\'s stage; a claimed one is not counted twice', () => {
+    const s9 = session('s9', P1, { console: true })
+    const v = composeHome({
+      where: where([s9], [claim('t1', P1, 's9')]), projects, stages: [stage('s9', P1, 'Пишем тесты', '2026-10-14T08:59:00Z')], briefs: [],
+      reviewTasks: [],
+      runningTasks: [
+        { id: 't7', project_id: P1, title: 'Fabric-launched', brief_what: 'Новая главная', status: 'running', updated_at: '2026-10-14T08:00:00Z', session_id: 's9' },
+        { id: 't1', project_id: P1, title: 'claimed', brief_what: null, status: 'running', updated_at: '2026-10-14T08:00:00Z' }
+      ],
+      activity: new Map(), now: '2026-10-14T09:00:00Z'
+    })
+    expect(v.inWork.map((w) => w.taskId).sort()).toEqual(['t1', 't7'])
+    expect(v.inWork.find((w) => w.taskId === 't7')).toMatchObject({ summary: 'Новая главная', console: true, sessionId: 's9', doing: { text: 'Пишем тесты' } })
+  })
+})
+
+
+describe('composeHome — a stage that names its task', () => {
+  it('a running task with no held session takes the newest stage reported for it', () => {
+    const v = composeHome({
+      where: where([], []), projects, briefs: [], reviewTasks: [],
+      stages: [stage('gone', P1, 'Выкатываем', '2026-10-14T08:50:00Z', { task_id: 't3' })],
+      runningTasks: [{ id: 't3', project_id: P1, title: 'x', brief_what: null, status: 'running', updated_at: '2026-10-14T08:00:00Z' }],
+      activity: new Map(), now: '2026-10-14T09:00:00Z'
+    })
+    expect(v.inWork[0].doing?.text).toBe('Выкатываем')
+  })
+})

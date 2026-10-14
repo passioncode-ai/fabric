@@ -2934,7 +2934,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }> => {
     const [reviews, expired, refusals, projects, proposals, grants] = await Promise.all([
       store
-        .select('project_tasks', 'id,project_id,title,instruction,started_at')
+        .select('project_tasks', 'id,project_id,title,brief_what,instruction,started_at')
         .eq('estate_id', ACTIVE_ESTATE)
         .eq('status', 'review'),
       store

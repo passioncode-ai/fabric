@@ -232,21 +232,23 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
  *  did not happen. */
 export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[] }): Promise<HomeView> {
   const where = await readWhereWork(store, opts)
-  const [projects, stages, review, journal] = await Promise.all([
+  const [projects, stages, review, running, journal] = await Promise.all([
     store.select('projects', 'id,name').eq('status', 'active').limit(500),
     store.select('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at').order('reported_at', { ascending: false }).limit(500),
     // `moved_at` is when the task last changed column — for a task in review, when it was put there.
     store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at').eq('status', 'review').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
+    store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at,started_at,session_id').eq('status', 'running').limit(200),
     store.select('journal', 'project_id,occurred_at').not('project_id', 'is', null).order('seq', { ascending: false }).limit(3000)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
   const stageRows = must(stages as never, 'the stage reports') as StageRow[]
   const reviewRows = (must(review as never, 'the review queue') as Array<TaskBrief & { moved_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at }))
+  const runningRows = (must(running as never, 'the tasks in work') as Array<TaskBrief & { moved_at: string | null; started_at: string }>).map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
   const activity = new Map<string, string | null>()
   for (const e of must(journal as never, 'the journal') as Array<{ project_id: string; occurred_at: string }>) if (!activity.has(e.project_id)) activity.set(e.project_id, e.occurred_at)
   const claimIds = [...new Set(where.rows.flatMap((r) => r.claims.map((c) => c.taskId)))]
   const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', claimIds)
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
-  return composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, activity, now: new Date(opts.now).toISOString() })
+  return composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, activity, now: new Date(opts.now).toISOString() })
 }
 // #endregion work-read

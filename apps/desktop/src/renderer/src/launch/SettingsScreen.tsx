@@ -45,7 +45,7 @@ export function AgentCatalogPanel(): React.JSX.Element {
         </div>
       </div>
       <p className="lp-meta" role="status">{source}</p>
-      {found === null && <p className="lp-meta">{t('estate.reading')}</p>}
+      {found === null && <p className="lp-meta">{t('settings.agents.looking')}</p>}
       {found && 'failed' in found && <p className="lp-meta" role="alert">{t('settings.agents.unreadable', { reason: found.failed })}</p>}
       <ol className="lp-settings-list">
         {rows.map((r) => {

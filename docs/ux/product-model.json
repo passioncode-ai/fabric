@@ -33997,7 +33997,7 @@
       "screen_refs": [
         "SCR-30"
       ],
-      "coverage": "`apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`",
+      "coverage": "`apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs` (home, project, settings — 2026-10-14 PASS)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "in a few seconds the operator knows what is being done across every project and where they are needed, without opening a transcript.",

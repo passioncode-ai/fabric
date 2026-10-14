@@ -897,6 +897,7 @@ export const en = {
   'settings.agents.sourceTooOld': "Switchboard is older than 0.6.31 and publishes no catalogue: showing what Fabric found on this computer.",
   'settings.agents.sourceNone': "Switchboard is not installed: showing what Fabric found on this computer.",
   'settings.agents.sourceFailed': "Switchboard's catalogue could not be read ({reason}): showing what Fabric found on this computer.",
+  'settings.agents.looking': "Looking for coding agents on this computer…",
   'settings.agents.unreadable': "Could not look for agents: {reason}",
   'settings.agents.found': "installed {version}",
   'settings.agents.installed': "installed",

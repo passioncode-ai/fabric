@@ -21,6 +21,7 @@
 import type { PendingRequestFacts } from './access.ts'
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import { refusedBy, type ReadEnvelope, type SourceReceipt } from './readEnvelope.ts'
+import { pathSummary } from './projectPath.ts'
 
 export type AttentionKind = 'access' | 'refused' | 'review' | 'abandoned' | 'proposal'
 
@@ -76,7 +77,8 @@ export type AccessFacts = PendingRequestFacts
 
 export interface AttentionSources {
   /** Tasks an agent moved to review: it says it is done and cannot say so. */
-  reviews: { id: string; project_id: string; title: string | null; instruction: string; started_at: string }[]
+  /** `brief_what` is the task's plain summary when an agent or the operator wrote one (2026-10-14). */
+  reviews: { id: string; project_id: string; title: string | null; brief_what?: string | null; instruction: string; started_at: string }[]
   /** Claims whose holder is gone; the work is neither running nor free. */
   expired: {
     work_id: string
@@ -216,7 +218,8 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       ref: { kind: 'task', id: row.id },
       projectId: row.project_id,
       projectName: sources.names[row.project_id] ?? null,
-      title: row.title ?? row.instruction,
+      // Its plain summary — the brief, the title, else the instruction's first line cut at a word: never the prompt whole.
+      title: pathSummary({ title: row.title, brief_what: row.brief_what ?? null, instruction: row.instruction }),
       detail: null,
       since: row.started_at
     })

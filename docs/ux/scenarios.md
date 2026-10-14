@@ -3833,7 +3833,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Preconditions:** at least one project exists; agents may or may not be working
 - **Steps:**
   1. Operator opens the home -> at the top, beside Fabric's identity and the 28-day rhythm, four counts: agents working now, tasks in work, what needs the operator, what waits for review. Each opens where it is counted (the agents, the board).
-  2. Operator reads the board -> beside «Нужно вам» (SCN-055), «Кто что делает»: «В работе» — each claimed task as a plain summary (its brief's «what», else its title), with its project, agent, how long, and the agent's current stage; «На проверке» — the tasks in review across projects.
+  2. Operator reads the board -> beside «Нужно вам» (SCN-055), «Кто что делает»: «В работе» — each claimed task, and each task in work that Fabric launched itself, as a plain summary (its brief's «what», else its title), with its project, agent, how long, and the agent's current stage (by its session, else by the stage that names the task); «На проверке» — the tasks in review across projects. A task waiting in «Нужно вам» is named the same plain way, never by its instruction.
   3. Operator reads «Агенты в работе» -> every working session: the agent, its project, what it says it is doing now (its latest stage, with step N of M), else «Работает над: <задача>», else «Ещё не сказал, что делает»; a session that has gone silent is marked «молчит» and sorted after the working ones.
   4. Operator clicks an agent -> its console opens when Fabric holds one; otherwise its project opens. «Все агенты» opens the agents screen.
   5. Operator scans "My projects" -> SCN-043: favourites, then by latest activity, each with «Сейчас: …» or «Тихо уже …».
@@ -3844,7 +3844,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Errors & recovery:** a failed reading says «Неизвестно, кто работает: <причина>» and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`
+- **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs` (home, project, settings — 2026-10-14 PASS)
 - **Product:** unobserved
 
 ### SCN-159: Open a project and see where it came from, where it is and where it goes

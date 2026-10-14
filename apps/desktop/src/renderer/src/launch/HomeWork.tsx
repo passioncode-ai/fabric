@@ -81,7 +81,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
       <button type="button" className="lp-button lh-work-open" onClick={() => (w.console && w.sessionId ? onSession(w.sessionId) : onOpen(w.projectId))}>
         <span className="lh-work-title">{w.summary || t('launch.home.work.untitled')}</span>
         <span className="lp-meta">
-          {[w.projectName, runnerLabel(w.agent, t), since(w.since, t)].filter(Boolean).join(' · ')}
+          {[w.projectName, w.agent ? runnerLabel(w.agent, t) : null, since(w.since, t)].filter(Boolean).join(' · ')}
         </span>
         {w.doing && <Doing item={w} />}
       </button>

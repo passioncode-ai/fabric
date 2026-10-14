@@ -349,3 +349,13 @@ describe('what resolves a refusal (A1-001, main half)', () => {
     expect(openRefusals([refusal(1)], resolutionsOf([{ seq: 2, project_id: 'p1', payload: {} }], []))).toHaveLength(1)
   })
 })
+
+describe('a task in review is named in plain words (2026-10-14)', () => {
+  it('the brief, then the title, and never the whole instruction', () => {
+    const at = (row: Partial<AttentionSources['reviews'][number]>) =>
+      attentionOf({ ...empty, reviews: [{ id: 't', project_id: 'p', title: null, instruction: 'Implement X.\nFiles: a, b, c', started_at: '2026-10-14T00:00:00Z', ...row }] })[0].title
+    expect(at({ title: 'board import', brief_what: 'Импорт задач из старой доски' })).toBe('Импорт задач из старой доски')
+    expect(at({ title: 'board import' })).toBe('board import')
+    expect(at({})).toBe('Implement X.')
+  })
+})

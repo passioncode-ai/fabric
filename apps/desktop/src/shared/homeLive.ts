@@ -26,6 +26,8 @@ export interface TaskBrief {
   brief_what: string | null
   status: string
   updated_at?: string | null
+  /** The session a Fabric-launched task runs in, when it has one. */
+  session_id?: string | null
 }
 
 /** What a session says it is doing, in its own words; null when it has said nothing. */
@@ -110,6 +112,8 @@ export function composeHome(input: {
   stages: readonly StageRow[]
   briefs: readonly TaskBrief[]
   reviewTasks: readonly TaskBrief[]
+  /** Tasks in work that no agent has claimed — those Fabric launched itself; claimed ones come from `where`. */
+  runningTasks?: readonly TaskBrief[]
   activity: ReadonlyMap<string, string | null>
   now: string
 }): HomeView {
@@ -118,6 +122,13 @@ export function composeHome(input: {
   for (const s of input.stages) {
     const prev = stageBySession.get(s.session_id)
     if (!prev || prev.reported_at < s.reported_at) stageBySession.set(s.session_id, s)
+  }
+  /** The newest stage that names its task: a Fabric-launched task's words when its session is not the one held. */
+  const stageByTask = new Map<string, StageRow>()
+  for (const s of input.stages) {
+    if (!s.task_id) continue
+    const prev = stageByTask.get(s.task_id)
+    if (!prev || prev.reported_at < s.reported_at) stageByTask.set(s.task_id, s)
   }
   const briefById = new Map(input.briefs.map((b) => [b.id, b]))
   const sessions: WorkSessionView[] = [...input.where.rows.flatMap((r) => r.sessions), ...input.where.unowned]
@@ -155,6 +166,23 @@ export function composeHome(input: {
     since: c.since,
     doing: doingOf(stageBySession.get(c.sessionId))
   }))
+  const claimed = new Set(inWork.map((w) => w.taskId))
+  const held = new Map(sessions.map((s) => [s.sessionId, s]))
+  for (const t of input.runningTasks ?? []) {
+    if (t.status !== 'running' || claimed.has(t.id)) continue
+    const s = t.session_id ? held.get(t.session_id) : undefined
+    inWork.push({
+      taskId: t.id,
+      projectId: t.project_id,
+      projectName: names.get(t.project_id) ?? '',
+      summary: taskSummary(t),
+      agent: s?.agent ?? null,
+      sessionId: s ? s.sessionId : null,
+      console: s?.console ?? false,
+      since: t.updated_at ?? input.now,
+      doing: doingOf((t.session_id ? stageBySession.get(t.session_id) : undefined) ?? stageByTask.get(t.id))
+    })
+  }
   inWork.sort((a, b) => b.since.localeCompare(a.since))
 
   const review: ReviewItem[] = input.reviewTasks

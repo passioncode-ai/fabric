@@ -261,6 +261,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.agents.sourceTooOld': "Switchboard старше 0.6.31 и не публикует каталог — показано то, что Fabric нашёл на этом компьютере.",
   'settings.agents.sourceNone': "Switchboard не установлен — показано то, что Fabric нашёл на этом компьютере.",
   'settings.agents.sourceFailed': "Каталог Switchboard не прочитан ({reason}) — показано то, что Fabric нашёл на этом компьютере.",
+  'settings.agents.looking': "Ищу агентов для кода на этом компьютере…",
   'settings.agents.unreadable': "Не удалось поискать агентов: {reason}",
   'settings.agents.found': "установлен {version}",
   'settings.agents.installed': "установлен",
