@@ -32,7 +32,8 @@ const FILE = 'apps/desktop/src/renderer/src/App.tsx'
 const src = readFileSync(FILE, 'utf8')
 const lineOf = (index) => src.slice(0, index).split('\n').length
 
-const open = src.indexOf('<main className="content">')
+// Attributes after the class are allowed (`hidden` keeps the screen mounted under Settings, 2026-10-14).
+const open = src.search(/<main className="content"[^>]*>/)
 const close = src.indexOf('</main>', open)
 if (open < 0 || close < 0) {
   console.error(`route: no <main className="content"> … </main> in ${FILE} — the gate cannot see the shell`)
