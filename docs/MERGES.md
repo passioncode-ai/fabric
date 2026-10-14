@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T21:00:00Z · `—` · agent/release-036-i1-fixes → main · fast-forward
+- run: r-44ae60a75316
+- files: see the branch (merges fix/rv-036-comms-ux and docs/review-036-docs, and agent/registers-20261014)
+- conflicts: map changelog (unioned), generated product/coverage reports (regenerated)
+- summary: Fabric 0.3.6 release, iteration 1 closed — 62 findings (17 blocking) from five independent reviews of 034108c5, each fixed or ruled to a register row; ADR-0158 (RM-29), CO-294…CO-309, P-18; the pipeline's reserved ADR moves to 0159.
+
 ### 2026-10-14T17:10:00Z · `—` · agent/stack-start-retry-20261014 → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit

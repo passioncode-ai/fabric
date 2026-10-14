@@ -3907,7 +3907,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Preconditions:** the local stack's containers exist but are not healthy yet, or another `supabase start` is still running
 - **Steps:**
   1. Operator opens Fabric -> the splash shows that the stack is starting, with its own last line.
-  2. The stack answers «container is not ready: starting» (or «unhealthy»), or «supabase start is already running» -> the splash says, in the operator's language, that the stack is still starting and Fabric tries again (n); Fabric waits ten seconds and starts the stack again.
+  2. The stack answers «container is not ready: starting», or «supabase start is already running» -> Fabric waits ten seconds and the splash says «The stack is still starting — try 2 of 4» (English, like the whole splash: CO-306); then it starts the stack again. «unhealthy» is a fault, shown at once. A quit during the wait starts nothing more.
   3. Up to four tries in all -> once the stack answers, startup goes on as usual and the home opens (SCN-158); nothing of the wait is left on screen.
 - **Expected result:** a stack that only needed another minute never reaches the operator as «The local stack refused to start».
 - **Alt paths:** the stack is still starting after the fourth try -> the startup error shows the stack's own last words, as any refusal does. Docker unreachable, a port taken, a broken config, or any refusal other than the two above -> shown at once, never retried: those are the operator's to fix, and a wait would only hide them.

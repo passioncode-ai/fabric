@@ -146,3 +146,9 @@ opens), a request's timeline and related threads (SCN-147), history search (SCN-
   rows; CO-286 closes when SCR-83 is built.
 - **Risk:** an agent whose kit predates DEC-0079 reads a pause as `not_authorized` and may give up rather than retry;
   the sentence names the resume, and the adapter's kits retry `held` once they repin (the contract's CT-42).
+
+## Amendment 1 — 2026-10-14: the Settings band is a screen
+
+Wave 3 of the operator home (SCN-160, `launch/SettingsScreen.tsx`) made Settings a screen in place of the band under
+the tab strip. Where §5 places SCR-83, the project directory, "in the Settings band", read "in Settings"; nothing
+else in this record changes. Recorded by run `r-44ae60a75316` from the 0.3.6 review (DO-12).

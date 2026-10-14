@@ -1,6 +1,14 @@
 # CO-282 — portable harness waves handoff
 
-## Current state — 2026-10-14, 00:50 UTC (read this first)
+## Update — 2026-10-14, evening (read this first)
+
+N-040 (load-tolerant fixture deadlines) is **closed and on `main`** (`43e891e7`, verdict in `graph.json`), and N-030's
+cause changed: the scheduled publication now failed on a timing-tight test (`ceo-conversation-service.test.mjs`, fixed on
+`main` `ee4064b4`), not only on the 30-minute bound. **Exact next task:** publish the workspace from `main` after the
+0.3.6 release lands (`node scripts/workspace.mjs publish`), then close N-030. CO-293 (a real Electron process alive
+after `exit 0`) is carried to 0.3.7 by the 0.3.6 ledger unless the release's local gate reproduces it.
+
+## Current state — 2026-10-14, 00:50 UTC (earlier)
 
 **The expanded candidate passed its complete gate and lands on main.** Candidate `06d5d87244b251a6c6057cef73c9013d4ccd8fc6` (tree `0c2db35f`, merging main `59eef190`): complete local `bash scripts/ci.sh fast` exit 0 in 865.6 s, source unchanged before and after ([receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json), [log](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log)); hosted fast green on push and pull_request. Only the browser mockup suites were NOT_RUN (no `FABRIC_PLAYWRIGHT_MODULE`/`FABRIC_CHROME`); the owned-database stages ran.
 

@@ -1,0 +1,126 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "034108c5cf0f4019fa35f5be0ec46776dfdd3ed5",
+  "report": "docs/evidence/reviews/0.3.6/iteration-1/2026-10-14-docs.md",
+  "reportSha256": "5d09cde039f2c6ddccad76c9a0df83bb1e6f877bca9660a96b69ee39ad9669da",
+  "reviewerRun": "release-036-i1-docs-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-26",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-3"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentCatalog.ts#parseSwitchboardAgents` reads the `{ok, data}` envelope; measured live on Switchboard 0.6.31: 30 agents read (`agentCatalog.test.ts` \"the envelope Switchboard actually prints\")"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DO-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1, plus CO-292 and the Kimi Code registration"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "DO-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG \"How sessions start\" (surface refusal, Kimi modes applied, context revision, ADR-0152/0154 inactive)"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-6"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/launch/release-mac.md`: 0.3.6 admits 89; readback 89"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-9"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-147/SCN-148 amended 2026-10-14: the repin landed (`a59d04b`)"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: archive compatibility for 85–89 recorded with its measurement (docs branch `4f3f207c`)"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DO-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-309"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AGENTS.md lifecycle rows: Comms badge 5 s, home reading 15 s, Settings catalogue once per opening"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `components/registry.ts` reworded; ADR-0156 Amendment 1 reads \"the Settings band\" as Settings"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-161 written and the code region points at it; the splash language is CO-306"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the duplicated receipt-shape entries merged"
+      ]
+    }
+  ]
+}

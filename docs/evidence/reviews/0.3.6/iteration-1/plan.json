@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "034108c5cf0f4019fa35f5be0ec46776dfdd3ed5",
+  "report": "docs/evidence/reviews/0.3.6/iteration-1/2026-10-14-plan.md",
+  "reportSha256": "9d1856fc3b5a764b746a8c8fa2a28f2ab577df2c75ae6340d294a95bf42e9061",
+  "reviewerRun": "release-036-i1-plan-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-50",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1"
+      ]
+    },
+    {
+      "id": "V1-51",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-3"
+      ]
+    },
+    {
+      "id": "V1-52",
+      "source": "PL-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the onboarding plan records its release moving to 0.3.7; this ledger re-scopes 0.3.6"
+      ]
+    },
+    {
+      "id": "V1-53",
+      "source": "PL-4 (blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-284 — two of three checks run green 2026-10-14 (agent-surface 104/104, upgrade probe 84→89); the real-client smoke is carried to 0.3.7"
+      ]
+    },
+    {
+      "id": "V1-54",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-18 in `docs/evidence/backlog.md`; this ledger"
+      ]
+    },
+    {
+      "id": "V1-55",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-291 corrected: deferred with the onboarding plan (0.3.7)"
+      ]
+    },
+    {
+      "id": "V1-56",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-190 resolved (`979474d3`)"
+      ]
+    },
+    {
+      "id": "V1-57",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the operator-home plan carries its status; the dropped permission mode is CO-305"
+      ]
+    },
+    {
+      "id": "V1-58",
+      "source": "PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-197 / N-030 — the publication runs after this release lands; the scheduled sync's new failure (`ceo-conversation-service.test.mjs`) is fixed on main `ee4064b4`"
+      ]
+    },
+    {
+      "id": "V1-59",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CO-282 handoff names N-040 closed and the next task"
+      ]
+    },
+    {
+      "id": "V1-60",
+      "source": "PL-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-277 — the upgrade path measured green 2026-10-14; the `db reset` refusal is carried to 0.3.7"
+      ]
+    },
+    {
+      "id": "V1-61",
+      "source": "PL-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-281 and CO-293 — the release's local gate run decides them; carried to 0.3.7 if not reproduced"
+      ]
+    },
+    {
+      "id": "V1-62",
+      "source": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-14"
+      ]
+    }
+  ]
+}

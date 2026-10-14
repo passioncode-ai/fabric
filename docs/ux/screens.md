@@ -715,7 +715,7 @@ different destination under the same name.
 - **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`
 - **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140, SCN-159
 - **Resources:** `project_tasks`, journal, `agent_stages`, leases
-- **Status:** designed
+- **Status:** built
 - **Planned extension (not current coverage):** Board top10; separately addressed Project history, Target plan and Decisions previews; per-agent/task TaskRun widget. FLW-25/27/28/31; SCN-050/052/053/054/057/058. See [engineering contract](../architecture/system-contract.md).
 - **Addressable subviews (target only):** SCR-03 overview is an intent of this same project surface. Deep links carry exact authorised project/entity/return context; a missing or denied source never falls back to another project.
 

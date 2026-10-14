@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "034108c5cf0f4019fa35f5be0ec46776dfdd3ed5",
+  "report": "docs/evidence/reviews/0.3.6/iteration-1/2026-10-14-errors.md",
+  "reportSha256": "78fdaa7732f1d789036974cfae44737924925068632a2e795ac57277a81ec38e",
+  "reviewerRun": "release-036-i1-errors-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-14",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `contextPack.ts`: the essential head is delivered whole, memory that does not fit is left out and said; compiler revision 5 (`context-privacy.test.mjs`, the old refusal planted back failed)"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ProjectWay.tsx#ProjectBoardGlance` `doneFloor` from `TaskList.closed.truncated`: «Готово 20+» (`ProjectLaunch.test.tsx`; watched)"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG: schema 89 from 84, five migrations, an Upgrading paragraph (docs branch `4f3f207c`)"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: recorded in CHANGELOG \"How sessions start\": a surface-connected runner is refused before start when its surface is down, with the person-facing message; the behaviour is CO-282's and intended"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-4"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `stackStartRetry.ts`: `stopped()` read before and after the wait; retries recorded as `stack.start.retry` in the operations log; `unhealthy` is not waited out (`stackStartRetry.test.ts` \"a quit during the wait starts no new try\")"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `HomeStats`: after a failed read the counts show «—» with the reason as their title (`HomeWork.test.tsx`)"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-7"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «What waits for a project» keeps and says the over-100 flag (branch `f5d55a16`; watched)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "ER-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-307"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentCatalog.ts`: a newer schema is `unknown-schema`, said in words (`agentCatalog.test.ts`)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "ER-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-309"
+      ]
+    }
+  ]
+}

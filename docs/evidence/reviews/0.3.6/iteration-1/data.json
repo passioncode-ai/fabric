@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "034108c5cf0f4019fa35f5be0ec46776dfdd3ed5",
+  "report": "docs/evidence/reviews/0.3.6/iteration-1/2026-10-14-data.md",
+  "reportSha256": "84f66b54f738ccb8d4301db5e3d61bec3d1d076486febc8e1304cc7ea4741ff3",
+  "reviewerRun": "release-036-i1-data-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-40",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-1"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-4 and DO-4"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "DA-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-2"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "DA-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-3"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-308"
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-308"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-309"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-307"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `composeHome`: a stage counts only from a session still held and signing (`homeLive.test.ts` \"an ended session's last stage is not what anyone is doing\")"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "DA-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-6"
+      ]
+    }
+  ]
+}

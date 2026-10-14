@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "034108c5cf0f4019fa35f5be0ec46776dfdd3ed5",
+  "report": "docs/evidence/reviews/0.3.6/iteration-1/2026-10-14-ux.md",
+  "reportSha256": "f01bd21cc17a5a84a87b34d0df3e3acb4304f9af25eba709f32466bb9fc320a9",
+  "reviewerRun": "release-036-i1-ux-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG `## Unreleased` names the home (SCN-158), the project page (SCN-159), Settings as a screen (SCN-160) and the lost manual order of unpinned projects (docs branch `4f3f207c`)"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `homeLive.ts#composeHome`: `WorkItem.live`; a silent/lapsed claim is listed as «никто не отмечается», not counted and never a project's «Сейчас» (test `homeLive.test.ts` \"work nobody is doing is not current\"; watched)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `projectPath.ts#pathSummary` = `homeLive.ts#taskSummary`: brief, title, else «Задача без описания»; the board keeps `legacyTaskLine` for untitled legacy tasks (`projectPath.test.ts`)"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `HomeView.reviewCapped`/`inWorkCapped`; counts read «50+» (`HomeWork.test.tsx`; watched)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `OperatorError.tsx#FailureNote`: our sentence, the machine's words on their own line, on Comms, home, project and Settings (branch `f5d55a16`, plants watched per screen)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Comms names agents by `runnerLabel` (branch `f5d55a16`; plants watched)"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed «More results» page and a refused Copy are said, «More results» kept (branch `f5d55a16`; plants watched)"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `SettingsScreen.tsx`: `installed: null` shows no pill (Switchboard did not say)"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/screens.md` SCR-30/31/52 built with coverage (docs branch `4f3f207c`)"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `App.tsx`: Settings renders inside `.shell`, so History and Agent access open beside it"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lanes show «Ещё N» to the Board past six rows (`HomeWork.tsx` `LANE_ROWS`)"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the navigation item opens Settings (no toggle) and the screen carries its name «Настройки приложения»"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "UX-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-306 — the whole splash is English (main writes it before the locale is read); the line now says «try 2 of 4»"
+      ]
+    }
+  ]
+}
