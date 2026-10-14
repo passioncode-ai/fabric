@@ -4428,7 +4428,7 @@
         "file": "docs/ux/screens.md",
         "line": 676,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`",
-        "status_claim": "designed"
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
