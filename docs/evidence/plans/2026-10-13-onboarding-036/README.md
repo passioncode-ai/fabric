@@ -6,6 +6,11 @@ choose which of them Fabric works on, and land in a project where an agent is al
 start action is redesigned and drawn: create a project, open a project made of one or several folders, scan a
 projects folder, create an agent, adapt an agent. Released as **0.3.6 from `main`**, in task-pipeline waves.
 
+**Version moved, 2026-10-14:** what was on `main` on 2026-10-14 (the operator home, project page and settings, the
+stack-start retry, comms wave 4, CO-282 behind its flag) ships as **0.3.6** because the operator asked for a new version
+that day while this plan was still awaiting its go; this plan's release becomes **0.3.7**. Nothing else in it changes.
+Recorded by run `r-44ae60a75316` ([0.3.6 ledger](../2026-10-14-release-036-verification.md)).
+
 **Decisions recorded (operator, 2026-10-13, this session):** the first run's order is persona → coding agents → connection and tools → projects → the first project at work — this supersedes the order of REQ-39 / SCN-126's 2026-10-11 rewrite (projects folder before agents); ADR-0135's rule stands (setup runs in the person's coding agent); 0.3.6 from `main` (the COM work already on `main` ships
 with it); products are **found and offered** — Fabric installs nothing without the person's press, and checks that an
 install worked; coding agents ticked by default are the **found and ready** ones, the default being the first ready in
