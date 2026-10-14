@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T00:49:00Z · `—` · agent/co282-publication-note → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: Documentation only. CO-197 records the measured cause of the stale workspace publication (nine 1800 s gate timeouts in the sync log; the gate measures 2047–2078 s under load); the CO-282 handoff names publication — directly when load allows, or after the publication reuse packet — as the next task for N030.
+
 ### 2026-10-14T00:43:00Z · `—` · agent/harness-integrated-20261013 → main · fast-forward
 - run: r-44ae60a75316
 - files: see the branch (PR 31)
