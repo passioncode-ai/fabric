@@ -16,12 +16,14 @@ import { HomeAgents, useHome } from './HomeWork'
 import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
 import { projectPath } from '../../../shared/projectPath'
 
-export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
+export function ProjectLaunch({ project, tasks, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
   onPulse?: () => void
   project: ProjectRow
   /** Null until read (M108). */
   tasks: TaskRow[] | null
+  /** Whether the closed half of `tasks` was cut (the list reads the newest closed only): then «Готово» is a floor (DA-3). */
+  closedCapped?: boolean | 'unknown' | null
   sessions: TerminalSession[] | null
   feedMark: number
   /** When the journal last said anything about this project; null when it has said nothing. */
@@ -131,7 +133,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
             {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
           </section>
 
-          <ProjectBoardGlance path={path} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
+          <ProjectBoardGlance path={path} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
         </div>
 
         <aside className="lp-side">

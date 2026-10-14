@@ -27,6 +27,17 @@ describe('parseSwitchboardAgents', () => {
   })
 })
 
+describe('the envelope Switchboard actually prints (0.6.31)', () => {
+  it('reads { ok, data } — the catalogue inside the envelope', () => {
+    const wrapped = JSON.stringify({ ok: true, data: JSON.parse(doc) })
+    expect(parseSwitchboardAgents(wrapped)?.agents.map((a) => a.id)).toEqual(['claude-code', 'goose'])
+  })
+  it('a newer schema is named, never shown as raw JSON', async () => {
+    const r = await readSwitchboardCatalog({ find: async () => '/bin/sb', run: async () => ({ code: 0, stdout: JSON.stringify({ ok: true, data: { schema: 2, agents: [] } }), stderr: '' }) })
+    expect(r).toEqual({ source: 'absent', reason: 'unknown-schema', detail: 'schema 2' })
+  })
+})
+
 describe('readSwitchboardCatalog', () => {
   const run = (code: number, stdout: string, stderr = '') => async () => ({ code, stdout, stderr })
   it('not on PATH: absent, not-installed', async () => {

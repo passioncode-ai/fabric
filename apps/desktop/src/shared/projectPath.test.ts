@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { pathSummary, projectPath, type PathTask } from './projectPath'
+import { legacyTaskLine, pathSummary, projectPath, type PathTask } from './projectPath'
 
 const task = (id: string, status: PathTask['status'], over: Partial<PathTask> = {}): PathTask => ({
   id, status, title: 'Task ' + id, brief_what: null, instruction: 'do ' + id, started_at: '2026-10-01T00:00:00Z', finished_at: null, moved_at: null, position: null, ...over
 })
 
 describe('pathSummary', () => {
-  it('the brief, then the title, then the first line of the instruction, cut at a word', () => {
-    expect(pathSummary({ title: 'T', brief_what: 'Компьютер не засыпает', instruction: 'x' })).toBe('Компьютер не засыпает')
-    expect(pathSummary({ title: 'Ship it', brief_what: null, instruction: 'x' })).toBe('Ship it')
-    expect(pathSummary({ title: null, brief_what: null, instruction: '\n  Fix the login form\nmore' })).toBe('Fix the login form')
-    const long = pathSummary({ title: null, brief_what: null, instruction: 'word '.repeat(60) })
+  it('the brief, then the title, and never the instruction (UX-3)', () => {
+    expect(pathSummary({ title: 'T', brief_what: 'Компьютер не засыпает' })).toBe('Компьютер не засыпает')
+    expect(pathSummary({ title: 'Ship it', brief_what: null })).toBe('Ship it')
+    expect(pathSummary({ title: null, brief_what: null })).toBe('')
+  })
+})
+
+describe('legacyTaskLine', () => {
+  it('names an untitled legacy task by its first line, cut at a word', () => {
+    expect(legacyTaskLine({ title: null, brief_what: null, instruction: '\n  Fix the login form\nmore' })).toBe('Fix the login form')
+    const long = legacyTaskLine({ title: null, brief_what: null, instruction: 'word '.repeat(60) })
     expect(long.endsWith('…')).toBe(true)
     expect(long.length).toBeLessThanOrEqual(121)
-    expect(long).not.toMatch(/wor…$/)
   })
 })
 

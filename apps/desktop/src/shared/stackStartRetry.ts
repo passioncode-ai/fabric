@@ -8,7 +8,8 @@
  */
 const TRANSIENT = [
   /supabase start is already running/i,
-  /container is not ready:\s*(starting|unhealthy)/i
+  // «starting» only: an «unhealthy» container is a fault to show, not a moment to wait out (0.3.6 review DA-10).
+  /container is not ready:\s*starting/i
 ]
 
 /** Whether the stack's own words say it is still coming up. */
@@ -31,7 +32,14 @@ export const STACK_START_RETRY: RetryPlan = { attempts: 4, waitMs: 10_000 }
  */
 export async function startWithRetry(
   start: () => Promise<void>,
-  opts: { plan?: RetryPlan; sleep?: (ms: number) => Promise<void>; onRetry?: (attempt: number, message: string) => void } = {}
+  opts: {
+    plan?: RetryPlan
+    sleep?: (ms: number) => Promise<void>
+    /** Called before each new try: `attempt` is the try about to run, of `attempts`. */
+    onRetry?: (attempt: number, attempts: number, message: string) => void
+    /** A quit during the wait: no new try is started after it (LC-02; 0.3.6 review DO-5, ER-6). */
+    stopped?: () => boolean
+  } = {}
 ): Promise<void> {
   const plan = opts.plan ?? STACK_START_RETRY
   const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)))
@@ -41,9 +49,10 @@ export async function startWithRetry(
       return
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      if (attempt >= plan.attempts || !stackStartIsTransient(message)) throw e
-      opts.onRetry?.(attempt, message)
+      if (attempt >= plan.attempts || !stackStartIsTransient(message) || opts.stopped?.()) throw e
       await sleep(plan.waitMs)
+      if (opts.stopped?.()) throw e
+      opts.onRetry?.(attempt + 1, plan.attempts, message)
     }
   }
 }

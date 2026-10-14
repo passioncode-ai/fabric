@@ -497,7 +497,7 @@ export function EstateHome({
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
-          <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} />
+          <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} onBoard={onBoard} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
             <div className="lp-panel-head">

@@ -21,7 +21,7 @@
 import type { PendingRequestFacts } from './access.ts'
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import { refusedBy, type ReadEnvelope, type SourceReceipt } from './readEnvelope.ts'
-import { pathSummary } from './projectPath.ts'
+import { legacyTaskLine } from './projectPath.ts'
 
 export type AttentionKind = 'access' | 'refused' | 'review' | 'abandoned' | 'proposal'
 
@@ -219,7 +219,7 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       projectId: row.project_id,
       projectName: sources.names[row.project_id] ?? null,
       // Its plain summary — the brief, the title, else the instruction's first line cut at a word: never the prompt whole.
-      title: pathSummary({ title: row.title, brief_what: row.brief_what ?? null, instruction: row.instruction }),
+      title: legacyTaskLine({ title: row.title, brief_what: row.brief_what ?? null, instruction: row.instruction }),
       detail: null,
       since: row.started_at
     })

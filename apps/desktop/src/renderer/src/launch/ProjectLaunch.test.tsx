@@ -29,7 +29,7 @@ const homeView = {
   readAt: NOW
 }
 
-function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
+function mount({ closedCapped = false as boolean | 'unknown', board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
   goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[] } = {}) {
   const query = vi.fn(async () => board)
   const openSession = vi.fn(async () => {})
@@ -40,7 +40,7 @@ function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the i
   const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
   render(
     <I18nProvider locale="en">
-      <ProjectLaunch project={project} tasks={tasks} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
+      <ProjectLaunch project={project} tasks={tasks} closedCapped={closedCapped} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
     </I18nProvider>
   )
   return { query, openSession, ...on }
@@ -107,4 +107,10 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     fireEvent.click(screen.getByTitle(en['launch.home.agents.openConsole']))
     expect(openSession).toHaveBeenCalledWith('s1')
   })
+
+  it('a done column read from a capped list is a floor, never a total (0.3.6 review DA-3)', async () => {
+    mount({ closedCapped: true, tasks: [task('t-0', 'Email sign-in', 'done', { finished_at: '2026-09-10T00:00:00Z' })] })
+    await waitFor(() => expect(screen.getByText(en['board.done']).querySelector('.lp-count')?.textContent).toBe('1+'))
+  })
 })
+

@@ -249,6 +249,6 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   const claimIds = [...new Set(where.rows.flatMap((r) => r.claims.map((c) => c.taskId)))]
   const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', claimIds)
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
-  return composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, activity, now: new Date(opts.now).toISOString() })
+  return composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, limits: { review: 50, running: 200 }, activity, now: new Date(opts.now).toISOString() })
 }
 // #endregion work-read

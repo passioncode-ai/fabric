@@ -35,8 +35,15 @@ export interface ProjectPath {
 
 const PROMPT_CUT = 120
 
-/** What a task is, in words: the brief, the title, else the instruction's first line, cut at a word. */
-export function pathSummary(t: Pick<PathTask, 'title' | 'brief_what' | 'instruction'>): string {
+/** What a task is, in words — the same rule as the home (`homeLive.ts#taskSummary`): the brief, then the title, else
+ *  empty and the screen says «Задача без описания». Never the instruction: it is the prompt (0.3.6 review UX-3). */
+export function pathSummary(t: Pick<PathTask, 'title' | 'brief_what'>): string {
+  return taskSummary(t)
+}
+
+/** A legacy task with no title, named on the board by its instruction's first line cut at a word — the board needs a
+ *  line to tell two questions apart; summaries never use it. */
+export function legacyTaskLine(t: Pick<PathTask, 'title' | 'brief_what' | 'instruction'>): string {
   const said = taskSummary(t)
   if (said) return said
   const line = (t.instruction ?? '').split('\n').map((l) => l.trim()).find(Boolean) ?? ''

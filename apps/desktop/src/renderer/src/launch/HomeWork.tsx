@@ -13,6 +13,9 @@ import { runnerLabel } from '../runnerLabel'
 export type HomeReading = { view: HomeView | null; problem: string | null }
 
 const REFRESH_MS = 15_000
+/** Rows a lane shows before «Ещё N» leads to the Board. */
+const LANE_ROWS = 6
+const hasMore = (n: number): boolean => n > LANE_ROWS
 
 /** Reads `work.home` when the journal moves (claims, stages, tasks) and every 15 s for silence (a session that stops
  *  signing turns stale without an event). A failed read is said, never shown as "nobody is working". */
@@ -42,9 +45,12 @@ export function useHome(mark: number): HomeReading {
 export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: HomeReading; waiting: number | null; onAgents(): void; onBoard(): void }): React.JSX.Element {
   const t = useT()
   const v = reading.view
-  const working = v ? v.live.filter((l) => !l.stale).length : null
-  const cell = (n: number | null, label: string, onClick: () => void, tone = '') => (
-    <button type="button" className={`lh-stat ${tone}`} onClick={onClick}>
+  // After a failed read the last numbers are not current: the strip says it cannot tell (0.3.6 review ER-7).
+  const known = v && !reading.problem ? v : null
+  const working = known ? known.live.filter((l) => !l.stale).length : null
+  const inWork = known ? known.inWork.filter((w) => w.live).length : null
+  const cell = (n: number | string | null, label: string, onClick: () => void, tone = '') => (
+    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={reading.problem ? t('launch.home.work.unreadable', { reason: reading.problem }) : undefined}>
       <b>{n === null ? '—' : n}</b>
       <span>{label}</span>
     </button>
@@ -52,9 +58,9 @@ export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: Ho
   return (
     <div className="lh-stats" role="group" aria-label={t('launch.home.stats.label')}>
       {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '')}
-      {cell(v ? v.inWork.length : null, t('launch.home.stats.inWork'), onBoard)}
+      {cell(inWork === null ? null : `${inWork}${known!.inWorkCapped ? '+' : ''}`, t('launch.home.stats.inWork'), onBoard)}
       {cell(waiting, t('launch.home.stats.waiting'), onBoard, waiting ? 'attention' : '')}
-      {cell(v ? v.review.length : null, t('launch.home.stats.review'), onBoard)}
+      {cell(known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null, t('launch.home.stats.review'), onBoard)}
     </div>
   )
 }
@@ -73,7 +79,7 @@ function Doing({ item }: { item: Pick<LiveAgent, 'doing'> & { summary?: string |
 }
 
 /** In work and in review, across projects: what is being done, by whom, where — the board's other two lanes. */
-export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeReading; onOpen(projectId: string): void; onSession(sessionId: string): void }): React.JSX.Element {
+export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading: HomeReading; onOpen(projectId: string): void; onSession(sessionId: string): void; onBoard?: () => void }): React.JSX.Element {
   const t = useT()
   const v = reading.view
   const work = (w: WorkItem) => (
@@ -83,7 +89,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
         <span className="lp-meta">
           {[w.projectName, w.agent ? runnerLabel(w.agent, t) : null, since(w.since, t)].filter(Boolean).join(' · ')}
         </span>
-        {w.doing && <Doing item={w} />}
+        {w.live ? w.doing && <Doing item={w} /> : <span className="lp-pill">{t('launch.home.work.notSigning')}</span>}
       </button>
     </li>
   )
@@ -100,14 +106,15 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
       {v && (
         <div className="lh-lanes">
           <div className="lh-lane">
-            <h4>{t('launch.home.work.inWork')} <span className="lp-count">{v.inWork.length}</span></h4>
-            {v.inWork.length ? <ol>{v.inWork.slice(0, 6).map(work)}</ol> : <p className="lp-meta">{t('launch.home.work.noneInWork')}</p>}
+            <h4>{t('launch.home.work.inWork')} <span className="lp-count">{v.inWork.length}{v.inWorkCapped ? '+' : ''}</span></h4>
+            {v.inWork.length ? <ol>{v.inWork.slice(0, LANE_ROWS).map(work)}</ol> : <p className="lp-meta">{t('launch.home.work.noneInWork')}</p>}
+            {hasMore(v.inWork.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: v.inWork.length - LANE_ROWS })}</button>}
           </div>
           <div className="lh-lane">
-            <h4>{t('launch.home.work.review')} <span className="lp-count">{v.review.length}</span></h4>
+            <h4>{t('launch.home.work.review')} <span className="lp-count">{v.review.length}{v.reviewCapped ? '+' : ''}</span></h4>
             {v.review.length ? (
               <ol>
-                {v.review.slice(0, 6).map((r) => (
+                {v.review.slice(0, LANE_ROWS).map((r) => (
                   <li key={r.taskId} className="lh-work-row">
                     <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
                       <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
@@ -116,7 +123,9 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
                   </li>
                 ))}
               </ol>
-            ) : (
+            ) : null}
+            {hasMore(v.review.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: v.review.length - LANE_ROWS })}</button>}
+            {v.review.length ? null : (
               <p className="lp-meta">{t('launch.home.work.noneInReview')}</p>
             )}
           </div>

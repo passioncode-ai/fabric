@@ -31,6 +31,8 @@ export function AgentCatalogPanel(): React.JSX.Element {
           ? t('settings.agents.sourceFailed', { reason: catalog.failed })
           : catalog.value.source === 'absent' && catalog.value.reason === 'too-old'
             ? t('settings.agents.sourceTooOld')
+            : catalog.value.source === 'absent' && catalog.value.reason === 'unknown-schema'
+              ? t('settings.agents.sourceUnknownSchema', { detail: catalog.value.detail ?? '' })
             : catalog.value.source === 'absent' && catalog.value.reason === 'not-installed'
               ? t('settings.agents.sourceNone')
               : t('settings.agents.sourceFailed', { reason: (catalog.value.source === 'absent' && catalog.value.detail) || '' })
@@ -66,14 +68,15 @@ export function AgentCatalogPanel(): React.JSX.Element {
           )
         })}
         {extra.map((a) => (
-          <li key={a.id} className={a.installed ? '' : 'is-missing'}>
+          <li key={a.id} className={a.installed === false ? 'is-missing' : ''}>
             <div className="lp-settings-row-head">
               <b>{a.name}</b>
               {a.isDefault && <span className="lp-pill attention">{t('settings.agents.default')}</span>}
-              <span className="lp-pill">{a.installed ? t('settings.agents.installed') : t('settings.agents.missing')}</span>
+              {/* Null is Switchboard not saying: that is not "not installed" (0.3.6 review UX-8). */}
+              {a.installed !== null && <span className="lp-pill">{a.installed ? t('settings.agents.installed') : t('settings.agents.missing')}</span>}
             </div>
             {a.path && <code className="lp-meta">{a.path}</code>}
-            {!a.installed && a.install && <p className="lp-meta">{t('settings.agents.install')} <code>{a.install}</code></p>}
+            {a.installed === false && a.install && <p className="lp-meta">{t('settings.agents.install')} <code>{a.install}</code></p>}
           </li>
         ))}
       </ol>

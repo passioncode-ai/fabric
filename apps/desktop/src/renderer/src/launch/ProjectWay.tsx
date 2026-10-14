@@ -65,8 +65,10 @@ export function ProjectWay({ path, inWork, goal, onOpenTask, onPlan }: {
 }
 
 /** The project's board at a glance: the four columns with their counts and their first cards. */
-export function ProjectBoardGlance({ path, onOpenTask, onBoard, onNewTask }: {
+export function ProjectBoardGlance({ path, doneFloor = false, onOpenTask, onBoard, onNewTask }: {
   path: ProjectPath | null
+  /** The done column came from a capped read: its count is a floor, said «20+» (0.3.6 review DA-3, ER-2). */
+  doneFloor?: boolean
   onOpenTask: (taskId: string) => void
   /** The whole board, below. */
   onBoard: () => void
@@ -89,12 +91,12 @@ export function ProjectBoardGlance({ path, onOpenTask, onBoard, onNewTask }: {
         <div className="lp-glance-columns">
           {cols.map((c) => (
             <div key={c} className="lp-glance-column">
-              <h4>{t(`board.${c}` as 'board.done')} <span className="lp-count">{path.columns[c].count}</span></h4>
+              <h4>{t(`board.${c}` as 'board.done')} <span className="lp-count">{path.columns[c].count}{c === 'done' && doneFloor ? '+' : ''}</span></h4>
               {path.columns[c].items.map((i) => (
                 <button key={i.id} type="button" className="lp-button lp-glance-card" onClick={() => onOpenTask(i.id)}>{i.summary || t('launch.home.work.untitled')}</button>
               ))}
-              {path.columns[c].count > path.columns[c].items.length && (
-                <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: path.columns[c].count - path.columns[c].items.length })}</button>
+              {(path.columns[c].count > path.columns[c].items.length || (c === 'done' && doneFloor)) && (
+                <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{c === 'done' && doneFloor ? t('launch.project.glance.all') : t('launch.home.agents.more', { count: path.columns[c].count - path.columns[c].items.length })}</button>
               )}
             </div>
           ))}

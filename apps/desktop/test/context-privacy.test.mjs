@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { compileContextPack, COMPILER_REVISION, packPart, ContextBudgetUnmet } from '../src/main/contextPack.ts'
+import { compileContextPack, COMPILER_REVISION, packPart } from '../src/main/contextPack.ts'
 import { createBundleCompiler } from '../src/main/sessionBundle.ts'
 import { readPart, verify } from '../src/main/executionPacket.ts'
 import { PREAMBLE } from '../src/shared/preamble.ts'
@@ -51,9 +51,9 @@ await test('complete fact and source references are scrubbed before the 300-char
     assert.deepEqual(data, before)
     assert.equal(pack.sha256, digest(pack.markdown))
     assert.equal(pack.chars, pack.markdown.length)
-    assert.equal(pack.compilerRevision, 4)
+    assert.equal(pack.compilerRevision, 5)
   }
-  assert.equal(COMPILER_REVISION, 4)
+  assert.equal(COMPILER_REVISION, 5)
 })
 
 await test('multiline PEM is scrubbed before flattening in both fact fields', async () => {
@@ -131,17 +131,21 @@ await test('budget selection uses cleaned lengths and repeated source sanitation
   assert.equal(redact(once.markdown).text, once.markdown)
 })
 
-await test('an oversized essential context refuses a bundle instead of degrading to a blind session', async () => {
+await test('an oversized essential context is delivered whole: the task is never refused or cut, memory that does not fit is left out and said', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-context-budget-'))
   let revoked = 0
   try {
+    const task = 'Implement the importer. ' + 'x'.repeat(13000) + ' END-OF-TASK'
+    const pack = await compile(rows(), { taskInstruction: task })
+    assert.ok(pack.markdown.includes('END-OF-TASK'), 'the task reaches the pack whole')
+    assert.deepEqual(pack.factIds, [], 'no memory is selected when the task leaves no room')
+    assert.ok(pack.omittedFacts >= 1 && /did not fit everything/.test(pack.markdown), 'what was left out is said')
     const compiler = createBundleCompiler({ root, surface: {
       endpoint: 'http://127.0.0.1:1/mcp', mint: () => ({ token: 'synthetic-test-token' }),
       revokeSession() { revoked++ }
-    }, context: async () => (await compile(rows(), { taskInstruction: 'x'.repeat(13000) })).markdown })
-    await assert.rejects(compiler.compile(sessionId, projectId, null, 'claude-code', 'mcp-config-flag'),
-      e => e instanceof ContextBudgetUnmet)
-    assert.equal(revoked, 1)
+    }, context: async () => pack.markdown })
+    await compiler.compile(sessionId, projectId, null, 'claude-code', 'mcp-config-flag')
+    assert.equal(revoked, 0, 'the session is not revoked: it starts')
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
 

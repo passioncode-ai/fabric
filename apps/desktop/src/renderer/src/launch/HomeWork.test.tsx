@@ -14,7 +14,7 @@ const view: HomeView = {
     { sessionId: 's2', projectId: 'p2', projectName: 'Site', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: true,
       doing: null, task: { id: 't2', summary: 'New landing page' } }
   ],
-  inWork: [{ taskId: 't2', projectId: 'p2', projectName: 'Site', summary: 'New landing page', agent: 'codex', sessionId: 's2', console: false, since: now, doing: null }],
+  inWork: [{ taskId: 't2', projectId: 'p2', projectName: 'Site', summary: 'New landing page', agent: 'codex', sessionId: 's2', console: false, since: now, doing: null, live: true }],
   review: [{ taskId: 't3', projectId: 'p1', projectName: 'Fabric', summary: 'Keep-awake setting', since: now }],
   projects: [],
   readAt: now
@@ -71,4 +71,19 @@ describe('home: who is doing what', () => {
     await waitFor(() => expect(seen.at(-1)?.problem).toBe('gone'))
     expect(seen.at(-1)?.view).toBe(view)
   })
+
+  it('a claim nobody signs for is shown as such, and the counts are not current after a failed read', () => {
+    const stale: HomeReading = { view: { ...view, inWork: [{ ...view.inWork[0], live: false }], reviewCapped: true }, problem: null }
+    show(<>
+      <HomeStats reading={stale} waiting={0} onAgents={() => {}} onBoard={() => {}} />
+      <HomeWorkLanes reading={stale} onOpen={() => {}} onSession={() => {}} />
+    </>)
+    expect(screen.getByText('nobody signing')).toBeTruthy()
+    expect(screen.getByText('tasks in work').previousSibling?.textContent).toBe('0')
+    expect(screen.getByText('to review').previousSibling?.textContent).toBe('1+')
+    cleanup()
+    show(<HomeStats reading={{ view, problem: 'gone' }} waiting={null} onAgents={() => {}} onBoard={() => {}} />)
+    expect(screen.getByText('agents working').previousSibling?.textContent).toBe('—')
+  })
 })
+

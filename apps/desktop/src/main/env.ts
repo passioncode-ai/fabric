@@ -14,6 +14,7 @@ import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES } from './stackServices.ts'
 import { startWithRetry } from '../shared/stackStartRetry.ts'
+import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
 import { pathAdditions } from './platform.ts'
 
@@ -93,7 +94,10 @@ let starting: { kill(signal?: NodeJS.Signals): boolean } | null = null
  * for up to its 240 s limit. Containers it had already started stay, as they would after any start; the
  * next launch's start picks them up.
  */
+/** Set by a quit; the retry between tries reads it so no new start begins after it (DO-5). */
+let stopRequested = false
 export function stopStartingStack(): void {
+  stopRequested = true
   try { starting?.kill('SIGTERM') } catch { /* already gone */ }
   starting = null
 }
@@ -103,8 +107,13 @@ export function stopStartingStack(): void {
  * «not ready: starting» right after Docker returns is retried, never shown as «The local stack refused to start».
  */
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
+  stopRequested = false
   await startWithRetry(() => startStackOnce(onLine), {
-    onRetry: (attempt) => onLine?.(`The stack is still starting — trying again (${attempt})…`)
+    stopped: () => stopRequested,
+    onRetry: (attempt, attempts, message) => {
+      ops.record({ op: 'stack.start.retry', outcome: 'ok', level: 'warn', detail: { attempt, attempts, why: message.split('\n').slice(-2).join(' ').slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+      onLine?.(`The stack is still starting — try ${attempt} of ${attempts}`)
+    }
   })
 }
 

@@ -107,13 +107,36 @@ describe('composeHome — work Fabric launched itself', () => {
 
 
 describe('composeHome — a stage that names its task', () => {
-  it('a running task with no held session takes the newest stage reported for it', () => {
+  const run = (sessions: WorkSessionView[]) => composeHome({
+    where: where(sessions, []), projects, briefs: [], reviewTasks: [],
+    stages: [stage('s5', P1, 'Выкатываем', '2026-10-14T08:50:00Z', { task_id: 't3' })],
+    runningTasks: [{ id: 't3', project_id: P1, title: 'x', brief_what: null, status: 'running', updated_at: '2026-10-14T08:00:00Z' }],
+    activity: new Map(), now: '2026-10-14T09:00:00Z'
+  })
+  it('takes the stage when the session that reported it is still held', () => {
+    expect(run([session('s5', P1)]).inWork[0]).toMatchObject({ live: true, doing: { text: 'Выкатываем' } })
+  })
+  it("an ended session's last stage is not what anyone is doing (0.3.6 review DA-9)", () => {
+    const v = run([])
+    expect(v.inWork[0].doing).toBeNull()
+    expect(v.projects.find((p) => p.projectId === P1)!.now).toBeNull()
+  })
+})
+
+describe('composeHome — work nobody is doing is not current (0.3.6 review UX-2)', () => {
+  it('a silent or lapsed claim is listed, not live, and never a project\'s now', () => {
     const v = composeHome({
-      where: where([], []), projects, briefs: [], reviewTasks: [],
-      stages: [stage('gone', P1, 'Выкатываем', '2026-10-14T08:50:00Z', { task_id: 't3' })],
-      runningTasks: [{ id: 't3', project_id: P1, title: 'x', brief_what: null, status: 'running', updated_at: '2026-10-14T08:00:00Z' }],
-      activity: new Map(), now: '2026-10-14T09:00:00Z'
+      where: where([session('s1', P1)], [claim('t1', P1, 's1', { life: 'silent' as never })]), projects,
+      stages: [stage('s1', P1, 'Старый этап', '2026-10-14T08:00:00Z')], briefs: [], reviewTasks: [], activity: new Map(), now: '2026-10-14T09:00:00Z'
     })
-    expect(v.inWork[0].doing?.text).toBe('Выкатываем')
+    expect(v.inWork[0]).toMatchObject({ live: false, doing: null })
+    const fabric = v.projects.find((p) => p.projectId === P1)!
+    expect(fabric.inWork).toBe(0)
+    expect(fabric.now?.text).toBe('Старый этап') // the held session itself still says what it is doing
+  })
+  it('a read stopped at its limit is a floor', () => {
+    const many = Array.from({ length: 3 }, (_, i) => ({ id: 'r' + i, project_id: P1, title: 'r', brief_what: null, status: 'review' }))
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: many, limits: { review: 3 }, activity: new Map(), now: 'x' })
+    expect(v.reviewCapped).toBe(true)
   })
 })

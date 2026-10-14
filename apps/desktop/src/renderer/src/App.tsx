@@ -773,7 +773,9 @@ function Shell({
         }}
         onAgents={() => { setShowSettings(false); setActive({ kind: 'agents' }) }}
         onWhere={() => { setShowSettings(false); setActive({ kind: 'where' }) }}
-        onSettings={() => setShowSettings((v) => !v)}
+        // Opens Settings; it is not a toggle — pressing the current page keeps it (0.3.6 review UX-12). Escape and every
+        // other destination close it.
+        onSettings={() => setShowSettings(true)}
         onHistory={() => setPanel('history')}
         onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
         searchOpen={searchOpen}
@@ -787,26 +789,6 @@ function Shell({
         onQuota={() => { setShowSettings(false); setActive({ kind: 'quota' }) }}
         chatOpen={chatOpen}
       >
-      {showSettings && (
-        <SettingsScreen
-          settings={settings}
-          onOpenHistory={() => setPanel('history')}
-          onOpenAccess={() => setPanel('access')}
-          onChange={async (next) => {
-            // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
-            const written = await window.fabric.settings.write(next).catch((e: unknown) => {
-              setError(t('settings.notSaved', { reason: explainError(e, t) }))
-              return null
-            })
-            if (!written) return
-            // The settings the DISK holds, not the ones that were asked for: a
-            // refused write used to leave the screen showing the new value
-            // while the file still held the old one (S14).
-            onSettings(written.settings)
-            if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
-          }}
-        />
-      )}
 
       {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
       <UsageCountsNotice />
@@ -851,6 +833,27 @@ function Shell({
       )}
 
       <div className={searchOpen || chatOpen || historyOpen || accessOpen ? 'shell shell-with-panel' : 'shell'}>
+      {/* Inside the shell, so History and Agent access open BESIDE Settings, not below it (0.3.6 review UX-10). */}
+      {showSettings && (
+        <SettingsScreen
+          settings={settings}
+          onOpenHistory={() => setPanel('history')}
+          onOpenAccess={() => setPanel('access')}
+          onChange={async (next) => {
+            // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
+            const written = await window.fabric.settings.write(next).catch((e: unknown) => {
+              setError(t('settings.notSaved', { reason: explainError(e, t) }))
+              return null
+            })
+            if (!written) return
+            // The settings the DISK holds, not the ones that were asked for: a
+            // refused write used to leave the screen showing the new value
+            // while the file still held the old one (S14).
+            onSettings(written.settings)
+            if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+          }}
+        />
+      )}
       {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
       <main className="content" hidden={showSettings}>
         {active.kind === 'board' && (

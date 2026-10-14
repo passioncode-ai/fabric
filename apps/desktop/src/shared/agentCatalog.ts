@@ -22,7 +22,7 @@ export interface CatalogAgent {
 
 export type SwitchboardCatalog =
   | { source: 'switchboard'; revision: string | null; defaultId: string | null; agents: CatalogAgent[] }
-  | { source: 'absent'; reason: 'not-installed' | 'too-old' | 'failed'; detail: string | null }
+  | { source: 'absent'; reason: 'not-installed' | 'too-old' | 'unknown-schema' | 'failed'; detail: string | null }
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const bool = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null)
@@ -36,7 +36,9 @@ export function parseSwitchboardAgents(stdout: string): { revision: string | nul
     return null
   }
   if (!doc || typeof doc !== 'object') return null
-  const d = doc as Record<string, unknown>
+  // Switchboard wraps every --json answer as { ok, data } (its CLI contract; measured on 0.6.31, 0.3.6 review DO-2).
+  const outer = doc as Record<string, unknown>
+  const d = (outer.data && typeof outer.data === 'object' ? outer.data : outer) as Record<string, unknown>
   if (d.schema !== 1 || !Array.isArray(d.agents)) return null
   const defaultId = str(d.default)
   const agents: CatalogAgent[] = []
@@ -67,6 +69,16 @@ export interface CatalogDeps {
   run(file: string, args: readonly string[]): Promise<{ code: number | null; stdout: string; stderr: string }>
 }
 
+function schemaOf(stdout: string): number | string | null {
+  try {
+    const doc = JSON.parse(stdout) as Record<string, unknown>
+    const d = (doc?.data && typeof doc.data === 'object' ? doc.data : doc) as Record<string, unknown>
+    return typeof d?.schema === 'number' || typeof d?.schema === 'string' ? (d.schema as number | string) : null
+  } catch {
+    return null
+  }
+}
+
 /** One bounded read; every way it can fail is a named reason, never an empty list. */
 export async function readSwitchboardCatalog(deps: CatalogDeps): Promise<SwitchboardCatalog> {
   const file = await deps.find()
@@ -79,6 +91,8 @@ export async function readSwitchboardCatalog(deps: CatalogDeps): Promise<Switchb
   }
   const parsed = r.code === 0 ? parseSwitchboardAgents(r.stdout) : null
   if (parsed) return { source: 'switchboard', ...parsed }
+  // A catalogue in a schema this build does not read is named as such — never shown as its raw JSON (ER-11).
+  if (r.code === 0 && schemaOf(r.stdout) !== null) return { source: 'absent', reason: 'unknown-schema', detail: `schema ${schemaOf(r.stdout)}` }
   // Before 0.6.31 the command does not exist and Switchboard answers "Invalid arguments" (measured on 0.6.30).
   if (/invalid arguments/i.test(r.stdout + r.stderr)) return { source: 'absent', reason: 'too-old', detail: null }
   return { source: 'absent', reason: 'failed', detail: (r.stderr || r.stdout).trim().slice(0, 200) || `exit ${r.code}` }

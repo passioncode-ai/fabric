@@ -62,6 +62,9 @@ export interface WorkItem {
   console: boolean
   since: string
   doing: Doing | null
+  /** Someone is working on it now: a live claim, or a running session Fabric holds. A silent or lapsed claim is
+   *  still listed — it is the record — but never as current work (0.3.6 review UX-2). */
+  live: boolean
 }
 
 export interface ReviewItem {
@@ -86,6 +89,10 @@ export interface HomeView {
   live: LiveAgent[]
   inWork: WorkItem[]
   review: ReviewItem[]
+  /** The review read stopped at its limit: the count is a floor, said as «50+» (0.3.6 review UX-4, ER-5). */
+  reviewCapped?: boolean
+  /** The read of Fabric-launched running tasks stopped at its limit. */
+  inWorkCapped?: boolean
   projects: ProjectPulse[]
   readAt: string
 }
@@ -114,6 +121,8 @@ export function composeHome(input: {
   reviewTasks: readonly TaskBrief[]
   /** Tasks in work that no agent has claimed — those Fabric launched itself; claimed ones come from `where`. */
   runningTasks?: readonly TaskBrief[]
+  /** The limits the reads above were asked with; reaching one makes the count a floor. */
+  limits?: { review?: number; running?: number }
   activity: ReadonlyMap<string, string | null>
   now: string
 }): HomeView {
@@ -125,8 +134,10 @@ export function composeHome(input: {
   }
   /** The newest stage that names its task: a Fabric-launched task's words when its session is not the one held. */
   const stageByTask = new Map<string, StageRow>()
+  const heldNow = new Set([...input.where.rows.flatMap((r) => r.sessions), ...input.where.unowned].filter((x) => !x.stale).map((x) => x.sessionId))
   for (const s of input.stages) {
-    if (!s.task_id) continue
+    // Only a session still held and signing: an ended session's last stage is not what anyone is doing (DA-9).
+    if (!s.task_id || !heldNow.has(s.session_id)) continue
     const prev = stageByTask.get(s.task_id)
     if (!prev || prev.reported_at < s.reported_at) stageByTask.set(s.task_id, s)
   }
@@ -164,7 +175,8 @@ export function composeHome(input: {
     sessionId: c.sessionId,
     console: c.console,
     since: c.since,
-    doing: doingOf(stageBySession.get(c.sessionId))
+    doing: c.life === 'live' ? doingOf(stageBySession.get(c.sessionId)) : null,
+    live: c.life === 'live'
   }))
   const claimed = new Set(inWork.map((w) => w.taskId))
   const held = new Map(sessions.map((s) => [s.sessionId, s]))
@@ -180,10 +192,12 @@ export function composeHome(input: {
       sessionId: s ? s.sessionId : null,
       console: s?.console ?? false,
       since: t.updated_at ?? input.now,
-      doing: doingOf((t.session_id ? stageBySession.get(t.session_id) : undefined) ?? stageByTask.get(t.id))
+      doing: s && !s.stale ? doingOf(stageBySession.get(s.sessionId) ?? stageByTask.get(t.id)) : doingOf(stageByTask.get(t.id)),
+      live: (!!s && !s.stale) || stageByTask.has(t.id)
     })
   }
-  inWork.sort((a, b) => b.since.localeCompare(a.since))
+  // Current work first, then the record of claims nobody is signing for.
+  inWork.sort((a, b) => Number(b.live) - Number(a.live) || b.since.localeCompare(a.since))
 
   const review: ReviewItem[] = input.reviewTasks
     .filter((t) => t.status === 'review')
@@ -192,7 +206,7 @@ export function composeHome(input: {
   const projects: ProjectPulse[] = input.projects.map((p) => {
     const mine = live.filter((l) => l.projectId === p.id && !l.stale)
     const withDoing = mine.find((l) => l.doing)
-    const work = inWork.filter((w) => w.projectId === p.id)
+    const work = inWork.filter((w) => w.projectId === p.id && w.live)
     const now = withDoing?.doing
       ? { text: withDoing.doing.text, agent: withDoing.agent, at: withDoing.doing.at }
       : work[0]
@@ -208,7 +222,9 @@ export function composeHome(input: {
       lastActivityAt: signs.at(-1) ?? null
     }
   })
-  return { live, inWork, review, projects, readAt: input.now }
+  const reviewCapped = !!input.limits?.review && input.reviewTasks.length >= input.limits.review
+  const inWorkCapped = !!input.limits?.running && (input.runningTasks?.length ?? 0) >= input.limits.running
+  return { live, inWork, review, projects, readAt: input.now, ...(reviewCapped ? { reviewCapped } : {}), ...(inWorkCapped ? { inWorkCapped } : {}) }
 }
 
 /** Home order: favourites first in the operator's own order, then the rest by latest activity, newest first. */

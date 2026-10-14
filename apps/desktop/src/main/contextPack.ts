@@ -38,8 +38,9 @@ import { redact } from '../shared/redact.ts'
  */
 // Revision 2 scrubbed whole sources before selection; revision 3 uses capture
 // recording order and explicit ending provenance. Revision 4 bounds the essential head,
-// section separators and omission footer too. Past packets are never recompiled.
-export const COMPILER_REVISION = 4
+// section separators and omission footer too; revision 5 (0.3.6) delivers the essential head whole and bounds
+// only what is selected from memory. Past packets are never recompiled.
+export const COMPILER_REVISION = 5
 
 export interface ContextPack {
   markdown: string
@@ -330,7 +331,12 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
   const select = (limit: number) => {
     const lines = [...head]
     let spent = lines.join('\n').length + 1
-    if (spent > limit) throw new ContextBudgetUnmet(budget, spent + (budget - limit))
+    // The essential head — the operator's task in their own words, its brief, the unread warning — is delivered
+    // WHOLE, whatever its size (0.3.6 review ER-1/DA-1): 0.3.5 started an 11.6k-character task and revision 4 refused
+    // it. The budget bounds what Fabric SELECTS from memory, so a head that leaves no room selects nothing and the
+    // notice below says how much was left out — never a blind session, never a refused start.
+    if (spent > limit)
+      return { lines, factIds: [] as string[], factSeqs: [] as number[], transcriptIds: [] as string[], omittedFacts: (facts ?? []).length + beyondRead, omittedTranscripts: (sessions ?? []).length }
 
     const factIds: string[] = []
     const factSeqs: number[] = []

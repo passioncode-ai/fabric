@@ -359,6 +359,7 @@ export function ProjectHome({
         <ProjectLaunch
           project={project}
           tasks={tasks}
+          closedCapped={closedCoverage === null ? null : closedCoverage.truncated}
           sessions={sessions}
           feedMark={taskMark}
           lastEventAt={lastEventAt}
