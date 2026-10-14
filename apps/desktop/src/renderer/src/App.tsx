@@ -1041,6 +1041,7 @@ function Shell({
             onAddTopic={() => setActive({ kind: 'board', topic: true })}
             onPulse={() => setActive({ kind: 'pulse' })}
             onPersona={() => setActive({ kind: 'persona' })}
+            onAgents={() => setActive({ kind: 'agents' })}
           />
         )}
         {active.kind === 'draft' && (

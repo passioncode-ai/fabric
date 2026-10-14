@@ -35,7 +35,7 @@ import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, 
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
-import { readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
+import { readHome, readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -4693,6 +4693,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> =>
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> =>
+    readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
     return releaseByOperator(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), OPERATOR_ACTOR, claimId)

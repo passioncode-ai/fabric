@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T05:10:00Z · `—` · agent/operator-home-20261014 → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: Home wave 1 — who is doing what in plain words: one `work.home` reading (readHome/composeHome) feeds the counts, the In work / To review lanes, the live agents (console when Fabric holds one) and each project card's «now»; projects ordered favourites then by latest activity; harness hints ask for the stage, brief and task titles as one plain sentence for the owner; SCN-043/035 amended, SCN-158 added, launch-home mockup rebuilt. Waves 2–4 (project page, settings, app run) next.
+
 ### 2026-10-14T04:23:00Z · `—` · agent/n040-load-tolerant-deadlines → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commits

@@ -1,0 +1,193 @@
+// #region home-live — docs: docs/evidence/plans/2026-10-14-operator-home/README.md#главная-scr-30
+/**
+ * The home screen's one reading of "who is doing what" (operator request 2026-10-14): every working session with what
+ * it says it is doing now, the claimed and in-review tasks across projects, and each project's headline — composed
+ * from projections only, with no model. Plain language comes from the agents themselves: the session's last
+ * `fabric_stage_report` (its `stage`, then `note`), and a task's `brief_what`; a task's `instruction` is the prompt and
+ * is never shown as its summary.
+ */
+import type { WhereWorkView, WorkClaimView, WorkSessionView } from './workClaims.ts'
+
+export interface StageRow {
+  session_id: string
+  project_id: string
+  task_id: string | null
+  stage: string
+  step: number | null
+  of_steps: number | null
+  note: string | null
+  reported_at: string
+}
+
+export interface TaskBrief {
+  id: string
+  project_id: string
+  title: string | null
+  brief_what: string | null
+  status: string
+  updated_at?: string | null
+}
+
+/** What a session says it is doing, in its own words; null when it has said nothing. */
+export interface Doing {
+  text: string
+  note: string | null
+  step: number | null
+  ofSteps: number | null
+  at: string
+}
+
+export interface LiveAgent {
+  sessionId: string
+  projectId: string | null
+  projectName: string | null
+  agent: string | null
+  console: boolean
+  startedAt: string
+  lastSignAt: string | null
+  stale: boolean
+  doing: Doing | null
+  task: { id: string; summary: string } | null
+}
+
+export interface WorkItem {
+  taskId: string
+  projectId: string
+  projectName: string
+  summary: string
+  agent: string | null
+  sessionId: string | null
+  console: boolean
+  since: string
+  doing: Doing | null
+}
+
+export interface ReviewItem {
+  taskId: string
+  projectId: string
+  projectName: string
+  summary: string
+  since: string | null
+}
+
+export interface ProjectPulse {
+  projectId: string
+  /** The agents' current work in plain language: a working session's stage, else a claimed task's summary. */
+  now: { text: string; agent: string | null; at: string } | null
+  live: number
+  inWork: number
+  review: number
+  lastActivityAt: string | null
+}
+
+export interface HomeView {
+  live: LiveAgent[]
+  inWork: WorkItem[]
+  review: ReviewItem[]
+  projects: ProjectPulse[]
+  readAt: string
+}
+
+const clean = (s: string | null | undefined): string | null => {
+  const t = (s ?? '').replace(/\s+/g, ' ').trim()
+  return t.length ? t : null
+}
+
+/** A task's summary: what the agent wrote it is for, else its title. Never the instruction (the prompt). */
+export function taskSummary(t: Pick<TaskBrief, 'title' | 'brief_what'> | null | undefined, fallbackTitle?: string): string {
+  return clean(t?.brief_what) ?? clean(t?.title) ?? clean(fallbackTitle) ?? ''
+}
+
+function doingOf(s: StageRow | undefined): Doing | null {
+  const text = clean(s?.stage)
+  if (!s || !text) return null
+  return { text, note: clean(s.note), step: s.step, ofSteps: s.of_steps, at: s.reported_at }
+}
+
+export function composeHome(input: {
+  where: WhereWorkView
+  projects: ReadonlyArray<{ id: string; name: string }>
+  stages: readonly StageRow[]
+  briefs: readonly TaskBrief[]
+  reviewTasks: readonly TaskBrief[]
+  activity: ReadonlyMap<string, string | null>
+  now: string
+}): HomeView {
+  const names = new Map(input.projects.map((p) => [p.id, p.name]))
+  const stageBySession = new Map<string, StageRow>()
+  for (const s of input.stages) {
+    const prev = stageBySession.get(s.session_id)
+    if (!prev || prev.reported_at < s.reported_at) stageBySession.set(s.session_id, s)
+  }
+  const briefById = new Map(input.briefs.map((b) => [b.id, b]))
+  const sessions: WorkSessionView[] = [...input.where.rows.flatMap((r) => r.sessions), ...input.where.unowned]
+  const claims: WorkClaimView[] = input.where.rows.flatMap((r) => r.claims)
+  const claimBySession = new Map<string, WorkClaimView>()
+  for (const c of claims) if (!claimBySession.has(c.sessionId)) claimBySession.set(c.sessionId, c)
+
+  const live: LiveAgent[] = sessions.map((s) => {
+    const claim = claimBySession.get(s.sessionId)
+    const summary = claim ? taskSummary(briefById.get(claim.taskId), claim.title) : ''
+    return {
+      sessionId: s.sessionId,
+      projectId: s.projectId,
+      projectName: s.projectId ? (names.get(s.projectId) ?? null) : null,
+      agent: s.agent,
+      console: s.console,
+      startedAt: s.startedAt,
+      lastSignAt: s.lastSignAt,
+      stale: s.stale,
+      doing: doingOf(stageBySession.get(s.sessionId)),
+      task: claim && summary ? { id: claim.taskId, summary } : null
+    }
+  })
+  // Working first (fresh before stale), newest sign first: who is doing something now leads.
+  live.sort((a, b) => Number(a.stale) - Number(b.stale) || (b.lastSignAt ?? b.startedAt).localeCompare(a.lastSignAt ?? a.startedAt))
+
+  const inWork: WorkItem[] = claims.map((c) => ({
+    taskId: c.taskId,
+    projectId: c.projectId,
+    projectName: names.get(c.projectId) ?? '',
+    summary: taskSummary(briefById.get(c.taskId), c.title),
+    agent: c.agent,
+    sessionId: c.sessionId,
+    console: c.console,
+    since: c.since,
+    doing: doingOf(stageBySession.get(c.sessionId))
+  }))
+  inWork.sort((a, b) => b.since.localeCompare(a.since))
+
+  const review: ReviewItem[] = input.reviewTasks
+    .filter((t) => t.status === 'review')
+    .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), since: t.updated_at ?? null }))
+
+  const projects: ProjectPulse[] = input.projects.map((p) => {
+    const mine = live.filter((l) => l.projectId === p.id && !l.stale)
+    const withDoing = mine.find((l) => l.doing)
+    const work = inWork.filter((w) => w.projectId === p.id)
+    const now = withDoing?.doing
+      ? { text: withDoing.doing.text, agent: withDoing.agent, at: withDoing.doing.at }
+      : work[0]
+        ? { text: work[0].summary, agent: work[0].agent, at: work[0].since }
+        : null
+    const signs = [input.activity.get(p.id) ?? null, ...mine.map((l) => l.lastSignAt), now?.at ?? null].filter((x): x is string => !!x).sort()
+    return {
+      projectId: p.id,
+      now: now && now.text ? now : null,
+      live: mine.length,
+      inWork: work.length,
+      review: review.filter((r) => r.projectId === p.id).length,
+      lastActivityAt: signs.at(-1) ?? null
+    }
+  })
+  return { live, inWork, review, projects, readAt: input.now }
+}
+
+/** Home order: favourites first in the operator's own order, then the rest by latest activity, newest first. */
+export function orderProjects<T extends { id: string }>(projects: readonly T[], favourites: readonly string[], activity: (id: string) => string | null): T[] {
+  const fav = new Map(favourites.map((id, i) => [id, i]))
+  const pinned = projects.filter((p) => fav.has(p.id)).sort((a, b) => fav.get(a.id)! - fav.get(b.id)!)
+  const rest = projects.filter((p) => !fav.has(p.id)).sort((a, b) => (activity(b.id) ?? '').localeCompare(activity(a.id) ?? ''))
+  return [...pinned, ...rest]
+}
+// #endregion home-live

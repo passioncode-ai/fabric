@@ -22,6 +22,7 @@ import type { SearchGroup } from './search.ts'
 import type { Lineage } from './decisions.ts'
 import type { SurfaceTool } from './surfaceTools.ts'
 import type { ProjectWorkView, WhereWorkView } from './workClaims.ts'
+import type { HomeView } from './homeLive.ts'
 
 /** What an operator's release of a claim answered. */
 export type OperatorRelease =
@@ -1535,6 +1536,8 @@ export interface FabricApi {
   work: {
     project(projectId: string): Promise<ProjectWorkView>
     estate(): Promise<WhereWorkView>
+    /** The home's reading: live agents in their own words, work and review across projects, project headlines. */
+    home(): Promise<HomeView>
     /** The operator ends one claim; the agent is told on its next call. */
     release(claimId: string): Promise<OperatorRelease>
   }
@@ -1758,6 +1761,7 @@ export const IPC = {
   terminalClaims: 'terminal:claims',
   workProject: 'work:project',
   workEstate: 'work:estate',
+  workHome: 'work:home',
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',

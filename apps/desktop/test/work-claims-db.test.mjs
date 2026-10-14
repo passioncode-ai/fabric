@@ -25,7 +25,7 @@ import { createScopedStore } from '../src/main/scopedStore.ts'
 import { resolveBacklogSource } from '../src/main/backlogSource.ts'
 import { createLeaseRefReader } from '../src/main/agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from '../src/main/workRelease.ts'
-import { readProjectWork, readWhereWork } from '../src/main/workRead.ts'
+import { readHome, readProjectWork, readWhereWork } from '../src/main/workRead.ts'
 
 const env = probeEnv()
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -169,6 +169,27 @@ check(proj.claims.length === 2 && proj.claims.every((c) => c.life === 'live') &&
 const where = await readWhereWork(store, { now: Date.now(), session: (id) => surface.sessionSign(id), sessions: [] })
 check(where.rows.length === 1 && where.rows[0].projectId === projectId && where.rows[0].claims.length === 2 && where.idle === 1 && where.unowned.length === 0,
   'SCR-78 reads one project in flight, the other counted idle, no unowned session', where)
+
+// The home (operator request 2026-10-14): what each agent says it is doing, and each task's plain summary — the
+// stage and the brief's «what», never the instruction.
+const stageA = await a.call('fabric_stage_report', { stage: 'Делаем вход по почте и выкатываем', step: 2, ofSteps: 3 })
+const briefA = await a.call('fabric_task_brief', { taskId: T1, section: 'what', body: 'Вход по почте для новых пользователей' })
+let home = null
+for (let i = 0; i < 40; i++) {
+  // The sessions the surface holds, as the app passes them (`index.ts#heldSessions`).
+  home = await readHome(store, { now: Date.now(), session: (id) => surface.sessionSign(id), sessions: surface.heldSessions() })
+  if (home.live.find((l) => l.sessionId === A)?.doing && home.inWork.find((w) => w.taskId === T1)?.summary.startsWith('Вход')) break
+  await sleep(100)
+}
+const agentA = home.live.find((l) => l.sessionId === A)
+const workT1 = home.inWork.find((w) => w.taskId === T1)
+check(!stageA.error && !briefA.error && agentA?.doing?.text === 'Делаем вход по почте и выкатываем' && agentA.doing.step === 2 && agentA.projectName === 'claims probe',
+  'the home reads the agent in its own words, with its step and its project', { stageA, briefA, agentA })
+check(workT1?.summary === 'Вход по почте для новых пользователей' && workT1.doing?.text === 'Делаем вход по почте и выкатываем',
+  "the home's «in work» carries the brief as the summary and the holder's stage", workT1)
+const pulse = home.projects.find((p) => p.projectId === projectId)
+check(pulse?.now?.text === 'Делаем вход по почте и выкатываем' && pulse.live === 2 && pulse.inWork === 2 && pulse.lastActivityAt,
+  "a project's «now» is a working agent's stage, with its live and in-work counts and its last activity", pulse)
 
 // ── 4 · releases
 const handed = await a.call('fabric_work_release', { taskId: T1, how: 'handed-over', note: 'the form is next' })

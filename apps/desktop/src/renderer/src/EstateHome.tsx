@@ -3,10 +3,13 @@ import { markOf, type FeedMarks } from '../../shared/feedMarks.ts'
 import { Banner, Button, EmptyState, Panel, Row, StateChip, Toolbar } from './components'
 import { Feed } from './Feed'
 import { useEffect, useState } from 'react'
-import { arrangeRest, FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
+import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
 import { resumePoint } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
 import { HomeBoard, HomeLive, HomeRhythm } from './launch/HomeParts'
+import { HomeAgents, HomeStats, HomeWorkLanes, useHome } from './launch/HomeWork'
+import { orderProjects } from '../../shared/homeLive.ts'
+import { since } from './duration'
 import {
   waitingCounts,
   waitingProblem,
@@ -38,7 +41,8 @@ export function EstateHome({
   onBoard = () => {},
   onAddTopic,
   onPulse,
-  onPersona
+  onPersona,
+  onAgents = () => {}
 }: {
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
    *  estate holds no projects" — and saying it before looking is the one lie a
@@ -83,6 +87,8 @@ export function EstateHome({
   onPulse?: () => void
   /** «Мой облик» under the identity (SCR-36). */
   onPersona?: () => void
+  /** «Все агенты»: the live consoles (SCR-50). */
+  onAgents?: () => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
   const [now] = useState(() => new Date())
@@ -148,13 +154,14 @@ export function EstateHome({
    * no version history both outlive the question.
    */
   const [wsSaid, setWsSaid] = useState<WorkspaceSaid | null>(null)
-  /** The order of the unpinned projects; a preference of this machine like the pins. */
-  const [order, setOrder] = useState<string[]>([])
   useEffect(() => {
     void window.fabric.favourites.list().then(setPins)
-    // A missing order is the arrival order, not an error: the arrows still work.
-    void Promise.resolve(window.fabric.favourites.order?.()).then((o) => setOrder(o ?? []), () => setOrder([]))
   }, [])
+  /** Who is doing what (operator request 2026-10-14): one reading for the counts, the board's work lanes, the live
+   *  agents and each project's «сейчас». It follows the families that change it — claims, tasks, stage reports and
+   *  sessions — and its own 15 s tick for silence. */
+  const home = useHome(markOf(marks, ['work', 'task', 'agent', 'session']))
+  const pulse = new Map((home.view?.projects ?? []).map((p) => [p.projectId, p]))
   useEffect(() => {
     // THE SAME call the CEO panel makes, grouped here rather than counted by a
     // query of its own. Two numbers describing the same thing, on two surfaces,
@@ -197,14 +204,14 @@ export function EstateHome({
   const resume = resumePoint(feed, cursor.throughSeq)
   const resumeProject = resume ? (rows.find((p) => p.id === resume.projectId) ?? null) : null
 
-  /** The operator's order for the rest (SCR-30/SCR-01 ↑ ↓); pins keep theirs. */
-  const shown = [...pinned, ...arrangeRest(rest, order)]
+  /** Favourites first in the operator's own order (↑ ↓ move them); then the rest by their latest activity, newest
+   *  first (operator request 2026-10-14) — the project worked on last is the one looked for first. */
+  const shown = [...pinned, ...orderProjects(rest, [], (id) => pulse.get(id)?.lastActivityAt ?? null)]
   const move = (p: ProjectRow, dir: 'up' | 'down'): void => {
     void window.fabric.favourites
-      .move(p.id, dir, arrangeRest(rest, order).map((r) => r.id))
+      .move(p.id, dir, [])
       .then((r) => {
         setPins(r.pins)
-        setOrder(r.order)
         setPinProblem(r.saved ? null : t('launch.home.projects.moveFailed', { reason: r.reason ?? t('estate.pinNotSaved') }))
       })
   }
@@ -215,9 +222,9 @@ export function EstateHome({
      *  told apart by the banner above the list, not by a chip on every row. */
     const waits = counts?.[p.id] ?? null
     const isPinned = pins.includes(p.id)
-    // The group this row moves in: pins among pins, the rest among the rest.
-    const group = isPinned ? pinned : shown.slice(pinned.length)
-    const at = group.findIndex((g) => g.id === p.id)
+    // Only favourites move by hand; the rest are ordered by activity.
+    const at = pinned.findIndex((g) => g.id === p.id)
+    const pp = pulse.get(p.id)
     return (
       <article key={p.id} className="lp-project-row">
         <span className="lp-project-icon" aria-hidden="true">{(p.name.trim()[0] ?? '·').toUpperCase()}</span>
@@ -226,13 +233,18 @@ export function EstateHome({
               SIBLINGS, never nested inside it (a button inside a button). */}
           <button type="button" className="lp-project-name" onClick={() => onOpen(p.id)}>{p.name}</button>
           <p className="lp-meta">{p.purpose || t('project.noPurpose')}</p>
+          {/* What the agents are doing here now, in their own words — or when it last moved. */}
+          {pp?.now ? (
+            <p className="lh-project-now"><span className="lh-live-indicator" aria-hidden="true" />{t('launch.home.projects.now', { text: pp.now.text })}</p>
+          ) : pp?.lastActivityAt ? (
+            <p className="lp-meta lh-project-quiet">{t('launch.home.projects.quietSince', { when: since(pp.lastActivityAt, t) })}</p>
+          ) : null}
         </div>
         <div className="lp-project-tools">
-          {waits ? (
-            <span className={`lp-pill ${waits.refused > 0 ? 'danger' : 'attention'}`}>{t('estate.waiting', { count: waits.total })}</span>
-          ) : (
-            <span className="lp-pill">{live > 0 ? t('launch.home.projects.live', { count: live }) : t('estate.idle')}</span>
-          )}
+          {waits && <span className={`lp-pill ${waits.refused > 0 ? 'danger' : 'attention'}`}>{t('estate.waiting', { count: waits.total })}</span>}
+          {(pp?.live ?? live) > 0 && <span className="lp-pill live">{t('launch.home.projects.live', { count: pp?.live ?? live })}</span>}
+          {(pp?.review ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: pp!.review })}</span>}
+          {!waits && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
           {pinning && (
             <>
               <button type="button" className="lp-button" aria-pressed={isPinned}
@@ -249,10 +261,14 @@ export function EstateHome({
                 }>
                 {isPinned ? t('glyph.star') : t('glyph.starEmpty')}
               </button>
-              <button type="button" className="lp-button" aria-label={t('launch.home.projects.up', { name: p.name })}
-                disabled={at <= 0} onClick={() => move(p, 'up')}>{t('glyph.up')}</button>
-              <button type="button" className="lp-button" aria-label={t('launch.home.projects.down', { name: p.name })}
-                disabled={at < 0 || at >= group.length - 1} onClick={() => move(p, 'down')}>{t('glyph.down')}</button>
+              {isPinned && (
+                <>
+                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.up', { name: p.name })}
+                    disabled={at <= 0} onClick={() => move(p, 'up')}>{t('glyph.up')}</button>
+                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.down', { name: p.name })}
+                    disabled={at < 0 || at >= pinned.length - 1} onClick={() => move(p, 'down')}>{t('glyph.down')}</button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -263,6 +279,12 @@ export function EstateHome({
   useEffect(() => {
     window.fabric.workspace.state().then(setWs).catch(() => setWs({ git: 'declined' }))
   }, [])
+  /** A live agent's console, when Fabric holds it; a failure is said, not swallowed. */
+  const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
+  const openConsole = (sessionId: string): void => {
+    setConsoleProblem(null)
+    window.fabric.windows.openSession(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
+  }
 
   /**
    * Run one workspace act and KEEP ITS ANSWER (UXA-C03).
@@ -435,6 +457,8 @@ export function EstateHome({
             </div>
           </div>
           <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
+          <HomeStats reading={home} waiting={counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null}
+            onAgents={onAgents} onBoard={onBoard} />
         </header>
         <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
           <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>
@@ -469,9 +493,11 @@ export function EstateHome({
         </section>
       </div>
 
+      {consoleProblem && <p className="lp-meta" role="alert">{t('launch.home.agents.consoleFailed', { reason: consoleProblem })}</p>}
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
+          <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
             <div className="lp-panel-head">
@@ -526,6 +552,7 @@ export function EstateHome({
           </details>
         </div>
         <aside className="lh-side-column">
+          <HomeAgents reading={home} onOpen={onOpen} onSession={openConsole} onAll={onAgents} />
           <HomeLive feed={feed} projects={rows} sessions={sessions} now={now} onOpen={onOpen}
             onAll={() => {
               if (onPulse) return onPulse()

@@ -62,7 +62,6 @@ Subject.authUser
 Subject.displayName
 SwitchOperation.newGeneration
 TaskRow.brief_draft
-TaskRow.moved_at
 TaskRow.moved_by
 UsageObservation.contextIdentity
 UsageObservation.nextProbeAt

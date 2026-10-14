@@ -161,6 +161,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-149 | The owner lists or unlists a project for other projects, after seeing what they would see | Project communications | P-01 | FLW-92, SCR-83, SCR-52, SCR-76 | draft | unobserved |
 | SCN-156 | Search what projects have told each other | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
 | SCN-157 | See what waits for a project | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
+| SCN-158 | See on the home who is doing what, in plain words | Home | P-01 | ST-037, FLW-21, SCR-30 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -1068,7 +1069,8 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a claim always carries its age, so a three-hour-old account cannot sit unmarked beside a four-second-old measurement; the surface being down means sessions still run and simply cannot report.
 - **Telemetry:** planned only — see the note at the top of this file; the journal event is the record.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark)
+- **Amended 2026-10-14 (plain language):** the stage is what the operator reads on the home and the project page, so the harness asks for it as one plain sentence the project's owner understands without context, in their language — the work and its aim, never a file, a command or an internal id ("Делаем версию, в которой компьютер не засыпает, пока работает агент, и выкатываем"): `fabric_stage_report`'s `stage`, the `progress.report-stage` obligation, `fabric_task_brief`'s «what» (the task's summary) and a claimed task's title say so. The home reads the latest stage per session (`workRead.ts#readHome`).
+- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/shared/protocolObligations.ts`, `apps/desktop/src/main/workTools.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark), `apps/desktop/test/work-claims-db.test.mjs` (the home reads the stage and the brief)
 - **Product:** unobserved
 
 ### SCN-036: Read captured session history, including recovery after a crash
@@ -1277,20 +1279,21 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
 - **Entry point:** the estate home
 - **Preconditions:** two or more projects exist
 - **Steps:**
-  1. Operator opens the home -> "My projects" lists every project once: up to five favourites lead, the rest follow in the operator's own order.
+  1. Operator opens the home -> "My projects" lists every project once: up to five favourites lead in the operator's own order, the rest follow by their latest activity, newest first. Each card says what the project is (its purpose) and what its agents are doing now in their own words ("Now: …"), or how long it has been quiet, with its live agents, what waits on the operator and what waits for review.
   2. Operator pins a project (★) -> it joins the favourites; at five, pinning a sixth asks which to release rather than silently dropping one.
-  3. Operator moves a project up or down (↑ ↓) -> it swaps with its neighbour inside its group (favourites among favourites, the rest among the rest), and the order survives a restart; it changes no task priority.
+  3. Operator moves a favourite up or down (↑ ↓) -> it swaps with its neighbour among the favourites, and the order survives a restart; it changes no task priority. The rest carry no arrows: their order is the work itself.
   4. Operator has one project -> no favourites or order controls are offered, because ranking one of one is ceremony.
 - **Expected result:** a portfolio of many does not bury the two being worked today.
 - **Alt paths:** an archived favourite leaves the row and says so rather than showing as a dead card.
-- **UI elements:** "My projects" on the estate home (SCR-30/SCR-01); ★ and ↑ ↓ on each row; the release prompt at the limit.
-- **States covered:** empty (no favourites chosen yet), success
+- **UI elements:** "My projects" on the estate home (SCR-30/SCR-01); ★ on each row, ↑ ↓ on favourites; the card's «Сейчас: …» / «Тихо уже …» line; the release prompt at the limit.
+- **States covered:** empty (no favourites chosen yet), quiet project (no agent, last activity shown), success
 - **Errors & recovery:** a pin that fails to record leaves the row unchanged and reports it. A pin refused because the set is full is NEITHER a failure nor a success — nothing is written and nothing is dropped — and it is reported as its own thing, because a full disk and a full favourites list are not the same news.
 - **Telemetry:** planned only.
 - **Amended 2026-09-10 (UX28-10):** all three steps and the alt path were right from the day they were written and the contract did none of them. `togglePin` appended without limit, so "up to five" was a sentence here and nothing else; nothing asked which to release; the pin control rendered on every card at any project count; and an archived favourite left the row in silence. The limit and the threshold are numbers in the contract now, `togglePin` returns a RESULT rather than an array — the old signature could only return a list, so a caller had no way to be told "this would be the sixth" — and a replacement is one write, because two would leave a window with four pinned and lose the released one if the second failed. UX28-10 asked whether the threshold is still intended: it is, and this scenario's own reason is why — ranking five of six saves nobody a scroll. That is recorded as a judgement rather than a measurement, since nobody has watched an operator with six projects.
 - **Amended 2026-09-29 (launch design SCR-30/SCR-01):** the operator chose the launch prototype (`docs/reports/product.html`) over this scenario's threshold of six, so the threshold is one and the home's "My projects" carries ★ ↑ ↓ on every row, as the design does at four projects. The order of the unpinned projects is a preference of this machine (`project-order.json`), like the pins; a pinned project moves among the pins, whose order is the favourites list itself (`planMove`). The design's sentence under the list says what the order is not: it does not change the priority of any project's tasks.
+- **Amended 2026-10-14 (operator request — the home shows who is doing what):** "the projects, all of them, the most recent ones I worked on at the top, favourites above them, and from the home it must be clear what each project is and what task its agents have now". The rest of the list is ordered by activity (`homeLive.ts#orderProjects`), not by hand, so the arrows stay on favourites only; a card's «now» is a working agent's stage report, else its claimed task's summary (`homeLive.ts#composeHome`), and never the task's instruction, which is a prompt.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release
+- **Coverage:** `apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release
 - **Product:** unobserved
 
 ### SCN-044: Read what the estate has actually done
@@ -3818,4 +3821,26 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Status:** draft
 - **Amended 2026-10-13 (W4-1, W4-6 — BUILT):** nothing waiting reads "Nothing waits for a project." / «Ничего не ждёт.»; a failed read "What waits could not be read." / «Что ждёт, прочитать не удалось.». The panel is read on the thread list's clock; a failure after a read keeps its rows with when they were confirmed.
 - **Coverage:** built — `board_pending_operator` in `supabase/migrations/20261013000108_project_board_operator_reads.sql`; `pending` in `apps/desktop/src/main/commsOperatorRead.ts`; `PendingPanel` in `apps/desktop/src/renderer/src/launch/CommsParts.tsx`; tests `apps/desktop/test/project-board-operator-db.test.mjs` ("pending: …"), `comms-operator-read.test.mjs`, `CommsScreen.test.tsx` ("what waits for a project (SCN-157)")
+- **Product:** unobserved
+
+### SCN-158: See on the home who is doing what, in plain words
+- **Persona:** P-01
+- **Feature:** Home
+- **Traces:** ST-037, ST-033, FLW-21, SCR-30 (JTBD-02)
+- **Entry point:** the estate home
+- **Preconditions:** at least one project exists; agents may or may not be working
+- **Steps:**
+  1. Operator opens the home -> at the top, beside Fabric's identity and the 28-day rhythm, four counts: agents working now, tasks in work, what needs the operator, what waits for review. Each opens where it is counted (the agents, the board).
+  2. Operator reads the board -> beside «Нужно вам» (SCN-055), «Кто что делает»: «В работе» — each claimed task as a plain summary (its brief's «what», else its title), with its project, agent, how long, and the agent's current stage; «На проверке» — the tasks in review across projects.
+  3. Operator reads «Агенты в работе» -> every working session: the agent, its project, what it says it is doing now (its latest stage, with step N of M), else «Работает над: <задача>», else «Ещё не сказал, что делает»; a session that has gone silent is marked «молчит» and sorted after the working ones.
+  4. Operator clicks an agent -> its console opens when Fabric holds one; otherwise its project opens. «Все агенты» opens the agents screen.
+  5. Operator scans "My projects" -> SCN-043: favourites, then by latest activity, each with «Сейчас: …» or «Тихо уже …».
+- **Expected result:** in a few seconds the operator knows what is being done across every project and where they are needed, without opening a transcript.
+- **Alt paths:** no agent is working -> «Сейчас ни один агент не работает.» from a READ list; no task in work or in review -> each lane says so.
+- **UI elements:** the counts strip (`HomeStats`), the «Кто что делает» panel (`HomeWorkLanes`), «Агенты в работе» (`HomeAgents`) on SCR-30; the project card's «now» line.
+- **States covered:** loading («Читаю…»), empty (nobody working, nothing in work or review), error (the reading failed — said, never shown as nobody working), success, stale agent
+- **Errors & recovery:** a failed reading says «Неизвестно, кто работает: <причина>» and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`
 - **Product:** unobserved
