@@ -1,4 +1,4 @@
-// #region stack-start-retry — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+// #region stack-start-retry — docs: docs/ux/scenarios.md#scn-161-fabric-opens-while-its-stack-is-still-starting
 /**
  * Which refusals of `supabase start` are a moment rather than a fault (2026-10-14). Measured on the operator's Mac:
  * after Docker (OrbStack) came back, the next launch failed with «supabase start is already running.» and

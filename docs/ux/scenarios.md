@@ -164,6 +164,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-158 | See on the home who is doing what, in plain words | Home | P-01 | ST-037, FLW-21, SCR-30 | draft | unobserved |
 | SCN-159 | Open a project and see where it came from, where it is and where it goes | Projects | P-01 | ST-032, FLW-21, SCR-31 | draft | unobserved |
 | SCN-160 | See which coding agents this computer runs, and set how it behaves | Settings | P-01 | FLW-40, SCR-52 | draft | unobserved |
+| SCN-161 | Fabric opens while its stack is still starting | Startup | P-01 | ST-033, FLW-21, SCR-30 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3722,6 +3723,7 @@ answer was and on whose word — and, as the estate's owner, settles a request w
 - **Status:** draft
 - **Amended 2026-10-13 (W4-4, W4-5 — BUILT; the settle action W4-13 is not):** steps 1–5 and 7 are on screen. Until owner settlement is served (W4-13), step 3's request whose slot no responder holds reads, for the owner and a member alike, "No agent answers <capability> now, so nothing settles it until one does." / «Сейчас на <capability> никто не отвечает, поэтому закрыть его некому, пока такой агент не появится.» — no screen offers the owner a settlement it does not serve, and step 6 shows nothing. "Responder #n · <agent> · since <time>" gives the time it took the slot, in the operator's locale; the lapsed lease, the last holder's leaving and the pending panel's oldest message say how long ago. A request whose slot was never held reads absent with no cause. An artifact's Copy says "Copied." / «Скопировано.»; a link the browser did not take says "The link did not open in the browser." / «Ссылка не открылась в браузере.». The timeline says each step's cause in words ("by the responder", "by the requester", "the deadline passed", "the responder was replaced", "handed to the new responder"), "Nothing has happened to it yet." for a request with no step, and "Only the first 200 steps are shown." past its bound; related threads say "No related threads." when there are none.
 - **Coverage:** steps 1–5 and 7 built (W4-1, W4-4, W4-5) — the reads `board_responders_operator` (replaced), `board_message_facts_operator`, `board_request_timeline_operator`, `board_related_threads_operator` in `supabase/migrations/20261013000108_project_board_operator_reads.sql`; `apps/desktop/src/main/commsOperatorRead.ts` (`responders`, `facts`, `timeline`, `related`, `openArtifact` — https only); `apps/desktop/src/renderer/src/launch/CommsParts.tsx` (`ResponderLine`, `UnknownLine`, `OutcomeBlock`, `ReadBy`, `ArtifactList`, `Timeline`, `RelatedThreads`) and `CommsScreen.tsx`; tests `apps/desktop/test/project-board-operator-db.test.mjs`, `apps/desktop/test/comms-operator-read.test.mjs`, `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`. Step 6, the settle action, is W4-13, after the repin to fabric-agent-contract `43bef18` or later (DEC-0081); the pin is `a59d04b` since W4-1, and Fabric does not serve owner settlement yet
+- **Amended 2026-10-14 (0.3.6 release review DO-8):** the repin this waited on has landed: Fabric's contract tests are pinned at fabric-agent-contract `a59d04b` (`apps/desktop/test/contract-consumer-fixtures.mjs#CURRENT_COMMIT`), which carries DEC-0079, DEC-0080 and DEC-0081. Step 6, the owner's settlement, now waits only on building W4-13, named with DEC-0081 in the `OWED` list of `apps/desktop/test/board-service.test.mjs`; until then the board refuses it on purpose.
 - **Product:** unobserved
 
 ### SCN-148: The owner pauses and resumes a thread, a project's answering or one responder slot
@@ -3749,6 +3751,7 @@ starts it again — or, to stop an agent for good, revokes it ([ADR-0156](../adr
 - **Telemetry:** planned only; the journal event `comms.hold_set@1` is the record.
 - **Status:** draft
 - **Coverage:** none yet — designed for wave 4 (the SQL doors W4-7, the controls path W4-8, the controls and SCR-82 W4-9; the `held` refusal code after the repin to fabric-agent-contract `d194dd9` or later, DEC-0079 — until then agents are told `not_authorized`)
+- **Amended 2026-10-14 (0.3.6 release review DO-8):** the repin the `held` code waited on has landed: Fabric's contract tests are pinned at fabric-agent-contract `a59d04b` (`apps/desktop/test/contract-consumer-fixtures.mjs#CURRENT_COMMIT`), which carries DEC-0079. The `held` refusal now waits only on building W4-7, named with DEC-0079 in the `OWED` list of `apps/desktop/test/board-service.test.mjs`; until then agents are told `not_authorized`.
 - **Product:** unobserved
 
 ### SCN-149: The owner lists or unlists a project for other projects, after seeing what they would see
@@ -3887,4 +3890,24 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/shared/agentCatalog.ts`, `apps/desktop/src/main/agentCatalogRead.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, `apps/desktop/src/renderer/src/App.tsx`; tests `apps/desktop/src/shared/agentCatalog.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`. Measured 2026-10-14 on the operator's Mac: Switchboard 0.6.30 → `too-old`.
+- **Product:** unobserved
+
+### SCN-161: Fabric opens while its stack is still starting
+- **Persona:** P-01
+- **Feature:** Startup
+- **Traces:** ST-033, FLW-21, SCR-30 (JTBD-02)
+- **Entry point:** opening Fabric right after Docker (OrbStack) has come back — after a restart, an update, or a sleep
+- **Preconditions:** the local stack's containers exist but are not healthy yet, or another `supabase start` is still running
+- **Steps:**
+  1. Operator opens Fabric -> the splash shows that the stack is starting, with its own last line.
+  2. The stack answers «container is not ready: starting» (or «unhealthy»), or «supabase start is already running» -> the splash says, in the operator's language, that the stack is still starting and Fabric tries again (n); Fabric waits ten seconds and starts the stack again.
+  3. Up to four tries in all -> once the stack answers, startup goes on as usual and the home opens (SCN-158); nothing of the wait is left on screen.
+- **Expected result:** a stack that only needed another minute never reaches the operator as «The local stack refused to start».
+- **Alt paths:** the stack is still starting after the fourth try -> the startup error shows the stack's own last words, as any refusal does. Docker unreachable, a port taken, a broken config, or any refusal other than the two above -> shown at once, never retried: those are the operator's to fix, and a wait would only hide them.
+- **UI elements:** the startup splash's progress line; the native startup error sheet (unchanged).
+- **States covered:** starting, still-starting (try n of 4), ready, refused (said at once), given-up (after the fourth try)
+- **Errors & recovery:** the last refusal is thrown as it was, so the startup sheet and the copied details carry the stack's own words; Retry on that sheet starts the stack again with a fresh count.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** `apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try)
 - **Product:** unobserved

@@ -4074,6 +4074,7 @@
       ],
       "scenario_ids": [
         "SCN-138",
+        "SCN-158",
         "SCN-043",
         "SCN-044",
         "SCN-059",
@@ -4087,7 +4088,7 @@
         "SCN-056",
         "SCN-094",
         "SCN-098",
-        "SCN-158"
+        "SCN-161"
       ],
       "states": {
         "loading": "Показывать читаемый scope и загрузку нужного источника; ещё не выводить нули или пустой успех.",
@@ -4100,8 +4101,8 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 639,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "coverage_claim": "`apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx` (`useHome`, `HomeStats`, `HomeWorkLanes`, `HomeAgents`), `apps/desktop/src/shared/homeLive.ts`, read by `apps/desktop/src/main/workRead.ts#readHome` (2026-10-14, SCN-158; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs`); the manager header, CEO panel and five lanes stay as described above",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -4188,6 +4189,31 @@
           "state": "finish-setting-up",
           "trigger": "the first run's family step was skipped (SCN-138)",
           "behavior": "one card «Finish setting up» naming what is not set up and the reason the person gave; it opens SCR-77 at the family step; Dismiss removes it, and SCR-77 stays reachable from Settings"
+        },
+        {
+          "state": "counts strip (SCN-158)",
+          "trigger": "`work.home` has answered",
+          "behavior": "four counts — agents working now, tasks in work, what needs the operator, what waits for review — on their own row; each opens where it is counted. Before the reading answers they are absent, not zero"
+        },
+        {
+          "state": "who is doing what (SCN-158)",
+          "trigger": "`work.home` has answered",
+          "behavior": "«Кто что делает»: «В работе» and «На проверке» across projects, each task as its plain summary (brief «what», else title — never its instruction) with project, agent, how long and the agent's current stage; each lane that holds nothing says so"
+        },
+        {
+          "state": "agents at work (SCN-158)",
+          "trigger": "`work.home` has answered",
+          "behavior": "«Агенты в работе»: each working session, its latest stage in the agent's words (step N of M), else «Работает над: …», else «Ещё не сказал, что делает»; a silent one is marked «молчит» and sorted last; a click opens the console Fabric holds, else the project. None working: «Сейчас ни один агент не работает.» from a read list"
+        },
+        {
+          "state": "work reading failed (SCN-158)",
+          "trigger": "`work.home` failed",
+          "behavior": "«Неизвестно, кто работает: <причина>», the last reading kept on screen; read again on the next journal mark or the 15-second tick — never shown as nobody working"
+        },
+        {
+          "state": "project card now (SCN-158, SCN-043)",
+          "trigger": "a project has a working agent, or none",
+          "behavior": "«Сейчас: <stage>» or «Тихо уже <time>»; favourites in their order, then the rest by latest activity — no manual order for the rest"
         }
       ],
       "mock_data": "fixture_only_not_project_fact",
@@ -4373,6 +4399,7 @@
       ],
       "scenario_ids": [
         "SCN-140",
+        "SCN-159",
         "SCN-040",
         "SCN-041",
         "SCN-060",
@@ -4386,8 +4413,7 @@
         "SCN-058",
         "SCN-067",
         "SCN-090",
-        "SCN-141",
-        "SCN-159"
+        "SCN-141"
       ],
       "states": {
         "loading": "Показывать читаемый scope и загрузку нужного источника; ещё не выводить нули или пустой успех.",
@@ -4400,8 +4426,8 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 671,
-        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`",
+        "line": 676,
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -4549,6 +4575,21 @@
           "state": "release confirm",
           "trigger": "«Release…» chosen on a claim",
           "behavior": "a confirmation naming the agent and the task: the claim ends now and the agent is told on its next call; Release and Cancel, Cancel focused"
+        },
+        {
+          "state": "the way (SCN-159)",
+          "trigger": "the page's tasks are read",
+          "behavior": "«Откуда пришли и куда идём»: «Сделано недавно» → «Сейчас» (in work, then in review, each with its agent's stage) → «Дальше» (the goal, then the queue in board order); each task its plain summary; a project with no tasks shows its first step instead. Before the tasks are read: «Читаю…», never \"no tasks\""
+        },
+        {
+          "state": "board glance (SCN-159)",
+          "trigger": "the page's tasks are read",
+          "behavior": "four columns with their counts and first cards; «Вся доска» goes to the full board, «+ Задача» writes one; a partial read says so"
+        },
+        {
+          "state": "agents on the project (SCN-159)",
+          "trigger": "`work.home` has answered",
+          "behavior": "«Агенты на проекте»: this project's working agents in their own words; a click opens the console Fabric holds; a console that will not open says why"
         }
       ],
       "mock_data": "fixture_only_not_project_fact",
@@ -4720,7 +4761,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 714,
+        "line": 722,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4908,7 +4949,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 737,
+        "line": 745,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5086,7 +5127,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 755,
+        "line": 763,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5260,7 +5301,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 777,
+        "line": 785,
         "coverage_claim": "`apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs` (UX28-05). The `error` row above was specified from the start and the code answered `0` until this change. The `skills with the mandatory task skill marked` element is NOT built — it is M123's — and no skills row is shown rather than an empty one that would read as \"none installed\"",
         "status_claim": "designed"
       },
@@ -5425,7 +5466,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 797,
+        "line": 805,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5587,7 +5628,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 817,
+        "line": 825,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5736,7 +5777,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 837,
+        "line": 845,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5899,7 +5940,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 852,
+        "line": 860,
         "coverage_claim": "the list order, the attach lifecycle and the ended-session snapshot — `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. NOT covered: the launch control at the head of the list, the task the agent holds, and view-files — all named in Elements and none built",
         "status_claim": "designed"
       },
@@ -6100,7 +6141,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 881,
+        "line": 889,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6307,7 +6348,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 902,
+        "line": 910,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6509,7 +6550,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 927,
+        "line": 935,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6685,7 +6726,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 946,
+        "line": 954,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6838,7 +6879,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 967,
+        "line": 975,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6979,7 +7020,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 991,
+        "line": 999,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7122,7 +7163,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1016,
+        "line": 1024,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7269,7 +7310,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1042,
+        "line": 1050,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7410,7 +7451,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1067,
+        "line": 1075,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7522,7 +7563,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1092,
+        "line": 1100,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7606,7 +7647,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1115,
+        "line": 1123,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7691,7 +7732,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1138,
+        "line": 1146,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7788,8 +7829,8 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1161,
-        "coverage_claim": "apps/desktop/src/renderer/src/launch/SettingsScreen.tsx (2026-10-14: the screen, the agents on this computer from Switchboard's catalogue or Fabric's own detection, sleep, look, data and access), apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx; the estate-scoped half (estate name, default memory, CEO trust, project priority) is designed, not built",
+        "line": 1169,
+        "coverage_claim": "apps/desktop/src/renderer/src/launch/SettingsScreen.tsx (2026-10-14: the screen, the agents on this computer from Switchboard's catalogue or Fabric's own detection, the launch fallback order, sleep, look, and data and access — usage counts and the buttons to private history and Agent access), apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx; the estate-scoped half (estate name, default memory, CEO trust, project priority) is designed, not built",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -7883,7 +7924,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1194,
+        "line": 1203,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7966,7 +8007,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1217,
+        "line": 1226,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8049,7 +8090,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1240,
+        "line": 1249,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8138,7 +8179,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1263,
+        "line": 1272,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8221,7 +8262,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1286,
+        "line": 1295,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8304,7 +8345,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1309,
+        "line": 1318,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8387,7 +8428,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1332,
+        "line": 1341,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8472,7 +8513,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1355,
+        "line": 1364,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8559,7 +8600,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1378,
+        "line": 1387,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8647,7 +8688,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1400,
+        "line": 1409,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8739,7 +8780,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1422,
+        "line": 1431,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8888,7 +8929,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1446,
+        "line": 1455,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -9037,7 +9078,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1474,
+        "line": 1483,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9153,7 +9194,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1637,
+        "line": 1646,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9228,7 +9269,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1655,
+        "line": 1664,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9303,7 +9344,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1672,
+        "line": 1681,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9378,7 +9419,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1689,
+        "line": 1698,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9455,7 +9496,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1718,
+        "line": 1727,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps, with the REQ-40 agent choice in region `first-run-agent-choice` and apps/desktop/src/shared/builderChoice.ts; the 0.4.0 order is designed, not built)",
         "status_claim": "designed"
       },
@@ -9590,7 +9631,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1749,
+        "line": 1758,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9685,7 +9726,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1770,
+        "line": 1779,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9854,7 +9895,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1807,
+        "line": 1816,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9948,7 +9989,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1828,
+        "line": 1837,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10057,7 +10098,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1852,
+        "line": 1861,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10164,7 +10205,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1874,
+        "line": 1883,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -10264,7 +10305,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1904,
+        "line": 1913,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10481,7 +10522,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1951,
+        "line": 1960,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10607,7 +10648,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1980,
+        "line": 1989,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10685,7 +10726,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1999,
+        "line": 2008,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10787,7 +10828,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2020,
+        "line": 2029,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); the unread slice — the rail badge and badge poll in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `apps/desktop/src/renderer/src/App.tsx`, the operator-local read marks `AppSettings.commsReadThrough` (`apps/desktop/src/shared/types.ts`) and their patch validation (`apps/desktop/src/shared/appSettings.ts`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
@@ -10995,7 +11036,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2083,
+        "line": 2092,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11108,7 +11149,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2107,
+        "line": 2116,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -16928,7 +16969,8 @@
           "scenario_ids": [
             "SCN-006",
             "SCN-043",
-            "SCN-158"
+            "SCN-158",
+            "SCN-161"
           ],
           "flow_ids": [
             "FLW-04",
@@ -31067,7 +31109,7 @@
       "errors_recovery": "missing input or scope shows an inline error and preserves the draft; admission/binding failure blocks activation and links to the failed gate; save failure retains the entire draft for retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 182
+        "line": 183
       }
     },
     {
@@ -31089,7 +31131,7 @@
       "errors_recovery": "dynamic scope without operator confirmation remains blocked; an effect-level connection binding is rejected unless a specific grant exists.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 204
+        "line": 205
       }
     },
     {
@@ -31109,7 +31151,7 @@
       "errors_recovery": "a grant above project ceiling is blocked; revision conflict shows the newer diff and asks the operator to reapply the draft.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 227
+        "line": 228
       }
     },
     {
@@ -31128,7 +31170,7 @@
       "errors_recovery": "registry unavailable is separate from admission failure; retry registry or complete the named Fabric compatibility gate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 248
+        "line": 249
       }
     },
     {
@@ -31148,7 +31190,7 @@
       "errors_recovery": "OAuth expiry offers retry; no selected resource/agent blocks save; removed resource marks only that binding stale and offers reselection.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 269
+        "line": 270
       }
     },
     {
@@ -31167,7 +31209,7 @@
       "errors_recovery": "projector failure keeps last data as stale with retry; one source failure affects only its dimension.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 292
+        "line": 293
       }
     },
     {
@@ -31188,7 +31230,7 @@
       "errors_recovery": "a missing receipt is displayed as unverified with refresh/trace recovery, never replaced by an agent conclusion.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 313
+        "line": 314
       }
     },
     {
@@ -31208,7 +31250,7 @@
       "errors_recovery": "reconnect resumes from monotonic event id; unauthorised action preserves the run and opens approval; retry exhaustion returns best partial result.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 343
+        "line": 344
       }
     },
     {
@@ -31229,7 +31271,7 @@
       "errors_recovery": "no eligible replacement leaves the routine waiting/disabled with a named reason; active run is never rebound.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 364
+        "line": 365
       }
     },
     {
@@ -31248,7 +31290,7 @@
       "errors_recovery": "target missing/retired or PM unavailable leaves the finding unresolved with a recoverable routing error.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 386
+        "line": 387
       }
     },
     {
@@ -31267,7 +31309,7 @@
       "errors_recovery": "already-resolved proposal shows the existing resolution and disables duplicate action; stale evidence blocks resolution until refreshed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 406
+        "line": 407
       }
     },
     {
@@ -31284,7 +31326,7 @@
       "errors_recovery": "missing evidence/confidence blocks promotion; contradictory estate knowledge requires explicit supersession rather than overwrite.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 439
+        "line": 440
       }
     },
     {
@@ -31304,7 +31346,7 @@
       "errors_recovery": "expired or changed invitation offers refresh/contact-owner; partial acceptance is not silently inferred.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 461
+        "line": 462
       }
     },
     {
@@ -31324,7 +31366,7 @@
       "errors_recovery": "already-resolved item opens the existing receipt; denied effect preserves the draft and requests a grant; stale evidence requests refresh.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 481
+        "line": 482
       }
     },
     {
@@ -31345,7 +31387,7 @@
       "errors_recovery": "integrity mismatch or unreviewed change plan stops before writes; local failure preserves report and offers a regenerated fix recipe.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 504
+        "line": 505
       }
     },
     {
@@ -31366,7 +31408,7 @@
       "errors_recovery": "a passing local report cannot override failed independent conformance; binding ceiling/budget failures preserve admission and return to setup.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 527
+        "line": 528
       }
     },
     {
@@ -31386,7 +31428,7 @@
       "errors_recovery": "cleanup failure lists remaining generated paths without deleting user-owned files; expired short-lived exchange can be reissued without changing the recipe target.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 549
+        "line": 550
       }
     },
     {
@@ -31406,7 +31448,7 @@
       "errors_recovery": "missing fallback, overbroad scope, overlap, invalid span, focus-order failure or unadmitted revision blocks publish, identifies the tile and offers the nearest valid placement/order.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 571
+        "line": 572
       }
     },
     {
@@ -31426,7 +31468,7 @@
       "errors_recovery": "identity ambiguity requests human selection without merging customers; missing knowledge blocks confident answer; expired grant preserves response draft.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 594
+        "line": 595
       }
     },
     {
@@ -31446,7 +31488,7 @@
       "errors_recovery": "checker rejection returns to its producer without advancing; unavailable policy fails closed at release; monitor timeout leaves incident unresolved.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 616
+        "line": 617
       }
     },
     {
@@ -31465,7 +31507,7 @@
       "errors_recovery": "no channel identity or expired grant blocks publication but preserves approved draft; API failure reconciles before retry to prevent duplicate posts.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 639
+        "line": 640
       }
     },
     {
@@ -31485,7 +31527,7 @@
       "errors_recovery": "missing scope/expiry blocks issuance; failed discovery identifies transport/auth/version/scope layer; a lost one-time value is rotated, never recovered.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 661
+        "line": 662
       }
     },
     {
@@ -31505,7 +31547,7 @@
       "errors_recovery": "dropped connection resumes by Task/Run id; conflicting idempotency reuse is rejected; failed/cancelled Run preserves partial evidence and current state.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 683
+        "line": 684
       }
     },
     {
@@ -31524,7 +31566,7 @@
       "errors_recovery": "failed revocation leaves old status visible and offers retry; cancellation request reports cooperative/current state rather than “cancelled” until proven.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 705
+        "line": 706
       }
     },
     {
@@ -31544,7 +31586,7 @@
       "errors_recovery": "spawn failure names the cwd and binary checked and offers retry without journalling an open; a killed PTY marks the tab ended, never silently blank.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 729
+        "line": 730
       }
     },
     {
@@ -31563,7 +31605,7 @@
       "errors_recovery": "a Realtime outage degrades to on-demand replay with a stale banner; the feed never invents order — it shows the table's. An event with no sentence falls back to the RAW TYPE and never to the lookup key: a missing key renders as itself, and `event.task.moved@1` on screen is the identifier plus a prefix that means nothing.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 758
+        "line": 759
       }
     },
     {
@@ -31582,7 +31624,7 @@
       "errors_recovery": "a resolution that fails to persist retries without double-resuming the node (idempotent by question id); policy `indeterminate` is shown as a denial with diagnostics, never as pending.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 783
+        "line": 784
       }
     },
     {
@@ -31601,7 +31643,7 @@
       "errors_recovery": "an empty name blocks the save with the draft preserved; a failed append surfaces the error banner and leaves the header unchanged.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 809
+        "line": 810
       }
     },
     {
@@ -31620,7 +31662,7 @@
       "errors_recovery": "a spawn failure names the program and directory and journals nothing as opened; an ended session remains as a dismissible tile with its exit code.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 846
+        "line": 847
       }
     },
     {
@@ -31639,7 +31681,7 @@
       "errors_recovery": "a widget whose projection is unavailable states that its evidence is stale instead of rendering zero as a fact.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 870
+        "line": 871
       }
     },
     {
@@ -31656,7 +31698,7 @@
       "errors_recovery": "an empty name blocks the save with the draft preserved; a failed append leaves the draft editable and shows the error. Late hydration merges saved drafts with current typing without switching away from the new draft; no save runs before hydration. An unreadable file is not replaced by defaults or new typing. Its saved working-set references remain intact while hydration is pending or storage is unreadable; an unreadable draft is not evidence that its subject was deleted. A recovered last-good copy is explicitly reported before reopening its drafts. New input stays editable without prematurely replacing the saved tabs.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 891
+        "line": 892
       }
     },
     {
@@ -31673,7 +31715,7 @@
       "errors_recovery": "a spawn failure reports the program and directory and no task is",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 920
+        "line": 921
       }
     },
     {
@@ -31690,7 +31732,7 @@
       "errors_recovery": "an unreadable folder shows in the file panel as unreadable rather than as empty. A refresh that fails leaves the last good reading with its error carried, rather than blanking the strip or raising a banner every ten seconds.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 973
+        "line": 974
       }
     },
     {
@@ -31707,7 +31749,7 @@
       "errors_recovery": "an unreadable or oversized file reports why and the window can be",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 998
+        "line": 999
       }
     },
     {
@@ -31722,7 +31764,7 @@
       "errors_recovery": "a claim always carries its age, so a three-hour-old account cannot sit unmarked beside a four-second-old measurement; the surface being down means sessions still run and simply cannot report.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1055
+        "line": 1056
       }
     },
     {
@@ -31737,7 +31779,7 @@
       "errors_recovery": "lost reply retries the same command; mismatched receipt never deletes local evidence; current runtime generations remain owned by their pending finalizer. Background recovery never stops an agent or releases a writer lease.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1078
+        "line": 1079
       }
     },
     {
@@ -31752,7 +31794,7 @@
       "errors_recovery": "a retrieval that cannot be recorded never fails the search it was recording — the answer matters more than the bookkeeping, and the failure is logged.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1100
+        "line": 1101
       }
     },
     {
@@ -31771,7 +31813,7 @@
       "errors_recovery": "a private or unavailable repository is labelled by role rather than offered as a download; no page function depends on a script or external API.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1129
+        "line": 1130
       }
     },
     {
@@ -31790,7 +31832,7 @@
       "errors_recovery": "a store that cannot be read never blanks the others; it reports its own failure in its own row. A store nobody has asked about says NOT READ, which is neither the empty answer nor the refusal; a count that came back without a number is not zero; and a reading that includes any unasked store is partial rather than whole.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1164
+        "line": 1165
       }
     },
     {
@@ -31807,7 +31849,7 @@
       "errors_recovery": "a compile that fails leaves the previous digest visible WITH its age, and says the refresh failed — never a blank band.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1187
+        "line": 1188
       }
     },
     {
@@ -31824,7 +31866,7 @@
       "errors_recovery": "a move that fails to journal snaps back and says so — the board never shows a state the journal does not hold. A REFUSAL and a REJECTION are different events and end the same way: the card returns to where the record has it, and the reason is announced. A command that succeeded while the refetch after it did not leaves the card where the operator put it and says it is not yet confirmed by the record, with a check-again that reconciles rather than re-issuing the command.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1209
+        "line": 1210
       }
     },
     {
@@ -31844,7 +31886,7 @@
       "errors_recovery": "a creation that fails leaves the specification on screen with the reason, so the operator can fix it rather than retype it. A send whose result is unknown is reconciled by the same operation ID and is never discarded to free space; a stale draft never overwrites newer text; an unreadable local history is reported as unreadable, not empty.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1251
+        "line": 1252
       }
     },
     {
@@ -31864,7 +31906,7 @@
       "errors_recovery": "a pin that fails to record leaves the row unchanged and reports it. A pin refused because the set is full is NEITHER a failure nor a success — nothing is written and nothing is dropped — and it is reported as its own thing, because a full disk and a full favourites list are not the same news.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1277
+        "line": 1278
       }
     },
     {
@@ -31881,7 +31923,7 @@
       "errors_recovery": "a figure whose register cannot be read shows as unavailable with the reason, never as zero.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1301
+        "line": 1302
       }
     },
     {
@@ -31898,7 +31940,7 @@
       "errors_recovery": "a resource whose target is gone says so in place and keeps the reference, rather than disappearing and taking the trail with it. **A failed save keeps the text in the box** — a save that fails and also empties the field is the same data loss the save existed to prevent. A response for a task the operator has already left is discarded, never rendered under the task now on screen. One edit blurred twice is recorded once.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1321
+        "line": 1322
       }
     },
     {
@@ -31919,7 +31961,7 @@
       "errors_recovery": "partial reads retain known goal/task membership with coverage and age; invalid normative dependency cycle is refused by the command with a named relation; historical cycles are not rejected by that rule. A closed list NOBODY COUNTED is treated as a floor, exactly as one known to be cut short is: \"unknown\" is not \"nothing was cut\", and a missing coverage is the same claim as unknown.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1345
+        "line": 1346
       }
     },
     {
@@ -31936,7 +31978,7 @@
       "errors_recovery": "a server whose grant cannot be read shows as unavailable with the reason; the agent that depends on it does not start and says which grant it is waiting for. Every figure that comes from a read can say it could not be read, and one refusal of several is a PARTIAL reading rather than a whole one. A figure that is estate-wide says so, because a grant is not scoped to a project.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1370
+        "line": 1371
       }
     },
     {
@@ -31953,7 +31995,7 @@
       "errors_recovery": "a failed store never blanks the page; it reports itself and the rest still answers. A refused store is never listed among the places searched, and \"nothing matches\" cannot be claimed while one is silent.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1403
+        "line": 1404
       }
     },
     {
@@ -31972,7 +32014,7 @@
       "errors_recovery": "an agent whose console cannot attach says so and keeps the rest of the screen usable. The history and the repository reading fail SEPARATELY: one refusing names itself in its own panel and leaves the other's answer on screen, and a failed reading drops its payload rather than leaving the previous answer standing as current.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1425
+        "line": 1426
       }
     },
     {
@@ -31993,7 +32035,7 @@
       "errors_recovery": "Timeout after commit retries the same command ID; a competing answer returns the current receipt; delivery retry never records a second answer or grant. A queued receipt is not proof of delivery: a current fenced owner may finish; an expired pre-write claim may be reclaimed; a possible prior write stays outcome_unknown and is not replayed. Stop or manual terminal input invalidates pending readiness; source failure is not an empty Board.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1461
+        "line": 1462
       }
     },
     {
@@ -32013,7 +32055,7 @@
       "errors_recovery": "A stale decision or trust revision is revalidated on commit; a rejected override retains input and explains recovery; past effects require their own compensating work.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1486
+        "line": 1487
       }
     },
     {
@@ -32034,7 +32076,7 @@
       "errors_recovery": "A late response for a previous task/run is discarded; a stale feed keeps the last successful snapshot with age; an unavailable detector cannot label the agent stalled.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1507
+        "line": 1508
       }
     },
     {
@@ -32055,7 +32097,7 @@
       "errors_recovery": "Missing targets remain boundary stubs with explanation; failed reads preserve the previous snapshot; new live events do not silently replace the selected historical plan.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1539
+        "line": 1540
       }
     },
     {
@@ -32077,7 +32119,7 @@
       "errors_recovery": "Cycles, depth limits, unknown actors and missing refs are visible diagnostics. Scope denial retains the parent record but does not expose the protected source.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1561
+        "line": 1562
       }
     },
     {
@@ -32098,7 +32140,7 @@
       "errors_recovery": "Receiving an event or failing a read never advances read watermark. Duplicate replay is deduped by source ID. Two operators do not change each other's read state.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1582
+        "line": 1583
       }
     },
     {
@@ -32118,7 +32160,7 @@
       "errors_recovery": "DST/sleep/catch-up follows each cycle policy; unknown next due is explicit. DB read failure retains last state with age. No manual wake bypasses admission or starts a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1603
+        "line": 1604
       }
     },
     {
@@ -32137,7 +32179,7 @@
       "errors_recovery": "Rename, brief edits and compiler upgrade never change an old pack hash. Missing historical inputs do not trigger a closest-current substitution. Dry preview has no append/spawn side effects.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1628
+        "line": 1629
       }
     },
     {
@@ -32160,7 +32202,7 @@
       "errors_recovery": "No nested buttons, unresolved aria references or color-only meaning; reduced motion retains content; narrow/200% zoom retains the main action and readable inspector.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1649
+        "line": 1650
       }
     },
     {
@@ -32184,7 +32226,7 @@
       "errors_recovery": "Picker cancellation preserves the previous source; late scan responses remain bound to scan/source revision. Unknown create outcome reconciles the same request identity. Duplicate source opens the existing project; archived source offers explicit restoration. Failed persistence retains the draft and never reports saved.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1670
+        "line": 1671
       }
     },
     {
@@ -32206,7 +32248,7 @@
       "errors_recovery": "Local draft hydration must complete with a readable snapshot before the saved working set can be replaced. Unreadable draft storage preserves its references and reports recovery-required; it does not describe saved drafts as deleted projects. Read failures retain the last authorised snapshot with age; revocation clears the protected projection. Passive replay does not advance the operator read watermark. A project-only link is not permission to bypass estate membership.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1693
+        "line": 1694
       }
     },
     {
@@ -32225,7 +32267,7 @@
       "errors_recovery": "A delayed old-epoch command is refused without domain mutation. Unknown spawn or checkpoint outcome is reconciled before a paid duplicate invocation. Missing authority/pack source blocks dependent admission. Revocation does not pretend a previously completed effect was undone.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1718
+        "line": 1719
       }
     },
     {
@@ -32246,7 +32288,7 @@
       "errors_recovery": "Duplicate source identity cannot raise the threshold. A stale applicability revision or absent verification source blocks a verified claim. Rebuild/replay retains suppression and episode links; no model self-report substitutes for independent observation. A source belonging to another project is refused IN PLACE with its raw ref and the reason, and is never opened here and never re-pointed at the other project; a source whose owner nobody could establish is not offered at all, because falling back on the project the row was read in is the same mistake with better manners.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1743
+        "line": 1744
       }
     },
     {
@@ -32265,7 +32307,7 @@
       "errors_recovery": "Opt-out cannot recall already dispatched bytes; unknown is not relabelled cancelled. Re-enable, schema migration and replay do not resurrect tombstoned feedback. Restore remains outbound-off/quarantined until current authority and suppression are revalidated.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1768
+        "line": 1769
       }
     },
     {
@@ -32284,7 +32326,7 @@
       "errors_recovery": "A second concurrent import returns conflict instead of mixing estates. A fault before transaction commit leaves zero committed imported entities; retry uses the same operation/command identity. Failed generation or rebuild retains the previous readable generation.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1793
+        "line": 1794
       }
     },
     {
@@ -32305,7 +32347,7 @@
       "errors_recovery": "Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. A call that fails ends in a refusal or a Check again, never on \"Restoring…\"; an archive file that cannot be read again is refused with its operation, which stays checkable. Fabric keeps its own private copy of the archive from before the first call until the result is known, so moving the original does not lose the restore. A failed Open keeps the restored result, names why and can be tried again. The word \"backup\" is not used until end-to-end restore has been accepted.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1818
+        "line": 1819
       }
     },
     {
@@ -32324,7 +32366,7 @@
       "errors_recovery": "Auth cancellation retains the safe return intent. No failed acceptance creates half-membership. Old auth sessions do not retain rights after membership revision change; effect dispatch rechecks current authority.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1841
+        "line": 1842
       }
     },
     {
@@ -32345,7 +32387,7 @@
       "errors_recovery": "Double submit and post-commit timeout use the same command identity. A late response cannot overwrite another task draft. Unknown dispatch is never an automatic retry; lack of provider acknowledgement remains explicit. Every queued instruction survives FIFO ordering or has a failure receipt. A silent/spinning CLI times out without a blind write. Receiver ACK may arrive before the writer commits its receipt: exact session and digest are validated and acceptance must not be lost.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1866
+        "line": 1867
       }
     },
     {
@@ -32364,7 +32406,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1891
+        "line": 1892
       }
     },
     {
@@ -32383,7 +32425,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1910
+        "line": 1911
       }
     },
     {
@@ -32402,7 +32444,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1929
+        "line": 1930
       }
     },
     {
@@ -32421,7 +32463,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1948
+        "line": 1949
       }
     },
     {
@@ -32440,7 +32482,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1967
+        "line": 1968
       }
     },
     {
@@ -32459,7 +32501,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 1986
+        "line": 1987
       }
     },
     {
@@ -32478,7 +32520,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2006
+        "line": 2007
       }
     },
     {
@@ -32497,7 +32539,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2025
+        "line": 2026
       }
     },
     {
@@ -32516,7 +32558,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2044
+        "line": 2045
       }
     },
     {
@@ -32535,7 +32577,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2063
+        "line": 2064
       }
     },
     {
@@ -32554,7 +32596,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2082
+        "line": 2083
       }
     },
     {
@@ -32573,7 +32615,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2101
+        "line": 2102
       }
     },
     {
@@ -32592,7 +32634,7 @@
       "errors_recovery": "Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2119
+        "line": 2120
       }
     },
     {
@@ -32611,7 +32653,7 @@
       "errors_recovery": "Отмена и истечение входа удаляют staging; повторный subject возвращает существующий профиль; неизвестная личность не считается успешным входом.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2136
+        "line": 2137
       }
     },
     {
@@ -32630,7 +32672,7 @@
       "errors_recovery": "Старая ревизия, отозванный доступ или внешний дрейф system login требуют повторного чтения; чужой аккаунт не подставляется.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2153
+        "line": 2154
       }
     },
     {
@@ -32649,7 +32691,7 @@
       "errors_recovery": "Неподдерживаемая история, иной provider/org scope или неверный workspace останавливают подготовку.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2170
+        "line": 2171
       }
     },
     {
@@ -32668,7 +32710,7 @@
       "errors_recovery": "Тишина PTY не является границей; неизвестный effect блокирует переход и требует сверки, таймер не запускает B.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2187
+        "line": 2188
       }
     },
     {
@@ -32687,7 +32729,7 @@
       "errors_recovery": "Нет старого входа или отозвано право — сохранённая история остаётся доступна только в разрешённом scope, автоматического продолжения нет.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2204
+        "line": 2205
       }
     },
     {
@@ -32706,7 +32748,7 @@
       "errors_recovery": "Недоступность источника показана как неизвестно, не ноль; новая identity не получает кеш A; удаление default требует выбора замены.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2221
+        "line": 2222
       }
     },
     {
@@ -32725,7 +32767,7 @@
       "errors_recovery": "Отзыв доступа между подготовкой и commit блокирует продолжение; private account и чужая история скрыты.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2238
+        "line": 2239
       }
     },
     {
@@ -32744,7 +32786,7 @@
       "errors_recovery": "Quota source unavailable не считается исчерпанием; истёкший токен сначала проходит согласованный refresh; revoked/disabled аккаунт исключён.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2255
+        "line": 2256
       }
     },
     {
@@ -32763,7 +32805,7 @@
       "errors_recovery": "Policy/authority изменилась между tick и commit — stale intent не исполняется. Unknown outcome сверяется по тому же switch ID.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2272
+        "line": 2273
       }
     },
     {
@@ -32782,7 +32824,7 @@
       "errors_recovery": "a refresh that fails keeps the previous digest visible WITH its age and says why, never a blank band and never a silent acknowledgement; a first read that fails says so rather than showing the waiting line or the empty one; a journal head that cannot be read leaves the digest showable and acknowledges nothing.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2289
+        "line": 2290
       }
     },
     {
@@ -32804,7 +32846,7 @@
       "errors_recovery": "панели читаются независимо — отказавшая именует себя и не гасит соседние; ответ, не прошедший журнал, остаётся в поле с причиной и не теряется; ответ, пришедший для агента, которого оператор уже покинул, отбрасывается (правило SCN-049); устаревшее чтение несёт возраст последнего удачного.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2311
+        "line": 2312
       }
     },
     {
@@ -32821,7 +32863,7 @@
       "errors_recovery": "уровень, не прочитавшийся целиком, — частичное чтение с именованным отказом, никогда не пустой экран; неотвеченный вопрос не теряется от навигации — он остаётся в «Needs you», пока не разрешён (правило SCN-055).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2335
+        "line": 2336
       }
     },
     {
@@ -32841,7 +32883,7 @@
       "errors_recovery": "компиляция полосы не удалась — предыдущая остаётся видимой с",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2357
+        "line": 2358
       }
     },
     {
@@ -32863,7 +32905,7 @@
       "errors_recovery": "регистры уровня не прочитались — уровень не показывается вовсе (незнание ≠ единица), строка говорит какой регистр молчит; генерация в макете — демонстрация без вызова модели и говорит это словами; таймлайн при отказе чтения держит предыдущую ленту с возрастом (правило SCN-090).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2396
+        "line": 2397
       }
     },
     {
@@ -32887,7 +32929,7 @@
       "errors_recovery": "Startup schema failure uses the existing native error dialog: safe reason and Retry for a fresh schema observation; an older database names the bundled stack folder, `supabase migration up --local` and the release runbook, requiring stopped writers, verified backup and copy rehearsal before that command; artifact errors require installing/rebuilding and restarting. Retry does not migrate, resume work or imply compatibility. No raw database errors/credentials. The prototype exposes these fixtures only in its review tools, and repeating a failed check stays blocked. Failed/missing executor blocks agent scan only. Permission denial offers choose another folder/retry after access change. URL authentication, unreachable source and invalid URL have local recovery. Cancelled scan cannot later overwrite a newer source. Timeout preserves partial facts and unknown status. Duplicate identity reconciles once; no double project on retry. Re-entry never restarts an uncertain run blindly. Macros/commands/dependency installation found in a repository are not executed during read-only observation. *(0.3.5 review: the dialog's remedies are each OS's own — scoop and Docker Desktop on Windows, the Supabase CLI release packages and Docker Engine on Linux, never brew, OrbStack or a DMG there; a schema version that could not be read says which way it failed — no answer in time, no connection, an error from the database, or an answer that is not a schema version — and that cause is in the copied details and the log, never the database's own text.)*",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2495
+        "line": 2496
       }
     },
     {
@@ -32908,7 +32950,7 @@
       "errors_recovery": "Never declare stopped from button ACK. Reconcile unknown commands before retry; no automatic Git reset/commit or uncommitted-change deletion. Stale HEAD/source requires refreshed pack. Provider failure preserves old run and pack. Duplicate continue uses the same request identity. Credentials and hidden model reasoning are not context payload. Read permission loss removes protected content.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2519
+        "line": 2520
       }
     },
     {
@@ -32928,7 +32970,7 @@
       "errors_recovery": "Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable: the result says *restored; private history not imported: <reason>*, and the Estate can be opened. The file is kept until the import result is known — Fabric's own private copy, taken before the first call.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2544
+        "line": 2545
       }
     },
     {
@@ -32948,7 +32990,7 @@
       "errors_recovery": "A source that cannot be read (for example `services/` unreadable) is named in a banner while the other sources still show; the scan never blocks the screen.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2582
+        "line": 2583
       }
     },
     {
@@ -32968,7 +33010,7 @@
       "errors_recovery": "A scan that times out for one runner shows that runner as `not answering` rather than absent.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2602
+        "line": 2603
       }
     },
     {
@@ -32987,7 +33029,7 @@
       "errors_recovery": "Every problem names its cause; none shows as healthy; a later scan that sees the fix clears the problem.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2622
+        "line": 2623
       }
     },
     {
@@ -33006,7 +33048,7 @@
       "errors_recovery": "The URL scheme failing to open is reported with the reason; no token appears in any URL.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2643
+        "line": 2644
       }
     },
     {
@@ -33025,7 +33067,7 @@
       "errors_recovery": "A missing agent's projects show the gap as attention, not as a failure of Fabric.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2663
+        "line": 2664
       }
     },
     {
@@ -33044,7 +33086,7 @@
       "errors_recovery": "A server that does not answer is shown as such, never removed from the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2682
+        "line": 2683
       }
     },
     {
@@ -33063,7 +33105,7 @@
       "errors_recovery": "A read failure names Observatory's answer; Fabric never scans configs itself as a hidden second inventory.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2702
+        "line": 2703
       }
     },
     {
@@ -33082,7 +33124,7 @@
       "errors_recovery": "A plan Fabric cannot make (no capable agent) says so and offers to make an agent (SCN-121).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2722
+        "line": 2723
       }
     },
     {
@@ -33102,7 +33144,7 @@
       "errors_recovery": "Registry unavailable is distinct from admission failed (SCN-004 rule). Nothing with an effect runs before binding.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2743
+        "line": 2744
       }
     },
     {
@@ -33121,7 +33163,7 @@
       "errors_recovery": "An expired point names what happened to the job (cancelled by the agent or still waiting); a secret is never asked in the form — it goes to the credential flow.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2763
+        "line": 2764
       }
     },
     {
@@ -33141,7 +33183,7 @@
       "errors_recovery": "Retry reuses the idempotency key where the capability requires it.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2784
+        "line": 2785
       }
     },
     {
@@ -33160,7 +33202,7 @@
       "errors_recovery": "A credential never appears in a URL, argument or log line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2804
+        "line": 2805
       }
     },
     {
@@ -33177,7 +33219,7 @@
       "errors_recovery": "An ambiguous target (\"this\" with two selections) makes Fabric ask which; context is knowledge, never authority.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2824
+        "line": 2825
       }
     },
     {
@@ -33197,7 +33239,7 @@
       "errors_recovery": "A micro-change that breaks a check (for example moving an effect before its checker) is refused with the check's reason.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2844
+        "line": 2845
       }
     },
     {
@@ -33217,7 +33259,7 @@
       "errors_recovery": "A proposal that cannot pass the checks is never saved.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2864
+        "line": 2865
       }
     },
     {
@@ -33236,7 +33278,7 @@
       "errors_recovery": "Checks are structural; the mandatory checker remains the guard for meaning.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2884
+        "line": 2885
       }
     },
     {
@@ -33255,7 +33297,7 @@
       "errors_recovery": "Missing bindings block the run before it starts, with the stage named.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2904
+        "line": 2905
       }
     },
     {
@@ -33274,7 +33316,7 @@
       "errors_recovery": "A node whose payload is private shows that it exists, not its content.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2924
+        "line": 2925
       }
     },
     {
@@ -33293,7 +33335,7 @@
       "errors_recovery": "Missing trace data never fabricates nodes.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2944
+        "line": 2945
       }
     },
     {
@@ -33312,7 +33354,7 @@
       "errors_recovery": "An empty Tools section explains that tools come from accepted optimizer proposals or from asking Fabric.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2964
+        "line": 2965
       }
     },
     {
@@ -33331,7 +33373,7 @@
       "errors_recovery": "A tool runs inside the caller's execution context; it never gets wider access than the caller.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 2984
+        "line": 2985
       }
     },
     {
@@ -33350,7 +33392,7 @@
       "errors_recovery": "The proposal cannot accept itself (DEC-0012).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3004
+        "line": 3005
       }
     },
     {
@@ -33369,7 +33411,7 @@
       "errors_recovery": "none.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3024
+        "line": 3025
       }
     },
     {
@@ -33390,7 +33432,7 @@
       "errors_recovery": "Any failed stage keeps the draft (SCN-123).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3044
+        "line": 3045
       }
     },
     {
@@ -33409,7 +33451,7 @@
       "errors_recovery": "Files are proposed on a branch in the project's repository; nothing is written to its main line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3065
+        "line": 3066
       }
     },
     {
@@ -33429,7 +33471,7 @@
       "errors_recovery": "A gate failure never removes an earlier admitted revision.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3086
+        "line": 3087
       }
     },
     {
@@ -33449,7 +33491,7 @@
       "errors_recovery": "Search covers Russian and English text in full.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3105
+        "line": 3106
       }
     },
     {
@@ -33468,7 +33510,7 @@
       "errors_recovery": "Unavailable memory never degrades into an unsourced answer.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3124
+        "line": 3125
       }
     },
     {
@@ -33495,7 +33537,7 @@
       "errors_recovery": "A name, language or look that is not saved says why and offers Continue without saving (the defaults stay). A cancelled picker leaves the step unchanged. macOS refusing the chosen folder (Documents, Desktop, Downloads, a removable volume) → \"Fabric could not read <folder>: macOS did not allow it\", with Open System Settings (Privacy & Security → Files and Folders) and Choose another folder; nothing is scanned. An empty folder → \"Nothing in <folder>\" with Change… and I have no projects yet. A folder with no repositories → its plain folders, unticked, with \"No git repositories here — a folder you tick becomes a project without history Fabric can read\". A slow scan keeps its count moving; after 10 s it says the folder is large, keep waiting or Stop and choose a narrower one; Stop → step 2 with \"Scan stopped — nothing was imported\". The scan's bound, unreadable, deep and linked-folder gaps are said as in SCN-128. A row that fails to import keeps its reason, stays ticked, and Import retries it with the same id. The finish cannot be recorded → \"Fabric could not record that the first run is finished; it will open again next time\" with Try again, and the person still reaches Home. An unknown project list never triggers the first run; an estate that already holds projects is never walked back through it unasked.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3153
+        "line": 3154
       }
     },
     {
@@ -33514,7 +33556,7 @@
       "errors_recovery": "A failed create says why, keeps the folder and the name; a retry is the same create (the same id), never a second Project. A folder outside the window's grant is refused by the main process.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3182
+        "line": 3183
       }
     },
     {
@@ -33534,7 +33576,7 @@
       "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read — and repositories whose inspection failed — are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3205
+        "line": 3206
       }
     },
     {
@@ -33551,7 +33593,7 @@
       "errors_recovery": "A folder that already exists, an invalid folder name (separators, a leading dot, control or text-direction characters), a location not chosen in this window and a failed mkdir/git init each say what happened; nothing is added. A failed git init removes the half-made folder, so the retry is not refused as \"exists\". The parent folder is not opened to the window: only the new folder is.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3236
+        "line": 3237
       }
     },
     {
@@ -33568,7 +33610,7 @@
       "errors_recovery": "An unknown project list shows loading, never \"no project\". An unreadable agent list says so in place with Try again, never \"none yet\". A taken or too-long name and a too-short purpose are named under their field before the click; no available program is said, not hidden. A refused create keeps everything typed and shows the reason in the form; the project holds one agent per name, checked by the form and again by the handler.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3258
+        "line": 3259
       }
     },
     {
@@ -33587,7 +33629,7 @@
       "errors_recovery": "A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason. A failed launch that made no session offers Use another coding agent (a new task in the same Project; the first is cancelled on the board, and a refused cancel is said). Choosing the same folder again — after leaving the screen, or after another folder — is the same attempt. The folder picker or the agents' read failing is said in words with Try again. The instruction keeps anything that looks like a secret out of a first commit and names it in the plan.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3281
+        "line": 3282
       }
     },
     {
@@ -33607,7 +33649,7 @@
       "errors_recovery": "An unreadable access list is said in SCR-76 with Try again, never \"no agent has access\", and without the transport's wording. A decision on an expired or already answered request is refused, and the refusal is said in the operator's language. A mailbox with an invisible or look-alike character (not printable ASCII) is refused before any prompt, so what is shown is exactly what is granted. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3304
+        "line": 3305
       }
     },
     {
@@ -33626,7 +33668,7 @@
       "errors_recovery": "SCR-76 accepts only the newest eligible overview: an act invalidates older reads before changing state; polling waits through the act and its fresh read. Late successes/errors or completions after panel cleanup cannot restore stale connections; a current read failure remains unreadable, never empty.  Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. A POST that does not carry the attempt's own state (wrong content type, a body that is not a JSON object, no state or an unknown one) is refused and leaves the pending attempt waiting, so the genuine delivery that follows still connects; a delivery that carries the state but is invalid settles that attempt as failed at once; a browser Origin cannot cancel consent. A late record that could not be withdrawn says the recorded connection will not work and to disconnect then connect again. A hub that is not listening disables Connect and Reconnect and gives the remedy for its own cause (invalid setting, registered-agent port claim, another listener, or startup failure) in the operator's language; machine observations are a secondary line. On Windows, where Project Observatory's vault does not run yet, Connect and Reconnect are refused before the product is opened, with that reason in the operator's language: no consent is shown for a key Fabric could not keep (0.3.5 review UX-6).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3328
+        "line": 3329
       }
     },
     {
@@ -33645,7 +33687,7 @@
       "errors_recovery": "a send that fails is retried after 60 s, then every 10 min, and dropped after 23 h; nothing is shown to the person, and each attempt is one `analytics.flush` line in the operations log.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3350
+        "line": 3351
       }
     },
     {
@@ -33664,7 +33706,7 @@
       "errors_recovery": "No coding agent in the order can start → nothing starts, and the person reads each agent with the reason it was passed over (not installed, did not answer, signed out, no open session, cannot run this launch, could not be started, not known to this version); installing, signing in or editing the order fixes it. From the agents panel, a coding agent whose start fails is passed over and the next one is tried; a task fails instead, because it was created for the agent the order chose. A launch whose authority changed is stopped and never retried on another agent.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3371
+        "line": 3372
       }
     },
     {
@@ -33683,7 +33725,7 @@
       "errors_recovery": "An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder is kept — and its Project, when it was made; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is said as exactly that and brought forward again, never a second task. The coding agent is fixed from the first launch attempt; when that launch failed before a session existed, Use another coding agent gives the same Project a new task and cancels the first on the board (a refused cancel is said); a task whose session runs is never cancelled, and Start over is not offered while it runs. Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects, and a recorded task with no running session is cancelled on the board. A failed read of the coding agents, the skills or the folder picker is said in words with Try again or Check again. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3391
+        "line": 3392
       }
     },
     {
@@ -33702,7 +33744,7 @@
       "errors_recovery": "Fabric's hub cannot be verified (a foreign protocol, a dead pid, a token file outside Fabric's folder) → the agent is told Fabric could not be verified and to open Fabric; nothing is sent. A credential Fabric no longer knows → it is forgotten and the agent asks again. Writing the credential fails after Allow → the agent says the Allow must be repeated and why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3415
+        "line": 3416
       }
     },
     {
@@ -33723,7 +33765,7 @@
       "errors_recovery": "Detecting the coding agents fails → said, with Check again; Skip for now stays available. No coding agent can run setup → \"Setup runs in a coding agent, and none on this Mac can start\", each agent with its reason and install command; Skip for now (with a reason) is the way on. A picked agent that is not signed in stays picked, and «Set up with <agent>» says \"Sign in to <agent> in its own window, then Check again\" instead of starting — the console never starts on a signed-out agent (ADR-0135 §5), while the pick itself is a preference, never a gate. A download whose signature or checksum does not match → the agent stops and installs nothing; the line reads \"Download not verified — refused\" with the agent's reason quoted; Try again fetches it again. The install fails (disk, permission, the platform's check refused) → \"Not installed — stopped at <step>\" with the agent's reason quoted as its report; Try again reopens the console at that step; Use another coding agent; Skip with a reason. The agent says a step is done and Fabric cannot observe it → \"not confirmed\", naming what Fabric looked for (\"no `observatory` in Claude Code's MCP list\") with Check again. The product is installed and does not answer → \"installed, not answering\" with Open <product> and Check again. A step needs a credential → the agent asks in a hidden prompt or reads Observatory's vault, never a command line Fabric wrote (LC-04). The Setup console cannot be started → the reason; nothing changed; Try again or another coding agent. Fabric quits mid-setup → the console ends with Fabric; the next start shows what was observed and Continue setup.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3445
+        "line": 3446
       }
     },
     {
@@ -33743,7 +33785,7 @@
       "errors_recovery": "An observation that cannot be read (an agent's MCP list command fails) → that cell says \"could not read <agent>'s MCP list\" with Check again, never \"not registered\". A download that fails verification → refused and nothing installed; the receipt names the file and the check that failed. The registration command fails → the agent's reason quoted; Try again. The product does not answer → \"installed, not answering\" with Open <product>. The proving call errors → \"registered, proving call failed\" with the error as reported; Try again. A credential is asked in a hidden prompt or read from Observatory's vault, never on a command line (LC-04). A second setup of the same product while one console is open → refused with \"Setup of <product> is already running in <agent>\" and Bring it forward.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3468
+        "line": 3469
       }
     },
     {
@@ -33763,7 +33805,7 @@
       "errors_recovery": "Fabric not running or its hub closed → `fabric-mcp` says so; the agent tells the person it could not check who else works here, and never says it checked. A call whose answer was lost → the outcome is unknown; the agent reads `fabric_work_list` before claiming again, and a repeated claim with the same key is the same claim, never a second. A backlog row that does not resolve (a repository the project does not hold) → refused, naming the part that did not resolve; the agent may file a new row instead. The board cannot be read → the list says so, never \"nobody is working here\".",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3490
+        "line": 3491
       }
     },
     {
@@ -33786,7 +33828,7 @@
       "errors_recovery": "A projection that cannot be read → that column says so on every row and the rest stays readable; never a zero. A sign of life older than its window → \"no sign for 25 min\", never \"running\". The admission fails → the reason; the session stays where it was; Try again. The estate cannot be read at all → the reason with Try again, never \"no work\".",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3514
+        "line": 3515
       }
     },
     {
@@ -33809,7 +33851,7 @@
       "errors_recovery": "Fabric does not come forward within 15 s → the button says \"<name> did not open — open it from Applications\" and returns to idle; nothing is retried by itself. No coding agent can start → the session window lists each with its reason (as SCN-135) and «Set up a coding agent» (SCR-77). The working session fails to start → the reason; the manager session stays; Try again. A link with a malformed or unknown parameter → Fabric opens nothing new and says the link was not understood. The projects or their repositories cannot be read → home, with \"Fabric could not read your projects to open this link. Try again.\"; a failed read is never taken as an empty list, so the person is never told the project is missing (ER-1, UX-14). The way back cannot open (Dashboards not installed or not answering) → said in place, with the page's address to copy.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3536
+        "line": 3537
       }
     },
     {
@@ -33828,7 +33870,7 @@
       "errors_recovery": "a failed poll keeps the last confirmed page on screen and says when it was confirmed; the next poll that succeeds resumes from the cursor, so a dropped subscription recovers without the operator. A read that fails mid-history keeps the pages already read and refuses the older page only.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3561
+        "line": 3562
       }
     },
     {
@@ -33848,7 +33890,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3601
+        "line": 3602
       }
     },
     {
@@ -33867,7 +33909,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3629
+        "line": 3630
       }
     },
     {
@@ -33886,7 +33928,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3660
+        "line": 3661
       }
     },
     {
@@ -33905,7 +33947,7 @@
       "errors_recovery": "each read fails on its own and says so where its answer would be; what was read stays on screen. The settle sheet never resends by itself: a lost answer is resolved by reading the request again, and the same idempotency key makes a second press the same settlement.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3697
+        "line": 3698
       }
     },
     {
@@ -33926,7 +33968,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3727
+        "line": 3729
       }
     },
     {
@@ -33947,7 +33989,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3754
+        "line": 3757
       }
     },
     {
@@ -33966,7 +34008,7 @@
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3780
+        "line": 3783
       }
     },
     {
@@ -33985,7 +34027,7 @@
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3804
+        "line": 3807
       }
     },
     {
@@ -34004,7 +34046,7 @@
       "errors_recovery": "a failed reading says «Неизвестно, кто работает: <причина>» and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3828
+        "line": 3831
       }
     },
     {
@@ -34023,7 +34065,7 @@
       "errors_recovery": "the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3850
+        "line": 3853
       }
     },
     {
@@ -34042,7 +34084,26 @@
       "errors_recovery": "enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3872
+        "line": 3875
+      }
+    },
+    {
+      "id": "SCN-161",
+      "title": "Fabric opens while its stack is still starting",
+      "flow_ids": [
+        "FLW-21"
+      ],
+      "screen_refs": [
+        "SCR-30"
+      ],
+      "coverage": "`apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try)",
+      "registry_status": "draft",
+      "product_observation": "unobserved",
+      "expected_result": "a stack that only needed another minute never reaches the operator as «The local stack refused to start».",
+      "errors_recovery": "the last refusal is thrown as it was, so the startup sheet and the copied details carry the stack's own words; Retry on that sheet starts the stack again with a fresh count.",
+      "source": {
+        "file": "docs/ux/scenarios.md",
+        "line": 3895
       }
     }
   ],
@@ -34527,7 +34588,8 @@
         "SCN-093",
         "SCN-094",
         "SCN-158",
-        "SCN-159"
+        "SCN-159",
+        "SCN-161"
       ]
     },
     {
