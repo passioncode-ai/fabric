@@ -53,7 +53,7 @@ async function fixture(t,options={}){
   const reserve=ptys.reserveOwnedUnit.bind(ptys);f.nativeAllocations=[]
   ptys.reserveOwnedUnit=(...args)=>{const token=reserve(...args);f.nativeAllocations.push(token)
    // A synchronous boundary can finish after the caller's operation deadline.
-   if(f.delayNative){const until=performance.now()+1100;while(performance.now()<until){};f.delayNative=false}
+   if(f.delayNative){const until=performance.now()+(options.timeoutMs??setupBudgetMs)+100;while(performance.now()<until){};f.delayNative=false}
    return token
   }
  }
@@ -127,8 +127,10 @@ test('unit timeout retains one actual assignment read; repeated preparation neve
  const first=await f.units.prepare(p);assert.equal(first.state,'unknown');const reads=f.reads.length;for(let i=0;i<20;i++)assert.equal((await f.units.prepare(p)).state,'unknown');assert.equal(f.reads.length,reads);releases.forEach(r=>r());delete f.readHook;await wait(30);assert.equal((await f.events()).length,0)
 })
 test('observation timeout retains one native snapshot and late settlement cannot append',async t=>{
- const f=await fixture(t,{timeoutMs:1000}),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
- let release;f.snapshotWait=new Promise(r=>release=r);const first=f.units.observe(x.unit);await wait(1100);assert.equal((await first).state,'unknown');const count=f.snapshots
+ // The held snapshot never settles before release, so the unit's own budget expires deterministically; ordinary
+ // preparation and the final observation keep the shared setup budget instead of racing a 1000 ms clock (N-040).
+ const f=await fixture(t),x=await f.direct();await f.ptys.open(f.id.project,f.project.repo_path,'claude-code',f.id.task,null,null,f.id.session,async()=>true,null,x.packet,x.native)
+ let release;f.snapshotWait=new Promise(r=>release=r);const first=f.units.observe(x.unit);assert.equal((await first).state,'unknown');const count=f.snapshots
  for(let i=0;i<20;i++)assert.equal((await f.units.observe(x.unit)).state,'unknown');assert.equal(f.snapshots,count);release();delete f.snapshotWait;await wait(20);assert.equal((await f.events()).length,2);assert.equal((await f.units.observe(x.unit)).state,'observed')
 })
 test('missing unit dependency and substituted actual collaborators refuse before new effects',async t=>{
@@ -194,7 +196,7 @@ for(const mode of ['extra-key','getter','refused','rejected'])test(`child enviro
  const r=await f.launch({taskId:f.id.task,trigger:'operator'});assert.equal(r.started,false);assert.equal(f.spawned,0);assert.equal(getters,0);assert.ok(!f.calls.includes('begin_task_run_launch'))
 })
 test('timed out environment read remains occupied and cannot expose native token after late settlement',async t=>{
- const f=await fixture(t,{timeoutMs:1000}),packet=(await f.inputs.prepare(f.request)).packet,prepared=await f.units.prepare(packet);assert.equal(prepared.state,'observed')
+ const f=await fixture(t),packet=(await f.inputs.prepare(f.request)).packet,prepared=await f.units.prepare(packet);assert.equal(prepared.state,'observed')
  const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
  let release,entered;const held=new Promise(r=>release=r),atRead=new Promise(r=>entered=r);let reads=0
  f.environmentHook=async(_handle,actual)=>{reads++;entered();await held;return actual()}
@@ -217,7 +219,7 @@ test('ordinary legacy PTY keeps descriptor and bundle environment precedence',as
 })
 
 test('late native allocation after admission deadline remains private until confirmed reconciliation',async t=>{
- const f=await fixture(t,{delayNativeAllocation:true,timeoutMs:1000}),packet=(await f.inputs.prepare(f.request)).packet
+ const f=await fixture(t,{delayNativeAllocation:true}),packet=(await f.inputs.prepare(f.request)).packet
  const unit=await f.units.prepare(packet);assert.equal(unit.state,'observed')
  const admitted=await f.deps.admit(f.id.task,f.id.session,'operator',packet);assert.equal(admitted.admitted,true)
  f.delayNative=true;assert.equal(await f.units.attachAdmission(unit.value,admitted.receipt),false)
