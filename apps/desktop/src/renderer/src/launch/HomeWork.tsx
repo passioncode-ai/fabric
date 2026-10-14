@@ -128,17 +128,25 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
 
 /** Every working session, in its own words: who, where, what it is doing now. Opens its console when Fabric holds
  *  one, else its project. */
-export function HomeAgents({ reading, onOpen, onSession, onAll }: { reading: HomeReading; onOpen(projectId: string): void; onSession(sessionId: string): void; onAll(): void }): React.JSX.Element {
+export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title }: {
+  reading: HomeReading
+  onOpen(projectId: string): void
+  onSession(sessionId: string): void
+  onAll(): void
+  /** Only this project's agents (the project page); every agent when absent. */
+  projectId?: string
+  title?: string
+}): React.JSX.Element {
   const t = useT()
   const v = reading.view
-  const live = v?.live ?? []
+  const live = (v?.live ?? []).filter((l) => !projectId || l.projectId === projectId)
   const working = live.filter((l) => !l.stale).length
   return (
     <section className="lp-panel lh-agents" aria-labelledby="home-agents-title">
       <div className="lp-panel-head">
         <h3 id="home-agents-title">
           <span className={`lh-live-indicator ${working ? '' : 'is-quiet'}`} aria-hidden="true" />
-          {t('launch.home.agents.title')} {v && <span className="lp-count">{working}</span>}
+          {title ?? t('launch.home.agents.title')} {v && <span className="lp-count">{working}</span>}
         </h3>
         <button type="button" className="lp-button lh-text-link" onClick={onAll}>{t('launch.home.agents.all')}</button>
       </div>

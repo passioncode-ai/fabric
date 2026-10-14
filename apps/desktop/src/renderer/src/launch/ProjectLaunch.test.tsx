@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ProjectLaunch } from './ProjectLaunch'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
@@ -15,13 +15,27 @@ const question = { id: 'q-1', projectId: 'p1', projectName: 'Atlas', text: 'Whic
 const boardWith = (questions: typeof question[], sources = [{ name: 'questions', status: 'ok' as const, asOf: STAMP }]) => envelope({
   data: cutBoard(boardEntries({ questions, attention: [], projectWeightOf: () => 1, now: new Date(STAMP) }), 10), sources, asOf: STAMP, freshness: 'fresh'
 })
-const task = (id: string, title: string, status = 'running') => ({ id, title, instruction: title, status }) as unknown as TaskRow
+const task = (id: string, title: string, status = 'running', over: Record<string, unknown> = {}) =>
+  ({ id, title, instruction: title, status, started_at: STAMP, finished_at: null, moved_at: null, position: null, brief_what: null, ...over }) as unknown as TaskRow
+const NOW = new Date().toISOString()
+/** The home's reading for this project: one agent at work on t-1, in its own words. */
+const homeView = {
+  live: [{ sessionId: 's1', projectId: 'p1', projectName: 'Atlas', agent: 'claude-code', console: true, startedAt: NOW, lastSignAt: NOW, stale: false,
+    doing: { text: 'Shipping the invite fix', note: null, step: 1, ofSteps: 2, at: NOW }, task: { id: 't-1', summary: 'Keep the invite after sign-in' } }],
+  inWork: [{ taskId: 't-1', projectId: 'p1', projectName: 'Atlas', summary: 'Keep the invite after sign-in', agent: 'claude-code', sessionId: 's1', console: true, since: NOW,
+    doing: { text: 'Shipping the invite fix', note: null, step: 1, ofSteps: 2, at: NOW } }],
+  review: [],
+  projects: [{ projectId: 'p1', now: { text: 'Shipping the invite fix', agent: 'claude-code', at: NOW }, live: 1, inWork: 1, review: 0, lastActivityAt: NOW }],
+  readAt: NOW
+}
 
 function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
   goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[] } = {}) {
   const query = vi.fn(async () => board)
+  const openSession = vi.fn(async () => {})
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
-    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, agents: { list: vi.fn(async () => agents) } }
+    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, agents: { list: vi.fn(async () => agents) }, work: { home: vi.fn(async () => homeView) },
+      windows: { openSession } }
   }))
   const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
   render(
@@ -29,13 +43,14 @@ function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the i
       <ProjectLaunch project={project} tasks={tasks} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
     </I18nProvider>
   )
-  return { query, ...on }
+  return { query, openSession, ...on }
 }
 
 describe('the top of a project (SCR-31/SCR-03)', () => {
   it('reads THIS project\'s board, and the next step is its first question, opened on the Board', async () => {
     const { query, onBoard } = mount()
-    await waitFor(() => expect(screen.getByText(en['launch.project.attention'].replace('{count}', '1'))).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(en['launch.project.questions'])).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(question.text)).toBeTruthy())
     expect(query).toHaveBeenCalledWith({ projectId: 'p1', limit: 10 })
     fireEvent.click(screen.getByRole('button', { name: en['launch.project.review'] }))
     // The row's own address, as the producer composes it — the Board opens exactly this row.
@@ -65,9 +80,31 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     const { onOpenTask, onSection } = mount({ agents: [{ id: 'a1', project_id: 'p1', name: 'Builder', runner_id: 'claude-code' }] })
     await waitFor(() => expect(screen.getByText('Launch team access')).toBeTruthy())
     await waitFor(() => expect(screen.getByText('Builder')).toBeTruthy())
-    fireEvent.click(screen.getByText('Keep the invite after sign-in'))
+    fireEvent.click(screen.getAllByText('Keep the invite after sign-in')[0])
     expect(onOpenTask).toHaveBeenCalledWith('t-1')
     fireEvent.click(screen.getByRole('button', { name: en['launch.project.setupTeam'] }))
     expect(onSection).toHaveBeenCalledWith('sec-agents')
+  })
+
+  it('says where the project came from, where it is and where it goes — in the agents\' own words', async () => {
+    const { onOpenTask, openSession } = mount({ tasks: [
+      task('t-1', 'Keep the invite after sign-in'),
+      task('t-0', 'Email sign-in', 'done', { finished_at: '2026-09-10T00:00:00Z', brief_what: 'People sign in with their email' }),
+      task('t-2', 'Team roles', 'backlog', { position: 1 })
+    ] })
+    await waitFor(() => expect(screen.getByText(en['launch.project.nowLine'].replace('{text}', 'Shipping the invite fix'))).toBeTruthy())
+    const step = (key: 'launch.project.way.from' | 'launch.project.way.now' | 'launch.project.way.next') => within(screen.getByText(en[key]).closest('.lp-way-step') as HTMLElement)
+    expect(step('launch.project.way.from').getByText('People sign in with their email')).toBeTruthy()
+    expect(step('launch.project.way.now').getByText('Shipping the invite fix')).toBeTruthy()
+    expect(step('launch.project.way.next').getByText(en['launch.project.way.goal'].replace('{goal}', 'Launch team access'))).toBeTruthy()
+    expect(step('launch.project.way.next').getByText('Team roles')).toBeTruthy()
+    // The board at a glance counts each column.
+    expect(screen.getByText(en['board.done']).querySelector('.lp-count')?.textContent).toBe('1')
+    fireEvent.click(screen.getAllByText('Team roles')[0])
+    expect(onOpenTask).toHaveBeenCalledWith('t-2')
+    // This project's agent, opened in the console Fabric holds.
+    expect(screen.getByText(en['launch.project.agentsHere'])).toBeTruthy()
+    fireEvent.click(screen.getByTitle(en['launch.home.agents.openConsole']))
+    expect(openSession).toHaveBeenCalledWith('s1')
   })
 })

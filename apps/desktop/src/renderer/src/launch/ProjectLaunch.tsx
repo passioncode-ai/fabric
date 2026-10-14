@@ -12,6 +12,9 @@ import { since } from '../duration'
 import { useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
 import { ProjectStrip } from './FabricStrip'
+import { HomeAgents, useHome } from './HomeWork'
+import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
+import { projectPath } from '../../../shared/projectPath'
 
 export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -55,10 +58,18 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
   const cut = board?.data ?? null
   const unread = (board?.sources ?? []).filter((s) => s.status !== 'ok')
   const first = cut?.items[0] ?? null
-  const live = (sessions ?? []).filter((s) => s.projectId === project.id && s.running)
   const kindOf = (kind: string) => t(`needsYou.kind.${kind}` as 'needsYou.kind.question')
-  const stateOf = (task: TaskRow) => t(task.status === 'cancelled' ? 'launch.project.cancelled' : (`board.${task.status}` as 'board.done'))
   const goal = goals?.[0] ?? null
+  /** The agents' own words for this project (operator request 2026-10-14): the same reading as the home. */
+  const home = useHome(feedMark)
+  const pulse = home.view?.projects.find((p) => p.projectId === project.id) ?? null
+  const path = tasks === null ? null : projectPath(tasks)
+  const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
+  /** A console that will not open is said, never swallowed (the home does the same). */
+  const openConsole = (sessionId: string): void => {
+    setConsoleProblem(null)
+    window.fabric.windows.openSession(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
+  }
 
   return (
     <div className="lp" data-launch-view="launch-project">
@@ -68,48 +79,38 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
           <p className="lp-kicker">{t('launch.project.kicker')}</p>
           <h2 tabIndex={-1}>{project.name}</h2>
           <p>{project.purpose || t('project.noPurpose')}</p>
+          {pulse?.now && (
+            <p className="lp-project-now"><span className="lh-live-indicator" aria-hidden="true" />{t('launch.project.nowLine', { text: pulse.now.text })}</p>
+          )}
         </div>
         <div className="lp-actions">
           <button type="button" className="lp-button primary" onClick={() => onBoard()}>{t('launch.project.board')}</button>
           <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.plan')}</button>
         </div>
       </header>
+      {consoleProblem && <p className="lp-meta" role="alert">{t('launch.home.agents.consoleFailed', { reason: consoleProblem })}</p>}
       <div className="lp-project-grid">
         <div>
-          <section className="lp-panel lp-context" aria-labelledby="project-now-title">
-            <p className="lp-kicker">{t('launch.project.now')}</p>
-            {cut === null && !boardProblem ? (
-              <h3 id="project-now-title">{t('estate.reading')}</h3>
-            ) : first ? (
-              <>
-                <h3 id="project-now-title">{t('launch.project.attention', { count: cut!.total })}</h3>
-                <p>{first.title}</p>
-                <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>
-              </>
-            ) : (tasks?.length ?? 0) > 0 ? (
-              <>
-                <h3 id="project-now-title">{t('launch.project.workKept')}</h3>
-                <p>{t('launch.project.workKeptBody')}</p>
-              </>
-            ) : (
-              <>
-                <h3 id="project-now-title">{t('launch.project.firstResult')}</h3>
-                <p>{t('launch.project.firstResultBody')}</p>
-                <button type="button" className="lp-button" onClick={onNewTask}>{t('launch.project.writeTask')}</button>
-              </>
-            )}
-            <small className="lp-meta">
-              {live.length > 0 ? t('launch.home.projects.live', { count: live.length }) : t('launch.project.noLive')}
-            </small>
-          </section>
+          {tasks !== null && tasks.length === 0 ? (
+            <section className="lp-panel lp-context" aria-labelledby="project-now-title">
+              <p className="lp-kicker">{t('launch.project.way.kicker')}</p>
+              <h3 id="project-now-title">{t('launch.project.firstResult')}</h3>
+              <p>{t('launch.project.firstResultBody')}</p>
+              <button type="button" className="lp-button" onClick={onNewTask}>{t('launch.project.writeTask')}</button>
+            </section>
+          ) : (
+            <ProjectWay path={path} inWork={home.view ? home.view.inWork.filter((w) => w.projectId === project.id) : null}
+              goal={goal?.title ?? null} onOpenTask={onOpenTask} onPlan={onPlan} />
+          )}
 
           <section className="lp-panel" aria-labelledby="project-board-title">
             <div className="lp-panel-head">
-              <h3 id="project-board-title">{t('launch.project.boardTitle')}</h3>
+              <h3 id="project-board-title">{t('launch.project.questions')}</h3>
               {cut && <span className="lp-pill">{cut.total}</span>}
             </div>
             {boardProblem && <p className="lp-meta" role="alert">{t('needsYou.unreadable', { reason: boardProblem })}</p>}
             {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
+            {cut === null && !boardProblem && <p className="lp-meta">{t('estate.reading')}</p>}
             {cut && cut.total === 0 && unread.length === 0 && (
               <div className="lp-empty"><h3>{t('launch.home.board.clear')}</h3><p>{t('launch.home.board.clearBody')}</p></div>
             )}
@@ -127,39 +128,15 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
                 <span aria-hidden="true">{t('glyph.open')}</span>
               </button>
             ))}
+            {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
           </section>
 
-          <section className="lp-panel" aria-labelledby="project-work-title">
-            <div className="lp-panel-head">
-              <h3 id="project-work-title">{t('launch.project.work')}</h3>
-              <button type="button" className="lp-button" onClick={onNewTask}>{t('launch.project.newTask')}</button>
-            </div>
-            {tasks === null ? (
-              <p className="lp-meta">{t('estate.reading')}</p>
-            ) : tasks.length === 0 ? (
-              <p>{t('launch.project.noTasks')}</p>
-            ) : (
-              <>
-                {tasks.slice(0, 5).map((task) => (
-                  <button key={task.id} type="button" className="lp-agent-row" onClick={() => onOpenTask(task.id)}>
-                    <div>
-                      <h4>{task.title || task.instruction}</h4>
-                      <p>{task.id.slice(0, 8)} · {stateOf(task)}</p>
-                    </div>
-                    <span aria-hidden="true">{t('glyph.open')}</span>
-                  </button>
-                ))}
-                {tasks.length > 5 && (
-                  <button type="button" className="lp-button lh-text-link" onClick={() => onSection('sec-board')}>
-                    {t('launch.project.allTasks', { count: tasks.length })}
-                  </button>
-                )}
-              </>
-            )}
-          </section>
+          <ProjectBoardGlance path={path} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
         </div>
 
         <aside className="lp-side">
+          <HomeAgents reading={home} projectId={project.id} title={t('launch.project.agentsHere')}
+            onOpen={() => onSection('sec-agents')} onSession={openConsole} onAll={() => onSection('sec-agents')} />
           <section className="lp-panel">
             <p className="lp-kicker">{t('launch.project.goal')}</p>
             <h3>{goal ? goal.title : project.purpose || t('launch.project.noGoal')}</h3>

@@ -162,6 +162,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-156 | Search what projects have told each other | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
 | SCN-157 | See what waits for a project | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
 | SCN-158 | See on the home who is doing what, in plain words | Home | P-01 | ST-037, FLW-21, SCR-30 | draft | unobserved |
+| SCN-159 | Open a project and see where it came from, where it is and where it goes | Projects | P-01 | ST-032, FLW-21, SCR-31 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3843,4 +3844,26 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`
+- **Product:** unobserved
+
+### SCN-159: Open a project and see where it came from, where it is and where it goes
+- **Persona:** P-01
+- **Feature:** Projects
+- **Traces:** ST-032, ST-037, FLW-21, SCR-31 (JTBD-02)
+- **Entry point:** a project card on the home, a project in the navigation
+- **Preconditions:** the project exists; it may have no tasks yet
+- **Steps:**
+  1. Operator opens the project -> the heading carries its name, its purpose and, when an agent is working, «Сейчас: <what the agent says it is doing>».
+  2. Operator reads «Откуда пришли и куда идём» -> three columns: «Сделано недавно» (the newest finished tasks), «Сейчас» (in work, then in review, each with its agent's current stage), «Дальше» (the goal, then the queue in its board order). Every task is its plain summary (brief, else title, else the first line of its instruction, cut at a word); a click opens the task.
+  3. Operator reads «Вопросы ко мне» -> what on this project waits for the operator, first the most important; «Разобрать вопрос» opens the first on the Board.
+  4. Operator glances at «Доска» -> the four columns (backlog, in work, to review, done) with their counts and first cards; «Вся доска» goes to the full board below, «+ Задача» writes a new one.
+  5. Operator reads «Агенты на проекте» -> this project's working agents in their own words; a click opens the console Fabric holds.
+- **Expected result:** a project left for days is understood in one screen — what was done, what is being done, what comes next, and whether the operator is needed.
+- **Alt paths:** a project with no tasks shows the first step («Начните с первого результата» + «Записать задачу») instead of an empty way; no agent working -> «Сейчас ни один агент не работает.».
+- **UI elements:** the heading's «Сейчас» line; `ProjectWay`; «Вопросы ко мне»; `ProjectBoardGlance`; «Агенты на проекте» (`HomeAgents` filtered to the project) on SCR-31.
+- **States covered:** loading (tasks unread — «Читаю…», never "no tasks"), empty (no tasks; nothing done / nothing now / empty queue per column), partial board read (said), error (questions unreadable — said; console that will not open — said), success
+- **Errors & recovery:** the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** `apps/desktop/src/shared/projectPath.ts`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; tests `apps/desktop/src/shared/projectPath.test.ts`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx`
 - **Product:** unobserved

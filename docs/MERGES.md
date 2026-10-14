@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T05:40:00Z · `—` · agent/operator-project-20261014 → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commit
+- conflicts: none
+- summary: Project wave 2 — the top of a project reads where it came from (recently done), where it is (in work / to review with the agent's stage) and where it goes (goal, queue in board order), then «Вопросы ко мне», the board at a glance and this project's agents; projectPath.ts, ProjectWay.tsx, SCN-159, launch-project mockup.
+
 ### 2026-10-14T05:10:00Z · `—` · agent/operator-home-20261014 → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit
