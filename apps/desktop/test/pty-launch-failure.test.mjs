@@ -11,6 +11,11 @@ import { randomUUID } from 'node:crypto'
 import { PtyLaunchFailure, retainFailedLaunch } from '../src/main/launchFailure.ts'
 import { createOps } from '../src/main/ops.ts'
 import { useOps } from '../src/main/opsSink.ts'
+
+// A pid no process can hold (Linux PID_MAX_LIMIT is 4 194 304, macOS stops at 99 998): a fake terminal's pid
+// must never name a live process, or the manager captures THAT process's identity and stops it instead (2026-10-14:
+// 4321 was a live WebKit process on the operator's Mac, and end() never reached the fake's kill()).
+const FAKE_PID = 4_194_305
 AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: 'launch-fixture', connectsToSurface: true, surfaceAdapter: 'mcp-config-flag', resultChannel: 'surface' })
 for (const adapter of ['config-content-env', 'acp-session'])
   AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: `bundle-only-${adapter}`, label: `Fixture ${adapter}`, connectsToSurface: true, surfaceAdapter: adapter, resultChannel: 'surface' })
@@ -293,7 +298,7 @@ console.log('PASS runner availability: async, shared, cached per PATH for its TT
 // asked for, and the session and its opening receipt record none — never a `bypass` that does not exist.
 {
   const events = []
-  const native = { pid: 4321, resize() {}, write() {}, kill() {}, onData() {}, onExit() {} }
+  const native = { pid: FAKE_PID, resize() {}, write() {}, kill() {}, onData() {}, onExit() {} }
   const manager = new PtyManager({ append: async (e) => { events.push(e); return { seq: events.length } } }, randomUUID(),
     { onData() {}, onExit() {} }, undefined, () => native, undefined, () => ({ kind: 'person', id: 'operator' }))
   const s = await manager.open(randomUUID(), process.cwd(), 'shell', null, 'bypass')

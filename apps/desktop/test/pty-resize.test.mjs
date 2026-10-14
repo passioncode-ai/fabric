@@ -5,9 +5,14 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { PtyManager } from '../src/main/pty.ts'
 
+// A pid no process can hold (Linux PID_MAX_LIMIT is 4 194 304, macOS stops at 99 998): a fake terminal's pid
+// must never name a live process, or the manager captures THAT process's identity and stops it instead (2026-10-14:
+// 4321 was a live WebKit process on the operator's Mac, and end() never reached the fake's kill()).
+const FAKE_PID = 4_194_305
+
 let exited = false, resizes = 0, exit
 const native = {
-  pid: 4321,
+  pid: FAKE_PID,
   resize() { if (exited) throw Error('ioctl(2) failed, EBADF'); resizes++ },
   write() {}, onData() {}, onExit(cb) { exit = cb }, kill() {}
 }

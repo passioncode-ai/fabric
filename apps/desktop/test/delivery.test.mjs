@@ -14,6 +14,11 @@ import { randomUUID } from 'node:crypto'
 import { PtyManager } from '../src/main/pty.ts'
 import { PASTE_END, PASTE_START } from '../src/shared/delivery.ts'
 
+// A pid no process can hold (Linux PID_MAX_LIMIT is 4 194 304, macOS stops at 99 998): a fake terminal's pid
+// must never name a live process, or the manager captures THAT process's identity and stops it instead (2026-10-14:
+// 4321 was a live WebKit process on the operator's Mac, and end() never reached the fake's kill()).
+const FAKE_PID = 4_194_305
+
 let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => {
@@ -102,7 +107,7 @@ async function fixture({ maxWaitMs = 240, capacity = 32, write } = {}) {
   const native = {
     onData: (cb) => { output = cb }, onExit: (cb) => { exit = cb },
     write: (text) => { writes.push(text); write?.(text) },
-    resize: () => {}, kill: () => { kills++ }, pid: 4321
+    resize: () => {}, kill: () => { kills++ }, pid: FAKE_PID
   }
   const manager = new PtyManager(
     { append: async () => ({ seq: 1 }) }, randomUUID(),
