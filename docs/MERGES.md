@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T04:23:00Z · `—` · agent/n040-load-tolerant-deadlines → main · fast-forward
+- run: r-44ae60a75316
+- files: see the commits
+- conflicts: none
+- summary: N-040 — load-tolerant resource fixture deadlines; 119/119 under CPU saturation, planted disabled deadline red; node closed with its verdict.
+
 ### 2026-10-14T00:49:00Z · `—` · agent/co282-publication-note → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit

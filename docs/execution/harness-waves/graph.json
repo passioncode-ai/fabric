@@ -1117,11 +1117,24 @@
       "id": "N-040",
       "title": "Make N032/N029 fixture deadlines load-tolerant (resource-worker-launch observation timeout, resource-launch-adapter required factory, prepared-managed-launch exact content)",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [],
       "serves": "REQ-009",
       "check": "The four focused files pass 119/119 while a deliberate CPU saturation runs alongside, and the fail-closed deadline assertions still go red when the deadline is planted below the operation time",
-      "evidence": null
+      "evidence": [
+        "Under 14 nice-19 CPU busy loops (load up to 112): resource-worker-launch 29/29, resource-launch-adapter 49/49, prepared-managed-launch 12/12, resource-run-assignment 29/29 = 119/119; managed-launch 1/1",
+        "Planted defect (resourceManagedUnit deadline x1000): 'observation timeout…' and 'timed out environment read…' fail at the 60 s test timeout; restored source shows no diff",
+        "proven at a46d413c50a0bcc6b7fba76acd04cc9413dc0afd (tree 50f7af7fca4c1c6069f1ef08a5d487c039cdfab5)"
+      ],
+      "proof": {
+        "head": "a46d413c50a0bcc6b7fba76acd04cc9413dc0afd",
+        "tree": "50f7af7fca4c1c6069f1ef08a5d487c039cdfab5",
+        "graph_revision": "53",
+        "checks": [
+          "119/119 under deliberate CPU saturation",
+          "planted disabled deadline red in 2 deadline tests"
+        ]
+      }
     },
     {
       "id": "N-041",
@@ -1791,6 +1804,12 @@
       "verb": "park",
       "node": "N-041",
       "why": "Duplicate of N-040, raised by a second verifier for the same root cause: resource-worker-launch.test.mjs is one of N-040's four files, and N-040's check (pass under deliberate CPU saturation, planted deadline still red) covers this node's 29/29-under-load-200 check. Kept for its narrower failing cases (observation timeout, late native allocation)."
+    },
+    {
+      "verb": "close",
+      "node": "N-040",
+      "why": "closed with no re-plan",
+      "precondition": "a46d413c50a0bcc6b7fba76acd04cc9413dc0afd"
     }
   ]
 }

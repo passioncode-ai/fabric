@@ -1,0 +1,28 @@
+{
+  "node": "N-040",
+  "done": [
+    "Ordinary fixture preparation budget raised from 100 ms to 5000 ms in prepared-launch-fixture.mjs (deadline tests keep explicit timeoutMs)",
+    "resource-worker-launch deadline cases no longer race a wall clock: the observation test waits on its own held operation instead of wait(1100); the late-native-allocation delay is derived from the configured budget; the environment-read test uses the shared budget while its held read still times out"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Background-QoS throttling (taskpolicy -c background) also throttles disk I/O and can still exceed a 5000 ms ordinary budget; the node's acceptance is CPU saturation, which passes",
+    "One test (assignment exposure after confirmed preparation) keeps its 1500 ms budget: lowering it to the shared budget changed its read sequencing and hung, so it was restored and not changed by this node"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "Under 14 nice-19 CPU busy loops (load up to 112): resource-worker-launch 29/29, resource-launch-adapter 49/49, prepared-managed-launch 12/12, resource-run-assignment 29/29 = 119/119; managed-launch 1/1",
+    "Planted defect (resourceManagedUnit deadline x1000): 'observation timeout\u2026' and 'timed out environment read\u2026' fail at the 60 s test timeout; restored source shows no diff"
+  ],
+  "tested": {
+    "head": "a46d413c50a0bcc6b7fba76acd04cc9413dc0afd",
+    "tree": "50f7af7fca4c1c6069f1ef08a5d487c039cdfab5",
+    "checks": [
+      "119/119 under deliberate CPU saturation",
+      "planted disabled deadline red in 2 deadline tests"
+    ]
+  }
+}
