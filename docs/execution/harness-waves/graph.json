@@ -864,14 +864,24 @@
       "id": "N-032",
       "title": "Bind durable worker intents to actual required managed launch lifecycle",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-031",
         "N-029"
       ],
       "serves": "REQ-009",
       "check": "Actual managed and PTY factories enforce intent before spawn, bind owned unit identity and retain unknown retirement; legacy ordinary paths unchanged",
-      "evidence": null,
+      "evidence": [
+        "node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-worker-launch.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/resource-worker-inventory.test.mjs -> exit 0, 'tests 119 / pass 119 / fail 0 / skipped 0' (verifier rerun on 06d5d872, 2026-10-14; first run at load1 208 exited 1 with pass 116 / fail 3, see not_verified)",
+        "Per-file verifier reruns: prepared-managed-launch 12/12, resource-launch-adapter 49/49, resource-worker-launch 29/29, all exit 0, skipped 0",
+        "node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs -> exit 0, 'PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery'",
+        "raw/closing/claude-06d5-fast.json: bash scripts/ci.sh fast exitCode 0, status PASS, headBefore=headAfter=06d5d87244b251a6c6057cef73c9013d4ccd8fc6, tree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true",
+        "raw/closing/claude-06d5-fast.log: no failure lines; N032 tests ran and passed (no SKIP/NOT_RUN): line 5869 'actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch', 5876 'PID start reuse and escaped descendants remain unknown, not active or retired', 5877 'root/tree exit without provider proof stays retained', 5879 'observation timeout retains one native snapshot', 5895 'ordinary legacy PTY keeps descriptor and bundle environment precedence', 5398 'absent adapter is explicitly legacy NOT_ENFORCED', 5850 'N032 durable ordered attachments...', 4555 legacy managed launch PASS; suite blocks at 5447/5861/5898 report fail 0 skipped 0",
+        "raw/n032-consumer/independent/receipt-units-final.json verdict SCOPED_ACCEPT_N032_MANAGED_CONSUMER; raw/n032-intent-events/reviewer/receipt-events.json SCOPED_ACCEPT_N032_ATTACHMENT_STORAGE; raw/n032-attachment-correction/independent/receipt.json SCOPED_ACCEPT_N032_ADMISSION_CONFIRMATION",
+        "raw/closing/n035-integration.json sourceFiles hashes for resourceManagedUnit.ts (989765a8...) and pty.ts (7347daae...) equal shasum -a 256 of the candidate files",
+        "Earlier gate failures raw/closing/n033-first-fast.json and n034-first-fast.json (exitCode 1) were the written-never-read ratchet and observability catch comments, both corrected before the 06d5 PASS",
+        "proven at 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 (tree 0c2db35f47ecee2b055c274cf432457ebb250dcd)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceManagedUnit.ts",
         "apps/desktop/src/main/managedLaunch.ts",
@@ -886,65 +896,134 @@
         "apps/desktop/test/resource-worker-inventory.test.mjs",
         "docs/execution/harness-waves/resource-worker-launch.md",
         "docs/execution/harness-waves/resource-worker-inventory.md"
-      ]
+      ],
+      "proof": {
+        "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+        "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+        "graph_revision": "46",
+        "checks": [
+          "Full fast exit0, 865.6s on unchanged tree (claude-06d5-fast.json); N032 suites ran, 0 fail, 0 skipped",
+          "Verifier focused 119/119 PASS and legacy managed-launch PASS; one earlier run at load1 about 208 failed 3/119 fail-closed on fixture deadlines"
+        ]
+      }
     },
     {
       "id": "N-033",
       "title": "Propagate the actual assigned run into controlled child environment",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-032"
       ],
       "serves": "REQ-001",
       "check": "Actual N028 childEnvironment wins over inherited descriptor and bundle values; stale forged or missing assignment refuses before final guard; legacy remains unchanged",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, headBefore=headAfter 06d5d87244b2, indexTree 0c2db35f47ec, sourceUnchanged true",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log lines 5869-5903: resource-worker-launch suite 'tests 29, pass 29, fail 0, skipped 0', including 'actual child key overrides parent, descriptor and bundle without changing other environment', 'changed actual mapping during resource refresh refuses before SQL and spawn', 'child environment extra-key/getter/refused/rejected refuses before begin', 'PTY refuses copied token and invalid environment schema before any spawn', 'ordinary legacy PTY keeps descriptor and bundle environment precedence', 'changed producer key during final refresh refuses before SQL and spawn'; scripts/ci.sh calls the file in the harness-regressions block",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n033/n033-original-red.log: planted original N032 source fails 2/2 ('bundle-conflict' !== child key; extra-key not refused), watched red",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n033/README.md: author focused 90 PASS zero skip; raw/n033-independent/controls.log: 3/3 PASS zero skip by a non-author reviewer",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-integration-review.json (allMatch true, SCOPED_INTEGRATION_MATCH) and n033-root-source-review.json (findings [])",
+        "Verifier rerun on 06d5d872 at load ~200: node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs -> 28/29 pass, 0 skip, twice; the failing case differed per run and was never an N033 environment case",
+        "git diff raw/n035/before -> candidate for pty.ts/resourceManagedUnit.ts: only controlledTicket additions; env spread line and reserveOwnedUnit validation unchanged",
+        "proven at 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 (tree 0c2db35f47ecee2b055c274cf432457ebb250dcd)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceManagedUnit.ts",
         "apps/desktop/src/main/pty.ts",
         "apps/desktop/test/resource-worker-launch.test.mjs",
         "docs/execution/harness-waves/resource-worker-launch.md"
-      ]
+      ],
+      "proof": {
+        "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+        "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+        "graph_revision": "48",
+        "checks": [
+          "Full fast exit0, 865.6s on unchanged tree; resource-worker-launch 29/29 pass, 0 skip",
+          "Verifier focused reruns 28/29 x2 at load ~200, all N033 environment cases PASS; failures are fail-closed deadline cases outside N033",
+          "Original-source red 2/2 and independent controls 3/3 PASS preserved"
+        ]
+      }
     },
     {
       "id": "N-034",
       "title": "Retain a bounded controlled-pool history across clean handoff",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-031"
       ],
       "serves": "REQ-009",
       "check": "Actual bounded filesystem registry: independent lock, deletion, retry, timeout and clean-restart controls; all outputs remain incomplete and unauthorized",
-      "evidence": null,
+      "evidence": [
+        "node --experimental-strip-types --test apps/desktop/test/resource-pool-registry.test.mjs on candidate 06d5d872 (verifier run, 2026-10-14): exit 0; tests 25, pass 25, fail 0, cancelled 0",
+        "N034_SOURCE=<candidate>/apps/desktop/src/main/resourcePoolRegistry.ts node --experimental-strip-types --test raw/n034/independent/controls.mjs (verifier run): exit 0; tests 2, pass 2, fail 0",
+        "raw/n034/independent/original.log: same controls against source 7b2f4974... fail 2/2; raw/n034/logs/packaging-rejected.log: three correction controls fail 3/3 on rejected 76189e55...",
+        "raw/n034/independent/receipt.json: SCOPED_ACCEPT_N034_STORAGE_ONLY, reviewer pipeline_research, author mcp_research, corrected exit 0 / original exit 1",
+        "raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, headBefore=headAfter 06d5d87244b251a6c6057cef73c9013d4ccd8fc6, indexTree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true",
+        "raw/closing/claude-06d5-fast.log lines 5906-5934: resource-pool-registry suite (scripts/ci.sh:354) all 25 tests passing, including 'real FS provision, exact retry, snapshot and clean historical handoff', 'single writer excludes same and new invocation without stale takeover', 'deleted committed record is unknown, never empty', 'timeout retains one actual outstanding operation across 30 retries', 'discarded unsealed writer keeps lock without a FileHandle GC exception'; summary tests 25, pass 25, fail 0",
+        "raw/closing/n034-first-fast.json: earlier fast exit 1 at observability checker on 6c8b3718, corrected per raw/closing/n034-gate-corrections.json (check-ops exit 0, check-written-never-read exit 0); superseded by the 06d5 PASS",
+        "sha256 on candidate: resource-pool-registry.test.mjs 176bd739... matches reviewed snapshot; resourceHostPolicy.ts cf38e8a1... and resourceAdmission.ts d620be51... match dependency snapshots",
+        "proven at 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 (tree 0c2db35f47ecee2b055c274cf432457ebb250dcd)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourcePoolRegistry.ts",
         "apps/desktop/test/resource-pool-registry.test.mjs",
         "docs/execution/harness-waves/resource-pool-registry.md"
-      ]
+      ],
+      "proof": {
+        "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+        "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+        "graph_revision": "45",
+        "checks": [
+          "Full fast exit0, 865.6s on unchanged tree (claude-06d5-fast); registry suite 25/25 in that log",
+          "Verifier focused 25/25 exit0 and independent 2 controls exit0 on candidate source; originals preserved red"
+        ]
+      }
     },
     {
       "id": "N-036",
       "title": "Fail early and remove duplicate compiler checks",
       "owner": "verifier",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-033"
       ],
       "serves": "REQ-005",
       "check": "Same compiler scenarios and shell command set; single capture per checker assertion; full fast and exact source review",
-      "evidence": null,
+      "evidence": [
+        "git diff fa5fbd7d^ fa5fbd7d -- scripts/ci.sh: -2 lines at the old position (comment and the node --test unified/build-unified/reconcile command); +4 after 'node scripts/check-commands.mjs' (2 comments, the same command, a blank line); +3 resource test registrations; 1 printf message changed",
+        "Reconstruction (scratchpad): the HEAD ci.sh with the move reverted, diffed against fa5fbd7d^:scripts/ci.sh, shows only the +3 resource test lines and the printf message. The command multiset difference removed only the old printf; added the 3 tests and the new printf",
+        "Moved interval HEAD ci.sh lines 94..185: grep for cd/export/trap/if/fi/then/else/for/while/case/set/unset/source/assignment printed nothing; step labels only",
+        "git show {fa5fbd7d^,HEAD}:scripts/test/{unified-plan,build-unified-plan,reconcile-unified-start}.test.mjs | grep -cE '^\\s*test\\(' printed 22/21/10 at both revisions",
+        "Python regex for assert.<fn>(<call>().<k>, ... <call>().<k>): build-unified-plan 6 before, 0 after; resource-worker-launch, unified-plan and reconcile-unified-start 0",
+        "grep -o setupBudgetMs apps/desktop/test/resource-worker-launch.test.mjs | wc -l printed 6 (1 declaration, 5 uses); explicit timeoutMs literals: 20 x1, 100 x1, 1000 x3, 1500 x1",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, elapsedSeconds 865.61, headBefore=headAfter=06d5d87244b251a6c6057cef73c9013d4ccd8fc6, indexTree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true; hosted ci success for push and pull_request on the same SHA",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log: line 3961 is the commands step; lines 3963-3984 show the six changed build-unified-plan tests passing; 'tests 53 pass 53 fail 0' precedes the build step at line 4026; resource-worker-launch 'tests 29 pass 29 fail 0'; the log ends 'fast tier green'",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/ci-order-static-review.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/compiler-double-check-root-review.json",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-budget-static-review.json",
+        "proven at 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 (tree 0c2db35f47ecee2b055c274cf432457ebb250dcd)"
+      ],
       "touches": [
         "scripts/ci.sh",
         "scripts/test/build-unified-plan.test.mjs",
         "apps/desktop/test/resource-worker-launch.test.mjs"
-      ]
+      ],
+      "proof": {
+        "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+        "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+        "graph_revision": "50",
+        "checks": [
+          "Full fast exit 0, 865.61s, on the unchanged candidate tree (claude-06d5-fast.json)",
+          "Exact source review against fa5fbd7d^: compiler command moved once with no state-changing shell in the interval; command multiset preserved for N036; 53/53 compiler scenarios; 6 to 0 double-call assertions; worker-launch 29/29"
+        ]
+      }
     },
     {
       "id": "N-035",
       "title": "Compose the concrete controlled-pool creation path",
       "owner": "implementer",
-      "status": "pending",
+      "status": "done",
       "blocked_by": [
         "N-032",
         "N-034",
@@ -952,7 +1031,17 @@
       ],
       "serves": "REQ-009",
       "check": "Actual factory, retained declaration-first writes and single-use post-SQL spawn tickets; independent negative review and real-filesystem tests; no runtime activation claim",
-      "evidence": null,
+      "evidence": [
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/n035/independent/receipt.json (SCOPED_ACCEPT_N035_SOURCE_COMPOSITION; original.log not ok 1 actual 'sealed' expected 'unknown'; corrected.log 3/3 ok)",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json (9 source files; 5 production + 3 docs sha256 equal to the candidate tree, test file differs only by 1e47ad6c skip guard)",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json (exit 1, 28/29) and n035-legacy-corrected.json (exit 0, 29/29)",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-deadline-static-review.json (STATIC_SCOPED_PASS_CORRECTED_DEADLINE_FIXTURE)",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json (bash scripts/ci.sh fast exit 0, head/tree 06d5d872/0c2db35f before and after, sourceUnchanged true)",
+        "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log lines 5939-5964: resource-controlled-pool tests 18 pass 18 fail 0 skipped 0; worker-launch tests 29 pass 29 (line 5898-5903); pool-registry tests 25 pass 25",
+        "Verifier rerun on 06d5d872: nice -n10 node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-controlled-pool.test.mjs -> exit 0, tests 18 pass 18 fail 0 skipped 0 (load1 ~198)",
+        "proven at 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 (tree 0c2db35f47ecee2b055c274cf432457ebb250dcd)"
+      ],
       "touches": [
         "apps/desktop/src/main/resourceControlledPool.ts",
         "apps/desktop/src/main/resourcePoolRegistry.ts",
@@ -963,7 +1052,16 @@
         "docs/execution/harness-waves/resource-controlled-pool.md",
         "docs/execution/harness-waves/resource-pool-registry.md",
         "docs/execution/harness-waves/resource-worker-inventory.md"
-      ]
+      ],
+      "proof": {
+        "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+        "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+        "graph_revision": "51",
+        "checks": [
+          "Complete local fast exit0, 865.6s, source manifest unchanged; controlled-pool 18/18 RUN, 0 skipped",
+          "Verifier focused rerun 18/18 PASS exit0; independent controls 3/3 PASS with original predicate watched RED"
+        ]
+      }
     },
     {
       "id": "N-037",
@@ -1014,6 +1112,27 @@
       "touches": [
         "docs/execution/harness-waves/N-039-expanded-convergence.json"
       ]
+    },
+    {
+      "id": "N-040",
+      "title": "Make N032/N029 fixture deadlines load-tolerant (resource-worker-launch observation timeout, resource-launch-adapter required factory, prepared-managed-launch exact content)",
+      "owner": "implementer",
+      "status": "pending",
+      "blocked_by": [],
+      "serves": "REQ-009",
+      "check": "The four focused files pass 119/119 while a deliberate CPU saturation runs alongside, and the fail-closed deadline assertions still go red when the deadline is planted below the operation time",
+      "evidence": null
+    },
+    {
+      "id": "N-041",
+      "title": "Make resource-worker-launch deadline tests deterministic under shared-host load (fixed 1000 ms budgets on observation/late-native cases)",
+      "owner": "implementer",
+      "status": "parked",
+      "blocked_by": [],
+      "serves": "REQ-001",
+      "check": "node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs passes 29/29 with zero skip under a reproduced load of at least 200, while a planted defect letting late settlement append still fails",
+      "evidence": null,
+      "parked_reason": "Duplicate of N-040, raised by a second verifier for the same root cause: resource-worker-launch.test.mjs is one of N-040's four files, and N-040's check (pass under deliberate CPU saturation, planted deadline still red) covers this node's 29/29-under-load-200 check. Kept for its narrower failing cases (observation timeout, late native allocation)."
     }
   ],
   "edges": [
@@ -1627,6 +1746,51 @@
       "verb": "add",
       "node": "N-039",
       "why": "Independent fa5fbd7d audit found completed artifacts without explicit remaining requirement acceptance"
+    },
+    {
+      "verb": "close",
+      "node": "N-034",
+      "why": "closed with no re-plan",
+      "precondition": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6"
+    },
+    {
+      "verb": "add",
+      "node": "N-040",
+      "why": "Node closes; the added row is an adjacent test-robustness defect, not a gap in N032's behaviour"
+    },
+    {
+      "verb": "close",
+      "node": "N-032",
+      "why": "Node closes; the added row is an adjacent test-robustness defect, not a gap in N032's behaviour",
+      "precondition": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6"
+    },
+    {
+      "verb": "add",
+      "node": "N-041",
+      "why": "Node closes; the load-sensitive deadline cases belong to the shared test file, not to N033's environment claim, and should be fixed rather than retried"
+    },
+    {
+      "verb": "close",
+      "node": "N-033",
+      "why": "Node closes; the load-sensitive deadline cases belong to the shared test file, not to N033's environment claim, and should be fixed rather than retried",
+      "precondition": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6"
+    },
+    {
+      "verb": "close",
+      "node": "N-036",
+      "why": "closed with no re-plan",
+      "precondition": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6"
+    },
+    {
+      "verb": "close",
+      "node": "N-035",
+      "why": "closed with no re-plan",
+      "precondition": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6"
+    },
+    {
+      "verb": "park",
+      "node": "N-041",
+      "why": "Duplicate of N-040, raised by a second verifier for the same root cause: resource-worker-launch.test.mjs is one of N-040's four files, and N-040's check (pass under deliberate CPU saturation, planted deadline still red) covers this node's 29/29-under-load-200 check. Kept for its narrower failing cases (observation timeout, late native allocation)."
     }
   ]
 }

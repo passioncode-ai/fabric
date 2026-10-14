@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-14T00:43:00Z · `—` · agent/harness-integrated-20261013 → main · fast-forward
+- run: r-44ae60a75316
+- files: see the branch (PR 31)
+- conflicts: none at landing (main 59eef190 merged into the branch in 06d5d872)
+- summary: CO-282 harness waves — enrollment/mode/context repairs, resource preflight and durable reservation (ADR-0152), logical worker pools (ADR-0154), controlled-pool composition behind the required mode; the shipped app stays on the legacy path and the pool SQL stays pending. Complete local fast PASS on 06d5d872 (865.6 s) and hosted fast green; N032–N036 closed by independent verdicts; N030 waits for workspace publication; N040 for load-tolerant deadline fixtures; CO-293 open.
+
 ### 2026-10-13T22:43:00Z · `—` · agent/co-292-board-schemas → main · fast-forward
 - run: r-44ae60a75316
 - files: see the commit

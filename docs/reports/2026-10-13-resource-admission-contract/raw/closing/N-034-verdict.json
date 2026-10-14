@@ -1,0 +1,37 @@
+{
+  "node": "N-034",
+  "done": [
+    "Actual bounded filesystem pool registry (resourcePoolRegistry.ts) retains historical declarations across clean sealed handoff and invocation change, with fixed external anchor, single-writer O_EXCL lock, deletion/orphan/tamper refusal, exact fsync/rename retry, count/byte bounds and timeout that retains the actual outstanding operation",
+    "Every registry result carries complete:false and executionAuthorized:false (type Result, unknown(), observed()); every focused test asserts both through yes()/unavailable()",
+    "Independent controls (seal receipt bound to original handle; canonical head bytes) watched red on rejected source and green on the candidate tree"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Candidate resourcePoolRegistry.ts (sha256 20a10024...) is not the byte-reviewed N034 source (dd38dcb6...): N035 added the controlled-origin extension (describe, admitEpoch, epoch files, producerEpoch). N034's 25 focused tests and both independent controls pass on the candidate, but the extension's own behaviour is N035's to verify, not this node's",
+    "resource-pool-registry.md on the candidate (81b2d159...) differs from the reviewed snapshot (bec5b9ea...) by N035's composition section; its claims about the controlled factory are not checked here",
+    "No N031 producer write integration, controlled-pool activation, native launch, DB/provider call, retirement or whole-host/global capacity claim; trusted cooperative filesystem only, no hostile whole-installation rollback resistance",
+    "REQ-009 is not closed by this node (requirement-closure.md row REQ-009 requires N030 gate plus separate scoped activation receipts)"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "node --experimental-strip-types --test apps/desktop/test/resource-pool-registry.test.mjs on candidate 06d5d872 (verifier run, 2026-10-14): exit 0; tests 25, pass 25, fail 0, cancelled 0",
+    "N034_SOURCE=<candidate>/apps/desktop/src/main/resourcePoolRegistry.ts node --experimental-strip-types --test raw/n034/independent/controls.mjs (verifier run): exit 0; tests 2, pass 2, fail 0",
+    "raw/n034/independent/original.log: same controls against source 7b2f4974... fail 2/2; raw/n034/logs/packaging-rejected.log: three correction controls fail 3/3 on rejected 76189e55...",
+    "raw/n034/independent/receipt.json: SCOPED_ACCEPT_N034_STORAGE_ONLY, reviewer pipeline_research, author mcp_research, corrected exit 0 / original exit 1",
+    "raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, headBefore=headAfter 06d5d87244b251a6c6057cef73c9013d4ccd8fc6, indexTree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true",
+    "raw/closing/claude-06d5-fast.log lines 5906-5934: resource-pool-registry suite (scripts/ci.sh:354) all 25 tests passing, including 'real FS provision, exact retry, snapshot and clean historical handoff', 'single writer excludes same and new invocation without stale takeover', 'deleted committed record is unknown, never empty', 'timeout retains one actual outstanding operation across 30 retries', 'discarded unsealed writer keeps lock without a FileHandle GC exception'; summary tests 25, pass 25, fail 0",
+    "raw/closing/n034-first-fast.json: earlier fast exit 1 at observability checker on 6c8b3718, corrected per raw/closing/n034-gate-corrections.json (check-ops exit 0, check-written-never-read exit 0); superseded by the 06d5 PASS",
+    "sha256 on candidate: resource-pool-registry.test.mjs 176bd739... matches reviewed snapshot; resourceHostPolicy.ts cf38e8a1... and resourceAdmission.ts d620be51... match dependency snapshots"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Full fast exit0, 865.6s on unchanged tree (claude-06d5-fast); registry suite 25/25 in that log",
+      "Verifier focused 25/25 exit0 and independent 2 controls exit0 on candidate source; originals preserved red"
+    ]
+  }
+}

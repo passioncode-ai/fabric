@@ -1,0 +1,42 @@
+{
+  "node": "N-035",
+  "done": [
+    "Concrete controlled-pool factory createControlledManagedPool composes actual N034 writer, N028 assignments, N029 inputs, declaration-first N031 intents, R1/R2 adapter, N032 units and the existing PTY entry (resourceControlledPool.ts#createControlledManagedPool)",
+    "Retained declaration-first writes: declaration is appended before intent event and survives later event/currentness failure as charged storage (focused case 'intent currentness failure after declaration retains orphan as charged storage')",
+    "Single-use post-SQL spawn tickets: WeakMap-held tickets bound to exact PtyManager/packet/native unit, consumed once in pty.ts before spawn; copied/forged/rebound/second-consumption refused (focused cases 'actual captured native ticket refuses copied token, wrong manager and second consumption', 'close during final SQL revokes exact native ticket synchronously before spawn')",
+    "Independent negative review: original delivery predicate watched RED (actual 'sealed' vs expected 'unknown'), corrected source 3/3 PASS on frozen hashes",
+    "Real-filesystem focused suite 18/18 PASS, 0 skipped, on exactly candidate 06d5d872 inside the complete local fast gate, and 18/18 PASS on a verifier rerun",
+    "No runtime activation claim: factory is imported only by its own module cluster (resourceManagedUnit.ts, pty.ts, resourcePoolRegistry.ts, the test); the contract states source preparation, not production activation"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "No index/default wiring, active migration, policy installation, live SQL, native provider run or runtime activation; REQ-009 stays open (overlap accounting, R1 held authority/full closure, active policy/schema, native recovery) per requirement-closure.md",
+    "Hosted runners skip resource-controlled-pool.test.mjs as NOT_RUN (no pinned agent-sync since 1e47ad6c); N-035 behaviour is exercised only on hosts holding agent-sync 1.22.2",
+    "The independent review is bound to test bytes a659f206; current test file differs only by the 1e47ad6c NOT_RUN skip guard (no assertion change), not re-reviewed independently",
+    "Portable replay independent/replay.py was never rerun (NOT_RERUN in the archive); controls were executed by the reviewer directly",
+    "Legacy worker-launch pass depends on two explicit timeoutMs:1000 fixture deadlines restored after a 28/29 first run; covered by static review only, no claim of load-independent reliability",
+    "App/root/preflight authority remains trusted DI; whole ledger+anchor rollback and hostile same-user filesystem not detected"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n035/README.md",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n035/independent/receipt.json (SCOPED_ACCEPT_N035_SOURCE_COMPOSITION; original.log not ok 1 actual 'sealed' expected 'unknown'; corrected.log 3/3 ok)",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-integration.json (9 source files; 5 production + 3 docs sha256 equal to the candidate tree, test file differs only by 1e47ad6c skip guard)",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-legacy-first.json (exit 1, 28/29) and n035-legacy-corrected.json (exit 0, 29/29)",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n035-deadline-static-review.json (STATIC_SCOPED_PASS_CORRECTED_DEADLINE_FIXTURE)",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json (bash scripts/ci.sh fast exit 0, head/tree 06d5d872/0c2db35f before and after, sourceUnchanged true)",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log lines 5939-5964: resource-controlled-pool tests 18 pass 18 fail 0 skipped 0; worker-launch tests 29 pass 29 (line 5898-5903); pool-registry tests 25 pass 25",
+    "Verifier rerun on 06d5d872: nice -n10 node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-controlled-pool.test.mjs -> exit 0, tests 18 pass 18 fail 0 skipped 0 (load1 ~198)"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Complete local fast exit0, 865.6s, source manifest unchanged; controlled-pool 18/18 RUN, 0 skipped",
+      "Verifier focused rerun 18/18 PASS exit0; independent controls 3/3 PASS with original predicate watched RED"
+    ]
+  }
+}

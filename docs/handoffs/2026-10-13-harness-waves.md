@@ -1,5 +1,13 @@
 # CO-282 — portable harness waves handoff
 
+## Current state — 2026-10-14, 00:50 UTC (read this first)
+
+**The expanded candidate passed its complete gate and lands on main.** Candidate `06d5d87244b251a6c6057cef73c9013d4ccd8fc6` (tree `0c2db35f`, merging main `59eef190`): complete local `bash scripts/ci.sh fast` exit 0 in 865.6 s, source unchanged before and after ([receipt](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json), [log](../reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log)); hosted fast green on push and pull_request. Only the browser mockup suites were NOT_RUN (no `FABRIC_PLAYWRIGHT_MODULE`/`FABRIC_CHROME`); the owned-database stages ran.
+
+**Graph (41 nodes): 33 done, 3 blocked, 4 pending, 1 parked.** Independent task-pipeline verifiers closed N-032, N-033, N-034, N-035 and N-036 against that receipt (verdicts `raw/closing/N-03x-verdict.json`). N-030 is **not** closed: its verdict requires the workspace publication of the landed candidate. Two verifiers independently found deadline fixtures (50–1000 ms) that refuse safely but fail under load ≈ 200: N-040 makes them load-tolerant; N-041 is parked as its duplicate. Earlier runs on this branch stay recorded: the 99d8 FAIL (quit SIGTERM case, [CO-293](../evidence/specs/2026-08-16-software-fabric-carryover.md)), and a run on `395e39e1` stopped by migration order because main had moved.
+
+**Exact next task:** after this branch fast-forwards main, let the scheduled workspace sync (or `node scripts/workspace.mjs publish` under `workspace/skills/maintaining-fabric-workspace`) publish main, then re-run the N-030 verifier against the publication receipt (`docs/workspace-receipt.json`) and close N-030. Then N-040 (load-tolerant fixtures, with planted deadlines still red), N-037 native host acceptance, N-038/N-009/N-010 owner acceptance. Owner packets can be submitted on the board from Claude sessions once a Fabric release carries CO-292 (landed on main in `59eef190`); the installed Fabric here is 0.3.5. The onboarding field review that came in during this run is a separate entry: fabric-workspace `docs/reports/2026-10-13-onboarding-field-review/` (PR 213).
+
 ## Claude Code continuation 2026-10-13 14:30 to 15:45 UTC
 
 **CO-282 remains partial.** This continuation made the branch pass the hosted fast gate in a clean checkout and recorded what that pass does not cover. It is not a main merge, a publication, an installation or owner acceptance.

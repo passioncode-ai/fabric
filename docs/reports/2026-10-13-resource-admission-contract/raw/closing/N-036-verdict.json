@@ -1,0 +1,44 @@
+{
+  "node": "N-036",
+  "done": [
+    "The unchanged three-suite unified compiler command (unified-plan, build-unified-plan, reconcile-unified-start) moved from after check-adoption-plan to after check-commands and before the build step; it appears exactly once in scripts/ci.sh, and no shell conditional, cd, export, trap, set or variable assignment lies in the moved interval",
+    "Shell command set preserved for N036: the non-comment command multiset of scripts/ci.sh at fa5fbd7d^ versus 06d5d87 removes nothing N036 owns. The only other differences are three added resource test registrations (worker-launch, pool-registry, controlled-pool) and one reworded NOT_RUN printf message, all from sibling nodes in the same commit",
+    "Same compiler scenarios: the test( counts are 22/21/10 both before and after, and the fast log reports tests 53 pass 53 fail 0 for the moved command, between the commands step and the build step",
+    "One capture per checker assertion: exactly six build-unified-plan assertions changed from assert.equal(f.check().status,0,f.check().stderr) to const checked=f.check(); twelve -/+ lines. A regex over the four compiler and worker-launch test files finds 6 double-call assertions before and 0 after",
+    "The worker-launch fixture setup budget is separated: setupBudgetMs=5000 is declared once and used at five ordinary sites. The explicit overrides timeoutMs 20, 1000 (x3) and 1500 and the policy 100 remain. resource-worker-launch passed 29/29 in the full fast run on the candidate",
+    "A complete local full fast run on exactly this candidate passed: exit 0 in 865.61s, sourceUnchanged true, and the log ends 'fast tier green'"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "The fail-early benefit is unmeasured. No timing saving is claimed, and no failing run shows a source-only refusal now landing before the compiler suite",
+    "The static review hashes do not bind the committed bytes. ci-order-static-review's scripts/ci.sh workingSha256 6c4c5bc4 and n033-budget-static-review's worker-launch candidateSha256 10d80a95 differ from HEAD (27e95238 and 2d9ec950). The ci.sh move parity was re-established here by reconstruction, and worker-launch by the run at HEAD",
+    "The worker-launch fixture has no before-state in Git because the file is new in fa5fbd7d. The 27/29 and 28/29 pre-correction failures and the unchanged production deadlines rest on plan text and review receipts, not on a Git diff",
+    "The three added ci.sh test registrations and the NOT_RUN message rewording ship in the same commit but belong to other nodes; this verdict does not certify them",
+    "Fast tier only: the stack-backed probes and the browser mockup suites were NOT_RUN in this gate"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true
+  },
+  "evidence": [
+    "git diff fa5fbd7d^ fa5fbd7d -- scripts/ci.sh: -2 lines at the old position (comment and the node --test unified/build-unified/reconcile command); +4 after 'node scripts/check-commands.mjs' (2 comments, the same command, a blank line); +3 resource test registrations; 1 printf message changed",
+    "Reconstruction (scratchpad): the HEAD ci.sh with the move reverted, diffed against fa5fbd7d^:scripts/ci.sh, shows only the +3 resource test lines and the printf message. The command multiset difference removed only the old printf; added the 3 tests and the new printf",
+    "Moved interval HEAD ci.sh lines 94..185: grep for cd/export/trap/if/fi/then/else/for/while/case/set/unset/source/assignment printed nothing; step labels only",
+    "git show {fa5fbd7d^,HEAD}:scripts/test/{unified-plan,build-unified-plan,reconcile-unified-start}.test.mjs | grep -cE '^\\s*test\\(' printed 22/21/10 at both revisions",
+    "Python regex for assert.<fn>(<call>().<k>, ... <call>().<k>): build-unified-plan 6 before, 0 after; resource-worker-launch, unified-plan and reconcile-unified-start 0",
+    "grep -o setupBudgetMs apps/desktop/test/resource-worker-launch.test.mjs | wc -l printed 6 (1 declaration, 5 uses); explicit timeoutMs literals: 20 x1, 100 x1, 1000 x3, 1500 x1",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, elapsedSeconds 865.61, headBefore=headAfter=06d5d87244b251a6c6057cef73c9013d4ccd8fc6, indexTree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true; hosted ci success for push and pull_request on the same SHA",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log: line 3961 is the commands step; lines 3963-3984 show the six changed build-unified-plan tests passing; 'tests 53 pass 53 fail 0' precedes the build step at line 4026; resource-worker-launch 'tests 29 pass 29 fail 0'; the log ends 'fast tier green'",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/ci-order-static-review.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/compiler-double-check-root-review.json",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-budget-static-review.json"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Full fast exit 0, 865.61s, on the unchanged candidate tree (claude-06d5-fast.json)",
+      "Exact source review against fa5fbd7d^: compiler command moved once with no state-changing shell in the interval; command multiset preserved for N036; 53/53 compiler scenarios; 6 to 0 double-call assertions; worker-launch 29/29"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "node": "N-033",
+  "done": [
+    "Actual N028 childEnvironment (AGENT_SYNC_RUN_ID only) is the last spread in the owned-unit PTY env, after parent, descriptor and bundle values (apps/desktop/src/main/pty.ts env construction; reserveOwnedUnit validates and freezes the one key)",
+    "Stale, forged or missing assignment refuses before the final SQL guard and spawn: changed mapping/producer key during refresh, extra-key/getter/refused/rejected environment, copied token and invalid schema, timed-out environment read with late settlement",
+    "Legacy no-unit PTY path keeps ordinary descriptor/bundle environment precedence",
+    "N033 behaviour survives N-035's later additive controlled-ticket edits to resourceManagedUnit.ts and pty.ts (environment path unchanged in the diff) and is exercised on the exact candidate"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "Native child, real provider, lease acquisition, DB and installed activation: spawn, ownership and SQL are synthetic in the test; REQ-001 native identity remains N030/N037's",
+    "resource-worker-launch.test.mjs is host-load sensitive outside N033's own cases: at load ~200 two verifier reruns each failed one deadline test pinned to timeoutMs 1000 ('observation timeout retains one native snapshot...', 'late native allocation after admission deadline...'), both failing closed (unknown, not observed); all N033 environment cases passed in both reruns, and the full fast gate passed 29/29 at load ~10. Prior n033-legacy-pressure receipt shows the same class at load 493",
+    "Source-review and integration receipts pin the pre-N035 hashes (484ff39f.../50b07767.../3d13f5f5...); the candidate's bytes (989765a8.../7347daae.../2d9ec950...) are covered only by execution in the fast gate and this verifier's reruns plus the n035 before/after diff, not by a fresh source review"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true,
+    "add": [
+      {
+        "title": "Make resource-worker-launch deadline tests deterministic under shared-host load (fixed 1000 ms budgets on observation/late-native cases)",
+        "owner": "implementer",
+        "serves": "REQ-001",
+        "check": "node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs passes 29/29 with zero skip under a reproduced load of at least 200, while a planted defect letting late settlement append still fails"
+      }
+    ],
+    "why": "Node closes; the load-sensitive deadline cases belong to the shared test file, not to N033's environment claim, and should be fixed rather than retried"
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, headBefore=headAfter 06d5d87244b2, indexTree 0c2db35f47ec, sourceUnchanged true",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log lines 5869-5903: resource-worker-launch suite 'tests 29, pass 29, fail 0, skipped 0', including 'actual child key overrides parent, descriptor and bundle without changing other environment', 'changed actual mapping during resource refresh refuses before SQL and spawn', 'child environment extra-key/getter/refused/rejected refuses before begin', 'PTY refuses copied token and invalid environment schema before any spawn', 'ordinary legacy PTY keeps descriptor and bundle environment precedence', 'changed producer key during final refresh refuses before SQL and spawn'; scripts/ci.sh calls the file in the harness-regressions block",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n033/n033-original-red.log: planted original N032 source fails 2/2 ('bundle-conflict' !== child key; extra-key not refused), watched red",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/n033/README.md: author focused 90 PASS zero skip; raw/n033-independent/controls.log: 3/3 PASS zero skip by a non-author reviewer",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/n033-integration-review.json (allMatch true, SCOPED_INTEGRATION_MATCH) and n033-root-source-review.json (findings [])",
+    "Verifier rerun on 06d5d872 at load ~200: node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs -> 28/29 pass, 0 skip, twice; the failing case differed per run and was never an N033 environment case",
+    "git diff raw/n035/before -> candidate for pty.ts/resourceManagedUnit.ts: only controlledTicket additions; env spread line and reserveOwnedUnit validation unchanged"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Full fast exit0, 865.6s on unchanged tree; resource-worker-launch 29/29 pass, 0 skip",
+      "Verifier focused reruns 28/29 x2 at load ~200, all N033 environment cases PASS; failures are fail-closed deadline cases outside N033",
+      "Original-source red 2/2 and independent controls 3/3 PASS preserved"
+    ]
+  }
+}

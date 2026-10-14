@@ -1,0 +1,48 @@
+{
+  "node": "N-032",
+  "done": [
+    "Actual managed factory enforces the durable intent before admission and spawn: createManagedLaunch in required mode refuses without a paired ManagedUnits (resource_unit_dependency_required), records the intent via units.prepare before deps.admit (resource_intent_unconfirmed otherwise), attaches the admission before begin_task_run_launch (resource_attachment_unconfirmed), withholds the native unit until confirmed (resource_unit_unavailable) and re-checks units.current inside beforeSpawn ahead of the final SQL validate (apps/desktop/src/main/managedLaunch.ts#createManagedLaunch)",
+    "Actual PTY factory enforces the owned unit before spawn: PtyManager.open refuses a copied, foreign, reused or packet-mismatched OwnedPtyUnit with LaunchRefusedBeforeSpawn, consumes the controlled ticket after beforeSpawn and before the native spawn, and injects only the N028 AGENT_SYNC_RUN_ID child key (apps/desktop/src/main/pty.ts#PtyManager.open, #reserveOwnedUnit)",
+    "Owned unit identity is bound: the PTY binds the unit to the exact LiveSession object at spawn, and ManagedUnits.observe appends the process attachment to the intent chain, bound to the admission digest (apps/desktop/src/main/resourceManagedUnit.ts#createResourceManagedUnit, pty.ts#observeOwnedUnit)",
+    "Unknown retirement is retained: timeouts, capture/journal uncertainty, PID start reuse, escaped descendants and root/tree exit without provider proof all stay unknown/retained; no retirement path exists and every result carries complete:false, executionAuthorized:false",
+    "Legacy ordinary paths are unchanged: the production composition in index.ts passes no resources/units, the absent adapter stays legacy_not_enforced, an ordinary PTY keeps descriptor/bundle env precedence, and managed-launch.test.mjs passes"
+  ],
+  "not_done": [],
+  "not_verified": [
+    "No active DDL, installed activation, configured required composition in the shipped app (index.ts stays legacy; the required path is reachable only through the N035 controlled-pool composition), native provider acceptance or all-host enforcement; REQ-009 activation remains separate (requirement-closure.md)",
+    "Real provider/child process retirement and complete pool coverage: the fixtures use synthetic SQL/spawn boundaries and the actual filesystem/N028 producer",
+    "Robustness of the focused check under extreme host load: one combined verifier run at load1 about 208 failed 3 of 119 tests, all fail-closed fixture-deadline trips (resource_prepared_input_unavailable, intent_unconfirmed, admitted:false with 50-100 ms deadlines). The same command reran 119/119 with no change, and each file passed alone",
+    "Independent N032 consumer review (receipt-units-final.json) predates the later bytes of resourceManagedUnit.ts, pty.ts, index.ts, resource-worker-launch.test.mjs and resource-worker-launch.md. The final resourceManagedUnit.ts and pty.ts bytes are independently covered by the N035 integration receipt (hashes match), and index.ts differs by main merges; no single independent review names the exact final N032 file set"
+  ],
+  "blockers": [],
+  "replan": {
+    "possible": true,
+    "add": [
+      {
+        "title": "Make N032/N029 fixture deadlines load-tolerant (resource-worker-launch observation timeout, resource-launch-adapter required factory, prepared-managed-launch exact content)",
+        "owner": "implementer",
+        "serves": "REQ-009",
+        "check": "The four focused files pass 119/119 while a deliberate CPU saturation runs alongside, and the fail-closed deadline assertions still go red when the deadline is planted below the operation time"
+      }
+    ],
+    "why": "Node closes; the added row is an adjacent test-robustness defect, not a gap in N032's behaviour"
+  },
+  "evidence": [
+    "node --experimental-strip-types --test --test-concurrency=1 apps/desktop/test/resource-worker-launch.test.mjs apps/desktop/test/resource-launch-adapter.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/resource-worker-inventory.test.mjs -> exit 0, 'tests 119 / pass 119 / fail 0 / skipped 0' (verifier rerun on 06d5d872, 2026-10-14; first run at load1 208 exited 1 with pass 116 / fail 3, see not_verified)",
+    "Per-file verifier reruns: prepared-managed-launch 12/12, resource-launch-adapter 49/49, resource-worker-launch 29/29, all exit 0, skipped 0",
+    "node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs -> exit 0, 'PASS managed launch: faults at every async boundary, exact session, begin winner, compensation, exit-before-bind, no replay after uncertain delivery'",
+    "raw/closing/claude-06d5-fast.json: bash scripts/ci.sh fast exitCode 0, status PASS, headBefore=headAfter=06d5d87244b251a6c6057cef73c9013d4ccd8fc6, tree 0c2db35f47ecee2b055c274cf432457ebb250dcd, sourceUnchanged true",
+    "raw/closing/claude-06d5-fast.log: no failure lines; N032 tests ran and passed (no SKIP/NOT_RUN): line 5869 'actual producer, entry, intent chain, managed launcher and owned PTY bind one unit before dispatch', 5876 'PID start reuse and escaped descendants remain unknown, not active or retired', 5877 'root/tree exit without provider proof stays retained', 5879 'observation timeout retains one native snapshot', 5895 'ordinary legacy PTY keeps descriptor and bundle environment precedence', 5398 'absent adapter is explicitly legacy NOT_ENFORCED', 5850 'N032 durable ordered attachments...', 4555 legacy managed launch PASS; suite blocks at 5447/5861/5898 report fail 0 skipped 0",
+    "raw/n032-consumer/independent/receipt-units-final.json verdict SCOPED_ACCEPT_N032_MANAGED_CONSUMER; raw/n032-intent-events/reviewer/receipt-events.json SCOPED_ACCEPT_N032_ATTACHMENT_STORAGE; raw/n032-attachment-correction/independent/receipt.json SCOPED_ACCEPT_N032_ADMISSION_CONFIRMATION",
+    "raw/closing/n035-integration.json sourceFiles hashes for resourceManagedUnit.ts (989765a8...) and pty.ts (7347daae...) equal shasum -a 256 of the candidate files",
+    "Earlier gate failures raw/closing/n033-first-fast.json and n034-first-fast.json (exitCode 1) were the written-never-read ratchet and observability catch comments, both corrected before the 06d5 PASS"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Full fast exit0, 865.6s on unchanged tree (claude-06d5-fast.json); N032 suites ran, 0 fail, 0 skipped",
+      "Verifier focused 119/119 PASS and legacy managed-launch PASS; one earlier run at load1 about 208 failed 3/119 fail-closed on fixture deadlines"
+    ]
+  }
+}

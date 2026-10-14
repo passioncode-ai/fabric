@@ -1,0 +1,197 @@
+{
+  "receipt": "CO-282 complete local fast gate, expanded candidate",
+  "status": "PASS",
+  "candidate": {
+    "commit": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "branch": "agent/harness-integrated-20261013",
+    "mergesMain": "59eef19015e75ad3a554f5b1204934504219f98d"
+  },
+  "command": "pnpm_config_verify_deps_before_run=false bash scripts/ci.sh fast (via raw/closing/claude-fast-waiter.py)",
+  "localFullFast": {
+    "expectedHead": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "headBefore": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "indexTreeBefore": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "trackedPathCount": 6229,
+    "sourceManifestSha256": "c3c61ce8c13f0763324559969892e9764863f7755506f966b67094c4cf0a239c",
+    "requiredFreeBytes": 3221225472,
+    "maximumLoad1": 56.0,
+    "requiredConsecutiveSamples": 2,
+    "sampleIntervalSeconds": 30,
+    "waitDeadlineUTC": "2026-10-14T03:10:38.231502+00:00",
+    "executionDeadlineSeconds": 4500,
+    "pid": 8457,
+    "limits": [
+      "Full fast only; no graph closure, merge, publication, installed update or consent",
+      "One heavy slot: admission also waits for no other scripts/ci.sh process",
+      "Manifest excludes the workspace gitlink and the graph lock"
+    ],
+    "status": "PASS",
+    "samples": [
+      {
+        "at": "2026-10-13T23:14:13.199984+00:00",
+        "freeBytes": 599265280,
+        "load1": 143.03,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:14:43.296540+00:00",
+        "freeBytes": 2224934912,
+        "load1": 91.93,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:15:13.337573+00:00",
+        "freeBytes": 2215383040,
+        "load1": 62.55,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:15:43.376169+00:00",
+        "freeBytes": 2201923584,
+        "load1": 39.81,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:16:13.424116+00:00",
+        "freeBytes": 2199736320,
+        "load1": 29.42,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:16:43.473534+00:00",
+        "freeBytes": 2194763776,
+        "load1": 20.61,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:17:13.518921+00:00",
+        "freeBytes": 2194051072,
+        "load1": 15.5,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:17:43.555801+00:00",
+        "freeBytes": 2230317056,
+        "load1": 12.89,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:18:13.594947+00:00",
+        "freeBytes": 2229538816,
+        "load1": 10.4,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:18:43.654595+00:00",
+        "freeBytes": 2231570432,
+        "load1": 10.83,
+        "otherCi": 0,
+        "ok": false
+      },
+      {
+        "at": "2026-10-13T23:19:13.694251+00:00",
+        "freeBytes": 3338092544,
+        "load1": 9.54,
+        "otherCi": 0,
+        "ok": true
+      },
+      {
+        "at": "2026-10-13T23:19:43.735164+00:00",
+        "freeBytes": 4411682816,
+        "load1": 9.5,
+        "otherCi": 0,
+        "ok": true
+      }
+    ],
+    "startedAtUTC": "2026-10-13T23:19:43.735921+00:00",
+    "environment": {
+      "pnpm_config_verify_deps_before_run": "false"
+    },
+    "exitCode": 0,
+    "elapsedSeconds": 865.61,
+    "minFreeBytesDuringRun": 4226969600,
+    "finishedAtUTC": "2026-10-13T23:34:10.904837+00:00",
+    "headAfter": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "indexTreeAfter": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "dirtyAfter": [],
+    "sourceManifestSha256After": "c3c61ce8c13f0763324559969892e9764863f7755506f966b67094c4cf0a239c",
+    "sourceUnchanged": true
+  },
+  "stagesReached": [
+    "types",
+    "interface: tokens, strings, the component set",
+    "documentation: structure, links, scenarios, brand, registers",
+    "probe templates",
+    "ipc: every handler is checked against the answer its channel declares",
+    "actor: an identity is established, never taken from the caller",
+    "eval: the conformance corpus records what actually broke here",
+    "route: the shell is in one place at a time",
+    "hooks: no hook below a component's early return",
+    "ops: every operation is observable, and silence carries its reason",
+    "scope: every query in the main process reaches one estate",
+    "commands: an event type with a command has one writer",
+    "build — what ships is what the probes read",
+    "release: the build identifies itself from the artifact it actually contains",
+    "pure tests — no database",
+    "owned databases: the SQL contract and the reads, on a cluster this run creates and removes",
+    "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)",
+    "workspace publication: what an uncommitted parent change can actually reach",
+    "workspace sources: every tool repository, pinned to its own commit",
+    "workspace snapshot: this commit can be exported as it stands",
+    "mockups: the prototype draws every state it offers",
+    "mockups in a real browser: every browser suite, or NOT_RUN said out loud",
+    "wiki projections: previews pinned to the prototype, plan pinned to the board",
+    "plants: every rule this iteration added, watched going red",
+    "queue: a row that says shipped names what proves it",
+    "containment: a mode that removes the runner's gate says so",
+    "output cost: what may happen per byte, and what may travel per listing",
+    "handoff: the generated coordination document is current and reachable",
+    "provider capability: what the installed CLIs actually support, per build",
+    "acceptance: a capability is supported only after a run nobody can fake",
+    "the dated provider-account probe, which now asserts its own fix",
+    "list reads: no filter as long as the data",
+    "audit regressions — the findings a merge must not quietly undo"
+  ],
+  "notRun": [
+    "browser mockup suites: FABRIC_PLAYWRIGHT_MODULE and FABRIC_CHROME unset (the gate says so out loud)",
+    "stack-backed probes: fast tier by definition (scripts/ci.sh full)"
+  ],
+  "hostedFast": [
+    {
+      "conclusion": "success",
+      "databaseId": 38482467187,
+      "event": "pull_request",
+      "headSha": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+      "name": "ci",
+      "url": "https://github.com/passioncode-ai/fabric/actions/runs/38482467187"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 38482460638,
+      "event": "push",
+      "headSha": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+      "name": "ci",
+      "url": "https://github.com/passioncode-ai/fabric/actions/runs/38482460638"
+    }
+  ],
+  "priorFailures": [
+    "claude-99d8-fast.json (quit SIGTERM case, CO-293)",
+    "second run on 395e39e1: migration order behind main (no product test reached)"
+  ],
+  "environment": "node_modules linked to the main checkout; pnpm pre-run dependency check disabled for that layout only (lockfile byte-identical)",
+  "limits": [
+    "Fast tier: no disposable-stack probes, no native/provider runs",
+    "Not a main merge, publication, installation or owner acceptance",
+    "CO-293 did not recur here; one green run does not close it"
+  ]
+}

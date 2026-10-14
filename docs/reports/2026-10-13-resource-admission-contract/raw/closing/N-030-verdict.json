@@ -1,0 +1,57 @@
+{
+  "node": "N-030",
+  "done": [
+    "Complete local bash scripts/ci.sh fast PASS on exactly candidate 06d5d872 / tree 0c2db35f, source manifest unchanged before and after; every stage reached, including the owned-database SQL stage",
+    "N027 resource accounting SQL actually ran on the candidate inside that gate (owned disposable PostgreSQL cluster), not NOT_RUN",
+    "Source-bound focused receipts still bind candidate bytes: n027-sql 4/4 hashes match; n035-legacy-corrected 10/10 match; n035-integration 8/9 source and doc hashes match, the one changed file (resource-controlled-pool.test.mjs) differs only by commit 1e47ad6c's NOT_RUN skip guard and ran 18/18 with 0 skipped in the candidate gate",
+    "Hosted fast CI passed on the same SHA on push and pull_request",
+    "Fresh remote readback: origin agent/harness-integrated-20261013 resolves to the candidate; PR 31 head is the candidate, OPEN, MERGEABLE",
+    "Workspace publication status is known and reported: NOT published for this candidate"
+  ],
+  "not_done": [
+    "Workspace publication for 06d5d872: the N-030 plan section requires publishing through the workspace contract and verifying the exact source binding, and REQ-005's remaining acceptance names expanded N030/N036 delivery and publication. Hosted source-and-snapshot fails as stale on this SHA; the committed workspace pin 8cd81284 is historical and the local checkout 3998a337 is unpinned. Next: node scripts/workspace.mjs publish on the accepted source, then node scripts/workspace.mjs check --require-child, and bind both to the candidate",
+    "Graph order: N-030's own prerequisites N-035 and N-036 (and N-032 to N-034 under them) are still pending in graph.json; they must be closed against claude-06d5-fast.json before N-030 can close"
+  ],
+  "not_verified": [
+    "Browser mockup suites: NOT_RUN in the local gate (FABRIC_PLAYWRIGHT_MODULE and FABRIC_CHROME unset)",
+    "Stack-backed probes (scripts/ci.sh full tier): not run; hosted full jobs were skipped",
+    "CO-293 real-Electron SIGTERM exit failure: did not recur on this run, but one green run does not close it",
+    "n034-gate-corrections focused receipt binds an older resourceManagedUnit.ts and scripts/ci.sh; those bytes are covered only by the complete gate, not by a refreshed focused receipt",
+    "No native host behaviour, active DDL or policy activation, main merge, installation or owner acceptance is established by this node"
+  ],
+  "blockers": [
+    {
+      "what": "Workspace publication of the candidate has not run; hosted source-and-snapshot is red (stale)",
+      "blocks": ["N-030", "N-039"],
+      "can_continue_around": true
+    },
+    {
+      "what": "Prerequisite nodes N-032 to N-036 still pending in the graph",
+      "blocks": ["N-030"],
+      "can_continue_around": true
+    }
+  ],
+  "replan": {
+    "possible": true,
+    "why": "No new node is needed. Close N-032 to N-036 against claude-06d5-fast.json, run the workspace publication procedure on 06d5d872 (or its accepted successor), record the publication receipt, then re-verify N-030. N-037 and N-038 can proceed in the meantime"
+  },
+  "evidence": [
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.json: status PASS, exitCode 0, elapsedSeconds 865.61, headBefore/headAfter 06d5d872, indexTree 0c2db35f, sourceUnchanged true",
+    "docs/reports/2026-10-13-resource-admission-contract/raw/closing/claude-06d5-fast.log: ends 'fast tier green. The stack-backed probes did not run'; 0 'not ok' lines; 'PASS resource accounting: real admissions, nested/released/root bound ...' in the owned-databases stage",
+    "git ls-remote origin agent/harness-integrated-20261013 -> 06d5d87244b251a6c6057cef73c9013d4ccd8fc6 refs/heads/agent/harness-integrated-20261013",
+    "gh run view 38482467187 / 38482460638: ci, completed, success, headSha 06d5d872 (pull_request / push)",
+    "gh run view 38482467232 --log-failed: 'Error: Workspace is stale; finish source changes, commit, then node scripts/workspace.mjs publish.' exit code 1",
+    "git ls-tree 06d5d872 workspace -> 8cd81284; git -C workspace rev-parse HEAD -> 3998a337",
+    "sha256 of git show 06d5d872:<path> versus bound hashes in n027-sql.json, n035-integration.json, n035-legacy-corrected.json (verifier recomputation)"
+  ],
+  "tested": {
+    "head": "06d5d87244b251a6c6057cef73c9013d4ccd8fc6",
+    "tree": "0c2db35f47ecee2b055c274cf432457ebb250dcd",
+    "checks": [
+      "Full local fast exit 0, 865.6 s, source unchanged; owned SQL stage ran",
+      "Hosted fast success on push and pull_request; hosted source-and-snapshot FAIL (workspace stale)",
+      "Remote branch readback equals candidate",
+      "Focused receipts n027/n035 rebound to candidate bytes by hash"
+    ]
+  }
+}
