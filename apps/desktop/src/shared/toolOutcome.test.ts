@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall } from './toolOutcome.ts'
+import { bodyFromEnds, TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall } from './toolOutcome.ts'
 
 describe('an HTTP status is not an outcome', () => {
   it('reads a JSON-RPC error inside a 200 as a failure, not a success', () => {
@@ -128,5 +128,22 @@ describe('what the call was for, read off the REQUEST', () => {
     // redaction door is one layer in; this layer simply never holds them.
     const got = describeCall({ id: 1, method: 'tools/call', params: { name: 't', arguments: { token: 'sk-live-secret' } } })
     expect(JSON.stringify(got)).not.toContain('sk-live')
+  })
+})
+
+describe('a body too long to keep is read from its two ends (2026-10-14)', () => {
+  const big = (result: object) => JSON.stringify({ jsonrpc: '2.0', id: 2, result })
+  const ends = (body: string) => bodyFromEnds(body.slice(0, 4096), body.slice(-512), body.length <= 4096)
+  it('a long answer that returned is returned, not unknown', () => {
+    const body = big({ content: [{ type: 'text', text: 'x'.repeat(20000) }] })
+    expect(classifyToolOutcome({ status: 200, body: ends(body) })).toBe('returned')
+  })
+  it('a long answer that says isError at its end is an error, and the SDK code at its head still names a schema refusal', () => {
+    expect(classifyToolOutcome({ status: 200, body: ends(big({ content: [{ type: 'text', text: 'boom ' + 'y'.repeat(9000) }], isError: true })) })).toBe('threw')
+    expect(classifyToolOutcome({ status: 200, body: ends(big({ content: [{ type: 'text', text: 'MCP error -32602: bad ' + 'y'.repeat(9000) }], isError: true })) })).toBe('schema_error')
+  })
+  it('a short body is parsed whole, and a stream that is no JSON-RPC response stays unknown', () => {
+    expect(classifyToolOutcome({ status: 200, body: ends(big({ content: [] })) })).toBe('returned')
+    expect(classifyToolOutcome({ status: 200, body: ends('event: message\n' + 'z'.repeat(5000)) })).toBe('unknown')
   })
 })

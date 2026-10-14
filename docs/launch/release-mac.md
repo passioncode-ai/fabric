@@ -270,7 +270,7 @@ migration 91 (`grants_from_the_journal`) carry no project, and after the upgrade
 they expire or are spent (91's own note; no journal event names them, so a restore never recreates them). Nothing
 revokes them; upgrade at least an hour after the last such grant, or let them expire.
 
-**The next release admits schema 89** — five migrations past 0.3.5's 84, applied in order:
+**0.3.6 admits schema 89** — five migrations past 0.3.5's 84, applied in order:
 `20261011000100_project_board_thread_aggregates.sql` (count 85: the Comms thread list's kinds and open requests),
 `20261012000103_project_board_lifecycle.sql` (count 86: the project board's lifecycle, ADR-0149 — epochs, reply,
 cancel, expiry, deliveries, the outbox, board history in the archive) and
@@ -306,7 +306,7 @@ functions and one partial index on the journal and rewrites no stored row.
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4 — read it, do not assume it
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
@@ -353,7 +353,7 @@ functions and one partial index on the journal and rewrites no stored row.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

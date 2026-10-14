@@ -20,13 +20,15 @@
 // away — a trace that kept results would keep whatever secret was in one.
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { classifyToolOutcome, describeCall, type ToolOutcome } from '../shared/toolOutcome.ts'
+import { bodyFromEnds, classifyToolOutcome, describeCall, type ToolOutcome } from '../shared/toolOutcome.ts'
 import { ops } from './opsSink.ts'
 import type { OpsOutcome } from '../shared/opsLog.ts'
 
 /** Enough for a JSON-RPC error envelope, far too little for a tool result. The
  *  trace must not grow with the size of the answers it is watching. */
 const PEEK_BYTES = 4_096
+/** The tail kept beside the head, where a tool result says `isError` (`toolOutcome.ts#bodyFromEnds`). */
+const TAIL_BYTES = 512
 
 /** The three-value outcome the ops log speaks, from the six this one does. A
  *  refusal is not a failure of the process — the surface did its job — so it is
@@ -83,7 +85,7 @@ export function beginAttempt(input: {
   let subject: ReturnType<typeof describeCall> = null
   const id = `${input.ctx.correlationId}:${started.toString(36)}`
 
-  let peek = ''
+  let peek = '', tail = '', total = 0
   let refusedReason: string | null = null
   let recorded = false
 
@@ -93,6 +95,9 @@ export function beginAttempt(input: {
   const originalWrite = input.res.write.bind(input.res)
   const originalEnd = input.res.end.bind(input.res)
   const keep = (chunk: unknown): void => {
+    const text = typeof chunk === 'string' ? chunk : ArrayBuffer.isView(chunk) ? Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString('utf8') : ''
+    total += text.length
+    tail = (tail + text).slice(-TAIL_BYTES)
     if (peek.length >= PEEK_BYTES) return
     if (typeof chunk === 'string') peek += chunk
     // ANY byte view, not `Buffer.isBuffer`. The MCP SDK writes a plain
@@ -142,15 +147,9 @@ export function beginAttempt(input: {
   }
 
   input.res.on('finish', () => {
-    let parsed: { error?: { code?: number }; result?: { isError?: boolean } } | null = null
-    try {
-      parsed = peek ? (JSON.parse(peek) as typeof parsed) : null
-    } catch {
-      // A body that does not parse is not a lie about the outcome — it is a
-      // stream, or a peek cut mid-object. The status still classifies it, and
-      // `unknown` is the honest answer for a 200 nobody could read.
-      parsed = null
-    }
+    // A body that did not fit is read from its two ends; one that still reads as no JSON-RPC response (a stream)
+    // stays `unknown` — the honest answer for a 200 nobody could read.
+    const parsed = peek ? bodyFromEnds(peek, tail, total <= PEEK_BYTES) : null
     write(classifyToolOutcome({ status: input.res.statusCode, body: parsed }))
   })
 

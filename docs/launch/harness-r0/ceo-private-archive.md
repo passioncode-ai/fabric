@@ -705,3 +705,26 @@ is count 84 (both ship in 0.3.5); migration 95 redefines `ceo_private_archive_ca
 (`apps/desktop/test/ceo-private-archive-codec.test.mjs`). `node apps/desktop/test/run-ceo-private-archive-db.mjs`
 exit 0 on 2026-10-12 against the 84-migration chain (6 groups on an owned cluster; the running app NOT_RUN, N1).
 Found by the 0.3.5 verification, iteration 1 (DO-16, DA-8).
+
+## Schema-85 to schema-89 compatibility qualification — 2026-10-14
+
+The five migrations 0.3.6 adds after 0.3.5's 84 — `20261011000100_project_board_thread_aggregates.sql` (count 85),
+`20261012000103_project_board_lifecycle.sql` (86), `20261012000104_project_board_responders.sql` (87),
+`20261013000107_project_board_w2_fixes.sql` (88) and `20261013000108_project_board_operator_reads.sql` (89) — touch none
+of the tables the private archive reads or writes: a search of the five files for `ceo_conversations`, `ceo_messages`,
+`ceo_private_contents`, `ceo_operations`, `ceo_pending_requests` and `ceo_private_import_receipts` finds no match.
+What they add — the project board's tables, `board_requests.generation` and `attempt_id`, journal event types and one
+partial index on the journal — is not part of `CeoPrivateArchive@1`, which carries the estate archive's manifest
+(digest and counts), conversations, messages and operations; the board's history travels in the ordinary estate
+archive (`board.json`, CO-212), not in this one. Migrations 103, 104, 107 and 108 each redefine
+`ceo_private_archive_canonical` with their own count added, and the function's body is otherwise unchanged from
+migration 95's (compared with the accepted-count list masked; the SQL import now accepts 66–89). Migration 100 does
+not redefine it, so a database at exactly 85 would refuse its own archive; no release ships 85 alone (0.3.5 is 84,
+0.3.6 is 89). `PRIVATE_ARCHIVE_LIMITS.sourceSchemas` in `apps/desktop/src/main/ceoPrivateArchive.ts` reads 66–89 and
+`schemaContract.json` 89; the next unqualified schema 90 refuses before digest admission
+(`node --experimental-strip-types apps/desktop/test/ceo-private-archive-codec.test.mjs` exit 0 on 2026-10-14: it
+accepts 85–89 and refuses the contract's maximum plus one). `FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node
+apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-14 against the 89-migration chain ("full migration
+chain applied, schema_version 89"; export, import, receipts and restore on an owned cluster, the export taking the
+ordinary archive with its board history); the running app NOT_RUN (N1). Found by the 0.3.6 release review,
+iteration 1 (DO-9).

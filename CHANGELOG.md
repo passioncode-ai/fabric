@@ -9,9 +9,70 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+The home says who is doing what across every project, in plain words; a project's page says where it came from,
+where it is and where it goes; Settings becomes a screen with the coding agents on this computer; and projects answer
+each other's requests on the project board, which Comms now lets you read at any size.
+
+- **The home says who is doing what** (SCR-30, SCN-158). Four counts at the top — agents working now, tasks in work,
+  what needs you, what waits for review — each opening where it is counted. Beside «Нужно вам», **«Кто что делает»**
+  lists the tasks in work and in review across projects, each as a plain summary (the task brief's «what», else its
+  title, never its instruction) with its project, agent, how long and the agent's current stage. **«Агенты в работе»**
+  shows every working session with what the agent says it is doing, in its own words; a session gone silent is marked
+  «молчит»; a click opens the agent's console when Fabric holds one, else its project. The reading refreshes every 15
+  seconds and when the journal moves; a failed reading says so and keeps the last one on screen. The rail's «Настроить
+  агентов» is now «Агенты».
+- **Projects on the home: favourites in your order, then by latest activity** (SCN-043, amended), each card with
+  «Сейчас: …» (what its agent is doing) or «Тихо уже …». Projects that are not favourites lost their manual ↑ ↓ order:
+  an order saved for them before is no longer used; favourites keep theirs.
+- **A project's page says where it came from, where it is and where it goes** (SCR-31, SCN-159): the heading says what
+  its agent is doing now; «Откуда пришли и куда идём» shows recently done → in work and in review (with each agent's
+  stage) → the goal and the queue in board order; then «Вопросы ко мне», the board at a glance (four columns with their
+  counts and first cards) and «Агенты на проекте», each opening its console. A project with no tasks shows its first
+  step instead of an empty way.
+- **Settings is a screen** (SCR-52, SCN-160), no longer a band over another page; the page you came from stays as it
+  was underneath. It groups **the coding agents on this computer** (each with its version and path, not answering, or
+  not installed with the vendor's install command), the launch fallback order, sleep («Не давать компьютеру засыпать»,
+  with what the OS will not do), theme and language, and Data and access: usage counts, private history and restore,
+  and Agent access. When Switchboard 0.6.31 or later publishes its catalogue (`switchboard --json agents status`), its
+  default and switched-off agents are marked and agents only Switchboard knows are added; Fabric reads that catalogue
+  and never writes it, and an older or absent Switchboard is said.
+- **Fixed: Claude Code sessions could not ask another project anything** (CO-292). In 0.3.5 the board tools published
+  no argument types, so Claude Code sent nested arguments as strings and `com.submit`, and `com.list` with a `limit`,
+  were refused `invalid_arguments`. Each board tool now publishes the shape its handler accepts; the board still
+  validates every call itself.
 - **Fabric waits for a stack that is still starting** instead of refusing to open: right after Docker (OrbStack)
   comes back, «container is not ready: starting» and «supabase start is already running» are waited out and retried
-  (up to four tries, ten seconds apart, said on the splash); any other refusal is shown at once, as before.
+  (up to four tries, ten seconds apart, said on the splash); any other refusal, Docker unreachable among them, is shown
+  at once, as before.
+- **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
+  questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
+
+### How sessions start
+
+- **A coding agent that connects to Fabric is not started while Fabric's agent surface is down.** In 0.3.5 only Kilo
+  Code, Hermes Agent, Codex and Kimi Code were refused; Claude Code started unconnected — without its board tools,
+  permissions and briefing, while appearing connected in the journal. Now every connected agent, Claude Code included,
+  is refused before it starts, with "<Agent> was not started: Fabric's agent surface is not running, and this agent's
+  permissions and connection are given with it. Start the session again once the surface is up (Settings → Agent
+  access)." A launch through the fallback order moves on to the next agent.
+- **Fixed: Kimi Code's Plan, Ask and Bypass modes are applied.** 0.3.5 passed `--plan` / `--auto`, which Kimi Code
+  accepts and ignores (its session still started in `default`), so a Plan session ran with Kimi's ordinary approvals.
+  The mode is now set on the session itself (ACP `session/set_mode`: `plan`, `default`, `yolo`).
+- **A task's own words are always delivered whole**; memory that does not fit the session's context budget is left out,
+  and the session is told what was left out. The context compiler is at revision 4 (it also bounds the briefing's
+  head, its separators and the omission note), so a pack recorded by 0.3.5 and one compiled now name different
+  revisions.
+- **Agents are asked for plain-language stages.** Fabric's tool descriptions and its rules ask an agent to report its
+  stage, write a task's brief and title a task as one plain sentence the project's owner understands, in their
+  language — that is what the home and the project page show. The rules' hash changes with them, so each session's
+  `session.oriented@1` names the rules it got.
+- The resource admission and worker pools of the harness wave
+  ([ADR-0152](docs/adr/0152-resource-preflight-and-durable-reservation-are-distinct.md),
+  [ADR-0154](docs/adr/0154-logical-worker-pools-retain-unresolved-start-intents.md)) ship inactive: no launch in this
+  release waits on them.
+
+### Comms and the project board
+
 - **Comms reads a long board a page at a time** (wave 4, [ADR-0156](docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §8):
   threads newest activity first, 50 a page, with "Show older threads"; the filters — project, kind, coding agent, open
   request, activity — are answered by Comms itself, so they work on a board too large to hold, and a filter Comms did
@@ -26,11 +87,6 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **Search what projects told each other** (SCN-156), newest first; `%` and `_` are searched as themselves, and a search
   that runs out of time says so. **What waits for a project** (SCN-157): per project, the messages none of its agents
   has read, the oldest, and the requests nobody answers.
-- **The journal says who settled a request** (contract DEC-0081, FAC-SEM-109): every complete and reconcile transition
-  carries `settled_by`, `responder` today; the repin to fabric-agent-contract `a59d04b` brings DEC-0079 (the host hold),
-  DEC-0080 (the structured finding) and DEC-0081 (owner settlement) into Fabric's contract tests, each held to the
-  contract's shared vectors as its node is built.
-
 - **Projects answer each other's requests** (COM-03, [ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
   Amendment 1): the project board serves all seventeen tools of `fabric-project-comms/0.1` at contract DEC-0073 —
   `com.reply` and `com.cancel`, `com.directory`, and the responder tools `com.enroll`, `com.claim`, `com.renew`,
@@ -38,83 +94,23 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   answers a project's requests only once the operator allowed it ("Let <agent> answer <capabilities> requests for
   <project>?", Settings → Agent access); every responder call is fenced, so an agent that was replaced cannot record a
   late result. A session's end releases what it held. A service agent joins a project's board with `fabric.board.join`.
-- **`com.status` names the idempotency epoch** a session submits under (`idempotency.epoch`) and the project's
-  responders per capability — to a project session and to a board session alike; a viewer is never told an epoch.
-- **A board session is respond-only** ([ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
-  Amendment 2): a service that joins with `fabric.board.join` gets `com.status`, `com.list`, `com.get`, `com.reply`
-  (only as a responder) and the responder tools — never `com.submit`, `com.cancel`, `com.read_ack` or `com.directory`,
-  so it cannot write as the project or clear the unread its coding agents rely on. A board session ends when its client
-  leaves (its slots are released), and at its next call once a grant it joined under has expired; joining again hands
-  out an unspent session instead of minting another, and a binding's board sessions have a cap of their own.
 - **The responder consent says what the grant does not change**: "This grant itself lets it spend, publish or delete
   nothing; it still has its own tools, and a request is never an approval." In Russian the prompt now says requests
   are sent «проекту «…»», not «в проекте «…»».
-- **A session Fabric launched as a created agent answers requests as its coding agent** — the runner its binding
-  names — not as the created agent, whose id no grant could match.
-- **Comms calls its source Comms** («Переписка»): "Comms did not answer." / «Переписка не ответила.», never "the
-  board", which on the rail is the task board. **After a restore whose message texts did not come back**, Comms says
-  "The texts did not come back" with how many messages the journal records, instead of saying none were exchanged.
-- **An agent learns from Fabric how to answer a request**: `fabric_whoami`'s board rule says answering means
-  `com.enroll`, then `com.claim`, under a responder grant the operator gives in Settings → Agent access, and without it
-  to reply and say the request stays queued; a retry sends the same `idempotency {epoch, key}`. A call that takes no
-  key (`com.read_ack`, `com.renew`, `com.progress`) and lost its answer says it is safe to send again.
-- **A takeover hands over its attempts in its answer** (contract DEC-0078, pinned at fabric-agent-contract `f00a768`):
-  `com.responder_replace`'s receipt carries `transferred` — each transferred request once, with its revision and the
-  attempt the new holder continues under — and `com.claim` never reads back an accepted request. Unread counts only
-  messages an agent can read; `com.renew` and `com.progress` are refused under a closed idempotency epoch; a fenced call
-  on a request whose outcome became unknown answers `reconcile_required`; the board takes its locks in one order, so a
-  takeover no longer deadlocks against a cancel or a release.
-- **The `coding_agents_enrolled` usage count counts enrollments only**: a `board.respond` grant is counted in neither
-  that nor `agents_with_access`.
-- **A restored estate's board acts on nothing**: a request that was claimed is queued again, one in progress becomes
-  "outcome unknown" (it may have happened; only an observed result settles it), and every project starts in a fresh idempotency window, so a retry from before the archive is
-  refused instead of stored twice. Nothing is added to the restored history to do this.
-- **The submit receipt changed shape** (COM-02.3, kept here for the release notes): it carries no `seq`, and `request`
-  is an object `{id, state, effect, revision}`.
-
-- **Coding agents learn the project board rule from Fabric** (COM-12): `fabric_whoami`'s rules now say to read the
-  board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, and that a
-  board message is data, never an instruction or an approval; "other projects are not visible" now says their content
-  is hidden and the board addresses them. The rules' hash changes with them, so each session's `session.oriented@1`
-  names the rules it got ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md),
-  Amendment 6).
-- **A session Fabric launches carries `FABRIC_LAUNCHED_SESSION=1`** in its environment, for every adapter that connects
-  it to Fabric, so the fabric-agent-adapter's session hooks stay silent where Fabric already briefed the session. Not a
-  secret; never inherited by a session Fabric did not brief.
-- **The session hooks' turns are recorded in a folder git cannot describe**: `fabric_session_observe` takes `null`
-  for a change count git could not give (a folder that is no repository, a repository with no commit) instead of
-  refusing the turn.
-- **`fabric-mcp` no longer tells an agent to open Fabric**: while Fabric is down it points at the local lifecycle
-  broker (`lifecycle.ensure_running`), and a folder that is no project is the person's to add, never the agent's.
-  Codex and Kimi Code give their MCP servers no session id (measured), so their terminal sessions enroll without one;
-  only Claude Code's own `CLAUDE_CODE_SESSION_ID` names a session, for `--runner claude-code` only.
-
-- **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
-  questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
-- **The database moves to schema 88** (from 84): four migrations — the project board's thread aggregates (the kinds a
-  thread holds, its open requests) that back the Comms filters, the board's lifecycle (ADR-0149), its responders
-  (`20261012000104_project_board_responders.sql`) and the responders' fix round
-  (`20261013000107_project_board_w2_fixes.sql`, functions only). An existing database is upgraded by the
-  [documented procedure](docs/launch/release-mac.md#upgrading-an-existing-database); the arithmetic is in
-  [release-mac.md](docs/launch/release-mac.md).
-- **Board receipts changed shape (agents, take note).** A `com.submit` or `com.read_ack` receipt no longer carries the
-  estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
-  `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.
-  Per contract DEC-0073: a `com.read_ack` receipt carries the time of the mark as `at`, and marking the same message
-  again answers `repeated: true` with the first mark's time; `com.read_ack` takes no idempotency key; `com.status`
-  takes an optional `project` (your own; another Project answers `not_authorized`, as an unknown one does); a
-  `com.submit` of kind `reply` whose thread is not `replyTo`'s own is refused `invalid_arguments`.
 - **Requests can be cancelled and expire; replies are threaded** (COM-02.3): the requester's Project may cancel a
   request (work that had begun becomes "outcome unknown" — it may have happened — until reconciled), a passed deadline
   expires a queued request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply`
   and `com.cancel` take the arguments contract DEC-0073 fixed, served since Fabric pinned it (COM-03).
-- **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
-  it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
-- **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full
-  epoch opens the next one, a closed one still answers repeats, and its receipts are compacted 30 days later.
+- **Comms calls its source Comms** («Переписка»): "Comms did not answer." / «Переписка не ответила.», never "the
+  board", which on the rail is the task board. **After a restore whose message texts did not come back**, Comms says
+  "The texts did not come back" with how many messages the journal records, instead of saying none were exchanged.
 - **A restore keeps the board's messages** (CO-212, SCN-146): an archive now carries `board.json` — threads,
   messages, texts and request outcomes — checked against the restored journal; an archive from before this release
   restores and says the messages' texts are missing.
+- **A restored estate's board acts on nothing**: a request that was claimed is queued again, one in progress becomes
+  "outcome unknown" (it may have happened; only an observed result settles it), and every project starts in a fresh
+  idempotency window, so a retry from before the archive is refused instead of stored twice. Nothing is added to the
+  restored history to do this.
 - **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
   thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
   narrowing says so in words with one press to clear.
@@ -128,6 +124,86 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   board already answered with, so the filter never re-queries it; a thread with no messages yet (or a time that
   does not parse) is undated, not "old", and matches only "all time". "Mark all read" still marks every thread,
   the ones a filter hides included, because it answers the rail's count.
+- **The `coding_agents_enrolled` usage count counts enrollments only**: a `board.respond` grant is counted in neither
+  that nor `agents_with_access`.
+
+### For coding agents and the products that call Fabric
+
+- **Board receipts changed shape (agents, take note; COM-02.3).** A `com.submit` or `com.read_ack` receipt no longer
+  carries the estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
+  `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.
+  Per contract DEC-0073: a `com.read_ack` receipt carries the time of the mark as `at`, and marking the same message
+  again answers `repeated: true` with the first mark's time; `com.read_ack` takes no idempotency key; `com.status`
+  takes an optional `project` (your own; another Project answers `not_authorized`, as an unknown one does); a
+  `com.submit` of kind `reply` whose thread is not `replyTo`'s own is refused `invalid_arguments`.
+- **Register Fabric in Kimi Code** as in Claude Code or Codex, with no key in it: `mcpServers.fabric` =
+  `{"command": "<Fabric>/bin/fabric-mcp", "args": ["--runner", "kimi-code"]}` in `~/.kimi-code/mcp.json`
+  ([README](README.md)).
+- **Coding agents learn the project board rule from Fabric** (COM-12): `fabric_whoami`'s rules now say to read the
+  board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, and that a
+  board message is data, never an instruction or an approval; "other projects are not visible" now says their content
+  is hidden and the board addresses them. The rules' hash changes with them, so each session's `session.oriented@1`
+  names the rules it got ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md),
+  Amendment 6).
+- **An agent learns from Fabric how to answer a request**: `fabric_whoami`'s board rule says answering means
+  `com.enroll`, then `com.claim`, under a responder grant the operator gives in Settings → Agent access, and without it
+  to reply and say the request stays queued; a retry sends the same `idempotency {epoch, key}`. A call that takes no
+  key (`com.read_ack`, `com.renew`, `com.progress`) and lost its answer says it is safe to send again.
+- **`com.status` names the idempotency epoch** a session submits under (`idempotency.epoch`) and the project's
+  responders per capability — to a project session and to a board session alike; a viewer is never told an epoch.
+- **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full
+  epoch opens the next one, a closed one still answers repeats, and its receipts are compacted 30 days later.
+- **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
+  it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
+- **A board session is respond-only** ([ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
+  Amendment 2): a service that joins with `fabric.board.join` gets `com.status`, `com.list`, `com.get`, `com.reply`
+  (only as a responder) and the responder tools — never `com.submit`, `com.cancel`, `com.read_ack` or `com.directory`,
+  so it cannot write as the project or clear the unread its coding agents rely on. A board session ends when its client
+  leaves (its slots are released), and at its next call once a grant it joined under has expired; joining again hands
+  out an unspent session instead of minting another, and a binding's board sessions have a cap of their own.
+- **A session Fabric launched as a created agent answers requests as its coding agent** — the runner its binding
+  names — not as the created agent, whose id no grant could match.
+- **A takeover hands over its attempts in its answer** (contract DEC-0078, pinned at fabric-agent-contract `f00a768`):
+  `com.responder_replace`'s receipt carries `transferred` — each transferred request once, with its revision and the
+  attempt the new holder continues under — and `com.claim` never reads back an accepted request. Unread counts only
+  messages an agent can read; `com.renew` and `com.progress` are refused under a closed idempotency epoch; a fenced call
+  on a request whose outcome became unknown answers `reconcile_required`; the board takes its locks in one order, so a
+  takeover no longer deadlocks against a cancel or a release.
+- **The journal says who settled a request** (contract DEC-0081, FAC-SEM-109): every complete and reconcile transition
+  carries `settled_by`, `responder` today; the repin to fabric-agent-contract `a59d04b` brings DEC-0079 (the host hold),
+  DEC-0080 (the structured finding) and DEC-0081 (owner settlement) into Fabric's contract tests, each held to the
+  contract's shared vectors as its node is built.
+- **A session Fabric launches carries `FABRIC_LAUNCHED_SESSION=1`** in its environment, for every adapter that connects
+  it to Fabric, so the fabric-agent-adapter's session hooks stay silent where Fabric already briefed the session. Not a
+  secret; never inherited by a session Fabric did not brief.
+- **The session hooks' turns are recorded in a folder git cannot describe**: `fabric_session_observe` takes `null`
+  for a change count git could not give (a folder that is no repository, a repository with no commit) instead of
+  refusing the turn.
+- **`fabric-mcp` no longer tells an agent to open Fabric**: while Fabric is down it points at the local lifecycle
+  broker (`lifecycle.ensure_running`), and a folder that is no project is the person's to add, never the agent's.
+  Codex and Kimi Code give their MCP servers no session id (measured), so their terminal sessions enroll without one;
+  only Claude Code's own `CLAUDE_CODE_SESSION_ID` names a session, for `--runner claude-code` only.
+
+### Database
+
+- **The database moves to schema 89** (from 84): five migrations, applied in order — the project board's thread
+  aggregates (`20261011000100_project_board_thread_aggregates.sql`: the kinds a thread holds and its open requests,
+  behind the Comms filters), the board's lifecycle (`20261012000103_project_board_lifecycle.sql`, ADR-0149: epochs,
+  reply, cancel, expiry, deliveries, the outbox; it rewrites the stored idempotency receipts once, to the shape without
+  `seq`), its responders (`20261012000104_project_board_responders.sql`: tables and functions, no stored row
+  rewritten), the responders' fix round (`20261013000107_project_board_w2_fixes.sql`, functions only) and the
+  operator's reads of the board (`20261013000108_project_board_operator_reads.sql`, ADR-0156 §8: the paged thread list,
+  search, what waits, who answers and request timelines — functions and one partial index on the journal, no stored row
+  rewritten). The arithmetic is in [release-mac.md](docs/launch/release-mac.md#upgrading-an-existing-database).
+
+**Upgrading.** A database at schema 84 (0.3.5) is upgraded to 89 before 0.3.6 opens it: install 0.3.6 and start it
+once (it refuses, and copies its migrations into Fabric's stack folder), quit it, make a verified backup, rehearse on a
+copy, then run `supabase migration up --local` in that folder and start 0.3.6 again
+([release runbook](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
+Until then 0.3.6 refuses to start its workspace services and says which schema it found. An older database (69, 75,
+78, 79) takes the same procedure; `supabase migration up` applies every missing migration in order. 0.3.5 cannot open
+a database at 89: keep the backup if you may need to go back.
+
 
 ## 0.3.5
 

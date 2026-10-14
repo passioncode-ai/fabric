@@ -122,3 +122,23 @@ export function describeCall(body: unknown): CallSubject | null {
     rpcId: b.id === undefined || b.id === null ? null : String(b.id)
   }
 }
+
+/**
+ * The response read from what a bounded tap kept: the whole body when it fit, else its head and its tail (0.3.6
+ * release check, 2026-10-14: `fabric_whoami`'s answer outgrew the 4 KiB head and every call traced `unknown`). A
+ * JSON-RPC error carries its code at the head; a tool result carries `isError` at its tail and the SDK's
+ * `MCP error -32602:` at the head of its first text — so the two ends are enough to classify, and the tap never
+ * grows with the size of the answers it watches. Null when neither end reads as a JSON-RPC response.
+ */
+export function bodyFromEnds(head: string, tail: string, complete: boolean): Parameters<typeof classifyToolOutcome>[0]['body'] {
+  if (complete) {
+    try { return JSON.parse(head) } catch { return null }
+  }
+  const err = /^\s*\{[^{]*"error"\s*:\s*\{\s*"code"\s*:\s*(-?\d+)/.exec(head)
+  if (err) return { error: { code: Number(err[1]) } }
+  if (!/^\s*\{[^{]*"result"\s*:/.test(head)) return null
+  const isError = /"isError"\s*:\s*true/.test(tail)
+  const text = /"text"\s*:\s*"(MCP error -?\d+:)/.exec(head)
+  return { result: { isError, ...(text ? { content: [{ type: 'text', text: text[1] }] } : {}) } }
+}
+
