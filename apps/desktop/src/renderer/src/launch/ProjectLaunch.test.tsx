@@ -30,11 +30,13 @@ const homeView = {
 }
 
 function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
-  goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[] } = {}) {
-  const query = vi.fn(async () => board)
+  goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[],
+  agentsList, boardQuery }: { board?: ReturnType<typeof boardWith>; tasks?: TaskRow[] | null; goals?: unknown[]; agents?: unknown[];
+  agentsList?: () => Promise<unknown>; boardQuery?: () => Promise<unknown> } = {}) {
+  const query = vi.fn(boardQuery ?? (async () => board))
   const openSession = vi.fn(async () => {})
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
-    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, agents: { list: vi.fn(async () => agents) }, work: { home: vi.fn(async () => homeView) },
+    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, agents: { list: vi.fn(agentsList ?? (async () => agents)) }, work: { home: vi.fn(async () => homeView) },
       windows: { openSession } }
   }))
   const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
@@ -106,5 +108,26 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     expect(screen.getByText(en['launch.project.agentsHere'])).toBeTruthy()
     fireEvent.click(screen.getByTitle(en['launch.home.agents.openConsole']))
     expect(openSession).toHaveBeenCalledWith('s1')
+  })
+})
+
+describe('a failure on the project page is our sentence, the machine\'s words apart (UX-5)', () => {
+  it('a console that does not open, and a team that cannot be read', async () => {
+    const { openSession } = mount({ agentsList: async () => { throw new Error('permission denied for table agents') } })
+    const team = await screen.findByText(en['launch.project.teamUnreadable'])
+    expect(team.textContent).not.toContain('permission denied')
+    expect(screen.getByText('permission denied for table agents')).toBeTruthy()
+    openSession.mockRejectedValueOnce(new Error('no window for session s1'))
+    fireEvent.click(await screen.findByTitle(en['launch.home.agents.openConsole']))
+    const consoleSaid = await screen.findByText(en['launch.home.agents.consoleFailed'])
+    expect(consoleSaid.textContent).not.toContain('no window')
+    expect(screen.getByText('no window for session s1')).toBeTruthy()
+  })
+
+  it('a board that cannot be read', async () => {
+    mount({ boardQuery: async () => { throw new Error('board_query: function does not exist') } })
+    const said = await screen.findByText(en['needsYou.unreadable'])
+    expect(said.textContent).not.toContain('function does not exist')
+    expect(screen.getByText('board_query: function does not exist')).toBeTruthy()
   })
 })

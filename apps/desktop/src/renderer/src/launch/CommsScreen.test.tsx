@@ -205,6 +205,28 @@ describe('the bounded page', () => {
     expect(screen.queryByRole('button', { name: en['launch.comms.more'] })).toBeNull()
   })
 
+  it('an older page that fails says so beside the button, keeps "Show older threads", and a retry reads the same cursor (UX-7)', async () => {
+    const rows = many(70)
+    let fail = true
+    const comms = board({ threads: rows })
+    const page = comms.threadPage.getMockImplementation()!
+    comms.threadPage.mockImplementation(async (filter, before, limit) => {
+      if (before && fail) return { ok: false, error: { code: 'unavailable', message: 'statement timeout' } } as never
+      return page(filter, before, limit)
+    })
+    show()
+    await screen.findByText('thread 0')
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.more'] }))
+    await screen.findByText(en['launch.comms.moreFailed'])
+    expect(screen.getByText('statement timeout')).toBeTruthy()
+    expect(titles()).toHaveLength(50)
+    fail = false
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.more'] }))
+    await screen.findByText('thread 69')
+    expect(comms.threadPage).toHaveBeenLastCalledWith({}, { lastSeq: 951, id: rows[49].id }, 50)
+    expect(screen.queryByText(en['launch.comms.moreFailed'])).toBeNull()
+  })
+
   it('holds at most 200 threads and then says how to reach older ones instead of offering more', async () => {
     board({ threads: many(260) })
     show()
@@ -253,7 +275,9 @@ describe('the filters are reads the board answers', () => {
     show()
     await screen.findByText('Cutover plan')
     const select = screen.getByLabelText(en['launch.comms.filters.provider']) as HTMLSelectElement
-    expect(Array.from(select.options).map((o) => o.textContent)).toEqual([en['launch.comms.filters.allProviders'], 'claude-code'])
+    // Named as the runner registry names it (runnerLabel), never by its raw id; the id stays the filter's value (UX-6).
+    expect(Array.from(select.options).map((o) => o.textContent)).toEqual([en['launch.comms.filters.allProviders'], 'Claude Code'])
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(['', 'claude-code'])
     fireEvent.change(select, { target: { value: 'claude-code' } })
     await waitFor(() => expect(screen.queryByText('Retention digest')).toBeNull())
     expect(comms.threadPage).toHaveBeenCalledWith({ provider: 'claude-code' }, null, 50)
@@ -585,9 +609,10 @@ describe('who answers a request (SCN-147 step 1)', () => {
     expect(responderText()).not.toContain('No agent answers')
   })
 
-  it('active names responder #n, the agent and since when', async () => {
+  it('active names responder #n, the agent by its name (never its raw runner id) and since when (UX-6)', async () => {
     await openRequest('claimed', { responders: async () => ({ ok: true, responders: [slot()] }) })
-    await waitFor(() => expect(responderText()).toMatch(/Responder #2 · claude-code · since /))
+    await waitFor(() => expect(responderText()).toMatch(/Responder #2 · Claude Code · since /))
+    expect(responderText()).not.toContain('claude-code')
   })
 
   it('stale says the lease lapsed and that this says nothing about whether it worked — never absent', async () => {
@@ -682,6 +707,13 @@ describe('artifacts as the sender stated them (SCN-147 step 5)', () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(HASH))
     await screen.findByText(en['launch.comms.artifact.copied'], { exact: false })
   })
+  it('a Copy the clipboard refuses says it did not copy — never a silent nothing (UX-7)', async () => {
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: vi.fn(async () => { throw new Error('denied') }) } })
+    await openRequest('queued', {}, { artifacts: [{ id: 'https://example.org/a.csv', contentHash: HASH }] })
+    fireEvent.click(await screen.findByRole('button', { name: en['launch.comms.artifact.copy'] }))
+    await screen.findByText(en['launch.comms.artifact.copyFailed'], { exact: false })
+    expect(screen.queryByText(en['launch.comms.artifact.copied'], { exact: false })).toBeNull()
+  })
 })
 
 describe('a request\'s timeline and related threads (SCN-147 step 7)', () => {
@@ -742,6 +774,9 @@ describe('history search (SCN-156)', () => {
     search('anything')
     await screen.findByText(en['launch.comms.search.unavailable'])
     expect(screen.queryByText(en['launch.comms.search.none'])).toBeNull()
+    // The machine's words stand apart from the sentence, on their own line (UX-5).
+    expect(screen.getByText(en['launch.comms.search.unavailable']).textContent).toBe(en['launch.comms.search.unavailable'])
+    expect(screen.getByText('down')).toBeTruthy()
   })
   it('a search that stopped early says so, with what it found; more results read on from the cursor', async () => {
     const searchFn = vi.fn(async (_q: string, before: number | null) => (before === null
@@ -755,6 +790,31 @@ describe('history search (SCN-156)', () => {
     await screen.findByText(en['launch.comms.search.stoppedEarly'])
     expect(searchFn).toHaveBeenLastCalledWith('retention', 7)
     expect(screen.getByRole('button', { name: 'an older retention note' })).toBeTruthy()
+  })
+  it('a page of more results that fails keeps what was found AND "More results", says Comms did not answer, and a retry reads on from the same cursor (UX-7, ER-8)', async () => {
+    let fail = true
+    const searchFn = vi.fn(async (_q: string, before: number | null) => {
+      if (before === null) return { ok: true, hits: [HIT], more: true, stoppedEarly: false, before: 7 }
+      if (fail) return { ok: false, error: { code: 'unavailable', message: 'connection reset by peer' } }
+      return { ok: true, hits: [{ ...HIT, message: 'm-2', seq: 3, snippet: 'an older retention note' }], more: false, stoppedEarly: false, before: null }
+    })
+    board({ threads: [THREAD], over: { search: searchFn } })
+    show()
+    await screen.findByText('Cutover plan')
+    search('retention')
+    fireEvent.click(await screen.findByRole('button', { name: en['launch.comms.search.more'] }))
+    const said = await screen.findByText(en['launch.comms.search.moreFailed'])
+    // Our sentence, with the machine's words apart on their own line (UX-5).
+    expect(said.textContent).toBe(en['launch.comms.search.moreFailed'])
+    expect(screen.getByText('connection reset by peer')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Please compute retention.' })).toBeTruthy()
+    const more = screen.getByRole('button', { name: en['launch.comms.search.more'] })
+    expect(screen.queryByText(en['launch.comms.search.none'])).toBeNull()
+    fail = false
+    fireEvent.click(more)
+    await screen.findByRole('button', { name: 'an older retention note' })
+    expect(searchFn).toHaveBeenLastCalledWith('retention', 7)
+    expect(screen.queryByText(en['launch.comms.search.moreFailed'])).toBeNull()
   })
   it('fewer than two characters is not searched', async () => {
     const comms = board({ threads: [THREAD] })
@@ -777,6 +837,17 @@ describe('what waits for a project (SCN-157)', () => {
     fireEvent.click(row)
     await waitFor(() => expect(comms.threadPage).toHaveBeenCalledWith({ project: 'p2' }, null, 50))
     expect((screen.getByLabelText(en['launch.comms.filters.project']) as HTMLSelectElement).value).toBe('p2')
+  })
+  it('a board that holds more than the 100 projects it answered says so — the list is never read as the whole (ER-9)', async () => {
+    const rows = Array.from({ length: 100 }, (_, i) => ({ ...ROW, project: `px-${i}` }))
+    board({ threads: [THREAD], over: { pending: async () => ({ ok: true, more: true, projects: rows }) } })
+    show()
+    await screen.findByText(en['launch.comms.pending.capped'].replace('{count}', '100'))
+    cleanup()
+    board({ threads: [THREAD], over: { pending: async () => ({ ok: true, more: false, projects: [ROW] }) } })
+    show()
+    await screen.findByRole('button', { name: /^Beacon: unread 3/ })
+    expect(screen.queryByText(/more projects/i)).toBeNull()
   })
   it('says nothing waits when nothing does, and that it could not be read when it could not — the list is unaffected', async () => {
     board({ threads: [THREAD] })

@@ -22,6 +22,7 @@ import {
   type WorkspaceSaid
 } from '../../shared/workspaceAct.ts'
 import { ProfileSection } from './ProfileSection'
+import { FailureNote, MachineDetail } from './OperatorError'
 import { describeEvent, useLocale, useT } from './i18n'
 import { en, type StringKey } from './i18n/en'
 import { declaredCoverage, restorability } from '../../shared/storageContract.ts'
@@ -127,7 +128,8 @@ export function EstateHome({
   const [pins, setPins] = useState<string[]>([])
   /** A pin that did not reach the disk. `toggle` used to return the value it
    *  HOPED had been written, so a full disk lost the pins silently (S14). */
-  const [pinProblem, setPinProblem] = useState<string | null>(null)
+  /** A pin or order that did not save: our sentence, and the machine's reason apart from it (UX-5). */
+  const [pinProblem, setPinProblem] = useState<{ said: string; detail: string | null } | null>(null)
   /** The project the operator tried to pin as the sixth. Held until they say
    *  which to release — SCN-043 step 2 — because a silent drop undoes the
    *  decision they made with a click (UX28-10). */
@@ -212,7 +214,7 @@ export function EstateHome({
       .move(p.id, dir, [])
       .then((r) => {
         setPins(r.pins)
-        setPinProblem(r.saved ? null : t('launch.home.projects.moveFailed', { reason: r.reason ?? t('estate.pinNotSaved') }))
+        setPinProblem(r.saved ? null : { said: t('launch.home.projects.moveFailed'), detail: r.reason ?? null })
       })
   }
 
@@ -252,7 +254,7 @@ export function EstateHome({
                 onClick={() =>
                   void window.fabric.favourites.toggle(p.id).then((r) => {
                     setPins(r.pins)
-                    setPinProblem(r.saved ? null : (r.reason ?? t('estate.pinNotSaved')))
+                    setPinProblem(r.saved ? null : { said: t(r.reason ? 'estate.pinFailed' : 'estate.pinNotSaved'), detail: r.reason ?? null })
                     // AT THE LIMIT IS NEITHER a failure nor a success: nothing was
                     // written and nothing was dropped. The operator says which to
                     // release, and until they do the set on screen is the set on disk.
@@ -393,7 +395,8 @@ export function EstateHome({
       )}
       {pinProblem && (
         <Banner tone="warn" actions={<Button tone="ghost" onClick={() => setPinProblem(null)}>{t('common.dismiss')}</Button>}>
-          {pinProblem}
+          {pinProblem.said}
+          <MachineDetail text={pinProblem.detail} />
         </Banner>
       )}
 
@@ -424,7 +427,7 @@ export function EstateHome({
                   setPinFull(null)
                   void window.fabric.favourites.replace(p.id, add.id).then((r) => {
                     setPins(r.pins)
-                    setPinProblem(r.saved ? null : (r.reason ?? t('estate.pinNotSaved')))
+                    setPinProblem(r.saved ? null : { said: t(r.reason ? 'estate.pinFailed' : 'estate.pinNotSaved'), detail: r.reason ?? null })
                   })
                 }}
               >
@@ -493,7 +496,7 @@ export function EstateHome({
         </section>
       </div>
 
-      {consoleProblem && <p className="lp-meta" role="alert">{t('launch.home.agents.consoleFailed', { reason: consoleProblem })}</p>}
+      {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />

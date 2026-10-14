@@ -37,6 +37,17 @@ export function MachineDetail({ text }: { text: string | null | undefined }): Re
   return text ? <p className="muted mono error-detail">{text}</p> : null
 }
 
+/** A failed read or act on a launch screen: our sentence in the operator's language, the machine's words on their own
+ *  line beneath it (2026-10-14 release review UX-5: «Неизвестно, кто работает: the claimed tasks could not be read…»). */
+export function FailureNote({ said, detail, role = 'alert' }: { said: string; detail: string | null | undefined; role?: 'alert' | 'status' }): React.JSX.Element {
+  return (
+    <div className="lp-failure" role={role}>
+      <p className="lp-meta">{said}</p>
+      <MachineDetail text={detail} />
+    </div>
+  )
+}
+
 export function OperatorError({ raw }: { raw: string }): React.JSX.Element {
   const t = useT()
   const message = humaniseError(raw)

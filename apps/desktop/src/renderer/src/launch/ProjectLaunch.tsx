@@ -15,6 +15,7 @@ import { ProjectStrip } from './FabricStrip'
 import { HomeAgents, useHome } from './HomeWork'
 import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
 import { projectPath } from '../../../shared/projectPath'
+import { FailureNote } from '../OperatorError'
 
 export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -88,7 +89,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
           <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.plan')}</button>
         </div>
       </header>
-      {consoleProblem && <p className="lp-meta" role="alert">{t('launch.home.agents.consoleFailed', { reason: consoleProblem })}</p>}
+      {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lp-project-grid">
         <div>
           {tasks !== null && tasks.length === 0 ? (
@@ -108,7 +109,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
               <h3 id="project-board-title">{t('launch.project.questions')}</h3>
               {cut && <span className="lp-pill">{cut.total}</span>}
             </div>
-            {boardProblem && <p className="lp-meta" role="alert">{t('needsYou.unreadable', { reason: boardProblem })}</p>}
+            {boardProblem && <FailureNote said={t('needsYou.unreadable')} detail={boardProblem} />}
             {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
             {cut === null && !boardProblem && <p className="lp-meta">{t('estate.reading')}</p>}
             {cut && cut.total === 0 && unread.length === 0 && (
@@ -147,7 +148,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
               <h3 id="project-team-title">{t('launch.project.team')}</h3>
               {team && <span className="lp-pill">{team.length}</span>}
             </div>
-            {teamProblem && <p className="lp-meta" role="alert">{t('launch.project.teamUnreadable', { reason: teamProblem })}</p>}
+            {teamProblem && <FailureNote said={t('launch.project.teamUnreadable')} detail={teamProblem} />}
             {team === null && !teamProblem && <p className="lp-meta">{t('estate.reading')}</p>}
             {team?.length === 0 && <p>{t('launch.project.noTeam')}</p>}
             {team?.map((a) => (

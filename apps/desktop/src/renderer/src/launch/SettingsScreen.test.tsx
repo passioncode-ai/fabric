@@ -52,6 +52,17 @@ describe('the agents on this computer', () => {
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('PATH unreadable'))
     expect(screen.getByText(en['settings.agents.sourceNone'])).toBeTruthy()
   })
+
+  it('a failed read is our sentence; the machine\'s words stand on their own line beneath it (UX-5)', async () => {
+    stub(async () => { throw new Error('spawn switchboard ENOENT') }, async () => { throw new Error('PATH unreadable') })
+    show(<AgentCatalogPanel />)
+    await waitFor(() => expect(screen.getByText(en['settings.agents.unreadable'])).toBeTruthy())
+    expect(screen.getByText(en['settings.agents.unreadable']).textContent).not.toContain('PATH unreadable')
+    expect(screen.getByText('PATH unreadable')).toBeTruthy()
+    const source = screen.getByText(en['settings.agents.sourceFailed'])
+    expect(source.textContent).not.toContain('ENOENT')
+    expect(screen.getByText('spawn switchboard ENOENT')).toBeTruthy()
+  })
 })
 
 describe('the settings screen', () => {

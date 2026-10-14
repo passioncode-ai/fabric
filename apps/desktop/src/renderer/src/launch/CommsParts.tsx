@@ -23,6 +23,8 @@ import type {
 import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { en, type StringKey } from '../i18n/en'
+import { FailureNote } from '../OperatorError'
+import { runnerLabel } from '../runnerLabel'
 
 /** A machine word the contract owns, in the operator's language where this build knows it, raw where it does not. */
 export const contractWord = (t: Translate, group: string, value: string): string => {
@@ -57,7 +59,8 @@ export function ResponderLine({ request, state, nameOf }: { request: CommsReques
     const slot = slotOf(state.responders, request)
     if (slot?.held) text = t('launch.comms.responder.paused')
     else if (slot?.state === 'active') {
-      text = t('launch.comms.responder.active', { n: slot.generation, agent: slot.agent ?? slot.label ?? '—', since: slot.since ? when(locale, slot.since) : '—' })
+      // The coding agent by its name (runnerLabel), never its raw runner id (2026-10-14 review UX-6).
+      text = t('launch.comms.responder.active', { n: slot.generation, agent: slot.agent ? runnerLabel(slot.agent, t) : (slot.label ?? '—'), since: slot.since ? when(locale, slot.since) : '—' })
     } else if (slot?.state === 'stale') {
       text = t('launch.comms.responder.stale', { n: slot.generation, since: slot.leaseExpiresAt ? ago(t, slot.leaseExpiresAt) : '—' })
     } else if (!slot || slot.state === 'absent') {
@@ -145,7 +148,8 @@ export function ArtifactList({ artifacts }: { artifacts: CommsArtifact[] }): Rea
       await navigator.clipboard.writeText(a.contentHash)
       setNote({ id: a.id, text: t('launch.comms.artifact.copied') })
     } catch {
-      setNote(null)
+      // The clipboard refused: said, never a silent nothing (2026-10-14 review UX-7).
+      setNote({ id: a.id, text: t('launch.comms.artifact.copyFailed') })
     }
   }
   const open = async (a: CommsArtifact): Promise<void> => {
@@ -258,8 +262,10 @@ export function RelatedThreads({ threadId, onOpen }: { threadId: string; onOpen:
 type SearchState =
   | { kind: 'idle' }
   | { kind: 'searching'; query: string }
-  | { kind: 'results'; query: string; hits: CommsSearchHit[]; more: boolean; stoppedEarly: boolean; before: number | null; busy: boolean }
-  | { kind: 'unavailable'; query: string }
+  /** `failed` holds the machine's words when the last page of more results did not come: `more` and `before` stay, so
+   *  "More results" asks the same page again (2026-10-14 review UX-7, ER-8). */
+  | { kind: 'results'; query: string; hits: CommsSearchHit[]; more: boolean; stoppedEarly: boolean; before: number | null; busy: boolean; failed: string | null }
+  | { kind: 'unavailable'; query: string; detail: string }
 
 /** "Search messages" (SCN-156): newest first, at most 50 a page; opening a hit opens its thread at that message. */
 export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string; onOpen: (hit: CommsSearchHit) => void }): React.JSX.Element {
@@ -276,11 +282,13 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
       reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
     }
     if (!reply.ok) {
-      // A failed page of more results keeps what was found; a failed first search says Comms did not answer.
-      setState(prior.length > 0 ? { kind: 'results', query: q, hits: prior, more: false, stoppedEarly: false, before: null, busy: false } : { kind: 'unavailable', query: q })
+      // A failed page of more results keeps what was found AND the way to the rest: it is never read as the end of the
+      // results. A failed first search says Comms did not answer — never "no message contains these words".
+      const failed = reply.error.message
+      setState(before !== null ? { kind: 'results', query: q, hits: prior, more: true, stoppedEarly: false, before, busy: false, failed } : { kind: 'unavailable', query: q, detail: failed })
       return
     }
-    setState({ kind: 'results', query: q, hits: [...prior, ...reply.hits], more: reply.more, stoppedEarly: reply.stoppedEarly, before: reply.before, busy: false })
+    setState({ kind: 'results', query: q, hits: [...prior, ...reply.hits], more: reply.more, stoppedEarly: reply.stoppedEarly, before: reply.before, busy: false, failed: null })
   }
   const submit = (e: React.FormEvent): void => {
     e.preventDefault()
@@ -304,7 +312,7 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
       </form>
       {tooShort && <p className="lp-meta" role="status">{t('launch.comms.search.tooShort')}</p>}
       {state.kind === 'searching' && <p className="lp-meta" role="status">{t('launch.comms.search.searching')}</p>}
-      {state.kind === 'unavailable' && <p className="lp-meta" role="status">{t('launch.comms.search.unavailable')}</p>}
+      {state.kind === 'unavailable' && <FailureNote role="status" said={t('launch.comms.search.unavailable')} detail={state.detail} />}
       {state.kind === 'results' && state.hits.length === 0 && !state.stoppedEarly && <p className="lp-meta" role="status">{t('launch.comms.search.none')}</p>}
       {state.kind === 'results' && state.stoppedEarly && <p className="lp-meta" role="status">{t('launch.comms.search.stoppedEarly')}</p>}
       {state.kind === 'results' && state.hits.length > 0 && (
@@ -317,6 +325,7 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
           ))}
         </ul>
       )}
+      {state.kind === 'results' && state.failed !== null && <FailureNote role="status" said={t('launch.comms.search.moreFailed')} detail={state.failed} />}
       {state.kind === 'results' && state.more && (
         <div className="lp-actions">
           <button type="button" className="lp-button" disabled={state.busy}
@@ -328,7 +337,7 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
 }
 
 /** What the pending panel shows: not read yet, the rows with when they were confirmed, or never read. */
-export type PendingState = { kind: 'reading' } | { kind: 'read'; projects: CommsPending[]; stale: boolean } | { kind: 'unavailable' }
+export type PendingState = { kind: 'reading' } | { kind: 'read'; projects: CommsPending[]; more: boolean; stale: boolean } | { kind: 'unavailable' }
 
 /** "Waiting for a project" (SCN-157, COM-05): per project, what was delivered, the board holds and none of its agents
  *  marked read. Collapsed, and said, when nothing waits; opening a row narrows the list to that project. */
@@ -342,6 +351,9 @@ export function PendingPanel({ state, nameOf, onProject, confirmedAt }: { state:
     <section className="lp-comms-pending" aria-label={t('launch.comms.pending.title')}>
       <button type="button" className="lp-button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{t('launch.comms.pending.title')}</button>
       {state.stale && confirmedAt && <p className="lp-meta" role="status">{t('launch.comms.pollFailed', { time: confirmedAt })}</p>}
+      {/* The board answers at most 100 projects and says when it holds more: past that the list is never the whole
+          (2026-10-14 review ER-9). */}
+      {state.more && <p className="lp-meta" role="status">{t('launch.comms.pending.capped', { count: state.projects.length })}</p>}
       {open && (
         <ul>
           {state.projects.map((p) => (

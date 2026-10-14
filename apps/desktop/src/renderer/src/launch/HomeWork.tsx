@@ -9,6 +9,7 @@ import type { HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
 import { useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
+import { FailureNote } from '../OperatorError'
 
 export type HomeReading = { view: HomeView | null; problem: string | null }
 
@@ -95,7 +96,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession }: { reading: HomeRea
           <h3 id="home-work-title">{t('launch.home.work.title')}</h3>
         </div>
       </div>
-      {reading.problem && <p className="lp-meta" role="alert">{t('launch.home.work.unreadable', { reason: reading.problem })}</p>}
+      {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && (
         <div className="lh-lanes">
@@ -150,7 +151,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title
         </h3>
         <button type="button" className="lp-button lh-text-link" onClick={onAll}>{t('launch.home.agents.all')}</button>
       </div>
-      {reading.problem && <p className="lp-meta" role="alert">{t('launch.home.work.unreadable', { reason: reading.problem })}</p>}
+      {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && live.length === 0 && <p className="lp-meta">{t('launch.home.agents.none')}</p>}
       {live.length > 0 && (
