@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-15T16:00:00Z · `—` · agent/release-036-i3-fixes → main · fast-forward
+- run: r-44ae60a75316
+- files: see the branch (the final candidate `29515003` and the release commit on it)
+- conflicts: none
+- summary: Fabric 0.3.6 — iteration 3 closed (30 findings, one blocking: the CHANGELOG's 0.3.5 baseline) and the release commit: version 0.3.6, CHANGELOG `## 0.3.6`, the release gate naming `29515003` as `verifiedCommit` with three iterations of receipts; CO-311…CO-316 carried to 0.3.7.
+
 ### 2026-10-15T09:20:00Z · `940f14d3` · agent/release-036-i2-fixes → main · fast-forward
 - run: r-44ae60a75316
 - files: see the branch (with `339c44e1`, the revision-5 test repair, landed before it)

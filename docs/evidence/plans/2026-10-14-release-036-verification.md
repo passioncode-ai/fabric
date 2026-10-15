@@ -220,7 +220,7 @@ final candidate's own complete gate is recorded in the release commit.
 | V3-29 | PL-6 | CO-304's deadline still reads next release | fixed: re-dated to 0.3.7 |
 | V3-30 | PL-7 | P-18 does not say iteration 2 closed; iteration-2 reports carry the wrong date | fixed: P-18 names iterations 2 and 3; the iteration-2 reports are renamed 2026-10-15 and their receipts follow |
 
-Exit for iteration 3: 30 findings dispositioned; the final candidate is the commit that carries these fixes. Blocking findings open: none.
+Exit for iteration 3: 30 findings dispositioned; the final candidate `295150039e054ef0c56762f57d483f6516aa8307` is `verifiedCommit` (its complete local `ci.sh fast` exit 0, 2026-10-15). Blocking findings open: none.
 
 ## Release close
 
