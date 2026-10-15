@@ -5,6 +5,10 @@ afterEach(() => { vi.useRealTimers() })
 const at = (secondsAgo: number) => new Date(Date.parse('2026-09-29T12:00:00Z') - secondsAgo * 1000).toISOString()
 
 describe('how long ago, in the shortest true unit', () => {
+  it('a time that does not parse is unknown, never NaN (0.3.6 review i3 ER-6)', () => {
+    expect(since('not a time')).toBe('—')
+    expect(since('')).toBe('—')
+  })
   it('counts seconds, minutes, hours, and days from two days on', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-29T12:00:00Z'))
     expect(since(at(30))).toBe('30s')

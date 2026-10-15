@@ -4,7 +4,7 @@
   "iteration": 2,
   "level": "errors",
   "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
-  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-errors.md",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-15-errors.md",
   "reportSha256": "2f15e7a992bc2388ac45105e5871f5b01e5bbb6b29b4677d307646ef0a01ca6e",
   "reviewerRun": "release-036-i2-errors-20261014",
   "status": "closed",

@@ -80,7 +80,9 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
 
   it('shows the recorded goal, the team, and a task row that opens its task', async () => {
     const { onOpenTask, onSection } = mount({ agents: [{ id: 'a1', project_id: 'p1', name: 'Builder', runner_id: 'claude-code' }] })
-    await waitFor(() => expect(screen.getByText('Launch team access')).toBeTruthy())
+    // The goal is said once, in the way's «Next» (0.3.6 review i3 UX-4); no second goal panel beside it.
+    await waitFor(() => expect(screen.getByText(en['launch.project.way.goal'].replace('{goal}', 'Launch team access'))).toBeTruthy())
+    expect(screen.queryByText('Launch team access')).toBeNull()
     await waitFor(() => expect(screen.getByText('Builder')).toBeTruthy())
     fireEvent.click(screen.getAllByText('Keep the invite after sign-in')[0])
     expect(onOpenTask).toHaveBeenCalledWith('t-1')

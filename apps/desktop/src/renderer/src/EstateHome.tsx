@@ -218,6 +218,7 @@ export function EstateHome({
         setPins(r.pins)
         setPinProblem(r.saved ? null : { said: t('launch.home.projects.moveFailed'), detail: r.reason ?? null })
       })
+      .catch((e: unknown) => setPinProblem({ said: t('launch.home.projects.moveFailed'), detail: e instanceof Error ? e.message : String(e) }))
   }
 
   const row = (p: ProjectRow): React.JSX.Element => {
@@ -262,7 +263,7 @@ export function EstateHome({
                     // written and nothing was dropped. The operator says which to
                     // release, and until they do the set on screen is the set on disk.
                     setPinFull(r.atLimit ? p : null)
-                  })
+                  }).catch((e: unknown) => setPinProblem({ said: t('estate.pinFailed'), detail: e instanceof Error ? e.message : String(e) }))
                 }>
                 {isPinned ? t('glyph.star') : t('glyph.starEmpty')}
               </button>
@@ -439,7 +440,7 @@ export function EstateHome({
                   void window.fabric.favourites.replace(p.id, add.id).then((r) => {
                     setPins(r.pins)
                     setPinProblem(r.saved ? null : { said: t(r.reason ? 'estate.pinFailed' : 'estate.pinNotSaved'), detail: r.reason ?? null })
-                  })
+                  }).catch((e: unknown) => setPinProblem({ said: t('estate.pinFailed'), detail: e instanceof Error ? e.message : String(e) }))
                 }}
               >
                 {t('estate.pinRelease', { name: p.name })}

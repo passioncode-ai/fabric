@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-15T09:20:00Z · `940f14d3` · agent/release-036-i2-fixes → main · fast-forward
+- run: r-44ae60a75316
+- files: see the branch (with `339c44e1`, the revision-5 test repair, landed before it)
+- conflicts: none
+- summary: Fabric 0.3.6 release, iteration 2 closed — 40 findings (2 blocking, one sentence) from five independent reviews of 339c44e1, each fixed or ruled; the home's counts and failure states, the project page's failed reads, Settings as a main landmark, the wave-4 DB tier in the gate, CO-303 not reproduced, CO-310, P-19; four load-sensitive tests made deadline-honest.
+
 ### 2026-10-14T21:00:00Z · `—` · agent/release-036-i1-fixes → main · fast-forward
 - run: r-44ae60a75316
 - files: see the branch (merges fix/rv-036-comms-ux and docs/review-036-docs, and agent/registers-20261014)

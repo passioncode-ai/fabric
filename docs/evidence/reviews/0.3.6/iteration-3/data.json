@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "940f14d3595e40b1113ba5ba04123fcd5a2b2366",
+  "report": "docs/evidence/reviews/0.3.6/iteration-3/2026-10-15-data.md",
+  "reportSha256": "b668b3f3af6b3daea0580f8c50860bafcc15d9bf6c91fb1cf1ea2d00848ee568",
+  "reviewerRun": "release-036-i3-data-20261015",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-18",
+      "source": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `homeLive.ts#composeHome` no longer falls back to the claim's title (`homeLive.test.ts`)"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `index.ts#heldSessions` leaves board sessions out; `agentSurface.ts#heldSessions` marks them (`board-surface.test.mjs`)"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG states the cooldown; ruled: CO-314 for the 60 s fallback"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-308 (already open)"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-315"
+      ]
+    },
+    {
+      "id": "V3-23",
+      "source": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-309 (already open)"
+      ]
+    }
+  ]
+}

@@ -92,7 +92,7 @@ Comms branch `fix/rv-036-comms-ux` (`f5d55a16`) and the documentation branch `do
 | V1-55 | PL-6 | Recorded fixed, not shipped: CO-291 | fixed: CO-291 corrected: deferred with the onboarding plan (0.3.7) |
 | V1-56 | PL-7 | Shipped, still recorded open: CO-190 | fixed: CO-190 resolved (`979474d3`) |
 | V1-57 | PL-8 | The operator-home plan has no register home and silently dropped an item | fixed: the operator-home plan carries its status; the dropped permission mode is CO-305 |
-| V1-58 | PL-9 | The workspace publication is stale and its path is broken | ruled: CO-197 / N-030 — the publication runs after this release lands; the scheduled sync's new failure (`ceo-conversation-service.test.mjs`) is fixed on main `ee4064b4` |
+| V1-58 | PL-9 | The workspace publication is stale and its path is broken | ruled: CO-197 / N-030 — the publication runs after this release lands; the scheduled sync's new failure (`ceo-conversation-service.test.mjs`) is fixed as `ee4064b4` on its own branch and landed on `main` with `339c44e1` |
 | V1-59 | PL-10 | Harness records lag the work after N-040 closed | fixed: the CO-282 handoff names N-040 closed and the next task |
 | V1-60 | PL-11 | CO-277's deadline is this release | ruled: CO-277 — the upgrade path measured green 2026-10-14; the `db reset` refusal is carried to 0.3.7 |
 | V1-61 | PL-12 | Two open rows name the next release's local gate as their deadline | ruled: CO-281 and CO-293 — the release's local gate run decides them; carried to 0.3.7 if not reproduced |
@@ -108,11 +108,11 @@ iteration 1's fixes and the revision-5 test repair), read-only in a detached che
 `7aaeff6b` all stopped on the account's rate limit (HTTP 429) before writing anything; that candidate also failed the
 complete local gate (V2-41), so the iteration was run on `339c44e1`, with the reviewers started one or two at a time.
 The docs reviewer ran on Opus and finished its report before the limit stopped it; the other four ran on Sonnet.
-Reports, committed as written: [UX](../reviews/0.3.6/iteration-2/2026-10-14-ux.md) (UX-n),
-[errors and boundaries](../reviews/0.3.6/iteration-2/2026-10-14-errors.md) (ER-n),
-[code and documents](../reviews/0.3.6/iteration-2/2026-10-14-docs.md) (DO-n),
-[data, memory, orchestration, harness](../reviews/0.3.6/iteration-2/2026-10-14-data.md) (DA-n),
-[plan and roadmap](../reviews/0.3.6/iteration-2/2026-10-14-plan.md) (PL-n). Each reviewer also checked iteration 1's
+Reports, committed as written: [UX](../reviews/0.3.6/iteration-2/2026-10-15-ux.md) (UX-n),
+[errors and boundaries](../reviews/0.3.6/iteration-2/2026-10-15-errors.md) (ER-n),
+[code and documents](../reviews/0.3.6/iteration-2/2026-10-15-docs.md) (DO-n),
+[data, memory, orchestration, harness](../reviews/0.3.6/iteration-2/2026-10-15-data.md) (DA-n),
+[plan and roadmap](../reviews/0.3.6/iteration-2/2026-10-15-plan.md) (PL-n). Each reviewer also checked iteration 1's
 fixes at its level; the ones that held only in part are findings here (UX-1, ER-2, DO-7, PL-3, PL-4).
 
 40 findings, 2 blocking (DO-1 and DA-1, the same sentence; ER-3 and PL-1 name it too), plus one found by the lead.
@@ -174,7 +174,53 @@ Exit for iteration 2: every finding is fixed or ruled to a register row. Blockin
 
 ## Iteration 3
 
-_Not started._
+Five fresh reviewers, 2026-10-15, against `940f14d3` (`940f14d3595e40b1113ba5ba04123fcd5a2b2366`, `main` after
+iteration 2's fixes), read-only in a detached checkout, run on Sonnet one or two at a time. Reports, committed as
+written: [UX](../reviews/0.3.6/iteration-3/2026-10-15-ux.md) (UX-n),
+[errors and boundaries](../reviews/0.3.6/iteration-3/2026-10-15-errors.md) (ER-n),
+[code and documents](../reviews/0.3.6/iteration-3/2026-10-15-docs.md) (DO-n),
+[data, memory, orchestration, harness](../reviews/0.3.6/iteration-3/2026-10-15-data.md) (DA-n),
+[plan and roadmap](../reviews/0.3.6/iteration-3/2026-10-15-plan.md) (PL-n). As in 0.3.5, the fixes below make the
+final candidate, which is `verifiedCommit`.
+
+30 findings, 1 blocking (PL-1: the CHANGELOG's 0.3.5 baseline). Where the gates ran: iteration 2's complete local
+`ci.sh fast` (exit 0) ran on the tree of its fixes before the ledger and map lines of `940f14d3` were written; the
+final candidate's own complete gate is recorded in the release commit.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | UX-1 | The board glance reads «Reading…» forever when the tasks read fails | fixed: `ProjectWay.tsx#ProjectBoardGlance` says it (`ProjectWay.test.tsx`) |
+| V3-2 | UX-2 | Release notes name most new controls in Russian only | fixed: CHANGELOG gives the English label first, the Russian beside it, for every new control |
+| V3-3 | UX-3 | Settings' unknown-schema case prints its reason twice | fixed: the sentence no longer carries `{detail}`; the reason stands on its own line |
+| V3-4 | UX-4 | A project's goal is shown twice on its first screen | fixed: said once in «Дальше»; the side panel stands in only while there is no goal (`ProjectLaunch.test.tsx`); SCN-159 amended |
+| V3-5 | UX-5 | SCR-52's index row says designed while the record says built | fixed: the index says built for the screen; the record keeps the estate-scoped half designed |
+| V3-6 | UX-6 | A refused settings write is said in a banner that can be out of view | ruled: CO-313 (0.3.7 rebuilds Настройки) |
+| V3-7 | ER-1 | A failed reload of a project's tasks leaves the last way on screen unsaid | fixed: `ProjectWay.tsx` says «Задачи не перечитались…» above the last read (`ProjectWay.test.tsx`, the old branch planted back failed) |
+| V3-8 | ER-2 | Comms read marks grow past the settings file's 4096 bound | ruled: CO-312 |
+| V3-9 | ER-3 | Favourite toggle, replace and move had no rejection handler | fixed: each says its failure in the pins banner (`EstateHome.tsx`) |
+| V3-10 | ER-4 | The lease scratch monitor treats a vanished temp file as a breach | ruled: CO-316 (behind CO-282's flag) |
+| V3-11 | ER-5 | After a failed home read the lanes keep the last view without saying so | ruled: CO-313 (the strip already shows «—»; 0.3.7 rebuilds Главная) |
+| V3-12 | ER-6 | `since()` renders NaN for a time that does not parse | fixed: «—» (`duration.test.ts`) |
+| V3-13 | ER-7 | Settings' catalogue failure text: `{ok:false}`, a timeout, a duplicate line | ruled: CO-313 for the `{ok:false}` and timeout wording; the duplicate line fixed with UX-3 |
+| V3-14 | ER-8 | The stack retry's worst case is about 16 minutes, unstated | ruled: CO-311; the CHANGELOG now states the worst case |
+| V3-15 | DO-1 | SCR-52's index status | fixed with UX-5 |
+| V3-16 | DO-2 | An SCR-52 paragraph still reads as a current Settings band | fixed: marked superseded in place |
+| V3-17 | DO-3 | The retry's splash line is English-only and the notes do not say so | fixed: CHANGELOG says so (CO-306) |
+| V3-18 | DA-1 | The home can name a claimed task by its instruction | fixed: `homeLive.ts#composeHome` no longer falls back to the claim's title (`homeLive.test.ts`) |
+| V3-19 | DA-2 | Board sessions count as agents at work | fixed: `index.ts#heldSessions` leaves board sessions out; `agentSurface.ts#heldSessions` marks them (`board-surface.test.mjs`) |
+| V3-20 | DA-3 | fabric-mcp's 429 cooldown is not in the notes; a Retry-After over 300 s becomes 60 s | fixed: CHANGELOG states the cooldown; ruled: CO-314 for the 60 s fallback |
+| V3-21 | DA-4 | The thread page aggregates every thread before filtering | ruled: CO-308 (already open) |
+| V3-22 | DA-5 | A backup missing `board.json` restores as an older archive | ruled: CO-315 |
+| V3-23 | DA-6 | Pending resource migrations share applied version prefixes | ruled: CO-309 (already open) |
+| V3-24 | PL-1 (blocking) | CHANGELOG says 0.3.5's revision 4 refused a long task; 0.3.5 shipped revision 3 | fixed: CHANGELOG says 0.3.5 is revision 3 and never refused one, an unreleased revision 4 did, 0.3.6 is revision 5 (`git show v0.3.5:apps/desktop/src/main/contextPack.ts`, `COMPILER_REVISION = 3`) |
+| V3-25 | PL-2 | The green complete gate is attributed to a commit it did not run on | fixed: the iteration sections name the trees the gates ran on; the final candidate's own complete gate is recorded below |
+| V3-26 | PL-3 | `ee4064b4` is cited as on main | fixed: the ledger, its receipt and the harness handoff say it landed with `339c44e1` |
+| V3-27 | PL-4 | No merge-log entry for iteration 2; the release close does not name one | fixed: `docs/MERGES.md` entry for `940f14d3`; the release-close list names the merge log |
+| V3-28 | PL-5 | Rows ruled to 0.3.7 have no register home | fixed: P-19 names CO-277, CO-284, CO-293, CO-304, CO-305…CO-316 |
+| V3-29 | PL-6 | CO-304's deadline still reads next release | fixed: re-dated to 0.3.7 |
+| V3-30 | PL-7 | P-18 does not say iteration 2 closed; iteration-2 reports carry the wrong date | fixed: P-18 names iterations 2 and 3; the iteration-2 reports are renamed 2026-10-15 and their receipts follow |
+
+Exit for iteration 3: 30 findings dispositioned; the final candidate is the commit that carries these fixes. Blocking findings open: none.
 
 ## Release close
 
@@ -183,7 +229,7 @@ The steps after iteration 3 ends with no blocking finding, in order, each by the
 1. `apps/desktop/package.json` → `0.3.6`; CHANGELOG `## Unreleased` → `## 0.3.6 — <date>`.
 2. `docs/launch/release-gate.json` → version 0.3.6, this ledger, `verifiedCommit` = iteration 3's candidate, the three
    iterations' review receipts (`docs/evidence/reviews/0.3.6/iteration-{1,2,3}/*.json`).
-3. The merge log and the design map in the same commit; the complete local gate green on it; land on `main`.
+3. The merge log (`docs/MERGES.md`) and the design map in the same commit; the complete local gate green on it; land on `main`.
 4. Push the tag `v0.3.6`; watch `release.yml` (approval by checks) to success; confirm the published release.
 5. Install the release here through the lifecycle broker; close P-18.
 6. `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child` (N-030, CO-197).

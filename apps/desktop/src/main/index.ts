@@ -1243,8 +1243,12 @@ async function projectLeaseRefs(projectId: string) {
 /** Every session the screens show: what the surface holds (launched and enrolled) and the terminals running. */
 function heldSessions(projectId?: string): HeldSession[] {
   const out = new Map<string, HeldSession>()
-  for (const s of surface?.heldSessions(projectId) ?? [])
+  for (const s of surface?.heldSessions(projectId) ?? []) {
+    // A board session is a service answering the board's requests, not an agent at work: it is not counted or listed
+    // among the sessions working (0.3.6 review i3 DA-2).
+    if (s.surface === 'board') continue
     out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
+  }
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
     const at = Date.parse(p.lastActivityAt)

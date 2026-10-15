@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "940f14d3595e40b1113ba5ba04123fcd5a2b2366",
+  "report": "docs/evidence/reviews/0.3.6/iteration-3/2026-10-15-errors.md",
+  "reportSha256": "7ba20003783741bfcac33c9e06f0ffdeb5dfb32d78c6c17888f5e636b186a970",
+  "reviewerRun": "release-036-i3-errors-20261015",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-7",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ProjectWay.tsx` says «Задачи не перечитались…» above the last read (`ProjectWay.test.tsx`, the old branch planted back failed)"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-312"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each says its failure in the pins banner (`EstateHome.tsx`)"
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-316 (behind CO-282's flag)"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-313 (the strip already shows «—»; 0.3.7 rebuilds Главная)"
+      ]
+    },
+    {
+      "id": "V3-12",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «—» (`duration.test.ts`)"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-313 for the `{ok:false}` and timeout wording; the duplicate line fixed with UX-3"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "ER-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-311; the CHANGELOG now states the worst case"
+      ]
+    }
+  ]
+}

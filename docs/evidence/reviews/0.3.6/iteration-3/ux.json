@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "940f14d3595e40b1113ba5ba04123fcd5a2b2366",
+  "report": "docs/evidence/reviews/0.3.6/iteration-3/2026-10-15-ux.md",
+  "reportSha256": "25235a90d5e3350aa0ee6ffd55546cced3880827da056a2617ff885b28877f67",
+  "reviewerRun": "release-036-i3-ux-20261015",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ProjectWay.tsx#ProjectBoardGlance` says it (`ProjectWay.test.tsx`)"
+      ]
+    },
+    {
+      "id": "V3-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG gives the English label first, the Russian beside it, for every new control"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the sentence no longer carries `{detail}`; the reason stands on its own line"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: said once in «Дальше»; the side panel stands in only while there is no goal (`ProjectLaunch.test.tsx`); SCN-159 amended"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the index says built for the screen; the record keeps the estate-scoped half designed"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "UX-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-313 (0.3.7 rebuilds Настройки)"
+      ]
+    }
+  ]
+}

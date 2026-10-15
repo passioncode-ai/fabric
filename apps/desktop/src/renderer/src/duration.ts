@@ -7,7 +7,10 @@ import type { Translate } from './i18n'
  * about what "2m" means.
  */
 export function since(iso: string, t?: Translate): string {
-  const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000))
+  const at = new Date(iso).getTime()
+  // A time that does not parse is unknown, never "NaN days" (0.3.6 review i3 ER-6).
+  if (!Number.isFinite(at)) return '—'
+  const s = Math.max(0, Math.round((Date.now() - at) / 1000))
   const [n, unit] = unitOf(s)
   // The unit is a word of the operator's language ("3 ч", not "3h" in a Russian sentence);
   // without a translator it keeps the compact English form the tests were written against.

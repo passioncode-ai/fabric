@@ -79,7 +79,7 @@
       "source": "PL-9",
       "status": "ruled",
       "evidence": [
-        "ruled CO-197 / N-030 — the publication runs after this release lands; the scheduled sync's new failure (`ceo-conversation-service.test.mjs`) is fixed on main `ee4064b4`"
+        "ruled CO-197 / N-030 — the publication runs after this release lands; the scheduled sync's new failure (`ceo-conversation-service.test.mjs`) is fixed as `ee4064b4` on its own branch and landed on `main` with `339c44e1`"
       ]
     },
     {

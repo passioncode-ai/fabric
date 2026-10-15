@@ -21,20 +21,20 @@ each other's requests on the project board, which Comms now lets you read at any
   doing, in its own words; a session gone silent is marked "silent" («молчит»); a click opens the agent's console when
   Fabric holds one, else its project. The reading refreshes every 15 seconds and when the journal moves; a failed
   reading says so, keeps the last one on screen and shows the counts as «—». A claim whose agent stopped signing for
-  it stays in work marked «никто не отмечается»; a capped count is a floor («50+»), and a lane past six rows offers
-  «Ещё N» on the Board. The rail's «Настроить агентов» is now «Агенты».
+  it stays in work marked "nobody signing" («никто не отмечается»); a capped count is a floor («50+»), and a lane past six rows offers
+  "{count} more" («Ещё N») on the Board. The rail's «Настроить агентов» is now «Агенты».
 - **Projects on the home: favourites in your order, then by latest activity** (SCN-043, amended), each card with
-  «Сейчас: …» (what its agent is doing) or «Тихо уже …». Projects that are not favourites lost their manual ↑ ↓ order:
+  "Now: …" («Сейчас: …», what its agent is doing) or "Quiet for …" («Тихо уже …»). Projects that are not favourites lost their manual ↑ ↓ order:
   an order saved for them before is no longer used; favourites keep theirs.
 - **A project's page says where it came from, where it is and where it goes** (SCR-31, SCN-159): the heading says what
   its agent is doing now; "Where we came from and where we go" («Откуда пришли и куда идём») shows recently done → in
-  work and in review (with each agent's stage) → the goal and the queue in board order; then «Вопросы ко мне», the
-  board at a glance (four columns with their counts and first cards; «Готово 20+» when only the newest twenty were
-  read) and «Агенты на проекте», each opening its console. A project with no tasks shows its first step instead of an
+  work and in review (with each agent's stage) → the goal and the queue in board order; then "Questions for you" («Вопросы ко мне»), the
+  board at a glance (four columns with their counts and first cards; "Done 20+" («Готово 20+») when only the newest twenty were
+  read) and "Agents on this project" («Агенты на проекте»), each opening its console. A project with no tasks shows its first step instead of an
   empty way.
 - **Settings is a screen** (SCR-52, SCN-160), no longer a band over another page; the page you came from stays as it
   was underneath. It groups **the coding agents on this computer** (each with its version and path, not answering, or
-  not installed with the vendor's install command), the launch fallback order, sleep («Не давать компьютеру засыпать»,
+  not installed with the vendor's install command), the launch fallback order, sleep ("Keep the computer awake", «Не давать компьютеру засыпать»,
   with what the OS will not do), theme and language, and Data and access: usage counts, private history and restore,
   and Agent access. When Switchboard 0.6.31 or later publishes its catalogue (`switchboard --json agents status`), its
   default and switched-off agents are marked and agents only Switchboard knows are added; Fabric reads that catalogue
@@ -45,8 +45,9 @@ each other's requests on the project board, which Comms now lets you read at any
   validates every call itself.
 - **Fabric waits for a stack that is still starting** instead of refusing to open: right after Docker (OrbStack)
   comes back, «container is not ready: starting» and «supabase start is already running» are waited out and retried
-  (up to four tries, ten seconds apart, said on the splash); any other refusal, Docker unreachable among them, is shown
-  at once, as before.
+  (up to four tries, ten seconds apart, said on the splash in English, like the whole splash — CO-306); any other
+  refusal, Docker unreachable among them, is shown at once, as before. Each try keeps its own four-minute start
+  deadline, so a stack that never becomes ready can hold the splash for about 16 minutes before the refusal (CO-311).
 - **The folder question on the home screen names what a folder will not bring back in your words** — goals, tasks,
   questions and routines — instead of an English sentence with table ids in it (seen in Russian on the 0.3.5 first run).
 
@@ -62,10 +63,11 @@ each other's requests on the project board, which Comms now lets you read at any
   accepts and ignores (its session still started in `default`), so a Plan session ran with Kimi's ordinary approvals.
   The mode is now set on the session itself (ACP `session/set_mode`: `plan`, `default`, `yolo`).
 - **A task's own words are always delivered whole**; memory that does not fit the session's context budget is left out,
-  and the session is told what was left out. A task, brief and project identity larger than the budget are no
-  longer refused (0.3.5's revision 4 refused an 11.6k-character task): they are delivered whole and nothing is
-  selected from memory. The context compiler is at revision 5, so a pack recorded by 0.3.5 and one compiled now name
-  different revisions.
+  and the session is told what was left out. The budget now counts everything the pack writes (its head, separators
+  and the omission note) when it selects memory; a task, brief and project identity larger than the budget are
+  delivered whole and nothing is selected from memory. (Between 0.3.5 and this release an unreleased revision 4
+  refused such a task; 0.3.5 itself, at revision 3, never refused one.) The context compiler is at revision 5, so a
+  pack recorded by 0.3.5 names revision 3 and one compiled now names 5.
 - **Agents are asked for plain-language stages.** Fabric's tool descriptions and its rules ask an agent to report its
   stage, write a task's brief and title a task as one plain sentence the project's owner understands, in their
   language — that is what the home and the project page show. The rules' hash changes with them, so each session's
@@ -133,6 +135,10 @@ each other's requests on the project board, which Comms now lets you read at any
 
 ### For coding agents and the products that call Fabric
 
+- **`fabric-mcp` waits after Fabric says "too many requests".** After an HTTP 429 it keeps a cooldown for the time
+  Fabric named (at most 5 minutes): every tool call answers "Fabric is rate limited; wait N seconds. No new request was
+  sent." and the tool list is not read, so a busy agent does not hammer the hub. A wait it cannot read, or one longer
+  than 5 minutes, falls back to 60 seconds (CO-314).
 - **Board receipts changed shape (agents, take note; COM-02.3).** A `com.submit` or `com.read_ack` receipt no longer
   carries the estate's `seq` (the contract never showed it to a reader, C3), and a request in a receipt is an object
   `{id, state, effect, revision}`, not an id. Receipts stored before the upgrade answer a retry in the new shape.

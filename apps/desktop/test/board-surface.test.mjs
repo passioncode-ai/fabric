@@ -117,6 +117,8 @@ async function leave(surface, token) {
 test('a board session\'s client leaving ends the session: its slots are released and it is no longer held (fix 2)', async () => {
   const { surface, calls } = surfaceWith({ board_join_check: { data: { ok: true, capabilities: ['finance.close'], grants: [GRANT] }, error: null } })
   const joined = await surface.joinBoard({ id: BINDING, agent_id: 'example-agent' }, PROJECT, 'board-1')
+  // Held, and marked as a board session: the home and «Where work is» leave it out of the sessions at work (i3 DA-2).
+  assert.deepEqual(surface.heldSessions(PROJECT).map((s) => s.surface), ['board'])
   const left = await leave(surface, joined.token)
   assert.equal(left.sessionEnded, true, 'a board session\'s leave dropped only the bearer')
   assert.deepEqual(calls.find((c) => c.fn === 'board_release_session'), { fn: 'board_release_session', args: { p_estate: ESTATE, p_session: 'board-1' } })

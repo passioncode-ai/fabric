@@ -34,7 +34,7 @@ export function AgentCatalogPanel(): React.JSX.Element {
           : catalog.value.source === 'absent' && catalog.value.reason === 'too-old'
             ? t('settings.agents.sourceTooOld')
             : catalog.value.source === 'absent' && catalog.value.reason === 'unknown-schema'
-              ? t('settings.agents.sourceUnknownSchema', { detail: catalog.value.detail ?? '' })
+              ? t('settings.agents.sourceUnknownSchema')
             : catalog.value.source === 'absent' && catalog.value.reason === 'not-installed'
               ? t('settings.agents.sourceNone')
               : t('settings.agents.sourceFailed')

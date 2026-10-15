@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "940f14d3595e40b1113ba5ba04123fcd5a2b2366",
+  "report": "docs/evidence/reviews/0.3.6/iteration-3/2026-10-15-plan.md",
+  "reportSha256": "7cfb6f221ff246da73c16b65e16116f55d1282a8f323afe3115f4154671228cb",
+  "reviewerRun": "release-036-i3-plan-20261015",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-24",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says 0.3.5 is revision 3 and never refused one, an unreleased revision 4 did, 0.3.6 is revision 5 (`git show v0.3.5:apps/desktop/src/main/contextPack.ts`, `COMPILER_REVISION = 3`)"
+      ]
+    },
+    {
+      "id": "V3-25",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the iteration sections name the trees the gates ran on; the final candidate's own complete gate is recorded below"
+      ]
+    },
+    {
+      "id": "V3-26",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger, its receipt and the harness handoff say it landed with `339c44e1`"
+      ]
+    },
+    {
+      "id": "V3-27",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/MERGES.md` entry for `940f14d3`; the release-close list names the merge log"
+      ]
+    },
+    {
+      "id": "V3-28",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19 names CO-277, CO-284, CO-293, CO-304, CO-305…CO-316"
+      ]
+    },
+    {
+      "id": "V3-29",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: re-dated to 0.3.7"
+      ]
+    },
+    {
+      "id": "V3-30",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-18 names iterations 2 and 3; the iteration-2 reports are renamed 2026-10-15 and their receipts follow"
+      ]
+    }
+  ]
+}

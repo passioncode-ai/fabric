@@ -3,8 +3,8 @@
 ## Update — 2026-10-14, evening (read this first)
 
 N-040 (load-tolerant fixture deadlines) is **closed and on `main`** (`43e891e7`, verdict in `graph.json`), and N-030's
-cause changed: the scheduled publication now failed on a timing-tight test (`ceo-conversation-service.test.mjs`, fixed on
-`main` `ee4064b4`), not only on the 30-minute bound. **Exact next task:** publish the workspace from `main` after the
+cause changed: the scheduled publication now failed on a timing-tight test (`ceo-conversation-service.test.mjs`, fixed as
+`ee4064b4` on its own branch and landed on `main` with `339c44e1`), not only on the 30-minute bound. **Exact next task:** publish the workspace from `main` after the
 0.3.6 release lands (`node scripts/workspace.mjs publish`), then close N-030. CO-293 (a real Electron process alive
 after `exit 0`) is carried to 0.3.7 by the 0.3.6 ledger unless the release's local gate reproduces it.
 

@@ -140,17 +140,20 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
             {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
           </section>
 
-          <ProjectBoardGlance path={path} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
+          <ProjectBoardGlance path={path} problem={tasksProblem} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
         </div>
 
         <aside className="lp-side">
           <HomeAgents reading={home} projectId={project.id} title={t('launch.project.agentsHere')}
             onOpen={() => onSection('sec-agents')} onSession={openConsole} onAll={() => onSection('sec-agents')} />
-          <section className="lp-panel">
-            <p className="lp-kicker">{t('launch.project.goal')}</p>
-            <h3>{goal ? goal.title : project.purpose || t('launch.project.noGoal')}</h3>
-            <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.goals')}</button>
-          </section>
+          {/* The goal is said once, in the way's «Дальше»; this panel stands in only while there is none (i3 UX-4). */}
+          {!goal && (
+            <section className="lp-panel">
+              <p className="lp-kicker">{t('launch.project.goal')}</p>
+              <h3>{project.purpose || t('launch.project.noGoal')}</h3>
+              <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.goals')}</button>
+            </section>
+          )}
           <section className="lp-panel" aria-labelledby="project-team-title">
             <div className="lp-panel-head">
               <h3 id="project-team-title">{t('launch.project.team')}</h3>

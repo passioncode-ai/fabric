@@ -595,10 +595,10 @@ export class AgentSurface {
 
   // #region surface-session-registry-read — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
   /** The sessions this surface holds, one per session (CO-256): launched and enrolled, with their last call. */
-  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null }> {
+  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null; surface: 'session' | 'board' }> {
     return [...this.live.entries()]
       .filter(([, s]) => !projectId || s.projectId === projectId)
-      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt }))
+      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt, surface: s.surface ?? 'session' }))
   }
 
   /** What this surface holds of one session; null when nothing (ended, or minted by an earlier run of Fabric). */

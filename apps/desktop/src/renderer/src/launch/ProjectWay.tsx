@@ -42,8 +42,10 @@ export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = n
         </div>
         <button type="button" className="lp-button lh-text-link" onClick={onPlan}>{t('launch.project.way.plan')}</button>
       </div>
+      {/* A failed read is said whether or not an earlier one is on screen: the steps below are then the last read (i3 ER-1). */}
+      {problem && <FailureNote said={t(path ? 'launch.project.way.stale' : 'launch.project.way.unreadable')} detail={problem} />}
       {path === null ? (
-        problem ? <FailureNote said={t('launch.project.way.unreadable')} detail={problem} /> : <p className="lp-meta">{t('estate.reading')}</p>
+        problem ? null : <p className="lp-meta">{t('estate.reading')}</p>
       ) : (
         <div className="lp-way-steps">
           <div className="lp-way-step">
@@ -71,7 +73,9 @@ export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = n
 }
 
 /** The project's board at a glance: the four columns with their counts and their first cards. */
-export function ProjectBoardGlance({ path, doneFloor = false, onOpenTask, onBoard, onNewTask }: {
+export function ProjectBoardGlance({ path, doneFloor = false, problem = null, onOpenTask, onBoard, onNewTask }: {
+  /** The tasks read failed (i3 UX-1): said, never an endless «Reading…». */
+  problem?: string | null
   path: ProjectPath | null
   /** The done column came from a capped read: its count is a floor, said «20+» (0.3.6 review DA-3, ER-2). */
   doneFloor?: boolean
@@ -91,8 +95,9 @@ export function ProjectBoardGlance({ path, doneFloor = false, onOpenTask, onBoar
           <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.project.glance.all')}</button>
         </div>
       </div>
+      {problem && <FailureNote said={t(path ? 'launch.project.way.stale' : 'launch.project.glance.unreadable')} detail={problem} />}
       {path === null ? (
-        <p className="lp-meta">{t('estate.reading')}</p>
+        problem ? null : <p className="lp-meta">{t('estate.reading')}</p>
       ) : (
         <div className="lp-glance-columns">
           {cols.map((c) => (

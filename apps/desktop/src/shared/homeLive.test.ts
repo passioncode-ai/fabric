@@ -75,8 +75,8 @@ describe('composeHome', () => {
   })
 
   it('a claim without a stage gives its task summary as the project now', () => {
-    const v = composeHome({ where: where([session('s1', P1)], [claim('t1', P1, 's1')]), projects, stages: [], briefs: [], reviewTasks: [], activity: new Map(), now: 'x' })
-    expect(v.projects[0].now).toMatchObject({ text: 'raw title t1' })
+    const v = composeHome({ where: where([session('s1', P1)], [claim('t1', P1, 's1')]), projects, stages: [], briefs: [{ id: 't1', project_id: P1, title: 'Import the CSV', brief_what: null, status: 'running' }], reviewTasks: [], activity: new Map(), now: 'x' })
+    expect(v.projects[0].now).toMatchObject({ text: 'Import the CSV' })
   })
 })
 
@@ -138,6 +138,11 @@ describe('composeHome — work nobody is doing is not current (0.3.6 review UX-2
     const many = Array.from({ length: 3 }, (_, i) => ({ id: 'r' + i, project_id: P1, title: 'r', brief_what: null, status: 'review' }))
     const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: many, limits: { review: 3 }, activity: new Map(), now: 'x' })
     expect(v.reviewCapped).toBe(true)
+  })
+  it("a claimed task with neither brief nor title is not named by its instruction (0.3.6 review i3 DA-1)", () => {
+    const view = where([], [claim('bare', P1, 's-bare', { title: 'Implement the importer, then run every test' })])
+    const v = composeHome({ where: view, projects, stages: [], briefs: [{ id: 'bare', project_id: P1, title: null, brief_what: null, status: 'running' }], reviewTasks: [], activity: new Map(), now: 'x' })
+    expect(v.inWork[0].summary).toBe('')
   })
   it('a task of a project that is not active is not on the home (0.3.6 review i2 DA-4)', () => {
     const gone = { id: 'g1', project_id: 'not-active', title: 'old', brief_what: null, status: 'review' }

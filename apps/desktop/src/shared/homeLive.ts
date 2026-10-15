@@ -173,7 +173,8 @@ export function composeHome(input: {
     taskId: c.taskId,
     projectId: c.projectId,
     projectName: names.get(c.projectId) ?? '',
-    summary: taskSummary(briefById.get(c.taskId), c.title),
+    // Not the claim's title: where-work falls back to the instruction for a task with no title (i3 DA-1).
+    summary: taskSummary(briefById.get(c.taskId)),
     agent: c.agent,
     sessionId: c.sessionId,
     console: c.console,
