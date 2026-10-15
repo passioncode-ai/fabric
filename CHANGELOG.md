@@ -65,8 +65,8 @@ each other's requests on the project board, which Comms now lets you read at any
 - **A task's own words are always delivered whole**; memory that does not fit the session's context budget is left out,
   and the session is told what was left out. The budget now counts everything the pack writes (its head, separators
   and the omission note) when it selects memory; a task, brief and project identity larger than the budget are
-  delivered whole and nothing is selected from memory. (Between 0.3.5 and this release an unreleased revision 4
-  refused such a task; 0.3.5 itself, at revision 3, never refused one.) The context compiler is at revision 5, so a
+  delivered whole and nothing is selected from memory. (Between 0.3.5 and this release a revision 4 that never
+  shipped refused such a task; 0.3.5 itself, at revision 3, never refused one.) The context compiler is at revision 5, so a
   pack recorded by 0.3.5 names revision 3 and one compiled now names 5.
 - **Agents are asked for plain-language stages.** Fabric's tool descriptions and its rules ask an agent to report its
   stage, write a task's brief and title a task as one plain sentence the project's owner understands, in their
