@@ -123,6 +123,9 @@ export function composeHome(input: {
   runningTasks?: readonly TaskBrief[]
   /** The limits the reads above were asked with; reaching one makes the count a floor. */
   limits?: { review?: number; running?: number }
+  /** Every task in review, by project — the list above holds only the newest `limits.review`, and a project's own count
+   *  must not depend on whether its tasks are among them (0.3.6 review i2 ER-2). Absent: counted from the list. */
+  reviewProjectIds?: readonly string[]
   activity: ReadonlyMap<string, string | null>
   now: string
 }): HomeView {
@@ -181,7 +184,8 @@ export function composeHome(input: {
   const claimed = new Set(inWork.map((w) => w.taskId))
   const held = new Map(sessions.map((s) => [s.sessionId, s]))
   for (const t of input.runningTasks ?? []) {
-    if (t.status !== 'running' || claimed.has(t.id)) continue
+    // A paused or archived project's task is not on the home: it would show with no project and a link to nowhere (i2 DA-4).
+    if (t.status !== 'running' || claimed.has(t.id) || !names.has(t.project_id)) continue
     const s = t.session_id ? held.get(t.session_id) : undefined
     inWork.push({
       taskId: t.id,
@@ -200,7 +204,7 @@ export function composeHome(input: {
   inWork.sort((a, b) => Number(b.live) - Number(a.live) || b.since.localeCompare(a.since))
 
   const review: ReviewItem[] = input.reviewTasks
-    .filter((t) => t.status === 'review')
+    .filter((t) => t.status === 'review' && names.has(t.project_id))
     .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), since: t.updated_at ?? null }))
 
   const projects: ProjectPulse[] = input.projects.map((p) => {
@@ -218,7 +222,7 @@ export function composeHome(input: {
       now: now && now.text ? now : null,
       live: mine.length,
       inWork: work.length,
-      review: review.filter((r) => r.projectId === p.id).length,
+      review: input.reviewProjectIds ? input.reviewProjectIds.filter((id) => id === p.id).length : review.filter((r) => r.projectId === p.id).length,
       lastActivityAt: signs.at(-1) ?? null
     }
   })

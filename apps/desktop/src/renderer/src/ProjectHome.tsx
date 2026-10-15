@@ -160,6 +160,7 @@ export function ProjectHome({
   /** Null until read, so the board can tell "nothing here" from "not read yet"
    *  — the distinction EmptyState exists to keep (M108). */
   const [tasks, setTasks] = useState<TaskRow[] | null>(null)
+  const [tasksProblem, setTasksProblem] = useState<string | null>(null)
   /** Whether the finished half of the list was cut short (M190). A plan that
    *  counts from a capped read presents a floor as a total. */
   const [closedCoverage, setClosedCoverage] = useState<TaskList['closed'] | null>(null)
@@ -236,10 +237,12 @@ export function ProjectHome({
     try {
       const list = await window.fabric.tasks.list(project.id)
       setTasks(list.tasks)
+      setTasksProblem(null)
       // Kept, so the plan can say "at least N of M" rather than presenting a
       // capped count as a total (M190).
       setClosedCoverage(list.closed)
     } catch (e) {
+      setTasksProblem(e instanceof Error ? e.message : String(e))
       onError(String(e))
     }
   }
@@ -359,6 +362,7 @@ export function ProjectHome({
         <ProjectLaunch
           project={project}
           tasks={tasks}
+          tasksProblem={tasksProblem}
           closedCapped={closedCoverage === null ? null : closedCoverage.truncated}
           sessions={sessions}
           feedMark={taskMark}

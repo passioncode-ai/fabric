@@ -190,7 +190,6 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'task-input': 'the instruction textarea',
   'task-history': 'the recent-tasks list',
   'task-history-head': 'its heading',
-  'settings-bar': 'the former settings band under the tab strip — retired 2026-10-14, when Settings became a screen (SCN-160); nothing renders it, and its CSS waits to be removed',
   'settings-note': 'the line stating what the OS will not do',
   'settings-usage': 'the usage-counts switch and its note, in Settings → Data and access',
   'settings-fallback': 'the fallback order (ADR-0125): heading, note and one aligned row per coding agent',

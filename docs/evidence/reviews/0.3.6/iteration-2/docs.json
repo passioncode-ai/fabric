@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-docs.md",
+  "reportSha256": "4931531fbccf5f20041a25c0c3e81982851218b1d1b4362f167033f070c85232",
+  "reviewerRun": "release-036-i2-docs-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-23",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says revision 5 and what it changed (a long task is delivered whole, not refused)"
+      ]
+    },
+    {
+      "id": "V2-24",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-159 step 2 and amendment"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-158/159/160 amendments, SCR-30/31 state rows, SCR-52 amendment, one CHANGELOG clause; the strip and lane now count one set (V2-1)"
+      ]
+    },
+    {
+      "id": "V2-26",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the COM-07 bullets say each filter change is one board read since wave 4"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the epoch and the board-rule bullets merged"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and README say it was verified outside a project only"
+      ]
+    },
+    {
+      "id": "V2-29",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: FLW-92 reworded, product model regenerated, the CSS and its registry entry removed"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: FLW-40 traces SCN-135/SCN-160 with an agent-catalogue node; FLW-21 names SCN-158/159/161"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0157 recorded superseded, never used (re-reserved as 0159)"
+      ]
+    },
+    {
+      "id": "V2-32",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.6.31 measurement (30 agents) added to its Coverage"
+      ]
+    }
+  ]
+}

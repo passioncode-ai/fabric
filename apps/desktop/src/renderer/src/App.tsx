@@ -198,6 +198,8 @@ function Shell({
   /** Search, the conversation with Fabric (SCR-64), private history (SCR-65) and Agent access (SCR-76):
    *  ONE side panel at a time, held in one state (UX-13). */
   const [panel, setPanel] = useState<SidePanel>(null)
+  const panelOpen = useRef(false)
+  panelOpen.current = panel !== null
   const chatOpen = panel === 'chat'
   const historyOpen = panel === 'history'
   const accessOpen = panel === 'access'
@@ -477,7 +479,11 @@ function Shell({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setShowSettings(false)
+      // Escape leaves Settings only from the screen itself: never from a field being typed in, and never while a panel
+      // opened from Settings is up (0.3.6 review i2 UX-2).
+      const el = e.target as HTMLElement | null
+      const typing = !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+      if (e.key === 'Escape' && !typing && !panelOpen.current) setShowSettings(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

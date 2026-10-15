@@ -4,6 +4,7 @@
 // leaves this machine. Every control here is one that already existed; what is new is the agents' catalogue — read
 // from Switchboard when it publishes one (0.6.31+), else from Fabric's own detection, with the source said.
 
+import { useEffect, useRef } from 'react'
 import { useRead } from './useRead'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
 import type { ExecutorRow } from '../../../shared/startPaths'
@@ -100,12 +101,15 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   onOpenAccess: () => void
 }): React.JSX.Element {
   const t = useT()
+  // The screen is the page's main region while it is open, and its heading takes focus, as the other screens' do (i2 UX-2).
+  const heading = useRef<HTMLHeadingElement>(null)
+  useEffect(() => heading.current?.focus(), [])
   return (
-    <div className="lp lp-settings" data-launch-view="settings">
+    <main className="lp lp-settings" data-launch-view="settings">
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('settings.screen.kicker')}</p>
-          <h2 tabIndex={-1}>{t('settings.screen.title')}</h2>
+          <h2 tabIndex={-1} ref={heading}>{t('settings.screen.title')}</h2>
           <p>{t('settings.screen.body')}</p>
         </div>
       </header>
@@ -161,7 +165,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
           </section>
         </aside>
       </div>
-    </div>
+    </main>
   )
 }
 // #endregion settings-screen

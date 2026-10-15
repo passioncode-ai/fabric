@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-ux.md",
+  "reportSha256": "338f8066c543fd61b1b17b6c04387fc0257c5875a9fb3fdde2598a979b35ace4",
+  "reviewerRun": "release-036-i2-ux-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `HomeWork.tsx#HomeStats` counts the lane's set; `HomeWork.test.tsx` (old count planted back failed)"
+      ]
+    },
+    {
+      "id": "V2-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `SettingsScreen.tsx` is a `main` and focuses its heading; `App.tsx` Escape ignores fields and an open panel; `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-159 amendment states the one exception («Вопросы ко мне» shares the Board's attention rows)"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCR-30 row and SCN-158 «Errors & recovery» carry the shipped sentence, reason on its own line"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the argument is dropped (`HomeWork.tsx#HomeStats`)"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says «Ещё не сказал, что делает» (`HomeWork.tsx#HomeWorkLanes`); SCN-158 amendment"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `launch.project.agents.all` «Агенты этого проекта» / \"This project's agents\""
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG gives the English name first, the Russian beside it"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "UX-9",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: «тред» is the Russian Comms word throughout (`i18n/ru.ts` launch.comms.*)"
+      ]
+    }
+  ]
+}

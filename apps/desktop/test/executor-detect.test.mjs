@@ -84,7 +84,9 @@ console.log('PASS executor detection: found with version, unresponsive on timeou
       { id: 'firstline', label: 'First', program: 'firstline', connected: false },
       { id: 'held', label: 'Held', program: 'held', connected: false }
     ],
-    { env: { PATH: bin2, HOME: bin2 }, timeoutMs: 4000 }
+    // 15 s, not 4: five shell probes at load 150 outlasted 4 s and «firstline» read as no version (0.3.6 release gate,
+    // 2026-10-15). The held child sleeps 30 s, so waiting for it still fails below.
+    { env: { PATH: bin2, HOME: bin2 }, timeoutMs: 15000 }
   )
   const elapsed = Date.now() - t0
   const b = Object.fromEntries(rows2.map((r) => [r.id, r]))
@@ -96,7 +98,7 @@ console.log('PASS executor detection: found with version, unresponsive on timeou
   assert.equal(b['firstline'].version, '4.5.6', 'without a line naming the program, the first version on the first line')
   assert.equal(b['held'].state, 'found', 'a program that printed its version and exited is found, even if a child still holds its output')
   assert.equal(b['held'].version, '1.2.3')
-  assert.ok(elapsed < 3000, `the probe did not wait for the child's end of output (${elapsed} ms)`)
+  assert.ok(elapsed < 15000, `the probe did not wait for the child's end of output (${elapsed} ms)`)
   await new Promise((r) => setTimeout(r, 200))
   const heldPid = Number(readFileSync(path.join(bin2, 'held.pid'), 'utf8'))
   let heldAlive = true

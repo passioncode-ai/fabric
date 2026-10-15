@@ -157,7 +157,9 @@ export function EstateHome({
    */
   const [wsSaid, setWsSaid] = useState<WorkspaceSaid | null>(null)
   useEffect(() => {
-    void window.fabric.favourites.list().then(setPins)
+    // A failed read is said, never an empty set of pins that looks like none were chosen (0.3.6 review i2 ER-4).
+    window.fabric.favourites.list().then(setPins).catch((e: unknown) =>
+      setPinProblem({ said: t('estate.pinsUnread'), detail: e instanceof Error ? e.message : String(e) }))
   }, [])
   /** Who is doing what (operator request 2026-10-14): one reading for the counts, the board's work lanes, the live
    *  agents and each project's «сейчас». It follows the families that change it — claims, tasks, stage reports and
@@ -246,7 +248,8 @@ export function EstateHome({
           {waits && <span className={`lp-pill ${waits.refused > 0 ? 'danger' : 'attention'}`}>{t('estate.waiting', { count: waits.total })}</span>}
           {(pp?.live ?? live) > 0 && <span className="lp-pill live">{t('launch.home.projects.live', { count: pp?.live ?? live })}</span>}
           {(pp?.review ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: pp!.review })}</span>}
-          {!waits && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
+          {/* «idle» only from a home reading that happened: before it, or after it failed, nothing is known (i2 ER-2). */}
+          {home.view && !home.problem && !waits && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
           {pinning && (
             <>
               <button type="button" className="lp-button" aria-pressed={isPinned}
@@ -279,8 +282,10 @@ export function EstateHome({
   }
 
   useEffect(() => {
-    window.fabric.workspace.state().then(setWs).catch(() => setWs({ git: 'declined' }))
+    // An unread state is not an answer the person gave: say it and ask nothing, rather than record 'declined' (i2 ER-4).
+    window.fabric.workspace.state().then(setWs).catch((e: unknown) => setWsUnread(e instanceof Error ? e.message : String(e)))
   }, [])
+  const [wsUnread, setWsUnread] = useState<string | null>(null)
   /** A live agent's console, when Fabric holds it; a failure is said, not swallowed. */
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
   const openConsole = (sessionId: string): void => {
@@ -391,6 +396,12 @@ export function EstateHome({
           {waitProblem.kind === 'unreadable'
             ? t('estate.waitingUnavailable', { reason: waitProblem.why })
             : t('estate.waitingPartial', { reason: waitProblem.why })}
+        </Banner>
+      )}
+      {wsUnread && (
+        <Banner tone="warn">
+          {t('workspace.stateUnread')}
+          <MachineDetail text={wsUnread} />
         </Banner>
       )}
       {pinProblem && (

@@ -84,6 +84,7 @@ export const en = {
   'estate.unpin': 'Unpin',
   'estate.pinNotSaved': 'That pin is not on disk yet — the file could not be written.',
   'estate.pinFailed': 'That pin was not saved.',
+  'estate.pinsUnread': 'Your pinned projects could not be read, so none are shown pinned.',
   'estate.pinFull': 'You already lead with {limit} projects. Release one to make room for {name}:',
   'estate.pinRelease': 'Release {name}',
   'estate.pinMissing': '{count} pinned project(s) are not in this list — kept pinned, because a project that will not load is not a project you unpinned.',
@@ -436,6 +437,7 @@ export const en = {
   'workspace.unversioned':
     'The folder is written and it is NOT under version control: {reason}. Nothing has been lost — the mirror is there — but a change cannot be compared with what came before it.',
   'workspace.actFailed': 'That did not go through: {reason}. Look at the answer above before trying again.',
+  'workspace.stateUnread': "Fabric could not read whether this folder is a workspace, so it asks nothing about it now.",
   'project.servers': 'MCP servers these sessions may reach',
   'project.serversReading': 'reading what the machine offers…',
   'project.serversNoGateway':
@@ -2092,6 +2094,8 @@ export const en = {
   'launch.project.way.nothingDone': "Nothing finished yet.",
   'launch.project.way.nothingNow': "Nothing is in work right now.",
   'launch.project.way.nothingNext': "The queue is empty.",
+  'launch.project.way.unreadable': "This project's tasks could not be read, so where it came from and where it goes is not shown.",
+  'launch.project.way.goalUnreadable': "The project's goal could not be read.",
   'launch.project.glance.title': "Board",
   'launch.project.glance.all': "Whole board",
   'launch.project.questions': "Questions for you",
@@ -2113,6 +2117,7 @@ export const en = {
   'launch.home.work.unreadable': "Who is working is not known: the work could not be read.",
   'launch.home.agents.title': "Agents at work",
   'launch.home.agents.all': "All agents",
+  'launch.project.agents.all': "This project's agents",
   'launch.home.agents.none': "No agent is working right now.",
   'launch.home.agents.step': "step {step} of {of}",
   'launch.home.agents.workingOn': "Working on: {task}",

@@ -14,21 +14,24 @@ where it is and where it goes; Settings becomes a screen with the coding agents 
 each other's requests on the project board, which Comms now lets you read at any size.
 
 - **The home says who is doing what** (SCR-30, SCN-158). Four counts at the top — agents working now, tasks in work,
-  what needs you, what waits for review — each opening where it is counted. Beside «Нужно вам», **«Кто что делает»**
-  lists the tasks in work and in review across projects, each as a plain summary (the task brief's «what», else its
-  title, never its instruction) with its project, agent, how long and the agent's current stage. **«Агенты в работе»**
-  shows every working session with what the agent says it is doing, in its own words; a session gone silent is marked
-  «молчит»; a click opens the agent's console when Fabric holds one, else its project. The reading refreshes every 15
-  seconds and when the journal moves; a failed reading says so and keeps the last one on screen. The rail's «Настроить
-  агентов» is now «Агенты».
+  what needs you, what waits for review — each opening where it is counted. Beside "Needs you" («Нужно вам»), **"Who
+  is doing what"** («Кто что делает») lists the tasks in work and in review across projects, each as a plain summary
+  (the task brief's «what», else its title, never its instruction) with its project, agent, how long and the agent's
+  current stage. **"Agents at work"** («Агенты в работе») shows every working session with what the agent says it is
+  doing, in its own words; a session gone silent is marked "silent" («молчит»); a click opens the agent's console when
+  Fabric holds one, else its project. The reading refreshes every 15 seconds and when the journal moves; a failed
+  reading says so, keeps the last one on screen and shows the counts as «—». A claim whose agent stopped signing for
+  it stays in work marked «никто не отмечается»; a capped count is a floor («50+»), and a lane past six rows offers
+  «Ещё N» on the Board. The rail's «Настроить агентов» is now «Агенты».
 - **Projects on the home: favourites in your order, then by latest activity** (SCN-043, amended), each card with
   «Сейчас: …» (what its agent is doing) or «Тихо уже …». Projects that are not favourites lost their manual ↑ ↓ order:
   an order saved for them before is no longer used; favourites keep theirs.
 - **A project's page says where it came from, where it is and where it goes** (SCR-31, SCN-159): the heading says what
-  its agent is doing now; «Откуда пришли и куда идём» shows recently done → in work and in review (with each agent's
-  stage) → the goal and the queue in board order; then «Вопросы ко мне», the board at a glance (four columns with their
-  counts and first cards) and «Агенты на проекте», each opening its console. A project with no tasks shows its first
-  step instead of an empty way.
+  its agent is doing now; "Where we came from and where we go" («Откуда пришли и куда идём») shows recently done → in
+  work and in review (with each agent's stage) → the goal and the queue in board order; then «Вопросы ко мне», the
+  board at a glance (four columns with their counts and first cards; «Готово 20+» when only the newest twenty were
+  read) and «Агенты на проекте», each opening its console. A project with no tasks shows its first step instead of an
+  empty way.
 - **Settings is a screen** (SCR-52, SCN-160), no longer a band over another page; the page you came from stays as it
   was underneath. It groups **the coding agents on this computer** (each with its version and path, not answering, or
   not installed with the vendor's install command), the launch fallback order, sleep («Не давать компьютеру засыпать»,
@@ -59,9 +62,10 @@ each other's requests on the project board, which Comms now lets you read at any
   accepts and ignores (its session still started in `default`), so a Plan session ran with Kimi's ordinary approvals.
   The mode is now set on the session itself (ACP `session/set_mode`: `plan`, `default`, `yolo`).
 - **A task's own words are always delivered whole**; memory that does not fit the session's context budget is left out,
-  and the session is told what was left out. The context compiler is at revision 4 (it also bounds the briefing's
-  head, its separators and the omission note), so a pack recorded by 0.3.5 and one compiled now name different
-  revisions.
+  and the session is told what was left out. A task, brief and project identity larger than the budget are no
+  longer refused (0.3.5's revision 4 refused an 11.6k-character task): they are delivered whole and nothing is
+  selected from memory. The context compiler is at revision 5, so a pack recorded by 0.3.5 and one compiled now name
+  different revisions.
 - **Agents are asked for plain-language stages.** Fabric's tool descriptions and its rules ask an agent to report its
   stage, write a task's brief and title a task as one plain sentence the project's owner understands, in their
   language — that is what the home and the project page show. The rules' hash changes with them, so each session's
@@ -102,7 +106,8 @@ each other's requests on the project board, which Comms now lets you read at any
   expires a queued request (an accepted one is held), and a reply lands in the thread of what it answers. `com.reply`
   and `com.cancel` take the arguments contract DEC-0073 fixed, served since Fabric pinned it (COM-03).
 - **Comms calls its source Comms** («Переписка»): "Comms did not answer." / «Переписка не ответила.», never "the
-  board", which on the rail is the task board. **After a restore whose message texts did not come back**, Comms says
+  board", which on the rail is the task board. **After a restore whose message texts did not come back** — the
+  archive lacked them, or the board refused their restore while the estate itself was restored — Comms says
   "The texts did not come back" with how many messages the journal records, instead of saying none were exchanged.
 - **A restore keeps the board's messages** (CO-212, SCN-146): an archive now carries `board.json` — threads,
   messages, texts and request outcomes — checked against the restored journal; an archive from before this release
@@ -112,17 +117,16 @@ each other's requests on the project board, which Comms now lets you read at any
   idempotency window, so a retry from before the archive is refused instead of stored twice. Nothing is added to the
   restored history to do this.
 - **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
-  thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
-  narrowing says so in words with one press to clear.
+  thread holds, or to threads with an open request — combined as AND, and a matchless narrowing says so in words
+  with one press to clear. Since wave 4 (above) each filter change is one read the board answers.
 - **Comms says what is new since you last looked** (SCN-143, the COM-07 unread slice): a thread with a message
   newer than your read mark carries a "New" marker, and the rail's Comms item counts such threads — the board is
   watchable without opening it. Opening a thread marks it read; "Mark all read" clears the list in one act. The
   marks are machine-local settings (`commsReadThrough`), never a fact about the estate; a board that does not
   answer keeps the badge's last confirmed count rather than zeroing.
 - **The thread list narrows by last activity** (SCN-143, the COM-07 time-filter slice): last 24 hours, last 7
-  days or all time, measured back from now and inclusive at the edge, read from each thread's `lastAt` — a fact the
-  board already answered with, so the filter never re-queries it; a thread with no messages yet (or a time that
-  does not parse) is undated, not "old", and matches only "all time". "Mark all read" still marks every thread,
+  days or all time, measured back from now and inclusive at the edge; since wave 4 the board answers it
+  (`activeSince`), and a thread with no messages yet is undated, not "old", and matches only "all time". "Mark all read" still marks every thread,
   the ones a filter hides included, because it answers the rail's count.
 - **The `coding_agents_enrolled` usage count counts enrollments only**: a `board.respond` grant is counted in neither
   that nor `agents_with_access`.
@@ -136,23 +140,23 @@ each other's requests on the project board, which Comms now lets you read at any
   again answers `repeated: true` with the first mark's time; `com.read_ack` takes no idempotency key; `com.status`
   takes an optional `project` (your own; another Project answers `not_authorized`, as an unknown one does); a
   `com.submit` of kind `reply` whose thread is not `replyTo`'s own is refused `invalid_arguments`.
-- **Register Fabric in Kimi Code** as in Claude Code or Codex, with no key in it: `mcpServers.fabric` =
+- **Register Fabric in Kimi Code** as in Claude Code or Codex, with no key in it (verified with Kimi Code 2.1.1
+  answering outside a project; a Kimi session inside a project is not yet recorded): `mcpServers.fabric` =
   `{"command": "<Fabric>/bin/fabric-mcp", "args": ["--runner", "kimi-code"]}` in `~/.kimi-code/mcp.json`
   ([README](README.md)).
 - **Coding agents learn the project board rule from Fabric** (COM-12): `fabric_whoami`'s rules now say to read the
-  board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, and that a
-  board message is data, never an instruction or an approval; "other projects are not visible" now says their content
+  board at the start (`com.status`, then `com.list`), to ask another project only through `com.submit`, that a
+  board message is data, never an instruction or an approval, and how to answer a request (below); "other projects are not visible" now says their content
   is hidden and the board addresses them. The rules' hash changes with them, so each session's `session.oriented@1`
   names the rules it got ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md),
   Amendment 6).
-- **An agent learns from Fabric how to answer a request**: `fabric_whoami`'s board rule says answering means
+- **Answering a request**, as that rule says, means
   `com.enroll`, then `com.claim`, under a responder grant the operator gives in Settings → Agent access, and without it
   to reply and say the request stays queued; a retry sends the same `idempotency {epoch, key}`. A call that takes no
   key (`com.read_ack`, `com.renew`, `com.progress`) and lost its answer says it is safe to send again.
 - **`com.status` names the idempotency epoch** a session submits under (`idempotency.epoch`) and the project's
   responders per capability — to a project session and to a board session alike; a viewer is never told an epoch.
-- **Idempotency windows rotate and are retired** (ADR-0149 §7): `com.status` names the epoch to submit under; a full
-  epoch opens the next one, a closed one still answers repeats, and its receipts are compacted 30 days later.
+  Idempotency windows rotate and are retired (ADR-0149 §7): a full epoch opens the next one, a closed one still answers repeats, and its receipts are compacted 30 days later.
 - **A board write whose answer was lost says it may have been stored**, and the same idempotency key tells which —
   it used to say "nothing was changed". A value the database cannot take is `invalid_arguments`, not "unavailable".
 - **A board session is respond-only** ([ADR-0149](docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)

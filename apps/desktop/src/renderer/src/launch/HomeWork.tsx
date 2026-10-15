@@ -49,9 +49,10 @@ export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: Ho
   // After a failed read the last numbers are not current: the strip says it cannot tell (0.3.6 review ER-7).
   const known = v && !reading.problem ? v : null
   const working = known ? known.live.filter((l) => !l.stale).length : null
-  const inWork = known ? known.inWork.filter((w) => w.live).length : null
+  // The same number the «В работе» lane heads with: a claim nobody is signing for is still in work, and says so there.
+  const inWork = known ? known.inWork.length : null
   const cell = (n: number | string | null, label: string, onClick: () => void, tone = '') => (
-    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={reading.problem ? t('launch.home.work.unreadable', { reason: reading.problem }) : undefined}>
+    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={reading.problem ? t('launch.home.work.unreadable') : undefined}>
       <b>{n === null ? '—' : n}</b>
       <span>{label}</span>
     </button>
@@ -90,7 +91,8 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
         <span className="lp-meta">
           {[w.projectName, w.agent ? runnerLabel(w.agent, t) : null, since(w.since, t)].filter(Boolean).join(' · ')}
         </span>
-        {w.live ? w.doing && <Doing item={w} /> : <span className="lp-pill">{t('launch.home.work.notSigning')}</span>}
+        {/* A live task with no stage says so, as «Агенты в работе» does — never a blank line (i2 UX-6); the title is already the summary. */}
+        {w.live ? <Doing item={{ doing: w.doing }} /> : <span className="lp-pill">{t('launch.home.work.notSigning')}</span>}
       </button>
     </li>
   )
@@ -158,7 +160,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title
           <span className={`lh-live-indicator ${working ? '' : 'is-quiet'}`} aria-hidden="true" />
           {title ?? t('launch.home.agents.title')} {v && <span className="lp-count">{working}</span>}
         </h3>
-        <button type="button" className="lp-button lh-text-link" onClick={onAll}>{t('launch.home.agents.all')}</button>
+        <button type="button" className="lp-button lh-text-link" onClick={onAll}>{projectId ? t('launch.project.agents.all') : t('launch.home.agents.all')}</button>
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}

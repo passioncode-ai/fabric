@@ -36,6 +36,8 @@ const healthy = {
 }
 const factsRefused = { ...healthy, memory_facts: { data: null, error: { message: 'permission denied for table memory_facts' } } }
 
+// Two compiles differ only in the clock line they carry; compare what they deliver without it.
+const unclocked = (md) => md.replace(/Compiled by Fabric at \S+/, 'Compiled by Fabric at <time>')
 let failures = 0
 const test = async (name, fn) => {
   try { await fn(); console.log('  ok   ' + name) } catch (e) { failures++; console.log('  FAIL ' + name + '\n       ' + String(e.message).split('\n').join('\n       ')) }
@@ -116,7 +118,7 @@ await test('an invalid budget cannot produce a pack; a tiny valid one carries th
   }
   const whole = await compileContextPack({ store: store(healthy), projectId: 'p1' })
   const tiny = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: 1 })
-  assert.equal(tiny.markdown, whole.markdown)
+  assert.equal(unclocked(tiny.markdown), unclocked(whole.markdown))
   assert.deepEqual(tiny.factIds, [])
 })
 
@@ -144,7 +146,7 @@ await test('an empty pack fits its exact size, including the final newline', asy
   const exact = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars })
   assert.equal(exact.chars, first.chars)
   const short = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars - 1 })
-  assert.equal(short.markdown, first.markdown, 'one character short still delivers the head whole, never cut')
+  assert.equal(unclocked(short.markdown), unclocked(first.markdown), 'one character short still delivers the head whole, never cut')
 })
 
 if (failures) { console.log('\n' + failures + ' failure(s)'); process.exit(1) }

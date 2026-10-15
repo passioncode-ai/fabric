@@ -109,12 +109,6 @@ button:disabled { opacity: .4; cursor: default; }
 }
 .tabbar-estate { margin-left: auto; align-self: center; color: var(--app-muted); font-size: var(--app-fs-caption); }
 
-.settings-bar {
-  /* Wraps and aligns to the top: the usage switch's note is a paragraph, and in one non-wrapping row it
-     stretched the panel buttons beside it to ~340 px (0.3.2 verification i3 UX-5). */
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-5); padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--app-line); background: var(--app-panel);
-}
 .settings-usage { display: flex; flex-direction: column; gap: var(--space-1); max-width: 42ch; }
 /* The fallback order (ADR-0125): heading, note, then one aligned row per agent (0.3.3 verification UX-7). */
 .settings-fallback { display: flex; flex-direction: column; gap: var(--space-2); max-width: 64ch; }
@@ -124,7 +118,6 @@ button:disabled { opacity: .4; cursor: default; }
 .settings-fallback-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .settings-fallback-add { display: flex; gap: var(--space-2); align-items: center; }
 .settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
-.settings-bar label { display: flex; gap: var(--space-2); align-items: center; color: var(--app-muted); }
 
 /* min-width: 0 — a flex item defaults to its widest descendant, so without it one wide row (the plan's
    node track at 1280 px) pushed the whole page past the window. It was set only beside a side panel. */

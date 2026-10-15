@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-plan.md",
+  "reportSha256": "34a1749767761d059f5393a249a2cbd67423913d6c6767966879f9f702daf972",
+  "reviewerRun": "release-036-i2-plan-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-33",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed with V2-23"
+      ]
+    },
+    {
+      "id": "V2-34",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Now names P-18 (0.3.6, schema 89) then P-19; the upgrade sentence says schema 89"
+      ]
+    },
+    {
+      "id": "V2-35",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19 row is its home; the dated plan's body stays as written (dated documents are not rewritten), its header note records the move"
+      ]
+    },
+    {
+      "id": "V2-36",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-277 and CO-284 re-dated to 0.3.7; CO-293 re-dated, not reproduced; CO-281 resolved on a green complete gate"
+      ]
+    },
+    {
+      "id": "V2-37",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: not reproduced — `agent-surface.test.mjs` on a disposable stack at `339c44e1`: 43 tools with `com.directory`, `fabric_whoami` names the project; CO-303 resolved"
+      ]
+    },
+    {
+      "id": "V2-38",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: complete local `bash scripts/ci.sh fast` on `339c44e1` exit 0 (2026-10-15, load1 above 300); the final candidate's run is a release-close step"
+      ]
+    },
+    {
+      "id": "V2-39",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one number (CO-311), the counter named as the authority"
+      ]
+    },
+    {
+      "id": "V2-40",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Release close» list below; the gate file changes in the release commit"
+      ]
+    }
+  ]
+}

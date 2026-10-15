@@ -711,7 +711,7 @@ flowchart TD
   | SCR-29 Public landing page | success, image unavailable, narrow viewport, reduced motion |
 
 ### FLW-21: Open the estate and reach what needs you
-- **Traces:** ST-032, ST-033, ST-028 (JTBD-02)
+- **Traces:** ST-032, ST-033, ST-028 (JTBD-02); scenarios SCN-158 (who is doing what on the home), SCN-159 (a project's way), SCN-161 (the stack still starting at launch)
 - **Goal:** the operator sees who is waiting, opens the right project, and can read the estate's own record and a project's memory without hunting
 - **Entry points:** application launch; the manager control on any screen
 - **Success exit:** the operator is inside the project that needed them, or has answered what was waiting
@@ -1275,7 +1275,7 @@ flowchart TD
 
 
 ### FLW-40: Настройки рабочего пространства
-- **Traces:** SCN-071, SCN-134
+- **Traces:** SCN-071, SCN-134, SCN-135, SCN-160
 - **Goal:** Настроить тему, локаль, поведение пробуждения, хранение и допустимые проектные ограничения.
 - **Entry points:** Общая навигация → SCR-52.
 - **Success exit:** Текущая квитанция изменения или явное отсутствие допустимого действия.
@@ -1285,6 +1285,7 @@ flowchart TD
 ```mermaid
 flowchart TD
  N0["Screen: SCR-52 · Выбрать локальные предпочтения установки"] --> N1
+ N0 --> A0["Screen: SCR-52 · Увидеть агентов на этом компьютере — каталог Switchboard и найденное Fabric (SCN-160)"]
  N1["Screen: SCR-52 · Сохранить тему, язык и awake policy"] --> N2
  N2["Screen: SCR-52 · Открыть отдельно политику Estate"] --> N3
  N3["Screen: SCR-52 · Проверить trust и сужающий override проекта"] --> N4
@@ -2741,7 +2742,7 @@ flowchart TD
 ### FLW-92: List or unlist a project for other projects, with a preview
 - **Traces:** SCN-149 (COM-06; designed, NOT built); [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md) §5–§6; [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) Amendment 1 §4; contract DEC-0073 §8
 - **Goal:** Decide which projects other projects can find, seeing exactly what they would see before the change.
-- **Entry points:** Settings → "Project directory" (SCR-83, in the Settings band of SCR-52); the link from Agents & access (SCR-76).
+- **Entry points:** Settings → "Project directory" (SCR-83, on the Settings screen SCR-52); the link from Agents & access (SCR-76).
 - **Success exit:** the switch shows what the directory says after the change, announced; other projects' next directory read agrees.
 - **Task analysis:** find the project; open what other projects see; switch; read the result.
 - **Flow:**
@@ -2765,7 +2766,7 @@ flowchart TD
   | Screen | States used here |
   |---|---|
   | SCR-83 Project directory | loading, read, unavailable, preview, saving, saved, already, refused, may-have-saved, member |
-  | SCR-52 Workspace settings | the Settings band's entry to SCR-83 |
+  | SCR-52 Workspace settings | the Settings screen's entry to SCR-83 |
   | SCR-76 Agent access | the link to SCR-83 |
 - **Scenarios:** SCN-149
 - **Implementation tasks:** COM-06 (wave 4: W4-7, W4-8, W4-10); closes CO-286 when built

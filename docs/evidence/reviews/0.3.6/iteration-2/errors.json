@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-errors.md",
+  "reportSha256": "2f15e7a992bc2388ac45105e5871f5b01e5bbb6b29b4677d307646ef0a01ca6e",
+  "reviewerRun": "release-036-i2-errors-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-10",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ProjectLaunch.tsx` keeps `goalsProblem`; `ProjectWay.tsx` says «Цель проекта не прочитана.»"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `workRead.ts#readHome` reads every review task's project, `homeLive.ts#composeHome` counts from it (test, planted back failed); «idle» only from a reading that happened (`EstateHome.tsx`)"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed with V2-23"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both said in a banner; a failed workspace read is no longer recorded as 'declined' (`EstateHome.tsx`)"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ProjectHome.tsx` keeps `tasksProblem`; `ProjectWay.tsx` says it"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-310 (0.3.7)"
+      ]
+    }
+  ]
+}

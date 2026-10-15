@@ -3848,10 +3848,12 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Alt paths:** no agent is working -> «Сейчас ни один агент не работает.» from a READ list; no task in work or in review -> each lane says so.
 - **UI elements:** the counts strip (`HomeStats`), the «Кто что делает» panel (`HomeWorkLanes`), «Агенты в работе» (`HomeAgents`) on SCR-30; the project card's «now» line.
 - **States covered:** loading («Читаю…»), empty (nobody working, nothing in work or review), error (the reading failed — said, never shown as nobody working), success, stale agent
-- **Errors & recovery:** a failed reading says «Неизвестно, кто работает: <причина>» and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.
+- **Errors & recovery:** a failed reading says «Неизвестно, кто работает: работу не удалось прочитать.», with the machine's reason on its own line beneath, and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Amended 2026-10-14 (release review UX-5):** a reading that fails is our sentence in the operator's language — «Неизвестно, кто работает: работу не удалось прочитать.», «Не удалось открыть консоль.», «Доску не удалось прочитать.», «Порядок не сохранён.» — and the machine's own words stand on a second line beneath it, never inside the sentence.
+- **Amended 2026-10-15 (release review i2 UX-6):** a live task in «В работе» whose agent has reported no stage says «Ещё не сказал, что делает», as «Агенты в работе» does — never a blank line.
+- **Amended 2026-10-15 (release review i2 DO-3, states from iteration 1):** a claim whose agent no longer signs for it stays in «В работе» with the pill «никто не отмечается» instead of a stage; the strip's «задач в работе» counts the same set as the lane's heading, so the screen shows one number; a capped reading is a floor — «50+» when 50 tasks wait for review, «200+» past 200 in work; each lane shows six rows and «Ещё N» opens the Board; after a failed reading the counts show «—», never the last numbers as current.
 - **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs` (home, project, settings — 2026-10-14 PASS)
 - **Product:** unobserved
 
@@ -3863,7 +3865,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Preconditions:** the project exists; it may have no tasks yet
 - **Steps:**
   1. Operator opens the project -> the heading carries its name, its purpose and, when an agent is working, «Сейчас: <what the agent says it is doing>».
-  2. Operator reads «Откуда пришли и куда идём» -> three columns: «Сделано недавно» (the newest finished tasks), «Сейчас» (in work, then in review, each with its agent's current stage), «Дальше» (the goal, then the queue in its board order). Every task is its plain summary (brief, else title, else the first line of its instruction, cut at a word); a click opens the task.
+  2. Operator reads «Откуда пришли и куда идём» -> three columns: «Сделано недавно» (the newest finished tasks), «Сейчас» (in work, then in review, each with its agent's current stage), «Дальше» (the goal, then the queue in its board order). Every task is its plain summary (its brief's «what», else its title; never its instruction, which is the prompt — a task with neither says «Задача без описания»); a click opens the task.
   3. Operator reads «Вопросы ко мне» -> what on this project waits for the operator, first the most important; «Разобрать вопрос» opens the first on the Board.
   4. Operator glances at «Доска» -> the four columns (backlog, in work, to review, done) with their counts and first cards; «Вся доска» goes to the full board below, «+ Задача» writes a new one.
   5. Operator reads «Агенты на проекте» -> this project's working agents in their own words; a click opens the console Fabric holds.
@@ -3875,6 +3877,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Amended 2026-10-14 (release review UX-5):** a board, team or console that fails is said in the operator's language — «Доску не удалось прочитать.», «Команду не удалось прочитать.», «Не удалось открыть консоль.» — with the machine's own words on a second line beneath, never inside the sentence.
+- **Amended 2026-10-15 (release review i2 DO-2/DO-3/UX-3):** a task is never named by its instruction (step 2) on the way and the board glance; the one exception is «Вопросы ко мне», which shares the Board's attention rows and names a legacy task with neither brief nor title by the first line of its instruction, cut at a word, so the operator can recognise what waits for them; the board glance's «Готово» count is a floor, «20+», when the page read only the newest twenty finished tasks, and «Вся доска» then shows them all.
 - **Coverage:** `apps/desktop/src/shared/projectPath.ts`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; tests `apps/desktop/src/shared/projectPath.test.ts`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx`
 - **Product:** unobserved
 
@@ -3896,7 +3899,8 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Amended 2026-10-14 (release review UX-5):** "its read fails -> the reason is said" now means our sentence, «Каталог Switchboard не прочитан — показано то, что Fabric нашёл на этом компьютере.» (and «Не удалось поискать агентов.» when Fabric's own detection fails), with the machine's reason on a second line beneath it, never in brackets inside the sentence.
-- **Coverage:** `apps/desktop/src/shared/agentCatalog.ts`, `apps/desktop/src/main/agentCatalogRead.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, `apps/desktop/src/renderer/src/App.tsx`; tests `apps/desktop/src/shared/agentCatalog.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`. Measured 2026-10-14 on the operator's Mac: Switchboard 0.6.30 → `too-old`.
+- **Amended 2026-10-15 (release review i2 DO-3):** a catalogue Switchboard publishes in a format this Fabric does not read says so in words («…в формате, который этот Fabric не читает…») and shows what Fabric found on this computer; an agent Switchboard says nothing about carries no «установлен»/«не установлен» pill rather than a guess.
+- **Coverage:** `apps/desktop/src/shared/agentCatalog.ts`, `apps/desktop/src/main/agentCatalogRead.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, `apps/desktop/src/renderer/src/App.tsx`; tests `apps/desktop/src/shared/agentCatalog.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`. Measured 2026-10-14 on the operator's Mac: Switchboard 0.6.30 → `too-old`; after the upgrade, Switchboard 0.6.31 → the `{ok, data}` envelope read, 30 agents listed (ledger V1-27).
 - **Product:** unobserved
 
 ### SCN-161: Fabric opens while its stack is still starting

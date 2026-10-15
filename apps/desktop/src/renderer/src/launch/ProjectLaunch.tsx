@@ -17,12 +17,14 @@ import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
 import { projectPath } from '../../../shared/projectPath'
 import { FailureNote } from '../OperatorError'
 
-export function ProjectLaunch({ project, tasks, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
+export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
   onPulse?: () => void
   project: ProjectRow
   /** Null until read (M108). */
   tasks: TaskRow[] | null
+  /** The tasks read failed; the way says so instead of reading forever. */
+  tasksProblem?: string | null
   /** Whether the closed half of `tasks` was cut (the list reads the newest closed only): then «Готово» is a floor (DA-3). */
   closedCapped?: boolean | 'unknown' | null
   sessions: TerminalSession[] | null
@@ -43,6 +45,7 @@ export function ProjectLaunch({ project, tasks, closedCapped = false, sessions, 
   const [goals, setGoals] = useState<GoalRow[] | null>(null)
   const [team, setTeam] = useState<CreatedAgent[] | null>(null)
   const [teamProblem, setTeamProblem] = useState<string | null>(null)
+  const [goalsProblem, setGoalsProblem] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -50,7 +53,10 @@ export function ProjectLaunch({ project, tasks, closedCapped = false, sessions, 
       (b) => { if (alive) { setBoard(b); setBoardProblem(null) } },
       (e: unknown) => alive && setBoardProblem(e instanceof Error ? e.message : String(e))
     )
-    window.fabric.goals.list(project.id).then((g) => alive && setGoals(g), () => alive && setGoals(null))
+    window.fabric.goals.list(project.id).then(
+      (g) => { if (alive) { setGoals(g); setGoalsProblem(null) } },
+      (e: unknown) => alive && setGoalsProblem(e instanceof Error ? e.message : String(e))
+    )
     window.fabric.agents.list(project.id).then(
       (a) => { if (alive) { setTeam(a); setTeamProblem(null) } },
       (e: unknown) => alive && setTeamProblem(e instanceof Error ? e.message : String(e))
@@ -103,7 +109,7 @@ export function ProjectLaunch({ project, tasks, closedCapped = false, sessions, 
             </section>
           ) : (
             <ProjectWay path={path} inWork={home.view ? home.view.inWork.filter((w) => w.projectId === project.id) : null}
-              goal={goal?.title ?? null} onOpenTask={onOpenTask} onPlan={onPlan} />
+              goal={goal?.title ?? null} problem={tasksProblem} goalProblem={goalsProblem} onOpenTask={onOpenTask} onPlan={onPlan} />
           )}
 
           <section className="lp-panel" aria-labelledby="project-board-title">

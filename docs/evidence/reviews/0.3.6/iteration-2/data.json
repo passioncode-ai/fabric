@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.6",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525",
+  "report": "docs/evidence/reviews/0.3.6/iteration-2/2026-10-14-data.md",
+  "reportSha256": "d01aa7857abde5f8984ad75d3505536e1fc1d9f5c4bb4c83b8b0dd5cd19a74e5",
+  "reviewerRun": "release-036-i2-data-20261014",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-16",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed with V2-23"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `run-project-board-operator-db` joins the owned-cluster loop in `scripts/ci.sh`; run on isolated PostgreSQL: 12 passed, 0 failed"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-310 (0.3.7)"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `homeLive.ts#composeHome` leaves them off the home (test)"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG — Comms says the texts did not come back whether the archive lacked them or their restore was refused"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "DA-6",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: they only replace existing functions (grants kept); `run-function-privileges-db` on isolated PostgreSQL PASS, 5 cases"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-309 (already open)"
+      ]
+    }
+  ]
+}

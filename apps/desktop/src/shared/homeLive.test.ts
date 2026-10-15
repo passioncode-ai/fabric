@@ -139,4 +139,18 @@ describe('composeHome — work nobody is doing is not current (0.3.6 review UX-2
     const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: many, limits: { review: 3 }, activity: new Map(), now: 'x' })
     expect(v.reviewCapped).toBe(true)
   })
+  it('a task of a project that is not active is not on the home (0.3.6 review i2 DA-4)', () => {
+    const gone = { id: 'g1', project_id: 'not-active', title: 'old', brief_what: null, status: 'review' }
+    const run = { id: 'g2', project_id: 'not-active', title: 'old', brief_what: null, status: 'running' }
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: [gone], runningTasks: [run], activity: new Map(), now: 'x' })
+    expect(v.review).toEqual([])
+    expect(v.inWork).toEqual([])
+  })
+  it("a project's review count is its own, not what fell into the capped list (0.3.6 review i2 ER-2)", () => {
+    const listed = [{ id: 'r0', project_id: P1, title: 'r', brief_what: null, status: 'review' }]
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: listed, limits: { review: 1 },
+      reviewProjectIds: [P1, projects[1].id, projects[1].id], activity: new Map(), now: 'x' })
+    expect(v.projects.find((p) => p.projectId === P1)!.review).toBe(1)
+    expect(v.projects.find((p) => p.projectId === projects[1].id)!.review).toBe(2)
+  })
 })

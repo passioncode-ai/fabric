@@ -104,7 +104,9 @@ test('timed-out committed write retains one slot across methods; late reply issu
  assert.equal((await f.publisher.publish()).reason,'reconcile_required');assert.equal((await f.publisher.reconcile()).state,'configured');assert.equal(f.writes.length,1)
 })
 test('pending read is bounded and synchronous reentry cannot enter another operation',async()=>{
- const f=fixture({existing:true,timeoutMs:10});let finish,reentry
+ // 250 ms, not 10: at 10 the deadline could pass before the read began, so the hook never ran and `reentry` stayed
+ // undefined (2 of 5 runs, 0.3.6 release gate 2026-10-15). The read hangs until finish(), so it still times out.
+ const f=fixture({existing:true,timeoutMs:250});let finish,reentry
  f.readHook=()=>{reentry=f.publisher.publish();return new Promise(resolve=>finish=resolve)}
  assert.equal((await f.publisher.configure()).state,'unknown');assert.equal((await reentry).reason,'io_outstanding')
  for(let i=0;i<10;i++)assert.equal((await f.publisher.configure()).reason,'io_outstanding')

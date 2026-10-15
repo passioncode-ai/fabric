@@ -168,6 +168,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'estate.unpin': 'Открепить',
   'estate.pinNotSaved': "Закрепление не сохранено: не удалось записать файл.",
   'estate.pinFailed': "Закрепление не сохранено.",
+  'estate.pinsUnread': "Избранные проекты не прочитаны — поэтому ни один не показан закреплённым.",
   'estate.pinFull': "Закреплено максимум проектов: {limit}. Открепите один, чтобы закрепить «{name}»:",
   'estate.pinRelease': "Открепить «{name}»",
   'estate.pinMissing': "Закреплённые проекты, которых нет в этом списке: {count}. Они остаются закреплёнными: если проект не загрузился, это не значит, что вы его открепили.",
@@ -722,6 +723,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'workspace.unversioned':
     "Файлы записаны в папку, но она не под контролем версий: {reason}. Ничего не потеряно — копия на месте, но сравнить изменения с прежним состоянием нельзя.",
   'workspace.actFailed': "Не получилось: {reason}. Прежде чем повторять, прочитайте ответ выше.",
+  'workspace.stateUnread': "Fabric не смог прочитать, рабочая ли это папка, поэтому сейчас ничего о ней не спрашивает.",
   'ceo.unreadable':
     "Не удалось прочитать, что вас ждёт: {reason}. Список пуст, потому что данные не получены, а не потому, что ничего не ждёт.",
   'ceo.partial':
@@ -1448,6 +1450,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.project.way.nothingDone': "Пока ничего не завершено.",
   'launch.project.way.nothingNow': "Сейчас ничего не в работе.",
   'launch.project.way.nothingNext': "Очередь пуста.",
+  'launch.project.way.unreadable': "Задачи проекта не прочитаны — поэтому путь проекта не показан.",
+  'launch.project.way.goalUnreadable': "Цель проекта не прочитана.",
   'launch.project.glance.title': "Доска",
   'launch.project.glance.all': "Вся доска",
   'launch.project.questions': "Вопросы ко мне",
@@ -1469,6 +1473,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.home.work.unreadable': "Неизвестно, кто работает: работу не удалось прочитать.",
   'launch.home.agents.title': "Агенты в работе",
   'launch.home.agents.all': "Все агенты",
+  'launch.project.agents.all': "Агенты этого проекта",
   'launch.home.agents.none': "Сейчас ни один агент не работает.",
   'launch.home.agents.step': "шаг {step} из {of}",
   'launch.home.agents.workingOn': "Работает над: {task}",

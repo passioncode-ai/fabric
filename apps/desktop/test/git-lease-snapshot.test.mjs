@@ -158,7 +158,9 @@ test('default command transport isolates inherited config, TLS bypass and execut
   try {
     process.env.PATH = bin + ':' + process.env.PATH
     for (const name of names.slice(1)) process.env[name] = 'untrusted-fixture'
-    const out = JSON.parse(await leaseGit(['ls-remote', '--refs', remote, exactLeaseRef(base.key)], { cwd: root, timeoutMs: 1000, maxBytes: 16384 }))
+    // What is checked is the argv and the environment, not speed: the fake git is a Node script, and at load 300 its
+    // start alone outlasted a 1 s deadline (0.3.6 release gate, 2026-10-15). 10 s keeps a hang a failure.
+    const out = JSON.parse(await leaseGit(['ls-remote', '--refs', remote, exactLeaseRef(base.key)], { cwd: root, timeoutMs: 10_000, maxBytes: 16384 }))
     assert.ok(out.args.includes('protocol.allow=never')); assert.ok(out.args.includes('protocol.https.allow=always'))
     assert.ok(out.args.includes('http.followRedirects=false')); assert.ok(out.args.includes('credential.helper='))
     assert.equal(out.env.GIT_CONFIG_GLOBAL, '/dev/null'); assert.equal(out.env.GIT_ALLOW_PROTOCOL, 'https')

@@ -7,10 +7,15 @@ import type { ProjectPath } from '../../../shared/projectPath'
 import type { WorkItem } from '../../../shared/homeLive'
 import { since } from '../duration'
 import { useT } from '../i18n'
+import { FailureNote } from '../OperatorError'
 
-export function ProjectWay({ path, inWork, goal, onOpenTask, onPlan }: {
+export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = null, onOpenTask, onPlan }: {
   /** Null until the tasks are read. */
   path: ProjectPath | null
+  /** The tasks could not be read: said in place of «Reading…», which would otherwise stay forever (i2 ER-5). */
+  problem?: string | null
+  /** The goal could not be read: said, not shown as a project with no goal (i2 ER-1). */
+  goalProblem?: string | null
   /** This project's claimed work with what its agents say, from `work.home`; null when not read. */
   inWork: WorkItem[] | null
   goal: string | null
@@ -38,7 +43,7 @@ export function ProjectWay({ path, inWork, goal, onOpenTask, onPlan }: {
         <button type="button" className="lp-button lh-text-link" onClick={onPlan}>{t('launch.project.way.plan')}</button>
       </div>
       {path === null ? (
-        <p className="lp-meta">{t('estate.reading')}</p>
+        problem ? <FailureNote said={t('launch.project.way.unreadable')} detail={problem} /> : <p className="lp-meta">{t('estate.reading')}</p>
       ) : (
         <div className="lp-way-steps">
           <div className="lp-way-step">
@@ -56,6 +61,7 @@ export function ProjectWay({ path, inWork, goal, onOpenTask, onPlan }: {
           <div className="lp-way-step">
             <h4>{t('launch.project.way.next')}</h4>
             {goal && <p className="lp-way-goal">{t('launch.project.way.goal', { goal })}</p>}
+            {goalProblem && <FailureNote said={t('launch.project.way.goalUnreadable')} detail={goalProblem} />}
             {path.next.length ? <ol>{path.next.map((i) => row(i.id, i.summary, null))}</ol> : <p className="lp-meta">{t('launch.project.way.nothingNext')}</p>}
           </div>
         </div>

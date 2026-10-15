@@ -103,8 +103,87 @@ Exit for iteration 1: every finding is fixed or ruled to a register row. Blockin
 
 ## Iteration 2
 
-_Not started._
+Five fresh reviewers, 2026-10-15, against `339c44e1` (`339c44e1c99e6b27eb5ef8ea01c5faeedc0eb525`, `main` after
+iteration 1's fixes and the revision-5 test repair), read-only in a detached checkout. The first two launches against
+`7aaeff6b` all stopped on the account's rate limit (HTTP 429) before writing anything; that candidate also failed the
+complete local gate (V2-41), so the iteration was run on `339c44e1`, with the reviewers started one or two at a time.
+The docs reviewer ran on Opus and finished its report before the limit stopped it; the other four ran on Sonnet.
+Reports, committed as written: [UX](../reviews/0.3.6/iteration-2/2026-10-14-ux.md) (UX-n),
+[errors and boundaries](../reviews/0.3.6/iteration-2/2026-10-14-errors.md) (ER-n),
+[code and documents](../reviews/0.3.6/iteration-2/2026-10-14-docs.md) (DO-n),
+[data, memory, orchestration, harness](../reviews/0.3.6/iteration-2/2026-10-14-data.md) (DA-n),
+[plan and roadmap](../reviews/0.3.6/iteration-2/2026-10-14-plan.md) (PL-n). Each reviewer also checked iteration 1's
+fixes at its level; the ones that held only in part are findings here (UX-1, ER-2, DO-7, PL-3, PL-4).
+
+40 findings, 2 blocking (DO-1 and DA-1, the same sentence; ER-3 and PL-1 name it too), plus one found by the lead.
+Fixes landed on `agent/release-036-i2-fixes`. Checks run after the fixes: vitest on the launch screens, `homeLive`
+and Settings (planted defects watched failing for the strip count, the per-project review count and the head refusal);
+`run-project-board-operator-db` 12/12 and `run-function-privileges-db` 5/5 on isolated PostgreSQL;
+`agent-surface.test.mjs` on a disposable stack (CO-303's reproduction); `check-registers`, `check-plan-ids`,
+`ux/lint.py`; the complete local `bash scripts/ci.sh fast` on the fixes, exit 0 on 2026-10-15 after V2-42…V2-45 (load1 50–300 from other sessions through the runs).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1 | Strip «tasks in work» counted live tasks only while the lane counted all | fixed: `HomeWork.tsx#HomeStats` counts the lane's set; `HomeWork.test.tsx` (old count planted back failed) |
+| V2-2 | UX-2 | Settings had no `main` landmark, no focus move, and Escape closed it from a field | fixed: `SettingsScreen.tsx` is a `main` and focuses its heading; `App.tsx` Escape ignores fields and an open panel; `SettingsScreen.test.tsx` |
+| V2-3 | UX-3 | An untitled legacy task is named two ways on the project page | fixed: SCN-159 amendment states the one exception («Вопросы ко мне» shares the Board's attention rows) |
+| V2-4 | UX-4 | SCR-30 and SCN-158 still promised the old failure wording | fixed: SCR-30 row and SCN-158 «Errors & recovery» carry the shipped sentence, reason on its own line |
+| V2-5 | UX-5 | The strip's failure tooltip passed a reason its string never shows | fixed: the argument is dropped (`HomeWork.tsx#HomeStats`) |
+| V2-6 | UX-6 | A live task with no stage showed a blank line in «В работе» | fixed: it says «Ещё не сказал, что делает» (`HomeWork.tsx#HomeWorkLanes`); SCN-158 amendment |
+| V2-7 | UX-7 | «All agents» on the project page leads to this project's agents | fixed: `launch.project.agents.all` «Агенты этого проекта» / "This project's agents" |
+| V2-8 | UX-8 | Release notes quote Russian labels an English operator never sees | fixed: CHANGELOG gives the English name first, the Russian beside it |
+| V2-9 | UX-9 | Comms' badge says «тредов» | not a defect: «тред» is the Russian Comms word throughout (`i18n/ru.ts` launch.comms.*) |
+| V2-10 | ER-1 | A failed goals read on the project page was swallowed | fixed: `ProjectLaunch.tsx` keeps `goalsProblem`; `ProjectWay.tsx` says «Цель проекта не прочитана.» |
+| V2-11 | ER-2 | Per-project review pill counted from the 50-row list; «idle» shown before any reading | fixed: `workRead.ts#readHome` reads every review task's project, `homeLive.ts#composeHome` counts from it (test, planted back failed); «idle» only from a reading that happened (`EstateHome.tsx`) |
+| V2-12 | ER-3 | CHANGELOG says compiler revision 4 | fixed with V2-23 |
+| V2-13 | ER-4 | Favourites and workspace-state reads failed without a word | fixed: both said in a banner; a failed workspace read is no longer recorded as 'declined' (`EstateHome.tsx`) |
+| V2-14 | ER-5 | A failed first tasks read left the way at «Reading…» forever | fixed: `ProjectHome.tsx` keeps `tasksProblem`; `ProjectWay.tsx` says it |
+| V2-15 | ER-6 | `readHome` stops silently at 500 projects / 500 stage reports | ruled: CO-310 (0.3.7) |
+| V2-16 | DA-1 (blocking) | Release notes state revision 4 and the head-bounding revision 5 removed | fixed with V2-23 |
+| V2-17 | DA-2 | The wave-4 migration's database tier is in no gate | fixed: `run-project-board-operator-db` joins the owned-cluster loop in `scripts/ci.sh`; run on isolated PostgreSQL: 12 passed, 0 failed |
+| V2-18 | DA-3 | Claims/leases (200) and stage reports (500) cap silently | ruled: CO-310 (0.3.7) |
+| V2-19 | DA-4 | Tasks of inactive projects shown with a blank project | fixed: `homeLive.ts#composeHome` leaves them off the home (test) |
+| V2-20 | DA-5 | A refused board restore is not described | fixed: CHANGELOG — Comms says the texts did not come back whether the archive lacked them or their restore was refused |
+| V2-21 | DA-6 | Migrations 100 and 107 restate no privileges | not a defect: they only replace existing functions (grants kept); `run-function-privileges-db` on isolated PostgreSQL PASS, 5 cases |
+| V2-22 | DA-7 | Pending resource migrations reuse applied versions | ruled: CO-309 (already open) |
+| V2-23 | DO-1 (blocking) | The release notes state the wrong context-compiler revision | fixed: CHANGELOG says revision 5 and what it changed (a long task is delivered whole, not refused) |
+| V2-24 | DO-2 | SCN-159 still names a task by its instruction | fixed: SCN-159 step 2 and amendment |
+| V2-25 | DO-3 | Iteration 1's new states recorded nowhere | fixed: SCN-158/159/160 amendments, SCR-30/31 state rows, SCR-52 amendment, one CHANGELOG clause; the strip and lane now count one set (V2-1) |
+| V2-26 | DO-4 | CHANGELOG describes the Comms filters two ways | fixed: the COM-07 bullets say each filter change is one board read since wave 4 |
+| V2-27 | DO-5 | Agent-facing notes say things twice | fixed: the epoch and the board-rule bullets merged |
+| V2-28 | DO-6 | Kimi Code registration claimed beyond its evidence | fixed: CHANGELOG and README say it was verified outside a project only |
+| V2-29 | DO-7 | FLW-92 and the product model still call SCR-83 a Settings band; dead `.settings-bar` CSS | fixed: FLW-92 reworded, product model regenerated, the CSS and its registry entry removed |
+| V2-30 | DO-8 | Flows do not link back to this release's scenarios | fixed: FLW-40 traces SCN-135/SCN-160 with an agent-catalogue node; FLW-21 names SCN-158/159/161 |
+| V2-31 | DO-9 | The ADR register names two current pipeline reservations | fixed: ADR-0157 recorded superseded, never used (re-reserved as 0159) |
+| V2-32 | DO-10 | SCN-160 cites only the 0.6.30 measurement | fixed: the 0.6.31 measurement (30 agents) added to its Coverage |
+| V2-33 | PL-1 | CHANGELOG revision 4 | fixed with V2-23 |
+| V2-34 | PL-2 | The Now line stops at 0.3.5 and schema 84 | fixed: Now names P-18 (0.3.6, schema 89) then P-19; the upgrade sentence says schema 89 |
+| V2-35 | PL-3 | The 0.3.7 onboarding plan has no register home and its body says 0.3.6 | fixed: P-19 row is its home; the dated plan's body stays as written (dated documents are not rewritten), its header note records the move |
+| V2-36 | PL-4 | Iteration 1's rulings are not in the rows they cite | fixed: CO-277 and CO-284 re-dated to 0.3.7; CO-293 re-dated, not reproduced; CO-281 resolved on a green complete gate |
+| V2-37 | PL-5 | CO-303 open with no reproduction | fixed: not reproduced — `agent-surface.test.mjs` on a disposable stack at `339c44e1`: 43 tools with `com.directory`, `fabric_whoami` names the project; CO-303 resolved |
+| V2-38 | PL-6 | No complete local gate recorded for the candidate | fixed: complete local `bash scripts/ci.sh fast` on `339c44e1` exit 0 (2026-10-15, load1 above 300); the final candidate's run is a release-close step |
+| V2-39 | PL-7 | The Next free ID note contradicts itself | fixed: one number (CO-311), the counter named as the authority |
+| V2-40 | PL-8 | No release-close list; the gate file still names 0.3.5 | fixed: «Release close» list below; the gate file changes in the release commit |
+| V2-41 | lead, the complete local gate on `7aaeff6b` | Four tests still demanded revision 4's refusal of a long task, so the gate and hosted CI failed on the first iteration-2 candidate | fixed in `339c44e1`: `context-mandatory.test.mjs` and `prepared-launch-input.test.mjs` check revision 5 (the old refusal planted back failed); the CEO in-flight test's 2 s hold brought in; the SRC-02 receipt re-pointed |
+| V2-42 | lead, the complete local gate on the iteration-2 fixes at load1 about 300 | `git-lease-snapshot.test.mjs` "default command transport isolates …" gave its fake git (a Node script) 1 s to start, and the start alone outlasted it | fixed: the case checks argv and environment with a 10 s deadline (a hang still fails); 49/49 three times |
+| V2-43 | lead, the next complete local gate | `resource-pool-publisher.test.mjs` "pending read is bounded …" failed 2 of 5 runs even at low load: its 10 ms deadline could pass before the read began, so the reentry it checks was never attempted | fixed: 250 ms (the read hangs until released, so it still times out); 8/8 |
+| V2-44 | lead, the next complete local gate at load1 about 150 | `executor-detect.test.mjs` gave five shell probes 4 s and asserted the run under 3 s; at that load «firstline» read as no version | fixed: 15 s deadline, and the bound is "answered before the deadline" — the held child sleeps 30 s, so waiting for it still fails; 3/3 |
+| V2-45 | lead, the next complete local gate | Two of V2-41's new assertions compared two separate compiles byte for byte, and each pack names the millisecond it was compiled, so they failed when the clock moved between them (1 of 5 runs) | fixed: compared without the clock line (`context-mandatory.test.mjs`, `unclocked`); 12/12 |
+
+Exit for iteration 2: every finding is fixed or ruled to a register row. Blocking findings open: none.
 
 ## Iteration 3
 
 _Not started._
+
+## Release close
+
+The steps after iteration 3 ends with no blocking finding, in order, each by the agent (operator rule, 2026-10-11):
+
+1. `apps/desktop/package.json` → `0.3.6`; CHANGELOG `## Unreleased` → `## 0.3.6 — <date>`.
+2. `docs/launch/release-gate.json` → version 0.3.6, this ledger, `verifiedCommit` = iteration 3's candidate, the three
+   iterations' review receipts (`docs/evidence/reviews/0.3.6/iteration-{1,2,3}/*.json`).
+3. The merge log and the design map in the same commit; the complete local gate green on it; land on `main`.
+4. Push the tag `v0.3.6`; watch `release.yml` (approval by checks) to success; confirm the published release.
+5. Install the release here through the lifecycle broker; close P-18.
+6. `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child` (N-030, CO-197).

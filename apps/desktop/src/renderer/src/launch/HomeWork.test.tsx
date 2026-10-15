@@ -90,7 +90,9 @@ describe('home: who is doing what', () => {
       <HomeWorkLanes reading={stale} onOpen={() => {}} onSession={() => {}} />
     </>)
     expect(screen.getByText('nobody signing')).toBeTruthy()
-    expect(screen.getByText('tasks in work').previousSibling?.textContent).toBe('0')
+    // One "in work" number on the screen: the strip counts what the lane lists, the silent claim included (release review i2 DO-3).
+    expect(screen.getByText('tasks in work').previousSibling?.textContent).toBe('1')
+    expect(screen.getByRole('heading', { name: /In work/ }).textContent).toContain('1')
     expect(screen.getByText('to review').previousSibling?.textContent).toBe('1+')
     cleanup()
     show(<HomeStats reading={{ view, problem: 'gone' }} waiting={null} onAgents={() => {}} onBoard={() => {}} />)

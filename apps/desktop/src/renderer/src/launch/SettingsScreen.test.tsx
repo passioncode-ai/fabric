@@ -71,6 +71,9 @@ describe('the settings screen', () => {
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    // The screen is the page's main region and its heading has focus on open (0.3.6 review i2 UX-2).
+    expect(screen.getByRole('main')).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: en['settings.screen.title'] }))
     fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
     expect(onChange).toHaveBeenCalledWith({ keepAwake: 'always' })
     expect(screen.getByText(en['settings.screen.title'])).toBeTruthy()
