@@ -91,23 +91,33 @@ await test('facts past one read are COUNTED: omittedFacts includes what the gate
   assert.match(pack.markdown, /500 fact\(s\)/)
 })
 
-await test('the budget includes oversized project/task input and rejects instead of truncating authority', async () => {
-  for (const input of [
-    { store: store({ ...healthy, projects: { data: { name: 'Atlas', purpose: '😀'.repeat(1000) }, error: null } }) },
-    { taskInstruction: 'work '.repeat(1000) },
-    { taskBrief: { what: 'x'.repeat(5000), why: 'why', expected: 'done' } },
-    { store: store({ ...healthy, project_repos: { data: [{ path: '/repo/' + 'x'.repeat(5000), is_primary: true }], error: null } }) }
+// The operator's task, its brief and the project's identity are authority: never cut and, since revision 5 (0.3.6
+// review ER-1), never refused for size either — 0.3.5 started an 11.6k-character task that revision 4 refused. The
+// budget bounds what Fabric SELECTS from memory; a head larger than it is delivered whole and selects nothing.
+await test('an oversized project/task head is delivered whole: authority is neither truncated nor refused', async () => {
+  for (const [input, tail] of [
+    [{ store: store({ ...healthy, projects: { data: { name: 'Atlas', purpose: '😀'.repeat(999) + 'END' }, error: null } }) }, 'END'],
+    [{ taskInstruction: 'work '.repeat(1000) + 'END-OF-TASK' }, 'END-OF-TASK'],
+    [{ taskBrief: { what: 'x'.repeat(5000) + 'END-OF-WHAT', why: 'why', expected: 'done' } }, 'END-OF-WHAT'],
+    [{ store: store({ ...healthy, project_repos: { data: [{ path: '/repo/' + 'x'.repeat(5000) + '/END-OF-PATH', is_primary: true }], error: null } }) }, 'END-OF-PATH']
   ]) {
-    await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget: 1000, ...input }),
-      e => e instanceof MandatoryContextUnmet && /budget/i.test(e.message))
+    const pack = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: 1000, ...input })
+    assert.ok(pack.markdown.includes(tail), `the head was cut before ${tail}`)
+    assert.ok(pack.chars > pack.budget, 'the pack says honestly that it is over its budget')
+    assert.deepEqual(pack.factIds, [])
+    assert.deepEqual(pack.transcriptIds, [])
   }
 })
 
-await test('invalid and impossibly small budgets cannot produce a pack', async () => {
-  for (const budget of [0, -1, 1, 0.5, NaN, Infinity]) {
+await test('an invalid budget cannot produce a pack; a tiny valid one carries the head and nothing selected', async () => {
+  for (const budget of [0, -1, 0.5, NaN, Infinity]) {
     await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget }),
       e => e instanceof MandatoryContextUnmet && /budget/i.test(e.message))
   }
+  const whole = await compileContextPack({ store: store(healthy), projectId: 'p1' })
+  const tiny = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: 1 })
+  assert.equal(tiny.markdown, whole.markdown)
+  assert.deepEqual(tiny.factIds, [])
 })
 
 await test('facts, sessions, warning, omission footer and final newline share one exact UTF-16 budget', async () => {
@@ -133,8 +143,8 @@ await test('an empty pack fits its exact size, including the final newline', asy
   const first = await compileContextPack({ store: store(healthy), projectId: 'p1' })
   const exact = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars })
   assert.equal(exact.chars, first.chars)
-  await assert.rejects(compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars - 1 }),
-    e => e instanceof MandatoryContextUnmet)
+  const short = await compileContextPack({ store: store(healthy), projectId: 'p1', budget: first.chars - 1 })
+  assert.equal(short.markdown, first.markdown, 'one character short still delivers the head whole, never cut')
 })
 
 if (failures) { console.log('\n' + failures + ' failure(s)'); process.exit(1) }

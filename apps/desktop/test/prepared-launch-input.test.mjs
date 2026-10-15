@@ -18,14 +18,20 @@ for(const field of ['instruction','option_id','brief_why'])test(`changed ${field
  const f=preparedFixture();f.readHook=table=>{if(table==='memory_facts')f.task[field]='changed'}
  assert.notEqual((await f.inputs.prepare(f.request)).state,'observed')
 })
-for(const kind of ['task-missing','task-error','project-error','budget','instruction-limit','shell','custom-agent','mode','chain','facts-routine'])test(`${kind} cannot yield required prepared packet`,async()=>{
- const f=preparedFixture(kind==='budget'?{deps:{contextBudget:1}}:kind==='instruction-limit'?{deps:{maxInstructionBytes:1}}:{})
+for(const kind of ['task-missing','task-error','project-error','instruction-limit','shell','custom-agent','mode','chain','facts-routine'])test(`${kind} cannot yield required prepared packet`,async()=>{
+ const f=preparedFixture(kind==='instruction-limit'?{deps:{maxInstructionBytes:1}}:{})
  if(kind==='task-missing')f.task=null;if(kind==='task-error')f.readHook=t=>t==='project_tasks'?{error:{message:'private'},data:null}:undefined
  if(kind==='project-error')f.readHook=t=>t==='projects'?{error:{message:'private'},data:null}:undefined
  if(kind==='shell')f.task.option_id='shell';if(kind==='custom-agent')f.task.option_id=f.id.task
  if(kind==='mode')f.request.permissionMode='invalid';if(kind==='chain')f.request.trigger='chain'
  if(kind==='facts-routine'){f.request.trigger='routine';f.readHook=t=>t==='memory_facts'?{error:{message:'private'},data:null}:undefined}
  const r=await f.inputs.prepare(f.request);assert.notEqual(r.state,'observed');assert.ok(!JSON.stringify(r).includes('private'))
+})
+// Revision 5 (0.3.6 review ER-1): a valid budget smaller than the head still yields the packet, the instruction whole and
+// no memory selected; only an invalid budget or the instruction's own byte limit refuses.
+test('a tiny valid context budget still yields the packet with the instruction whole',async()=>{
+ const f=preparedFixture({instruction:'do the work '.repeat(50)+'END-OF-TASK',deps:{contextBudget:1}}),r=await f.inputs.prepare(f.request)
+ assert.equal(r.state,'observed');assert.ok(r.packet.context.markdown.includes('END-OF-TASK'));assert.deepEqual([...r.packet.context.factIds],[])
 })
 test('before spawn currentness reads actual task/folder, not supplied identity echo',async()=>{
  const f=preparedFixture(),r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed');f.project.repo_path='/changed';assert.equal(await f.inputs.current(r.packet),false)

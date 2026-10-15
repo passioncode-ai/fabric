@@ -211,7 +211,9 @@ await test('history rejects gaps, empty/short pages and missing continuation ins
  f.state.read=()=>({data:base});assert.equal((await f.service.read(C,2)).ok,true)
 })
 await test('in-flight cap bounds hanging identity guards across read/open/send and recovers after timeout',async()=>{
- const f=fixture({timeoutMs:50});f.state.guard=()=>new Promise(()=>{})
+ // The held calls must still be in flight when read/open/send ask (2026-10-14): at 50 ms a loaded machine let them time
+ // out first, freeing the cap, and read() answered 'timeout' instead of 'busy' — the scheduled publication failed on it.
+ const f=fixture({timeoutMs:2000});f.state.guard=()=>new Promise(()=>{})
  const calls=Array.from({length:CEO_DRAFT_LIMITS.inFlight},(_,n)=>f.service.readDraft(id(700+n)))
  assert.equal((await f.service.read(C)).reason_code,'busy')
  assert.equal((await f.service.open({operationId:OP,conversationId:C,subjectKind:'global',subjectId:C})).reason_code,'busy')
