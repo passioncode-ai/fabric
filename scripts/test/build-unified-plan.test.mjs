@@ -131,7 +131,9 @@ test('missing or locally changed pinned common parser stops compilation',()=>fix
 const reconciliationPath='docs/evidence/plans/unified-current-reconciliation.json'
 function ownerSource(f) {
   const basis=f.revision
-  const inventory=spawnSync('node',['scripts/unified-plan.mjs','inventory','--source-revision',basis],{cwd:f.root,encoding:'utf8'})
+  // The inventory is about 1 MiB and grows with the backlog: past spawnSync's default 1 MiB buffer the child is
+  // killed and status is null (2026-10-15, at M200). 32 MiB, as the plan emit below.
+  const inventory=spawnSync('node',['scripts/unified-plan.mjs','inventory','--source-revision',basis],{cwd:f.root,encoding:'utf8',maxBuffer:32*1024*1024})
   assert.equal(inventory.status,0,inventory.stderr)
   const rows=JSON.parse(inventory.stdout).tasks
   const row=rows.find(t=>t.id==='P-08')
