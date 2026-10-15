@@ -206,3 +206,11 @@ registered service; anything else, an unknown Project, a second Project or a `fo
 cannot spend, publish or delete through this.", the same-user floor and "For a year, unless you revoke it under Agent
 access in settings." (en and ru, `shared/accessWords.ts`, checked in `accessWords.test.ts`). A launched or handed-off
 session answers under its runner's grant; an enrolled one under its own binding's (ADR-0149 §3).
+
+### Amendment — ADR-0160 (2026-10-15): no consent dialog on the operator's own machine
+
+On the operator's own machine a coding agent's request to enroll into a project is granted at once and recorded as the agent's act;
+the person sees it in История and Агенты and revokes it with **Отключить**, which also keeps that agent out until the
+person lets it back in. The native dialog, the board's access-request item and the pending queue for it are
+retired by the 0.3.7 plan's wave 3 (until it ships, 0.3.6 still asks); the credential, its scope and its expiry are unchanged. Across the machine boundary (ADR-0144) nothing
+changes. See [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md).
