@@ -4,7 +4,7 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {execFileSync} from 'node:child_process'
-import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs'
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,digest,sourceSelected,receiptFor} from '../workspace-snapshot.mjs'
@@ -135,5 +135,26 @@ test('the sync drops a failed export in its workspace content/, and refuses anyt
  // Not the export's: the workspace's own knowledge, code or a file named like content outside it.
  assert.deepEqual(childLeftovers(' M knowledge/rules.md\n M content/x.md\n?? contents.md\n'),{discard:['content/x.md'],refuse:['knowledge/rules.md','contents.md']})
  assert.deepEqual(childLeftovers('R  content/a.md -> knowledge/a.md\n'),{discard:['content/a.md'],refuse:['knowledge/a.md']})
+})
+
+test('the sync drops a failed export before the pin moves the workspace, so the checkout cannot wedge on it',async()=>{
+ const {dropChildLeftovers}=await import('../workspace-sources.mjs')
+ // 2026-10-15: a publish failed its gate and left content/ uncommitted; another publication then moved the
+ // pin, `git submodule update` refused to overwrite the leftover, and every run failed there for a day,
+ // before the drop below it was ever reached.
+ const child=repo();write(child,'content/x.md','a');write(child,'knowledge/rules.md','r');commit(child)
+ write(child,'content/x.md','b');write(child,'content/new.md','n');const pinned=commit(child)
+ git(child,'checkout','-q','HEAD~1')
+ write(child,'content/x.md','failed export');write(child,'content/new.md','failed export')
+ assert.throws(()=>git(child,'checkout','-q',pinned),'the fixture reproduces the wedge')
+ assert.deepEqual(dropChildLeftovers(child).discard.sort(),['content/new.md','content/x.md'])
+ assert.equal(git(child,'status','--porcelain','--untracked-files=all').toString(),'')
+ git(child,'checkout','-q',pinned)
+ // Someone's change outside content/ is refused and nothing is dropped, content/ included.
+ write(child,'knowledge/rules.md','mine');write(child,'content/x.md','failed export')
+ assert.throws(()=>dropChildLeftovers(child),/changes outside content\/: knowledge\/rules.md/)
+ assert.equal(readFileSync(path.join(child,'content/x.md'),'utf8'),'failed export')
+ // A workspace the parent never initialised has nothing to drop.
+ assert.deepEqual(dropChildLeftovers(path.join(child,'absent')),{discard:[],refuse:[]})
 })
 

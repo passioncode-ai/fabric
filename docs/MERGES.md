@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-16T03:30:00Z · `—` · fix/workspace-sync-wedge → main · fast-forward
+- run: r-a809c95ced27
+- files: scripts/workspace.mjs, scripts/workspace-sources.mjs, scripts/test/workspace-sources.test.mjs, docs/architecture/report-workspace.md, docs/reports/map.html
+- conflicts: none
+- summary: the scheduled workspace sync drops a failed export's content/ before `git submodule update` moves to a new pin; it wedged every run from 2026-10-15 05:06 UTC because the drop ran after the update.
+
 ### 2026-10-15T16:00:00Z · `—` · agent/release-036-i3-fixes → main · fast-forward
 - run: r-44ae60a75316
 - files: see the branch (the final candidate `29515003` and the release commit on it)

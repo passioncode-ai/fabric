@@ -138,3 +138,17 @@ export function childLeftovers(porcelain){
  }
  return {discard,refuse}
 }
+
+/**
+ * Drops those leftovers in the sync's own workspace checkout, or refuses and touches nothing. The sync
+ * runs it BEFORE the parent's `git submodule update`: once another publication has moved the pin, that
+ * checkout refuses to overwrite an uncommitted export, and a drop placed after it is never reached
+ * (2026-10-15: every scheduled run failed there for a day). A workspace never initialised has none.
+ */
+export function dropChildLeftovers(child){
+ if(!existsSync(path.join(child,'.git')))return {discard:[],refuse:[]}
+ const stale=childLeftovers(git(child,'status','--porcelain','--untracked-files=all').toString())
+ if(stale.refuse.length)throw Error('sync runs on its own workspace checkout; this one has changes outside content/: '+stale.refuse.slice(0,5).join(', '))
+ if(stale.discard.length){git(child,'reset','-q','--','content');git(child,'checkout','-q','--','content');git(child,'clean','-fdq','--','content')}
+ return stale
+}
