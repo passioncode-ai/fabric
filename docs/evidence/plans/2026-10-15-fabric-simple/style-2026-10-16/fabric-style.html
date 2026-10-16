@@ -1,0 +1,280 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Fabric — стиль в духе Aperture</title><style>
+:root{--bg:#141313;--bg2:#1a1919;--panel:#1d1c1c;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);
+--text:#f7f5f4;--muted:#a9a6a4;--dim:#6f6c6a;--gold:#ffd21a;--on-gold:#211900;--good:#79d49a;--warn:#f6ba75;--info:#a6bfff;--mag:#f20673;
+--font:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0c0c;font-family:var(--font);color:var(--text);-webkit-font-smoothing:antialiased}
+.frame{width:1440px;height:900px;position:relative;overflow:hidden;background:var(--bg)}
+.mark svg{width:100%;height:100%;display:block}
+/* ---------- APP ---------- */
+.app{display:grid;grid-template-columns:232px 1fr;height:100%}
+.rail{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:2px;background:var(--bg)}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.brand .mark{width:26px;height:26px}.brand b{font-size:17px;font-weight:600;letter-spacing:-.01em}.brand small{display:block;font-size:10.5px;color:var(--dim);margin-top:1px}
+.new{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 6px 16px;height:34px;border-radius:9px;background:var(--text);color:#141313;font-size:13.5px;font-weight:550}
+.nav a{display:flex;align-items:center;gap:11px;height:34px;padding:0 10px;border-radius:8px;color:var(--muted);font-size:13.5px;text-decoration:none}
+.nav a.on{background:rgba(255,255,255,.07);color:var(--text)}
+.nav a .i{width:16px;height:16px;border:1.5px solid currentColor;border-radius:4px;opacity:.85}
+.nav a .n{margin-left:auto;font-size:11px;background:var(--gold);color:var(--on-gold);border-radius:999px;padding:1px 7px;font-weight:600}
+.sect{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:20px 10px 8px}
+.proj a{display:flex;align-items:center;gap:10px;height:31px;padding:0 10px;border-radius:7px;color:var(--muted);font-size:13px;text-decoration:none}
+.proj a .dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}.proj a .dot.live{background:var(--good);box-shadow:0 0 0 3px rgba(121,212,154,.15)}
+.proj a .c{margin-left:auto;font-size:11px;color:var(--gold)}.proj a .star{color:var(--gold);font-size:11px;margin-left:-4px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--line)}
+.me .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#41054b,#f20673)}.me div{font-size:12.5px}.me small{color:var(--dim);display:block;font-size:11px}
+.main{overflow:hidden;position:relative}
+.top{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:12px}
+.top h1{font-size:15px;font-weight:600}.top .crumb{color:var(--dim);font-size:13px}
+.search{margin-left:auto;width:300px;height:32px;border:1px solid var(--line2);border-radius:8px;color:var(--dim);font-size:12.5px;display:flex;align-items:center;padding:0 12px;gap:8px}
+.search kbd{margin-left:auto;font-family:var(--mono);font-size:10.5px;border:1px solid var(--line2);border-radius:4px;padding:0 5px}
+.content{padding:30px 32px;display:grid;grid-template-columns:1fr 360px;gap:24px}
+.hello{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between}
+.hello h2{font-size:32px;font-weight:500;letter-spacing:-.025em;line-height:1.1}.hello p{color:var(--muted);margin-top:8px;font-size:14.5px}
+.stats{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stats div{padding:10px 18px;border-right:1px solid var(--line)}.stats div:last-child{border:0}
+.stats b{display:block;font-size:20px;font-weight:500;letter-spacing:-.02em}.stats span{font-size:11.5px;color:var(--muted)}
+.card{border:1px solid var(--line);border-radius:14px;background:var(--bg2)}
+.card h3{font-size:13px;font-weight:600;padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card h3 .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500}
+.card h3 .r{margin-left:auto;color:var(--muted);font-weight:400;font-size:12px}
+.q{padding:16px 18px;border-bottom:1px solid var(--line)}.q:last-child{border:0}
+.q .who{font-size:11.5px;color:var(--dim);display:flex;gap:8px;align-items:center}.q .who .pr{color:var(--muted)}
+.q p{font-size:14.5px;margin:6px 0 4px;line-height:1.4}.q .why{font-size:12.5px;color:var(--muted);line-height:1.45}
+.btns{display:flex;gap:8px;margin-top:12px}
+.btn{height:30px;padding:0 13px;border-radius:8px;font-size:12.5px;display:inline-flex;align-items:center;border:1px solid var(--line2);color:var(--text)}
+.btn.p{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:600}
+.row{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.ag{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:10px;font-weight:700;color:#141313}.q .who .ag{width:18px;height:18px;font-size:8.5px;border-radius:5px}
+.row .t{font-size:13.5px;line-height:1.3}.row .t small{display:block;color:var(--dim);font-size:11.5px;margin-top:2px}
+.row .s{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:6px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:500;text-align:left;padding:10px 18px;border-bottom:1px solid var(--line)}
+td{padding:10px 18px;border-bottom:1px solid var(--line);color:var(--muted)}td:first-child{color:var(--text)}tr:last-child td{border:0}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;width:90px}.bar i{display:block;height:100%;background:var(--gold)}
+.undo{margin-top:16px;font-size:12px;color:var(--muted);padding:12px 18px;border:1px dashed var(--line2);border-radius:12px;display:flex;gap:10px;align-items:center}
+.undo b{color:var(--text);font-weight:500}.undo .btn{margin-left:auto;height:26px}
+/* ---------- SITE ---------- */
+.site{background:#141313;height:100%;position:relative}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 60% 70% at 78% 45%,#000 30%,transparent 75%)}
+.glow{position:absolute;right:-180px;top:80px;width:900px;height:700px;background:radial-gradient(closest-side,rgba(65,5,75,.55),rgba(242,6,115,.12) 55%,transparent);filter:blur(10px)}
+.snav{position:relative;display:flex;align-items:center;padding:28px 56px}.snav .brand{padding:0}.snav .brand b{font-size:20px}
+.snav .links{margin-left:auto;display:flex;gap:28px;font-size:14.5px;color:#d9d6d4;align-items:center}.snav .links span.sep{width:1px;height:18px;background:var(--line2)}
+.hero{position:relative;display:grid;grid-template-columns:560px 1fr;padding:100px 96px 0;gap:56px}
+.hero h1{font-size:54px;font-weight:500;letter-spacing:-.035em;line-height:1.04}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p{font-size:19px;color:#b4b1af;line-height:1.55;margin:24px 0 32px;max-width:520px}
+.hero .cta{display:flex;gap:12px}.hero .cta .btn{height:46px;padding:0 20px;font-size:16px;border-radius:10px}
+.hero .cta .btn.lt{background:var(--text);color:#141313;border-color:var(--text);font-weight:550}
+.hero .meta{margin-top:56px;border-top:1px solid var(--line2);padding-top:24px;max-width:520px}
+.hero .meta .k{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#9a9795}
+.hero .meta .agents{display:flex;gap:28px;margin-top:16px;font-size:17px;font-weight:600;color:#e7e4e2;letter-spacing:-.01em}
+.shot{position:relative;margin-top:-8px}
+.laptop{width:660px;border-radius:14px;border:1px solid var(--line2);background:var(--bg);overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6);transform:scale(1)}
+.laptop .mini{height:400px;display:grid;grid-template-columns:44px 1fr}
+.mini .ic{border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:14px}
+.mini .ic i{width:14px;height:14px;border:1.4px solid #6f6c6a;border-radius:4px}.mini .ic i.on{border-color:var(--gold)}
+.mini .body{padding:16px 18px}.mini h4{font-size:13px;font-weight:600}.mini .sub{font-size:10px;color:var(--dim);margin:3px 0 12px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.col{border:1px solid var(--line);border-radius:8px;padding:8px;min-height:250px}
+.col b{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:500}
+.tk{margin-top:7px;border:1px solid var(--line);border-radius:6px;padding:7px;font-size:9.5px;line-height:1.35;background:var(--bg2)}
+.tk small{display:flex;align-items:center;gap:4px;color:var(--dim);margin-top:5px;font-size:8.5px}
+.tk small .a{width:10px;height:10px;border-radius:3px}
+.phone{position:absolute;right:-30px;top:110px;width:190px;height:360px;border-radius:30px;border:6px solid #2a2828;background:var(--bg);box-shadow:0 30px 80px rgba(0,0,0,.6);padding:26px 12px}
+.phone .mk{width:34px;height:34px;margin:20px auto 8px}.phone h5{text-align:center;font-size:13px;font-weight:600}
+.phone .qq{margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:9.5px;line-height:1.35;color:#d9d6d4}
+.phone .qq .b2{display:flex;gap:5px;margin-top:7px}.phone .qq .b2 span{font-size:8.5px;padding:3px 7px;border-radius:5px;border:1px solid var(--line2)}.phone .qq .b2 span.g{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+</style></head><body><div class="frame"><div class="app">
+<aside class="rail">
+ <div class="brand"><span class="mark"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="passioncode-mark-title passioncode-mark-desc">
+  <title id="passioncode-mark-title">PassionCode.ai passion fruit mark</title>
+  <desc id="passioncode-mark-desc">A symmetric passion fruit cross-section with five broad golden chambers, five dark seeds and a round golden centre.</desc>
+  <defs>
+    <linearGradient id="rind-gradient" x1="250" y1="140" x2="790" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D0039"/>
+      <stop offset="1" stop-color="#4B0354"/>
+    </linearGradient>
+    <linearGradient id="interior-gradient" x1="300" y1="220" x2="730" y2="870" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F20673"/>
+      <stop offset="1" stop-color="#D90066"/>
+    </linearGradient>
+    <linearGradient id="flesh-gradient" x1="410" y1="250" x2="620" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD21A"/>
+      <stop offset="1" stop-color="#F5B800"/>
+    </linearGradient>
+    <linearGradient id="seed-gradient" x1="470" y1="300" x2="555" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#41054B"/>
+      <stop offset="1" stop-color="#26002F"/>
+    </linearGradient>
+  </defs>
+  <path id="rind" fill="url(#rind-gradient)" d="M512 92c-23 0-42 12-53 32-16 29-54 53-110 98-110 89-177 208-177 342 0 214 134 352 340 368 206-16 340-154 340-368 0-134-67-253-177-342-56-45-94-69-110-98-11-20-30-32-53-32Z"/>
+  <path id="interior" fill="url(#interior-gradient)" d="M512 181c-18 0-37 7-58 17-145 70-239 213-239 365 0 185 115 306 297 324 182-18 297-139 297-324 0-152-94-295-239-365-21-10-40-17-58-17Z"/>
+  <g id="chambers" fill="url(#flesh-gradient)">
+    <path id="chamber-top" d="M512 230c-62 0-113 42-113 101 0 64 52 136 98 155 9 4 21 4 30 0 46-19 98-91 98-155 0-59-51-101-113-101Z"/>
+    <path id="chamber-upper-left" d="M355 359c-20-1-41 18-62 48-32 45-51 90-46 141 5 52 31 76 69 66 35-9 91-35 119-54 20-13 23-38 9-65l-58-105c-10-18-19-30-31-31Z"/>
+    <use href="#chamber-upper-left" transform="translate(1024 0) scale(-1 1)"/>
+    <path id="chamber-lower-left" d="M437 599c-30 1-66 18-99 41-40 28-58 61-53 93 5 40 46 66 88 81 48 17 90 16 112-4 16-15 14-42 13-72l-2-78c-1-39-24-62-59-61Z"/>
+    <use href="#chamber-lower-left" transform="translate(1024 0) scale(-1 1)"/>
+    <circle cx="512" cy="555" r="43"/>
+  </g>
+  <g id="seeds" fill="url(#seed-gradient)">
+    <ellipse id="seed-top" cx="512" cy="366" rx="43" ry="76"/>
+    <ellipse id="seed-upper-left" cx="350" cy="500" rx="70" ry="37" transform="rotate(20 350 500)"/>
+    <ellipse id="seed-upper-right" cx="674" cy="500" rx="70" ry="37" transform="rotate(-20 674 500)"/>
+    <ellipse id="seed-lower-left" cx="408" cy="699" rx="35" ry="68" transform="rotate(36 408 699)"/>
+    <ellipse id="seed-lower-right" cx="616" cy="699" rx="35" ry="68" transform="rotate(-36 616 699)"/>
+  </g>
+</svg></span><div><b>Fabric</b><small>by PassionCode</small></div></div>
+ <div class="new">＋ Создать</div>
+ <nav class="nav">
+  <a class="on"><span class="i"></span>Главная<span class="n">3</span></a>
+  <a><span class="i"></span>Агенты</a>
+  <a><span class="i"></span>История</a>
+  <a><span class="i"></span>Настройки</a>
+ </nav>
+ <div class="sect">Проекты</div>
+ <div class="proj">
+  <a><span class="dot live"></span>Fabric<span class="star">★</span><span class="c">2</span></a>
+  <a><span class="dot live"></span>Nicegram</a>
+  <a><span class="dot"></span>PassionCode site<span class="c">1</span></a>
+  <a><span class="dot live"></span>Switchboard</a>
+  <a><span class="dot"></span>Observatory</a>
+  <a><span class="dot"></span>Mobile Publisher</a>
+  <a><span class="dot"></span>Dataroom</a>
+ </div>
+ <div class="me"><span class="av"></span><div>Сергей<small>этот Mac · всё работает</small></div></div>
+</aside>
+<main class="main">
+ <div class="top"><h1>Главная</h1><span class="crumb">· четверг, 16 октября</span><div class="search">⌕ Найти проект, задачу, агента<kbd>⌘K</kbd></div></div>
+ <div class="content">
+  <div class="hello"><div><h2>Добрый вечер. Вас ждут 3 вопроса.</h2><p>Пять агентов работают в четырёх проектах. Всё остальное идёт без вас.</p></div>
+   <div class="stats"><div><b>5</b><span>агентов работают</span></div><div><b>12</b><span>задач в работе</span></div><div><b>4</b><span>на проверке</span></div></div></div>
+  <section class="card">
+   <h3><span class="k">Ждёт вас</span><span class="r">3 вопроса</span></h3>
+   <div class="q"><div class="who"><span class="ag" style="background:#ffd21a">CC</span><span>Claude Code</span>·<span class="pr">Fabric</span>·5 мин назад</div>
+    <p>Выпускать Fabric 0.3.7 сейчас или дождаться перевода на русский?</p>
+    <div class="why">Всё остальное проверено. Без перевода русские экраны покажут английский текст в двух местах.</div>
+    <div class="btns"><span class="btn p">Выпускать сейчас</span><span class="btn">Дождаться перевода</span><span class="btn">Обсудить</span></div></div>
+   <div class="q"><div class="who"><span class="ag" style="background:#a6bfff">CX</span><span>Codex</span>·<span class="pr">PassionCode site</span>·1 ч назад</div>
+    <p>Опубликовать новую страницу «Для бизнеса» на сайте?</p>
+    <div class="why">Это видно всем — поэтому спрашиваю. Предпросмотр готов.</div>
+    <div class="btns"><span class="btn p">Опубликовать</span><span class="btn">Открыть предпросмотр</span></div></div>
+   <div class="q"><div class="who"><span class="ag" style="background:#79d49a">KM</span><span>Kimi Code</span>·<span class="pr">Fabric</span>·вчера</div>
+    <p>Можно потратить $14 на прогон проверок на облачной машине?</p>
+    <div class="why">Лимит проекта на этот месяц — $40, потрачено $9.</div>
+    <div class="btns"><span class="btn p">Разрешить $14</span><span class="btn">Не сейчас</span></div></div>
+  </section>
+  <div>
+   <section class="card">
+    <h3><span class="k">Сейчас</span><span class="r">Открыть консоль ↗</span></h3>
+    <div class="row"><span class="ag" style="background:#ffd21a">CC</span><div class="t">Переделывает главную в новом стиле<small>Fabric · шаг 3 из 6</small></div><span class="s"><span class="live"></span>12м</span></div>
+    <div class="row"><span class="ag" style="background:#a6bfff">CX</span><div class="t">Пишет тексты страницы «Для бизнеса»<small>PassionCode site</small></div><span class="s"><span class="live"></span>40м</span></div>
+    <div class="row"><span class="ag" style="background:#f6ba75">HM</span><div class="t">Отвечает в поддержку по возвратам<small>Nicegram</small></div><span class="s"><span class="live"></span>2ч</span></div>
+    <div class="row"><span class="ag" style="background:#79d49a">KM</span><div class="t">Переносит сборку на macOS 15<small>Switchboard</small></div><span class="s"><span class="live"></span>6м</span></div>
+   </section>
+   <div class="undo">↺ <span><b>Codex</b> подключился к проекту Fabric из терминала · 2 мин</span><span class="btn">Отменить</span></div>
+  </div>
+  <section class="card" style="grid-column:1/-1">
+   <h3><span class="k">Проекты</span><span class="r">Сначала избранные, потом по последней активности</span></h3>
+   <table><tr><th>Проект</th><th>Что сейчас</th><th>Путь</th><th>Агенты</th><th>Обновлено</th></tr>
+   <tr><td>★ Fabric</td><td>Новая главная: 3 из 6 экранов готовы</td><td><div class="bar"><i style="width:55%"></i></div></td><td>2</td><td>12 мин</td></tr>
+   <tr><td>Nicegram</td><td>Поддержка отвечает сама, 4 вопроса за день</td><td><div class="bar"><i style="width:80%"></i></div></td><td>1</td><td>2 ч</td></tr>
+   <tr><td>PassionCode site</td><td>Ждёт вашего «опубликовать»</td><td><div class="bar"><i style="width:92%"></i></div></td><td>1</td><td>1 ч</td></tr>
+   </table>
+  </section>
+ </div>
+</main></div></div><div style="height:40px"></div><div class="frame site" style="height:1000px"><div class="grid"></div><div class="glow"></div>
+<header class="snav"><div class="brand"><span class="mark" style="width:30px;height:30px"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="passioncode-mark-title passioncode-mark-desc">
+  <title id="passioncode-mark-title">PassionCode.ai passion fruit mark</title>
+  <desc id="passioncode-mark-desc">A symmetric passion fruit cross-section with five broad golden chambers, five dark seeds and a round golden centre.</desc>
+  <defs>
+    <linearGradient id="rind-gradient" x1="250" y1="140" x2="790" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D0039"/>
+      <stop offset="1" stop-color="#4B0354"/>
+    </linearGradient>
+    <linearGradient id="interior-gradient" x1="300" y1="220" x2="730" y2="870" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F20673"/>
+      <stop offset="1" stop-color="#D90066"/>
+    </linearGradient>
+    <linearGradient id="flesh-gradient" x1="410" y1="250" x2="620" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD21A"/>
+      <stop offset="1" stop-color="#F5B800"/>
+    </linearGradient>
+    <linearGradient id="seed-gradient" x1="470" y1="300" x2="555" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#41054B"/>
+      <stop offset="1" stop-color="#26002F"/>
+    </linearGradient>
+  </defs>
+  <path id="rind" fill="url(#rind-gradient)" d="M512 92c-23 0-42 12-53 32-16 29-54 53-110 98-110 89-177 208-177 342 0 214 134 352 340 368 206-16 340-154 340-368 0-134-67-253-177-342-56-45-94-69-110-98-11-20-30-32-53-32Z"/>
+  <path id="interior" fill="url(#interior-gradient)" d="M512 181c-18 0-37 7-58 17-145 70-239 213-239 365 0 185 115 306 297 324 182-18 297-139 297-324 0-152-94-295-239-365-21-10-40-17-58-17Z"/>
+  <g id="chambers" fill="url(#flesh-gradient)">
+    <path id="chamber-top" d="M512 230c-62 0-113 42-113 101 0 64 52 136 98 155 9 4 21 4 30 0 46-19 98-91 98-155 0-59-51-101-113-101Z"/>
+    <path id="chamber-upper-left" d="M355 359c-20-1-41 18-62 48-32 45-51 90-46 141 5 52 31 76 69 66 35-9 91-35 119-54 20-13 23-38 9-65l-58-105c-10-18-19-30-31-31Z"/>
+    <use href="#chamber-upper-left" transform="translate(1024 0) scale(-1 1)"/>
+    <path id="chamber-lower-left" d="M437 599c-30 1-66 18-99 41-40 28-58 61-53 93 5 40 46 66 88 81 48 17 90 16 112-4 16-15 14-42 13-72l-2-78c-1-39-24-62-59-61Z"/>
+    <use href="#chamber-lower-left" transform="translate(1024 0) scale(-1 1)"/>
+    <circle cx="512" cy="555" r="43"/>
+  </g>
+  <g id="seeds" fill="url(#seed-gradient)">
+    <ellipse id="seed-top" cx="512" cy="366" rx="43" ry="76"/>
+    <ellipse id="seed-upper-left" cx="350" cy="500" rx="70" ry="37" transform="rotate(20 350 500)"/>
+    <ellipse id="seed-upper-right" cx="674" cy="500" rx="70" ry="37" transform="rotate(-20 674 500)"/>
+    <ellipse id="seed-lower-left" cx="408" cy="699" rx="35" ry="68" transform="rotate(36 408 699)"/>
+    <ellipse id="seed-lower-right" cx="616" cy="699" rx="35" ry="68" transform="rotate(-36 616 699)"/>
+  </g>
+</svg></span><div><b>Fabric</b><small>by PassionCode</small></div></div>
+<div class="links"><span>Как это работает</span><span>Для бизнеса</span><span>Документация ↗</span><span>GitHub ↗</span><span class="sep"></span><span style="color:#fff">Скачать</span></div></header>
+<section class="hero"><div>
+ <h1>Ваши агенты работают.<br><em>Вы решаете.</em></h1>
+ <p>Fabric собирает проекты, агентов и вопросы к вам в одном месте. Любой кодинг-агент, всё на вашем компьютере, каждое действие — с историей и отменой.</p>
+ <div class="cta"><span class="btn p" style="height:46px;padding:0 20px;font-size:16px;border-radius:10px">Скачать для macOS · бесплатно</span><span class="btn">Windows и Linux</span></div>
+ <div class="meta"><div class="k">Работает с</div><div class="agents"><span>Claude Code</span><span>Codex</span><span>Kimi Code</span><span>Hermes</span></div></div>
+</div>
+<div class="shot"><div class="laptop"><div class="mini"><div class="ic"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+ <div class="body"><h4>Fabric · доска проекта</h4><div class="sub">Откуда пришли и куда идём</div>
+ <div class="cols">
+  <div class="col"><b>Сделано</b><div class="tk">Вход по почте<small><span class="a" style="background:#ffd21a"></span>Claude Code · вчера</small></div><div class="tk">Приглашения в команду<small><span class="a" style="background:#a6bfff"></span>Codex · 2 дня</small></div></div>
+  <div class="col"><b>Сейчас</b><div class="tk">Новая главная в новом стиле<small><span class="a" style="background:#ffd21a"></span>Claude Code · 12м</small></div><div class="tk">Сборка на macOS 15<small><span class="a" style="background:#79d49a"></span>Kimi · 6м</small></div></div>
+  <div class="col"><b>Проверить</b><div class="tk">Страница «Для бизнеса»<small><span class="a" style="background:#a6bfff"></span>Codex · 1ч</small></div></div>
+  <div class="col"><b>Дальше</b><div class="tk">История с отменой<small><span class="a" style="background:#6f6c6a"></span>— · очередь</small></div><div class="tk">Агенты в один клик<small><span class="a" style="background:#6f6c6a"></span>— · очередь</small></div></div>
+ </div></div></div></div>
+ <div class="phone"><div class="mk mark"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="passioncode-mark-title passioncode-mark-desc">
+  <title id="passioncode-mark-title">PassionCode.ai passion fruit mark</title>
+  <desc id="passioncode-mark-desc">A symmetric passion fruit cross-section with five broad golden chambers, five dark seeds and a round golden centre.</desc>
+  <defs>
+    <linearGradient id="rind-gradient" x1="250" y1="140" x2="790" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D0039"/>
+      <stop offset="1" stop-color="#4B0354"/>
+    </linearGradient>
+    <linearGradient id="interior-gradient" x1="300" y1="220" x2="730" y2="870" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F20673"/>
+      <stop offset="1" stop-color="#D90066"/>
+    </linearGradient>
+    <linearGradient id="flesh-gradient" x1="410" y1="250" x2="620" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD21A"/>
+      <stop offset="1" stop-color="#F5B800"/>
+    </linearGradient>
+    <linearGradient id="seed-gradient" x1="470" y1="300" x2="555" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#41054B"/>
+      <stop offset="1" stop-color="#26002F"/>
+    </linearGradient>
+  </defs>
+  <path id="rind" fill="url(#rind-gradient)" d="M512 92c-23 0-42 12-53 32-16 29-54 53-110 98-110 89-177 208-177 342 0 214 134 352 340 368 206-16 340-154 340-368 0-134-67-253-177-342-56-45-94-69-110-98-11-20-30-32-53-32Z"/>
+  <path id="interior" fill="url(#interior-gradient)" d="M512 181c-18 0-37 7-58 17-145 70-239 213-239 365 0 185 115 306 297 324 182-18 297-139 297-324 0-152-94-295-239-365-21-10-40-17-58-17Z"/>
+  <g id="chambers" fill="url(#flesh-gradient)">
+    <path id="chamber-top" d="M512 230c-62 0-113 42-113 101 0 64 52 136 98 155 9 4 21 4 30 0 46-19 98-91 98-155 0-59-51-101-113-101Z"/>
+    <path id="chamber-upper-left" d="M355 359c-20-1-41 18-62 48-32 45-51 90-46 141 5 52 31 76 69 66 35-9 91-35 119-54 20-13 23-38 9-65l-58-105c-10-18-19-30-31-31Z"/>
+    <use href="#chamber-upper-left" transform="translate(1024 0) scale(-1 1)"/>
+    <path id="chamber-lower-left" d="M437 599c-30 1-66 18-99 41-40 28-58 61-53 93 5 40 46 66 88 81 48 17 90 16 112-4 16-15 14-42 13-72l-2-78c-1-39-24-62-59-61Z"/>
+    <use href="#chamber-lower-left" transform="translate(1024 0) scale(-1 1)"/>
+    <circle cx="512" cy="555" r="43"/>
+  </g>
+  <g id="seeds" fill="url(#seed-gradient)">
+    <ellipse id="seed-top" cx="512" cy="366" rx="43" ry="76"/>
+    <ellipse id="seed-upper-left" cx="350" cy="500" rx="70" ry="37" transform="rotate(20 350 500)"/>
+    <ellipse id="seed-upper-right" cx="674" cy="500" rx="70" ry="37" transform="rotate(-20 674 500)"/>
+    <ellipse id="seed-lower-left" cx="408" cy="699" rx="35" ry="68" transform="rotate(36 408 699)"/>
+    <ellipse id="seed-lower-right" cx="616" cy="699" rx="35" ry="68" transform="rotate(-36 616 699)"/>
+  </g>
+</svg></div><h5>Fabric</h5>
+  <div class="qq">Выпускать Fabric 0.3.7 сейчас?<div class="b2"><span class="g">Выпускать</span><span>Позже</span></div></div>
+  <div class="qq">Codex подключился к проекту Fabric<div class="b2"><span>Отменить</span></div></div></div>
+</div></section></div></body></html>
