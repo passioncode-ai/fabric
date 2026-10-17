@@ -188,6 +188,145 @@ export function claimLife(
   return { life: 'live', lastSignAt }
 }
 
+// ── a task held by its run (CO-323) ─────────────────────────────────────────────────────────────────────────
+
+/** A row of `task_runs`, as the claim reads it. */
+export interface RunRow {
+  task_run_id: string
+  task_id: string
+  session_id: string | null
+  state: string
+  outcome: string | null
+  ended_seq: number | string | null
+  created_at: string
+}
+/** A row of `run_stop_commands` (migration 62): the durable Stop of one run. */
+export interface StopRow {
+  task_run_id: string
+  session_id: string
+  state: 'requested' | 'outcome_unknown' | 'stopped'
+  reason: string
+}
+/** A row of `run_launch_compensations` (migration 62): a launch proved never to have spawned. */
+export interface CompensationRow {
+  task_run_id: string
+  session_id: string
+  receipt_seq: number | string
+}
+/** Where a run's Stop stands: never asked, asked and not observed yet, or asked and not proved. */
+export type RunStop = 'not-requested' | 'requested' | 'outcome_unknown'
+/** A run that still holds its task: Fabric launched it and has not proved it stopped. */
+export interface RunHold {
+  taskId: string
+  runId: string
+  sessionId: string | null
+  /** When Fabric admitted the run — the hold's "since". */
+  since: string
+  stop: RunStop
+  /** Why the Stop was asked (`natural_exit`, `operator_stop`, …), when it was. */
+  stopReason: string | null
+}
+
+/**
+ * The runs that still hold their tasks — the same rule the claim projector applies (`task_has_unresolved_run_at`,
+ * migration 62): a run holds its task until a VERIFIED stop of its own session, or a never-spawned compensation
+ * matching its failed end, says it is over. A lapsed lease, a process exit or an unproved stop is not that proof
+ * (HAR-R0-04 invariant 2). One hold per task, the latest run's. This explains a refusal; the projector decides it.
+ */
+export function unresolvedRuns(runs: readonly RunRow[], stops: readonly StopRow[], compensations: readonly CompensationRow[]): RunHold[] {
+  const holds = new Map<string, { hold: RunHold; at: number }>()
+  for (const r of runs) {
+    const stopped = stops.some((s) => s.task_run_id === r.task_run_id && s.session_id === r.session_id && s.state === 'stopped')
+    const compensated = r.outcome === 'failed_known' && r.ended_seq !== null &&
+      compensations.some((c) => c.task_run_id === r.task_run_id && c.session_id === r.session_id && Number(c.receipt_seq) === Number(r.ended_seq))
+    if (stopped || compensated) continue
+    const stop = stops.find((s) => s.task_run_id === r.task_run_id)
+    const at = Date.parse(r.created_at)
+    const prior = holds.get(r.task_id)
+    if (prior && prior.at >= at) continue
+    holds.set(r.task_id, {
+      at,
+      hold: {
+        taskId: r.task_id,
+        runId: r.task_run_id,
+        sessionId: r.session_id,
+        since: r.created_at,
+        stop: stop ? (stop.state === 'requested' ? 'requested' : 'outcome_unknown') : 'not-requested',
+        stopReason: stop?.reason ?? null
+      }
+    })
+  }
+  return [...holds.values()].map((h) => h.hold)
+}
+
+/** Who holds a task, in the words a refusal carries. */
+export interface HeldBy {
+  session_id: string | null
+  agent: string | null
+  came_in: CameIn | null
+  since: string | null
+  until: string | null
+  run_id?: string
+  stop?: RunStop
+}
+
+/** The holder named from its live claim (null when the lease stands on none) and its lease. */
+export function heldByClaim(
+  c: Pick<ClaimRow, 'agent' | 'came_in' | 'claimed_at'> | null,
+  lease: { owner_session: string; expires_at: string }
+): HeldBy {
+  return { session_id: lease.owner_session, agent: c?.agent ?? null, came_in: c?.came_in ?? null, since: c?.claimed_at ?? null, until: lease.expires_at }
+}
+
+const RUN_STOP_WORDS: Record<RunStop, string> = {
+  'not-requested': 'no stop was asked for it',
+  requested: 'its stop was asked and is not observed yet',
+  outcome_unknown: 'its stop could not be proved'
+}
+
+/**
+ * The refusal of a task its run holds. A lease still live: the session Fabric launched for it is working
+ * (`held`). A lease that lapsed: the run is not proved stopped, and a lapsed lease is not that proof
+ * (`unresolved-run`). Either way the answer names the session, the run, since and until when — never a race.
+ */
+export function runHoldRefusal(taskId: string, hold: RunHold, lease: { expires_at: string } | null, now: number): Record<string, unknown> {
+  const until = lease?.expires_at ?? null
+  const held_by: HeldBy = { session_id: hold.sessionId, agent: null, came_in: 'launched', since: hold.since, until, run_id: hold.runId, stop: hold.stop }
+  const session = hold.sessionId ? `session ${hold.sessionId.slice(0, 8)}` : 'a session'
+  if (until && Date.parse(until) > now)
+    return {
+      claimed: false, code: 'held', task_id: taskId, held_by,
+      reason: `the ${session} Fabric launched for this task holds it, since ${hold.since}, until ${until}`,
+      next: 'choose another task, or file a linked one'
+    }
+  return {
+    claimed: false, code: 'unresolved-run', task_id: taskId, held_by,
+    reason: `the task's last run (${session}, launched by Fabric at ${hold.since}) has not been proved stopped — ${RUN_STOP_WORDS[hold.stop]}` +
+      (until ? `; its lease lapsed at ${until}, and a lapsed lease is not proof that the run ended` : ''),
+    next: 'the task stays held until Fabric can prove that run stopped; choose another task, or file a linked one'
+  }
+}
+
+/**
+ * The answer to a claim the projection did not take, read back after the write (`fabric_work_claim`,
+ * `fabric_task_claim`). Its run holds the task → that run is named. Another session's lease is live now → it
+ * claimed the task in the same moment, named. Neither → the claim is unconfirmed; nothing is guessed.
+ */
+export function refusalAfterWrite(input: {
+  taskId: string
+  me: string
+  now: number
+  lease: { owner_session: string; expires_at: string } | null
+  holder: Pick<ClaimRow, 'agent' | 'came_in' | 'claimed_at'> | null
+  hold: RunHold | null
+}): Record<string, unknown> {
+  const { taskId, me, now, lease, holder, hold } = input
+  if (hold) return runHoldRefusal(taskId, hold, lease, now)
+  if (lease && lease.owner_session !== me && Date.parse(lease.expires_at) > now)
+    return { claimed: false, code: 'held', task_id: taskId, reason: 'another agent claimed it in the same moment', held_by: heldByClaim(holder, lease) }
+  return { claimed: false, code: 'unconfirmed', task_id: taskId, reason: 'the claim could not be confirmed; read fabric_work_list before claiming again' }
+}
+
 /** Whether a session's last sign of life is older than its window (CO-256). Never "running" past it. */
 export function sessionStale(lastSignAt: number | null, startedAt: number, now: number, staleMs = SESSION_STALE_MS): boolean {
   return now - (lastSignAt ?? startedAt) > staleMs

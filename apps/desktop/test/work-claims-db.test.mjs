@@ -25,7 +25,7 @@ import { createScopedStore } from '../src/main/scopedStore.ts'
 import { resolveBacklogSource } from '../src/main/backlogSource.ts'
 import { createLeaseRefReader } from '../src/main/agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from '../src/main/workRelease.ts'
-import { readHome, readProjectWork, readWhereWork } from '../src/main/workRead.ts'
+import { readHome, readProjectWork, readRunHolds, readWhereWork } from '../src/main/workRead.ts'
 
 const env = probeEnv()
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -246,6 +246,91 @@ const c = await connect(projectId, randomUUID(), { cameIn: 'enrolled', agent: 'c
 const leases = await c.call('fabric_leases_list')
 check(leases.agent_sync_leases?.read === true && leases.agent_sync_leases.leases.length === 1 && leaseCalls.length === 1,
   'fabric_leases_list shows the agent-sync leases, read once and kept', { leases: leases.agent_sync_leases, calls: leaseCalls.length })
+
+// ── 6 · an expired lease (CO-323, board finding 2026-10-16 from usa-immigration)
+// The finding: a task whose Fabric-launched session had exited a day earlier was listed as open by fabric_work_list,
+// while fabric_work_claim refused it as `held`, «another agent claimed it in the same moment», naming the expired
+// lease. Time is the one thing a probe cannot wait for, so a lease's lapse is written with SQL — the same row the
+// projector would see a day later; everything else goes through the commands and tools agents and the host use.
+const psql = (input) => execFileSync('psql', [env.DATABASE_URL, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], { input, encoding: 'utf8' }).trim()
+const lapse = (taskId) => psql(`update leases set expires_at = now() - interval '1 day' where work_id = '${taskId}' returning expires_at`)
+const system = { kind: 'system', id: 'work-claims-probe' }
+const rpc = async (name, args) => {
+  const { data, error } = await db.rpc(name, args)
+  if (error) throw new Error(`${name}: ${error.message}`)
+  return data
+}
+
+// 6a · a run Fabric launched for a task, whose process exited and whose stop could not be proved — the state every
+// managed agent run is left in while no provider adapter can show the provider stopped (index.ts, HAR-R0-04).
+const T5 = (await c.call('fabric_task_create', { title: 'launched by Fabric', origin: { kind: 'observation', ref: 'co-323' } })).id
+const S = randomUUID()
+const admitted = await rpc('admit_task_launch', { p_estate_id: ESTATE, p_task_id: T5, p_actor: system, p_session_id: S })
+const runId = admitted.task_run_id
+const begun = await rpc('begin_task_run_launch', { p_estate_id: ESTATE, p_run_id: runId, p_session_id: S, p_actor: system })
+const bound = await rpc('bind_task_run', { p_estate_id: ESTATE, p_run_id: runId, p_session_id: S, p_actor: system })
+const command = randomUUID()
+const asked = await rpc('request_task_run_stop', { p_estate_id: ESTATE, p_run_id: runId, p_session_id: S, p_command_id: command, p_actor: system, p_reason: 'natural_exit' })
+// What the native runtime sends for an agent PTY that exited with code 1: the process is gone, the provider is not
+// proved quiescent (no adapter supplies that receipt yet).
+const exitedObservation = {
+  rootExited: true, processTreeQuiescent: true, providerQuiescent: false, authorityRevoked: true, transcriptCommitted: true,
+  hostInstanceId: 'host-probe', bootId: 'boot-probe', processIdentityRef: 'process:' + 'a'.repeat(64),
+  authorityRevocationRef: 'surface-revoked:probe', transcriptRef: 'sha256:probe', outcome: 'failed_known'
+}
+const observed = await rpc('record_task_run_stop_observation', { p_estate_id: ESTATE, p_run_id: runId, p_session_id: S, p_command_id: command, p_observation: exitedObservation })
+check(admitted.admitted === true && begun.granted === true && bound.bound === true && asked.requested === true && observed.state === 'outcome_unknown',
+  "a launched run whose process exited, with no provider receipt, ends with its stop unproved", { admitted, begun, bound, asked, observed })
+// «Остановить принудительно» sends the same command again; the provider is still not proved quiescent, so the
+// answer is the same — this is why the UI kept «Остановка не подтверждена» (CO-323, second half).
+const forced = await rpc('record_task_run_stop_observation', { p_estate_id: ESTATE, p_run_id: runId, p_session_id: S, p_command_id: command, p_observation: exitedObservation })
+check(forced.state === 'outcome_unknown', 'a forced stop of an exited agent run stays unproved while no provider receipt exists', forced)
+const until5 = lapse(T5)
+
+const claimRun = await c.call('fabric_work_claim', { taskId: T5 })
+check(claimRun.claimed === false && claimRun.code === 'unresolved-run' && !/same moment/.test(claimRun.reason ?? ''),
+  'a task whose last run is not proved stopped is refused as unresolved-run, never «in the same moment»', claimRun)
+check(claimRun.held_by?.session_id === S && claimRun.held_by?.run_id === runId && claimRun.held_by?.came_in === 'launched' &&
+  typeof claimRun.held_by?.since === 'string' && Date.parse(claimRun.held_by.until) === Date.parse(until5) && claimRun.held_by?.stop === 'outcome_unknown',
+  'the refusal names the run, its session, since and until when, and where its stop stands', claimRun.held_by)
+const listRun = await c.call('fabric_work_list')
+const heldRun = listRun.held_without_claim?.find((h) => h.task?.id === T5)
+check(!listRun.open_tasks?.some((t) => t.id === T5) && heldRun?.session_id === S && heldRun?.run_id === runId,
+  'fabric_work_list agrees with the claim: the task is held by its unresolved run, not open', { open: listRun.open_tasks, held: listRun.held_without_claim })
+const taskClaimRun = await c.call('fabric_task_claim', { taskId: T5 })
+check(taskClaimRun.claimed === false && taskClaimRun.code === 'unresolved-run' && taskClaimRun.held_by?.session_id === S && !/same moment/.test(taskClaimRun.reason ?? ''),
+  'fabric_task_claim refuses it the same way', taskClaimRun)
+const holdsSql = psql(`select task_has_unresolved_run_at('${ESTATE}', '${T5}', null, 9223372036854775807)`)
+check(holdsSql === 't', 'the projector itself still holds the task for its run (HAR-R0-04 invariant 2)', holdsSql)
+
+// The tools' reading of a run's hold agrees with the projector's rule on both sides: held above, freed by a launch
+// proved never to have spawned (a compensation) below — and then the task is claimed.
+const projStore = createScopedStore(db, { kind: 'project', estateId: ESTATE, projectId })
+const heldRead = await readRunHolds(projStore, [T5])
+const T7 = (await c.call('fabric_task_create', { title: 'never spawned', origin: { kind: 'observation', ref: 'co-323' } })).id
+const S7 = randomUUID()
+const run7 = (await rpc('admit_task_launch', { p_estate_id: ESTATE, p_task_id: T7, p_actor: system, p_session_id: S7 })).task_run_id
+await rpc('begin_task_run_launch', { p_estate_id: ESTATE, p_run_id: run7, p_session_id: S7, p_actor: system })
+const failed7 = await rpc('fail_task_launch', { p_estate_id: ESTATE, p_run_id: run7, p_session_id: S7, p_actor: system, p_process_started: false })
+const freeRead = await readRunHolds(projStore, [T7])
+const freeSql = psql(`select task_has_unresolved_run_at('${ESTATE}', '${T7}', null, 9223372036854775807)`)
+const claim7 = await c.call('fabric_work_claim', { taskId: T7 })
+check(heldRead.length === 1 && heldRead[0].runId === runId && freeRead.length === 0 && freeSql === 'f' && claim7.claimed === true,
+  "the tools read a run's hold as the projector does: held while unproved, free after a never-spawned compensation", { heldRead, failed7, freeRead, freeSql, claim7 })
+
+// 6b · an expired coordination lease of a session that is gone (Fabric restarted before the session released): the
+// next claim takes it over, the takeover is journalled, and the old claim ends as lapsed.
+const D = randomUUID()
+const d = await connect(projectId, D, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-D' })
+const T6 = (await d.call('fabric_task_create', { title: 'held by a session that is gone', origin: { kind: 'observation', ref: 'co-323' } })).id
+const claimD = await d.call('fabric_work_claim', { taskId: T6 })
+await d.client.close()
+lapse(T6)
+const takeover = await c.call('fabric_work_claim', { taskId: T6 })
+const { data: oldClaim } = await db.from('work_claims').select('released_how').eq('id', claimD.claim_id).maybeSingle()
+const { data: claimedEvents } = await db.from('journal').select('payload').eq('estate_id', ESTATE).eq('type', 'work.claimed@1').eq('payload->>work', T6)
+check(claimD.claimed === true && takeover.claimed === true && oldClaim?.released_how === 'lapsed' && (claimedEvents ?? []).length === 2,
+  'an expired lease of a session that is gone never refuses: the next claim takes it, journalled, the old claim lapsed', { claimD, takeover, oldClaim, claimedEvents })
 
 await surface.stop()
 rmSync(repo, { recursive: true, force: true })

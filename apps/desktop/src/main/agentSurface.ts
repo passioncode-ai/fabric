@@ -82,7 +82,8 @@ import type { McpServer as HubServer } from '@modelcontextprotocol/sdk/server/mc
 import { registerWorkTools, type LiveSession } from './workTools.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
-import { CLAIM_DEFAULT_MINUTES, type CameIn } from '../shared/workClaims.ts'
+import { CLAIM_DEFAULT_MINUTES, refusalAfterWrite, runHoldRefusal, type CameIn } from '../shared/workClaims.ts'
+import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
@@ -1978,6 +1979,9 @@ export class AgentSurface {
           .eq('work_id', taskId)
           .maybeSingle()
         const live = held && new Date(held.expires_at as string).getTime() > Date.now()
+        // A run Fabric launched for the task holds it until proved stopped; a lapsed lease is not that proof (CO-323).
+        const runHold = (await readRunHolds(store, [taskId])).find((h) => h.sessionId !== scope.sessionId) ?? null
+        if (runHold) return json(runHoldRefusal(taskId, runHold, held as { expires_at: string } | null, Date.now()))
         if (live && held.owner_session !== scope.sessionId)
           return json({
             claimed: false,
@@ -2010,12 +2014,17 @@ export class AgentSurface {
           .select('leases', 'owner_session,expires_at')
           .eq('work_id', taskId)
           .maybeSingle()
-        if (!settled || settled.owner_session !== scope.sessionId)
-          return json({
-            claimed: false,
-            reason: 'another session claimed it in the same moment',
-            held_by: settled?.owner_session ?? null
-          })
+        if (!settled || settled.owner_session !== scope.sessionId) {
+          // Named from what holds the task now — never "the same moment" for a lease that lapsed before the write.
+          const holds = await readRunHolds(store, [taskId])
+          const { data: holder } = await store.select('work_claims', 'agent,came_in,claimed_at').eq('work_id', taskId).is('released_at', null).maybeSingle()
+          return json(refusalAfterWrite({
+            taskId, me: scope.sessionId, now: Date.now(),
+            lease: settled as { owner_session: string; expires_at: string } | null,
+            holder: holder as Parameters<typeof refusalAfterWrite>[0]['holder'],
+            hold: holds.find((h) => h.sessionId !== scope.sessionId) ?? null
+          }))
+        }
         // PF-09.02 — the lease is exclusivity over the TASK, never over a
         // FILE. Overlapping write scopes on other live leases are reported,
         // because the false comfort is believing the task claim covers the

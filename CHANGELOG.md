@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A task held by an unfinished run says so** (CO-323): `fabric_work_claim` and `fabric_task_claim` no longer refuse a
+  task whose launched session exited with «another agent claimed it in the same moment»; they name the run that holds it,
+  its session, since and until when, and that its stop is not proved — and `fabric_work_list` lists that task as held,
+  not open. An expired claim of a session that is gone is taken over by the next claim, as before.
 - **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
   no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
 

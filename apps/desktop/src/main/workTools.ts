@@ -26,8 +26,11 @@ import {
   RELEASE_OUTCOME,
   TOUCHES_MAX,
   TOUCH_MAX_CHARS,
+  heldByClaim,
   normaliseTouch,
+  refusalAfterWrite,
   relatedTo,
+  runHoldRefusal,
   sayWhy,
   sessionStale,
   type AgentRelease,
@@ -36,7 +39,7 @@ import {
   type Related,
   type SourceRow
 } from '../shared/workClaims.ts'
-import { readWork, type SessionSign } from './workRead.ts'
+import { readRunHolds, readWork, type SessionSign } from './workRead.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
 
@@ -168,17 +171,6 @@ const KEY = z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/)
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
 const minutesAgo = (now: number, at: number): number => Math.max(0, Math.round((now - at) / 60_000))
 
-/** The words an agent reads for a refusal or a warning — plain, naming who and since when. */
-function heldBy(c: Pick<ClaimRow, 'owner_session' | 'agent' | 'came_in' | 'claimed_at'> | null, lease: { owner_session: string; expires_at: string }) {
-  return {
-    session_id: lease.owner_session,
-    agent: c?.agent ?? null,
-    came_in: c?.came_in ?? null,
-    since: c?.claimed_at ?? null,
-    until: lease.expires_at
-  }
-}
-
 function warningOf(related: Related[]): string | null {
   if (!related.length) return null
   return related
@@ -276,7 +268,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           related: c.related.map((r) => ({ claim_id: r.claimId, task_id: r.taskId, held_by: r.heldBy, why: r.why.map(sayWhy) })),
           handover_requested: c.handover_requested_by ? { by: c.handover_requested_by, at: c.handover_requested_at, note: c.handover_note } : null
         })),
-        held_without_claim: snap.held.map((h) => ({ task: h.task, session_id: h.owner_session, until: h.expires_at, note: 'held by the session Fabric launched for it' })),
+        // The same holds the claim refuses on (CO-323): a lapsed lease whose run is not proved stopped still holds.
+        held_without_claim: snap.held.map((h) => h.run
+          ? { task: h.task, session_id: h.owner_session, run_id: h.run.runId, since: h.run.since, until: h.expires_at, stop: h.run.stop,
+              note: 'held by the run Fabric launched for it: its lease lapsed, but the run is not proved stopped' }
+          : { task: h.task, session_id: h.owner_session, until: h.expires_at, note: 'held by the session Fabric launched for it' }),
         sessions: deps.sessions().map((s) => ({
           session_id: s.sessionId,
           is_you: s.sessionId === scope.sessionId,
@@ -375,6 +371,10 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const now = deps.now()
       const lease = await leaseOf(id)
       const live = lease && Date.parse(lease.expires_at) > now
+      // A run Fabric launched for the task holds it until it is proved stopped — a lapsed lease is not that proof, and
+      // the projector refuses the claim (HAR-R0-04). Named here, before a write the projection would not take (CO-323).
+      const runHold = (await readRunHolds(store, [id])).find((h) => h.sessionId !== scope.sessionId) ?? null
+      if (runHold) return reply(runHoldRefusal(id, runHold, lease, now))
       if (live && lease.owner_session !== scope.sessionId) {
         const holder = await liveClaimOn(id)
         let asked = false
@@ -387,7 +387,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           code: 'held',
           task_id: id,
           reason: `another agent holds this task${holder?.agent ? ` (${holder.agent})` : ''}, since ${holder?.claimed_at ?? 'before this read'}`,
-          held_by: heldBy(holder, lease),
+          held_by: heldByClaim(holder, lease),
           handover_requested: asked,
           next: asked ? 'the holder sees your request on its next fabric_work_list; choose another task meanwhile' : 'choose another task, file a linked one, or ask for a handover (askHandover: true)'
         })
@@ -414,10 +414,12 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       // The answer is the projection's, read after the write: two claims at one moment — the first in the journal holds it.
       const settled = await claimById(claimId)
       if (!settled || settled.released_at) {
-        const after = await leaseOf(id)
-        if (after && after.owner_session !== scope.sessionId)
-          return reply({ claimed: false, code: 'held', task_id: id, reason: 'another agent claimed it in the same moment', held_by: heldBy(await liveClaimOn(id), after) })
-        return reply({ claimed: false, code: 'unresolved-run', task_id: id, reason: 'the task\'s last run has not ended; its session holds it until its exit is confirmed' })
+        // Named from what holds the task now — never "the same moment" for a lease that lapsed before the write (CO-323).
+        const [after, holder, holds] = await Promise.all([leaseOf(id), liveClaimOn(id), readRunHolds(store, [id])])
+        return reply(refusalAfterWrite({
+          taskId: id, me: scope.sessionId, now: deps.now(), lease: after, holder,
+          hold: holds.find((h) => h.sessionId !== scope.sessionId) ?? null
+        }))
       }
       deps.onClaimed()
       const snap = await readWork(store, { now: deps.now(), session: deps.session })
