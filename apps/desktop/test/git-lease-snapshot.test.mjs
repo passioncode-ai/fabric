@@ -10,7 +10,9 @@ import { createGitLeaseSnapshotReader, exactLeaseRef, leaseGit } from '../src/ma
 import { HARDENED_GIT_ARGS, hardenedGitEnv } from '../src/main/gitRun.ts'
 const exec = promisify(execFile)
 const remote = 'https://lease.invalid/fixture.git', timestamp = Date.parse('2026-10-13T12:00:00Z')
-const base = { approvedRemote: remote, key: 'scope:docs/test.lock', runId: 'owned-run', repositoryName: 'fixture', expectedTip: null, maxAgeMs: 60_000, timeoutMs: 1500 }
+// 10 s, not 1.5: these cases check what a read answers, not its speed, and under load a real git outlasted 1.5 s and
+// read as 'timeout' (2026-10-17). The timeout case sets its own short deadline.
+const base = { approvedRemote: remote, key: 'scope:docs/test.lock', runId: 'owned-run', repositoryName: 'fixture', expectedTip: null, maxAgeMs: 60_000, timeoutMs: 10_000 }
 const payload = (delta = {}) => ({ key: base.key, run: base.runId, repo: base.repositoryName, ts: '2026-10-13T11:59:50Z', since: '2026-10-13T11:59:00Z', ttl: 60, host: 'fixture', ...delta })
 let root, repo
 const calls = []
@@ -118,7 +120,9 @@ for (const approvedRemote of ['/tmp/repo', 'file:///tmp/r', 'ext::anything', 'ss
 })
 test('timeout keeps the outstanding slot; repeated calls do not accumulate I/O; late settling permits a fresh read', async () => {
   install(); let settle, count = 0, first = true
-  const r = reader({ timeoutMs: 1500 }, { git: async (args, opts) => {
+  // 4 s: the first read hangs and must time out, but the fresh read after it runs a real git under the same deadline,
+  // and at load 300 that git outlasted 1.5 s (2026-10-17).
+  const r = reader({ timeoutMs: 4000 }, { git: async (args, opts) => {
     count++
     if (first) { first = false; return new Promise(resolve => { settle = resolve }) }
     return git(args, opts)
@@ -126,8 +130,11 @@ test('timeout keeps the outstanding slot; repeated calls do not accumulate I/O; 
   assert.equal((await r.read()).reason, 'timeout')
   for (let i = 0; i < 50; i++) assert.equal((await r.read()).reason, 'prior_io_unresolved')
   assert.equal(count, 1); settle('')
-  await new Promise(resolve => setTimeout(resolve, 30))
-  const fresh = await r.read(); assert.equal(fresh.status, 'observed')
+  // The settled read frees its slot on a later tick; under load 30 ms was not always enough. Wait for it, bounded.
+  let fresh = await r.read()
+  for (const until = Date.now() + 5000; fresh.reason === 'prior_io_unresolved' && Date.now() < until; fresh = await r.read())
+    await new Promise(resolve => setTimeout(resolve, 20))
+  assert.equal(fresh.status, 'observed', JSON.stringify(fresh))
   assert.ok(count > 1, 'fresh proof performs fresh Git I/O')
 })
 test('ordinary transport rejection is consumed and exposes no raw secret/path', async () => {
