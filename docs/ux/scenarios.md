@@ -4132,7 +4132,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet — wave 2 builds the read (the journal, ADR-0014, with each act's actor and inverse)
+- **Coverage:** the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The screen is wave 4's; the agents' own acts (through their MCP tools) join the list from their events in that wave.
 - **Product:** unobserved
 
 ### SCN-169: Undo an act, or read why it cannot be undone
@@ -4149,9 +4149,9 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **UI elements:** «Отменить»; «Отменено · {время}»; «Нельзя отменить» with its reason; the act line in a place.
 - **States covered:** undoing (the button busy), undone, redone, cannot-undo, changed-since, error («Не удалось отменить.» with the machine's words beneath; nothing changed, the button enabled again)
 - **Errors & recovery:** a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.
-- **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses.
+- **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses — `act.recorded@1` (migration 90, suffix 112), one record for every act whatever its own event: the actor, the sentence, the inverse or `why_not`, `undoes`.
 - **Status:** draft
-- **Coverage:** none yet — wave 2 (the inverse of each act in the main process, tested do-then-undo)
+- **Coverage:** the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded. **Not in wave 2:** a disconnected agent «let back in» (the revoked credential is gone and says so, `credential_gone`; the "kept out until let in" state arrives with wave 3's enrollment without consent) and a message to another project (the operator has no send in the main process). The buttons and the act line are waves 3 and 4.
 - **Product:** unobserved
 
 ### SCN-170: Set how Fabric behaves in Настройки

@@ -35368,7 +35368,7 @@
       "screen_refs": [
         "SCR-88"
       ],
-      "coverage": "none yet — wave 2 builds the read (the journal, ADR-0014, with each act's actor and inverse)",
+      "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The screen is wave 4's; the agents' own acts (through their MCP tools) join the list from their events in that wave.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.",
@@ -35387,7 +35387,7 @@
       "screen_refs": [
         "SCR-88"
       ],
-      "coverage": "none yet — wave 2 (the inverse of each act in the main process, tested do-then-undo)",
+      "coverage": "the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded. **Not in wave 2:** a disconnected agent «let back in» (the revoked credential is gone and says so, `credential_gone`; the \"kept out until let in\" state arrives with wave 3's enrollment without consent) and a message to another project (the operator has no send in the main process). The buttons and the act line are waves 3 and 4.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a wrong press is never permanent when it can be reversed, and both the act and its reversal are in История with their actors.",

@@ -112,7 +112,7 @@ deletion.
 |---|---|---|
 | 0 · Decide | the act-log-undo ADR; the ADR-0134/0115 amendments; the cut list | done 2026-10-15 (ADR-0160) |
 | 1 · Spec | scenarios for the five places and История's undo; retirements for the cut list; flows and screens; the prototype drawn for every place and state (`scripts/product/`), in ru and en | `docs/ux/lint.py`, the product-model and report checks, the prototype walked |
-| 2 · History and undo | the inverse of every operator act in the main process (stop → start again, release → take again, detach → attach, discard → restore, answer → reopen, move → move back), recorded with its actor; the История read | a test per act: do, undo, both in history |
+| 2 · History and undo | the inverse of every operator act in the main process (stop → start again, release → take again, detach → attach, discard → restore, answer → reopen, move → move back), recorded with its actor; the История read | a test per act: do, undo, both in history — **done 2026-10-17**, [§8](#8-wave-2--history-and-undo-done-2026-10-17) |
 | 3 · Shell | the five-place rail with the projects list; Создать; no tab strip; the confirmations removed; the coding agent let in, with Отключить | component tests; the walk in ru and en |
 | 4 · Places | Главная, Проект, Агенты, История, Настройки rebuilt to the prototype; the onboarding plan's wizard, scan and create flows in the new frame | screenshots against the prototype; the walk from zero on a disposable stack |
 | 5 · Release | three verification iterations, CHANGELOG, docs, map; 0.3.7 tagged, published, installed | the release run green; the installed bundle verified |
@@ -147,7 +147,67 @@ Decided by the agent under the standing go (§6), recorded here for the operator
   (`?lang=en`), walked in Chrome: 52 states × 2 languages, no page errors; journey PJ-42. The prototype hides the
   conversation with Fabric on these views (RM-09).
 
-**Next task.** Wave 2: the inverse of every operator act in the main process — stop → start again, release → take
-again, detach → attach, discard → restore, answer → reopen, move → move back, disconnect → let back in, rename →
-old name — each recorded with its actor and `undoes`, tested do-then-undo with both acts in the journal; then the
-История read (SCR-88) that SCN-168/169 describe.
+## 8. Wave 2 — history and undo, done 2026-10-17
+
+Main process and data only; the История screen (SCR-88) is wave 4, and only the read it needs is built. Decided by the
+agent under the standing go (§6), recorded for the operator to correct asynchronously:
+
+- **One record for every act: a companion event, not a field in eight payloads.** `act.recorded@1` (journal-only)
+  carries the kind, the person-readable subject, a sentence key with its words, the inverse (a command and its
+  arguments) **or** `why_not`, and `undoes` (the seq of the act it reverses). Its actor is the journal row's. Three of
+  the acts are written inside SQL commands that know nothing about undo (`answer_question`, the claim and task
+  projectors); a companion record says the same thing for all of them without touching eight writers
+  (`apps/desktop/src/shared/acts.ts`, `main/acts.ts`). The cost is that the act and its record are two appends; a
+  record that fails to write is reported to the ops log (`acts.record`) and the act stands, never the other way round.
+- **Each act and its inverse are one pair of executors that meet the same rules.** A task moves along the ladder
+  (`mayMove`), a folder is attached only where no other project holds it, a claim is taken again only where its owner
+  is still here and the lease is free, a console is started again only where its runner is still installed. An undo
+  that the world no longer allows is refused with a code (`task_gone`, `ladder`, `already_there`, `held_by_other`,
+  `owner_gone`, `runner_gone`, `folder_gone`, …), and one whose object moved since says so (`changedSince`: the
+  object's state now) and still does what the button says — never a silent overwrite (SCN-169).
+- **An undo is an act, so it can be undone** (redo): `undo` is `perform` of the recorded inverse with `undoes` set, and
+  its own record carries its own inverse. Which acts are undone **now** is read from the newest record down
+  (`analyseActs`): reversed twice, an act is in force again. A second press while the first runs, or on an act already
+  undone, is refused `already_undone`; it never doubles the inverse.
+- **Refused with a reason, in the record itself, before and after:** a move into done or cancelled (`task_closed`: a
+  closed task does not reopen, `ladder.ts`), a closing, a release recorded (`published`), a disconnect of an agent
+  (`credential_gone`), and the reopening of an answered question (`answer_needs_person`: Fabric takes an answer back,
+  it does not re-give it, because an answer is the person's own words). The plan also names "a message to another
+  project": the operator has no send in the main process today (`comms:*` are reads), so there is no act to record; the
+  code `delivered` is reserved for the wave that adds one.
+- **Reopening an answered question needed a new command** (`reopen_answered_question`, migration 90, suffix 112;
+  `reopen_question` only returns a question that was set aside). The question is `open` again under a new revision, so
+  a screen holding the old one cannot answer blind; what it blocks is blocked again; the second answer is a second
+  resolution with its own decision (`question_resolutions` is no longer one row per question). The earlier answer stays
+  in the journal and the decision it recorded stays in memory as history. The revision is counted from the journal, not
+  incremented: a rebuild replays the event over rows that already hold its effect, and an increment gave 3 where the
+  database said 2 — watched failing in `reopen-answer-db.test.mjs` before the count replaced it.
+- **A discarded draft is kept where the person keeps their own state, not in the journal.** `discarded-drafts.json`
+  (at most 20, oldest out) holds the words; the record carries the draft's name and the id it is kept by, so «Отменить»
+  restores it under its own tab, or under the keeping id when that tab is taken meanwhile. The words never reach the
+  journal.
+- **Start again "from where it stood" means the place and the way it ran**: the same project and folder, the same runner
+  and permission mode, and the same task for a managed one (through the same launch the person's own «open» uses). The
+  agent's own conversation is the runner's to resume; Fabric does not reach into it.
+- **Not recorded yet, and why.** Acts of an agent through its MCP tools (an agent moved a task, released its claim) are
+  already in the journal as their own events with the agent as actor; they are not wrapped in `act.recorded@1` — wave 4
+  reads them into История from their events, with no inverse offered. «Disconnect → let back in» has no inverse in this
+  wave: a revoked credential is gone, and the "kept out until let back in" state arrives with wave 3 (the coding agent
+  let in without consent, ADR-0160 §3), so the disconnect records `credential_gone` today.
+- **FLW-97 stays on the unmeasured-flows debt.** Its measured coverage comes from a screen citing an implementing file;
+  SCR-88 is wave 4's, and a main-process file is not a screen. Citing one would make the flow look measured while it is
+  not.
+- **IPC** (`FabricApi`): `acts.history(query)` (newest first, cursor `next`, filters `actorKind`, `projectId`, `category`,
+  `text`; every row with `undo`: `available` (with `changedSince`), `undone` (with `by`), or `cannot` (with `why`)),
+  `acts.undo(seq)`, `drafts.discard(tabId)`, `drafts.restore(discardId)`. The renderer words `said.key` and the
+  reason codes in the person's language (wave 4).
+- **Evidence.** `apps/desktop/test/acts.test.mjs` (pure, 12 cases; three planted defects watched failing: a naive undo
+  analysis, no in-flight guard, a restore that overwrites an occupied tab), `acts-db.test.mjs` (a disposable stack: every
+  database act done, undone and redone, both acts in the journal with the person as actor, and the read),
+  `reopen-answer-db.test.mjs` (an owned cluster, in the fast tier: the command, its idempotency and refusals, a rebuild).
+
+**Next task.** Wave 3 — the shell: the five-place rail with the projects list (SCN-162); **Создать** (SCN-171); no tab
+strip; every confirmation of §1 removed except the boundaries of §3.3, each act line reading its «Отменить» from
+`acts.undo`; and the coding agent let in without a question, with **Отключить** (SCN-167) — which brings the
+"kept out until let back in" state the disconnect's inverse needs, so the `credential_gone` refusal of the disconnect
+act becomes a real inverse in the same wave. Component tests and the walk in ru and en.

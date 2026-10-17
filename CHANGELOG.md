@@ -9,9 +9,17 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Every act can be taken back** (ADR-0160, SCN-168, SCN-169; the screens follow in 0.3.7). Moving a task, releasing
+  a claim, removing or adding a folder, renaming a project, answering a question, stopping a console and discarding a
+  draft are each recorded with who did it and how to undo it: a task moves back, a claim is taken again, a folder
+  is attached again, the old name returns, a question is opened again, a console starts again where it stood, a
+  draft is restored. An undo is itself recorded and can be undone. What cannot be taken back says why: a task
+  closed, a release published, an agent's key revoked.
+- **An answered question can be reopened.** The question is open again, what it blocks is blocked again, and a new
+  answer is a new decision. (Schema 90: `20261017000112_acts_and_reopened_answers.sql`; the database moves from 89 to 90.)
 - **A task held by an unfinished run says so** (CO-323): `fabric_work_claim` and `fabric_task_claim` no longer refuse a
   task whose launched session exited with «another agent claimed it in the same moment»; they name the run that holds it,
-  its session, since and until when, and that its stop is not proved — and `fabric_work_list` lists that task as held,
+  its session, since and until when, and that its stop is not proved; `fabric_work_list` lists that task as held,
   not open. An expired claim of a session that is gone is taken over by the next claim, as before.
 - **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
   no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
