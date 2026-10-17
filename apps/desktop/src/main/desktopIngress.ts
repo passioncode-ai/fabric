@@ -40,6 +40,7 @@ export const EXTERNAL_INGRESS_OWNERS: Readonly<Record<string, string>> = Object.
   'hub.call.refusals.summarized@1': 'createAgentCall#notSentSpan: the count of a window\'s refusals per binding and code (CO-200); its shape is checked at the door',
   ...Object.fromEntries(['product.connect.refused@1', 'product.connected@1', 'product.disconnected@1']
     .map((type) => [type, 'ProductConnector: connection metadata only; the secret is in the vault'])),
+  'act.recorded@1': 'createActLog: ids, a kind from the fixed set, a sentence key with short names and the inverse command; the shape is checked by buildRecord on the way in and validateActRecord on the way out (ADR-0160)',
   'session.enrolled@1': 'enrollSession: identifiers, the resolution kind and a digest of the folder (ADR-0134)'
 })
 

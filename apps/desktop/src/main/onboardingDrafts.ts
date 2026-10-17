@@ -25,13 +25,16 @@
 // probe passes a fake and needs no Electron.
 
 import type { LocalRead, LocalWrite } from './localState.ts'
-import { worthKeeping, type DraftFile, type DraftReadStatus } from '../shared/onboardingDraft.ts'
+import { worthKeeping, type Draft, type DraftFile, type DraftReadStatus, type DiscardedFile } from '../shared/onboardingDraft.ts'
 
 /** The slice of `LocalStore` this module needs, and nothing more. */
-export interface DraftStore {
-  read(): LocalRead<DraftFile>
-  update(change: (current: DraftFile) => DraftFile): LocalWrite<DraftFile>
+export interface DraftStore<T = DraftFile> {
+  read(): LocalRead<T>
+  update(change: (current: T) => T): LocalWrite<T>
 }
+
+/** How many discarded drafts are kept to be restored: the oldest go first. A draft is words, not work to archive. */
+export const DISCARDED_KEEP = 20
 
 export interface Drafts {
   /** Every draft worth restoring, and whether the value may be written back. */
@@ -46,10 +49,66 @@ export interface Drafts {
    * wholesale.
    */
   save(next: DraftFile): LocalWrite<DraftFile>
+  /**
+   * Take a draft out of the open ones at once and keep it, in the operator's own store, to be restored (ADR-0160 §1:
+   * discarding asks nothing; §2: it can be undone). Null when there is no such draft. The words never go to the
+   * journal: the act is recorded by its name, and the draft waits here.
+   */
+  discard(tabId: string): { discardId: string; draft: Draft } | null
+  /** The draft back among the open ones: under its own tab when that is free, else under the id it was kept by. */
+  restore(discardId: string): { tabId: string; draft: Draft } | null
+  open(tabId: string): Draft | null
+  kept(discardId: string): { tabId: string; draft: Draft } | null
 }
 
-export function createDrafts(store: DraftStore): Drafts {
+const committed = (w: { status: string }): boolean => w.status === 'committed'
+
+export function createDrafts(
+  store: DraftStore,
+  trash?: DraftStore<DiscardedFile>,
+  now: () => string = () => new Date().toISOString(),
+  newId: () => string = () => crypto.randomUUID()
+): Drafts {
+  const must = <T>(got: LocalRead<T>, what: string): T => {
+    if (got.status === 'ready' || got.status === 'default_missing' || got.status === 'recovered') return got.value
+    throw new Error(`the ${what} could not be read: ${got.error ?? got.status}`)
+  }
   return {
+    open(tabId) { return must(store.read(), 'drafts')[tabId] ?? null },
+    kept(discardId) {
+      if (!trash) return null
+      const k = must(trash.read(), 'discarded drafts')[discardId]
+      return k ? { tabId: k.tabId, draft: k.draft } : null
+    },
+    discard(tabId) {
+      if (!trash) throw new Error('discarded drafts are not kept here')
+      const draft = must(store.read(), 'drafts')[tabId]
+      if (!draft) return null
+      const discardId = newId()
+      const kept = trash.update((cur) => {
+        const next: DiscardedFile = { ...cur, [discardId]: { tabId, draft, at: now() } }
+        const ids = Object.keys(next).sort((a, b) => next[a].at.localeCompare(next[b].at))
+        for (const old of ids.slice(0, Math.max(0, ids.length - DISCARDED_KEEP))) delete next[old]
+        return next
+      })
+      if (!committed(kept)) throw new Error('the draft could not be kept to be restored; it was not discarded')
+      const removed = store.update((cur) => { const next = { ...cur }; delete next[tabId]; return next })
+      if (!committed(removed)) {
+        trash.update((cur) => { const next = { ...cur }; delete next[discardId]; return next })
+        throw new Error('the draft could not be taken out of the open ones; nothing was discarded')
+      }
+      return { discardId, draft }
+    },
+    restore(discardId) {
+      if (!trash) return null
+      const k = must(trash.read(), 'discarded drafts')[discardId]
+      if (!k) return null
+      let tabId = k.tabId
+      const put = store.update((cur) => { tabId = cur[k.tabId] ? discardId : k.tabId; return { ...cur, [tabId]: k.draft } })
+      if (!committed(put)) throw new Error('the draft could not be put back; it is still kept')
+      trash.update((cur) => { const next = { ...cur }; delete next[discardId]; return next })
+      return { tabId, draft: k.draft }
+    },
     read() {
       const got = store.read()
       // `localStore` answers with more than two states and these pass them on

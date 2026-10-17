@@ -1306,6 +1306,8 @@ export const en = {
   'event.release.recorded@1': "a release was recorded",
   'event.release.verified@1': "a release verification was recorded",
   'event.question.withdrawn@1': 'a question was withdrawn',
+  'event.question.answer_withdrawn@1': 'an answer was taken back and the question is open again',
+  'event.act.recorded@1': 'an act was recorded with how to take it back',
   'event.question.prioritised@1': 'the CEO set a question’s priority',
   'event.project.priority.set@1': 'the operator set a project’s priority',
   'event.project.trust.set@1': 'the operator changed the CEO’s trust for a project',

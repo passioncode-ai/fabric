@@ -1,3 +1,4 @@
+import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
@@ -1327,6 +1328,18 @@ export interface FabricApi {
      */
     read(): Promise<{ drafts: DraftFile; status: DraftReadStatus; problem: string | null }>
     save(next: DraftFile): Promise<{ saved: boolean; reason: string | null }>
+    /** ADR-0160: discarding asks nothing and is an act in История with «Восстановить»; the words stay on this Mac. */
+    discard(tabId: string): Promise<ActAnswer>
+    restore(discardId: string): Promise<ActAnswer>
+  }
+  /**
+   * История (ADR-0160 §2, SCN-168, SCN-169): every act with who did it, when, to what, and whether it can be taken
+   * back. `history` is a page, newest first, with its filters; `undo` does the act's inverse at once — itself an act,
+   * so it can be undone — and answers with a reason code when it cannot (`published`, `already_undone`, `owner_gone`, …).
+   */
+  acts: {
+    history(query?: ActHistoryQuery): Promise<ActHistoryPage>
+    undo(seq: number): Promise<ActAnswer>
   }
   /**
    * The conversation with Fabric (SCR-64), through the main-side binding
@@ -1614,6 +1627,10 @@ export const IPC = {
   projectsSaveSettings: 'projects:save-settings',
   draftsRead: 'drafts:read',
   draftsSave: 'drafts:save',
+  draftsDiscard: 'drafts:discard',
+  draftsRestore: 'drafts:restore',
+  actsHistory: 'acts:history',
+  actsUndo: 'acts:undo',
   ceoStatus: 'ceo:status',
   ceoCall: 'ceo:call',
   ceoSelect: 'ceo:select',

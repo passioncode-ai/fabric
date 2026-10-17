@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -369,8 +369,14 @@ import { livenessFor } from './livenessRead.ts'
 import { classifyObservationGap, type HostWindow } from '../shared/harnessBreak.ts'
 import { createDrafts } from './onboardingDrafts.ts'
 import { localStore } from './localStore.ts'
-import { validateDraftFile } from '../shared/onboardingDraft.ts'
-import type { DraftFile } from '../shared/onboardingDraft.ts'
+import { validateDraftFile, validateDiscardedFile } from '../shared/onboardingDraft.ts'
+import type { DraftFile, DiscardedFile } from '../shared/onboardingDraft.ts'
+import { createActs } from './acts.ts'
+import { createActLog } from './actLog.ts'
+import { createWorldExecutors } from './actExecutors.ts'
+import { createSessionExecutors, sessionStopOutcome, type ConsoleSnapshot } from './actSessionExecutors.ts'
+import { createDraftExecutors } from './actDraftExecutors.ts'
+import { actQueryOf, answerOf } from './actIpc.ts'
 import type { PersistedTabs } from '../shared/tabs.ts'
 import { createContinuationDelivery, type ContinuationResult } from './continuationDelivery.ts'
 import { createPastContext } from './pastContext.ts'
@@ -1510,6 +1516,10 @@ function installedBuild(): ManifestRead {
 }
 
 function registerIpc(meta: { estateId: string; estateName: string }): void {
+  // The operator's acts and their inverse (ADR-0160 §2): built once the drafts and the launch exist, further down.
+  let acts: ReturnType<typeof createActs>
+  /** An act's refusal to the renderer: the executor's own sentence where it has one, else the reason code. */
+  const refusedAs = (r: { reason: string; says?: string }): string => r.says ?? r.reason
   // When THIS process started watching, and the intervals the machine was
   // suspended for. Both belong to the observer's honesty rather than to the
   // agents: a stall reported from an interval nobody watched is a guess
@@ -2098,21 +2108,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    * ladder's own sentence about why the move is not available.
    */
   handle(IPC.tasksMove, async (_e, taskId: string, to: TaskState): Promise<Returns<FabricApi['tasks']['move']>> => {
-    const { data: task } = await store
-      .select('project_tasks', 'id,project_id,status')
-      .eq('id', taskId)
-      .maybeSingle()
-    if (!task) return { ok: false, reason: 'that task no longer exists' }
-    const verdict = mayMove('person', task.status as TaskState, to)
-    if (!verdict.ok) return verdict
-    await journal.append({
-      estateId: ACTIVE_ESTATE,
-      type: 'task.moved@1',
-      actor: OPERATOR_ACTOR,
-      projectId: task.project_id as string,
-      payload: { task_id: taskId, from: task.status, to }
-    })
-    return { ok: true }
+    // The same `mayMove` ladder, asked inside the executor (`actExecutors.ts`), so an undo meets the rules the move met.
+    const r = await acts.perform('task.move', { task_id: String(taskId), to: String(to) })
+    if (r.ok) return { ok: true }
+    return { ok: false, reason: r.reason === 'task_gone' ? 'that task no longer exists' : refusedAs(r) }
   })
 
   handle(
@@ -2129,7 +2128,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       if (outcome === 'cancelled' && (reason ?? '').trim().length === 0)
         return { ok: false, reason: 'cancelling needs a reason — say what changed' }
       const { data: task, error: readError } = await store
-        .select('project_tasks', 'id,project_id,status')
+        .select('project_tasks', 'id,project_id,status,title,instruction')
         .eq('id', taskId)
         .maybeSingle()
       // A read that failed is not "no such task" (0.3.3 final recheck): the screen reads that sentence as nothing to
@@ -2145,6 +2144,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         projectId: task.project_id as string,
         payload: { task_id: taskId, outcome, reason: reason ?? null }
       })
+      const closedTitle = ((task.title as string | null) ?? (task.instruction as string | null) ?? '').trim().slice(0, 120) || null
+      await acts.note({ kind: 'task.close', projectId: task.project_id as string, subject: { type: 'task', id: taskId, label: closedTitle },
+        said: { key: 'act.task.close', params: { task: closedTitle, outcome } }, inverse: null, whyNot: 'task_closed' })
       return { ok: true }
     }
   )
@@ -3138,6 +3140,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       }, input)
       if (result.state !== 'committed') return { committed: false, reason: result.reason }
       const r = result.receipt
+      if (!r.repeated) {
+        // The answer is an act with «reopen» as its inverse (ADR-0160 §2). Best effort and never silent: the answer stands.
+        try {
+          const q = await store.select('questions', 'text').eq('id', input.questionId).maybeSingle()
+          const text = ((q.data as { text?: string } | null)?.text ?? '').trim()
+          await acts.note({ kind: 'question.answer', projectId: input.projectId, refSeq: typeof r.answered_seq === 'number' ? r.answered_seq : null,
+            subject: { type: 'question', id: input.questionId, label: text.slice(0, 120) || null },
+            said: { key: 'act.question.answer', params: { question: text.slice(0, 120) || null, answer: (input.chosenOption ?? input.answer ?? '').slice(0, 120) } },
+            inverse: { kind: 'question.reopen', args: { question_id: input.questionId } } })
+        } catch (e) { ops.failed('acts.answer-note', e, { question_id: input.questionId }) }
+      }
       return {
         committed: true,
         repeated: r.repeated,
@@ -3469,7 +3482,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.releasesList, (_e, q?: { projectId?: string | null; limit?: number }): Promise<Returns<FabricApi['releases']['list']>> =>
     readReleases(q?.projectId ?? null, q?.limit ?? 100)
   )
-  handle(IPC.releasesRecord, (_e, input: unknown): Promise<Returns<FabricApi['releases']['record']>> => commitReleaseCommand(boardDeps(), 'record', input))
+  handle(IPC.releasesRecord, async (_e, input: unknown): Promise<Returns<FabricApi['releases']['record']>> => {
+    const done = await commitReleaseCommand(boardDeps(), 'record', input)
+    // A release is published outward: its act says it cannot be undone, and why (ADR-0160 §2).
+    if (done.state === 'committed' && !done.repeated) {
+      const i = (input ?? {}) as { name?: unknown; projectId?: unknown }
+      const label = typeof i.name === 'string' ? i.name.slice(0, 120) : null
+      await acts.note({ kind: 'release.record', projectId: typeof i.projectId === 'string' ? i.projectId : null, refSeq: done.seq,
+        subject: { type: 'release', id: done.releaseId, label }, said: { key: 'act.release.record', params: { release: label } },
+        inverse: null, whyNot: 'published' })
+    }
+    return done
+  })
   handle(IPC.releasesVerify, (_e, input: unknown): Promise<Returns<FabricApi['releases']['verify']>> => commitReleaseCommand(boardDeps(), 'verify', input))
 
 
@@ -3666,8 +3690,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> =>
     hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR))
-  handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> =>
-    hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR))
+  handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> => {
+    const done = await hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR)
+    // The credential is gone and cannot be revived: the agent asks again and gets a new one (ADR-0160 §2: said, not hidden).
+    if (done.ok) await acts.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: String(bindingId), label: null },
+      said: { key: 'act.agent.disconnect', params: {} }, inverse: null, whyNot: 'credential_gone' })
+    return done
+  })
   handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
     hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
   handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> =>
@@ -3687,7 +3716,63 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    */
   // The real store, built here because this is the only file that may know
   // where `userData` is (see `onboardingDrafts.ts` for why it is injected).
-  const drafts = createDrafts(localStore<DraftFile>('onboarding-drafts.json', {}, validateDraftFile))
+  const drafts = createDrafts(
+    localStore<DraftFile>('onboarding-drafts.json', {}, validateDraftFile),
+    localStore<DiscardedFile>('discarded-drafts.json', {}, validateDiscardedFile)
+  )
+
+  // #region acts-wiring — docs: docs/ux/scenarios.md#scn-169-undo-an-act-or-read-why-it-cannot-be-undone
+  const labelOf = (optionId: string): string => AGENTS.find((a) => a.id === optionId)?.label ?? optionId
+  const consoleOf = (s: ReturnType<PtyManager['get']>): ConsoleSnapshot | null =>
+    s ? { sessionId: s.sessionId, projectId: s.projectId, optionId: s.optionId, permissionMode: s.permissionMode, cwd: s.cwd, label: labelOf(s.optionId) } : null
+  const projectNameOf = async (projectId: string): Promise<string | null> => {
+    try { return (await readProject(projectId)).name } catch { /* not silence: the sentence is worded without the name */ return null }
+  }
+  acts = createActs({
+    log: createActLog({ journal, store, estateId: ACTIVE_ESTATE }),
+    actor: OPERATOR_ACTOR,
+    onRecordFailed: (kind, e) => ops.failed('acts.record', e, { kind }),
+    executors: {
+      ...createWorldExecutors({
+        store, journal, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR, rpc: (name, args) => db.rpc(name, args),
+        sessionLive: (id) => heldSessions().some((s) => s.sessionId === id), pathExists: (p) => existsSync(p),
+        newId: () => randomUUID(), now: () => Date.now(), foldersChanged: refreshFileRoots
+      }),
+      ...createSessionExecutors({
+        runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
+        stop: async (sessionId) => {
+          const r = await stopRuntime.stop(sessionId, 'operator_stop')
+          return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
+        },
+        snapshot: (id) => { const s = ptys.get(id); return s?.running ? consoleOf(s) : null },
+        projectName: projectNameOf,
+        startAgain: async (a) => {
+          if (a.task_id) {
+            const r = await launchManaged({ taskId: a.task_id, trigger: 'operator', ...(a.permission_mode ? { permissionMode: a.permission_mode } : {}) })
+            if (!r.started) throw new Error(r.says)
+            return { sessionId: r.sessionId, label: labelOf(a.option_id) }
+          }
+          const project = await readProject(a.project_id)
+          const place = launchPlace(project.repo_path)
+          const cwd = a.cwd && existsSync(a.cwd) ? a.cwd : place.place === 'repository' ? place.path : app.getPath('home')
+          const opened = await ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode)
+          syncPower()
+          return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
+        }
+      }),
+      ...createDraftExecutors(drafts)
+    }
+  })
+  handle(IPC.actsHistory, (_e, query?: unknown): Promise<Returns<FabricApi['acts']['history']>> => acts.history(actQueryOf(query)))
+  handle(IPC.actsUndo, async (_e, seq: unknown): Promise<Returns<FabricApi['acts']['undo']>> => {
+    if (typeof seq !== 'number' || !Number.isSafeInteger(seq) || seq < 1) return { ok: false, reason: 'not_an_act' }
+    return answerOf(await acts.undo(seq))
+  })
+  handle(IPC.draftsDiscard, async (_e, tabId: unknown): Promise<Returns<FabricApi['drafts']['discard']>> =>
+    answerOf(await acts.perform('draft.discard', { tab_id: typeof tabId === 'string' ? tabId : '' })))
+  handle(IPC.draftsRestore, async (_e, discardId: unknown): Promise<Returns<FabricApi['drafts']['restore']>> =>
+    answerOf(await acts.perform('draft.restore', { discard_id: typeof discardId === 'string' ? discardId : '' })))
+  // #endregion acts-wiring
 
   // Private history and restore (SCR-65, SCR-48). No path and no identity cross IPC.
   const historyUnavailable = { ok: false as const, state: 'refused' as const, reason_code: 'unavailable' }
@@ -4434,20 +4519,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.reposAttach, async (event, projectId: string, paths: string[]): Promise<Returns<FabricApi['repos']['attach']>> => {
     // The same admission as projects.create (iteration 2, errors finding 2): this window's own folders,
     // by their real paths, none held by another project (REQ-04), or nothing is attached.
+    const before = new Set((await listRepos(projectId)).map((r) => r.id))
     await attachRepos(projectId, await admitReposFor(event, projectId, paths))
     await refreshFileRoots()
-    return listRepos(projectId)
+    const after = await listRepos(projectId)
+    // Each folder this press attached is an act with its inverse (ADR-0160 §2): detach it again.
+    for (const r of after.filter((x) => !before.has(x.id)))
+      await acts.note({ kind: 'repo.attach', projectId, subject: { type: 'repo', id: r.id, label: r.label ?? r.path },
+        said: { key: 'act.repo.attach', params: { folder: r.label ?? r.path } }, inverse: { kind: 'repo.detach', args: { repo_id: r.id } } })
+    return after
   })
 
   handle(IPC.reposDetach, async (_e, projectId: string, repoId: string): Promise<Returns<FabricApi['repos']['detach']>> => {
-    await journal.append({
-      estateId: ACTIVE_ESTATE,
-      type: 'project.repo.detached@1',
-      actor: OPERATOR_ACTOR,
-      projectId,
-      payload: { id: repoId }
-    })
-    await refreshFileRoots()
+    // At once, no question (ADR-0160 §1); the act keeps the folder's path so «Отменить» attaches it again.
+    const r = await acts.perform('repo.detach', { repo_id: String(repoId) })
+    if (!r.ok && r.reason !== 'folder_gone') throw new Error(refusedAs(r))
     return listRepos(projectId)
   })
 
@@ -4487,16 +4573,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   ])
 
   handle(IPC.projectsUpdate, async (_e, input: UpdateProjectInput): Promise<Returns<FabricApi['projects']['update']>> => {
-    const payload: Record<string, unknown> = { id: input.id }
-    if (input.name !== undefined) payload.name = input.name.trim()
-    if (input.purpose !== undefined) payload.purpose = input.purpose?.trim() || null
-    await journal.append({
-      estateId: ACTIVE_ESTATE,
-      type: 'project.updated@1',
-      actor: OPERATOR_ACTOR,
-      projectId: input.id,
-      payload
-    })
+    const args: Record<string, string | null> = { project_id: input.id }
+    if (input.name !== undefined) args.name = input.name.trim()
+    if (input.purpose !== undefined) args.purpose = input.purpose?.trim() || null
+    // A save is immediate and recorded with the old words, so «Отменить» puts them back (ADR-0160; SCN-165).
+    const r = await acts.perform('project.rename', args)
+    if (!r.ok) throw new Error(`project update failed: ${refusedAs(r)}`)
     return readProject(input.id)
   })
 
@@ -4705,7 +4787,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
-    return releaseByOperator(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), OPERATOR_ACTOR, claimId)
+    // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.
+    const r = await acts.perform('claim.release', { claim_id: claimId })
+    if (r.ok) return { released: true, claimId }
+    return { released: false, reason: r.reason === 'claim_gone' ? 'not-found' : r.reason === 'already_released' ? 'already-released' : 'unconfirmed' }
   })
   // #endregion work-ipc
 
@@ -4731,7 +4816,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   listen(IPC.terminalResize, (_e, sessionId: string, cols: number, rows: number) => ptys.resize(sessionId, cols, rows))
   handle(IPC.terminalEnd, async (_e, sessionId: string, options?: { force?: boolean }): Promise<Returns<FabricApi['terminal']['end']>> => {
     if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
-    return stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
+    // What the console was, read BEFORE it stops: «start it again where it stood» needs the place and the way it ran.
+    const stood = consoleOf(ptys.get(sessionId))
+    const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
+    if (stood) {
+      const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
+      if (outcome) await acts.note(outcome)
+    }
+    return result
   })
   handle(IPC.terminalDismiss, (_e, sessionId: string): Returns<FabricApi['terminal']['dismiss']> => {
     ptys.dismiss(sessionId)

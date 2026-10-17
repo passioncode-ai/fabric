@@ -35,7 +35,9 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     },
     drafts: {
       read: () => ipc.invoke(IPC.draftsRead),
-      save: (next) => ipc.invoke(IPC.draftsSave, next)
+      save: (next) => ipc.invoke(IPC.draftsSave, next),
+      discard: (tabId) => ipc.invoke(IPC.draftsDiscard, tabId),
+      restore: (discardId) => ipc.invoke(IPC.draftsRestore, discardId)
     },
     history: {
       list: () => ipc.invoke(IPC.historyList),
@@ -250,6 +252,10 @@ export function createApi(ipc: BridgeIpc): FabricApi {
         return () => ipc.removeListener(IPC.linksOpen, listener)
       },
       pending: () => ipc.invoke(IPC.linksPending)
+    },
+    acts: {
+      history: (query) => ipc.invoke(IPC.actsHistory, query),
+      undo: (seq) => ipc.invoke(IPC.actsUndo, seq)
     },
     work: {
       project: (projectId) => ipc.invoke(IPC.workProject, projectId),

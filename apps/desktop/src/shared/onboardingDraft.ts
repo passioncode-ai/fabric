@@ -55,6 +55,24 @@ export const EMPTY_DRAFT: Draft = {
 /** Every open draft, by the tab id it is being typed in. */
 export type DraftFile = Record<string, Draft>
 
+/** A draft the person discarded and may restore (ADR-0160), by the id it is kept under; at most a handful, oldest first out. */
+export type DiscardedFile = Record<string, { tabId: string; draft: Draft; at: string }>
+
+/** A discarded-drafts file this product wrote, or null (as strict as `validateDraftFile`: one bad entry rejects the file). */
+export function validateDiscardedFile(parsed: unknown): DiscardedFile | null {
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+  const out: DiscardedFile = {}
+  for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (id === '' || value === null || typeof value !== 'object' || Array.isArray(value)) return null
+    const k = value as Record<string, unknown>
+    if (typeof k.tabId !== 'string' || typeof k.at !== 'string') return null
+    const one = validateDraftFile({ [k.tabId || '_']: k.draft })
+    if (!one) return null
+    out[id] = { tabId: k.tabId, at: k.at, draft: Object.values(one)[0] }
+  }
+  return out
+}
+
 /**
  * Is there anything here worth keeping?
  *

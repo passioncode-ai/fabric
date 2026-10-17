@@ -2005,6 +2005,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'event.release.recorded@1': "записан релиз",
   'event.release.verified@1': "записана проверка релиза",
   'event.question.withdrawn@1': "вопрос отозван",
+  'event.question.answer_withdrawn@1': "ответ забрали назад, вопрос снова открыт",
+  'event.act.recorded@1': "записано действие и как его отменить",
   'event.question.prioritised@1': "CEO задал приоритет вопросу",
   'event.project.priority.set@1': "оператор задал приоритет проекта",
   'event.project.trust.set@1': "оператор изменил уровень доверия к CEO в проекте",

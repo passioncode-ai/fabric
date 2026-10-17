@@ -286,6 +286,13 @@ pipeline's prose reservation, now 110/111). The procedure is the same with 89 in
 tables and functions only and rewrites no stored row; migration 88 replaces functions only; migration 89 adds
 functions and one partial index on the journal and rewrites no stored row.
 
+**0.3.7 admits schema 90** (in preparation; wave 2 of the plan) — one migration past 0.3.6's 89:
+`20261017000112_acts_and_reopened_answers.sql` (count 90: `act.recorded@1`, the one record of an operator act with its
+inverse, and the command that takes an answer back, `reopen_answered_question`). 89 + 1 = **90**, whatever the suffix
+says (109 is the board's, 110/111 the pipeline's). The procedure is the same with 90 in place of 89. The migration adds
+three partial indexes on the journal, one table constraint dropped (`question_resolutions` no longer holds one row per
+question, so a reopened question can be answered again), functions and two event types; it rewrites no stored row.
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
@@ -353,7 +360,7 @@ functions and one partial index on the journal and rewrites no stored row.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 90 for 0.3.7).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

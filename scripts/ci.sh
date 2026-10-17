@@ -299,6 +299,8 @@ node --experimental-strip-types apps/desktop/test/process-boundary.test.mjs
 node --experimental-strip-types apps/desktop/test/reconcile.test.mjs
 node --experimental-strip-types apps/desktop/test/continuation-exactly-once.test.mjs
 node --experimental-strip-types apps/desktop/test/past-context.test.mjs
+# ADR-0160 §2 (0.3.7 wave 2): every operator act with its inverse — the record, do → undo → redo, the refusals, the read; pure.
+node --experimental-strip-types --test apps/desktop/test/acts.test.mjs
 node --experimental-strip-types apps/desktop/test/mirror-manifest.test.mjs
 node apps/desktop/test/files.test.mjs
 # S14. Real filesystem, real permission removal, real leftover temp file: a fake
@@ -407,9 +409,10 @@ owned_fast_not_run=()
 # The pending resource proposal is fixture-applied by its own runner only; this does not activate its schema.
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
 # installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
+# run-reopen-answer-db (0.3.7 wave 2, migration 90): an answered question taken back, and the act record's registration.
 # grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
 # append, one writer, the presented grant reserved, the rebuild under the estate lock.
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?
