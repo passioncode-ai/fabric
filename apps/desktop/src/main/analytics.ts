@@ -25,7 +25,8 @@ import { randomInt, randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { SESSION_ENROLL } from '../shared/access.ts'
 
-export const ANALYTICS_HOST = 'https://analytics.sshlg.me'
+// PassionCode's own Aptabase (passioncode-platform PLAT-019, decision D-OE6), not the operator's personal instance.
+export const ANALYTICS_HOST = 'https://analytics.passioncode.ai'
 export const SDK_VERSION = 'fabric-analytics@1'
 export const BATCH_MAX = 25
 export const QUEUE_MAX = 200

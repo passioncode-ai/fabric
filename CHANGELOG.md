@@ -7,6 +7,11 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
+  no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
+
 ## 0.3.6
 
 The home says who is doing what across every project, in plain words; a project's page says where it came from,

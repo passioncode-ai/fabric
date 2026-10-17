@@ -11,8 +11,10 @@ Fabric Switchboard is the reference: its
 same file, fields and rules.
 
 Fabric counts installs, days of use and what is connected. PassionCode can then see how its apps are used, and
-one person using several PassionCode apps counts once. Events go to the self-hosted Aptabase at
-`https://analytics.sshlg.me` (its client contract lives in the analytics service's private repository).
+one person using several PassionCode apps counts once. Events go to PassionCode's own self-hosted Aptabase at
+`https://analytics.passioncode.ai` (passioncode-platform PLAT-019, decision D-OE6; runbook `infra/analytics/README.md`
+there). Until 0.3.7 releases used the operator's personal instance `analytics.sshlg.me`; their history was copied
+to the new host on 2026-10-17.
 
 ## Nothing before the disclosure
 
@@ -97,12 +99,12 @@ All PassionCode apps share one file:
 
 `FABRIC_ANALYTICS_APP_KEY` is read at build time by `apps/desktop/electron.vite.config.ts` (`define`). Only
 the release workflow sets it, from the `release` environment's secret of the same name. That secret holds the
-App Key of the Aptabase app *Fabric* (vault `sshlg-analytics/prod/APTABASE_APP_KEY_FABRIC`). Source builds,
+App Key of the Aptabase app *Fabric* (vault `passioncode-platform/prod/APTABASE_APP_KEY_FABRIC`, set into the environment on 2026-10-17). Source builds,
 forks, `pnpm dev`, tests and the smoke check send nothing, and Settings shows the switch as unavailable with
 the reason.
 
 ## Reading the numbers
 
-Read them in the Aptabase dashboard at `analytics.sshlg.me` (app *Fabric*). Cross-app questions, such as one
+Read them in the Aptabase dashboard at `analytics.passioncode.ai` (app *Fabric*). Cross-app questions, such as one
 `install_id` across apps, go through ClickHouse, which `sshlg-growth` queries. Registering Fabric in growth's
 app registry is growth's task.
