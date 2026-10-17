@@ -7,7 +7,8 @@ import { createHash, randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { FABRIC_SELF, SESSION_ENROLL } from '../shared/access.ts'
 import type { BindingRow, GrantRow } from './accessStore.ts'
-import { resolveProjectForFolder, type AdmittedFolder } from './folderResolver.ts'
+import { normalizeRemoteKey, resolveProjectForFolder, type AdmittedFolder, type DetachedFolder } from './folderResolver.ts'
+import { tooBroad } from './startChoices.ts'
 import { ops } from './opsSink.ts'
 
 export type EnrollAnswer =
@@ -27,10 +28,19 @@ export type CredentialState = 'unclaimed' | 'claimed' | null
 export interface FolderDeps {
   /** Every admitted folder of the estate, with its project. */
   admittedFolders(): Promise<AdmittedFolder[]>
+  /** A detach the operator recorded; automatic enrollment must not undo it. */
+  detachedFolders?(): Promise<DetachedFolder[]>
   /** The real path of a folder, or null when it does not exist. */
   realpath(folder: string): string | null
   /** The worktree probe (`folderResolver.ts#gitCommonDir`, asynchronous and bounded) — injected in tests. */
   gitCommonDir?: (folder: string) => Promise<string | null> | string | null
+  /** The folder's origin remote, used only after path and worktree identity fail. */
+  remoteOf?: (folder: string) => Promise<string | null>
+  /** Read-only repository inspection for an unknown folder. */
+  inspectFolder?: (folder: string) => Promise<import('../shared/startPaths.ts').FolderFacts>
+  /** Stable id for the proposed project root; the operator's estate scopes it. */
+  projectIdForFolder?: (root: string) => string
+  home?: string
 }
 
 export interface EnrollDeps extends FolderDeps {
@@ -59,22 +69,71 @@ export const evictedReason = (cap: number): string =>
   `this session was ended to make room: this coding agent's access reached its limit of ${cap} enrolled sessions, and this one was the least recently active. Its claims were released — read fabric_work_list before you go on`
 
 export const NO_PROJECT_MESSAGE =
-  'This folder is not a project in Fabric yet. Adding it is the person\'s step, in Fabric (+ Project → Open a project); ' +
-  'never create a project or attach a folder yourself. Once it is a project, start the agent again.'
+  'This folder is not a Git repository Fabric can register automatically. Open a Git repository or worktree, or choose it in Fabric (+ Project → Open a project).'
+export const AMBIGUOUS_PROJECT_MESSAGE =
+  'Fabric found more than one Project for this folder and will not guess. Attach the repository to exactly one Project before enrolling.'
+export const DETACHED_PROJECT_MESSAGE =
+  'This repository was detached in Fabric. Automatic enrollment will not attach it again; reattach it in Fabric first.'
+export const TOO_BROAD_MESSAGE =
+  'A home folder or a filesystem root is not a Git repository Fabric may register. Open the repository inside it.'
 
 export type FolderFact =
-  | { ok: true; real: string; projectId: string; how: 'exact' | 'ancestor' | 'worktree'; root: string }
+  | {
+      ok: true
+      real: string
+      projectId: string
+      projectName?: string
+      how: 'exact' | 'ancestor' | 'worktree' | 'remote' | 'create'
+      root: string
+      candidate?: 'create' | 'attach'
+      remoteKey: string | null
+    }
   | { ok: false; code: 'bad-folder' | 'no-project'; message: string }
 
-/** A folder an agent names, as Fabric resolves it itself: absolute, existing (its real path), held by a project. The
- *  one resolution behind both the enrollment and the enrollment ask, so the prompt shows Fabric's fact. */
+/** A folder an agent names, as Fabric resolves it itself. Existing identity wins; an eligible unknown Git folder is
+ *  only PROPOSED with a deterministic project id. The write happens later, after runner and denial checks. */
 export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Promise<FolderFact> {
   if (typeof folder !== 'string' || !path.isAbsolute(folder)) return { ok: false, code: 'bad-folder', message: 'cwd must be the absolute folder the agent runs in' }
   const real = deps.realpath(folder)
   if (!real) return { ok: false, code: 'bad-folder', message: 'that folder does not exist on this computer' }
-  const match = await resolveProjectForFolder(real, await deps.admittedFolders(), deps.gitCommonDir)
-  if (!match.projectId) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
-  return { ok: true, real, projectId: match.projectId, how: match.how as 'exact' | 'ancestor' | 'worktree', root: match.root as string }
+  const match = await resolveProjectForFolder(real, await deps.admittedFolders(), deps.gitCommonDir, deps.remoteOf ?? (async () => null))
+  if (match.how === 'ambiguous') return { ok: false, code: 'no-project', message: AMBIGUOUS_PROJECT_MESSAGE }
+  if (match.projectId) {
+    return {
+      ok: true,
+      real,
+      projectId: match.projectId,
+      how: match.how,
+      root: match.root,
+      ...(match.how === 'remote' ? { candidate: 'attach' as const } : {}),
+      remoteKey: match.remoteKey ?? null
+    }
+  }
+  if (!deps.inspectFolder || !deps.projectIdForFolder) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
+  if (tooBroad(real, deps.home)) return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
+  let facts: import('../shared/startPaths.ts').FolderFacts
+  try {
+    facts = await deps.inspectFolder(real)
+  } catch {
+    return { ok: false, code: 'bad-folder', message: 'that folder could not be read as a Git repository on this computer' }
+  }
+  if (!facts.git) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
+  const root = facts.kind === 'worktree' && facts.parent ? facts.parent : real
+  const remoteKey = normalizeRemoteKey(facts.remote)
+  const paths = new Set([real, root])
+  const detached = (await (deps.detachedFolders?.() ?? Promise.resolve([]))).some((row) =>
+    (row.path && paths.has(row.path)) || (remoteKey && row.remoteKey === remoteKey))
+  if (detached) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+  return {
+    ok: true,
+    real,
+    projectId: deps.projectIdForFolder(root),
+    projectName: path.basename(root),
+    how: 'create',
+    root,
+    candidate: 'create',
+    remoteKey
+  }
 }
 
 // #region session-enroll-revocation — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
@@ -222,7 +281,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   const folder = await resolveAgentFolder(args.cwd, deps)
   if (!folder.ok) return { ok: false, code: folder.code, message: folder.message }
   const runtimeSessionId = typeof args.runtimeSessionId === 'string' && RUNTIME_SESSION.test(args.runtimeSessionId) ? args.runtimeSessionId : null
-  const projectName = (await deps.projectName(folder.projectId)) ?? 'this project'
+  const projectName = folder.projectName ?? (await deps.projectName(folder.projectId)) ?? 'this project'
   // #region session-rejoin — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // D2 (fabric-agent-adapter#53): a short-lived fabric-mcp started by the session hooks joins the session its coding
   // agent already holds — a second bearer for the SAME session, under a grant still live — and otherwise is told so.

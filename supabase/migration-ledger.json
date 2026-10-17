@@ -357,6 +357,10 @@
     {
       "file": "20261013000108_project_board_operator_reads.sql",
       "sha256": "6f11e0d19d61b50ec401d82531ac4c8d15db3e8176493df4c545972d4d99b668"
+    },
+    {
+      "file": "20261017000109_project_repo_identity.sql",
+      "sha256": "501b0e28bed31807dfb0c642486c5e9dff920153b94a164921fad83482442769"
     }
   ]
 }

@@ -570,9 +570,9 @@ export function agentFacts(agentId: string, registry: RegistrySnapshot | null | 
 
 // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
 /** How Fabric matched the agent's folder to the project (`folderResolver.ts`): the admitted folder itself, a folder
- *  inside it, or a worktree of its repository. */
-export type FolderHow = 'exact' | 'ancestor' | 'worktree'
-const FOLDER_HOWS: readonly string[] = ['exact', 'ancestor', 'worktree']
+ *  inside it, a worktree, a remote clone, or a newly admitted repository. */
+export type FolderHow = 'exact' | 'ancestor' | 'worktree' | 'remote' | 'create'
+const FOLDER_HOWS: readonly string[] = ['exact', 'ancestor', 'worktree', 'remote', 'create']
 
 /** The project an enrollment snapshot names; every value from the snapshot on one line, or null. */
 function enrollProjectOf(registry: RegistrySnapshot | null | undefined): { id: string | null; name: string | null; root: string | null; how: FolderHow | null } | null {

@@ -12,7 +12,7 @@ import test from 'node:test'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main')
 const { FabricMcpProxy, WAITING_TOOL, BACKOFF_MS, classifyFailure, runtimeSessionIdOf } = await import(path.join(SRC, 'fabricMcp.ts'))
-const { fileCredentialStore, openSessionLink } = await import(path.join(SRC, 'fabricMcpClient.ts'))
+const clientModule = async () => await import(path.join(SRC, 'fabricMcpClient.ts'))
 
 const LIVE = { ok: true, origin: 'http://127.0.0.1:47070', mcpUrl: 'http://127.0.0.1:47070/mcp', doorToken: 'D'.repeat(43), pid: 1 }
 const CRED = 'C'.repeat(43)
@@ -38,7 +38,7 @@ function memCreds(initial = [], { failSave = null } = {}) {
   }
 }
 
-function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allowed'], enroll = (bearer) => (bearer === LIVE.doorToken ? 'needs-grant' : 'ok'), collected = false, extra = {} } = {}) {
+function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allowed'], enroll = (bearer) => (bearer === LIVE.doorToken ? 'needs-grant' : 'ok'), collected = false, requestStatus = 'pending', extra = {} } = {}) {
   const calls = [], opened = [], logs = [], slept = []
   let statusIdx = 0, changed = 0
   const label = (b) => (b === LIVE.doorToken ? 'door' : b === CRED ? 'cred' : b === CRED2 ? 'cred2' : b)
@@ -51,7 +51,7 @@ function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allow
       if (how === 'no-project') return { isError: true, value: { error: { code: 'no-project', message: 'not a project' } } }
       return { isError: false, value: SESSION }
     }
-    if (tool === 'fabric.access.request') return { isError: false, value: { requestId: REQ, status: 'pending', ...(bearer === LIVE.doorToken ? { pollSecret: 'S'.repeat(43) } : {}) } }
+    if (tool === 'fabric.access.request') return { isError: false, value: { requestId: REQ, status: requestStatus, ...(bearer === LIVE.doorToken ? { pollSecret: 'S'.repeat(43) } : {}) } }
     if (tool === 'fabric.access.status') {
       const status = statuses[Math.min(statusIdx++, statuses.length - 1)]
       return { isError: false, value: { requestId: REQ, status, ...(status === 'allowed' && bearer === LIVE.doorToken && !collected ? { credential: CRED } : {}) } }
@@ -123,6 +123,15 @@ test('first start: the door names the project, the operator is asked once with t
   assert.equal(h.store.kept.size, 0, 'a decided request is not kept')
   assert.deepEqual((await h.proxy.tools()).map((t) => t.name), ['fabric_whoami', 'fabric_tasks_list'])
   assert.equal((await h.proxy.call('fabric_tasks_list', {})).content[0].text, 'real fabric_tasks_list')
+})
+
+test('an immediate local allow is collected without a wait or an operator prompt', async () => {
+  const h = harness({ requestStatus: 'allowed', statuses: ['allowed'] })
+  const s = await h.proxy.connectOnce()
+  assert.equal(s.kind, 'connected')
+  assert.deepEqual(h.slept, [], 'an already-allowed request polls at once, not after the consent interval')
+  assert.deepEqual(h.store.list().map((c) => c.credential), [CRED])
+  assert.deepEqual(trail(h), ['door:fabric.session.enroll', 'door:fabric.access.request', 'door:fabric.access.status', 'cred:fabric.session.enroll'])
 })
 
 test('a later start with the credential enrolls at once — no prompt', async () => {
@@ -388,9 +397,9 @@ test('a folder that is no project backs off — half a minute — until the agen
 
 // --- the files ---------------------------------------------------------------------------------------------------
 
-test('the file store: one 0600 file per credential in a 0700 folder, never overwriting another; forget removes one', () => {
+test('the file store: one 0600 file per credential in a 0700 folder, never overwriting another; forget removes one', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-mcp-store-'))
-  const s = fileCredentialStore(root, 'claude-code')
+  const s = (await clientModule()).fileCredentialStore(root, 'claude-code')
   const a = s.save(CRED), b = s.save(CRED2)
   assert.notEqual(a, b)
   assert.deepEqual(s.list().map((c) => c.credential).sort(), [CRED, CRED2])
@@ -403,23 +412,23 @@ test('the file store: one 0600 file per credential in a 0700 folder, never overw
   assert.deepEqual(s.list().map((c) => c.credential), [CRED2])
 })
 
-test('the file store: the wave-1 single credential file is moved into the folder', () => {
+test('the file store: the wave-1 single credential file is moved into the folder', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-mcp-store-'))
   mkdirSync(path.join(root, 'enrollments'), { recursive: true })
   writeFileSync(path.join(root, 'enrollments', 'claude-code.credential'), CRED + '\n', { mode: 0o600 })
-  const s = fileCredentialStore(root, 'claude-code')
+  const s = (await clientModule()).fileCredentialStore(root, 'claude-code')
   assert.deepEqual(s.list().map((c) => c.credential), [CRED])
   assert.equal(existsSync(path.join(root, 'enrollments', 'claude-code.credential')), false)
   assert.deepEqual(s.list().map((c) => c.credential), [CRED], 'and read from there afterwards')
 })
 
-test('the file store: a waiting request is kept 0600 by resource and deleted when decided; the file goes with the last', () => {
+test('the file store: a waiting request is kept 0600 by resource and deleted when decided; the file goes with the last', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-mcp-store-'))
-  const s = fileCredentialStore(root, 'codex')
+  const s = (await clientModule()).fileCredentialStore(root, 'codex')
   const p = { requestId: REQ, pollSecret: 'S'.repeat(43), via: 'door' }
   s.keepPending(RESOURCE, p)
   s.keepPending('project:other', { requestId: REQ, via: 'abcd1234' })
-  assert.deepEqual(fileCredentialStore(root, 'codex').pending(RESOURCE), p, 'another process reads it')
+  assert.deepEqual((await clientModule()).fileCredentialStore(root, 'codex').pending(RESOURCE), p, 'another process reads it')
   if (process.platform !== 'win32') assert.equal(statSync(s.pendingFile).mode & 0o777, 0o600)
   s.forgetPending(RESOURCE)
   assert.equal(s.pending(RESOURCE), null)
@@ -437,7 +446,7 @@ test('the session link keeps the SDK\'s own close handling: a request waiting wh
   server.registerTool('hang', { description: 'never answers' }, () => new Promise(() => {}))
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
   await server.connect(serverSide)
-  const link = await openSessionLink('mem://', 'bearer', () => clientSide)
+  const link = await (await clientModule()).openSessionLink('mem://', 'bearer', () => clientSide)
   let told = 0
   link.onclose = () => { told++ }
   const waiting = link.callTool('hang', {})
@@ -459,7 +468,7 @@ test('fabric-mcp leaving says so: the session link ends its HTTP session (DELETE
   clientSide.terminateSession = async () => { order.push('terminate') }
   const realClose = clientSide.close.bind(clientSide)
   clientSide.close = async () => { order.push('close'); await realClose() }
-  const link = await openSessionLink('mem://', 'bearer', () => clientSide)
+  const link = await (await clientModule()).openSessionLink('mem://', 'bearer', () => clientSide)
   await link.leave()
   assert.equal(order[0], 'terminate', 'Fabric is told first')
   assert.ok(order.slice(1).length > 0 && order.slice(1).every((x) => x === 'close'), 'then the transport closes')
@@ -467,7 +476,7 @@ test('fabric-mcp leaving says so: the session link ends its HTTP session (DELETE
   const [c2, s2] = InMemoryTransport.createLinkedPair()
   await new McpServer({ name: 's', version: '1' }).connect(s2)
   c2.terminateSession = () => new Promise(() => {})
-  const link2 = await openSessionLink('mem://', 'bearer', () => c2, { leaveMs: 20 })
+  const link2 = await (await clientModule()).openSessionLink('mem://', 'bearer', () => c2, { leaveMs: 20 })
   const outcome = await Promise.race([link2.leave().then(() => 'left'), new Promise((r) => setTimeout(() => r('HUNG'), 1000))])
   assert.equal(outcome, 'left')
   // The proxy, on stdin's end, leaves through the link.

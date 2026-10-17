@@ -485,7 +485,8 @@ export class FabricMcpProxy {
     const requestId = String(asked.value.requestId ?? '')
     const pollSecret = typeof asked.value.pollSecret === 'string' ? asked.value.pollSecret : undefined
     if (asked.value.status === 'denied') return this.set({ kind: 'denied', projectName })
-    this.set({ kind: 'waiting', projectName })
+    const immediate = asked.value.status === 'allowed'
+    if (!immediate) this.set({ kind: 'waiting', projectName })
     // An already-pending request carries no poll secret through the door: another start asked it and keeps its
     // secret on disk, where the next pass finds it; until then this one waits.
     if (door && !pollSecret) return this.state
@@ -496,10 +497,10 @@ export class FabricMcpProxy {
       // Not fatal: this process keeps polling; only another start would ask again.
       this.deps.log(`fabric-mcp: the waiting request could not be kept on disk (${e instanceof Error ? e.message : String(e)}); a restart will ask again`)
     }
-    return this.poll(hub, bearer, resource, projectName, request)
+    return this.poll(hub, bearer, resource, projectName, request, immediate)
   }
 
-  private async poll(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, resource: string, projectName: string, request: PendingRequest): Promise<ProxyState> {
+  private async poll(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, resource: string, projectName: string, request: PendingRequest, immediate = false): Promise<ProxyState> {
     const url = hub.mcpUrl
     const store = this.deps.store
     const door = request.via === 'door'
@@ -511,8 +512,10 @@ export class FabricMcpProxy {
         this.deps.log(`fabric-mcp: a decided request could not be removed from disk (${e instanceof Error ? e.message : String(e)})`)
       }
     }
+    let first = true
     for (;;) {
-      await this.pause(this.deps.pollMs ?? 3000)
+      if (!immediate || !first) await this.pause(this.deps.pollMs ?? 3000)
+      first = false
       if (this.closed) return this.state
       const gone = this.moved(hub)
       if (gone) return gone

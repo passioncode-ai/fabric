@@ -116,6 +116,32 @@ await test('safe immutable references and SQL punctuation preserve original byte
   assert.equal(rows(`select path from project_repos where id=${text(uuid(11))}::uuid`)[0].path,ref)
 })
 
+await test('repository identity, one-estate path uniqueness, and detach tombstones replay through the real projectors', async () => {
+  const remoteProject = uuid(120), otherProject = uuid(121), repo = uuid(122), duplicate = uuid(123)
+  await append('project.created@1', { id: remoteProject, name: 'Remote identity' }, remoteProject)
+  await append('project.repo.attached@1', {
+    id: repo, path: '/tmp/remote-identity', label: 'Remote identity', remote_key: 'github.com/acme/remote', kind: 'primary', admitted_by: 'agent'
+  }, remoteProject)
+  assert.deepEqual(rows(`select remote_key,kind from project_repos where id=${text(repo)}::uuid`), [{ remote_key: 'github.com/acme/remote', kind: 'primary' }])
+
+  await append('project.repo.detached@1', { id: repo, path: '/tmp/remote-identity', remote_key: 'github.com/acme/remote', kind: 'primary' }, remoteProject)
+  assert.equal(rows(`select id from project_repos where id=${text(repo)}::uuid`).length, 0)
+  assert.deepEqual(rows(`select project_id,path,remote_key,kind from project_repo_removals where id=${text(repo)}::uuid`),
+    [{ project_id: remoteProject, path: '/tmp/remote-identity', remote_key: 'github.com/acme/remote', kind: 'primary' }])
+
+  await append('project.repo.attached@1', {
+    id: repo, path: '/tmp/remote-identity', label: 'Remote identity', remote_key: 'github.com/acme/remote', kind: 'primary', admitted_by: 'operator'
+  }, remoteProject)
+  assert.equal(rows(`select id from project_repo_removals where id=${text(repo)}::uuid`).length, 0, 'an explicit attach clears the removal')
+
+  await append('project.created@1', { id: otherProject, name: 'Other project' }, otherProject)
+  await assert.rejects(append('project.repo.attached@1', {
+    id: duplicate, path: '/tmp/remote-identity', label: 'Duplicate', remote_key: 'github.com/acme/remote', kind: 'checkout', admitted_by: 'agent'
+  }, otherProject))
+  assert.equal(rows(`select id from project_repos where id=${text(duplicate)}::uuid`).length, 0)
+  assert.equal(rows(`select id from project_repos where project_id=${text(otherProject)}::uuid`).length, 0)
+})
+
 await test('answer option plus text is exact in SQL, memory and continuation; changed retry reports no new canonical text', async () => {
   // Legacy question producer uses its existing explicit owner policy. This
   // fixture contains no secret in the seed, so only the answer ingress is under test.

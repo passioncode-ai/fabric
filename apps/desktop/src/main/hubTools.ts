@@ -122,7 +122,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       title: 'Ask the operator for access',
       description:
         principal.kind === 'door'
-          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
+          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. On the operator\'s own machine session.enroll is allowed at once and recorded as your act instead; other products still prompt. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
           : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
       inputSchema: requestSchema
     },
@@ -159,7 +159,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     {
       title: 'Work in the project of this folder',
       description:
-        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll, and this same folder as folder); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
+        'For a coding agent: name the absolute folder you run in. Through the door this names or proposes the project (needs-grant); an eligible unknown Git repository is admitted through the normal fabric.access.request path, never by this read alone. With a binding credential: when it holds the operator\'s session.enroll grant on the project, the answer carries a one-session bearer — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll, and this same folder as folder); no-project says the folder is non-Git, broad, detached or ambiguous and was not automatically registered.' + VERIFY_HUB,
       inputSchema: z.object({
         cwd: z.string().min(1).max(4096),
         runtimeSessionId: z.string().min(1).max(128).optional(),

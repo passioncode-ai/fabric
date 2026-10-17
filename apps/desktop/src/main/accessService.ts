@@ -1,7 +1,8 @@
 // #region hub-consent — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#2-an-agent-is-admitted-by-device-style-consent-not-by-a-pasted-key
 // Device-style consent for a registered agent (ADR-0115 §2–§3): the agent asks, the operator decides
 // once, the agent collects a binding credential exactly once, and every later call is checked against
-// standing grants the operator can revoke.
+// standing grants the operator can revoke. On the operator's own machine a session.enroll request is the
+// ADR-0160 exception: it is allowed and recorded as the coding agent's own act, with no confirmation prompt.
 //
 // WHAT IS TRUSTED, AND WHAT IS ONLY CLAIMED. The registry entry is read by Fabric from disk; the
 // request's `reason` is the agent's own words and is shown as such. Every process on this Mac runs as
@@ -38,6 +39,7 @@ import {
   ACCESS_REQUEST_TTL_MS,
   CREDENTIAL_CLAIM_WINDOW_MS,
   FABRIC_SELF,
+  SESSION_ENROLL,
   GRANT_TTL_MS,
   normaliseAccessRequest,
   projectOfResource,
@@ -55,7 +57,7 @@ import { ops } from './opsSink.ts'
 export type HubPrincipal = { kind: 'door' } | { kind: 'binding'; binding: BindingRow }
 
 export type RequestAnswer =
-  | { ok: true; requestId: string; status: 'pending' | 'denied'; expiresAt: string; note: string; pollSecret?: string }
+  | { ok: true; requestId: string; status: 'pending' | 'allowed' | 'denied'; expiresAt: string; note: string; pollSecret?: string }
   | { ok: false; refused: string }
 
 export type StatusAnswer =
@@ -100,13 +102,24 @@ export interface AccessServiceDeps {
     /** The folder the agent names, resolved by Fabric itself (`sessionEnroll.ts#resolveAgentFolder`). Absent, a
      *  named folder is refused: Fabric does not show a folder it did not resolve. */
     resolve?(folder: string): Promise<EnrollFolder>
+    /** The canonical main-process admission service, called only after runner and standing-denial checks. */
+    admit?(folder: Extract<EnrollFolder, { ok: true }>, agentId: string): Promise<{ id: string; name: string; root: string; how: EnrollProjectFact['how'] }>
   }
 }
 
 /** What Fabric resolved an asker's folder to (ADR-0134 amendment 2): the project, the admitted folder (real path) and
- *  how it matched — or why it could not. */
+ *  how it matched — or why it could not. A candidate is a proposal only until `admit` runs. */
 export type EnrollFolder =
-  | { ok: true; projectId: string; root: string; how: 'exact' | 'ancestor' | 'worktree' }
+  | {
+      ok: true
+      projectId: string
+      root: string
+      real?: string
+      projectName?: string
+      how: 'exact' | 'ancestor' | 'worktree' | 'remote' | 'create'
+      candidate?: 'create' | 'attach'
+      remoteKey?: string | null
+    }
   | { ok: false; message: string }
 
 /** The `registry.project` an enrollment ask journals: Fabric's facts, never the agent's. `root`/`how` are null when
@@ -115,7 +128,7 @@ export interface EnrollProjectFact {
   id: string
   name: string
   root: string | null
-  how: 'exact' | 'ancestor' | 'worktree' | null
+  how: 'exact' | 'ancestor' | 'worktree' | 'remote' | 'create' | null
 }
 
 const FOLDER_MAX = 4096
@@ -265,13 +278,9 @@ export class AccessService {
           return { ok: false, refused: `${runner.name} is not installed on this computer as Fabric sees it (its program is not on Fabric's PATH). Nothing was shown to the operator.` }
         }
         const projectId = projectOfResource(asked.value.resources[0]) as string
-        const project = await enrollment!.project(projectId)
-        if (!project) {
-          receipt('unknown-project', runner.key)
-          return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
-        }
-        // The folder the prompt shows is Fabric's fact: resolved here, and it must belong to the project asked for.
-        let place: { root: string | null; how: EnrollProjectFact['how'] } = { root: null, how: null }
+        let project = await enrollment!.project(projectId)
+        // The folder is Fabric's fact: resolved here, and it must belong to the project asked for.
+        let place: Extract<EnrollFolder, { ok: true }> | null = null
         if (raw.folder !== undefined) {
           if (typeof raw.folder !== 'string' || raw.folder.length > FOLDER_MAX || !path.isAbsolute(raw.folder)) {
             receipt('bad-folder', runner.key)
@@ -286,14 +295,36 @@ export class AccessService {
             receipt('folder-not-a-project', runner.key)
             return { ok: false, refused: `${resolved.message} Nothing was shown to the operator.` }
           }
-          if (resolved.projectId !== project.id) {
+          if (resolved.projectId !== projectId) {
             receipt('folder-of-another-project', runner.key)
-            return { ok: false, refused: `that folder belongs to another project in Fabric, not to ${project.name}; ask for the project fabric.session.enroll names for this folder. Nothing was shown to the operator.` }
+            return { ok: false, refused: `that folder belongs to another project in Fabric, not to ${project?.name ?? 'the requested project'}; ask for the project fabric.session.enroll names for this folder. Nothing was shown to the operator.` }
           }
-          place = { root: resolved.root, how: resolved.how }
+          place = resolved
+        }
+        // A standing denial is read BEFORE admission, so a denied or mismatched principal cannot create or attach a Project.
+        if (principal.kind === 'binding' && principal.binding.agent_id !== runner.key)
+          return { ok: false, refused: `this credential belongs to ${principal.binding.agent_id}; it asks only for its own agent` }
+        const proposed: AccessAsk = { ...asked.value, agentId: runner.key }
+        const proposedSignature = requestSignature(proposed)
+        const deniedBeforeAdmission = (await this.deps.store.requests({ status: 'denied', agentId: runner.key, callee: proposed.callee, standingOnly: true }))
+          .find((r) => r.denial_cleared_at === null && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === proposedSignature)
+        if (deniedBeforeAdmission) {
+          receipt('denied-standing', runner.key)
+          return { ok: true, requestId: deniedBeforeAdmission.id, status: 'denied', expiresAt: deniedBeforeAdmission.expires_at, note: 'The operator denied this exact request. It stays denied until they clear the denial; asking again does not prompt.' }
+        }
+        if (place?.candidate) {
+          if (!enrollment!.admit) {
+            receipt('admission-unavailable', runner.key)
+            return { ok: false, refused: 'this Fabric cannot admit a folder for an enrollment. Nothing was shown to the operator.' }
+          }
+          project = await enrollment!.admit(place, runner.key)
+        }
+        if (!project || project.id !== projectId) {
+          receipt('unknown-project', runner.key)
+          return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
         }
         entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
-        enrolling = { id: project.id, name: project.name, ...place }
+        enrolling = { id: project.id, name: project.name, root: place?.root ?? null, how: place?.how ?? null }
       } else {
         this.deps.registry.refresh()
         const resolved = this.deps.registry.resolve(asked.value.agentId)
@@ -324,6 +355,14 @@ export class AccessService {
         .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
       if (same) {
         receipt('already-pending', entry.key)
+        if (ask.callee === FABRIC_SELF && ask.capabilities[0] === SESSION_ENROLL) {
+          const decided = await this.decide(same.id, 'allowed', { kind: 'agent', id: entry.key })
+          if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
+          return {
+            ok: true, requestId: same.id, status: 'allowed', expiresAt: same.expires_at,
+            note: 'Allowed on the operator\'s own machine and recorded as the coding agent\'s act. Poll fabric.access.status with the pollSecret from the answer that created the request; this answer carries none.'
+          }
+        }
         return {
           ok: true, requestId: same.id, status: 'pending', expiresAt: same.expires_at,
           note: 'This request is already with the operator. Poll fabric.access.status with the pollSecret from the answer that created it; this answer carries none. Do not ask again.'
@@ -358,6 +397,16 @@ export class AccessService {
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
+      if (ask.callee === FABRIC_SELF && ask.capabilities[0] === SESSION_ENROLL) {
+        // ADR-0160: only this local enrollment lane is immediate. The request, the agent's own decision and the
+        // revocable grant are all journalled; no product connection, board grant or cross-machine authority changes.
+        const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
+        if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
+        return {
+          ok: true, requestId: id, status: 'allowed', expiresAt, pollSecret,
+          note: 'Allowed on the operator\'s own machine and recorded as the coding agent\'s act. Poll fabric.access.status with this requestId and pollSecret to collect the revocable credential.'
+        }
+      }
       this.deps.present({ row, connected })
       return {
         ok: true, requestId: id, status: 'pending', expiresAt, pollSecret,

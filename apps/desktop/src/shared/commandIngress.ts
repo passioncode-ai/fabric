@@ -137,7 +137,15 @@ const timestamp: Rule = v => /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]
 const EVENT_FIELDS: Record<string, Fields> = {
   'task.closed@1': { task_id: required(uuid), outcome: required(enumeration(['done', 'cancelled'])), reason: optional(nullable(text)), ...metadata },
   'memory.retrieved@1': { id: required(uuid), session_id: required(nullable(uuid)), store: required(enumeration(['facts', 'transcripts'])), query: required(text), hits: required(integer(0)), ...metadata },
-  'project.repo.attached@1': { id: required(uuid), path: required(reference), label: required(text), ...metadata },
+  'project.repo.attached@1': {
+    id: required(uuid), path: required(reference), label: required(text),
+    remote_key: optional(nullable(reference)), kind: optional(enumeration(['primary', 'checkout', 'worktree'])),
+    admitted_by: optional(enumeration(['agent', 'operator'])), ...metadata
+  },
+  'project.repo.detached@1': {
+    id: required(uuid), path: optional(reference), remote_key: optional(nullable(reference)),
+    kind: optional(enumeration(['primary', 'checkout', 'worktree'])), ...metadata
+  },
   'routine.paused@1': { id: required(uuid), reason: required(text), window: optional(nullable(reference)), reason_code: optional(nullable(reference)), ...metadata },
   'routine.ran@1': { id: required(uuid), task_id: required(uuid), because: required(text), ...metadata },
   'cycle.ran@1': { state: required(reference), ms: required(integer(0)), sessions_observed: required(integer(0)), says: required(text), advances: required(boolean), ...metadata },
