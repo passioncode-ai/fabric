@@ -32,6 +32,8 @@ import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { createProjectAdmission } from './projectAdmission.ts'
+import { folderProjectId } from './folderResolver.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
@@ -362,7 +364,7 @@ import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
-import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, refuseHeldByOther, walkPickFor } from './startChoices.ts'
+import { ParentChoices, ScanCandidates, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import { projectNameProblem, scanViewOf, type CandidateView, type FolderFacts, type ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
@@ -398,6 +400,7 @@ let ACTIVE_ESTATE: string = DEFAULT_ESTATE
  * handle it carries is unchanged, so no event already written reads differently.
  */
 let OPERATOR_ACTOR: { kind: 'person'; id: string }
+let admission: ReturnType<typeof createProjectAdmission>
 
 let db: SupabaseClient
 /** The same client, narrowed to this estate (S02.a). `db` stays for bootstrap —
@@ -867,12 +870,29 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
   // How Fabric reads a folder an agent names — once, for the enrollment and for the ask, so the prompt shows the
   // same fact the enrollment acts on (ADR-0134 amendment 2). The worktree probe is the resolver's own, asynchronous.
+  admission = createProjectAdmission({
+    estateId: ACTIVE_ESTATE,
+    append: (event) => journal.append({ ...event, estateId: ACTIVE_ESTATE }),
+    readProject: readAdmissionProject,
+    listRepos,
+    readImported: readImportedIndex,
+    listRemovals: readRepoRemovals,
+    refresh: refreshFileRoots,
+    mirror: mirrorWorkspaceNow,
+    home: homedir()
+  })
   const enrollFolders: FolderDeps = {
     admittedFolders: async () => {
-      const repos = await store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] })
+      const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
       if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
-      return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
+      return (repos.rows as Array<{ path: string; project_id: string; remote_key: string | null; kind: 'primary' | 'checkout' | 'worktree' | null }>).map((r) => ({
+        projectId: r.project_id,
+        path: r.path,
+        remoteKey: r.remote_key,
+        ...(r.kind ? { kind: r.kind } : {})
+      }))
     },
+    detachedFolders: readRepoRemovals,
     realpath: (folder) => {
       try {
         return realpathSync.native(folder)
@@ -880,7 +900,11 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         // A folder that does not exist is resolveAgentFolder's typed bad-folder answer, not a failure to record.
         return null
       }
-    }
+    },
+    remoteOf: originOf,
+    inspectFolder,
+    projectIdForFolder: (root) => folderProjectId(ACTIVE_ESTATE, root),
+    home: homedir()
   }
   // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
   // The cap evicts by last call, and an evicted session's next call is told why (0.3.5 review i2 ER-4); a rejoin's
@@ -908,7 +932,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       project: async (id) => enrollProject(id),
       resolve: async (folder) => {
         const f = await resolveAgentFolder(folder, enrollFolders)
-        return f.ok ? { ok: true, projectId: f.projectId, root: f.root, how: f.how } : { ok: false, message: f.message }
+        return f.ok
+          ? {
+              ok: true,
+              projectId: f.projectId,
+              root: f.root,
+              real: f.real,
+              projectName: f.projectName,
+              how: f.how,
+              candidate: f.candidate,
+              remoteKey: f.remoteKey
+            }
+          : { ok: false, message: f.message }
+      },
+      admit: async (folder, agentId) => {
+        const project = await admission.enroll(folder, agentId)
+        return { id: project.id, name: project.name, root: folder.root, how: folder.how }
       }
     }
   })
@@ -1398,10 +1437,6 @@ const startScans = new Map<string, AbortController>()
 /** The repositories main listed for each window's scan and kept scan: what `projects.create` and
  *  `repos.attach` may admit besides the window's own roots (iteration 2, errors finding 2). */
 const scanCandidates = new ScanCandidates()
-/** A window's repository paths, admitted against what THAT window can reach, or the whole call refused. */
-const admitForWindow = (event: Electron.IpcMainInvokeEvent, paths: unknown): string[] =>
-  admitRepoPaths(paths, scopeOf(event), { granted: (p, scope) => fileRoots.resolve(p, scope), candidates: scanCandidates })
-
 export function revokeWindowRoots(webContentsId: number): void {
   const scope = `win:${webContentsId}`
   fileRoots.revoke(scope)
@@ -1426,6 +1461,33 @@ async function refreshFileRoots(): Promise<void> {
   // and nobody was told to read. M56 shipped saying "the watch makes it feel
   // immediate"; until this line had a listener on the other end, it did not.
   repoStates.watchAll(paths, (repoPath) => broadcast(IPC.projectsRepoChanged, repoPath))
+}
+
+/** The declared-workspace mirror, shared by IPC and agent admission. Fire-and-forget, with its failure logged. */
+function mirrorWorkspaceNow(): void {
+  const root = readSettings().workspace.path
+  if (!root) return
+  void writeWorkspace(root, store).catch((e) =>
+    ops.failed('index.the-workspace-mirror-could-not-be-writte', e, { note: 'the workspace mirror could not be written:' })
+  )
+}
+
+async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
+  const { data, error } = await store.select('projects', '*').eq('id', id).maybeSingle()
+  if (error) throw new Error(`project read failed: ${error.message}`)
+  return (data as ProjectRow | null) ?? null
+}
+
+async function readRepoRemovals() {
+  const removed = await store.selectAll('project_repo_removals', 'id,project_id,path,remote_key,kind', { orderBy: ['project_id', 'id'] })
+  if (removed.failed) throw new Error(`repository removals read failed: ${removed.failed}`)
+  return removed.rows.map((row) => ({
+    id: String(row.id),
+    projectId: String(row.project_id),
+    path: row.path === null ? null : String(row.path),
+    remoteKey: row.remote_key === null ? null : String(row.remote_key),
+    kind: row.kind === null ? null : String(row.kind) as 'primary' | 'checkout' | 'worktree'
+  }))
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -1458,32 +1520,6 @@ async function readImportedIndex(): Promise<Map<string, { id: string; name: stri
   ])
   if (repos.failed || projects.failed) throw new Error(`projects read failed: ${repos.failed ?? projects.failed}`)
   return indexImported(repos.rows, projects.rows)
-}
-
-/**
- * A window's repository paths for `projectId`, admitted (`admitForWindow`) and none held by another
- * project (REQ-04, `refuseHeldByOther`) — or the whole call refused before anything is journalled.
- */
-async function admitReposFor(event: Electron.IpcMainInvokeEvent, projectId: string, paths: unknown): Promise<string[]> {
-  const admitted = admitForWindow(event, paths)
-  if (admitted.length) refuseHeldByOther(admitted, projectId, await readImportedIndex())
-  return admitted
-}
-
-async function attachRepos(projectId: string, paths: string[]): Promise<void> {
-  const existing = new Set((await listRepos(projectId)).map((r) => r.path))
-  for (const raw of paths) {
-    const p = raw.trim()
-    if (!p || existing.has(p)) continue
-    existing.add(p)
-    await journal.append({
-      estateId: ACTIVE_ESTATE,
-      type: 'project.repo.attached@1',
-      actor: OPERATOR_ACTOR,
-      projectId,
-      payload: { id: randomUUID(), path: p, label: p.split('/').filter(Boolean).pop() ?? p }
-    })
-  }
 }
 
 /**
@@ -1576,72 +1612,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   // M118 — the workspace, and the mirror ADR-0002 asked for.
-  //
-  // `mirrorNow` is called after every DECLARED change and never after an
-  // observed one. It is deliberately fire-and-forget with its failure LOGGED
-  // rather than thrown: a mirror that cannot be written must not stop the
-  // operator changing a project setting, and a failure that is silent is how
-  // the estate and its history part company without anyone noticing.
-  const mirrorNow = (): void => {
-    const root = readSettings().workspace.path
-    if (!root) return
-    void writeWorkspace(root, store).catch((e) =>
-      ops.failed('index.the-workspace-mirror-could-not-be-writte', e, { note: 'the workspace mirror could not be written:' })
-    )
-  }
+  // `mirrorNow` is called after every DECLARED change and never after an observed one.
+  const mirrorNow = mirrorWorkspaceNow
 
   handle(IPC.projectsCreate, async (event, input: CreateProjectInput): Promise<Returns<FabricApi['projects']['create']>> => {
-    // #region project-name-rule — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
-    // A name read from a folder on disk is checked here, not trusted (iteration 3): a code, never English.
-    const nameProblem = projectNameProblem(input?.name)
-    if (nameProblem) throw new Error(`project-name-refused:${nameProblem}`)
-    // #endregion project-name-rule
-    const name = (input.name as string).trim()
-    const id = input.id
-    if (!id) throw new Error('a project needs an id chosen by the caller')
-
-    // A repeat of the SAME create finishes it rather than making a sibling. The
-    // repository attach still runs: an attempt that journalled the project and
-    // then failed attaching would otherwise be "already exists, nothing to do",
-    // and the operator would be left with a project missing the repositories
-    // they chose — a partial creation that looks complete.
     // #region repo-path-admission — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
-    // Every repository path the renderer names is checked here, not trusted: an absolute path to an
-    // existing folder that THIS window can reach (its picker, a folder it made, the estate's repositories)
-    // or that main listed for this window's scan, and held by no OTHER project (REQ-04) — or the create is
-    // refused before anything is journalled (iteration 1: any string; iteration 2: any existing folder,
-    // then exposed to every window; iteration 3: a repository another project held).
-    const repoPaths = await admitReposFor(event, id, input.repoPaths)
+    // The same canonical admission service used by agent enrollment: window reach is checked here, and a repeat of
+    // the same create finishes it rather than making a sibling (projectAdmission.ts).
+    return admission.create(input, OPERATOR_ACTOR, {
+      granted: (folder, scope) => fileRoots.resolve(folder, scope),
+      candidates: scanCandidates
+    }, scopeOf(event))
     // #endregion repo-path-admission
-    // A failed read is not "no such project" (iteration 1: it appended a second create that cleared the
-    // project's folder).
-    const { data: already, error: alreadyError } = await store.select('projects', 'id').eq('id', id).maybeSingle()
-    if (alreadyError) throw new Error(`project read failed: ${alreadyError.message}`)
-    if (already) {
-      if (repoPaths.length) await attachRepos(id, repoPaths)
-      await refreshFileRoots()
-      return readProject(id)
-    }
-
-    await journal.append({
-      estateId: ACTIVE_ESTATE,
-      type: 'project.created@1',
-      actor: OPERATOR_ACTOR,
-      projectId: id,
-      payload: {
-        id,
-        name,
-        purpose: input.purpose?.trim() || null,
-        repo_path: null, // derived from the repositories attached below
-        memory_backend: input.memoryBackend ?? 'local',
-        default_agent: input.defaultAgent ?? 'claude-code'
-      }
-    })
-    if (repoPaths.length) await attachRepos(id, repoPaths)
-    // The new project's folders join the estate's roots and the git watch now, not at the next restart.
-    await refreshFileRoots()
-    mirrorNow()
-    return readProject(id)
   })
 
   handle(
@@ -4517,11 +4499,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   handle(IPC.reposAttach, async (event, projectId: string, paths: string[]): Promise<Returns<FabricApi['repos']['attach']>> => {
-    // The same admission as projects.create (iteration 2, errors finding 2): this window's own folders,
-    // by their real paths, none held by another project (REQ-04), or nothing is attached.
+    // The one admission service (ADR-0136 amendment 2): this window's own folders, by their real paths, none held by
+    // another project (REQ-04), each recorded with its remote and kind.
     const before = new Set((await listRepos(projectId)).map((r) => r.id))
-    await attachRepos(projectId, await admitReposFor(event, projectId, paths))
-    await refreshFileRoots()
+    await admission.attach(projectId, paths, OPERATOR_ACTOR, {
+      granted: (folder, scope) => fileRoots.resolve(folder, scope),
+      candidates: scanCandidates
+    }, scopeOf(event))
     const after = await listRepos(projectId)
     // Each folder this press attached is an act with its inverse (ADR-0160 §2): detach it again.
     for (const r of after.filter((x) => !before.has(x.id)))
@@ -4531,7 +4515,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   handle(IPC.reposDetach, async (_e, projectId: string, repoId: string): Promise<Returns<FabricApi['repos']['detach']>> => {
-    // At once, no question (ADR-0160 §1); the act keeps the folder's path so «Отменить» attaches it again.
+    // At once, no question (ADR-0160 §1); the act keeps the folder's path so «Отменить» attaches it again, and the
+    // detach leaves the tombstone automatic enrollment respects (ADR-0164 §5); undoing it clears the tombstone.
     const r = await acts.perform('repo.detach', { repo_id: String(repoId) })
     if (!r.ok && r.reason !== 'folder_gone') throw new Error(refusedAs(r))
     return listRepos(projectId)

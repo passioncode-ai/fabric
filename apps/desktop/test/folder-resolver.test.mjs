@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { resolveProjectForFolder, gitCommonDir } = await import(path.resolve(import.meta.dirname, '../src/main/folderResolver.ts'))
+const { resolveProjectForFolder, gitCommonDir, normalizeRemoteKey } = await import(path.resolve(import.meta.dirname, '../src/main/folderResolver.ts'))
 
 const rows = [
   { projectId: 'p-fabric', path: '/Users/me/DATA/fabric' },
@@ -62,4 +62,55 @@ test('the default worktree probe is asynchronous (the main process never blocks 
   assert.equal(path.basename(await here), '.git', 'this checkout is a git folder: its common directory is a .git')
   assert.equal(await gitCommonDir(mkdtempSync(path.join(tmpdir(), 'fabric-nogit-'))), null)
   assert.equal(await gitCommonDir('/no/such/folder/anywhere'), null)
+})
+
+test('remote identity folds scp and URL forms, strips credentials, and refuses local paths', () => {
+  const expected = 'github.com/passioncode-ai/fabric'
+  assert.equal(normalizeRemoteKey('git@github.com:passioncode-ai/fabric.git'), expected)
+  assert.equal(normalizeRemoteKey('ssh://git@github.com/passioncode-ai/fabric.git'), expected)
+  assert.equal(normalizeRemoteKey('https://token:secret@github.com/passioncode-ai/fabric.git'), expected)
+  assert.equal(normalizeRemoteKey('git+https://token@github.com/passioncode-ai/fabric.git'), expected)
+  assert.equal(normalizeRemoteKey('https://github.com:8443/passioncode-ai/fabric/'), 'github.com:8443/passioncode-ai/fabric')
+  assert.equal(normalizeRemoteKey('file:///tmp/fabric'), null)
+  assert.equal(normalizeRemoteKey('/tmp/fabric'), null)
+  assert.equal(normalizeRemoteKey('https://token:secret@github.com/passioncode-ai/fabric.git').includes('secret'), false)
+})
+
+test('a second clone resolves by its normalized remote after exact, ancestor and worktree identity', async () => {
+  const admitted = [{ projectId: 'p-fabric', path: '/Users/me/DATA/fabric', remoteKey: 'github.com/passioncode-ai/fabric' }]
+  const remoteOf = async (folder) => folder === '/tmp/clone' ? 'git@github.com:passioncode-ai/fabric.git' : null
+  assert.deepEqual(await resolveProjectForFolder('/tmp/clone', admitted, noGit, remoteOf), {
+    projectId: 'p-fabric', how: 'remote', root: '/Users/me/DATA/fabric', remoteKey: 'github.com/passioncode-ai/fabric'
+  })
+})
+
+test('a remote stored on an admitted row is used without another git read; a missing one is filled lazily', async () => {
+  const admitted = [
+    { projectId: 'p-fabric', path: '/Users/me/DATA/fabric', remoteKey: 'github.com/passioncode-ai/fabric' },
+    { projectId: 'p-other', path: '/Users/me/DATA/other' }
+  ]
+  const reads = []
+  const remoteOf = async (folder) => {
+    reads.push(folder)
+    return folder === '/tmp/clone' || folder === '/Users/me/DATA/other' ? 'https://github.com/passioncode-ai/other.git' : null
+  }
+  const match = await resolveProjectForFolder('/tmp/clone', admitted, noGit, remoteOf)
+  assert.equal(match.projectId, 'p-other')
+  assert.deepEqual(reads.sort(), ['/Users/me/DATA/other', '/tmp/clone'].sort())
+})
+
+test('two projects claiming one longest folder or one remote are ambiguity, never a guess', async () => {
+  const duplicatePaths = [
+    { projectId: 'p-one', path: '/Users/me/DATA/shared' },
+    { projectId: 'p-two', path: '/Users/me/DATA/shared' }
+  ]
+  const pathMatch = await resolveProjectForFolder('/Users/me/DATA/shared/src', duplicatePaths, noGit)
+  assert.deepEqual([pathMatch.projectId, pathMatch.how, pathMatch.candidates], [null, 'ambiguous', ['p-one', 'p-two']])
+
+  const duplicateRemotes = [
+    { projectId: 'p-one', path: '/Users/me/DATA/one', remoteKey: 'github.com/acme/shared' },
+    { projectId: 'p-two', path: '/Users/me/DATA/two', remoteKey: 'github.com/acme/shared' }
+  ]
+  const remoteMatch = await resolveProjectForFolder('/tmp/clone', duplicateRemotes, noGit, async () => 'git@github.com:acme/shared.git')
+  assert.deepEqual([remoteMatch.projectId, remoteMatch.how, remoteMatch.candidates], [null, 'ambiguous', ['p-one', 'p-two']])
 })

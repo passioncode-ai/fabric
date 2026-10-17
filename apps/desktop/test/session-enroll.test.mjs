@@ -9,9 +9,12 @@ import test from 'node:test'
 import { memStore } from './helpers/access-memstore.mjs'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main')
-const { enrollSession, EnrolledSessions, MAX_ENROLLED_PER_BINDING } = await import(path.join(SRC, 'sessionEnroll.ts'))
+const { enrollSession, EnrolledSessions, MAX_ENROLLED_PER_BINDING, resolveAgentFolder } = await import(path.join(SRC, 'sessionEnroll.ts'))
 const { AccessService } = await import(path.join(SRC, 'accessService.ts'))
-const { AgentSurface } = await import(path.join(SRC, 'agentSurface.ts'))
+const realSurface = async (options) => {
+  const Surface = (await import(path.join(SRC, 'agentSurface.ts'))).AgentSurface
+  return new Surface(options)
+}
 
 const P = '0b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
 const binding = { id: 'b-1', agent_id: 'claude-code', revoked_at: null }
@@ -81,15 +84,30 @@ test('no grant, a revoked grant, an expired grant or a grant on another project:
   }
 })
 
-test('a folder no project holds: no-project, with what to do in Fabric\'s own words', async () => {
-  const h = deps()
+test('an unknown eligible Git folder is proposed for enrollment without a write or a manual + Project step', async () => {
+  const h = deps({
+    inspectFolder: async (cwd) => ({ path: cwd, name: 'newrepo', git: true, kind: 'repository', parent: null, branch: 'main', remote: null, lastCommit: null, stack: [] }),
+    projectIdForFolder: () => P
+  })
+  const proposed = await resolveAgentFolder('/Users/me/newrepo', h.d)
+  assert.deepEqual(
+    [proposed.ok, proposed.candidate, proposed.projectId, proposed.projectName, proposed.how, proposed.root],
+    [true, 'create', P, 'newrepo', 'create', '/Users/me/newrepo']
+  )
+  const r = await enrollSession(null, { cwd: '/Users/me/newrepo' }, h.d)
+  assert.deepEqual([r.ok, r.code, r.projectId, r.projectName, r.resource], [false, 'needs-grant', P, 'newrepo', `project:${P}`])
+  assert.equal(h.minted.length, 0)
+  assert.equal(h.journaled.length, 0, 'the door proposal itself journals and creates nothing')
+})
+
+test('a non-Git folder is not automatically registered', async () => {
+  const h = deps({
+    inspectFolder: async (cwd) => ({ path: cwd, name: 'elsewhere', git: false, kind: 'folder', parent: null, branch: null, remote: null, lastCommit: null, stack: [] }),
+    projectIdForFolder: () => P
+  })
   const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere' }, h.d)
   assert.deepEqual([r.ok, r.code], [false, 'no-project'])
-  assert.match(r.message, /\+ Project → Open a project/)
-  // Said as the person's step: an agent told "open it in Fabric" could take it as its own (attach the folder, create
-  // a project), which the project board rule forbids — the R-010 real client read this sentence back verbatim.
-  assert.match(r.message, /the person's step/)
-  assert.match(r.message, /never create a project or attach a folder yourself/)
+  assert.match(r.message, /not a Git repository/)
 })
 
 test('a relative, missing or non-string folder: bad-folder, said of this computer', async () => {
@@ -314,10 +332,9 @@ async function enrolledWorld() {
     enrollment: { runner: (id) => (id === 'claude-code' ? { key: id, name: 'Claude Code', summary: null } : null), project: async (id) => (id === P ? { id, name: 'site' } : null) }
   })
   const ask = await access.request({ kind: 'door' }, { agentId: 'claude-code', callee: 'fabric', capabilities: ['session.enroll'], resources: [`project:${P}`], reason: 'work here' })
-  assert.equal((await access.decide(ask.requestId, 'allowed', { kind: 'operator', id: 'op' })).ok, true)
   const st = await access.status({ kind: 'door' }, ask.requestId, ask.pollSecret)
   const b = await access.authenticate(st.credential)
-  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
   await surface.start()
   const sessions = new EnrolledSessions({ end: (id) => surface.revokeSession(id), state: (t) => surface.credentialState(t) })
   access.onGrantRevoked((grantId) => sessions.endForGrant(grantId))
@@ -394,7 +411,7 @@ const leave = (surface, bearer, mcpSessionId) => fetch(`${surface.origin}/mcp`, 
 
 test('an enrolled agent that leaves (DELETE) ends its session and its claims go; a rejoin bearer that leaves takes only itself (0.3.5 review i2 ER-4)', async (t) => {
   const ended = []
-  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', onSessionEnded: async (id, why) => { ended.push([id, why]) } })
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', onSessionEnded: async (id, why) => { ended.push([id, why]) } })
   await surface.start()
   t.after(() => surface.stop())
   const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
@@ -421,7 +438,7 @@ test('an enrolled agent that leaves (DELETE) ends its session and its claims go;
 })
 
 test('an evicted session\'s next call is told it was evicted and that its claims were released, not that Fabric restarted (0.3.5 review i2 ER-4)', async (t) => {
-  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
   await surface.start()
   t.after(() => surface.stop())
   const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
@@ -438,9 +455,9 @@ test('an evicted session\'s next call is told it was evicted and that its claims
   assert.match(body.error, /claims were released/)
 })
 
-test('a bearer minted and never presented does not stay: the next mint sweeps the ones past their claim window (0.3.5 review i2 ER-5)', () => {
+test('a bearer minted and never presented does not stay: the next mint sweeps the ones past their claim window (0.3.5 review i2 ER-5)', async () => {
   let now = 1_000_000
-  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', now: () => now })
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', now: () => now })
   for (let i = 0; i < 20; i++) surface.mint(P, 'dead-hook-' + i, null)
   assert.equal(surface.credentialCount(), 20)
   now += 10 * 60_000

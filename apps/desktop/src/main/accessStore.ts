@@ -115,7 +115,7 @@ export interface ConnectionRow {
   removed_at: string | null
 }
 
-export type AccessActor = { kind: 'person' | 'system'; id: string }
+export type AccessActor = { kind: 'person' | 'agent' | 'system'; id: string }
 
 /**
  * Which requests to read. `liveAt` keeps only requests whose expiry is after that instant, and
