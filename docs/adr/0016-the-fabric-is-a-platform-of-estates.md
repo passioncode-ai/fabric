@@ -64,3 +64,12 @@ money, deletions and name); the one-CEO-agent and one-PM cardinalities; graph
 immutability; the journal spine; the production pipeline; the escalation defaults —
 ADR-0007's "the fabric answers by default" now simply escalates to role queues before
 the owners.
+
+## Amendment — ADR-0162 (2026-10-17): an estate spans machines; organization = network = context
+
+An estate is not bound to one machine or one database. The operator's estate spans their machines through the estate
+record (DEC-0055), whose every revision the operator's passkey signs; the hub that mints tokens runs on the always-on
+machine. An organization, a network and a context (`personal`, `org:<orgId>`) are one thing: creating a network
+creates an organization. A machine enrolls into each network with its own keys. See
+[ADR-0162](0162-the-operators-passkey-signs-the-network-and-the-hub-lives-on-the-always-on-machine.md).
+
