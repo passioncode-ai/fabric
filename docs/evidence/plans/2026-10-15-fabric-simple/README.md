@@ -110,11 +110,44 @@ deletion.
 
 | Wave | Closes | Exit check |
 |---|---|---|
-| 0 · Decide | this canvas read by the operator; the act-log-undo ADR; the ADR-0134/0115 amendments; the cut list | the operator's go |
+| 0 · Decide | the act-log-undo ADR; the ADR-0134/0115 amendments; the cut list | done 2026-10-15 (ADR-0160) |
 | 1 · Spec | scenarios for the five places and История's undo; retirements for the cut list; flows and screens; the prototype drawn for every place and state (`scripts/product/`), in ru and en | `docs/ux/lint.py`, the product-model and report checks, the prototype walked |
 | 2 · History and undo | the inverse of every operator act in the main process (stop → start again, release → take again, detach → attach, discard → restore, answer → reopen, move → move back), recorded with its actor; the История read | a test per act: do, undo, both in history |
 | 3 · Shell | the five-place rail with the projects list; Создать; no tab strip; the confirmations removed; the coding agent let in, with Отключить | component tests; the walk in ru and en |
 | 4 · Places | Главная, Проект, Агенты, История, Настройки rebuilt to the prototype; the onboarding plan's wizard, scan and create flows in the new frame | screenshots against the prototype; the walk from zero on a disposable stack |
 | 5 · Release | three verification iterations, CHANGELOG, docs, map; 0.3.7 tagged, published, installed | the release run green; the installed bundle verified |
 
-**Next task.** Wave 0: the operator reads this canvas; then the ADR and wave 1's scenarios.
+**No go is awaited (the operator, 2026-10-17).** «а как сделать чтобы не ждать моего слова больше и не блочить процесс мной? я же и так изначальную задачу даю»: the operator's instruction is the go. Waves run one after another without asking; each lands with what it shows (the prototype, screenshots), and the operator corrects asynchronously — a correction becomes the next change, never a stop. What still stops and asks: the human gates (a sign-in, a consent, a payment, a secret typed by a person), spend above a limit, and a capability that contradicts `docs/ux/vision.md` (its alignment rule in `AGENTS.md`).
+
+## 7. Wave 1 — the spec, done 2026-10-17
+
+Decided by the agent under the standing go (§6), recorded here for the operator to correct asynchronously:
+
+- **Scenarios** (`docs/ux/scenarios.md`, section "Fabric 0.3.7 — simple"): SCN-162 rail, SCN-163 Главная, SCN-164
+  questions with options as buttons and «Отменить» on an answer, SCN-165 Проект, SCN-166 Агенты, SCN-167 a coding
+  agent let in with «Отключить», SCN-168 История, SCN-169 undo, SCN-170 Настройки, SCN-171 «Создать». The onboarding
+  plan's scan, open, create-project and create-agent paths are **amended in place** (SCN-126…SCN-129, SCN-136) and
+  entered from «Создать» rather than duplicated.
+- **Retired** with the cut list as the reason: SCN-026 (live feed), SCN-030 (workspace canvas), SCN-044 and SCN-093
+  (profile block), SCN-055 (Board/Inbox), SCN-056 (Automations), SCN-062 (Retro), SCN-073 (Diagnostics), SCN-094
+  (Pulse), SCN-141 (Where work is). **Amended** for ADR-0160 or the new frame: SCN-028, 031, 033, 036, 040, 041, 047,
+  049, 050, 096, 126, 127, 128, 129, 132, 134, 136, 137, 140, 142, 158, 159, 160. Built screens stay `built` with a
+  dated "0.3.7 target" note until the wave that removes them; designed-only cut screens are retired (SCR-42, SCR-45,
+  SCR-54).
+- **ADR-0115 for product capabilities:** an agent's ask of a product's resources (not an ask to join a project) is no
+  longer a native prompt, notification or queue item; it is a question on Главная with «Разрешить» / «Не разрешать»,
+  and a grant is withdrawn with «Отозвать» or «Отменить» (SCN-132 amendment). An ask to join a project is let in
+  (SCN-167).
+- **The act line:** after an act, one quiet line at the foot of the place, «{что сделано} · Отменить», until the next
+  act or leaving the place; История keeps every act. No toast, no banner, no dialog.
+- **Flows** FLW-93…FLW-98 (FLW-40 amended); **screens** SCR-84…SCR-90. FLW-93 and FLW-97 are added to the
+  unmeasured-flows debt until waves 3 and 2 land their screens.
+- **Prototype:** `docs/reports/product.html#view-simple-home` and the other `simple-*` views
+  (`scripts/product/simple.mjs`, `simple.css`), every state of every new scenario in Russian and English
+  (`?lang=en`), walked in Chrome: 52 states × 2 languages, no page errors; journey PJ-42. The prototype hides the
+  conversation with Fabric on these views (RM-09).
+
+**Next task.** Wave 2: the inverse of every operator act in the main process — stop → start again, release → take
+again, detach → attach, discard → restore, answer → reopen, move → move back, disconnect → let back in, rename →
+old name — each recorded with its actor and `undoes`, tested do-then-undo with both acts in the journal; then the
+История read (SCR-88) that SCN-168/169 describe.
