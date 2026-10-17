@@ -2,8 +2,8 @@
   "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
   "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
   "counts": {
-    "views": 116,
-    "families": 21,
+    "views": 122,
+    "families": 22,
     "each_view_exactly_once": true
   },
   "families": [
@@ -5168,6 +5168,305 @@
               "line": 3452,
               "status": "draft",
               "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "simple",
+      "title": "Fabric 0.3.7: пять мест и «Создать»",
+      "outcome": "Начать с Главной, ответить, повести проект, открыть консоль и отменить любое действие",
+      "introduction": "0.3.7 волна 1: целевой дизайн пяти мест по ADR-0160",
+      "scope_recommendation": "0.3.7: строят волны 2–4",
+      "views": [
+        {
+          "view": "simple-home",
+          "route": "docs/reports/product.html#view-simple-home",
+          "title": "0.3.7 · Главная",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-85",
+              "source": "docs/ux/screens.md:2196",
+              "explicit_scenarios": [
+                "SCN-163",
+                "SCN-164",
+                "SCN-158"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-84",
+              "source": "docs/ux/screens.md:2177",
+              "explicit_scenarios": [
+                "SCN-162"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-163",
+              "line": 4010,
+              "status": "draft",
+              "coverage": "none yet — wave 4 rebuilds Главная to the prototype; today's home is SCN-158's",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-164",
+              "line": 4032,
+              "status": "draft",
+              "coverage": "none yet — waves 2 (reopen as the inverse of answer) and 4 (the card); today's answer is SCN-050's",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-158",
+              "line": 3875,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs` (home, project, settings — 2026-10-14 PASS)",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-162",
+              "line": 3988,
+              "status": "draft",
+              "coverage": "none yet — the 0.3.7 plan's wave 3 builds the rail; today's tab strip and project links are `apps/desktop/src/renderer/src/App.tsx` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-project",
+          "route": "docs/reports/product.html#view-simple-project",
+          "title": "0.3.7 · Проект",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-86",
+              "source": "docs/ux/screens.md:2220",
+              "explicit_scenarios": [
+                "SCN-165",
+                "SCN-164",
+                "SCN-159"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-165",
+              "line": 4053,
+              "status": "draft",
+              "coverage": "none yet — wave 4 rebuilds the project page to the prototype; today's is SCN-159's",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-164",
+              "line": 4032,
+              "status": "draft",
+              "coverage": "none yet — waves 2 (reopen as the inverse of answer) and 4 (the card); today's answer is SCN-050's",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-159",
+              "line": 3901,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/projectPath.ts`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; tests `apps/desktop/src/shared/projectPath.test.ts`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-agents",
+          "route": "docs/reports/product.html#view-simple-agents",
+          "title": "0.3.7 · Агенты",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-87",
+              "source": "docs/ux/screens.md:2242",
+              "explicit_scenarios": [
+                "SCN-166",
+                "SCN-167"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-166",
+              "line": 4076,
+              "status": "draft",
+              "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-167",
+              "line": 4097,
+              "status": "draft",
+              "coverage": "none yet — wave 3 removes the consent step; today's consent is SCN-137's",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-history",
+          "route": "docs/reports/product.html#view-simple-history",
+          "title": "0.3.7 · История",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-88",
+              "source": "docs/ux/screens.md:2264",
+              "explicit_scenarios": [
+                "SCN-168",
+                "SCN-169",
+                "SCN-164",
+                "SCN-167"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-168",
+              "line": 4118,
+              "status": "draft",
+              "coverage": "none yet — wave 2 builds the read (the journal, ADR-0014, with each act's actor and inverse)",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-169",
+              "line": 4138,
+              "status": "draft",
+              "coverage": "none yet — wave 2 (the inverse of each act in the main process, tested do-then-undo)",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-164",
+              "line": 4032,
+              "status": "draft",
+              "coverage": "none yet — waves 2 (reopen as the inverse of answer) and 4 (the card); today's answer is SCN-050's",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-167",
+              "line": 4097,
+              "status": "draft",
+              "coverage": "none yet — wave 3 removes the consent step; today's consent is SCN-137's",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-settings",
+          "route": "docs/reports/product.html#view-simple-settings",
+          "title": "0.3.7 · Настройки",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-89",
+              "source": "docs/ux/screens.md:2288",
+              "explicit_scenarios": [
+                "SCN-170",
+                "SCN-134",
+                "SCN-135"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-170",
+              "line": 4157,
+              "status": "draft",
+              "coverage": "none yet — wave 4 redraws SCN-160's screen",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-134",
+              "line": 3385,
+              "status": "draft",
+              "coverage": "apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx (the first-run notice, ADR-0127; an install that already sent counts is told so)",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-135",
+              "line": 3407,
+              "status": "draft",
+              "coverage": "apps/desktop/src/shared/runnerRoute.ts, apps/desktop/src/main/runnerFallback.ts, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx, apps/desktop/src/renderer/src/useFallbackChoice.ts",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-create",
+          "route": "docs/reports/product.html#view-simple-create",
+          "title": "0.3.7 · Создать",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-90",
+              "source": "docs/ux/screens.md:2307",
+              "explicit_scenarios": [
+                "SCN-171",
+                "SCN-127",
+                "SCN-128",
+                "SCN-129",
+                "SCN-136"
+              ],
+              "runtime_description": "Fabric 0.3.7 wave 1 (2026-10-17, ADR-0160): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-171",
+              "line": 4176,
+              "status": "draft",
+              "coverage": "none yet — wave 4 redraws the start paths in this frame; today's are SCN-127…SCN-129 and SCN-136",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-127",
+              "line": 3213,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-128",
+              "line": 3237,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-129",
+              "line": 3269,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/projectFolder.ts; apps/desktop/src/main/startChoices.ts",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-136",
+              "line": 3427,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129",
               "product": "unobserved"
             }
           ]

@@ -59,3 +59,9 @@ FLW-66
 # file because none is written. Strike FLW-91 when W4-9 lands SCR-82, and FLW-92 when W4-10 lands SCR-83.
 FLW-91
 FLW-92
+# Fabric 0.3.7 "simple", wave 1 (2026-10-17, ADR-0160; docs/evidence/plans/2026-10-15-fabric-simple/README.md): the
+# rail (FLW-93, SCR-84) and История with undo (FLW-97, SCR-88) are designed before any of their code exists — wave 1 is
+# the spec, waves 2–3 build them. No screen on their paths has an implementing file yet. Strike FLW-97 when wave 2
+# lands SCR-88, and FLW-93 when wave 3 lands SCR-84. (FLW-94…FLW-96 and FLW-98 traverse built screens and are measured.)
+FLW-93
+FLW-97

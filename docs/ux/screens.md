@@ -38,14 +38,14 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-22 | MCP access detail | FLW-12 | none — text-only | designed | none yet |
 | SCR-23 | Hosted terminal | — | none — text-only | retired | none — superseded by SCR-25 |
 | SCR-24 | Approval queue | FLW-14, FLW-21 | none — text-only | designed | none yet |
-| SCR-25 | Session window | FLW-16 | none — text-only | built | `apps/desktop/src/renderer/src/SessionWindow.tsx` |
+| SCR-25 | Session window | FLW-16, FLW-94, FLW-95, FLW-96, FLW-98 | none — text-only | built | `apps/desktop/src/renderer/src/SessionWindow.tsx` |
 | SCR-26 | Workspace canvas | FLW-17 | none — text-only | built | `apps/desktop/src/renderer/src/Workspace.tsx` |
 | SCR-27 | Onboarding | FLW-18, FLW-32 | none — text-only | built | `apps/desktop/src/renderer/src/Onboarding.tsx` |
 | SCR-28 | Editor window | FLW-19 | none — text-only | designed | none yet |
 | SCR-29 | Public landing page | FLW-20 | none — repository-first | designed | static site |
 | SCR-30 | Estate home | FLW-21, FLW-32, FLW-33 | none — text-only | built | `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` |
 | SCR-31 | Project page | FLW-21, FLW-22, FLW-23, FLW-24, FLW-32, FLW-33 | none — text-only | built | `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` |
-| SCR-32 | Task page | FLW-22, FLW-23, FLW-32, FLW-33 | none — text-only | built | `apps/desktop/src/renderer/src/TaskPage.tsx` |
+| SCR-32 | Task page | FLW-22, FLW-23, FLW-32, FLW-33, FLW-95 | none — text-only | built | `apps/desktop/src/renderer/src/TaskPage.tsx` |
 | SCR-33 | Decision history (target; legacy preview remains) | FLW-21, FLW-26, FLW-28 | none — text-only | designed | none yet |
 | SCR-34 | Project memory | FLW-21, FLW-22, FLW-31, FLW-34, FLW-35, FLW-36 | none — text-only | built | `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx` |
 | SCR-35 | Project harness | FLW-24 | none — text-only | built | `apps/desktop/src/renderer/src/HarnessSection.tsx` |
@@ -55,10 +55,10 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-39 | Estate agents | FLW-21, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/EstateAgents.tsx` |
 | SCR-40 | Graph explorer family | FLW-23, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/launch/PlanScreen.tsx` |
 | SCR-41 | Ranked Board and question detail | FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75 | none — text-only | built | `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` |
-| SCR-42 | Inbox | FLW-21, FLW-29 | none — text-only | designed | none yet |
+| SCR-42 | Inbox | FLW-21, FLW-29 | none — text-only | retired | none yet |
 | SCR-43 | Cycles | FLW-30 | none — text-only | designed | none yet |
 | SCR-44 | Manager lifecycle | FLW-34 | none — text-only | designed | none yet |
-| SCR-45 | Retrospectives | FLW-35 | none — text-only | designed | none yet |
+| SCR-45 | Retrospectives | FLW-35 | none — text-only | retired | none yet |
 | SCR-46 | Service feedback settings | FLW-35 | none — text-only | designed | none yet |
 | SCR-47 | Storage and sync | FLW-36 | none — text-only | designed | none yet |
 | SCR-48 | Restore | FLW-36 | none — text-only | designed | `apps/desktop/src/main/backup.ts` |
@@ -67,7 +67,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-51 | Квоты и использование | FLW-39 | none — interactive HTML | designed | none yet |
 | SCR-52 | Настройки рабочего пространства | FLW-40 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` |
 | SCR-53 | Уведомления и маршруты | FLW-41 | none — interactive HTML | designed | none yet |
-| SCR-54 | Диагностика | FLW-42 | none — interactive HTML | designed | none yet |
+| SCR-54 | Диагностика | FLW-42 | none — interactive HTML | retired | none yet |
 | SCR-55 | Архив и удаление | FLW-43 | none — interactive HTML | designed | none yet |
 | SCR-56 | Редактор цикла | FLW-44 | none — interactive HTML | designed | none yet |
 | SCR-57 | Сервисные терминалы | FLW-45 | none — interactive HTML | designed | none yet |
@@ -84,10 +84,10 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-68 | Fabric tools | FLW-66 | none — text spec | designed | none yet |
 | SCR-69 | Optimizer proposals | FLW-66 | none — text spec | designed | none yet |
 | SCR-70 | First run | FLW-69, FLW-82 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
-| SCR-71 | Add a project | FLW-70 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
-| SCR-72 | Scan a projects folder | FLW-71, FLW-69 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
-| SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
-| SCR-74 | Create an agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
+| SCR-71 | Add a project | FLW-70, FLW-98 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-72 | Scan a projects folder | FLW-71, FLW-69, FLW-98 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-73 | New project | FLW-72, FLW-98 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
+| SCR-74 | Create an agent | FLW-73, FLW-98 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-75 | Adapt an existing agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
 | SCR-77 | Setup: coding agents and products | FLW-78, FLW-79, FLW-69 | none — text spec | designed | none yet |
@@ -97,6 +97,13 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-81 | Project comms | FLW-83 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |
 | SCR-82 | Pause sheet | FLW-91 | none — text spec | designed | none yet |
 | SCR-83 | Project directory | FLW-92 | none — text spec | designed | none yet |
+| SCR-84 | Rail | FLW-93 | none — interactive HTML | designed | none yet |
+| SCR-85 | Главная | FLW-93, FLW-94 | none — interactive HTML | designed | none yet |
+| SCR-86 | Проект | FLW-93, FLW-94, FLW-95, FLW-98 | none — interactive HTML | designed | none yet |
+| SCR-87 | Агенты | FLW-93, FLW-95, FLW-96, FLW-98 | none — interactive HTML | designed | none yet |
+| SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | designed | none yet |
+| SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | designed | none yet |
+| SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | designed | none yet |
 
 ## Design system
 
@@ -143,6 +150,7 @@ different destination under the same name.
 ## Screens
 
 ### SCR-01: Estate projects
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the estate's projects list moves to the rail (SCR-84) and to Главная's «Проекты» (SCR-85).
 - **Used by:** FLW-01 entry; FLW-04 steps 1–2
 - **Purpose:** let the operator compare projects and find the next exception without opening provider dashboards.
 - **Elements:** project cards with name, purpose, primary repository and live-session count; the estate activity feed; **New project** / **Create the first project** primary action.
@@ -528,7 +536,7 @@ different destination under the same name.
 
 
 ### SCR-25: Session window
-- **Used by:** FLW-16 steps 2–4; FLW-54; FLW-78, FLW-79 (the Setup console); FLW-81; FLW-82 (the manager session)
+- **Used by:** FLW-16 steps 2–4; FLW-54; FLW-78, FLW-79 (the Setup console); FLW-81; FLW-82 (the manager session); FLW-94, FLW-95, FLW-96, FLW-98 (0.3.7 target)
 - **Purpose:** one session in full — the terminal the agent actually runs in (ADR-0008 §3), detached so the project view stays readable behind it.
 - **Elements:** header with the launch option, working directory and state badge; full-height terminal viewport; the session survives closing this window.
 - **States:**
@@ -555,6 +563,7 @@ different destination under the same name.
 - **Planned extension — V1 context panels (target, not current coverage):** по решению оператора 2026-09-12 (the context panels belong wherever the agent console is open) это окно несёт контекстные панели SCN-091 как первоклассные элементы рядом с терминалом, тем же компонентом, что и SCR-39: полоса вопроса с ответом inline и возрастом; бриф задачи (что/зачем/ожидаемый результат, с авторством и переходом на SCR-32); прогресс — заявление агента рядом с наблюдением и план задачи закрыто/сейчас/дальше; хронология команд и ответов оператора этому агенту, каждая строка с журнальной цитатой. Сегодня окно рендерит только header + `TerminalView` (`SessionWindow.tsx`) — панелей нет, и это зафиксировано как зазор, а не как поставка. FLW-54; SCN-091; план: `docs/ux/plans/2026-09-12-v1-context-reentry.md`, веха V1-M1.
 
 ### SCR-26: Workspace canvas
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by the project page SCR-86 and История SCR-88 — the workspace canvas is cut (plan §5, SCN-030 retired). It stays built until wave 4 removes it; then this row becomes retired.
 - **Used by:** FLW-17
 - **Purpose:** the project's dashboard as a constrained grid of widgets (ADR-0024), host-generated today and provider-rendered later (ADR-0020) without the layout moving.
 - **Elements:** grid with admitted spans; widget frames carrying a title and their tier; agents widget; activity widget; results slot; back to the project.
@@ -637,6 +646,7 @@ different destination under the same name.
 - **Status:** designed
 
 ### SCR-30: Estate home
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by the rail SCR-84 and Главная SCR-85: no tab strip, no profile block, no Pulse, no live feed, no «Ещё на этой странице» (plan §5). It stays built until wave 4 rebuilds the home; then this row becomes retired.
 - **Used by:** FLW-21, FLW-32, FLW-33, FLW-54, FLW-69, FLW-78
 - **Purpose:** the first screen after launch — who the manager is, what it has done, which projects lead, and what is happening across all of them right now.
 - **Elements:** compact manager header (colour portrait, name/role, meaningful-events sparkline and sourced pulse); priority Board beside a resume card (decision/now/next); projects below Board and restrained agent activity below resume; controls (search, attention with count, quota, chat, new project, settings); favourites up to five; all projects by activity with per-project agent summary; live feed; floating manager control.
@@ -676,6 +686,7 @@ different destination under the same name.
 - **Addressable subviews (target only):** Restored working set and resume-draft entry preserve operator intent. SCR-01 resolves to project-inventory intent here, not a duplicate estate route.
 
 ### SCR-31: Project page
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by Проект SCR-86 — one page with no sections below the board and no per-project rail links (plan §2, §5). It stays built until wave 4.
 - **Used by:** FLW-21, FLW-22, FLW-23, FLW-24, FLW-32, FLW-33, FLW-54, FLW-80, FLW-81
 - **Purpose:** the working surface of one project, answering in order: where we left off, what to ask for, what is in flight.
 - **Elements:** header with branch and repository state; attention chips; where-we-left-off digest with citations; give-a-task field with shortcuts; kanban board with drag; project live feed; plan widget; agent noticeboard; harness entry; collapsed memory, files and journal; floating manager control.
@@ -723,7 +734,7 @@ different destination under the same name.
 - **Addressable subviews (target only):** SCR-03 overview is an intent of this same project surface. Deep links carry exact authorised project/entity/return context; a missing or denied source never falls back to another project.
 
 ### SCR-32: Task page
-- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81
+- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81; FLW-95 (0.3.7 target)
 - **Purpose:** one task's own page — the working context of that task, filled in by the agents working it and editable by the operator. Not a second documentation: knowledge lives in `docs/` and in project memory, and this page links to it.
 - **Elements:** title with type, section and lease; brief (what / why / expected result) with its authorship line; append-only notes with a promote-to-memory action; fields panel; related tasks; resources as links only; transition history; receipts for external effects; the manager chat scoped to this task.
 - **States:**
@@ -786,6 +797,7 @@ different destination under the same name.
 - **Addressable subviews (target only):** Next context, exact Past pack and fact lineage remain addressable subviews here, with immutable PackRef/FactRef and a return target. Detailed declared storage operations open SCR-47; backup recovery opens SCR-48; retro and outbound settings open SCR-45/SCR-46.
 
 ### SCR-35: Project harness
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by «Что получает агент» in the agent's view on Агенты, SCR-87 (plan §4). It stays built until wave 4 removes it from the project page.
 - **Used by:** FLW-24
 - **Purpose:** what this project's agents are and what they may do — and the tool contract they work the board through.
 - **Elements:** bound agents with state and permission mode; skills with the mandatory task skill marked; MCP servers with grant state; the tool contract table (claim, report, move, list leases, note, release).
@@ -806,6 +818,7 @@ different destination under the same name.
 - **Status:** designed
 
 ### SCR-36: Estate record
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the profile block is cut from the home (plan §5; SCN-044, SCN-093 retired). The record stays built until wave 4.
 - **Used by:** FLW-21
 - **Startup boundary (first-release entry):** Before this screen, a schema/build failure uses the existing native startup dialog. No project data or chat is shown; recovery/agent services have not started in this attempt. Retry rechecks the schema; invalid build identity requires restart. Prototype review tools offer explicit compatible/older/newer/unavailable/invalid-build examples and never infer success from Retry. *(Amended 2026-10-10 by [ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md), 0.3.4: after the schema check the operator's identity is established; a default Estate only the old seed has touched is first granted to the local operator, and any other identity refusal is the native startup error's own cause, `identity-refused`, with the reason in its details.)*
 - **Purpose:** the estate's own record, as measurements with their registers named.
@@ -861,6 +874,7 @@ different destination under the same name.
 - **Status:** designed
 
 ### SCR-39: Estate agents
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by Агенты SCR-87 (SCN-166). It stays built until wave 4.
 - **Used by:** FLW-21, FLW-27, FLW-54
 - **Purpose:** every running agent across every project on one screen — who is working, what they are doing now, and where the work is landing. The single list M86 asked for, unscoped as M71 asked, with M70's console.
 - **Elements:** a launch control at the head of the list — this is where a hand reaches for one, and a screen that shows agents and cannot start one sends the operator back to a project to do it; agent list by activity with waiting ones first and finished ones dimmed; the selected agent's live console with its input; the task it holds; project meta — repository, folder, branch, changed and untracked counts, view files; the agent's HISTORY of actions from the journal, which is not its transcript.
@@ -911,6 +925,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Status:** designed
 
 ### SCR-41: Ranked Board and question detail
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by «Ждёт вас» on Главная SCR-85 and «Вопросы» and «Доска» on Проект SCR-86 — the Board is no longer a place of its own, and its review ritual and access-request items go (plan §1, §5; ADR-0160 §3). It stays built until wave 3.
 - **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75
 - **Purpose:** One scoped union of unresolved authored questions and derived obligations, separate from task Kanban; one source for home top5/project top10/full/counters.
 - **Elements:** Scope/filter/grouping, stable rank with component disclosure, canonical selected item, owner/age/source/blockers, options with consequences, answer draft, commit receipt and continuation receipt separately, full-list cursor. Grants route to SCR-24 authority detail where needed.
@@ -936,6 +951,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Status:** designed
 
 ### SCR-42: Inbox
+- **Superseded 2026-10-17 by the 0.3.7 target ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the Inbox and Pulse are cut (0.3.7 plan §2, §5; SCN-055, SCN-094 retired): what needs the person is Главная, SCR-85; what happened is История, SCR-88. Kept as the record of the design.
 - **Used by:** FLW-21, FLW-29
 - **Purpose:** A view of attention owed and informational events, with operator-specific read state only for the informational lane.
 - **Elements:** Needs you/Happened lanes; source coverage/freshness; project/kind/time filters; canonical source links; sanitized detail disclosure; mark-visible-read only in Happened; stable cursor.
@@ -952,9 +968,10 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Coverage:** none yet
 - **Scenarios:** SCN-044, SCN-055, SCN-058
 - **Resources:** BoardService and safe notable-event query; journal, read cursor/preferences scoped to operator.
-- **Status:** designed
+- **Status:** retired
 
 ### SCR-43: Cycles
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's Automations section is cut (plan §5; SCN-056 retired); this estate-level design stays designed and off the rail.
 - **Used by:** FLW-30
 - **Purpose:** Inspect every declared cycle with configuration, observed health and last outcome separated; unavailable detectors remain unknown.
 - **Elements:** Kind/project/cadence/placement/enabled columns; observed health/source/age; last tick/start/outcome; next due with policy/timezone; filter/sort; source inspector; guarded wake; planned/coverage badges.
@@ -1000,6 +1017,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 
 ### SCR-45: Retrospectives
+- **Superseded 2026-10-17 by the 0.3.7 target ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the Retro section is cut (0.3.7 plan §5; SCN-062 retired); episodes are acts read in История, SCR-88.
 - **Used by:** FLW-35
 - **Purpose:** Turn distinct observed occurrences into checked corrective work and a verified or regressed lesson.
 - **Elements:** Category/scope/subject; episode applicability and state; distinct occurrence evidence; proposed resolution and recorded rationale; checker result; process question/task links; verification window and required sources; dismiss/history controls.
@@ -1021,7 +1039,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Resources:** Episode, Occurrence and ResolutionProposal; process questions use target kind=decision/topic=process, not a silent enum addition; [shared engineering contract](../architecture/system-contract.md).
 - **Implementation tasks:** M154, M182, M184, M168, S15, S14.
 - **Prototype:** [target prototype](../reports/product.html#screen-SCR-45) — fictional fixture; not product coverage.
-- **Status:** designed
+- **Status:** retired
 
 
 ### SCR-46: Service feedback settings
@@ -1170,10 +1188,12 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 
 ### SCR-52: Настройки рабочего пространства
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by Настройки SCR-89 (SCN-170); the coding agents on this computer move to Агенты SCR-87. It stays built until wave 4.
 - **Purpose:** Настроить тему, локаль, поведение пробуждения, хранение и допустимые проектные ограничения.
 - **Elements:** Глобальная настройка → проектный override → проверка сужения прав → новая ревизия. Повышение прав не следует из настройки интерфейса. Переключатель «Делиться счётчиками использования» — один для всех приложений PassionCode (SCN-134, [ANALYTICS.md](../ANALYTICS.md)).
 - **Primary action:** Глобальная настройка
 - **Scenarios:** SCN-071, SCN-134, SCN-135, SCN-160
+- **Used by:** FLW-40
 - **Flows:** FLW-40
 - **Implementation tasks:** M72, M73, M152
 - **Prototype:** [Адрес макета](../reports/product.html#view-estate-settings); контракт [mockup-contract.md](mockup-contract.md).
@@ -1229,6 +1249,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 
 ### SCR-54: Диагностика
+- **Superseded 2026-10-17 by the 0.3.7 target ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Diagnostics is cut (0.3.7 plan §5; SCN-073 retired); a failure is an act read in История, SCR-88, with our sentence and the machine's words beneath it.
 - **Purpose:** Прочитать состояние источников и безопасный журнал; экспортировать проверяемый набор без секретов.
 - **Elements:** Проблема → диагностика источника → отбор безопасных строк → предпросмотр → локальный экспорт. Недоступность источника и пустой журнал различаются.
 - **Primary action:** Проблема
@@ -1236,7 +1257,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Flows:** FLW-42
 - **Implementation tasks:** M81
 - **Prototype:** [Адрес макета](../reports/product.html#view-diagnostics); контракт [mockup-contract.md](mockup-contract.md).
-- **Status:** designed
+- **Status:** retired
 - **Coverage:** none yet
 
 | State | Trigger | Animation | Behavior |
@@ -1761,7 +1782,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Amended 2026-10-11 (REQ-39):** redrawn from the 0.3.x three steps (name and look → coding agents → where to start). The coding-agent states of the old step 2 — found, found-unconnected, unresponsive, missing, check-failed and the four sign-in states — now belong to SCR-77 (its agent rows), where the chosen agent runs the setup.
 
 ### SCR-71: Add a project
-- **Used by:** FLW-70
+- **Used by:** FLW-70; FLW-98 (0.3.7 target)
 - **Purpose:** Turn one chosen folder into a Project after confirming what Fabric found.
 - **Elements:** Choose a folder; facts (path, git kind, branch, remote, last commit, stack); name; already-in notice; not-git notice; Add project; Choose another folder.
 - **States:**
@@ -1782,7 +1803,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** P-01
 
 ### SCR-72: Scan a projects folder
-- **Used by:** FLW-71; FLW-69 (the first run's step 3)
+- **Used by:** FLW-71; FLW-69 (the first run's step 3); FLW-98 (0.3.7 target)
 - **Purpose:** List every repository in a chosen folder and create one Project per ticked row.
 - **Elements:** Choose a folder to scan; Stop; summary; truncation notice; filter; Tick all shown; Clear; grouped candidate rows; Add N as projects; per-row result.
 - **States:**
@@ -1819,7 +1840,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** P-01
 
 ### SCR-73: New project
-- **Used by:** FLW-72
+- **Used by:** FLW-72; FLW-98 (0.3.7 target)
 - **Purpose:** Start a project from nothing: in a new folder or as an idea.
 - **Elements:** the draft-backed form: name; purpose; repositories with Add repository and Create a new folder for it (disabled until a name is typed); git checkbox; folder problem line; memory backend; default agent by its own name; Save.
 - **States:**
@@ -1840,7 +1861,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** P-01
 
 ### SCR-74: Create an agent
-- **Used by:** FLW-73
+- **Used by:** FLW-73; FLW-98 (0.3.7 target)
 - **Purpose:** Create a new ecosystem agent: its folder, its Project, and a coding agent's console that builds it (SCN-136).
 - **Elements:** Name; What it will do; Where its folder goes with Choose and the resulting path; Fabric Agent Adapter skills status (installed + version, or install command with Copy and Check again); coding agent choice; Create and open the console; Back.
 - **States:**
@@ -1886,6 +1907,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** REQ-03, REQ-04
 
 ### SCR-76: Agent access
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the request queue for a coding agent joining a project is removed (ADR-0160 §3): the agent is let in and shown in Агенты SCR-87 with «Отключить»; an agent's access to products is read in Настройки SCR-89 → «Доступ агентов». It stays built until wave 3.
 - **Used by:** FLW-75, FLW-76, FLW-77, FLW-85
 - **Purpose:** What registered agents on this Mac — and coding agents working in a project ([ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) — may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
 - **Elements:** where agents reach Fabric, or why they cannot; Products — one card each, the text first and Connect (or Reconnect and Disconnect once connected) on their own line under it, and the last connect outcome; waiting requests, one card each headed by the agent's name — who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, that access lasts a year unless revoked, when the request expires, Deny and Allow (or "Allow and connect <product>"); agents with access, one card each, each grant in plain words with its expiry (a date in the operator's locale) and Revoke, and Revoke all; denied requests with Clear the denial. Every button names whose it is to a screen reader — an agent's buttons in their own label, a product's buttons through the group they sit in, which carries the product's name (2026-10-05, release review I3 U-4); the accessible Allow name includes the visible connect action. Long resources wrap in full, controls wrap at narrow widths, and completion moves keyboard focus to the affected section. Machine diagnostics are a secondary line below the localised reason. Every word is in the operator's language.
@@ -1963,6 +1985,7 @@ frames; the visual layer is the recorded style pack's tokens.
 - **Implementation tasks:** 0.4.0 REQ-10, REQ-11, REQ-39, REQ-40, REQ-41 (wave 3)
 
 ### SCR-78: Where work is
+- **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by «Сейчас» on Главная SCR-85 and by Агенты SCR-87 — Where work is is cut (plan §2; SCN-141 retired). It stays built until wave 3 removes it; then this row becomes retired.
 - **Used by:** FLW-81, FLW-80
 - **Purpose:** The manager's estate view: per project, the live sessions, the claimed tasks, the review queue and the last sign of life — and, always, the sessions no project owns (plan C8, REQ-17).
 - **Elements:** one row per project with work in flight — live sessions (coding agent, how it came in: launched, enrolled from a terminal, handed off from Dashboards or Switchboard), claimed tasks (agent, task, since, «related»), review count, last sign of life; one counted line for the projects with nothing in flight ("More projects with nothing in flight: N" — a label and a count, never a plural it cannot form, UX-13); the last row «Sessions with no project», always shown — each session's coding agent, folder and since, with «Log under a project…»; the consent sheet (log under the matched project, named with how it matched / a new project / don't log here; Allow, Cancel); the reading time.
@@ -2141,3 +2164,169 @@ frames; the visual layer is the recorded style pack's tokens.
 - **Resources:** [ADR-0156](../adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md); the database door `board_set_listing` (migration 87), which wave 4 gives its owner check; SCR-52 (where it lives), SCR-76 (the link to it).
 - **Status:** designed
 - **Implementation tasks:** COM-06 (wave 4: W4-7, W4-8, W4-10); closes CO-286
+
+## Fabric 0.3.7 — simple: five places · 2026-10-17 ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md), [plan](../evidence/plans/2026-10-15-fabric-simple/README.md))
+
+Target design of wave 1, drawn in `docs/reports/product.html` as the `simple-*` views, in Russian and English
+(`?lang=en`), in the Aperture-like style the operator asked for ([sketch](../evidence/plans/2026-10-15-fabric-simple/style-2026-10-16/README.md)):
+neutral graphite surfaces, hairline borders, large calm medium-weight headings, small uppercase section labels, gold
+only for the one primary action and the counts that need the person. Designed, NOT built. No screen here has a
+confirmation dialog: an act happens at once and leaves the act line «{что сделано} · Отменить» at the foot of the
+place (ADR-0160). The screens they replace carry a dated note.
+
+### SCR-84: Rail
+- **Used by:** FLW-93
+- **Purpose:** The one navigation of Fabric: «＋ Создать», the five places and the projects list, always on the left (plan §2). Replaces the tab strip, the back button and the per-project links.
+- **Elements:** the PassionCode mark with «Fabric · by PassionCode»; «＋ Создать» (light secondary button); «Главная» with a gold count of waiting questions, «Агенты», «История», «Настройки»; the label «Проекты»; one row per project — name, a green dot when an agent works there, a gold star for a favourite, a gold count when something waits; the person's line at the foot («Сергей · этот Mac · всё работает»).
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | the projects list is read | none | «Читаю проекты…» in place of the list; the places usable |
+  | empty | no project yet | none | «Проектов пока нет» with «Создать проект» |
+  | error | the list could not be read | none | «Проекты не прочитаны.» with the machine's words beneath and «Повторить»; the last reading beneath it marked «как было в {время}» |
+  | success | the list read | none | favourites first, then by latest activity |
+  | folded | the window narrower than 900 px | none | icons with their counts, names in tooltips |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-162
+- **Resources:** the plan §2; the sketch `docs/evidence/plans/2026-10-15-fabric-simple/style-2026-10-16/fabric-style.html`
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 wave 3
+
+### SCR-85: Главная
+- **Used by:** FLW-93, FLW-94
+- **Purpose:** What needs the person, what is being done now, and their projects — the place Fabric opens on (plan §2). Replaces the home, the Board screen, Where work is, Pulse and the live feed.
+- **Elements:** the top bar with the place's name, the date and the search field (⌘K); the greeting heading («Добрый вечер. Вас ждут 3 вопроса.») and its one-line summary; the numbers strip («агентов работают», «задач в работе», «на проверке»); «Ждёт вас» — question cards (agent sign and name, project, time; the question; why; options as buttons, the recommended one gold; «Обсудить»); «Сейчас» — one row per agent at work (sign, its own sentence, project, how long) with «Открыть консоль ↗»; «Проекты» — a table (name with star, «Что сейчас», the way bar, agents, updated); the act line at the foot.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | each section «Читаю…» on its own; numbers «—» |
+  | empty | no question, no agent at work, or no project | none | «Вопросов нет. Агенты работают сами.» / «Сейчас ни один агент не работает.» / «Начните с проекта» with «Создать проект» and «Открыть папку с проектами» |
+  | partial | one section could not be read | none | that section says so with «Повторить»; the others stand |
+  | error | nothing could be read | none | «Fabric не смог прочитать, что происходит.» with the machine's words beneath and «Повторить» |
+  | success | read | none | the greeting, the numbers, the three sections |
+  | stale | an agent quiet past its window | none | «давно не отзывался — {время}», sorted last |
+  | answered | an option pressed and recorded | none | the card leaves; the act line «Ответ «…» отправлен · Отменить» |
+  | undone | «Отменить» pressed on an answer | none | the card back as it was |
+  | cannot-undo | the agent already acted on the answer | none | «Агент уже начал — отменить ответ нельзя» with «Попросить остановиться» |
+  | boundary | a money, publishing, deletion or other-machine question | none | the same card, its why naming the boundary («Лимит проекта — $40, потрачено $9.») |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-163, SCN-164
+- **Resources:** SCN-158 (the home built today); ADR-0160 §4–§5
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 waves 2 and 4
+
+### SCR-86: Проект
+- **Used by:** FLW-93, FLW-94, FLW-95, FLW-98
+- **Purpose:** One page per project — where it came from and where it goes, its questions, its board, a console and a new task (plan §2). Replaces the project page's twenty sections and its six rail links.
+- **Elements:** heading with the name, a star and the purpose; «Сейчас: …»; «Открыть консоль» and «Поставить задачу» (gold, the page's one primary action); «Откуда пришли и куда идём» in three columns «Сделано», «Сейчас», «Дальше»; «Вопросы»; «Доска» glance (four columns, counts, first cards) with «Вся доска»; «Папки проекта» with «Добавить папку» and «Убрать»; «Переписка с другими проектами»; the act line.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | each block «Читаю…» on its own |
+  | empty | no tasks | none | «Начните с первой задачи» with the task field open |
+  | partial | the board or the questions unreadable | none | that block says so; the rest stands |
+  | error | the project could not be read | none | «Проект не прочитан.» with «Повторить» |
+  | missing | the project was removed | none | «Такого проекта больше нет» with «Открыть История» |
+  | success | read | none | the blocks above |
+  | task-added | «Поставить» recorded | none | the task in «Очередь»; «Задача поставлена · Отменить» |
+  | moved | a card moved | none | «Задача перенесена в «Проверить» · Отменить» |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-165, SCN-164
+- **Resources:** SCN-159 (the page built today); the plan §5's cut list
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 waves 2 and 4
+
+### SCR-87: Агенты
+- **Used by:** FLW-93, FLW-95, FLW-96, FLW-98
+- **Purpose:** Every agent — coding agents on this computer and agents built in Fabric — with what each is doing, its console one press away, and «Создать агента» (plan §2). Replaces Agents, Settings' catalogue, Agent access's list and created agents.
+- **Elements:** «Создать агента» (gold); «Агенты для кода на этом компьютере» and «Агенты, созданные в Fabric», each row: sign, name, state sentence, project, «Консоль»; «подключился сам», «Отключить», «Пустить снова» and the proof line for an agent that joined from a terminal; the agent's view with «Что получает агент»; the act line.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | detection runs | none | «Ищу агентов на этом компьютере…» |
+  | empty | no coding agent installed | none | each known agent «Не установлен» with how to install |
+  | partial | found, but what they do unreadable | none | said per row |
+  | error | detection failed | none | «Не удалось поискать агентов.» with «Повторить»; the last list kept |
+  | success | read | none | the two groups |
+  | stale | an agent quiet past its window | none | «давно не отзывался — {время}» |
+  | joined | a coding agent joined from a terminal | none | its row «подключился сам» with «Отключить» |
+  | disconnected | «Отключить» pressed | none | «Отключён» with «Пустить снова»; act line «Codex отключён · Отменить» |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-166, SCN-167
+- **Resources:** ADR-0160 §3; SCR-39, SCR-76 (built today)
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 waves 3 and 4
+
+### SCR-88: История
+- **Used by:** FLW-93, FLW-95, FLW-97
+- **Purpose:** Every act — by the person, by Fabric, by a named agent — with when, on what, and «Отменить» where an inverse exists or why not where none (plan §2, ADR-0160 §2). Replaces the journals, Pulse, Diagnostics and the Releases log.
+- **Elements:** filters «Кто», «Проект», «Что» and a search field; acts grouped by day; each row: time, actor's sign and name, the act in a sentence, project, «Отменить» or «Нельзя отменить» (its reason on hover and focus); the detail pane (before and after, source, the act that undid it); «Ещё раньше».
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | «Читаю историю…» |
+  | empty | no act yet | none | «История пуста: здесь появится каждое действие — ваше и агентов.» |
+  | filtered-empty | filters match nothing | none | «Ничего не найдено» with «Сбросить фильтры» |
+  | error | the history could not be read | none | «История не прочитана.» with «Повторить»; an earlier reading kept and marked |
+  | success | read | none | days of acts |
+  | long | older acts exist | none | «Ещё раньше» loads them as the person scrolls |
+  | undoing | «Отменить» pressed | none | the button busy |
+  | undone | the inverse recorded | none | «Отменено · {время}» beside «Вы отменили: …» with its own «Отменить» |
+  | cannot-undo | no inverse | none | «Нельзя отменить» with why |
+  | changed-since | the object changed after the act | none | the button says what it will do now |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-168, SCN-169, SCN-164, SCN-167
+- **Resources:** ADR-0014 (the journal), ADR-0160
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 wave 2
+
+### SCR-89: Настройки
+- **Used by:** FLW-40, FLW-93
+- **Purpose:** How Fabric behaves, on one page of sections; every change saved at once and reversible (plan §2). Replaces Settings, Quotas and Private history as a section.
+- **Elements:** sections with small uppercase labels — «Язык и вид» (язык, тема), «Этот компьютер» (не давать засыпать), «Запуск агентов» (порядок), «Данные» (счётчики использования; личная история — экспорт и импорт), «Доступ агентов» (who may reach which product, «Отозвать»); «Сохранено» beside a saved control.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | each section «Читаю…» |
+  | empty | no agent has access to any product | none | «Доступ агентов» says «Ни одному агенту не открыт доступ к продуктам» |
+  | error | a setting did not save | none | «Не сохранилось.» beside it; the old value back |
+  | success | read | none | the sections |
+  | unavailable | this build or computer cannot change a setting | none | the control disabled with why |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-170
+- **Resources:** SCR-52 (built today), SCN-134, SCN-135
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 wave 4
+
+### SCR-90: Создать
+- **Used by:** FLW-93, FLW-96, FLW-98
+- **Purpose:** The one place every start begins — a projects folder, a project or an agent — in the main area, never a pop-up (plan §2; the onboarding plan §2–§4, absorbed).
+- **Elements:** three choice cards with one line of what you get — «Открыть папку с проектами» (primary), «Создать проект», «Создать агента» — and «Открыть проект из папки» under the first; the scan list (owner groups, ticks, «давно не менялся», «Отметить все», «Только активные», «Работать над отмеченными»); the project form (name, where it lives, first task, «Создать»); the agent form (what it does, which coding agent, project, «Создать»); the act line.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | choosing | opened | none | the three cards |
+  | scanning | a folder picked | none | the live count, «Остановить» |
+  | slow | scanning past 10 s | none | «Ищу дольше обычного — можно остановить» |
+  | denied | macOS refused the folder | none | «Нет доступа к папке» with «Открыть настройки macOS» |
+  | found | the scan finished | none | the groups, the active ticked |
+  | empty | nothing found | none | «В этой папке проектов не нашлось» with «Выбрать другую папку» |
+  | adding | «Работать над отмеченными» pressed | none | the button busy |
+  | added | added | none | the list with «Открыть»; «{N} проектов добавлено · Отменить» |
+  | creating | «Создать» pressed | none | the button busy |
+  | created | created | none | the project or the agent's console opens |
+  | error | a path failed | none | «Не получилось: {что}» with the machine's words beneath; what was chosen and typed kept |
+  | loading | the agents for the agent form are read | none | «Ищу агентов…» |
+  | success | the chosen path finished | none | as added or created |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** none yet
+- **Scenarios:** SCN-171, SCN-127, SCN-128, SCN-129, SCN-136
+- **Resources:** SCR-71…SCR-74 (built today, redrawn here); [onboarding plan](../evidence/plans/2026-10-13-onboarding-036/README.md)
+- **Status:** designed
+- **Implementation tasks:** 0.3.7 wave 4

@@ -581,6 +581,7 @@ flowchart TD
   | SCR-25 Session window | loading, success, ended |
 
 ### FLW-17: Read the workspace canvas
+*(Superseded 2026-10-17 in the 0.3.7 target: the workspace canvas is cut (plan §5, SCN-030 retired); what it showed is the project page, FLW-95, and История, FLW-97. Kept as the record of the built canvas until wave 4 removes it.)*
 - **Traces:** ST-021 (JTBD-02, JTBD-06)
 - **Goal:** the operator reads project state on one canvas whose slots providers can later render into
 - **Entry points:** project home Workspace panel
@@ -711,6 +712,7 @@ flowchart TD
   | SCR-29 Public landing page | success, image unavailable, narrow viewport, reduced motion |
 
 ### FLW-21: Open the estate and reach what needs you
+*(Superseded 2026-10-17 in the 0.3.7 target by FLW-93 and FLW-94: the rail and Главная; no tab strip, no Board, Pulse or live feed of their own. Kept as the description of the home built today until wave 4.)*
 - **Traces:** ST-032, ST-033, ST-028 (JTBD-02); scenarios SCN-158 (who is doing what on the home), SCN-159 (a project's way), SCN-161 (the stack still starting at launch)
 - **Goal:** the operator sees who is waiting, opens the right project, and can read the estate's own record and a project's memory without hunting
 - **Entry points:** application launch; the manager control on any screen
@@ -823,6 +825,7 @@ flowchart TD
 Target design only; [shared contract](../architecture/system-contract.md) and proposed ADR-0045–0047 govern the new semantics. These records do not assert shipped screens.
 
 ### FLW-25: Answer and continue accountable work
+*(Amended 2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md): in the 0.3.7 target a question is answered on Главная or the project page with one press and taken back with «Отменить» — FLW-94, SCN-164.)*
 - **Traces:** ST-030, ST-034 (JTBD-02, JTBD-07)
 - **Goal:** Resolve an authored question while distinguishing commit from delivery.
 - **Entry points:** Home/project Board preview or blocked task.
@@ -926,6 +929,7 @@ flowchart TD
 ```
 
 ### FLW-29: Read one inbox without dismissing obligations
+*(Superseded 2026-10-17 in the 0.3.7 target: the Inbox is cut (SCN-055 retired); what needs the person is FLW-94, what happened is FLW-97.)*
 - **Traces:** ST-028, ST-033 (JTBD-02)
 - **Goal:** Separate action owed from events read.
 - **Entry points:** Estate home Inbox preview.
@@ -950,6 +954,7 @@ flowchart TD
 ```
 
 ### FLW-30: Inspect cycles and recover through their guarded boundary
+*(Superseded 2026-10-17 in the 0.3.7 target for the project's Automations section, which is cut (SCN-056 retired); a cycle's runs are acts read in История, FLW-97.)*
 - **Traces:** ST-030, ST-033, ST-037 (JTBD-02, JTBD-07)
 - **Goal:** Explain cadence, observation and outcomes across the estate.
 - **Entry points:** Home cycle summary, project automations or Inbox.
@@ -1128,6 +1133,7 @@ flowchart TD
 
 
 ### FLW-35: Verify retrospective learning and inspect service feedback
+*(Superseded 2026-10-17 in the 0.3.7 target for the Retro section, which is cut (SCN-062 retired); episodes are acts read in История, FLW-97.)*
 - **Traces:** ST-028, ST-029, ST-030, ST-033, ST-034, ST-036 (JTBD-02, JTBD-07)
 - **Goal:** Connect observed incidents to corrective verification while keeping outbound feedback a separate gated operation.
 - **Entry points:** Retrospective cycle, memory insight or a service candidate.
@@ -1275,7 +1281,8 @@ flowchart TD
 
 
 ### FLW-40: Настройки рабочего пространства
-- **Traces:** SCN-071, SCN-134, SCN-135, SCN-160
+*(Amended 2026-10-17, 0.3.7 target: Настройки is SCR-89 — «Язык и вид», «Этот компьютер», «Запуск агентов», «Данные», «Доступ агентов»; every change saves at once with «Отменить» in История (SCN-170); the coding agents on this computer move to Агенты, FLW-96.)*
+- **Traces:** SCN-071, SCN-134, SCN-135, SCN-160, SCN-170
 - **Goal:** Настроить тему, локаль, поведение пробуждения, хранение и допустимые проектные ограничения.
 - **Entry points:** Общая навигация → SCR-52.
 - **Success exit:** Текущая квитанция изменения или явное отсутствие допустимого действия.
@@ -1294,7 +1301,7 @@ flowchart TD
  R --> N0
 ```
 
-- **Screens traversed:** SCR-52. Domain branches: inherited, overridden, validation-error, saved, read-only.
+- **Screens traversed:** SCR-52; in the 0.3.7 target SCR-89. Domain branches: inherited, overridden, validation-error, saved, read-only.
 
 
 ### FLW-41: Уведомления и маршруты
@@ -1321,6 +1328,7 @@ flowchart TD
 
 
 ### FLW-42: Диагностика
+*(Superseded 2026-10-17 in the 0.3.7 target: Diagnostics is cut (SCN-073 retired); failures are acts read in История, FLW-97.)*
 - **Traces:** SCN-073
 - **Goal:** Прочитать состояние источников и безопасный журнал; экспортировать проверяемый набор без секретов.
 - **Entry points:** Общая навигация → SCR-54.
@@ -1627,6 +1635,7 @@ flowchart TD
 | SCR-63 | Policy, enrollment, current account, auto receipt, pause и recovery. |
 
 ### FLW-54: Возврат в контекст — дашборд → проект → агент
+*(Superseded 2026-10-17 in the 0.3.7 target by FLW-93: the dashboard page and the profile block are cut (SCN-093, SCN-094 retired); a project and an agent's console are each one press from the rail.)*
 - **Traces:** ST-029, ST-032, ST-037, ST-038 (JTBD-02)
 - **Goal:** от холодного запуска до первого решения — один спуск по раскладушке; каждый уровень отвечает пятью полосами в одном порядке: Вопросы → Сейчас → Было → Дальше → Решения
 - **Entry points:** запуск приложения; возвращение к окну после перерыва
@@ -2288,6 +2297,7 @@ flowchart TD
 
 
 ### FLW-75: An external agent asks for access
+*(Amended 2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3–§4: an ask to join a project is let in at once (FLW-96, SCN-167); any other ask is a question on Главная (FLW-94, SCN-164) — the native prompt, the notification and the queue item go.)*
 - **Traces:** ST-045; SCN-132 (JTBD-08)
 - **Goal:** Answer an agent's request once, knowing who asks and what for.
 - **Entry points:** a native prompt over Fabric's window; a notification and the queue when Fabric is in the background.
@@ -2343,6 +2353,7 @@ flowchart TD
 
 
 ### FLW-77: A coding agent opened outside Fabric starts working in a project
+*(Amended 2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3: the consent node goes — the coding agent is let in at once and shown in История and Агенты with «Отключить», FLW-96, SCN-167.)*
 - **Traces:** ST-045; SCN-137 (JTBD-08)
 - **Goal:** Let a coding agent the person opened themselves work in one project after one decision.
 - **Entry points:** the agent's first call to `fabric_whoami` through `fabric-mcp`.
@@ -2491,6 +2502,7 @@ flowchart TD
   | SCR-78 Where work is | read, related |
 
 ### FLW-81: See where work is
+*(Superseded 2026-10-17 in the 0.3.7 target: Where work is is cut (SCN-141 retired); who does what is «Сейчас» on Главная (FLW-94) and Агенты (FLW-96). Kept as the description of the built screen until wave 3 removes it.)*
 - **Traces:** ST-004, ST-037, ST-030; SCN-141 (JTBD-02); 0.4.0 plan REQ-17, REQ-38
 - **Goal:** One look tells where every piece of work in the estate is right now and who holds it, the unowned work included.
 - **Entry points:** the sidebar's «Where work is»; Home's estate line.
@@ -2770,3 +2782,259 @@ flowchart TD
   | SCR-76 Agent access | the link to SCR-83 |
 - **Scenarios:** SCN-149
 - **Implementation tasks:** COM-06 (wave 4: W4-7, W4-8, W4-10); closes CO-286 when built
+
+## Fabric 0.3.7 — simple: five places · 2026-10-17 ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md), [plan](../evidence/plans/2026-10-15-fabric-simple/README.md))
+
+The target paths of the five places and «Создать» (wave 1: designed, NOT built). Every act on these paths happens at
+once and leaves an act line «… · Отменить» (FLW-97 reverses it); no path contains a confirmation node. The flows they
+replace carry a dated "superseded" note at their head.
+
+### FLW-93: Move through the five places from the rail
+- **Traces:** SCN-162 (ST-032, ST-037; JTBD-02)
+- **Goal:** the person reaches any place or project in one press and sees on the rail where agents work and where they are needed.
+- **Entry points:** Fabric opens on Главная; the rail is on every place.
+- **Success exit:** the chosen place or project in the main area, its rail row highlighted.
+- **Task analysis:** 1. Read the rail (places, Главная's count, projects with dots and counts). 2. Press a place, a project or «＋ Создать». 3. Go back with ⌘[ or the swipe.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  R[Screen: SCR-84 Rail] -->|press Главная| H[Screen: SCR-85 Главная]
+  R -->|press Агенты| A[Screen: SCR-87 Агенты]
+  R -->|press История| I[Screen: SCR-88 История]
+  R -->|press Настройки| S[Screen: SCR-89 Настройки]
+  R -->|press a project| P[Screen: SCR-86 Проект]
+  R -->|press Создать| C[Screen: SCR-90 Создать]
+  R -->|⌘K| Q[Search field focused]
+  R --> L{Projects list read?}
+  L -->|no project| E[Проектов пока нет · Создать проект]
+  E --> C
+  L -->|read failed| L_err[Проекты не прочитаны · last reading kept · Повторить]
+  L_err -->|Повторить| L
+  H -->|⌘[ or swipe| R
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-84 Rail | loading, empty, error, success, folded |
+  | SCR-85 Главная | success |
+  | SCR-86 Проект | success |
+  | SCR-87 Агенты | success |
+  | SCR-88 История | success |
+  | SCR-89 Настройки | success |
+  | SCR-90 Создать | choosing |
+- **Scenarios:** SCN-162
+- **Implementation tasks:** 0.3.7 wave 3 (the shell)
+
+### FLW-94: See what needs me on Главная and answer it
+- **Traces:** SCN-163, SCN-164 (ST-037, ST-044; JTBD-02, JTBD-07)
+- **Goal:** the person knows in seconds what needs them and what is being done, and answers a question with one press — or takes the answer back.
+- **Entry points:** Главная on the rail; Fabric's start.
+- **Success exit:** «Ждёт вас» holds nothing the person meant to answer; the answered questions are in История with «Отменить».
+- **Task analysis:** 1. Read the greeting and the numbers. 2. Read a question: who asks, why, what each option does. 3. Press an option (or «Обсудить»). 4. Read «Сейчас» and open an agent's console. 5. Open a project.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  H[Screen: SCR-85 Главная] --> W{Anything waiting?}
+  W -->|no| N[Вопросов нет. Агенты работают сами.]
+  W -->|yes| Q[Question card: who, why, options as buttons]
+  Q -->|press an option| B{Answer recorded?}
+  B -->|yes| D[Card leaves · act line «Ответ … отправлен · Отменить»]
+  B -->|no| B_err[Ответ не записан · card kept, options enabled]
+  B_err -->|press again| Q
+  B -->|unknown| U[Неизвестно, дошёл ли ответ — проверяю · re-read before options]
+  U --> Q
+  D -->|Отменить| O{Agent already acted?}
+  O -->|no| Q
+  O -->|yes| X[Отменить нельзя: why · Попросить остановиться]
+  Q -->|Обсудить| C[Screen: SCR-25 the asking agent's console, question in front]
+  H -->|an agent line in Сейчас| C2[Screen: SCR-25 that agent's console]
+  C2 -->|console fails| C_err[Консоль не открылась on the line · Главная unchanged]
+  C_err --> H
+  H -->|a project row| P[Screen: SCR-86 Проект]
+  H -->|a section fails| P_err[That section says so · last reading kept · Повторить]
+  P_err --> H
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-85 Главная | loading, empty, partial, error, success, stale, answered, undone, cannot-undo, boundary |
+  | SCR-25 Session window | success |
+  | SCR-86 Проект | success |
+- **Scenarios:** SCN-163, SCN-164
+- **Implementation tasks:** 0.3.7 waves 2 (reopen) and 4 (Главная)
+
+### FLW-95: Steer a project from its one page
+- **Traces:** SCN-165, SCN-164 (ST-032, ST-034, ST-030; JTBD-02, JTBD-07)
+- **Goal:** the person understands a project and steers it — answers its questions, moves a task, opens a console, starts a task — from one page.
+- **Entry points:** a project on the rail, on Главная or in a question.
+- **Success exit:** the project page with the change made and its act line.
+- **Task analysis:** 1. Read the heading and «Сейчас». 2. Read the way. 3. Answer a question. 4. Move a card or open the whole board. 5. Open a console or start a task.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  P[Screen: SCR-86 Проект] --> R{Project read?}
+  R -->|no| R_err[Проект не прочитан · Повторить]
+  R_err -->|Повторить| R
+  R -->|removed| M[Такого проекта больше нет · Открыть История]
+  M --> I[Screen: SCR-88 История]
+  R -->|yes| W[Way · Вопросы · Доска · Папки]
+  W -->|no tasks| F[Начните с первой задачи · field open]
+  W -->|Поставить задачу| T[Field: what should be done]
+  F --> T
+  T -->|Поставить| TA[Task in Очередь · Задача поставлена · Отменить]
+  T -->|Поставить и начать| TS[Screen: SCR-25 console on the task]
+  T -->|not recorded| T_err[Не сохранилось · text kept in the field]
+  T_err --> T
+  W -->|drag a card| MV[Moved at once · Задача перенесена · Отменить]
+  MV -->|not recorded| MV_err[Card snaps back · Не сохранилось]
+  MV_err --> W
+  W -->|a task| TP[Screen: SCR-32 Task page]
+  W -->|Открыть консоль| C{Coding agent ready?}
+  C -->|yes| S[Screen: SCR-25 console in the project's folder]
+  C -->|no| C_err[Нет готового агента — открыть Агенты]
+  C_err --> A[Screen: SCR-87 Агенты]
+  W -->|Убрать a folder| FD[Removed at once · Папка убрана · Отменить]
+  W -->|a question| Q[Answer as FLW-94]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-86 Проект | loading, empty, partial, error, missing, success |
+  | SCR-25 Session window | success |
+  | SCR-32 Task page | success |
+  | SCR-87 Агенты | success |
+  | SCR-88 История | success |
+- **Scenarios:** SCN-165, SCN-164
+- **Implementation tasks:** 0.3.7 waves 2 and 4
+
+### FLW-96: See every agent, open a console, disconnect one that joined by itself
+- **Traces:** SCN-166, SCN-167 (ST-037, ST-041, ST-045; JTBD-02, JTBD-08)
+- **Goal:** the person sees every agent with what it does, opens any console in one press, and disconnects a coding agent that joined from a terminal.
+- **Entry points:** Агенты on the rail; an agent line on Главная; an act in История.
+- **Success exit:** the console open, or the agent disconnected with its act line.
+- **Task analysis:** 1. Read the two groups. 2. Press «Консоль». 3. Open an agent's view. 4. Press «Отключить» or «Пустить снова». 5. Press «Создать агента».
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-87 Агенты] --> D{Agents found?}
+  D -->|detection failed| D_err[Не удалось поискать агентов · last list kept · Повторить]
+  D_err -->|Повторить| D
+  D -->|none installed| N[Each known agent: Не установлен · how to install]
+  D -->|yes| L[Coding agents on this computer · agents built in Fabric]
+  L -->|Консоль| C{Console opens?}
+  C -->|yes| S[Screen: SCR-25 console in its project]
+  C -->|no| C_err[Консоль не открылась: why, on the row]
+  C_err --> L
+  L -->|a row| V[Agent view: doing, recent acts, Что получает агент]
+  L -->|joined from a terminal| J[подключился сам · Отключить]
+  J -->|Отключить| X{Disconnected?}
+  X -->|yes| XO[Отключён · consoles ended · Пустить снова · act in История]
+  X -->|no| X_err[Не удалось отключить · still connected · Повторить]
+  X_err --> J
+  XO -->|Пустить снова or Отменить| J
+  L -->|Создать агента| CR[Screen: SCR-90 Создать, agent path]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-87 Агенты | loading, empty, partial, error, success, stale, joined, disconnected |
+  | SCR-25 Session window | success |
+  | SCR-90 Создать | agent |
+- **Scenarios:** SCN-166, SCN-167
+- **Implementation tasks:** 0.3.7 waves 3 (let in, Отключить) and 4 (Агенты)
+
+### FLW-97: Find an act in История and undo it
+- **Traces:** SCN-168, SCN-169 (ST-033, ST-034; JTBD-07)
+- **Goal:** the person finds who did what, when and to what, and reverses an act that can be reversed — or reads why it cannot.
+- **Entry points:** История on the rail; «Отменить» in a place's act line; «Открыть История».
+- **Success exit:** the act's row says «Отменено · {время}» beside the new act, or «Нельзя отменить» with its reason.
+- **Task analysis:** 1. Read the days. 2. Filter by who, project, what; search. 3. Open an act's detail. 4. Press «Отменить».
+- **Flow:**
+
+```mermaid
+flowchart TD
+  I[Screen: SCR-88 История] --> R{History read?}
+  R -->|no| R_err[История не прочитана · earlier reading kept · Повторить]
+  R_err -->|Повторить| R
+  R -->|nothing yet| E[История пуста]
+  R -->|yes| L[Acts by day: time, actor, sentence, project]
+  L -->|filter or search| F{Matches?}
+  F -->|none| FE[Ничего не найдено · Сбросить фильтры]
+  FE --> L
+  F -->|yes| L
+  L -->|an act| DT[Detail: before and after, its source]
+  L -->|Отменить| U{Inverse exists?}
+  U -->|no| NU[Нельзя отменить: why]
+  U -->|object changed since| CH[Button says what it will do now]
+  CH -->|press| DO
+  U -->|yes| DO{Undone?}
+  DO -->|yes| OK[Отменено · new act «Вы отменили: …» with its own Отменить]
+  DO -->|no| U_err[Не удалось отменить · nothing changed]
+  U_err --> L
+  OK -->|Отменить the undo| DO
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-88 История | loading, empty, filtered-empty, error, success, long, undoing, undone, cannot-undo, changed-since |
+- **Scenarios:** SCN-168, SCN-169
+- **Implementation tasks:** 0.3.7 wave 2 (the read and every inverse)
+
+### FLW-98: Start a project, an agent, or a projects folder from «Создать»
+- **Traces:** SCN-171, SCN-127, SCN-128, SCN-129, SCN-136 (ST-001, ST-050; JTBD-01, JTBD-05)
+- **Goal:** every start begins in one place and ends in a working project or agent in at most three steps, without a dialog.
+- **Entry points:** «＋ Создать» on the rail; an empty Главная; «Создать агента» in Агенты.
+- **Success exit:** the new project's page, the added projects listed with «Открыть», or the console building the new agent.
+- **Task analysis:** 1. Choose what to start. 2a. Pick a folder, read what was found, keep the ticks, add. 2b. Name the project, choose where it lives, write the first task. 2c. Say what the agent does, choose the coding agent and the project. 3. Land in it.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  C[Screen: SCR-90 Создать] -->|Открыть папку с проектами| PK[System folder picker]
+  PK -->|cancel| C
+  PK --> SC{Scan}
+  SC -->|denied| SC_err[Нет доступа к папке · Открыть настройки macOS]
+  SC_err --> PK
+  SC -->|slow| SL[Ищу дольше обычного — можно остановить]
+  SL --> SC
+  SC -->|nothing| NF[В этой папке проектов не нашлось · Выбрать другую папку]
+  NF --> PK
+  SC -->|found| G[Screen: SCR-72 groups by owner · active ticked]
+  G -->|Работать над отмеченными| AD{Added?}
+  AD -->|all| ADD[Listed with Открыть · N проектов добавлено · Отменить]
+  AD -->|some failed| AD_err[Which were added and which not · Повторить for the rest]
+  AD_err --> G
+  C -->|Создать проект| NP[Screen: SCR-73 name, where it lives, first task]
+  NP -->|Создать| PC{Created?}
+  PC -->|yes| PP[Screen: SCR-86 Проект · Проект создан · Отменить]
+  PC -->|no| PC_err[Не получилось · what was typed kept]
+  PC_err --> NP
+  C -->|Создать агента| NA[Screen: SCR-74 what it does, which coding agent, project]
+  NA -->|Создать| CS[Screen: SCR-25 the coding agent's console building it]
+  CS --> AG[Screen: SCR-87 the new agent appears]
+  C -->|Открыть проект из папки| OP[Screen: SCR-71 one or several folders as one project]
+  OP --> PP
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-90 Создать | choosing, scanning, slow, denied, found, empty (nothing found), adding, added, creating, created, error |
+  | SCR-72 Scan a projects folder | success |
+  | SCR-73 New project | success |
+  | SCR-74 Create an agent | success |
+  | SCR-71 Add a project | success |
+  | SCR-25 Session window | success |
+  | SCR-86 Проект | success |
+  | SCR-87 Агенты | success |
+- **Scenarios:** SCN-171, SCN-127, SCN-128, SCN-129, SCN-136
+- **Implementation tasks:** 0.3.7 wave 4, absorbing the onboarding plan's waves 2–3

@@ -35,11 +35,11 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-023 | External agent participates within its MCP scope | External control | P-01, P-02 | ST-016, FLW-12 | draft | 2026-09-09 FAIL |
 | SCN-024 | MCP access is denied or revoked safely | External control | P-01, P-02 | ST-016, FLW-12 | draft | 2026-09-09 FAIL |
 | SCN-025 | Work in a project's hosted terminal | Terminal | P-01 | ST-017, FLW-13 | draft | 2026-09-09 PARTIAL |
-| SCN-026 | Follow the estate through the journal feed | Monitoring | P-01 | ST-004, FLW-04 | draft | 2026-09-09 PARTIAL |
+| SCN-026 | Follow the estate through the journal feed | Monitoring | P-01 | ST-004, FLW-04 | retired | 2026-09-09 PARTIAL |
 | SCN-027 | Approve, refuse or watch the floor refuse | Autonomy | P-01 | ST-018, FLW-14 | draft | 2026-09-09 PARTIAL |
 | SCN-028 | Open a project as a tab and configure it | Projects | P-01 | ST-001, ST-019, FLW-15 | draft | 2026-09-09 PARTIAL |
 | SCN-029 | Launch an agent and open its session window | Agents | P-01 | ST-017, ST-020, FLW-16 | draft | 2026-09-09 BLOCKED |
-| SCN-030 | Read the project workspace canvas | Workspace | P-01 | ST-021, FLW-17 | draft | 2026-09-09 PARTIAL |
+| SCN-030 | Read the project workspace canvas | Workspace | P-01 | ST-021, FLW-17 | retired | 2026-09-09 PARTIAL |
 | SCN-031 | Onboard a project in a new tab | Projects | P-01 | ST-001, ST-022, FLW-18 | draft | 2026-09-09 BLOCKED |
 | SCN-032 | Ask for work and watch what it opened | Projects | P-01 | ST-023, ST-024, FLW-18 | draft | 2026-09-09 PARTIAL |
 | SCN-033 | Attach and detach repositories | Projects | P-01 | ST-022, FLW-18 | draft | 2026-09-09 PARTIAL |
@@ -53,7 +53,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-041 | Work a board the agents keep current | Tasks | P-01 | ST-030, FLW-22 | draft | 2026-10-08 PARTIAL |
 | SCN-042 | Ask the manager, and get an artefact rather than advice | Manager | P-01 | ST-031, FLW-24, FLW-57 | draft | 2026-09-09 FAIL |
 | SCN-043 | Lead with the projects actually being worked | Projects | P-01 | ST-032, FLW-21 | draft | 2026-09-09 PARTIAL |
-| SCN-044 | Read what the estate has actually done | Manager | P-01 | ST-033, FLW-21 | draft | 2026-09-09 PARTIAL |
+| SCN-044 | Read what the estate has actually done | Manager | P-01 | ST-033, FLW-21 | retired | 2026-09-09 PARTIAL |
 | SCN-045 | Rejoin a task by reading its own page | Tasks | P-01 | ST-034, FLW-22 | draft | 2026-10-08 PARTIAL |
 | SCN-046 | Judge direction from goals and the graph | Planning | P-01 | ST-035, FLW-23 | draft | 2026-09-09 PARTIAL |
 | SCN-047 | See what a project's agents may do, and hold them to it | Harness | P-01 | ST-036, FLW-24 | draft | 2026-10-08 PARTIAL |
@@ -64,14 +64,14 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-052 | Read one execution iteration without confusing report and observation | Runs | P-01 | ST-034, ST-037, FLW-27 | draft | 2026-09-09 PARTIAL |
 | SCN-053 | Inspect agent history, project history and the target plan as distinct views | Graphs | P-01 | ST-030, ST-035, ST-037, FLW-23, FLW-27 | draft | 2026-09-09 PARTIAL |
 | SCN-054 | Trace how a decision changed and what evidence was supplied | Decision history | P-01 | ST-029, ST-034, FLW-28 | draft | 2026-09-09 PARTIAL |
-| SCN-055 | Handle what needs attention and read what happened | Inbox | P-01 | ST-028, ST-033, FLW-21, FLW-29 | draft | 2026-09-09 FAIL |
-| SCN-056 | Inspect every cycle and the evidence for its state | Cycles | P-01 | ST-030, ST-033, ST-037, FLW-30 | draft | 2026-09-09 PARTIAL |
+| SCN-055 | Handle what needs attention and read what happened | Inbox | P-01 | ST-028, ST-033, FLW-21, FLW-29 | retired | 2026-09-09 FAIL |
+| SCN-056 | Inspect every cycle and the evidence for its state | Cycles | P-01 | ST-030, ST-033, ST-037, FLW-30 | retired | 2026-09-09 PARTIAL |
 | SCN-057 | Preview the next context and inspect the exact past pack | Memory/context | P-01 | ST-028, ST-029, ST-034, FLW-31 | draft | 2026-09-09 PARTIAL |
 | SCN-058 | Follow evidence through a collapsed interface without losing context | Navigation/disclosure | P-01 | ST-028, ST-034, ST-037, FLW-27, FLW-28, FLW-29, FLW-30, FLW-31 | draft | 2026-09-09 PARTIAL |
 | SCN-059 | Reach first value progressively and resume an unfinished draft | Onboarding | P-01 | ST-001, ST-022, ST-023, FLW-32 | draft | 2026-09-09 PARTIAL |
 | SCN-060 | Return to existing work across projects without losing scope | Navigation/continuity | P-01 | ST-019, ST-028, ST-032, ST-034, FLW-33 | draft | 2026-09-09 PARTIAL |
 | SCN-061 | Choose and replace a manager with visible authority and host readiness | Manager lifecycle | P-01, P-02 | ST-002, ST-006, ST-031, ST-036, ST-037, FLW-34 | draft | 2026-09-09 FAIL |
-| SCN-062 | Turn a retrospective episode into a verified lesson and detect regression | Retrospectives | P-01 | ST-028, ST-029, ST-030, ST-033, ST-034, FLW-35 | draft | 2026-09-09 PARTIAL |
+| SCN-062 | Turn a retrospective episode into a verified lesson and detect regression | Retrospectives | P-01 | ST-028, ST-029, ST-030, ST-033, ST-034, FLW-35 | retired | 2026-09-09 PARTIAL |
 | SCN-063 | Inspect service feedback and stop outbound work honestly | Service feedback/privacy | P-01, P-02 | ST-028, ST-033, ST-036, FLW-35 | draft | 2026-09-09 FAIL |
 | SCN-064 | Inspect declared storage and import a verified mirror without partial writes | Storage/sync | P-01, P-02 | ST-001, ST-022, ST-028, ST-033, FLW-36 | draft | 2026-09-09 PARTIAL |
 | SCN-065 | Restore an archive into a fresh Estate and open it | Backup/recovery | P-01, P-02 | ST-001, ST-028, ST-033, FLW-36 | draft | 2026-09-09 FAIL |
@@ -82,7 +82,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-070 | Квоты и использование | Квоты и использование | P-01 | FLW-39; SCR-51 | draft | 2026-09-09 PARTIAL |
 | SCN-071 | Настройки рабочего пространства | Настройки рабочего пространства | P-01 | FLW-40; SCR-52 | draft | 2026-09-09 PARTIAL |
 | SCN-072 | Уведомления и маршруты | Уведомления и маршруты | P-01 | FLW-41; SCR-53 | draft | 2026-09-09 FAIL |
-| SCN-073 | Диагностика | Диагностика | P-01 | FLW-42; SCR-54 | draft | 2026-10-08 PARTIAL |
+| SCN-073 | Диагностика | Диагностика | P-01 | FLW-42; SCR-54 | retired | 2026-10-08 PARTIAL |
 | SCN-074 | Архив и удаление | Архив и удаление | P-01 | FLW-43; SCR-55 | draft | 2026-09-09 FAIL |
 | SCN-075 | Редактор цикла | Редактор цикла | P-01 | FLW-44; SCR-56 | draft | 2026-09-09 PARTIAL |
 | SCN-076 | Сервисные терминалы | Сервисные терминалы | P-01 | FLW-45; SCR-57 | draft | 2026-09-09 FAIL |
@@ -102,8 +102,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-089 | Остановить автосмену и пережить отсутствие кандидата | Provider accounts | P-01 | ST-006, FLW-53 | draft | 2026-09-10 состояние вычисляется, удержание отличено от исчерпания; `ProviderAccounts.test.tsx` |
 | SCN-091 | Вернуться к агенту у его консоли, прочитав его собственный контекст | Agents | P-01 | ST-038, ST-026, ST-034, FLW-54, FLW-21 | draft | unobserved |
 | SCN-092 | Вернуться в estate холодным и дойти до первого решения | Navigation/continuity | P-01 | ST-018, ST-029, ST-032, ST-037, ST-038, FLW-54 | draft | unobserved |
-| SCN-093 | Fabric встречает возвращение и отмечает веху, ничего не выдумывая | Manager/Gamification | P-01 | ST-039, ST-029, ST-018, FLW-54, FLW-21 | draft | unobserved |
-| SCN-094 | Открыть дашборд как страницу Fabric и прочитать путь до «сейчас» | Manager/Gamification | P-01 | ST-040, ST-039, ST-029, FLW-54, FLW-21 | draft | 2026-10-08 PARTIAL |
+| SCN-093 | Fabric встречает возвращение и отмечает веху, ничего не выдумывая | Manager/Gamification | P-01 | ST-039, ST-029, ST-018, FLW-54, FLW-21 | retired | unobserved |
+| SCN-094 | Открыть дашборд как страницу Fabric и прочитать путь до «сейчас» | Manager/Gamification | P-01 | ST-040, ST-039, ST-029, FLW-54, FLW-21 | retired | 2026-10-08 PARTIAL |
 | SCN-095 | Configure Fabric and discover a real project | CEO-first onboarding | P-01 | ST-001, ST-022, ST-031, FLW-55 | draft | unobserved |
 | SCN-096 | Stop an executor and continue the same work | Agent continuity | P-01 | ST-006, ST-017, ST-034, FLW-56 | draft | unobserved |
 | SCN-097 | Export and import my private conversation history | Backup/recovery | P-01 | ST-001, ST-028, ST-033, FLW-58 | draft | unobserved |
@@ -150,7 +150,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-138 | Set up the family's own agents first — Project Observatory, then Fabric Dashboards — in the Setup console | First run | P-01 | ST-045, ST-001, FLW-78, FLW-79 | draft | — |
 | SCN-139 | Set up a family product's MCP with any coding agent, and see Fabric verify it | Setup | P-01 | ST-045, FLW-79 | draft | — |
 | SCN-140 | Agents ask Fabric who is working on what, claim their task, are warned of related work, and release it | Coordination | P-01 | ST-030, ST-037, ST-045, FLW-80 | draft | — |
-| SCN-141 | See where work is across every project — sessions, claims, review, and sessions with no project | Manager | P-01 | ST-004, ST-037, ST-030, FLW-81 | draft | — |
+| SCN-141 | See where work is across every project — sessions, claims, review, and sessions with no project | Manager | P-01 | ST-004, ST-037, ST-030, FLW-81 | retired | — |
 | SCN-142 | Open Fabric from a product's button, in that product's project, and go on in a coding agent | Manager | P-01 | ST-031, ST-045, FLW-82 | draft | — |
 | SCN-143 | See what projects tell each other | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
 | SCN-146 | A restored estate shows its project messages, and nothing in it acts | Project communications | P-01 | FLW-83, SCR-81 | draft | unobserved |
@@ -165,6 +165,16 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-159 | Open a project and see where it came from, where it is and where it goes | Projects | P-01 | ST-032, FLW-21, SCR-31 | draft | unobserved |
 | SCN-160 | See which coding agents this computer runs, and set how it behaves | Settings | P-01 | FLW-40, SCR-52 | draft | unobserved |
 | SCN-161 | Fabric opens while its stack is still starting | Startup | P-01 | ST-033, FLW-21, SCR-30 | draft | unobserved |
+| SCN-162 | Move between the five places and the projects from the rail | Shell | P-01 | ST-032, ST-037, FLW-93, SCR-84 | draft | unobserved |
+| SCN-163 | See on Главная what needs me, what is being done now, and my projects | Home | P-01 | ST-037, ST-044, ST-032, FLW-94, SCR-85 | draft | unobserved |
+| SCN-164 | Answer a question in plain words with one press, and take the answer back | Questions | P-01 | ST-044, ST-030, FLW-94, SCR-85, SCR-86, SCR-88 | draft | unobserved |
+| SCN-165 | Open a project and steer it from one page | Projects | P-01 | ST-032, ST-034, ST-030, FLW-95, SCR-86 | draft | unobserved |
+| SCN-166 | See every agent and open its console in one press | Agents | P-01 | ST-037, ST-041, ST-050, FLW-96, SCR-87 | draft | unobserved |
+| SCN-167 | A coding agent opened outside Fabric is let in, and the person disconnects it with one press | Agents | P-01 | ST-045, FLW-96, SCR-87, SCR-88 | draft | unobserved |
+| SCN-168 | Read every act in История — who did it, when and to what | History | P-01 | ST-033, ST-034, FLW-97, SCR-88 | draft | unobserved |
+| SCN-169 | Undo an act, or read why it cannot be undone | History | P-01 | ST-033, FLW-97, SCR-88 | draft | unobserved |
+| SCN-170 | Set how Fabric behaves in Настройки | Settings | P-01 | FLW-40, SCR-89 | draft | unobserved |
+| SCN-171 | Start something new from «Создать» — a project, an agent, or a projects folder | Start paths | P-01 | ST-001, ST-050, FLW-98, SCR-90 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -775,7 +785,8 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a Realtime outage degrades to on-demand replay with a stale banner; the feed never invents order — it shows the table's. An event with no sentence falls back to the RAW TYPE and never to the lookup key: a missing key renders as itself, and `event.task.moved@1` on screen is the identifier plus a prefix that means nothing.
 - **Telemetry:** `feed_replayed` with from_seq, event_count, reconnect:boolean
 - **Amended 2026-10-11 (UXAC02-REQ-007):** the feed is its own read, apart from what is waiting. Before it is read it says "reading the journal…", never "The journal is empty"; a partial reading of what is waiting is said once above the project cards (SCN-006), not inside the feed; and a read position that cannot be used is said above the feed instead of marking anything read (`apps/desktop/src/renderer/src/Feed.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx#EstateHome`).
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the live feed is cut (0.3.7 plan §5); every act, with its actor and its «Отменить», is read in История (SCN-168).
 - **Coverage:** step 3 and its fallback — `apps/desktop/src/renderer/src/Feed.test.tsx`; every registered event type has a sentence, both directions — `scripts/check-design.mjs`. Replay, ordering and reconnection (steps 1, 2, 5): none yet
 - **Product:** unobserved
 
@@ -839,6 +850,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   `supabase/migrations/20260908000037_deterministic_config_revision.sql` it IS the sequence of the event that set it, which is what makes a
   rebuilt estate reproduce it. The word "increments" is how a later reader ends up writing `revision + 1`.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the tab strip goes (0.3.7 plan §2, §5): a project opens in the main area from the rail's list (SCN-162). Its name and purpose save as the person leaves the field — no revision banner; a conflict is settled by the later write and both writes are in История with «Отменить» (SCN-165, SCN-169).
 - **Coverage:** `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/App.tsx`, `apps/desktop/test/file-roots.test.mjs`, `apps/desktop/src/shared/projectSettings.ts`, `apps/desktop/src/main/commands/projectSettingsCommand.ts`, `apps/desktop/src/renderer/src/ProjectHeader.test.tsx`, `apps/desktop/test/project-settings.test.mjs`, `supabase/migrations/20260910000059_project_configured.sql`
 - **Product:** unobserved
 
@@ -884,7 +896,8 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **States covered:** empty, success
 - **Errors & recovery:** a widget whose projection is unavailable states that its evidence is stale instead of rendering zero as a fact.
 - **Telemetry:** `workspace_opened` with project_id, widget_count, layout_revision
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's workspace canvas is cut (0.3.7 plan §5); what was on it — the agents here, recent activity, results — is the project page (SCN-165) and История (SCN-168).
 - **Coverage:** none yet
 - **Product:** unobserved
 
@@ -915,6 +928,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Target recovery:** two drafts/two Estates stay separate; Help retains exact draft and step; cancel retains the addressed page-local draft, discard affects only that draft. Loading/denied/conflict/partial/unknown states cannot silently create or accept unreviewed data. A lost page-local example is labelled expired, never replaced with Atlas history. Mockup clicks do not prove native restart durability (AD02/04).
 - **Telemetry:** `project_onboarded` with repo_count, memory_backend, default_agent
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** «Создать» replaces the tab-per-draft start (SCN-171); closing a changed draft discards it at once, no question, and История offers «Восстановить» for it (SCN-169).
 - **Coverage:** `apps/desktop/src/renderer/src/Onboarding.tsx`
 - **Product:** unobserved
 
@@ -990,6 +1004,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** an unreadable folder shows in the file panel as unreadable rather than as empty. A refresh that fails leaves the last good reading with its error carried, rather than blanking the strip or raising a banner every ten seconds.
 - **Telemetry:** `project_repo_changed` with action, repo_count
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** removing a folder, the primary one included, happens at once with no `window.confirm` ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §1); the foot of the page says «Папка убрана · Отменить», and История adds it back (SCN-165, SCN-169). The folders live in «Папки проекта» on the one project page.
 - **Coverage:** `apps/desktop/src/main/index.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/shared/repoWatch.ts`, `apps/desktop/src/renderer/src/EstateAgents.test.tsx`
 - **Product:** unobserved
 
@@ -1095,6 +1110,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** lost reply retries the same command; mismatched receipt never deletes local evidence; current runtime generations remain owned by their pending finalizer. Background recovery never stops an agent or releases a writer lease.
 - **Telemetry:** journal receipt records capture; no raw output in diagnostic logs.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the transcripts section of the project is cut (0.3.7 plan §5); a finished console's record opens from its act in История (SCN-168) and from the agent's view in Агенты (SCN-166).
 - **Coverage:** `apps/desktop/src/main/transcriptRecovery.ts`, `apps/desktop/src/main/transcripts.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, migration 63; focused SQL/reader tests in harness packet. Native full walkthrough not yet accepted.
 - **Product:** unobserved
 
@@ -1203,6 +1219,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a compile that fails leaves the previous digest visible WITH its age, and says the refresh failed — never a blank band.
 - **Telemetry:** planned only.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's Decisions section is cut (0.3.7 plan §5); decisions are read in История under «Что: решения», filtered to the project (SCN-168).
 - **Coverage:** `apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`
 - **Product:** unobserved
 - **Planned first-work extension:** Empty projects retain the same always-reachable create-idea/task control. Append failure retains the draft; successful append exposes its canonical task. S01; no existing task prerequisite.
@@ -1246,6 +1263,7 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
   the refetch failed says the card is not yet confirmed rather than claiming the command failed — one means look again, the other
   means it did not happen.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the Board is no longer a place of its own: a project's board is a block of its page with «Вся доска» (SCN-165); a card moved by the person moves at once with «Отменить», and the move back is the inverse in История (SCN-169).
 - **Coverage:** `apps/desktop/src/shared/ladder.ts`, `apps/desktop/src/renderer/src/components/Board.tsx`, `apps/desktop/test/operating-surfaces.test.mjs`, `ProjectHome.tsx#BoardSection`, `apps/desktop/src/renderer/src/BoardSection.test.tsx`. UX28-04 closed the rejection path and the three rules above; the keyboard move is a native `select` and stays one, which is the card's own exclusion. `draft` rather than `built` because no run has watched an agent move its own card on a live board
 - **Product:** unobserved
 
@@ -1315,7 +1333,8 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
 - **States covered:** empty (a fresh estate), success
 - **Errors & recovery:** a figure whose register cannot be read shows as unavailable with the reason, never as zero.
 - **Telemetry:** planned only.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the profile block on the home is cut (0.3.7 plan §5); what the estate has done is read in История (SCN-168), Главная says the state in one sentence (SCN-163).
 - **Coverage:** `apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's "where we left off" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090
 - **Product:** unobserved
 
@@ -1398,6 +1417,7 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
   in the M146 row as "delivers M123's tool CONTRACT and not its skill installation". The panel therefore shows no skills row: an empty one
   would read as "no skills installed" for a feature that was never built.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's Harness section is cut from the project page (0.3.7 plan §4–§5); what an agent is given — rules and tools — is read in that agent's view, «Что получает агент», in Агенты (SCN-166).
 - **Coverage:** `apps/desktop/src/shared/agents.ts`, `apps/desktop/src/shared/agentSpec.ts`, `apps/desktop/src/shared/agentSpec.test.ts`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs`, `scripts/check-surface-tools.mjs`. `draft` rather than `built` because the skills half is M123's and unbuilt, and no run has watched an operator hold an agent to this panel
 - **Product:** unobserved
 
@@ -1451,6 +1471,7 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
   wait on top, which is `attention.ts`'s own rule. An ended session keeps its snapshot WITH its exit code. The task in the header opens the task
   page, read through `runs.status` as a third independently keyed read. `screens.md`'s SCR-39 record had one state row denying the live console its
   own Elements line promised, and it was corrected there rather than here.
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the agents tab becomes the place Агенты (SCN-166): every agent, coding agents on this computer and agents built in Fabric, each with its console one press away; a coding agent that joined from a terminal is shown there with «Отключить» (SCN-167).
 - **Coverage:** `apps/desktop/src/shared/agents.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/agents.test.ts`, `apps/desktop/src/shared/keyedRead.ts`, `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.reads.test.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. UX28-02 keyed the two readings and rendered each one's failure; UX28-13 attached the console, ordered the list and added the task route as a third keyed read. UX28-14 gave the screen a THREE-track grid (`apps/desktop/src/renderer/src/styles.css`, `.project-columns-3`): it had been using the two-track `.project-columns` with three children, so the session list took the wide track, the console took the narrow one and the third panel wrapped to a second row — and `col-main`/`col-side` have no rule anywhere, so placement was positional all along. STILL NOT covered: the staleness AGE this scenario's `stale` state names is computed by `keyedRead.ts#staleness` and not shown here; the per-agent END action named in UI elements, which is destructive and has no confirmation idiom on this screen; and the launch control at the head of the list, which SCR-39's Elements names and nothing builds.
 - **Product:** unobserved
 
@@ -1481,6 +1502,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Amended 2026-09-29 (L3b):** «На следующий раз» sets an authored question aside with a reason (`defer_question`, migration 68): it stays open and keeps blocking, is listed under its own tab with the reason, and «Вернуть на доску» returns it (`reopen_question`); answering it settles it and clears the deferral. «+ Добавить тему» writes an open question onto a chosen project as the owner (`ask_topic`), answered by the same `answer_question`. Each command is idempotent on its command id, stable per attempt on screen (`launch/BoardScreen.test.tsx`, `apps/desktop/test/board-deferral-db.test.mjs`).
 - **Status:** draft
 - **Amended 2026-10-06 (audit A3-001):** after an answer commits, the Board re-reads and the answered question leaves the open list; the detail stays on that row, marked Answered, with the receipt (recorded, what it unblocked, what is still blocked, delivery), until the person closes it or picks another row.
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** questions are answered where they wait — «Ждёт вас» on Главная or «Вопросы» on the project page — with the options as buttons, and an answer is taken back with «Отменить» (SCN-164).
 - **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx` — the Board screen. The project page's "Needs you" panel (`BoardPanel.tsx`) still loses the receipt on the re-read its answer triggers (0.3.2 verification UX-2, CO-222).
 - **Product:** unobserved
 
@@ -1597,7 +1619,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **States covered:** loading,empty,unread,read,partial,stale,reconnect,source-missing,error
 - **Errors & recovery:** Receiving an event or failing a read never advances read watermark. Duplicate replay is deduped by source ID. Two operators do not change each other's read state.
 - **Telemetry:** no new product telemetry implied; command and source receipts are the record.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the Board and Inbox as places of their own are cut (0.3.7 plan §2, §5): what needs the person is on Главная (SCN-163, SCN-164), what happened is in История (SCN-168).
 - **Coverage:** none yet
 - **Product:** unobserved
 
@@ -1622,7 +1645,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   doctrine AX-02 enforced in the derivation, and it is now enforced there: an unread input degrades the coverage and a suspended host owns its own
   silence. **Coverage stays `none yet` deliberately**, because SCR-43 does not exist: the rule holding underneath is not the screen being built, and
   claiming this scenario on the strength of a shared helper is exactly the substitution the cycle refuses.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's Automations section is cut (0.3.7 plan §5); a cycle's runs are acts in История (SCN-168) and its agent is read in Агенты (SCN-166).
 - **Coverage:** none yet
 - **Product:** unobserved
 
@@ -1761,7 +1785,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Telemetry:** no new product telemetry implied; durable commands, local operation receipts and source observations are the record.
 - **Implementation tasks:** M154, M182, M184, M168, S15, S14. See [engineering contracts](../architecture/engineering-specs.json); proposed semantics do not assert released provider compatibility.
 - **Amended 2026-09-10 (UX28-06):** the source inspector this scenario names was opening the wrong project. A lesson's `source_ref` may point at a task recorded anywhere, and the row handed the resolver THE PAGE'S project as though it were the source's — so a source from another project opened inside this one, carrying that project's id. The row's project and the ref's project are two different facts and were one argument. The ref's owner now comes from the read (one bounded `selectIn`), the resolver refuses a mismatch it can finally see, and a row that does not know declines rather than guessing. **Named, not implied:** `fact` and `transcript` still resolve to the PROJECT rather than the thing, because no surface can focus one of either (CO-148); Back returns to a page and not to a place (CO-149).
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the project's Retro section is cut (0.3.7 plan §5); its episodes are acts in История (SCN-168).
 - **Coverage:** `apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built
 - **Product:** unobserved
 
@@ -1999,7 +2024,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Implementation tasks:** M81, S05
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-diagnostics).
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — S05 added. Its gap as the audit read it: No export selection/preview/redacted export surface. Successful refresh does not clear prior problem; metadata failure swallowed. Diagnostic log is rotating evidence, not archived agent trajectory.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Diagnostics is cut (0.3.7 plan §5); every failure is an act in История (SCN-168) with our sentence and the machine's words beneath it.
 - **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
 
@@ -2390,7 +2416,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   экране с причиной; празднование никогда не рядом со стримящим терминалом (правило
   циферблатов foundation).
 - **Telemetry:** planned only — журнальное событие остаётся записью.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the profile block and its greeting voice on the home are cut (0.3.7 plan §5); Главная's heading says the state in one plain sentence (SCN-163).
 - **Coverage:** none yet
 - **Product:** unobserved
 
@@ -2411,7 +2438,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **States covered:** first-visit, empty, loading, success, stale, error
 - **Errors & recovery:** регистры уровня не прочитались — уровень не показывается вовсе (незнание ≠ единица), строка говорит какой регистр молчит; генерация в макете — демонстрация без вызова модели и говорит это словами; таймлайн при отказе чтения держит предыдущую ленту с возрастом (правило SCN-090).
 - **Telemetry:** planned only — журнальное событие остаётся записью.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Pulse and the dashboard page are cut (0.3.7 plan §2, §5); what was done is read in История (SCN-168).
 - **Coverage:** none yet — прототип (`scripts/product/workbench.mjs` view `estate`/`profile`, `renderers.mjs` view `decisions`) — целевой дизайн, не runtime
 - **Product:** unobserved
 
@@ -2539,6 +2567,7 @@ SCN-031/059/094: уход из знакомства не считается вы
 - **View and execution · 2026-09-28 ([ADR-0081](../adr/0081-codex-execution-uses-an-owned-authenticated-loopback-backend.md)):** the terminal window is a view of the agent, not the agent. Closing or losing the window shows *window closed — the agent is still working* and offers Reattach; it never stops anything. If Fabric loses the agent's backend, every window of that agent shows *connection to the agent lost* and stops accepting input; the work is not reported stopped. An agent whose end cannot be confirmed stays *outcome unknown*. Stop turns off input in every open window of that agent at once.
 - **Telemetry:** planned only; stop observation and linked run receipts are evidence, not UI event counts.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** «Остановить» stops at once — no confirmation, the force step included ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §1); the foot of the place says «Остановлено · Отменить», and the inverse starts the console again from where it stood (SCN-169).
 - **Coverage:** none yet
 - **Product:** unobserved
 
@@ -3177,6 +3206,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Amended 2026-10-06 (0.3.2 verification DO-13):** "connected to Fabric's tools" is the agent row's declared connection (`connectsToSurface`), not yet a probe of a live session (ADR-0119 amendment 4, plan AS-03). Cline starts in Ask (`--auto-approve false`) unless the session is Bypass.
 - **Amended 2026-10-08 (0.3.3 onboarding, four actions — operator):** step 3 is the four actions of the start menu in two pairs: **Agent** — Create an agent (SCN-136), Adapt an existing agent (SCN-131); **Project** — Open a project (one folder, SCN-127, or a folder of repositories, SCN-128), Create a project (SCN-129). Fabric is the person's way into the PassionCode.ai ecosystem: the agent actions run in the console of the coding agent chosen there; Fabric opens it and builds no chat of its own (ADR-0123).
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the first run follows the onboarding plan's five steps (persona → coding agents → connection → projects → first project at work, decided by the operator 2026-10-13); the usage-counts question is asked in step 1, beside the language, and is not a banner (ADR-0160 §5, SCN-134); the projects step runs «Создать»'s paths (SCN-171).
 - **Coverage:** partial — the 0.3.x first run (name and look, agent detection, the four actions): apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx; the agent choice (REQ-40): apps/desktop/src/renderer/src/start/FirstRun.tsx region `first-run-agent-choice`, apps/desktop/src/shared/builderChoice.ts (`mayPick`, `withHead`); CO-176 main observer `apps/desktop/src/main/executorAuth.ts`, disposable-process negatives `apps/desktop/test/executor-auth.test.mjs`. The 0.4.0 order (the folder, the scan and the import inside the first run, the family setup step) has none yet. Local source/fixture proof does not establish packaged native or account-identity acceptance.
 - **Product:** unobserved
 
@@ -3200,6 +3230,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Amended 2026-10-08 (0.3.3 onboarding, R2):** the facts list also shows what the folder says it is (as SCN-128's amendment of the same day), and Add project makes it the purpose.
 - **Amended 2026-10-08 (four actions):** the entry is Start menu → Open a project → One folder; Scan a folder of projects (SCN-128) is the other choice of the same action.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** reached from «Создать» as «Открыть проект из папки» under the folder choice (SCN-171); the project is added at once with «Отменить».
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs
 - **Product:** unobserved
 
@@ -3231,6 +3262,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
   4. **no-repositories** — the folder holds folders but no repository: the plain folders, unticked, with "No git repositories here — a folder you tick becomes a project without history Fabric can read"; **empty** stays for a folder with nothing in it, with Change… (and, in the first run, I have no projects yet).
   5. **slow** — a scan still walking after 10 s keeps its count moving and says the folder is large: keep waiting, or Stop and choose a narrower one.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** reached from «Создать» → «Открыть папку с проектами», its primary choice (SCN-171), grouped by owner with the active projects ticked as the onboarding plan §2 draws; adding happens at once and «{N} проектов добавлено · Отменить» takes it back.
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.
 - **Product:** unobserved
 
@@ -3253,6 +3285,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Amended 2026-10-11 (REQ-40, built):** the default coding agent starts on an installed one (fallback order first, `shared/builderChoice.ts#installedDefault`); greyed-out ones say why and what to do.
 - **Telemetry:** planned only.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** reached from «Создать» → «Создать проект» (SCN-171): name, where it lives and the first task, then the project opens; «Проект создан · Отменить».
 - **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/projectFolder.ts; apps/desktop/src/main/startChoices.ts
 - **Product:** unobserved
 
@@ -3323,6 +3356,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Telemetry:** journal events `access.requested@1`, `access.decided@1`, `access.credential.claimed@1`, `access.grant.revoked@1`, `access.binding.revoked@1`, `access.denial.cleared@1`, `hub.call.forwarded@1`, `hub.call.refusals.summarized@1`.
 - **Amended 2026-10-13 (COM-03, [ADR-0149](../adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md) §2):** an agent may also ask Fabric itself to answer one project's requests — `board.respond` on 1 to 8 `board:<project>/<capability>` of ONE project. A coding agent of the runner catalogue or a registered agent may ask it; anything else, an unknown project, a second project or a folder is refused before anything is shown. The prompt and the queue say it as the operator reads it: "Let <agent> answer <capabilities> requests for <project>?", what it may do (take and answer the requests other projects send to that project, for those capabilities) and what it may not (spend, publish or delete through this), the same-user floor and "for a year, unless you revoke it". It is SCN-145's ask.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** on the operator's own computer an ask to join a project is SCN-167's and is let in ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3). Any other ask of a product's resources is asked as a question on Главная (SCN-164) — who asks, what, why, and «Разрешить» / «Не разрешать» — never as a native prompt, a notification or a queue item; a granted access is withdrawn with «Отозвать» in Агенты or Настройки and with «Отменить» in История.
 - **Coverage:** apps/desktop/src/main/accessService.ts, apps/desktop/src/main/consentPresenter.ts, apps/desktop/src/main/hubTools.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx, apps/desktop/src/renderer/src/launch/ObligationActs.tsx
 - **Product:** unobserved
 
@@ -3366,6 +3400,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** usage counts are an effect with an owner (the person), a boundary (counts only, release builds only, one shared switch) and a receipt (the operations log), as the vision's alignment test asks.
 - **Telemetry:** none in the journal; the operations log records `analytics.flush`.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the usage-counts question is asked once, in the first run's first step beside the language (SCN-126), and the switch lives in Настройки → «Данные» (SCN-170); the first-run notice banner goes (ADR-0160 §5).
 - **Coverage:** apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx (the first-run notice, ADR-0127; an install that already sent counts is told so)
 - **Product:** unobserved
 
@@ -3409,6 +3444,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** «Create your own agent» means a new ecosystem agent with its own repository (D1), built in the coding agent's own console (ADR-0123); the in-project role agent stays SCN-130. The form asks only what Fabric needs to create the folder and the Project; everything else the skill's intake grill asks in the console.
 - **Telemetry:** planned only.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** reached from «Создать» → «Создать агента» and from «Создать агента» in Агенты (SCN-171); the new agent appears in Агенты as it is made.
 - **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129
 - **Product:** unobserved
 
@@ -3434,6 +3470,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Telemetry:** journal events `access.requested@1` (callee `fabric`, capability `session.enroll`), `access.decided@1`, `access.credential.claimed@1`, `session.enrolled@1`, `access.grant.revoked@1`, `access.binding.revoked@1`.
 - **Amended 2026-10-13 (COM-03):** the enrollment is the session's board enrollment for that one project (ADR-0149 §1): it takes part in the project board as its project. Answering other projects' requests is asked apart (SCN-145); once granted, the enrolled session answers under its own binding's grant, a session Fabric launched under its runner's.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** step 2 goes ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3): the agent is let in at once, recorded as its own act, and shown in История and in Агенты with «Отключить» (SCN-167); the native prompt, the board item and the Agent-access queue for an enrollment are removed. Steps 3–5 stand, with «Отключить» in place of revoking in SCR-76.
 - **Coverage:** apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/fabricMcpMain.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/accessService.ts, apps/desktop/src/shared/accessWords.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx
 - **Product:** unobserved
 
@@ -3509,6 +3546,7 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Design rationale:** REQ-38: agents coordinate through Fabric before they start. The claim is the contract's coordination claim already in the journal (`work.claimed@1`, with expiry and write scopes), so a warning reads from one place. A warning, not a lock, because related work is not the same work — except the same task, which one agent holds at a time. Vision §3 (ADR-0133): Fabric always knows where what is being done and can coordinate the agents.
 - **Telemetry:** journal `work.claimed@1`, `work.renewed@1`, `work.released@1`; the related-work warning is a field of the claim's answer, not an event.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the person's «Release…» on a claimed task happens at once — no three-press confirmation; История records it with «Отменить», which takes the task again for the same agent (SCN-169). The person's screens call it «задача у агента», never a claim.
 - **Coverage:** partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4)
 - **Product:** unobserved
 
@@ -3530,7 +3568,8 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Errors & recovery:** A projection that cannot be read → that column says so on every row and the rest stays readable; never a zero. A sign of life older than its window → "no sign for 25 min", never "running". The admission fails → the reason; the session stays where it was; Try again. The estate cannot be read at all → the reason with Try again, never "no work".
 - **Design rationale:** Canvas C8: the manager knows where work is. The «Sessions with no project» row is always there, so unattributed work is a visible fact and not an absence (vision principle 4). It differs from Sessions (SCR-39, the console switcher): this answers per project, by claim.
 - **Telemetry:** journal `project.repo.attached@1` with `admitted_by: consent` on an admission.
-- **Status:** draft
+- **Status:** retired
+- **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Where work is is cut (0.3.7 plan §2): who is doing what is «Сейчас» on Главная (SCN-163), every agent with its work is Агенты (SCN-166).
 - **Coverage:** partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` and `apps/desktop/src/main/workRead.ts#readWhereWork`; «Log under a project…» and its consent are REQ-17's, wave 5
 - **Product:** unobserved
 
@@ -3554,6 +3593,7 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Design rationale:** ADR-0123: the conversation is the coding agent's console and the CEO is a session; the button is a launcher into that session, never a chat drawn inside a product — so it adds no cockpit (anti-vision) and keeps the Project the unit: the session is scoped to the product's project. One component from the contract's service kit, so every product shows the same button. A link only opens and asks; a fresh session needs the person's press, so no web page can start agents through a link.
 - **Telemetry:** journal `terminal.opened@1` with the manager scope and its `route`; planned: the `service` the request came from.
 - **Status:** draft
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** a deep link opens what it links to (ADR-0160 §5): Fabric comes forward in that project with the conversation started on the coding agent the launch order chooses — no confirm-start step; «Отменить» on the act line stops it.
 - **Coverage:** partly — `apps/desktop/src/shared/linkRoute.ts#routeForLink` (the project by the link's id or name, else by the service's registered repository against the projects' remotes; one match only, never a guess), `apps/desktop/src/shared/linkRoute.ts#resolveLink` (a failed read is `link-unreadable`, never an empty list) and `#linkWindowPlan` (a link that finds no window opens one), `apps/desktop/src/main/index.ts` region `fabric-link-handler` (the `fabric://` scheme registered, `open-url` and a second instance's argv, links held until the window exists), `App.tsx` region `fabric-link-open` (the notice; a held link offered when the first run is left by any route); the parser is the contract's, vendored (`apps/desktop/src/shared/contract/fabricLinks.ts`). Until the manager's conversation (REQ-16/REQ-42, wave 5) a chat link opens the project with a notice that the conversation is coming; a session link opens the project to start one
 - **Product:** unobserved
 
@@ -3854,6 +3894,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Amended 2026-10-14 (release review UX-5):** a reading that fails is our sentence in the operator's language — «Неизвестно, кто работает: работу не удалось прочитать.», «Не удалось открыть консоль.», «Доску не удалось прочитать.», «Порядок не сохранён.» — and the machine's own words stand on a second line beneath it, never inside the sentence.
 - **Amended 2026-10-15 (release review i2 UX-6):** a live task in «В работе» whose agent has reported no stage says «Ещё не сказал, что делает», as «Агенты в работе» does — never a blank line.
 - **Amended 2026-10-15 (release review i2 DO-3, states from iteration 1):** a claim whose agent no longer signs for it stays in «В работе» with the pill «никто не отмечается» instead of a stage; the strip's «задач в работе» counts the same set as the lane's heading, so the screen shows one number; a capped reading is a floor — «50+» when 50 tasks wait for review, «200+» past 200 in work; each lane shows six rows and «Ещё N» opens the Board; after a failed reading the counts show «—», never the last numbers as current.
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the 0.3.7 target replaces this home with Главная (SCN-163): the numbers, «Ждёт вас» and «Сейчас» in plain words; the jargon pills («молчит», «никто не отмечается», «шаг N из M») become «давно не отзывался — {время}». This scenario stays the description of the home built today until wave 4.
 - **Coverage:** `apps/desktop/src/shared/homeLive.ts`, `apps/desktop/src/main/workRead.ts#readHome`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`; tests `apps/desktop/src/shared/homeLive.test.ts`, `apps/desktop/src/renderer/src/launch/HomeWork.test.tsx`, `apps/desktop/test/work-claims-db.test.mjs`; the real app on a disposable stack: `apps/desktop/test/operator-home-native.mjs` (home, project, settings — 2026-10-14 PASS)
 - **Product:** unobserved
 
@@ -3879,6 +3920,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Amended 2026-10-14 (release review UX-5):** a board, team or console that fails is said in the operator's language — «Доску не удалось прочитать.», «Команду не удалось прочитать.», «Не удалось открыть консоль.» — with the machine's own words on a second line beneath, never inside the sentence.
 - **Amended 2026-10-15 (release review i2 DO-2/DO-3/UX-3):** a task is never named by its instruction (step 2) on the way and the board glance; the one exception is «Вопросы ко мне», which shares the Board's attention rows and names a legacy task with neither brief nor title by the first line of its instruction, cut at a word, so the operator can recognise what waits for them; the board glance's «Готово» count is a floor, «20+», when the page read only the newest twenty finished tasks, and «Вся доска» then shows them all.
 - **Amended 2026-10-15 (release review i3 UX-1, UX-4, ER-1):** the goal is said once, as «Цель: …» in «Дальше»; the side panel «Цель» appears only while the project has none and then shows its purpose. A tasks read that fails is said on the way and on the board glance — «Задачи проекта не прочитаны…» before any read, «Задачи не перечитались — ниже то, что прочитано раньше.» above an earlier read — never an endless «Читаю…».
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the 0.3.7 target is SCN-165 — the same way, questions and board glance on one page, plus «Открыть консоль», «Поставить задачу» and the folders, with no sections below and no sub-navigation. This scenario stays the description of the page built today until wave 4.
 - **Coverage:** `apps/desktop/src/shared/projectPath.ts`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; tests `apps/desktop/src/shared/projectPath.test.ts`, `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx`
 - **Product:** unobserved
 
@@ -3901,6 +3943,7 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Status:** draft
 - **Amended 2026-10-14 (release review UX-5):** "its read fails -> the reason is said" now means our sentence, «Каталог Switchboard не прочитан — показано то, что Fabric нашёл на этом компьютере.» (and «Не удалось поискать агентов.» when Fabric's own detection fails), with the machine's reason on a second line beneath it, never in brackets inside the sentence.
 - **Amended 2026-10-15 (release review i2 DO-3):** a catalogue Switchboard publishes in a format this Fabric does not read says so in words («…в формате, который этот Fabric не читает…») and shows what Fabric found on this computer; an agent Switchboard says nothing about carries no «установлен»/«не установлен» pill rather than a guess.
+- **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the 0.3.7 target splits this screen: the coding agents on this computer move to Агенты (SCN-166); how Fabric behaves stays in Настройки (SCN-170).
 - **Coverage:** `apps/desktop/src/shared/agentCatalog.ts`, `apps/desktop/src/main/agentCatalogRead.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, `apps/desktop/src/renderer/src/App.tsx`; tests `apps/desktop/src/shared/agentCatalog.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`. Measured 2026-10-14 on the operator's Mac: Switchboard 0.6.30 → `too-old`; after the upgrade, Switchboard 0.6.31 → the `{ok, data}` envelope read, 30 agents listed (ledger V1-27).
 - **Product:** unobserved
 
@@ -3922,4 +3965,231 @@ A project whose agents are away leaves visible what is waiting for it, so nothin
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try)
+- **Product:** unobserved
+
+## Fabric 0.3.7 — simple: five places, act at once, undo from История · 2026-10-17 ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md), [plan](../evidence/plans/2026-10-15-fabric-simple/README.md))
+
+Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail — Главная, Проект, Агенты, История,
+Настройки — and of «Создать». Designed, NOT built: waves 2–4 build it. Shared rules for every scenario below:
+
+- **An act happens at once** (ADR-0160 §1): no «Вы уверены?», no native dialog, no `window.confirm`. After an act the
+  place shows one quiet line at its foot — «{что сделано} · Отменить» — until the next act or until the person leaves
+  the place; История keeps it for good (SCN-168, SCN-169).
+- **What still asks** (ADR-0160 §4) asks as a question on Главная (SCN-164), never as a pop-up: spending above a
+  project's limit or a key's ceiling, publishing outward, deleting what cannot be restored, an act on another person's
+  machine.
+- **Words for people** (plan §4): a person's screen never shows claim/заявка, lease/аренда, session/сессия, journal/
+  журнал, estate/пространство, harness, a runner id, a backlog row, an MCP tool name or a project's internal id. A
+  failure is our sentence in the person's language with the machine's own words on a second, quieter line (as the
+  0.3.6 review's UX-5 set).
+- Every string below is the Russian the person reads; the English twin is drawn beside it in the prototype
+  (`product.html#view-simple-home?lang=en` and the other `simple-*` views).
+
+### SCN-162: Move between the five places and the projects from the rail
+- **Persona:** P-01
+- **Feature:** Shell
+- **Traces:** ST-032, ST-037, FLW-93, SCR-84 (JTBD-02)
+- **Entry point:** any place of Fabric; the rail is always on the left
+- **Preconditions:** Fabric has started; there may be no project yet
+- **Steps:**
+  1. Person looks at the rail -> from the top: the PassionCode mark with «Fabric», one button «＋ Создать», the five places «Главная», «Агенты», «История», «Настройки» (Проект is opened from the list below, never a sixth fixed entry), then «Проекты» with the list, and at the foot the person's name with one line of how this computer is («этот Mac · всё работает»).
+  2. Person reads the projects list -> favourites first (a gold star), then by latest activity; each row is the project's name, a green dot when an agent works there now, and a gold count when something waits for the person; nothing else on the row.
+  3. Person presses a place or a project -> it opens in the main area; the pressed row is highlighted; there is no tab strip and no back button of Fabric's own — ⌘[ and the swipe go back, ⌘] forward.
+  4. Person presses «＋ Создать» -> «Создать» opens in the main area (SCN-171), not a menu over the page.
+  5. Person presses ⌘K -> the search field at the top of the main area takes focus («Найти проект, задачу, агента»).
+- **Expected result:** every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.
+- **Alt paths:** no project yet -> the list says «Проектов пока нет» with «Создать проект» (SCN-171); more than twelve projects -> the list scrolls inside the rail and keeps favourites on top; a project's name longer than the rail -> cut with an ellipsis, the full name in its tooltip; the window narrower than 900 px -> the rail folds to icons with the counts, its names in tooltips.
+- **UI elements:** the mark and «Fabric · by PassionCode»; «＋ Создать»; the five place rows with Главная's gold count of questions; «Проекты» label; project rows (dot, star, count); the person's line at the foot; the search field with ⌘K.
+- **States covered:** loading (the list reads — «Читаю проекты…», never "no projects"), empty (no project), error (the list could not be read — «Проекты не прочитаны.» with the machine's words beneath and «Повторить»; the five places stay usable), success
+- **Errors & recovery:** the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — the 0.3.7 plan's wave 3 builds the rail; today's tab strip and project links are `apps/desktop/src/renderer/src/App.tsx` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`
+- **Product:** unobserved
+
+### SCN-163: See on Главная what needs me, what is being done now, and my projects
+- **Persona:** P-01
+- **Feature:** Home
+- **Traces:** ST-037, ST-044, ST-032, FLW-94, SCR-85 (JTBD-02)
+- **Entry point:** «Главная» on the rail; Fabric opens here
+- **Preconditions:** none; there may be no project, no agent and no question
+- **Steps:**
+  1. Person opens Главная -> a large greeting that says the state in one sentence: «Добрый вечер. Вас ждут 3 вопроса.» (or «Вас ничего не ждёт.»), under it one line «Пять агентов работают в четырёх проектах. Всё остальное идёт без вас.», and three numbers in a hairline strip — «агентов работают», «задач в работе», «на проверке».
+  2. Person reads «Ждёт вас» -> the questions waiting for them across projects, the oldest decision first: who asks and from which project, how long ago, the question in plain words, why it matters, and the options as buttons (SCN-164).
+  3. Person reads «Сейчас» -> one line per agent at work: its sign, what it says it is doing in its own words, the project, how long; an agent that has said nothing yet shows what it is working on («Работает над: {задача}»); one gone quiet says «давно не отзывался — {время}» and sorts after the rest.
+  4. Person presses an agent's line -> its console opens (SCN-166); «Открыть консоль ↗» in the section's heading opens the console of the first agent that works.
+  5. Person reads «Проекты» -> favourites first, then by latest activity: the name, «Что сейчас» in a sentence, a thin bar of the way done, the number of agents, when it last changed; a row opens the project (SCN-165).
+- **Expected result:** in a few seconds the person knows whether anything needs them, what is being done, and where to go — without opening a project or an agent's console.
+- **Alt paths:** nothing waits -> «Ждёт вас» says «Вопросов нет. Агенты работают сами.» and folds to one line; no agent works -> «Сейчас ни один агент не работает.» with «Открыть консоль» on the default coding agent; no project -> the greeting says «Начните с проекта» and the projects section offers «Создать проект» and «Открыть папку с проектами» (SCN-171); the local database is reachable from the network -> it is a question at the top of «Ждёт вас» (SCN-164), never a banner.
+- **UI elements:** the greeting heading; the numbers strip; «Ждёт вас» with question cards; «Сейчас» with agent rows and «Открыть консоль ↗»; «Проекты» table; the act line at the foot.
+- **States covered:** loading («Читаю…» in each section on its own; numbers show «—», never 0), empty (no question / no agent at work / no project), partial (one section could not be read — said in that section; the others stand), error (nothing could be read — «Fabric не смог прочитать, что происходит.» with the machine's words beneath and «Повторить»), success, stale (an agent quiet past its window)
+- **Errors & recovery:** a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — wave 4 rebuilds Главная to the prototype; today's home is SCN-158's
+- **Product:** unobserved
+
+### SCN-164: Answer a question in plain words with one press, and take the answer back
+- **Persona:** P-01
+- **Feature:** Questions
+- **Traces:** ST-044, ST-030, FLW-94, SCR-85, SCR-86, SCR-88 (JTBD-02, JTBD-07)
+- **Entry point:** a question card in «Ждёт вас» on Главная, or in «Вопросы» on a project's page
+- **Preconditions:** an agent, or Fabric itself, has asked the person something
+- **Steps:**
+  1. Person reads the card -> who asks (the agent's sign and name, the project, how long ago); the question as a question to the person («Выпускать Fabric 0.3.7 сейчас или дождаться перевода на русский?»); one line of why it matters («Всё остальное проверено. Без перевода русские экраны покажут английский текст в двух местах.»); the options as buttons, the one the agent recommends in gold; each option's effect in its tooltip and, on focus, under the buttons («Выпуск уйдёт пользователям сегодня»).
+  2. Person presses an option -> the answer is recorded at once and goes to the agent; the card leaves «Ждёт вас» and the foot of the place says «Ответ «Выпускать сейчас» отправлен · Отменить».
+  3. Person presses «Обсудить» (when the agent offers it) -> the asking agent's console opens with the question and its context in front; the card stays waiting.
+  4. Person presses «Отменить» (in the foot line or in История) -> the answer is taken back: the card returns to «Ждёт вас» as it was, and the agent is told the answer was withdrawn; both acts stay in История.
+- **Expected result:** a decision takes one press, the person sees what each option will do before pressing, and a wrong press is taken back from the same place.
+- **Alt paths:** a boundary question (ADR-0160 §4) is drawn the same way and says which boundary it is: money («Можно потратить $14 на прогон проверок на облачной машине?» — «Лимит проекта на этот месяц — $40, потрачено $9.»), publishing outward («Опубликовать новую страницу «Для бизнеса» на сайте?» — «Это видно всем — поэтому спрашиваю.» with «Открыть предпросмотр»), deleting what cannot be restored, an act on another person's machine; Fabric's own question about this computer («База данных Fabric видна из вашей сети.» — «Любой в этой сети может читать ваши проекты.» with «Закрыть доступ из сети» and «Оставить как есть»); an answer the agent already acted on -> «Отменить» says what can no longer be taken back («Агент уже начал выпуск — отменить ответ нельзя, но можно попросить остановиться») and offers «Попросить остановиться»; the question was withdrawn by its agent before the press -> the card says «Вопрос снят агентом» and leaves.
+- **UI elements:** question card (agent sign, name, project, time; question; why; option buttons with the recommended one in gold; «Обсудить»; «Открыть предпросмотр» where there is one); the act line «Ответ … отправлен · Отменить».
+- **States covered:** waiting, answering (the pressed button busy, the others disabled), answered (the act line), undone (the card back), cannot-undo (said with why), withdrawn, error (the answer did not reach — «Ответ не записан.» with the machine's words beneath; the card stays with the options enabled), empty («Вопросов нет.»)
+- **Errors & recovery:** an answer that is not recorded keeps the card with its options and says so; an answer whose outcome is unknown says «Неизвестно, дошёл ли ответ — проверяю» and reads the question again before offering the options, so a second press never answers twice; a question that fails Fabric's check of the board's rules (no options, no why) is shown with «Агент не объяснил, зачем спрашивает» and «Обсудить» only.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — waves 2 (reopen as the inverse of answer) and 4 (the card); today's answer is SCN-050's
+- **Product:** unobserved
+
+### SCN-165: Open a project and steer it from one page
+- **Persona:** P-01
+- **Feature:** Projects
+- **Traces:** ST-032, ST-034, ST-030, FLW-95, SCR-86 (JTBD-02, JTBD-07)
+- **Entry point:** a project in the rail's list, a row of Главная's «Проекты», a question's project name
+- **Preconditions:** the project exists; it may have no tasks and no agent yet
+- **Steps:**
+  1. Person opens the project -> one page, no sub-navigation: the name in a large heading with a star to make it a favourite, its purpose in one sentence beneath, and — when an agent works — «Сейчас: {что агент говорит}».
+  2. Person reads «Откуда пришли и куда идём» -> three columns «Сделано», «Сейчас», «Дальше» (the goal first as «Цель: …», then the queue), each task its plain summary with its agent; a task opens its own page.
+  3. Person reads «Вопросы» -> this project's questions as cards (SCN-164); none -> «Вопросов нет».
+  4. Person glances at «Доска» -> four columns «Очередь», «В работе», «Проверить», «Готово» with counts and the first cards; «Вся доска» opens the whole board in place; a card dragged to another column moves at once and the foot says «Задача перенесена в «Проверить» · Отменить».
+  5. Person presses «Открыть консоль» -> the console of the coding agent at work here opens, else a new console starts on the default coding agent in the project's folder (SCN-166).
+  6. Person presses «Поставить задачу» -> a field opens in place: what should be done, in the person's words, and «Поставить»; the task appears in «Очередь» at once with «Задача поставлена · Отменить»; «Поставить и начать» also starts a coding agent on it.
+- **Expected result:** a project left for days is understood and steered from one page: where it came from, where it goes, what it asks, its board, a console and a new task — all one press.
+- **Alt paths:** no tasks -> the way says «Начните с первой задачи» with the field of step 6 open; no agent works -> «Сейчас ни один агент не работает.»; the person renames the project or edits its purpose -> saved as they leave the field, no revision banner (plan §5), the act in История with «Отменить»; «Переписка с другими проектами» at the page's foot opens what this project and others told each other (SCN-143), and «Папки проекта» lists its folders with «Добавить папку» and, per folder, «Убрать» — removed at once, «Папка убрана · Отменить».
+- **UI elements:** heading with star; purpose; «Сейчас» line; «Откуда пришли и куда идём»; «Вопросы»; «Доска» glance with «Вся доска»; «Открыть консоль»; «Поставить задачу» field with «Поставить» and «Поставить и начать»; «Папки проекта»; «Переписка с другими проектами»; the act line.
+- **States covered:** loading (each block «Читаю…» on its own), empty (no tasks; no questions; no agent), partial (the board or the questions unreadable — said in that block), error (the project could not be read — «Проект не прочитан.» with «Повторить»), missing (the project was removed — «Такого проекта больше нет» with «Открыть История»), success
+- **Errors & recovery:** a move, a new task, a rename or a removed folder that is not recorded snaps back and says «Не сохранилось.» with the machine's words beneath; a task's text typed into a failed «Поставить» stays in the field; a console that cannot start says why on the button's line (no coding agent ready -> «Нет готового агента — открыть Агенты»).
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — wave 4 rebuilds the project page to the prototype; today's is SCN-159's
+- **Product:** unobserved
+
+### SCN-166: See every agent and open its console in one press
+- **Persona:** P-01
+- **Feature:** Agents
+- **Traces:** ST-037, ST-041, ST-050, FLW-96, SCR-87 (JTBD-02, JTBD-05)
+- **Entry point:** «Агенты» on the rail; an agent's line in Главная's «Сейчас»
+- **Preconditions:** none
+- **Steps:**
+  1. Person opens Агенты -> two groups: «Агенты для кода на этом компьютере» (Claude Code, Codex, Kimi Code, Hermes… each with whether it is ready, its version, and where it works now) and «Агенты, созданные в Fabric» (each with what it is for and its project); every row says in a sentence what the agent is doing now or «Свободен».
+  2. Person presses «Консоль» on a row -> the agent's console opens in its own window, in the project it works in; a free coding agent asks nothing more and starts in the project last opened, its folder named on the button («Консоль в Fabric»).
+  3. Person opens a row -> the agent's view: what it is doing, its recent acts (from История), the projects it may work in, and «Что получает агент» — the rules and tools it is given (the harness, moved here from the project page; plan §4).
+  4. Person presses «Создать агента» at the top -> «Создать» opens on its agent path (SCN-171).
+- **Expected result:** every agent the person has is on one list with what it is doing, and its console is one press away.
+- **Alt paths:** a coding agent is not installed -> its row says «Не установлен» with how to install it; one installed but not signed in -> «Нужно войти» with «Открыть консоль, чтобы войти»; a coding agent that joined from a terminal carries «подключился сам» and «Отключить» (SCN-167); no agent built in Fabric -> the group says «Пока нет — создайте первого» with «Создать агента».
+- **UI elements:** the two groups; agent rows (sign, name, state sentence, project, «Консоль»); «Создать агента»; the agent view with «Что получает агент»; the act line.
+- **States covered:** loading («Ищу агентов на этом компьютере…»), empty (none installed — each known agent listed «Не установлен» with its install line), partial (agents found but what they do unreadable — said per row), error («Не удалось поискать агентов.» with «Повторить»), success, stale (an agent quiet past its window — «давно не отзывался»)
+- **Errors & recovery:** a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists
+- **Product:** unobserved
+
+### SCN-167: A coding agent opened outside Fabric is let in, and the person disconnects it with one press
+- **Persona:** P-01
+- **Feature:** Agents
+- **Traces:** ST-045, FLW-96, SCR-87, SCR-88 (JTBD-08); [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3, amending ADR-0134 and ADR-0115
+- **Entry point:** the person opens a coding agent in a terminal, in a folder of one of their projects (SCN-137's entry)
+- **Preconditions:** this computer is the operator's own (ADR-0160 scope); the folder belongs to a project
+- **Steps:**
+  1. The agent asks Fabric to join the project -> it is let in at once, with the same rules and the same expiry a console Fabric starts gets; no dialog, no queue item, no notification asks the person anything.
+  2. Person looks at Агенты or История -> «Codex подключился к проекту Fabric из терминала · 2 мин» in История; in Агенты the agent's row carries «подключился сам» and «Отключить», and «Fabric не может доказать, что это Codex» as a fact on its line (ADR-0160 consequences).
+  3. Person presses «Отключить» -> at once: its consoles end, its next call is refused, and it stays out of every project until the person lets it back in; the row says «Отключён» with «Пустить снова»; История records the act with «Отменить».
+  4. Person presses «Пустить снова» (or «Отменить» on the disconnect) -> the agent may join again on its next call.
+- **Expected result:** a coding agent the person opened themselves works in its project without a question, and the person sees it and can take that back with one press.
+- **Alt paths:** the folder is not inside a project -> the agent is told so and nothing is shown to the person but a line in История («Codex открыт в папке вне проектов — {папка}») with «Сделать проектом»; another person's machine (ADR-0144) -> nothing here changes: that still asks per act, as a question on Главная (SCN-164).
+- **UI elements:** the История entry; the agent's row with «подключился сам», «Отключить», «Пустить снова» and the proof line.
+- **States covered:** joined, disconnected, let-back, outside-projects, error («Не удалось отключить.» with the machine's words beneath — the row stays connected and says so)
+- **Errors & recovery:** a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.
+- **Telemetry:** journal `session.enrolled@1` (the agent as actor), `access.binding.revoked@1` (the person as actor).
+- **Status:** draft
+- **Coverage:** none yet — wave 3 removes the consent step; today's consent is SCN-137's
+- **Product:** unobserved
+
+### SCN-168: Read every act in История — who did it, when and to what
+- **Persona:** P-01
+- **Feature:** History
+- **Traces:** ST-033, ST-034, FLW-97, SCR-88 (JTBD-02, JTBD-07)
+- **Entry point:** «История» on the rail; «Открыть История» from a place's act line or a missing project
+- **Preconditions:** none
+- **Steps:**
+  1. Person opens История -> every act, newest first, grouped by day («Сегодня», «Вчера», «14 октября»): the time, the actor's sign and name (the person — «Вы», Fabric, or a named agent), the act in a sentence («Codex подключился к проекту Fabric из терминала», «Вы остановили Claude Code в проекте Nicegram», «Kimi Code перенёс задачу «Сборка на macOS 15» в «Проверить»»), the project, and at the right either «Отменить» or a quiet «Нельзя отменить» whose reason opens on hover and focus.
+  2. Person filters -> «Кто» (Вы / Fabric / an agent), «Проект», «Что» (вопросы, задачи, агенты, папки, выпуски, решения) and a search field; the filters stay when the person leaves and comes back.
+  3. Person opens an act -> its detail beside the list: what changed before and after, its source (the agent's console record, the task, the question), and, for an undone act, the act that undid it.
+- **Expected result:** the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.
+- **Alt paths:** nothing yet -> «История пуста: здесь появится каждое действие — ваше и агентов.»; the filters match nothing -> «Ничего не найдено» with «Сбросить фильтры»; releases are «Что: выпуски» (the Releases log becomes this filter, plan §2); decisions are «Что: решения» (the project's Decisions section, cut, is reached here).
+- **UI elements:** day groups; act rows (time, actor sign and name, sentence, project, «Отменить» / «Нельзя отменить»); filters «Кто», «Проект», «Что»; search; detail pane.
+- **States covered:** loading («Читаю историю…»), empty, filtered-empty, error («История не прочитана.» with the machine's words beneath and «Повторить»), success, long (older days load as the person scrolls — «Ещё раньше»)
+- **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — wave 2 builds the read (the journal, ADR-0014, with each act's actor and inverse)
+- **Product:** unobserved
+
+### SCN-169: Undo an act, or read why it cannot be undone
+- **Persona:** P-01
+- **Feature:** History
+- **Traces:** ST-033, FLW-97, SCR-88 (JTBD-07); [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §2
+- **Entry point:** «Отменить» on an act in История, or in a place's act line right after the act
+- **Preconditions:** the act has an inverse: a stopped console (started again where it stood), a released task (taken again), a removed folder (added again), a discarded draft (restored), an answered question (reopened), a moved task (moved back), a disconnected agent (let back in), a renamed project (its old name back)
+- **Steps:**
+  1. Person presses «Отменить» -> at once, no question: the inverse is done, and the act's row says «Отменено · {время}» with a link to the new act «Вы отменили: …», which itself has «Отменить» (so an undo can be redone).
+  2. Person returns to the place of the act -> it is as before the act (the console running from where it stood, the task in its old column, the folder in the project).
+- **Expected result:** a wrong press is never permanent when it can be reversed, and both the act and its reversal are in История with their actors.
+- **Alt paths:** the act has no inverse -> «Нельзя отменить» says why, before and after: «Сообщение уже доставлено другому проекту», «Выпуск уже опубликован — его можно только заменить новым», «Письмо отправлено»; the object changed since (another agent moved the task again, the folder was deleted from disk) -> «Отменить» says what it would do now («Вернуть задачу в «В работе»? Её с тех пор перенёс Codex») as the button's own text, and a press does that, never a silent overwrite; the inverse needs something that is gone (the coding agent was uninstalled) -> «Отменить нельзя: Codex больше не установлен».
+- **UI elements:** «Отменить»; «Отменено · {время}»; «Нельзя отменить» with its reason; the act line in a place.
+- **States covered:** undoing (the button busy), undone, redone, cannot-undo, changed-since, error («Не удалось отменить.» with the machine's words beneath; nothing changed, the button enabled again)
+- **Errors & recovery:** a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.
+- **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses.
+- **Status:** draft
+- **Coverage:** none yet — wave 2 (the inverse of each act in the main process, tested do-then-undo)
+- **Product:** unobserved
+
+### SCN-170: Set how Fabric behaves in Настройки
+- **Persona:** P-01
+- **Feature:** Settings
+- **Traces:** FLW-40, SCR-89 (JTBD-02)
+- **Entry point:** «Настройки» on the rail
+- **Preconditions:** none
+- **Steps:**
+  1. Person opens Настройки -> one page of sections with small uppercase labels: «Язык и вид» (язык, тема), «Этот компьютер» (не давать компьютеру засыпать, пока агенты работают), «Запуск агентов» (порядок: кто запускается, если первый не может), «Данные» (передавать счётчики использования; личная история разговоров — экспорт и импорт), «Доступ агентов» (which agents may reach which products, with «Отозвать»).
+  2. Person changes a setting -> it saves at once and says «Сохранено» beside it; История records it with «Отменить».
+- **Expected result:** how Fabric behaves is set in one place, each change saved at once and reversible.
+- **Alt paths:** an agent's access is also visible on its row in Агенты; Switchboard absent or too old -> the launch order says what is shown and why (as SCN-160); a source build -> usage counts «Эта сборка ничего не передаёт».
+- **UI elements:** the five sections; selects and switches; «Отозвать»; «Сохранено».
+- **States covered:** loading, error (a setting that did not save — «Не сохранилось.» beside it, the old value back), success, unavailable (a setting this build or this computer cannot change, with why)
+- **Errors & recovery:** a failed save puts the old value back and says so beside the control; the rest of the page stays usable.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — wave 4 redraws SCN-160's screen
+- **Product:** unobserved
+
+### SCN-171: Start something new from «Создать» — a project, an agent, or a projects folder
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-001, ST-050, FLW-98, SCR-90 (JTBD-01, JTBD-05); the [onboarding plan](../evidence/plans/2026-10-13-onboarding-036/README.md) §2–§4, absorbed
+- **Entry point:** «＋ Создать» on the rail; «Создать проект» or «Открыть папку с проектами» on an empty Главная; «Создать агента» in Агенты
+- **Preconditions:** none
+- **Steps:**
+  1. Person presses «＋ Создать» -> «Создать» opens in the main area with three choices, one line each of what you get: «Открыть папку с проектами» (primary — «Fabric найдёт все проекты в папке, вы отметите, над какими работать»), «Создать проект» («Новая папка или идея — с первой задачей»), «Создать агента» («Агент со своей задачей, сделанный вашим агентом для кода»).
+  2. Person chooses «Открыть папку с проектами» -> the system folder picker (its last location remembered) -> the scan runs in place with a live count; found projects are grouped by owner, then local, then folders without git (folded), the active ones ticked («давно не менялся» on the rest) -> «Работать над отмеченными» adds them at once and lists them with «Открыть»; «{N} проектов добавлено · Отменить» (SCN-128).
+  3. Person chooses «Создать проект» -> name, where it lives (a new folder, with git on, or «Пока только идея») and the first task in a sentence -> «Создать» makes it at once and opens it (SCN-165); «Проект создан · Отменить» (SCN-129).
+  4. Person chooses «Создать агента» -> what the agent should do in a sentence, which coding agent builds it (the same radio rows everywhere), its project -> «Создать» starts that coding agent's console on it; the new agent appears in Агенты as it is made (SCN-136).
+- **Expected result:** every start begins in one place, and each path ends in a working project or agent in at most three steps, without a dialog.
+- **Alt paths:** «Открыть проект из папки» (one or several folders as one project) is a line under the folder choice (SCN-127); a folder already in a project -> «Уже в проекте {имя}» with «Открыть»; the scan finds nothing -> «В этой папке проектов не нашлось» with «Выбрать другую папку»; the scan is slow -> «Ищу дольше обычного — можно остановить» after 10 s; macOS refuses to read the folder -> «Нет доступа к папке» with «Открыть настройки macOS».
+- **UI elements:** three choice cards; the folder picker; the scan list with groups, ticks, «Отметить все», «Только активные», «Работать над отмеченными»; the project form; the agent form; the act line.
+- **States covered:** choosing, scanning, slow, denied, found, empty (nothing found), adding, added, creating, created, error («Не получилось: {что}» with the machine's words beneath; what was typed is kept)
+- **Errors & recovery:** a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet — wave 4 redraws the start paths in this frame; today's are SCN-127…SCN-129 and SCN-136
 - **Product:** unobserved

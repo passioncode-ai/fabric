@@ -3,6 +3,7 @@ import {folderPickerControl} from './folder-picker.mjs'
 import {renderCalmAtlas} from './calm.mjs'
 import {renderGuided,guidedViews} from './guided.mjs'
 import {renderLaunch} from './launch.mjs'
+import {renderSimple,simpleViews} from './simple.mjs'
 import {renderProviderAccounts} from './provider-accounts.mjs'
 import {readObligations,renderObligationRows} from './obligations.mjs'
 import {renderNewProject} from './new-project.mjs'
@@ -41,6 +42,8 @@ export function renderProduct(view, state, model, f) {
   if(view==='ceo-conversation')return renderCeoConversation(['empty','loading','error','denied'].includes(state.state)&&!state.chatState?{...state,chatState:state.state}:state)
   const r0=renderFirstRelease(view,state,model);if(r0!==null)return r0
   if(view==='launch-design')return renderCalmAtlas(state,model)
+  // Fabric 0.3.7 "simple" (wave 1, SCN-162…SCN-171): the five places draw their own frame, rail included.
+  if(simpleViews.includes(view))return renderSimple(view,state)
   if(guidedViews.includes(view))return renderGuided(view,state,f)
   if(view.startsWith('launch-'))return f.projects.find(p=>p.id===state.project)?.purged&&state.scope==='project'?title('Данные проекта удалены','Сохранена только квитанция жизненного цикла.',link('Квитанция','archive',{project:state.project})):renderLaunch(view,state)
   const normalized = {...state}

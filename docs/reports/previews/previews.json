@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "a02fd2fe8174730a359f1106f61463ee134766ab9ccdea82dc578515a7a09e36",
-    "docs/ux/product-model.json": "2d14b4cca989184ff2262f30c00fb273d2f798886dcb70d2aa0a71d5bbfd571d"
+    "docs/reports/product.html": "8bc5cdd6bb904de5679377ac85e5521de1c6f93ddfb060c9ede2930155c74894",
+    "docs/ux/product-model.json": "8d31256441ad25de3830043eaf84ad2b70ee89cf9e6579bc4cf2fc32c63da8ac"
   },
   "views": [
     {
@@ -468,6 +468,30 @@
     {
       "id": "project-comms",
       "file": "project-comms.jpg"
+    },
+    {
+      "id": "simple-home",
+      "file": "simple-home.jpg"
+    },
+    {
+      "id": "simple-project",
+      "file": "simple-project.jpg"
+    },
+    {
+      "id": "simple-agents",
+      "file": "simple-agents.jpg"
+    },
+    {
+      "id": "simple-history",
+      "file": "simple-history.jpg"
+    },
+    {
+      "id": "simple-settings",
+      "file": "simple-settings.jpg"
+    },
+    {
+      "id": "simple-create",
+      "file": "simple-create.jpg"
     }
   ]
 }
