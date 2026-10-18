@@ -132,7 +132,8 @@ export const sayAllowFor = (t: Say, x: { connected: boolean; product: string; en
 
 // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
 const FOLDER_KEY: Record<FolderHow, 'access.enroll.folder' | 'access.enroll.folderInside' | 'access.enroll.folderWorktree'> = {
-  exact: 'access.enroll.folder', ancestor: 'access.enroll.folderInside', worktree: 'access.enroll.folderWorktree'
+  exact: 'access.enroll.folder', ancestor: 'access.enroll.folderInside', worktree: 'access.enroll.folderWorktree',
+  remote: 'access.enroll.folderWorktree', create: 'access.enroll.folder'
 }
 /** Fabric's own line about where the agent works: the folder it resolved the project by (never the agent's words). */
 export const sayFolder = (t: Say, folder: NonNullable<EnrollFacts['folder']>): string => t(FOLDER_KEY[folder.how ?? 'exact'], { root: folder.root })

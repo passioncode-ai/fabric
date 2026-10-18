@@ -53,3 +53,13 @@ reverse.
   or retired in wave 1 with this ADR as the reason; the board's access-request item is retired.
 - A machine that is not the operator's own (RM-21, a shared machine) keeps per-effect approval: this ADR is scoped to
   the operator's workplace and changes nothing across the machine boundary.
+
+## Amendments
+
+### Amendment 1 — 2026-10-17: local project registration uses the same recorded boundary
+
+An unknown eligible Git repository is created or attached through the ordinary main-process admission service before
+`session.enroll` is allowed. That is not a new authority: the catalogue runner, its binding and any standing denial are
+checked first; the project create/attach and access decision are journalled separately; the grant and sessions remain
+revocable. A detach, an archived Project, an ambiguous identity and a non-Git or too-broad folder still refuse. No
+remote machine, product account, provider fallback or sibling product store is changed.

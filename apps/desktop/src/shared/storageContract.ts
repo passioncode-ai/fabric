@@ -135,6 +135,7 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   board_directory_listings: 'the operator\'s directory listing per Project, a projection rebuilt from the journal',
   routines: 'NOT REBUILDABLE from the mirror; a schedule the operator set is lost with it',
   project_repos: 'paths on one machine. They are evidence, not content, and they rebind per machine',
+  project_repo_removals: 'rebuilt from the journal (project.repo.detached@1); machine-local repository identity and detach history, not editable workspace content',
   memory_facts: 'rebuilt from the journal; a file copy would be a second memory that drifts',
   memory_retrievals: 'the record of what was asked; volume, and rebuilt',
   membership_commands: 'the receipt of an authority change, keyed by the command that made it. Carrying receipts into a file and back would let a revoked membership be re-granted by replaying somebody else\'s command id',

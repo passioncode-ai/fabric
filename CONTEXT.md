@@ -363,8 +363,10 @@ session and the one tool catalogue (`shared/surfaceTools.ts`), with the work jou
 
 **Enrollment** — how a coding agent Fabric did not launch joins the harness: through
 `fabric-mcp` it asks `fabric.session.enroll` with its folder; the folder is resolved to a
-Project and, on the operator's standing consent per (runtime, Project), it is served the
-session tools of that one Project (ADR-0134). An enrolled session is a session in every other
+Project or, when it is an eligible unknown Git repository or worktree, admitted through the ordinary
+main-process admission service before `session.enroll` is allowed. On the operator's own machine the
+request and grant happen at once as the coding agent's recorded act; a standing denial or revocation
+still refuses (ADR-0134, ADR-0136, ADR-0160). An enrolled session is a session in every other
 respect but one: from 0.3.5 it is listed in «Who is working» (SCR-31) and «Where work is» (SCR-78), but not yet among
 the Agents grid's running sessions or in `fabric_agents_list`, which read Fabric's own consoles (CO-256).
 
@@ -403,8 +405,8 @@ work» are to be retired (ADR-0137); the 0.3.5 screens still show them until the
 
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
-`fabric.access.status` — and, from 0.3.5, `fabric.session.enroll`, which through the door only names the Project
-and answers `needs-grant`; the ask itself is `fabric.access.request` (ADR-0134) — and nothing else; it may be reused; it is never a grant. Through the
+`fabric.access.status` — and, from 0.3.5, `fabric.session.enroll`, which through the door names or proposes the Project
+and answers `needs-grant`; admission itself goes through `fabric.access.request`, never through this read alone (ADR-0134, ADR-0136) — and nothing else; it may be reused; it is never a grant. Through the
 door, reading a request's status also needs that request's **poll secret**.
 
 **Poll secret** — a per-request secret (32 random bytes) the hub returns only in the answer that

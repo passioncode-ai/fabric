@@ -61,7 +61,10 @@ export function normalizeRemoteKey(raw: string | null): string | null {
   const value = raw.trim()
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
     let url: URL
-    try { url = new URL(value) } catch { return null }
+    try { url = new URL(value) } catch {
+      // A malformed URL is simply not a remote identity; logging the raw value could expose its userinfo.
+      return null
+    }
     if (!['http', 'https', 'ssh', 'git', 'git+ssh', 'git+https'].includes(url.protocol.slice(0, -1).toLowerCase())) return null
     return url.host ? keyPath(url.host, url.pathname) : null
   }

@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A coding agent opened in an eligible unknown Git repository or worktree now gets its Project automatically** through Fabric's canonical enrollment and admission path: exact, ancestor, worktree and remote identity attach to the existing Project, an otherwise unknown repository is created once, and `session.enroll` is allowed at once on the operator's own machine. Non-Git and broad folders and ambiguity are refused; detached or archived Projects are not resurrected. No separate **+ Project → Open a project** step or confirmation prompt is required, and every create/attach and access decision is journalled and revocable ([ADR-0136](docs/adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md), [ADR-0160](docs/adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)).
+- **Schema 91 qualifies automatic repository identity and detach tombstones.** Migration 90 adds normalized remote and repository-kind identity, estate-path uniqueness and detach history. Migration 91 admits the resulting schema as a private-archive source in code and SQL.
 - **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
   no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
 

@@ -286,6 +286,12 @@ pipeline's prose reservation, now 110/111). The procedure is the same with 89 in
 tables and functions only and rewrites no stored row; migration 88 replaces functions only; migration 89 adds
 functions and one partial index on the journal and rewrites no stored row.
 
+**The current development tree admits schema 91**: two migrations past 0.3.6's 89,
+`20261017000109_project_repo_identity.sql` and `20261018000112_private_archive_source.sql`. Migration 90 adds
+normalized remote and repository-kind identity, estate-path uniqueness, detach tombstones and their projection.
+Migration 91 qualifies the resulting schema as a private-archive source in code and SQL. The procedure is the same
+with 91 in place of 89.
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z

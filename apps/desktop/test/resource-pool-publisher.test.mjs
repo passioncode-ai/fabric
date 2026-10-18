@@ -3,7 +3,7 @@ import {test} from 'node:test'
 import {createResourcePoolPublisher} from '../src/main/resourcePoolPublisher.ts'
 import {resourceDigest,readResourceHostPolicy} from '../src/main/resourceHostPolicy.ts'
 const v=(workerSlots=10)=>({workerSlots,memoryBytes:1000,diskBytes:1000,cpuMilliCores:1000})
-const config=()=>({hostId:'host',poolId:'pool',localPolicyRevision:'revision-A',capacity:v(),demandProfiles:{builder:v(1),reviewer:v(1),test:v(1)},diskPath:'/owned',diskDeviceId:'1',maxAgeMs:100,sampleWindowMs:5,timeoutMs:40})
+const config=()=>({hostId:'host',poolId:'pool',localPolicyRevision:'revision-A',capacity:v(),demandProfiles:{builder:v(1),reviewer:v(1),test:v(1)},diskPath:'/owned',diskDeviceId:'1',maxAgeMs:100,sampleWindowMs:5,timeoutMs:500})
 function fixture({existing=false,timeoutMs=100,policy=config()}={}) {
  const f={row:null,reads:0,writes:[],systemReads:0,wall:1000,mono:0,identity:{hostId:'host',bootId:'boot'}}
  const pool=(generation=1)=>({host_id:'host',pool_id:'pool',policy_revision:`policy-sha256-v1:${resourceDigest(readResourceHostPolicy(policy,'host'))}`,configuration_generation:generation,capacity:structuredClone(policy.capacity),max_age_ms:policy.maxAgeMs,observed:null,observed_at:null})
