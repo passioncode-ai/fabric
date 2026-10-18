@@ -148,8 +148,8 @@ const persistedActive = (write: ReturnType<typeof vi.fn>): Record<string, unknow
 
 /** Open the search panel and run one query. */
 const searchFor = async (text: string): Promise<void> => {
-  await waitFor(() => expect(document.querySelector('.search-button')).toBeTruthy())
-  fireEvent.click(document.querySelector('.search-button') as HTMLElement)
+  await waitFor(() => expect(document.querySelector('.fab-search')).toBeTruthy())
+  fireEvent.click(document.querySelector('.fab-search') as HTMLElement)
   await waitFor(() => expect(document.querySelector('input')).toBeTruthy())
   fireEvent.change(document.querySelector('input') as HTMLInputElement, { target: { value: text } })
 }
@@ -165,9 +165,9 @@ describe('opening an entity puts the shell AT it, not merely near it', () => {
     fireEvent.click(screen.getByText('the ledger'))
     // The project is open and on show...
     await waitFor(() => expect(screen.getAllByText(/Atlas/).length).toBeGreaterThan(0))
-    // ...and Back goes back to where the search was run from, which is the
-    // field AX-05b gave a reader and this navigation must keep feeding.
-    expect(screen.getByText(en['nav.back'])).toBeTruthy()
+    // ...and there is no Back button of Fabric's own (0.3.7 wave 3, SCN-162 step 3): the way back is ⌘[, asserted
+    // at the end of this case.
+    expect(screen.queryByText(en['nav.back'])).toBeNull()
     // THE ADDRESS ITSELF, and this is the assertion that can fail. Landing on
     // the project is true of a shell with no address at all — it was true
     // before this change — so a case that stops there cannot tell the fix from
@@ -180,6 +180,11 @@ describe('opening an entity puts the shell AT it, not merely near it', () => {
         at: { kind: 'task', id: 't-1' }
       })
     )
+    // THE WAY BACK: ⌘[ returns to the place the search was run from (Главная), ⌘] forward again.
+    fireEvent.keyDown(window, { key: '[', metaKey: true })
+    await waitFor(() => expect(persistedActive(write), 'home is persisted as no active project').toBeNull())
+    fireEvent.keyDown(window, { key: ']', metaKey: true })
+    await waitFor(() => expect(persistedActive(write)).toMatchObject({ kind: 'project', id: 'p1' }))
   })
 
   it('and a hit NOTHING can focus still lands somewhere, rather than nowhere', async () => {
@@ -195,7 +200,7 @@ describe('opening an entity puts the shell AT it, not merely near it', () => {
     await waitFor(() => expect(screen.getByText('we chose the ledger')).toBeTruthy())
     fireEvent.click(screen.getByText('we chose the ledger'))
     await waitFor(() => expect(screen.getAllByText(/Atlas/).length).toBeGreaterThan(0))
-    expect(screen.getByText(en['nav.back'])).toBeTruthy()
+    expect(screen.queryByText(en['nav.back'])).toBeNull()
     // AND NO ADDRESS WAS INVENTED. The click is honoured and the route stays
     // one a screen can actually reach.
     await waitFor(() => expect(persistedActive(write)).toMatchObject({ kind: 'project', id: 'p1' }))

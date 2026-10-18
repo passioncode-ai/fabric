@@ -94,11 +94,14 @@ export function AgentCatalogPanel(): React.JSX.Element {
   )
 }
 
-export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess }: {
+export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen }: {
   settings: AppSettings
   onChange: (next: SettingsPatch) => Promise<void> | void
   onOpenHistory: () => void
   onOpenAccess: () => void
+  /** The places that left the rail in 0.3.7 wave 3 (plan §2, "off the rail") and are reached from here until wave 4
+   *  gives each its home: the account limits, Help (and the first run), Fabric's name and look, the projects' messages. */
+  onOpen?: (to: 'quota' | 'help' | 'persona' | 'comms') => void
 }): React.JSX.Element {
   const t = useT()
   // The screen is the page's main region while it is open, and its heading takes focus, as the other screens' do (i2 UX-2).
@@ -163,6 +166,17 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
               <button type="button" className="lp-button" onClick={onOpenAccess}>{t('settings.agentAccess')}</button>
             </div>
           </section>
+          {onOpen && (
+            <section className="lp-panel" aria-labelledby="settings-more-title">
+              <h3 id="settings-more-title">{t('settings.more.title')}</h3>
+              <div className="lp-actions">
+                <button type="button" className="lp-button" onClick={() => onOpen('quota')}>{t('settings.more.quota')}</button>
+                <button type="button" className="lp-button" onClick={() => onOpen('comms')}>{t('settings.more.comms')}</button>
+                <button type="button" className="lp-button" onClick={() => onOpen('persona')}>{t('settings.more.persona')}</button>
+                <button type="button" className="lp-button" onClick={() => onOpen('help')}>{t('settings.more.help')}</button>
+              </div>
+            </section>
+          )}
         </aside>
       </div>
     </main>

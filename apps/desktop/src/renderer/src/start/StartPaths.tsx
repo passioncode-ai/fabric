@@ -27,6 +27,9 @@ export interface StartProps {
   onHome(): void
   /** Projects were created without leaving the screen (a scan import): re-read the list so the sidebar shows them. */
   onProjectsChanged(): void
+  /** Project drafts the person left unfinished: «Создать» lists them to go on with (no tab strip holds them since 0.3.7). */
+  drafts?: ReadonlyArray<{ id: string; name: string }>
+  onDraft?(id: string): void
 }
 
 
@@ -40,14 +43,14 @@ const newId = (): string => crypto.randomUUID()
 export function StartScreen(props: StartProps): React.JSX.Element {
   switch (props.path) {
     case 'menu':
-      return <StartMenu onPath={props.onPath} onHome={props.onHome} />
+      return <CreateChoices onPath={props.onPath} drafts={props.drafts} onDraft={props.onDraft} />
     case 'add':
       return <AddProject {...props} />
     case 'scan':
       return <ScanFolder {...props} />
     case 'new':
       // Routed to the draft-backed form by the shell; reaching here means a caller skipped that.
-      return <StartMenu onPath={props.onPath} onHome={props.onHome} />
+      return <CreateChoices onPath={props.onPath} />
     case 'agent':
       return <CreateAgent onBack={() => props.onPath('menu')} onStarted={props.onCreated} />
     case 'convert':
@@ -104,23 +107,51 @@ export function StartCards({ onPath, lastScan }: { onPath(path: StartPath): void
   )
 }
 
-function StartMenu({ onPath, onHome }: { onPath(path: StartPath): void; onHome(): void }): React.JSX.Element {
+// #region create-place — docs: docs/ux/scenarios.md#scn-171-start-something-new-from-создать--a-project-an-agent-or-a-projects-folder
+/** «Создать» (SCN-171, SCR-90; 0.3.7 wave 3): the place «＋ Создать» on the rail opens, in the main area rather than as a
+ *  menu over the page. Three choices with one line each of what you get, the projects folder first; one folder or
+ *  several as one project, and an agent built elsewhere, a line beneath. No Back of its own: the rail is the way out. */
+export function CreateChoices({ onPath, drafts, onDraft }: {
+  onPath(path: StartPath): void
+  drafts?: ReadonlyArray<{ id: string; name: string }>
+  onDraft?(id: string): void
+}): React.JSX.Element {
   const t = useT()
-  const [last, setLast] = useState<ScanView | null>(null)
-  useEffect(() => {
-    let alive = true
-    // The pending count is a hint on a card; a kept list that cannot be read only removes the hint. The scan
-    // screen itself says when it cannot read the kept list.
-    window.fabric.start.lastScan().then((s) => alive && setLast(s), () => undefined)
-    return () => { alive = false }
-  }, [])
+  const choice = (path: StartPath, id: 'folder' | 'project' | 'agent', primary = false) => (
+    <button type="button" className={primary ? 'cr-choice primary' : 'cr-choice'} onClick={() => onPath(path)}>
+      <b>{t(`create.${id}.title`)}</b>
+      <span>{t(`create.${id}.body`)}</span>
+    </button>
+  )
   return (
-    <div className="lp st" data-launch-view="start-menu">
-      <Heading kicker={t('start.kicker')} title={t('start.menu.title')} lede={t('start.menu.lede')} back={{ label: t('start.home'), onClick: onHome }} />
-      <StartCards onPath={onPath} lastScan={last} />
+    <div className="lp st cr" data-launch-view="create">
+      <header className="cr-head">
+        <h2 tabIndex={-1}>{t('create.title')}</h2>
+        <p>{t('create.lede')}</p>
+      </header>
+      <div className="cr-choices">
+        {choice('scan', 'folder', true)}
+        {choice('new', 'project')}
+        {choice('agent', 'agent')}
+      </div>
+      <p className="cr-more">
+        <button type="button" className="cr-link" onClick={() => onPath('add')}>{t('create.one')}</button>
+        <button type="button" className="cr-link" onClick={() => onPath('convert')}>{t('create.convert')}</button>
+      </p>
+      {drafts && drafts.length > 0 && onDraft && (
+        <section className="cr-drafts" aria-labelledby="cr-drafts-title">
+          <h3 id="cr-drafts-title">{t('create.drafts')}</h3>
+          <ul>
+            {drafts.map((d) => (
+              <li key={d.id}><button type="button" className="cr-link" onClick={() => onDraft(d.id)}>{d.name.trim() || t('create.draftUntitled')}</button></li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }
+// #endregion create-place
 
 
 // ── Add an existing project (SCN-127) ───────────────────────────────────────

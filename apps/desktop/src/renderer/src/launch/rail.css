@@ -1,0 +1,91 @@
+/* The shell of Fabric 0.3.7 (SCN-162, SCR-84): the rail and the top bar, after the prototype's `.sx-rail` and
+   `.sx-top` (scripts/product/simple.css). Colours are the app's roles only; gold is for what needs the person. */
+.fab-shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh;background:var(--app-bg)}
+.rail{border-right:1px solid var(--app-line);padding:18px 14px;display:flex;flex-direction:column;gap:2px;background:var(--app-panel);position:sticky;top:0;height:100vh;overflow:hidden;-webkit-app-region:drag}
+.rail a,.rail button{-webkit-app-region:no-drag}
+.rail-brand{display:flex;align-items:center;gap:10px;padding:22px 8px 16px}
+.rail-brand b{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.rail-brand small{display:block;font-size:10.5px;color:var(--app-muted);margin-top:1px}
+.rail-create{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 6px 16px;height:34px;border-radius:9px;background:var(--app-ink);color:var(--app-bg);font:inherit;font-size:13.5px;font-weight:550;border:0;cursor:pointer}
+.rail-create.on{box-shadow:0 0 0 2px var(--app-accent)}
+.rail-create:focus-visible,.rail a:focus-visible,.rail-small:focus-visible,.fab-search:focus-visible,.rail-chat:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+.rail-places{display:grid;gap:2px}
+.rail-places a,.rail-projects a{display:flex;align-items:center;gap:11px;min-height:34px;padding:0 10px;border-radius:8px;color:var(--app-muted);font-size:13.5px;text-decoration:none}
+.rail-places a.on,.rail-projects a.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);color:var(--app-ink)}
+@media(hover:hover){.rail-places a:hover,.rail-projects a:hover{color:var(--app-ink)}}
+.rail-i{width:16px;height:16px;border:1.5px solid currentColor;border-radius:4px;opacity:.85;flex:none}
+.rail-i-agents{border-radius:50%}
+.rail-i-history{border-style:dashed}
+.rail-i-settings{border-radius:3px 8px}
+.rail-n{margin-left:auto;font-size:11px;background:var(--app-accent);color:var(--app-accent-ink);border-radius:999px;padding:1px 7px;font-weight:600}
+.rail-sect{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:20px 10px 8px;margin:0}
+.rail-projects{flex:1 1 auto;min-height:0;overflow-y:auto}
+.rail-projects ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
+.rail-projects a{min-height:31px;font-size:13px}
+.rail-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-dot{width:7px;height:7px;border-radius:50%;background:var(--app-line-strong);flex:none}
+.rail-dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
+.rail-star{color:var(--app-accent);font-size:11px;margin-left:-4px}
+.rail-c{margin-left:auto;font-size:11px;color:var(--app-accent);font-weight:600}
+.rail-muted{color:var(--app-muted);font-size:12.5px;padding:0 10px;margin:4px 0}
+.rail-problem{padding:0 10px 8px;font-size:12.5px}
+.rail-problem p{margin:2px 0}
+.rail-machine-words{color:var(--app-muted);font-size:11.5px;overflow-wrap:anywhere}
+.rail-small{min-height:28px;padding:0 10px;margin:4px 10px;border-radius:7px;border:1px solid var(--app-line-strong);background:transparent;color:var(--app-ink);font:inherit;font-size:12px;cursor:pointer}
+.rail-problem .rail-small{margin:6px 0}
+.rail-chat{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-top:8px;border:1px solid var(--app-line);border-radius:10px;background:transparent;color:var(--app-ink);font:inherit;text-align:left;cursor:pointer}
+.rail-chat small{display:block;color:var(--app-muted);font-size:11px}
+.rail-me{margin-top:8px;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--app-line);font-size:12.5px}
+.rail-me small{color:var(--app-muted);display:block;font-size:11px}
+.rail-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pc-brand-plum),var(--pc-brand-magenta));flex:none}
+.fab-main{min-width:0;display:flex;flex-direction:column}
+.fab-top{height:56px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 32px;gap:12px;position:sticky;top:0;background:var(--app-bg);z-index:2;-webkit-app-region:drag}
+.fab-top h1{font-size:15px;font-weight:600;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fab-search{margin-left:auto;width:300px;max-width:40%;height:32px;border:1px solid var(--app-line-strong);border-radius:8px;color:var(--app-muted);background:transparent;font:inherit;font-size:12.5px;display:flex;align-items:center;padding:0 12px;gap:8px;cursor:pointer;-webkit-app-region:no-drag}
+.fab-search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fab-search kbd{margin-left:auto;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;border:1px solid var(--app-line-strong);border-radius:4px;padding:0 5px}
+.fab-search[aria-pressed=true]{border-color:var(--app-accent);color:var(--app-ink)}
+.fab-place{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+.fab-place>.shell,.fab-place>.app-shell-content{flex:1 1 auto}
+/* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
+@media(max-width:900px){
+  .fab-shell{grid-template-columns:64px minmax(0,1fr)}
+  .rail{padding:18px 8px}
+  .rail-brand div,.rail-sect,.rail-projects .rail-name,.rail-places .rail-name,.rail-me div,.rail-chat span,.rail-muted,.rail-problem p{display:none}
+  .rail-create{font-size:0;margin:0 4px 12px}.rail-create span{font-size:15px}
+  .rail-places a,.rail-projects a{justify-content:center;padding:0}
+  .rail-n,.rail-c{margin-left:0}
+}
+@media print{.rail{display:none}.fab-shell{display:block}}
+/* The act line (ADR-0160 §1): one quiet line at the foot of the place, never a toast or a banner. */
+.act-line{position:sticky;bottom:0;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
+.act-line-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.act-line-undo:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+.act-line-undo[disabled]{color:var(--app-muted);cursor:default}
+.act-line-done,.act-line-cannot{color:var(--app-muted)}
+.act-line-refused{flex-basis:100%;display:grid;gap:2px;color:var(--state-danger)}
+.act-line-words{color:var(--app-muted);font-size:11.5px;overflow-wrap:anywhere}
+/* История (SCN-168, 0.3.7 wave 3): acts by day; wave 4 adds the filters and the detail pane. */
+.hx{display:grid;gap:18px;padding:30px 32px;align-content:start}
+.hx-list{list-style:none;margin:0;padding:0;border:1px solid var(--app-line);border-radius:14px;background:var(--app-panel)}
+.hx-row{border-bottom:1px solid var(--app-line)}.hx-row:last-child{border-bottom:0}
+.hx-day{margin:0;padding:12px 18px 4px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted)}
+.hx-act{display:grid;grid-template-columns:52px 90px minmax(0,1fr) auto;gap:4px 12px;align-items:baseline;padding:10px 18px;font-size:13px}
+.hx-time{color:var(--app-muted);font-variant-numeric:tabular-nums}
+.hx-who{color:var(--app-muted)}
+.hx-said{min-width:0;overflow-wrap:anywhere}
+.hx-project{margin-left:8px;color:var(--app-muted);font-size:12px}
+.hx-end{justify-self:end;text-align:right}
+.hx-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.hx-undo[disabled]{color:var(--app-muted)}
+.hx-undo:focus-visible,.hx-button:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+.hx-refused{grid-column:3/-1;display:grid;gap:2px;color:var(--state-danger);font-size:12.5px}
+.hx-muted{color:var(--app-muted);font-size:12.5px;margin:0}
+.hx-empty{color:var(--app-muted);font-size:14px;margin:0}
+.hx-problem{display:grid;gap:6px;justify-items:start}.hx-problem p{margin:0}
+.hx-words{color:var(--app-muted);font-size:11.5px;overflow-wrap:anywhere}
+.hx-button{min-height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--app-line-strong);background:transparent;color:var(--app-ink);font:inherit;font-size:12.5px;cursor:pointer;justify-self:start}
+@media(max-width:700px){.hx-act{grid-template-columns:52px minmax(0,1fr)}.hx-who{display:none}.hx-end,.hx-refused{grid-column:2}}
+/* A question on Главная (ADR-0160 §5): asked in the place, never a banner over every screen. */
+.home-question{border:1px solid var(--app-accent);border-radius:14px;padding:16px 18px;margin-bottom:var(--space-4);background:var(--app-panel)}
+.home-question h3{margin:0 0 6px;font-size:14.5px}

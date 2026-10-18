@@ -6,7 +6,7 @@ import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { PersonaProvider } from '../launch/persona'
 import { FirstRun, firstRunDue } from './FirstRun'
-import { StartScreen, explainError, type StartPath } from './StartPaths'
+import { StartCards, StartScreen, explainError, type StartPath } from './StartPaths'
 import { forgetAgentAttempts } from './AgentPaths'
 import type { CandidateView, ExecutorRow, FolderView, ScanView } from '../../../shared/startPaths.ts'
 
@@ -402,9 +402,11 @@ describe('after a scan: set the first one up with the agent (plan R3a)', () => {
 })
 
 describe('the four actions of the onboarding (REQ-01, REQ-05, REQ-07)', () => {
-  it('the menu is two pairs — Agent: create, adapt; Project: open (one folder or a folder of them), create — and no role agent', () => {
+  // The first run still ends on these cards; the rail's «Создать» (SCN-171) is `CreateChoices` (CreateChoices.test.tsx).
+  it('the first run\u2019s cards are two pairs — Agent: create, adapt; Project: open (one folder or a folder of them), create — and no role agent', () => {
     bridge()
-    const h = start('menu')
+    const h = { onPath: vi.fn() }
+    render(<I18nProvider locale="en"><StartCards onPath={h.onPath} /></I18nProvider>)
     const agent = screen.getByRole('region', { name: en['start.pair.agent'] })
     const project = screen.getByRole('region', { name: en['start.pair.project'] })
     expect(within(agent).getAllByRole('button').map((b) => b.textContent)).toEqual([en['start.card.agent.go'], en['start.card.convert.go']])
@@ -999,13 +1001,14 @@ describe('iteration 2 fixes', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('The last scan could not be read: unreadable')
   })
 
-  it('the menu counts products not yet added, never their worktrees or nested parts', async () => {
-    bridge({ start: { ...bridge().start, lastScan: vi.fn(async () => scanOf({ candidates: [
+  it('the first run\u2019s cards count products not yet added, never their worktrees or nested parts', async () => {
+    bridge()
+    const lastScan = scanOf({ candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
       repo({ path: '/w/a/packages/t', name: 't', group: '/w/a' })
-    ] })) } })
-    start('menu')
+    ] })
+    render(<I18nProvider locale="en"><StartCards onPath={vi.fn()} lastScan={lastScan} /></I18nProvider>)
     expect(await screen.findByRole('button', { name: en['start.card.open.manyPending'].replace('{count}', '1') })).toBeTruthy()
   })
 

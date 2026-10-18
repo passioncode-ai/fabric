@@ -66,6 +66,8 @@ export type Tab =
 export type AppRoute =
   | Tab
   | { kind: 'agents' }
+  /** SCR-88 История (SCN-168, 0.3.7 wave 3): every act with its undo. A place on the rail, not a tab. */
+  | { kind: 'history' }
   /** SCR-78 «Where work is» (SCN-141): the manager's view of every claim, session and review queue. A place, not a tab. */
   | { kind: 'where' }
   /** SCR-41. Estate-wide by default; `projectId` scopes it to one project, `item` opens one row. */
