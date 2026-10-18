@@ -59,6 +59,7 @@ import { I18nProvider, useT, type Locale } from './i18n'
 import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
+import { JoinedAgents } from './launch/JoinedAgents'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
@@ -1063,6 +1064,8 @@ function Shell({
             onError={setError}
           />
         )}
+        {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
+        {active.kind === 'agents' && <JoinedAgents projects={projects} />}
         {active.kind === 'agents' && (
           <EstateAgents
             // NULL TRAVELS (M108, UXA-C05). Five lines below, `EstateHome` is

@@ -168,6 +168,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   hubDecide: MAIN_ONLY,
   hubRevokeGrant: MAIN_ONLY,
   hubRevokeAgent: MAIN_ONLY,
+  hubDisconnectAgent: MAIN_ONLY,
+  hubLetAgentIn: MAIN_ONLY,
   hubClearDenial: MAIN_ONLY,
   hubConnect: MAIN_ONLY,
   hubDisconnect: MAIN_ONLY,

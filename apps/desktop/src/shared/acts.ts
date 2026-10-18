@@ -22,7 +22,7 @@ export const ACT_EVENT = 'act.recorded@1'
 export const ACT_KINDS = [
   'task.move', 'claim.release', 'claim.take', 'repo.detach', 'repo.attach', 'project.rename',
   'question.answer', 'question.reopen', 'session.stop', 'session.start', 'draft.discard', 'draft.restore',
-  'task.close', 'release.record', 'agent.disconnect'
+  'task.close', 'release.record', 'agent.disconnect', 'agent.let_in'
 ] as const
 export type ActKind = (typeof ACT_KINDS)[number]
 
@@ -34,7 +34,7 @@ const CATEGORY: Record<ActKind, ActCategory> = {
   'repo.detach': 'folders', 'repo.attach': 'folders',
   'project.rename': 'projects',
   'question.answer': 'questions', 'question.reopen': 'questions',
-  'session.stop': 'agents', 'session.start': 'agents', 'agent.disconnect': 'agents',
+  'session.stop': 'agents', 'session.start': 'agents', 'agent.disconnect': 'agents', 'agent.let_in': 'agents',
   'draft.discard': 'drafts', 'draft.restore': 'drafts',
   'release.record': 'releases'
 }
@@ -48,7 +48,8 @@ export const WHY_NOT = [
   'published',
   /** a message already delivered to another project cannot be called back */
   'delivered',
-  /** a revoked credential is gone; the agent asks for access again and gets a new one */
+  /** a revoked credential is gone; the agent asks for access again and gets a new one (a single credential revoked in
+   *  Settings → Agent access; «Отключить» on the agent itself has the real inverse «Пустить снова», 0.3.7 wave 3) */
   'credential_gone',
   /** an answer is the person's words: Fabric reopens the question, it does not re-answer it */
   'answer_needs_person'

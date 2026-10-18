@@ -2640,6 +2640,21 @@ export const en = {
   'create.draftUntitled': "A project without a name yet",
   'tasks.replaced': "Your words were replaced.",
   'tasks.replacedBack': "Put my words back",
+  // 0.3.7 wave 3: coding agents that joined on their own, and «Отключить» (SCN-167).
+  'joined.title': "Joined on their own",
+  'joined.reading': "Looking for coding agents that joined…",
+  'joined.failed': "Could not read which agents joined.",
+  'joined.none': "No coding agent has joined from a terminal yet.",
+  'joined.self': "joined on its own",
+  'joined.proof': "Fabric cannot prove this is {name}: any program running as you could use that name.",
+  'joined.disconnect': "Disconnect",
+  'joined.disconnectFailed': "Could not disconnect, it is still connected:",
+  'joined.out': "Disconnected",
+  'joined.outSince': "kept out of every project since {time}",
+  'joined.letIn': "Let back in",
+  'joined.letInFailed': "Could not let it back in:",
+  'joined.outUnreadable': "The list of disconnected agents could not be read, so no agent is kept out right now.",
+  'joined.someProject': "a project",
 } as const
 
 export type StringKey = keyof typeof en
