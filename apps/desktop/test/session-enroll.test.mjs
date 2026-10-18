@@ -107,7 +107,8 @@ test('a non-Git folder is not automatically registered', async () => {
   })
   const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere' }, h.d)
   assert.deepEqual([r.ok, r.code], [false, 'no-project'])
-  assert.match(r.message, /not a Git repository/)
+  assert.match(r.message, /not inside a Git repository/)
+  assert.doesNotMatch(r.message, /person|\+ Project|Open a project/, 'ADR-0164: the answer never hands the folder to the person')
 })
 
 test('a relative, missing or non-string folder: bad-folder, said of this computer', async () => {

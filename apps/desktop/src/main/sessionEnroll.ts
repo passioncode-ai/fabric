@@ -68,14 +68,15 @@ export const MAX_ENROLLED_PER_BINDING = 8
 export const evictedReason = (cap: number): string =>
   `this session was ended to make room: this coding agent's access reached its limit of ${cap} enrolled sessions, and this one was the least recently active. Its claims were released — read fabric_work_list before you go on`
 
+// ADR-0164: no answer hands the folder to the person. Each names what Fabric did not do and the agent's own next step.
 export const NO_PROJECT_MESSAGE =
-  'This folder is not a Git repository Fabric can register automatically. Open a Git repository or worktree, or choose it in Fabric (+ Project → Open a project).'
+  'This folder is not inside a Git repository, so Fabric does not attribute it to a Project. Start the agent inside a Git repository or worktree, or run `git init` here, and enroll again.'
 export const AMBIGUOUS_PROJECT_MESSAGE =
-  'Fabric found more than one Project for this folder and will not guess. Attach the repository to exactly one Project before enrolling.'
+  'This folder matches more than one Project in Fabric, and Fabric does not guess. Start the agent in a folder that belongs to one Project.'
 export const DETACHED_PROJECT_MESSAGE =
-  'This repository was detached in Fabric. Automatic enrollment will not attach it again; reattach it in Fabric first.'
+  'This repository was detached from its Project in Fabric, and Fabric does not attach it again on its own. Undoing that detach in Fabric brings it back.'
 export const TOO_BROAD_MESSAGE =
-  'A home folder or a filesystem root is not a Git repository Fabric may register. Open the repository inside it.'
+  'A home folder or a filesystem root is too broad for a Project. Start the agent inside the repository you work in.'
 
 export type FolderFact =
   | {
