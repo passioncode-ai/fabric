@@ -66,6 +66,8 @@ Projects are an ambiguity and are refused. A non-Git folder, home or filesystem 
 a detach recorded by the operator is not resurrected; `project_repo_removals` holds the tombstone until an explicit
 attach clears it. Re-entry is idempotent, including a retry after project creation but before the enrollment grant.
 
+The decision this amendment carries out is recorded as [ADR-0164](0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md).
+
 Evidence: `apps/desktop/test/folder-resolver.test.mjs`, `project-admission.test.mjs`,
 `session-enroll-request.test.mjs`, `session-enroll.test.mjs`, and the repository-identity group in
 `command-ingress-db.test.mjs` (90 migrations on an owned disposable PostgreSQL cluster).

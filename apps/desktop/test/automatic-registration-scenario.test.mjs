@@ -221,7 +221,7 @@ test('the operator\'s detach and a standing denial hold against later agent star
 
   const plain = path.join(root, 'plain-folder')
   mkdirSync(plain)
-  assert.match((await f.agentStarts('claude-code', plain)).refused ?? '', /not a Git repository/)
-  assert.match((await f.agentStarts('claude-code', root)).refused ?? '', /not a Git repository|home folder/)
+  assert.match((await f.agentStarts('claude-code', plain)).refused ?? '', /not inside a Git repository/)
+  assert.match((await f.agentStarts('claude-code', root)).refused ?? '', /Git repository|too broad/)
   assert.equal(projectWrites(f), before)
 })
