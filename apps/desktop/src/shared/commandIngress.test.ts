@@ -105,6 +105,21 @@ describe('explicit event privacy policy', () => {
       ['memory.project.recorded@1', {about: {namespace: 'skill', key: secret}}]
     ] as const) expect(prepareEventPayload(type, {...fixtures[type], ...changes})).toEqual({state: 'rejected', code: 'secret_in_reference'})
   })
+  it('records an agent\'s attribution of a folder (ADR-0164): who, why and through what, never a secret', () => {
+    const attributed = { cause: 'new-project', runner: 'codex', via: 'door', binding_id: null, runtime_session_id: 'rt-1', remote_key: 'github.com/o/n' }
+    expect(prepareEventPayload('project.repo.attached@1', { id, path: '/tmp/project', label: 'project', is_primary: true, attributed }))
+      .toMatchObject({ state: 'prepared', value: { is_primary: true, attributed } })
+    expect(prepareEventPayload('project.created@1', { id, name: 'project', purpose: null, repo_path: null, memory_backend: 'local', default_agent: 'codex', attributed }))
+      .toMatchObject({ state: 'prepared', value: { attributed } })
+    expect(prepareEventPayload('project.repo.attached@1', { ...fixtures['project.repo.attached@1'], attributed: { ...attributed, cause: 'guess' } }))
+      .toEqual({ state: 'rejected', code: 'invalid_enum' })
+    expect(prepareEventPayload('project.repo.attached@1', { ...fixtures['project.repo.attached@1'], attributed: { ...attributed, via: 'window' } }))
+      .toEqual({ state: 'rejected', code: 'invalid_enum' })
+    expect(prepareEventPayload('project.repo.attached@1', { ...fixtures['project.repo.attached@1'], attributed: { ...attributed, runtime_session_id: secret } }))
+      .toEqual({ state: 'rejected', code: 'secret_in_reference' })
+    expect(prepareEventPayload('project.repo.attached@1', { ...fixtures['project.repo.attached@1'], attributed: { ...attributed, extra: 1 } }))
+      .toEqual({ state: 'rejected', code: 'unknown_field' })
+  })
   it('retains absence/null/empty-list distinctions and validates required fields', () => {
     expect(prepareEventPayload('project.updated@1', {id, purpose: null})).toMatchObject({state: 'prepared', value: {id, purpose: null}})
     expect(prepareEventPayload('project.settings.updated@1', {id, mcp_servers: []})).toMatchObject({state: 'prepared', value: {id, mcp_servers: []}})

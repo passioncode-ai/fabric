@@ -214,3 +214,11 @@ the person sees it in История and Агенты and revokes it with **От
 person lets it back in. The native dialog, the board's access-request item and the pending queue for it are
 retired by the 0.3.7 plan's wave 3 (until it ships, 0.3.6 still asks); the credential, its scope and its expiry are unchanged. Across the machine boundary (ADR-0144) nothing
 changes. See [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md).
+
+### Amendment — ADR-0164 (2026-10-18): a folder with no project is attributed, never handed to the person
+
+`no-project` no longer tells the agent that adding the folder is the person's step (amendment 6). On
+`fabric.session.enroll` Fabric attributes a folder no project holds itself — to its project, or as a new project — as
+the agent's recorded act, and the enrollment goes on; through the door the agent may name its `runner` for that record.
+`no-project` now means Fabric refused to attribute the folder, with `reason` `too-broad`, `not-a-repository` or
+`contains-projects`. See [ADR-0164](0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md).

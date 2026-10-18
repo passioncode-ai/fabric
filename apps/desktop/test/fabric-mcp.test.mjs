@@ -481,12 +481,17 @@ test('fabric-mcp leaving says so: the session link ends its HTTP session (DELETE
 })
 
 // D1/D2 (fabric-agent-adapter#53): the runtime session id travels with every enrollment; a rejoin asks nothing.
-test('the runtime session id is sent with every enrollment, credential and door alike', async () => {
+test('the runtime session id is sent with every enrollment, credential and door alike; the door also names the runner', async () => {
   const h = harness({ extra: { runtimeSessionId: 'rt-42' } })
   await h.proxy.connectOnce()
   const enrolls = h.calls.filter((c) => c.tool === 'fabric.session.enroll')
   assert.ok(enrolls.length >= 2)
-  for (const c of enrolls) assert.deepEqual(c.args, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42' })
+  // ADR-0164: through the door, the runner is who Fabric records as the actor if it attributes the folder; a
+  // credential's binding is its own runner, so it is not sent there.
+  for (const c of enrolls) assert.deepEqual(c.args, c.bearer === 'door'
+    ? { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42', runner: 'claude-code' }
+    : { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42' })
+  assert.ok(enrolls.some((c) => c.bearer === 'door'))
 })
 
 test('a runtime session id that is not one is not sent', async () => {

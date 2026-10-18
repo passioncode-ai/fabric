@@ -56,7 +56,7 @@ export interface HubToolDeps {
   /** `agent.call` itself (S4). Absent, the tool refuses rather than pretending to route. */
   call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal) => Promise<ToolAnswer>
   /** `fabric.session.enroll` (ADR-0134). Absent, the tool refuses: this Fabric admits no coding agent from outside. */
-  enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean }) => Promise<EnrollAnswer>
+  enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean; runner?: string }) => Promise<EnrollAnswer>
   /** `fabric.board.join` (ADR-0149 §4). Absent, the tool refuses: this Fabric gives no board sessions. */
   joinBoard?: (binding: BindingRow, args: { projectId: string }) => Promise<
     | { ok: true; session: { bearer: string; sessionId: string; projectId: string; capabilities: string[] } }
@@ -159,18 +159,22 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     {
       title: 'Work in the project of this folder',
       description:
-        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll, and this same folder as folder); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
+        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll, and this same folder as folder). A folder no project holds is attributed by Fabric itself on this call (ADR-0164) — added to the project it belongs to, or made a new project — recorded as your act and said in attributed; never ask the person to add it. no-project means Fabric refused to attribute it, and reason says why (too-broad, not-a-repository, contains-projects).' + VERIFY_HUB,
       inputSchema: z.object({
         cwd: z.string().min(1).max(4096),
         runtimeSessionId: z.string().min(1).max(128).optional(),
-        rejoinOnly: z.boolean().optional().describe('With runtimeSessionId: join the live session that coding-agent session already holds here, or be told there is none (no-session) — never ask the operator, never start a session')
+        rejoinOnly: z.boolean().optional().describe('With runtimeSessionId: join the live session that coding-agent session already holds here, or be told there is none (no-session) — never ask the operator, never start a session'),
+        runner: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/).optional().describe('Through the door: the coding agent you are (claude-code, codex, kimi-code), recorded as the actor if Fabric attributes this folder. A binding credential is its own runner; this is then ignored')
       }).strict()
     },
     async (args) =>
       guard('session.enroll', async () => {
         if (!deps.enroll) return refusal('hub-unavailable', 'this Fabric admits no coding agent from outside')
-        const r = await deps.enroll(principal.kind === 'binding' ? principal.binding : null, args as { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean })
-        return r.ok ? answer({ session: r.session }) : refusal(r.code, r.message, r.code === 'needs-grant' ? { projectId: r.projectId, projectName: r.projectName, resource: r.resource } : undefined)
+        const r = await deps.enroll(principal.kind === 'binding' ? principal.binding : null, args as { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean; runner?: string })
+        return r.ok ? answer({ session: r.session })
+          : r.code === 'needs-grant' ? refusal(r.code, r.message, { projectId: r.projectId, projectName: r.projectName, resource: r.resource, ...(r.attributed ? { attributed: r.attributed } : {}) })
+          : r.code === 'no-project' && r.reason ? refusal(r.code, r.message, { reason: r.reason })
+          : refusal(r.code, r.message)
       })
   )
   // #endregion hub-session-enroll

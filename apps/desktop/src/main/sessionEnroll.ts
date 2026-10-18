@@ -7,13 +7,18 @@ import { createHash, randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { FABRIC_SELF, SESSION_ENROLL } from '../shared/access.ts'
 import type { BindingRow, GrantRow } from './accessStore.ts'
-import { resolveProjectForFolder, type AdmittedFolder } from './folderResolver.ts'
+import { resolveProjectForFolder, type AdmittedFolder, type AttributionCause, type AttributionRefusal } from './folderResolver.ts'
+import type { Asker, Attributed } from './folderAttribution.ts'
 import { ops } from './opsSink.ts'
 
+/** Said with an answer when Fabric attributed the folder on this call (ADR-0164): why, and whether a project was made. */
+export interface AttributedFact { cause: AttributionCause; created: boolean }
+
 export type EnrollAnswer =
-  | { ok: true; session: { bearer: string; sessionId: string; projectId: string; projectName: string; how: string } }
-  | { ok: false; code: 'needs-grant'; projectId: string; projectName: string; resource: string; message: string }
-  | { ok: false; code: 'no-project'; message: string }
+  | { ok: true; session: { bearer: string; sessionId: string; projectId: string; projectName: string; how: string; attributed?: AttributedFact } }
+  | { ok: false; code: 'needs-grant'; projectId: string; projectName: string; resource: string; message: string; attributed?: AttributedFact }
+  /** `reason`: why Fabric refused to attribute the folder (ADR-0164); absent when no attribution was tried. */
+  | { ok: false; code: 'no-project'; message: string; reason?: AttributionRefusal }
   | { ok: false; code: 'bad-folder'; message: string }
   /** A rejoin (D2) that found no live session of that runtime session: nothing is asked and nothing is minted. */
   | { ok: false; code: 'no-session'; message: string }
@@ -44,6 +49,9 @@ export interface EnrollDeps extends FolderDeps {
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
   stillLive(bindingId: string, grantId: string): Promise<boolean>
   journal(type: 'session.enrolled@1', projectId: string, payload: Record<string, unknown>): Promise<unknown>
+  /** ADR-0164: attributes a folder no project holds — attached to its project or made a new one, journalled as the
+   *  asking agent's act (`folderAttribution.ts#createFolderAttribution`). Absent, such a folder answers no-project. */
+  attribute?(real: string, asker: Asker): Promise<Attributed>
   /** Live enrolled sessions one binding may hold; a further enrollment ends the least recently active. Default 8. */
   maxSessionsPerBinding?: number
   now?: () => number
@@ -58,13 +66,16 @@ export const MAX_ENROLLED_PER_BINDING = 8
 export const evictedReason = (cap: number): string =>
   `this session was ended to make room: this coding agent's access reached its limit of ${cap} enrolled sessions, and this one was the least recently active. Its claims were released — read fabric_work_list before you go on`
 
+/** A folder no project holds, said where Fabric only reads it (the access ask): enrolling from it attributes it
+ *  (ADR-0164) — it is never the person's step. */
 export const NO_PROJECT_MESSAGE =
-  'This folder is not a project in Fabric yet. Adding it is the person\'s step, in Fabric (+ Project → Open a project); ' +
-  'never create a project or attach a folder yourself. Once it is a project, start the agent again.'
+  'This folder is not in a project in Fabric yet. Call fabric.session.enroll from it (fabric_whoami does): Fabric ' +
+  'attributes the folder itself — to the project it belongs to, or to a new project — and records that as this agent\'s act.'
 
 export type FolderFact =
   | { ok: true; real: string; projectId: string; how: 'exact' | 'ancestor' | 'worktree'; root: string }
-  | { ok: false; code: 'bad-folder' | 'no-project'; message: string }
+  | { ok: false; code: 'no-project'; message: string; real: string }
+  | { ok: false; code: 'bad-folder'; message: string }
 
 /** A folder an agent names, as Fabric resolves it itself: absolute, existing (its real path), held by a project. The
  *  one resolution behind both the enrollment and the enrollment ask, so the prompt shows Fabric's fact. */
@@ -73,9 +84,31 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
   const real = deps.realpath(folder)
   if (!real) return { ok: false, code: 'bad-folder', message: 'that folder does not exist on this computer' }
   const match = await resolveProjectForFolder(real, await deps.admittedFolders(), deps.gitCommonDir)
-  if (!match.projectId) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
+  if (!match.projectId) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE, real }
   return { ok: true, real, projectId: match.projectId, how: match.how as 'exact' | 'ancestor' | 'worktree', root: match.root as string }
 }
+
+// #region session-enroll-attribution — docs: docs/adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md#decision
+const RUNNER = /^[a-z0-9][a-z0-9-]{0,63}$/
+
+/** How a folder relates to the root it was attributed under: the root itself, inside it, or a worktree of it. */
+function howUnder(real: string, root: string): 'exact' | 'ancestor' | 'worktree' {
+  if (real === root) return 'exact'
+  const rel = path.relative(root, real)
+  return rel && !path.isAbsolute(rel) && rel !== '..' && !rel.startsWith('..' + path.sep) ? 'ancestor' : 'worktree'
+}
+
+/** One sentence for the agent: what Fabric did with its folder on this call. */
+function attributedSentence(projectName: string, a: AttributedFact): string {
+  const why = a.cause === 'same-remote' ? 'it is a checkout of one of its repositories'
+    : a.cause === 'owner' ? 'its repository has the same owner as that project\'s'
+    : a.cause === 'sibling' ? 'it sits beside that project\'s folders'
+    : 'it matched no project'
+  return a.created
+    ? `Fabric made this folder a new project, ${projectName}, because ${why}; that is recorded as this agent's act and can be undone in Fabric's history.`
+    : `Fabric added this folder to the project ${projectName}, because ${why}; that is recorded as this agent's act and can be undone in Fabric's history.`
+}
+// #endregion session-enroll-attribution
 
 // #region session-enroll-revocation — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
 /** One enrolled session this process minted. The bearer never leaves this process. */
@@ -213,15 +246,40 @@ export class EnrolledSessions {
 // #endregion session-enroll-revocation
 
 /** `binding` null: the door asks — the folder is resolved and the project named (`needs-grant`), never a session. */
-export function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+export function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown; runner?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   const attempt = () => enrollSessionOnce(binding, args, deps)
   return binding === null ? attempt() : deps.sessions.enrolling(binding.id, attempt)
 }
 
-async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
-  const folder = await resolveAgentFolder(args.cwd, deps)
-  if (!folder.ok) return { ok: false, code: folder.code, message: folder.message }
+async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown; runner?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   const runtimeSessionId = typeof args.runtimeSessionId === 'string' && RUNTIME_SESSION.test(args.runtimeSessionId) ? args.runtimeSessionId : null
+  const now = (deps.now ?? Date.now)()
+  let grants: GrantRow[] | null = null
+  const liveGrants = async (): Promise<GrantRow[]> => (grants ??= binding === null ? [] : await deps.liveGrants(binding))
+  const resolved = await resolveAgentFolder(args.cwd, deps)
+  let folder: Extract<FolderFact, { ok: true }>
+  let attributed: AttributedFact | undefined
+  if (resolved.ok) folder = resolved
+  else if (resolved.code === 'no-project' && deps.attribute && args.rejoinOnly !== true) {
+    // #region session-enroll-attribute — docs: docs/adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md#decision
+    // ADR-0164: never handed to the person. The binding's runner is the agent; through the door its own word is
+    // recorded as such (`via: door`). The projects it already holds a live grant on decide a sibling or owner tie.
+    const projects = (await liveGrants())
+      .filter((g) => g.callee === FABRIC_SELF && g.capability === SESSION_ENROLL && g.revoked_at === null && Date.parse(g.expires_at) > now && g.resource.startsWith('project:'))
+      .map((g) => g.resource.slice('project:'.length))
+    const asker: Asker = {
+      runner: binding ? binding.agent_id : (typeof args.runner === 'string' && RUNNER.test(args.runner) ? args.runner : null),
+      via: binding ? 'binding' : 'door',
+      bindingId: binding?.id ?? null,
+      runtimeSessionId,
+      projects: [...new Set(projects)]
+    }
+    const a = await deps.attribute(resolved.real, asker)
+    if (!a.ok) return { ok: false, code: 'no-project', message: a.message, reason: a.reason }
+    folder = { ok: true, real: resolved.real, projectId: a.projectId, root: a.root, how: howUnder(resolved.real, a.root) }
+    if (a.cause !== 'already') attributed = { cause: a.cause, created: a.created }
+    // #endregion session-enroll-attribute
+  } else return { ok: false, code: resolved.code, message: resolved.message }
   const projectName = (await deps.projectName(folder.projectId)) ?? 'this project'
   // #region session-rejoin — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // D2 (fabric-agent-adapter#53): a short-lived fabric-mcp started by the session hooks joins the session its coding
@@ -240,16 +298,16 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   }
   // #endregion session-rejoin
   const resource = `project:${folder.projectId}`
-  const now = (deps.now ?? Date.now)()
   const needsGrant: EnrollAnswer = {
     ok: false, code: 'needs-grant', projectId: folder.projectId, projectName, resource,
-    message: `Ask the operator once with fabric.access.request (callee ${FABRIC_SELF}, capability ${SESSION_ENROLL}, resource ${resource}, folder <this absolute folder>).`
+    message: `${attributed ? attributedSentence(projectName, attributed) + ' ' : ''}Ask the operator once with fabric.access.request (callee ${FABRIC_SELF}, capability ${SESSION_ENROLL}, resource ${resource}, folder <this absolute folder>).`,
+    ...(attributed ? { attributed } : {})
   }
-  const grant = binding === null ? undefined : (await deps.liveGrants(binding)).find(
+  const grant = binding === null ? undefined : (await liveGrants()).find(
     (g) => g.callee === FABRIC_SELF && g.capability === SESSION_ENROLL && g.resource === resource && g.revoked_at === null && Date.parse(g.expires_at) > now
   )
   if (!grant || binding === null) return needsGrant
-  const session = (bearer: string, sessionId: string): EnrollAnswer => ({ ok: true, session: { bearer, sessionId, projectId: folder.projectId, projectName, how: folder.how } })
+  const session = (bearer: string, sessionId: string): EnrollAnswer => ({ ok: true, session: { bearer, sessionId, projectId: folder.projectId, projectName, how: folder.how, ...(attributed ? { attributed } : {}) } })
 
   // #region session-enroll-bound — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // An enrollment in a loop must not grow the surface or the journal: a bearer minted for this binding and project

@@ -51,3 +51,11 @@ Wave 1 built resolution by pick and by the folder of an admitted repository or i
 (`folderResolver.ts#resolveProjectForFolder`, ADR-0134 amendment 2). §2 — a folder that belongs to no project admitted
 on the agent's report and the operator's consent — is wave 2's (REQ-05); until then such a folder answers `no-project`
 and the agent is told to open it in Fabric first (SCN-137).
+
+### Amendment 2 — 2026-10-18: §2 is replaced by ADR-0164
+
+§2's consent step is not built and will not be. A folder no project holds is attributed by Fabric itself when an agent
+enrolls from it — attached to the one project it belongs to by its remote, its owner or as a sibling of the asking
+agent's project, or made a new project — and the act is journalled as the agent's, with its cause, and undone by its
+inverse ([ADR-0164](0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md), CO-328). §1's
+normalized remote is used without storing it; §3's `remote_key` and `kind` columns are not needed and stay unbuilt.

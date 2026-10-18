@@ -81,15 +81,78 @@ test('no grant, a revoked grant, an expired grant or a grant on another project:
   }
 })
 
-test('a folder no project holds: no-project, with what to do in Fabric\'s own words', async () => {
+test('a folder no project holds, with no attribution wired: no-project, and the agent is never told it is the person\'s step', async () => {
   const h = deps()
   const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere' }, h.d)
   assert.deepEqual([r.ok, r.code], [false, 'no-project'])
-  assert.match(r.message, /\+ Project → Open a project/)
-  // Said as the person's step: an agent told "open it in Fabric" could take it as its own (attach the folder, create
-  // a project), which the project board rule forbids — the R-010 real client read this sentence back verbatim.
-  assert.match(r.message, /the person's step/)
-  assert.match(r.message, /never create a project or attach a folder yourself/)
+  // ADR-0164: a folder with no project is attributed by Fabric, never handed to the person.
+  assert.doesNotMatch(r.message, /\+ Project|person's step|never create a project/)
+  assert.match(r.message, /fabric\.session\.enroll|fabric_whoami/)
+})
+
+// ── ADR-0164: a folder no project holds is attributed by Fabric, then the enrollment goes on ──────────────────────
+
+const Q = '1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+function attributing(result, over = {}) {
+  const asked = []
+  const h = deps({
+    attribute: async (real, asker) => { asked.push({ real, asker }); return result },
+    projectName: async (id) => (id === Q ? 'fresh' : 'site'),
+    ...over
+  })
+  return { ...h, asked }
+}
+
+test('through the door, a new folder is attributed (here a new project) and the answer names that project to ask for', async () => {
+  const h = attributing({ ok: true, projectId: Q, root: '/Users/me/DATA/fresh', cause: 'new-project', created: true })
+  const r = await enrollSession(null, { cwd: '/Users/me/DATA/fresh/src', runner: 'codex', runtimeSessionId: 'rt-1' }, h.d)
+  assert.deepEqual([r.ok, r.code, r.projectId, r.resource], [false, 'needs-grant', Q, `project:${Q}`])
+  assert.deepEqual(r.attributed, { cause: 'new-project', created: true })
+  assert.match(r.message, /new project/)
+  assert.deepEqual(h.asked, [{ real: '/Users/me/DATA/fresh/src', asker: { runner: 'codex', via: 'door', bindingId: null, runtimeSessionId: 'rt-1', projects: [] } }])
+  assert.equal(h.minted.length, 0)
+})
+
+test('with a binding, the agent is the binding\'s runner, and the projects it holds a live grant on are passed for a sibling', async () => {
+  const h = attributing({ ok: true, projectId: P, root: '/Users/me/DATA/site-admin', cause: 'sibling', created: false })
+  // A runner the binding did not name is ignored: the binding's identity is the agent.
+  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site-admin', runner: 'codex', runtimeSessionId: 'rt-2' }, h.d)
+  assert.equal(r.ok, true)
+  assert.equal(r.session.projectId, P)
+  assert.equal(r.session.how, 'exact')
+  assert.deepEqual(r.session.attributed, { cause: 'sibling', created: false })
+  assert.deepEqual(h.asked[0].asker, { runner: 'claude-code', via: 'binding', bindingId: 'b-1', runtimeSessionId: 'rt-2', projects: [P] })
+  assert.equal(h.journaled[0].type, 'session.enrolled@1')
+})
+
+test('an attributed folder inside its root enrolls as ancestor; a worktree of it as worktree', async () => {
+  const inside = attributing({ ok: true, projectId: P, root: '/Users/me/DATA/site-admin', cause: 'owner', created: false })
+  assert.equal((await enrollSession(binding, { cwd: '/Users/me/DATA/site-admin/src' }, inside.d)).session.how, 'ancestor')
+  const wt = attributing({ ok: true, projectId: P, root: '/Users/me/DATA/site-admin', cause: 'owner', created: false })
+  assert.equal((await enrollSession(binding, { cwd: '/tmp/wt/site-admin-1' }, wt.d)).session.how, 'worktree')
+})
+
+test('a refused attribution is no-project with its reason, and nothing is minted', async () => {
+  const h = attributing({ ok: false, reason: 'too-broad', message: 'Fabric does not attribute this folder to a project: it is too broad.' })
+  const r = await enrollSession(binding, { cwd: '/Users/me' }, h.d)
+  assert.deepEqual([r.ok, r.code, r.reason], [false, 'no-project', 'too-broad'])
+  assert.match(r.message, /too broad/)
+  assert.equal(h.minted.length, 0)
+})
+
+test('a rejoin never attributes: a folder no project holds is no-session', async () => {
+  const h = attributing({ ok: true, projectId: P, root: '/Users/me/elsewhere', cause: 'new-project', created: true })
+  const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere', runtimeSessionId: 'rt-3', rejoinOnly: true }, h.d)
+  assert.equal(r.ok, false)
+  assert.equal(h.asked.length, 0)
+})
+
+test('a folder already in a project is never attributed again', async () => {
+  const h = attributing({ ok: true, projectId: Q, root: '/x', cause: 'new-project', created: true })
+  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  assert.equal(r.ok, true)
+  assert.equal(h.asked.length, 0)
+  assert.equal(r.session.attributed, undefined)
 })
 
 test('a relative, missing or non-string folder: bad-folder, said of this computer', async () => {

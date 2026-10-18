@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T00:00:00Z · `—` · agent/co328-auto-attribution → main · fast-forward
+- run: r-44ae60a75316
+- files: apps/desktop/src/main/folderResolver.ts, apps/desktop/src/main/folderAttribution.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/hubTools.ts, apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/index.ts, apps/desktop/src/shared/commandIngress.ts, their tests, docs/adr/0164-…, ADR-0134/0136 amendments, CO-328, docs/ux/scenarios.md (SCN-137, SCN-168, SCN-169), docs/reports/map.html
+- conflicts: none
+- summary: CO-328 / ADR-0164 — a folder a coding agent enrolls from that no project holds is attributed by Fabric itself (same remote, the agent's project by parent or owner, the one project of that owner, or a new project), journalled as the agent's act with its cause; refusals (too broad, no repository, around other projects) name the agent's own next step; "the person's step" sentence is gone.
+
 ### 2026-10-16T03:30:00Z · `—` · fix/workspace-sync-wedge → main · fast-forward
 - run: r-a809c95ced27
 - files: scripts/workspace.mjs, scripts/workspace-sources.mjs, scripts/test/workspace-sources.test.mjs, docs/architecture/report-workspace.md, docs/reports/map.html

@@ -11,6 +11,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
   no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
+- **A coding agent in a folder that is no project is no longer told to have you add it** ([ADR-0164](docs/adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md),
+  CO-328). When it enrolls, Fabric attributes the folder itself — to the project with the same git remote, to the
+  agent's own project when the folder sits beside that project's folders or shares its remote owner, to the one project
+  of that owner, or as a new project named after the folder — and records it as that agent's act, with why. A folder
+  too broad (the home folder or above), outside every git repository, or around other projects' folders is refused,
+  and the agent is told its own next step.
 
 ## 0.3.6
 

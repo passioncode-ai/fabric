@@ -212,7 +212,8 @@ export const ASK_THE_BROKER =
   'go on with other work.'
 // #endregion fabric-mcp-broker-wording
 
-/** How long the run loop waits before the next pass, by state. A folder that is no project is not asked about every
+/** How long the run loop waits before the next pass, by state. A folder Fabric refused to attribute (ADR-0164: too
+ *  broad, outside every repository, around other projects) is not asked about every
  *  few seconds: it waits until the agent calls fabric_whoami, or half a minute. */
 export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
   starting: 3000, failed: 3000, waiting: 3000, 'not-a-hub': 3000,
@@ -432,7 +433,8 @@ export class FabricMcpProxy {
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
     if (need) return this.ask(hub, need.bearer, need.data, need.via)
 
-    const r = await this.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
+    // Through the door the runner names itself: if Fabric attributes this folder (ADR-0164), the act is this agent's.
+    const r = await this.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', { ...enrollArgs, runner: this.deps.runner })
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })

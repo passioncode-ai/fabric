@@ -32,6 +32,8 @@ import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { gitCommonDir, gitTopLevel } from './folderResolver.ts'
+import { createFolderAttribution } from './folderAttribution.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
@@ -45,7 +47,7 @@ import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
 import { translator, type Translate } from '../renderer/src/i18n/translate.ts'
 import type { StringKey } from '../renderer/src/i18n/en.ts'
-import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
+import { FileRoots, isTooBroad, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
 import { createWindowRegistry, type IpcWindowRefused } from './windowRegistry.ts'
@@ -876,6 +878,43 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       }
     }
   }
+  // #region folder-attribution-wiring — docs: docs/adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md#decision
+  // ADR-0164: a folder no project holds is attributed here, in the main process, as the asking agent's act — attached
+  // to its project or made a new one — never handed to the person. A runner outside the catalogue is recorded as an
+  // unnamed coding agent. The file roots, the git watch and the workspace mirror follow, as after the operator's own
+  // attach or create.
+  const attributeFolder = createFolderAttribution({
+    admittedFolders: enrollFolders.admittedFolders,
+    probes: {
+      topLevel: gitTopLevel,
+      commonDir: gitCommonDir,
+      origin: (repoPath) => cachedOrigin(repoPath),
+      tooBroad: (folder) => isTooBroad(folder),
+      realpath: (p) => enrollFolders.realpath(p)
+    },
+    joinable: async () => {
+      const archived = await store.selectAll('projects', 'id,status', { orderBy: ['id'] })
+      if (archived.failed) throw new Error(`projects read failed: ${archived.failed}`)
+      const out = new Set((archived.rows as Array<{ id: string; status: string | null }>).filter((r) => r.status === 'archived').map((r) => r.id))
+      return (projectId) => !out.has(projectId)
+    },
+    journal: (e) => journal.append({ estateId: ACTIVE_ESTATE, type: e.type, actor: e.actor, projectId: e.projectId, payload: e.payload }),
+    newId: () => randomUUID(),
+    changed: async () => {
+      await refreshFileRoots()
+      const root = readSettings().workspace.path
+      if (root) void writeWorkspace(root, store).catch((e) => ops.failed('hub.attribution.mirror', e, { note: 'the workspace mirror could not be written after an attribution:' }))
+    }
+  })
+  const attribute: NonNullable<Parameters<typeof enrollSession>[2]['attribute']> = async (real, asker) => {
+    const runner = asker.runner && AGENTS.some((a) => a.id === asker.runner && a.program) ? asker.runner : null
+    const r = await attributeFolder(real, { ...asker, runner })
+    ops.record({ op: 'hub.folder.attribute', outcome: 'ok', level: 'info',
+      detail: r.ok ? { project_id: r.projectId, cause: r.cause, created: r.created, via: asker.via, runner } : { refused: r.reason, via: asker.via, runner },
+      ctx: { correlationId: ops.correlate() } })
+    return r
+  }
+  // #endregion folder-attribution-wiring
   // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
   // The cap evicts by last call, and an evicted session's next call is told why (0.3.5 review i2 ER-4); a rejoin's
   // replaced bearer goes alone (ER-5).
@@ -935,6 +974,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           mint: (projectId, sessionId, taskId, origin) => surface.mint(projectId, sessionId, taskId, origin),
           sessions: enrolled,
           stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
+          attribute,
           journal: (type, projectId, payload) =>
             journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
         }),

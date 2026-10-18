@@ -3471,7 +3471,8 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Amended 2026-10-13 (COM-03):** the enrollment is the session's board enrollment for that one project (ADR-0149 §1): it takes part in the project board as its project. Answering other projects' requests is asked apart (SCN-145); once granted, the enrolled session answers under its own binding's grant, a session Fabric launched under its runner's.
 - **Status:** draft
 - **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** step 2 goes ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3): the agent is let in at once, recorded as its own act, and shown in История and in Агенты with «Отключить» (SCN-167); the native prompt, the board item and the Agent-access queue for an enrollment are removed. Steps 3–5 stand, with «Отключить» in place of revoking in SCR-76.
-- **Coverage:** apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/fabricMcpMain.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/accessService.ts, apps/desktop/src/shared/accessWords.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx
+- **Amended 2026-10-18 (CO-328, [ADR-0164](../adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md)):** the folder need not be a project's already. In step 1 a folder no project holds is attributed by Fabric itself — to the project with the same remote, the agent's own project by its parent folder or remote owner, the one project of that owner, or a new project named after the folder — and recorded in История as the agent's act («Codex добавил папку esim-admin в проект eSIM», «Claude Code создал проект fresh»); `fabric_whoami` says what Fabric did, and the agent goes on to step 2. The agent is never told to have the person add the project. A folder too broad (the home folder, a folder above it), outside every git repository, or holding other projects' folders is refused with the agent's own next step (work inside one repository; `git init`). The precondition «once wave 2 builds ADR-0136 §2» is replaced by this.
+- **Coverage:** apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/fabricMcpMain.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/folderResolver.ts, apps/desktop/src/main/folderAttribution.ts, apps/desktop/src/main/accessService.ts, apps/desktop/src/shared/accessWords.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx
 - **Product:** unobserved
 
 ## Agents first — the operator's evening additions · 2026-10-11 ([0.4.0 plan](../evidence/plans/2026-10-11-release-040-agents-first.md#operator-additions-evening))
@@ -4132,6 +4133,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
 - **Telemetry:** planned only.
 - **Status:** draft
+- **Amended 2026-10-18 (CO-328, [ADR-0164](../adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md)):** a folder an agent's enrollment attributed is an act of that agent: «Codex добавил папку esim-admin в проект eSIM» (`project.repo.attached@1`, its actor the agent, `attributed.cause` saying why — same remote, owner, beside the project's folders) and «Claude Code создал проект fresh» (`project.created@1` with its folder attached), each with «Отменить» (SCN-169). «Что: папки» shows them.
 - **Coverage:** none yet — wave 2 builds the read (the journal, ADR-0014, with each act's actor and inverse)
 - **Product:** unobserved
 
@@ -4151,6 +4153,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.
 - **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses.
 - **Status:** draft
+- **Amended 2026-10-18 (CO-328, [ADR-0164](../adr/0164-a-folder-with-no-project-is-attributed-by-fabric-never-handed-to-the-person.md)):** two more acts have an inverse: a folder an agent's enrollment added to a project (detached — `project.repo.detached@1`) and a project an agent's enrollment made (its folder detached and the project archived — `project.archived@1`); nothing is deleted. An undone attribution is remembered, so the agent's next start in that folder does not make it again.
 - **Coverage:** none yet — wave 2 (the inverse of each act in the main process, tested do-then-undo)
 - **Product:** unobserved
 

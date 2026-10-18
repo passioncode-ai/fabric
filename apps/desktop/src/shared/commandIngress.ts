@@ -134,10 +134,21 @@ const occurrence = object({ system: required(reference), source_id: required(ref
 const timestamp: Rule = v => /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(string(v)) &&
   Number.isFinite(Date.parse(string(v))) ? v : refuse('invalid_shape')
 
+/** A folder Fabric attributed for a coding agent (ADR-0164, `folderAttribution.ts`): why, which agent, how it came. */
+const attributed = object({
+  cause: required(enumeration(['same-remote', 'owner', 'sibling', 'new-project'])),
+  runner: required(nullable(reference)),
+  via: required(enumeration(['binding', 'door'])),
+  binding_id: optional(nullable(reference)),
+  runtime_session_id: optional(nullable(reference)),
+  remote_key: optional(nullable(reference))
+})
+
 const EVENT_FIELDS: Record<string, Fields> = {
   'task.closed@1': { task_id: required(uuid), outcome: required(enumeration(['done', 'cancelled'])), reason: optional(nullable(text)), ...metadata },
   'memory.retrieved@1': { id: required(uuid), session_id: required(nullable(uuid)), store: required(enumeration(['facts', 'transcripts'])), query: required(text), hits: required(integer(0)), ...metadata },
-  'project.repo.attached@1': { id: required(uuid), path: required(reference), label: required(text), ...metadata },
+  'project.repo.attached@1': { id: required(uuid), path: required(reference), label: required(text),
+    is_primary: optional(boolean), attributed: optional(attributed), ...metadata },
   'routine.paused@1': { id: required(uuid), reason: required(text), window: optional(nullable(reference)), reason_code: optional(nullable(reference)), ...metadata },
   'routine.ran@1': { id: required(uuid), task_id: required(uuid), because: required(text), ...metadata },
   'cycle.ran@1': { state: required(reference), ms: required(integer(0)), sessions_observed: required(integer(0)), says: required(text), advances: required(boolean), ...metadata },
@@ -159,7 +170,7 @@ const EVENT_FIELDS: Record<string, Fields> = {
     permission_mode: optional(nullable(reference)), ...metadata },
   'project.created@1': { id: required(uuid), name: required(text), purpose: optional(nullable(text)),
     repo_path: optional(nullable(reference)), memory_backend: optional(enumeration(['local', 'cloud'])),
-    default_agent: optional(reference), ...metadata },
+    default_agent: optional(reference), attributed: optional(attributed), ...metadata },
   'project.updated@1': { id: required(uuid), name: optional(nullable(text)), purpose: optional(nullable(text)),
     repo_path: optional(nullable(reference)), ...metadata },
   'project.settings.updated@1': { id: required(uuid), memory_backend: optional(enumeration(['local', 'cloud'])),
