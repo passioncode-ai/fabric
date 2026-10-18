@@ -63,5 +63,5 @@ FLW-92
 # rail (FLW-93, SCR-84) and История with undo (FLW-97, SCR-88) are designed before any of their code exists — wave 1 is
 # the spec, waves 2–3 build them. No screen on their paths has an implementing file yet. Strike FLW-97 when wave 2
 # lands SCR-88, and FLW-93 when wave 3 lands SCR-84. (FLW-94…FLW-96 and FLW-98 traverse built screens and are measured.)
-FLW-93
-FLW-97
+# Struck 2026-10-18 by wave 3: SCR-84 cites launch/LaunchShell.tsx and SCR-88 launch/HistoryScreen.tsx, so FLW-93 and
+# FLW-97 are measured.

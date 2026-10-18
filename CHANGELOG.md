@@ -9,6 +9,23 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **One rail, five places** (0.3.7, SCN-162). The left of the window holds «＋ Создать», Главная, Агенты, История and
+  Настройки, then your projects: favourites first, then by latest activity, a green dot where an agent works and a
+  count where something waits for you. The tab strip, the Back button, the per-project links and the bar above each
+  screen are gone; ⌘[ goes back and ⌘] forward; ⌘K opens search. Board, Plan, Messages between projects, account
+  limits, Help and Fabric's name and look are reached from where they belong (Главная, the project page, Настройки).
+- **«Создать»** opens in the window with three choices: open a projects folder, create a project, create an agent.
+  Drafts you left unfinished are listed there to go on with.
+- **История** lists every act, yours and the agents', newest first by day, with «Отменить» where it can be taken back
+  and the reason where it cannot. After an act, one quiet line at the foot of the place says what was done, with
+  «Отменить».
+- **No more «are you sure?»** (ADR-0160). Stop, force stop, releasing a task, removing a folder, discarding a draft and
+  replacing your words with a shortcut happen at once and can be undone. A link opened while the first run was on
+  screen opens what it links to. An agent's request to use a product, the usage-count question and the warning that
+  the local database is reachable from your network are questions on Главная, never a pop-up or a banner.
+- **«Отключить» for a coding agent that joined on its own** (SCN-167). Агенты shows each coding agent that joined
+  from a terminal, with the fact that Fabric cannot prove which program it is. «Отключить» revokes its access, ends
+  its consoles and keeps it out of every project until you press «Пустить снова»; either can be undone.
 - **Docker no longer brings back services Fabric does not use.** Containers an older full start had left (the
   database studio, its logs, mail and file storage) started again with every Docker or OrbStack restart and took about
   1.4 GB of memory. Fabric now removes them when it starts its local database; the data stays.

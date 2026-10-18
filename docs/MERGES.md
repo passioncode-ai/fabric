@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T20:30:00Z · `—` · agent/fabric-simple-w3 → main · fast-forward
+- run: r-44ae60a75316
+- files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
+- conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
+- summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
 ### 2026-10-19T04:20:00Z · `—` · agent/unified-attribution → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/main/sessionEnroll.ts, projectAdmission.ts, folderResolver.ts, index.ts, stackServices.ts, env.ts, their tests (project-admission, stack-services, delivery), ADR-0166 and the ADR-0164 amendment, the pipeline reservation (ADR-0167), the registers (CO-331, CO-332, CO-333), AGENTS.md, CHANGELOG, docs/reports

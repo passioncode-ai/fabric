@@ -4004,8 +4004,8 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **States covered:** loading (the list reads — «Читаю проекты…», never "no projects"), empty (no project), error (the list could not be read — «Проекты не прочитаны.» with the machine's words beneath and «Повторить»; the five places stay usable), success
 - **Errors & recovery:** the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.
 - **Telemetry:** planned only.
-- **Status:** draft
-- **Coverage:** none yet — the 0.3.7 plan's wave 3 builds the rail; today's tab strip and project links are `apps/desktop/src/renderer/src/App.tsx` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`
+- **Status:** implemented
+- **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, the search field and ⌘K, the conversation with Fabric only once it is switched on), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx, apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe, and the person's name at the foot (Fabric holds none; it says «Вы»)
 - **Product:** unobserved
 
 ### SCN-163: See on Главная what needs me, what is being done now, and my projects
@@ -4027,7 +4027,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet — wave 4 rebuilds Главная to the prototype; today's home is SCN-158's
+- **Coverage:** none yet for the place itself (wave 4 rebuilds Главная to the prototype; today's home is SCN-158's). Wave 3 moved two notices onto it as questions, never banners: the local database reachable from the network (`apps/desktop/src/renderer/src/StackExposureNotice.tsx`) and the usage-count question (`apps/desktop/src/renderer/src/UsageCountsNotice.tsx`), both rendered by `EstateHome.tsx`; an agent's ask of a product is the board's question reached from it, no native prompt (`apps/desktop/src/main/index.ts`, the hub's `present`)
 - **Product:** unobserved
 
 ### SCN-164: Answer a question in plain words with one press, and take the answer back
@@ -4113,7 +4113,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.
 - **Telemetry:** journal `session.enrolled@1` (the agent as actor), `access.binding.revoked@1` (the person as actor).
 - **Status:** draft
-- **Coverage:** none yet — wave 3 removes the consent step; today's consent is SCN-137's
+- **Coverage:** apps/desktop/src/main/keptOut.ts (0.3.7 wave 3: «Отключить» revokes every credential the agent holds and keeps it out of every project until «Пустить снова», each the other's inverse as acts), apps/desktop/src/main/accessService.ts region `kept-out-door` (the kept-out agent refused before any admission write), apps/desktop/src/renderer/src/launch/JoinedAgents.tsx (in Агенты: «подключился сам», the proof line, «Отключить», «Отключён» with «Пустить снова»); the let-in itself is ADR-0164's admission (apps/desktop/src/main/projectAdmission.ts). Probed in apps/desktop/test/kept-out.test.mjs, apps/desktop/test/session-enroll-request.test.mjs and apps/desktop/src/renderer/src/launch/JoinedAgents.test.tsx. Not yet: the «Codex открыт в папке вне проектов» line in История (wave 4)
 - **Product:** unobserved
 
 ### SCN-168: Read every act in История — who did it, when and to what
@@ -4133,7 +4133,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The screen is wave 4's; the agents' own acts (through their MCP tools) join the list from their events in that wave.
+- **Coverage:** the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.
 - **Product:** unobserved
 
 ### SCN-169: Undo an act, or read why it cannot be undone
@@ -4152,7 +4152,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.
 - **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses — `act.recorded@1` (migration 90, suffix 112), one record for every act whatever its own event: the actor, the sentence, the inverse or `why_not`, `undoes`.
 - **Status:** draft
-- **Coverage:** the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded. **Not in wave 2:** a disconnected agent «let back in» (the revoked credential is gone and says so, `credential_gone`; the "kept out until let in" state arrives with wave 3's enrollment without consent) and a message to another project (the operator has no send in the main process). The buttons and the act line are waves 3 and 4.
+- **Coverage:** the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded; wave 3 adds a disconnected agent let back in (`apps/desktop/src/main/keptOut.ts`, `apps/desktop/test/kept-out.test.mjs`). The buttons: the act line at a place's foot (`apps/desktop/src/renderer/src/launch/ActLine.tsx`, wired to `acts.undo` in `App.tsx`; probed in `ActLine.test.tsx` and `actLineShell.test.tsx`) and История's rows (`HistoryScreen.tsx`). Not yet: the button's own text when the object changed since (`changedSince`, wave 4), and a message to another project (the operator has no send in the main process).
 - **Product:** unobserved
 
 ### SCN-170: Set how Fabric behaves in Настройки
@@ -4192,5 +4192,5 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet — wave 4 redraws the start paths in this frame; today's are SCN-127…SCN-129 and SCN-136
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: «Создать» in the main area with its three choices, one folder or several, an agent built elsewhere, and the unfinished project drafts to go on with), probed in apps/desktop/src/renderer/src/start/CreateChoices.test.tsx and onboardingDraft.persist.test.tsx; each choice opens today's path (SCN-127…SCN-129, SCN-136), which wave 4 redraws in this frame
 - **Product:** unobserved
