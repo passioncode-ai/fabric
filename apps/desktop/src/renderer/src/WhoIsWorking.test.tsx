@@ -97,21 +97,17 @@ describe('Who is working on what', () => {
     expect(screen.queryByText('Stale from p1')).toBeNull()
   })
 
-  it('Release… asks first, names the agent and the task, and Cancel releases nothing', async () => {
+  // ADR-0160 §1 (0.3.7 wave 3): Release in the row's … menu acts at once; «take it again» is its undo on the act line.
+  it('Release in the … menu releases at once and asks nothing', async () => {
     const release = vi.fn(async () => ({ released: true, claimId: 'c1' }))
     stub({ work: { project: vi.fn(async () => view({ claims: [claim({})] })), release } })
     show(<WhoIsWorking projectId="p1" feedMark={0} onError={() => {}} />)
     await waitFor(() => screen.getByRole('button', { name: en['work.who.more'] }))
     fireEvent.click(screen.getByRole('button', { name: en['work.who.more'] }))
     fireEvent.click(screen.getByRole('button', { name: en['work.who.release'] }))
-    expect(screen.getByText(en['work.release.title'])).toBeTruthy()
-    expect(screen.getByText(/Claude Code stops holding Login form now/)).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: en['common.cancel'] }))
-    expect(release).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: en['work.who.more'] }))
-    fireEvent.click(screen.getByRole('button', { name: en['work.who.release'] }))
-    fireEvent.click(screen.getByRole('button', { name: en['work.release.confirm'] }))
     await waitFor(() => expect(release).toHaveBeenCalledWith('c1'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(screen.queryByText(en['work.release.title'])).toBeNull()
   })
 
   it("agent-sync's leases are listed read-only, and an unread list says why once, in the operator's language (UX-5)", async () => {

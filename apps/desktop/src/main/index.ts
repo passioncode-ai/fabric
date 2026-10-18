@@ -918,7 +918,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   access = new AccessService({
     store: accessStore,
     registry,
-    present: (request) => presenter.present(request),
+    // ADR-0160 §4 (0.3.7 wave 3): an agent's ask of a product's resources is a question on Главная (the board's access
+    // item, Разрешить / Не разрешать), never a native prompt or a notification. The request is journalled and read from
+    // there (attention.ts); nothing pops up. The presenter stays for the queue Settings → Agent access still shows.
+    present: (request) => { ops.record({ op: 'hub.access.asked-on-home', outcome: 'ok', detail: { request_id: request.row.id }, ctx: { correlationId: ops.correlate() } }) },
     connected: async (product) => (await accessStore.liveConnection(product)) !== null,
     // Who may ask Fabric itself for a session: a coding agent of the runner catalogue whose program is found on this
     // computer (pty.ts#launchOption — the shell row has none and asks for nothing); which projects exist: this

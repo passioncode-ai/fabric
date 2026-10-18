@@ -9,7 +9,7 @@ import { failed, forSubject, settled, type KeyedRead } from '../../shared/keyedR
 import { loadInto, type TaskDraft } from '../../shared/taskDraft.ts'
 import type { CreatedAgent, LaunchOption, ProjectRow, TaskRow } from '../../shared/types'
 import { resolvePresets, type PresetInput, type TaskPreset } from '../../shared/presets.ts'
-import { Banner, Button, Panel, Toolbar } from './components'
+import { Button, Panel, Toolbar } from './components'
 import { explainError } from './start/startParts'
 import { useT } from './i18n'
 import { runnerLabel } from './runnerLabel'
@@ -115,18 +115,25 @@ export function Tasks({
   /** Something the operator asked to load while the field already held their
    *  own text — a preset, or a task to run again. `id` is null for a reuse:
    *  borrowed text never carries a borrowed preset's provenance (UX-14). */
-  const [pending, setPending] = useState<{ id: string | null; text: string; agent?: string } | null>(null)
+  // ADR-0160 §1 (0.3.7 wave 3): the load happens at once; what it replaced is kept to be put back with one press.
+  const [replaced, setReplaced] = useState<{ instruction: string; preset: string | null; presetText: string | null; agent: string } | null>(null)
+  const replaceWith = (next: { id: string | null; text: string; agent?: string }): void => {
+    setReplaced({ instruction, preset, presetText, agent })
+    setInstruction(next.text)
+    setPreset(next.id)
+    setPresetText(next.id === null ? null : next.text)
+    if (next.agent) { touched.current = true; setAgent(next.agent) }
+  }
 
   // A reuse behaves exactly as a preset does when the field is not empty: it
-  // ASKS. Silently replacing what someone typed is the same loss whether the
-  // replacement came from a preset or from their own past task (UX-14).
+  // replaces at once and keeps the person's words to put back (ADR-0160 §1; UX-14 was a «replace?» banner).
   useEffect(() => {
     if (!reuse) return
     // `presetId: null` is the rule, not an omission: borrowed text does not
     // carry borrowed provenance (UX-14).
     const load = loadInto(draft ?? undefined, { text: reuse.instruction, presetId: null })
     if (load.kind === 'ask') {
-      setPending({ id: null, text: reuse.instruction, agent: reuse.optionId })
+      replaceWith({ id: null, text: reuse.instruction, agent: reuse.optionId })
     } else {
       onDraftChange?.(load.draft)
       touched.current = true
@@ -328,7 +335,7 @@ export function Tasks({
               onClick={() => {
                 const text = t(p.instructionKey as Parameters<typeof t>[0], p.vars)
                 const load = loadInto(draft ?? undefined, { text, presetId: p.id })
-                if (load.kind === 'ask') setPending({ id: p.id, text })
+                if (load.kind === 'ask') replaceWith({ id: p.id, text })
                 else onDraftChange?.(load.draft)
               }}
             >
@@ -338,30 +345,17 @@ export function Tasks({
         </Toolbar>
       </Toolbar>
 
-      {pending && (
-        <Banner
-          tone="warn"
-          actions={
-            <>
-              <Button tone="ghost" onClick={() => setPending(null)}>
-                {t('common.keep')}
-              </Button>
-              <Button
-                onClick={() => {
-                  setInstruction(pending.text)
-                  setPreset(pending.id)
-                  setPresetText(pending.id === null ? null : pending.text)
-                  if (pending.agent) { touched.current = true; setAgent(pending.agent) }
-                  setPending(null)
-                }}
-              >
-                {t('common.replace')}
-              </Button>
-            </>
-          }
-        >
-          {t('tasks.replaceConfirm')}
-        </Banner>
+      {replaced && replaced.instruction !== instruction && (
+        <p className="muted" role="status">
+          {t('tasks.replaced')}{' '}
+          <Button tone="ghost" onClick={() => {
+            setInstruction(replaced.instruction)
+            setPreset(replaced.preset)
+            setPresetText(replaced.presetText)
+            setAgent(replaced.agent)
+            setReplaced(null)
+          }}>{t('tasks.replacedBack')}</Button>
+        </p>
       )}
 
     </Panel>

@@ -50,7 +50,6 @@ import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
 import { SettingsScreen } from './launch/SettingsScreen'
-import { UsageCountsNotice } from './UsageCountsNotice'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
@@ -518,7 +517,6 @@ function Shell({
   const [linkNotice, setLinkNotice] = useState<LinkNotice | null>(null)
   /** Links that waited past the limit and were not opened, said beside the notice (0.3.5 review i2 ER-7). */
   const [linksDropped, setLinksDropped] = useState(0)
-  const [linkOffer, setLinkOffer] = useState<LinkRoute | null>(null)
   const heldLink = useRef<LinkRoute | null>(null)
   const linkDecided = useRef(false)
   const activeKind = useRef(active.kind)
@@ -527,7 +525,6 @@ function Shell({
     goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
     setLinkNotice(r.notice)
     setLinksDropped(r.dropped ?? 0)
-    setLinkOffer(null)
   }
   const applyLinkRef = useRef(applyLink)
   applyLinkRef.current = applyLink
@@ -535,7 +532,8 @@ function Shell({
     const { apply, offer } = releaseLink(heldLink.current, how)
     heldLink.current = null
     if (apply) applyLinkRef.current(apply)
-    if (offer) setLinkOffer(offer)
+    // A deep link opens what it links to (ADR-0160 §5): no «open it?» banner after the first run.
+    if (offer) applyLinkRef.current(offer)
   }
   useEffect(() => {
     const take = (r: LinkRoute): void => {
@@ -868,8 +866,6 @@ function Shell({
           onUndone={(undone) => { if (undone.record.kind === 'draft.discard') draftsRestored(true) }} />}
       >
 
-      {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
-      <UsageCountsNotice />
 
       {linkNotice && (
         <Banner
@@ -881,20 +877,6 @@ function Shell({
         >
           {t(LINK_NOTICE_KEY[linkNotice])}
           {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
-        </Banner>
-      )}
-      {linkOffer && (
-        <Banner
-          actions={
-            <>
-              <Button onClick={() => applyLink(linkOffer)}>{t('links.offer.open')}</Button>
-              <Button tone="ghost" onClick={() => setLinkOffer(null)}>
-                {t('common.dismiss')}
-              </Button>
-            </>
-          }
-        >
-          {t('links.offer.body')}
         </Banner>
       )}
 

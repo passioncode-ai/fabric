@@ -2638,6 +2638,8 @@ export const en = {
   'drafts.notKept': "The draft was closed, but it could not be kept to bring back: {reason}",
   'create.drafts': "Not finished",
   'create.draftUntitled': "A project without a name yet",
+  'tasks.replaced': "Your words were replaced.",
+  'tasks.replacedBack': "Put my words back",
 } as const
 
 export type StringKey = keyof typeof en

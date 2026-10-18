@@ -2,8 +2,9 @@
 // A7-012 (ADR-0127): a release build sends no usage count until the person has seen what is counted and answered
 // the switch once. This notice is that first answer; Settings → Share usage counts (SCR-52) is the other way to
 // give it. Until one of them is answered the main process holds every event, `app_installed` included.
+// 0.3.7 wave 3 (ADR-0160 §5): a question on Главная, no longer a banner over every screen.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Banner, Button } from './components'
+import { Button } from './components'
 import type { AnalyticsStatus } from '../../shared/types'
 import { useT } from './i18n'
 
@@ -53,23 +54,19 @@ export function UsageCountsNotice(): React.JSX.Element | null {
     } catch { setFailed(true) } finally { setBusy(false) }
   }
   return (
-    <Banner
-      tone="warn"
-      actions={
-        <>
-          <label className="usage-notice-switch">
-            <input type="checkbox" checked={share} disabled={busy} onChange={(e) => setShare(e.target.checked)} />
-            {' '}{t('analytics.label')}
-          </label>
-          <Button ref={continueRef} disabled={busy} onClick={() => void answer()}>{t('analytics.notice.continue')}</Button>
-        </>
-      }
-    >
-      <strong>{t('analytics.notice.title')}</strong>
+    <section className="home-question" aria-labelledby="usage-question">
+      <h3 id="usage-question">{t('analytics.notice.title')}</h3>
       <p>{t('analytics.note')}</p>
       <p>{t(sentBefore ? 'analytics.notice.sentBefore' : 'analytics.notice.nothingYet')}</p>
       {failed && <p>{t('analytics.notice.failed')}</p>}
-    </Banner>
+      <div className="lp-actions">
+        <label className="usage-notice-switch">
+          <input type="checkbox" checked={share} disabled={busy} onChange={(e) => setShare(e.target.checked)} />
+          {' '}{t('analytics.label')}
+        </label>
+        <Button ref={continueRef} disabled={busy} onClick={() => void answer()}>{t('analytics.notice.continue')}</Button>
+      </div>
+    </section>
   )
 }
 // #endregion usage-analytics-notice

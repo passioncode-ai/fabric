@@ -1136,7 +1136,7 @@ export function ReposSection({
             {r.is_primary && <StateChip>{t('onboarding.primary')}</StateChip>}
             <Button tone="ghost"
               onClick={async () => {
-                if (r.is_primary && !window.confirm(t('repos.detachPrimaryConfirm'))) return
+                // At once, even the primary folder (ADR-0160 §1): «Папка убрана · Отменить» on the act line attaches it again.
                 try {
                   await window.fabric.repos.detach(project.id, r.id)
                   await onChanged()

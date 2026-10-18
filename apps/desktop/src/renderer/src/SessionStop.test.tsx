@@ -15,7 +15,7 @@ describe('Stop control',()=>{
  it('keeps verified receipt after stale requested props or a failed refresh',async()=>{
   const f=setup({},vi.fn().mockResolvedValue({sessionId:'s',state:'stopped',reasonCode:'termination_observed',receiptSeq:12}))
   f.refresh.mockRejectedValue(Error('refresh offline'))
-  fireEvent.click(screen.getByText('Stop execution'));fireEvent.click(screen.getByText('Stop execution'))
+  fireEvent.click(screen.getByText('Stop execution'))
   await screen.findByText('Stop verified')
   f.view.rerender(<I18nProvider locale="en"><SessionStop session={{...session,termination:{sessionId:'s',state:'requested',reasonCode:'stop_requested'}}} refresh={f.refresh} onError={vi.fn()}/></I18nProvider>)
   expect(screen.getByText('Stop verified')).toBeTruthy()
@@ -28,23 +28,25 @@ describe('Stop control',()=>{
   expect(screen.queryByText('Dismiss')).toBeNull()
  })
 
- it('confirms a normal Stop and does not claim success on unknown',async()=>{
-  const f=setup();fireEvent.click(screen.getByText('Stop execution'));expect(f.end).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByText('Stop execution'));await screen.findByText('Stop unverified')
+ // ADR-0160 §1 (0.3.7 wave 3): one press stops; no «are you sure» row. The stop is an act with its undo (start again).
+ it('stops at once with one press, asks nothing, and does not claim success on unknown',async()=>{
+  const f=setup();fireEvent.click(screen.getByText('Stop execution'))
+  expect(screen.queryByText('Stop this execution? The task and its history remain.')).toBeNull()
+  await screen.findByText('Stop unverified')
   expect(f.end).toHaveBeenCalledWith('s',{force:false});expect(screen.queryByText('Dismiss')).toBeNull()
   expect(screen.getByText('Check stop again')).toBeTruthy()
  })
- it('needs a separate Force confirmation and explicit option',async()=>{
+ it('Force stop is one press too, with its explicit option',async()=>{
   const f=setup({running:false,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'pending'}})
-  fireEvent.click(screen.getByText('Force stop'));expect(f.end).not.toHaveBeenCalled()
   fireEvent.click(screen.getByText('Force stop'));await waitFor(()=>expect(f.end).toHaveBeenCalledWith('s',{force:true}))
+  expect(screen.queryByText('Force this session to stop? Unsaved work may be lost.')).toBeNull()
  })
  it('IPC loss retains a recovery state',async()=>{
-  setup({},vi.fn().mockRejectedValue(Error('lost')));fireEvent.click(screen.getByText('Stop execution'));fireEvent.click(screen.getByText('Stop execution'))
+  setup({},vi.fn().mockRejectedValue(Error('lost')));fireEvent.click(screen.getByText('Stop execution'))
   await screen.findByText('Stop unverified');expect(screen.getByText('Check stop again')).toBeTruthy()
  })
  it('blocks repeat input while the request is pending',async()=>{
-  const f=setup({},vi.fn(()=>new Promise(()=>{})));fireEvent.click(screen.getByText('Stop execution'));fireEvent.click(screen.getByText('Stop execution'))
+  const f=setup({},vi.fn(()=>new Promise(()=>{})));fireEvent.click(screen.getByText('Stop execution'))
   const button=screen.getByRole('button',{name:'Stopping…'}) as HTMLButtonElement
   expect(button.disabled).toBe(true);fireEvent.click(button);expect(f.end).toHaveBeenCalledTimes(1)
  })
