@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T09:00:00Z · `—` · agent/fabric-simple-w2 → main · fast-forward
+- run: r-44ae60a75316
+- files: the acts module and its tests in apps/desktop/src/main, migration 20261017000112_acts_and_reopened_answers.sql, docs/ux, the plan, CHANGELOG, docs/reports
+- conflicts: CHANGELOG and generated docs/reports on rebase over CO-323; both bullets kept, reports regenerated
+- summary: Fabric 0.3.7 wave 2. Every operator act is recorded with its actor and its inverse (task moved back, claim taken again, folder attached again, name restored, question reopened, console started again, draft restored); an undo is itself an act; the История read lists them; an answered question can be reopened. Schema 89 to 90.
+
 ### 2026-10-18T08:00:00Z · `—` · agent/co323-expired-lease → main · fast-forward
 - run: r-44ae60a75316
 - files: apps/desktop/src/shared/workClaims.ts, apps/desktop/src/main/workRead.ts, apps/desktop/src/main/workTools.ts, apps/desktop/src/main/agentSurface.ts, their tests, the carry-over register, CHANGELOG, docs/reports

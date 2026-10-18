@@ -1,4 +1,4 @@
-// #region act-log — docs: docs/ux/scenarios.md#scn-168-read-every-act-in-istoriia-who-did-it-when-and-to-what
+// #region act-log — docs: docs/ux/scenarios.md#scn-168-read-every-act-in-история--who-did-it-when-and-to-what
 /**
  * The act log over the journal: `act.recorded@1` written through the journal's one door and read back in pages,
  * newest first, with the filters История offers. A row whose payload is not a record this product wrote is not
