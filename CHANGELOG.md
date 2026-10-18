@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Any folder an agent starts in becomes a project by itself**, not only a Git repository: a plain folder is added
+  the same way, with the agent named in the history and the add undoable there. Only a container is skipped (the
+  disk root, the home folder, a folder right under it such as Documents, or a folder that already holds projects).
 - **Every act can be taken back** (ADR-0160, SCN-168, SCN-169; the screens follow in 0.3.7). Moving a task, releasing
   a claim, removing or adding a folder, renaming a project, answering a question, stopping a console and discarding a
   draft are each recorded with who did it and how to undo it: a task moves back, a claim is taken again, a folder

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T22:00:00Z · `—` · fix/main-gates-20261018 → main · fast-forward
+- run: r-44ae60a75316
+- files: apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/projectAdmission.ts, apps/desktop/src/main/actLog.ts, apps/desktop/src/shared/providerCapabilityMatrix.ts, their tests, scripts/test/run-browser-suites.sh and two browser suites, ADR-0164 amendment, the pipeline reservation, the registers, CHANGELOG, docs/reports
+- conflicts: none
+- summary: a plain folder an agent starts in becomes its own project (the operator, «добавление всегда авто»); three checks red on main fixed (the reversals read chunked through selectIn, Codex re-pinned to 0.163.0, the pipeline reservation moved to 115/116 and ADR-0165); CO-330 resolved.
+
 ### 2026-10-18T14:00:00Z · `—` · agent/auto-project-registration-on-w2 → main · fast-forward
 - run: r-r9631f5d5219 (Kimi Code), continued as r-2dc0ba8613f7 (Claude Code)
 - files: folderResolver.ts, projectAdmission.ts, sessionEnroll.ts, accessService.ts, actExecutors.ts, index.ts, migrations 20261018000113/20261018000114, ADR-0134/0136/0160 amendments, ADR-0164, CO-328/CO-329, SCN-137/FLW-77/SCR-76, the two-round scenario test

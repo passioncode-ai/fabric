@@ -4,6 +4,7 @@
 // that project, mints a session exactly as for a session Fabric launched — one bearer, one project, no task — and
 // journals `session.enrolled@1`. Every other outcome is a typed answer the caller can act on, never a throw.
 import { createHash, randomUUID } from 'node:crypto'
+import os from 'node:os'
 import path from 'node:path'
 import { FABRIC_SELF, SESSION_ENROLL } from '../shared/access.ts'
 import type { BindingRow, GrantRow } from './accessStore.ts'
@@ -70,13 +71,13 @@ export const evictedReason = (cap: number): string =>
 
 // ADR-0164: no answer hands the folder to the person. Each names what Fabric did not do and the agent's own next step.
 export const NO_PROJECT_MESSAGE =
-  'This folder is not inside a Git repository, so Fabric does not attribute it to a Project. Start the agent inside a Git repository or worktree, or run `git init` here, and enroll again.'
+  'Fabric could not read this folder to attribute it to a Project. Start the agent in the folder you work in, and enroll again.'
 export const AMBIGUOUS_PROJECT_MESSAGE =
   'This folder matches more than one Project in Fabric, and Fabric does not guess. Start the agent in a folder that belongs to one Project.'
 export const DETACHED_PROJECT_MESSAGE =
   'This repository was detached from its Project in Fabric, and Fabric does not attach it again on its own. Undoing that detach in Fabric brings it back.'
 export const TOO_BROAD_MESSAGE =
-  'A home folder or a filesystem root is too broad for a Project. Start the agent inside the repository you work in.'
+  'This folder is too broad for a Project: a filesystem root, the home folder, a folder right under it, or one that holds other projects. Start the agent inside the folder you work in.'
 
 export type FolderFact =
   | {
@@ -118,7 +119,19 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
   } catch {
     return { ok: false, code: 'bad-folder', message: 'that folder could not be read as a Git repository on this computer' }
   }
-  if (!facts.git) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
+  if (!facts.git) {
+    // The operator, 2026-10-18: «добавление всегда авто». A plain folder becomes its own project as a repository
+    // does, journalled and undoable; only a folder that is plainly a container is refused: one right under home
+    // (Documents, Desktop, Downloads, the work root) or one that already holds another project's folder.
+    const home = deps.home ?? os.homedir()
+    const underHome = path.relative(home, real)
+    const holdsProjects = (await deps.admittedFolders()).some((row) => row.path.startsWith(real + path.sep))
+    if ((underHome && !underHome.startsWith('..') && !underHome.includes(path.sep)) || holdsProjects)
+      return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
+    const plainDetached = (await (deps.detachedFolders?.() ?? Promise.resolve([]))).some((row) => row.path === real)
+    if (plainDetached) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+    return { ok: true, real, projectId: deps.projectIdForFolder(real), projectName: path.basename(real), how: 'create', root: real, candidate: 'create', remoteKey: null }
+  }
   const root = facts.kind === 'worktree' && facts.parent ? facts.parent : real
   const remoteKey = normalizeRemoteKey(facts.remote)
   const paths = new Set([real, root])

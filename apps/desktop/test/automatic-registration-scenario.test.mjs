@@ -193,7 +193,7 @@ test('two rounds of agents opening a new repository, its worktree and a clone re
   assert.equal(f.repos.length, 2)
 })
 
-test('the operator\'s detach and a standing denial hold against later agent starts; broad and plain folders are refused', async () => {
+test('the operator\'s detach and a standing denial hold against later agent starts; broad folders are refused and a plain folder becomes its own project', async () => {
   const f = fabric()
   const repo = repository('kept-out', 'git@github.com:passioncode-ai/kept-out.git')
   const first = await f.agentStarts('claude-code', repo)
@@ -219,9 +219,15 @@ test('the operator\'s detach and a standing denial hold against later agent star
   assert.equal(refusedByDenial.status, 'denied', JSON.stringify(refusedByDenial))
   assert.equal(projectWrites(f), before, 'a standing denial is read before any admission write')
 
-  const plain = path.join(root, 'plain-folder')
-  mkdirSync(plain)
-  assert.match((await f.agentStarts('claude-code', plain)).refused ?? '', /not inside a Git repository/)
-  assert.match((await f.agentStarts('claude-code', root)).refused ?? '', /Git repository|too broad/)
+  // The work root holds other projects' repositories: too broad, nothing written.
+  assert.match((await f.agentStarts('claude-code', root)).refused ?? '', /too broad/)
   assert.equal(projectWrites(f), before)
+  // The operator, 2026-10-18: «добавление всегда авто». A plain folder becomes its own project, journalled.
+  const plain = path.join(root, 'notes', 'plain-folder')
+  mkdirSync(plain, { recursive: true })
+  // Right under home it is a container (Documents, Desktop): too broad.
+  assert.match((await f.agentStarts('claude-code', path.join(root, 'notes'))).refused ?? '', /too broad/)
+  const started = await f.agentStarts('claude-code', plain)
+  assert.equal(started.refused, undefined, JSON.stringify(started))
+  assert.ok(projectWrites(f) > before, 'the plain folder is registered as a project')
 })

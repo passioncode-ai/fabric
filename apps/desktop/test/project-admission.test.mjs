@@ -169,11 +169,15 @@ test('manual detach wins over automation until the operator explicitly reattache
   assert.equal((await resolve(h, repo)).how, 'exact')
 })
 
-test('non-Git folders, broad folders, and archived projects are refused without journal writes', async () => {
+test('a plain folder becomes its own project; broad folders and archived projects are refused without journal writes', async () => {
   const h = harness()
-  const plain = path.join(root, 'plain')
-  mkdirSync(plain)
-  assert.equal((await resolve(h, plain)).code, 'no-project')
+  const plain = path.join(root, 'plain-parent', 'plain')
+  mkdirSync(plain, { recursive: true })
+  const proposedPlain = await resolve(h, plain)
+  assert.equal(proposedPlain.ok, true, JSON.stringify(proposedPlain))
+  assert.equal(proposedPlain.candidate, 'create')
+  const plainProject = await h.service.enroll(proposedPlain, 'kimi-code')
+  assert.equal(plainProject.name, 'plain')
 
   const broadHome = path.join(root, 'broad-home')
   mkdirSync(path.join(broadHome, '.git'), { recursive: true })

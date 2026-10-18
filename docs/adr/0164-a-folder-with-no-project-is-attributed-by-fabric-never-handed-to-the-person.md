@@ -59,3 +59,15 @@ tombstones. The second's owner rule and work rule are carried as CO-329.
 - Tests: `apps/desktop/test/automatic-registration-scenario.test.mjs` (two rounds over real repositories, a worktree
   and a clone), `project-admission.test.mjs`, `folder-resolver.test.mjs`, `session-enroll.test.mjs`,
   `session-enroll-request.test.mjs`, the repository-identity group of `command-ingress-db.test.mjs`.
+
+## Amendments
+
+**2026-10-18, a plain folder too (the operator: «добавление всегда авто»).** A folder that is not inside a Git
+repository is no longer refused: it becomes its own Project the same way a repository does, named after the folder,
+journalled as the agent's act and undoable by its detach. Decision 3's first refusal goes. What stays refused is a
+container: a filesystem root, the home folder, a folder right under home (Documents, Desktop, Downloads, the work root),
+and a plain folder that already holds another Project's folder. A plain folder is only ever created, never attached to
+an existing Project, because it has no remote or worktree to match by (`sessionEnroll.ts#resolveAgentFolder`,
+`projectAdmission.ts#enroll`). Tests: `session-enroll.test.mjs` (a plain folder becomes its own project; a container
+is too broad, both watched failing first), `automatic-registration-scenario.test.mjs`, `project-admission.test.mjs`.
+

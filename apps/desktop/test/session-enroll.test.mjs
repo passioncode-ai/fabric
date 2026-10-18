@@ -100,15 +100,27 @@ test('an unknown eligible Git folder is proposed for enrollment without a write 
   assert.equal(h.journaled.length, 0, 'the door proposal itself journals and creates nothing')
 })
 
-test('a non-Git folder is not automatically registered', async () => {
+test('a non-Git folder becomes its own project at once, like a repository (operator, 2026-10-18)', async () => {
   const h = deps({
     inspectFolder: async (cwd) => ({ path: cwd, name: 'elsewhere', git: false, kind: 'folder', parent: null, branch: null, remote: null, lastCommit: null, stack: [] }),
-    projectIdForFolder: () => P
+    projectIdForFolder: () => P,
+    home: '/Users/me'
   })
-  const r = await enrollSession(binding, { cwd: '/Users/me/elsewhere' }, h.d)
-  assert.deepEqual([r.ok, r.code], [false, 'no-project'])
-  assert.match(r.message, /not inside a Git repository/)
-  assert.doesNotMatch(r.message, /person|\+ Project|Open a project/, 'ADR-0164: the answer never hands the folder to the person')
+  const r = await enrollSession(binding, { cwd: '/Users/me/work/elsewhere' }, h.d)
+  assert.notEqual(r.code, 'no-project', JSON.stringify(r))
+  assert.equal(r.projectId ?? r.session?.projectId, P)
+  assert.equal(r.projectName ?? r.session?.projectName, 'elsewhere')
+})
+
+test('a non-Git folder that holds other projects, or sits right under home, is too broad', async () => {
+  const plain = async () => ({ path: '', name: 'x', git: false, kind: 'folder', parent: null, branch: null, remote: null, lastCommit: null, stack: [] })
+  for (const cwd of ['/Users/me/Documents', '/Users/me/work']) {
+    const h = deps({ inspectFolder: plain, projectIdForFolder: () => P, home: '/Users/me', admittedFolders: async () => [{ path: '/Users/me/work/alpha', projectId: 'p-alpha' }] })
+    const r = await enrollSession(binding, { cwd }, h.d)
+    assert.deepEqual([r.ok, r.code], [false, 'no-project'], cwd)
+    assert.match(r.message, /too broad/, cwd)
+    assert.doesNotMatch(r.message, /person|\+ Project|Open a project/)
+  }
 })
 
 test('a relative, missing or non-string folder: bad-folder, said of this computer', async () => {

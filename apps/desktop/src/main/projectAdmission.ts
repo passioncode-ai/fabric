@@ -165,7 +165,9 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
       return project
     }
     const facts = await inspect(folder.real)
-    if (!facts.git) throw new Error(`project-admission-refused:not-git: ${folder.real}`)
+    // A plain folder may become its own project (the operator, 2026-10-18: «добавление всегда авто»); only a
+    // repository is ever attached to a project that exists, because a plain folder has nothing to match it by.
+    if (!facts.git && folder.candidate !== 'create') throw new Error(`project-admission-refused:not-git: ${folder.real}`)
     const remoteKey = folder.remoteKey ?? normalizeRemoteKey(facts.remote)
     const paths = new Set([folder.real, folder.root])
     const removed = (await deps.listRemovals()).some((row) =>

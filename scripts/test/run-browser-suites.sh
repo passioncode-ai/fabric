@@ -14,6 +14,10 @@ if [[ -z "${FABRIC_PLAYWRIGHT_MODULE:-}" || -z "${FABRIC_CHROME:-}" ]]; then
   exit 0
 fi
 export PLAYWRIGHT_MODULE="${PLAYWRIGHT_MODULE:-$FABRIC_PLAYWRIGHT_MODULE/index.mjs}"
+# CO-330 (2026-10-18). Two suites waited 3.5 s per step; with the machine loaded (load average 48 to 160, many
+# sessions running gates) a different step timed out on each run, on main as on a branch. A step that never
+# happens still fails, only later: the deadline follows the machine, it does not hide a missing element.
+export FABRIC_BROWSER_TIMEOUT_MS="${FABRIC_BROWSER_TIMEOUT_MS:-15000}"
 port=8770
 python3 -m http.server "$port" --bind 127.0.0.1 --directory docs >/dev/null 2>&1 &
 server=$!

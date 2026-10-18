@@ -9,7 +9,7 @@ import type { createScopedStore } from './scopedStore.ts'
 import { ACT_EVENT, validateActRecord, type ActActor, type ActRow } from '../shared/acts.ts'
 import type { ActLog } from './acts.ts'
 
-type Store = Pick<ReturnType<typeof createScopedStore>, 'select'>
+type Store = Pick<ReturnType<typeof createScopedStore>, 'select' | 'selectIn'>
 interface Row { seq: number; occurred_at: string; actor: ActActor; project_id: string | null; payload: unknown }
 
 const COLUMNS = 'seq,occurred_at,actor,project_id,payload'
@@ -44,9 +44,17 @@ export function createActLog(deps: { journal: Pick<Journal, 'append'>; store: St
       if (q.text?.trim()) b = b.ilike('payload->subject->>label', `%${escapeLike(q.text.trim())}%`)
       return read(b.order('seq', { ascending: false }).limit(q.limit), 'page')
     },
-    reversersOf(seqs) {
-      if (!seqs.length) return Promise.resolve([])
-      return read(deps.store.select('journal', COLUMNS).eq('type', ACT_EVENT).in('payload->>undoes', seqs.map(String)).order('seq', { ascending: true }), 'reversals')
+    async reversersOf(seqs) {
+      if (!seqs.length) return []
+      // The frontier grows with the history, so the list is read in bounded chunks (the list-read rule), and a
+      // refused chunk is an error, never "nothing undid it".
+      const { rows, failed } = await deps.store.selectIn('journal', `${COLUMNS},type`, 'payload->>undoes', seqs.map(String))
+      if (failed) throw new Error(`the act log could not be read (reversals): ${failed}`)
+      return (rows as unknown as (Row & { type: string })[])
+        .filter((r) => r.type === ACT_EVENT)
+        .sort((a, b) => Number(a.seq) - Number(b.seq))
+        .map(toRow)
+        .filter((r): r is ActRow => r !== null)
     },
     async get(seq) {
       const { data, error } = await deps.store.select('journal', COLUMNS).eq('type', ACT_EVENT).eq('seq', seq).maybeSingle()
