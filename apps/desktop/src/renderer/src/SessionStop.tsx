@@ -12,14 +12,15 @@ export function StopStatus({ state }: { state: TerminalTermination }) {
 }
 
 /** A receipt is a different fact from PTY liveness. Keep recovery available
- * after root exit and never offer dismissal while termination is unresolved. */
+ * after root exit and never offer dismissal while termination is unresolved.
+ * ADR-0160 §1 (0.3.7 wave 3): Stop and Force stop are one press each; the stop is recorded with «start it again»
+ * as its undo (the act line), so no «are you sure» row stands between the press and the act. */
 export function SessionStop({ session, refresh, onError }: {
   session: TerminalSession; refresh(): Promise<void> | void; onError(message: string): void
 }) {
   const t = useT()
   const [receipt, setReceipt] = useState<TerminalTermination | null>(null)
   const [pending, setPending] = useState(false)
-  const [confirm, setConfirm] = useState<'stop' | 'force' | null>(null)
   useEffect(() => {
     if (pending || !session.termination) return
     const observed = session.termination
@@ -33,7 +34,7 @@ export function SessionStop({ session, refresh, onError }: {
   }, [session.termination])
   const state = pending ? 'requested' : receipt?.state ?? session.termination?.state
   const stop = async (force: boolean) => {
-    setConfirm(null); setPending(true)
+    setPending(true)
     setReceipt({ sessionId: session.sessionId, state: 'requested', reasonCode: 'stop_requested' })
     try { setReceipt(await window.fabric.terminal.end(session.sessionId, { force })) }
     catch { setReceipt({ sessionId: session.sessionId, state: 'outcome_unknown', reasonCode: 'ipc_unavailable' }) }
@@ -53,17 +54,11 @@ export function SessionStop({ session, refresh, onError }: {
         try { await window.fabric.terminal.dismiss(session.sessionId); await refresh() }
         catch (e) { onError(String(e)) }
       }}>{t('agents.dismiss')}</Button>
-        : confirm ? <>
-        <span>{t(confirm === 'force' ? 'session.stop.forceConfirm' : 'session.stop.confirm')}</span>
-        <Button tone="ghost" onClick={() => setConfirm(null)}>{t('common.cancel')}</Button>
-        <Button tone={confirm === 'force' ? 'danger' : 'primary'} onClick={() => void stop(confirm === 'force')}>
-          {t(confirm === 'force' ? 'session.stop.force' : 'session.stop.action')}
-        </Button>
-      </> : <>
-        <Button tone="ghost" disabled={pending || state === 'requested'} onClick={() => unresolved ? void stop(false) : setConfirm('stop')}>
+        : <>
+        <Button tone="ghost" disabled={pending || state === 'requested'} onClick={() => void stop(false)}>
           {t(state === 'requested' ? 'session.stop.requested' : unresolved ? 'session.stop.retry' : 'session.stop.action')}
         </Button>
-        {state === 'outcome_unknown' && <Button tone="ghost" onClick={() => setConfirm('force')}>{t('session.stop.force')}</Button>}
+        {state === 'outcome_unknown' && <Button tone="ghost" disabled={pending} onClick={() => void stop(true)}>{t('session.stop.force')}</Button>}
       </>}
     </Toolbar>
   </div>

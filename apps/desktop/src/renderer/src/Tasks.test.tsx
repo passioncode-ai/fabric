@@ -131,3 +131,27 @@ describe('the fallback order with the setup preset', () => {
     expect(fallback).toHaveBeenLastCalledWith('p1', 'task', null, 'setup')
   })
 })
+
+// ADR-0160 §1 (0.3.7 wave 3): a shortcut pressed while the field holds the person's own words replaces them at once,
+// no «replace?» banner, and one quiet line beneath offers the words back.
+describe('a shortcut over the person’s own words', () => {
+  it('replaces at once and offers the old words back', async () => {
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { list: vi.fn().mockResolvedValue({ tasks: [], closed: { truncated: false, says: 'all 0' } }) },
+      agents: { list: vi.fn().mockResolvedValue([]) },
+      terminal: { options: vi.fn().mockResolvedValue([{ id: 'claude-code', label: 'Claude Code', available: true, connectsToSurface: true, permissionModes: [] }]) }
+    }
+    const { useState } = await import('react')
+    function Host(): React.JSX.Element {
+      const [draft, setDraft] = useState<TaskDraft>({ instruction: 'my own careful words', preset: null, presetText: null })
+      return <Tasks project={project} onStarted={() => {}} onError={() => {}} feedMark={0} draft={draft} onDraftChange={(p) => setDraft((d) => ({ ...d, ...p }))} />
+    }
+    render(<Host />)
+    await waitFor(() => expect(screen.getByText('Audit this project')).toBeTruthy())
+    fireEvent.click(screen.getByText('Audit this project'))
+    expect(screen.queryByText('Replace what you have written with this preset?')).toBeNull()
+    expect(screen.queryByDisplayValue('my own careful words'), 'the shortcut replaced the words at once').toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Put my words back' }))
+    expect(screen.getByDisplayValue('my own careful words')).toBeTruthy()
+  })
+})

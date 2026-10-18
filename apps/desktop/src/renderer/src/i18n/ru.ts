@@ -2505,4 +2505,6 @@ export const ru: Partial<Record<StringKey, string>> = {
   'drafts.notKept': "Черновик закрыт, но сохранить его для возврата не удалось: {reason}",
   'create.drafts': "Не закончено",
   'create.draftUntitled': "Проект пока без названия",
+  'tasks.replaced': "Ваш текст заменён.",
+  'tasks.replacedBack': "Вернуть мой текст",
 }

@@ -2,7 +2,7 @@
 /**
  * SCR-31 «Who is working on what» (SCN-140, REQ-38): one row per live claim — the agent and how it came in, the task
  * with its backlog row, what it touches, since, its last sign of life — «related» where two claims overlap, the
- * session one click away and «Release…» behind the row's … menu with its confirmation; agent-sync's leases beneath,
+ * session one click away and «Release» behind the row's … menu, at once (ADR-0160 §1); agent-sync's leases beneath,
  * read-only. Silent until it has read (M108): nobody is working here is said from a reading, never before it — and
  * only when the reading holds no claim, no held task and no session working here (0.3.5 review UX-4).
  *
@@ -63,7 +63,6 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
   const t = useT()
   const [read, setRead] = useState<Read>({ state: 'reading' })
   const [menu, setMenu] = useState<string | null>(null)
-  const [confirm, setConfirm] = useState<WorkClaimView | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
   // The project now on screen: a reading that comes back for another project is dropped (0.3.5 i2 UX-10 — the old
   // guard compared the closure's projectId with itself).
@@ -81,7 +80,6 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
   useEffect(() => {
     setRead({ state: 'reading' })
     setMenu(null)
-    setConfirm(null)
   }, [projectId])
   useEffect(() => {
     void load()
@@ -96,8 +94,8 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
 
+  // One press in the … menu, no question (ADR-0160 §1): the release is recorded with «take it again» as its undo.
   const release = async (c: WorkClaimView): Promise<void> => {
-    setConfirm(null)
     setFailure(null)
     try {
       const r = await window.fabric.work.release(c.claimId)
@@ -145,7 +143,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
                       {t('glyph.more')}
                     </Button>
                     {menu === c.claimId && (
-                      <Button tone="ghost" onClick={() => { setMenu(null); setConfirm(c) }}>{t('work.who.release')}</Button>
+                      <Button tone="ghost" onClick={() => { setMenu(null); void release(c) }}>{t('work.who.release')}</Button>
                     )}
                   </Toolbar>
                 }
@@ -163,16 +161,6 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
                   {t('work.who.relatedTo', { task: taskLabel(r.title, t), why: r.why.map((w) => whyLabel(w, t)).join('; ') })}
                 </Row>
               ))}
-              {confirm?.claimId === c.claimId && (
-                <Toolbar>
-                  <span role="alertdialog" aria-label={t('work.release.title')}>
-                    <strong>{t('work.release.title')}</strong>{' '}
-                    {t('work.release.body', { agent: runnerLabel(c.agent, t), task: titleOf(c) })}
-                  </span>
-                  <Button tone="ghost" autoFocus onClick={() => setConfirm(null)}>{t('common.cancel')}</Button>
-                  <Button tone="danger" onClick={() => void release(c)}>{t('work.release.confirm')}</Button>
-                </Toolbar>
-              )}
             </div>
           ))}
           {unclaimed.map((s) => (
