@@ -79,7 +79,7 @@ export function createWorldExecutors(d: ActWorldDeps): Partial<Record<'task.move
   }
 
   // ── a folder detached from a project, and attached again ─────────────────────────────────────────────────
-  type RepoRow = { id: string; project_id: string; path: string; label: string | null }
+  type RepoRow = { id: string; project_id: string; path: string; label: string | null; remote_key: string | null; kind: string | null }
   const repoDetach: ActExecutor = {
     async check(args: ActArgs): Promise<ActCheck> {
       const id = str(args.repo_id)
@@ -87,15 +87,17 @@ export function createWorldExecutors(d: ActWorldDeps): Partial<Record<'task.move
     },
     async run(args: ActArgs): Promise<ActOutcome> {
       const id = str(args.repo_id)!
-      const r = await one<RepoRow>('project_repos', 'id,project_id,path,label', 'id', id)
+      const r = await one<RepoRow>('project_repos', 'id,project_id,path,label,remote_key,kind', 'id', id)
       if (!r) throw new Error('that folder is no longer attached')
-      const event = await d.journal.append({ estateId: d.estateId, type: 'project.repo.detached@1', actor: d.actor, projectId: r.project_id, payload: { id } })
+      // The path, remote and kind make the detach a tombstone automatic enrollment respects (ADR-0164 §5).
+      const event = await d.journal.append({ estateId: d.estateId, type: 'project.repo.detached@1', actor: d.actor, projectId: r.project_id,
+        payload: { id, path: r.path, ...(r.remote_key ? { remote_key: r.remote_key } : {}), ...(r.kind ? { kind: r.kind } : {}) } })
       await d.foldersChanged?.()
       return {
         kind: 'repo.detach', projectId: r.project_id, refSeq: event.seq,
         subject: { type: 'repo', id, label: r.label ?? r.path.split('/').filter(Boolean).pop() ?? r.path },
         said: { key: 'act.repo.detach', params: { folder: r.label ?? r.path } },
-        inverse: { kind: 'repo.attach', args: { project_id: r.project_id, repo_id: id, path: r.path, label: r.label } }
+        inverse: { kind: 'repo.attach', args: { project_id: r.project_id, repo_id: id, path: r.path, label: r.label, remote_key: r.remote_key ?? null, repo_kind: r.kind ?? null } }
       }
     }
   }
@@ -115,7 +117,10 @@ export function createWorldExecutors(d: ActWorldDeps): Partial<Record<'task.move
       const projectId = str(args.project_id)!, p = str(args.path)!
       const id = str(args.repo_id) ?? d.newId()
       const label = str(args.label) ?? (p.split('/').filter(Boolean).pop() ?? p)
-      const event = await d.journal.append({ estateId: d.estateId, type: 'project.repo.attached@1', actor: d.actor, projectId, payload: { id, path: p, label } })
+      // Undoing a detach brings the identity back and clears the tombstone (the projector deletes the removal by id).
+      const remoteKey = str(args.remote_key), kind = str(args.repo_kind)
+      const event = await d.journal.append({ estateId: d.estateId, type: 'project.repo.attached@1', actor: d.actor, projectId,
+        payload: { id, path: p, label, ...(remoteKey ? { remote_key: remoteKey } : {}), ...(kind ? { kind } : {}), admitted_by: 'operator' } })
       await d.foldersChanged?.()
       return {
         kind: 'repo.attach', projectId, refSeq: event.seq,

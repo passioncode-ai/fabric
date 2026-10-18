@@ -70,4 +70,4 @@ The decision this amendment carries out is recorded as [ADR-0164](0164-a-folder-
 
 Evidence: `apps/desktop/test/folder-resolver.test.mjs`, `project-admission.test.mjs`,
 `session-enroll-request.test.mjs`, `session-enroll.test.mjs`, and the repository-identity group in
-`command-ingress-db.test.mjs` (90 migrations on an owned disposable PostgreSQL cluster).
+`command-ingress-db.test.mjs` (every migration through `20261018000114` on an owned disposable PostgreSQL cluster).

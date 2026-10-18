@@ -138,7 +138,8 @@ refuses('wrong source schema', () => decode(mutate(a => { a.source_schema_versio
   assert.equal(PRIVATE_ARCHIVE_LIMITS.sourceSchemas.at(-1), contract.maximum, 'the archive source list and the schema contract end apart'); checks++
   refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = contract.maximum + 1 })), 'unsupported_schema')
 }
-assert.equal(decode(mutate(a => { a.source_schema_version = 91 })).archive.source_schema_version, 91, 'schema 91 is a qualified source (migration 112, private-archive admission after repository identity)'); checks++
+assert.equal(decode(mutate(a => { a.source_schema_version = 92 })).archive.source_schema_version, 92, 'schema 92 is a qualified source (count 92, suffix 114, private-archive admission after repository identity)'); checks++
+assert.equal(decode(mutate(a => { a.source_schema_version = 91 })).archive.source_schema_version, 91, 'schema 91 is a qualified source (count 91, suffix 113, repository identity and detach tombstones)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 88 })).archive.source_schema_version, 88, 'schema 88 is a qualified source (migration 107, the board\'s wave-2 fixes)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 90 })).archive.source_schema_version, 90, 'schema 90 is a qualified source (migration 112, acts and reopened answers)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 89 })).archive.source_schema_version, 89, 'schema 89 is a qualified source (migration 108, the operator\'s reads of the board)'); checks++

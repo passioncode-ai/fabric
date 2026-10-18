@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T14:00:00Z · `—` · agent/auto-project-registration-on-w2 → main · fast-forward
+- run: r-r9631f5d5219 (Kimi Code), continued as r-2dc0ba8613f7 (Claude Code)
+- files: folderResolver.ts, projectAdmission.ts, sessionEnroll.ts, accessService.ts, actExecutors.ts, index.ts, migrations 20261018000113/20261018000114, ADR-0134/0136/0160 amendments, ADR-0164, CO-328/CO-329, SCN-137/FLW-77/SCR-76, the two-round scenario test
+- conflicts: index.ts repos attach/detach (wave 2's acts kept, attach through projectAdmission); migration ledger and schema (renamed after wave 2's 112, schema 92); generated reports, regenerated
+- summary: an eligible unknown Git repository or worktree gets its Project automatically during enrollment (ADR-0164): exact, ancestor, worktree and remote identity, otherwise a new Project at the main checkout, journalled as the agent's act; ambiguous, broad, non-Git, archived and detached folders refused with the agent's own next step; a detach through wave 2's act leaves a tombstone automation respects, and its undo clears it. Fabric's own CO-328 work was set aside in favour of this.
+
 ### 2026-10-18T09:00:00Z · `—` · agent/fabric-simple-w2 → main · fast-forward
 - run: r-44ae60a75316
 - files: the acts module and its tests in apps/desktop/src/main, migration 20261017000112_acts_and_reopened_answers.sql, docs/ux, the plan, CHANGELOG, docs/reports
@@ -15,12 +21,6 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: apps/desktop/src/shared/workClaims.ts, apps/desktop/src/main/workRead.ts, apps/desktop/src/main/workTools.ts, apps/desktop/src/main/agentSurface.ts, their tests, the carry-over register, CHANGELOG, docs/reports
 - conflicts: docs/reports generated files on rebase, regenerated
 - summary: CO-323. A task held by a launched run whose stop is unproved is named as held by that run (session, run, since, until, stop) instead of refused as "claimed in the same moment"; the work list shows it held. CO-327 files the held task with no way out. Also a race in the Comms "Show older threads" retry test (the poll clock reads the first page at any moment).
-
-### 2026-10-17T22:04:07Z · `—` · agent/auto-project-registration-20261017 → main · candidate
-- run: r-r9631f5d5219
-- files: enrollment resolver, main-process project admission, repository identity migration, focused tests and the ADR/UX/map handoff
-- conflicts: none; the seven newer main commits were integrated by rebase
-- summary: an eligible unknown Git repository or worktree is created or attached through canonical admission, then `session.enroll` is allowed at once on the operator's own machine; exact/ancestor/worktree/remote identity, ambiguity and detach refusals, idempotency and journal/revoke semantics are preserved.
 
 ### 2026-10-16T03:30:00Z · `—` · fix/workspace-sync-wedge → main · fast-forward
 - run: r-a809c95ced27

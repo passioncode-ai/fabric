@@ -22,7 +22,7 @@ Branch: `agent/auto-project-registration-20261017`. Approved base: `7ee0060e`; l
 - `apps/desktop/src/main/index.ts`: one service instance wired to IPC and the hub, with file-root refresh and workspace mirror.
 - `apps/desktop/src/main/fabricMcp.ts`: an already-allowed request is collected without the consent-interval wait.
 - `apps/desktop/src/main/hubTools.ts`: agent-facing tool guidance matches the new path.
-- `supabase/migrations/20261017000109_project_repo_identity.sql` and `supabase/migration-ledger.json`: remote/kind identity, estate-path uniqueness, detach tombstones and projection.
+- `supabase/migrations/20261018000113_project_repo_identity.sql` (count 91; first written as `20261017000109`, renamed after wave 2's `20261017000112` landed) and `supabase/migration-ledger.json`: remote/kind identity, estate-path uniqueness, detach tombstones and projection. `20261018000114_private_archive_source.sql` (count 92) admits schemas 91 and 92 as private-archive sources.
 - `apps/desktop/src/shared/commandIngress.ts` and `apps/desktop/src/shared/access.ts`: repository identity fields and resolution kinds accepted.
 - Tests: `folder-resolver.test.mjs`, `project-admission.test.mjs`, `session-enroll-request.test.mjs`, `session-enroll.test.mjs`, `fabric-mcp.test.mjs`, `command-ingress-db.test.mjs`.
 - ADR-0134/0136/0160, CONTEXT, SCN-137, FLW-77, SCR-76, CHANGELOG, AGENTS, the 0.4.0 plan status, MERGES and the design map are updated to the same behavior.
@@ -65,6 +65,14 @@ Not run: hosted nightly CI; a packaged-app run; any release/install.
 
 - `agent-sync status` exits 1 because `.env.agent-sync` is absent; the record plane is local/degraded. Git leases are cross-machine and were held for every guarded write. Initial `reconcile` exits 1 because ADR/CO baselines were never set; no baseline was created in this feature run.
 - No real running app was restarted, replaced or probed, and no sibling repository/store was written.
+
+**Integrated with 0.3.7 wave 2 (2026-10-18):** rebased onto `agent/fabric-simple-w2`; migrations renamed to sort after
+`20261017000112_acts_and_reopened_answers.sql` (schema 90), so this branch moves the schema to 92; `apply_projections`
+keeps wave 2's `apply_question_answer_reopen`. The folder attach IPC goes through `projectAdmission.attach` and records
+wave 2's `repo.attach` act; detach goes through wave 2's `repo.detach` act, whose executor now writes path, remote and
+kind, so the detach leaves the `project_repo_removals` tombstone, and its undo (`repo.attach`) brings the identity
+back and clears it (`actExecutors.ts`; checks added to `acts-db.test.mjs`). ADR-0164 records the decision, CO-328 is
+resolved and CO-329 carries Switchboard's owner and work rules, at the request of Fabric's session.
 
 ## Exact next task
 
