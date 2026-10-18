@@ -2522,4 +2522,6 @@ export const ru: Partial<Record<StringKey, string>> = {
   'joined.letInFailed': "Не удалось пустить снова:",
   'joined.outUnreadable': "Список отключённых агентов не прочитан, поэтому сейчас никто не отключён.",
   'joined.someProject': "проект",
+  'glyph.plus': "＋",
+  'rail.searchKey': "⌘K",
 }

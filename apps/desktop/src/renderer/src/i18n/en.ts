@@ -2655,6 +2655,8 @@ export const en = {
   'joined.letInFailed': "Could not let it back in:",
   'joined.outUnreadable': "The list of disconnected agents could not be read, so no agent is kept out right now.",
   'joined.someProject': "a project",
+  'glyph.plus': "＋",
+  'rail.searchKey': "⌘K",
 } as const
 
 export type StringKey = keyof typeof en

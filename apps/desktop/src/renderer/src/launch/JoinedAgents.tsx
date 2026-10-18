@@ -16,6 +16,7 @@ import { useLocale, useT } from '../i18n'
 import { whyWords } from './actWords'
 
 type Row = { agentId: string; name: string; projects: string[]; since: string }
+type Act = () => Promise<ActAnswer>
 
 export function JoinedAgents({ projects }: { projects: ReadonlyArray<{ id: string; name: string }> | null }): React.JSX.Element {
   const t = useT()
@@ -31,7 +32,7 @@ export function JoinedAgents({ projects }: { projects: ReadonlyArray<{ id: strin
     }
   }, [])
   useEffect(() => { void load() }, [load])
-  const act = async (agentId: string, run: () => Promise<ActAnswer>): Promise<void> => {
+  const act = async (agentId: string, run: Act) => {
     if (busy) return
     setBusy(agentId)
     setRefused(null)

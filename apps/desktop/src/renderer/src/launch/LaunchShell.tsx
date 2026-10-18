@@ -150,7 +150,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         <button type="button" className={at.kind === 'create' ? 'rail-create on' : 'rail-create'}
           aria-current={at.kind === 'create' ? 'page' : undefined} aria-label={t('rail.create')}
           onClick={() => props.onPlace('create')}>
-          <span aria-hidden="true">＋</span> {t('rail.create')}
+          <span aria-hidden="true">{t('glyph.plus')}</span> {t('rail.create')}
         </button>
         <nav className="rail-places" aria-label={t('rail.label')}>
           {PLACES.map((place) => (
@@ -191,7 +191,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       onClick={(e) => go(e, () => props.onProject(p.id))}>
                       <span className={live ? 'rail-dot live' : 'rail-dot'} {...(live ? { role: 'img', 'aria-label': t('rail.live') } : { 'aria-hidden': true })} />
                       <span className="rail-name">{p.name}</span>
-                      {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>★</span>}
+                      {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>{t('glyph.star')}</span>}
                       {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
                     </a>
                   </li>
@@ -215,7 +215,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         <header className="fab-top">
           <h1>{props.title}</h1>
           <button type="button" className="fab-search" aria-pressed={props.searchOpen} onClick={props.onSearch}>
-            <span>{t('rail.search')}</span><kbd aria-hidden="true">⌘K</kbd>
+            <span>{t('rail.search')}</span><kbd aria-hidden="true">{t('rail.searchKey')}</kbd>
           </button>
         </header>
         <div className="fab-place">
