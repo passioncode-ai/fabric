@@ -370,6 +370,8 @@ import { projectNameProblem, scanViewOf, type CandidateView, type FolderFacts, t
 import { livenessFor } from './livenessRead.ts'
 import { classifyObservationGap, type HostWindow } from '../shared/harnessBreak.ts'
 import { createDrafts } from './onboardingDrafts.ts'
+import { createAgentExecutors, createKeptOut } from './keptOut.ts'
+import { validateKeptOutFile, type KeptOutFile } from '../shared/keptOut.ts'
 import { localStore } from './localStore.ts'
 import { validateDraftFile, validateDiscardedFile } from '../shared/onboardingDraft.ts'
 import type { DraftFile, DiscardedFile } from '../shared/onboardingDraft.ts'
@@ -433,6 +435,9 @@ let hub: {
   downCode: HubDownCode | undefined
   downFact: string | undefined
 } | null = null
+/** The coding agents the person disconnected (ADR-0160 §3, SCN-167): kept out until let back in. On this computer,
+ *  beside the hub's credentials; `localStore` resolves its folder per call, so this is safe before the app is ready. */
+const keptOutAgents = createKeptOut(localStore<KeptOutFile>('kept-out-agents.json', {}, validateKeptOutFile))
 let mainWindow: BrowserWindow | null = null
 
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
@@ -952,7 +957,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         const project = await admission.enroll({ ...folder, real: folder.real ?? folder.root }, agentId)
         return { id: project.id, name: project.name, root: folder.root, how: folder.how }
       }
-    }
+    },
+    // ADR-0160 §3 (0.3.7 wave 3): an agent the person disconnected is refused at the door until let back in.
+    keptOut: (key) => keptOutAgents.has(key)
   })
   // #endregion session-enroll-wiring
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
@@ -3651,7 +3658,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         since: b.created_at,
         grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0], expiresAt: g.expires_at }))
       })),
-      denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at }))
+      denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at })),
+      keptOut: { readable: keptOutAgents.readable(), agents: keptOutAgents.list() }
     }
   })
   /** The product's connect flow, by name; a product without one is a code, not a sentence. */
@@ -3682,6 +3690,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       said: { key: 'act.agent.disconnect', params: {} }, inverse: null, whyNot: 'credential_gone' })
     return done
   })
+  // #region kept-out-ipc — docs: docs/ux/scenarios.md#scn-167-a-coding-agent-opened-outside-fabric-is-let-in-and-the-person-disconnects-it-with-one-press
+  handle(IPC.hubDisconnectAgent, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['disconnectAgent']>> =>
+    answerOf(await acts.perform('agent.disconnect', { agent_id: typeof agentId === 'string' ? agentId : '' })))
+  handle(IPC.hubLetAgentIn, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['letAgentIn']>> =>
+    answerOf(await acts.perform('agent.let_in', { agent_id: typeof agentId === 'string' ? agentId : '' })))
+  // #endregion kept-out-ipc
   handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
     hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
   handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> =>
@@ -3745,7 +3759,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
         }
       }),
-      ...createDraftExecutors(drafts)
+      ...createDraftExecutors(drafts),
+      // «Отключить» / «Пустить снова» (ADR-0160 §3, SCN-167): each the other's inverse.
+      ...createAgentExecutors({
+        keptOut: keptOutAgents,
+        liveBindingsOf: async (agentId) => (await hubReady().accessStore.liveBindings()).filter((b) => b.agent_id === agentId && b.revoked_at === null).map((b) => b.id),
+        revoke: async (bindingId) => {
+          const r = await hubReady().access.revokeBinding(bindingId, OPERATOR_ACTOR)
+          return r.ok ? { ok: true } : { ok: false, reason: r.code ?? r.reason }
+        },
+        nameOf: (agentId) => AGENTS.find((a) => a.id === agentId)?.label ?? null
+      })
     }
   })
   handle(IPC.actsHistory, (_e, query?: unknown): Promise<Returns<FabricApi['acts']['history']>> => acts.history(actQueryOf(query)))

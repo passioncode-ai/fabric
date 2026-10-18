@@ -17,7 +17,7 @@ const resolveFolder = async (folder) =>
   : folder.startsWith('/Users/me/DATA/other') ? { ok: true, projectId: OTHER, root: '/Users/me/DATA/other', how: 'exact' }
   : { ok: false, message: 'This folder is not a project in Fabric yet.' }
 
-function harness({ runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined } = {}) {
+function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined } = {}) {
   const rows = new Map(), bindings = new Map(), grants = new Map()
   const appended = []
   const presented = []
@@ -62,7 +62,8 @@ function harness({ runner = (id) => (id === 'claude-code' ? { key: 'claude-code'
     registry: { refresh() { throw Error('an enrollment ask must not read the service registry') }, resolve() { throw Error('nor resolve in it') } },
     present: (r) => presented.push(r),
     connected: async () => { throw Error('Fabric itself is not a product to connect') },
-    enrollment: { runner, project, available, resolve, admit }
+    enrollment: { runner, project, available, resolve, admit },
+    ...(keptOut ? { keptOut } : {})
   })
   return { service, appended, presented, rows }
 }
@@ -111,6 +112,27 @@ test('a standing denial is checked before any project admission write', async ()
   assert.equal(again.status, 'denied')
   assert.equal(admitted.length, 1, 'the denied retry never calls admission again')
   assert.equal(h.presented.length, 0)
+})
+
+// ADR-0160 §3, SCN-167 (0.3.7 wave 3): «Отключить» keeps the agent out of EVERY project until the person lets it back
+// in. The kept-out set is read before admission, so a disconnected agent cannot create or attach a project either.
+test('a coding agent the person disconnected stays out of every project, before any admission write, until let back in', async () => {
+  const out = new Set(['claude-code'])
+  const admitted = []
+  const h = harness({
+    keptOut: (key) => out.has(key),
+    resolve: async (folder) => ({ ok: true, projectId: PROJECT, root: '/Users/me/DATA/new', real: folder, how: 'create', projectName: 'new', candidate: 'create', remoteKey: null }),
+    admit: async (resolved) => { admitted.push(resolved); return { id: PROJECT, name: 'new', root: resolved.root, how: 'exact' } }
+  })
+  const refused = await h.service.request({ kind: 'door' }, { ...ask, folder: '/Users/me/DATA/new' })
+  assert.equal(refused.ok, false)
+  assert.match(refused.refused, /disconnected/)
+  assert.equal(admitted.length, 0, 'a kept-out agent never reaches admission')
+  assert.equal(h.appended.length, 0, 'nothing is journalled for a kept-out ask')
+  out.delete('claude-code')
+  const back = await h.service.request({ kind: 'door' }, { ...ask, folder: '/Users/me/DATA/new' })
+  assert.equal(back.status, 'allowed')
+  assert.equal(admitted.length, 1)
 })
 
 test('an id that is not a coding agent of the catalogue is refused before any prompt', async () => {

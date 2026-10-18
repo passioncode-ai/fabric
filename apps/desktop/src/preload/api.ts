@@ -132,6 +132,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       decide: (requestId, decision) => ipc.invoke(IPC.hubDecide, requestId, decision),
       revokeGrant: (grantId) => ipc.invoke(IPC.hubRevokeGrant, grantId),
       revokeAgent: (bindingId) => ipc.invoke(IPC.hubRevokeAgent, bindingId),
+      disconnectAgent: (agentId) => ipc.invoke(IPC.hubDisconnectAgent, agentId),
+      letAgentIn: (agentId) => ipc.invoke(IPC.hubLetAgentIn, agentId),
       clearDenial: (requestId) => ipc.invoke(IPC.hubClearDenial, requestId),
       connect: (product, opts) => ipc.invoke(IPC.hubConnect, product, opts),
       disconnect: (product) => ipc.invoke(IPC.hubDisconnect, product)

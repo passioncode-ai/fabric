@@ -1210,6 +1210,11 @@ export interface FabricApi {
     decide(requestId: string, decision: 'allowed' | 'denied'): Promise<HubActResult>
     revokeGrant(grantId: string): Promise<HubActResult>
     revokeAgent(bindingId: string): Promise<HubActResult>
+    /** «Отключить» (ADR-0160 §3, SCN-167): every credential of this coding agent revoked and the agent kept out of every
+     *  project until «Пустить снова»; an act with its undo. */
+    disconnectAgent(agentId: string): Promise<ActAnswer>
+    /** «Пустить снова»: the disconnect's inverse; the agent may join again on its next call. */
+    letAgentIn(agentId: string): Promise<ActAnswer>
     clearDenial(requestId: string): Promise<HubActResult>
     /** Opens the product's connect link. A connected product is connected again only with `reconnect: true`. */
     connect(product: string, opts?: { reconnect?: boolean }): Promise<HubActResult>
@@ -1744,6 +1749,8 @@ export const IPC = {
   hubDecide: 'hub:decide',
   hubRevokeGrant: 'hub:revoke-grant',
   hubRevokeAgent: 'hub:revoke-agent',
+  hubDisconnectAgent: 'hub:disconnect-agent',
+  hubLetAgentIn: 'hub:let-agent-in',
   hubClearDenial: 'hub:clear-denial',
   hubConnect: 'hub:connect',
   hubDisconnect: 'hub:disconnect',

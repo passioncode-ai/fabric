@@ -105,6 +105,9 @@ export interface AccessServiceDeps {
     /** The canonical main-process admission service, called only after runner and standing-denial checks. */
     admit?(folder: Extract<EnrollFolder, { ok: true }>, agentId: string): Promise<{ id: string; name: string; root: string; how: EnrollProjectFact['how'] }>
   }
+  /** ADR-0160 §3, SCN-167: the coding agents the person disconnected («Отключить», `keptOut.ts`), refused at the door
+   *  until let back in. Absent, nobody is kept out. */
+  keptOut?: (agentKey: string) => boolean
 }
 
 /** What Fabric resolved an asker's folder to (ADR-0134 amendment 2): the project, the admitted folder (real path) and
@@ -301,6 +304,14 @@ export class AccessService {
           }
           place = resolved
         }
+        // #region kept-out-door — docs: docs/ux/scenarios.md#scn-167-a-coding-agent-opened-outside-fabric-is-let-in-and-the-person-disconnects-it-with-one-press
+        // Disconnected by the person (ADR-0160 §3, «Отключить»): out of every project until let back in, read before any
+        // admission write and before anything is journalled.
+        if (this.deps.keptOut?.(runner.key)) {
+          receipt('kept-out', runner.key)
+          return { ok: false, refused: `the person disconnected ${runner.name} in Fabric; it stays out of every project until they let it back in from Agents. Nothing was shown to the operator.` }
+        }
+        // #endregion kept-out-door
         // A standing denial is read BEFORE admission, so a denied or mismatched principal cannot create or attach a Project.
         if (principal.kind === 'binding' && principal.binding.agent_id !== runner.key)
           return { ok: false, refused: `this credential belongs to ${principal.binding.agent_id}; it asks only for its own agent` }

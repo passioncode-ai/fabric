@@ -727,6 +727,9 @@ export interface HubOverview {
     grants: Array<{ grantId: string; callee: string; capability: string; resource: string; line: AskLine; expiresAt: string }>
   }>
   denials: Array<{ requestId: string; agent: AgentFacts; callee: string; ask: AskLine[]; deniedAt: string | null }>
+  /** The coding agents the person disconnected («Отключить», ADR-0160 §3): out of every project until let back in.
+   *  `readable: false` says the list could not be read, so nobody is kept out now (fail-open, `keptOut.ts`). */
+  keptOut?: { readable: boolean; agents: Array<{ agentId: string; name: string | null; at: string }> }
 }
 
 /**
