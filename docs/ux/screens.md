@@ -97,13 +97,13 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-81 | Project comms | FLW-83 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |
 | SCR-82 | Pause sheet | FLW-91 | none — text spec | designed | none yet |
 | SCR-83 | Project directory | FLW-92 | none — text spec | designed | none yet |
-| SCR-84 | Rail | FLW-93 | none — interactive HTML | designed | none yet |
+| SCR-84 | Rail | FLW-93 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` |
 | SCR-85 | Главная | FLW-93, FLW-94 | none — interactive HTML | designed | none yet |
 | SCR-86 | Проект | FLW-93, FLW-94, FLW-95, FLW-98 | none — interactive HTML | designed | none yet |
 | SCR-87 | Агенты | FLW-93, FLW-95, FLW-96, FLW-98 | none — interactive HTML | designed | none yet |
-| SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | designed | none yet |
+| SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` |
 | SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | designed | none yet |
-| SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | designed | none yet |
+| SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | built | `apps/desktop/src/renderer/src/start/StartPaths.tsx` |
 
 ## Design system
 
@@ -2188,10 +2188,10 @@ place (ADR-0160). The screens they replace carry a dated note.
   | success | the list read | none | favourites first, then by latest activity |
   | folded | the window narrower than 900 px | none | icons with their counts, names in tooltips |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)
 - **Scenarios:** SCN-162
 - **Resources:** the plan §2; the sketch `docs/evidence/plans/2026-10-15-fabric-simple/style-2026-10-16/fabric-style.html`
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 wave 3
 
 ### SCR-85: Главная
@@ -2256,7 +2256,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | joined | a coding agent joined from a terminal | none | its row «подключился сам» with «Отключить» |
   | disconnected | «Отключить» pressed | none | «Отключён» with «Пустить снова»; act line «Codex отключён · Отменить» |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** none yet as this screen; 0.3.7 wave 3 built its «Подключились сами» block above today's agents list: apps/desktop/src/renderer/src/launch/JoinedAgents.tsx («подключился сам», the proof line, «Отключить», «Отключён» and «Пустить снова»)
 - **Scenarios:** SCN-166, SCN-167
 - **Resources:** ADR-0160 §3; SCR-39, SCR-76 (built today)
 - **Status:** designed
@@ -2280,10 +2280,10 @@ place (ADR-0160). The screens they replace carry a dated note.
   | cannot-undo | no inverse | none | «Нельзя отменить» with why |
   | changed-since | the object changed after the act | none | the button says what it will do now |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's
 - **Scenarios:** SCN-168, SCN-169, SCN-164, SCN-167
 - **Resources:** ADR-0014 (the journal), ADR-0160
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 wave 2
 
 ### SCR-89: Настройки
@@ -2326,8 +2326,8 @@ place (ADR-0160). The screens they replace carry a dated note.
   | loading | the agents for the agent form are read | none | «Ищу агентов…» |
   | success | the chosen path finished | none | as added or created |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4
 - **Scenarios:** SCN-171, SCN-127, SCN-128, SCN-129, SCN-136
 - **Resources:** SCR-71…SCR-74 (built today, redrawn here); [onboarding plan](../evidence/plans/2026-10-13-onboarding-036/README.md)
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 wave 4

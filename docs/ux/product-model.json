@@ -11279,8 +11279,8 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2178,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "coverage_claim": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11559,7 +11559,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2243,
-        "coverage_claim": "none yet",
+        "coverage_claim": "none yet as this screen; 0.3.7 wave 3 built its «Подключились сами» block above today's agents list: apps/desktop/src/renderer/src/launch/JoinedAgents.tsx («подключился сам», the proof line, «Отключить», «Отключён» and «Пустить снова»)",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -11655,8 +11655,8 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2265,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11800,11 +11800,11 @@
       "current_status": "Целевой дизайн 0.3.7, волна 1 (2026-10-17): нарисован в прототипе, не построен; строят волны 2–4.",
       "task_ids": [],
       "scenario_ids": [
-        "SCN-171",
         "SCN-127",
-        "SCN-128",
         "SCN-129",
-        "SCN-136"
+        "SCN-136",
+        "SCN-171",
+        "SCN-128"
       ],
       "flow_ids": [
         "FLW-93",
@@ -11839,8 +11839,8 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2308,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -35251,8 +35251,8 @@
       "screen_refs": [
         "SCR-84"
       ],
-      "coverage": "none yet — the 0.3.7 plan's wave 3 builds the rail; today's tab strip and project links are `apps/desktop/src/renderer/src/App.tsx` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`",
-      "registry_status": "draft",
+      "coverage": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, the search field and ⌘K, the conversation with Fabric only once it is switched on), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx, apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe, and the person's name at the foot (Fabric holds none; it says «Вы»)",
+      "registry_status": "implemented",
       "product_observation": "unobserved",
       "expected_result": "every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.",
       "errors_recovery": "the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.",
@@ -35270,7 +35270,7 @@
       "screen_refs": [
         "SCR-85"
       ],
-      "coverage": "none yet — wave 4 rebuilds Главная to the prototype; today's home is SCN-158's",
+      "coverage": "none yet for the place itself (wave 4 rebuilds Главная to the prototype; today's home is SCN-158's). Wave 3 moved two notices onto it as questions, never banners: the local database reachable from the network (`apps/desktop/src/renderer/src/StackExposureNotice.tsx`) and the usage-count question (`apps/desktop/src/renderer/src/UsageCountsNotice.tsx`), both rendered by `EstateHome.tsx`; an agent's ask of a product is the board's question reached from it, no native prompt (`apps/desktop/src/main/index.ts`, the hub's `present`)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "in a few seconds the person knows whether anything needs them, what is being done, and where to go — without opening a project or an agent's console.",
@@ -35349,7 +35349,7 @@
         "SCR-87",
         "SCR-88"
       ],
-      "coverage": "none yet — wave 3 removes the consent step; today's consent is SCN-137's",
+      "coverage": "apps/desktop/src/main/keptOut.ts (0.3.7 wave 3: «Отключить» revokes every credential the agent holds and keeps it out of every project until «Пустить снова», each the other's inverse as acts), apps/desktop/src/main/accessService.ts region `kept-out-door` (the kept-out agent refused before any admission write), apps/desktop/src/renderer/src/launch/JoinedAgents.tsx (in Агенты: «подключился сам», the proof line, «Отключить», «Отключён» with «Пустить снова»); the let-in itself is ADR-0164's admission (apps/desktop/src/main/projectAdmission.ts). Probed in apps/desktop/test/kept-out.test.mjs, apps/desktop/test/session-enroll-request.test.mjs and apps/desktop/src/renderer/src/launch/JoinedAgents.test.tsx. Not yet: the «Codex открыт в папке вне проектов» line in История (wave 4)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a coding agent the person opened themselves works in its project without a question, and the person sees it and can take that back with one press.",
@@ -35368,7 +35368,7 @@
       "screen_refs": [
         "SCR-88"
       ],
-      "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The screen is wave 4's; the agents' own acts (through their MCP tools) join the list from their events in that wave.",
+      "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.",
@@ -35387,7 +35387,7 @@
       "screen_refs": [
         "SCR-88"
       ],
-      "coverage": "the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded. **Not in wave 2:** a disconnected agent «let back in» (the revoked credential is gone and says so, `credential_gone`; the \"kept out until let in\" state arrives with wave 3's enrollment without consent) and a message to another project (the operator has no send in the main process). The buttons and the act line are waves 3 and 4.",
+      "coverage": "the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded; wave 3 adds a disconnected agent let back in (`apps/desktop/src/main/keptOut.ts`, `apps/desktop/test/kept-out.test.mjs`). The buttons: the act line at a place's foot (`apps/desktop/src/renderer/src/launch/ActLine.tsx`, wired to `acts.undo` in `App.tsx`; probed in `ActLine.test.tsx` and `actLineShell.test.tsx`) and История's rows (`HistoryScreen.tsx`). Not yet: the button's own text when the object changed since (`changedSince`, wave 4), and a message to another project (the operator has no send in the main process).",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a wrong press is never permanent when it can be reversed, and both the act and its reversal are in История with their actors.",
@@ -35425,7 +35425,7 @@
       "screen_refs": [
         "SCR-90"
       ],
-      "coverage": "none yet — wave 4 redraws the start paths in this frame; today's are SCN-127…SCN-129 and SCN-136",
+      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: «Создать» in the main area with its three choices, one folder or several, an agent built elsewhere, and the unfinished project drafts to go on with), probed in apps/desktop/src/renderer/src/start/CreateChoices.test.tsx and onboardingDraft.persist.test.tsx; each choice opens today's path (SCN-127…SCN-129, SCN-136), which wave 4 redraws in this frame",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "every start begins in one place, and each path ends in a working project or agent in at most three steps, without a dialog.",

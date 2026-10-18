@@ -113,7 +113,7 @@ deletion.
 | 0 · Decide | the act-log-undo ADR; the ADR-0134/0115 amendments; the cut list | done 2026-10-15 (ADR-0160) |
 | 1 · Spec | scenarios for the five places and История's undo; retirements for the cut list; flows and screens; the prototype drawn for every place and state (`scripts/product/`), in ru and en | `docs/ux/lint.py`, the product-model and report checks, the prototype walked |
 | 2 · History and undo | the inverse of every operator act in the main process (stop → start again, release → take again, detach → attach, discard → restore, answer → reopen, move → move back), recorded with its actor; the История read | a test per act: do, undo, both in history — **done 2026-10-17**, [§8](#8-wave-2--history-and-undo-done-2026-10-17) |
-| 3 · Shell | the five-place rail with the projects list; Создать; no tab strip; the confirmations removed; the coding agent let in, with Отключить | component tests; the walk in ru and en |
+| 3 · Shell | the five-place rail with the projects list; Создать; no tab strip; the confirmations removed; the coding agent let in, with Отключить | component tests: **done 2026-10-18**, [§9](#9-wave-3-the-shell-done-2026-10-18); the walk in ru and en is folded into wave 4's walk from zero |
 | 4 · Places | Главная, Проект, Агенты, История, Настройки rebuilt to the prototype; the onboarding plan's wizard, scan and create flows in the new frame | screenshots against the prototype; the walk from zero on a disposable stack |
 | 5 · Release | three verification iterations, CHANGELOG, docs, map; 0.3.7 tagged, published, installed | the release run green; the installed bundle verified |
 
@@ -206,8 +206,74 @@ agent under the standing go (§6), recorded for the operator to correct asynchro
   database act done, undone and redone, both acts in the journal with the person as actor, and the read),
   `reopen-answer-db.test.mjs` (an owned cluster, in the fast tier: the command, its idempotency and refusals, a rebuild).
 
-**Next task.** Wave 3 — the shell: the five-place rail with the projects list (SCN-162); **Создать** (SCN-171); no tab
-strip; every confirmation of §1 removed except the boundaries of §3.3, each act line reading its «Отменить» from
-`acts.undo`; and the coding agent let in without a question, with **Отключить** (SCN-167) — which brings the
-"kept out until let back in" state the disconnect's inverse needs, so the `credential_gone` refusal of the disconnect
-act becomes a real inverse in the same wave. Component tests and the walk in ru and en.
+**Next task (as it stood after wave 2).** Wave 3, the shell: recorded in [§9](#9-wave-3-the-shell-done-2026-10-18).
+
+## 9. Wave 3: the shell, done 2026-10-18
+
+Renderer, plus the disconnect's main-process half. Decided by the agent under the standing go (§6), recorded for the
+operator to correct asynchronously:
+
+- **The rail** (`launch/LaunchShell.tsx`, SCN-162, SCR-84): «＋ Создать», Главная, Агенты, История, Настройки, then the
+  projects list. Favourites are the home's pins (`favourites.list`, local to this computer), then latest activity from
+  the journal the shell already reads (`shared/railProjects.ts`). A dot is a running console in the project; a count is
+  the board's own per-project count (the same `board.query` the board runs, M151), so the rail and the board never
+  disagree. The foot says «Вы» and how this computer is (`ok` / `reading` / `trouble` from the shell's own reads):
+  Fabric holds no person's name, and inventing one would be a claim nobody made.
+- **No tab strip, no Back.** The working set (`tabs`) is still kept and restored, it is just not drawn. ⌘[ and ⌘] walk
+  the places the person was at (route plus whether Настройки was in front), skipping a project removed since; an editor
+  or a console keeps the keys. The trackpad swipe needs a main-process event and is not wired yet (wave 4).
+- **Places that left the rail** stay reachable where they belong until wave 4 gives each its home: Board, Pulse and the
+  guide from Главная as today; Plan from the project; Messages between projects, account limits, Help (and the first
+  run) and Fabric's name and look from a «Ещё» section in Настройки. Where work is and the scope bar's Profile and
+  «Discuss with Fabric» are gone from the interface (the cut list); the conversation with Fabric shows on the rail only
+  when it answers that it is switched on.
+- **«Создать»** (`start/StartPaths.tsx` region `create-place`, SCN-171, SCR-90) replaces the four-card start menu: the
+  projects folder first, then project and agent, one folder or several and an agent built elsewhere a line beneath.
+  With no tab strip, the unfinished project drafts are listed there; «Создать проект» always opens a new one. The first
+  run still ends on the four cards (`StartCards`); wave 4 redraws the first run in this frame.
+- **The act line reads the journal, not the control.** `ActLine.tsx` shows the newest `act.recorded@1` the PERSON did
+  since they came to the place, from the journal events the shell already polls every 2 s. One source for every act,
+  whichever control did it; an undo is an act, so the line is replaced by «Отменено: …» with its own «Отменить». The
+  cost is up to two seconds before the line appears. An agent's act never takes the person's line.
+- **История** (`launch/HistoryScreen.tsx`, SCR-88) is wave 3's minimum: the acts by day, who, the sentence, the project,
+  «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить» and the last list kept. Filters, the detail
+  pane, the agents' own acts and the button text for `changedSince` are wave 4's. The act sentences and every refusal
+  code are worded in both languages (`launch/actWords.ts`); an unknown code reads «Fabric не может это отменить», never
+  the code.
+- **Confirmations removed** (ADR-0160 §1): Stop and Force stop (one press each; the stop's undo is "start again"), Release
+  in a row's … menu (one menu press, then at once), removing a folder including the primary one, discarding a draft
+  (wave 2's `drafts.discard`; «Отменить» restores it and reopens it), replacing your words with a shortcut (at once, with
+  «Вернуть мой текст» beneath: the field is the person's local text, not an act on the world, so its undo is local), and
+  the deep-link offer (a link waiting through the first run opens). `noConfirmations.test.ts` holds the renderer to no
+  `window.confirm`/`alert`/`prompt` and no `alertdialog`, watched failing against the code before.
+- **Boundaries and notices are questions on Главная** (ADR-0160 §4–§5): an agent's ask of a product's resources no longer
+  calls the native prompt or a notification; it waits as the board's access item with Разрешить / Не разрешать, which
+  Главная's board block and the rail's count show. The usage-count question (ADR-0127: nothing is sent until it is
+  answered, here or in Настройки) and the database-exposure warning render on Главная only, as question cards. The
+  first run's language step the plan names does not exist yet; the usage question moves there with wave 4's wizard.
+- **«Отключить» built on ADR-0164's admission** (which landed first, so the let-in is its): `main/keptOut.ts`. Disconnect
+  revokes every live credential of that coding agent (its consoles end through the revocation listeners) and keeps it
+  out of every project; the door refuses a kept-out agent before any admission write and before anything is
+  journalled (`accessService.ts` region `kept-out-door`). «Пустить снова» is the disconnect's inverse and the disconnect
+  is let-in's, so wave 2's `credential_gone` refusal on a disconnect became a real undo. A single credential revoked in
+  Настройки → Доступ агентов still records `credential_gone` (that is a key, not the agent).
+- **The kept-out list is a file on this computer** (`kept-out-agents.json`, beside the hub's credentials), not a journal
+  projection: it guards this machine's door, and a projection would need a migration for one set of keys. The acts
+  that change it are in История. Unreadable, it keeps nobody out (fail-open) and Агенты says so: failing closed would
+  lock every coding agent out of every project over one damaged local file.
+- **Evidence.** Component tests: `Rail.test.tsx` (13), `ActLine.test.tsx` (14), `actLineShell.test.tsx` (the shell wires
+  «Отменить» to `acts.undo` with the act's seq; watched failing with the line unwired), `HistoryScreen.test.tsx` (6),
+  `CreateChoices.test.tsx` (5), `JoinedAgents.test.tsx` (7), `SessionStop.test.tsx`, `WhoIsWorking.test.tsx`,
+  `Tasks.test.tsx`, `noConfirmations.test.ts`, `entityAddress.test.tsx` (⌘[ and ⌘]); pure: `railProjects.test.ts`,
+  `test/kept-out.test.mjs` (6), `test/session-enroll-request.test.mjs` (the kept-out door). Each new test was run and
+  seen failing before its code. FLW-93 and FLW-97 left the unmeasured-flows debt (SCR-84 and SCR-88 cite files).
+- **Not done in this wave: the walk of the built app in ru and en.** The rule for this wave was not to drive the
+  operator's running Fabric or its database, and the shell alone on a fresh stack shows today's home and project pages
+  that wave 4 replaces; the walk is folded into wave 4's walk from zero on a disposable stack. The prototype was not
+  changed by this wave.
+
+**Next task.** Wave 4, the places: Главная, Проект, Агенты, История and Настройки rebuilt to the prototype
+(`scripts/product/simple.mjs`), with История's filters and detail pane, the agents' own acts read from their events,
+«Отменить»'s text when the object changed since, the trackpad swipe, the first run redrawn in the new frame (the usage
+question in its first step, «Создать»'s choices at its end), and the onboarding plan's wizard, scan and create flows;
+then the walk from zero on a disposable stack in ru and en, screenshots against the prototype.
