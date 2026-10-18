@@ -51,3 +51,21 @@ Wave 1 built resolution by pick and by the folder of an admitted repository or i
 (`folderResolver.ts#resolveProjectForFolder`, ADR-0134 amendment 2). §2 — a folder that belongs to no project admitted
 on the agent's report and the operator's consent — is wave 2's (REQ-05); until then such a folder answers `no-project`
 and the agent is told to open it in Fabric first (SCN-137).
+
+### Amendment 2 — 2026-10-17: automatic registration through the canonical enrollment path
+
+ADR-0160 changes §2 on the operator's own machine: an eligible unknown Git repository or worktree no longer waits for
+a consent prompt or a separate **+ Project → Open a project** step. `fabric.session.enroll` first proposes the folder's
+deterministic project identity without writing. The normal `fabric.access.request` path validates the coding agent and
+standing denial, then `projectAdmission.ts` creates or attaches through the same journal/projector functions used by
+IPC. `session.enroll` is allowed at once as the coding agent's own act. No Electron event is fabricated, and no
+Switchboard or Project Observatory store is read as a write target.
+
+The resolver now covers exact, longest-ancestor, worktree and normalized remote identity, in that order. Two matching
+Projects are an ambiguity and are refused. A non-Git folder, home or filesystem root is refused. An archived Project or
+a detach recorded by the operator is not resurrected; `project_repo_removals` holds the tombstone until an explicit
+attach clears it. Re-entry is idempotent, including a retry after project creation but before the enrollment grant.
+
+Evidence: `apps/desktop/test/folder-resolver.test.mjs`, `project-admission.test.mjs`,
+`session-enroll-request.test.mjs`, `session-enroll.test.mjs`, and the repository-identity group in
+`command-ingress-db.test.mjs` (90 migrations on an owned disposable PostgreSQL cluster).

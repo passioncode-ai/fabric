@@ -946,7 +946,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           : { ok: false, message: f.message }
       },
       admit: async (folder, agentId) => {
-        const project = await admission.enroll(folder, agentId)
+        const project = await admission.enroll({ ...folder, real: folder.real ?? folder.root }, agentId)
         return { id: project.id, name: project.name, root: folder.root, how: folder.how }
       }
     }

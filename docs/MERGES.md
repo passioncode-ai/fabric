@@ -16,6 +16,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: docs/reports generated files on rebase, regenerated
 - summary: CO-323. A task held by a launched run whose stop is unproved is named as held by that run (session, run, since, until, stop) instead of refused as "claimed in the same moment"; the work list shows it held. CO-327 files the held task with no way out. Also a race in the Comms "Show older threads" retry test (the poll clock reads the first page at any moment).
 
+### 2026-10-17T22:04:07Z · `—` · agent/auto-project-registration-20261017 → main · candidate
+- run: r-r9631f5d5219
+- files: enrollment resolver, main-process project admission, repository identity migration, focused tests and the ADR/UX/map handoff
+- conflicts: none; the seven newer main commits were integrated by rebase
+- summary: an eligible unknown Git repository or worktree is created or attached through canonical admission, then `session.enroll` is allowed at once on the operator's own machine; exact/ancestor/worktree/remote identity, ambiguity and detach refusals, idempotency and journal/revoke semantics are preserved.
+
 ### 2026-10-16T03:30:00Z · `—` · fix/workspace-sync-wedge → main · fast-forward
 - run: r-a809c95ced27
 - files: scripts/workspace.mjs, scripts/workspace-sources.mjs, scripts/test/workspace-sources.test.mjs, docs/architecture/report-workspace.md, docs/reports/map.html

@@ -609,3 +609,17 @@ MEM 8, FR 7, port modules and N1/L3c 7, items without an id 10 (NOID-01…10, gi
 registry 119, screens 103, sessions and runners 65, other 64, onboarding 56, memory 43, board 42, workflows 39,
 data 37, docs 36, security 32, harness 31, release 30, i18n 4. 175 items sit in duplicate clusters (one fix closes a
 cluster).
+
+## Status, 2026-10-17 — automatic project registration
+
+REQ-05's folder-resolution and consented-admission work is implemented on `agent/auto-project-registration-20261017`
+under ADR-0136 amendment 2 and ADR-0160 amendment 1. `projectAdmission.ts` is the shared main-process service for the
+operator's IPC and agent enrollment; `folderResolver.ts` resolves exact, ancestor, worktree and remote identity;
+`AccessService` admits only after runner/binding/denial checks and allows `session.enroll` at once on the operator's
+own machine. Detach tombstones and archived Projects are not undone. No sibling product store is written.
+
+Focused evidence: resolver 13/13; admission 4/4; enrollment request 13/14 (the remaining case is dependency-blocked);
+pure enrollment 27/27; immediate MCP 1/1; command ingress 6 groups with 90 actual migrations. The two SDK-dependent
+suites remain unrun where `@modelcontextprotocol/sdk` is absent in this worktree. The cross-repository two-round
+isolated client scenario remains the next acceptance task, followed by the owning `bash scripts/ci.sh fast` gate and
+documentation publication through the normal workspace channel.

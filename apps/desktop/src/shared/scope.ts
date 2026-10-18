@@ -108,6 +108,7 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   memory_occurrences: ESTATE_AND_PROJECT,
   memory_retrievals: ESTATE_AND_PROJECT,
   project_repos: ESTATE_AND_PROJECT,
+  project_repo_removals: ESTATE_AND_PROJECT,
   project_tasks: ESTATE_AND_PROJECT,
   proposals: ESTATE_AND_PROJECT,
   question_blocks: ESTATE_AND_PROJECT,

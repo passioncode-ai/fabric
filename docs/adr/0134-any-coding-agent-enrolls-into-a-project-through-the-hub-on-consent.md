@@ -214,3 +214,16 @@ the person sees it in История and Агенты and revokes it with **От
 person lets it back in. The native dialog, the board's access-request item and the pending queue for it are
 retired by the 0.3.7 plan's wave 3 (until it ships, 0.3.6 still asks); the credential, its scope and its expiry are unchanged. Across the machine boundary (ADR-0144) nothing
 changes. See [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md).
+
+### Amendment 8 — 2026-10-17: an unknown eligible Git repository enrolls through canonical admission
+
+The immediate local decision in ADR-0160 also applies to a folder no Project holds yet. `resolveAgentFolder` proposes a
+stable project id without a write; `AccessService.request` admits only after the catalogue runner, the binding identity
+and a standing denial have been checked. `projectAdmission.ts` is the shared main-process service for this agent path,
+`projects.create`, `repos.attach` and `repos.detach`, so admission cannot diverge into a second set of rules or a fake
+Electron IPC event. The first credential and session then follow the same grant, journal and revocation path as every
+other enrollment. `project.created@1` and `project.repo.attached@1` name the coding agent as actor; revoking the
+binding still ends the sessions and keeps the agent out, and a manual detach still wins over later automation.
+
+Evidence: immediate-allow tests in `session-enroll-request.test.mjs`, the immediate-poll test in `fabric-mcp.test.mjs`,
+and end-to-end create/attach/detach/worktree cases in `project-admission.test.mjs`.

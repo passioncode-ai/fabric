@@ -11,7 +11,8 @@ const note = { task_id: id, note_id: other, body_md: secret }
 const fixtures: Record<string, Record<string, unknown>> = {
   'task.closed@1': { task_id: id, outcome: 'cancelled', reason: secret },
   'memory.retrieved@1': { id, session_id: null, store: 'facts', query: secret, hits: 0 },
-  'project.repo.attached@1': { id, path: '/tmp/project', label: secret },
+  'project.repo.attached@1': { id, path: '/tmp/project', label: secret, remote_key: 'github.com/o/n', kind: 'primary', admitted_by: 'agent' },
+  'project.repo.detached@1': { id, path: '/tmp/project', remote_key: 'github.com/o/n', kind: 'primary', redactions: secret },
   'routine.paused@1': { id, reason: secret, window: null, reason_code: 'not-ready' },
   'routine.ran@1': { id, task_id: other, because: secret },
   'cycle.ran@1': { state: 'failed_known', ms: 5, sessions_observed: 0, says: secret, advances: false },

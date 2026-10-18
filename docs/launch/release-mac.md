@@ -293,6 +293,11 @@ says (109 is the board's, 110/111 the pipeline's). The procedure is the same wit
 three partial indexes on the journal, one table constraint dropped (`question_resolutions` no longer holds one row per
 question, so a reopened question can be answered again), functions and two event types; it rewrites no stored row.
 
+**The current development tree admits schema 92**: two migrations past wave 2's 90,
+`20261018000113_project_repo_identity.sql` (count 91: normalized remote and repository-kind identity, estate-path
+uniqueness, detach tombstones and their projection) and `20261018000114_private_archive_source.sql` (count 92: schemas
+91 and 92 as private-archive sources in code and SQL). The procedure is the same with 92 in place of 89.
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z

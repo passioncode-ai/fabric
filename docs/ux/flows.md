@@ -2353,32 +2353,31 @@ flowchart TD
 
 
 ### FLW-77: A coding agent opened outside Fabric starts working in a project
-*(Amended 2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3: the consent node goes — the coding agent is let in at once and shown in История and Агенты with «Отключить», FLW-96, SCN-167.)*
+*(Amended 2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §3 and [ADR-0136](../adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md) §2: consent and the manual + Project step go — an eligible Git folder is admitted and the coding agent is let in at once, shown in История and Агенты with «Отключить», FLW-96, SCN-167.)*
 - **Traces:** ST-045; SCN-137 (JTBD-08)
-- **Goal:** Let a coding agent the person opened themselves work in one project after one decision.
-- **Entry points:** the agent's first call to `fabric_whoami` through `fabric-mcp`.
-- **Success exit:** the agent's tools are the project's session tools; later sessions join without asking.
-- **Task analysis:** Open the agent in the project's folder; allow once in Fabric; later, revoke.
+- **Goal:** Let a coding agent the person opened themselves work in the correct project without a manual registration or confirmation step.
+- **Entry points:** the agent's first call to `fabric_whoami` through `fabric-mcp`, in any Git repository or worktree on this machine.
+- **Success exit:** the agent's tools are the project's session tools; later sessions join without registering again.
+- **Task analysis:** Open the agent in a Git folder; Fabric resolves or admits it and records the agent's act; later, revoke.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- S[Agent starts in a folder; fabric-mcp finds hub.json] -->|no hub.json or a dead pid| W1[fabric_whoami: Fabric is not running, or its hub is closed]
- S -->|folder in no project| W2[fabric_whoami: open the folder in Fabric first]
+ S[Agent starts in a Git folder; fabric-mcp finds hub.json] -->|no hub.json or a dead pid| W1[fabric_whoami: Fabric is not running, or its hub is closed]
+ S -->|non-Git, broad, detached or ambiguous| W2[fabric_whoami: no automatic registration; nothing written]
  S -->|standing grant on the folder's project| OK[Session opened; tools change]
- S -->|no grant yet| Q[Ask once: FLW-75's prompt, queue and SCR-76, worded as an enrollment]
- Q -->|Allow| OK
- Q -->|Deny| D[fabric_whoami: denied until cleared in SCR-76]
- Q -->|10 minutes| E[Expired; asks again at the next start]
- OK -->|Fabric restarts| R[Reconnects under the grant, no prompt]
+ S -->|eligible unknown or no grant yet| A[Resolve and admit through canonical service; journal project and access acts]
+ A -->|allowed at once| OK
+ A -->|standing denial| D[fabric_whoami: denied until cleared in SCR-76]
+ A -->|older request expired| E[Ask again at the next start]
+ OK -->|Fabric restarts| R[Reconnects under the grant, no registration]
  OK -->|Revoke in SCR-76| V[Open sessions end; the next call is refused; asks again]
 ```
 
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-41 Ranked Board and question detail | access request (enrollment) |
-  | SCR-76 Agent access | waiting, read, revoked |
+  | SCR-76 Agent access | read, revoked |
 
 ## Agents first — the operator's evening additions · 2026-10-11 (0.4.0 plan REQ-38, REQ-39, REQ-41, REQ-42)
 

@@ -10333,7 +10333,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1940,
+        "line": 1941,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10550,7 +10550,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1987,
+        "line": 1988,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10676,7 +10676,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2017,
+        "line": 2018,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10754,7 +10754,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2036,
+        "line": 2037,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10856,7 +10856,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2057,
+        "line": 2058,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); the unread slice — the rail badge and badge poll in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `apps/desktop/src/renderer/src/App.tsx`, the operator-local read marks `AppSettings.commsReadThrough` (`apps/desktop/src/shared/types.ts`) and their patch validation (`apps/desktop/src/shared/appSettings.ts`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
@@ -11064,7 +11064,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2120,
+        "line": 2121,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11177,7 +11177,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2144,
+        "line": 2145,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11278,7 +11278,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2177,
+        "line": 2178,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11357,7 +11357,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2196,
+        "line": 2197,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11463,7 +11463,7 @@
       "view": "simple-project",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2220,
+        "line": 2221,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11558,7 +11558,7 @@
       "view": "simple-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2242,
+        "line": 2243,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11654,7 +11654,7 @@
       "view": "simple-history",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2264,
+        "line": 2265,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11757,7 +11757,7 @@
       "view": "simple-settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2288,
+        "line": 2289,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11838,7 +11838,7 @@
       "view": "simple-create",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2307,
+        "line": 2308,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -34873,11 +34873,11 @@
       "screen_refs": [
         "SCR-76"
       ],
-      "coverage": "apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/fabricMcpMain.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/accessService.ts, apps/desktop/src/shared/accessWords.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+      "coverage": "apps/desktop/src/main/fabricMcp.ts, apps/desktop/src/main/fabricMcpMain.ts, apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/folderResolver.ts, apps/desktop/src/main/projectAdmission.ts, apps/desktop/src/main/accessService.ts, apps/desktop/src/shared/accessWords.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
       "registry_status": "draft",
       "product_observation": "unobserved",
-      "expected_result": "A coding agent the person opened themselves reaches Fabric's harness in one project after one decision, with nothing secret in its configuration, and its work is journalled like any session's.",
-      "errors_recovery": "Fabric's hub cannot be verified (a foreign protocol, a dead pid, a token file outside Fabric's folder) → the agent is told Fabric could not be verified and to open Fabric; nothing is sent. A credential Fabric no longer knows → it is forgotten and the agent asks again. Writing the credential fails after Allow → the agent says the Allow must be repeated and why.",
+      "expected_result": "A coding agent the person opened themselves reaches Fabric's harness in the correct project without a separate project-creation step or confirmation dialog, with nothing secret in its configuration, and its work is journalled like any session's.",
+      "errors_recovery": "Fabric's hub cannot be verified (a foreign protocol, a dead pid, a token file outside Fabric's folder) → the agent is told Fabric could not be verified and to open Fabric; nothing is sent. A credential Fabric no longer knows → it is forgotten and the agent asks again. Admission or its journal fails → no session is minted and the next call retries idempotently. Writing the credential fails after Allow → the agent says the Allow must be repeated and why.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3452
@@ -34901,7 +34901,7 @@
       "errors_recovery": "Detecting the coding agents fails → said, with Check again; Skip for now stays available. No coding agent can run setup → \"Setup runs in a coding agent, and none on this Mac can start\", each agent with its reason and install command; Skip for now (with a reason) is the way on. A picked agent that is not signed in stays picked, and «Set up with <agent>» says \"Sign in to <agent> in its own window, then Check again\" instead of starting — the console never starts on a signed-out agent (ADR-0135 §5), while the pick itself is a preference, never a gate. A download whose signature or checksum does not match → the agent stops and installs nothing; the line reads \"Download not verified — refused\" with the agent's reason quoted; Try again fetches it again. The install fails (disk, permission, the platform's check refused) → \"Not installed — stopped at <step>\" with the agent's reason quoted as its report; Try again reopens the console at that step; Use another coding agent; Skip with a reason. The agent says a step is done and Fabric cannot observe it → \"not confirmed\", naming what Fabric looked for (\"no `observatory` in Claude Code's MCP list\") with Check again. The product is installed and does not answer → \"installed, not answering\" with Open <product> and Check again. A step needs a credential → the agent asks in a hidden prompt or reads Observatory's vault, never a command line Fabric wrote (LC-04). The Setup console cannot be started → the reason; nothing changed; Try again or another coding agent. Fabric quits mid-setup → the console ends with Fabric; the next start shows what was observed and Continue setup.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3483
+        "line": 3484
       }
     },
     {
@@ -34921,7 +34921,7 @@
       "errors_recovery": "An observation that cannot be read (an agent's MCP list command fails) → that cell says \"could not read <agent>'s MCP list\" with Check again, never \"not registered\". A download that fails verification → refused and nothing installed; the receipt names the file and the check that failed. The registration command fails → the agent's reason quoted; Try again. The product does not answer → \"installed, not answering\" with Open <product>. The proving call errors → \"registered, proving call failed\" with the error as reported; Try again. A credential is asked in a hidden prompt or read from Observatory's vault, never on a command line (LC-04). A second setup of the same product while one console is open → refused with \"Setup of <product> is already running in <agent>\" and Bring it forward.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3506
+        "line": 3507
       }
     },
     {
@@ -34941,7 +34941,7 @@
       "errors_recovery": "Fabric not running or its hub closed → `fabric-mcp` says so; the agent tells the person it could not check who else works here, and never says it checked. A call whose answer was lost → the outcome is unknown; the agent reads `fabric_work_list` before claiming again, and a repeated claim with the same key is the same claim, never a second. A backlog row that does not resolve (a repository the project does not hold) → refused, naming the part that did not resolve; the agent may file a new row instead. The board cannot be read → the list says so, never \"nobody is working here\".",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3528
+        "line": 3529
       }
     },
     {
@@ -34964,7 +34964,7 @@
       "errors_recovery": "A projection that cannot be read → that column says so on every row and the rest stays readable; never a zero. A sign of life older than its window → \"no sign for 25 min\", never \"running\". The admission fails → the reason; the session stays where it was; Try again. The estate cannot be read at all → the reason with Try again, never \"no work\".",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3553
+        "line": 3554
       }
     },
     {
@@ -34987,7 +34987,7 @@
       "errors_recovery": "Fabric does not come forward within 15 s → the button says \"<name> did not open — open it from Applications\" and returns to idle; nothing is retried by itself. No coding agent can start → the session window lists each with its reason (as SCN-135) and «Set up a coding agent» (SCR-77). The working session fails to start → the reason; the manager session stays; Try again. A link with a malformed or unknown parameter → Fabric opens nothing new and says the link was not understood. The projects or their repositories cannot be read → home, with \"Fabric could not read your projects to open this link. Try again.\"; a failed read is never taken as an empty list, so the person is never told the project is missing (ER-1, UX-14). The way back cannot open (Dashboards not installed or not answering) → said in place, with the page's address to copy.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3576
+        "line": 3577
       }
     },
     {
@@ -35006,7 +35006,7 @@
       "errors_recovery": "a failed poll keeps the last confirmed page on screen and says when it was confirmed; the next poll that succeeds resumes from the cursor, so a dropped subscription recovers without the operator. A read that fails mid-history keeps the pages already read and refuses the older page only.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3602
+        "line": 3603
       }
     },
     {
@@ -35026,7 +35026,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3643
+        "line": 3644
       }
     },
     {
@@ -35045,7 +35045,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3671
+        "line": 3672
       }
     },
     {
@@ -35064,7 +35064,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3702
+        "line": 3703
       }
     },
     {
@@ -35083,7 +35083,7 @@
       "errors_recovery": "each read fails on its own and says so where its answer would be; what was read stays on screen. The settle sheet never resends by itself: a lost answer is resolved by reading the request again, and the same idempotency key makes a second press the same settlement.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3739
+        "line": 3740
       }
     },
     {
@@ -35104,7 +35104,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3771
+        "line": 3772
       }
     },
     {
@@ -35125,7 +35125,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3799
+        "line": 3800
       }
     },
     {
@@ -35144,7 +35144,7 @@
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3825
+        "line": 3826
       }
     },
     {
@@ -35163,7 +35163,7 @@
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3850
+        "line": 3851
       }
     },
     {
@@ -35182,7 +35182,7 @@
       "errors_recovery": "a failed reading says «Неизвестно, кто работает: работу не удалось прочитать.», with the machine's reason on its own line beneath, and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3875
+        "line": 3876
       }
     },
     {
@@ -35201,7 +35201,7 @@
       "errors_recovery": "the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3901
+        "line": 3902
       }
     },
     {
@@ -35220,7 +35220,7 @@
       "errors_recovery": "enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3927
+        "line": 3928
       }
     },
     {
@@ -35239,7 +35239,7 @@
       "errors_recovery": "the last refusal is thrown as it was, so the startup sheet and the copied details carry the stack's own words; Retry on that sheet starts the stack again with a fresh count.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3950
+        "line": 3951
       }
     },
     {
@@ -35258,7 +35258,7 @@
       "errors_recovery": "the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3988
+        "line": 3989
       }
     },
     {
@@ -35277,7 +35277,7 @@
       "errors_recovery": "a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4010
+        "line": 4011
       }
     },
     {
@@ -35298,7 +35298,7 @@
       "errors_recovery": "an answer that is not recorded keeps the card with its options and says so; an answer whose outcome is unknown says «Неизвестно, дошёл ли ответ — проверяю» and reads the question again before offering the options, so a second press never answers twice; a question that fails Fabric's check of the board's rules (no options, no why) is shown with «Агент не объяснил, зачем спрашивает» and «Обсудить» only.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4032
+        "line": 4033
       }
     },
     {
@@ -35317,7 +35317,7 @@
       "errors_recovery": "a move, a new task, a rename or a removed folder that is not recorded snaps back and says «Не сохранилось.» with the machine's words beneath; a task's text typed into a failed «Поставить» stays in the field; a console that cannot start says why on the button's line (no coding agent ready -> «Нет готового агента — открыть Агенты»).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4053
+        "line": 4054
       }
     },
     {
@@ -35336,7 +35336,7 @@
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4076
+        "line": 4077
       }
     },
     {
@@ -35356,7 +35356,7 @@
       "errors_recovery": "a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4097
+        "line": 4098
       }
     },
     {
@@ -35375,7 +35375,7 @@
       "errors_recovery": "a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4118
+        "line": 4119
       }
     },
     {
@@ -35394,7 +35394,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4138
+        "line": 4139
       }
     },
     {
@@ -35413,7 +35413,7 @@
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4157
+        "line": 4158
       }
     },
     {
@@ -35432,7 +35432,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4176
+        "line": 4177
       }
     }
   ],
@@ -37125,18 +37125,17 @@
     {
       "id": "FLW-77",
       "title": "A coding agent opened outside Fabric starts working in a project",
-      "goal": "Let a coding agent the person opened themselves work in one project after one decision.",
-      "entry_points": "the agent's first call to `fabric_whoami` through `fabric-mcp`.",
-      "success_exit": "the agent's tools are the project's session tools; later sessions join without asking.",
+      "goal": "Let a coding agent the person opened themselves work in the correct project without a manual registration or confirmation step.",
+      "entry_points": "the agent's first call to `fabric_whoami` through `fabric-mcp`, in any Git repository or worktree on this machine.",
+      "success_exit": "the agent's tools are the project's session tools; later sessions join without registering again.",
       "screen_refs": [
-        "SCR-76",
-        "SCR-41"
+        "SCR-76"
       ],
       "source": {
         "file": "docs/ux/flows.md",
         "line": 2355
       },
-      "mermaid_source": "flowchart TD\n S[Agent starts in a folder; fabric-mcp finds hub.json] -->|no hub.json or a dead pid| W1[fabric_whoami: Fabric is not running, or its hub is closed]\n S -->|folder in no project| W2[fabric_whoami: open the folder in Fabric first]\n S -->|standing grant on the folder's project| OK[Session opened; tools change]\n S -->|no grant yet| Q[Ask once: FLW-75's prompt, queue and SCR-76, worded as an enrollment]\n Q -->|Allow| OK\n Q -->|Deny| D[fabric_whoami: denied until cleared in SCR-76]\n Q -->|10 minutes| E[Expired; asks again at the next start]\n OK -->|Fabric restarts| R[Reconnects under the grant, no prompt]\n OK -->|Revoke in SCR-76| V[Open sessions end; the next call is refused; asks again]",
+      "mermaid_source": "flowchart TD\n S[Agent starts in a Git folder; fabric-mcp finds hub.json] -->|no hub.json or a dead pid| W1[fabric_whoami: Fabric is not running, or its hub is closed]\n S -->|non-Git, broad, detached or ambiguous| W2[fabric_whoami: no automatic registration; nothing written]\n S -->|standing grant on the folder's project| OK[Session opened; tools change]\n S -->|eligible unknown or no grant yet| A[Resolve and admit through canonical service; journal project and access acts]\n A -->|allowed at once| OK\n A -->|standing denial| D[fabric_whoami: denied until cleared in SCR-76]\n A -->|older request expired| E[Ask again at the next start]\n OK -->|Fabric restarts| R[Reconnects under the grant, no registration]\n OK -->|Revoke in SCR-76| V[Open sessions end; the next call is refused; asks again]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-137"
@@ -37155,7 +37154,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2385
+        "line": 2384
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-77 coding agents and the two family products] -->|detection failed| A_err[Inline: could not check, Check again]\n A_err -->|Check again| A\n A -->|no agent can run setup| N[Inline: each agent with its reason and install command]\n N -->|Check again after installing| A\n N -->|Skip for now| K\n A -->|choose an agent; a disabled row says why| R[Ready: Set up with the chosen agent]\n R -->|Set up with agent| C[Screen: SCR-25 Setup console, the agent asks before each step]\n C -->|each step observed| O[SCR-77 line ticked with its time]\n O -->|next step| C\n C -->|agent says done, not observed| NC[Line: not confirmed, what Fabric looked for]\n NC -->|Check again| O\n C -->|download not verified| RF[Line: refused, nothing installed]\n RF -->|Try again| C\n C -->|Observatory install failed| F1[Line: Observatory not set up, stopped at step]\n F1 -->|Try again| C\n F1 -->|Use another coding agent| R\n F1 -->|Continue with Fabric Dashboards| C\n C -->|console closed mid-way| CC[SCR-77 keeps what was observed]\n CC -->|Continue setup| C\n O -->|both verified| V[Verified: both answering, with times]\n R -->|Skip for now| K[Skip asks why and says what is lost]\n K -->|Skip with a reason| X[Skipped: Home shows Finish setting up]\n X -->|Finish setting up| A\n V -->|Continue or Done| E[Exit: first run continues, or Settings]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37176,7 +37175,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2429
+        "line": 2428
       },
       "mermaid_source": "flowchart TD\n T[Screen: SCR-77 product by agent table] -->|observations unreadable| T_err[Cell: could not read the agent's MCP list, Check again]\n T_err -->|Check again| T\n T -->|Set up with agent| C[Screen: SCR-25 Setup console briefed for one product]\n T -->|already running for this product| B[Inline: already running, Bring it forward]\n B -->|Bring it forward| C\n C -->|download not verified| RF[Cell: refused, nothing installed]\n RF -->|Try again| C\n C -->|installed| I[Cell: installed, version and signature]\n I -->|registered in the agent's own list| G[Cell: registered]\n G -->|product answers Fabric's probe| AN[Cell: answering]\n AN -->|proving call reported| V[Cell: verified with receipt]\n G -->|product not answering| NA[Cell: installed, not answering, Open product]\n NA -->|Check again| G\n AN -->|proving call failed| PF[Cell: proving call failed, error as reported]\n PF -->|Try again| C\n PF -->|product is a project here| FT[File a task in that project with the receipt]\n V -->|Remove| RM[Screen: SCR-25 console briefed to remove]\n RM -->|each removal observed| T\n V -->|Copy receipt| V",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37197,7 +37196,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2466
+        "line": 2465
       },
       "mermaid_source": "flowchart TD\n L[Agent: fabric_work_list] -->|Fabric not running or hub closed| D_err[Answer: could not check; agent says so, never claims it checked]\n L -->|board unreadable| U_err[Answer: not read, never nobody]\n L --> W[Who holds what, open tasks, leases read-only]\n W -->|fabric_work_claim| C{Same task held?}\n C -->|yes| H[Refused: held by agent since time]\n H -->|ask Fabric to hand over| Q[Question to the holder on the board]\n H -->|choose another or file a linked task| W\n C -->|other project, or no grant| X[Refused with the reason]\n C -->|no| K[Claimed with expiry; feed sentence]\n K -->|related work held by another agent| R[Warning: who, which task, what overlaps]\n R -->|coordinate: link or hand over| Q\n R -->|continue knowing| K2[Working; calls renew the claim]\n K --> K2\n K -->|answer lost| UK[Outcome unknown: list again, same key is the same claim]\n UK --> L\n K2 -->|fabric_work_release done, handed over or let go| RL[Released; project page and Where work is updated]\n K2 -->|session ends without release| LP[Lapses at expiry: lapsed, the session ended]\n P[Screen: SCR-31 Who is working on what] -->|Release in a row's menu| PC{Release this claim?}\n PC -->|confirm| RO[Released by the operator; agent told on its next call]\n PC -->|cancel| P",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37219,7 +37218,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2504
+        "line": 2503
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-78 Where work is] -->|estate unreadable| A_err[Inline: not read, Try again; never no work]\n A_err -->|Try again| A\n A -->|a projection unreadable| P[That column says so on every row]\n A --> R[Rows per project; idle projects counted; last row Sessions with no project]\n R -->|open a session| S[Screen: SCR-25 session comes forward]\n R -->|open a claim| T[Screen: SCR-32 task page]\n R -->|open the review count| B[Screen: SCR-31 the project's board, review column]\n R -->|Log under a project| C{Consent: matched project, new project, or don't log here}\n C -->|Allow| AD[Folder admitted; session moves to its project's row]\n C -->|too broad a folder| RB[Refused with why; session stays unowned]\n C -->|don't log here| NL[Stays as not logged here; not asked again]\n AD -->|admission failed| AD_err[Inline: reason, Try again]\n AD_err -->|Try again| C",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37241,7 +37240,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2538
+        "line": 2537
       },
       "mermaid_source": "flowchart TD\n BT[Screen: SCR-79 Fabric's button on a product page] -->|press| OP[Opening name]\n OP -->|not forward within 15 s| OP_err[Button: did not open, open it from Applications]\n OP_err -->|press again| OP\n OP --> FR{First run finished?}\n FR -->|no| FRW[Screen: SCR-70 first run; the request waits]\n FRW -->|finished| M\n FR -->|yes| M{Manager session for this project open?}\n M -->|yes| RUN[Screen: SCR-25 manager session brought forward]\n M -->|no| CF[Screen: SCR-25 confirm: talk to name about project, asked from product]\n CF -->|project not in Fabric| PU[Offer estate scope; Add its folder]\n PU -->|start with estate scope| RUN\n CF -->|no coding agent can start| NA[Each agent with its reason; Set up a coding agent]\n CF -->|Start| RUN\n RUN -->|Open in a coding agent| LS[Screen: SCR-80 Start a working session]\n LS -->|folder held by another agent| IL[Isolated session ticked and locked with the reason]\n IL -->|Start| WS\n LS -->|Start| WS[Screen: SCR-25 working session in the project, handed the conversation]\n LS -->|start failed| LS_err[Inline: reason, Try again; manager session stays]\n LS_err -->|Try again| LS\n RUN -->|Back to product| BK[The product page opens]\n BK -->|cannot open| BK_err[Inline: address to copy]\n X[Malformed or unknown link] -->|nothing opened| X_err[Fabric says the link was not understood]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37260,7 +37259,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2581
+        "line": 2580
       },
       "mermaid_source": "flowchart TD\n R[Left rail: Comms] --> L[SCR-81 loads the estate's threads]\n L -->|none yet| E[Says so in words — an empty list is a true answer]\n L -->|the board does not answer| U[Says the board is unavailable, with Try again — never an empty list]\n L --> T[Thread list: subject, participant names, count, last written]\n T -->|narrow by project, kind held, or open request — reads nothing new| F[The answered list narrows, AND-combined]\n F -->|no match| FE[Said in words, with Clear the filters — never the estate's empty, never the board's silence]\n F -->|clear| T\n T -->|open a thread| M[Messages oldest first: sender project, principal, trusted or asserted; requests carry state AND effect]\n M -->|poll confirms new messages| M\n M -->|a poll fails| P[Last confirmed page stays, with when it was confirmed; the next success resumes from the cursor]\n M -->|Earlier| H[One page further back by the same cursor]\n M -->|a thread the estate does not hold| N[Said as not found, not as empty]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37283,7 +37282,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2647
+        "line": 2646
       },
       "mermaid_source": "flowchart TD\n  E[com.enroll capability] -->|no grant| NA[not_authorized: ask the operator — FLW-85; nothing written]\n  E -->|live holder is another session| FX[fenced: use com.responder_replace]\n  E --> S[Slot: generation n, lease 60 s database time]\n  S --> C[com.claim]\n  C -->|nothing claimable| NC[ok, nothing stored: poll again with the same key]\n  C --> A[request claimed, attempt id, digest]\n  A -->|com.accept| AC[accepted]\n  AC -->|com.effect_begin| IP[in_progress, effect started]\n  AC -->|com.complete| DONE[completed or failed_known]\n  IP -->|com.complete observed| DONE\n  IP -->|com.complete not observed| OR[observation_required]\n  S -->|lease lapses| ST[stale]\n  ST -->|another granted session enrolls| N[generation n+1: claimed back to queued, in_progress to outcome_unknown, accepted held]\n  N -->|old holder's late call| F[fenced or lease_expired: nothing committed]\n  S -->|session ends| R[released: nothing moves; a claimed request is taken again as a lapsed claim]\n  R -->|next holder enrolls| N2[in_progress to outcome_unknown; claimed stays claimed; accepted held]\n  N --> RC[com.reconcile observed by the current holder: outcome_unknown to completed or failed_known]\n  S -->|grant revoked| AU[authority_changed: the request stays where it was]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37302,7 +37301,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2694
+        "line": 2693
       },
       "mermaid_source": "flowchart TD\n  Q[Agent asks board.respond on board:project/capability, 1 to 8, one project] -->|not a coding agent or registered agent, unknown project, two projects, a folder| X[Refused before anything is shown]\n  Q --> P[Prompt or queue: Let agent answer capabilities requests for project? — may take and answer them; cannot spend, publish or delete; same-user floor; a year unless revoked]\n  P -->|Deny, the default| D[Denied until cleared in SCR-76]\n  P -->|Allow| G[Grant listed in SCR-76: answer capabilities requests for project]\n  G -->|a coding agent| U1[Its sessions enroll with com.enroll — FLW-84]\n  G -->|a service| U2[fabric.board.join: a board session with the com.* tools only]\n  G -->|Revoke in SCR-76| V[Slots released; next responder call authority_changed; a board session holding it ends]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37323,7 +37322,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2720
+        "line": 2719
       },
       "mermaid_source": "flowchart TD\n  C[SCR-81: a pause control, owner only] -->|a member| M[One line: only the estate's owner can pause or resume; no controls]\n  C -->|press| S[SCR-82: what stops in this scope; what keeps going; a pause cannot stop work already started]\n  S -->|Esc or close| C\n  S -->|Open Agents & access| AA[SCR-76: revoke the agent — FLW-85; its slots released, the responder line reads absent]\n  S -->|Pause| B[Busy]\n  B -->|recorded| D[Paused, announced; the chip on the thread or responder line]\n  B -->|it was already paused| AL[It was already in that state. Nothing changed]\n  B -->|not the owner| NO[Only the estate's owner can pause or resume]\n  B -->|access changed since the window opened| AM[Reopen and try again; nothing changed]\n  B -->|the target is not in this estate| NF[Not found]\n  B -->|the answer was lost| MS[This may have been saved: read the pauses again and show what they say]\n  D -->|agents' new work in the scope| HD[Refused held — FLW-84; reports on started work go on]\n  D -->|Resume| R[Busy, then Resumed, announced; the chip gone; a refused call sent again with its key goes through]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37344,7 +37343,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2754
+        "line": 2753
       },
       "mermaid_source": "flowchart TD\n  E[Settings or Agents & access] --> L[SCR-83: loading]\n  L -->|the directory did not answer| U[The directory did not answer — never an empty list; no switch offered]\n  L --> RD[Active projects, each with Listed for other projects]\n  RD -->|a member| RO[Switches read-only: only the estate's owner can change this]\n  RD -->|switch or What other projects see| PV[Preview: name, capabilities with responder state and paused — nothing else]\n  PV -->|no capability| PE[No capabilities: no agent may answer requests for it yet]\n  PV -->|confirm the switch| SV[Saving]\n  SV -->|recorded| OK[The switch shows the directory's answer, announced]\n  SV -->|already that way| AL[Nothing changed, nothing recorded]\n  SV -->|not the owner, or access changed| RF[Refused: reopen and try again]\n  SV -->|the answer was lost| MS[This may have been saved: read the directory again]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37369,7 +37368,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2792
+        "line": 2791
       },
       "mermaid_source": "flowchart TD\n  R[Screen: SCR-84 Rail] -->|press Главная| H[Screen: SCR-85 Главная]\n  R -->|press Агенты| A[Screen: SCR-87 Агенты]\n  R -->|press История| I[Screen: SCR-88 История]\n  R -->|press Настройки| S[Screen: SCR-89 Настройки]\n  R -->|press a project| P[Screen: SCR-86 Проект]\n  R -->|press Создать| C[Screen: SCR-90 Создать]\n  R -->|⌘K| Q[Search field focused]\n  R --> L{Projects list read?}\n  L -->|no project| E[Проектов пока нет · Создать проект]\n  E --> C\n  L -->|read failed| L_err[Проекты не прочитаны · last reading kept · Повторить]\n  L_err -->|Повторить| L\n  H -->|⌘[ or swipe| R",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37390,7 +37389,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2830
+        "line": 2829
       },
       "mermaid_source": "flowchart TD\n  H[Screen: SCR-85 Главная] --> W{Anything waiting?}\n  W -->|no| N[Вопросов нет. Агенты работают сами.]\n  W -->|yes| Q[Question card: who, why, options as buttons]\n  Q -->|press an option| B{Answer recorded?}\n  B -->|yes| D[Card leaves · act line «Ответ … отправлен · Отменить»]\n  B -->|no| B_err[Ответ не записан · card kept, options enabled]\n  B_err -->|press again| Q\n  B -->|unknown| U[Неизвестно, дошёл ли ответ — проверяю · re-read before options]\n  U --> Q\n  D -->|Отменить| O{Agent already acted?}\n  O -->|no| Q\n  O -->|yes| X[Отменить нельзя: why · Попросить остановиться]\n  Q -->|Обсудить| C[Screen: SCR-25 the asking agent's console, question in front]\n  H -->|an agent line in Сейчас| C2[Screen: SCR-25 that agent's console]\n  C2 -->|console fails| C_err[Консоль не открылась on the line · Главная unchanged]\n  C_err --> H\n  H -->|a project row| P[Screen: SCR-86 Проект]\n  H -->|a section fails| P_err[That section says so · last reading kept · Повторить]\n  P_err --> H",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37414,7 +37413,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2870
+        "line": 2869
       },
       "mermaid_source": "flowchart TD\n  P[Screen: SCR-86 Проект] --> R{Project read?}\n  R -->|no| R_err[Проект не прочитан · Повторить]\n  R_err -->|Повторить| R\n  R -->|removed| M[Такого проекта больше нет · Открыть История]\n  M --> I[Screen: SCR-88 История]\n  R -->|yes| W[Way · Вопросы · Доска · Папки]\n  W -->|no tasks| F[Начните с первой задачи · field open]\n  W -->|Поставить задачу| T[Field: what should be done]\n  F --> T\n  T -->|Поставить| TA[Task in Очередь · Задача поставлена · Отменить]\n  T -->|Поставить и начать| TS[Screen: SCR-25 console on the task]\n  T -->|not recorded| T_err[Не сохранилось · text kept in the field]\n  T_err --> T\n  W -->|drag a card| MV[Moved at once · Задача перенесена · Отменить]\n  MV -->|not recorded| MV_err[Card snaps back · Не сохранилось]\n  MV_err --> W\n  W -->|a task| TP[Screen: SCR-32 Task page]\n  W -->|Открыть консоль| C{Coding agent ready?}\n  C -->|yes| S[Screen: SCR-25 console in the project's folder]\n  C -->|no| C_err[Нет готового агента — открыть Агенты]\n  C_err --> A[Screen: SCR-87 Агенты]\n  W -->|Убрать a folder| FD[Removed at once · Папка убрана · Отменить]\n  W -->|a question| Q[Answer as FLW-94]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37435,7 +37434,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2916
+        "line": 2915
       },
       "mermaid_source": "flowchart TD\n  A[Screen: SCR-87 Агенты] --> D{Agents found?}\n  D -->|detection failed| D_err[Не удалось поискать агентов · last list kept · Повторить]\n  D_err -->|Повторить| D\n  D -->|none installed| N[Each known agent: Не установлен · how to install]\n  D -->|yes| L[Coding agents on this computer · agents built in Fabric]\n  L -->|Консоль| C{Console opens?}\n  C -->|yes| S[Screen: SCR-25 console in its project]\n  C -->|no| C_err[Консоль не открылась: why, on the row]\n  C_err --> L\n  L -->|a row| V[Agent view: doing, recent acts, Что получает агент]\n  L -->|joined from a terminal| J[подключился сам · Отключить]\n  J -->|Отключить| X{Disconnected?}\n  X -->|yes| XO[Отключён · consoles ended · Пустить снова · act in История]\n  X -->|no| X_err[Не удалось отключить · still connected · Повторить]\n  X_err --> J\n  XO -->|Пустить снова or Отменить| J\n  L -->|Создать агента| CR[Screen: SCR-90 Создать, agent path]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37455,7 +37454,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2954
+        "line": 2953
       },
       "mermaid_source": "flowchart TD\n  I[Screen: SCR-88 История] --> R{History read?}\n  R -->|no| R_err[История не прочитана · earlier reading kept · Повторить]\n  R_err -->|Повторить| R\n  R -->|nothing yet| E[История пуста]\n  R -->|yes| L[Acts by day: time, actor, sentence, project]\n  L -->|filter or search| F{Matches?}\n  F -->|none| FE[Ничего не найдено · Сбросить фильтры]\n  FE --> L\n  F -->|yes| L\n  L -->|an act| DT[Detail: before and after, its source]\n  L -->|Отменить| U{Inverse exists?}\n  U -->|no| NU[Нельзя отменить: why]\n  U -->|object changed since| CH[Button says what it will do now]\n  CH -->|press| DO\n  U -->|yes| DO{Undone?}\n  DO -->|yes| OK[Отменено · new act «Вы отменили: …» with its own Отменить]\n  DO -->|no| U_err[Не удалось отменить · nothing changed]\n  U_err --> L\n  OK -->|Отменить the undo| DO",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37482,7 +37481,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2992
+        "line": 2991
       },
       "mermaid_source": "flowchart TD\n  C[Screen: SCR-90 Создать] -->|Открыть папку с проектами| PK[System folder picker]\n  PK -->|cancel| C\n  PK --> SC{Scan}\n  SC -->|denied| SC_err[Нет доступа к папке · Открыть настройки macOS]\n  SC_err --> PK\n  SC -->|slow| SL[Ищу дольше обычного — можно остановить]\n  SL --> SC\n  SC -->|nothing| NF[В этой папке проектов не нашлось · Выбрать другую папку]\n  NF --> PK\n  SC -->|found| G[Screen: SCR-72 groups by owner · active ticked]\n  G -->|Работать над отмеченными| AD{Added?}\n  AD -->|all| ADD[Listed with Открыть · N проектов добавлено · Отменить]\n  AD -->|some failed| AD_err[Which were added and which not · Повторить for the rest]\n  AD_err --> G\n  C -->|Создать проект| NP[Screen: SCR-73 name, where it lives, first task]\n  NP -->|Создать| PC{Created?}\n  PC -->|yes| PP[Screen: SCR-86 Проект · Проект создан · Отменить]\n  PC -->|no| PC_err[Не получилось · what was typed kept]\n  PC_err --> NP\n  C -->|Создать агента| NA[Screen: SCR-74 what it does, which coding agent, project]\n  NA -->|Создать| CS[Screen: SCR-25 the coding agent's console building it]\n  CS --> AG[Screen: SCR-87 the new agent appears]\n  C -->|Открыть проект из папки| OP[Screen: SCR-71 one or several folders as one project]\n  OP --> PP",
       "status": "target_or_mixed_not_coverage_claim",
