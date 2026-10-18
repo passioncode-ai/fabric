@@ -12,6 +12,7 @@ import {
   claimLife,
   relatedPairs,
   sessionStale,
+  unresolvedRuns,
   whereWorkRows,
   type CameIn,
   type ProjectWorkView,
@@ -21,7 +22,11 @@ import {
   type WorkSessionView,
   type ClaimLife,
   type ClaimRow,
+  type CompensationRow,
   type Related,
+  type RunHold,
+  type RunRow,
+  type StopRow,
   type SourceRow,
   type TaskEdge
 } from '../shared/workClaims.ts'
@@ -38,13 +43,16 @@ export interface ClaimView extends ClaimRow {
   related: Related[]
 }
 
-/** A lease no claim stands on: a session's own task held by its managed launch (migration 61). */
+/** A lease no claim stands on: a session's own task held by its managed launch (migration 61) — live, or lapsed with
+ *  its run not proved stopped (CO-323), which holds the task as surely: the claim projector refuses every other claim. */
 export interface HeldView {
   project_id: string
   task: { id: string; title: string; status: string }
   owner_session: string
   expires_at: string
   write_scopes: string[]
+  /** The run holding the task past its lease's lapse; null for a live lease. */
+  run: RunHold | null
 }
 
 export interface WorkSnapshot {
@@ -61,6 +69,25 @@ function must<T>(r: { data: T[] | null; error: { message: string } | null }, wha
   return r.data ?? []
 }
 
+/**
+ * The runs Fabric launched for these tasks that still hold them — not proved stopped (CO-323). Read from the same
+ * rows the claim projector reads (`task_runs`, `run_stop_commands`, `run_launch_compensations`) and judged by the
+ * same rule (`unresolvedRuns`); a read that fails throws, so a task is never called free from a read that did not
+ * happen.
+ */
+export async function readRunHolds(store: Store, taskIds: readonly string[]): Promise<RunHold[]> {
+  if (!taskIds.length) return []
+  const runs = await store.selectIn('task_runs', 'task_run_id,task_id,session_id,state,outcome,ended_seq,created_at', 'task_id', taskIds)
+  if (runs.failed) throw new Error(`the task runs could not be read: ${runs.failed}`)
+  const runIds = runs.rows.map((r) => r.task_run_id as string)
+  const [stops, compensations] = await Promise.all([
+    store.selectIn('run_stop_commands', 'task_run_id,session_id,state,reason', 'task_run_id', runIds),
+    store.selectIn('run_launch_compensations', 'task_run_id,session_id,receipt_seq', 'task_run_id', runIds)
+  ])
+  for (const r of [stops, compensations]) if (r.failed) throw new Error(`the runs' stops could not be read: ${r.failed}`)
+  return unresolvedRuns(runs.rows as unknown as RunRow[], stops.rows as unknown as StopRow[], compensations.rows as unknown as CompensationRow[])
+}
+
 const CLAIM_COLUMNS =
   'id,project_id,work_id,owner_session,agent,came_in,touches,claimed_at,expires_at,renewed_at,handover_requested_by,handover_requested_at,handover_note'
 
@@ -74,6 +101,9 @@ export async function readWork(store: Store, opts: { now: number; session: Sessi
   const leaseRows = must(leases, 'the leases') as unknown as Array<{ work_id: string; project_id: string; owner_session: string; expires_at: string; write_scopes: string[] | null }>
   const claimed = new Set(claimRows.map((c) => c.work_id))
   const ids = [...new Set([...claimRows.map((c) => c.work_id), ...leaseRows.map((l) => l.work_id)])]
+  // A lapsed lease no claim stands on is free — unless its task's run is not proved stopped (CO-323).
+  const lapsed = leaseRows.filter((l) => !claimed.has(l.work_id) && Date.parse(l.expires_at) <= opts.now).map((l) => l.work_id)
+  const runOf = new Map((await readRunHolds(store, lapsed)).map((h) => [h.taskId, h]))
 
   const [tasks, sources, from, to] = await Promise.all([
     store.selectIn('project_tasks', 'id,title,instruction,status', 'id', ids),
@@ -118,13 +148,14 @@ export async function readWork(store: Store, opts: { now: number; session: Sessi
       }
     }),
     held: leaseRows
-      .filter((l) => !claimed.has(l.work_id) && Date.parse(l.expires_at) > opts.now)
+      .filter((l) => !claimed.has(l.work_id) && (Date.parse(l.expires_at) > opts.now || runOf.has(l.work_id)))
       .map((l) => ({
         project_id: l.project_id,
         task: taskOf.get(l.work_id) ?? unknownTask(l.work_id),
         owner_session: l.owner_session,
         expires_at: l.expires_at,
-        write_scopes: l.write_scopes ?? []
+        write_scopes: l.write_scopes ?? [],
+        run: Date.parse(l.expires_at) > opts.now ? null : runOf.get(l.work_id) ?? null
       })),
     readAt: new Date(opts.now).toISOString()
   }

@@ -223,7 +223,10 @@ describe('the bounded page', () => {
     fail = false
     fireEvent.click(screen.getByRole('button', { name: en['launch.comms.more'] }))
     await screen.findByText('thread 69')
-    expect(comms.threadPage).toHaveBeenLastCalledWith({}, { lastSeq: 951, id: rows[49].id }, 50)
+    // The poll clock reads the first page (cursor null) at any moment, so the retry is the last call WITH a cursor.
+    const older = comms.threadPage.mock.calls.filter(([, before]) => before !== null)
+    expect(older).toHaveLength(2)
+    expect(older.at(-1)).toEqual([{}, { lastSeq: 951, id: rows[49].id }, 50])
     expect(screen.queryByText(en['launch.comms.moreFailed'])).toBeNull()
   })
 

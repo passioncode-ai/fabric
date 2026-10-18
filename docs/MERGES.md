@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-18T08:00:00Z · `—` · agent/co323-expired-lease → main · fast-forward
+- run: r-44ae60a75316
+- files: apps/desktop/src/shared/workClaims.ts, apps/desktop/src/main/workRead.ts, apps/desktop/src/main/workTools.ts, apps/desktop/src/main/agentSurface.ts, their tests, the carry-over register, CHANGELOG, docs/reports
+- conflicts: docs/reports generated files on rebase, regenerated
+- summary: CO-323. A task held by a launched run whose stop is unproved is named as held by that run (session, run, since, until, stop) instead of refused as "claimed in the same moment"; the work list shows it held. CO-327 files the held task with no way out. Also a race in the Comms "Show older threads" retry test (the poll clock reads the first page at any moment).
+
 ### 2026-10-16T03:30:00Z · `—` · fix/workspace-sync-wedge → main · fast-forward
 - run: r-a809c95ced27
 - files: scripts/workspace.mjs, scripts/workspace-sources.mjs, scripts/test/workspace-sources.test.mjs, docs/architecture/report-workspace.md, docs/reports/map.html

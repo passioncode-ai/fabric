@@ -4,15 +4,19 @@ import {
   claimLife,
   isListableRemote,
   parseLeaseRefs,
+  refusalAfterWrite,
   relatedPairs,
   relatedTo,
   remoteKey,
   resolveRepository,
   rowAppears,
+  runHoldRefusal,
   sessionStale,
   touchesOverlap,
+  unresolvedRuns,
   whereWorkRows,
   type ClaimRow,
+  type RunRow,
   type SourceRow,
   type WorkClaimView,
   type WorkSessionView
@@ -157,5 +161,65 @@ describe('Where work is: rows in flight, the idle counted, the unowned always ke
   it('an unread review queue is null on every row, never a zero', () => {
     const out = whereWorkRows({ projects: [{ id: 'p1', name: 'A' }], sessions: [s({})], claims: [], review: null })
     expect(out.rows[0].review).toBeNull()
+  })
+})
+
+// CO-323 (board finding 2026-10-16): a task whose launched session had exited a day earlier was refused as
+// «another agent claimed it in the same moment», naming a lease that had lapsed the day before.
+describe('a task its run holds is refused naming that run — never a race', () => {
+  const NOW = Date.parse('2026-10-16T12:00:00.000Z')
+  const run = (over: Partial<RunRow> = {}): RunRow => ({
+    task_run_id: 'r1', task_id: 't1', session_id: 'old-session', state: 'ending', outcome: null, ended_seq: null,
+    created_at: '2026-10-15T11:48:35.000Z', ...over
+  })
+  const lapsed = { owner_session: 'old-session', expires_at: '2026-10-15T11:58:35.000Z' }
+
+  it('an exited run whose stop was not proved still holds its task; a verified stop or a never-spawned compensation frees it', () => {
+    const unknown = { task_run_id: 'r1', session_id: 'old-session', state: 'outcome_unknown' as const, reason: 'natural_exit' }
+    expect(unresolvedRuns([run()], [unknown], [])).toEqual([
+      { taskId: 't1', runId: 'r1', sessionId: 'old-session', since: '2026-10-15T11:48:35.000Z', stop: 'outcome_unknown', stopReason: 'natural_exit' }
+    ])
+    expect(unresolvedRuns([run({ state: 'ended', outcome: 'cancelled', ended_seq: 9 })], [{ ...unknown, state: 'stopped' }], [])).toEqual([])
+    expect(unresolvedRuns([run({ state: 'ended', outcome: 'failed_known', ended_seq: 9 })], [], [{ task_run_id: 'r1', session_id: 'old-session', receipt_seq: '9' }])).toEqual([])
+    // A stop observed for another session of the run is not this run's proof.
+    expect(unresolvedRuns([run()], [{ ...unknown, session_id: 'someone-else', state: 'stopped' }], [])).toHaveLength(1)
+    // A raw run.ended without a receipt does not free it either.
+    expect(unresolvedRuns([run({ state: 'ended', outcome: 'completed', ended_seq: 9 })], [], [])).toHaveLength(1)
+  })
+
+  it('the latest unresolved run of a task is the one named', () => {
+    const holds = unresolvedRuns([run(), run({ task_run_id: 'r2', session_id: 'newer', created_at: '2026-10-15T12:30:00.000Z' })], [], [])
+    expect(holds).toHaveLength(1)
+    expect(holds[0]).toMatchObject({ runId: 'r2', sessionId: 'newer', stop: 'not-requested' })
+  })
+
+  it('after the write: a lapsed lease with the run unresolved is an unresolved run, named with since and until', () => {
+    const [hold] = unresolvedRuns([run()], [{ task_run_id: 'r1', session_id: 'old-session', state: 'outcome_unknown', reason: 'natural_exit' }], [])
+    const answer = refusalAfterWrite({ taskId: 't1', me: 'new-session', now: NOW, lease: lapsed, holder: null, hold })
+    expect(answer.code).toBe('unresolved-run')
+    expect(String(answer.reason)).not.toMatch(/same moment/)
+    expect(answer.held_by).toEqual({
+      session_id: 'old-session', agent: null, came_in: 'launched', since: '2026-10-15T11:48:35.000Z', until: '2026-10-15T11:58:35.000Z', run_id: 'r1', stop: 'outcome_unknown'
+    })
+  })
+
+  it('after the write: a lapsed lease and no run is unconfirmed, never «in the same moment»', () => {
+    const answer = refusalAfterWrite({ taskId: 't1', me: 'new-session', now: NOW, lease: lapsed, holder: null, hold: null })
+    expect(answer.code).toBe('unconfirmed')
+    expect(String(answer.reason)).not.toMatch(/same moment/)
+  })
+
+  it('after the write: another session\'s live lease is the race, named', () => {
+    const live = { owner_session: 'racer', expires_at: '2026-10-16T12:30:00.000Z' }
+    const answer = refusalAfterWrite({ taskId: 't1', me: 'new-session', now: NOW, lease: live, holder: claim({ owner_session: 'racer', claimed_at: '2026-10-16T11:59:59.000Z' }), hold: null })
+    expect(answer).toMatchObject({ code: 'held', reason: 'another agent claimed it in the same moment', held_by: { session_id: 'racer', agent: 'claude-code', since: '2026-10-16T11:59:59.000Z', until: live.expires_at } })
+  })
+
+  it('before the write: a run whose lease is live is held by the session Fabric launched; lapsed, it is unresolved', () => {
+    const hold = { taskId: 't1', runId: 'r1', sessionId: 'old-session', since: '2026-10-16T11:50:00.000Z', stop: 'not-requested' as const, stopReason: null }
+    const live = runHoldRefusal('t1', hold, { expires_at: '2026-10-16T12:05:00.000Z' }, NOW)
+    expect(live).toMatchObject({ code: 'held', held_by: { session_id: 'old-session', came_in: 'launched', run_id: 'r1', until: '2026-10-16T12:05:00.000Z' } })
+    expect(runHoldRefusal('t1', hold, lapsed, NOW).code).toBe('unresolved-run')
+    expect(runHoldRefusal('t1', hold, null, NOW)).toMatchObject({ code: 'unresolved-run', held_by: { until: null } })
   })
 })
