@@ -1,4 +1,4 @@
-// The Fabric strip and the scope bar's two prototype buttons (0.3.3 UI pass). The prototype draws the strip
+// The Fabric strip (0.3.3 UI pass). The prototype draws the strip
 // on every launch view but Home and "Your Fabric", and "Discuss with Fabric" on every view but Home, the start
 // paths and Help (scripts/product/launch.mjs, controller.js); the app had both on the board alone.
 
@@ -8,7 +8,6 @@ import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import type { FeedEvent } from '../../../shared/types'
 import { FeedStrip, lastEventAt } from './FabricStrip'
-import { LaunchShell, launchDiscuss, type LaunchShellProps } from './LaunchShell'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -54,56 +53,5 @@ describe('how fresh a screen is', () => {
   })
 })
 
-describe('the scope bar', () => {
-  const shell = (over: Partial<LaunchShellProps> = {}) => {
-    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: true })) }, stack: { exposure: vi.fn(async () => null) } } }))
-    const props: LaunchShellProps = {
-      estateName: 'Mine', projects: [], at: { kind: 'board' },
-      onHome: vi.fn(), onBoard: vi.fn(), onComms: vi.fn(), onPlan: vi.fn(), onHelp: vi.fn(), onQuota: vi.fn(), onNewProject: vi.fn(), onProject: vi.fn(),
-      onAgents: vi.fn(), onWhere: vi.fn(), onSettings: vi.fn(), onHistory: vi.fn(), onSearch: vi.fn(), searchOpen: false,
-      onProfile: vi.fn(), profileOpen: false, onDiscuss: vi.fn(), onChat: vi.fn(), chatOpen: false,
-      children: null, ...over
-    }
-    render(<I18nProvider locale="en"><LaunchShell {...props} /></I18nProvider>)
-    return props
-  }
-
-  it('carries Profile beside Search, and it opens "Your Fabric"', () => {
-    const props = shell()
-    fireEvent.click(screen.getByRole('button', { name: en['launch.profile'] }))
-    expect(props.onProfile).toHaveBeenCalledOnce()
-  })
-
-  it('marks Profile as the current page while "Your Fabric" is open', () => {
-    shell({ profileOpen: true })
-    expect(screen.getByRole('button', { name: en['launch.profile'] }).getAttribute('aria-current')).toBe('page')
-  })
-
-  // W4-3: the rail's Comms count comes from the heads; when the board cut them at its cap the count is a floor.
-  it('the Comms badge says its count, and "N+" with its words when the board cut the heads at the cap', () => {
-    shell({ commsBadge: 7 })
-    expect(screen.getByLabelText(en['launch.comms.unreadBadge'].replace('{count}', '7')).textContent).toBe('7')
-    cleanup()
-    shell({ commsBadge: 5000, commsBadgeAtLeast: true })
-    expect(screen.getByLabelText(en['launch.comms.unreadBadgeMax'].replace('{count}', '5000')).textContent).toBe('5000+')
-    cleanup()
-    shell({ commsBadge: 0 })
-    expect(screen.queryByLabelText(/threads with new messages/)).toBeNull()
-  })
-
-  it('offers "Discuss with Fabric" where the screen gives one, and nowhere it does not', () => {
-    const props = shell()
-    fireEvent.click(screen.getByRole('button', { name: en['launch.board.discuss'] }))
-    expect(props.onDiscuss).toHaveBeenCalledOnce()
-    cleanup()
-    shell({ onDiscuss: null })
-    expect(screen.queryByRole('button', { name: en['launch.board.discuss'] })).toBeNull()
-  })
-})
-
-describe('where the scope bar offers to discuss the screen (docs/ux/screens.md#launch-chrome)', () => {
-  it('everywhere but the conversation\u2019s own starts, the guide that carries its own, settings and a draft', () => {
-    for (const kind of ['board', 'pulse', 'releases', 'plan', 'project', 'persona', 'agents', 'quota']) expect(launchDiscuss(kind), kind).toBe(true)
-    for (const kind of ['home', 'start', 'welcome', 'help', 'guide', 'draft', 'settings']) expect(launchDiscuss(kind), kind).toBe(false)
-  })
-})
+// The scope bar (Profile beside Search, the Comms badge, «Discuss with Fabric») left with 0.3.7 wave 3: the rail is the
+// whole of the navigation and is probed in Rail.test.tsx.

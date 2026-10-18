@@ -1,16 +1,18 @@
-// The launch shell (SCR-30…SCR-41 · the launch prototype, docs/reports/product.html): a side
-// navigation with the brand, the main destinations and one group per Project; a scope bar with
-// the breadcrumb, Search and Profile; and Fabric's own launcher at the foot of the navigation.
-// Only destinations that exist in this build are offered — a link to a screen that is not built
-// yet would be a control that does nothing.
+// #region rail — docs: docs/ux/scenarios.md#scn-162-move-between-the-five-places-and-the-projects-from-the-rail
+// The shell of Fabric 0.3.7 (SCN-162, SCR-84; the prototype's `simple-*` views, scripts/product/simple.mjs): ONE rail
+// on the left with «＋ Создать», the five places (Главная, Агенты, История, Настройки; a project is opened from the
+// list beneath, never a sixth fixed entry) and the projects list, and above the place a quiet top bar with its name
+// and the search field (⌘K). No tab strip, no Back of Fabric's own (⌘[ and ⌘] are the shell's, App.tsx), no scope
+// bar, no "Discuss with Fabric" while the conversation is not switched on (plan §1: a dead end).
 
 import { useEffect, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
-import { useT } from '../i18n'
+import { railProjects } from '../../../shared/railProjects.ts'
+import { useLocale, useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { FabricName } from './persona'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
-import { StackExposureNotice } from '../StackExposureNotice'
+import './rail.css'
 
 export type ProjectSection = 'overview' | 'team' | 'cycles' | 'goals' | 'memory' | 'settings'
 export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
@@ -66,126 +68,162 @@ export function revealSection(anchor: string, deadlineMs = 2000, settleMs = 1500
   requestAnimationFrame(step)
 }
 
-/** Where the scope bar offers "Discuss with Fabric": every launch screen but these. Home, the start paths and
- *  Help are the conversation's own start (the prototype's rule, scripts/product/controller.js); the guide's card
- *  already carries a Discuss of its own, and settings and a draft are not launch screens. */
-export const NO_DISCUSS = ['home', 'start', 'welcome', 'help', 'guide', 'draft', 'settings'] as const
-export function launchDiscuss(kind: string): boolean {
-  return !(NO_DISCUSS as readonly string[]).includes(kind)
-}
+export type RailPlace = 'home' | 'agents' | 'history' | 'settings' | 'create'
 
 export interface LaunchShellProps {
-  estateName: string
+  /** Null until the list has been read: an unknown list is not an empty one (M108). */
   projects: ProjectRow[] | null
-  /** Where the operator is, for the current marker and the breadcrumb. */
-  at: { kind: 'home' } | { kind: 'board' } | { kind: 'comms' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'where' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
-  onHome(): void
-  onBoard(): void
-  onComms(): void
-  /** Threads with messages newer than the operator's read mark (SCN-143, the unread slice);
-   *  0 while the board has never answered — no badge is a non-claim, not "all read". */
-  commsBadge?: number
-  /** The board cut the heads at its cap: the count is a floor, shown as "{count}+" (W4-3). */
-  commsBadgeAtLeast?: boolean
-  onPlan(): void
-  onHelp(): void
-  onQuota(): void
-  onNewProject(): void
-  onProject(projectId: string, section: ProjectSection): void
-  onAgents(): void
-  onWhere(): void
-  onSettings(): void
-  onHistory(): void
+  /** The last read of the list failed; said in the rail in place of the list (SCN-162 errors). */
+  projectsProblem: string | null
+  /** When the list on screen was read, so a kept list after a failure says how old it is. */
+  projectsReadAt: string | null
+  onRetryProjects(): void
+  /** Where the person is: a place of the rail, an open project, or somewhere reached from a place (a start path). */
+  at: { kind: RailPlace } | { kind: 'project'; projectId: string } | { kind: 'elsewhere' }
+  /** The heading of the top bar: the place's or the project's name. */
+  title: string
+  /** Project ids the person pinned, in their order (favourites, local to this computer). */
+  pins: string[]
+  /** The newest event per project the shell has read. */
+  lastActivity: Record<string, string>
+  /** Projects where an agent works now. */
+  live: ReadonlySet<string>
+  /** What waits for the person, over the whole board and by project; null while unknown (no count is a non-claim). */
+  waiting: { total: number; byProject: Record<string, number> } | null
+  /** How this computer is, in one word: the foot line. */
+  machine: 'reading' | 'ok' | 'trouble'
+  onPlace(place: RailPlace): void
+  onCreateProject(): void
+  onProject(projectId: string): void
   onSearch(): void
   searchOpen: boolean
-  /** "Your Fabric" (SCR-36): the prototype's Profile button beside Search. */
-  onProfile(): void
-  profileOpen: boolean
-  /** Talk about THIS screen with Fabric. Null where the screen already is that conversation's start
-   *  (Home, the start paths, Help) — the prototype's rule in `scripts/product/controller.js`. */
-  onDiscuss: (() => void) | null
-  onChat(): void
-  chatOpen: boolean
+  /** The conversation with Fabric: offered only once it is switched on (RM-09). */
+  onChat?(): void
+  chatOpen?: boolean
+  /** The act line at the foot of the place (ADR-0160 §1): «{что сделано} · Отменить». */
+  actLine?: React.ReactNode
   children: React.ReactNode
 }
 
+const PLACES: ReadonlyArray<Exclude<RailPlace, 'create'>> = ['home', 'agents', 'history', 'settings']
+
 export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const t = useT()
+  const locale = useLocale()
   const { at, projects } = props
-  const commsBadge = props.commsBadge ?? 0
-  const [chatActive, setChatActive] = useState<boolean | null>(null)
+  const [chatActive, setChatActive] = useState(false)
   useEffect(() => {
     let live = true
-    // Not silence: an unreadable status is shown as unknown, never as "ready".
+    // Offered only when the conversation answers that it is on; an unreadable status hides it rather than
+    // putting a control on the rail that opens nothing (plan §1, the dead ends).
     try {
-      window.fabric.ceo.status().then(s => { if (live) setChatActive(s?.active === true) }, () => { if (live) setChatActive(null) })
+      window.fabric.ceo.status().then((s) => { if (live) setChatActive(s?.active === true) }, () => { if (live) setChatActive(false) })
     } catch {
-      setChatActive(null)
+      setChatActive(false)
     }
     return () => { live = false }
   }, [])
-  const current = (on: boolean) => (on ? { className: 'current', 'aria-current': 'page' as const } : {})
-  const project = at.kind === 'project' ? (projects ?? []).find(p => p.id === at.projectId) : null
-  const crumb = project ? project.name : t('launch.nav.fabric')
+  const onSearch = props.onSearch
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        onSearch()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onSearch])
+  const current = (on: boolean) => (on ? { 'aria-current': 'page' as const, className: 'on' } : {})
+  const rows = projects ? railProjects(projects, props.pins, props.lastActivity) : []
+  const readAt = props.projectsReadAt
+    ? new Date(props.projectsReadAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+    : null
+  const go = (e: React.MouseEvent, fn: () => void): void => { e.preventDefault(); fn() }
   return (
-    <div className="workbench">
-      <aside className="app-sidebar">
-        <div className="app-logo">
-          <img className="brand-mark" src={brandMark} alt="" width={35} height={35} />
-          <div><strong>{t('launch.brand.product')}</strong><p className="meta">{t('launch.brand.umbrella')}</p></div>
+    <div className="fab-shell">
+      <aside className="rail" aria-label={t('rail.label')}>
+        <div className="rail-brand">
+          <img src={brandMark} alt="" width={26} height={26} />
+          <div><b>{t('launch.brand.product')}</b><small>{t('rail.brand')}</small></div>
         </div>
-        <nav className="app-nav" aria-label={t('launch.nav.label')}>
-          <div className="calm-main-nav">
-            <a href="#" {...current(at.kind === 'home')} onClick={e => { e.preventDefault(); props.onHome() }}>{t('launch.nav.fabric')}</a>
-            <a href="#" {...current(at.kind === 'board')} onClick={e => { e.preventDefault(); props.onBoard() }}>{t('launch.nav.board')}</a>
-            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}{commsBadge > 0 && <span className="nav-badge" aria-label={t(props.commsBadgeAtLeast ? 'launch.comms.unreadBadgeMax' : 'launch.comms.unreadBadge', { count: commsBadge })}>{commsBadge}{props.commsBadgeAtLeast ? '+' : ''}</span>}</a>
-            <a href="#" {...current(at.kind === 'plan')} onClick={e => { e.preventDefault(); props.onPlan() }}>{t('launch.nav.plan')}</a>
-            <a href="#" {...current(at.kind === 'draft' || at.kind === 'start')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
-          </div>
-          {(projects ?? []).filter(p => p.status !== 'archived').map(p => (
-            <details key={p.id} className="calm-nav-group" open={project?.id === p.id}>
-              <summary>{p.name}</summary>
-              {(['overview', 'team', 'cycles', 'goals', 'memory', 'settings'] as ProjectSection[]).map(section => (
-                <a key={section} href="#" {...current(project?.id === p.id && section === (at.kind === 'project' ? at.section ?? 'overview' : 'overview'))}
-                  onClick={e => { e.preventDefault(); props.onProject(p.id, section) }}>{t(`launch.nav.project.${section}`)}</a>
-              ))}
-            </details>
-          ))}
-          <details className="calm-nav-group" open={at.kind === 'agents' || at.kind === 'where' || at.kind === 'settings' || at.kind === 'quota'}>
-            <summary>{t('launch.nav.manage')}</summary>
-            <a href="#" {...current(at.kind === 'where')} onClick={e => { e.preventDefault(); props.onWhere() }}>{t('launch.nav.where')}</a>
-            <a href="#" {...current(at.kind === 'agents')} onClick={e => { e.preventDefault(); props.onAgents() }}>{t('launch.nav.agents')}</a>
-            <a href="#" {...current(at.kind === 'quota')} onClick={e => { e.preventDefault(); props.onQuota() }}>{t('launch.nav.quota')}</a>
-            <a href="#" {...current(at.kind === 'settings')} onClick={e => { e.preventDefault(); props.onSettings() }}>{t('launch.nav.settings')}</a>
-            <a href="#" onClick={e => { e.preventDefault(); props.onHistory() }}>{t('launch.nav.history')}</a>
-          </details>
-          <div className="calm-help-nav">
-            <a href="#" {...current(at.kind === 'help')} onClick={e => { e.preventDefault(); props.onHelp() }}>{t('launch.nav.help')}</a>
-          </div>
-        </nav>
-        <button type="button" className="fabric-launcher" aria-expanded={props.chatOpen} onClick={props.onChat}
-          aria-label={`${t('chat.open')} · ${chatActive === null ? t('launch.launcher.unknown') : chatActive ? t('launch.launcher.ready') : t('launch.launcher.closed')}`}>
-          <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
-          <span><strong><FabricName /></strong><small>{chatActive === null ? t('launch.launcher.unknown') : chatActive ? t('launch.launcher.ready') : t('launch.launcher.closed')}</small></span>
-          <span aria-hidden="true">{t('glyph.open')}</span>
+        <button type="button" className={at.kind === 'create' ? 'rail-create on' : 'rail-create'}
+          aria-current={at.kind === 'create' ? 'page' : undefined} aria-label={t('rail.create')}
+          onClick={() => props.onPlace('create')}>
+          <span aria-hidden="true">＋</span> {t('rail.create')}
         </button>
-      </aside>
-      <div className="app-main">
-        <div className="scope-bar">
-          <span>{t('launch.workspace')} / {crumb}</span>
-          <div className="actions">
-            <button type="button" className="lp-button search-button" aria-pressed={props.searchOpen} onClick={props.onSearch}>{t('launch.search')}</button>
-            <button type="button" className="lp-button" aria-current={props.profileOpen ? 'page' : undefined} onClick={props.onProfile}>{t('launch.profile')}</button>
-          </div>
+        <nav className="rail-places" aria-label={t('rail.label')}>
+          {PLACES.map((place) => (
+            <a key={place} href="#" {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
+              <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
+              <span className="rail-name">{t(`rail.${place}`)}</span>
+              {place === 'home' && props.waiting && props.waiting.total > 0 && (
+                <span className="rail-n" aria-label={t('rail.waiting', { count: props.waiting.total })}>{props.waiting.total}</span>
+              )}
+            </a>
+          ))}
+        </nav>
+        <p className="rail-sect" id="rail-projects-label">{t('rail.projects')}</p>
+        <div className="rail-projects">
+          {props.projectsProblem && (
+            <div className="rail-problem" role="alert">
+              <p>{t('rail.projects.failed')}</p>
+              <p className="rail-machine-words">{props.projectsProblem}</p>
+              <button type="button" className="rail-small" onClick={props.onRetryProjects}>{t('rail.projects.retry')}</button>
+              {projects !== null && readAt && <p className="rail-muted">{t('rail.projects.stale', { time: readAt })}</p>}
+            </div>
+          )}
+          {projects === null && !props.projectsProblem && <p className="rail-muted" role="status">{t('rail.projects.reading')}</p>}
+          {projects !== null && rows.length === 0 && !props.projectsProblem && (
+            <>
+              <p className="rail-muted">{t('rail.projects.none')}</p>
+              <button type="button" className="rail-small" onClick={props.onCreateProject}>{t('rail.projects.create')}</button>
+            </>
+          )}
+          {rows.length > 0 && (
+            <ul aria-labelledby="rail-projects-label">
+              {rows.map((p) => {
+                const waiting = props.waiting?.byProject[p.id] ?? 0
+                const live = props.live.has(p.id)
+                return (
+                  <li key={p.id}>
+                    <a href="#" title={p.name} {...current(at.kind === 'project' && at.projectId === p.id)}
+                      onClick={(e) => go(e, () => props.onProject(p.id))}>
+                      <span className={live ? 'rail-dot live' : 'rail-dot'} {...(live ? { role: 'img', 'aria-label': t('rail.live') } : { 'aria-hidden': true })} />
+                      <span className="rail-name">{p.name}</span>
+                      {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>★</span>}
+                      {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
-        <StackExposureNotice />
-        {props.onDiscuss && (
-          <div className="calm-context-action">
-            <button type="button" className="lp-button" onClick={props.onDiscuss}>{t('launch.board.discuss')}</button>
-          </div>
+        {chatActive && props.onChat && (
+          <button type="button" className="rail-chat" aria-expanded={props.chatOpen === true} onClick={props.onChat}>
+            <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
+            <span><b><FabricName /></b><small>{t('chat.open')}</small></span>
+          </button>
         )}
-        {props.children}
+        <div className="rail-me">
+          <span className="rail-av" aria-hidden="true" />
+          <div>{t('rail.me')}<small>{t(`rail.machine.${props.machine}`)}</small></div>
+        </div>
+      </aside>
+      <div className="fab-main">
+        <header className="fab-top">
+          <h1>{props.title}</h1>
+          <button type="button" className="fab-search" aria-pressed={props.searchOpen} onClick={props.onSearch}>
+            <span>{t('rail.search')}</span><kbd aria-hidden="true">⌘K</kbd>
+          </button>
+        </header>
+        <div className="fab-place">
+          {props.children}
+          {props.actLine}
+        </div>
       </div>
     </div>
   )
 }
+// #endregion rail

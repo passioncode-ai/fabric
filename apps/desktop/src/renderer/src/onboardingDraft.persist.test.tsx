@@ -16,7 +16,7 @@
 // reintroduced by the fix for it.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
 import { en } from './i18n/en'
 import { validateDraftFile, type DraftFile } from '../../shared/onboardingDraft'
@@ -152,7 +152,8 @@ describe('a draft outlives the window', () => {
     await waitFor(() => expect(screen.getByDisplayValue('Atlas')).toBeTruthy())
     // The onboarding form's own create control is present, which is what a
     // draft is: unfinished. A committed project would show its header instead.
-    expect(screen.queryByText(en['project.settings'])).toBeNull()
+    // (The rail's own «Settings» place is not the project's: look inside the place, not the rail.)
+    expect(within(document.querySelector('.fab-place') as HTMLElement).queryByText(en['project.settings'])).toBeNull()
   })
 
   it('writes the draft when it changes', async () => {
@@ -182,10 +183,11 @@ describe('a draft outlives the window', () => {
   })
 })
 
-// Since ADR-0100 the sidebar's New project opens the start menu; its New project card opens the draft.
+// Since 0.3.7 wave 3 the rail's «＋ Создать» opens «Создать» (SCN-171); its «Создать проект» opens the draft.
 async function newProject(): Promise<void> {
-  fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
-  fireEvent.click(await screen.findByRole('button', { name: new RegExp(en['start.card.new.title']) }))
+  fireEvent.click(await screen.findByRole('button', { name: en['rail.create'] }))
+  const choices = await screen.findAllByRole('button', { name: new RegExp(en['create.project.title']) })
+  fireEvent.click(choices.find((b) => b.classList.contains('cr-choice'))!)
 }
 
 describe('AD02: real shell and main draft store survive restart', () => {
@@ -229,7 +231,9 @@ describe('AD02: real shell and main draft store survive restart', () => {
       render(<App />)
       await screen.findByDisplayValue('New two')
       for (const draft of Object.values(saved)) {
-        fireEvent.click(screen.getByRole('button', { name: draft.name }))
+        // No tab strip since 0.3.7 wave 3: the unfinished drafts are listed on «Создать» (SCN-171).
+        fireEvent.click(screen.getByRole('button', { name: en['rail.create'] }))
+        fireEvent.click(await screen.findByRole('button', { name: draft.name }))
         expect(screen.getByDisplayValue(draft.name)).toBeTruthy()
       }
       expect(d.store.read().drafts).toEqual(saved)

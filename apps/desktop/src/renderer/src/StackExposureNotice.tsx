@@ -1,12 +1,11 @@
 // #region stack-exposure — docs: docs/ux/scenarios.md#scn-073-диагностика
 // The local stack answering on this Mac's network (audit 2026-10-05 A7-001, P0), said where the person
-// looks: above every screen (one banner; i3 DO-1). The check runs in the main process after the stack
+// looks. 0.3.7 wave 3 (ADR-0160 §5, SCN-163): a question on Главная with its fix, no longer a banner over every screen. The check runs in the main process after the stack
 // starts and again when a reading is older than five minutes; this only reads it. Nothing is shown
 // while no check has finished, or when nothing answered — a warning is a measurement, not a default.
 
 import { useEffect, useState } from 'react'
 import type { StackExposureView } from '../../shared/types'
-import { Banner } from './components'
 import { useT } from './i18n'
 import { CopyButton } from './start/StartPaths'
 
@@ -19,11 +18,13 @@ export function StackExposureNotice(): React.JSX.Element | null {
   useEffect(() => {
     let alive = true
     const read = (): void => {
-      void window.fabric.stack.exposure().then(
-        (v) => alive && setView(v),
-        // An unreadable check shows no warning rather than a false one; the main process records why.
-        () => {}
-      )
+      // An unreadable check shows no warning rather than a false one; the main process records why. A bridge without
+      // the check (an older preload, a detached window) is the same: no question rather than a broken home.
+      try {
+        void window.fabric.stack.exposure().then((v) => alive && setView(v), () => {})
+      } catch {
+        /* no check to read: nothing is asked */
+      }
     }
     read()
     const timer = setInterval(read, RECHECK_MS)
@@ -38,8 +39,8 @@ export function StackExposureNotice(): React.JSX.Element | null {
   // command set as code and a copy button. Why Fabric cannot fix it itself is one click away, not a
   // paragraph above every screen — it was four lines tall and pushed each screen's heading down.
   return (
-    <Banner tone="warn">
-      <b>{t('diagnostics.exposure.title')}</b>
+    <section className="home-question" aria-labelledby="exposure-question">
+      <h3 id="exposure-question">{t('diagnostics.exposure.title')}</h3>
       <p>
         {t('diagnostics.exposure.body', {
           ports: [...new Set(view.exposed.map((x) => x.port))].join(', '),
@@ -65,7 +66,7 @@ export function StackExposureNotice(): React.JSX.Element | null {
         <summary>{t('diagnostics.exposure.why')}</summary>
         <p>{t('diagnostics.exposure.whyBody')}</p>
       </details>
-    </Banner>
+    </section>
   )
 }
 // #endregion stack-exposure

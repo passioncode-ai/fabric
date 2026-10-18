@@ -24,7 +24,6 @@ import {
   addressKey,
   focusFor,
   focusSurvives,
-  returnableTo,
   revealAt,
   routeToEntity,
   routeToProject,
@@ -56,9 +55,12 @@ import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
 import { WhereWorkScreen } from './launch/WhereWorkScreen'
-import { Banner, Button, Field, TabStrip, Toolbar } from './components'
+import { Banner, Button } from './components'
 import { I18nProvider, useT, type Locale } from './i18n'
-import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, launchDiscuss } from './launch/LaunchShell'
+import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
+import { ActLine, latestPersonAct } from './launch/ActLine'
+import { HistoryScreen } from './launch/HistoryScreen'
+import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
@@ -164,6 +166,15 @@ function Shell({
    *  holds no projects" — and it was the value every launch started with, so the
    *  first screen told the operator a fact nobody had measured. */
   const [projects, setProjects] = useState<ProjectRow[] | null>(null)
+  /** The last read of the list failed: said in the rail in place of the list, the last list kept (SCN-162). */
+  const [projectsProblem, setProjectsProblem] = useState<string | null>(null)
+  const [projectsReadAt, setProjectsReadAt] = useState<string | null>(null)
+  /** The person's pinned projects, in their order: the rail lists them first (SCN-162 step 2). */
+  const [pins, setPins] = useState<string[]>([])
+  /** What waits for the person, over the whole board and by project; null while unknown (SCN-162: a count is a claim). */
+  const [waiting, setWaiting] = useState<{ total: number; byProject: Record<string, number> } | null>(null)
+  /** The journal's high-water mark when the person came to the place on screen: the act line shows acts after it. */
+  const [placeSince, setPlaceSince] = useState(0)
   const [tabs, setTabs] = useState<Tab[]>([])
   // #region saved-tabs-read-authority — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
   /** Claims the one-time read; an in-flight read is not write authority. */
@@ -229,21 +240,14 @@ function Shell({
    * away from, which is the "haunting" this module's header names.
    */
   const [honoured, setHonoured] = useState<string | null>(null)
-  /**
-   * Where the operator came from, kept SEPARATELY from the focus (AX-05).
-   *
-   * A focus is consumed — the screen that honours it clears it, or it fires
-   * again on the next mount — so `focus.returnTo` was gone by the time anyone
-   * could have offered a Back. It was written on every navigation and read by
-   * nothing, for as long as it has existed.
-   */
-  const [cameFrom, setCameFrom] = useState<AppRoute | null>(null)
   /** The instruction being typed, per project. It has to live ABOVE the remount
    *  above, or switching tabs would throw it away — and it has to be per
    *  project, or it would follow the operator into the wrong one and be run
    *  there. Both halves are UX-01. */
   const [taskDrafts, setTaskDrafts] = useState<Record<string, TaskDraft>>({})
   const [drafts, setDrafts] = useState<Record<string, Draft>>({})
+  const draftsRef = useRef(drafts)
+  draftsRef.current = drafts
   /** Whether the drafts on disk have been read, so the first persist cannot
    *  write an empty set over them (AX-05). */
   const [draftsLoaded, setDraftsLoaded] = useState(false)
@@ -333,8 +337,17 @@ function Shell({
   const ticking = useRef(false)
 
   const refreshProjects = useCallback(async () => {
-    const loaded = await window.fabric.projects.list()
+    let loaded: ProjectRow[]
+    try {
+      loaded = await window.fabric.projects.list()
+    } catch (e) {
+      // Said in the rail, the last list kept beneath it with its time; the five places stay usable (SCN-162).
+      setProjectsProblem(explainError(e, t))
+      return
+    }
     setProjects(loaded)
+    setProjectsProblem(null)
+    setProjectsReadAt(new Date().toISOString())
     // M111 — restore the working set ONCE, and only when it is known which
     // projects still exist. Restoring before that would reopen tabs for
     // projects that are gone and then have to take them away again.
@@ -398,6 +411,8 @@ function Shell({
         setFeed((old) => [...(old ?? []), ...events].slice(-500))
         if (events.some((e) => e.type.startsWith('project.'))) void refreshProjects()
         if (events.some((e) => e.type.startsWith('terminal.'))) void refreshSessions()
+        // A draft restored from История (wave 2's `draft.restore`): its words are back on disk; take them in.
+        if (events.some((e) => e.type === 'act.recorded@1' && (e.payload as { kind?: unknown }).kind === 'draft.restore')) draftsRestoredRef.current(false)
       } catch (e) {
         // The same failure every two seconds would make the banner impossible to
         // dismiss; raise it once and keep quiet until something changes.
@@ -596,22 +611,10 @@ function Shell({
     // opens its project rather than putting a location on screen that nothing
     // can reach.
     const addressed = routeToEntity({ ref, projectId })
-    const origin = active
     openProject(projectId)
     goTo(addressed.addressed ? addressed.route : addressed.fallback)
-    // The origin outlives the arrival, because the operator needs the way back
-    // AFTER they have got there.
-    setCameFrom(origin)
+    // The way back is ⌘[ (the shell's history below), not a Back of Fabric's own (SCN-162 step 3).
   }
-  /**
-   * A deliberate move clears the way back.
-   *
-   * `appRoute.ts`'s header calls the alternative a haunting: a request that
-   * fires later, from somewhere else entirely. A Back that survives the
-   * operator opening three other tabs points at a place they have forgotten
-   * choosing.
-   */
-  const clearOrigin = (): void => setCameFrom(null)
 
   const newDraft = (): void => {
     draftStarted.current = true
@@ -621,11 +624,23 @@ function Shell({
     setActive({ kind: 'draft', id })
     setWorkspaceFor(null)
   }
+  /** «Создать проект» (SCN-171): a new draft; the unfinished ones are listed on «Создать» to go on with. */
+  const startProject = (): void => {
+    setShowSettings(false)
+    newDraft()
+  }
+  // #region discard-at-once — docs: docs/adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md#decision
   const closeTab = (tab: Tab): void => {
-    // A filled-in draft is real work; dropping it is a decision, not a side effect.
+    // A filled-in draft is the person's words: discarding it asks nothing (ADR-0160 §1) and is an act with its undo —
+    // the main process keeps the words on this computer and records «Черновик убран · Отменить» (wave 2's executor).
     if (tab.kind === 'draft') {
       const d = drafts[tab.id]
-      if (d && draftIsDirty(d) && !window.confirm(t('onboarding.discardConfirm'))) return
+      if (d && draftIsDirty(d)) {
+        void window.fabric.drafts.discard(tab.id).then(
+          (answer) => { if (!answer.ok) setError(t('drafts.notKept', { reason: answer.says ?? answer.reason })) },
+          (e: unknown) => setError(t('drafts.notKept', { reason: explainError(e, t) }))
+        )
+      }
       setDrafts((old) => {
         const next = { ...old }
         delete next[tab.id]
@@ -635,6 +650,26 @@ function Shell({
     setTabs((old) => old.filter((x) => keyOf(x) !== keyOf(tab)))
     if (tabOf(active) && keyOf(tabOf(active)!) === keyOf(tab)) setActive({ kind: 'home' })
   }
+  /**
+   * «Отменить» on a discarded draft put its words back on disk (wave 2's `draft.restore`): read the drafts again and take
+   * in the ones this window does not hold, as open drafts; `open` brings the person to it (the act line's undo).
+   */
+  const draftsRestored = (open: boolean): void => {
+    void window.fabric.drafts.read().then((answer) => {
+      const back = Object.keys(answer.drafts).filter((id) => !draftsRef.current[id])
+      if (!back.length) return
+      setDrafts((old) => {
+        const next = { ...old }
+        for (const id of back) next[id] = answer.drafts[id]
+        return next
+      })
+      setTabs((old) => [...old, ...back.filter((id) => !old.some((x) => x.kind === 'draft' && x.id === id)).map((id) => ({ kind: 'draft' as const, id }))])
+      if (open) { setShowSettings(false); setActive({ kind: 'draft', id: back[back.length - 1] }) }
+    }, (e: unknown) => setError(explainError(e, t)))
+  }
+  const draftsRestoredRef = useRef(draftsRestored)
+  draftsRestoredRef.current = draftsRestored
+  // #endregion discard-at-once
   const replaceDraft = (draftId: string, project: ProjectRow): void => {
     setTabs((old) =>
       old.map((x) => (x.kind === 'draft' && x.id === draftId ? { kind: 'project', projectId: project.id } : x))
@@ -682,6 +717,85 @@ function Shell({
       setActive((r) => withoutAddress(r))
   }, [tabs, focus])
 
+  // #region rail-wiring — docs: docs/ux/scenarios.md#scn-162-move-between-the-five-places-and-the-projects-from-the-rail
+  // The rail's facts (SCN-162): the pins, what waits for the person, where an agent works, the latest activity.
+  useEffect(() => {
+    if (!isMainWindow) return
+    let alive = true
+    // Read again on every change of place: the home's star writes them, and a pin is a local file read.
+    // A pin list that cannot be read keeps the last one: the rail is then ordered by activity alone, said nowhere
+    // because nothing is lost (the pins stay on disk) and nothing on the rail claims them.
+    window.fabric.favourites?.list().then((p) => { if (alive) setPins(p) }, () => undefined)
+    return () => { alive = false }
+  }, [active, isMainWindow])
+  const boardMark = markOf(marks, ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect', 'access'])
+  useEffect(() => {
+    if (!isMainWindow) return
+    let alive = true
+    // The SAME query the board runs (M151), cut to one row: its total and per-project counts are over the whole board.
+    try {
+      window.fabric.board.query({ projectId: null, limit: 1 }).then(
+        (v) => { if (alive) setWaiting(v.data ? { total: v.data.total, byProject: v.data.countsByProject } : null) },
+        () => { if (alive) setWaiting(null) }
+      )
+    } catch {
+      setWaiting(null) // no count rather than a wrong one
+    }
+    return () => { alive = false }
+  }, [boardMark, isMainWindow])
+  const liveProjects = new Set((sessions ?? []).filter((x) => x.running).map((x) => x.projectId))
+  const lastActivity = lastActivityOf(feed)
+
+  // The act line: the person's acts since they came to the place on screen (ADR-0160 §1, `ActLine.tsx`).
+  const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind
+  useEffect(() => { setPlaceSince(lastSeq.current) }, [placeKey])
+  const lineAct = latestPersonAct(feed, placeSince)
+
+  // THE WAY BACK is the system's (SCN-162 step 3): ⌘[ goes back, ⌘] forward, over the places the person was at. No
+  // Back button of Fabric's own. A place is the route and whether Settings is in front.
+  type Snap = { route: AppRoute; settings: boolean }
+  const past = useRef<Snap[]>([])
+  const future = useRef<Snap[]>([])
+  const shown = useRef<Snap | null>(null)
+  const travelling = useRef(false)
+  useEffect(() => {
+    const snap: Snap = { route: active, settings: showSettings }
+    const prev = shown.current
+    shown.current = snap
+    if (travelling.current) { travelling.current = false; return }
+    if (!prev || (prev.settings === snap.settings && JSON.stringify(prev.route) === JSON.stringify(snap.route))) return
+    past.current = [...past.current.slice(-49), prev]
+    future.current = []
+  }, [active, showSettings])
+  const travelRef = useRef<(dir: 'back' | 'forward') => void>(() => {})
+  travelRef.current = (dir) => {
+    const from = dir === 'back' ? past : future
+    const to = dir === 'back' ? future : past
+    const known = (r: AppRoute): boolean => r.kind !== 'project' || (projects ?? []).some((p) => p.id === r.projectId)
+    let snap = from.current.pop()
+    while (snap && !known(snap.route)) snap = from.current.pop() // a project removed since is skipped, not shown blank
+    if (!snap || !shown.current) return
+    to.current.push(shown.current)
+    travelling.current = true
+    setShowSettings(snap.settings)
+    setActive(snap.route)
+    setHonoured(null)
+  }
+  useEffect(() => {
+    if (!isMainWindow) return
+    const onKey = (e: KeyboardEvent): void => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey || (e.key !== '[' && e.key !== ']')) return
+      const el = e.target instanceof HTMLElement ? e.target : null
+      // An editor or a console keeps ⌘[ for itself (indent, the program's own keys).
+      if (el && (el.isContentEditable || el.closest('.monaco-editor, .xterm'))) return
+      e.preventDefault()
+      travelRef.current(e.key === '[' ? 'back' : 'forward')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isMainWindow])
+  // #endregion rail-wiring
+
   // ALL HOOKS ABOVE, every return below (S01). These three used to sit at the
   // top, with `useEffect` and `useRef` beneath them — a React invariant
   // violation on the very transition the app makes at boot, when
@@ -698,102 +812,60 @@ function Shell({
   if (fileWindowPath) return <EditorWindow filePath={fileWindowPath} />
   if (sessionWindowId) return <SessionWindow sessionId={sessionWindowId} />
 
+  // Where the rail marks the person and what the top bar says (SCN-162). A start path and a project draft are
+  // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.
+  const railAt: React.ComponentProps<typeof LaunchShell>['at'] = showSettings
+    ? { kind: 'settings' }
+    : active.kind === 'home' || active.kind === 'agents' || active.kind === 'history' ? { kind: active.kind }
+    : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
+    : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
+    : { kind: 'elsewhere' }
+  const placeTitle = showSettings ? t('rail.settings')
+    : active.kind === 'home' ? t('rail.home')
+    : active.kind === 'agents' ? t('rail.agents')
+    : active.kind === 'history' ? t('acts.title')
+    : active.kind === 'start' || active.kind === 'draft' ? t('create.title')
+    : active.kind === 'project' || active.kind === 'guide' ? ((projects ?? []).find((p) => p.id === active.projectId)?.name ?? t('app.loading'))
+    : active.kind === 'board' ? t('launch.nav.board')
+    : active.kind === 'comms' ? t('launch.nav.comms')
+    : active.kind === 'plan' ? t('launch.nav.plan')
+    : active.kind === 'quota' ? t('launch.nav.quota')
+    : active.kind === 'help' ? t('launch.nav.help')
+    : active.kind === 'where' ? t('launch.nav.where')
+    : active.kind === 'persona' ? t('settings.more.persona')
+    : active.kind === 'welcome' ? t('launch.brand.product')
+    : t('launch.nav.fabric')
+
   return (
     <div className="app launch-root">
-
-      {/* THE WAY BACK, and the field that records it had no reader until now
-          (AX-05). Shown only when it goes somewhere else: a Back to where you
-          already are is a control that does nothing, which `returnableTo`
-          decides rather than this line. */}
-      {returnableTo(cameFrom, active) && (
-        <Toolbar>
-          <Button
-            tone="ghost"
-            onClick={() => {
-              const to = returnableTo(cameFrom, active)
-              if (!to) return
-              goTo(to)
-              clearOrigin()
-            }}
-          >
-            {t('nav.back')}
-          </Button>
-        </Toolbar>
-      )}      <TabStrip
-        activeKey={tabOf(active) && active.kind !== 'home' ? keyOf(tabOf(active)!) : null}
-        home={{
-          // The launch design names the home tab by the product (SCR-30); the name
-          // is visible, so it is also the accessible name.
-          label: t('launch.nav.fabric'),
-          glyph: t('launch.nav.fabric'),
-          onSelect: () => {
-            setActive({ kind: 'home' })
-            setWorkspaceFor(null)
-          }
-        }}
-        close={{ label: t('tab.close'), glyph: t('glyph.close') }}
-        items={tabs.map((tab) => ({
-          key: keyOf(tab),
-          label:
-            tab.kind === 'project'
-              ? ((projects ?? []).find((p) => p.id === tab.projectId)?.name ?? t('app.loading'))
-              : (tab.kind === 'draft' ? drafts[tab.id]?.name.trim() : '') || t('tab.new'),
-          badge:
-            tab.kind === 'project' &&
-            (sessions ?? []).filter((s) => s.projectId === tab.projectId && s.running).length > 0
-              ? t('tab.live', {
-                  count: (sessions ?? []).filter((s) => s.projectId === tab.projectId && s.running)
-                    .length
-                })
-              : undefined,
-          onSelect: () => {
-            setActive(tab)
-            setWorkspaceFor(null)
-          },
-          onClose: () => closeTab(tab)
-        }))}
-        actions={[]}
-        // The seed's technical name for the default estate (`supabase/seed.sql`) reads as a question on a fresh
-        // install; it is shown as the same words the breadcrumb uses. A name the operator gave is shown as given.
-        trailing={estateName === SEED_ESTATE_NAME ? t('launch.workspace') : estateName}
-      />
-
+      {/* 0.3.7 wave 3 (SCN-162): ONE rail with «＋ Создать», the five places and the projects list. No tab strip and no
+          Back of Fabric's own (⌘[ and ⌘] above); the places that left the rail are reached from where they belong. */}
       <LaunchShell
-        estateName={estateName}
         projects={projects}
-        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'comms' ? { kind: 'comms' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'where' ? { kind: 'where' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
-        onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
-        onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
-        onComms={() => { setShowSettings(false); setActive({ kind: 'comms' }) }}
-        commsBadge={commsUnread?.count ?? 0}
-        commsBadgeAtLeast={commsUnread?.atLeast ?? false}
-        onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
-        onNewProject={() => { setShowSettings(false); goTo({ kind: 'start', path: 'menu' }) }}
-        onProject={(projectId: string, section: ProjectSection) => {
-          setShowSettings(false)
-          openProject(projectId)
-          setProjectSection(section)
-          const anchor = PROJECT_SECTION_ANCHOR[section]
-          // After the project has rendered: the anchor is its section, not a route.
-          if (anchor) revealSection(anchor)
+        projectsProblem={projectsProblem}
+        projectsReadAt={projectsReadAt}
+        onRetryProjects={() => void refreshProjects()}
+        at={railAt}
+        title={placeTitle}
+        pins={pins}
+        lastActivity={lastActivity}
+        live={liveProjects}
+        waiting={waiting}
+        machine={error ? 'trouble' : feed === null ? 'reading' : 'ok'}
+        onPlace={(place: RailPlace) => {
+          setShowSettings(place === 'settings')
+          if (place === 'settings') return
+          setWorkspaceFor(null)
+          goTo(place === 'create' ? { kind: 'start', path: 'menu' } : { kind: place })
         }}
-        onAgents={() => { setShowSettings(false); setActive({ kind: 'agents' }) }}
-        onWhere={() => { setShowSettings(false); setActive({ kind: 'where' }) }}
-        // Opens Settings; it is not a toggle — pressing the current page keeps it (0.3.6 review UX-12). Escape and every
-        // other destination close it.
-        onSettings={() => setShowSettings(true)}
-        onHistory={() => setPanel('history')}
+        onCreateProject={startProject}
+        onProject={(projectId: string) => { setShowSettings(false); openProject(projectId) }}
         onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
         searchOpen={searchOpen}
-        onProfile={() => { setShowSettings(false); setActive({ kind: 'persona' }) }}
-        profileOpen={!showSettings && active.kind === 'persona'}
-        // Hidden where the screen is already that conversation's start (Home, the start paths, Help) and on the
-        // guide, whose card carries its own Discuss beside the project it is about (docs/ux/screens.md#launch-chrome).
-        onDiscuss={launchDiscuss(showSettings ? 'settings' : active.kind) ? () => openChat(null) : null}
         onChat={() => { setChatSuggestion(null); setPanel((p) => togglePanel(p, 'chat', { toggle: true })) }}
-        onHelp={() => { setShowSettings(false); setActive({ kind: 'help' }) }}
-        onQuota={() => { setShowSettings(false); setActive({ kind: 'quota' }) }}
         chatOpen={chatOpen}
+        actLine={<ActLine act={lineAct} onUndo={(seq) => window.fabric.acts.undo(seq)}
+          onUndone={(undone) => { if (undone.record.kind === 'draft.discard') draftsRestored(true) }} />}
       >
 
       {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
@@ -845,6 +917,7 @@ function Shell({
           settings={settings}
           onOpenHistory={() => setPanel('history')}
           onOpenAccess={() => setPanel('access')}
+          onOpen={(to) => { setShowSettings(false); goTo({ kind: to }) }}
           onChange={async (next) => {
             // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
             const written = await window.fabric.settings.write(next).catch((e: unknown) => {
@@ -862,6 +935,7 @@ function Shell({
       )}
       {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
       <main className="content" hidden={showSettings}>
+        {active.kind === 'history' && <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} />}
         {active.kind === 'board' && (
           <BoardScreen
             key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
@@ -948,6 +1022,8 @@ function Shell({
             }}
             onHome={() => goTo({ kind: 'home' })}
             onProjectsChanged={() => void refreshProjects()}
+            drafts={tabs.filter((x): x is Extract<Tab, { kind: 'draft' }> => x.kind === 'draft' && !!drafts[x.id]).map((x) => ({ id: x.id, name: drafts[x.id].name }))}
+            onDraft={(id) => setActive({ kind: 'draft', id })}
           />
         )}
         {active.kind === 'guide' && (projects ?? []).some((p) => p.id === active.projectId) && (
@@ -1134,7 +1210,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
 }
 
 function keyOf(tab: Tab): string {

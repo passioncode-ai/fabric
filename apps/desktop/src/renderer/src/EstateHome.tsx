@@ -1,3 +1,4 @@
+import { StackExposureNotice } from './StackExposureNotice'
 import type { FeedEvent, ProjectRow, Quota, TerminalSession } from '../../shared/types'
 import { markOf, type FeedMarks } from '../../shared/feedMarks.ts'
 import { Banner, Button, EmptyState, Panel, Row, StateChip, Toolbar } from './components'
@@ -329,6 +330,8 @@ export function EstateHome({
 
   return (
     <div className="estate-home lp" data-launch-view="launch-home">
+      {/* A question on Главная (ADR-0160 §5): the local database reachable from the network, with its fix. */}
+      <StackExposureNotice />
       {/* M118 — the question, asked once. There is no "later": declining IS
           later, it is recorded, and it can be changed. A banner with a dismiss
           would turn "nobody has been asked" into a hidden state, which is the
