@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T19:00:00Z · `—` · agent/header-rail-compact → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/renderer/src/launch/LaunchShell.tsx, launch/rail.css, App.tsx, i18n en/ru, Rail.test.tsx, entityAddress.test.tsx, docs/ux (SCN-162, SCR-84), the plan (OF-04, OF-05, F2), CHANGELOG, docs/reports
+- conflicts: none
+- summary: F2 of the final pass. One clean top bar (44 px, the place's name and the open consoles; search by ⌘K, no profile, no conversation button) and a compact projects rail (rows 26 px, places 30 px, rail 216 px); the line about this computer only on trouble.
+
 ### 2026-10-19T17:00:00Z · `—` · agent/final-pass-plan → main · fast-forward
 - run: r-8db0598178fb
 - files: docs/evidence/plans/2026-10-15-fabric-simple/2026-10-19-final-pass.md, docs/reports

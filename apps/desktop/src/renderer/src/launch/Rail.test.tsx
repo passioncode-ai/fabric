@@ -16,8 +16,8 @@ const project = (id: string, name: string, over: Partial<ProjectRow> = {}): Proj
   created_at: '2026-10-01T00:00:00Z', memory_backend: 'local', default_agent: 'claude-code', mcp_servers: [], ...over
 })
 
-function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en') {
-  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: false })) } } }))
+function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en', chatActive = false) {
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: chatActive })) } } }))
   const props: LaunchShellProps = {
     projects: [project('p1', 'Atlas'), project('p2', 'Nicegram'), project('p3', 'Fabric')],
     projectsProblem: null,
@@ -34,7 +34,6 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en')
     onCreateProject: vi.fn(),
     onProject: vi.fn(),
     onSearch: vi.fn(),
-    searchOpen: false,
     children: <p>place body</p>,
     ...over
   }
@@ -124,20 +123,25 @@ describe('the rail', () => {
     expect(document.querySelector('.scope-bar')).toBeNull()
   })
 
-  it('opens search from the field at the top and from ⌘K', () => {
+  it('opens search from ⌘K, with no search field, profile or Fabric chat in the top bar or the rail (OF-05)', () => {
     const props = shell()
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(en['rail.search']) }))
-    expect(props.onSearch).toHaveBeenCalledTimes(1)
+    expect(document.querySelector('.fab-search, .rail-me, .rail-chat')).toBeNull()
     fireEvent.keyDown(window, { key: 'k', metaKey: true })
-    expect(props.onSearch).toHaveBeenCalledTimes(2)
+    expect(props.onSearch).toHaveBeenCalledTimes(1)
+    const top = document.querySelector('.fab-top') as HTMLElement
+    expect(within(top).getByRole('heading', { level: 1 }).textContent).toBe('Home')
+    expect(within(top).queryAllByRole('button')).toHaveLength(0)
   })
 
-  it('says how this computer is at its foot', () => {
+  it('says how this computer is only when something needs a look (OF-05)', () => {
     shell()
-    expect(screen.getByText(en['rail.machine.ok'])).toBeTruthy()
+    expect(screen.queryByRole('status')).toBeNull()
+    cleanup()
+    shell({ machine: 'reading' })
+    expect(screen.queryByRole('status')).toBeNull()
     cleanup()
     shell({ machine: 'trouble' })
-    expect(screen.getByText(en['rail.machine.trouble'])).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toContain(en['rail.machine.trouble'])
   })
 
   it('speaks Russian in Russian', () => {
@@ -149,8 +153,23 @@ describe('the rail', () => {
     expect(ru['rail.create']).toBe('Создать')
   })
 
-  it('shows the conversation with Fabric only once it is switched on', async () => {
-    shell()
+  it('puts no conversation with Fabric on the rail, even when it is switched on (OF-05)', async () => {
+    shell({ onChat: vi.fn() } as Partial<LaunchShellProps>, 'en', true)
+    await new Promise((r) => setTimeout(r, 0))
     expect(screen.queryByRole('button', { name: new RegExp(en['chat.open']) })).toBeNull()
+  })
+
+  it('keeps the rail compact: project rows at most 26 px, places at most 30 px (OF-04)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(`${process.cwd()}/src/renderer/src/launch/rail.css`, 'utf8')
+    const minHeight = (selector: string): number => {
+      // The last rule naming the selector that sets a min-height wins, as in the cascade (same specificity).
+      const rules = css.split('}').map((r) => r.trim().split('{')).filter(([sel, body]) =>
+        body !== undefined && !sel.startsWith('@') && sel.split(',').map((x) => x.trim()).includes(selector) && /min-height:/.test(body))
+      const m = rules.at(-1)?.[1].match(/min-height:(\d+)px/)
+      return m ? Number(m[1]) : Number.NaN
+    }
+    expect(minHeight('.rail-projects a')).toBeLessThanOrEqual(26)
+    expect(minHeight('.rail-places a')).toBeLessThanOrEqual(30)
   })
 })

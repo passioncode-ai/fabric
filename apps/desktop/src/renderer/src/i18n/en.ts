@@ -2533,11 +2533,7 @@ export const en = {
   'rail.projects.failed': "Projects were not read.",
   'rail.projects.retry': "Try again",
   'rail.projects.stale': "as it was at {time}",
-  'rail.me': "You",
-  'rail.machine.ok': "this computer · all good",
-  'rail.machine.reading': "this computer · reading…",
   'rail.machine.trouble': "this computer · something needs a look",
-  'rail.search': "Find a project, a task, an agent",
   // 0.3.7 wave 3: an act in words (ADR-0160 §2, SCN-169), for the act line and История. Impersonal: the act line is
   // the person's own act; История names the actor beside it.
   'act.undo': "Undo",
@@ -2659,7 +2655,6 @@ export const en = {
   'joined.outUnreadable': "The list of disconnected agents could not be read, so no agent is kept out right now.",
   'joined.someProject': "a project",
   'glyph.plus': "＋",
-  'rail.searchKey': "⌘K",
   'glyph.console': "›_",
   'consoles.label': "Open consoles",
   'consoles.close': "Close the tab of {name}; the session keeps running",

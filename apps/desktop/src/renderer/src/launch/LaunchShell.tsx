@@ -1,17 +1,16 @@
 // #region rail — docs: docs/ux/scenarios.md#scn-162-move-between-the-five-places-and-the-projects-from-the-rail
 // The shell of Fabric 0.3.7 (SCN-162, SCR-84; the prototype's `simple-*` views, scripts/product/simple.mjs): ONE rail
 // on the left with «＋ Создать», the five places (Главная, Агенты, История, Настройки; a project is opened from the
-// list beneath, never a sixth fixed entry) and the projects list, and above the place a quiet top bar with its name
-// and the search field (⌘K). No tab strip of places or projects, no Back of Fabric's own (⌘[ and ⌘] are the shell's,
-// App.tsx), no scope bar, no "Discuss with Fabric" while the conversation is not switched on (plan §1: a dead end).
-// The only tabs at the top are the open consoles (OF-03, SCN-172: `ConsoleTabs`, passed in as `consoles`).
+// list beneath, never a sixth fixed entry) and the projects list, and above the place a quiet top bar with its name.
+// No tab strip of places or projects, no Back of Fabric's own (⌘[ and ⌘] are the shell's, App.tsx), no scope bar.
+// The top bar holds the name and the open consoles as tabs (OF-03, SCN-172: `ConsoleTabs`, passed in as `consoles`)
+// and nothing else (OF-05, 2026-10-19): search is ⌘K, there is no profile block and no conversation with Fabric on
+// the rail (it opens from Help), and the foot line about this computer shows only when something needs a look.
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { railProjects } from '../../../shared/railProjects.ts'
 import { useLocale, useT } from '../i18n'
-import { FabricAvatar } from './FabricAvatar'
-import { FabricName } from './persona'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
 import './rail.css'
 
@@ -91,16 +90,13 @@ export interface LaunchShellProps {
   live: ReadonlySet<string>
   /** What waits for the person, over the whole board and by project; null while unknown (no count is a non-claim). */
   waiting: { total: number; byProject: Record<string, number> } | null
-  /** How this computer is, in one word: the foot line. */
+  /** How this computer is: the foot line, shown only on trouble (OF-05). */
   machine: 'reading' | 'ok' | 'trouble'
   onPlace(place: RailPlace): void
   onCreateProject(): void
   onProject(projectId: string): void
+  /** Search, opened by ⌘K (OF-05: no field in the top bar). */
   onSearch(): void
-  searchOpen: boolean
-  /** The conversation with Fabric: offered only once it is switched on (RM-09). */
-  onChat?(): void
-  chatOpen?: boolean
   /** The act line at the foot of the place (ADR-0160 §1): «{что сделано} · Отменить». */
   actLine?: React.ReactNode
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
@@ -114,18 +110,6 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const { at, projects } = props
-  const [chatActive, setChatActive] = useState(false)
-  useEffect(() => {
-    let live = true
-    // Offered only when the conversation answers that it is on; an unreadable status hides it rather than
-    // putting a control on the rail that opens nothing (plan §1, the dead ends).
-    try {
-      window.fabric.ceo.status().then((s) => { if (live) setChatActive(s?.active === true) }, () => { if (live) setChatActive(false) })
-    } catch {
-      setChatActive(false)
-    }
-    return () => { live = false }
-  }, [])
   const onSearch = props.onSearch
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -203,24 +187,17 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
             </ul>
           )}
         </div>
-        {chatActive && props.onChat && (
-          <button type="button" className="rail-chat" aria-expanded={props.chatOpen === true} onClick={props.onChat}>
-            <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
-            <span><b><FabricName /></b><small>{t('chat.open')}</small></span>
-          </button>
+        {props.machine === 'trouble' && (
+          <p className="rail-machine" role="status" title={t('rail.machine.trouble')}>
+            <span className="rail-dot trouble" aria-hidden="true" />
+            <span className="rail-name">{t('rail.machine.trouble')}</span>
+          </p>
         )}
-        <div className="rail-me">
-          <span className="rail-av" aria-hidden="true" />
-          <div>{t('rail.me')}<small>{t(`rail.machine.${props.machine}`)}</small></div>
-        </div>
       </aside>
       <div className="fab-main">
         <header className="fab-top">
           <h1>{props.title}</h1>
           {props.consoles}
-          <button type="button" className="fab-search" aria-pressed={props.searchOpen} onClick={props.onSearch}>
-            <span>{t('rail.search')}</span><kbd aria-hidden="true">{t('rail.searchKey')}</kbd>
-          </button>
         </header>
         <div className="fab-place">
           {props.children}

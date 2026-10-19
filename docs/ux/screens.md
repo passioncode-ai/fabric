@@ -2178,7 +2178,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 ### SCR-84: Rail
 - **Used by:** FLW-93
 - **Purpose:** The one navigation of Fabric: «＋ Создать», the five places and the projects list, always on the left (plan §2). Replaces the tab strip, the back button and the per-project links.
-- **Elements:** the PassionCode mark with «Fabric · by PassionCode»; «＋ Создать» (light secondary button); «Главная» with a gold count of waiting questions, «Агенты», «История», «Настройки»; the label «Проекты»; one row per project — name, a green dot when an agent works there, a gold star for a favourite, a gold count when something waits; the person's line at the foot («Сергей · этот Mac · всё работает»).
+- **Elements:** the PassionCode mark with «Fabric · by PassionCode»; «＋ Создать» (light secondary button); «Главная» with a gold count of waiting questions, «Агенты», «История», «Настройки»; the label «Проекты»; one compact row per project (26 px, OF-04): name, a green dot when an agent works there, a gold star for a favourite, a gold count when something waits; at the foot nothing while this computer is fine, and one line «этот компьютер · есть что проверить» when it is not (OF-05, 2026-10-19: no profile block, no search field, no conversation with Fabric in the shell; search is ⌘K).
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
