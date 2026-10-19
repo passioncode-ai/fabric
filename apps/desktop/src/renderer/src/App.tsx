@@ -918,7 +918,9 @@ function Shell({
       )}
       {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
       <main className="content" hidden={showSettings}>
-        {active.kind === 'history' && <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} />}
+        {active.kind === 'history' && (
+          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} />
+        )}
         {active.kind === 'board' && (
           <BoardScreen
             key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
@@ -1064,9 +1066,10 @@ function Shell({
             onError={setError}
           />
         )}
-        {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
-        {active.kind === 'agents' && <JoinedAgents projects={projects} />}
         {active.kind === 'agents' && (
+          <>
+          {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
+          <JoinedAgents projects={projects} />
           <EstateAgents
             // NULL TRAVELS (M108, UXA-C05). Five lines below, `EstateHome` is
             // handed both of these unchanged and says why in its own props;
@@ -1078,6 +1081,7 @@ function Shell({
             onOpen={openEntity}
             onError={setError}
           />
+          </>
         )}
         {active.kind === 'home' && (
           <EstateHome
