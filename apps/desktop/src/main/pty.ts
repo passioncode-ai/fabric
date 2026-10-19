@@ -312,6 +312,13 @@ interface OwnedUnitEntry {
 }
 // #endregion managed-owned-unit
 
+/** OF-12: how a Claude Code session's folder is made trusted before it starts. Set by the app at start
+ *  (`index.ts`, `claudeTrust.ts`) and nowhere else, so no test and no other host writes Claude Code's state. */
+let folderTrust: ((folder: string) => Promise<string>) | null = null
+export function setFolderTrust(fn: ((folder: string) => Promise<string>) | null): void {
+  folderTrust = fn
+}
+
 export class PtyManager {
   private sessions = new Map<string, LiveSession>()
   private opening = new Set<string>()
@@ -473,6 +480,14 @@ export class PtyManager {
     // Audit 2026-10-05 A2-008: a project whose repository was moved or deleted still launched — the program
     // started in a folder that is not there. Asked before anything is minted (bundle, credential, journal).
     if (!(await isFolder(cwd))) throw new LaunchPlaceMissing(cwd)
+    // OF-12: a Claude Code session starts in a folder it already trusts, as Orca's agents do; the person is not asked
+    // «Do you trust this folder?» in every console. Best effort: an answer other than granted/unchanged is recorded
+    // and the session starts anyway, at Claude's own prompt.
+    if (runnerId === 'claude-code' && folderTrust && process.env.FABRIC_TRUST_AGENT_FOLDERS !== '0') {
+      const trust = await folderTrust(cwd).catch((e: unknown) => (e instanceof Error ? e.message : String(e)))
+      if (trust !== 'unchanged')
+        ops.record({ op: 'pty.folder-trust', outcome: trust === 'granted' ? 'ok' : 'failed', level: trust === 'granted' ? 'info' : 'warn', detail: { outcome: String(trust).slice(0, 120) }, ctx: { correlationId: ops.correlate(), sessionId } })
+    }
 
     // Only an agent gets the surface; a plain shell has nothing to say to it.
     // Awaited: the bundle now compiles a context pack, which reads the project's

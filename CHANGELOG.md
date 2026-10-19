@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Claude Code no longer asks «Do you trust this folder?» in Fabric's consoles.** When Fabric starts Claude Code in a
+  project's folder, it marks the folder trusted first, as Orca does. Folders already trusted stay trusted.
 - **A console no longer closes itself when it opens.** Opening a coding agent's console again sent the terminal's own
   answers into the agent, and Claude Code read them as «Esc» on its «Do you trust this folder?» question and quit.
 - **Many coding agents at once no longer push each other out.** With dozens of Claude Code sessions open in

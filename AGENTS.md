@@ -161,7 +161,7 @@ Fabric is down any program can listen there, so an agent uses `hub.json`'s origi
 sends a binding credential (the hub's `fabric.access.*` tool descriptions say so; `src/main/hub.ts`). Sessions it starts get a one-shot bearer; agents
 registered on this Mac get a door token that may only ask (for access, or to enroll a coding agent into a project,
 [ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) and, on the operator's own machine, an immediate recorded allow with a revocable binding credential
-([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). It creates no Keychain item:
+([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). Before it starts a Claude Code session it marks that session's folder trusted in Claude Code's own state (`~/.claude.json`, or the file `CLAUDE_CONFIG_DIR` names), the way Orca does, under Claude's lock and changing only that folder's flag (`src/main/claudeTrust.ts`; `FABRIC_TRUST_AGENT_FOLDERS=0` turns it off). It creates no Keychain item:
 a connected product's secret goes to Project Observatory's vault, value on stdin, and is read for one call at a time. It reads Claude Code's
 credential item for the quota once per token lifetime (held in memory until five minutes before it
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
