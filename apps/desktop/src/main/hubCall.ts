@@ -152,6 +152,41 @@ export function canonical(value: unknown): string {
 
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 
+// #region hub-call-revisions — docs: docs/evidence/plans/2026-10-15-fabric-simple/2026-10-19-final-pass.md
+/**
+ * CT-26 (fabric-agent-contract DEC-0043, overview «Common identity and references»): a reference names a revisioned
+ * object by id and revision, and its `contentHash` is `sha256:` over the RFC 8785 canonical JSON of that object with
+ * `contentHash` left out. `canonical` above is that form for the objects Fabric builds here: plain objects, arrays,
+ * strings, booleans, null and finite numbers, keys sorted by UTF-16 code units. Before 2026-10-19 the envelope hashed
+ * a joined string of grant ids and the text 'fabric-hub/0.1', which no other verifier could reproduce.
+ */
+export function revisionRef(object: { id: string; revision: number } & Record<string, unknown>): { id: string; revision: number; contentHash: string } {
+  const { contentHash: _omitted, ...content } = object
+  return { id: object.id, revision: object.revision, contentHash: `sha256:${sha256(canonical(content))}` }
+}
+
+/** The binding as the revisioned object a hub call refers to: who it is for, and the grants the call relied on. */
+export function bindingRevision(binding: BindingRow, grantIds: readonly string[]): { id: string; revision: number } & Record<string, unknown> {
+  return {
+    id: `urn:fabric:binding:${binding.id}`,
+    revision: 1,
+    createdAt: binding.created_at,
+    createdBy: 'urn:fabric:hub',
+    agent: binding.agent_id,
+    grants: [...grantIds].sort().map((g) => `urn:fabric:grant:${g}`)
+  }
+}
+
+/** The hub as the producer of its envelopes: a fixed object, so its hash is the same in every envelope. */
+export const HUB_PRODUCER: { id: string; revision: number } & Record<string, unknown> = Object.freeze({
+  id: 'urn:fabric:hub',
+  revision: 1,
+  createdAt: '2026-10-04T00:00:00.000Z',
+  createdBy: 'urn:fabric:hub',
+  protocol: 'fabric-hub/0.1'
+})
+// #endregion hub-call-revisions
+
 /** One line of at most 300 characters with control characters removed, for the operations log. */
 const logLine = (text: string): string => text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').trim().slice(0, 300)
 
@@ -308,7 +343,7 @@ export function createAgentCall(deps: HubCallDeps) {
         project: `urn:fabric:estate:${deps.estateId}`,
         run: `urn:fabric:hub-call:${input.callId}`,
         node: `urn:fabric:callee:${input.callee}`,
-        binding: { id: `urn:fabric:binding:${input.binding.id}`, revision: 1, contentHash: `sha256:${sha256(input.grantIds.slice().sort().join(','))}` },
+        binding: revisionRef(bindingRevision(input.binding, input.grantIds)),
         writeScopes: input.narrowing ?? ['workspace']
       },
       notVerified: [
@@ -320,7 +355,7 @@ export function createAgentCall(deps: HubCallDeps) {
       usage: { inputTokens: 0, outputTokens: 0, wallMs: input.wallMs },
       trace: { traceparent: input.traceparent },
       createdAt,
-      producer: { id: 'urn:fabric:hub', revision: 1, contentHash: `sha256:${sha256('fabric-hub/0.1')}` }
+      producer: revisionRef(HUB_PRODUCER)
     }
   }
 
