@@ -31,7 +31,7 @@ const HERE = path.dirname(new URL(import.meta.url).pathname)
  *  `SessionWindow.tsx`, `SessionStop.tsx`, `TerminalView.tsx`, `EditorWindow.tsx` and the
  *  boot of `App.tsx` / `launch/persona.tsx` / `CrashBoundary.tsx` that every window runs. */
 const EVERY_WINDOW = ['settingsRead', 'personaRead', 'metaInfo', 'opsRendererError']
-const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalEnd', 'terminalDismiss', 'terminalData', 'terminalExit']
+const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalEnd', 'terminalAttestOver', 'terminalDismiss', 'terminalData', 'terminalExit']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
 test('every channel declares at least one window kind, and only known kinds', () => {

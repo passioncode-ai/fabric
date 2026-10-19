@@ -2569,6 +2569,7 @@ SCN-031/059/094: уход из знакомства не считается вы
 - **Telemetry:** planned only; stop observation and linked run receipts are evidence, not UI event counts.
 - **Status:** draft
 - **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** «Остановить» stops at once — no confirmation, the force step included ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md) §1); the foot of the place says «Остановлено · Отменить», and the inverse starts the console again from where it stood (SCN-169).
+- **Amended 2026-10-19 ([ADR-0170](../adr/0170-the-person-says-an-ended-runs-work-is-over.md), CO-327):** when the agent's process has ended and its Stop cannot be proved (no provider receipt), the console says so and offers «Работа закончена»; pressing it frees the task (back to the queue, its claim gone) and the act line offers «Отменить», which holds the task again unless it has moved on since. Only a person can say it, and not while the process runs.
 - **Coverage:** none yet
 - **Product:** unobserved
 

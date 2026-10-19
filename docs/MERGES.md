@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-20T00:30:00Z · `—` · agent/run-over → main · fast-forward
+- run: r-8db0598178fb
+- files: supabase/migrations/20261019000115_run_over_attestation.sql, apps/desktop/src/main (actRunExecutors.ts, index.ts), shared (acts.ts, stop.ts, types.ts, ipcWindowPolicy.ts), preload/api.ts, renderer (SessionStop.tsx, launch/actWords.ts, i18n en/ru), tests (run-over-db.test.mjs in run-managed-stop-db.mjs, act-run-over.test.mjs, SessionStop.test.tsx), ADR-0170, CO-327, SCN-096, the plan (F5), CHANGELOG, docs/reports
+- conflicts: none; stacked on the operator's own setup
+- summary: F5 of the final pass. The person's «Работа закончена» completes a Stop of unknown outcome with the basis attested once the session's process has ended, and frees the task; an act whose undo restores the hold unless the task has moved on.
+
 ### 2026-10-19T23:30:00Z · `—` · agent/operator-setup → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/main (sessionBundle.ts, env.ts, platform.ts, index.ts), shared (harness.ts, servers.ts), i18n en/ru, test/session-bundle.test.mjs, test/platform.test.mjs, ADR-0169, CO-324, CO-325, CO-326, the plan (F4), AGENTS.md, CHANGELOG, docs/reports

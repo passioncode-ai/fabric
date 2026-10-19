@@ -1602,6 +1602,8 @@ export interface FabricApi {
     resize(sessionId: string, cols: number, rows: number): void
     /** Ends a running session; the record stays on the board with its exit code. */
     end(sessionId: string, options?: { force?: boolean }): Promise<TerminalStopResult>
+    /** «Работа закончена» (CO-327, ADR-0170): the person says the work of an ended run is over; recorded as an act. */
+    attestOver(sessionId: string): Promise<TerminalStopResult>
     /** Removes an already-ended session from the board. */
     dismiss(sessionId: string): Promise<void>
     /** `written` is the session's character count after this chunk. */
@@ -1806,6 +1808,7 @@ export const IPC = {
   terminalWrite: 'terminal:write',
   terminalResize: 'terminal:resize',
   terminalEnd: 'terminal:end',
+  terminalAttestOver: 'terminal:attest-over',
   terminalDismiss: 'terminal:dismiss',
   terminalData: 'terminal:data',
   terminalExit: 'terminal:exit',
