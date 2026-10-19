@@ -620,7 +620,7 @@ export const en = {
   'harness.agent.kimi-code': "An agent session in the project directory, connected to Fabric",
   'harness.agent.shell': "A plain login shell, no agent",
   'harness.servers': 'Servers a session can reach',
-  'harness.strict': 'Exactly one, and that is enforced: sessions launch with strict MCP config, so whatever else this machine has configured is invisible from inside.',
+  'harness.strict': "Fabric's own server, and in a console also the MCP servers this computer's coding agent is set up with (Observatory, plugins). An agent created here sees only the servers it declares.",
   'harness.noServer': 'The surface is not running, so a session here would have no tools at all.',
   'harness.tools': 'Tools',
   'harness.records': 'leaves a record',

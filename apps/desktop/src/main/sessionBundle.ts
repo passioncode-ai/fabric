@@ -15,7 +15,7 @@ import { preparedLaunchMatches, type PreparedLaunchInputs, type PreparedLaunchPa
 // revoke, because revocation was wired to an exit event that could not fire for
 // a process that never existed.
 
-import { chmodSync, copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
 import { homedir } from 'node:os'
@@ -40,6 +40,8 @@ export interface BundleSurface {
 }
 
 export interface BundleCompilerDeps {
+  /** Whether the operator's Codex config declares a server by this name (CO-324); the file is read when absent. */
+  codexDeclares?: (name: string) => boolean
   preparedInputs?: PreparedLaunchInputs
   recordPreparedContext?: (packet: PreparedLaunchPacket) => Promise<void>
   /** Where session directories live — the app's own data directory, never a repo. */
@@ -59,6 +61,20 @@ export interface BundleCompilerDeps {
   gateway?: () => GatewayFacts
   /** The OS the session starts on (default: this process's). On Windows the brief travels in a file (ER-5). */
   platform?: NodeJS.Platform
+}
+
+/**
+ * Whether the operator's Codex config declares an MCP server by this name (CO-324). Read from the file's table headers
+ * only; nothing else in it is read. Unreadable or absent is false.
+ */
+export function codexDeclaresServer(name: string, configFile = path.join(process.env.CODEX_HOME ?? path.join(homedir(), '.codex'), 'config.toml')): boolean {
+  try {
+    const text = readFileSync(configFile, 'utf8')
+    return new RegExp(`^\\s*\\[mcp_servers\\.(?:"${name}"|${name})\\]\\s*$`, 'm').test(text)
+  } catch {
+    // No Codex config, or one this process may not read: there is no server of that name to switch off.
+    return false
+  }
 }
 
 export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
@@ -243,9 +259,13 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
         // understood them — a second one would have failed to start, or started
         // with no Fabric tools and no complaint.
         switch (adapter) {
-          case 'mcp-config-flag':
-            // strict: the session sees Fabric's tools and nothing the machine
-            // happens to have configured elsewhere.
+          case 'mcp-config-flag': {
+            // CO-325 (2026-10-19): a console keeps the operator's own MCP servers (Observatory, plugins), the
+            // setup their terminal runs with; measured on Claude Code 2.1.299, Fabric's server still wins the
+            // name `fabric` because --mcp-config outranks the user scope, and the user's `fabric-mcp` never
+            // starts. A created agent stays strict: its declared servers are the whole of what it may reach
+            // (M127, a partial or wider grant is the defect). FABRIC_STRICT_MCP=1 restores strict for all.
+            const strict = agent !== null || process.env.FABRIC_STRICT_MCP === '1' ? ['--strict-mcp-config'] : []
             //
             // AND THE PREAMBLE, which is the other half of M123. Handing an agent
             // tools does not tell it the rules; `fabric_whoami` holds those, and
@@ -258,14 +278,14 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             if ((deps.platform ?? process.platform) === 'win32') {
               const briefPath = path.join(dir, 'brief.md')
               writeFileSync(briefPath, agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, { encoding: 'utf8', mode: 0o600 })
-              return launched({ dir, args: ['--mcp-config', configPath, '--strict-mcp-config', '--append-system-prompt-file', briefPath] })
+              return launched({ dir, args: ['--mcp-config', configPath, ...strict, '--append-system-prompt-file', briefPath] })
             }
             return launched({
               dir,
               args: [
                 '--mcp-config',
                 configPath,
-                '--strict-mcp-config',
+                ...strict,
                 '--append-system-prompt',
                 // The agent's own brief FIRST and Fabric's preamble LAST, so the
                 // last thing the session is told is where its rules live and that
@@ -276,6 +296,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
               ]
             })
+          }
           case 'config-content-env': {
             // ADR-0119 / P-10: the whole session config travels in ONE variable whose
             // content outranks the project's config file (`SurfaceConfig` in agents.ts
@@ -375,11 +396,33 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // (measured), and it cannot know these. The operator's auth.json is copied so the session
             // can run its model; with none, Codex asks the person to sign in, and that sign-in dies
             // with the session — said in the report.
-            const codexHome = path.join(dir, 'codex-home')
-            mkdirSync(codexHome, { recursive: true, mode: 0o700 })
             const suffix = randomBytes(4).toString('hex')
             const serverName = `fabric_${suffix}`
             const tokenEnv = `FABRIC_MCP_TOKEN_${suffix.toUpperCase()}`
+            const guideText = agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
+            // CO-324 (2026-10-19): a CONSOLE runs in the operator's own CODEX_HOME and keeps their AGENTS.md,
+            // plugins, hooks, trust, model and sign-in; no auth.json is copied, so a token rotation cannot sign
+            // the operator out. Fabric's server and the preamble arrive as -c overrides (Codex 0.163 reads
+            // mcp_servers.*, bearer_token_env_var and developer_instructions; -c outranks a project config), the
+            // credential only in the environment. A JSON string is a valid TOML basic string. A session that
+            // carries gateway role keys, or a created agent, keeps the isolated home below (M127).
+            if (agent === null && plan.grant.length === 0 && process.env.FABRIC_STRICT_MCP !== '1') {
+              return launched({
+                dir,
+                args: [
+                  '-c', `mcp_servers.${serverName}.url=${JSON.stringify(deps.surface.endpoint)}`,
+                  '-c', `mcp_servers.${serverName}.bearer_token_env_var=${JSON.stringify(tokenEnv)}`,
+                  '-c', `developer_instructions=${JSON.stringify(guideText)}`,
+                  // The operator's own `fabric` server (fabric-mcp) would enroll this session a second time; it is
+                  // switched off for this launch only, and only when the config declares it (-c on an undeclared
+                  // server would create a half entry Codex refuses).
+                  ...((deps.codexDeclares ?? codexDeclaresServer)('fabric') ? ['-c', 'mcp_servers.fabric.enabled=false'] : [])
+                ],
+                env: { [tokenEnv]: scope.token }
+              })
+            }
+            const codexHome = path.join(dir, 'codex-home')
+            mkdirSync(codexHome, { recursive: true, mode: 0o700 })
             const grantName = (name: string): string => `${name.replace(/[^a-zA-Z0-9_]/g, '_')}_${suffix}`
             const lines = [
               `[mcp_servers.${serverName}]`,
@@ -395,7 +438,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               )
             }
             writeFileSync(path.join(codexHome, 'config.toml'), lines.join('\n') + '\n', { encoding: 'utf8', mode: 0o600 })
-            writeFileSync(path.join(codexHome, 'AGENTS.md'), agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, {
+            writeFileSync(path.join(codexHome, 'AGENTS.md'), guideText, {
               encoding: 'utf8',
               mode: 0o600
             })

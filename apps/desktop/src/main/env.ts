@@ -16,7 +16,7 @@ import { STACK_EXCLUDED_SERVICES, removeExcludedContainers } from './stackServic
 import { startWithRetry } from '../shared/stackStartRetry.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
-import { pathAdditions } from './platform.ts'
+import { mergeLaunchPath, pathAdditions, shellPathProbe } from './platform.ts'
 
 export interface SupabaseEnv {
   url: string
@@ -32,9 +32,25 @@ export interface SupabaseEnv {
 export async function fixPath(): Promise<void> {
   // Per OS (0.3.5, REQ-05): Windows joins with ';' and keeps its own installer folders.
   const extra = pathAdditions(process.platform, process.env, homedir())
-  const parts = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean)
-  for (const p of extra) if (!parts.includes(p)) parts.push(p)
-  process.env.PATH = await widenProbePath(parts.join(path.delimiter), process.env)
+  // CO-326: the login shell's order first, so a launch runs the binary the operator's terminal runs.
+  const shellPath = process.platform === 'win32' ? null : await loginShellPath(process.env.SHELL ?? '')
+  process.env.PATH = await widenProbePath(mergeLaunchPath(shellPath, process.env.PATH ?? '', extra, path.delimiter), process.env)
+}
+
+/** The login shell's PATH, read once at start with a 3 s deadline; null when there is no shell or it does not answer. */
+async function loginShellPath(shell: string): Promise<string | null> {
+  const probe = shellPathProbe(shell)
+  if (!probe) return null
+  try {
+    const { stdout } = await run(probe.file, probe.args, { timeout: 3000, maxBuffer: 1024 * 1024, env: { ...process.env, TERM: 'dumb' } })
+    const read = probe.read(String(stdout))
+    if (read === null) ops.record({ op: 'env.shell-path', outcome: 'failed', level: 'warn', detail: { why: "no PATH between the markers" }, ctx: { correlationId: ops.correlate() } })
+    return read
+  } catch (e) {
+    // An rc file that hangs, prompts or fails leaves the old order (inherited PATH, then the installers' folders).
+    ops.failed('env.shell-path', e, { note: 'the login shell did not answer; the launch PATH keeps its old order' })
+    return null
+  }
 }
 // #endregion fix-path
 

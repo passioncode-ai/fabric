@@ -1,6 +1,6 @@
 // What Fabric runs, per OS, where a POSIX tool used to be assumed (0.3.5, CO-238, REQ-08…REQ-11).
 import assert from 'node:assert/strict'
-import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation, executableCandidates, launchFor, cmdCommandLine, stopWindowsTree, killPty, windowsAclAccount, spawnHelper } from '../src/main/platform.ts'
+import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, mergeLaunchPath, shellPathProbe, protectedAclInvocation, executableCandidates, launchFor, cmdCommandLine, stopWindowsTree, killPty, windowsAclAccount, spawnHelper } from '../src/main/platform.ts'
 
 // REQ-08: the OS's own shell.
 assert.equal(defaultShell('darwin', { SHELL: '/bin/bash' }), '/bin/bash')
@@ -214,3 +214,21 @@ assert.deepEqual(launchFor('C:\\a\\claude.exe', ['--append-system-prompt', 'a\nb
 }
 
 console.log('platform: all green')
+
+// CO-326: an app started from the Dock inherits a bare PATH, so appending the installers' folders put /opt/homebrew/bin
+// before ~/.local/bin and launched a brew Claude Code 2.1.299 beside the native 2.1.300 the terminal runs. The login
+// shell's order comes first; what the process inherited and the installers' folders follow, each folder once.
+assert.equal(
+  mergeLaunchPath('/Users/a/.local/bin:/opt/homebrew/bin:/usr/bin', '/usr/bin:/bin', ['/opt/homebrew/bin', '/usr/local/bin', '/Users/a/.local/bin'], ':'),
+  '/Users/a/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/local/bin'
+)
+assert.equal(mergeLaunchPath(null, '/usr/bin:/bin', ['/opt/homebrew/bin'], ':'), '/usr/bin:/bin:/opt/homebrew/bin', 'no shell reading: as before')
+assert.equal(mergeLaunchPath('', '/usr/bin', [], ':'), '/usr/bin')
+assert.equal(mergeLaunchPath('relative/bin:/ok', '/usr/bin', [], ':'), '/ok:/usr/bin', 'a relative entry from an rc file is not trusted')
+const probe = shellPathProbe('/bin/zsh')
+assert.equal(probe.file, '/bin/zsh')
+assert.deepEqual(probe.args.slice(0, 1), ['-ilc'])
+assert.equal(probe.read('noise from an rc file\n__FABRIC_PATH__/a:/b__FABRIC_PATH__\nmore'), '/a:/b')
+assert.equal(probe.read('no markers at all'), null)
+assert.equal(shellPathProbe(''), null, 'no shell, no probe')
+console.log('PASS the launch PATH follows the login shell first (CO-326)')

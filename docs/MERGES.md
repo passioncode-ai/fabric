@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T23:30:00Z · `—` · agent/operator-setup → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/main (sessionBundle.ts, env.ts, platform.ts, index.ts), shared (harness.ts, servers.ts), i18n en/ru, test/session-bundle.test.mjs, test/platform.test.mjs, ADR-0169, CO-324, CO-325, CO-326, the plan (F4), AGENTS.md, CHANGELOG, docs/reports
+- conflicts: none; stacked on the catalogue consoles
+- summary: F4 of the final pass. A Claude console keeps the operator's MCP servers (no --strict-mcp-config, Fabric's server still wins its name, measured); a Codex console runs in the operator's CODEX_HOME with Fabric's server and preamble as -c overrides and no copied auth.json; a created agent stays isolated; the launch PATH follows the login shell first.
+
 ### 2026-10-19T22:30:00Z · `—` · agent/catalogue-consoles → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/shared (consoleCatalog.ts, agents.ts, containment.ts, appSettings.ts, types.ts, agentSpec.ts, builderChoice.ts), main/pty.ts, main/index.ts, renderer pickers (ProjectHome, Tasks, Onboarding, CreatedAgents), launch/SettingsScreen.tsx and launch.css, i18n en/ru, their tests and test/permission-preference.test.mjs, ADR-0168, CO-304, CO-305, SCN-160, the plan (OF-11, F3), AGENTS.md, CHANGELOG, docs/reports

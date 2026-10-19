@@ -47,8 +47,8 @@ import type { LaunchOption, SurfaceTool } from './types.ts'
 export interface HarnessServer {
   name: string
   endpoint: string
-  /** `--strict-mcp-config`: whatever else this machine has configured is not
-   *  visible from inside a Fabric session. */
+  /** `--strict-mcp-config`: true only for a created agent's session (CO-325); a console keeps the operator's
+   *  own MCP servers beside this one. */
   strict: boolean
 }
 

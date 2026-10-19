@@ -19,7 +19,7 @@ import path from 'node:path'
 
 const HERE = import.meta.dirname
 const script = `
-import { createBundleCompiler } from ${JSON.stringify(path.join(HERE, '../src/main/sessionBundle.ts'))}
+import { createBundleCompiler, codexDeclaresServer } from ${JSON.stringify(path.join(HERE, '../src/main/sessionBundle.ts'))}
 import { AGENTS, mayLaunch } from ${JSON.stringify(path.join(HERE, '../src/shared/agents.ts'))}
 import { PtyManager } from ${JSON.stringify(path.join(HERE, '../src/main/pty.ts'))}
 import { useOps } from ${JSON.stringify(path.join(HERE, '../src/main/opsSink.ts'))}
@@ -67,8 +67,11 @@ if (dirMode !== 0o700) fail('the session directory is mode ' + dirMode.toString(
 else ok('the session directory is 0700, so the session ids are not listable either')
 if (!readFileSync(cfg, 'utf8').includes('tok-' + sid)) fail('the bundle does not carry the minted token')
 else ok('the bundle carries the credential it was minted with')
-if (!bundle.args.includes('--strict-mcp-config')) fail('the bundle does not pass --strict-mcp-config')
-else ok('the session is launched with --strict-mcp-config')
+// CO-325 (measured on Claude Code 2.1.299, 2026-10-19): a console keeps the operator's own MCP servers, so it runs
+// without --strict-mcp-config; Fabric's own server still wins its name because --mcp-config outranks the user scope.
+if (bundle.args.includes('--strict-mcp-config')) fail('a console is launched with --strict-mcp-config and loses the MCP servers of the operator')
+else ok('a console keeps the MCP servers of the operator (no --strict-mcp-config)')
+
 
 // M123's other half. The tools were on the surface and NOTHING told the agent to
 // ask for the rules that govern them — only a sentence inside a tool description,
@@ -487,38 +490,52 @@ else {
   granting.discard(sidG)
 }
 
-// Probed 2026-10-11 (docs/reports/2026-10-11-codex-kimi-surface-probes) — Codex takes its MCP servers
-// from an isolated per-session CODEX_HOME: config.toml with a RANDOM server name and token env var
-// (a project .codex/config.toml shadows any name it knows), the preamble in AGENTS.md, the credential
-// only in the environment — never argv.
+// CO-324 (2026-10-19): a Codex CONSOLE runs in the operator's own CODEX_HOME, so it keeps their AGENTS.md,
+// plugins, hooks, trust, model and sign-in, and no auth.json is copied. Fabric's server and its preamble arrive as
+// -c overrides (Codex 0.163 reads mcp_servers.*, bearer_token_env_var and developer_instructions), under a RANDOM
+// per-session name (a project .codex/config.toml shadows any name it knows), the credential only in the environment.
 {
   const sidC = randomUUID()
+  // The machine's own Codex config must not decide this test: an empty CODEX_HOME declares no server.
+  const ownCodexHome = process.env.CODEX_HOME
+  process.env.CODEX_HOME = path.join(root, 'empty-codex-home')
   const c = await bundles.compile(sidC, randomUUID(), null, 'codex', 'codex-config-home')
-  const home = c?.env?.CODEX_HOME
-  if (home && home.startsWith(path.join(root, 'sessions', sidC))) ok('Codex gets its own CODEX_HOME inside the session directory')
-  else fail('CODEX_HOME is wrong: ' + JSON.stringify(c?.env))
-  const toml = home && existsSync(path.join(home, 'config.toml')) ? readFileSync(path.join(home, 'config.toml'), 'utf8') : null
-  if (!toml) fail('no config.toml in the Codex home')
-  else {
-    if ((statSync(path.join(home, 'config.toml')).mode & 0o777) === 0o600 && (statSync(home).mode & 0o777) === 0o700)
-      ok('the Codex home is 0700 with its config 0600, like every other bundle secret')
-    else fail('the Codex home permissions are wrong')
-    const serverMatch = toml.match(/\\[mcp_servers\\.(fabric_[0-9a-f]{8})\\]\\nurl = "([^"]+)"\\nbearer_token_env_var = "([^"]+)"/)
-    if (serverMatch && serverMatch[2] === surface.endpoint && c.env[serverMatch[3]] === 'tok-' + sidC)
-      ok('the surface is served under a RANDOM per-session name, the bearer in an equally random env var')
-    else fail('the Codex config does not carry the surface as probed: ' + toml)
-    if (!toml.includes('tok-')) ok('and the credential itself is never written to the config file')
-    else fail('the credential reached config.toml')
-  }
-  const guide = home && existsSync(path.join(home, 'AGENTS.md')) ? readFileSync(path.join(home, 'AGENTS.md'), 'utf8') : ''
-  if (guide.includes('fabric_whoami') && (statSync(path.join(home, 'AGENTS.md')).mode & 0o777) === 0o600)
-    ok('and the preamble reaches the model through AGENTS.md, the one channel the probe found')
-  else fail('the preamble is missing from AGENTS.md')
-  if (c && c.args.length === 0 && !JSON.stringify(c.args).includes('tok-')) ok('and nothing goes into the arguments, where any process listing would show it')
-  else fail('the Codex bundle put something in argv: ' + JSON.stringify(c?.args))
+  if (ownCodexHome === undefined) delete process.env.CODEX_HOME
+  else process.env.CODEX_HOME = ownCodexHome
+  if (c && !('CODEX_HOME' in (c.env ?? {}))) ok('a Codex console keeps the operator CODEX_HOME')
+  else fail('a Codex console was given its own CODEX_HOME: ' + JSON.stringify(c?.env))
+  if (!existsSync(path.join(root, 'sessions', sidC, 'codex-home'))) ok('and no Codex home, and no copy of auth.json, is written for it')
+  else fail('a Codex home was written for a console')
+  const args = c?.args ?? []
+  const overrides = args.filter((_, i) => args[i - 1] === '-c')
+  const url = overrides.find((o) => /^mcp_servers\\.fabric_[0-9a-f]{8}\\.url=/.test(o))
+  const name = url ? url.split('.')[1] : null
+  const tokenVar = overrides.find((o) => name && o.startsWith('mcp_servers.' + name + '.bearer_token_env_var='))
+  const envName = tokenVar ? JSON.parse(tokenVar.split('=').slice(1).join('=')) : null
+  if (url && JSON.parse(url.split('=').slice(1).join('=')) === surface.endpoint && envName && c.env[envName] === 'tok-' + sidC)
+    ok('the surface is served under a RANDOM per-session name, the bearer in an equally random env var')
+  else fail('the Codex overrides do not carry the surface: ' + JSON.stringify(args))
+  const guide = overrides.find((o) => o.startsWith('developer_instructions='))
+  if (guide && guide.includes('fabric_whoami')) ok('and the preamble reaches the model as developer_instructions')
+  else fail('the preamble is missing from the overrides')
+  if (!JSON.stringify(args).includes('tok-')) ok('and the credential never goes into the arguments, where any process listing would show it')
+  else fail('the credential reached argv: ' + JSON.stringify(args))
+  if (!overrides.some((o) => o.startsWith('mcp_servers.fabric.'))) ok('with no fabric server in the operator config, nothing switches one off')
+  else fail('an undeclared fabric server was switched off: ' + JSON.stringify(overrides))
+  const withOwn = createBundleCompiler({ root, surface, codexDeclares: (n) => n === 'fabric' })
+  const sidO = randomUUID()
+  const own = await withOwn.compile(sidO, randomUUID(), null, 'codex', 'codex-config-home')
+  if (own.args.join(' ').includes('-c mcp_servers.fabric.enabled=false')) ok('the operator own fabric server is switched off for this launch, so the session enrolls once')
+  else fail('the operator own fabric server stays on: ' + JSON.stringify(own.args))
+  withOwn.discard(sidO)
+  const tmpCfg = path.join(root, 'codex-config-fixture.toml')
+  writeFileSync(tmpCfg, ['[mcp_servers.fabric]', 'command = "fabric-mcp"', '', '[mcp_servers.other]', 'url = "x"', ''].join(String.fromCharCode(10)))
+  if (codexDeclaresServer('fabric', tmpCfg) && !codexDeclaresServer('missing', tmpCfg) && !codexDeclaresServer('fabric', path.join(root, 'nope.toml')))
+    ok('the Codex config is read by its table headers, and an absent file declares nothing')
+  else fail('codexDeclaresServer misreads the config')
   bundles.discard(sidC)
-  if (revoked.includes(sidC) && !existsSync(path.join(root, 'sessions', sidC))) ok('and discarding it revokes the credential and removes the home with the directory')
-  else fail('discarding the Codex bundle left the credential or the directory')
+  if (revoked.includes(sidC)) ok('and discarding it revokes the credential')
+  else fail('discarding the Codex bundle left the credential')
 
   // A granted gateway server rides beside Fabric with its role key in an http_headers table.
   const grantingC = createBundleCompiler({
@@ -533,6 +550,9 @@ else {
   if (/\\[mcp_servers\\.linear_[0-9a-f]{8}\\]\\nurl = "http:\\/\\/127\\.0\\.0\\.1:4000\\/mcp\\/linear"\\nhttp_headers = \\{ "x-agw-key" = "role-key" \\}/.test(tomlL))
     ok('a granted server points at the gateway and carries the ROLE key, never an upstream one')
   else fail('granted server wrong: ' + tomlL)
+  if (l.env.CODEX_HOME.startsWith(path.join(root, 'sessions', sidL)) && (statSync(l.env.CODEX_HOME).mode & 0o777) === 0o700 && (statSync(path.join(l.env.CODEX_HOME, 'config.toml')).mode & 0o777) === 0o600)
+    ok('a session with granted keys keeps its isolated CODEX_HOME, 0700 with its config 0600: the role key never reaches the operator home')
+  else fail('the granted Codex session is not isolated')
   grantingC.discard(sidL)
 }
 
@@ -695,6 +715,16 @@ else {
 }
 
 // #endregion adapter-mode-regressions
+// CO-325: the way back to a session that sees only the Fabric server.
+{
+  const strictSid = randomUUID()
+  process.env.FABRIC_STRICT_MCP = '1'
+  try {
+    const strict = await bundles.compile(strictSid, randomUUID(), null, 'claude-code', 'mcp-config-flag')
+    if (!strict.args.includes('--strict-mcp-config')) fail('FABRIC_STRICT_MCP=1 does not restore --strict-mcp-config')
+    else ok('FABRIC_STRICT_MCP=1 restores --strict-mcp-config')
+  } finally { delete process.env.FABRIC_STRICT_MCP }
+}
 if (failures > 0) {
   console.error('\\n' + failures + ' check(s) FAILED — a credential outlives what it was minted for')
   process.exit(1)
