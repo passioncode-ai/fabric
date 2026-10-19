@@ -33,7 +33,7 @@ import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { folderProjectId } from './folderResolver.ts'
+import { folderProjectId, gitTopLevel } from './folderResolver.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
@@ -902,6 +902,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       }
     },
     remoteOf: originOf,
+    gitTopLevel,
     inspectFolder,
     projectIdForFolder: (root) => folderProjectId(ACTIVE_ESTATE, root),
     home: homedir()

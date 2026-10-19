@@ -12,7 +12,7 @@ const SRC = path.resolve(import.meta.dirname, '../src/main')
 const { createProjectAdmission } = await import(path.join(SRC, 'projectAdmission.ts'))
 const { resolveAgentFolder } = await import(path.join(SRC, 'sessionEnroll.ts'))
 const { inspectFolder } = await import(path.join(SRC, 'projectDiscovery.ts'))
-const { folderProjectId } = await import(path.join(SRC, 'folderResolver.ts'))
+const { folderProjectId, gitTopLevel } = await import(path.join(SRC, 'folderResolver.ts'))
 const { ScanCandidates } = await import(path.join(SRC, 'startChoices.ts'))
 const { originOf } = await import(path.join(SRC, 'agentSyncLeases.ts'))
 
@@ -90,6 +90,7 @@ function harness(home = root) {
     realpath: (folder) => realpathSync.native(folder),
     remoteOf: (folder) => originOf(folder),
     inspectFolder: (folder) => inspectFolder(folder),
+    gitTopLevel: (folder) => gitTopLevel(folder),
     projectIdForFolder: (folder) => folderProjectId(ESTATE, folder),
     home
   }
@@ -195,4 +196,47 @@ test('a plain folder becomes its own project; broad folders and archived project
   const before = archived.events.length
   await assert.rejects(archived.service.enroll(proposed, 'kimi-code'), /archived/)
   assert.equal(archived.events.length, before)
+})
+
+test('ADR-0166: an agent started in a subfolder attributes the repository at its Git top level', async () => {
+  const h = harness()
+  const repo = repository('deep-unknown', 'git@github.com:passioncode-ai/deep-unknown.git')
+  const realRepo = realpathSync.native(repo)
+  const sub = path.join(repo, 'src', 'deep')
+  mkdirSync(sub, { recursive: true })
+  const proposed = await resolve(h, sub)
+  assert.equal(proposed.ok, true, JSON.stringify(proposed))
+  assert.deepEqual([proposed.candidate, proposed.root, proposed.projectId, proposed.projectName],
+    ['create', realRepo, folderProjectId(ESTATE, realRepo), 'deep-unknown'])
+  await h.service.enroll(proposed, 'claude-code')
+  assert.deepEqual(h.repos.map((r) => r.path), [realRepo], 'the repository is attached, never the subfolder')
+  assert.equal((await resolve(h, sub)).how, 'ancestor')
+
+  const known = repository('deep-known', 'git@github.com:passioncode-ai/deep-shared.git')
+  const project = await h.service.create({ id: uuid(), name: 'deep-shared', repoPaths: [known] }, OPERATOR, h.reach)
+  const clone = repository('deep-clone', 'https://github.com/passioncode-ai/deep-shared.git')
+  const cloneSub = path.join(clone, 'pkg')
+  mkdirSync(cloneSub, { recursive: true })
+  const attach = await resolve(h, cloneSub)
+  assert.deepEqual([attach.candidate, attach.how, attach.projectId], ['attach', 'remote', project.id])
+  await h.service.enroll(attach, 'codex')
+  assert.ok(h.repos.some((r) => r.project_id === project.id && r.path === realpathSync.native(clone)), 'the clone is attached at its top level')
+  assert.ok(!h.repos.some((r) => r.path === realpathSync.native(cloneSub)), 'never at the subfolder')
+})
+
+test('ADR-0166: a detach keeps automation off that folder only, not off every clone of its remote', async () => {
+  const h = harness()
+  const first = repository('scoped-first', 'git@github.com:passioncode-ai/scoped.git')
+  const second = repository('scoped-second', 'https://github.com/passioncode-ai/scoped.git')
+  const project = await h.service.create({ id: uuid(), name: 'scoped', repoPaths: [first, second] }, OPERATOR, h.reach)
+  const secondRow = h.repos.find((r) => r.path === realpathSync.native(second))
+  await h.service.detach(project.id, secondRow.id, OPERATOR)
+
+  const refused = await resolve(h, second)
+  assert.deepEqual([refused.ok, refused.code], [false, 'no-project'], 'the detached folder stays out')
+  const third = repository('scoped-third', 'git@github.com:passioncode-ai/scoped.git')
+  const proposed = await resolve(h, third)
+  assert.deepEqual([proposed.ok, proposed.candidate, proposed.projectId], [true, 'attach', project.id], JSON.stringify(proposed))
+  await h.service.enroll(proposed, 'claude-code')
+  assert.ok(h.repos.some((r) => r.path === realpathSync.native(third)))
 })

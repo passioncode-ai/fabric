@@ -71,3 +71,7 @@ an existing Project, because it has no remote or worktree to match by (`sessionE
 `projectAdmission.ts#enroll`). Tests: `session-enroll.test.mjs` (a plain folder becomes its own project; a container
 is too broad, both watched failing first), `automatic-registration-scenario.test.mjs`, `project-admission.test.mjs`.
 
+**2026-10-19, one attribution across the products ([ADR-0166](0166-one-attribution-of-folders-to-projects-across-fabric-switchboard-and-observatory.md)).**
+Decision 2's folder is the repository's Git top level, not a subfolder the agent started in. Decision 5's tombstone
+keeps out the detached folder only; another clone of the same remote attaches by remote as before. The rules
+themselves move to fabric-agent-contract, and the canonical project id becomes Observatory's.

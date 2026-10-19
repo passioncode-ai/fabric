@@ -168,10 +168,9 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
     // A plain folder may become its own project (the operator, 2026-10-18: «добавление всегда авто»); only a
     // repository is ever attached to a project that exists, because a plain folder has nothing to match it by.
     if (!facts.git && folder.candidate !== 'create') throw new Error(`project-admission-refused:not-git: ${folder.real}`)
-    const remoteKey = folder.remoteKey ?? normalizeRemoteKey(facts.remote)
-    const paths = new Set([folder.real, folder.root])
-    const removed = (await deps.listRemovals()).some((row) =>
-      (row.path && paths.has(row.path)) || (remoteKey && row.remoteKey === remoteKey))
+    // ADR-0166 §3: the tombstone is the detached folder's; another clone of its remote may still be attached.
+    const paths = new Set(folder.candidate === 'attach' ? [folder.real] : [folder.real, folder.root])
+    const removed = (await deps.listRemovals()).some((row) => row.path && paths.has(row.path))
     if (removed) throw new Error(`project-admission-refused:detached: ${folder.real}`)
 
     const scope = `agent:${agentId}`

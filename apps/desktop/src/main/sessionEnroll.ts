@@ -35,6 +35,8 @@ export interface FolderDeps {
   realpath(folder: string): string | null
   /** The worktree probe (`folderResolver.ts#gitCommonDir`, asynchronous and bounded) — injected in tests. */
   gitCommonDir?: (folder: string) => Promise<string | null> | string | null
+  /** The working tree's top level (ADR-0166 §2); absent keeps the folder as given. */
+  gitTopLevel?: (folder: string) => Promise<string | null>
   /** The folder's origin remote, used only after path and worktree identity fail. */
   remoteOf?: (folder: string) => Promise<string | null>
   /** Read-only repository inspection for an unknown folder. */
@@ -100,22 +102,23 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
   if (!real) return { ok: false, code: 'bad-folder', message: 'that folder does not exist on this computer' }
   const match = await resolveProjectForFolder(real, await deps.admittedFolders(), deps.gitCommonDir, deps.remoteOf ?? (async () => null))
   if (match.how === 'ambiguous') return { ok: false, code: 'no-project', message: AMBIGUOUS_PROJECT_MESSAGE }
+  if (match.projectId && match.how !== 'remote') {
+    return { ok: true, real, projectId: match.projectId, how: match.how, root: match.root, remoteKey: match.remoteKey ?? null }
+  }
+  // ADR-0166 §2: what is attached or created is the repository's top level, never the subfolder the agent started in.
+  const top = (await deps.gitTopLevel?.(real)) ?? null
+  const base = top ? (deps.realpath(top) ?? top) : real
+  // ADR-0166 §3: a tombstone is the detached folder's own; another clone of the same remote is not kept out by it.
+  const detachedPaths = new Set((await (deps.detachedFolders?.() ?? Promise.resolve([]))).map((row) => row.path).filter(Boolean))
   if (match.projectId) {
-    return {
-      ok: true,
-      real,
-      projectId: match.projectId,
-      how: match.how,
-      root: match.root,
-      ...(match.how === 'remote' ? { candidate: 'attach' as const } : {}),
-      remoteKey: match.remoteKey ?? null
-    }
+    if (detachedPaths.has(base) || detachedPaths.has(real)) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+    return { ok: true, real: base, projectId: match.projectId, how: 'remote', root: match.root, candidate: 'attach', remoteKey: match.remoteKey ?? null }
   }
   if (!deps.inspectFolder || !deps.projectIdForFolder) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
-  if (tooBroad(real, deps.home)) return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
+  if (tooBroad(base, deps.home)) return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
   let facts: import('../shared/startPaths.ts').FolderFacts
   try {
-    facts = await deps.inspectFolder(real)
+    facts = await deps.inspectFolder(base)
   } catch {
     return { ok: false, code: 'bad-folder', message: 'that folder could not be read as a Git repository on this computer' }
   }
@@ -124,23 +127,19 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
     // does, journalled and undoable; only a folder that is plainly a container is refused: one right under home
     // (Documents, Desktop, Downloads, the work root) or one that already holds another project's folder.
     const home = deps.home ?? os.homedir()
-    const underHome = path.relative(home, real)
-    const holdsProjects = (await deps.admittedFolders()).some((row) => row.path.startsWith(real + path.sep))
+    const underHome = path.relative(home, base)
+    const holdsProjects = (await deps.admittedFolders()).some((row) => row.path.startsWith(base + path.sep))
     if ((underHome && !underHome.startsWith('..') && !underHome.includes(path.sep)) || holdsProjects)
       return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
-    const plainDetached = (await (deps.detachedFolders?.() ?? Promise.resolve([]))).some((row) => row.path === real)
-    if (plainDetached) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
-    return { ok: true, real, projectId: deps.projectIdForFolder(real), projectName: path.basename(real), how: 'create', root: real, candidate: 'create', remoteKey: null }
+    if (detachedPaths.has(base)) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+    return { ok: true, real: base, projectId: deps.projectIdForFolder(base), projectName: path.basename(base), how: 'create', root: base, candidate: 'create', remoteKey: null }
   }
-  const root = facts.kind === 'worktree' && facts.parent ? facts.parent : real
+  const root = facts.kind === 'worktree' && facts.parent ? facts.parent : base
   const remoteKey = normalizeRemoteKey(facts.remote)
-  const paths = new Set([real, root])
-  const detached = (await (deps.detachedFolders?.() ?? Promise.resolve([]))).some((row) =>
-    (row.path && paths.has(row.path)) || (remoteKey && row.remoteKey === remoteKey))
-  if (detached) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+  if (detachedPaths.has(base) || detachedPaths.has(root)) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
   return {
     ok: true,
-    real,
+    real: base,
     projectId: deps.projectIdForFolder(root),
     projectName: path.basename(root),
     how: 'create',

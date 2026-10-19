@@ -48,6 +48,22 @@ export function gitCommonDir(folder: string): Promise<string | null> {
   })
 }
 
+/** The top level of the working tree that holds `folder` (ADR-0166 §2): a coding agent started in a subfolder works in
+ *  that repository, not in a project of its own. Null outside Git, without git, or when the probe times out. */
+export function gitTopLevel(dir: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
+      encoding: 'utf8',
+      timeout: GIT_PROBE_MS,
+      windowsHide: true
+    }, (error, stdout) => {
+      if (error) return resolve(null)
+      const out = String(stdout).trim()
+      resolve(out ? out : null)
+    })
+  })
+}
+
 function keyPath(host: string, rawPath: string): string | null {
   let name = rawPath.replace(/^\/+/, '').replace(/\/+$/, '')
   if (name.toLowerCase().endsWith('.git')) name = name.slice(0, -4)

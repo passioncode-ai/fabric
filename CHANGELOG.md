@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent started deep inside a repository adds the repository, not the folder it started in**, and removing one
+  copy of a repository from a project no longer keeps every other copy of it out. This is the first step of one
+  shared answer to "which project is this folder" across Fabric, Switchboard and Project Observatory (ADR-0166).
 - **Any folder an agent starts in becomes a project by itself**, not only a Git repository: a plain folder is added
   the same way, with the agent named in the history and the add undoable there. Only a container is skipped (the
   disk root, the home folder, a folder right under it such as Documents, or a folder that already holds projects).
