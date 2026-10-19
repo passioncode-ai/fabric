@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Consoles open inside Fabric, as tabs along the top.** «Консоль» no longer opens a separate window: the console
+  fills the main area, and each open console is a tab in the top bar with its project's name and its coding agent, so
+  you see which are open and switch with one press. Closing a tab never stops the session. «Открыть в отдельном окне»
+  on the console still gives it a window of its own.
 - **«Where you stopped» stays where you stopped.** It used to jump to whichever project an agent last touched; now it
   is the project of your own last act, and it still counts what happened there since.
 - **Claude Code no longer asks «Do you trust this folder?» in Fabric's consoles.** When Fabric starts Claude Code in a

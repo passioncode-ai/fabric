@@ -12,6 +12,7 @@ import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { FeedEvent, ProjectRow, RoutineRow, TerminalSession } from '../../../shared/types'
 import { describeEvent, useLocale, useT } from '../i18n'
 import { FeedStrip } from './FabricStrip'
+import { useOpenConsole } from '../consoles'
 
 export function PulseScreen({ projects, feed, sessions, projectId = null, onBoard, onProject, onReleases }: {
   projects: ProjectRow[] | null
@@ -127,6 +128,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
 /** Running sessions and what was observed of each — the observation, not the agent's own account. */
 function LivePanel({ sessions, nameOf }: { sessions: TerminalSession[] | null; nameOf: (id: string | null) => string }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const running = (sessions ?? []).filter((s) => s.running)
   const [status, setStatus] = useState<Record<string, ReadEnvelope<RunStatusView> | 'failed'>>({})
   const [paused, setPaused] = useState(false)
@@ -161,7 +163,7 @@ function LivePanel({ sessions, nameOf }: { sessions: TerminalSession[] | null; n
                 <p>{v === 'failed' ? t('launch.agent.statusUnreadable') : data ? t(`launch.agent.liveness.${data.observation.liveness}` as 'launch.agent.liveness.working') : t('estate.reading')}</p>
                 {data?.claim.phase && <small>{t('launch.agent.claims', { phase: t(`launch.agent.phase.${data.claim.phase}` as 'launch.agent.phase.working') })}</small>}
               </div>
-              <button type="button" className="lp-button" onClick={() => void window.fabric.windows.openSession(s.sessionId)}>{t('task.openSession')}</button>
+              <button type="button" className="lp-button" onClick={() => void showConsole(s.sessionId)}>{t('task.openSession')}</button>
             </div>
           )
         })}

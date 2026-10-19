@@ -2657,6 +2657,13 @@ export const en = {
   'joined.someProject': "a project",
   'glyph.plus': "＋",
   'rail.searchKey': "⌘K",
+  'glyph.console': "›_",
+  'consoles.label': "Open consoles",
+  'consoles.close': "Close the tab of {name}; the session keeps running",
+  'consoles.reading': "Reading the session…",
+  'consoles.tabTitle': "{name} · {runner}",
+  'consoles.detach': "Open in a separate window",
+  'consoles.detachFailed': "The separate window did not open:",
 } as const
 
 export type StringKey = keyof typeof en

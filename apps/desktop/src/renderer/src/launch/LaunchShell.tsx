@@ -2,8 +2,9 @@
 // The shell of Fabric 0.3.7 (SCN-162, SCR-84; the prototype's `simple-*` views, scripts/product/simple.mjs): ONE rail
 // on the left with «＋ Создать», the five places (Главная, Агенты, История, Настройки; a project is opened from the
 // list beneath, never a sixth fixed entry) and the projects list, and above the place a quiet top bar with its name
-// and the search field (⌘K). No tab strip, no Back of Fabric's own (⌘[ and ⌘] are the shell's, App.tsx), no scope
-// bar, no "Discuss with Fabric" while the conversation is not switched on (plan §1: a dead end).
+// and the search field (⌘K). No tab strip of places or projects, no Back of Fabric's own (⌘[ and ⌘] are the shell's,
+// App.tsx), no scope bar, no "Discuss with Fabric" while the conversation is not switched on (plan §1: a dead end).
+// The only tabs at the top are the open consoles (OF-03, SCN-172: `ConsoleTabs`, passed in as `consoles`).
 
 import { useEffect, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
@@ -102,6 +103,8 @@ export interface LaunchShellProps {
   chatOpen?: boolean
   /** The act line at the foot of the place (ADR-0160 §1): «{что сделано} · Отменить». */
   actLine?: React.ReactNode
+  /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
+  consoles?: React.ReactNode
   children: React.ReactNode
 }
 
@@ -214,6 +217,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
       <div className="fab-main">
         <header className="fab-top">
           <h1>{props.title}</h1>
+          {props.consoles}
           <button type="button" className="fab-search" aria-pressed={props.searchOpen} onClick={props.onSearch}>
             <span>{t('rail.search')}</span><kbd aria-hidden="true">{t('rail.searchKey')}</kbd>
           </button>

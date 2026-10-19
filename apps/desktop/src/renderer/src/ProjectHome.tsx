@@ -90,6 +90,7 @@ import { isStuck } from '../../shared/automations.ts'
 import { LADDER, mayMove, type TaskState } from '../../shared/ladder.ts'
 import { wasRewritten, type PastContext } from '../../shared/pastContext.ts'
 import { launchPlace } from '../../shared/launchPlace.ts'
+import { useOpenConsole } from './consoles'
 
 export function ProjectHome({
   project,
@@ -1484,6 +1485,7 @@ export function AgentsSection({
   onError: (e: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const [options, setOptions] = useState<LaunchOption[]>([])
   // ADR-0125: offered when this computer has a fallback order, and chosen by default then — the
   // operator set the order to be used. A coding agent picked by name still runs exactly that agent.
@@ -1520,7 +1522,7 @@ export function AgentsSection({
     try {
       const s = await window.fabric.terminal.open(project.id, choice)
       await onSessionsChanged()
-      await window.fabric.windows.openSession(s.sessionId)
+      await showConsole(s.sessionId)
     } catch (e) {
       onError(String(e))
     } finally {
@@ -1966,6 +1968,7 @@ export function AgentTile({
   onError: (e: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   // What the estate has recorded about this session, composed from the run, the
   // heartbeat and the observation (M189). Null until it answers; the old chip
   // is what shows meanwhile rather than a blank.
@@ -2021,7 +2024,7 @@ export function AgentTile({
   return (
     <Panel
       quiet
-      title={<Button tone="ghost" onClick={() => window.fabric.windows.openSession(session.sessionId).catch(e => onError(String(e)))}>
+      title={<Button tone="ghost" onClick={() => showConsole(session.sessionId).catch(e => onError(String(e)))}>
         {runnerLabel(session.optionId, t)}
       </Button>}
       actions={

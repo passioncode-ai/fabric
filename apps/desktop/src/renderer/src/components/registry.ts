@@ -169,6 +169,7 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'editor-window': 'the editor window shell',
   'session-window': 'the session window shell',
   'session-head': 'the session window title band',
+  'session-embedded': 'a session shown under its console tab in the main window (SCN-172)',
   'editor-head': 'the editor window title band',
   onboarding: 'the onboarding form shell',
   'onboarding-launch': 'the existing onboarding form scoped to the launch visual system',

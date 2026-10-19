@@ -34,6 +34,7 @@ import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
 import { ProjectStrip } from './launch/FabricStrip'
 import { runnerLabel } from './runnerLabel'
+import { useOpenConsole } from './consoles'
 
 export function TaskPage({
   project,
@@ -57,6 +58,7 @@ export function TaskPage({
   onOpenTask?: (taskId: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const locale = useLocale()
   // WHOSE detail this is, carried WITH it (UX28-01). A bare `TaskDetail` cannot
   // answer "is this the task on screen", so a response for A that arrived after
@@ -224,7 +226,7 @@ export function TaskPage({
               </Button>
             )}
           {task.session_id && (
-            <button type="button" className="lp-button" onClick={() => void window.fabric.windows.openSession(task.session_id!)}>{t('task.openSession')}</button>
+            <button type="button" className="lp-button" onClick={() => void showConsole(task.session_id!)}>{t('task.openSession')}</button>
           )}
           <button type="button" className="lp-button" onClick={onBack}>{t('launch.agent.back')}</button>
         </div>

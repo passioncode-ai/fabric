@@ -226,6 +226,10 @@ button:disabled { opacity: .4; cursor: default; }
 }
 .terminal-host { flex: 1; min-height: 0; padding: var(--space-2); background: var(--terminal); }
 .terminal-host .xterm { height: 100%; }
+/* In the main window under its console tab (OF-03, SCN-172): no room kept for the window's traffic lights, and the
+   header is not a window drag handle, because the top bar above it is. */
+.session-embedded { flex: 1 1 auto; min-height: 0; }
+.session-embedded .session-head { padding-left: var(--space-4); -webkit-app-region: no-drag; }
 
 /* The message reads on the ink ramp in both themes; the danger hue is the rule
    above it. A dismiss button replaced click-anywhere, so it is reachable by
