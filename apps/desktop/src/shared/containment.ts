@@ -38,7 +38,11 @@ export const BYPASS_FLAGS = [
   '--auto-approve',
   '--no-confirm',
   // Kimi Code's "Never Ask" mode (ADR-0125): it decides every action itself.
-  '--auto'
+  '--auto',
+  // The catalogue consoles (ADR-0168): Aider, Amp and Kiro skip their prompts with these.
+  '--yes-always',
+  '--dangerously-allow-all',
+  '--trust-all-tools'
 ]
 
 export interface ContainmentVerdict {

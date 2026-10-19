@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Every coding agent starts as a console, with fewer prompts by default.** A project's console can now start any
+  coding agent of the catalogue this computer has (Gemini CLI, OpenCode, Goose, Cursor, Pi, OpenClaw and the rest),
+  not only the seven Fabric connects to. Settings has «Разрешения агентов»: «Меньше подтверждений», chosen by default,
+  or «Проверять вручную», one choice for every agent, and each agent's row shows how it starts. OpenCode's own
+  `fabric-mcp` registration is accepted (ADR-0168).
 - **Fewer generated-looking touches.** Thick coloured side stripes on notices and selected rows became a thin
   outline, and buttons and links no longer end in an arrow («Продолжить», not «Продолжить →»).
 - **A quieter top bar and a denser rail.** The top bar holds the place's name and the open consoles, nothing else:

@@ -17,7 +17,7 @@ import { stat } from 'node:fs/promises'
 import path from 'node:path'
 import type { Journal } from '@fabric/journal'
 import type { LaunchOption, SessionState, TerminalSession } from '../shared/types'
-import { AGENTS, mayLaunch, type SurfaceAdapter } from '../shared/agents.ts'
+import { AGENTS, mayLaunch, preferredMode, type AgentPermissions, type SurfaceAdapter } from '../shared/agents.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
@@ -258,7 +258,7 @@ export function createRunnerAvailability(opts: {
 
 const runners = createRunnerAvailability()
 
-function optionOf(agent: (typeof AGENTS)[number], available: boolean): LaunchOption {
+function optionOf(agent: (typeof AGENTS)[number], available: boolean, permissions: AgentPermissions | null = null): LaunchOption {
   return {
     id: agent.id,
     label: agent.label,
@@ -273,9 +273,12 @@ function optionOf(agent: (typeof AGENTS)[number], available: boolean): LaunchOpt
       // nothing, and one that is refused with a reason is a decision the
       // operator can read and argue with.
       blockedKey: mode.blockedKey ?? null,
-      warnKey: mode.warnKey ?? null
+      warnKey: mode.warnKey ?? null,
+      args: mode.args,
+      env: mode.env ?? {}
     })),
-    defaultMode: agent.defaultMode
+    // The mode a picker preselects is the one a launch without a choice would use (ADR-0168).
+    defaultMode: (permissions ? preferredMode(agent.id, permissions) : null) ?? agent.defaultMode
   }
 }
 
@@ -290,8 +293,8 @@ const isAvailable = async (agent: (typeof AGENTS)[number], availability: RunnerA
  * not about the agent. Adding a third agent is one descriptor and no edit to
  * this function.
  */
-export async function launchOptions(availability: RunnerAvailability = runners): Promise<LaunchOption[]> {
-  return Promise.all(AGENTS.map(async (agent) => optionOf(agent, await isAvailable(agent, availability))))
+export async function launchOptions(availability: RunnerAvailability = runners, permissions: AgentPermissions | null = permissionPreference?.() ?? null): Promise<LaunchOption[]> {
+  return Promise.all(AGENTS.map(async (agent) => optionOf(agent, await isAvailable(agent, availability), permissions)))
 }
 
 /** One runner's option, measuring only that runner's program — a launch asks about the agent it starts. */
@@ -314,6 +317,15 @@ interface OwnedUnitEntry {
 
 /** OF-12: how a Claude Code session's folder is made trusted before it starts. Set by the app at start
  *  (`index.ts`, `claudeTrust.ts`) and nowhere else, so no test and no other host writes Claude Code's state. */
+/**
+ * The machine's permission choice (ADR-0168), read at each launch that names no mode. Unset (tests, a build that has
+ * not wired it) leaves each runner's own default, as before.
+ */
+let permissionPreference: (() => AgentPermissions) | null = null
+export function setPermissionPreference(fn: (() => AgentPermissions) | null): void {
+  permissionPreference = fn
+}
+
 let folderTrust: ((folder: string) => Promise<string>) | null = null
 export function setFolderTrust(fn: ((folder: string) => Promise<string>) | null): void {
   folderTrust = fn
@@ -469,11 +481,13 @@ export class PtyManager {
     // either a stale renderer or a caller that skipped the picker entirely, and
     // both must be refused the same way.
     const descriptor = AGENTS.find((a) => a.id === runnerId)
-    const verdict = mayLaunch(runnerId, permissionMode)
+    // A launch that names no mode takes the machine's choice for this runner (ADR-0168); a named one is kept.
+    const asked = permissionMode ?? (permissionPreference ? preferredMode(runnerId, permissionPreference()) : null)
+    const verdict = mayLaunch(runnerId, asked)
     if (!verdict.ok) throw new Error(verdict.reason)
     // The mode the runner RECEIVES: a runner without modes receives none, whatever was asked for
     // (ADR-0125 §6 — the journal recorded "ask" for Codex, which has no gate, the A6-006 class).
-    const mode = descriptor && descriptor.permissionModes.length > 0 ? (permissionMode ?? descriptor.defaultMode) : null
+    const mode = descriptor && descriptor.permissionModes.length > 0 ? (asked ?? descriptor.defaultMode) : null
     const program = option.program ?? defaultShell(process.platform, process.env)
     if (!checkAuthorityTarget(program).ok)
       throw new Error('Launch program was refused before preparation.')
@@ -559,7 +573,7 @@ export class PtyManager {
         // say so is what made "a third agent is one row" false.
         // The actual N028 child key wins over every inherited/configured layer.
         // This immutable token was refreshed before the final SQL guard.
-        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...(bundle?.env ?? {}), ...(unit?.childEnvironment ?? {}) }
+        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...verdict.env, ...(bundle?.env ?? {}), ...(unit?.childEnvironment ?? {}) }
       })
     } catch (e) {
       // The bundle was written and its credential minted before spawn was even

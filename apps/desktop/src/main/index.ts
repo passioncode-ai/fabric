@@ -15,7 +15,7 @@ import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingSt
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
-import { launchOption, launchOptions, PtyManager, setFolderTrust } from './pty'
+import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
 import { classifyFailure } from '../shared/failure.ts'
 import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
@@ -1187,6 +1187,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
 
   // OF-12: Fabric's Claude Code sessions start in a folder they already trust (claudeTrust.ts).
   setFolderTrust((folder) => trustFolderForClaude(folder))
+  // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
+  setPermissionPreference(() => readSettings().agentPermissions)
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => broadcast(IPC.terminalData, sessionId, data, written),
     onExit: async (sessionId, exitCode) => {

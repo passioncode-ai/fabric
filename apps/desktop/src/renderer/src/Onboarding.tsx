@@ -13,7 +13,7 @@ import type {
 } from '../../shared/types'
 import { Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from './components'
 import { memoryChoice } from '../../shared/memoryChoice.ts'
-import { installedDefault } from '../../shared/builderChoice.ts'
+import { installedDefault, listedRunner } from '../../shared/builderChoice.ts'
 import { useT } from './i18n'
 import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
 import { runnerLabel } from './runnerLabel'
@@ -268,7 +268,7 @@ export function Onboarding({
         <Field label={t('onboarding.defaultAgent')} hint={anyUnavailable ? `${t('onboarding.defaultAgentHint')} ${t('onboarding.unavailableHint')}` : t('onboarding.defaultAgentHint')}>
           {(id, describedBy) => (
             <select id={id} aria-describedby={describedBy} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
-              {agents.filter((o) => o.program !== null).map((o) => (
+              {agents.filter((o) => o.program !== null && listedRunner(o)).map((o) => (
                 <option key={o.id} value={o.id} disabled={!o.available}>
                   {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
                   {runnerLabel(o.id, t)}

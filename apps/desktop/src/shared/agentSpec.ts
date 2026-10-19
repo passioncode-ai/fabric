@@ -37,9 +37,13 @@ export interface AgentSpec {
 
 export type SpecVerdict = { ok: true; spec: AgentSpec } | { ok: false; reason: string }
 
-/** A runner with a program — Claude Code, Codex — not the login shell (`program: null`) and not an unknown id. */
+/**
+ * A runner with a program that Fabric connects to its surface — Claude Code, Codex — not the login shell
+ * (`program: null`), not an unknown id, and not a catalogue console (ADR-0168), which cannot be handed an agent's
+ * instructions and tools through Fabric.
+ */
 export function isCodingAgent(runnerId: string): boolean {
-  return AGENTS.some((a) => a.id === runnerId && a.program !== null)
+  return AGENTS.some((a) => a.id === runnerId && a.program !== null && a.connectsToSurface)
 }
 
 export const NAME_MAX = 60

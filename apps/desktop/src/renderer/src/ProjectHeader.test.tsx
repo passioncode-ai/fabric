@@ -274,7 +274,7 @@ describe('the default coding agent in the project settings (REQ-40)', () => {
   // with no reason. Each greyed-out one now says why, as the launch picker and the new-project form already did.
   it('a coding agent that is not installed says why it cannot be picked', async () => {
     const api = stub()
-    api.terminal.options.mockResolvedValue([{ id: 'claude-code', available: true }, { id: 'codex', available: false }] as never)
+    api.terminal.options.mockResolvedValue([{ id: 'claude-code', program: 'claude', connectsToSurface: true, available: true }, { id: 'codex', program: 'codex', connectsToSurface: true, available: false }] as never)
     show(project())
     await openSettings()
     const codex = await waitFor(() => {

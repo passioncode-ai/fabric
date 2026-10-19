@@ -17,7 +17,7 @@ const agent = (over: Partial<CreatedAgent> = {}): CreatedAgent =>
 const option = (over: Partial<LaunchOption>): LaunchOption =>
   ({ id: 'claude-code', label: 'Claude Code', program: 'claude', description: '', available: true, connectsToSurface: true, ...over }) as LaunchOption
 
-const OPTIONS = [option({}), option({ id: 'codex', label: 'Codex', program: 'codex', available: true, connectsToSurface: false }), option({ id: 'shell', label: 'Terminal', program: null, available: true, connectsToSurface: false })]
+const OPTIONS = [option({}), option({ id: 'codex', label: 'Codex', program: 'codex', available: true, connectsToSurface: true }), option({ id: 'shell', label: 'Terminal', program: null, available: true, connectsToSurface: false })]
 const BRIEF = 'Reviews every pull request against the scenarios.'
 
 function bridge(agents: { list?: () => Promise<CreatedAgent[]>; create?: (i: unknown) => Promise<CreatedAgent> } = {}) {

@@ -18,3 +18,13 @@ describe('the default coding agent for creating or adapting an agent (D3)', () =
     expect(defaultBuilder([row('codex', 'unresponsive'), row('cline', 'missing')], null)).toBeNull()
   })
 })
+
+describe('which runners a picker lists (ADR-0168)', () => {
+  it('lists every surface runner and the shell, and a catalogue console only once it is installed', async () => {
+    const { listedRunner } = await import('./builderChoice.ts')
+    expect(listedRunner({ connectsToSurface: true, program: 'claude', available: false })).toBe(true)
+    expect(listedRunner({ connectsToSurface: false, program: null, available: true })).toBe(true)
+    expect(listedRunner({ connectsToSurface: false, program: 'gemini', available: true })).toBe(true)
+    expect(listedRunner({ connectsToSurface: false, program: 'aider', available: false })).toBe(false)
+  })
+})

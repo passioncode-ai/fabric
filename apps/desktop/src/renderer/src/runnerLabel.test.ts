@@ -17,6 +17,6 @@ describe('runnerLabel — one name per coding agent everywhere', () => {
   })
   it('an absent id says no coding agent was recorded; an unknown runner keeps its id', () => {
     expect(runnerLabel(null, t)).toBe(en['agents.unknownRunner'])
-    expect(runnerLabel('aider', t)).toBe('aider')
+    expect(runnerLabel('no-such-runner', t)).toBe('no-such-runner')
   })
 })

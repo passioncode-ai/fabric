@@ -1,4 +1,5 @@
 import { FALLBACK_OPTION, useFallbackChoice } from './useFallbackChoice'
+import { listedRunner } from '../../shared/builderChoice.ts'
 import { useEffect, useRef, useState } from 'react'
 import {
   conflictOf,
@@ -1411,7 +1412,7 @@ export function ProjectHeader({
         <label>
           {t('onboarding.defaultAgent')}
           <select value={agent} onChange={(e) => setAgent(e.target.value)}>
-            {agents.map((o) => (
+            {agents.filter(listedRunner).map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
                 {/* REQ-40: a greyed-out choice says why, as the launch picker and the new-project form do. */}
                 {runnerLabel(o.id, t)}
@@ -1540,7 +1541,7 @@ export function AgentsSection({
             aria-label={t('agents.pickOption')}
           >
             {fallback.configured && <option value={FALLBACK_OPTION}>{fallback.label}</option>}
-          {options.map((o) => (
+          {options.filter(listedRunner).map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
                 {runnerLabel(o.id, t)}
                 {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
