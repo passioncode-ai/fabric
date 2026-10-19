@@ -351,6 +351,22 @@ function doorBucket(body: unknown): string {
   return 'other'
 }
 
+/** A binding's ingress is a flood guard this many times its call budget: one binding serves its coding agent in
+ *  every project on the machine, and each session's hook costs an initialize and an initialized beside its call. */
+const BINDING_INGRESS_FACTOR = 10
+
+/**
+ * Which call bucket a binding's JSON-RPC body spends (2026-10-19, board thread 1afd08e7): a `tools/call` naming its
+ * coding-agent session spends that session's share, any other call the binding's shared one, and protocol traffic
+ * (initialize, tools/list, notifications) only the ingress guard. The values are a budget key, never trusted.
+ */
+export function bindingCallBucket(bindingId: string, body: unknown): string | null {
+  const first = body as { method?: unknown; params?: { arguments?: Record<string, unknown> } } | null
+  if (first?.method !== 'tools/call') return null
+  const rt = first.params?.arguments?.runtimeSessionId
+  return typeof rt === 'string' && rt.length > 0 && rt.length <= 128 ? `binding:${bindingId}:session:${rt}` : `binding:${bindingId}:calls`
+}
+
 export class AgentSurface {
   private states = new Map<string, ScopeState>()
   /**
@@ -1074,7 +1090,7 @@ export class AgentSurface {
       // Global door/binding window admission precedes body consumption. The door's per-agent
       // window is charged only once its request identifies an agent or poll (below).
       const ingressKey = principal.kind === 'door' ? 'door' : `binding:${principal.binding.id}`
-      if (!this.spend(ingressKey, this.limits.budgetCalls * (principal.kind === 'door' ? 5 : 1))) {
+      if (!this.spend(ingressKey, this.limits.budgetCalls * (principal.kind === 'door' ? 5 : BINDING_INGRESS_FACTOR))) {
         AgentSurface.refuse(res, 429, 'call budget exhausted before body admission', {'connection':'close', 'retry-after':String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000)))}, attempt)
         return true
       }
@@ -1101,11 +1117,12 @@ export class AgentSurface {
       // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
       const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
       ctx.sessionId = principal.kind === 'door' ? 'door' : key
-      if (principal.kind === 'door' && !this.spend(key, this.limits.budgetCalls)) {
+      const callKey = principal.kind === 'door' ? key : bindingCallBucket(principal.binding.id, body)
+      if (callKey && !this.spend(callKey, this.limits.budgetCalls)) {
         const now = this.now()
-        const bucket = this.externalBudget.get(key)
+        const bucket = this.externalBudget.get(callKey)
         const retryIn = bucket ? Math.ceil((bucket.windowStart + this.limits.budgetWindowMs - now) / 1000) : 1
-        ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
+        ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: callKey, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
         AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
         return true
       }

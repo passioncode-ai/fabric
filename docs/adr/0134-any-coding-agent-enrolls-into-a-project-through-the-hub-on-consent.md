@@ -227,3 +227,13 @@ binding still ends the sessions and keeps the agent out, and a manual detach sti
 
 Evidence: immediate-allow tests in `session-enroll-request.test.mjs`, the immediate-poll test in `fabric-mcp.test.mjs`,
 and end-to-end create/attach/detach/worktree cases in `project-admission.test.mjs`.
+
+**2026-10-19, the cap is per project, and a binding's traffic is charged per session (CO-334).** One binding serves its
+coding agent in every project on the machine. Counted per binding, the cap of eight let about 37 Claude Code sessions
+in many projects evict each other on every rejoin, and their shared 120 requests a minute ran out (operations log,
+2026-10-19: 105 refusals `call budget exhausted before body admission`, all on the one `claude-code` binding). Now the
+cap counts the sessions of one project (`MAX_ENROLLED_PER_BINDING`), with a ceiling across all of a binding's projects
+(`MAX_ENROLLED_PER_BINDING_TOTAL`, 64); a binding's ingress is a flood guard at ten times the call budget, and the call
+budget is spent per coding-agent session on `tools/call` (`agentSurface.ts#bindingCallBucket`); `fabric-mcp` adds up
+to half the server's `Retry-After` as jitter. Tests: `session-enroll.test.mjs` (two cases), `hub-surface.test.mjs`,
+`fabric-mcp.test.mjs`, each watched failing first.

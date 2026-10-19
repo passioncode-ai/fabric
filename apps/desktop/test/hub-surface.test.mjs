@@ -223,3 +223,21 @@ test('I3 E-3: a failed credential-verifier warm-up is a hint lost, not a surface
   t.after(() => surface.stop())
   assert.match(surface.origin, /^http:\/\/127\.0\.0\.1:\d+$/, 'the surface listens although the warm-up failed')
 })
+
+// 2026-10-19 (board thread 1afd08e7): one binding serves its coding agent in every project, and each session's hook
+// costs an initialize, an initialized and a call. The binding's ingress is a flood guard; the fair share is per session.
+test('a binding\'s protocol traffic is not charged as calls, and one session in a loop is refused alone', async (t) => {
+  const store = memStore(), credential = 'k'.repeat(43)
+  const binding = { id: 'shared-agent', agent_id: 'example-agent', verifier: createHash('sha256').update(credential).digest('hex'), revoked_at: null }
+  store.maps.bindings.set(binding.id, binding)
+  const { surface } = await hub({ budgetCalls: 5, budgetWindowMs: 60_000 }, store)
+  t.after(() => surface.stop())
+  const lists = []
+  for (let i = 0; i < 20; i++) lists.push((await rpc(surface, credential, 'tools/list', {})).status)
+  assert.deepEqual([...new Set(lists)], [200], `sessions' protocol requests spent the call budget: ${lists.join(',')}`)
+  const enroll = (rt) => rpc(surface, credential, 'tools/call', { name: 'fabric.session.enroll', arguments: { cwd: '/Users/me/DATA/site', runtimeSessionId: rt, rejoinOnly: true } })
+  const looping = []
+  for (let i = 0; i < 7; i++) looping.push((await enroll('rt-loop')).status)
+  assert.ok(looping.includes(429), `a looping session was never refused: ${looping.join(',')}`)
+  assert.equal((await enroll('rt-other')).status, 200, 'another session of the same agent was refused for the loop of the first')
+})

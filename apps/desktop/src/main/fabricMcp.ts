@@ -80,6 +80,8 @@ export interface ProxyDeps {
   pollMs?: number
   /** Monotonic clock for server-directed rate-limit deadlines; defaults to performance.now(). */
   now?: () => number
+  /** A draw in [0, 1) for the jitter added to a server's Retry-After; Math.random by default. */
+  random?: () => number
   /** The coding agent's own session id (Claude Code's CLAUDE_CODE_SESSION_ID), sent with every enrollment (D1). */
   runtimeSessionId?: string | null
   /**
@@ -257,7 +259,10 @@ export class FabricMcpProxy {
   private rememberRateLimit(error: unknown): void {
     const e = error as { code?: unknown; retryAfterMs?: unknown } | null
     if (e?.code !== 429 || !this.hubIdentity) return
-    const until = this.now() + boundedRetryMs(e.retryAfterMs)
+    // Jitter of up to half the server's delay (2026-10-19, board thread 1afd08e7): clients refused in one moment
+    // would otherwise all come back in the same second and be refused together again.
+    const delay = boundedRetryMs(e.retryAfterMs)
+    const until = this.now() + delay + Math.floor(delay * 0.5 * Math.min(0.999, Math.max(0, (this.deps.random ?? Math.random)())))
     this.cooldown = { ...this.hubIdentity, until: Math.max(until, this.cooldown?.until ?? 0) }
   }
 

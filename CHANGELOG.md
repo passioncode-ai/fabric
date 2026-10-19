@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Many coding agents at once no longer push each other out.** With dozens of Claude Code sessions open in
+  different projects, they took turns disconnecting one another and then waited on Fabric's rate limit. The limit of
+  eight sessions now counts one project, and each session gets its own share of calls.
 - **One rail, five places** (0.3.7, SCN-162). The left of the window holds «＋ Создать», Главная, Агенты, История and
   Настройки, then your projects: favourites first, then by latest activity, a green dot where an agent works and a
   count where something waits for you. The tab strip, the Back button, the per-project links and the bar above each

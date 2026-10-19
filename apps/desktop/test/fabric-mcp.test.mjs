@@ -63,7 +63,7 @@ function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allow
     runner: 'claude-code', cwd: '/Users/me/DATA/site',
     locate: () => hub, store,
     hubCall, openSession: async (url, bearer) => { opened.push(bearer); return link },
-    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0, ...extra
+    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0, random: () => 0, ...extra
   })
   proxy.onToolsChanged = () => { changed++ }
   return { proxy, calls, opened, link, store, logs, slept, get changed() { return changed } }
@@ -568,7 +568,7 @@ test('HTTP 429 retains Retry-After through the actual hub client', async () => {
 
 test('HTTP 429 cooldown survives whoami wakes and direct connection retries', async () => {
   let now = 1000, calls = 0
-  const h = harness({ extra: { now: () => now, hubCall: async () => {
+  const h = harness({ extra: { now: () => now, random: () => 0, hubCall: async () => {
     calls++
     throw Object.assign(new Error('rate limited'), { code: 429, retryAfterMs: 60_000 })
   } } })
@@ -762,4 +762,20 @@ test('HTTP 429 lifecycle: a late allowed poll saves the one-shot credential afte
   assert.equal(h.calls.length, before, 'no new enrollment after close')
   assert.equal(h.opened.length, 0)
   assert.notEqual(h.proxy.state.kind, 'connected')
+})
+
+// 2026-10-19 (board thread 1afd08e7): ~40 fabric-mcp clients refused together woke together on the same Retry-After.
+test('HTTP 429 cooldown adds a jitter of up to half the server delay, so refused clients do not return as one', async () => {
+  let now = 1000, calls = 0
+  const h = harness({ extra: { now: () => now, random: () => 0.5, hubCall: async () => {
+    calls++
+    throw Object.assign(new Error('rate limited'), { code: 429, retryAfterMs: 60_000 })
+  } } })
+  await h.proxy.connectOnce()
+  now += 60_000
+  await h.proxy.connectOnce()
+  assert.equal(calls, 1, 'a client with jitter waits past the bare server delay')
+  now += 15_000
+  await h.proxy.connectOnce()
+  assert.equal(calls, 2, 'and no longer than the delay plus half of it times its draw')
 })

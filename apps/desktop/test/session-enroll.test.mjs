@@ -640,3 +640,40 @@ test('board and coding calls share binding serialization but preserve separate s
   assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface === 'board').length, 1)
   assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface !== 'board').length, 2)
 })
+
+// 2026-10-19 (board thread 1afd08e7, from fabric-agent-adapter): one binding per coding agent serves every project on
+// the machine. With the cap counted per binding, ~37 Claude Code sessions in many projects evicted each other on every
+// rejoin. ADR-0134's sentence is "several terminals of one coding agent IN ONE PROJECT are ordinary".
+test('the enrollment cap is counted per project: a session in one project never evicts a session in another', async () => {
+  const Q = '1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+  const h = deps({
+    liveGrants: async () => [grant(), grant({ id: 'g-2', resource: `project:${Q}` })],
+    admittedFolders: async () => [{ projectId: P, path: '/Users/me/DATA/site' }, { projectId: Q, path: '/Users/me/DATA/other' }],
+    maxSessionsPerBinding: 1
+  })
+  const a = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-a' }, h.d)
+  h.surface.claimAll()
+  const b = await enrollSession(binding, { cwd: '/Users/me/DATA/other', runtimeSessionId: 'rt-b' }, h.d)
+  assert.equal(a.ok && b.ok, true)
+  assert.equal(h.sessions.liveOf(binding.id).length, 2, 'the session in the other project stayed')
+  h.surface.claimAll()
+  const a2 = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-a2' }, h.d)
+  assert.equal(a2.ok, true)
+  const live = h.sessions.liveOf(binding.id)
+  assert.deepEqual(live.map((s) => s.projectId).sort(), [P, Q].sort(), 'the second session in P evicted the first in P, not the one in Q')
+})
+
+test('a binding still has a ceiling across all its projects', async () => {
+  const projects = Array.from({ length: 5 }, (_, i) => `${i}b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d`)
+  const h = deps({
+    liveGrants: async () => projects.map((p, i) => grant({ id: `g-${i}`, resource: `project:${p}` })),
+    admittedFolders: async () => projects.map((p, i) => ({ projectId: p, path: `/Users/me/DATA/p${i}` })),
+    maxSessionsPerBinding: 8,
+    maxSessionsPerBindingTotal: 3
+  })
+  for (let i = 0; i < 5; i++) {
+    assert.equal((await enrollSession(binding, { cwd: `/Users/me/DATA/p${i}`, runtimeSessionId: `rt-${i}` }, h.d)).ok, true)
+    h.surface.claimAll()
+  }
+  assert.equal(h.sessions.liveOf(binding.id).length, 3, 'the binding-wide ceiling evicts the least recently active anywhere')
+})

@@ -59,12 +59,17 @@ export interface EnrollDeps extends FolderDeps {
   journal(type: 'session.enrolled@1', projectId: string, payload: Record<string, unknown>): Promise<unknown>
   /** Live enrolled sessions one binding may hold; a further enrollment ends the least recently active. Default 8. */
   maxSessionsPerBinding?: number
+  /** The ceiling across every project of one binding; defaults to MAX_ENROLLED_PER_BINDING_TOTAL. */
+  maxSessionsPerBindingTotal?: number
   now?: () => number
 }
 
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
 /** Several terminals of one coding agent in one project are ordinary; a loop is not. */
 export const MAX_ENROLLED_PER_BINDING = 8
+/** One binding serves its coding agent in every project on the machine (2026-10-19, board thread 1afd08e7): the cap above
+ *  is per project, and this ceiling bounds the binding across all of them. */
+export const MAX_ENROLLED_PER_BINDING_TOTAL = 64
 
 /** What an evicted session's next call is told (0.3.5 review iteration 2, ER-4): the true reason, and that its claims
  *  went with it — never "Fabric restarted", which would let it go on as if it still held its task. */
@@ -336,8 +341,14 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
     s.grantId === grant.id && s.runtimeSessionId === runtimeSessionId)
   if (spare) return session(spare.bearer, spare.sessionId)
   const cap = Math.max(1, deps.maxSessionsPerBinding ?? MAX_ENROLLED_PER_BINDING)
+  const ceiling = Math.max(1, deps.maxSessionsPerBindingTotal ?? MAX_ENROLLED_PER_BINDING_TOTAL)
   const byActivity = live.map((s) => ({ s, at: deps.sessions.activityOf(s) })).sort((a, b) => a.at - b.at)
-  for (const { s: old, at } of byActivity.slice(0, Math.max(0, live.length - cap + 1))) {
+  // The cap counts this project's sessions only: a terminal in one project never ends a session in another.
+  const inProject = byActivity.filter(({ s }) => s.projectId === folder.projectId)
+  const evict = new Set(inProject.slice(0, Math.max(0, inProject.length - cap + 1)))
+  const rest = byActivity.filter((e) => !evict.has(e))
+  for (const e of rest.slice(0, Math.max(0, rest.length - ceiling + 1))) evict.add(e)
+  for (const { s: old, at } of byActivity.filter((e) => evict.has(e))) {
     deps.sessions.endSession(old.sessionId, evictedReason(cap))
     ops.record({ op: 'hub.session.enroll-evicted', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: old.sessionId, cap, idle_s: Math.max(0, Math.round((now - at) / 1000)) }, ctx: { correlationId: ops.correlate() } })
   }
