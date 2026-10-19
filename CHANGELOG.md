@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Fewer generated-looking touches.** Thick coloured side stripes on notices and selected rows became a thin
+  outline, and buttons and links no longer end in an arrow («Продолжить», not «Продолжить →»).
 - **A quieter top bar and a denser rail.** The top bar holds the place's name and the open consoles, nothing else:
   search is ⌘K, the profile block and the conversation button are gone, and a line about this computer appears at the
   foot of the rail only when something needs a look. Projects take less room on the rail (OF-04, OF-05).

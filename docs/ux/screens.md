@@ -122,11 +122,11 @@ The frame every launch screen shares, matched to the prototype (`scripts/product
 
 - **Scope bar:** breadcrumb, then **Search** and **Profile**. Profile opens SCR-36 «Ваш Fabric» (the
   prototype's `view-profile` is SCR-36) and is marked current while it is open.
-- **«Обсудить с Fabric ↗»** under the scope bar on every launch screen except Home, the start paths (and the
+- **«Обсудить с Fabric»** under the scope bar on every launch screen except Home, the start paths (and the
   first run) and Help — the screens that already are the start of that conversation — and the guide, whose card
   carries its own beside the project it is about; settings and a draft tab are not launch screens. It opens the
   CEO chat. The set is `NO_DISCUSS` in `launch/LaunchShell.tsx`.
-- **Fabric strip** — face, name, the newest journal event in the scope, and «Пульс →» — on Board, Pulse,
+- **Fabric strip** — face, name, the newest journal event in the scope, and «Пульс» — on Board, Pulse,
   Releases, Planning, Project and Agent. Estate scope says «все проекты», project scope names the project;
   before the journal has answered it says it is reading, and an empty journal says nothing is recorded yet.
   The board keeps its own reading time (the board read's `asOf`), so its line says «последнее наблюдение».

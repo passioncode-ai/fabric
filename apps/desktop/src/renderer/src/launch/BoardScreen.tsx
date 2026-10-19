@@ -30,7 +30,7 @@ type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEnt
 type Said = { of: string; result: BoardCommandResult }
 
 export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, onOpen, onError, onPulse }: {
-  /** «Пульс →» in the strip (SCR-42). */
+  /** «Пульс» in the strip (SCR-42). */
   onPulse?: () => void
   /** One project's board, or the estate's when null (SCR-41 from SCR-31 «Доска проекта»). */
   projectId?: string | null
