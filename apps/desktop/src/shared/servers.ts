@@ -1,8 +1,8 @@
 // Which MCP servers a session may reach, and through what (M127).
 //
-// Today a session sees Fabric's tools and nothing else: the bundle writes one
-// server and launches with `--strict-mcp-config`. That is a good default and a
-// dead end — an agent that needs to read Linear or Sentry cannot, and M125's
+// A created agent's session sees Fabric's tools and nothing else: the bundle writes one
+// server and launches with `--strict-mcp-config` (a console keeps the operator's own servers
+// since CO-325). That is a good default for an agent and a dead end — an agent that needs to read Linear or Sentry cannot, and M125's
 // created agents will each need something.
 //
 // THE QUESTION M127 EXISTS TO ANSWER is not "how do we add a server" but through

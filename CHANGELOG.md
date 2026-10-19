@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A console is your own setup.** Claude Code in a Fabric console now has your MCP servers (Observatory, your plugins)
+  beside Fabric's, and Codex runs with your own `AGENTS.md`, plugins, trust and sign-in instead of an empty copy;
+  Fabric no longer copies your Codex sign-in. A console also finds the same programs your terminal does. An agent you
+  create in a project still sees only the servers it declares (ADR-0169).
 - **Every coding agent starts as a console, with fewer prompts by default.** A project's console can now start any
   coding agent of the catalogue this computer has (Gemini CLI, OpenCode, Goose, Cursor, Pi, OpenClaw and the rest),
   not only the seven Fabric connects to. Settings has «Разрешения агентов»: «Меньше подтверждений», chosen by default,

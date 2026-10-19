@@ -4024,10 +4024,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   /**
    * What a session in this project is given (M145).
    *
-   * ONE SERVER, and that is the fact worth putting on a screen: sessions are
-   * launched with `--strict-mcp-config`, so whatever else this machine has
-   * configured is invisible from inside. An operator auditing what an agent
-   * could reach otherwise has to reason about their own global config.
+   * Fabric's own server; since CO-325 a console also keeps the MCP servers the
+   * operator's coding agent is set up with, and only a created agent runs with
+   * `--strict-mcp-config` (sessionBundle.ts). The screen says which.
    */
   /**
    * What has been done here (M131).

@@ -116,6 +116,29 @@ export function pathAdditions(platform: NodeJS.Platform, env: Env, home: string)
   if (platform === 'linux') return ['/usr/local/bin', `${home}/.local/bin`, '/snap/bin', '/home/linuxbrew/.linuxbrew/bin']
   return ['/opt/homebrew/bin', '/usr/local/bin', `${home}/.local/bin`]
 }
+/**
+ * CO-326: the PATH a launch runs with. The login shell's order comes first (it is what the operator's own terminal
+ * runs: a native Claude Code in ~/.local/bin before a brew one), then what this process inherited, then the
+ * installers' folders, each folder once. Without a shell reading it is the old order: inherited, then the folders.
+ * A relative entry an rc file left is not trusted.
+ */
+export function mergeLaunchPath(shellPath: string | null, envPath: string, additions: readonly string[], delimiter: string): string {
+  const out: string[] = []
+  const add = (p: string) => { if (p && (p.startsWith('/') || /^[A-Za-z]:\\/.test(p)) && !out.includes(p)) out.push(p) }
+  for (const p of (shellPath ?? '').split(delimiter)) add(p)
+  for (const p of envPath.split(delimiter)) add(p)
+  for (const p of additions) add(p)
+  return out.join(delimiter)
+}
+/** How the login shell's PATH is read: an interactive login shell prints it between markers, so rc noise is ignored. */
+export function shellPathProbe(shell: string): { file: string; args: string[]; read(stdout: string): string | null } | null {
+  if (!shell) return null
+  return {
+    file: shell,
+    args: ['-ilc', 'printf "__FABRIC_PATH__%s__FABRIC_PATH__" "$PATH"'],
+    read: (stdout) => /__FABRIC_PATH__(.*?)__FABRIC_PATH__/s.exec(stdout)?.[1] ?? null
+  }
+}
 /** REQ-13: the ACL DEC-0033 asks of a token file Fabric writes on Windows — inheritance off, full control to the
  *  user, SYSTEM (S-1-5-18) and Administrators (S-1-5-32-544), nobody else. Applied to the temporary file before it is
  *  renamed into place, so the published file never has a wider ACL for a moment. */
