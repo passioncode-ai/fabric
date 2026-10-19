@@ -18,6 +18,7 @@ import { since } from './duration'
 import { runnerLabel } from './runnerLabel'
 import { explainError } from './start/startParts'
 import { MachineDetail } from './OperatorError'
+import { useOpenConsole } from './consoles'
 
 export function cameInLabel(c: CameIn, t: Translate): string {
   return t(`work.cameIn.${c}`)
@@ -61,6 +62,7 @@ type Read = { state: 'reading' } | { state: 'read'; view: ProjectWorkView } | { 
 
 export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: string; feedMark: number; onError(message: string): void }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const [read, setRead] = useState<Read>({ state: 'reading' })
   const [menu, setMenu] = useState<string | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
@@ -108,7 +110,7 @@ export function WhoIsWorking({ projectId, feedMark, onError }: { projectId: stri
 
   const titleOf = (c: Pick<WorkClaimView, 'title' | 'taskId'>): string => taskLabel(c.title, t)
   const open = (sessionId: string): void => {
-    window.fabric.windows.openSession(sessionId).catch((e: unknown) => onError(explainError(e, t)))
+    showConsole(sessionId).catch((e: unknown) => onError(explainError(e, t)))
   }
   // Sessions working here that hold no claim (an enrolled agent before it claims, a plain terminal): shown, so the
   // page never reads "nobody" over them (UX-4). A session that holds a claim is its claim's row.

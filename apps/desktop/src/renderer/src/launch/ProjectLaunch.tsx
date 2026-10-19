@@ -16,6 +16,7 @@ import { HomeAgents, useHome } from './HomeWork'
 import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
 import { projectPath } from '../../../shared/projectPath'
 import { FailureNote } from '../OperatorError'
+import { useOpenConsole } from '../consoles'
 
 export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -40,6 +41,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   onSection: (anchor: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const [board, setBoard] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [boardProblem, setBoardProblem] = useState<string | null>(null)
   const [goals, setGoals] = useState<GoalRow[] | null>(null)
@@ -77,7 +79,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   /** A console that will not open is said, never swallowed (the home does the same). */
   const openConsole = (sessionId: string): void => {
     setConsoleProblem(null)
-    window.fabric.windows.openSession(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
+    showConsole(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
   }
 
   return (

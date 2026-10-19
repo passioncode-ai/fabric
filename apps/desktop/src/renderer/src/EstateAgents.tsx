@@ -31,6 +31,7 @@ import { TerminalView } from './TerminalView'
 import type { RunStatusView } from '../../shared/runStatus.ts'
 import type { EntityRef } from '../../shared/entityRef.ts'
 import type { ReadEnvelope } from '../../shared/readEnvelope.ts'
+import { useOpenConsole } from './consoles'
 
 export function EstateAgents({
   sessions,
@@ -51,6 +52,7 @@ export function EstateAgents({
   onError: (message: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const [selected, setSelected] = useState<string | null>(null)
   // KEYED, AND SETTLED SEPARATELY (UX28-02). These were two `useState`s filled
   // from one `Promise.all`, and that coupled three defects into four lines:
@@ -264,7 +266,7 @@ export function EstateAgents({
                 )}
                 <Button
                   tone="ghost"
-                  onClick={() => void window.fabric.windows.openSession(agent.sessionId)}
+                  onClick={() => void showConsole(agent.sessionId)}
                 >
                   {t('agents.openSession')}
                 </Button>

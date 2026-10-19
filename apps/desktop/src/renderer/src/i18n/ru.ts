@@ -2527,4 +2527,11 @@ export const ru: Partial<Record<StringKey, string>> = {
   'joined.someProject': "проект",
   'glyph.plus': "＋",
   'rail.searchKey': "⌘K",
+  'glyph.console': "›_",
+  'consoles.label': "Открытые консоли",
+  'consoles.close': "Закрыть вкладку {name}; сессия продолжит работать",
+  'consoles.reading': "Читаю сессию…",
+  'consoles.tabTitle': "{name} · {runner}",
+  'consoles.detach': "Открыть в отдельном окне",
+  'consoles.detachFailed': "Отдельное окно не открылось:",
 }

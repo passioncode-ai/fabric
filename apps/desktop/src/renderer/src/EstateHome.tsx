@@ -30,6 +30,7 @@ import { en, type StringKey } from './i18n/en'
 import { declaredCoverage, restorability } from '../../shared/storageContract.ts'
 import { cursorFor } from '../../shared/inbox.ts'
 import type { EntityRef } from '../../shared/entityRef'
+import { useOpenConsole } from './consoles'
 
 export function EstateHome({
   projects,
@@ -94,6 +95,7 @@ export function EstateHome({
   onAgents?: () => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
+  const showConsole = useOpenConsole()
   const [now] = useState(() => new Date())
   const [moreOpen, setMoreOpen] = useState(false)
   /** Computed from the DECLARED coverage, so a table that stops being carried
@@ -293,7 +295,7 @@ export function EstateHome({
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
   const openConsole = (sessionId: string): void => {
     setConsoleProblem(null)
-    window.fabric.windows.openSession(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
+    showConsole(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
   }
 
   /**

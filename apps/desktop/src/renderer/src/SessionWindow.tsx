@@ -1,8 +1,9 @@
-// A detached window showing one session in full. The session itself lives in
-// the main process (ADR-0031 §2), so closing this window never ends it.
+// One session in full: in a detached window of its own, or (OF-03, SCN-172) full size in the main window under its
+// console tab, where `onDetach` offers the separate window as a secondary control. The session itself lives in the
+// main process (ADR-0031 §2), so closing either never ends it.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Banner, EmptyState, StateChip } from './components'
+import { Banner, Button, EmptyState, StateChip } from './components'
 import { sessionTone } from './sessionTone'
 import { SessionStop, StopStatus } from './SessionStop'
 import { TerminalView } from './TerminalView'
@@ -16,8 +17,17 @@ import {
 } from '../../shared/sessionReading.ts'
 import { runnerLabel } from './runnerLabel'
 
-export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.Element {
+export function SessionWindow({
+  sessionId,
+  onDetach
+}: {
+  sessionId: string
+  /** In the main window only: «Open in a separate window». Resolves when it opened; rejects with why it did not. */
+  onDetach?: () => Promise<void>
+}): React.JSX.Element {
   const t = useT()
+  /** Why the separate window did not open, said under the header; null when nothing failed. */
+  const [detachProblem, setDetachProblem] = useState<string | null>(null)
   /**
    * ONE reading for all four call sites (UXA-C04): the first read, the poll,
    * the exit handler and any retry. It used to be `session` plus an `error`
@@ -91,7 +101,7 @@ export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.E
 
   const session = reading.answer!
   return (
-    <div className="session-window">
+    <div className={onDetach ? 'session-window session-embedded' : 'session-window'}>
       <header className="session-head">
         <strong>
           {runnerLabel(session.optionId, t)}
@@ -100,7 +110,16 @@ export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.E
         <>{session.termination ? <StopStatus state={session.termination} session={session} /> : <StateChip tone={sessionTone(session.state)} dot>
           {t(`session.state.${session.state}`)}
         </StateChip>}</>
+        {onDetach && (
+          <Button tone="ghost" onClick={() => {
+            setDetachProblem(null)
+            onDetach().catch((e: unknown) => setDetachProblem(e instanceof Error ? e.message : String(e)))
+          }}>
+            {t('consoles.detach')}
+          </Button>
+        )}
       </header>
+      {detachProblem !== null && <p className="muted">{t('consoles.detachFailed')} {detachProblem}</p>}
       {/* A REFUSED REFRESH IS A CAVEAT, NOT A WALL. Taking the terminal away
           because one poll failed costs the operator what they were reading;
           leaving it with nothing said would let a frozen reading pass as a

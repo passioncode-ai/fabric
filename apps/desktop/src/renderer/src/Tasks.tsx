@@ -13,6 +13,7 @@ import { Button, Panel, Toolbar } from './components'
 import { explainError } from './start/startParts'
 import { useT } from './i18n'
 import { runnerLabel } from './runnerLabel'
+import { useOpenConsole } from './consoles'
 
 /** Presets are content: a label and an instruction, both registry keys. The
  *  first one is what used to be the kickoff block.
@@ -75,6 +76,7 @@ export function Tasks({
   feedMark: number
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   // Read from the app, written back to it as a PATCH — not as a whole draft.
   //
   // The first version sent the whole object, built from this render's values,
@@ -229,7 +231,7 @@ export function Tasks({
       setPreset(null)
       setPresetText(null)
       await onStarted()
-      await window.fabric.windows.openSession(session.sessionId)
+      await showConsole(session.sessionId)
     } catch (e) {
       // Refusals main sends as codes (a task id, a read-back) are said in the window's language (0.3.3 PL-2).
       onError(explainError(e, t))
