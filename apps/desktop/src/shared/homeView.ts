@@ -55,11 +55,13 @@ export function rhythmTotals(events: readonly Ev[] | null, now: Date, days = RHY
 
 export interface ResumePoint { projectId: string; type: string; seq: number; occurredAt: string; unread: number }
 
-/** The project of the newest event that names one, and how many of its events are past the read position. */
+/** The project of the person's newest event that names one, and how many of its events (anyone's) are past the read
+ *  position. Only the person's own acts decide where they stopped (OF-07, the operator, 2026-10-19): with agents' events
+ *  counted too, «where you stopped» jumped to whichever project an agent last touched. */
 export function resumePoint(events: readonly Ev[] | null, readThroughSeq: number): ResumePoint | null {
   if (!events) return null
   let last: Ev | null = null
-  for (const e of events) if (e.project_id && (!last || e.seq > last.seq)) last = e
+  for (const e of events) if (e.project_id && e.actor.kind === 'person' && (!last || e.seq > last.seq)) last = e
   if (!last || !last.project_id) return null
   const projectId = last.project_id
   return {

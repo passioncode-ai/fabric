@@ -56,6 +56,14 @@ describe('where you left off', () => {
     expect(r).toMatchObject({ projectId: 'p1', unread: 2 })
   })
 
+  // OF-07 (the operator, 2026-10-19): «where you stopped» switched between projects while agents worked.
+  it('is where the PERSON acted last: an agent working in another project does not move it', () => {
+    const agent = { kind: 'agent', id: 'claude-code' }
+    const r = resumePoint([ev(1, '2026-09-29T09:00:00', 'task.moved@1', 'p1'), ev(2, '2026-09-29T10:00:00', 'session.stage@1', 'p2', agent), ev(3, '2026-09-29T11:00:00', 'task.claimed@1', 'p1', agent)], 0)
+    expect(r).toMatchObject({ projectId: 'p1', seq: 1, unread: 2 })
+    expect(resumePoint([ev(4, '2026-09-29T10:00:00', 'session.stage@1', 'p2', agent)], 0)).toBeNull()
+  })
+
   it('is null when nothing has happened in any project, or nothing was read', () => {
     expect(resumePoint([ev(1, '2026-09-29T09:00:00', 'x@1', null)], 0)).toBeNull()
     expect(resumePoint(null, 0)).toBeNull()

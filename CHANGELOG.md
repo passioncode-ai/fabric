@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **«Where you stopped» stays where you stopped.** It used to jump to whichever project an agent last touched; now it
+  is the project of your own last act, and it still counts what happened there since.
 - **Claude Code no longer asks «Do you trust this folder?» in Fabric's consoles.** When Fabric starts Claude Code in a
   project's folder, it marks the folder trusted first, as Orca does. Folders already trusted stay trusted.
 - **A console no longer closes itself when it opens.** Opening a coding agent's console again sent the terminal's own
