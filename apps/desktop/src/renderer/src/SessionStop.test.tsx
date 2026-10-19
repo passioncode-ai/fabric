@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SessionStop } from './SessionStop'
+import { SessionStop, StopStatus } from './SessionStop'
 import { I18nProvider } from './i18n'
 import type { TerminalSession } from '../../shared/types'
 afterEach(()=>{cleanup();vi.unstubAllGlobals()})
@@ -53,4 +53,18 @@ describe('Stop control',()=>{
  it('root exit alone offers recovery, not dismissal',()=>{
   setup({running:false});expect(screen.getByText('Stop execution')).toBeTruthy();expect(screen.queryByText('Dismiss')).toBeNull()
  })
+
+ // OF-02 (the operator, 2026-10-19): a session whose process ended said «Stop unverified» and offered Force stop to a
+ // process that was gone. It says it ended, with its exit code; the provider's background caveat stays, in words.
+ it('a session whose process ended says so with its exit code, and offers no Force stop',()=>{
+  const ended={running:false,exitCode:1,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved'}} as Partial<TerminalSession>
+  setup(ended)
+  expect(screen.queryByText('Force stop')).toBeNull()
+  expect(screen.queryByText('Stop execution')).toBeNull()
+  expect(screen.getByText(/The agent's process ended/)).toBeTruthy()
+  render(<I18nProvider locale="en"><StopStatus state={ended.termination!} session={{...session,...ended}}/></I18nProvider>)
+  expect(screen.getByText('Session ended · exit 1')).toBeTruthy()
+  expect(screen.queryByText('Stop unverified')).toBeNull()
+ })
 })
+

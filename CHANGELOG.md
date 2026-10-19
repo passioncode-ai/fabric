@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A console whose agent has ended says so.** It said «Остановка не подтверждена» and offered to force a stop of a
+  process that was already gone; now it says «Сессия завершилась» with the exit code.
 - **«Where you stopped» stays where you stopped.** It used to jump to whichever project an agent last touched; now it
   is the project of your own last act, and it still counts what happened there since.
 - **Claude Code no longer asks «Do you trust this folder?» in Fabric's consoles.** When Fabric starts Claude Code in a

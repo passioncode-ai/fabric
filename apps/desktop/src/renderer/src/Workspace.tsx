@@ -46,7 +46,7 @@ export function Workspace({
             <Row
               key={s.sessionId}
               lead={
-                <>{s.termination ? <StopStatus state={s.termination} /> : <StateChip tone={sessionTone(s.state)} dot>
+                <>{s.termination ? <StopStatus state={s.termination} session={s} /> : <StateChip tone={sessionTone(s.state)} dot>
                   {t(`session.state.${s.state}`)}
                 </StateChip>}</>
               }

@@ -45,6 +45,9 @@ export const en = {
   'session.stop.writerBlocked': 'Starting another writer remains blocked.',
   'session.stop.refusedHelp': 'Current access or session ownership does not allow this stop. Refresh access and check again.',
   'session.stop.unknownHelp': 'Termination is not yet verified. You can inspect the session or check again.',
+  'session.ended': 'Session ended · exit {code}',
+  'session.endedNoCode': 'Session ended',
+  'session.endedHelp': "The agent's process ended. Fabric cannot check that the agent's work in the background ended too, so another launch for this work waits for now.",
 
   'app.loading': 'Loading…',
 

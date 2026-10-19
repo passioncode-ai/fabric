@@ -2044,7 +2044,7 @@ export function AgentTile({
               {t('agents.readingAge', { age: since(new Date(asOf).toISOString()) })}
             </span>
           )}
-          {session.termination ? <StopStatus state={session.termination} /> : (
+          {session.termination ? <StopStatus state={session.termination} session={session} /> : (
             <StateChip tone={status && isTrustworthy(status) ? livenessTone(status.observation.liveness) : 'quiet'} dot>
               {status ? t(`agents.liveness.${status.observation.liveness}` as 'agents.liveness.working') : t(`session.state.${session.state}`)}
             </StateChip>

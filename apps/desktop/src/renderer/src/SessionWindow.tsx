@@ -97,7 +97,7 @@ export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.E
           {runnerLabel(session.optionId, t)}
         </strong>
         <span className="muted mono">{session.cwd}</span>
-        <>{session.termination ? <StopStatus state={session.termination} /> : <StateChip tone={sessionTone(session.state)} dot>
+        <>{session.termination ? <StopStatus state={session.termination} session={session} /> : <StateChip tone={sessionTone(session.state)} dot>
           {t(`session.state.${session.state}`)}
         </StateChip>}</>
       </header>

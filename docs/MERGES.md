@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T16:00:00Z · `—` · agent/session-ended-says-so → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/renderer/src/SessionStop.tsx, its test, SessionWindow.tsx, ProjectHome.tsx, Workspace.tsx, i18n en and ru, the walk (OF-02), CHANGELOG, docs/reports
+- conflicts: none
+- summary: a session whose process tree went quiet says «Сессия завершилась · код N» without Force stop (OF-02).
+
 ### 2026-10-19T15:00:00Z · `—` · agent/home-resume-person → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/shared/homeView.ts, homeView.test.ts, the walk (OF-06, OF-07, OF-08), CHANGELOG, docs/reports

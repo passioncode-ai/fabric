@@ -4,8 +4,20 @@ import type { TerminalTermination } from '../../shared/stop'
 import { Button, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
 
-export function StopStatus({ state }: { state: TerminalTermination }) {
+/** OF-02: the process is gone and only the provider's background work is unproved. Said as an end, never as a stop
+ *  that failed; the caveat stays in words (`session.endedHelp`), and the receipt rules below do not change. */
+// The reasons `nativeStopRuntime.ts` gives only after it saw the root exit and the whole process tree go quiet: nothing is
+// left to stop here, so Force stop has nothing to do. Any other unknown keeps Force (a child may still run).
+const QUIET_TREE_REASONS = new Set(['provider_termination_unproved', 'exit_outcome_unavailable', 'finalization_unproved', 'exit_receipt_unavailable'])
+export const processEnded = (session: Pick<TerminalSession, 'running'> | undefined, state: TerminalTermination | undefined): boolean =>
+  !!session && !session.running && state?.state === 'outcome_unknown' && QUIET_TREE_REASONS.has(state.reasonCode)
+
+export function StopStatus({ state, session }: { state: TerminalTermination; session?: Pick<TerminalSession, 'running' | 'exitCode'> }) {
   const t = useT()
+  if (processEnded(session, state))
+    return <StateChip tone="quiet" dot>
+      {session!.exitCode === null || session!.exitCode === undefined ? t('session.endedNoCode') : t('session.ended', { code: String(session!.exitCode) })}
+    </StateChip>
   return <StateChip tone={state.state === 'requested' ? 'info' : state.state === 'stopped' ? 'quiet' : 'warn'} dot>
     {t(`session.stop.${state.state}`)}
   </StateChip>
@@ -45,10 +57,11 @@ export function SessionStop({ session, refresh, onError }: {
   const currentReceipt = receipt ?? session.termination
   const writerBlocked = currentReceipt && currentReceipt.state !== 'requested' && currentReceipt.managed === true
   const unresolved = state === 'outcome_unknown' || state === 'refused'
+  const ended = !pending && processEnded(session, currentReceipt ?? undefined)
   return <div>
     {receipt && receipt.state !== session.termination?.state && <div role="status"><StopStatus state={receipt} /></div>}
-    {unresolved && <p className="muted">{t(state === 'refused' ? 'session.stop.refusedHelp' : 'session.stop.unknownHelp')}</p>}
-    {unresolved && writerBlocked && <p className="muted">{t('session.stop.writerBlocked')}</p>}
+    {unresolved && <p className="muted">{t(ended ? 'session.endedHelp' : state === 'refused' ? 'session.stop.refusedHelp' : 'session.stop.unknownHelp')}</p>}
+    {unresolved && writerBlocked && !ended && <p className="muted">{t('session.stop.writerBlocked')}</p>}
     <Toolbar>
       {state === 'stopped' ? <Button tone="ghost" onClick={async () => {
         try { await window.fabric.terminal.dismiss(session.sessionId); await refresh() }
@@ -58,7 +71,7 @@ export function SessionStop({ session, refresh, onError }: {
         <Button tone="ghost" disabled={pending || state === 'requested'} onClick={() => void stop(false)}>
           {t(state === 'requested' ? 'session.stop.requested' : unresolved ? 'session.stop.retry' : 'session.stop.action')}
         </Button>
-        {state === 'outcome_unknown' && <Button tone="ghost" disabled={pending} onClick={() => void stop(true)}>{t('session.stop.force')}</Button>}
+        {state === 'outcome_unknown' && !ended && <Button tone="ghost" disabled={pending} onClick={() => void stop(true)}>{t('session.stop.force')}</Button>}
       </>}
     </Toolbar>
   </div>
