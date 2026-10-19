@@ -55,5 +55,6 @@ and load allow the local verification runs.
 
 ## Exact next task
 
-Make the workspace publication robust under load (it should not need a quiet machine to publish a commit whose hosted
-`ci` is already green), then 0.3.7 wave 4 from the plan's §6.
+Done in the same change: the workspace publication accepts the hosted `ci` verdict for the exact commit it publishes
+(`scripts/lib/hosted-verdict.mjs`), so it no longer needs a quiet machine. Next: confirm the next scheduled sync
+publishes and pins, then 0.3.7 wave 4 from the plan's §6.

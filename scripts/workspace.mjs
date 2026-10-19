@@ -7,6 +7,7 @@ import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,veri
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,dropChildLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,checkDeployCredentials,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
+import {hostedCiVerdict} from './lib/hosted-verdict.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
 // #region workspace-bounded — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#3-a-scheduled-job-is-bounded-exclusive-and-observable
@@ -96,7 +97,11 @@ if(cmd==='status'){
  // The workspace's own tests and content verification below still run on every publication.
  let receiptSource=null;try{receiptSource=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8')).source_commit}catch{}
  const fabricChanged=!receiptSource||sourceChangedSince(root,receiptSource)
- if(fabricChanged)await run('bash',['scripts/ci.sh','fast'],root,LIMIT.gate)
+ // The same `ci.sh fast` already green on a clean hosted runner for this exact commit is its verdict (2026-10-19:
+ // on this machine at load 30 to 200 the local run failed on timing tests or timed out three runs in a row).
+ const hosted=fabricChanged?await hostedCiVerdict(source):null
+ if(hosted?.green)console.log('Hosted ci run '+hosted.run+' is green on '+source.slice(0,12)+'; its gate verdict stands')
+ else if(fabricChanged){console.log('No hosted ci verdict for '+source.slice(0,12)+' ('+hosted.why+'); running the gate here');await run('bash',['scripts/ci.sh','fast'],root,LIMIT.gate)}
  else console.log('Fabric source unchanged since the published '+receiptSource.slice(0,12)+'; its gate verdict stands')
  const prior=resume?JSON.parse(readFileSync(path.join(child,'content/manifest.json'),'utf8')):null
  const expected=snapshot(root,source,{sources:resume?pinnedSources(prior):resolved})
@@ -139,7 +144,8 @@ if(cmd==='status'){
  await run('git',['add','workspace',receiptPath]);checkReceipt(root,{requireChild:true,sourceDirs:localSourceDirs(root)})
  // The pin commit changes only projections (the gitlink and the receipt); the gate runs again only
  // when it ran above, i.e. when the source it verifies changed.
- if(fabricChanged)await run('bash',['scripts/ci.sh','fast'],root,LIMIT.gate)
+ // The pin commit's own hosted ci runs on its push; a hosted verdict above needs no second local run.
+ if(fabricChanged&&!hosted?.green)await run('bash',['scripts/ci.sh','fast'],root,LIMIT.gate)
  await run('git',['commit','-m','Pin published Fabric workspace '+ws.slice(0,12)])
  await run('git',['push','origin',pushTarget()])
  console.log('Published and pinned '+c.public_origin+' · '+ws)

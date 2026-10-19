@@ -11,9 +11,9 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
 ### 2026-10-19T10:30:00Z · `—` · agent/status-20261019 → main · fast-forward
 - run: r-8db0598178fb
-- files: docs/handoffs/2026-10-19-status-and-next.md, the registers (CO-336, CO-337, CO-338), docs/reports
+- files: docs/handoffs/2026-10-19-status-and-next.md, the registers (CO-336, CO-337, CO-338), scripts/lib/hosted-verdict.mjs, scripts/workspace.mjs, scripts/test/hosted-verdict.test.mjs, docs/architecture/report-workspace.md, package.json, docs/reports
 - conflicts: none
-- summary: the operator's status report as a handoff (board thread bd1c9611); DEC-0087, SD-2 TA-04 and SD-1 PA-02 filed.
+- summary: the operator's status report as a handoff (board thread bd1c9611); DEC-0087, SD-2 TA-04 and SD-1 PA-02 filed; the workspace publication accepts the hosted ci verdict for the exact commit it publishes.
 
 ### 2026-10-19T07:30:00Z · `—` · agent/hub-rate-limits → main · fast-forward
 - run: r-8db0598178fb

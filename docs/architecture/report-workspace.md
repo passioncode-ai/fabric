@@ -164,7 +164,11 @@ change and reuses the pinned Fabric source.
 `node scripts/workspace.mjs sync` publishes only when something is behind
 (`scripts/workspace-sources.mjs#syncReasons`): a source whose tip moved past its pin (grace 0),
 the host's `origin/main` ahead of the pinned workspace commit (a knowledge-base or host change),
-or Fabric changed since the published source. An unreachable source is not a reason. `sync`
+or Fabric changed since the published source. An unreachable source is not a reason. When Fabric changed, the publication's
+gate is the hosted `ci` verdict for that exact commit if one exists: the newest finished `ci` run on the commit
+succeeded (`scripts/lib/hosted-verdict.mjs#hostedCiVerdict`, `scripts/test/hosted-verdict.test.mjs`); otherwise, or
+without `gh`, the publication runs `scripts/ci.sh fast` here, as before. Added 2026-10-19, after three runs on this
+machine at load 30 to 200 failed on timing tests or timed out while the hosted `ci` was green on the same commit. `sync`
 moves its checkout to `origin/main`, so it runs only in the checkout
 `FABRIC_WORKSPACE_SYNC_CHECKOUT` names; a detached checkout pushes its pin to `main`.
 `scripts/install-workspace-sync.sh` makes that checkout and a launchd job

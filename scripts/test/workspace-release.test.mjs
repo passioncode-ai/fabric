@@ -114,7 +114,7 @@ test('actual publisher resumes a failed parent push without creating a second sn
   // Host/Fabric suites are verified separately; this fixture exercises the real
   // publisher state machine and real local Git pushes, with external checks stubbed.
   write('scripts/ci.sh','#!/bin/sh\nmkdir -p fake-bin && touch fake-bin/ci-ran\nexit 0\n')
-  for(const file of ['workspace.mjs','workspace-snapshot.mjs','workspace-release.mjs','workspace-sources.mjs','lib/bounded-run.mjs'])write('scripts/'+file,readFileSync(path.join(import.meta.dirname,'..',file)))
+  for(const file of ['workspace.mjs','workspace-snapshot.mjs','workspace-release.mjs','workspace-sources.mjs','lib/bounded-run.mjs','lib/hosted-verdict.mjs'])write('scripts/'+file,readFileSync(path.join(import.meta.dirname,'..',file)))
   write('.gitignore','fake-bin/\nobservatory/\n');const origin='http://127.0.0.1:'+server.address().port;write('workspace.config.json',JSON.stringify({do_app:APP,do_api:origin,public_origin:origin}))
   const source=commit(root),s=snapshot(root,source),child=path.join(root,'workspace');init(child);writeSnapshot(child,s);const ws=commit(child)
   write(receiptPath,JSON.stringify({schema:1,source_commit:source,workspace_commit:ws,content_digest:s.manifest.content_digest,platform:'digitalocean',do_app:APP,deployment:DEP}))
@@ -126,6 +126,9 @@ test('actual publisher resumes a failed parent push without creating a second sn
   // A heroku on PATH that only records being called: the publication must never reach for it.
   const herokuRan=path.join(root,'fake-bin/heroku-ran')
   write('fake-bin/heroku','#!/bin/sh\ntouch '+herokuRan+'\nexit 1\n');chmodSync(path.join(root,'fake-bin/heroku'),0o755)
+  // A gh that knows no hosted run: the fixture's source has no hosted ci verdict, so the gate runs here, and no test
+  // reaches GitHub.
+  write('fake-bin/gh','#!/bin/sh\necho []\n');chmodSync(path.join(root,'fake-bin/gh'),0o755)
   // Project Observatory, faked at its two seams: `project-observatory full-path` and tools/use_secret.py
   // (`names`, and `run … -- cmd`, which injects the three names into cmd's environment only).
   const noObservatory=path.join(root,'fake-bin/no-observatory')
