@@ -62,7 +62,8 @@ export function CreatedAgents({
   useEffect(reread, [project.id])
 
   // Only coding agents: the login shell is "no agent" and nothing would run a created agent in it.
-  const coding = (options ?? []).filter((o) => o.program !== null)
+  // A created agent is handed its instructions and tools through Fabric, so only a surface runner can be one (ADR-0168).
+  const coding = (options ?? []).filter((o) => o.program !== null && o.connectsToSurface)
   const available = coding.filter((o) => o.available)
   // The chosen program must be one that can run here; the project default if it can, else the first.
   useEffect(() => {

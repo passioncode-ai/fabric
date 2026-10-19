@@ -29,7 +29,7 @@ recorded here; the board thread `bd1c9611` holds the morning's reports.
 |---|---|---|---|
 | F1 | Consoles inside Fabric as tabs along the top; a console opens there, not in its own window | OF-03 | done 2026-10-19 (`3dc58e10`, SCN-172) |
 | F2 | One clean header; a compact projects rail | OF-05, OF-04 | done 2026-10-19 (`agent/header-rail-compact`, SCN-162) |
-| F3 | Every coding agent of the catalogue listed and launchable as a console, fewer prompts by default, with a Settings default; OpenCode as its own runner | OF-11, CO-305, CO-304 | next |
+| F3 | Every coding agent of the catalogue listed and launchable as a console, fewer prompts by default, with a Settings default; OpenCode as its own runner | OF-11, CO-305, CO-304 | done 2026-10-19 (`agent/catalogue-consoles`, ADR-0168) |
 | F4 | Sessions Fabric starts carry the operator's own setup: Claude's user and plugin MCP servers (Observatory among them), Codex's `AGENTS.md`, skills and trust, Hermes's key and the right binaries | CO-325, CO-324, CO-326 | next |
 | F5 | A task whose agent run ended is not held for good: the person's recorded «работа закончена» frees it, undoable | CO-327 | needs its ADR (HAR-R0-04 forbids inferring it) |
 | F6 | An agent's page as its flow, newest first, with its console one press away | OF-09 | after F2 |

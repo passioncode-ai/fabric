@@ -41,3 +41,12 @@ export function withHead(fallback: RunnerFallback | null | undefined, runner: st
   return [own ?? { runner, session: 'spawn' }, ...order.filter((e) => e.runner !== runner)]
 }
 // #endregion builder-choice
+
+/**
+ * Which runners a picker lists (ADR-0168): every runner Fabric connects to its surface, installed or not (a missing
+ * one is shown disabled with the reason), and a catalogue console only when this machine has it; two dozen consoles
+ * nobody installed would bury the few that are.
+ */
+export function listedRunner(option: { connectsToSurface: boolean; program: string | null; available: boolean }): boolean {
+  return option.connectsToSurface || option.program === null || option.available
+}

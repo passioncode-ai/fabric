@@ -15,7 +15,8 @@ describe('validateSettings', () => {
       // Per-thread board marks survive the same way (SCN-143, the unread slice).
       commsReadThrough: { '79000000-0000-4000-8000-0000000000d1': 40 },
       firstRun: { completedAt: '2026-10-03T10:00:00.000Z' },
-      runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] }
+      runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] },
+      agentPermissions: 'manual'
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -167,5 +168,14 @@ describe('settingsPatch', () => {
   it('refuses what is not an object', () => {
     expect(settingsPatch(null).ok).toBe(false)
     expect(settingsPatch([]).ok).toBe(false)
+  })
+
+  it('keeps one permission choice for every agent, fewer prompts unless the person chose manual checks (ADR-0168)', () => {
+    expect(APP_SETTINGS_DEFAULTS.agentPermissions).toBe('fewer-prompts')
+    expect(validateSettings({})?.agentPermissions).toBe('fewer-prompts')
+    expect(validateSettings({ agentPermissions: 'manual' })?.agentPermissions).toBe('manual')
+    expect(validateSettings({ agentPermissions: 'yolo' })?.agentPermissions).toBe('fewer-prompts')
+    expect(settingsPatch({ agentPermissions: 'manual' })).toEqual({ ok: true, patch: { agentPermissions: 'manual' } })
+    expect(settingsPatch({ agentPermissions: 'yolo' }).ok).toBe(false)
   })
 })

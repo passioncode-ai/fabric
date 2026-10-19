@@ -8,16 +8,26 @@ import { useEffect, useRef } from 'react'
 import { useRead } from './useRead'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
 import type { ExecutorRow } from '../../../shared/startPaths'
-import type { AppSettings, SettingsPatch } from '../../../shared/types'
+import type { AppSettings, LaunchOption, SettingsPatch } from '../../../shared/types'
 import { FallbackOrderSetting } from '../FallbackOrderSetting'
 import { UsageCountsSetting } from '../UsageCountsSetting'
 import { useT } from '../i18n'
 import { FailureNote, MachineDetail } from '../OperatorError'
 
+/** How an agent starts by default: its mode's environment, the program, the mode's arguments (ADR-0168). */
+export function launchLine(option: LaunchOption): string | null {
+  if (option.program === null) return null
+  const mode = option.permissionModes.find((m) => m.id === option.defaultMode)
+  const env = Object.entries(mode?.env ?? {}).map(([k, v]) => `${k}=${v}`)
+  return [...env, option.program, ...(mode?.args ?? [])].join(' ')
+}
+
 /** The agents on this machine: Fabric's own detection, joined with Switchboard's catalogue when it answers. */
 export function AgentCatalogPanel(): React.JSX.Element {
   const t = useT()
   const found = useRead<ExecutorRow[]>(() => window.fabric.start.executors())
+  const launches = useRead<LaunchOption[]>(() => window.fabric.terminal.options())
+  const lineOf = new Map((launches && 'value' in launches ? launches.value : []).map((o) => [o.id, launchLine(o)]))
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
   const sb = catalog && 'value' in catalog && catalog.value.source === 'switchboard' ? catalog.value : null
   const byId = new Map((sb?.agents ?? []).map((a) => [a.id, a]))
@@ -70,6 +80,7 @@ export function AgentCatalogPanel(): React.JSX.Element {
                 <span className="lp-pill">{stateOf(r)}</span>
               </div>
               {r.path && <code className="lp-meta">{r.path}</code>}
+              {lineOf.get(r.id) && <p className="lp-meta">{t('settings.agents.command')} <code>{lineOf.get(r.id)}</code></p>}
               {r.state === 'missing' && (r.install ?? s?.install) && (
                 <p className="lp-meta">{t('settings.agents.install')} <code>{r.install ?? s?.install}</code></p>
               )}
@@ -90,6 +101,30 @@ export function AgentCatalogPanel(): React.JSX.Element {
         ))}
       </ol>
       <p className="lp-meta">{t('settings.agents.owner')}</p>
+    </section>
+  )
+}
+
+/** One permission choice for every agent Fabric starts (CO-305, ADR-0168). */
+export function AgentPermissionsSetting({ value, onChange }: {
+  value: AppSettings['agentPermissions']
+  onChange: (next: SettingsPatch) => Promise<void> | void
+}): React.JSX.Element {
+  const t = useT()
+  const choice = (id: AppSettings['agentPermissions'], label: string, help: string) => (
+    <label className="lp-choice">
+      <input type="radio" name="agent-permissions" value={id} checked={value === id} onChange={() => void onChange({ agentPermissions: id })} />
+      <span><b>{label}</b><small>{help}</small></span>
+    </label>
+  )
+  return (
+    <section className="lp-panel" aria-labelledby="settings-permissions-title">
+      <h3 id="settings-permissions-title">{t('settings.permissions.title')}</h3>
+      <p className="lp-meta">{t('settings.permissions.lede')}</p>
+      <div role="radiogroup" aria-labelledby="settings-permissions-title">
+        {choice('fewer-prompts', t('settings.permissions.fewer'), t('settings.permissions.fewerHelp'))}
+        {choice('manual', t('settings.permissions.manual'), t('settings.permissions.manualHelp'))}
+      </div>
     </section>
   )
 }
@@ -118,6 +153,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
       </header>
       <div className="lp-project-grid">
         <div>
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={onChange} />
           <AgentCatalogPanel />
           <section className="lp-panel" aria-labelledby="settings-launch-title">
             <p className="lp-kicker">{t('settings.launch.kicker')}</p>

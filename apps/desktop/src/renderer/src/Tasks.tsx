@@ -4,6 +4,7 @@
 // this identity, so today's history survives that upgrade.
 
 import { FALLBACK_OPTION, useFallbackChoice } from './useFallbackChoice'
+import { listedRunner } from '../../shared/builderChoice.ts'
 import { useEffect, useState, useRef } from 'react'
 import { failed, forSubject, settled, type KeyedRead } from '../../shared/keyedRead'
 import { loadInto, type TaskDraft } from '../../shared/taskDraft.ts'
@@ -270,7 +271,7 @@ export function Tasks({
           aria-label={t('agents.pickOption')}
         >
           {fallback.configured && <option value={FALLBACK_OPTION}>{fallback.label}</option>}
-          {options.map((o) => (
+          {options.filter(listedRunner).map((o) => (
             <option key={o.id} value={o.id} disabled={!o.available}>
               {runnerLabel(o.id, t)}
               {o.available ? '' : ` — ${t('onboarding.unavailable')}`}

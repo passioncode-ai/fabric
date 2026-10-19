@@ -79,3 +79,48 @@ describe('the settings screen', () => {
     expect(screen.getByText(en['settings.screen.title'])).toBeTruthy()
   })
 })
+
+describe('agent permissions and how each agent starts (ADR-0168)', () => {
+  const options = [
+    { id: 'gemini-cli', label: 'Gemini CLI', program: 'gemini', description: '', available: true, connectsToSurface: false, defaultMode: 'bypass',
+      permissionModes: [{ id: 'ask', labelKey: 'agent.mode.ask', blockedKey: null, warnKey: null, args: [], env: {} },
+        { id: 'bypass', labelKey: 'agent.mode.bypass', blockedKey: null, warnKey: null, args: ['--yolo'], env: {} }] },
+    { id: 'goose', label: 'Goose', program: 'goose', description: '', available: true, connectsToSurface: false, defaultMode: 'bypass',
+      permissionModes: [{ id: 'ask', labelKey: 'agent.mode.ask', blockedKey: null, warnKey: null, args: [], env: { GOOSE_MODE: 'approve' } },
+        { id: 'bypass', labelKey: 'agent.mode.bypass', blockedKey: null, warnKey: null, args: [], env: { GOOSE_MODE: 'auto' } }] }
+  ]
+  const rows = [
+    { id: 'gemini-cli', label: 'Gemini CLI', connected: false, state: 'found', version: '1.2', path: '/opt/homebrew/bin/gemini', install: null },
+    { id: 'goose', label: 'Goose', connected: false, state: 'found', version: '1.0', path: '/opt/homebrew/bin/goose', install: null }
+  ]
+  const fabric = () => vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+    fabric: {
+      start: { executors: async () => rows },
+      settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }) },
+      terminal: { options: async () => options },
+      analytics: { status: async () => ({ enabled: false, answered: true }) }
+    }
+  }))
+
+  it('shows the command each agent starts with, its environment first', async () => {
+    fabric()
+    show(<AgentCatalogPanel />)
+    await waitFor(() => expect(screen.getByText('gemini --yolo')).toBeTruthy())
+    expect(screen.getByText('GOOSE_MODE=auto goose')).toBeTruthy()
+  })
+
+  it('offers one choice for every agent, fewer prompts chosen, and saves the other', async () => {
+    fabric()
+    const onChange = vi.fn()
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts' } as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
+    const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
+    expect(fewer.checked).toBe(true)
+    expect(manual.checked).toBe(false)
+    fireEvent.click(manual)
+    expect(onChange).toHaveBeenCalledWith({ agentPermissions: 'manual' })
+  })
+})
+

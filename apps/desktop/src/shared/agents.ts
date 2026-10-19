@@ -1,4 +1,5 @@
 import type { Containment } from './containment.ts'
+import { consoleDescriptors } from './consoleCatalog.ts'
 
 // The agent registry (M146 step 6 · M116's second half · M17's shape).
 //
@@ -55,6 +56,8 @@ export interface PermissionMode {
    * fragment that allows everything (`'*': 'allow'`) is declared `none`.
    */
   config?: Readonly<Record<string, unknown>>
+  /** Environment this mode sets, over the agent's own (Goose takes its mode from `GOOSE_MODE`, not a flag). */
+  env?: Readonly<Record<string, string>>
 }
 
 /**
@@ -136,7 +139,7 @@ export interface AgentDescriptor {
   defaultMode: string | null
 }
 
-export const AGENTS: readonly AgentDescriptor[] = [
+export const CORE_AGENTS: readonly AgentDescriptor[] = [
   {
     id: 'claude-code',
     label: 'Claude Code',
@@ -321,6 +324,28 @@ export const AGENTS: readonly AgentDescriptor[] = [
   }
 ]
 
+/**
+ * Every runner Fabric can start: its own descriptors, connected to the surface, then every other coding agent of the
+ * catalogue as a plain console (OF-11, ADR-0168, `consoleCatalog.ts`).
+ */
+export const AGENTS: readonly AgentDescriptor[] = [...CORE_AGENTS, ...consoleDescriptors(new Set(CORE_AGENTS.map((a) => a.id)))]
+
+/** The machine's one permission choice for every agent (CO-305, ADR-0168): fewer prompts, or the runner's own checks. */
+export type AgentPermissions = 'fewer-prompts' | 'manual'
+
+/**
+ * The mode a launch uses when the person did not pick one. Fewer prompts takes the agent's bypass mode when it has one
+ * that is not blocked; manual takes the mode it asks in. Null for a runner without modes (a shell, Codex), as before.
+ */
+export function preferredMode(runnerId: string, choice: AgentPermissions): string | null {
+  const agent = AGENTS.find((a) => a.id === runnerId)
+  if (!agent || agent.permissionModes.length === 0) return null
+  const usable = (id: string) => agent.permissionModes.some((m) => m.id === id && !m.blockedKey)
+  if (choice === 'fewer-prompts' && usable('bypass')) return 'bypass'
+  if (choice === 'manual' && usable('ask')) return 'ask'
+  return agent.defaultMode
+}
+
 export function describeAgent(id: string): AgentDescriptor | null {
   return AGENTS.find((a) => a.id === id) ?? null
 }
@@ -434,7 +459,7 @@ export function verifyHandoff(
 }
 
 export type ModeVerdict =
-  | { ok: true; args: readonly string[]; config: Readonly<Record<string, unknown>> | null }
+  | { ok: true; args: readonly string[]; config: Readonly<Record<string, unknown>> | null; env: Readonly<Record<string, string>> }
   | { ok: false; reason: string }
 
 /**
@@ -447,10 +472,10 @@ export type ModeVerdict =
 export function mayLaunch(agentId: string, modeId: string | null): ModeVerdict {
   const agent = describeAgent(agentId)
   if (!agent) return { ok: false, reason: `unknown agent: ${agentId}` }
-  if (agent.permissionModes.length === 0) return { ok: true, args: [], config: null }
+  if (agent.permissionModes.length === 0) return { ok: true, args: [], config: null, env: {} }
   const wanted = modeId ?? agent.defaultMode
   const mode = agent.permissionModes.find((m) => m.id === wanted)
   if (!mode) return { ok: false, reason: `${agent.label} has no mode called ${String(wanted)}` }
   if (mode.blockedKey) return { ok: false, reason: mode.blockedKey }
-  return { ok: true, args: mode.args, config: mode.config ?? null }
+  return { ok: true, args: mode.args, config: mode.config ?? null, env: mode.env ?? {} }
 }
