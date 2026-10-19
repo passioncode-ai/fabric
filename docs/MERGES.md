@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T06:00:00Z · `—` · agent/fabric-simple-w3 → main · fast-forward
+- run: r-8db0598178fb
+- files: the 0.3.7 wave 3 shell (LaunchShell, the act line, История, JoinedAgents, the confirmations removed), the disconnect's main-process half, scenarios, screens, the plan's §9, the registers, CHANGELOG, docs/reports
+- conflicts: CHANGELOG.md, docs/MERGES.md, docs/reports/map.html, docs/reports/completeness.html (additive tops, the map stamp recomputed, the coverage page rebuilt)
+- summary: 0.3.7 wave 3, the five-place rail, «Создать», no tab strip, no confirmation dialogs with «Отменить» from the act line, «Отключить» as a real inverse; the branch's red gate (glyphs through the string registry, one route arm per place) fixed and rebased on main.
+
 ### 2026-10-19T04:20:00Z · `—` · agent/unified-attribution → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/main/sessionEnroll.ts, projectAdmission.ts, folderResolver.ts, index.ts, stackServices.ts, env.ts, their tests (project-admission, stack-services, delivery), ADR-0166 and the ADR-0164 amendment, the pipeline reservation (ADR-0167), the registers (CO-331, CO-332, CO-333), AGENTS.md, CHANGELOG, docs/reports
