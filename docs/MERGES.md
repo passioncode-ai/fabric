@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-19T04:20:00Z · `—` · agent/unified-attribution → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/main/sessionEnroll.ts, projectAdmission.ts, folderResolver.ts, index.ts, stackServices.ts, env.ts, their tests (project-admission, stack-services, delivery), ADR-0166 and the ADR-0164 amendment, the pipeline reservation (ADR-0167), the registers (CO-331, CO-332, CO-333), AGENTS.md, CHANGELOG, docs/reports
+- conflicts: none
+- summary: one attribution of folders to projects across Fabric, Switchboard and Observatory, Fabric's first part (a subfolder rooted at its Git top level, a tombstone scoped to its folder; ADR-0166, CO-331, owners asked on board thread 617c8cbe); the excluded stack containers no longer come back with Docker (CO-333); the delivery test's readiness deadline widened; hosted ci green on a386ead5.
+
 ### 2026-10-18T22:00:00Z · `—` · fix/main-gates-20261018 → main · fast-forward
 - run: r-44ae60a75316
 - files: apps/desktop/src/main/sessionEnroll.ts, apps/desktop/src/main/projectAdmission.ts, apps/desktop/src/main/actLog.ts, apps/desktop/src/shared/providerCapabilityMatrix.ts, their tests, scripts/test/run-browser-suites.sh and two browser suites, ADR-0164 amendment, the pipeline reservation, the registers, CHANGELOG, docs/reports
