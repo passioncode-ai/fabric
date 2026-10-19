@@ -7,6 +7,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import type { TerminalSession } from '../../shared/types'
 import { mergeReplay, type HeldChunk, type ReplaySnapshot } from '../../shared/replay.ts'
+import { ReplayGate } from './terminalReplies'
 
 /**
  * `focusOnMount` is opt-OUT, and the default keeps `SessionWindow` unchanged.
@@ -69,10 +70,15 @@ export function TerminalView({
       else held.push({ data, written })
     })
 
+    // The replay carries the queries the program made when it started; xterm answers them again while it parses it,
+    // and those answers must not reach the live program (terminalReplies.ts). A person's keys always pass.
+    const gate = new ReplayGate((data) => window.fabric.terminal.write(session.sessionId, data))
     const attach = (replay: ReplaySnapshot | null): void => {
       // The merge rule lives in one place and is tested there; what happens
       // here is writing its answer in the order it gives.
-      for (const piece of mergeReplay({ replay, held })) term.write(piece)
+      const pieces = [...mergeReplay({ replay, held })]
+      if (!pieces.length) gate.replayed()
+      pieces.forEach((piece, i) => term.write(piece, i === pieces.length - 1 ? () => gate.replayed() : undefined))
       held.length = 0
       attached = true
       if (!session.running) term.write('\r\n\x1b[2m[session ended]\x1b[0m\r\n')
@@ -94,7 +100,7 @@ export function TerminalView({
         term.write(`\r\n\x1b[2m[session ended — exit ${exitCode}]\x1b[0m\r\n`)
       }
     })
-    const onInput = term.onData((data) => window.fabric.terminal.write(session.sessionId, data))
+    const onInput = term.onData((data) => gate.input(data))
 
     const doResize = (): void => {
       fit.fit()

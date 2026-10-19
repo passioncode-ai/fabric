@@ -48,3 +48,16 @@ index holds the measured table.
   `apps/desktop/src/main/projectAdmission.ts#enroll`.
 - Tests: `apps/desktop/test/session-enroll.test.mjs`, `apps/desktop/test/project-admission.test.mjs`,
   `apps/desktop/test/automatic-registration-scenario.test.mjs`.
+
+## Amendments
+
+**2026-10-19, later the same day: Fabric is the core (the operator).** The operator: Fabric, which tracks projects and
+answers for the core, is where projects are attributed and matched to the real ones; Observatory's knowledge
+(repositories, sites, accounts) and Switchboard's pools and accounts are matched to Fabric's project. Decision 5 is
+replaced: **the canonical project id is Fabric's.** Observatory's `project:<slug>` and Switchboard's pool are recorded
+against it as aliases (`observatory:<slug>`, `switchboard:<pool>`), and Fabric records each match with its evidence
+(the repository, the folder, the site, the account) as an act that can be undone. The rules (decisions 1 to 4) stay
+the contract's; the attribution capability at session start becomes Fabric's own, served by its hub, and Observatory
+and Switchboard ask it rather than the other way round. The same holds for the catalogue of coding agents: one list for
+every product (`docs/evidence/plans/2026-10-15-fabric-simple/2026-10-19-operator-feedback.md`, OF-11, OF-13).
+

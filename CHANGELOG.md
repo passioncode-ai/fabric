@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A console no longer closes itself when it opens.** Opening a coding agent's console again sent the terminal's own
+  answers into the agent, and Claude Code read them as «Esc» on its «Do you trust this folder?» question and quit.
 - **Many coding agents at once no longer push each other out.** With dozens of Claude Code sessions open in
   different projects, they took turns disconnecting one another and then waited on Fabric's rate limit. The limit of
   eight sessions now counts one project, and each session gets its own share of calls.
