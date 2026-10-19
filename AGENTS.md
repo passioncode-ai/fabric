@@ -235,3 +235,18 @@ Edit status only in its owning source, under the project lease; preserve IDs, hi
 A cross-project task has one owner and links to dependencies, never a second editable status.
 Land local changes, then run `node scripts/workspace.mjs sync`; verify publication and source freshness.
 The shared view is a publication, not a separate board to edit.
+<!-- SSHLG:PROJECT:BEGIN managed by npx sshlg-skills enroll. To opt out, replace the whole block with one SSHLG:PROJECT:OPTOUT comment line. -->
+## Family routes in this project
+
+Surface: `internal` (detected).
+Signals: none. No website or app-text signal in the tree.
+
+Routes that apply here (the global routing block says what each one owns):
+
+| Router | Answers | Setup here |
+|---|---|---|
+| `evidence-docs` | what proves it | nothing to seed |
+| `task-pipeline` | how the change reaches the repository | DOCMAP: present |
+
+Remaining setup: none.
+<!-- SSHLG:PROJECT:END -->
