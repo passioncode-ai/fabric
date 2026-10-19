@@ -44,3 +44,18 @@ Current direction — lanes and the Now/Next line — lives in [the general deve
   `docs/reports/YYYY-MM-DD-*`) are records of a moment — never rewritten to
   match today's tree (the one exception is privacy: ADR-0096, redaction for publication). Living documents cite symbols (`File.ts#name`), never
   bare line numbers; the citation gate enforces both.
+<!-- SSHLG:PROJECT:BEGIN managed by npx sshlg-skills enroll. To opt out, replace the whole block with one SSHLG:PROJECT:OPTOUT comment line. -->
+## Family routes in this project
+
+Surface: `internal` (detected).
+Signals: none. No website or app-text signal in the tree.
+
+Routes that apply here (the global routing block says what each one owns):
+
+| Router | Answers | Setup here |
+|---|---|---|
+| `evidence-docs` | what proves it | nothing to seed |
+| `task-pipeline` | how the change reaches the repository | DOCMAP: present |
+
+Remaining setup: none.
+<!-- SSHLG:PROJECT:END -->
