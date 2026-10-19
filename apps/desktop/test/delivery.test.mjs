@@ -100,7 +100,10 @@ written.length === 1
 
 // Failure and concurrency cases use the real manager and fake native PTY. Short
 // injected timings avoid 30-second tests without weakening production defaults.
-async function fixture({ maxWaitMs = 240, capacity = 32, write } = {}) {
+// A case that waits for delivery gets a generous readiness deadline, so a loaded machine
+// is not read as a timeout (2026-10-19: 240 ms failed at load average 30, the class of CO-330);
+// only the cases that test the timeout itself pass a short one.
+async function fixture({ maxWaitMs = 5000, capacity = 32, write } = {}) {
   const writes = []
   let output, exit
   let kills = 0
