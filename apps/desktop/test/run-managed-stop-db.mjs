@@ -25,6 +25,9 @@ try {
   execFileSync(process.execPath, [new URL('./managed-stop-db.test.mjs', import.meta.url).pathname], {
     stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
   })
+  execFileSync(process.execPath, [new URL('./run-over-db.test.mjs', import.meta.url).pathname], {
+    stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
+  })
   execFileSync(process.execPath, [new URL('./backend-stop-db.test.mjs', import.meta.url).pathname], {
     stdio: 'inherit', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FABRIC_DISPATCH_TEST_DATABASE_URL: url }
   })

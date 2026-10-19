@@ -279,6 +279,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       write: (sessionId, data) => ipc.send(IPC.terminalWrite, sessionId, data),
       resize: (sessionId, cols, rows) => ipc.send(IPC.terminalResize, sessionId, cols, rows),
       end: (sessionId, options) => ipc.invoke(IPC.terminalEnd, sessionId, options),
+      attestOver: (sessionId) => ipc.invoke(IPC.terminalAttestOver, sessionId),
       dismiss: (sessionId) => ipc.invoke(IPC.terminalDismiss, sessionId),
       onData: (cb) => {
         const listener = (_e: unknown, sessionId: string, data: string, written: number): void =>

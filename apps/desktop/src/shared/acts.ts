@@ -22,7 +22,7 @@ export const ACT_EVENT = 'act.recorded@1'
 export const ACT_KINDS = [
   'task.move', 'claim.release', 'claim.take', 'repo.detach', 'repo.attach', 'project.rename',
   'question.answer', 'question.reopen', 'session.stop', 'session.start', 'draft.discard', 'draft.restore',
-  'task.close', 'release.record', 'agent.disconnect', 'agent.let_in'
+  'task.close', 'release.record', 'agent.disconnect', 'agent.let_in', 'run.attest', 'run.unattest'
 ] as const
 export type ActKind = (typeof ACT_KINDS)[number]
 
@@ -31,6 +31,7 @@ export type ActCategory = (typeof ACT_CATEGORIES)[number]
 
 const CATEGORY: Record<ActKind, ActCategory> = {
   'task.move': 'tasks', 'task.close': 'tasks', 'claim.release': 'tasks', 'claim.take': 'tasks',
+  'run.attest': 'tasks', 'run.unattest': 'tasks',
   'repo.detach': 'folders', 'repo.attach': 'folders',
   'project.rename': 'projects',
   'question.answer': 'questions', 'question.reopen': 'questions',

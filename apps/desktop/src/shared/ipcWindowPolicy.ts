@@ -214,6 +214,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   terminalWrite: MAIN_AND_OWN_SESSION,
   terminalResize: MAIN_AND_OWN_SESSION,
   terminalEnd: MAIN_AND_OWN_SESSION,
+  terminalAttestOver: MAIN_AND_OWN_SESSION,
   terminalDismiss: MAIN_AND_OWN_SESSION,
   terminalData: MAIN_AND_OWN_SESSION,
   terminalExit: MAIN_AND_OWN_SESSION,

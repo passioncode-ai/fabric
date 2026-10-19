@@ -13,7 +13,7 @@ const KNOWN_SAID = new Set([
   'act.task.move', 'act.task.close', 'act.claim.release', 'act.claim.take', 'act.repo.detach', 'act.repo.attach',
   'act.project.rename', 'act.project.edit', 'act.question.answer', 'act.question.reopen', 'act.session.stop',
   'act.session.start', 'act.draft.discard', 'act.draft.restore', 'act.release.record', 'act.agent.disconnect',
-  'act.agent.let_in'
+  'act.agent.let_in', 'act.run.attest', 'act.run.unattest'
 ])
 const STATES = new Set(['backlog', 'running', 'review', 'done', 'cancelled'])
 const WHY = new Set([
@@ -21,7 +21,8 @@ const WHY = new Set([
   'delivered', 'credential_gone', 'answer_needs_person', 'task_gone', 'already_there', 'ladder', 'claim_gone',
   'already_released', 'already_held', 'held_by_other', 'owner_gone', 'runner_gone', 'folder_gone', 'already_attached',
   'held_by_other_project', 'project_gone', 'question_gone', 'not_answered', 'draft_gone', 'session_gone', 'agent_gone',
-  'already_in', 'already_out', 'invalid', 'unreadable', 'no_inverse'
+  'already_in', 'already_out', 'invalid', 'unreadable', 'no_inverse', 'run_gone', 'run_resolved', 'not_attested',
+  'task_moved_on', 'run_still_running', 'person_required'
 ])
 
 /** The act as one sentence; an undo says it undid something («Отменено: …»). */

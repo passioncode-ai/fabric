@@ -66,5 +66,23 @@ describe('Stop control',()=>{
   expect(screen.getByText('Session ended · exit 1')).toBeTruthy()
   expect(screen.queryByText('Stop unverified')).toBeNull()
  })
-})
 
+ // CO-327, ADR-0170: an ended managed run whose Stop is unknown offers «Work is over», which frees its task.
+ it('offers «Work is over» for an ended run of a task, and settles the stop when it is said',async()=>{
+  const ended={sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c'} as const
+  const attestOver=vi.fn().mockResolvedValue({...ended,state:'stopped',basis:'attested',reasonCode:'attested',receiptSeq:44})
+  const f=setup({running:false,exitCode:0,termination:ended})
+  Object.assign(window.fabric.terminal,{attestOver})
+  fireEvent.click(screen.getByRole('button',{name:'Work is over'}))
+  await waitFor(()=>expect(attestOver).toHaveBeenCalledWith('s'))
+  await screen.findByText('Stop verified')
+  expect(f.refresh).toHaveBeenCalled()
+ })
+ it('does not offer «Work is over» while the process runs, or for a session with no task run',()=>{
+  setup({running:true,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c'}})
+  expect(screen.queryByRole('button',{name:'Work is over'})).toBeNull()
+  cleanup()
+  setup({running:false,exitCode:0,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved'}})
+  expect(screen.queryByRole('button',{name:'Work is over'})).toBeNull()
+ })
+})

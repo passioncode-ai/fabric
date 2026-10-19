@@ -6,7 +6,7 @@ export interface StopResult extends StopTarget {
   state: 'stopped' | 'outcome_unknown' | 'refused'
   commandId?: string
   receiptSeq?: number
-  basis?: 'observed' | 'never_spawned'
+  basis?: 'observed' | 'never_spawned' | 'attested'
   reasonCode: string
 }
 
