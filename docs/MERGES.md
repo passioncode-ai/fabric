@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T18:30:00Z · `—` · agent/ct26-revision-hashes → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/main/hubCall.ts, test/hub-call-revisions.test.mjs, apps/desktop/package.json, docs/reports
+- conflicts: none
+- summary: CT-26, a hub call's revision references hash the RFC 8785 canonical JSON of the referenced object (the binding, the hub), as DEC-0043 says; asked by fabric-agent-contract as blocking for 0.3.7.
+
 ### 2026-10-19T18:00:00Z · `—` · agent/console-tabs → main · fast-forward
 - run: r-8db0598178fb (built by a subagent of the run, which stopped on its model limit; landed by the run)
 - files: the console tabs (consoles.tsx, launch/ConsoleTabs.tsx, App.tsx, SessionWindow.tsx and every control that opened a console window), scenarios SCN-172, SCN-166, SCN-162, the product model and reports, the walk (OF-03), CHANGELOG
