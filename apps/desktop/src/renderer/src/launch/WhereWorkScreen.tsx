@@ -16,6 +16,7 @@ import { runnerLabel } from '../runnerLabel'
 import { cameInLabel, lifeLabel, outsideLabel, taskLabel, whyLabel } from '../WhoIsWorking'
 import { MachineDetail } from '../OperatorError'
 import { explainError } from '../start/startParts'
+import { useOpenConsole } from '../consoles'
 
 type Read = { state: 'reading' } | { state: 'read'; view: WhereWorkView } | { state: 'unreadable'; detail: string }
 
@@ -45,6 +46,7 @@ export function WhereWorkScreen({
   onReview(projectId: string): void
 }): React.JSX.Element {
   const t = useT()
+  const showConsole = useOpenConsole()
   const [read, setRead] = useState<Read>({ state: 'reading' })
   const load = async (): Promise<void> => {
     try {
@@ -95,7 +97,7 @@ export function WhereWorkScreen({
             >
               <p className="lp-kicker">{t('work.where.sessions')}</p>
               {r.sessions.length === 0 ? <p className="muted">{t('work.where.noneCol')}</p> : r.sessions.map((s) => (
-                <Row key={s.sessionId} onClick={s.console ? () => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}
+                <Row key={s.sessionId} onClick={s.console ? () => void showConsole(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}
                   lead={<StateChip tone={s.stale ? 'warn' : 'good'} dot>{s.stale ? t('work.where.quiet') : t('work.where.active')}</StateChip>}>
                   {sessionLine(s, t, now)}
                 </Row>
@@ -132,7 +134,7 @@ export function WhereWorkScreen({
             ) : (
               // SCN-141 / SCR-78: the folder it works in, and Open when Fabric holds its console (0.3.5 i2 UX-3).
               read.view.unowned.map((s) => (
-                <Row key={s.sessionId} onClick={s.console ? () => void window.fabric.windows.openSession(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}>
+                <Row key={s.sessionId} onClick={s.console ? () => void showConsole(s.sessionId).catch((e: unknown) => onError(explainError(e, t))) : undefined}>
                   {sessionLine(s, t, now)}
                   <span className="muted">{' · '}{s.folder ? t('work.where.folder', { folder: s.folder }) : t('work.where.folderUnknown')}</span>
                 </Row>

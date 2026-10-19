@@ -93,6 +93,9 @@ export type AppRoute =
   | { kind: 'welcome' }
   /** ADR-0100 · SCR-71…75. Where a project or an agent comes from; `path` is one of the start paths. */
   | { kind: 'start'; path: 'menu' | 'add' | 'scan' | 'new' | 'agent' | 'convert' }
+  /** OF-03 · SCN-172. One coding agent's console, full size in the main window; its tab is along the top. Not a `Tab`:
+   *  the console tabs are their own list (`renderer/src/consoles.tsx`), and closing one never ends the session. */
+  | { kind: 'console'; sessionId: string }
 
 /**
  * What the screen on show must reveal — DERIVED from the route by `revealAt`,
@@ -144,6 +147,8 @@ export function returnableTo(origin: AppRoute | null, active: AppRoute): AppRout
     return (origin.projectId ?? null) === (active.projectId ?? null) ? null : origin
   if (origin.kind === 'board' && active.kind === 'board')
     return (origin.projectId ?? null) === (active.projectId ?? null) ? null : origin
+  if (origin.kind === 'console' && active.kind === 'console')
+    return origin.sessionId === active.sessionId ? null : origin
   // Same kind, no id to tell them apart: home, agents and the board are single places.
   return null
 }
@@ -275,6 +280,7 @@ export function sameRoute(a: AppRoute, b: AppRoute): boolean {
       (a.asOf ?? null) === (b.asOf ?? null)
     )
   if (a.kind === 'draft' && b.kind === 'draft') return a.id === b.id
+  if (a.kind === 'console' && b.kind === 'console') return a.sessionId === b.sessionId
   return true
 }
 

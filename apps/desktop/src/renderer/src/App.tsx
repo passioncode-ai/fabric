@@ -69,6 +69,18 @@ import './start/start.css'
 import { BootFailure, OperatorError } from './OperatorError'
 import { ProjectHome } from './ProjectHome'
 import { SessionWindow } from './SessionWindow'
+import { ConsoleTabs } from './launch/ConsoleTabs'
+import { runnerLabel } from './runnerLabel'
+import {
+  OpenConsoleContext,
+  consoleTitleOf,
+  neighbourOf,
+  prunedConsoles,
+  readOpenConsoles,
+  withConsole,
+  withoutConsole,
+  writeOpenConsoles
+} from './consoles'
 import { Workspace } from './Workspace'
 
 const FEED_POLL_MS = 2000 // ADR-0027: the table is the record; polling replay is the v1 wake-up
@@ -176,6 +188,11 @@ function Shell({
   /** The journal's high-water mark when the person came to the place on screen: the act line shows acts after it. */
   const [placeSince, setPlaceSince] = useState(0)
   const [tabs, setTabs] = useState<Tab[]>([])
+  /** The open consoles along the top (OF-03, SCN-172), in the order they were opened; kept for a reload of this window
+   *  only (`consoles.tsx#readOpenConsoles`), because a session does not outlive the app. */
+  const [consoles, setConsoles] = useState<string[]>(() => readOpenConsoles())
+  /** Sessions some list has held: a tab is dropped when its session leaves the list, never before it first arrives. */
+  const seenSessions = useRef(new Set<string>())
   // #region saved-tabs-read-authority — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
   /** Claims the one-time read; an in-flight read is not write authority. */
   const restored = useRef(false)
@@ -698,6 +715,7 @@ function Shell({
     // Cmd+W closes a TAB. The agents view is a place, not a tab: there is
     // nothing there to close, and closing "the active tab" while it is up would
     // shut whichever project happened to be behind it.
+    if (active.kind === 'console') { closeConsole(active.sessionId); return }
     const tab = tabOf(active)
     if (tab && tab.kind !== 'home') closeTab(tab)
   }
@@ -746,7 +764,7 @@ function Shell({
   const lastActivity = lastActivityOf(feed)
 
   // The act line: the person's acts since they came to the place on screen (ADR-0160 §1, `ActLine.tsx`).
-  const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind
+  const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind === 'console' ? `console:${active.sessionId}` : active.kind
   useEffect(() => { setPlaceSince(lastSeq.current) }, [placeKey])
   const lineAct = latestPersonAct(feed, placeSince)
 
@@ -770,7 +788,11 @@ function Shell({
   travelRef.current = (dir) => {
     const from = dir === 'back' ? past : future
     const to = dir === 'back' ? future : past
-    const known = (r: AppRoute): boolean => r.kind !== 'project' || (projects ?? []).some((p) => p.id === r.projectId)
+    // A project removed since, or a console whose tab the person closed, is skipped rather than shown blank or reopened.
+    const known = (r: AppRoute): boolean =>
+      r.kind === 'project' ? (projects ?? []).some((p) => p.id === r.projectId)
+      : r.kind === 'console' ? consoles.includes(r.sessionId)
+      : true
     let snap = from.current.pop()
     while (snap && !known(snap.route)) snap = from.current.pop() // a project removed since is skipped, not shown blank
     if (!snap || !shown.current) return
@@ -795,6 +817,53 @@ function Shell({
   }, [isMainWindow])
   // #endregion rail-wiring
 
+  // #region console-tabs-shell — docs: docs/ux/scenarios.md#scn-172-keep-several-consoles-open-as-tabs-along-the-top-and-switch-between-them
+  // A console opens INSIDE the main window (OF-03): every "open the console" control asks through `OpenConsoleContext`,
+  // which lands here. A second open of a session already open switches to its tab and adds none.
+  // Stable (state setters only), so the context's consumers are not handed a new function on every render.
+  const openConsole = useCallback((sessionId: string): Promise<void> => {
+    setShowSettings(false)
+    setWorkspaceFor(null)
+    setConsoles((old) => withConsole(old, sessionId))
+    setActive({ kind: 'console', sessionId })
+    setHonoured(null)
+    return Promise.resolve()
+  }, [])
+  /** Where the person was before the consoles: the newest place in the way back that is not a console. */
+  const placeBeforeConsoles = (): AppRoute => {
+    for (let i = past.current.length - 1; i >= 0; i--) {
+      const r = past.current[i].route
+      if (r.kind === 'console') continue
+      if (r.kind === 'project' && !(projects ?? []).some((p) => p.id === r.projectId)) continue
+      return r
+    }
+    return { kind: 'home' }
+  }
+  /** × on a tab, or ⌘W on a console: the tab goes, the session keeps running in the main process (ADR-0031 §2). */
+  const closeConsole = (sessionId: string): void => {
+    setConsoles((old) => withoutConsole(old, sessionId))
+    if (active.kind !== 'console' || active.sessionId !== sessionId) return
+    const next = neighbourOf(consoles, sessionId)
+    goTo(next ? { kind: 'console', sessionId: next } : placeBeforeConsoles())
+  }
+  const closeConsoleRef = useRef(closeConsole)
+  closeConsoleRef.current = closeConsole
+  // A session the main process no longer holds (dismissed, reaped) takes its tab with it.
+  useEffect(() => {
+    if (sessions === null) return
+    const kept = prunedConsoles(consoles, sessions, seenSessions.current)
+    for (const s of sessions) seenSessions.current.add(s.sessionId)
+    if (kept.length === consoles.length) return
+    for (const id of consoles) if (!kept.includes(id)) closeConsoleRef.current(id)
+  }, [sessions, consoles])
+  useEffect(() => { if (isMainWindow) writeOpenConsoles(consoles) }, [consoles, isMainWindow])
+  const consoleTabs = consoles.map((id) => {
+    const s = (sessions ?? []).find((x) => x.sessionId === id)
+    return { sessionId: id, title: consoleTitleOf(s, projects), runner: s ? runnerLabel(s.optionId, t) : null }
+  })
+  const consoleSession = active.kind === 'console' ? (sessions ?? []).find((x) => x.sessionId === active.sessionId) : undefined
+  // #endregion console-tabs-shell
+
   // ALL HOOKS ABOVE, every return below (S01). These three used to sit at the
   // top, with `useEffect` and `useRef` beneath them — a React invariant
   // violation on the very transition the app makes at boot, when
@@ -818,6 +887,7 @@ function Shell({
     : active.kind === 'home' || active.kind === 'agents' || active.kind === 'history' ? { kind: active.kind }
     : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
+    : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId }
     : { kind: 'elsewhere' }
   const placeTitle = showSettings ? t('rail.settings')
     : active.kind === 'home' ? t('rail.home')
@@ -833,9 +903,11 @@ function Shell({
     : active.kind === 'where' ? t('launch.nav.where')
     : active.kind === 'persona' ? t('settings.more.persona')
     : active.kind === 'welcome' ? t('launch.brand.product')
+    : active.kind === 'console' ? (consoleTitleOf(consoleSession, projects) ?? t('consoles.reading'))
     : t('launch.nav.fabric')
 
   return (
+    <OpenConsoleContext.Provider value={openConsole}>
     <div className="app launch-root">
       {/* 0.3.7 wave 3 (SCN-162): ONE rail with «＋ Создать», the five places and the projects list. No tab strip and no
           Back of Fabric's own (⌘[ and ⌘] above); the places that left the rail are reached from where they belong. */}
@@ -863,6 +935,8 @@ function Shell({
         searchOpen={searchOpen}
         onChat={() => { setChatSuggestion(null); setPanel((p) => togglePanel(p, 'chat', { toggle: true })) }}
         chatOpen={chatOpen}
+        consoles={<ConsoleTabs tabs={consoleTabs} activeId={active.kind === 'console' ? active.sessionId : null}
+          onSelect={(sessionId) => void openConsole(sessionId)} onClose={closeConsole} />}
         actLine={<ActLine act={lineAct} onUndo={(seq) => window.fabric.acts.undo(seq)}
           onUndone={(undone) => { if (undone.record.kind === 'draft.discard') draftsRestored(true) }} />}
       >
@@ -918,6 +992,10 @@ function Shell({
       )}
       {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
       <main className="content" hidden={showSettings}>
+        {active.kind === 'console' && (
+          <SessionWindow key={active.sessionId} sessionId={active.sessionId}
+            onDetach={() => window.fabric.windows.openSession(active.sessionId)} />
+        )}
         {active.kind === 'history' && (
           <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} />
         )}
@@ -1194,12 +1272,13 @@ function Shell({
       </div>
       </LaunchShell>
     </div>
+    </OpenConsoleContext.Provider>
   )
 }
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

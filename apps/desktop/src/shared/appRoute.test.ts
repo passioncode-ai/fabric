@@ -125,6 +125,13 @@ describe('the way back, which nothing read until AX-05', () => {
     expect(returnableTo(null, { kind: 'home' })).toBeNull()
   })
 
+  it('two consoles are two places, one console twice is one (OF-03, SCN-172)', () => {
+    expect(returnableTo({ kind: 'console', sessionId: 's1' }, { kind: 'console', sessionId: 's2' })).toEqual({ kind: 'console', sessionId: 's1' })
+    expect(returnableTo({ kind: 'console', sessionId: 's1' }, { kind: 'console', sessionId: 's1' })).toBeNull()
+    expect(sameRoute({ kind: 'console', sessionId: 's1' }, { kind: 'console', sessionId: 's2' })).toBe(false)
+    expect(sameRoute({ kind: 'console', sessionId: 's1' }, { kind: 'console', sessionId: 's1' })).toBe(true)
+  })
+
   it('but two different drafts are two places', () => {
     expect(returnableTo({ kind: 'draft', id: 'd1' }, { kind: 'draft', id: 'd2' })).toEqual({
       kind: 'draft',

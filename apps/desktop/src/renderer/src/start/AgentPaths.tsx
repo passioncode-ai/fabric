@@ -10,6 +10,7 @@ import { defaultBuilder, mayPick } from '../../../shared/builderChoice.ts'
 import { folderNameProblem, type AdapterSkillsView, type ExecutorRow, type FolderView } from '../../../shared/startPaths.ts'
 import { useLocale, useT, type Translate } from '../i18n'
 import { CopyButton, FolderFactsList, Heading, errorText, explainError, programOf, purposeFrom, reasonOf } from './startParts'
+import { useOpenConsole, type OpenConsole } from '../consoles'
 
 const newId = (): string => crypto.randomUUID()
 
@@ -27,13 +28,13 @@ const newAttempt = (): Attempt => ({ projectId: newId(), taskId: newId(), sessio
 
 /** Start the coding agent in the Project's folder with the instruction, then bring its console forward. A session
  *  this attempt already started is only brought forward again. */
-async function launch(a: Attempt, projectId: string, instruction: string, optionId: string, preset: 'create-agent' | 'adapt-agent'): Promise<void> {
+async function launch(a: Attempt, projectId: string, instruction: string, optionId: string, preset: 'create-agent' | 'adapt-agent', openConsole: OpenConsole): Promise<void> {
   // From the first launch on, the task may be recorded with this coding agent, so the choice is fixed for the
   // attempt; «Use another coding agent» is the way to a different one (a new task in the same Project).
   a.launched = true
   a.agentId = optionId
   if (!a.sessionId) a.sessionId = (await window.fabric.tasks.start({ projectId, taskId: a.taskId, instruction, optionId, preset })).session.sessionId
-  await window.fabric.windows.openSession(a.sessionId)
+  await openConsole(a.sessionId)
 }
 
 /** The sentence a failed attempt shows: once the session runs, it is the console that did not open — never "not
@@ -254,6 +255,7 @@ export function forgetAgentAttempts(): void { keptCreate = null; keptConvert.cle
 
 export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(projectId: string): void }): React.JSX.Element {
   const t = useT()
+  const openConsole = useOpenConsole()
   const kept = keptCreate
   const [name, setName] = useState(kept?.name ?? '')
   const [purpose, setPurpose] = useState(kept?.purpose ?? '')
@@ -374,7 +376,7 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
       if (alive.current) setMade(folder)
       const project = await window.fabric.projects.create({ id: a.projectId, name: base.name, purpose: base.purpose, repoPaths: [folder] })
       a.projectMade = true
-      await launch(a, project.id, t('start.createAgent.instruction', { name: base.name, purpose: base.purpose }), agent, 'create-agent')
+      await launch(a, project.id, t('start.createAgent.instruction', { name: base.name, purpose: base.purpose }), agent, 'create-agent', openConsole)
       if (keptCreate?.attempt === a) keptCreate = null
       // The console window is already forward; a screen the person has since left does not pull them back.
       if (alive.current) onStarted(project.id)
@@ -459,6 +461,7 @@ type ConvertState =
 
 export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(projectId: string): void }): React.JSX.Element {
   const t = useT()
+  const openConsole = useOpenConsole()
   const locale = useLocale()
   const [s, setS] = useState<ConvertState>({ at: 'idle' })
   const [touched, setTouched] = useState(false)
@@ -513,7 +516,7 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
       // A folder already held by a Project adapts there; no second Project for the same folder (ADR-0100 §2).
       const id = f.importedBy[0]?.id ?? (await window.fabric.projects.create({ id: a.projectId, name: f.name, purpose: purposeFrom(f, t), repoPaths: [f.path] })).id
       a.projectMade = true
-      await launch(a, id, t('start.convertAgent.instruction'), builders.chosen, 'adapt-agent')
+      await launch(a, id, t('start.convertAgent.instruction'), builders.chosen, 'adapt-agent', openConsole)
       keptConvert.delete(f.path)
       if (alive.current) onStarted(id)
     } catch (e) {

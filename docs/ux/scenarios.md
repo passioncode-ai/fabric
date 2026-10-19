@@ -175,6 +175,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-169 | Undo an act, or read why it cannot be undone | History | P-01 | ST-033, FLW-97, SCR-88 | draft | unobserved |
 | SCN-170 | Set how Fabric behaves in Настройки | Settings | P-01 | FLW-40, SCR-89 | draft | unobserved |
 | SCN-171 | Start something new from «Создать» — a project, an agent, or a projects folder | Start paths | P-01 | ST-001, ST-050, FLW-98, SCR-90 | draft | unobserved |
+| SCN-172 | Keep several consoles open as tabs along the top and switch between them | Shell | P-01 | ST-032, ST-037, FLW-93, FLW-96, SCR-84, SCR-87 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3995,7 +3996,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Steps:**
   1. Person looks at the rail -> from the top: the PassionCode mark with «Fabric», one button «＋ Создать», the five places «Главная», «Агенты», «История», «Настройки» (Проект is opened from the list below, never a sixth fixed entry), then «Проекты» with the list, and at the foot the person's name with one line of how this computer is («этот Mac · всё работает»).
   2. Person reads the projects list -> favourites first (a gold star), then by latest activity; each row is the project's name, a green dot when an agent works there now, and a gold count when something waits for the person; nothing else on the row.
-  3. Person presses a place or a project -> it opens in the main area; the pressed row is highlighted; there is no tab strip and no back button of Fabric's own — ⌘[ and the swipe go back, ⌘] forward.
+  3. Person presses a place or a project -> it opens in the main area; the pressed row is highlighted; there is no tab strip of places or projects (the only tabs at the top are the open consoles, SCN-172) and no back button of Fabric's own — ⌘[ and the swipe go back, ⌘] forward.
   4. Person presses «＋ Создать» -> «Создать» opens in the main area (SCN-171), not a menu over the page.
   5. Person presses ⌘K -> the search field at the top of the main area takes focus («Найти проект, задачу, агента»).
 - **Expected result:** every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.
@@ -4082,7 +4083,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Preconditions:** none
 - **Steps:**
   1. Person opens Агенты -> two groups: «Агенты для кода на этом компьютере» (Claude Code, Codex, Kimi Code, Hermes… each with whether it is ready, its version, and where it works now) and «Агенты, созданные в Fabric» (each with what it is for and its project); every row says in a sentence what the agent is doing now or «Свободен».
-  2. Person presses «Консоль» on a row -> the agent's console opens in its own window, in the project it works in; a free coding agent asks nothing more and starts in the project last opened, its folder named on the button («Консоль в Fabric»).
+  2. Person presses «Консоль» on a row -> the agent's console opens inside Fabric, full size in the main area, as a tab along the top with its project's name (SCN-172), never in a window of its own; it is the console of the project it works in; a free coding agent asks nothing more and starts in the project last opened, its folder named on the button («Консоль в Fabric»).
   3. Person opens a row -> the agent's view: what it is doing, its recent acts (from История), the projects it may work in, and «Что получает агент» — the rules and tools it is given (the harness, moved here from the project page; plan §4).
   4. Person presses «Создать агента» at the top -> «Создать» opens on its agent path (SCN-171).
 - **Expected result:** every agent the person has is on one list with what it is doing, and its console is one press away.
@@ -4193,4 +4194,26 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: «Создать» in the main area with its three choices, one folder or several, an agent built elsewhere, and the unfinished project drafts to go on with), probed in apps/desktop/src/renderer/src/start/CreateChoices.test.tsx and onboardingDraft.persist.test.tsx; each choice opens today's path (SCN-127…SCN-129, SCN-136), which wave 4 redraws in this frame
+- **Product:** unobserved
+
+### SCN-172: Keep several consoles open as tabs along the top and switch between them
+- **Persona:** P-01
+- **Feature:** Shell
+- **Traces:** ST-032, ST-037, FLW-93, FLW-96, SCR-84, SCR-87 (JTBD-02, JTBD-05); the operator's walk of 2026-10-19, OF-03 ([the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-19-operator-feedback.md))
+- **Entry point:** any «Консоль» or «Открыть консоль» in Fabric: a row in Агенты (SCN-166), «Сейчас» on Главная (SCN-163), the project page (SCN-165), a task's page, «Где идёт работа», a coding agent started from «Создать» (SCN-171)
+- **Preconditions:** a coding agent's session runs in the main process, or has ended and is still held there
+- **Steps:**
+  1. Person presses «Консоль» anywhere -> the console opens inside Fabric, full size in the main area, never in a window of its own; a tab appears in the top bar beside the place's name: the console sign, the project's name (for example «fabric-dashboards»), the coding agent («Claude Code»), and ×; the tab is marked as the one on screen; the rail stays the projects and the places, with the console's project highlighted.
+  2. Person opens a second console -> a second tab, in the order they were opened; the person switches between consoles by pressing their tabs, and goes to any place or project from the rail while the consoles stay open as tabs.
+  3. Person presses «Консоль» for a session whose tab is already open -> Fabric switches to that tab; no second tab.
+  4. Person presses × on a tab, or ⌘W on a console -> the tab goes at once, nothing is asked, and the session goes on running (it is stopped only by «Остановить»); the console beside it comes forward, or, after the last one, the place the person was at before the consoles; the strip leaves the top bar with its last tab.
+  5. Person presses «Открыть в отдельном окне» in the console's header -> the same session opens in a window of its own as well; the tab stays.
+- **Expected result:** the consoles the person works in are in Fabric itself, one press apart, and the top bar says which are open.
+- **Alt paths:** the session ends -> its tab stays with the console's own «завершена» state until the person closes it; the main process lets the session go (it was dismissed) -> its tab goes by itself; the window is reloaded -> the open consoles come back as tabs; Fabric is quit and opened again -> no console tabs, because no session outlives the app; a project's name is not known -> the tab is called by its folder's last part.
+- **UI elements:** the console tabs in the top bar (sign, project, coding agent, ×); the console full size (its coding agent, folder and state, «Остановить», the terminal); «Открыть в отдельном окне».
+- **States covered:** none open (no strip), one, several, active, reading (the session not read yet: «Читаю сессию…» on the tab), ended (the console says so), gone (the session is no longer held: the tab goes), error (the separate window did not open: said under the console's header with the machine's words)
+- **Errors & recovery:** a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.
+- **Telemetry:** planned only.
+- **Status:** implemented
+- **Coverage:** apps/desktop/src/renderer/src/consoles.tsx region `console-tabs` (one way for every control to open a console: inside the shell through `OpenConsoleContext`, the separate window only where there is no shell; the list of open consoles, its order, the neighbour after a close, a gone session dropped only once seen, the tab's name, kept for a reload of the window), apps/desktop/src/renderer/src/launch/ConsoleTabs.tsx region `console-tabs-strip` (the strip in the top bar), apps/desktop/src/renderer/src/App.tsx region `console-tabs-shell` (the `console` route, ⌘W, the rail and the title, the place before the consoles), apps/desktop/src/renderer/src/SessionWindow.tsx («Открыть в отдельном окне»); probed in apps/desktop/src/renderer/src/consoleTabsShell.test.tsx (from Агенты: the tab with the sign and the project, no separate window, a second open adds no tab, × ends nothing), apps/desktop/src/renderer/src/launch/ConsoleTabs.test.tsx, apps/desktop/src/renderer/src/consoles.test.tsx and apps/desktop/src/shared/appRoute.test.ts. Not yet: dragging tabs to reorder them, and the product prototype (scripts/product) draws no console tabs
 - **Product:** unobserved

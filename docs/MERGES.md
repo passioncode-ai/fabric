@@ -9,6 +9,11 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-19T17:00:00Z · `—` · agent/console-tabs → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/renderer/src (consoles.tsx, launch/ConsoleTabs.tsx, App.tsx, SessionWindow.tsx, the eleven console call sites, rail.css, styles.css, i18n), shared/appRoute.ts, docs/ux/scenarios.md (SCN-166, SCN-162, SCN-172), the walk (OF-03), CHANGELOG, docs/reports
+- conflicts: none
+- summary: a coding agent's console opens inside Fabric as a tab along the top with its project's name (OF-03, SCN-172); closing a tab never ends the session; the separate window is a secondary control on the console.
 ### 2026-10-19T16:00:00Z · `—` · agent/session-ended-says-so → main · fast-forward
 - run: r-8db0598178fb
 - files: apps/desktop/src/renderer/src/SessionStop.tsx, its test, SessionWindow.tsx, ProjectHome.tsx, Workspace.tsx, i18n en and ru, the walk (OF-02), CHANGELOG, docs/reports
