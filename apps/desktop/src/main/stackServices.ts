@@ -42,6 +42,7 @@ export async function removeExcludedContainers(
     if (removed.length) await docker(['rm', '-f', ...removed])
     return { removed }
   } catch (e) {
+    // Not silent: the caller records this as `stack.excluded.removed` with `failed` (env.ts), and a start goes on.
     return { removed: [], error: e instanceof Error ? e.message : String(e) }
   }
 }
