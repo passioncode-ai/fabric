@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A quieter top bar and a denser rail.** The top bar holds the place's name and the open consoles, nothing else:
+  search is ⌘K, the profile block and the conversation button are gone, and a line about this computer appears at the
+  foot of the rail only when something needs a look. Projects take less room on the rail (OF-04, OF-05).
 - **Consoles open inside Fabric, as tabs along the top.** «Консоль» no longer opens a separate window: the console
   fills the main area, and each open console is a tab in the top bar with its project's name and its coding agent, so
   you see which are open and switch with one press. Closing a tab never stops the session. «Открыть в отдельном окне»

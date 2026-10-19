@@ -932,9 +932,6 @@ function Shell({
         onCreateProject={startProject}
         onProject={(projectId: string) => { setShowSettings(false); openProject(projectId) }}
         onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
-        searchOpen={searchOpen}
-        onChat={() => { setChatSuggestion(null); setPanel((p) => togglePanel(p, 'chat', { toggle: true })) }}
-        chatOpen={chatOpen}
         consoles={<ConsoleTabs tabs={consoleTabs} activeId={active.kind === 'console' ? active.sessionId : null}
           onSelect={(sessionId) => void openConsole(sessionId)} onClose={closeConsole} />}
         actLine={<ActLine act={lineAct} onUndo={(seq) => window.fabric.acts.undo(seq)}

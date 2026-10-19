@@ -146,10 +146,10 @@ const persistedActive = (write: ReturnType<typeof vi.fn>): Record<string, unknow
   return calls.length ? ((calls[calls.length - 1][0] as { active: Record<string, unknown> | null }).active) : null
 }
 
-/** Open the search panel and run one query. */
+/** Open the search panel with ⌘K (OF-05: the top bar has no search field) and run one query. */
 const searchFor = async (text: string): Promise<void> => {
-  await waitFor(() => expect(document.querySelector('.fab-search')).toBeTruthy())
-  fireEvent.click(document.querySelector('.fab-search') as HTMLElement)
+  await waitFor(() => expect(document.querySelector('.fab-top')).toBeTruthy())
+  fireEvent.keyDown(window, { key: 'k', metaKey: true })
   await waitFor(() => expect(document.querySelector('input')).toBeTruthy())
   fireEvent.change(document.querySelector('input') as HTMLInputElement, { target: { value: text } })
 }

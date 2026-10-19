@@ -1,29 +1,29 @@
 /* The shell of Fabric 0.3.7 (SCN-162, SCR-84): the rail and the top bar, after the prototype's `.sx-rail` and
    `.sx-top` (scripts/product/simple.css). Colours are the app's roles only; gold is for what needs the person. */
-.fab-shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh;background:var(--app-bg)}
-.rail{border-right:1px solid var(--app-line);padding:18px 14px;display:flex;flex-direction:column;gap:2px;background:var(--app-panel);position:sticky;top:0;height:100vh;overflow:hidden;-webkit-app-region:drag}
+.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100vh;background:var(--app-bg)}
+.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;gap:0;background:var(--app-panel);position:sticky;top:0;height:100vh;overflow:hidden;-webkit-app-region:drag}
 .rail a,.rail button{-webkit-app-region:no-drag}
-.rail-brand{display:flex;align-items:center;gap:10px;padding:22px 8px 16px}
-.rail-brand b{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.rail-brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px}
+.rail-brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
 .rail-brand small{display:block;font-size:10.5px;color:var(--app-muted);margin-top:1px}
-.rail-create{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 6px 16px;height:34px;border-radius:9px;background:var(--app-ink);color:var(--app-bg);font:inherit;font-size:13.5px;font-weight:550;border:0;cursor:pointer}
+.rail-create{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 4px 10px;height:30px;border-radius:8px;background:var(--app-ink);color:var(--app-bg);font:inherit;font-size:13px;font-weight:550;border:0;cursor:pointer}
 .rail-create.on{box-shadow:0 0 0 2px var(--app-accent)}
-.rail-create:focus-visible,.rail a:focus-visible,.rail-small:focus-visible,.fab-search:focus-visible,.rail-chat:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
-.rail-places{display:grid;gap:2px}
-.rail-places a,.rail-projects a{display:flex;align-items:center;gap:11px;min-height:34px;padding:0 10px;border-radius:8px;color:var(--app-muted);font-size:13.5px;text-decoration:none}
+.rail-create:focus-visible,.rail a:focus-visible,.rail-small:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+.rail-places{display:grid;gap:0}
+.rail-places a,.rail-projects a{display:flex;align-items:center;gap:9px;min-height:30px;padding:0 8px;border-radius:6px;color:var(--app-muted);font-size:13px;text-decoration:none}
 .rail-places a.on,.rail-projects a.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);color:var(--app-ink)}
 @media(hover:hover){.rail-places a:hover,.rail-projects a:hover{color:var(--app-ink)}}
-.rail-i{width:16px;height:16px;border:1.5px solid currentColor;border-radius:4px;opacity:.85;flex:none}
+.rail-i{width:14px;height:14px;border:1.5px solid currentColor;border-radius:4px;opacity:.85;flex:none}
 .rail-i-agents{border-radius:50%}
 .rail-i-history{border-style:dashed}
 .rail-i-settings{border-radius:3px 8px}
 .rail-n{margin-left:auto;font-size:11px;background:var(--app-accent);color:var(--app-accent-ink);border-radius:999px;padding:1px 7px;font-weight:600}
-.rail-sect{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:20px 10px 8px;margin:0}
+.rail-sect{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:14px 8px 4px;margin:0}
 .rail-projects{flex:1 1 auto;min-height:0;overflow-y:auto}
-.rail-projects ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
-.rail-projects a{min-height:31px;font-size:13px}
+.rail-projects ul{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.rail-projects a{min-height:26px;font-size:12.5px;gap:8px}
 .rail-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rail-dot{width:7px;height:7px;border-radius:50%;background:var(--app-line-strong);flex:none}
+.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--app-line-strong);flex:none}
 .rail-dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
 .rail-star{color:var(--app-accent);font-size:11px;margin-left:-4px}
 .rail-c{margin-left:auto;font-size:11px;color:var(--app-accent);font-weight:600}
@@ -33,22 +33,16 @@
 .rail-machine-words{color:var(--app-muted);font-size:11.5px;overflow-wrap:anywhere}
 .rail-small{min-height:28px;padding:0 10px;margin:4px 10px;border-radius:7px;border:1px solid var(--app-line-strong);background:transparent;color:var(--app-ink);font:inherit;font-size:12px;cursor:pointer}
 .rail-problem .rail-small{margin:6px 0}
-.rail-chat{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-top:8px;border:1px solid var(--app-line);border-radius:10px;background:transparent;color:var(--app-ink);font:inherit;text-align:left;cursor:pointer}
-.rail-chat small{display:block;color:var(--app-muted);font-size:11px}
-.rail-me{margin-top:8px;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--app-line);font-size:12.5px}
-.rail-me small{color:var(--app-muted);display:block;font-size:11px}
-.rail-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pc-brand-plum),var(--pc-brand-magenta));flex:none}
+/* This computer, only when something needs a look (OF-05): one quiet line at the foot of the rail. */
+.rail-machine{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:8px 8px 2px;border-top:1px solid var(--app-line);font-size:12px;color:var(--app-ink)}
+.rail-dot.trouble{background:var(--state-danger)}
 .fab-main{min-width:0;display:flex;flex-direction:column}
-.fab-top{height:56px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 32px;gap:12px;position:sticky;top:0;background:var(--app-bg);z-index:2;-webkit-app-region:drag}
-.fab-top h1{font-size:15px;font-weight:600;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fab-search{margin-left:auto;width:300px;max-width:40%;height:32px;border:1px solid var(--app-line-strong);border-radius:8px;color:var(--app-muted);background:transparent;font:inherit;font-size:12.5px;display:flex;align-items:center;padding:0 12px;gap:8px;cursor:pointer;-webkit-app-region:no-drag}
-.fab-search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fab-search kbd{margin-left:auto;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;border:1px solid var(--app-line-strong);border-radius:4px;padding:0 5px}
-.fab-search[aria-pressed=true]{border-color:var(--app-accent);color:var(--app-ink)}
+.fab-top{height:44px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;background:var(--app-bg);z-index:2;-webkit-app-region:drag}
+.fab-top h1{font-size:14px;font-weight:600;margin:0;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* The open consoles as tabs in the top bar (OF-03, SCN-172): the console sign, the project, the coding agent, ×. */
-.fab-consoles{min-width:0;flex:0 1 auto;overflow-x:auto;-webkit-app-region:no-drag}
+.fab-consoles{min-width:0;flex:0 1 auto;margin-left:auto;overflow-x:auto;-webkit-app-region:no-drag}
 .fab-consoles ul{display:flex;gap:4px;margin:0;padding:0;list-style:none}
-.fab-console{display:flex;align-items:center;height:30px;border:1px solid var(--app-line);border-radius:8px;color:var(--app-muted);flex:none}
+.fab-console{display:flex;align-items:center;height:28px;border:1px solid var(--app-line);border-radius:8px;color:var(--app-muted);flex:none}
 .fab-console.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);border-color:var(--app-line-strong);color:var(--app-ink)}
 .fab-console-open{display:flex;align-items:center;gap:6px;height:100%;padding:0 4px 0 10px;border:0;background:transparent;color:inherit;font:inherit;font-size:12.5px;cursor:pointer;max-width:240px}
 .fab-console-sign{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;opacity:.8}
@@ -62,9 +56,9 @@
 /* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
 @media(max-width:900px){
   .fab-shell{grid-template-columns:64px minmax(0,1fr)}
-  .rail{padding:18px 8px}
-  .rail-brand div,.rail-sect,.rail-projects .rail-name,.rail-places .rail-name,.rail-me div,.rail-chat span,.rail-muted,.rail-problem p{display:none}
-  .rail-create{font-size:0;margin:0 4px 12px}.rail-create span{font-size:15px}
+  .rail{padding:12px 8px}
+  .rail-brand div,.rail-sect,.rail-projects .rail-name,.rail-places .rail-name,.rail-machine .rail-name,.rail-muted,.rail-problem p{display:none}
+  .rail-create{font-size:0;margin:0 4px 10px}.rail-create span{font-size:15px}
   .rail-places a,.rail-projects a{justify-content:center;padding:0}
   .rail-n,.rail-c{margin-left:0}
 }
