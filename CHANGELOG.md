@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Docker no longer brings back services Fabric does not use.** Containers an older full start had left (the
+  database studio, its logs, mail and file storage) started again with every Docker or OrbStack restart and took about
+  1.4 GB of memory. Fabric now removes them when it starts its local database; the data stays.
 - **An agent started deep inside a repository adds the repository, not the folder it started in**, and removing one
   copy of a repository from a project no longer keeps every other copy of it out. This is the first step of one
   shared answer to "which project is this folder" across Fabric, Switchboard and Project Observatory (ADR-0166).

@@ -12,7 +12,7 @@ import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
-import { STACK_EXCLUDED_SERVICES } from './stackServices.ts'
+import { STACK_EXCLUDED_SERVICES, removeExcludedContainers } from './stackServices.ts'
 import { startWithRetry } from '../shared/stackStartRetry.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
@@ -146,6 +146,11 @@ async function startStackOnce(onLine?: (line: string) => void): Promise<void> {
   } finally {
     starting = null
   }
+  // CO-333: containers of the excluded services an older full start left keep coming back with every Docker restart.
+  const swept = await removeExcludedContainers('fabric', async (args) =>
+    (await run('docker', args, { encoding: 'utf8', timeout: 30_000 })).stdout)
+  if (swept.removed.length || swept.error)
+    ops.record({ op: 'stack.excluded.removed', outcome: swept.error ? 'failed' : 'ok', level: swept.error ? 'warn' : 'info', detail: { removed: swept.removed, ...(swept.error ? { why: swept.error.slice(0, 200) } : {}) }, ctx: { correlationId: ops.correlate() } })
 }
 
 export async function resolveSupabaseEnv(): Promise<SupabaseEnv> {

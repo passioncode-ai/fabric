@@ -13,4 +13,36 @@
 export const STACK_EXCLUDED_SERVICES = Object.freeze([
   'realtime', 'storage-api', 'imgproxy', 'mailpit', 'postgres-meta', 'studio', 'edge-runtime', 'logflare', 'vector', 'supavisor'
 ])
+
+/** The container each excluded service runs as, by the Supabase CLI's naming (`supabase_<name>_<project_id>`). */
+const CONTAINER_OF: Readonly<Record<string, string>> = Object.freeze({
+  realtime: 'realtime', 'storage-api': 'storage', imgproxy: 'imgproxy', mailpit: 'inbucket', 'postgres-meta': 'pg_meta',
+  studio: 'studio', 'edge-runtime': 'edge_runtime', logflare: 'analytics', vector: 'vector', supavisor: 'pooler'
+})
+
+export function excludedContainers(projectId: string): string[] {
+  return STACK_EXCLUDED_SERVICES.map((service) => `supabase_${CONTAINER_OF[service] ?? service}_${projectId}`)
+}
+
+/**
+ * CO-333. `-x` only keeps `supabase start` from starting a service; a container an older full start created
+ * stays, with `restart: unless-stopped`, and every Docker or OrbStack restart brings it back (measured
+ * 2026-10-19: seven such containers from 2026-09-28, ~1.4 GiB and their logs, on a VM that was failing for
+ * lack of disk). After a start, the excluded containers of THIS project that exist are removed; their data
+ * volumes stay, so a full `supabase start` brings any of them back. Best effort: a docker that does not answer
+ * is reported to the caller, never thrown, and never stops Fabric from starting.
+ */
+export async function removeExcludedContainers(
+  projectId: string,
+  docker: (args: string[]) => Promise<string>
+): Promise<{ removed: string[]; error?: string }> {
+  try {
+    const present = new Set((await docker(['ps', '-a', '--format', '{{.Names}}'])).split('\n').map((n) => n.trim()).filter(Boolean))
+    const removed = excludedContainers(projectId).filter((name) => present.has(name))
+    if (removed.length) await docker(['rm', '-f', ...removed])
+    return { removed }
+  } catch (e) {
+    return { removed: [], error: e instanceof Error ? e.message : String(e) }
+  }
+}
 // #endregion stack-services

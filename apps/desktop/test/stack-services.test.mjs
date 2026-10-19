@@ -20,3 +20,34 @@ test('the app starts its stack with that exclusion list', () => {
   const env = readFileSync(path.join(repo, 'apps/desktop/src/main/env.ts'), 'utf8')
   assert.match(env, /run\('supabase', \['start', '-x', STACK_EXCLUDED_SERVICES\.join\(','\)\]/)
 })
+
+// CO-333 (2026-10-19): containers of the excluded services left by an older full `supabase start` keep
+// `restart: unless-stopped`, so every Docker or OrbStack restart brought them back (~1.4 GiB and their logs).
+const { excludedContainers, removeExcludedContainers } = await import('../src/main/stackServices.ts')
+
+test('the excluded services name their Supabase containers for this project, and nothing Fabric calls', () => {
+  const names = excludedContainers('fabric')
+  assert.ok(names.includes('supabase_studio_fabric'))
+  assert.ok(names.includes('supabase_analytics_fabric'), 'logflare runs as supabase_analytics_<project>')
+  assert.ok(names.includes('supabase_inbucket_fabric'), 'mailpit runs as supabase_inbucket_<project>')
+  for (const kept of ['supabase_db_fabric', 'supabase_rest_fabric', 'supabase_kong_fabric', 'supabase_auth_fabric'])
+    assert.ok(!names.includes(kept), kept + ' is called by Fabric and must stay')
+})
+
+test('only the excluded containers that exist are removed; a docker that fails is reported, never thrown', async () => {
+  const calls = []
+  const exec = async (args) => {
+    calls.push(args)
+    if (args[0] === 'ps') return 'supabase_db_fabric\nsupabase_studio_fabric\nsupabase_vector_fabric\nother_studio_x\n'
+    return ''
+  }
+  const out = await removeExcludedContainers('fabric', exec)
+  assert.deepEqual(out, { removed: ['supabase_studio_fabric', 'supabase_vector_fabric'] })
+  assert.deepEqual(calls[1], ['rm', '-f', 'supabase_studio_fabric', 'supabase_vector_fabric'])
+
+  const none = await removeExcludedContainers('fabric', async () => 'supabase_db_fabric\n')
+  assert.deepEqual(none, { removed: [] })
+  const broken = await removeExcludedContainers('fabric', async () => { throw new Error('docker: not found') })
+  assert.equal(broken.removed.length, 0)
+  assert.match(broken.error, /docker: not found/)
+})
