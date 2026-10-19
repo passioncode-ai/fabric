@@ -55,12 +55,22 @@ export function SessionStop({ session, refresh, onError }: {
     try { await refresh() } catch (e) { onError(String(e)) }
   }
   const currentReceipt = receipt ?? session.termination
+  // CO-327, ADR-0170: an ended run of a task, whose Stop the host cannot prove, waits for the person to say it is over.
+  const attestable = (r: TerminalTermination | undefined | null): boolean =>
+    !!r && r.state === 'outcome_unknown' && 'managed' in r && r.managed === true && !!r.runId && !!r.commandId && !!r.taskId
+  const attestOver = async () => {
+    setPending(true)
+    try { setReceipt(await window.fabric.terminal.attestOver(session.sessionId)) }
+    catch (e) { onError(String(e)) }
+    finally { setPending(false) }
+    try { await refresh() } catch (e) { onError(String(e)) }
+  }
   const writerBlocked = currentReceipt && currentReceipt.state !== 'requested' && currentReceipt.managed === true
   const unresolved = state === 'outcome_unknown' || state === 'refused'
   const ended = !pending && processEnded(session, currentReceipt ?? undefined)
   return <div>
     {receipt && receipt.state !== session.termination?.state && <div role="status"><StopStatus state={receipt} /></div>}
-    {unresolved && <p className="muted">{t(ended ? 'session.endedHelp' : state === 'refused' ? 'session.stop.refusedHelp' : 'session.stop.unknownHelp')}</p>}
+    {unresolved && <p className="muted">{t(ended && attestable(currentReceipt) ? 'session.runOverHelp' : ended ? 'session.endedHelp' : state === 'refused' ? 'session.stop.refusedHelp' : 'session.stop.unknownHelp')}</p>}
     {unresolved && writerBlocked && !ended && <p className="muted">{t('session.stop.writerBlocked')}</p>}
     <Toolbar>
       {state === 'stopped' ? <Button tone="ghost" onClick={async () => {
@@ -72,6 +82,7 @@ export function SessionStop({ session, refresh, onError }: {
           {t(state === 'requested' ? 'session.stop.requested' : unresolved ? 'session.stop.retry' : 'session.stop.action')}
         </Button>
         {state === 'outcome_unknown' && !ended && <Button tone="ghost" disabled={pending} onClick={() => void stop(true)}>{t('session.stop.force')}</Button>}
+        {ended && attestable(currentReceipt) && <Button disabled={pending} onClick={() => void attestOver()}>{t('session.runOver')}</Button>}
       </>}
     </Toolbar>
   </div>

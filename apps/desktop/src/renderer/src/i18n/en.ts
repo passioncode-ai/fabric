@@ -888,6 +888,8 @@ export const en = {
   'session.gone': 'This session is gone. You can close the window.',
   'session.unreadable': 'This session could not be read: {reason}. That says nothing about the session itself — it is about the read.',
   'session.stale': 'This reading is not current: {reason}. What is below is the last answer, not the latest one.',
+  'session.runOver': "Work is over",
+  'session.runOverHelp': "The agent's process has ended, and Fabric cannot prove its provider stopped too. If you know the work is over, say so: the task becomes free, and you can undo it.",
 
   'settings.notSaved': 'Settings were not saved: {reason}. The screen shows what is on disk.',
   'settings.recovered':
@@ -1347,6 +1349,8 @@ export const en = {
   'event.run.started@1': 'a task run began',
   'event.run.bound@1': 'a run was attached to the session that actually ran it',
   'event.run.ended@1': 'a task run ended',
+  'event.run.stop_attested@1': "marked as over by the person; the task is free",
+  'event.run.stop_attestation_revoked@1': "«work is over» taken back; the task is held again",
   'event.session.ended@1': 'a session ended, and this is what the evidence says about why',
   'event.cycle.ran@1': 'the scheduled pass ran',
   'event.session.observed@1': 'the watcher changed what it thinks a session is doing',
@@ -2607,6 +2611,14 @@ export const en = {
   'act.why.unreadable': "Fabric could not read whether it can",
   'act.why.no_inverse': "this act has no way back",
   'act.why.other': "Fabric cannot undo it",
+  'act.why.run_gone': "that run is no longer on record",
+  'act.why.run_resolved': "the run is already settled",
+  'act.why.not_attested': "nobody marked this run as over",
+  'act.why.task_moved_on': "the task has moved on since: a new run or another agent has it",
+  'act.why.run_still_running': "the session is still running",
+  'act.why.person_required': "only a person can say the work is over",
+  'act.run.attest': "Work on «{task}» marked as over; the task is free",
+  'act.run.unattest': "«{task}» is held again until its run is settled",
   // 0.3.7 wave 3: История, the list of acts (SCN-168, SCN-169); wave 4 adds its filters and detail.
   'acts.title': "History",
   'acts.lede': "Every act, yours and the agents\u2019, newest first. Undo is one press where an act can be taken back.",

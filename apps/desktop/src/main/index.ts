@@ -379,6 +379,7 @@ import type { DraftFile, DiscardedFile } from '../shared/onboardingDraft.ts'
 import { createActs } from './acts.ts'
 import { createActLog } from './actLog.ts'
 import { createWorldExecutors } from './actExecutors.ts'
+import { createRunOverExecutors } from './actRunExecutors.ts'
 import { createSessionExecutors, sessionStopOutcome, type ConsoleSnapshot } from './actSessionExecutors.ts'
 import { createDraftExecutors } from './actDraftExecutors.ts'
 import { actQueryOf, answerOf } from './actIpc.ts'
@@ -3743,6 +3744,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         sessionLive: (id) => heldSessions().some((s) => s.sessionId === id), pathExists: (p) => existsSync(p),
         newId: () => randomUUID(), now: () => Date.now(), foldersChanged: refreshFileRoots
       }),
+      ...createRunOverExecutors({
+        rpc: (name, args) => db.rpc(name, args) as never, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR as { kind: 'person'; id: string },
+        taskTitle: async (id) => ((await store.select('project_tasks', 'title').eq('id', id).maybeSingle()).data as { title?: string } | null)?.title ?? null,
+        projectOf: async (id) => ((await store.select('project_tasks', 'project_id').eq('id', id).maybeSingle()).data as { project_id?: string } | null)?.project_id ?? null,
+        stopOf: async (id) => ((await store.select('run_stop_commands', 'state,basis').eq('command_id', id).maybeSingle()).data as { state: string; basis: string | null } | null) ?? null
+      }),
       ...createSessionExecutors({
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
         stop: async (sessionId) => {
@@ -4842,6 +4849,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
     return result
   })
+  // #region terminal-attest-over — docs: docs/adr/0170-the-person-says-an-ended-runs-work-is-over.md#decision
+  // «Работа закончена» (CO-327): the person's attestation goes through the act service, so it is recorded with its undo.
+  handle(IPC.terminalAttestOver, async (_e, sessionId: string): Promise<Returns<FabricApi['terminal']['attestOver']>> => {
+    if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
+    const t = ptys.get(sessionId)?.termination
+    if (!t || t.state !== 'outcome_unknown' || !t.runId || !t.taskId || !t.commandId) throw new Error('this session has no run whose end is unknown')
+    const result = await acts.perform('run.attest', { run_id: t.runId, session_id: sessionId, command_id: t.commandId, task_id: t.taskId })
+    if (!result.ok) throw new Error(result.says ?? result.reason)
+    const settled = { ...t, state: 'stopped' as const, basis: 'attested' as const, reasonCode: 'attested', ...(result.seq !== null ? { receiptSeq: result.seq } : {}) }
+    ptys.setTermination(settled)
+    return settled
+  })
+  // #endregion terminal-attest-over
   handle(IPC.terminalDismiss, (_e, sessionId: string): Returns<FabricApi['terminal']['dismiss']> => {
     ptys.dismiss(sessionId)
     sessionWindows.get(sessionId)?.close()

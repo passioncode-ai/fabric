@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A task is no longer stuck after its agent ended.** When an agent's process has ended but Fabric cannot prove its
+  provider stopped, the console offers «Работа закончена»: the task goes back to the queue and can be taken again, and
+  «Отменить» on the act line holds it again (ADR-0170).
 - **A console is your own setup.** Claude Code in a Fabric console now has your MCP servers (Observatory, your plugins)
   beside Fabric's, and Codex runs with your own `AGENTS.md`, plugins, trust and sign-in instead of an empty copy;
   Fabric no longer copies your Codex sign-in. A console also finds the same programs your terminal does. An agent you
