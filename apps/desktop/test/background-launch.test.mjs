@@ -9,8 +9,9 @@ import path from 'node:path'
 
 const src = readFileSync(path.join(import.meta.dirname, '../src/main/index.ts'), 'utf8')
 
-test('the flag is read once from argv', () => {
-  assert.match(src, /const BACKGROUND_LAUNCH = process\.argv\.includes\('--background'\)/)
+test('the flag is read from argv, and a start at login counts as a background start (CO-322)', () => {
+  assert.match(src, /let BACKGROUND_LAUNCH = process\.argv\.includes\('--background'\)/)
+  assert.match(src, /BACKGROUND_LAUNCH = startsInBackground\(process\.argv, app\.getLoginItemSettings\(\)\.wasOpenedAtLogin\)/)
 })
 test('a background launch shows no splash', () => {
   assert.match(src, /const splash = process\.env\.SMOKE \|\| BACKGROUND_LAUNCH \? null : splashWindow\(/)
