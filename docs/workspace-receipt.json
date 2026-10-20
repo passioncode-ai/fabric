@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "25e172affe1825e4d66d25a0c4279c65de4f631f",
-  "workspace_commit": "c6b30b8b89009d4767aa5a650e2305e37816b2bc",
-  "content_digest": "0ac24e55a317af91e4ef7c6453e6120582c4f85f8736ad162386bef7c1ab125c",
+  "workspace_commit": "3d8638cbe446618e5bcea111f8dcd234f5276ca8",
+  "content_digest": "2846412f27305887f274074e98c2bc8ee9e442cd823604c2d925b12f54b4929d",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "07e2e576-48cb-4678-aa7f-5ff83f9394e7",
+  "deployment": "f5b39307-b81d-4aba-be66-72c6555af2ec",
   "fabric_digest": "90bdd71b7bd85cb73fa300349209eaf0e9f96f01bb1349faa4f10cddc5545b20",
   "sources": [
     {
@@ -53,8 +53,8 @@
     {
       "id": "project-observatory-dashboard",
       "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
-      "commit": "443cefacd04e021aeea386dc753f8c1295d8f8d5",
-      "files_digest": "a00a1e498e07ba78b226632d812edef37749480aafcc1664dfc50d2018bdf4df"
+      "commit": "18062e1cf3d411d569941a6776600cd29af434d8",
+      "files_digest": "8354e90b75faca2d07e7c687eaf9f29d7287b2ad70415c63bbbdad0ad02b16d2"
     },
     {
       "id": "project-observatory-contract",
