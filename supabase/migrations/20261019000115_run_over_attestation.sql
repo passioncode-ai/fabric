@@ -12,7 +12,7 @@ alter table run_stop_commands add constraint run_stop_commands_basis_check check
 
 insert into event_types (type, projects, note) values
   ('run.stop_attested@1', true, 'the person said the work of a run whose Stop had an unknown outcome is over, after its session process ended; the Stop completes with the basis attested and the task is free (ADR-0170)'),
-  ('run.stop_attestation_revoked@1', true, 'the person took back their «работа закончена»: the Stop is of unknown outcome again and the task is held (ADR-0170)')
+  ('run.stop_attestation_revoked@1', false, 'the person took back their «работа закончена»: the Stop is of unknown outcome again and the task is held (ADR-0170)')
 on conflict (type) do nothing;
 
 -- Whether the session's own process has ended: the same receipts the managed Stop reads.
