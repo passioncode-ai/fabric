@@ -34,11 +34,13 @@ import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { folderProjectId, gitCommonDir, gitTopLevel } from './folderResolver.ts'
+import { folderProjectId, gitTopLevel } from './folderResolver.ts'
+import { readGitFacts } from './gitFacts.ts'
+import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { loginItemFor, startsInBackground } from '../shared/loginItem.ts'
+import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
 import { readHome, readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
@@ -164,7 +166,7 @@ const DECISION_CAP = 200
 
 /** How much routine history one automations read carries, per window. */
 const AUTOMATION_WINDOW = 200
-import { type AnswerOption } from '../shared/answerCommit'
+import { answerSaid, type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
@@ -382,7 +384,7 @@ import type { DraftFile, DiscardedFile } from '../shared/onboardingDraft.ts'
 import { createActs } from './acts.ts'
 import { createActLog } from './actLog.ts'
 import { createWorldExecutors } from './actExecutors.ts'
-import { createRunOverExecutors } from './actRunExecutors.ts'
+import { createRunOverConsole, createRunOverExecutors, runOverRefusal } from './actRunExecutors.ts'
 import { createSessionExecutors, sessionStopOutcome, type ConsoleSnapshot } from './actSessionExecutors.ts'
 import { createDraftExecutors } from './actDraftExecutors.ts'
 import { actQueryOf, answerOf } from './actIpc.ts'
@@ -602,10 +604,20 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
     if (atStart && process.platform === 'darwin' && app.isPackaged)
       BACKGROUND_LAUNCH = startsInBackground(process.argv, app.getLoginItemSettings().wasOpenedAtLogin)
     const item = loginItemFor(enabled, process.platform, app.isPackaged)
-    if (item) app.setLoginItemSettings(item)
+    if (!item) return
+    app.setLoginItemSettings(item)
+    // setLoginItemSettings returns nothing on a refusal; the system's own status is the only receipt (ER-3).
+    const state = readLoginItem()
+    if (state.supported && enabled && state.system !== 'on')
+      ops.record({ op: 'app.login-item', outcome: 'unknown', level: 'warn', detail: { enabled, system: state.system }, ctx: { correlationId: ops.correlate() } })
   } catch (e) {
     ops.failed('app.login-item', e, { enabled })
   }
+}
+/** What the system says about Fabric's login item; never throws (a refused read is `unknown`). */
+function readLoginItem(): LoginItemState {
+  return loginItemState(process.platform, app.isPackaged, () =>
+    app.getLoginItemSettings(process.platform === 'win32' ? { args: ['--background'] } : undefined))
 }
 // #endregion background-launch
 
@@ -1023,14 +1035,19 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         resolveProject: (folder) => resolveProject(folder, {
           admitted: enrollFolders.admittedFolders,
           detached: readRepoRemovals,
-          realpath: enrollFolders.realpath,
+          // Off the main thread (0.3.7 review ER-6): a caller's path on a mount that does not answer no longer stalls
+          // the window; the resolve's own deadline answers `pending` meanwhile.
+          realpath: (p) => fsPromises.realpath(p).catch(() => null),
+          // DEC-0092 (0.3.7 review PL-4): a folder outside Git is null; a probe that failed or timed out is
+          // `unreadable`, and the answer is `pending` rather than a plain-folder attribution.
           git: async (dir) => {
-            const top = await gitTopLevel(dir)
-            const common = top ? await gitCommonDir(dir) : null
-            if (!top || !common) return null
-            // An origin that cannot be read is no origin: the rules then match by common dir alone.
-            const origin = await originOf(dir).catch(() => null)
-            return { toplevel: top, commonDir: common, origin }
+            const r = await readGitFacts(dir)
+            if (r.kind === 'none') return null
+            if (r.kind === 'unreadable') {
+              ops.record({ op: 'hub.project.resolve.git', outcome: 'failed', level: 'warn', detail: { why: r.why }, ctx: { correlationId: ops.correlate() } })
+              return { unreadable: r.why }
+            }
+            return { toplevel: r.toplevel, commonDir: r.commonDir, origin: r.origin }
           },
           home: homedir(),
           tempRoots: existingTempRoots(),
@@ -3182,7 +3199,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           const text = ((q.data as { text?: string } | null)?.text ?? '').trim()
           await acts.note({ kind: 'question.answer', projectId: input.projectId, refSeq: typeof r.answered_seq === 'number' ? r.answered_seq : null,
             subject: { type: 'question', id: input.questionId, label: text.slice(0, 120) || null },
-            said: { key: 'act.question.answer', params: { question: text.slice(0, 120) || null, answer: (input.chosenOption ?? input.answer ?? '').slice(0, 120) } },
+            said: { key: 'act.question.answer', params: { question: text.slice(0, 120) || null, answer: answerSaid(input).slice(0, 120) } },
             inverse: { kind: 'question.reopen', args: { question_id: input.questionId } } })
         } catch (e) { ops.failed('acts.answer-note', e, { question_id: input.questionId }) }
       }
@@ -3784,7 +3801,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         rpc: (name, args) => db.rpc(name, args) as never, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR as { kind: 'person'; id: string },
         taskTitle: async (id) => ((await store.select('project_tasks', 'title').eq('id', id).maybeSingle()).data as { title?: string } | null)?.title ?? null,
         projectOf: async (id) => ((await store.select('project_tasks', 'project_id').eq('id', id).maybeSingle()).data as { project_id?: string } | null)?.project_id ?? null,
-        stopOf: async (id) => ((await store.select('run_stop_commands', 'state,basis').eq('command_id', id).maybeSingle()).data as { state: string; basis: string | null } | null) ?? null
+        stopOf: async (id) => ((await store.select('run_stop_commands', 'state,basis').eq('command_id', id).maybeSingle()).data as { state: string; basis: string | null } | null) ?? null,
+        // UX-1 / ER-7: the console follows the act both ways, so «Отменить» gives back «Работа закончена».
+        settled: createRunOverConsole({ get: (id) => ptys.get(id)?.termination, set: (t) => ptys.setTermination(t) }).settled
       }),
       ...createSessionExecutors({
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
@@ -4165,7 +4184,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // window reads as a decision made once.
     const [read, total] = await Promise.all([
       store
-        .select('memory_facts', 'id,claim,source_ref,actor_kind,recorded_at,superseded_by')
+        .select('memory_facts', 'id,claim,source_ref,actor_kind,recorded_at,superseded_by,valid_to')
         .eq('project_id', projectId)
         .eq('kind', 'decision')
         .order('recorded_at', { ascending: false })
@@ -4603,6 +4622,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Read-only: Switchboard's catalogue of coding agents for Settings (0.6.31+; agentCatalogRead.ts).
   handle(IPC.settingsAgentCatalog, (): Promise<Returns<FabricApi['settings']['agentCatalog']>> =>
     readMachineAgentCatalog(sessionEnvironment(process.env)))
+  // Read-only: whether launch at login is offered here, and what the system reports (0.3.7 review UX-3, ER-3).
+  handle(IPC.settingsLoginItem, (): Returns<FabricApi['settings']['loginItem']> => readLoginItem())
   handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
     // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
     const checked = settingsPatch(raw)
@@ -4891,12 +4912,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.terminalAttestOver, async (_e, sessionId: string): Promise<Returns<FabricApi['terminal']['attestOver']>> => {
     if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
     const t = ptys.get(sessionId)?.termination
-    if (!t || t.state !== 'outcome_unknown' || !t.runId || !t.taskId || !t.commandId) throw new Error('this session has no run whose end is unknown')
+    if (!t || t.state === 'requested' || !t.runId || !t.taskId || !t.commandId) return { ok: false, why: 'run_gone' }
+    if (t.state !== 'outcome_unknown') return { ok: false, why: 'run_resolved' }
     const result = await acts.perform('run.attest', { run_id: t.runId, session_id: sessionId, command_id: t.commandId, task_id: t.taskId })
-    if (!result.ok) throw new Error(result.says ?? result.reason)
-    const settled = { ...t, state: 'stopped' as const, basis: 'attested' as const, reasonCode: 'attested', ...(result.seq !== null ? { receiptSeq: result.seq } : {}) }
-    ptys.setTermination(settled)
-    return settled
+    if (!result.ok) return { ok: false, ...runOverRefusal(result) }
+    // The executor's `settled` (createRunOverConsole) already settled the console; this is the same receipt read back.
+    const now = ptys.get(sessionId)?.termination
+    return { ok: true, receipt: now && now.state === 'stopped' ? now : { ...t, state: 'stopped', basis: 'attested', reasonCode: 'attested' } }
   })
   // #endregion terminal-attest-over
   handle(IPC.terminalDismiss, (_e, sessionId: string): Returns<FabricApi['terminal']['dismiss']> => {

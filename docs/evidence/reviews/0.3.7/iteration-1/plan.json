@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "ff13325f1f156d1f1ac0d781a2732249d9acdb6d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-plan.md",
+  "reportSha256": "fdffd754e408152eb1c10d2f02ed2ba274ab92c14ba541cf5819fe772a82053e",
+  "reviewerRun": "release-037-i1-plan-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-47",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: wave 4 moved to 0.3.8 (P-20) in the plan, the final pass and the ledger; CHANGELOG overclaims removed"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19 and the Now line describe this 0.3.7; P-19 in lane 2; the onboarding plan annotated; CO-291 lands with wave 4"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "PL-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rows re-dated 0.3.8 citing the final pass; CO-277 ruled here (V1 PL-3); CO-326 and CO-322's permission check given their status"
+      ]
+    },
+    {
+      "id": "V1-50",
+      "source": "PL-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: DEC-0092 `pending` shipped (`main/gitFacts.ts`, `projectResolve.ts`; watched); CT-66 is CO-343"
+      ]
+    },
+    {
+      "id": "V1-51",
+      "source": "PL-5 (blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled: posted on `cb31a510` at release with the login item delivered and the updater 0.4.0 (P-12, CO-344); the knowledge base changes with fabric-workspace's next session (Release close)"
+      ]
+    },
+    {
+      "id": "V1-52",
+      "source": "PL-6 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-1, DO-2; CT-26 in the notes"
+      ]
+    },
+    {
+      "id": "V1-53",
+      "source": "PL-7 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-331 rewritten to the amendment"
+      ]
+    },
+    {
+      "id": "V1-54",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this ledger; `release-gate.json` and the version at the release commit"
+      ]
+    },
+    {
+      "id": "V1-55",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close lists each with its thread"
+      ]
+    },
+    {
+      "id": "V1-56",
+      "source": "PL-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-344 (FD-12, 0.4.0) and CO-345 (DEC-0093, 0.3.8)"
+      ]
+    },
+    {
+      "id": "V1-57",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-9; CO-309 names 117/118"
+      ]
+    },
+    {
+      "id": "V1-58",
+      "source": "PL-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: a release step: published and pinned after the release commit (Release close)"
+      ]
+    }
+  ]
+}

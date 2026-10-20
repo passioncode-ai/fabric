@@ -47,8 +47,9 @@ import type { LaunchOption, SurfaceTool } from './types.ts'
 export interface HarnessServer {
   name: string
   endpoint: string
-  /** `--strict-mcp-config`: true only for a created agent's session (CO-325); a console keeps the operator's
-   *  own MCP servers beside this one. */
+  /** `--strict-mcp-config`: true for a created agent's session and for any session that carries gateway role keys
+   *  (ADR-0169 decision 3); a console in a project that declares no MCP servers keeps the operator's own servers
+   *  beside this one (CO-325). */
   strict: boolean
 }
 

@@ -123,3 +123,29 @@ describe('which act the line shows', () => {
     expect(latestPersonAct([ev(5, 'person', { v: 1, kind: 'nonsense' })], 0)).toBeNull()
   })
 })
+
+// 0.3.7 review UX-6: a console's runner was baked into the record by main, so a shell read «Terminal» in Russian and a
+// created agent its uuid. The record now carries the runner id and the sentence words it in the person's language.
+describe('a console’s name in the act sentence', () => {
+  const stop = (params: Record<string, string | null>) => record({
+    kind: 'session.stop', subject: { type: 'session', id: 's1', label: params.agent ?? null },
+    said: { key: 'act.session.stop', params: { project: 'Atlas', ...params } }, inverse: null
+  })
+  const uuid = '3f2a9c1e-7b4d-4e8a-9c21-5d6f7e8a9b0c'
+  it('words the runner in Russian, from its id', () => {
+    const t = translator('ru')
+    expect(actSentence(t, stop({ agent: 'Terminal', runner: 'shell' }))).toBe(ru['act.session.stop']!.replace('{agent}', ru['agents.terminal']!).replace('{project}', 'Atlas'))
+  })
+  it('never shows a created agent’s uuid; its own name when the record has one', () => {
+    const t = translator('ru')
+    expect(actSentence(t, stop({ agent: uuid, runner: uuid }))).not.toContain(uuid)
+    expect(actSentence(t, stop({ agent: uuid, runner: uuid }))).toContain(ru['agents.createdAgent']!)
+    expect(actSentence(t, stop({ agent: 'Scout', runner: uuid }))).toContain('Scout')
+  })
+  it('maps a record written before the id was kept', () => {
+    const t = translator('ru')
+    expect(actSentence(t, stop({ agent: 'Terminal' }))).toContain(ru['agents.terminal']!)
+    expect(actSentence(t, stop({ agent: uuid }))).not.toContain(uuid)
+    expect(actSentence(translator('en'), stop({ agent: 'Codex', runner: 'codex' }))).toContain('Codex')
+  })
+})

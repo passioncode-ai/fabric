@@ -185,7 +185,10 @@ describe('the agent history window', () => {
     fabric.terminal.history = async () => events(201)
     const view = render(<EstateAgents sessions={[session]} projects={[project]} onOpen={() => {}} onError={() => {}} />)
     await selectTheAgent()
-    expect(await screen.findByTestId('history-earlier')).toBeTruthy()
+    const note = await screen.findByTestId('history-earlier')
+    // Newest first: the note sits under the oldest row, not above the newest (0.3.7 review UX-12).
+    const flow = screen.getByTestId('agent-flow')
+    expect(flow.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     view.unmount()
     harness()
     ;(window as unknown as { fabric: { terminal: { history: () => Promise<unknown[]> } } }).fabric.terminal.history = async () => events(200)

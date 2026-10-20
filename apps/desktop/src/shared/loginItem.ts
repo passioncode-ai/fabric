@@ -14,6 +14,32 @@ export function loginItemFor(enabled: boolean, platform: string, packaged: boole
   return null
 }
 
+/**
+ * What Settings may say about launch at login (0.3.7 review UX-3, ER-3, DO-6). `supported: false` where Fabric
+ * registers nothing (Linux, a development build), so the row is not drawn there. Where it is drawn, `system` is
+ * what the system itself reports, not the stored wish: on macOS SMAppService's status (`requires-approval` when the
+ * person must allow Fabric in Login Items, `not-registered` when they turned it off there), on Windows whether the
+ * Run entry will start at login (a person can disable it in Startup apps). A read that throws is `unknown`.
+ */
+export type LoginItemSystem = 'on' | 'off' | 'needs-approval' | 'unknown'
+export type LoginItemState = { supported: false } | { supported: true; platform: 'darwin' | 'win32'; system: LoginItemSystem }
+export type LoginItemReading = { status?: string; executableWillLaunchAtLogin?: boolean }
+
+export function loginItemState(platform: string, packaged: boolean, read: () => LoginItemReading): LoginItemState {
+  if (loginItemFor(true, platform, packaged) === null) return { supported: false }
+  const os = platform === 'win32' ? 'win32' : 'darwin'
+  let system: LoginItemSystem = 'unknown'
+  try {
+    const r = read()
+    if (os === 'darwin')
+      system = r.status === 'enabled' ? 'on' : r.status === 'requires-approval' ? 'needs-approval' : r.status === 'not-registered' || r.status === 'not-found' ? 'off' : 'unknown'
+    else system = typeof r.executableWillLaunchAtLogin === 'boolean' ? (r.executableWillLaunchAtLogin ? 'on' : 'off') : 'unknown'
+  } catch {
+    system = 'unknown'
+  }
+  return { supported: true, platform: os, system }
+}
+
 /** A start with no window: the lifecycle broker's `--background`, or the system opening Fabric at login. */
 export function startsInBackground(argv: readonly string[], openedAtLogin: boolean): boolean {
   return argv.includes('--background') || openedAtLogin

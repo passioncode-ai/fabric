@@ -5,8 +5,9 @@ export type Read<T> = { value: T } | { failed: string } | null
 
 export type Reader<T> = () => Promise<T>
 
-/** One read on mount: its value, its failure, or null while it is out. */
-export function useRead<T>(read: Reader<T>) {
+/** One read on mount, and again whenever `key` changes (UX-7: a line that depends on a setting follows it): its
+ *  value, its failure, or null while the first read is out. A re-read keeps the last value until it answers. */
+export function useRead<T>(read: Reader<T>, key?: unknown) {
   const [r, setR] = useState(null as Read<T>)
   useEffect(() => {
     let alive = true
@@ -16,7 +17,7 @@ export function useRead<T>(read: Reader<T>) {
       (e: unknown) => alive && setR({ failed: e instanceof Error ? e.message : String(e) })
     )
     return () => { alive = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once per mount
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once per mount and per key
+  }, [key])
   return r
 }

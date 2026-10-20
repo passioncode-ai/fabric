@@ -272,6 +272,11 @@ else {
   else fail('granted server wrong: ' + JSON.stringify(linear))
   if (cfg3.mcpServers?.fabric) ok('and Fabric is still there beside it')
   else fail('the fabric server was displaced by the grant')
+  // ADR-0169 decision 3 (0.3.7 review DO-4): a console that carries gateway role keys keeps --strict-mcp-config, the
+  // same rule the Codex branch keeps with its isolated home; a wider grant beside the role key is the defect M127 names.
+  const granted = await granting.compile(randomUUID(), randomUUID(), null, 'claude-code', 'mcp-config-flag')
+  if (granted.args.includes('--strict-mcp-config')) ok('a console that carries gateway role keys runs with --strict-mcp-config')
+  else fail('a console that carries gateway role keys runs without --strict-mcp-config, beside every server of the operator')
 }
 
 // M125 — a created agent narrows its own reach and carries its brief.

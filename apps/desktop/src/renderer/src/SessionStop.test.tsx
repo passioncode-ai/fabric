@@ -70,13 +70,51 @@ describe('Stop control',()=>{
  // CO-327, ADR-0170: an ended managed run whose Stop is unknown offers «Work is over», which frees its task.
  it('offers «Work is over» for an ended run of a task, and settles the stop when it is said',async()=>{
   const ended={sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c'} as const
-  const attestOver=vi.fn().mockResolvedValue({...ended,state:'stopped',basis:'attested',reasonCode:'attested',receiptSeq:44})
+  const attestOver=vi.fn().mockResolvedValue({ok:true,receipt:{...ended,state:'stopped',basis:'attested',reasonCode:'attested',receiptSeq:44}})
   const f=setup({running:false,exitCode:0,termination:ended})
   Object.assign(window.fabric.terminal,{attestOver})
   fireEvent.click(screen.getByRole('button',{name:'Work is over'}))
   await waitFor(()=>expect(attestOver).toHaveBeenCalledWith('s'))
-  await screen.findByText('Stop verified')
+  // 0.3.7 review UX-5: the person said it; Fabric verified nothing, so the chip says who decided.
+  await screen.findByText('You marked the work as over')
+  expect(screen.queryByText('Stop verified')).toBeNull()
   expect(f.refresh).toHaveBeenCalled()
+ })
+ // 0.3.7 review UX-1 / ER-7: «Отменить» puts the Stop back to unknown in the main process, with the undo's newer seq;
+ // the console follows it and offers «Work is over» again, never dismissal of an unresolved Stop.
+ it('after the attestation is undone, offers «Work is over» again and no dismissal',async()=>{
+  const ended={sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c',receiptSeq:40} as const
+  const settled={...ended,state:'stopped',basis:'attested',reasonCode:'attested',receiptSeq:44} as const
+  const attestOver=vi.fn().mockResolvedValue({ok:true,receipt:settled})
+  const f=setup({running:false,exitCode:0,termination:ended})
+  Object.assign(window.fabric.terminal,{attestOver})
+  fireEvent.click(screen.getByRole('button',{name:'Work is over'}))
+  await screen.findByText('You marked the work as over')
+  const at=(termination:object)=>f.view.rerender(<I18nProvider locale="en"><SessionStop session={{...session,running:false,exitCode:0,termination} as TerminalSession} refresh={f.refresh} onError={vi.fn()}/></I18nProvider>)
+  at(settled)
+  expect(screen.getByRole('button',{name:'Dismiss'})).toBeTruthy()
+  // A stale reading from before the attestation (an older seq) does not undo it.
+  at(ended)
+  expect(screen.getByRole('button',{name:'Dismiss'})).toBeTruthy()
+  // The undo's reading, newer than the attestation.
+  at({...ended,receiptSeq:47})
+  await screen.findByRole('button',{name:'Work is over'})
+  expect(screen.queryByRole('button',{name:'Dismiss'})).toBeNull()
+  expect(screen.queryByText('You marked the work as over')).toBeNull()
+ })
+ it('a refused attestation is said in our words, with the machine words on their own line',async()=>{
+  const ended={sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c'} as const
+  const onError=vi.fn()
+  vi.stubGlobal('window',Object.assign(globalThis.window,{fabric:{terminal:{end:vi.fn(),dismiss:vi.fn(),
+   attestOver:vi.fn().mockResolvedValueOnce({ok:false,why:'run_still_running'}).mockRejectedValueOnce(Error("Error invoking remote method 'terminal:attest-over': Error: socket hang up"))}}}))
+  render(<I18nProvider locale="en"><SessionStop session={{...session,running:false,exitCode:0,termination:ended}} refresh={vi.fn()} onError={onError}/></I18nProvider>)
+  fireEvent.click(screen.getByRole('button',{name:'Work is over'}))
+  expect((await screen.findByRole('alert')).textContent).toBe('Fabric did not mark the work as over: the session is still running.')
+  fireEvent.click(screen.getByRole('button',{name:'Work is over'}))
+  await screen.findByText('socket hang up')
+  expect(screen.getByRole('alert').textContent).toContain('Fabric did not mark the work as over: it did not go through.')
+  expect(screen.getByRole('alert').textContent).not.toContain('invoking remote method')
+  expect(onError).not.toHaveBeenCalled()
  })
  it('does not offer «Work is over» while the process runs, or for a session with no task run',()=>{
   setup({running:true,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved',managed:true,taskId:'t',runId:'r',commandId:'c'}})

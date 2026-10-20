@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'react'
 import { useRead } from './useRead'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
+import type { LoginItemState } from '../../../shared/loginItem'
 import type { ExecutorRow } from '../../../shared/startPaths'
 import type { AppSettings, LaunchOption, SettingsPatch } from '../../../shared/types'
 import { FallbackOrderSetting } from '../FallbackOrderSetting'
@@ -22,11 +23,12 @@ export function launchLine(option: LaunchOption): string | null {
   return [...env, option.program, ...(mode?.args ?? [])].join(' ')
 }
 
-/** The agents on this machine: Fabric's own detection, joined with Switchboard's catalogue when it answers. */
-export function AgentCatalogPanel(): React.JSX.Element {
+/** The agents on this machine: Fabric's own detection, joined with Switchboard's catalogue when it answers.
+ *  `permissions` is the choice the «Запуск:» lines depend on: they are read again when it changes (0.3.7 review UX-7). */
+export function AgentCatalogPanel({ permissions }: { permissions?: AppSettings['agentPermissions'] } = {}): React.JSX.Element {
   const t = useT()
   const found = useRead<ExecutorRow[]>(() => window.fabric.start.executors())
-  const launches = useRead<LaunchOption[]>(() => window.fabric.terminal.options())
+  const launches = useRead<LaunchOption[]>(() => window.fabric.terminal.options(), permissions)
   const lineOf = new Map((launches && 'value' in launches ? launches.value : []).map((o) => [o.id, launchLine(o)]))
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
   const sb = catalog && 'value' in catalog && catalog.value.source === 'switchboard' ? catalog.value : null
@@ -105,6 +107,41 @@ export function AgentCatalogPanel(): React.JSX.Element {
   )
 }
 
+// #region launch-at-login-setting — docs: AGENTS.md#lifecycle
+/**
+ * Launch at login (CO-322), drawn only where Fabric registers a login item (macOS and Windows, a packaged build;
+ * 0.3.7 review UX-3, ER-3, DO-6). The box is the person's wish; the line under it is what the system itself reports
+ * when that differs, read again after every change, so a registration macOS refused or a person turned off in the
+ * system's own settings is said rather than hidden behind a checked box.
+ */
+export function LaunchAtLoginSetting({ value, onChange }: {
+  value: boolean
+  onChange: (next: SettingsPatch) => Promise<void> | void
+}): React.JSX.Element | null {
+  const t = useT()
+  const read = useRead<LoginItemState>(() => window.fabric.settings.loginItem(), value)
+  const state = read && 'value' in read ? read.value : null
+  if (!state?.supported) return null
+  const darwin = state.platform === 'darwin'
+  const system =
+    state.system === 'unknown' ? t('settings.launchAtLogin.unknown')
+      : value && state.system === 'needs-approval' ? t('settings.launchAtLogin.approval')
+        : value && state.system === 'off' ? t(darwin ? 'settings.launchAtLogin.offDarwin' : 'settings.launchAtLogin.offWindows')
+          : !value && state.system === 'on' ? t('settings.launchAtLogin.stillOn')
+            : null
+  return (
+    <>
+      <label className="lp-check">
+        <input type="checkbox" checked={value} onChange={(e) => void onChange({ launchAtLogin: e.target.checked })} />
+        {t('settings.launchAtLogin')}
+      </label>
+      <p className="settings-note">{t(darwin ? 'settings.launchAtLoginNote' : 'settings.launchAtLoginNoteWindows')}</p>
+      {system && <p className="settings-note" role="status">{system}</p>}
+    </>
+  )
+}
+// #endregion launch-at-login-setting
+
 /** One permission choice for every agent Fabric starts (CO-305, ADR-0168). */
 export function AgentPermissionsSetting({ value, onChange }: {
   value: AppSettings['agentPermissions']
@@ -129,7 +166,7 @@ export function AgentPermissionsSetting({ value, onChange }: {
   )
 }
 
-export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen }: {
+export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread }: {
   settings: AppSettings
   onChange: (next: SettingsPatch) => Promise<void> | void
   onOpenHistory: () => void
@@ -137,6 +174,8 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   /** The places that left the rail in 0.3.7 wave 3 (plan §2, "off the rail") and are reached from here until wave 4
    *  gives each its home: the account limits, Help (and the first run), Fabric's name and look, the projects' messages. */
   onOpen?: (to: 'quota' | 'help' | 'persona' | 'comms') => void
+  /** Comms threads with new messages, on the button that opens Comms (0.3.7 review UX-4); null while unknown. */
+  commsUnread?: { count: number; atLeast: boolean } | null
 }): React.JSX.Element {
   const t = useT()
   // The screen is the page's main region while it is open, and its heading takes focus, as the other screens' do (i2 UX-2).
@@ -154,7 +193,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
       <div className="lp-project-grid">
         <div>
           <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={onChange} />
-          <AgentCatalogPanel />
+          <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           <section className="lp-panel" aria-labelledby="settings-launch-title">
             <p className="lp-kicker">{t('settings.launch.kicker')}</p>
             <h3 id="settings-launch-title">{t('settings.launch.title')}</h3>
@@ -175,11 +214,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             {/* Said here rather than discovered: the blocker stops the MACHINE suspending and lets the screen sleep,
                 and macOS ignores it with the lid closed on battery. */}
             <p className="settings-note">{t('power.note')}</p>
-            <label className="lp-check">
-              <input type="checkbox" checked={settings.launchAtLogin !== false} onChange={(e) => void onChange({ launchAtLogin: e.target.checked })} />
-              {t('settings.launchAtLogin')}
-            </label>
-            <p className="settings-note">{t('settings.launchAtLoginNote')}</p>
+            <LaunchAtLoginSetting value={settings.launchAtLogin !== false} onChange={onChange} />
           </section>
           <section className="lp-panel" aria-labelledby="settings-look-title">
             <h3 id="settings-look-title">{t('settings.look.title')}</h3>
@@ -212,7 +247,17 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
               <h3 id="settings-more-title">{t('settings.more.title')}</h3>
               <div className="lp-actions">
                 <button type="button" className="lp-button" onClick={() => onOpen('quota')}>{t('settings.more.quota')}</button>
-                <button type="button" className="lp-button" onClick={() => onOpen('comms')}>{t('settings.more.comms')}</button>
+                <button type="button" className="lp-button" onClick={() => onOpen('comms')}>
+                  {t('settings.more.comms')}
+                  {commsUnread && commsUnread.count > 0 && (
+                    <>
+                      {' '}
+                      <span className="lp-pill attention" aria-label={t(commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: commsUnread.count })}>
+                        {commsUnread.count}{commsUnread.atLeast ? '+' : ''}
+                      </span>
+                    </>
+                  )}
+                </button>
                 <button type="button" className="lp-button" onClick={() => onOpen('persona')}>{t('settings.more.persona')}</button>
                 <button type="button" className="lp-button" onClick={() => onOpen('help')}>{t('settings.more.help')}</button>
               </div>

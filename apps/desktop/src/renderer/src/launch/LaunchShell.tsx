@@ -90,6 +90,9 @@ export interface LaunchShellProps {
   live: ReadonlySet<string>
   /** What waits for the person, over the whole board and by project; null while unknown (no count is a non-claim). */
   waiting: { total: number; byProject: Record<string, number> } | null
+  /** Comms threads with new messages (SCN-143's unread slice), carried on Настройки because Comms opens from
+   *  Настройки → Ещё since 0.3.7 wave 3 (0.3.7 review UX-4). Null or absent while the board has not answered. */
+  commsUnread?: { count: number; atLeast: boolean } | null
   /** How this computer is: the foot line, shown only on trouble (OF-05). */
   machine: 'reading' | 'ok' | 'trouble'
   onPlace(place: RailPlace): void
@@ -105,6 +108,15 @@ export interface LaunchShellProps {
 }
 
 const PLACES: ReadonlyArray<Exclude<RailPlace, 'create'>> = ['home', 'agents', 'history', 'settings']
+
+/**
+ * The foot line's state from this computer's own reading, the journal on the local stack (0.3.7 review UX-10): a
+ * shell error that is not about the computer (a draft that could not be kept, a refused link, a settings write) says
+ * itself in the banner and never blames «этот компьютер».
+ */
+export function machineOf(journal: { read: boolean; failed: boolean }, _shellError?: string | null): LaunchShellProps['machine'] {
+  return journal.failed ? 'trouble' : journal.read ? 'ok' : 'reading'
+}
 
 export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const t = useT()
@@ -129,7 +141,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const go = (e: React.MouseEvent, fn: () => void): void => { e.preventDefault(); fn() }
   return (
     <div className="fab-shell">
-      <aside className="rail" aria-label={t('rail.label')}>
+      <aside className="rail" aria-label={t('rail.aside')}>
         <div className="rail-brand">
           <img src={brandMark} alt="" width={26} height={26} />
           <div><b>{t('launch.brand.product')}</b><small>{t('rail.brand')}</small></div>
@@ -140,15 +152,29 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <span aria-hidden="true">{t('glyph.plus')}</span> {t('rail.create')}
         </button>
         <nav className="rail-places" aria-label={t('rail.label')}>
-          {PLACES.map((place) => (
-            <a key={place} href="#" {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
-              <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
-              <span className="rail-name">{t(`rail.${place}`)}</span>
-              {place === 'home' && props.waiting && props.waiting.total > 0 && (
-                <span className="rail-n" aria-label={t('rail.waiting', { count: props.waiting.total })}>{props.waiting.total}</span>
-              )}
-            </a>
-          ))}
+          {PLACES.map((place) => {
+            // The name lives in the tooltip and, through aria-labelledby, in the accessible name even when the
+            // folded rail (under 900 px) hides it; the count's own label joins it (0.3.7 review UX-9).
+            const waiting = place === 'home' && props.waiting && props.waiting.total > 0 ? props.waiting.total : 0
+            const comms = place === 'settings' && props.commsUnread && props.commsUnread.count > 0 ? props.commsUnread : null
+            const count = waiting > 0 || comms ? ` rail-count-${place}` : ''
+            return (
+              <a key={place} href="#" title={t(`rail.${place}`)} aria-labelledby={`rail-name-${place}${count}`}
+                {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
+                <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
+                <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
+                {waiting > 0 && (
+                  <span className="rail-n" id={`rail-count-${place}`} aria-label={t('rail.waiting', { count: waiting })}>{waiting}</span>
+                )}
+                {comms && (
+                  <span className="rail-c" id={`rail-count-${place}`}
+                    aria-label={t(comms.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: comms.count })}>
+                    {comms.count}{comms.atLeast ? '+' : ''}
+                  </span>
+                )}
+              </a>
+            )
+          })}
         </nav>
         <p className="rail-sect" id="rail-projects-label">{t('rail.projects')}</p>
         <div className="rail-projects">

@@ -44,3 +44,10 @@ verdict for the workspace publication, FAB-H01.
 After 0.3.7, in 0.3.8: the rest of CO-331 (Fabric recording `observatory:` and `switchboard:` aliases), CO-329, CO-336 (DEC-0087), CO-335, the
 adapter's FAA-26/27/29 if they do not block now, and the remaining 0.3.7 rows that are hardening rather than use:
 CO-277, CO-284, CO-293, CO-306, CO-307, CO-308, CO-310 to CO-315.
+
+**2026-10-20, the release review (iteration 1).** Wave 4 of the plan moves to 0.3.8 (P-20) with SCN-163 to SCN-171,
+SCR-87 and the OF-07, OF-09, OF-10 and OF-12 remainders. F9 also answers DEC-0092's «not attributable yet»
+(`pending`, `git-unreadable`) when Git cannot be read in time; CT-66's Fabric items are CO-343. F7's updater and
+Fabric's own service descriptor (FD-12, CO-344) are 0.4.0; the deferral is posted to fabric-workspace on `cb31a510`
+with the release. The 0.3.7 hardening rows above, and CO-326, are re-dated 0.3.8 in the carry-over ledger. Ledger:
+[0.3.7 verification](../2026-10-20-release-037-verification.md).

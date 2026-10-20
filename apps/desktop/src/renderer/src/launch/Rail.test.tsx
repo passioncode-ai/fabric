@@ -7,7 +7,7 @@ import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
 import type { ProjectRow } from '../../../shared/types'
-import { LaunchShell, type LaunchShellProps } from './LaunchShell'
+import { LaunchShell, machineOf, type LaunchShellProps } from './LaunchShell'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -69,6 +69,39 @@ describe('the rail', () => {
     cleanup()
     shell({ waiting: null })
     expect(within(rail()).queryByLabelText(/wait for you/)).toBeNull()
+  })
+
+  // 0.3.7 review UX-4: the count of Comms threads with new messages went unseen when Comms moved under Настройки → Ещё.
+  it('carries the count of Comms threads with new messages on Настройки, "N+" when the board cut the heads', () => {
+    shell({ commsUnread: { count: 7, atLeast: false } })
+    const settings = within(rail()).getByRole('link', { name: new RegExp(`^${en['rail.settings']}`) })
+    expect(within(settings).getByLabelText(en['rail.commsUnread'].replace('{count}', '7')).textContent).toBe('7')
+    expect(settings.getAttribute('aria-label') ?? '').toBe('')
+    cleanup()
+    shell({ commsUnread: { count: 5000, atLeast: true } })
+    expect(within(rail()).getByLabelText(en['rail.commsUnreadMax'].replace('{count}', '5000')).textContent).toBe('5000+')
+    cleanup()
+    shell({ commsUnread: { count: 0, atLeast: false } }, 'ru')
+    expect(screen.queryByLabelText(/Новые сообщения/)).toBeNull()
+    cleanup()
+    shell({ commsUnread: { count: 3, atLeast: false } }, 'ru')
+    expect(screen.getByLabelText('Новые сообщения: 3')).toBeTruthy()
+  })
+
+  // 0.3.7 review UX-9: under 900 px the names are hidden; each place keeps a tooltip and an accessible name of its own.
+  it('names each place in a tooltip and in its accessible name, and the sidebar apart from its navigation', () => {
+    shell()
+    for (const place of ['home', 'agents', 'history', 'settings'] as const) {
+      const name = en[`rail.${place}`]
+      const link = within(rail()).getByRole('link', { name: new RegExp(`^${name}`) })
+      expect(link.getAttribute('title')).toBe(name)
+      // The name is referenced, so it survives the fold that hides the visible span.
+      const ids = (link.getAttribute('aria-labelledby') ?? '').split(' ')
+      expect(document.getElementById(ids[0])?.textContent).toBe(name)
+    }
+    expect(within(rail()).getByRole('link', { name: `${en['rail.home']} ${en['rail.waiting'].replace('{count}', '3')}` })).toBeTruthy()
+    expect(screen.getByRole('complementary', { name: en['rail.aside'] })).toBeTruthy()
+    expect(en['rail.aside']).not.toBe(en['rail.label'])
   })
 
   it('lists favourites first, then by latest activity; a dot where an agent works, a count where the person is needed', () => {
@@ -142,6 +175,14 @@ describe('the rail', () => {
     cleanup()
     shell({ machine: 'trouble' })
     expect(screen.getByRole('status').textContent).toContain(en['rail.machine.trouble'])
+  })
+
+  // 0.3.7 review UX-10: a draft not kept or a refused link set the shell's error, and the foot blamed this computer.
+  it('blames this computer only when its own reading failed, never for a draft or a link', () => {
+    expect(machineOf({ read: true, failed: false }, 'the draft was closed, but it could not be kept')).toBe('ok')
+    expect(machineOf({ read: false, failed: false }, 'a link was refused')).toBe('reading')
+    expect(machineOf({ read: true, failed: true }, null)).toBe('trouble')
+    expect(machineOf({ read: false, failed: true })).toBe('trouble')
   })
 
   it('speaks Russian in Russian', () => {

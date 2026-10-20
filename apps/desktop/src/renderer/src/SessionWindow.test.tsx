@@ -106,6 +106,20 @@ describe('a window onto one session', () => {
     expect(screen.queryByRole('button', {name:'Stopping…'})).toBeNull()
   })
 
+  // 0.3.7 review UX-16: the failure is our sentence, the machine's words on their own line beneath it, never one paragraph.
+  it('a separate window that did not open says so in our words, with the machine words on their own line', async () => {
+    stub(async () => session())
+    render(
+      <I18nProvider locale="en">
+        <SessionWindow sessionId="s1" onDetach={() => Promise.reject(Error("Error invoking remote method 'windows:open-session': Error: no display"))} />
+      </I18nProvider>
+    )
+    ;(await screen.findByRole('button', { name: 'Open in a separate window' })).click()
+    const note = await screen.findByRole('alert')
+    expect(note.querySelector('.lp-meta')?.textContent).toBe('The separate window did not open.')
+    expect(note.querySelector('.error-detail')?.textContent).toBe('no display')
+  })
+
   it('shows the session when the read answers — the fixture is the working case', async () => {
     stub(async () => session())
     show()

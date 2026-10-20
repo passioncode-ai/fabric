@@ -222,8 +222,9 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       {
         title: 'Which Project a folder belongs to',
         description:
-          'Folder attribution (fabric-agent-contract DEC-0089, folder-attribution.schema.json $defs/answer) for one absolute folder on this computer, decided by the contract\'s own rules over what Fabric knows: the Projects\' folders with their Git facts, the folders a person detached, the temporary roots. ' +
-          'The answer is {outcome: "attached", project, rule}, {outcome: "new", root}, {outcome: "refused", reason}, {outcome: "ambiguous", rule, projects} or {fault: "input-invalid"}; project ids are Fabric\'s. It reads only and records nothing.' + VERIFY_HUB,
+          'Folder attribution (fabric-agent-contract DEC-0089 and DEC-0092, folder-attribution.schema.json $defs/resolveAnswer) for one absolute folder on this computer, decided by the contract\'s own rules over what Fabric knows: the Projects\' folders with their Git facts, the folders a person detached, the temporary roots. ' +
+          'The answer is {outcome: "attached", project, rule}, {outcome: "new", root}, {outcome: "refused", reason}, {outcome: "ambiguous", rule, projects} or {fault: "input-invalid"} (also for a relative path); project ids are Fabric\'s. ' +
+          'While a Git probe the answer needs failed or timed out (which is not "no Git") it is {outcome: "pending", reason: "git-unreadable", retryable: true}: no Project is named; attribute nothing, ask again later with backoff, and show a lasting pending as degraded. It reads only and records nothing.' + VERIFY_HUB,
         inputSchema: z.object({ path: z.string().min(1).max(4096).describe('The absolute folder, as the coding agent runs in it') }).strict()
       },
       async (args) =>

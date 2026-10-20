@@ -18,7 +18,9 @@ import { whyWords } from './actWords'
 type Row = { agentId: string; name: string; projects: string[]; since: string }
 type Act = () => Promise<ActAnswer>
 
-export function JoinedAgents({ projects }: { projects: ReadonlyArray<{ id: string; name: string }> | null }): React.JSX.Element {
+/** `mark` moves with the journal's act and access events, so an undo pressed on the act line (or anywhere else) is
+ *  read back here, as История does (0.3.7 review UX-8). */
+export function JoinedAgents({ projects, mark = 0 }: { projects: ReadonlyArray<{ id: string; name: string }> | null; mark?: number }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [read, setRead] = useState<{ at: 'reading' } | { at: 'ready'; ov: HubOverview } | { at: 'failed'; says: string }>({ at: 'reading' })
@@ -31,7 +33,7 @@ export function JoinedAgents({ projects }: { projects: ReadonlyArray<{ id: strin
       setRead({ at: 'failed', says: e instanceof Error ? e.message : String(e) })
     }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { void load() }, [load, mark])
   const act = async (agentId: string, run: Act) => {
     if (busy) return
     setBusy(agentId)

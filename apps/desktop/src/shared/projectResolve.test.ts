@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { attributeFolder } from './contract/folder-attribution/folder-attribution'
-import { contractPath, folderSnapshot, resolveProject, type ResolveDeps } from './projectResolve'
+import { contractPath, folderSnapshot, isAbsoluteFor, PENDING, resolveProject, type ResolveDeps } from './projectResolve'
 
 const root = path.resolve(__dirname, '../..')
 const pin = JSON.parse(readFileSync(path.join(root, 'src/shared/contract/folder-attribution/pin.json'), 'utf8')) as {
@@ -80,5 +80,50 @@ describe('fabric.project.resolve over Fabric state', () => {
     expect(contractPath('C:\\Users\\ana\\work', 'win32')).toBe('C:/Users/ana/work')
     expect(contractPath('c:\\Users\\ana\\', 'win32')).toBe('C:/Users/ana')
     expect(contractPath('/Users/ana/work/', 'darwin')).toBe('/Users/ana/work')
+  })
+})
+
+// DEC-0092 (fabric-agent-contract 0de76404caacbd61dc2aa3df6b1a750d07f29671, schema `$defs/pending`, board row CT-63):
+// a Git probe that failed or timed out is not "no Git". 0.3.7 review PL-4: it used to be attributed as a plain folder.
+describe('fabric.project.resolve while Git cannot be read (DEC-0092)', () => {
+  // `$defs/pending` at the contract's merge of DEC-0092: three required members, each a const, nothing else.
+  const pendingSchema = { outcome: 'pending', reason: 'git-unreadable', retryable: true }
+
+  it('answers pending, exactly the contract\'s $defs/pending, when the folder\'s own probe timed out', async () => {
+    const d = deps({ git: async (p) => (p === '/Users/ana/DATA/brand-new' ? { unreadable: 'no answer within 3000 ms' } : null) })
+    const out = await resolveProject('/Users/ana/DATA/brand-new', d)
+    expect(out).toEqual(pendingSchema)
+    expect(Object.keys(out).sort()).toEqual(['outcome', 'reason', 'retryable'])
+    expect(PENDING).toEqual(pendingSchema)
+  })
+
+  it('answers pending when a Project folder\'s probe failed: its common dir is missing from the snapshot', async () => {
+    const base = deps()
+    const d = deps({ git: async (p) => (p === '/Users/ana/DATA/fabric' ? { unreadable: 'git rev-parse exit 128: dubious ownership' } : base.git(p)) })
+    expect(await resolveProject('/Users/ana/DATA/_worktrees/f9', d)).toEqual(pendingSchema)
+  })
+
+  it('still resolves a folder outside Git as today: new at the folder', async () => {
+    expect(await resolveProject('/Users/ana/DATA/plain', deps())).toEqual({ outcome: 'new', root: '/Users/ana/DATA/plain' })
+  })
+
+  it('answers pending when the whole resolve runs past its deadline', async () => {
+    const d = deps({ git: () => new Promise(() => undefined) })
+    const t0 = Date.now()
+    expect(await resolveProject('/Users/ana/DATA/brand-new', d, { deadlineMs: 50 })).toEqual(pendingSchema)
+    expect(Date.now() - t0).toBeLessThan(1000)
+  })
+
+  it('refuses a relative path as input-invalid, even where a real path would resolve it against Fabric\'s own folder (ER-6)', async () => {
+    // The main process's realpath resolves a relative path against its working directory; it must never be asked.
+    const asked: string[] = []
+    const d = deps({ realpath: (p) => { asked.push(p); return path.posix.resolve('/Users/ana/DATA/fabric', p) } })
+    expect(await resolveProject('apps', d)).toEqual({ fault: 'input-invalid' })
+    expect(await resolveProject('./apps', d)).toEqual({ fault: 'input-invalid' })
+    expect(asked).toEqual([])
+    expect(isAbsoluteFor('C:\\Users\\ana', 'win32')).toBe(true)
+    expect(isAbsoluteFor('\\\\server\\share', 'win32')).toBe(true)
+    expect(isAbsoluteFor('Users\\ana', 'win32')).toBe(false)
+    expect(isAbsoluteFor('/Users/ana', 'darwin')).toBe(true)
   })
 })

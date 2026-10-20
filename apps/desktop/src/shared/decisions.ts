@@ -33,6 +33,12 @@ export interface DecisionFact {
    * whose `superseded_by` points at it.
    */
   superseded_by?: string | null
+  /**
+   * When this stopped being true. Set with `superseded_by` when a later fact replaced it, or alone when a person took
+   * back the answer that recorded it (migration 116, `withdrawn_seq`): a withdrawn decision is not current, and
+   * nothing replaced it, so it is no lineage's head (0.3.7 review DA-1).
+   */
+  valid_to?: string | null
 }
 
 export interface Lineage {
@@ -121,7 +127,7 @@ export function lineagesOf(facts: readonly DecisionFact[]): Lineage[] {
 
   // Only what is believed NOW is a root. A superseded decision appears inside
   // the lineage of the one that replaced it, never beside it as an equal.
-  const roots = facts.filter((f) => !f.superseded_by)
+  const roots = facts.filter((f) => !f.superseded_by && !f.valid_to)
   return roots.map((current) => {
     const replaced: DecisionFact[] = []
     const visited = new Set<string>([current.id])

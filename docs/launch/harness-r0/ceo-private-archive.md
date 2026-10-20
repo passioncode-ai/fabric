@@ -728,3 +728,18 @@ apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-14 against t
 chain applied, schema_version 89"; export, import, receipts and restore on an owned cluster, the export taking the
 ordinary archive with its board history); the running app NOT_RUN (N1). Found by the 0.3.6 release review,
 iteration 1 (DO-9).
+
+## Schema-90 to schema-94 compatibility qualification (2026-10-20)
+
+Five migrations follow 0.3.6's 89: `20261017000112_acts_and_reopened_answers.sql` (90: the act log and the withdrawn
+answer, journal events only, no new archived table), `20261018000113_project_repo_identity.sql` (91: identity columns
+of `project_repos`, which the archive does not carry), `20261018000114_private_archive_source.sql` (92),
+`20261019000115_run_over_attestation.sql` (93) and `20261020000116_withdrawn_answer_closes_decision.sql` (94: the
+`memory_facts.withdrawn_seq` column and journal indexes). None changes the shape of an archived event. Migrations 112,
+114, 115 and 116 each redefine `ceo_private_archive_canonical` with their own count added (116 accepts 66–94); 113 does
+not, so a database at exactly 91 would refuse its own archive, and no release ships 91 alone (0.3.6 is 89, 0.3.7 is
+94). `PRIVATE_ARCHIVE_LIMITS.sourceSchemas` in `apps/desktop/src/main/ceoPrivateArchive.ts` reads 66–94 and
+`schemaContract.json` 94; schema 95 refuses before digest admission (`ceo-private-archive-codec.test.mjs`, the
+schema-94 check watched failing first by the 0.3.7 review's fix run). `run-ceo-private-archive-db.mjs` exit 0 on
+2026-10-20 against the 94-migration chain on an owned cluster; the running app NOT_RUN. Found by the 0.3.7 release
+review, iteration 1 (DO-10).

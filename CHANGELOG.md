@@ -9,23 +9,29 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **Fabric starts when you log in.** It starts without a window, so agents and the board keep running; turn it off
-  in Settings → «Компьютер».
+- **Fabric starts when you log in** (macOS and Windows). It starts without a window, so agents and the board keep
+  running; turn it off in Settings → «Компьютер». Settings shows the row only where Fabric registers a login item (not
+  on Linux or in a development build) and says when the system itself does not start Fabric (turned off in Login Items
+  or Startup apps, or waiting for your approval).
 - **An agent's history reads as what it did.** In Агенты the picked agent's history is newest first and in words (a
   task it moved, a decision it recorded, its stage), with who did it, and it now includes what the agent wrote itself.
 - **Other products can ask Fabric which project a folder belongs to.** Fabric's hub answers `fabric.project.resolve`
-  with the shared rules all three products agreed on (DEC-0089), so Observatory and Switchboard attribute a folder the
-  way Fabric does.
+  with the shared rules all three products agreed on (DEC-0089), so Observatory and Switchboard attribute a folder by
+  the same rules. When Git cannot be read in time the answer is `pending` with `git-unreadable` (DEC-0092), never a guess; a
+  relative path is refused and one call is bounded at 8 s.
+  Fabric's own enrollment of agents moves onto the same rules in 0.3.8 (CO-339).
 - **A task is no longer stuck after its agent ended.** When an agent's process has ended but Fabric cannot prove its
   provider stopped, the console offers «Работа закончена»: the task goes back to the queue and can be taken again, and
-  «Отменить» on the act line holds it again (ADR-0170).
+  «Отменить» on the act line holds it again and puts the console back, so it offers «Работа закончена» again.
+  After the press the console says «Вы отметили: работа закончена», not that Fabric confirmed the stop (ADR-0170).
 - **A console is your own setup.** Claude Code in a Fabric console now has your MCP servers (Observatory, your plugins)
   beside Fabric's, and Codex runs with your own `AGENTS.md`, plugins, trust and sign-in instead of an empty copy;
-  Fabric no longer copies your Codex sign-in. A console also finds the same programs your terminal does. An agent you
-  create in a project still sees only the servers it declares (ADR-0169).
+  A Codex console no longer copies your sign-in (an agent you create, and a console in a project that declares MCP servers, still run in their own Codex home with a copy). A console also finds the same programs your terminal does. An agent you
+  create in a project still sees only the servers it declares, and so does a console in a project that declares MCP
+  servers of its own (ADR-0169).
 - **Every coding agent starts as a console, with fewer prompts by default.** A project's console can now start any
   coding agent of the catalogue this computer has (Gemini CLI, OpenCode, Goose, Cursor, Pi, OpenClaw and the rest),
-  not only the seven Fabric connects to. Settings has «Разрешения агентов»: «Меньше подтверждений», chosen by default,
+  not only the five Fabric connects to its surface. Settings has «Разрешения агентов»: «Меньше подтверждений», chosen by default,
   or «Проверять вручную», one choice for every agent, and each agent's row shows how it starts. OpenCode's own
   `fabric-mcp` registration is accepted (ADR-0168).
 - **Fewer generated-looking touches.** Thick coloured side stripes on notices and selected rows became a thin
@@ -55,7 +61,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   limits, Help and Fabric's name and look are reached from where they belong (Главная, the project page, Настройки).
 - **«Создать»** opens in the window with three choices: open a projects folder, create a project, create an agent.
   Drafts you left unfinished are listed there to go on with.
-- **История** lists every act, yours and the agents', newest first by day, with «Отменить» where it can be taken back
+- **История** lists every act you take, newest first by day, with «Отменить» where it can be taken back
   and the reason where it cannot. After an act, one quiet line at the foot of the place says what was done, with
   «Отменить».
 - **No more «are you sure?»** (ADR-0160). Stop, force stop, releasing a task, removing a folder, discarding a draft and
@@ -72,24 +78,63 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   copy of a repository from a project no longer keeps every other copy of it out. This is the first step of one
   shared answer to "which project is this folder" across Fabric, Switchboard and Project Observatory (ADR-0166).
 - **Any folder an agent starts in becomes a project by itself**, not only a Git repository: a plain folder is added
-  the same way, with the agent named in the history and the add undoable there. Only a container is skipped (the
+  the same way, with the agent named in the operations log; the add is listed in История with the agents' own acts in 0.3.8. Only a container is skipped (the
   disk root, the home folder, a folder right under it such as Documents, or a folder that already holds projects).
-- **Every act can be taken back** (ADR-0160, SCN-168, SCN-169; the screens follow in 0.3.7). Moving a task, releasing
+- **Every act can be taken back** (ADR-0160, SCN-168, SCN-169). Moving a task, releasing
   a claim, removing or adding a folder, renaming a project, answering a question, stopping a console and discarding a
   draft are each recorded with who did it and how to undo it: a task moves back, a claim is taken again, a folder
   is attached again, the old name returns, a question is opened again, a console starts again where it stood, a
   draft is restored. An undo is itself recorded and can be undone. What cannot be taken back says why: a task
   closed, a release published, an agent's key revoked.
 - **An answered question can be reopened.** The question is open again, what it blocks is blocked again, and a new
-  answer is a new decision. (Schema 90: `20261017000112_acts_and_reopened_answers.sql`; the database moves from 89 to 90.)
+  answer is a new decision; agents no longer read the withdrawn answer as a current decision.
 - **A task held by an unfinished run says so** (CO-323): `fabric_work_claim` and `fabric_task_claim` no longer refuse a
   task whose launched session exited with «another agent claimed it in the same moment»; they name the run that holds it,
   its session, since and until when, and that its stop is not proved; `fabric_work_list` lists that task as held,
   not open. An expired claim of a session that is gone is taken over by the next claim, as before.
-- **A coding agent opened in an eligible unknown Git repository or worktree now gets its Project automatically** through Fabric's canonical enrollment and admission path: exact, ancestor, worktree and remote identity attach to the existing Project, an otherwise unknown repository is created once, and `session.enroll` is allowed at once on the operator's own machine. Non-Git and broad folders and ambiguity are refused; detached or archived Projects are not resurrected. No separate **+ Project → Open a project** step or confirmation prompt is required, and every create/attach and access decision is journalled and revocable ([ADR-0136](docs/adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md), [ADR-0160](docs/adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)).
-- **Schema 92 qualifies automatic repository identity and detach tombstones.** Migration 91 (`20261018000113_project_repo_identity.sql`) adds normalized remote and repository-kind identity, estate-path uniqueness and detach history. Migration 92 (`20261018000114_private_archive_source.sql`) admits schemas 91 and 92 as private-archive sources in code and SQL.
+- **A coding agent opened in an unknown folder gets its project automatically** through Fabric's enrollment: exact,
+  ancestor, worktree and remote identity attach to the existing project, an otherwise unknown repository or plain
+  folder is created once, and `session.enroll` is allowed at once on the operator's own machine. Containers (the disk
+  root, the home folder, a folder right under it, a folder that holds projects) and ambiguity are refused; detached or
+  archived projects are not brought back. Every create, attach and access decision is recorded and revocable
+  ([ADR-0136](docs/adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md), [ADR-0160](docs/adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)).
 - **Usage counts go to PassionCode's own analytics host** (`analytics.passioncode.ai`, [docs/ANALYTICS.md](docs/ANALYTICS.md)),
   no longer to the operator's personal instance; what is counted, and the switch that stops it, are unchanged.
+- **Fabric waits for Docker at start.** Started at login before OrbStack or Docker Desktop is ready, Fabric waits up
+  to 90 s for Docker to answer, saying so on the splash, instead of showing the startup failure at once.
+- **A slow or prompting shell setup no longer holds Fabric's start.** The login shell's PATH is read with a 3 s
+  deadline that holds; when the shell does not answer, the launch PATH keeps its old order.
+- **The count of Comms threads with new messages is shown again**, on Настройки in the rail and on «Переписка между
+  проектами», now that Comms is reached from Настройки → Ещё.
+- **Act sentences name the chosen answer and the agent in your language**, never an option's id or a raw runner id.
+- **«Где идёт работа» is gone as a screen.** Who is doing what is on Главная and on each project's page (SCN-141
+  retired).
+- **For agents: revision references hash the canonical JSON of their object** (CT-26, DEC-0043). A hub call's
+  envelope names the binding and the hub as revisioned objects, and `contentHash` is `sha256:` over the RFC 8785
+  canonical JSON of that object, so any verifier can reproduce it.
+
+### Database
+
+- **The database moves to schema 94** (from 89): five migrations, applied in order:
+  `20261017000112_acts_and_reopened_answers.sql` (count 90: `act.recorded@1`, the record of an act with its inverse,
+  and `reopen_answered_question`; three partial journal indexes, no stored row rewritten),
+  `20261018000113_project_repo_identity.sql` (count 91: normalized remote and repository-kind identity, detach
+  tombstones; it rewrites every stored `project_repos` row once, and creates the estate-path unique index only where no
+  duplicate paths exist, with a warning otherwise), `20261018000114_private_archive_source.sql` (count 92: schemas 91
+  and 92 as private-archive sources), `20261019000115_run_over_attestation.sql` (count 93: «Работа закончена», ADR-0170,
+  and 93 as an archive source) and `20261020000116_withdrawn_answer_closes_decision.sql` (count 94: a withdrawn
+  answer closes its decision, and answers taken back at schemas 90 to 93 are corrected during the upgrade; three
+  journal indexes for an agent's history; 94 as an archive source). The arithmetic is in
+  [release-mac.md](docs/launch/release-mac.md#upgrading-an-existing-database).
+
+**Upgrading.** A database at schema 89 (0.3.6) is upgraded to 94 before 0.3.7 opens it: install 0.3.7 and start it
+once (it refuses, and copies its migrations into Fabric's stack folder), quit it, make a verified backup, rehearse on a
+copy, then run `supabase migration up --local` in that folder and start 0.3.7 again
+([release runbook](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
+Until then 0.3.7 refuses to start its workspace services and says which schema it found. An older database takes the
+same procedure; `supabase migration up` applies every missing migration in order. 0.3.6 cannot open a database at 94:
+keep the backup if you may need to go back.
+
 
 ## 0.3.6
 

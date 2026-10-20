@@ -15,7 +15,7 @@
 // first time the cause is named wrongly, and this follows the startup dialog's
 // shape for exactly that reason.
 
-import { humaniseError, type ErrorKind } from '../../shared/errorText'
+import { humaniseError, unwrap, type ErrorKind } from '../../shared/errorText'
 import { Button } from './components'
 import { useT } from './i18n'
 import type { StringKey } from './i18n/en'
@@ -48,8 +48,26 @@ export function FailureNote({ said, detail, role = 'alert' }: { said: string; de
   )
 }
 
+// #region failure-with-detail — docs: docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-ux.md
+/** A sentence a site already wrote in the person's language, with the machine's words apart, through the one banner
+ *  (`setError` carries a string): U+2029, the paragraph separator, never appears in a machine's message, so it marks
+ *  where our sentence ends (0.3.7 review UX-16). */
+const SENTENCE_END = '\u2029'
+export function withDetail(said: string, detail: string | null | undefined): string {
+  return `${said}${SENTENCE_END}${detail ? unwrap(detail) : ''}`
+}
+
 export function OperatorError({ raw }: { raw: string }): React.JSX.Element {
   const t = useT()
+  const cut = raw.indexOf(SENTENCE_END)
+  if (cut >= 0) {
+    return (
+      <>
+        <strong>{raw.slice(0, cut)}</strong>
+        <MachineDetail text={raw.slice(cut + 1)} />
+      </>
+    )
+  }
   const message = humaniseError(raw)
   return (
     <>
@@ -58,6 +76,7 @@ export function OperatorError({ raw }: { raw: string }): React.JSX.Element {
     </>
   )
 }
+// #endregion failure-with-detail
 
 /**
  * M106a — the window could not read what it is for.

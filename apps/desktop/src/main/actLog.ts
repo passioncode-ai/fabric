@@ -9,10 +9,12 @@ import type { createScopedStore } from './scopedStore.ts'
 import { ACT_EVENT, validateActRecord, type ActActor, type ActRow } from '../shared/acts.ts'
 import type { ActLog } from './acts.ts'
 
-type Store = Pick<ReturnType<typeof createScopedStore>, 'select' | 'selectIn'>
+type Store = Pick<ReturnType<typeof createScopedStore>, 'select'>
 interface Row { seq: number; occurred_at: string; actor: ActActor; project_id: string | null; payload: unknown }
 
 const COLUMNS = 'seq,occurred_at,actor,project_id,payload'
+/** Seqs per reversal read: the bound `scopedStore.selectIn` uses, under the gateway's URL limit. */
+const REVERSAL_CHUNK = 100
 const escapeLike = (s: string): string => s.replace(/[\\%_]/g, (c) => '\\' + c)
 
 function toRow(r: Row): ActRow | null {
@@ -47,10 +49,19 @@ export function createActLog(deps: { journal: Pick<Journal, 'append'>; store: St
     async reversersOf(seqs) {
       if (!seqs.length) return []
       // The frontier grows with the history, so the list is read in bounded chunks (the list-read rule), and a
-      // refused chunk is an error, never "nothing undid it".
-      const { rows, failed } = await deps.store.selectIn('journal', `${COLUMNS},type`, 'payload->>undoes', seqs.map(String))
-      if (failed) throw new Error(`the act log could not be read (reversals): ${failed}`)
-      return (rows as unknown as (Row & { type: string })[])
+      // refused chunk is an error, never "nothing undid it". Each chunk names the act type (0.3.7 review DA-7): only
+      // then can PostgreSQL use migration 112's partial index `journal_acts_reversals`; filtered by the list alone it
+      // scanned the estate's journal once per chunk. The type is checked again below, as a guard.
+      const found: (Row & { type: string })[] = []
+      const values = seqs.map(String)
+      for (let i = 0; i < values.length; i += REVERSAL_CHUNK) {
+        const { data, error } = await deps.store.select('journal', `${COLUMNS},type`)
+          .eq('type', ACT_EVENT)
+          .in('payload->>undoes', values.slice(i, i + REVERSAL_CHUNK))
+        if (error) throw new Error(`the act log could not be read (reversals): ${error.message}`)
+        found.push(...((data ?? []) as unknown as (Row & { type: string })[]))
+      }
+      return found
         .filter((r) => r.type === ACT_EVENT)
         .sort((a, b) => Number(a.seq) - Number(b.seq))
         .map(toRow)

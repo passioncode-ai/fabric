@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { stackStartIsTransient, startWithRetry } from './stackStartRetry'
+import { dockerIsUnreachable, dockerSocketFrom, stackStartIsTransient, startWithRetry, waitForDocker } from './stackStartRetry'
 
 // The words measured on the operator's Mac, 2026-10-14.
 const STARTING = 'Command failed: supabase start -x realtime\nsupabase start is already running.\n\u001b[31msupabase_db_fabric container is not ready: starting\u001b[39m'
@@ -49,3 +49,72 @@ describe('startWithRetry', () => {
   })
 })
 
+// 0.3.7 review ER-4, the operator's Mac 2026-10-20: launched at login before OrbStack had its socket, Fabric showed
+// the failure window at once. Docker away is now waited for (asked every 2 s, 90 s in all), then the start runs.
+describe('Docker that is not there yet (ER-4)', () => {
+  const clock = () => { let t = 0; return { now: () => t, sleep: async (ms: number) => { t += ms } } }
+  const dockerWait = { totalMs: 90_000, pollMs: 2_000 }
+
+  it('knows Docker away by the words of the CLI and of Docker, and reads the socket they name', () => {
+    expect(dockerIsUnreachable(NO_DOCKER)).toBe(true)
+    expect(dockerIsUnreachable('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')).toBe(true)
+    expect(dockerIsUnreachable('port 54322 is already allocated')).toBe(false)
+    expect(dockerIsUnreachable(STARTING)).toBe(false)
+    expect(dockerSocketFrom(NO_DOCKER)).toBe('/Users/x/.orbstack/run/docker.sock')
+    expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine: npipe:////./pipe/docker_engine')).toBe('\\\\.\\pipe\\docker_engine')
+    expect(dockerSocketFrom('no socket here')).toBeNull()
+  })
+
+  it('waits until Docker answers, then starts the stack', async () => {
+    const c = clock()
+    let starts = 0, pings = 0
+    const asked: (string | null)[] = []
+    const onDockerWait = vi.fn()
+    await startWithRetry(async () => { if (starts++ === 0) throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, onDockerWait,
+      pingDocker: async (socket) => { asked.push(socket); return ++pings >= 4 }
+    })
+    expect(starts).toBe(2)
+    expect(pings).toBe(4)
+    expect(asked.every((s) => s === '/Users/x/.orbstack/run/docker.sock')).toBe(true)
+    expect(onDockerWait).toHaveBeenCalledTimes(3)
+    expect(c.now()).toBe(6_000)
+  })
+
+  it('gives up after the deadline and names Docker, keeping the stack\'s own words', async () => {
+    const c = clock()
+    let starts = 0, pings = 0
+    await expect(startWithRetry(async () => { starts++; throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, pingDocker: async () => { pings++; return false }
+    })).rejects.toThrow(/Docker did not answer within 90 s[\s\S]*docker API/)
+    expect(starts).toBe(1)
+    expect(pings).toBe(46) // at 0 s, every 2 s, and at 90 s
+    expect(c.now()).toBeLessThanOrEqual(90_000)
+  })
+
+  it('a quit during the wait starts nothing', async () => {
+    const c = clock()
+    let starts = 0, pings = 0, quit = false
+    await expect(startWithRetry(async () => { starts++; throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, stopped: () => quit,
+      pingDocker: async () => { if (++pings === 3) quit = true; return false }
+    })).rejects.toThrow(/docker API/)
+    expect(starts).toBe(1)
+    expect(pings).toBe(3)
+  })
+
+  it('waits once: Docker away again after it answered is said, not waited for a second time', async () => {
+    const c = clock()
+    let starts = 0
+    await expect(startWithRetry(async () => { starts++; throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, pingDocker: async () => true
+    })).rejects.toThrow(/docker API/)
+    expect(starts).toBe(2)
+  })
+
+  it('a ping that throws is "not yet"', async () => {
+    const c = clock()
+    let n = 0
+    expect(await waitForDocker(async () => { if (++n < 3) throw new Error('ECONNREFUSED'); return true }, { sleep: c.sleep, now: c.now, plan: dockerWait })).toBe('ready')
+  })
+})

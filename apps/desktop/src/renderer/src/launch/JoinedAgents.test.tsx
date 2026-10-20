@@ -93,3 +93,21 @@ describe('coding agents that joined on their own', () => {
     expect(ru['joined.letIn']).toBe('Пустить снова')
   })
 })
+
+// 0.3.7 review UX-8: an undo pressed on the act line let the agent back in, and this list kept «Отключён».
+describe('an undo from elsewhere', () => {
+  it('reads the list again when the journal mark moves', async () => {
+    let ov = overview({ agents: [], keptOut: { readable: true, agents: [{ agentId: 'codex', name: 'Codex', at: '2026-10-18T09:00:00Z' }] } })
+    const read = vi.fn(async () => ov)
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { overview: read, disconnectAgent: vi.fn(), letAgentIn: vi.fn() } } }))
+    const projects = [{ id: 'p1', name: 'Fabric' }]
+    const view = render(<I18nProvider locale="en"><JoinedAgents projects={projects} mark={1} /></I18nProvider>)
+    const row = await screen.findByRole('listitem', { name: 'Codex' })
+    expect(row.textContent).toContain(en['joined.out'])
+    ov = overview({ agents: [overview().agents[0]], keptOut: { readable: true, agents: [] } })
+    view.rerender(<I18nProvider locale="en"><JoinedAgents projects={projects} mark={2} /></I18nProvider>)
+    await waitFor(() => expect(within(screen.getByRole('listitem', { name: 'Codex' })).getByRole('button', { name: en['joined.disconnect'] })).toBeTruthy())
+    expect(screen.queryByText(en['joined.out'])).toBeNull()
+    expect(read).toHaveBeenCalledTimes(2)
+  })
+})

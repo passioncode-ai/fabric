@@ -1294,6 +1294,8 @@ export interface FabricApi {
     write(next: SettingsPatch): Promise<SettingsWrite>
     /** The coding agents Switchboard catalogues on this machine, or why it cannot say (0.6.31+, read-only). */
     agentCatalog(): Promise<import('./agentCatalog.ts').SwitchboardCatalog>
+    /** Whether launch at login is offered here and what the system itself reports (0.3.7 review UX-3, ER-3). */
+    loginItem(): Promise<import('./loginItem.ts').LoginItemState>
   }
   feed: {
     replay(fromSeq: number): Promise<FeedEvent[]>
@@ -1605,8 +1607,10 @@ export interface FabricApi {
     resize(sessionId: string, cols: number, rows: number): void
     /** Ends a running session; the record stays on the board with its exit code. */
     end(sessionId: string, options?: { force?: boolean }): Promise<TerminalStopResult>
-    /** «Работа закончена» (CO-327, ADR-0170): the person says the work of an ended run is over; recorded as an act. */
-    attestOver(sessionId: string): Promise<TerminalStopResult>
+    /** «Работа закончена» (CO-327, ADR-0170): the person says the work of an ended run is over; recorded as an act.
+     *  A refusal is an answer, not an exception: `why` is a code the act line words (`act.why.<code>`), `says` the
+     *  machine's own words when there are any (0.3.7 review ER-7). */
+    attestOver(sessionId: string): Promise<{ ok: true; receipt: TerminalStopResult } | { ok: false; why: string; says?: string }>
     /** Removes an already-ended session from the board. */
     dismiss(sessionId: string): Promise<void>
     /** `written` is the session's character count after this chunk. */
@@ -1745,6 +1749,7 @@ export const IPC = {
   settingsRead: 'settings:read',
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
+  settingsLoginItem: 'settings:loginItem',
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
   commsThreads: 'comms:threads',

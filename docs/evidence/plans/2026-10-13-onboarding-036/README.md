@@ -1,5 +1,8 @@
 # Fabric 0.3.6 — onboarding that lands in a working project (plan, 2026-10-13)
 
+> **2026-10-20:** absorbed into the [simple Fabric plan](../2026-10-15-fabric-simple/README.md); its wizard, scan, open and
+> create flows are that plan's wave 4, released in 0.3.8 (P-20). CO-291's fix lands with them.
+
 **Objective (the operator, 2026-10-13).** Open Fabric, set up the whole zone in one pass — who I am, which coding
 agents work for me, which PassionCode tools I use — then open a folder, let Fabric find every project I work on,
 choose which of them Fabric works on, and land in a project where an agent is already writing on its board. Every

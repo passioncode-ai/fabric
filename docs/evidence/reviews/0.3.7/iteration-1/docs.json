@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "ff13325f1f156d1f1ac0d781a2732249d9acdb6d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-docs.md",
+  "reportSha256": "407547a81a7533fb581419bfac1439a3b0fa399f0c6d762b5ef2448b66555352",
+  "reviewerRun": "release-037-i1-docs-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-28",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG `### Database` and **Upgrading.** for 89 → 94"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/launch/release-mac.md`: 0.3.7 admits 94, readback 94, reservation 117/118"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "DO-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, the ADR-0164 index wording and the `fabric-mcp` lifecycle row say plain folders are admitted and containers refused"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DO-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `sessionBundle.ts`: Claude strict whenever the plan carries gateway role keys, as Codex (`session-bundle.test.mjs`; watched); the Codex sign-in sentence corrected"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: five, not seven; DEC-0092 and CO-339 named; platforms of the login item; CT-26 entry; wave tags removed"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3 and UX-13; AGENTS.md Windows and Linux paragraph"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19 rewritten, P-20 for 0.3.8, both in lane 2; Now line; the plan README and the final pass carry wave 4's move"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR index row and CO-331 follow the amendment"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Next free ID `CO-349` with the reservations of CO-339 to CO-348"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/launch/harness-r0/ceo-private-archive.md` schema-90 to schema-94 qualification"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-162, SCN-169 and CO-331 rewritten without U+2014"
+      ]
+    }
+  ]
+}

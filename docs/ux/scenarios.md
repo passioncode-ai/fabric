@@ -2572,6 +2572,7 @@ SCN-031/059/094: уход из знакомства не считается вы
 - **Amended 2026-10-19 ([ADR-0170](../adr/0170-the-person-says-an-ended-runs-work-is-over.md), CO-327):** when the agent's process has ended and its Stop cannot be proved (no provider receipt), the console says so and offers «Работа закончена»; pressing it frees the task (back to the queue, its claim gone) and the act line offers «Отменить», which holds the task again unless it has moved on since. Only a person can say it, and not while the process runs.
 - **Coverage:** none yet
 - **Product:** unobserved
+- **Amended 2026-10-20 ([0.3.7 review](../evidence/reviews/0.3.7/iteration-1/2026-10-20-ux.md), UX-1, UX-5):** after «Работа закончена» the console says «Вы отметили: работа закончена», not that Fabric confirmed the stop. After «Отменить» the console again shows the stop as unconfirmed and offers «Работа закончена»; it never offers «Убрать из списка» while the stop is unresolved. A refused «Работа закончена» says why in our words, with the machine's words on their own line.
 
 ### SCN-097: Export and import my private conversation history
 - **Persona:** P-01
@@ -3642,6 +3643,7 @@ that choice in its own messages too (corrected 2026-10-13, wave-2 product findin
 - **Status:** draft
 - **Coverage:** built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`; wave 4 (W4-1…W4-3): the bounded page, the board's filters and the heads in `supabase/migrations/20261013000108_project_board_operator_reads.sql` (`board_thread_page_operator`, `board_thread_heads_operator`), the `comms:thread-page` / `comms:heads` IPC over `commsOperatorRead.ts`, the list's rules in `apps/desktop/src/renderer/src/launch/commsList.ts` (tested in `commsList.test.ts`), the rail's count from the heads in `App.tsx` and `LaunchShell.tsx` ("5000+", `FabricStrip.test.tsx`); DB tests in `apps/desktop/test/project-board-operator-db.test.mjs`
 - **Product:** unobserved
+- **Amended 2026-10-20 (0.3.7 review, UX-4):** Comms opens from Настройки → Ещё. The count of threads with new messages stands on the rail's Настройки item and on the «Переписка между проектами» button («Новые сообщения: N», «N+» when the board cut the heads); at zero, or while the board has not answered, there is no number.
 
 ### SCN-146: A restored estate shows its project messages, and nothing in it acts
 
@@ -3988,6 +3990,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   0.3.6 review's UX-5 set).
 - Every string below is the Russian the person reads; the English twin is drawn beside it in the prototype
   (`product.html#view-simple-home?lang=en` and the other `simple-*` views).
+- **Amended 2026-10-20 (0.3.7 review, ER-4):** when Docker does not answer at start (OrbStack or Docker Desktop still starting, typical at login), Fabric waits up to 90 s, saying «Waiting for Docker to answer» on the splash, and starts the stack as soon as Docker answers; only after the deadline does it show the failure, naming Docker.
 
 ### SCN-162: Move between the five places and the projects from the rail
 - **Persona:** P-01
@@ -3998,7 +4001,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Steps:**
   1. Person looks at the rail -> from the top: the PassionCode mark with «Fabric», one button «＋ Создать», the five places «Главная», «Агенты», «История», «Настройки» (Проект is opened from the list below, never a sixth fixed entry), then «Проекты» with a compact list (rows 26 px high, OF-04), and nothing at the foot while this computer is fine: one line «этот компьютер · есть что проверить» appears there only when something needs a look (OF-05).
   2. Person reads the projects list -> favourites first (a gold star), then by latest activity; each row is the project's name, a green dot when an agent works there now, and a gold count when something waits for the person; nothing else on the row.
-  3. Person presses a place or a project -> it opens in the main area; the pressed row is highlighted; there is no tab strip of places or projects (the only tabs at the top are the open consoles, SCN-172) and no back button of Fabric's own — ⌘[ and the swipe go back, ⌘] forward.
+  3. Person presses a place or a project -> it opens in the main area; the pressed row is highlighted; there is no tab strip of places or projects (the only tabs at the top are the open consoles, SCN-172) and no back button of Fabric's own: ⌘[ and the swipe go back, ⌘] forward.
   4. Person presses «＋ Создать» -> «Создать» opens in the main area (SCN-171), not a menu over the page.
   5. Person presses ⌘K -> search opens beside the place, its field focused. The top bar holds only the place's name and the open consoles (OF-05, 2026-10-19): no search field, no profile, no conversation with Fabric (that opens from Help).
 - **Expected result:** every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.
@@ -4010,6 +4013,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Status:** implemented
 - **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe
 - **Product:** unobserved
+- **Amended 2026-10-20 (0.3.7 review, UX-9, UX-10):** the folded rail keeps its names in tooltips and accessible names; the foot line appears only when this computer's journal cannot be read.
 
 ### SCN-163: See on Главная what needs me, what is being done now, and my projects
 - **Persona:** P-01
@@ -4021,11 +4025,11 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   1. Person opens Главная -> a large greeting that says the state in one sentence: «Добрый вечер. Вас ждут 3 вопроса.» (or «Вас ничего не ждёт.»), under it one line «Пять агентов работают в четырёх проектах. Всё остальное идёт без вас.», and three numbers in a hairline strip — «агентов работают», «задач в работе», «на проверке».
   2. Person reads «Ждёт вас» -> the questions waiting for them across projects, the oldest decision first: who asks and from which project, how long ago, the question in plain words, why it matters, and the options as buttons (SCN-164).
   3. Person reads «Сейчас» -> one line per agent at work: its sign, what it says it is doing in its own words, the project, how long; an agent that has said nothing yet shows what it is working on («Работает над: {задача}»); one gone quiet says «давно не отзывался — {время}» and sorts after the rest.
-  4. Person presses an agent's line -> its console opens (SCN-166); «Открыть консоль ↗» in the section's heading opens the console of the first agent that works.
+  4. Person presses an agent's line -> its console opens (SCN-166); «Открыть консоль» in the section's heading opens the console of the first agent that works.
   5. Person reads «Проекты» -> favourites first, then by latest activity: the name, «Что сейчас» in a sentence, a thin bar of the way done, the number of agents, when it last changed; a row opens the project (SCN-165).
 - **Expected result:** in a few seconds the person knows whether anything needs them, what is being done, and where to go — without opening a project or an agent's console.
 - **Alt paths:** nothing waits -> «Ждёт вас» says «Вопросов нет. Агенты работают сами.» and folds to one line; no agent works -> «Сейчас ни один агент не работает.» with «Открыть консоль» on the default coding agent; no project -> the greeting says «Начните с проекта» and the projects section offers «Создать проект» and «Открыть папку с проектами» (SCN-171); the local database is reachable from the network -> it is a question at the top of «Ждёт вас» (SCN-164), never a banner.
-- **UI elements:** the greeting heading; the numbers strip; «Ждёт вас» with question cards; «Сейчас» with agent rows and «Открыть консоль ↗»; «Проекты» table; the act line at the foot.
+- **UI elements:** the greeting heading; the numbers strip; «Ждёт вас» with question cards; «Сейчас» with agent rows and «Открыть консоль»; «Проекты» table; the act line at the foot.
 - **States covered:** loading («Читаю…» in each section on its own; numbers show «—», never 0), empty (no question / no agent at work / no project), partial (one section could not be read — said in that section; the others stand), error (nothing could be read — «Fabric не смог прочитать, что происходит.» with the machine's words beneath and «Повторить»), success, stale (an agent quiet past its window)
 - **Errors & recovery:** a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.
 - **Telemetry:** planned only.
@@ -4154,10 +4158,11 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **UI elements:** «Отменить»; «Отменено · {время}»; «Нельзя отменить» with its reason; the act line in a place.
 - **States covered:** undoing (the button busy), undone, redone, cannot-undo, changed-since, error («Не удалось отменить.» with the machine's words beneath; nothing changed, the button enabled again)
 - **Errors & recovery:** a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.
-- **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses — `act.recorded@1` (migration 90, suffix 112), one record for every act whatever its own event: the actor, the sentence, the inverse or `why_not`, `undoes`.
+- **Telemetry:** journal: the inverse act with `undoes` naming the act it reverses: `act.recorded@1` (migration 90, suffix 112), one record for every act whatever its own event: the actor, the sentence, the inverse or `why_not`, `undoes`.
 - **Status:** draft
 - **Coverage:** the inverse of each act is built in the main process (0.3.7 wave 2) and tested do-then-undo-then-redo with both acts in the journal (`apps/desktop/src/main/acts.ts`, `apps/desktop/test/acts.test.mjs`, `apps/desktop/test/acts-db.test.mjs`): a task moved, a claim released, a folder detached or attached, a project renamed, an answered question reopened, a console stopped (started again where it stood), a draft discarded; wave 3 adds a disconnected agent let back in (`apps/desktop/src/main/keptOut.ts`, `apps/desktop/test/kept-out.test.mjs`). The buttons: the act line at a place's foot (`apps/desktop/src/renderer/src/launch/ActLine.tsx`, wired to `acts.undo` in `App.tsx`; probed in `ActLine.test.tsx` and `actLineShell.test.tsx`) and История's rows (`HistoryScreen.tsx`). Not yet: the button's own text when the object changed since (`changedSince`, wave 4), and a message to another project (the operator has no send in the main process).
 - **Product:** unobserved
+- **Amended 2026-10-20 (0.3.7 review, DA-1):** taking an answer back also ends the decision it recorded, so agents no longer read it and the decisions list no longer shows it; answering again records the one current decision.
 
 ### SCN-170: Set how Fabric behaves in Настройки
 - **Persona:** P-01
@@ -4177,6 +4182,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Status:** draft
 - **Coverage:** none yet — wave 4 redraws SCN-160's screen
 - **Product:** unobserved
+- **Amended 2026-10-20 (0.3.7 review, UX-13, UX-3):** «Этот компьютер» carries «Запускать Fabric при входе в систему», on by default, only on macOS and Windows in an installed build; on Linux and in a development build the row is absent. A login start opens no window; the note says where to open Fabric (the Dock on macOS, the «Пуск» menu on Windows). When the system does not do what the box says, one line says so: macOS waits for approval in «Объекты входа»; it is turned off in «Объекты входа» or «Автозагрузка»; the system still starts Fabric after the box was cleared; or the system could not be read. «Разрешения агентов» is the same screen's permission choice (SCN-160).
 
 ### SCN-171: Start something new from «Создать» — a project, an agent, or a projects folder
 - **Persona:** P-01

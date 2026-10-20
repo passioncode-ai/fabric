@@ -281,22 +281,24 @@ replaced in place, `transferred` in the replace receipt) and `20261013000108_pro
 89: the operator's reads of the board, ADR-0156 §8 — the bounded thread page, heads, message facts, the request
 timeline, related threads, history search, what waits for a project, and `settledBy` on complete and reconcile
 transitions). 84 + 5 = **89**, whatever the suffixes say (101/102 and 105/106 were never applied; they were the
-pipeline's prose reservation, now 110/111). The procedure is the same with 89 in place of 84. Migration 86 rewrites the board's stored idempotency receipts once, to the shape without
+pipeline's prose reservation, since moved to 117/118). The procedure is the same with 89 in place of 84. Migration 86 rewrites the board's stored idempotency receipts once, to the shape without
 `seq`; an archive taken before it has no `board.json`, and restores with the board's texts missing. Migration 87 adds
 tables and functions only and rewrites no stored row; migration 88 replaces functions only; migration 89 adds
 functions and one partial index on the journal and rewrites no stored row.
 
-**0.3.7 admits schema 90** (in preparation; wave 2 of the plan) — one migration past 0.3.6's 89:
+**0.3.7 admits schema 94**, five migrations past 0.3.6's 89, applied in order:
 `20261017000112_acts_and_reopened_answers.sql` (count 90: `act.recorded@1`, the one record of an operator act with its
-inverse, and the command that takes an answer back, `reopen_answered_question`). 89 + 1 = **90**, whatever the suffix
-says (109 is the board's, 110/111 the pipeline's). The procedure is the same with 90 in place of 89. The migration adds
-three partial indexes on the journal, one table constraint dropped (`question_resolutions` no longer holds one row per
-question, so a reopened question can be answered again), functions and two event types; it rewrites no stored row.
-
-**The current development tree admits schema 92**: two migrations past wave 2's 90,
-`20261018000113_project_repo_identity.sql` (count 91: normalized remote and repository-kind identity, estate-path
-uniqueness, detach tombstones and their projection) and `20261018000114_private_archive_source.sql` (count 92: schemas
-91 and 92 as private-archive sources in code and SQL). The procedure is the same with 92 in place of 89.
+inverse, and the command that takes an answer back, `reopen_answered_question`; three partial indexes on the journal,
+one table constraint dropped so a reopened question can be answered again, functions and two event types; no stored
+row rewritten), `20261018000113_project_repo_identity.sql` (count 91: normalized remote and repository-kind identity,
+detach tombstones and their projection; it rewrites every stored `project_repos` row once to add its identity, and it
+creates the estate-path unique index only when the database holds no duplicate path, raising a `WARNING` and skipping
+the index otherwise, CO-341), `20261018000114_private_archive_source.sql` (count 92: schemas 91 and 92 as private-archive
+sources in code and SQL), `20261019000115_run_over_attestation.sql` (count 93: the person's «Работа закончена» on a run
+whose process ended, ADR-0170, and 93 as an archive source) and `20261020000116_withdrawn_answer_closes_decision.sql`
+(count 94: a withdrawn answer closes the decision fact it recorded, an index for an agent's history read, 94 as an
+archive source). 89 + 5 = **94**, whatever the suffixes say (109 is the board's; 117/118 are the pipeline's prose
+reservation). The procedure is the same with 94 in place of 89.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -365,7 +367,7 @@ uniqueness, detach tombstones and their projection) and `20261018000114_private_
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 90 for 0.3.7).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

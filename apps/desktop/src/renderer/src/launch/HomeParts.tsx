@@ -35,7 +35,7 @@ export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; n
       <span className="lh-rhythm-title">
         {t('launch.home.rhythm')}{' '}
         {onPulse
-          ? <button type="button" className="lp-button lh-text-link" onClick={onPulse}>{t('launch.home.rhythm.days', { days: RHYTHM_DAYS })} {t('glyph.open')}</button>
+          ? <button type="button" className="lp-button lh-text-link" onClick={onPulse}>{t('launch.home.rhythm.days', { days: RHYTHM_DAYS })}</button>
           : <small>{t('launch.home.rhythm.days', { days: RHYTHM_DAYS })}</small>}
       </span>
       <div className="lh-spark" role="list" aria-label={t('launch.home.rhythm.label', { days: RHYTHM_DAYS })}>

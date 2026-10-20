@@ -56,7 +56,7 @@ import { EstateAgents } from './EstateAgents'
 import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
 import { I18nProvider, useT, type Locale } from './i18n'
-import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
+import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
 import { JoinedAgents } from './launch/JoinedAgents'
@@ -67,6 +67,7 @@ import { FirstRun, firstRunDue } from './start/FirstRun'
 import { StartScreen, errorText, explainError } from './start/StartPaths'
 import './start/start.css'
 import { BootFailure, OperatorError } from './OperatorError'
+import { draftNotKept } from './draftNotKept'
 import { ProjectHome } from './ProjectHome'
 import { SessionWindow } from './SessionWindow'
 import { ConsoleTabs } from './launch/ConsoleTabs'
@@ -222,6 +223,8 @@ function Shell({
    */
   const [quota, setQuota] = useState<QuotaReading>({ read: false })
   const [error, setError] = useState<string | null>(null)
+  /** The journal on this computer's stack did not answer: the rail's foot line, apart from other errors (UX-10). */
+  const [journalFailed, setJournalFailed] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   /** Search, the conversation with Fabric (SCR-64), private history (SCR-65) and Agent access (SCR-76):
    *  ONE side panel at a time, held in one state (UX-13). */
@@ -422,6 +425,7 @@ function Shell({
         if (stop) return
         // A successful read of an empty journal is a reading — the estate has nothing yet — not "not read":
         // leaving the feed null kept every freshness line on "Reading…" for an estate with no events.
+        setJournalFailed(false)
         if (events.length === 0) { setFeed((old) => old ?? []); return }
         lastSeq.current = events[events.length - 1].seq
         setMarks((prev) => advance(prev, events))
@@ -434,6 +438,7 @@ function Shell({
         // The same failure every two seconds would make the banner impossible to
         // dismiss; raise it once and keep quiet until something changes.
         const message = String(e)
+        setJournalFailed(true)
         setError((prev) => (prev === message ? prev : message))
       } finally {
         ticking.current = false
@@ -653,8 +658,8 @@ function Shell({
       const d = drafts[tab.id]
       if (d && draftIsDirty(d)) {
         void window.fabric.drafts.discard(tab.id).then(
-          (answer) => { if (!answer.ok) setError(t('drafts.notKept', { reason: answer.says ?? answer.reason })) },
-          (e: unknown) => setError(t('drafts.notKept', { reason: explainError(e, t) }))
+          (answer) => { if (!answer.ok) setError(draftNotKept(t, answer)) },
+          (e: unknown) => setError(draftNotKept(t, e))
         )
       }
       setDrafts((old) => {
@@ -922,7 +927,8 @@ function Shell({
         lastActivity={lastActivity}
         live={liveProjects}
         waiting={waiting}
-        machine={error ? 'trouble' : feed === null ? 'reading' : 'ok'}
+        commsUnread={commsUnread}
+        machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}
         onPlace={(place: RailPlace) => {
           setShowSettings(place === 'settings')
           if (place === 'settings') return
@@ -972,6 +978,7 @@ function Shell({
           onOpenHistory={() => setPanel('history')}
           onOpenAccess={() => setPanel('access')}
           onOpen={(to) => { setShowSettings(false); goTo({ kind: to }) }}
+          commsUnread={commsUnread}
           onChange={async (next) => {
             // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
             const written = await window.fabric.settings.write(next).catch((e: unknown) => {
@@ -1144,7 +1151,7 @@ function Shell({
         {active.kind === 'agents' && (
           <>
           {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
-          <JoinedAgents projects={projects} />
+          <JoinedAgents projects={projects} mark={markOf(marks, ['act', 'access'])} />
           <EstateAgents
             // NULL TRAVELS (M108, UXA-C05). Five lines below, `EstateHome` is
             // handed both of these unchanged and says why in its own props;

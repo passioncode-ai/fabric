@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateAnswer } from './answerCommit.ts'
+import { answerSaid, validateAnswer } from './answerCommit.ts'
 
 const options = [
   { id: 'a', label: 'postgres 17' },
@@ -52,5 +52,16 @@ describe('what may be submitted as an answer', () => {
     const got = validateAnswer({ answer: 'x'.repeat(9_000), options: [] })
     expect(got.ok).toBe(false)
     if (!got.ok) expect(got.reason).toMatch(/too long|shorter/i)
+  })
+})
+
+// 0.3.7 review UX-6: the act line read «Ответ «opt_b» отправлен», the option's id in place of what was decided.
+describe('the answer as the act line words it', () => {
+  it('is the chosen option’s label, never its id', () => {
+    expect(answerSaid({ chosenOption: 'b', options })).toBe('postgres 15')
+    expect(answerSaid({ chosenOption: 'b', options })).not.toBe('b')
+  })
+  it('is what the person wrote when there is no option', () => {
+    expect(answerSaid({ answer: '  keep 16  ', options })).toBe('keep 16')
   })
 })

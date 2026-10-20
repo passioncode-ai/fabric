@@ -1,7 +1,7 @@
 // Settings as a screen (SCR-52, 2026-10-14): the agents on this computer with the source said, Switchboard's default
 // shown, a catalogue that cannot be read never shown as "no agents", and the existing controls still saving.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { AgentCatalogPanel, SettingsScreen } from './SettingsScreen'
@@ -80,6 +80,22 @@ describe('the settings screen', () => {
   })
 })
 
+describe('the projects\u2019 messages, reached from Настройки → Ещё (0.3.7 review UX-4)', () => {
+  it('the button that opens Comms carries the count of threads with new messages', () => {
+    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
+    const onOpen = vi.fn()
+    show(<SettingsScreen settings={settings} onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={onOpen} commsUnread={{ count: 4, atLeast: false }} />)
+    const button = screen.getByRole('button', { name: new RegExp(`^${en['settings.more.comms']}`) })
+    expect(within(button).getByLabelText(en['rail.commsUnread'].replace('{count}', '4')).textContent).toBe('4')
+    fireEvent.click(button)
+    expect(onOpen).toHaveBeenCalledWith('comms')
+    cleanup()
+    show(<SettingsScreen settings={settings} onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={onOpen} commsUnread={null} />)
+    expect(screen.queryByLabelText(/New messages/)).toBeNull()
+  })
+})
+
 describe('agent permissions and how each agent starts (ADR-0168)', () => {
   const options = [
     { id: 'gemini-cli', label: 'Gemini CLI', program: 'gemini', description: '', available: true, connectsToSurface: false, defaultMode: 'bypass',
@@ -109,6 +125,29 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     expect(screen.getByText('GOOSE_MODE=auto goose')).toBeTruthy()
   })
 
+  // 0.3.7 review UX-7: the line was read once on mount and kept the old mode after the choice changed.
+  it('reads each agent\u2019s launch line again when the permission choice changes', async () => {
+    let mode = 'bypass'
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: {
+        start: { executors: async () => rows },
+        settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }) },
+        terminal: { options: async () => options.map((o) => ({ ...o, defaultMode: mode })) },
+        analytics: { status: async () => ({ enabled: false, answered: true }) }
+      }
+    }))
+    const base = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin: true }
+    const view = render(<I18nProvider locale="en"><SettingsScreen settings={{ ...base, agentPermissions: 'fewer-prompts' } as unknown as AppSettings}
+      onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('gemini --yolo')).toBeTruthy())
+    mode = 'ask'
+    view.rerender(<I18nProvider locale="en"><SettingsScreen settings={{ ...base, agentPermissions: 'manual' } as unknown as AppSettings}
+      onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('GOOSE_MODE=approve goose')).toBeTruthy())
+    expect(screen.queryByText('gemini --yolo')).toBeNull()
+    expect(screen.getByText('gemini')).toBeTruthy()
+  })
+
   it('offers one choice for every agent, fewer prompts chosen, and saves the other', async () => {
     fabric()
     const onChange = vi.fn()
@@ -123,15 +162,58 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     expect(onChange).toHaveBeenCalledWith({ agentPermissions: 'manual' })
   })
 
-  it('starts Fabric at login unless the person turns it off (CO-322)', () => {
-    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
-    const onChange = vi.fn()
-    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin: true } as unknown as AppSettings
+})
+
+describe('launch at login, only where it does something (CO-322; 0.3.7 review UX-3, ER-3, DO-6)', () => {
+  const withLoginItem = (state: unknown) => vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+    fabric: {
+      start: { executors: async () => executors },
+      settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }), loginItem: async () => state },
+      analytics: { status: async () => ({ enabled: false, answered: true }) }
+    }
+  }))
+  const open = (launchAtLogin: boolean, onChange = vi.fn()) => {
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin } as unknown as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
-    const box = screen.getByRole('checkbox', { name: en['settings.launchAtLogin'] }) as HTMLInputElement
+    return onChange
+  }
+
+  it('on macOS: on by default, the Dock note, and the person can turn it off', async () => {
+    withLoginItem({ supported: true, platform: 'darwin', system: 'on' })
+    const onChange = open(true)
+    const box = await screen.findByRole('checkbox', { name: en['settings.launchAtLogin'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
+    expect(screen.getByText(en['settings.launchAtLoginNote'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.launchAtLogin.offDarwin'])).toBeNull()
     fireEvent.click(box)
     expect(onChange).toHaveBeenCalledWith({ launchAtLogin: false })
+  })
+
+  it('on macOS: says when the system refused or the person must allow Fabric in Login Items', async () => {
+    withLoginItem({ supported: true, platform: 'darwin', system: 'needs-approval' })
+    open(true)
+    expect(await screen.findByText(en['settings.launchAtLogin.approval'])).toBeTruthy()
+    cleanup()
+    withLoginItem({ supported: true, platform: 'darwin', system: 'off' })
+    open(true)
+    expect(await screen.findByText(en['settings.launchAtLogin.offDarwin'])).toBeTruthy()
+  })
+
+  it('on Windows: the Start menu, never the Dock', async () => {
+    withLoginItem({ supported: true, platform: 'win32', system: 'off' })
+    open(true)
+    expect(await screen.findByText(en['settings.launchAtLoginNoteWindows'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.launchAtLoginNote'])).toBeNull()
+    expect(screen.getByText(en['settings.launchAtLogin.offWindows'])).toBeTruthy()
+  })
+
+  it('on Linux and in a development build: no row at all', async () => {
+    withLoginItem({ supported: false })
+    open(true)
+    await screen.findByText(en['power.note'])
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByRole('checkbox', { name: en['settings.launchAtLogin'] })).toBeNull()
+    expect(screen.queryByText(en['settings.launchAtLoginNote'])).toBeNull()
   })
 })
 

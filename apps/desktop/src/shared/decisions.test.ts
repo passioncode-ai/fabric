@@ -193,3 +193,11 @@ describe('a lineage is a DAG, and it says whether it is whole (M173)', () => {
     expect(ids.filter((id) => id === 'shared')).toHaveLength(1)
   })
 })
+
+describe('a decision whose answer was taken back (0.3.7 review DA-1, migration 116)', () => {
+  it('is not shown as a current decision; the answer given after it is', () => {
+    const withdrawn: DecisionFact = { ...f('one'), valid_to: '2026-10-20T10:00:00Z' }
+    const got = lineagesOf([f('two'), withdrawn])
+    expect(got.map((l) => l.current.id)).toEqual(['two'])
+  })
+})

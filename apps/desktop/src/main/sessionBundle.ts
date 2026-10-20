@@ -264,8 +264,10 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // setup their terminal runs with; measured on Claude Code 2.1.299, Fabric's server still wins the
             // name `fabric` because --mcp-config outranks the user scope, and the user's `fabric-mcp` never
             // starts. A created agent stays strict: its declared servers are the whole of what it may reach
-            // (M127, a partial or wider grant is the defect). FABRIC_STRICT_MCP=1 restores strict for all.
-            const strict = agent !== null || process.env.FABRIC_STRICT_MCP === '1' ? ['--strict-mcp-config'] : []
+            // (M127, a partial or wider grant is the defect), and so does any session that carries gateway role
+            // keys (ADR-0169 decision 3; the Codex branch below keeps its isolated home on the same condition).
+            // FABRIC_STRICT_MCP=1 restores strict for all.
+            const strict = agent !== null || plan.grant.length > 0 || process.env.FABRIC_STRICT_MCP === '1' ? ['--strict-mcp-config'] : []
             //
             // AND THE PREAMBLE, which is the other half of M123. Handing an agent
             // tools does not tell it the rules; `fabric_whoami` holds those, and

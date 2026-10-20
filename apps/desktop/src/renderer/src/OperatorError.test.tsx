@@ -8,13 +8,26 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { BootFailure, OperatorError } from './OperatorError'
+import { BootFailure, OperatorError, withDetail } from './OperatorError'
 import { App } from './App'
 import { en } from './i18n/en'
 
 afterEach(cleanup)
 
 describe('a failure in front of the operator', () => {
+  // 0.3.7 review UX-16: a sentence built at the site (the draft that could not be kept) is the banner's title, and the
+  // machine's words go on their own line beneath it, never inside the sentence.
+  it('a sentence the site wrote leads, with the machine words on their own line', () => {
+    const { container } = render(<OperatorError raw={withDetail('The draft was closed.', "Error: Error invoking remote method 'drafts:discard': Error: EACCES")} />)
+    expect(container.querySelector('strong')?.textContent).toBe('The draft was closed.')
+    expect(container.querySelector('.error-detail')?.textContent).toBe('EACCES')
+    expect(screen.queryByText(en['error.title'])).toBeNull()
+    cleanup()
+    const bare = render(<OperatorError raw={withDetail('The draft was closed.', null)} />)
+    expect(bare.container.querySelector('strong')?.textContent).toBe('The draft was closed.')
+    expect(bare.container.querySelector('.error-detail')).toBeNull()
+  })
+
   it('never shows the transport wrapper', () => {
     render(
       <OperatorError raw="Error: Error invoking remote method 'memory:search': Error: the query was empty" />

@@ -14,9 +14,11 @@ import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES, removeExcludedContainers } from './stackServices.ts'
 import { startWithRetry } from '../shared/stackStartRetry.ts'
+import { pingDocker } from './dockerPing.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
-import { mergeLaunchPath, pathAdditions, shellPathProbe } from './platform.ts'
+import { mergeLaunchPath, pathAdditions } from './platform.ts'
+import { readLoginShellPath } from './loginShellPath.ts'
 
 export interface SupabaseEnv {
   url: string
@@ -37,20 +39,16 @@ export async function fixPath(): Promise<void> {
   process.env.PATH = await widenProbePath(mergeLaunchPath(shellPath, process.env.PATH ?? '', extra, path.delimiter), process.env)
 }
 
-/** The login shell's PATH, read once at start with a 3 s deadline; null when there is no shell or it does not answer. */
+/** The login shell's PATH, read once at start under a 3 s deadline that holds (`loginShellPath.ts`, review ER-1); null
+ *  when there is no shell or it does not answer in time, and the launch PATH keeps its old order. */
 async function loginShellPath(shell: string): Promise<string | null> {
-  const probe = shellPathProbe(shell)
-  if (!probe) return null
-  try {
-    const { stdout } = await run(probe.file, probe.args, { timeout: 3000, maxBuffer: 1024 * 1024, env: { ...process.env, TERM: 'dumb' } })
-    const read = probe.read(String(stdout))
-    if (read === null) ops.record({ op: 'env.shell-path', outcome: 'failed', level: 'warn', detail: { why: "no PATH between the markers" }, ctx: { correlationId: ops.correlate() } })
-    return read
-  } catch (e) {
+  const r = await readLoginShellPath(shell)
+  if (r.failure === 'no-markers')
+    ops.record({ op: 'env.shell-path', outcome: 'failed', level: 'warn', detail: { why: 'no PATH between the markers' }, ctx: { correlationId: ops.correlate() } })
+  else if (r.failure)
     // An rc file that hangs, prompts or fails leaves the old order (inherited PATH, then the installers' folders).
-    ops.failed('env.shell-path', e, { note: 'the login shell did not answer; the launch PATH keeps its old order' })
-    return null
-  }
+    ops.failed('env.shell-path', new Error(`${r.failure}: ${r.detail ?? ''}`), { note: 'the login shell did not answer; the launch PATH keeps its old order' })
+  return r.path
 }
 // #endregion fix-path
 
@@ -124,8 +122,18 @@ export function stopStartingStack(): void {
  */
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
   stopRequested = false
+  let dockerWaitLogged = false
   await startWithRetry(() => startStackOnce(onLine), {
     stopped: () => stopRequested,
+    // ER-4: Docker away at start (a login before OrbStack or Docker Desktop has its socket) is waited for, not shown.
+    pingDocker: (socket) => pingDocker(socket),
+    onDockerWait: (waitedMs) => {
+      if (!dockerWaitLogged) {
+        dockerWaitLogged = true
+        ops.record({ op: 'stack.start.docker-wait', outcome: 'ok', level: 'warn', detail: { why: 'Docker did not answer; waiting for it' }, ctx: { correlationId: ops.correlate() } })
+      }
+      onLine?.(`Waiting for Docker to answer (${Math.round(waitedMs / 1000)} s)`)
+    },
     onRetry: (attempt, attempts, message) => {
       ops.record({ op: 'stack.start.retry', outcome: 'ok', level: 'warn', detail: { attempt, attempts, why: message.split('\n').slice(-2).join(' ').slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
       onLine?.(`The stack is still starting — try ${attempt} of ${attempts}`)

@@ -317,9 +317,6 @@ export function EstateAgents({
           {agent && historyRead.state === 'ready' && (historyRead.value ?? []).length === 0 && (
             <EmptyState read>{t('agents.noHistory')}</EmptyState>
           )}
-          {agent && historyRead.state === 'ready' && mayHaveEarlier(historyRead.value ?? []) && (
-            <p className="muted" data-testid="history-earlier">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>
-          )}
           {/* OF-09: the agent's flow, newest first, each act in the person's words; who wrote it beneath. */}
           <div data-testid="agent-flow">
             {[...shownHistory(historyRead.value ?? [])].reverse().map((e) => (
@@ -337,6 +334,10 @@ export function EstateAgents({
               </div>
             ))}
           </div>
+          {/* Newest first, so the note that earlier events are left out sits under the oldest row (0.3.7 review UX-12). */}
+          {agent && historyRead.state === 'ready' && mayHaveEarlier(historyRead.value ?? []) && (
+            <p className="muted" data-testid="history-earlier">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>
+          )}
         </Panel>
       </div>
 

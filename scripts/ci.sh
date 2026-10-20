@@ -237,6 +237,14 @@ node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
 node --experimental-strip-types apps/desktop/test/editor-recovery.test.mjs
 # CO-192: --background opens no window and takes no focus until the person activates the app.
 node --test apps/desktop/test/background-launch.test.mjs
+# 0.3.7 review ER-1: the login shell's PATH probe ends at its 3 s deadline, against real shells that sleep or read stdin.
+node --experimental-strip-types --test apps/desktop/test/login-shell-path.test.mjs
+# 0.3.7 review ER-10: the folder trust Fabric writes into Claude Code's own state (OF-12).
+node --experimental-strip-types --test apps/desktop/test/claude-trust.test.mjs
+# 0.3.7 review PL-4 (DEC-0092): fabric.project.resolve tells "not in Git" from "Git could not be read", against real git.
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/git-facts.test.mjs
+# 0.3.7 review ER-4: at start Docker is asked over its own socket before the stack's failure is shown.
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/docker-ping.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
@@ -632,6 +640,7 @@ python3 test/audit_regressions/fix-pf-04.02.py
 python3 test/audit_regressions/fix-pf-05.02.py
 python3 test/audit_regressions/fix-pf-06.02.py
 python3 test/audit_regressions/fix-pf-06.03.py
+python3 test/audit_regressions/fix-ux-14.py
 python3 test/audit_regressions/fix-pf-07.01.py
 python3 test/audit_regressions/fix-pf-07.02.py
 python3 test/audit_regressions/fix-pf-08.01.py

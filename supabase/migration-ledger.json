@@ -373,6 +373,10 @@
     {
       "file": "20261019000115_run_over_attestation.sql",
       "sha256": "39a608873dec8294169dfdd0ac0ff09b9a573c9a46d7c2b6df27c1ee6729d43d"
+    },
+    {
+      "file": "20261020000116_withdrawn_answer_closes_decision.sql",
+      "sha256": "63a67f65d5f57190c7c127e74202f4b52dd8931aee9d2f53cde7758cd3c9add4"
     }
   ]
 }

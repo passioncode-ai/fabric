@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "ff13325f1f156d1f1ac0d781a2732249d9acdb6d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-data.md",
+  "reportSha256": "99946428d9dc978bbf55f7b4044e48a623e09c32aa8947f15bd8ccd64fc9b56b",
+  "reviewerRun": "release-037-i1-data-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-39",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: migration 116 `apply_withdrawn_answer_decision` closes the withdrawn decision, backfills 90 to 93; the Decisions panel too (`reopen-answer-db.test.mjs`, `decisions.test.ts`; watched)"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-1 and DO-2"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-340 (0.3.8)"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-341 (0.3.8); the runbook says the index may be skipped and that 113 rewrites every row"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-342 (0.3.8); migration 116 restores schema-93 archive admission for development databases"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: three journal indexes in 116 and three keyed reads: 34 ms → 0.15 ms at 200 000 events (`sessionHistory.test.ts`; watched)"
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `actLog.ts#reversersOf` filters `type` (`acts.test.mjs`; watched)"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-332 (timing under load, 0.3.8); no code it covers changed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "ff13325f1f156d1f1ac0d781a2732249d9acdb6d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-errors.md",
+  "reportSha256": "c2a3ffd8c3c5b9c42c7dede35c57dd8ce4748b3dd9f257c61eb93399656f99fd",
+  "reviewerRun": "release-037-i1-errors-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-17",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/loginShellPath.ts`: no stdin, own process group, SIGKILL at 3 s, settles once (`login-shell-path.test.mjs` with fake shells; watched)"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG Database and Upgrading for 89 → 94; runbook rewritten"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: blocking after the operator hit it on 2026-10-20: Docker away at start is waited for up to 90 s (`stackStartRetry.ts#waitForDocker`, `main/dockerPing.ts`; `stackStartRetry.test.ts` \"Docker that is not there yet\", `docker-ping.test.mjs`; watched)"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-339 (0.3.8): enrollment moves onto the contract's resolver; CHANGELOG no longer claims \"the way Fabric does\""
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a relative path is `input-invalid`, async realpath, parallel probes, 8 s overall deadline answering `pending` (`projectResolve.test.ts`; watched); a Git-facts cache is optional, not taken"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1; a refused attestation in our words (`SessionStop.test.tsx` \"a refused attestation…\"; watched)"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "ER-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-346 (0.3.8)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "ER-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-347 (0.3.8)"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `claude-trust.test.mjs` runs in `ci.sh` and the package test (planted defect watched)"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "ER-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-348 (0.3.8); both defaults are the operator's (ADR-0168)"
+      ]
+    }
+  ]
+}

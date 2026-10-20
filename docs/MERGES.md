@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-20T11:30:00Z · `—` · agent/release-037-i1-fixes → main · fast-forward
+- run: r-8db0598178fb
+- files: main (loginShellPath, gitFacts, dockerPing, env, index, hubTools, actRunExecutors, actSessionExecutors, actLog, sessionBundle), shared (projectResolve, stackStartRetry, loginItem, answerCommit, sessionHistory, decisions, schemaContract), renderer (SessionStop, SessionWindow, OperatorError, draftNotKept, LaunchShell, SettingsScreen, JoinedAgents, HomeParts, EstateAgents, История strings, i18n), migration 116 and the ledger, docs (CHANGELOG, release-mac, scenarios, carry-over, backlog, plans, ADR index, AGENTS.md, the archive record, the testers' brief), the 0.3.7 ledger and iteration-1 reviews
+- conflicts: none
+- summary: Fabric 0.3.7 release review, iteration 1: 58 findings (20 blocking) fixed or ruled. Docker waited for at start, the shell PATH probe bounded, DEC-0092's pending answer, the run-over undo resets the console, Claude strict with gateway keys, launch at login honest per platform, the Comms count back, a withdrawn answer closes its decision (schema 94), the release notes and runbook at 94.
+
 ### 2026-10-18T20:30:00Z · `—` · agent/fabric-simple-w3 → main · fast-forward
 - run: r-44ae60a75316
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports

@@ -67,8 +67,16 @@ def read(path: Path) -> str:
     except OSError:
         return ""
     # Strip HTML comments so template examples (shipped commented-out) and
-    # notes are never parsed as real entries.
-    return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    # notes are never parsed as real entries. An inline code span is kept as
+    # written: prose that NAMES the opener (`<!--`) is not a comment, and
+    # stripping from it to the next `-->` once ate AGENTS.md's vision heading
+    # (0.3.7 review UX-14).
+    return re.sub(
+        r"(`[^`\n]*`)|<!--.*?-->",
+        lambda m: m.group(1) or "",
+        text,
+        flags=re.DOTALL,
+    )
 
 
 def find_ux_dir(arg: str | None) -> Path | None:

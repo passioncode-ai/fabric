@@ -18,7 +18,9 @@ export function sessionStopOutcome(snapshot: ConsoleSnapshot, result: StopSeen, 
   return {
     kind: 'session.stop', projectId: snapshot.projectId,
     subject: { type: 'session', id: snapshot.sessionId, label: snapshot.label },
-    said: { key: 'act.session.stop', params: { agent: snapshot.label, project: projectName } },
+    // `runner` is the id the renderer words through runnerLabel; `agent` stays for records read by an older build
+    // (0.3.7 review UX-6: a shell read «Terminal» in Russian, a created agent its uuid).
+    said: { key: 'act.session.stop', params: { agent: snapshot.label, runner: snapshot.optionId, project: projectName } },
     inverse: {
       kind: 'session.start',
       args: { project_id: snapshot.projectId, option_id: snapshot.optionId, permission_mode: snapshot.permissionMode, cwd: snapshot.cwd,
@@ -54,7 +56,7 @@ export function createSessionExecutors(deps: SessionExecutorDeps): { 'session.st
         return {
           kind: 'session.start', projectId,
           subject: { type: 'session', id: opened.sessionId, label: opened.label },
-          said: { key: 'act.session.start', params: { agent: opened.label, project: project } },
+          said: { key: 'act.session.start', params: { agent: opened.label, runner: optionId, project: project } },
           inverse: { kind: 'session.stop', args: { session_id: opened.sessionId } }
         }
       }

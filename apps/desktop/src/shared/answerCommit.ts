@@ -58,3 +58,12 @@ export function validateAnswer(input: {
     return { ok: false, reason: `that answer is too long (${free.length} characters); say it shorter` }
   return { ok: true, value: { answer: free, chosenOption: null } }
 }
+
+/**
+ * The answer as the act line and История word it (0.3.7 review UX-6): the chosen option's LABEL, as the decision
+ * reads, never its id («Ответ «opt_b» отправлен»). An input that does not validate keeps what the person typed.
+ */
+export function answerSaid(input: { answer?: string; chosenOption?: string; options: readonly AnswerOption[] }): string {
+  const checked = validateAnswer(input)
+  return checked.ok ? checked.value.answer : (input.answer ?? '').trim()
+}

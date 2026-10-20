@@ -90,4 +90,43 @@ test('an act record is projected nowhere and rebuilds to the same state', () => 
   sql(`select rebuild_estate_projections('${E}')`)
   assert.equal(sql(`select count(*) from questions where estate_id='${E}'`), before)
 })
+// DA-1 (0.3.7 release review, iteration 1; migration 94, suffix 116): the decision an answer recorded is what agents
+// read as the project's present truth (the context pack hands them every fact with valid_to null). Taking the answer
+// back must end that decision, and answering again must leave one current decision, not two.
+const currentDecisions = q => sql(`select coalesce(string_agg(claim, ',' order by seq), '') from memory_facts
+  where estate_id='${E}' and kind='decision' and source_ref='question:${q}' and valid_to is null`)
+
+test('a withdrawn answer is no longer a current decision; answering again leaves exactly one', () => {
+  assert.equal(sql("select count(*) from supabase_migrations.schema_migrations where version='20261020000116'"), '1')
+  const q = ask()
+  const first = answer(q, 1, 'one')
+  assert.equal(currentDecisions(q), 'one')
+  const r = reopen(q, uuid(n++))
+  assert.equal(currentDecisions(q), '', 'the decision that was taken back is not current')
+  assert.equal(sql(`select (valid_to is not null)::text||'|'||coalesce(superseded_by::text,'-')||'|'||withdrawn_seq from memory_facts where id='${first.decision_id}'`),
+    `true|-|${r.reopened_seq}`, 'it is closed by the withdrawal, kept as history')
+  answer(q, 2, 'two')
+  assert.equal(currentDecisions(q), 'two')
+  sql(`select rebuild_estate_projections('${E}')`)
+  assert.equal(currentDecisions(q), 'two', 'a rebuild over the existing rows reproduces it')
+})
+
+test('a withdrawal whose payload names no decision closes the answers recorded before it, never a later one', () => {
+  const q = ask()
+  answer(q, 1, 'alpha')
+  // A withdrawal as an older writer could have left it: no decision id. The projector reopens the question as before.
+  sql(`select append_event('${E}','question.answer_withdrawn@1',${person},'{"id":"${q}","command_id":"${uuid(n++)}","decision_id":null}','1','${P}')`)
+  assert.equal(currentDecisions(q), '')
+  answer(q, 2, 'beta')
+  sql(`select rebuild_estate_projections('${E}')`)
+  assert.equal(currentDecisions(q), 'beta', 'the replayed withdrawal leaves the later answer current')
+})
+
+test('the fact shape admits one closer, a replacement or a withdrawal, never none and never both', () => {
+  const q = ask(); const { decision_id: d } = answer(q, 1, 'shape')
+  refused(`update memory_facts set valid_to=now() where id='${d}'`, /memory_facts_supersession_shape/)
+  refused(`update memory_facts set valid_to=now(), withdrawn_seq=1, superseded_by='${uuid(n++)}' where id='${d}'`, /memory_facts_supersession_shape/)
+  assert.equal(sql(`select has_function_privilege('service_role','apply_withdrawn_answer_decision(journal)','execute')`), 'f', 'the projector is callable')
+})
+
 console.log(`PASS ${count} reopen-answer checks`)

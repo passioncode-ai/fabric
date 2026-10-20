@@ -9,6 +9,7 @@ import { createActs } from '../src/main/acts.ts'
 import { createSessionExecutors, sessionStopOutcome } from '../src/main/actSessionExecutors.ts'
 import { createDrafts } from '../src/main/onboardingDrafts.ts'
 import { actQueryOf, answerOf } from '../src/main/actIpc.ts'
+import { createActLog } from '../src/main/actLog.ts'
 
 const ME = { kind: 'person', id: 'operator' }
 const outcome = (over = {}) => ({
@@ -247,4 +248,50 @@ test('the renderer\'s query is read defensively and an answer carries no interna
   assert.deepEqual(answerOf({ ok: true, seq: 7, outcome: outcome() }), { ok: true, seq: 7 })
   assert.deepEqual(answerOf({ ok: false, reason: 'ladder', says: 'closed' }), { ok: false, reason: 'ladder', says: 'closed' })
   assert.deepEqual(answerOf({ ok: false, reason: 'task_gone' }), { ok: false, reason: 'task_gone' })
+})
+
+// 0.3.7 release review DA-7: История's reversal read is served by migration 112's partial index
+// `journal_acts_reversals` only when the query says `type = act.recorded@1`; without it PostgreSQL scans the estate's
+// journal per chunk (measured at 200 000 events: a sequential scan, 24 ms, against 0.06 ms on the index).
+test('the reversal read names the act type in its query, chunk by chunk, and still reads only acts', async () => {
+  const undoing = (seq, undoes) => ({ seq, occurred_at: '2026-10-20T10:00:00Z', actor: ME, project_id: 'p1', type: 'act.recorded@1', payload: buildRecord(outcome(), undoes) })
+  const journal = [
+    undoing(501, 11), undoing(502, 260),
+    // Another event type whose payload also carries `undoes` (a revoked run-over attestation): never an act.
+    { seq: 503, occurred_at: '2026-10-20T10:00:00Z', actor: ME, project_id: 'p1', type: 'run.stop_attestation_revoked@1', payload: { undoes: '12' } }
+  ]
+  const reads = []
+  const field = (row, c) => c === 'type' ? row.type : c === 'payload->>undoes' ? (row.payload.undoes === null || row.payload.undoes === undefined ? undefined : String(row.payload.undoes)) : undefined
+  const store = {
+    select(_table, _columns) {
+      const read = { eq: [], in: null }
+      reads.push(read)
+      const q = {
+        eq(c, v) { read.eq.push([c, v]); return q },
+        in(c, values) { read.in = [c, values.length]; const rows = journal.filter((r) => read.eq.every(([k, v]) => field(r, k) === v) && values.includes(field(r, c))); return Promise.resolve({ data: rows, error: null }) }
+      }
+      return q
+    },
+    async selectIn(_table, _columns, column, values) {
+      // As scopedStore.selectIn: one request per 100 values, filtered by the list alone.
+      for (let i = 0; i < values.length; i += 100) reads.push({ eq: [], in: [column, Math.min(100, values.length - i)] })
+      return { rows: journal.filter((r) => values.includes(field(r, column))), failed: null }
+    }
+  }
+  const log = createActLog({ journal: { append: async () => { throw new Error('unused') } }, store, estateId: 'e1' })
+  const seqs = Array.from({ length: 260 }, (_, i) => i + 1)
+  const found = await log.reversersOf(seqs)
+  assert.deepEqual(found.map((r) => r.seq), [501, 502])
+  assert.ok(reads.length >= 3, 'a growing frontier is read in bounded chunks')
+  for (const r of reads) {
+    assert.deepEqual(r.eq, [['type', 'act.recorded@1']], 'every chunk names the act type, so the partial index serves it')
+    assert.equal(r.in[0], 'payload->>undoes')
+    assert.ok(r.in[1] <= 100)
+  }
+})
+
+test('a refused reversal chunk is an error, never "nothing undid it"', async () => {
+  const store = { select: () => { const q = { eq: () => q, in: async () => ({ data: null, error: { message: 'URI too long' } }) }; return q }, selectIn: async () => ({ rows: [], failed: 'journal.payload->>undoes could not be read (414): URI too long' }) }
+  const log = createActLog({ journal: { append: async () => ({ seq: 1 }) }, store, estateId: 'e1' })
+  await assert.rejects(log.reversersOf([1, 2]), /the act log could not be read \(reversals\)/)
 })

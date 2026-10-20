@@ -624,7 +624,7 @@ export const en = {
   'harness.agent.kimi-code': "An agent session in the project directory, connected to Fabric",
   'harness.agent.shell': "A plain login shell, no agent",
   'harness.servers': 'Servers a session can reach',
-  'harness.strict': "Fabric's own server, and in a console also the MCP servers this computer's coding agent is set up with (Observatory, plugins). An agent created here sees only the servers it declares.",
+  'harness.strict': "Fabric's own server. A console also keeps the MCP servers this computer's coding agent is set up with (Observatory, plugins), unless the project declares MCP servers of its own: then the console, like an agent created here, sees only Fabric's server and the declared ones.",
   'harness.noServer': 'The surface is not running, so a session here would have no tools at all.',
   'harness.tools': 'Tools',
   'harness.records': 'leaves a record',
@@ -893,6 +893,8 @@ export const en = {
   'session.unreadable': 'This session could not be read: {reason}. That says nothing about the session itself — it is about the read.',
   'session.stale': 'This reading is not current: {reason}. What is below is the last answer, not the latest one.',
   'session.runOver': "Work is over",
+  'session.stop.attested': "You marked the work as over",
+  'session.runOverFailed': "Fabric did not mark the work as over: {why}.",
   'session.runOverHelp': "The agent's process has ended, and Fabric cannot prove its provider stopped too. If you know the work is over, say so: the task becomes free, and you can undo it.",
 
   'settings.notSaved': 'Settings were not saved: {reason}. The screen shows what is on disk.',
@@ -2540,6 +2542,10 @@ export const en = {
   'rail.projects': "Projects",
   'rail.waiting': "{count} wait for you",
   'rail.waitingProject': "{count} wait for you here",
+  // 0.3.7 review UX-4, UX-9: the sidebar and its places have names of their own; Comms' count rides on Settings.
+  'rail.aside': "Fabric sidebar",
+  'rail.commsUnread': "New messages: {count}",
+  'rail.commsUnreadMax': "New messages: {count}+",
   'rail.live': "an agent works here",
   'rail.favourite': "favourite",
   'rail.projects.reading': "Reading projects…",
@@ -2625,9 +2631,9 @@ export const en = {
   'act.run.unattest': "«{task}» is held again until its run is settled",
   // 0.3.7 wave 3: История, the list of acts (SCN-168, SCN-169); wave 4 adds its filters and detail.
   'acts.title': "History",
-  'acts.lede': "Every act, yours and the agents\u2019, newest first. Undo is one press where an act can be taken back.",
+  'acts.lede': "Every act of yours, and what Fabric did on its own, newest first. Undo is one press where an act can be taken back. The agents\u2019 own acts arrive here in 0.3.8.",
   'acts.reading': "Reading the history…",
-  'acts.empty': "History is empty: every act, yours and the agents\u2019, will appear here.",
+  'acts.empty': "History is empty: every act of yours, and what Fabric did on its own, will appear here.",
   'acts.failed': "History was not read.",
   'acts.retry': "Try again",
   'acts.stale': "as it was at {time}",
@@ -2658,8 +2664,15 @@ export const en = {
   'settings.more.help': "Help and the first run",
   'settings.launchAtLogin': "Start Fabric when you log in",
   'settings.launchAtLoginNote': "It starts without a window, so your agents and the board keep running; open it from the Dock when you need it.",
+  // 0.3.7 review UX-3, ER-3: Windows has no Dock, and the row says what the system itself reports.
+  'settings.launchAtLoginNoteWindows': "It starts without a window, so your agents and the board keep running; open it from the Start menu when you need it.",
+  'settings.launchAtLogin.offDarwin': "macOS does not start Fabric at login now: it is turned off in System Settings, under Login Items.",
+  'settings.launchAtLogin.offWindows': "Windows does not start Fabric at login now: it is turned off in Settings, under Startup apps.",
+  'settings.launchAtLogin.approval': "macOS is waiting for you to allow Fabric in System Settings, under Login Items.",
+  'settings.launchAtLogin.stillOn': "The system still starts Fabric at login.",
+  'settings.launchAtLogin.unknown': "Could not read whether the system starts Fabric at login.",
   'project.comms.open': "What this project and others told each other",
-  'drafts.notKept': "The draft was closed, but it could not be kept to bring back: {reason}",
+  'drafts.notKept': "The draft was closed, but it could not be kept to bring back: {reason}.",
   'create.drafts': "Not finished",
   'create.draftUntitled': "A project without a name yet",
   'tasks.replaced': "Your words were replaced.",
@@ -2686,7 +2699,7 @@ export const en = {
   'consoles.reading': "Reading the session…",
   'consoles.tabTitle': "{name} · {runner}",
   'consoles.detach': "Open in a separate window",
-  'consoles.detachFailed': "The separate window did not open:",
+  'consoles.detachFailed': "The separate window did not open.",
 } as const
 
 export type StringKey = keyof typeof en

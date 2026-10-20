@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Banner, Button, EmptyState, StateChip } from './components'
 import { sessionTone } from './sessionTone'
 import { SessionStop, StopStatus } from './SessionStop'
+import { FailureNote } from './OperatorError'
+import { unwrap } from '../../shared/errorText'
 import { TerminalView } from './TerminalView'
 import { useT } from './i18n'
 import {
@@ -113,13 +115,14 @@ export function SessionWindow({
         {onDetach && (
           <Button tone="ghost" onClick={() => {
             setDetachProblem(null)
-            onDetach().catch((e: unknown) => setDetachProblem(e instanceof Error ? e.message : String(e)))
+            onDetach().catch((e: unknown) => setDetachProblem(unwrap(e instanceof Error ? e.message : String(e))))
           }}>
             {t('consoles.detach')}
           </Button>
         )}
       </header>
-      {detachProblem !== null && <p className="muted">{t('consoles.detachFailed')} {detachProblem}</p>}
+      {/* 0.3.7 review UX-16: our sentence, then the machine's words on their own line, never one paragraph. */}
+      {detachProblem !== null && <FailureNote said={t('consoles.detachFailed')} detail={detachProblem} />}
       {/* A REFUSED REFRESH IS A CAVEAT, NOT A WALL. Taking the terminal away
           because one poll failed costs the operator what they were reading;
           leaving it with nothing said would let a frozen reading pass as a
