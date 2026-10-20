@@ -74,7 +74,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       values: readonly string[],
       chunk = 100,
       /** Aborts every chunk's request (a caller's deadline); a refused chunk is `failed`, as any other. */
-      signal?: AbortSignal
+      signal?: AbortSignal,
+      /** Equalities every chunk also carries, so a partial index on them can serve the read (0.3.7 review DA-7). */
+      eq: ReadonlyArray<readonly [column: string, value: string]> = []
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const filters = scopeFilters(table, scope)
       if (!values.length) return { rows: [], failed: null }
@@ -82,6 +84,7 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       for (let i = 0; i < values.length; i += chunk) {
         let q = db.from(table).select(columns)
         for (const [c, value] of filters) q = q.eq(c, value)
+        for (const [c, value] of eq) q = q.eq(c, value)
         const filtered = q.in(column, values.slice(i, i + chunk) as string[])
         const { data, error } = await (signal ? filtered.abortSignal(signal) : filtered)
         // NOT `?? []`. A read that did not happen is not a read that found

@@ -272,10 +272,10 @@ test('the reversal read names the act type in its query, chunk by chunk, and sti
       }
       return q
     },
-    async selectIn(_table, _columns, column, values) {
-      // As scopedStore.selectIn: one request per 100 values, filtered by the list alone.
-      for (let i = 0; i < values.length; i += 100) reads.push({ eq: [], in: [column, Math.min(100, values.length - i)] })
-      return { rows: journal.filter((r) => values.includes(field(r, column))), failed: null }
+    async selectIn(_table, _columns, column, values, chunk = 100, _signal, eq = []) {
+      // As scopedStore.selectIn: one request per chunk, each carrying the given equalities.
+      for (let i = 0; i < values.length; i += chunk) reads.push({ eq: [...eq], in: [column, Math.min(chunk, values.length - i)] })
+      return { rows: journal.filter((r) => eq.every(([k, v]) => field(r, k) === v) && values.includes(field(r, column))), failed: null }
     }
   }
   const log = createActLog({ journal: { append: async () => { throw new Error('unused') } }, store, estateId: 'e1' })

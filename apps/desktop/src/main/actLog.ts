@@ -9,7 +9,7 @@ import type { createScopedStore } from './scopedStore.ts'
 import { ACT_EVENT, validateActRecord, type ActActor, type ActRow } from '../shared/acts.ts'
 import type { ActLog } from './acts.ts'
 
-type Store = Pick<ReturnType<typeof createScopedStore>, 'select'>
+type Store = Pick<ReturnType<typeof createScopedStore>, 'select' | 'selectIn'>
 interface Row { seq: number; occurred_at: string; actor: ActActor; project_id: string | null; payload: unknown }
 
 const COLUMNS = 'seq,occurred_at,actor,project_id,payload'
@@ -52,15 +52,9 @@ export function createActLog(deps: { journal: Pick<Journal, 'append'>; store: St
       // refused chunk is an error, never "nothing undid it". Each chunk names the act type (0.3.7 review DA-7): only
       // then can PostgreSQL use migration 112's partial index `journal_acts_reversals`; filtered by the list alone it
       // scanned the estate's journal once per chunk. The type is checked again below, as a guard.
-      const found: (Row & { type: string })[] = []
-      const values = seqs.map(String)
-      for (let i = 0; i < values.length; i += REVERSAL_CHUNK) {
-        const { data, error } = await deps.store.select('journal', `${COLUMNS},type`)
-          .eq('type', ACT_EVENT)
-          .in('payload->>undoes', values.slice(i, i + REVERSAL_CHUNK))
-        if (error) throw new Error(`the act log could not be read (reversals): ${error.message}`)
-        found.push(...((data ?? []) as unknown as (Row & { type: string })[]))
-      }
+      const { rows, failed } = await deps.store.selectIn('journal', `${COLUMNS},type`, 'payload->>undoes', seqs.map(String), REVERSAL_CHUNK, undefined, [['type', ACT_EVENT]])
+      if (failed) throw new Error(`the act log could not be read (reversals): ${failed}`)
+      const found = rows as unknown as (Row & { type: string })[]
       return found
         .filter((r) => r.type === ACT_EVENT)
         .sort((a, b) => Number(a.seq) - Number(b.seq))
