@@ -562,3 +562,6 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lp-choice input{margin-top:3px;accent-color:var(--app-accent)}
 .lp-choice span{display:grid;gap:2px}
 .lp-choice small{color:var(--app-muted);font-size:12px}
+/* Launch at login (Settings, CO-322): one checkbox with its label. */
+.lp-check{display:flex;align-items:center;gap:var(--space-2);font-size:13px;margin:var(--space-3) 0 0;cursor:pointer}
+.lp-check input{accent-color:var(--app-accent)}

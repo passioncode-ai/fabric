@@ -38,6 +38,7 @@ import { folderProjectId, gitCommonDir, gitTopLevel } from './folderResolver.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
+import { loginItemFor, startsInBackground } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
 import { readHome, readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
@@ -579,7 +580,8 @@ const WINDOW_CHROME = {
  * A non-activating launch (`activates=false`) without the flag still raised the splash and the main window
  * and took focus. Only a fresh launch carries arguments; an open of a running Fabric leaves it as it is.
  */
-const BACKGROUND_LAUNCH = process.argv.includes('--background')
+// CO-322: the system opening Fabric at login is a background start too; read once Electron is ready (applyLoginItem).
+let BACKGROUND_LAUNCH = process.argv.includes('--background')
 /** Injected by electron.vite.config.ts from FABRIC_ANALYTICS_APP_KEY at build time; empty in source builds. */
 declare const __FABRIC_ANALYTICS_APP_KEY__: string
 const ANALYTICS_APP_KEY: string | null = (typeof __FABRIC_ANALYTICS_APP_KEY__ === 'string' && __FABRIC_ANALYTICS_APP_KEY__) || null
@@ -590,6 +592,21 @@ let analyticsCounts: (() => Promise<Record<string, number>>) | null = null
 /** Set once startup has registered everything a window needs; an activation before that waits for it. */
 let windowReady = false
 let activatedDuringStartup = false
+/**
+ * CO-322: register or remove Fabric as a login item, as the person's setting says (on by default), and on the first
+ * call read whether the system opened this start at login, which is a background start. A refusal is recorded and
+ * changes nothing else: the setting stays what the person chose.
+ */
+function applyLoginItem(enabled: boolean, atStart: boolean): void {
+  try {
+    if (atStart && process.platform === 'darwin' && app.isPackaged)
+      BACKGROUND_LAUNCH = startsInBackground(process.argv, app.getLoginItemSettings().wasOpenedAtLogin)
+    const item = loginItemFor(enabled, process.platform, app.isPackaged)
+    if (item) app.setLoginItemSettings(item)
+  } catch (e) {
+    ops.failed('app.login-item', e, { enabled })
+  }
+}
 // #endregion background-launch
 
 // The IDE opens with one click: if the local stack is down, start it ourselves
@@ -4596,6 +4613,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // tomorrow is a power setting that did not work today. Applied from what was
     // COMMITTED, so a refused write does not change the policy either.
     power?.setPolicy(written.settings.keepAwake)
+    if (next.launchAtLogin !== undefined) applyLoginItem(written.settings.launchAtLogin, false)
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
@@ -5037,6 +5055,8 @@ app.whenReady().then(async () => {
   // flag is what actually stops it — the first version of this guard relied on
   // quit alone and would have let the sweeps run anyway.
   if (!isPrimary) return
+
+  applyLoginItem(readSettings().launchAtLogin, true)
 
   // M111 — before any window exists, because the default menu is what binds
   // Cmd+W to Close Window, and a tabbed app cannot afford that key for one

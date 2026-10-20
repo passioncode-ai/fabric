@@ -2656,6 +2656,8 @@ export const en = {
   'settings.more.comms': "What projects tell each other",
   'settings.more.persona': "Fabric\u2019s name and look",
   'settings.more.help': "Help and the first run",
+  'settings.launchAtLogin': "Start Fabric when you log in",
+  'settings.launchAtLoginNote': "It starts without a window, so your agents and the board keep running; open it from the Dock when you need it.",
   'project.comms.open': "What this project and others told each other",
   'drafts.notKept': "The draft was closed, but it could not be kept to bring back: {reason}",
   'create.drafts': "Not finished",

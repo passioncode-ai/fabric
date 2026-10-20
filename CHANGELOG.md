@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Fabric starts when you log in.** It starts without a window, so agents and the board keep running; turn it off
+  in Settings → «Компьютер».
 - **An agent's history reads as what it did.** In Агенты the picked agent's history is newest first and in words (a
   task it moved, a decision it recorded, its stage), with who did it, and it now includes what the agent wrote itself.
 - **Other products can ask Fabric which project a folder belongs to.** Fabric's hub answers `fabric.project.resolve`

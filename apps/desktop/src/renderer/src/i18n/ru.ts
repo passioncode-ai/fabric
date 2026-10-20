@@ -2523,6 +2523,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.more.comms': "Переписка между проектами",
   'settings.more.persona': "Имя и вид Fabric",
   'settings.more.help': "Справка и первый запуск",
+  'settings.launchAtLogin': "Запускать Fabric при входе в систему",
+  'settings.launchAtLoginNote': "Он запускается без окна, чтобы агенты и доска продолжали работать; откройте его из Dock, когда понадобится.",
   'project.comms.open': "Переписка с другими проектами",
   'drafts.notKept': "Черновик закрыт, но сохранить его для возврата не удалось: {reason}",
   'create.drafts': "Не закончено",

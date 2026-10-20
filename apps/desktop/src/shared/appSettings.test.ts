@@ -16,7 +16,8 @@ describe('validateSettings', () => {
       commsReadThrough: { '79000000-0000-4000-8000-0000000000d1': 40 },
       firstRun: { completedAt: '2026-10-03T10:00:00.000Z' },
       runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] },
-      agentPermissions: 'manual'
+      agentPermissions: 'manual',
+      launchAtLogin: false
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -177,5 +178,14 @@ describe('settingsPatch', () => {
     expect(validateSettings({ agentPermissions: 'yolo' })?.agentPermissions).toBe('fewer-prompts')
     expect(settingsPatch({ agentPermissions: 'manual' })).toEqual({ ok: true, patch: { agentPermissions: 'manual' } })
     expect(settingsPatch({ agentPermissions: 'yolo' }).ok).toBe(false)
+  })
+
+  it('starts Fabric at login unless the person turned it off (CO-322)', () => {
+    expect(APP_SETTINGS_DEFAULTS.launchAtLogin).toBe(true)
+    expect(validateSettings({})?.launchAtLogin).toBe(true)
+    expect(validateSettings({ launchAtLogin: false })?.launchAtLogin).toBe(false)
+    expect(validateSettings({ launchAtLogin: 'no' })?.launchAtLogin).toBe(true)
+    expect(settingsPatch({ launchAtLogin: false })).toEqual({ ok: true, patch: { launchAtLogin: false } })
+    expect(settingsPatch({ launchAtLogin: 'no' }).ok).toBe(false)
   })
 })

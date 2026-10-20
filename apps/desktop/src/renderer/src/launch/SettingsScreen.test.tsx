@@ -113,7 +113,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts' } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -121,6 +121,17 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     expect(manual.checked).toBe(false)
     fireEvent.click(manual)
     expect(onChange).toHaveBeenCalledWith({ agentPermissions: 'manual' })
+  })
+
+  it('starts Fabric at login unless the person turns it off (CO-322)', () => {
+    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
+    const onChange = vi.fn()
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin: true } as unknown as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    const box = screen.getByRole('checkbox', { name: en['settings.launchAtLogin'] }) as HTMLInputElement
+    expect(box.checked).toBe(true)
+    fireEvent.click(box)
+    expect(onChange).toHaveBeenCalledWith({ launchAtLogin: false })
   })
 })
 

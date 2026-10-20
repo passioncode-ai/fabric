@@ -175,6 +175,11 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             {/* Said here rather than discovered: the blocker stops the MACHINE suspending and lets the screen sleep,
                 and macOS ignores it with the lid closed on battery. */}
             <p className="settings-note">{t('power.note')}</p>
+            <label className="lp-check">
+              <input type="checkbox" checked={settings.launchAtLogin !== false} onChange={(e) => void onChange({ launchAtLogin: e.target.checked })} />
+              {t('settings.launchAtLogin')}
+            </label>
+            <p className="settings-note">{t('settings.launchAtLoginNote')}</p>
           </section>
           <section className="lp-panel" aria-labelledby="settings-look-title">
             <h3 id="settings-look-title">{t('settings.look.title')}</h3>

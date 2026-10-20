@@ -138,7 +138,7 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 
 | What | Started by | Cadence | With no window | Stopped by |
 |---|---|---|---|---|
-| Fabric.app (main + renderer + helpers) | the person | — | closing the last window keeps the main process on macOS, so live PTY sessions survive; Cmd+Q / SIGTERM ends it within 10 s (`src/main/quit.ts`), exit code 3 when the deadline had to end it. A quit never waits for an editor: unsaved buffers are kept in `userData/editor-recovery` as the person types and offered back on the next open | quit, SIGTERM, logout |
+| Fabric.app (main + renderer + helpers) | the person, or the system at login (CO-322: on by default, Settings → «Запускать Fabric при входе в систему»; a login start opens no window, as `--background`) | — | closing the last window keeps the main process on macOS, so live PTY sessions survive; Cmd+Q / SIGTERM ends it within 10 s (`src/main/quit.ts`), exit code 3 when the deadline had to end it. A quit never waits for an editor: unsaved buffers are kept in `userData/editor-recovery` as the person types and offered back on the next open | quit, SIGTERM, logout |
 | PTY sessions and coding-agent runners | the person or a routine / chain step | per task | keep running until they end or the app quits | the app's drain on quit (8 s per attempt), then the 10 s hard deadline |
 | The routine/chain cycle and the notifier | the app | 60 s each (`TICK_MS`, `NOTIFY_MS`) | run while the main process runs; start nothing once quitting | quitting (`quit.onQuit`) |
 | Quota reading | the renderer | every 60 s, served from a 2 min reading; a missing or refused credential is held (10 min, or until the screen is unlocked) | — | the app |
