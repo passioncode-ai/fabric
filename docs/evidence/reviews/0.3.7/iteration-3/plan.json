@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "2d6169a08f20b5fe684d453fde1d062cd9596a1d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-plan.md",
+  "reportSha256": "4bb7c2bd9f9594076989e7d285e828b02aa4f3fbffa9415420ca5d2eace3eb4b",
+  "reviewerRun": "release-037-i3-plan-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-6",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this section names `c2681cd1` and `ffe27fb3`, the hosted `ci` of each, and where migration 116's database tests last ran"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff names CO-355 to CO-358 and that `main` lands by a merge keeping the verified commit an ancestor"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: filed as rows in the first 0.3.8 commit (P-20): FAA-26/27/29 and the later cross-project asks; registers do not change after the verified commit"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "PL-4",
+      "status": "not a defect",
+      "evidence": [
+        "not a defect: CO-349 to CO-351 were taken by the id counter for another run of this session and are unused; the Next free ID note is corrected with the 0.3.8 rows"
+      ]
+    }
+  ]
+}

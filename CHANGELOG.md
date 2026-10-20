@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.7
 
 - **Fabric starts when you log in** (macOS and Windows). It starts without a window, so agents and the board keep
   running; turn it off in Settings → «Компьютер». Settings shows the row only where Fabric registers a login item (not

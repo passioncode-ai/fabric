@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "2d6169a08f20b5fe684d453fde1d062cd9596a1d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-docs.md",
+  "reportSha256": "155bcaed1f137c4befc886f540acb44719c152fd48d9362f42cfeb335b79a23f",
+  "reviewerRun": "release-037-i3-docs-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-2",
+      "source": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff names CO-340 to CO-348 and CO-352 to CO-358"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "DO-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: 0.3.8 with SCN-168 to SCN-171 (P-20): the scenario's quoted reason is aligned when История is rebuilt; the app's string is the one shown"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG states the 64-session cap per coding agent"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG's Codex console line reads once"
+      ]
+    }
+  ]
+}

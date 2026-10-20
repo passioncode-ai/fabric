@@ -1,0 +1,22 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "2d6169a08f20b5fe684d453fde1d062cd9596a1d",
+  "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-ux.md",
+  "reportSha256": "7574c842e34fa318076c4bec776085685804c89f1d3ee94b39b0c5b774859252",
+  "reviewerRun": "release-037-i3-ux-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `launch/actWords.ts` WHY lists `already_attested`; `actWords.test.ts` \"says every act.why sentence…\" (watched failing with the code removed) in the final candidate"
+      ]
+    }
+  ]
+}

@@ -138,6 +138,37 @@ of iteration 1, ER-4's socket path, DO-3, DO-5, DO-6) are findings here and fixe
 
 Exit for iteration 2: every finding is fixed or ruled to a register row. Blocking findings open: none.
 
+## Iteration 3
+
+Five fresh reviewers, 2026-10-20 to 2026-10-21. They started on `16405bcd`; the session limit stopped them at 15:20
+UTC, and they finished on `ffe27fb3` (`ffe27fb3c1ff766a65f14152e3d1c1b2cccc1c4c`) after reading its delta: hosted `ci`
+on `16405bcd` failed on stale mockup previews (fixed in `c2681cd1`), and on `c2681cd1` on the list-read rule, a
+hand-written chunked `.in` from iteration 1's DA-7 fix (fixed in `ffe27fb3` by `selectIn` with per-chunk equalities).
+Hosted `ci` on `ffe27fb3` passed (run 39445895894, the `fast` job; `full` is skipped on push by policy), and its
+complete local `ci.sh fast` exit 0 on 2026-10-20. Migration 116's database tests last ran on disposable clusters in this
+iteration's data review (`run-reopen-answer-db`, `run-function-privileges-db`, an 89 → 94 catalog comparison). Reports:
+[UX](../reviews/0.3.7/iteration-3/2026-10-20-ux.md), [errors](../reviews/0.3.7/iteration-3/2026-10-20-errors.md),
+[documents](../reviews/0.3.7/iteration-3/2026-10-20-docs.md), [data](../reviews/0.3.7/iteration-3/2026-10-20-data.md),
+[plan](../reviews/0.3.7/iteration-3/2026-10-20-plan.md).
+
+9 findings, 1 blocking (UX-1: iteration 2's `already_attested` sentence never reached the person). Its fix and the two
+CHANGELOG corrections are the final candidate `2d6169a0` (`2d6169a08f20b5fe684d453fde1d062cd9596a1d`), a one-line code change with its watched test on
+top of the reviewed `ffe27fb3`.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | UX-1 (blocking) | Iteration-2 V2-4 (UX-4) is recorded as fixed and is not | fixed: `launch/actWords.ts` WHY lists `already_attested`; `actWords.test.ts` "says every act.why sentence…" (watched failing with the code removed) in the final candidate |
+| V3-2 | DO-1 | The release handoff's decision line lists the deferred findings as "CO-340 to CO-348 and CO-352 to CO-354"; iteration 2 also deferred CO-355 to CO-358 | fixed: the handoff names CO-340 to CO-348 and CO-352 to CO-358 |
+| V3-3 | DO-2 | SCN-169 quotes the non-undoable reason as «Выпуск уже опубликован», then a dash (U+2014), then «его можно только заменить новым»; the app says «выпуск | ruled: 0.3.8 with SCN-168 to SCN-171 (P-20): the scenario's quoted reason is aligned when История is rebuilt; the app's string is the one shown |
+| V3-4 | DO-3 | The CHANGELOG's per-project session limit omits the second bound: a binding is also capped at 64 live sessions across all projects, so past 64 session | fixed: CHANGELOG states the 64-session cap per coding agent |
+| V3-5 | DO-4 | The Codex console bullet says the same exception twice and starts a clause with a capital after a semicolon ("…instead of an empty copy; A Codex conso | fixed: CHANGELOG's Codex console line reads once |
+| V3-6 | PL-1 | V2-25 was recorded as fixed on a commit whose hosted `ci` was red; the candidate needed two more commits that the ledger does not name. | fixed: this section names `c2681cd1` and `ffe27fb3`, the hosted `ci` of each, and where migration 116's database tests last ran |
+| V3-7 | PL-2 | The handoff's next task is incomplete for the state it hands over. | fixed: the handoff names CO-355 to CO-358 and that `main` lands by a merge keeping the verified commit an ancestor |
+| V3-8 | PL-3 | A 0.3.8 deferral and several later cross-project asks have no register home. | ruled: filed as rows in the first 0.3.8 commit (P-20): FAA-26/27/29 and the later cross-project asks; registers do not change after the verified commit |
+| V3-9 | PL-4 | Three reserved carry-over ids are unaccounted for. | not a defect: CO-349 to CO-351 were taken by the id counter for another run of this session and are unused; the Next free ID note is corrected with the 0.3.8 rows |
+
+Exit for iteration 3: 9 findings dispositioned; the final candidate `2d6169a08f20b5fe684d453fde1d062cd9596a1d` is `verifiedCommit`. Blocking findings open: none.
+
 ## Release close
 
 Owed by this release to other projects and to the operator, each closed with its evidence when 0.3.7 is published:
