@@ -34,7 +34,7 @@ recorded here; the board thread `bd1c9611` holds the morning's reports.
 | F5 | A task whose agent run ended is not held for good: the person's recorded «работа закончена» frees it, undoable | CO-327 | done 2026-10-19 (`agent/run-over`, ADR-0170): the person's attestation, not an inference |
 | F6 | An agent's page as its flow, newest first, with its console one press away | OF-09 | after F2 |
 | F7 | Fabric's own lifecycle: launch at login by default, closing the window keeps it running, permissions said at launch; the self-updater with the five-minute check, so no later fix needs a manual install; Fabric's own fabric-service/0.1 descriptor for Dashboards | CO-322, P-12, FD-12 | after F3 |
-| F9 | The attribution capability on Fabric's hub: `fabric.project.resolve`, answering DEC-0089's `answer` (pinned contract), read-only; and CT-26, revision hashes in RFC 8785 | CO-331, CT-26 | CT-26 done 2026-10-19 (`7fde6e54`); the tool after F4 |
+| F9 | The attribution capability on Fabric's hub: `fabric.project.resolve`, answering DEC-0089's `answer` (pinned contract), read-only; and CT-26, revision hashes in RFC 8785 | CO-331, CT-26 | CT-26 done 2026-10-19 (`7fde6e54`); the tool done 2026-10-20 (`agent/project-resolve`, the contract's rules vendored at `ebfddcea`); the enrollment's own resolver moves onto it in CO-339 |
 | F10 | Share grants in DEC-0086's form and an agent placed in an organization's context, for Vesta's per-agent meter | CO-337, RM-28 | by 2026-10-24; measure what Fabric writes today first |
 | F8 | Release: three verification iterations, CHANGELOG, tag `v0.3.7`, published, installed on the operator's Mac, OF-08 measured there; the publish time posted for FAB-H01 (thread `0cc62467`) | P-19 | last |
 

@@ -9,6 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: the rail, «Создать», История, the act line and the joined agents in apps/desktop/src/renderer/src (launch/, start/, App.tsx), the confirmations removed (SessionStop, WhoIsWorking, ProjectHome, Tasks, the link offer, the hub's present), main/keptOut.ts and its door in accessService.ts, shared/railProjects.ts and shared/keptOut.ts, their tests, docs/ux, the plan, CHANGELOG, docs/reports
 - conflicts: none; rebased onto the automatic registration (238714df) before «Отключить» was built on its admission
 - summary: Fabric 0.3.7 wave 3, the shell. One rail with «＋ Создать», Главная, Агенты, История, Настройки and the projects list (favourites, a dot where an agent works, a count where the person is needed); no tab strip, no Back (⌘[ and ⌘]); «Создать» with three choices and the unfinished drafts; История with «Отменить»; the act line at a place's foot wired to acts.undo; no confirmation dialogs (stop, release, detach, discard, replace, deep links), boundaries and notices as questions on Главная; «Отключить» keeps a coding agent out of every project until «Пустить снова», a real undo.
+### 2026-10-20T03:00:00Z · `—` · agent/project-resolve → main · fast-forward
+- run: r-8db0598178fb
+- files: apps/desktop/src/shared/contract/folder-attribution (vendored at ebfddcea with pin.json), shared/projectResolve.ts and its test, test/fixtures/folder-attribution/vectors.json, main (hubTools.ts, index.ts, tempRoots.ts), test/board-surface.test.mjs, the ADR-0166 amendment, CO-339, the plan (F9), CHANGELOG, docs/reports
+- conflicts: none; stacked on F3 to F5
+- summary: F9 of the final pass. The hub answers fabric.project.resolve with the contract's folder attribution (DEC-0089) over Fabric's state; the enrollment's own resolver moves onto it in CO-339.
+
 ### 2026-10-20T00:30:00Z · `—` · agent/run-over → main · fast-forward
 - run: r-8db0598178fb
 - files: supabase/migrations/20261019000115_run_over_attestation.sql, apps/desktop/src/main (actRunExecutors.ts, index.ts), shared (acts.ts, stop.ts, types.ts, ipcWindowPolicy.ts), preload/api.ts, renderer (SessionStop.tsx, launch/actWords.ts, i18n en/ru), tests (run-over-db.test.mjs in run-managed-stop-db.mjs, act-run-over.test.mjs, SessionStop.test.tsx), ADR-0170, CO-327, SCN-096, the plan (F5), CHANGELOG, docs/reports

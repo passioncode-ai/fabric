@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Other products can ask Fabric which project a folder belongs to.** Fabric's hub answers `fabric.project.resolve`
+  with the shared rules all three products agreed on (DEC-0089), so Observatory and Switchboard attribute a folder the
+  way Fabric does.
 - **A task is no longer stuck after its agent ended.** When an agent's process has ended but Fabric cannot prove its
   provider stopped, the console offers «Работа закончена»: the task goes back to the queue and can be taken again, and
   «Отменить» on the act line holds it again (ADR-0170).

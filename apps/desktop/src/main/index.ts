@@ -34,9 +34,11 @@ import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { folderProjectId, gitTopLevel } from './folderResolver.ts'
+import { folderProjectId, gitCommonDir, gitTopLevel } from './folderResolver.ts'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
+import { resolveProject } from '../shared/projectResolve.ts'
+import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
 import { readHome, readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
@@ -1000,6 +1002,23 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         // A board session ends with its binding or any of its board.respond grants (EnrolledSessions, as ADR-0134 §3).
         // ADR-0134's safeguards too (wave-2 fix 11): spare-bearer reuse, a board-session cap, the grants read again after
         // the mint, and the grants' earliest expiry, past which the session ends at its next call.
+        // F9: the contract's folder attribution over Fabric's own state (shared/projectResolve.ts).
+        resolveProject: (folder) => resolveProject(folder, {
+          admitted: enrollFolders.admittedFolders,
+          detached: readRepoRemovals,
+          realpath: enrollFolders.realpath,
+          git: async (dir) => {
+            const top = await gitTopLevel(dir)
+            const common = top ? await gitCommonDir(dir) : null
+            if (!top || !common) return null
+            // An origin that cannot be read is no origin: the rules then match by common dir alone.
+            const origin = await originOf(dir).catch(() => null)
+            return { toplevel: top, commonDir: common, origin }
+          },
+          home: homedir(),
+          tempRoots: existingTempRoots(),
+          platform: process.platform
+        }) as Promise<Record<string, unknown>>,
         joinBoard: (binding, args) => joinBoardSession(binding, args, {
           check: (bindingId, projectId) => surface.boardJoinCheck(bindingId, projectId),
           liveGrants: (b) => hubAccess.liveGrantsOf(b),

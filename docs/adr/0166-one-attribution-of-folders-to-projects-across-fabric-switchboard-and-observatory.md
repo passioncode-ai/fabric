@@ -61,3 +61,12 @@ the contract's; the attribution capability at session start becomes Fabric's own
 and Switchboard ask it rather than the other way round. The same holds for the catalogue of coding agents: one list for
 every product (`docs/evidence/plans/2026-10-15-fabric-simple/2026-10-19-operator-feedback.md`, OF-11, OF-13).
 
+**2026-10-20: the capability is served (final pass F9).** Fabric's hub answers `fabric.project.resolve` (input
+`{path}`, answer folder-attribution.schema.json `$defs/answer`) for a binding, with the contract's own rule set
+vendored at DEC-0089's merge commit `ebfddcead7733426870d7d62a46c129aa2a92a83`
+(`apps/desktop/src/shared/contract/folder-attribution/`, its bytes pinned in `pin.json`, every attribution vector run
+in `projectResolve.test.ts`). Fabric builds the snapshot from its own state: the admitted folders with their Git facts,
+the detached folders as tombstones, the temporary roots; it records nothing. Not yet: the enrollment of a coding agent
+still decides with Fabric's own resolver (`sessionEnroll.ts#resolveAgentFolder`); moving it onto the same function is
+CO-339. Observatory reads the tool (its engine PR #309).
+

@@ -58,6 +58,8 @@ export interface HubToolDeps {
   /** `fabric.session.enroll` (ADR-0134). Absent, the tool refuses: this Fabric admits no coding agent from outside. */
   enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean }) => Promise<EnrollAnswer>
   /** `fabric.board.join` (ADR-0149 §4). Absent, the tool refuses: this Fabric gives no board sessions. */
+  /** `fabric.project.resolve` (F9, DEC-0089): the contract's answer for one folder. Absent, the tool refuses. */
+  resolveProject?: (path: string) => Promise<Record<string, unknown>>
   joinBoard?: (binding: BindingRow, args: { projectId: string }) => Promise<
     | { ok: true; session: { bearer: string; sessionId: string; projectId: string; capabilities: string[] } }
     | { ok: false; code: string; message: string }>
@@ -66,7 +68,7 @@ export interface HubToolDeps {
 /** The tool names each principal is given — written down so a test can compare it with what is served. */
 export const HUB_TOOLS = {
   door: ['fabric.access.request', 'fabric.access.status', 'fabric.session.enroll'],
-  binding: ['agent.call', 'fabric.access.grants', 'fabric.access.request', 'fabric.access.status', 'fabric.board.join', 'fabric.session.enroll']
+  binding: ['agent.call', 'fabric.access.grants', 'fabric.access.request', 'fabric.access.status', 'fabric.board.join', 'fabric.project.resolve', 'fabric.session.enroll']
 } as const
 
 const requestSchema = z
@@ -213,6 +215,24 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
         })
     )
     // #endregion hub-board-join
+
+    // #region hub-project-resolve — docs: docs/adr/0166-one-attribution-of-folders-to-projects-across-fabric-switchboard-and-observatory.md#decision
+    server.registerTool(
+      'fabric.project.resolve',
+      {
+        title: 'Which Project a folder belongs to',
+        description:
+          'Folder attribution (fabric-agent-contract DEC-0089, folder-attribution.schema.json $defs/answer) for one absolute folder on this computer, decided by the contract\'s own rules over what Fabric knows: the Projects\' folders with their Git facts, the folders a person detached, the temporary roots. ' +
+          'The answer is {outcome: "attached", project, rule}, {outcome: "new", root}, {outcome: "refused", reason}, {outcome: "ambiguous", rule, projects} or {fault: "input-invalid"}; project ids are Fabric\'s. It reads only and records nothing.' + VERIFY_HUB,
+        inputSchema: z.object({ path: z.string().min(1).max(4096).describe('The absolute folder, as the coding agent runs in it') }).strict()
+      },
+      async (args) =>
+        guard('project.resolve', async () => {
+          if (!deps.resolveProject) return refusal('hub-unavailable', 'this Fabric does not resolve folders')
+          return answer(await deps.resolveProject((args as { path: string }).path))
+        })
+    )
+    // #endregion hub-project-resolve
 
     server.registerTool(
       'agent.call',

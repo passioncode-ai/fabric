@@ -77,7 +77,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
   // Tracked text files only: a build output or a dependency is not this repository's code.
   const files = execFileSync('git', ['-C', root, 'ls-files', '-z'], {encoding: 'utf8'})
-    .split('\0').filter(f => f && /\.(m?[jt]sx?|cjs|py|sh|sql|css|html|swift|rs|go|toml|ya?ml)$/.test(f) && !f.startsWith('docs/'))
+    .split('\0').filter(f => f && /\.(m?[jt]sx?|cjs|py|sh|sql|css|html|swift|rs|go|toml|ya?ml)$/.test(f) && !f.startsWith('docs/')
+      // Another repository's bytes, vendored unedited and pinned (pin.json): their regions point at that repository's
+      // documents, and editing them would break the pin. Fabric's own code around them carries its regions.
+      && !f.startsWith('apps/desktop/src/shared/contract/'))
   const {findings, regions} = checkRegions({root, files})
   for (const f of findings) console.error(`FAIL ${f.file}:${f.line} ${f.code} — ${f.detail}`)
   if (findings.length) process.exit(1)

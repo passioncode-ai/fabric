@@ -81,6 +81,26 @@ test('fabric.board.join mints a one-bearer board session for a binding with a gr
   })
 })
 
+test('fabric.project.resolve answers the contract attribution for a binding and is absent on the door (F9, DEC-0089)', async () => {
+  const access = { request: async () => ({ ok: false, refused: 'x' }), status: async () => ({ ok: false, refused: 'x' }), liveGrantsOf: async () => [] }
+  assert.ok(HUB_TOOLS.binding.includes('fabric.project.resolve')); assert.ok(!HUB_TOOLS.door.includes('fabric.project.resolve'))
+  await linked(hubServerFor({ kind: 'door' }, { access }), async (client) => {
+    assert.ok(!(await client.listTools()).tools.map((t) => t.name).includes('fabric.project.resolve'), 'the door resolves folders')
+  })
+  const asked = []
+  const binding = { id: BINDING, agent_id: 'example-agent', revoked_at: null }
+  await linked(hubServerFor({ kind: 'binding', binding }, { access, resolveProject: async (p) => { asked.push(p); return { outcome: 'attached', project: PROJECT, rule: 'worktree' } } }), async (client) => {
+    const out = await client.callTool({ name: 'fabric.project.resolve', arguments: { path: '/Users/ana/DATA/_worktrees/f9' } })
+    assert.deepEqual(out.structuredContent, { outcome: 'attached', project: PROJECT, rule: 'worktree' })
+    assert.ok(!out.isError)
+    assert.deepEqual(asked, ['/Users/ana/DATA/_worktrees/f9'])
+  })
+  await linked(hubServerFor({ kind: 'binding', binding }, { access }), async (client) => {
+    const out = await client.callTool({ name: 'fabric.project.resolve', arguments: { path: '/x' } })
+    assert.equal(out.structuredContent.error.code, 'hub-unavailable')
+  })
+})
+
 test('a session\'s end releases its responder slots; a revoked grant releases the enrollments it admitted (COM03-10)', async () => {
   const { surface, calls } = surfaceWith()
   surface.mint(PROJECT, 'session-z', null, { cameIn: 'enrolled', agent: 'codex', bindingId: BINDING })

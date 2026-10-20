@@ -1,0 +1,27 @@
+{
+  "source": "https://github.com/passioncode-ai/fabric-agent-contract",
+  "commit": "ebfddcead7733426870d7d62a46c129aa2a92a83",
+  "decision": "DEC-0089",
+  "files": [
+    {
+      "path": "src/folder-attribution.ts",
+      "vendored": "src/shared/contract/folder-attribution/folder-attribution.ts",
+      "sha256": "575eedcc7be580e40dffe436a2139b7a0f483948820f7ae8a99a61ea8b1bdecb"
+    },
+    {
+      "path": "src/findings.ts",
+      "vendored": "src/shared/contract/folder-attribution/findings.ts",
+      "sha256": "9fe5afc1c90be0ea271b2364cf18aa63b039d67f5862cca88f5e38ae11cd499f"
+    },
+    {
+      "path": "src/secret-shape.ts",
+      "vendored": "src/shared/contract/folder-attribution/secret-shape.ts",
+      "sha256": "4b0c27a4f94c2416f3df845f79632434988e24c24514774bf8d70e4a0894ebdc"
+    },
+    {
+      "path": "fixtures/vectors/folder-attribution.json",
+      "vendored": "test/fixtures/folder-attribution/vectors.json",
+      "sha256": "ef8aa23188ae06484a820d07678b4e7d2f2f1cdae831fe5cf9a32063d6a1b65b"
+    }
+  ]
+}
