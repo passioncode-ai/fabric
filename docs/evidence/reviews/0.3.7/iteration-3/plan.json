@@ -37,7 +37,7 @@
     {
       "id": "V3-9",
       "source": "PL-4",
-      "status": "not a defect",
+      "status": "not-a-defect",
       "evidence": [
         "not a defect: CO-349 to CO-351 were taken by the id counter for another run of this session and are unused; the Next free ID note is corrected with the 0.3.8 rows"
       ]
