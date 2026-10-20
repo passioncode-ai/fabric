@@ -21,3 +21,6 @@ test('a background launch opens no main window until activated, and an early act
   assert.match(src, /windowReady = true\s*\n\s*linksStartupDone\(\)\s*\n\s*\/\/[^\n]*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.size > 0\) createWindow\(\)/)
   assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; return \}\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
 })
+test('a second launch during a background start is remembered as an activation (0.3.7 i2 UX-2)', () => {
+  assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!windowReady\) \{ activatedDuringStartup = true; return \}/)
+})

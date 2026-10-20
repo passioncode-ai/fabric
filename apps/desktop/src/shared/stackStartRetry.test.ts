@@ -118,3 +118,13 @@ describe('Docker that is not there yet (ER-4)', () => {
     expect(await waitForDocker(async () => { if (++n < 3) throw new Error('ECONNREFUSED'); return true }, { sleep: c.sleep, now: c.now, plan: dockerWait })).toBe('ready')
   })
 })
+
+describe('the socket named by the real words of the docker CLI and the Supabase CLI (0.3.7 i2 ER-1)', () => {
+  it('ends the unix path at .sock, whatever punctuation follows', () => {
+    expect(dockerSocketFrom('failed to connect to the docker API at unix:///Users/a/.orbstack/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/a/.orbstack/run/docker.sock: connect: no such file or directory')).toBe('/Users/a/.orbstack/run/docker.sock')
+    expect(dockerSocketFrom('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')).toBe('/var/run/docker.sock')
+  })
+  it('drops a trailing full stop from a Windows pipe name', () => {
+    expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine. The system cannot find the file specified.'.replace('open //', 'open npipe:////'))).toBe('\\\\.\\pipe\\docker_engine')
+  })
+})

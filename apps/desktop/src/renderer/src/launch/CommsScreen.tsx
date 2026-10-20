@@ -411,7 +411,6 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
                   <span className="lp-pill">{t('launch.comms.messageCount', { count: thread.messageCount })}</span>
                   <small>{thread.lastAt ? since(thread.lastAt, t) : t('launch.comms.noMessages')}</small>
                 </span>
-                <span aria-hidden="true">{t('glyph.open')}</span>
               </button>
               )
             })}

@@ -5062,6 +5062,9 @@ if (!isPrimary) {
 } else {
   app.on('second-instance', (_event, argv) => {
     for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
+    // A second launch during a background start (Windows: «Пуск» while the login start still waits for Docker) is the
+    // person asking for the window; remember it as an activation, as macOS's `activate` does (0.3.7 review i2 UX-2).
+    if (!windowReady) { activatedDuringStartup = true; return }
     // Someone tried to open Fabric again. Show them the one they have rather
     // than doing nothing, which reads as the application being broken.
     const [existing] = BrowserWindow.getAllWindows()

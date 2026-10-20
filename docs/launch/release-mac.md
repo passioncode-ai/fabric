@@ -296,8 +296,9 @@ creates the estate-path unique index only when the database holds no duplicate p
 the index otherwise, CO-341), `20261018000114_private_archive_source.sql` (count 92: schemas 91 and 92 as private-archive
 sources in code and SQL), `20261019000115_run_over_attestation.sql` (count 93: the person's «Работа закончена» on a run
 whose process ended, ADR-0170, and 93 as an archive source) and `20261020000116_withdrawn_answer_closes_decision.sql`
-(count 94: a withdrawn answer closes the decision fact it recorded, an index for an agent's history read, 94 as an
-archive source). 89 + 5 = **94**, whatever the suffixes say (109 is the board's; 117/118 are the pipeline's prose
+(count 94: the `memory_facts.withdrawn_seq` column and its replaced supersession check, a projector that closes the decision fact a withdrawn answer
+recorded and one pass over the journal that closes decisions withdrawn at schemas 90 to 93, three journal indexes for an
+agent's history read, 94 as an archive source). 89 + 5 = **94**, whatever the suffixes say (109 is the board's; 117/118 are the pipeline's prose
 reservation). The procedure is the same with 94 in place of 89.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
@@ -320,7 +321,7 @@ reservation). The procedure is the same with 94 in place of 89.
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5 — read it, do not assume it
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'

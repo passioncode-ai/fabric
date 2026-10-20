@@ -59,7 +59,7 @@ export function createRunOverExecutors(d: RunOverDeps): Record<'run.attest' | 'r
       const stop = await d.stopOf(a.command_id)
       if (!stop) return { ok: false, why: 'run_gone' }
       const attested = stop.state === 'stopped' && stop.basis === 'attested'
-      if (kind === 'run.attest' && stop.state === 'stopped') return { ok: false, why: attested ? 'already_there' : 'run_resolved' }
+      if (kind === 'run.attest' && stop.state === 'stopped') return { ok: false, why: attested ? 'already_attested' : 'run_resolved' }
       if (kind === 'run.unattest' && !attested) return { ok: false, why: 'not_attested' }
       return { ok: true }
     },

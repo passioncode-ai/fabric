@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "07ae71e79718b98726b0f36e95b607cb10e24a3c",
+  "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-docs.md",
+  "reportSha256": "9805e7efbf9521bf328c2f141dbd056204ad11e2b7bfaae9ae6eb7605618d21f",
+  "reviewerRun": "release-037-i2-docs-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-11",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0164 index row says a plain folder becomes its own Project and containers are refused"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-160 says five; the CHANGELOG wave tag removed"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "DO-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the testers' brief names the macOS «О программе» menu item, else the downloaded file name"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "DO-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCR-89 lists launch at login and the not-drawn state; SCN-170 says «Компьютер» as the app does"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0166 note of 2026-10-20 names `resolveAnswer` (DEC-0092); the index row carries the amendment"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the `fabric-mcp` lifecycle row cites `8bdad97c`"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the runbook names 116's column, check, projector, pass and three indexes; step 2's FROM has 89 for 0.3.6"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-277 and CO-291 say 0.3.8; P-20 names CO-291, CO-329, CO-332, CO-335, CO-336"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the testers' brief gives Windows and Linux prerequisites and log folders"
+      ]
+    }
+  ]
+}

@@ -90,6 +90,54 @@ its test run with the old behaviour planted back and seen failing. Migration 116
 
 Exit for iteration 1: every finding is fixed or ruled to a register row. Blocking findings open: none.
 
+## Iteration 2
+
+Five fresh reviewers, 2026-10-20, against `07ae71e7` (`07ae71e79718b98726b0f36e95b607cb10e24a3c`, iteration 1's fixes), read-only in a detached
+checkout. Reports, committed as written: [UX](../reviews/0.3.7/iteration-2/2026-10-20-ux.md) (UX-n),
+[errors and boundaries](../reviews/0.3.7/iteration-2/2026-10-20-errors.md) (ER-n),
+[code and documents](../reviews/0.3.7/iteration-2/2026-10-20-docs.md) (DO-n),
+[data, memory, orchestration, harness](../reviews/0.3.7/iteration-2/2026-10-20-data.md) (DA-n),
+[plan and roadmap](../reviews/0.3.7/iteration-2/2026-10-20-plan.md) (PL-n).
+
+31 findings, 8 blocking. Every iteration-1 disposition was checked against the code; the ones that did not hold (UX-2
+of iteration 1, ER-4's socket path, DO-3, DO-5, DO-6) are findings here and fixed.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1 (blocking) | Iteration-1 V1-2 (UX-2) is not fixed | fixed: История says «каждое ваше действие» only, and that the agents' acts arrive in 0.3.8 (`acts.lede`, `acts.empty`; `HistoryScreen.test.tsx`) |
+| V2-2 | UX-2 (blocking) | On Windows, a person who opens Fabric from the «Пуск» menu while the login start is still starting gets no window, then or later | fixed: `second-instance` during a background start sets `activatedDuringStartup` (`background-launch.test.mjs` "a second launch during a background start…") |
+| V2-3 | UX-3 | The release note says "buttons and links no longer end in an arrow", and a text button still does: the Plan's «Раскрыть ↓» / "Open ↓", beside «Открыть | fixed: the trailing ↗ removed from row buttons on Главная, the project page, the board and Comms, and «Раскрыть ↓» is «Раскрыть» (affected suites, 121 tests) |
+| V2-4 | UX-4 | A run attestation refused because the work is already marked over is worded as a task move: «задача уже там» | fixed: a refused attestation of an attested run is `already_attested`, «работа уже отмечена законченной» (`act-run-over.test.mjs`) |
+| V2-5 | UX-5 | «Ваш текст заменён | ruled: CO-352 (0.3.8) |
+| V2-6 | UX-6 | Revoking an agent's access in Настройки → Доступ агентов is recorded as «Агент отключён» with no name, so История cannot say which agent was cut off | ruled: CO-353 (0.3.8) |
+| V2-7 | UX-7 | Iteration-1 V1-6(c) says the English «by PassionCode» in the Russian rail was "ruled to `docs/brand/`", but `docs/brand/` holds no such record: `local | fixed: `docs/brand/terminology.md` records the English lockup decision |
+| V2-8 | ER-1 (blocking) | The Docker wait that closed iteration 1's ER-4 never sees Docker come up with the wording Docker and Supabase actually print, so a login start before  | fixed: `stackStartRetry.ts#dockerSocketFrom` ends the path at `.sock` and drops trailing punctuation; tests with the docker CLI's and the Supabase CLI's real words (watched: 2 failed on the old parser) |
+| V2-9 | ER-2 | `readGitFacts` reads a folder it is not allowed to enter as "not in Git", which is the confusion DEC-0092's `unreadable` exists to prevent. | fixed: «cannot change to» is `none` only with «No such file or directory» (`git-facts.test.mjs` "a repository under a folder Git may not enter…", watched) |
+| V2-10 | ER-3 | One admitted folder whose Git stays unreadable makes every `fabric.project.resolve` answer `pending`, for every folder, until the person repairs that  | ruled: CO-354 (0.3.8); `pending` is the safe answer |
+| V2-11 | DO-1 (blocking) | Iteration-1 DO-3 is recorded as fixed, but the ADR-0164 index row still says non-Git folders are refused. | fixed: ADR-0164 index row says a plain folder becomes its own Project and containers are refused |
+| V2-12 | DO-2 (blocking) | Iteration-1 DO-5 is recorded as fixed ("five, not seven"; "wave tags removed"), and two of its parts still stand. | fixed: SCN-160 says five; the CHANGELOG wave tag removed |
+| V2-13 | DO-3 (blocking) | The testers' brief sends the external tester to Settings for the Fabric version, and Settings does not show it. | fixed: the testers' brief names the macOS «О программе» menu item, else the downloaded file name |
+| V2-14 | DO-4 (blocking) | Iteration-1 DO-6 is recorded as fixed, but SCR-89 was not touched, and the section name in the docs is not the app's. | fixed: SCR-89 lists launch at login and the not-drawn state; SCN-170 says «Компьютер» as the app does |
+| V2-15 | DO-5 | ADR-0166's served capability is described with the wrong answer schema, and the index status misses its second amendment. | fixed: ADR-0166 note of 2026-10-20 names `resolveAnswer` (DEC-0092); the index row carries the amendment |
+| V2-16 | DO-6 | AGENTS.md cites the wrong carry-over row for the container refusal. | fixed: the `fabric-mcp` lifecycle row cites `8bdad97c` |
+| V2-17 | DO-7 | The upgrade runbook understates migration 116. | fixed: the runbook names 116's column, check, projector, pass and three indexes; step 2's FROM has 89 for 0.3.6 |
+| V2-18 | DO-8 | Register rows contradict the release's own re-dating. | fixed: CO-277 and CO-291 say 0.3.8; P-20 names CO-291, CO-329, CO-332, CO-335, CO-336 |
+| V2-19 | DO-9 | The testers' brief gives macOS-only prerequisites while offering Windows and Linux builds. | fixed: the testers' brief gives Windows and Linux prerequisites and log folders |
+| V2-20 | DA-1 | A withdrawn answer whose decision was corrected first keeps the correction current. | ruled: CO-355 (0.3.8) |
+| V2-21 | DA-2 | A withdrawn decision is shown as corrected, or not at all. | ruled: CO-356 (0.3.8) |
+| V2-22 | DA-3 | A rebuild loses `questions.resolution_id` for a question answered again after a withdrawal. | ruled: CO-357 (0.3.8) |
+| V2-23 | DA-4 | A backup of an estate that has one folder in two projects cannot be restored into a fresh 0.3.7 database. | ruled: CO-358 (0.3.8), with CO-341 |
+| V2-24 | DA-5 | The upgrade runbook undercounts what migration 116 changes. | fixed: with DO-7 |
+| V2-25 | PL-1 (blocking) | The candidate's own gates are red, so 0.3.7 cannot be released from it. | fixed: `4a8ce3fe` (projections), `4d3a9323` (ops gate), `58e4cd86` (release check) and `platformWords.test.ts` declaring the two macOS-only login lines; iteration 3 reviews a candidate whose hosted `ci` is green |
+| V2-26 | PL-2 | Release close omits runbook step 11, and the iteration-1 ruling contradicts it. | fixed: the Release close requires the fabric-workspace change (RM-19, the lifecycle row, the Fabric row) before the tag, runbook step 11 |
+| V2-27 | PL-3 | Two other projects' asks are neither closed nor in Release close. | fixed: the Release close carries the FD-12 post to fabric-dashboards and the answer to fabric-workspace's SD-3 / MA-06 ask |
+| V2-28 | PL-4 | P-20 is the 0.3.8 release row but leaves out 0.3.8 work its own sources name. | fixed: with DO-8 |
+| V2-29 | PL-5 | CO-291 still says it lands in 0.3.7. | fixed: with DO-8 |
+| V2-30 | PL-6 | The operator-feedback table, which owns OF status "until each item's scenario or carry-over row takes it over", is stale for two rows. | fixed: OF-13 partially done with its remainder CO-331; OF-08 points at the Release close |
+| V2-31 | PL-7 | The newest handoff sends the next agent to work that is no longer 0.3.7's. | fixed: `docs/handoffs/2026-10-20-release-037.md` names the release gate as the next task |
+
+Exit for iteration 2: every finding is fixed or ruled to a register row. Blocking findings open: none.
+
 ## Release close
 
 Owed by this release to other projects and to the operator, each closed with its evidence when 0.3.7 is published:
@@ -102,4 +150,7 @@ Owed by this release to other projects and to the operator, each closed with its
 | DEC-0092's `pending` shape shipped; Switchboard SB-141 | board thread `617c8cbe` | the post naming the tool and the shape |
 | CT-26 closes when 0.3.7 is released | fabric-agent-contract | the post on the release |
 | OF-08 measured on the installed build | this ledger | the measurement |
+| The fabric-workspace change before the tag (runbook step 11): RM-19 and the lifecycle row (login item shipped, updater 0.4.0), the Fabric row at 0.3.7 | fabric-workspace PR | the merged PR |
+| FD-12 moved to 0.4.0 (CO-344) | fabric-dashboards, board | the post |
+| The attribution capability's name for the knowledge page, and SD-3 / MA-06's row | fabric-workspace, board | the answer posted |
 | The workspace publication after the release commit | `node scripts/workspace.mjs publish` | `check --require-child` exit 0 |

@@ -70,3 +70,8 @@ the detached folders as tombstones, the temporary roots; it records nothing. Not
 still decides with Fabric's own resolver (`sessionEnroll.ts#resolveAgentFolder`); moving it onto the same function is
 CO-339. Observatory reads the tool (its engine PR #309).
 
+
+**2026-10-20: the answer is `resolveAnswer` (DEC-0092).** The served tool answers folder-attribution.schema.json
+`$defs/resolveAnswer`: the rules' answer, or `{outcome: "pending", reason: "git-unreadable", retryable: true}` while a
+Git probe of the asked folder or of a Project folder failed or timed out, or when one call ran past 8 s
+(`main/gitFacts.ts`, `shared/projectResolve.ts`; the 0.3.7 review, PL-4).

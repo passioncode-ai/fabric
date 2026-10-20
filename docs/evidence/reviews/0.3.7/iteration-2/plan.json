@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "07ae71e79718b98726b0f36e95b607cb10e24a3c",
+  "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-plan.md",
+  "reportSha256": "1f7e18b9fbafa4906420a167d034e0bc13ae2fff5578752257e1ed4cc9e913d2",
+  "reviewerRun": "release-037-i2-plan-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-25",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `4a8ce3fe` (projections), `4d3a9323` (ops gate), `58e4cd86` (release check) and `platformWords.test.ts` declaring the two macOS-only login lines; iteration 3 reviews a candidate whose hosted `ci` is green"
+      ]
+    },
+    {
+      "id": "V2-26",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close requires the fabric-workspace change (RM-19, the lifecycle row, the Fabric row) before the tag, runbook step 11"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close carries the FD-12 post to fabric-dashboards and the answer to fabric-workspace's SD-3 / MA-06 ask"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-8"
+      ]
+    },
+    {
+      "id": "V2-29",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-8"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: OF-13 partially done with its remainder CO-331; OF-08 points at the Release close"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/handoffs/2026-10-20-release-037.md` names the release gate as the next task"
+      ]
+    }
+  ]
+}

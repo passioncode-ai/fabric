@@ -103,7 +103,6 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
             <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')}</span>
             <small>{since(item.waitingSince, t)}</small>
           </span>
-          <span aria-hidden="true">{t('glyph.open')}</span>
         </button>
       ))}
       <div className="lp-panel-foot">

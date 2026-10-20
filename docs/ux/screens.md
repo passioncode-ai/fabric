@@ -2289,7 +2289,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 ### SCR-89: Настройки
 - **Used by:** FLW-40, FLW-93
 - **Purpose:** How Fabric behaves, on one page of sections; every change saved at once and reversible (plan §2). Replaces Settings, Quotas and Private history as a section.
-- **Elements:** sections with small uppercase labels — «Язык и вид» (язык, тема), «Этот компьютер» (не давать засыпать), «Запуск агентов» (порядок), «Данные» (счётчики использования; личная история — экспорт и импорт), «Доступ агентов» (who may reach which product, «Отозвать»); «Сохранено» beside a saved control.
+- **Elements:** sections with small uppercase labels — «Язык и вид» (язык, тема), «Компьютер» (не давать засыпать; «Запускать Fabric при входе в систему», only on macOS and Windows in an installed build, amended 2026-10-20), «Запуск агентов» (порядок), «Данные» (счётчики использования; личная история — экспорт и импорт), «Доступ агентов» (who may reach which product, «Отозвать»); «Сохранено» beside a saved control.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -2297,7 +2297,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | empty | no agent has access to any product | none | «Доступ агентов» says «Ни одному агенту не открыт доступ к продуктам» |
   | error | a setting did not save | none | «Не сохранилось.» beside it; the old value back |
   | success | read | none | the sections |
-  | unavailable | this build or computer cannot change a setting | none | the control disabled with why |
+  | unavailable | this build or computer cannot change a setting | none | the control disabled with why; a control that does nothing here (launch at login on Linux or in a development build) is not drawn |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
 - **Coverage:** none yet
 - **Scenarios:** SCN-170

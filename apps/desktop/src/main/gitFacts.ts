@@ -18,7 +18,9 @@ export const GIT_FACTS_MS = 3000
 
 /** The words with which git says a folder has no working tree of its own: no repository above it, a bare repository
  *  or the inside of a `.git` folder, or a folder that is not on this computer (an admitted folder since removed). */
-const NOT_A_WORK_TREE = /not a git repository|must be run in a work tree|cannot change to/i
+// «cannot change to» is no folder only when the folder is gone; a refused permission (or a macOS privacy refusal) is a
+// folder Git could not read, so it stays `unreadable` (0.3.7 i2 ER-2).
+const NOT_A_WORK_TREE = /not a git repository|must be run in a work tree|cannot change to[^\n]*no such file or directory/i
 
 type Run = (args: string[], deadlineMs: number) => Promise<{ code: number | null; stdout: string; stderr: string; failed?: string }>
 

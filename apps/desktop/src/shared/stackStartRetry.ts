@@ -35,10 +35,12 @@ export function dockerIsUnreachable(message: string): boolean {
 /** The socket the stack's words name (`unix:///…/docker.sock`, `npipe:////./pipe/docker_engine`), so the wait asks the
  *  same Docker the stack asked; null when the words name none. */
 export function dockerSocketFrom(message: string): string | null {
-  const unix = /unix:\/\/(\/[^\s:'"]+)/.exec(message)
-  if (unix) return unix[1]
+  // The real words put punctuation right after the path («…/docker.sock; check…», «…/docker.sock. Is the docker daemon
+  // running?»): the path ends at `.sock` when it has one, and trailing punctuation is never part of it (0.3.7 i2 ER-1).
+  const unix = /unix:\/\/(\/[^\s'"]*?\.sock)(?![A-Za-z0-9_-])/.exec(message) ?? /unix:\/\/(\/[^\s:;,'"]+)/.exec(message)
+  if (unix) return unix[1].replace(/[.;,:]+$/, '')
   const pipe = /npipe:\/\/\/*\.\/pipe\/([A-Za-z0-9_.-]+)/.exec(message)
-  return pipe ? `\\\\.\\pipe\\${pipe[1]}` : null
+  return pipe ? `\\\\.\\pipe\\${pipe[1].replace(/[.]+$/, '')}` : null
 }
 
 export interface DockerWaitPlan {

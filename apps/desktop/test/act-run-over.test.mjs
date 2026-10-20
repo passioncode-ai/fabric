@@ -35,7 +35,7 @@ function harness(stop, answer, settled) {
 }
 {
   const { ex, calls } = harness({ state: 'stopped', basis: 'attested' }, () => ({ revoked: true, receipt_seq: 9 }))
-  assert.deepEqual(await ex['run.attest'].check(args), { ok: false, why: 'already_there' })
+  assert.deepEqual(await ex['run.attest'].check(args), { ok: false, why: 'already_attested' })
   assert.deepEqual(await ex['run.unattest'].check(args), { ok: true })
   const out = await ex['run.unattest'].run(args)
   assert.equal(calls[0].name, 'revoke_task_run_attestation')

@@ -73,3 +73,15 @@ test('a GIT_DIR in Fabric\'s environment does not answer for every folder', asyn
 })
 
 writeFileSync(path.join(root, '.keep'), '')
+
+test('a repository under a folder Git may not enter is "unreadable", never "none" (0.3.7 i2 ER-2)', async () => {
+  const locked = path.join(root, 'locked'); const repo = path.join(locked, 'repo'); mkdirSync(repo, { recursive: true })
+  git('init', '-q', repo)
+  chmodSync(locked, 0o000)
+  try {
+    const read = await readGitFacts(repo)
+    assert.equal(read.kind, 'unreadable')
+  } finally {
+    chmodSync(locked, 0o755)
+  }
+})

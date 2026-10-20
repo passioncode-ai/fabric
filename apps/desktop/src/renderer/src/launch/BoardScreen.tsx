@@ -261,7 +261,6 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                   : <span className="lp-pill">{t(r.at === 'later' ? 'launch.board.tab.later' : 'launch.board.tab.done')}</span>}
                 <small>{since(r.at === 'open' ? r.entry.waitingSince : r.at === 'later' ? r.entry.deferredAt : r.entry.answeredAt, t)}</small>
               </span>
-              <span aria-hidden="true">{t('glyph.open')}</span>
             </button>
           ))}
           <div className="lp-panel-foot"><span>{t(scopeName ? 'launch.board.footProject' : 'launch.board.foot', { project: scopeName ?? '' })}</span></div>

@@ -11787,7 +11787,7 @@
         {
           "state": "unavailable",
           "trigger": "this build or computer cannot change a setting",
-          "behavior": "the control disabled with why"
+          "behavior": "the control disabled with why; a control that does nothing here (launch at login on Linux or in a development build) is not drawn"
         }
       ]
     },

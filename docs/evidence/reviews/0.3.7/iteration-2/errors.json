@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.7",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "07ae71e79718b98726b0f36e95b607cb10e24a3c",
+  "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-errors.md",
+  "reportSha256": "fbcd016465adcb6d817f3562730ce07d7fcfc36bc377cbad26639556f42724c2",
+  "reviewerRun": "release-037-i2-errors-20261020",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-8",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `stackStartRetry.ts#dockerSocketFrom` ends the path at `.sock` and drops trailing punctuation; tests with the docker CLI's and the Supabase CLI's real words (watched: 2 failed on the old parser)"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «cannot change to» is `none` only with «No such file or directory» (`git-facts.test.mjs` \"a repository under a folder Git may not enter…\", watched)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-354 (0.3.8); `pending` is the safe answer"
+      ]
+    }
+  ]
+}

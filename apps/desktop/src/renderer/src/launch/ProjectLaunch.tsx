@@ -136,7 +136,6 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
                   <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{kindOf(item.kind)}</span>
                   <small>{since(item.waitingSince, t)}</small>
                 </span>
-                <span aria-hidden="true">{t('glyph.open')}</span>
               </button>
             ))}
             {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}

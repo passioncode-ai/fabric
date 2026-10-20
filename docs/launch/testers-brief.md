@@ -12,8 +12,10 @@
 Скачать: [github.com/passioncode-ai/fabric/releases](https://github.com/passioncode-ai/fabric/releases), последняя
 версия (DMG для macOS, установщик для Windows, AppImage или .deb для Linux).
 
-Нужно на компьютере: Docker (Docker Desktop или OrbStack) и Supabase CLI (`brew install supabase/tap/supabase`).
-Fabric сам поднимает свою локальную базу при первом запуске; это занимает несколько минут.
+Нужно на компьютере: Docker и Supabase CLI. На macOS это Docker Desktop или OrbStack и
+`brew install supabase/tap/supabase`; на Windows Docker Desktop (WSL2), на Linux Docker Engine, и Supabase CLI по
+[инструкции Supabase](https://supabase.com/docs/guides/local-development/cli/getting-started). Fabric сам поднимает свою
+локальную базу при первом запуске; это занимает несколько минут.
 
 ## Репозитории и кто за что отвечает
 
@@ -44,6 +46,7 @@ Fabric сам поднимает свою локальную базу при п�
 ## Как сообщать об ошибке
 
 Issue в нужном репозитории (для приложения: [passioncode-ai/fabric/issues](https://github.com/passioncode-ai/fabric/issues)):
-версия Fabric (Настройки), система, шаги, что ожидали, что получили, скриншот. Журнал приложения на macOS:
-`~/Library/Application Support/@fabric/desktop/logs/`, при сбое запуска ещё `startup-failure.log` в той же папке
-`@fabric/desktop`.
+версия Fabric (на macOS первый пункт меню «Fabric», «О программе»; иначе имя скачанного файла), система, шаги, что
+ожидали, что получили, скриншот. Журнал приложения лежит в папке `logs` внутри папки данных Fabric, при сбое запуска
+там же `startup-failure.log`: на macOS `~/Library/Application Support/@fabric/desktop/`, на Windows
+`%APPDATA%\@fabric\desktop\`, на Linux `~/.config/@fabric/desktop/`.

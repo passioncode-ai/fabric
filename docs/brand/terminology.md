@@ -47,6 +47,9 @@ The wrong forms above are literal strings the brand lint looks for in the Englis
 PassionCode.ai is the full name. PassionCode is the approved short family label in running text
 (as on the public site); it is not a wrong form.
 
+The rail's lockup «by PassionCode» (`rail.brand`) stays in English in every locale: it is the brand mark beside the
+product name, like a logo, not running text (decided 2026-10-20, the 0.3.7 review UX-6 and its iteration 2 UX-7).
+
 ## Banned
 
 | Word or phrase | Why | Use instead |
