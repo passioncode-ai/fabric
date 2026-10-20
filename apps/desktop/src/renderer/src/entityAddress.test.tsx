@@ -149,8 +149,12 @@ const persistedActive = (write: ReturnType<typeof vi.fn>): Record<string, unknow
 /** Open the search panel with ⌘K (OF-05: the top bar has no search field) and run one query. */
 const searchFor = async (text: string): Promise<void> => {
   await waitFor(() => expect(document.querySelector('.fab-top')).toBeTruthy())
-  fireEvent.keyDown(window, { key: 'k', metaKey: true })
-  await waitFor(() => expect(document.querySelector('input')).toBeTruthy())
+  // The shell's ⌘K listener is attached by an effect that may run after the top bar is on screen (a slow runner,
+  // 2026-10-20): press again until the field is there, and never press while it is open (⌘K toggles search).
+  await waitFor(() => {
+    if (!document.querySelector('input')) fireEvent.keyDown(window, { key: 'k', metaKey: true })
+    expect(document.querySelector('input')).toBeTruthy()
+  })
   fireEvent.change(document.querySelector('input') as HTMLInputElement, { target: { value: text } })
 }
 
