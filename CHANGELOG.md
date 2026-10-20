@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent's history reads as what it did.** In Агенты the picked agent's history is newest first and in words (a
+  task it moved, a decision it recorded, its stage), with who did it, and it now includes what the agent wrote itself.
 - **Other products can ask Fabric which project a folder belongs to.** Fabric's hub answers `fabric.project.resolve`
   with the shared rules all three products agreed on (DEC-0089), so Observatory and Switchboard attribute a folder the
   way Fabric does.

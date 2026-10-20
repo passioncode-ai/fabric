@@ -170,7 +170,7 @@ describe('one source rejecting does not discard the other', () => {
     // THE POINT, and it has to be LOOKED at rather than assumed: the history
     // that came back fine is still on screen. Under one `Promise.all` and one
     // catch it was discarded with the failure next to it.
-    expect(screen.getByText('agent.stage.reported@1')).toBeTruthy()
+    expect(screen.getByText(en['event.agent.stage.reported@1'])).toBeTruthy()
     expect(onError).toHaveBeenCalled()
   })
 
@@ -441,3 +441,25 @@ describe('a repository list tells its three states apart', () => {
     expect(screen.getByText(en['app.loading'])).toBeTruthy()
   })
 })
+
+// OF-09: the agent's history is its flow, newest first, each act in words rather than an event name.
+describe('the agent\'s flow', () => {
+  it('lists what the agent did newest first, in words', async () => {
+    const moved = { ...event(2, ''), type: 'task.moved@1', payload: { task_id: 't', to: 'review' } } as FeedEvent
+    const opened = { ...event(1, ''), type: 'terminal.opened@1', actor: { kind: 'person', id: 'operator' }, payload: { session_id: 's1' } } as FeedEvent
+    stubFabric({
+      terminal: {
+        history: vi.fn(async () => [opened, moved]),
+        onData: vi.fn(() => () => {}), onExit: vi.fn(() => () => {}), scrollback: vi.fn(async () => null), write: vi.fn(), resize: vi.fn()
+      }
+    })
+    const { container } = agents([session('s1', 'p1')], vi.fn())
+    container.querySelector('button')?.click()
+    await waitFor(() => expect(screen.getByText(en['event.task.moved@1'])).toBeTruthy())
+    const flow = screen.getByTestId('agent-flow')
+    const rows = Array.from(flow.querySelectorAll('[data-seq]')).map((r) => r.getAttribute('data-seq'))
+    expect(rows).toEqual(['2', '1'])
+    expect(screen.queryByText('task.moved@1')).toBeNull()
+  })
+})
+

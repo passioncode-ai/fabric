@@ -24,7 +24,7 @@ import { affects, POLL_MS } from '../../shared/repoWatch'
 import { decodePty } from '../../shared/pty-decode.ts'
 import { Button, EmptyState, Panel, Row, StateChip, Toolbar } from './components'
 import { sessionTone } from './sessionTone'
-import { useT } from './i18n'
+import { describeEvent, useT } from './i18n'
 import { since } from './duration'
 import { inAttentionOrder } from '../../shared/sessionOrder.ts'
 import { TerminalView } from './TerminalView'
@@ -320,17 +320,23 @@ export function EstateAgents({
           {agent && historyRead.state === 'ready' && mayHaveEarlier(historyRead.value ?? []) && (
             <p className="muted" data-testid="history-earlier">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>
           )}
-          {shownHistory(historyRead.value ?? []).map((e) => (
-            <Row
-              key={e.seq}
-              lead={<span className="mono">{e.type}</span>}
-              trail={<span className="muted">{since(e.occurred_at, t)}</span>}
-            >
-              <span className="muted">
-                {e.actor.kind}:{String(e.actor.id).slice(0, 8)}
-              </span>
-            </Row>
-          ))}
+          {/* OF-09: the agent's flow, newest first, each act in the person's words; who wrote it beneath. */}
+          <div data-testid="agent-flow">
+            {[...shownHistory(historyRead.value ?? [])].reverse().map((e) => (
+              <div key={e.seq} data-seq={e.seq}>
+                <Row
+                  lead={<span>{describeEvent(t, e.type)}</span>}
+                  trail={<span className="muted">{since(e.occurred_at, t)}</span>}
+                >
+                  <span className="muted">
+                    {e.actor.kind === 'agent' && e.actor.id === agent?.sessionId ? t('agents.flow.byAgent')
+                      : e.actor.kind === 'person' ? t('agents.flow.by.person')
+                      : e.actor.kind === 'agent' ? t('agents.flow.by.agent') : t('agents.flow.by.system')}
+                  </span>
+                </Row>
+              </div>
+            ))}
+          </div>
         </Panel>
       </div>
 

@@ -36,7 +36,8 @@ export interface HistoryQuery<T> {
 }
 
 /**
- * One session's history: the NEWEST `SESSION_HISTORY_WINDOW` journal events that name it, returned in the
+ * One session's history — what names it in its payload, and what the agent wrote itself as that session (the
+ * actor; OF-09: a task it moved, a decision it recorded) — the NEWEST `SESSION_HISTORY_WINDOW` journal events that name it, returned in the
  * order they happened (A5-001). The id is interpolated into a PostgREST filter expression, so nothing but
  * a session id's own shape is let through. A read that fails throws; it is never an empty history.
  */
@@ -48,7 +49,7 @@ export async function readSessionHistory<T extends { seq: number }>(
   if (typeof sessionId !== 'string' || !SESSION_ID.test(sessionId)) throw new Error('Invalid session identity')
   const { data, error } = await select()
     .eq('estate_id', estateId)
-    .or(`payload->>session_id.eq.${sessionId},payload->>owner.eq.${sessionId}`)
+    .or(`payload->>session_id.eq.${sessionId},payload->>owner.eq.${sessionId},actor->>id.eq.${sessionId}`)
     .order('seq', { ascending: false })
     .limit(SESSION_HISTORY_WINDOW + 1)
   if (error) throw new Error(`the session history could not be read: ${error.message}`)

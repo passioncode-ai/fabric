@@ -50,7 +50,8 @@ describe('the history read itself (0.3.2 verification DA-5, UX-11)', () => {
     expect(shown).toHaveLength(200)
     expect(shown[0].seq).toBe(251)
     expect(shown.at(-1)!.seq).toBe(450)
-    expect(t.calls).toEqual(['eq estate_id=estate-1', `or payload->>session_id.eq.${ID},payload->>owner.eq.${ID}`])
+    // OF-09: what the agent itself wrote (a task moved, a decision recorded) names the session as its actor, not in its payload.
+    expect(t.calls).toEqual(['eq estate_id=estate-1', `or payload->>session_id.eq.${ID},payload->>owner.eq.${ID},actor->>id.eq.${ID}`])
   })
 
   it('refuses anything but a session id before it builds a filter', async () => {

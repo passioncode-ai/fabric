@@ -4095,6 +4095,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».
 - **Telemetry:** planned only.
 - **Status:** draft
+- **Amended 2026-10-20 (OF-09):** until SCR-87 is built, the agent picked in Агенты shows its flow newest first: each act in words (a task it moved, a decision it recorded, its stage, its session opened) with who wrote it, read also by the agent as the event's actor; «Открыть сессию» opens its console beside it.
 - **Coverage:** none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists
 - **Product:** unobserved
 
