@@ -47,7 +47,7 @@ export async function readGitFacts(dir: string, opts: { deadlineMs?: number; run
   if (where.failed) return { kind: 'unreadable', why: where.failed }
   if (where.code !== 0) {
     if (where.code === 128 && NOT_A_WORK_TREE.test(where.stderr)) return { kind: 'none' }
-    return { kind: 'unreadable', why: `git rev-parse exit ${where.code}: ${where.stderr.trim().split('\n').pop()?.slice(0, 200) ?? ''}` }
+    return { kind: 'unreadable', why: `the top-level probe (rev-parse) exited ${where.code}: ${where.stderr.trim().split('\n').pop()?.slice(0, 200) ?? ''}` }
   }
   const [toplevel, commonDir] = where.stdout.split('\n').map((l) => l.trim())
   if (!toplevel || !commonDir) return { kind: 'unreadable', why: 'git rev-parse printed no top level or common dir' }
