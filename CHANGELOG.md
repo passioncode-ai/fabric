@@ -25,10 +25,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   «Отменить» on the act line holds it again and puts the console back, so it offers «Работа закончена» again.
   After the press the console says «Вы отметили: работа закончена», not that Fabric confirmed the stop (ADR-0170).
 - **A console is your own setup.** Claude Code in a Fabric console now has your MCP servers (Observatory, your plugins)
-  beside Fabric's, and Codex runs with your own `AGENTS.md`, plugins, trust and sign-in instead of an empty copy;
-  A Codex console no longer copies your sign-in (an agent you create, and a console in a project that declares MCP servers, still run in their own Codex home with a copy). A console also finds the same programs your terminal does. An agent you
-  create in a project still sees only the servers it declares, and so does a console in a project that declares MCP
-  servers of its own (ADR-0169).
+  beside Fabric's, and Codex runs with your own `AGENTS.md`, plugins, trust and sign-in instead of an empty copy,
+  without copying your sign-in. A console also finds the same programs your terminal does. An agent you create in a
+  project, and a console in a project that declares MCP servers of its own, still see only the servers they declare and
+  run Codex in their own home with a copy of the sign-in (ADR-0169).
 - **Every coding agent starts as a console, with fewer prompts by default.** A project's console can now start any
   coding agent of the catalogue this computer has (Gemini CLI, OpenCode, Goose, Cursor, Pi, OpenClaw and the rest),
   not only the five Fabric connects to its surface. Settings has «Разрешения агентов»: «Меньше подтверждений», chosen by default,
@@ -53,7 +53,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   answers into the agent, and Claude Code read them as «Esc» on its «Do you trust this folder?» question and quit.
 - **Many coding agents at once no longer push each other out.** With dozens of Claude Code sessions open in
   different projects, they took turns disconnecting one another and then waited on Fabric's rate limit. The limit of
-  eight sessions now counts one project, and each session gets its own share of calls.
+  eight sessions now counts one project, and each session gets its own share of calls; one coding agent still holds
+  at most 64 sessions across all projects, and past that the oldest is ended.
 - **One rail, five places** (SCN-162). The left of the window holds «＋ Создать», Главная, Агенты, История and
   Настройки, then your projects: favourites first, then by latest activity, a green dot where an agent works and a
   count where something waits for you. The tab strip, the Back button, the per-project links and the bar above each

@@ -1,0 +1,23 @@
+// 0.3.7 review i3 UX-1: an executor's refusal code reaches the person only through `whyWords`; a code with its own
+// sentence that `WHY` does not list falls to the generic «Fabric не может это отменить». Every `act.why.*` key but
+// `other` must be reachable.
+import { describe, expect, it } from 'vitest'
+import { en } from '../i18n/en'
+import { ru } from '../i18n/ru'
+import { translator } from '../i18n/translate'
+import { whyWords } from './actWords'
+
+describe('whyWords', () => {
+  for (const [name, table] of [['en', en], ['ru', ru]] as const) {
+    it(`says every act.why sentence of ${name}, none falls to the generic one`, () => {
+      const t = translator(name)
+      const codes = Object.keys(table).filter((k) => k.startsWith('act.why.') && k !== 'act.why.other').map((k) => k.slice('act.why.'.length))
+      const generic = (table as Record<string, string>)['act.why.other']
+      const unreachable = codes.filter((c) => whyWords(t, c) === generic && (table as Record<string, string>)[`act.why.${c}`] !== generic)
+      expect(unreachable).toEqual([])
+    })
+  }
+  it('names an attested run in its own words', () => {
+    expect(whyWords(translator('ru'), 'already_attested')).toBe(ru['act.why.already_attested'])
+  })
+})

@@ -24,7 +24,7 @@ const WHY = new Set([
   'already_released', 'already_held', 'held_by_other', 'owner_gone', 'runner_gone', 'folder_gone', 'already_attached',
   'held_by_other_project', 'project_gone', 'question_gone', 'not_answered', 'draft_gone', 'session_gone', 'agent_gone',
   'already_in', 'already_out', 'invalid', 'unreadable', 'no_inverse', 'run_gone', 'run_resolved', 'not_attested',
-  'task_moved_on', 'run_still_running', 'person_required'
+  'task_moved_on', 'run_still_running', 'person_required', 'already_attested'
 ])
 
 /** The act as one sentence; an undo says it undid something («Отменено: …»). */
