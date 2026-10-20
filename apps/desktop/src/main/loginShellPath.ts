@@ -57,6 +57,7 @@ export function readLoginShellPath(shell: string, deps: Deps = {}): Promise<Shel
         windowsHide: true
       })
     } catch (e) {
+      // Not silent: the failure travels in the answer, and the caller (`env.ts#loginShellPath`) records it with ops.failed.
       settle({ path: null, failure: 'spawn', detail: (e as Error).message })
       return
     }
