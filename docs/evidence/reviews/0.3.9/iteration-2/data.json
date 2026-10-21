@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "026d77c86a95df4aed4f6499e621330b5951e4ab",
+  "report": "docs/evidence/reviews/0.3.9/iteration-2/2026-10-21-data.md",
+  "reportSha256": "0bfcee1f8d8c6c71602aa0ed5523b09f054d8796278b86252840220bcd422574",
+  "reviewerRun": "release-039-i2-data-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-25",
+      "source": "DA-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-373 (0.3.10, a migration); the live database has no responder slots"
+      ]
+    },
+    {
+      "id": "V2-26",
+      "source": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-373 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says fast successful IPC calls are counted; failures and slow calls are always written"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "data:DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan says sized for 7 days, a cut inside the week recorded"
+      ]
+    }
+  ]
+}

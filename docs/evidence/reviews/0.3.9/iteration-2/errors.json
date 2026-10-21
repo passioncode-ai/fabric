@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "026d77c86a95df4aed4f6499e621330b5951e4ab",
+  "report": "docs/evidence/reviews/0.3.9/iteration-2/2026-10-21-errors.md",
+  "reportSha256": "b14b3ae0a37dcfc47d076dfa071e7ab5c6231e58e036c84a6cae778c47435a01",
+  "reviewerRun": "release-039-i2-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-11",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only the newest scheduled read schedules the next (`stack-watch.test.mjs` ER-1 through `start()`, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the leave DELETE passes a cooldown; fabric-mcp leaves on SIGTERM, SIGHUP, SIGINT and stdin end; a hook end for a dead agent process ends the session (`fabric-mcp.test.mjs`, `session-observe-wire.test.mjs`, `tracking-surface.test.mjs`, `session-enroll.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rotation is separate from the append; one `ops.rotate-failed`; the file stops at the budget (`ops-retention.test.mjs` ER-3, watched failing)"
+      ]
+    }
+  ]
+}

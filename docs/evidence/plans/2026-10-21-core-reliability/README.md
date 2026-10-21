@@ -62,6 +62,11 @@ Each part was built on its own branch, test first, every new test watched failin
   header says six; of the other 4, 2 expire on 2026-10-26 and 2 on 2026-10-28. The
   Comms reads record their failures. Schema 95 (`20261021000120_board_core_holds.sql`).
 
+**Review iteration 2 added** ([notes](2026-10-21-notes-i2.md)): the stack watch keeps exactly one chain of reads and
+never shows a held re-check as a try; fabric-mcp leaves on a signal or stdin's end, even through a cooldown, and a
+hook's end for an agent whose process is gone ends the session; the log stops at its budget when it cannot rotate; the
+wait window puts a low disk first and says agents wait only while Fabric holds the hub's port.
+
 ## Every audit finding, where it went
 
 | Finding | Where |

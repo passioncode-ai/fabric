@@ -30,15 +30,17 @@ that is not 0.3.9 yet.
   in a row mean it is lost); a lost stack is said on every screen, agents are told `stack-unavailable`, and Fabric
   brings the stack back with one `supabase start` per try («Пробуем сейчас» while it runs). An external stack is
   waited for, never restarted; a stack stopped with `supabase stop` is not started again while Fabric runs; no try
-  while its containers still run. A disk under 3 GB is named, first, as the likely cause.
+  while its containers still run. A disk under 3 GB is named, first, as the likely cause. A held re-check is never
+  shown as a try, and the watch keeps one chain of reads.
 - **The operations log is sized for a week** in rotated segments within 96 MB (a cut inside the week is recorded);
   fast successful IPC calls and agents' keep-alive pings are counted, not written each time; failures and slow calls
-  are always written. `startup-failure.log` keeps every failed start.
+  are always written. When the log cannot rotate it stops at its budget and says so once (`ops.rotate-failed`). `startup-failure.log` keeps every failed start.
 - **A session keeps its identity after `/clear`.** An old "session ended" no longer ends a live, resumed session or
   releases its claims. After Fabric restarts, an agent rejoins by itself at once, as a new Fabric session (its claims
   were released at quit and their tasks are back in backlog). A connected coding agent signs every 2 minutes, so it
   is not shown silent while it works and its claims do not lapse. When an agent leaves, Fabric records its session's
-  end. The new fabric-mcp also works with an older Fabric still running. A coding agent picks this up when it restarts.
+  end: fabric-mcp leaves on SIGTERM, SIGHUP, SIGINT and stdin's end, even through a hub cooldown, and a hook's end for
+  an agent whose process is gone ends the session (claims released, tasks back to backlog). The new fabric-mcp also works with an older Fabric still running. A coding agent picks this up when it restarts.
 - **Tasks move on the board.** A claim moves its task to running; finishing it moves it to review; letting it go
   takes the task back to backlog.
   `fabric_agents_list` lists every agent in the project, and expired agent-sync leases are no longer shown as current.

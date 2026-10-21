@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "026d77c86a95df4aed4f6499e621330b5951e4ab",
+  "report": "docs/evidence/reviews/0.3.9/iteration-2/2026-10-21-ux.md",
+  "reportSha256": "f38e385d577aa00212c7bd66df81c34566f4713474bac2eb19526703786ea50b",
+  "reviewerRun": "release-039-i2-ux-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a try shows only when no hold stands (`shared/stackWatch.ts`; `stack-watch.test.mjs` UX-1, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-2",
+      "source": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-374 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startupWaitLines` puts it after the title (`stackWatch.test.ts`, `startup-wait.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-374 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the wording says «на которые сейчас не отвечает ни один агент» / \"no agent is answering now\" (`HomeBoardWaiting.test.tsx`); one definition needs a migration, CO-373 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "UX-6",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: its height follows the page text, so a person never needs to resize it vertically"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabricMcp.ts#sayHubRefusal` (`fabric-mcp.test.mjs` UX-7, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: shown only while the standby holds the port, else `startup.wait.agentsNoHub` (`stackWatch.test.ts`)"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: carried to the wave-4 home with the 0.3.10 rebuild (P-20); SCR-30 keeps the record until then"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the English state is \"answered\" (`CommsScreen.test.tsx`, watched failing)"
+      ]
+    }
+  ]
+}

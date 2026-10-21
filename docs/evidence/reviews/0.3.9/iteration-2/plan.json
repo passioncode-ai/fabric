@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "026d77c86a95df4aed4f6499e621330b5951e4ab",
+  "report": "docs/evidence/reviews/0.3.9/iteration-2/2026-10-21-plan.md",
+  "reportSha256": "348600afd4d494337975677268d80bbc941f35f370217acfd24fc00f3991d3a5",
+  "reviewerRun": "release-039-i2-plan-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-29",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan names the rollout order: back up and rehearse, install the bundle, migrate the live database to 95 while 0.3.8 runs, then the next quit and open runs 0.3.9 on a ready database; 0.3.8 against schema 95 is checked in iteration 3"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with docs DO-10"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: corrected on a5969ac5 (2026-10-21 16:34 UTC), CO-371 names both threads and the 503 body, passioncode-vesta told on thread d1ffada2; the rest is in the Release close"
+      ]
+    },
+    {
+      "id": "V2-32",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both answered on 2026-10-21 (threads 87af4473 and e75d502d), recorded as CO-372 and CO-336; the tick will settle them as answered"
+      ]
+    },
+    {
+      "id": "V2-33",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan table says half fixed; the heartbeat half is CO-375"
+      ]
+    },
+    {
+      "id": "V2-34",
+      "source": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-374 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V2-35",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rollout order migrates first so the window is one quit and open; the plan says so"
+      ]
+    }
+  ]
+}
