@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.8
 
 The patch of the operator's audit of the installed 0.3.7 (2026-10-21): other products can now get the access that
 `fabric.project.resolve` needs, the log says what happened, the startup failure names a full disk, and a coding agent

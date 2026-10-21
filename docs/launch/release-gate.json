@@ -1,7 +1,7 @@
 {
-  "version": "0.3.7",
-  "ledger": "docs/evidence/plans/2026-10-20-release-037-verification.md",
-  "verifiedCommit": "2d6169a08f20b5fe684d453fde1d062cd9596a1d",
+  "version": "0.3.8",
+  "ledger": "docs/evidence/plans/2026-10-21-release-038-verification.md",
+  "verifiedCommit": "0b8dd7cbb032bc0d0cadef1a7ae81220d1e9df34",
   "releaseMetadata": [
     "docs/handoffs/2026-10-20-release-037.md"
   ],
@@ -10,94 +10,94 @@
     "iterations": [
       {
         "iteration": 1,
-        "candidateCommit": "ff13325f1f156d1f1ac0d781a2732249d9acdb6d",
+        "candidateCommit": "00f6596fb8ceff6676f4a857c6b7baf732da8ec6",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-1/ux.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-1/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-1/errors.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-1/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-1/docs.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-1/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-data.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-1/data.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-data.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-1/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.7/iteration-1/2026-10-20-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-1/plan.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-1/plan.json"
           }
         ]
       },
       {
         "iteration": 2,
-        "candidateCommit": "07ae71e79718b98726b0f36e95b607cb10e24a3c",
+        "candidateCommit": "587b75c12557ca023aeb9ef5237e018b93339b1a",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-2/ux.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-2/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-2/errors.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-2/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-2/docs.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-2/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-data.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-2/data.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-data.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-2/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.7/iteration-2/2026-10-20-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-2/plan.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-2/plan.json"
           }
         ]
       },
       {
         "iteration": 3,
-        "candidateCommit": "2d6169a08f20b5fe684d453fde1d062cd9596a1d",
+        "candidateCommit": "9b309b04d72b723a2284a9d994509e80cdce6509",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-3/ux.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-3/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-3/errors.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-3/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-3/docs.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-3/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-data.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-3/data.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-data.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-3/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.7/iteration-3/plan.json"
+            "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.8/iteration-3/plan.json"
           }
         ]
       }
