@@ -246,7 +246,7 @@ decision below is recorded here; each fix carries its test, named in the COM-03 
 Responder grant, so every request stayed `queued` (6 of 6 in three days). A non-request message from the target
 Project naming the request moves it from `queued` to `answered` (Fabric's own state, outside the pinned contract,
 journalled; a request a responder already holds is not changed). A request without a deadline gets one 7 days out; a
-request to a capability no Project serves is accepted with `noResponder` in its receipt, because a reply can still
+request whose target Project has no live responder is accepted with `noResponder` in the requester's receipt, because a reply can still
 answer it and a grant may come later. `com.list` takes `unread` and `since` and says of each message whether it is `read`; its cursor
 key lives in the database per estate, so cursors survive a restart; `com.read_ack` marks up to 100 messages, or a
 thread up to a message, in one call and one journal event. The reading filters and the bulk mark are optional: a list or a mark that uses none of them gets the

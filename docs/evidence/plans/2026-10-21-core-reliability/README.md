@@ -20,7 +20,7 @@ levels, done in 0.3.8), ST-11 (workspace-sync job, repaired 2026-10-21 by reinst
 
 ## Tracking
 
-A session keeps its identity across `/clear` and a Fabric restart; an end observed before a session enrolled does not
+A session keeps its identity across `/clear` and rejoins by itself after a Fabric restart (as a new Fabric session); an end observed before a session enrolled does not
 end it; liveness follows the agent's process and turns, not only its Fabric calls, and live work keeps its claims; a
 claim and a release move the task on the board; the agents list shows every session; expired agent-sync leases are
 not shown as current. Findings: TR-1 to TR-7, TR-11, TR-14, TR-15.
@@ -43,7 +43,7 @@ Each part was built on its own branch, test first, every new test watched failin
   answer 503 `stack-starting` with Retry-After until the database is ready (`main/hubStandby.ts`). While Fabric runs,
   `main/stackWatch.ts` reads the database every 30 s, pings Docker when that fails, says a lost stack on every screen,
   answers agents 503 `stack-unavailable` and brings the stack back; a disk under 3 GB is named first. The operations
-  log rotates into segments within 96 MB and keeps at least 7 days; `startup-failure.log` appends.
+  log rotates into segments within 96 MB, sized for 7 days (a cut inside the week is recorded); `startup-failure.log` appends.
 - **Tracking.** fabric-mcp names the agent process it serves; a rejoin whose session id changed (after `/clear`) is
   matched by that process and the session takes the new id; an end with reason `clear`, an end observed before the
   session enrolled and a hook's end while the agent's own fabric-mcp still signs do not end it. A connected
@@ -54,11 +54,12 @@ Each part was built on its own branch, test first, every new test watched failin
   recorded when its agent's fabric-mcp leaves (TR-13); a claim let go takes its task back to backlog. After a Fabric
   restart an agent rejoins by itself, as a new Fabric session.
 - **Board.** A reply from the asked project answers a request (state `answered`, journalled); a request with no
-  deadline gets 7 days; a request no project serves is accepted with `noResponder` in its receipt. `com.list` takes
+  deadline gets 7 days (one with a deadline keeps it); a request whose target Project has no live responder is accepted
+  with `noResponder` in the requester's receipt. `com.list` takes
   `unread` and `since` and says `read` per message; cursors survive a restart; `com.read_ack` marks up to 100 messages
   or a thread up to a message in one call. The home shows the requests between projects no agent can answer, and how long the oldest has waited. On the
-  operator's data the first tick answers 4 of the 6 queued requests (those a target replied to; the migration's header
-  says six); the other 2 expire on 2026-10-26. The
+  operator's data (8 queued requests on 2026-10-21) the first tick answers the 4 a target replied to; the migration's
+  header says six; of the other 4, 2 expire on 2026-10-26 and 2 on 2026-10-28. The
   Comms reads record their failures. Schema 95 (`20261021000120_board_core_holds.sql`).
 
 ## Every audit finding, where it went
@@ -72,7 +73,8 @@ Each part was built on its own branch, test first, every new test watched failin
 | ST-10 (one hub refusal for a slow database) | not a defect: the 503 with Retry-After is the designed answer |
 | ST-12 (44 resident fabric-mcp, about 1.6 GB) | not a defect of this release: one per open coding agent, each ends with its agent; the 2-minute sign is sampled in the log |
 | ST-13 (`ipc.stack:exposure` 2.4 s median) | carried with CO-366 (0.3.10): it runs off the main loop and freezes nothing |
-| TR-1 to TR-7, TR-11, TR-14 | fixed in 0.3.9 (above); the adapter's half of TR-1, TR-2 and TR-11 is CO-371 |
+| TR-1 to TR-7, TR-11 | fixed in 0.3.9 (above); the adapter's half of TR-1, TR-2 and TR-11 is CO-371; TR-3's one-off (8 finished tasks left in backlog in other projects) and TR-4's "idle in Claude" display are CO-375 |
+| TR-14 | half fixed: stage reports of ended sessions are not shown; the stale heartbeat rows are CO-375 |
 | TR-8 (Hermes in the home folder) | fixed in 0.3.8 for the log flood and the backoff; the folder itself stays too broad by design |
 | TR-9 (0.3.8 installed, 0.3.7 running) | resolved: the operator restarted Fabric into 0.3.8 at 15:01 local, 2026-10-21 |
 | TR-10, TR-12 | CO-367, CO-369 (0.3.10) |
@@ -91,13 +93,18 @@ gaps in `cycle.ran@1` over the following days (availability), the sessions whose
 agents running, the sessions shown silent while their agents work, the board requests left queued, and whether the
 workspace-sync job ran on schedule (ST-11).
 
-**Steps that need a person:** none for the release itself (Fabric is upgraded and restarted through the lifecycle
-broker; a restart it refuses because the person holds the app waits for the person's own quit and open). The coding
-agents pick up the new fabric-mcp when each is restarted. CO-365 needs a real reboot.
+**Rollout order on the operator's machine** (0.3.9 review, PL-1): 1. the agent backs up the database and rehearses the
+94 to 95 migration on a copy (`rehearse-upgrade.mjs`); 2. it installs the 0.3.9 bundle in `/Applications` (the new
+fabric-mcp works against the 0.3.8 still running, PL-2); 3. it migrates the live database to 95 while 0.3.8 runs (the
+0.3.9 review's iteration 3 checks 0.3.8 against schema 95 on a copy); 4. the next quit and open of Fabric runs 0.3.9 on a
+ready database: through the lifecycle broker when it started the app, otherwise the person's own Cmd+Q and open, the one
+step a person may need (the broker does not stop an app the person opened); 5. the agent verifies the version, the
+schema and the hub. The hub is down only for that quit and open. Until 0.3.9 runs, the new 2-minute pings of updated
+fabric-mcp processes fill 0.3.8's line-capped log faster (PL-7). The coding agents pick up the new fabric-mcp when each is
+restarted. CO-365 needs a real reboot.
 
 ## Not in this release
 
 ST-6 (CO-364), ST-7 (CO-365), ST-9 (CO-366), TR-10 (CO-367), BD-7 (CO-368), BD-8 and TR-12 (CO-369), the reply fan-out
 of BD-4, BD-9 and BD-10 (CO-370), the halves in fabric-agent-adapter and fabric-agent-contract (CO-371): all 0.3.10, in
-the [carry-over ledger](../../specs/2026-08-16-software-fabric-carryover.md). TR-13 (an enrolled session's exit in the
-journal) stays with TR-11's record in the tracking notes. A coding agent picks up the new fabric-mcp when it restarts.
+the [carry-over ledger](../../specs/2026-08-16-software-fabric-carryover.md). A coding agent picks up the new fabric-mcp when it restarts.

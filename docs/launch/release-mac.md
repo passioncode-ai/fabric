@@ -302,7 +302,7 @@ agent's history read, 94 as an archive source). 89 + 5 = **94**, whatever the su
 reservation). The procedure is the same with 94 in place of 89.
 
 **0.3.8 admits schema 94**, as 0.3.7 does: it adds no migration, so a database already at 94 needs no upgrade step.
-**0.3.9 admits schema 95** (migration `20261021000120_board_core_holds.sql`, the board's answered requests and cursor key): a database at 94 takes the upgrade below, `FROM` 94. In the first minute after it, the board answers the queued requests their target already replied to and gives the others a deadline 7 days after they were sent (4 of 6 answered on the operator's database; the migration's header says six).
+**0.3.9 admits schema 95** (migration `20261021000120_board_core_holds.sql`, the board's answered requests and cursor key): a database at 94 takes the upgrade below, `FROM` 94. In the first minute after it, the board answers the queued requests their target already replied to and gives the others a deadline 7 days after they were sent (4 of the 8 queued on the operator's database on 2026-10-21; the migration's header says six).
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

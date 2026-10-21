@@ -18,8 +18,8 @@ board requests ever sent were still queued. Schema 95.
 0.3.9 refuses a schema-94 database on its first start until the upgrade in
 [release-mac](docs/launch/release-mac.md#upgrading-an-existing-database) is run (back up first; 0.3.8 cannot open a
 schema-95 database, so keep the backup until 0.3.9 runs). At the first minute after it, the board answers the requests
-their target already replied to (4 of the 6 on the operator's database) and gives the others a deadline 7 days after
-they were sent (the migration's own header says "the six"; it is 4). Coding agents pick up the new fabric-mcp when each restarts; the new fabric-mcp still works with a hub
+their target already replied to (4 of the 8 queued on the operator's database on 2026-10-21) and gives the others
+without one a deadline 7 days after they were sent (the migration's own header says "the six"). Coding agents pick up the new fabric-mcp when each restarts; the new fabric-mcp still works with a hub
 that is not 0.3.9 yet.
 
 - **Fabric no longer quits when Docker or the database is not ready at start.** It waits, says what it waits for, and
@@ -32,7 +32,8 @@ that is not 0.3.9 yet.
   waited for, never restarted; a stack stopped with `supabase stop` is not started again while Fabric runs; no try
   while its containers still run. A disk under 3 GB is named, first, as the likely cause.
 - **The operations log is sized for a week** in rotated segments within 96 MB (a cut inside the week is recorded);
-  successful polling reads and agents' keep-alive pings are counted, not written each time. `startup-failure.log` keeps every failed start.
+  fast successful IPC calls and agents' keep-alive pings are counted, not written each time; failures and slow calls
+  are always written. `startup-failure.log` keeps every failed start.
 - **A session keeps its identity after `/clear`.** An old "session ended" no longer ends a live, resumed session or
   releases its claims. After Fabric restarts, an agent rejoins by itself at once, as a new Fabric session (its claims
   were released at quit and their tasks are back in backlog). A connected coding agent signs every 2 minutes, so it
@@ -41,8 +42,8 @@ that is not 0.3.9 yet.
 - **Tasks move on the board.** A claim moves its task to running; finishing it moves it to review; letting it go
   takes the task back to backlog.
   `fabric_agents_list` lists every agent in the project, and expired agent-sync leases are no longer shown as current.
-- **Board requests get answered.** A reply from the asked project answers a request; a request no agent can answer
-  says so in its receipt, and one sent without a deadline expires after 7 days; the home shows the requests between projects no agent can answer, and
+- **Board requests get answered.** A reply from the asked project answers a request; a request whose target
+  has no live responder says so in its receipt, and one sent without a deadline expires after 7 days; the home shows the requests between projects no agent can answer, and
   how long the oldest has waited.
 - **Agents read what is new.** `com.list` takes `unread` and `since` and says which messages are read; cursors survive
   a restart; `com.read_ack` marks up to 100 messages in one call.

@@ -72,7 +72,7 @@ branches (`agent/core-st2`, `agent/core-tr2`, `agent/core-bd2`, notes in the pla
 | V1-44 | PL-7 | No after-install measurement | fixed: the plan section "How we will know it holds" |
 | V1-45 | PL-8 | The release gate is not prepared for 0.3.9 | ruled: the release commit sets the version, the CHANGELOG heading and the gate on this ledger |
 | V1-46 | PL-9 | No person steps named | fixed: the plan names them: none for the release; agents restart on their own schedule; CO-365 needs a reboot |
-| V1-47 | DO-1 | The availability headline drops the first gap | fixed: with DA-3 |
-| V1-48 | DO-2 | MERGES records a landing that has not happened | ruled: the merge log entry is written at the landing, in the release commit |
+| V1-47 | plan:DO-1 | The availability headline drops the first gap | fixed: with DA-3 |
+| V1-48 | plan:DO-2 | MERGES records a landing that has not happened | ruled: the merge log entry is written at the landing, in the release commit |
 
 Exit for iteration 1: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.

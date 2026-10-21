@@ -422,6 +422,14 @@ A session's surface also carries the project board of `fabric-project-comms/0.1`
 | `com.reconcile` | outcome_unknown → completed / failed_known, observed only, by the slot's current holder | `comms.request_transitioned@1` |
 | `com.responder_replace` | takes the slot even from a live holder at the generation read; accepted work continues only by an explicit checkpoint transfer | `comms.responder_enrolled@1` (cause `replace`), the replacement's transitions, a checkpoint reply per transferred request |
 
+**0.3.9 additions** ([the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#board), ADR-0149's
+amendment of 2026-10-21): `com.list` takes `unread` and `since` and says `read` per message; its cursor key lives in the
+database per estate, so cursors survive a restart; `com.read_ack` marks up to 100 messages, or a thread up to a message,
+in one call and one `comms.read_acked_many@1`; a non-request message from the target Project naming a queued request
+answers it (state `answered`, `comms.request_transitioned@1` with cause `target-reply`); a request sent without a
+deadline gets one 7 days out; the requester's receipt carries `noResponder` when the target Project has no live
+responder. The tick also answers queued requests their target already replied to.
+
 The board's own upkeep is not a tool: `board_tick`, on the app's 60-second cycle, expires requests whose deadline
 passed (`comms.request_transitioned@1`, cause `deadline`), rotates idempotency epochs (`comms.epoch_rotated@1`) and
 retires closed ones (`comms.retention_applied@1`). A session's end and a revoked responder grant release its slots
