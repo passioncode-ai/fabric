@@ -276,10 +276,16 @@ export function hubRefusalOf(body: unknown): HubRefusal | undefined {
   const reason = typeof b.error === 'string' ? b.error.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) || undefined : undefined
   return code || reason ? { ...(code ? { code } : {}), ...(reason ? { reason } : {}) } : undefined
 }
+/**
+ * The sentences fabric-mcp says itself around a hub refusal, with the wait it measured: kept out of the hub's reason
+ * when that carries them too, so an agent reads "Nothing of this call was done" once (0.3.9 review iteration 2, UX-7).
+ */
+const SAID_BY_FABRIC_MCP = [/\s*Nothing of this call was done\.?/g, /\s*Wait and call again\.?/g]
 /** "<reason> (<code>)", or whichever of the two the hub gave; null when it gave neither. */
 export function sayHubRefusal(said: HubRefusal | undefined): string | null {
   if (!said) return null
-  const reason = said.reason ? said.reason.replace(/[.\s]+$/, '') : null
+  const own = said.reason ? SAID_BY_FABRIC_MCP.reduce((r, re) => r.replace(re, ''), said.reason) : null
+  const reason = own ? own.replace(/[.\s]+$/, '') || null : null
   return reason && said.code ? `${reason} (${said.code})` : reason ?? said.code ?? null
 }
 // #endregion fabric-mcp-hub-refusal
@@ -863,3 +869,54 @@ export class FabricMcpProxy {
   }
 }
 // #endregion fabric-mcp
+
+// #region fabric-mcp-leave-on-exit — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/** How long fabric-mcp may spend telling Fabric it leaves before it exits anyway: the leave's own DELETE is bounded at
+ *  2 s (`fabricMcpClient.ts#openSessionLink`), and closing its transport after it is quick. */
+export const LEAVE_DEADLINE_MS = 5_000
+
+/** The exit code of a process ended by a signal, as a shell reports it (128 + the signal's number). */
+const SIGNAL_EXIT: Record<'SIGTERM' | 'SIGHUP' | 'SIGINT', number> = { SIGTERM: 143, SIGHUP: 129, SIGINT: 130 }
+
+/**
+ * fabric-mcp tells Fabric it leaves whenever it goes (0.3.9 review iteration 2, ER-2): its agent closing stdin, or a
+ * signal (SIGHUP when the terminal closes, SIGTERM from a supervisor, SIGINT). Without this a killed fabric-mcp sent no
+ * DELETE, and its session, its claims and the tasks they moved to running stayed until they lapsed. Once: a second
+ * signal while leaving changes nothing (the handlers stay installed, so it does not kill the process mid-leave either),
+ * and the exit comes at the deadline when Fabric does not answer.
+ */
+export function leaveOnExit(opts: {
+  proc: { on(event: 'SIGTERM' | 'SIGHUP' | 'SIGINT', fn: () => void): unknown; stdin: { once(event: 'end', fn: () => void): unknown } }
+  stop: { stopped: boolean }
+  leave: () => Promise<void>
+  exit: (code: number) => void
+  deadlineMs?: number
+  log?: (line: string) => void
+}): void {
+  let leaving = false
+  const go = (code: number, why: string): void => {
+    if (leaving) return
+    leaving = true
+    opts.stop.stopped = true
+    let done = false
+    const finish = (): void => {
+      if (done) return
+      done = true
+      clearTimeout(deadline)
+      opts.exit(code)
+    }
+    // Not unref'd: the exit must come even when nothing else keeps the process alive meanwhile.
+    const deadline = setTimeout(() => {
+      opts.log?.(`fabric-mcp: Fabric did not confirm the leave (${why}) within ${Math.round((opts.deadlineMs ?? LEAVE_DEADLINE_MS) / 1000)} s; exiting`)
+      finish()
+    }, opts.deadlineMs ?? LEAVE_DEADLINE_MS)
+    opts.leave().then(finish, (e: unknown) => {
+      // The leave failed (Fabric gone or refusing): said on stderr, the only channel fabric-mcp has; it exits anyway.
+      opts.log?.(`fabric-mcp: leaving on ${why} failed (${e instanceof Error ? e.message : String(e)})`)
+      finish()
+    })
+  }
+  for (const signal of ['SIGTERM', 'SIGHUP', 'SIGINT'] as const) opts.proc.on(signal, () => go(SIGNAL_EXIT[signal], signal))
+  opts.proc.stdin.once('end', () => go(0, 'stdin end'))
+}
+// #endregion fabric-mcp-leave-on-exit

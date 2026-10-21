@@ -524,7 +524,7 @@ export function EstateHome({
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
-          {/* 0.3.9 BD-2: requests between projects nobody can answer, and unread board messages, outside Comms. */}
+          {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
           <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} />
           <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} onBoard={onBoard} />
 

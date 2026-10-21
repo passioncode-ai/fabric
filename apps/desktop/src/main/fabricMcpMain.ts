@@ -11,7 +11,7 @@ import { AGENTS } from '../shared/agents.ts'
 import { registryDirs } from './agentRegistry.ts'
 import { locateHub } from './hub.ts'
 import { homedir } from 'node:os'
-import { FabricMcpProxy, RUNTIME_SESSION_ID, agentPidOf, claudePidOfSession, claudeSessionOfPid, claudeSessionsDir, runtimeSessionIdOf } from './fabricMcp.ts'
+import { FabricMcpProxy, RUNTIME_SESSION_ID, leaveOnExit, agentPidOf, claudePidOfSession, claudeSessionOfPid, claudeSessionsDir, runtimeSessionIdOf } from './fabricMcp.ts'
 import { fileCredentialStore, makeHubCall, openSessionLink } from './fabricMcpClient.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -82,10 +82,8 @@ proxy.onFinal = (state) => {
 }
 
 const stop = { stopped: false }
-process.stdin.once('end', () => {
-  stop.stopped = true
-  void proxy.close().finally(() => process.exit(0))
-})
+// ER-2 (i2): stdin's end AND a signal leave the session (the DELETE), bounded, before the process exits.
+leaveOnExit({ proc: process, stop, leave: () => proxy.close(), exit: (code) => process.exit(code), log: say })
 await server.connect(new StdioServerTransport())
 void proxy.run(stop)
 // #endregion fabric-mcp-main

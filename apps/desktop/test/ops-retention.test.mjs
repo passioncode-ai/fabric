@@ -136,3 +136,48 @@ test('DA-2: forty agents pinging every 2 minutes for a week fit the default budg
   assert.ok(counted + pings >= agents * 7 * 24 * 30 - agents * 6, 'the pings were dropped, not counted')
 })
 // #endregion ops-retention
+
+// #region ops-rotate-failing — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+// 0.3.9 review iteration 2, ER-3: a rotation that throws (Windows EBUSY or EPERM while another process holds the file;
+// here, a directory that refuses renames) was counted as a lost append, so the log grew past its budget without end and
+// wrote an `ops.gap` for nearly every record it had in fact written. A written record is never counted lost, the failed
+// rotation is said once, and the budget stays a hard ceiling: past it nothing more is appended, and that is counted.
+const posixOnly = process.platform === 'win32' || process.getuid?.() === 0
+test('ER-3 (i2): a rotation that keeps failing never counts a written record as lost, and the budget holds', { skip: posixOnly && 'needs a directory that refuses renames' }, async () => {
+  const { chmodSync } = await import('node:fs')
+  const dir = fresh()
+  let t = Date.parse('2026-10-21T00:00:00Z')
+  const ops = createOps({ dir, now: () => new Date(t), segmentBytes: 1024, budgetBytes: 4096 })
+  ops.record({ op: 'first', outcome: 'ok', ctx })
+  chmodSync(dir, 0o500)
+  try {
+    // Room left in the budget: every record is written, none is reported lost, and the failure is said once.
+    for (let i = 0; i < 8; i++) { ops.record({ op: 'cycle.ran', outcome: 'ok', ctx, detail: { i, pad: 'p'.repeat(150) } }); t += 1_000 }
+    let lines = readFileSync(path.join(dir, 'operations.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l))
+    assert.equal(lines.filter((r) => r.op === 'cycle.ran').length, 8)
+    assert.equal(lines.filter((r) => r.op === 'ops.gap').length, 0, 'a gap was written for records that are on disk')
+    assert.equal(ops.lost(), 0, `lost() says ${ops.lost()} of records that were written`)
+    // Past the budget: nothing more is appended, and what is not written is counted.
+    for (let i = 8; i < 200; i++) { ops.record({ op: 'cycle.ran', outcome: 'ok', ctx, detail: { i, pad: 'p'.repeat(150) } }); t += 1_000 }
+    assert.ok(statSync(path.join(dir, 'operations.jsonl')).size <= 4096, `the log holds ${statSync(path.join(dir, 'operations.jsonl')).size} bytes against a 4 KiB budget`)
+    lines = readFileSync(path.join(dir, 'operations.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l))
+    assert.equal(lines.filter((r) => r.op === 'ops.rotate-failed').length, 1, 'the failed rotation is said once per streak')
+    assert.equal(lines.filter((r) => r.op === 'ops.gap').length, 0)
+    const written = lines.filter((r) => r.op === 'cycle.ran').length
+    assert.equal(ops.lost(), 200 - written, 'every record not written is counted, and only those')
+  } finally {
+    chmodSync(dir, 0o700)
+  }
+  // Rotation works again (after its backoff): the gap is said once with the true count, and the log rotates.
+  const missing = ops.lost()
+  t += 15 * 60_000
+  ops.record({ op: 'after', outcome: 'ok', ctx })
+  for (let i = 0; i < 6; i++) { ops.record({ op: 'cycle.ran', outcome: 'ok', ctx, detail: { i, pad: 'q'.repeat(150) } }); t += 1_000 }
+  const gaps = ops.read().filter((r) => r.op === 'ops.gap')
+  assert.equal(gaps.length, 1)
+  assert.equal(gaps[0].detail.lost, missing)
+  assert.equal(ops.lost(), 0)
+  assert.ok(readdirSync(dir).some((f) => /^operations\.\d+\.jsonl$/.test(f)), 'the log rotates again')
+  assert.ok(bytesIn(dir) <= 4096 + 1024 + 512, `the log holds ${bytesIn(dir)} bytes`)
+})
+// #endregion ops-rotate-failing

@@ -21,7 +21,7 @@ describe('home: what waits on the board', () => {
   it('says how many requests wait with nobody to answer, since when; opens Comms', async () => {
     stubWaiting(async () => ({ ok: true, requests: 6, oldestRequestAt: days(3) }))
     const onComms = show('en')
-    await waitFor(() => expect(screen.getByText(/Requests between projects that no agent can answer now: 6\./)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/Requests between projects that no agent is answering now: 6\./)).toBeTruthy())
     expect(screen.getByText(/waited 3d/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Comms/ }))
     expect(onComms).toHaveBeenCalled()
@@ -59,20 +59,22 @@ describe('home: what waits on the board', () => {
   it('one request reads as one, and an unknown age is left out rather than shown as "?" (UX-10)', async () => {
     stubWaiting(async () => ({ ok: true, requests: 1 }))
     show('en')
-    await waitFor(() => expect(screen.getByText(/no agent can answer now: 1\./)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/no agent is answering now: 1\./)).toBeTruthy())
     expect(document.body.textContent).not.toMatch(/1 requests|\?|waited/)
     cleanup()
     stubWaiting(async () => ({ ok: true, requests: 1, oldestRequestAt: 'not a time' }))
     show('ru')
-    await waitFor(() => expect(screen.getByText(/не может принять ни один агент: 1\./)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/не отвечает ни один агент: 1\./)).toBeTruthy())
     expect(document.body.textContent).not.toMatch(/\?|\u2014|ждёт/)
   })
 
-  it('in Russian too, without an em dash', async () => {
+  // 0.3.9 review iteration 2, UX-5: the Russian said «принять» where everything else says answer, and "can" promised
+  // more than the count measures (a request whose slot no session holds now): both languages say "answering now".
+  it('in Russian too, without an em dash, in the words Comms uses (UX-5, i2)', async () => {
     stubWaiting(async () => ({ ok: true, requests: 2, oldestRequestAt: days(1) }))
     show('ru')
-    await waitFor(() => expect(screen.getByText(/Запросов между проектами, которые сейчас не может принять ни один агент: 2\./)).toBeTruthy())
-    expect(document.body.textContent).not.toMatch(/\u2014/)
+    await waitFor(() => expect(screen.getByText(/Запросов между проектами, на которые сейчас не отвечает ни один агент: 2\./)).toBeTruthy())
+    expect(document.body.textContent).not.toMatch(/\u2014|принять/)
   })
 
   it('nothing waiting shows nothing', async () => {

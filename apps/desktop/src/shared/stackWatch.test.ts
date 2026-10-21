@@ -6,6 +6,7 @@ import { classifyStartupFailure } from './startupFailure.ts'
 import { HUB_DB_DEADLINE_MS } from '../main/accessStore.ts'
 import { en } from '../renderer/src/i18n/en.ts'
 import { ru } from '../renderer/src/i18n/ru.ts'
+import { translator as typedTranslator } from '../renderer/src/i18n/translate.ts'
 import {
   DISK_RECOVERED_BYTES,
   STACK_DOWN_AFTER,
@@ -24,6 +25,8 @@ import {
   stackBackoffMs,
   stackHealthView,
   startupHeals,
+  startupWaitLines,
+  STARTUP_WAIT_LINES,
   watchDelayMs
 } from './stackWatch.ts'
 
@@ -301,6 +304,45 @@ describe('each platform names its own Docker (UX-4)', () => {
   }
   it('the view carries the platform the notice speaks for', () => {
     expect(stackHealthView(lost(), 60_000, 'linux').platform).toBe('linux')
+  })
+})
+
+// 0.3.9 review iteration 2: the startup wait window. UX-3: on a nearly full disk the disk comes first, as SCN-161 says
+// of the failure dialog (a full disk stops Docker, which the wait window now covers). UX-8: agents are said to be asked
+// to wait only while the standby holds the hub's port; otherwise they reach no Fabric at all, and that is said.
+describe('the startup wait window (review iteration 2, UX-3, UX-8)', () => {
+  // startupWaitLines takes keys as strings (shared code knows no registry type), as startupDialog's `say` does.
+  const translator = (locale: 'en' | 'ru') => typedTranslator(locale) as unknown as (key: string, vars?: Record<string, string | number>) => string
+  const failure = classifyStartupFailure('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')
+  const base = { failure, waitsForDocker: true, locale: 'en', platform: 'darwin', nextInS: 20, attempt: 2, logPath: '/tmp/startup-failure.log' }
+  const text = (lines: Array<{ id: string; text: string }>) => lines.filter((l) => l.text).map((l) => l.id)
+
+  it('puts the disk line before the cause when the disk is low, and leaves it out otherwise', () => {
+    expect(STARTUP_WAIT_LINES.indexOf('disk')).toBeLessThan(STARTUP_WAIT_LINES.indexOf('cause'))
+    const low = startupWaitLines({ ...base, say: translator('en'), freeDiskBytes: 1.2e9, standby: { open: true } })
+    expect(low.map((l) => l.id)).toEqual([...STARTUP_WAIT_LINES])
+    expect(text(low)).toEqual(['title', 'disk', 'cause', 'next', 'agents', 'log'])
+    expect(low.find((l) => l.id === 'disk')!.text).toMatch(/1\.2 GB free/)
+    const room = startupWaitLines({ ...base, say: translator('en'), freeDiskBytes: 50e9, standby: { open: true } })
+    expect(text(room)).toEqual(['title', 'cause', 'next', 'agents', 'log'])
+  })
+
+  it('says agents are asked to wait only while the standby holds the port; otherwise that they reach no Fabric, and why', () => {
+    for (const locale of ['en', 'ru'] as const) {
+      const say = translator(locale)
+      const open = startupWaitLines({ ...base, locale, say, freeDiskBytes: 50e9, standby: { open: true } }).find((l) => l.id === 'agents')!.text
+      expect(open).toBe(say('startup.wait.agents'))
+      const closed = startupWaitLines({ ...base, locale, say, freeDiskBytes: 50e9, standby: { open: false, reason: 'EADDRINUSE 127.0.0.1:47070' } }).find((l) => l.id === 'agents')!.text
+      expect(closed).not.toBe(say('startup.wait.agents'))
+      expect(closed).toContain('EADDRINUSE 127.0.0.1:47070')
+      expect(closed).not.toMatch(/\u2014/)
+    }
+  })
+
+  it('says the try in flight, or the countdown to the next', () => {
+    const say = translator('en')
+    expect(startupWaitLines({ ...base, say, freeDiskBytes: null, standby: { open: true }, nextInS: null }).find((l) => l.id === 'next')!.text).toBe('Trying now (try 2).')
+    expect(startupWaitLines({ ...base, say, freeDiskBytes: null, standby: { open: true } }).find((l) => l.id === 'next')!.text).toBe('Next try in 20 s (try 2).')
   })
 })
 // #endregion stack-watch

@@ -745,6 +745,9 @@ describe('a request\'s timeline and related threads (SCN-147 step 7)', () => {
     const text = steps.map((s) => s.textContent ?? '').find((s) => s.includes('→')) ?? ''
     expect(text).toContain(en['launch.comms.cause.target-reply' as keyof typeof en])
     expect(text).not.toContain('target-reply')
+    // Review i2 UX-10: the state and the cause said "by a reply" twice: «answered by a reply · by a reply from …».
+    expect(text).toMatch(/queued → answered · by a reply from the asked project$/)
+    expect(text.match(/by a reply/g)?.length).toBe(1)
   })
   it('a timeline that cannot be read says so where it would be', async () => {
     await openRequest('queued', { timeline: async () => ({ ok: false, error: { code: 'unavailable', message: 'down' } }) })

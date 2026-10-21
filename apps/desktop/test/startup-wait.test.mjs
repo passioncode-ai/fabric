@@ -65,12 +65,27 @@ test('ER-1: the wait window and the splash are scaffolding: their going never qu
 })
 test('UX-4, UX-5: the wait window names this OS\'s Docker, and fits its text', () => {
   const text = between('function startupWaitText', 'function showStartupWait')
-  assert.match(text, /platformKey\('startup\.wait\.docker', process\.platform\)/)
+  // The words per OS are chosen in shared/stackWatch.ts#startupWaitLines (src/shared/stackWatch.test.ts); index.ts
+  // passes this process's platform.
+  assert.match(text, /startupWaitLines\(\{/)
+  assert.match(text, /platform: process\.platform/)
   const show = between('function showStartupWait', 'function quitWhenPersonCloses')
   assert.doesNotMatch(show, /height: 240, resizable: false/)
   assert.match(show, /useContentSize: true, resizable: true/)
   assert.match(show, /did-finish-load', \(\) => fitStartupWait\(win\)/)
   assert.match(src, /const STARTUP_WAIT_HEIGHT = (\d+)/)
   assert.ok(Number(/const STARTUP_WAIT_HEIGHT = (\d+)/.exec(src)[1]) >= 330, 'the first height cuts the longest measured page (330 px)')
+})
+
+// 0.3.9 review iteration 2, UX-3 and UX-8: the window shows the shared lines in their order (the disk before the
+// cause), hides an empty line, and says agents are asked to wait only from the standby's own state.
+test('UX-3, UX-8 (i2): the wait window takes its lines and their order from startupWaitLines, and the standby\'s state', () => {
+  const text = between('function startupWaitText', 'function showStartupWait')
+  assert.match(text, /standby: hubStandby === null \? null : hubStandby\.open \? \{ open: true \} : \{ open: false, reason: hubStandby\.reason \}/)
+  assert.doesNotMatch(text, /say\('startup\.wait\.agents'\)/, 'the agents line is said whatever the standby holds')
+  const show = between('function showStartupWait', 'function quitWhenPersonCloses')
+  assert.match(show, /STARTUP_WAIT_LINES\.map\(\(k\) =>/)
+  assert.doesNotMatch(show, /\['title', 'cause', 'disk'/, 'the disk line comes after the cause')
+  assert.match(show, /p:empty\{display:none\}/)
 })
 // #endregion startup-wait

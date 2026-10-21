@@ -1,4 +1,5 @@
 import { closeHttpServer } from './closeHttpServer.ts'
+import { pidAlive } from './hub.ts'
 // The agent surface — Fabric's own door, opened toward the agents working in it.
 //
 // Every session Fabric starts gets a scoped credential and an `mcp.json` pointing
@@ -229,6 +230,9 @@ export interface MintOrigin {
   surface?: 'session' | 'board'
   /** When the authority it came in under ends, ms (AgentScope.authorityUntil). */
   authorityUntil?: number | null
+  /** The coding agent's process, as its own fabric-mcp named it at enrollment (TR-1); what tells a hook's end whether
+   *  the agent still runs (review iteration 2, ER-2). */
+  agentPid?: number | null
 }
 
 /** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
@@ -292,6 +296,8 @@ export interface AgentSurfaceDeps {
   estateId: string
   /** Injected so the expiry probe does not have to sleep for two minutes. */
   now?: () => number
+  /** Whether a process runs on this machine (`hub.ts#pidAlive`); the probe passes its own. */
+  pidAlive?: (pid: number) => boolean
   limits?: Partial<AgentSurfaceLimits>
   /** ADR-0115's external ingress. Absent, the surface is exactly the session door it always was. */
   hub?: HubIngress
@@ -405,6 +411,7 @@ export class AgentSurface {
 
   private deps: AgentSurfaceDeps
   private now: () => number
+  private pidAlive: (pid: number) => boolean
   private limits: AgentSurfaceLimits
   /** Bounded in-flight requests; hashes identify buckets without retaining raw credentials. */
   private externalPending = new Map<string, number>()
@@ -417,7 +424,7 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
-  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null }>()
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
@@ -433,6 +440,7 @@ export class AgentSurface {
   constructor(deps: AgentSurfaceDeps) {
     this.deps = deps
     this.now = deps.now ?? Date.now
+    this.pidAlive = deps.pidAlive ?? pidAlive
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
     this.board = createBoard({ rpc: (fn, args) => deps.db.rpc(fn, args) })
   }
@@ -576,11 +584,14 @@ export class AgentSurface {
     }
     const now = this.now()
     if (!known)
-      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId })
+      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId, agentPid: origin?.agentPid ?? null })
     // TR-1: a rejoin minted under a runtime id the session did not have is the rename the enrollment matched by the
     // agent's process (a /clear): the session carries the new id from now on.
     else if (origin?.rejoin && origin.runtimeSessionId && origin.runtimeSessionId !== known.runtimeSessionId)
       known.runtimeSessionId = origin.runtimeSessionId
+    // ER-2 (i2): a process named later (an enrollment that matched the session) is kept; one already named is not
+    // replaced by a rejoin's, which is found from the agent's session file and may be absent.
+    if (known && typeof origin?.agentPid === 'number' && typeof known.agentPid !== 'number') known.agentPid = origin.agentPid
     // #region surface-unclaimed-sweep — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
     // A bearer no client presented within its claim window is swept here (0.3.5 review iteration 2, ER-5): a hook
     // process that died before its initialize would otherwise stay in the map for the life of the app, because the
@@ -2778,6 +2789,11 @@ export class AgentSurface {
       ownClientLive: () => {
         const at = this.live.get(scope.sessionId)?.lastOwnCallAt
         return typeof at === 'number' && this.now() - at < OWN_CLIENT_LIVE_MS
+      },
+      // ER-2 (i2): a known agent process that is gone is an agent that ended, whatever its fabric-mcp signed last.
+      agentAlive: () => {
+        const pid = this.live.get(scope.sessionId)?.agentPid
+        return typeof pid === 'number' ? this.pidAlive(pid) : null
       }
       // #endregion work-tools-session-facts
     })
