@@ -1,4 +1,4 @@
-// 0.3.9 BD-5/BD-6 (docs/evidence/plans/2026-10-21-core-reliability/board.md): what the IPC wrapper records for a call.
+// 0.3.9 BD-5/BD-6 (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md): what the IPC wrapper records for a call.
 // A reply that says it failed is never logged as ok; a channel polled on a clock does not write one line per tick.
 // #region board-core-holds — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
 import assert from 'node:assert/strict'

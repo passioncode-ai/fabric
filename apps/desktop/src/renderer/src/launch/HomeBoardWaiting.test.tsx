@@ -1,4 +1,4 @@
-// 0.3.9 BD-2 (docs/evidence/plans/2026-10-21-core-reliability/board.md): requests between projects that nobody can answer,
+// 0.3.9 BD-2 (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md): requests between projects that nobody can answer,
 // and board messages nobody marked read, reach the operator on the home, outside Comms. A failed read is said; nothing
 // waiting shows nothing.
 import { afterEach, describe, expect, it, vi } from 'vitest'

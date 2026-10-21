@@ -556,7 +556,7 @@ test('DEC-0077: a directory page lists each Project once and each capability onc
 })
 // #endregion project-board-service-w2-fixes
 
-// ── 0.3.9 "the core holds", the board part (docs/evidence/plans/2026-10-21-core-reliability/board.md BD-1, BD-3, BD-4) ──
+// ── 0.3.9 "the core holds", the board part (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md BD-1, BD-3, BD-4) ──
 // #region board-core-holds — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
 const KEY = 'ab'.repeat(32)
 const reader = (extra = {}) => ({ data: { ok: true, messages: [{ ...fixtures.document('current/positive/comms-page.json').messages[0], read: false }], last_seq: 9, more: true, ...extra }, error: null })

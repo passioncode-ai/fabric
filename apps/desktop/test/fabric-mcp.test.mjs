@@ -845,7 +845,7 @@ test('a 503 cooldown is told to the agent as the 503 it was, not as a 429 (0.3.8
   assert.equal(classifyFailure(new FabricRateLimitError(5000)).refusal.status, 429)
 })
 
-// ── 0.3.9 "the core holds": tracking (docs/evidence/plans/2026-10-21-core-reliability/tracking.md) ───────────────
+// ── 0.3.9 "the core holds": tracking (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-tracking.md) ───────────────
 
 // TR-1: the agent's process is what survives /clear. The main fabric-mcp names it (its parent pid, the agent), and
 // enrolls with the runtime id the agent has NOW, not only the one in its environment at start.

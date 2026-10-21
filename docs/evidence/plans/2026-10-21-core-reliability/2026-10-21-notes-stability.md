@@ -1,6 +1,6 @@
 # 0.3.9 "the core holds": stability part (branch `agent/core-st`)
 
-Scope: ST-3, ST-2, ST-1 (CO-362), ST-4 of [the stability audit](docs/evidence/plans/2026-10-21-core-reliability/stability.md).
+Scope: ST-3, ST-2, ST-1 (CO-362), ST-4 of [the stability audit](2026-10-21-stability.md).
 No guarded document was edited (backlog, ADRs, architecture, CONTEXT, vision, CHANGELOG, docs/ux, docs/reports): the
 integrator writes them from the list at the end.
 

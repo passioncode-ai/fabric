@@ -497,3 +497,10 @@ the latest migration now, past the reserved 116. By the collision rule the unexe
 move to **117/118** (`20261020000117_pipeline_definitions.sql`, `20261020000118_graph_version_pins.sql`); the old
 116/117 names are superseded and never reused. No ADR was written past 0171, so the reserved ADR stays at **0171**. No
 pipeline file exists at 0171 or at either migration number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-21, Fabric 0.3.9 (the core holds, the board part):** migration 120 was executed as
+`20261021000120_board_core_holds.sql` (schema 95, a reply answers a request, the board's cursor key), the latest
+migration now, past the reserved 117/118. By the collision rule the unexecuted pipeline migration reservations move to
+**121/122** (`20261021000121_pipeline_definitions.sql`, `20261021000122_graph_version_pins.sql`); the 117/118 names
+are superseded and never reused. No ADR was written past 0171, so the reserved ADR stays at **0171**. No pipeline file
+exists at 0171 or at either migration number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.

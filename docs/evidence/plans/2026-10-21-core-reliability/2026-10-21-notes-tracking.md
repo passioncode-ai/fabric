@@ -1,7 +1,7 @@
 # Fabric 0.3.9 "the core holds": the tracking branch (agent/core-tr)
 
 Scope: TR-1, TR-2, TR-3, TR-4, TR-5, TR-6, TR-7, TR-11 (Fabric's part) and TR-14 (through TR-6) of
-[the tracking audit](docs/evidence/plans/2026-10-21-core-reliability/tracking.md). Every new code region carries
+[the tracking audit](2026-10-21-tracking.md). Every new code region carries
 `docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking`. No migration, no new event type, no
 edit to `index.ts`, hub startup, `boardService.ts` or the `com.*` tools.
 

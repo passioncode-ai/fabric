@@ -1,7 +1,7 @@
 # Fabric 0.3.9 "the core holds": the board part (branch `agent/core-bd`)
 
-Plan and audit: [docs/evidence/plans/2026-10-21-core-reliability/README.md#board](docs/evidence/plans/2026-10-21-core-reliability/README.md#board),
-[board.md](docs/evidence/plans/2026-10-21-core-reliability/board.md) (BD-1 to BD-5). Base: `024216bc`.
+Plan and audit: [docs/evidence/plans/2026-10-21-core-reliability/README.md#board](README.md#board),
+[board.md](2026-10-21-board.md) (BD-1 to BD-5). Base: `024216bc`.
 
 ## What changed
 
@@ -85,7 +85,7 @@ disposable stack (`node scripts/test-stack.mjs run`, API 55421 / DB 55422, migra
 1. `check-design-map.mjs`: "Changed iteration reuses the committed top entry: add a NEW top changelog entry" (the
    design map is `docs/reports/`, written by the integrator).
 2. `check-registers.mjs`: "52 line citation(s) in living documents", all in the plan this branch started from
-   (`docs/evidence/plans/2026-10-21-core-reliability/board.md` and its siblings cite `file:line`; the gate treats a
+   (`docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md` and its siblings cite `file:line`; the gate treats a
    dated folder's files as living). Present on the base commit `024216bc`; nothing here adds one.
 With the design-map line taken out of `gates:docs` locally (not committed), the step reaches only the second failure.
 

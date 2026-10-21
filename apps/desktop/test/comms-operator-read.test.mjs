@@ -309,7 +309,7 @@ test('W4-2 (comms:open-artifact): only an https link opens; javascript:, file:, 
 })
 // #endregion comms-operator-reads-w4
 
-// ── 0.3.9 "the core holds" (docs/evidence/plans/2026-10-21-core-reliability/board.md BD-2, BD-5) ─────────────────
+// ── 0.3.9 "the core holds" (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md BD-2, BD-5) ─────────────────
 // #region board-core-holds — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
 const { useOps } = await import('../src/main/opsSink.ts')
 const logged = []

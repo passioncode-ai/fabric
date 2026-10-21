@@ -7,6 +7,31 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+Fabric 0.3.9: the core holds. The operator's priority of 2026-10-21: the hub is always there, Fabric knows which agent
+works on what, and the project board works. Measured before it: Fabric was available about 89.6 % of the last 7 days
+(21 outages, 17.5 h), 25 of 41 running Claude Code sessions had lost their session hooks after `/clear`, and all 6
+board requests ever sent were still queued. Schema 95.
+
+- **Fabric no longer quits when Docker or the database is not ready at start.** It waits, says what it waits for, and
+  tries again (10 s growing to 2 min). Agents get a 503 `stack-starting` with Retry-After instead of no hub at all.
+- **Fabric watches its database while it runs.** Every 30 s; a lost stack is said on every screen, agents are told
+  `stack-unavailable`, and Fabric brings the stack back. A disk under 3 GB is named, first, as the likely cause.
+- **The operations log keeps a week**, in rotated segments within 96 MB; successful polling reads are counted, not
+  written each time. `startup-failure.log` keeps every failed start.
+- **A session keeps its identity after `/clear` and after Fabric restarts.** An old "session ended" no longer ends a
+  live, resumed session or releases its claims. A connected coding agent signs every 2 minutes, so it is not shown
+  silent while it works and its claims do not lapse. A coding agent picks this up when it restarts.
+- **Tasks move on the board.** A claim moves its task to running; finishing it moves it to review.
+  `fabric_agents_list` lists every agent in the project, and expired agent-sync leases are no longer shown as current.
+- **Board requests get answered.** A reply from the asked project answers a request; a request no agent can answer
+  says so in its receipt and expires after 7 days; the home shows what waits between projects.
+- **Agents read what is new.** `com.list` takes `unread` and `since` and says which messages are read; cursors survive
+  a restart; `com.read_ack` marks up to 100 messages in one call.
+- **What 0.3.8 said would come in 0.3.9 comes in 0.3.10**: the simple plan's wave 4, the agents' own acts in История,
+  Fabric's enrollment on the shared attribution rules (CO-339).
+
 ## 0.3.8
 
 The patch of the operator's audit of the installed 0.3.7 (2026-10-21): other products can now get the access that

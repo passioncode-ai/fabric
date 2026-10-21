@@ -106,7 +106,7 @@ test('the facts still refuse what is not a count: a negative or fractional numbe
   assert.equal(h.appended.length, 0)
 })
 
-// ── 0.3.9 tracking (docs/evidence/plans/2026-10-21-core-reliability/tracking.md) ─────────────────────────────────
+// ── 0.3.9 tracking (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-tracking.md) ─────────────────────────────────
 const END = { ...hookTurn({}), event: 'end', reason: 'prompt_input_exit', idempotencyKey: 'rt-hook-1:0001780000009' }
 
 // TR-2: `claude --resume` keeps the runtime id, so an end the hooks spooled from the previous process reaches the new

@@ -1,4 +1,4 @@
-// The tracking half of 0.3.9 "the core holds" (docs/evidence/plans/2026-10-21-core-reliability/tracking.md), through
+// The tracking half of 0.3.9 "the core holds" (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-tracking.md), through
 // the real AgentSurface and real MCP clients over Streamable HTTP, with no database: every read answers "nothing
 // recorded yet". What it shows:
 //   TR-6  fabric_agents_list lists an agent that enrolled from its own terminal, with how it came in — not only the

@@ -274,6 +274,14 @@ against a 60-second lease measured in database time (`board_responder_slots`, mi
 `com.enroll` under a **Responder grant**; the session's end releases it, and a newer holder fences the old one. A
 restored board keeps the generation and no holder (ADR-0149 §6, Amendment 1).
 
+**Answered (a request)** — a board request the target Project answered with a reply that names it (0.3.9); the
+request leaves `queued` for `answered` without a responder. A request no agent can answer is **waiting with no
+responder** until it is answered, cancelled or its deadline (7 days by default) passes.
+
+**Sign (a session's)** — what tells Fabric a session is alive: a call to Fabric, a hook turn, its terminal's output in
+Fabric, or (0.3.9) the ping a connected fabric-mcp sends every 2 minutes. A session with no sign for 10 minutes is
+silent.
+
 **Responder grant** — the operator's standing grant that lets one agent answer one Project's requests for named
 capabilities: callee `fabric`, capability `board.respond`, resource `board:<project>/<capability>` (ADR-0149 §2). Asked
 with `fabric.access.request`, revocable in Agents & access; rechecked inside every responder transition, so a revoked

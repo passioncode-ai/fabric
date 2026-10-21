@@ -1,4 +1,4 @@
-// Fabric 0.3.9 "the core holds", the board part (docs/evidence/plans/2026-10-21-core-reliability/board.md BD-1 to BD-4),
+// Fabric 0.3.9 "the core holds", the board part (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md BD-1 to BD-4),
 // on the fully migrated chain. Every row goes in through the board's own functions, as the projects would write it;
 // only the legacy cases (a request stored before this release, with no deadline and a reply that did not answer it)
 // set a projection row directly, because no door writes the old shape any more.

@@ -477,3 +477,13 @@ the person sees it in История and Агенты and revokes it with **От
 person lets it back in. The native dialog, the board's access-request item and the pending queue for it are
 retired by the 0.3.7 plan's wave 3 (until it ships, 0.3.6 still asks); the credential, its scope and its expiry are unchanged. Across the machine boundary (ADR-0144) nothing
 changes. See [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md).
+
+## Amendment, 0.3.9: the hub answers before the database (2026-10-21)
+
+The hub's port and `hub.json` (with the door token) are taken at the top of the start, before the local stack, and
+every call is answered HTTP 503 with `{"error", "code": "stack-starting" | "stack-unavailable", "retryable": true}` and
+`Retry-After` until the database is ready (`main/hubStandby.ts`); the agent surface then takes the same listening
+sockets over and keeps the published door token, so an agent that read `hub.json` during the wait keeps a valid
+token. While Fabric runs, the runtime stack watch (`main/stackWatch.ts`) puts the hub back into that refusal mode,
+`stack-unavailable`, while the database is lost. Before it, an agent found no hub at all while the stack started or was
+down ([the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#stability), ST-2, ST-3).

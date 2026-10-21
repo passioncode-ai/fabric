@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-21T16:00:00Z · `—` · agent/core-stability → main · fast-forward
+- run: r-8db0598178fb
+- files: stability (main/hubStandby.ts, main/stackWatch.ts, shared/stackWatch.ts, main/ops.ts, main/index.ts startup wait, hub and surface takeover), tracking (main/fabricMcp.ts, sessionEnroll.ts, workTools.ts, workClaims.ts, agentSurface.ts), board (main/boardService.ts, hubTools board tools, comms reads, renderer HomeBoardWaiting, migration 120), their tests, i18n, CHANGELOG, AGENTS.md, ADR-0115/0134/0149 amendments, CONTEXT.md, scenarios (SCN-140, 141, 143, 161), release-mac, the backlog (P-20 to 0.3.10, P-22), the carry-over ledger (CO-362 closed, CO-364 to CO-371), the plan and its three audits, the map
+- conflicts: apps/desktop/package.json (the test script, both branches' tests kept)
+- summary: Fabric 0.3.9, the core holds: uptime, tracking and the board, from three audits of the installed system.
+
 ### 2026-10-21T08:40:00Z · `—` · release close → main · fast-forward
 - run: r-8db0598178fb
 - files: the 0.3.8 ledger's Release close, the handoff, P-21 and the Now line, the map

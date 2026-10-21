@@ -1,5 +1,5 @@
 -- 95 (by count; suffix 120): the board part of Fabric 0.3.9 "the core holds"
--- (docs/evidence/plans/2026-10-21-core-reliability/board.md, BD-1 to BD-4; BD-2's operator read).
+-- (docs/evidence/plans/2026-10-21-core-reliability/2026-10-21-board.md, BD-1 to BD-4; BD-2's operator read).
 --
 -- NUMBERS. `schema_version()` counts applied migrations, so this file makes the schema 95. The task pipeline's prose
 -- reservation holds 117/118 unexecuted (`docs/evidence/plans/task-pipeline-persistence-contract.md`); this file takes

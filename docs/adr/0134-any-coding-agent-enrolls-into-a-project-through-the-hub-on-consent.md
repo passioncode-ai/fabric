@@ -237,3 +237,11 @@ cap counts the sessions of one project (`MAX_ENROLLED_PER_BINDING`), with a ceil
 budget is spent per coding-agent session on `tools/call` (`agentSurface.ts#bindingCallBucket`); `fabric-mcp` adds up
 to half the server's `Retry-After` as jitter. Tests: `session-enroll.test.mjs` (two cases), `hub-surface.test.mjs`,
 `fabric-mcp.test.mjs`, each watched failing first.
+
+**2026-10-21: a session keeps its identity (0.3.9, [the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#tracking)).** Enrollment and rejoin carry
+`agentPid`, the agent process fabric-mcp serves. A rejoin whose runtime session id changed (Claude Code gives a new id
+after `/clear`) is matched to the session by that process within the same binding and project, and the session takes
+the new id. An end with reason `clear`, an end observed before the session enrolled (`stale-end`) and a hook's end
+while the agent's own fabric-mcp still signs (`agent-still-connected`) do not end the session or release its claims. A
+connected fabric-mcp signs its session every 2 minutes (the claims renew) and re-reads `hub.json`, enrolling again by
+itself when Fabric restarted; a `--rejoin-only` fabric-mcp that finds no session exits 3. The per-binding cap stays 8.
