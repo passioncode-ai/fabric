@@ -326,7 +326,7 @@ test('BD-2: waiting reads requests nobody answers and unread board messages, eac
     assert.equal((await createCommsOperatorRead(fake({ board_waiting_operator: { data: bad, error: null } })).waiting(ESTATE)).ok, false, JSON.stringify(bad))
 })
 
-test('BD-5: a read that fails is recorded with its door and why — once per change on a poll, and again after it recovered', async () => {
+test('BD-5: a read that fails is recorded with its door and why: once per change on a poll, and again after it recovered', async () => {
   let answer = { data: null, error: { message: 'Could not find the function board_thread_heads_operator' } }
   const read = createCommsOperatorRead({ rpc: async () => answer })
   logged.length = 0

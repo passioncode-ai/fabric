@@ -31,6 +31,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'event.hub.call.refusals.summarized@1': 'повторные вызовы агента, не дошедшие до продукта, подсчитаны',
   'event.comms.message_submitted@1': 'проект отправил сообщение другим проектам',
   'event.comms.read_acked@1': 'проект отметил сообщение другого проекта прочитанным',
+  'event.comms.read_acked_many@1': 'проект отметил прочитанными несколько сообщений других проектов',
   'event.comms.request_transitioned@1': 'запрос между проектами сменил состояние',
   'event.comms.epoch_rotated@1': 'проект открыл новое окно для повторных сообщений',
   'event.comms.retention_applied@1': 'старые записи о доставке сообщений между проектами очищены',

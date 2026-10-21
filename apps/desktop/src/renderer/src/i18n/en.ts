@@ -22,6 +22,7 @@ export const en = {
   'event.hub.call.refusals.summarized@1': 'an agent’s repeated calls that never reached a product were counted',
   'event.comms.message_submitted@1': 'a project sent a message to other projects',
   'event.comms.read_acked@1': 'a project marked a message from another project as read',
+  'event.comms.read_acked_many@1': 'a project marked several messages from other projects as read',
   'event.comms.request_transitioned@1': 'a request between projects changed state',
   'event.comms.epoch_rotated@1': 'a project began a new window for repeated messages',
   'event.comms.retention_applied@1': 'old delivery records of messages between projects were cleared',

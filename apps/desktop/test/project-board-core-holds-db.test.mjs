@@ -115,7 +115,7 @@ await test('BD-1: a request without a deadline gets one seven days out; one with
   assert.equal(sql(`select to_char(deadline at time zone 'UTC', 'YYYY-MM-DD') from board_requests where estate_id='${E}' and message_id='${kept.message}'`), '2099-01-01')
 })
 
-await test('BD-1: the tick settles legacy requests — answers one the target already replied to, expires one with no deadline past the default age', () => {
+await test('BD-1: the tick settles legacy requests: answers one the target already replied to, expires one with no deadline past the default age', () => {
   const answered = ask(A, B, [B])
   reply(B, answered.message, 'answered before this release')
   // Before this release a reply did not answer: put the projection back to what such a database holds.
@@ -141,7 +141,7 @@ await test('BD-1: the tick settles legacy requests — answers one the target al
   }
 })
 
-await test('BD-1: whether anyone can answer a (project, capability) — no grant, no holder: no; a live board.respond grant: yes', () => {
+await test('BD-1: whether anyone can answer a (project, capability): no grant, no holder: no; a live board.respond grant: yes', () => {
   const none = call('board_responder_possible', q(E), q(B), lit('invented.capability'))
   assert.deepEqual(none, { ok: true, possible: false })
   grant(id(401), 'claude-code', [`board:${B}/${CAP}`])
@@ -150,7 +150,7 @@ await test('BD-1: whether anyone can answer a (project, capability) — no grant
   assert.equal(call('board_responder_possible', 'null', q(B), lit(CAP)).error?.code, 'invalid_arguments')
 })
 
-await test('BD-1: an answered request is not open — it leaves the thread\'s open count and the target\'s responder list', () => {
+await test('BD-1: an answered request is not open: it leaves the thread\'s open count and the target\'s responder list', () => {
   const r = ask(A, C, [C])
   const opened = call('board_thread_page_operator', q(E), j({ project: C, openOnly: true }), 'null', '100')
   assert.ok(opened.threads.some(t => t.id === r.thread))
@@ -162,7 +162,7 @@ await test('BD-1: an answered request is not open — it leaves the thread\'s op
 })
 
 // ── BD-3: what is new to a reader ─────────────────────────────────────────────────────────────────────────────
-await test('BD-3: unread only — messages delivered to the reader without its read mark, oldest first, each saying it is unread', () => {
+await test('BD-3: unread only: messages delivered to the reader without its read mark, oldest first, each saying it is unread', () => {
   const t = open(A, [C], 'first for C')
   const second = say(A, t.thread, 'second for C')
   const own = say(C, t.thread, 'C writes too')
@@ -238,7 +238,7 @@ await test('BD-4: a thread up to a message marks every message delivered to the 
   const u2 = say(A, t.thread, 'u2'), mine = say(B, t.thread, 'B speaks'), u4 = say(A, t.thread, 'u4'), u5 = say(A, t.thread, 'u5')
   void mine
   const r = ackMany(B, { thread: t.thread, upTo: u4.message })
-  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.marked, 3, 'u1, u2 and u4 — never B\'s own')
+  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.marked, 3, 'u1, u2 and u4: never B\'s own')
   assert.deepEqual(listReader(B, { thread: t.thread, unread: true }).messages.map(m => m.id), [u5.message])
   void u2
   assert.equal(ackMany(B, { thread: t.thread, upTo: id(9998) }).error?.code, 'not_authorized')
@@ -246,7 +246,7 @@ await test('BD-4: a thread up to a message marks every message delivered to the 
   assert.equal(ackMany(B, { thread: t.thread, upTo: other.message }).error?.code, 'not_authorized', 'upTo must be a message of that thread')
 })
 
-await test('BD-4: the bulk marks are a projection — a rebuild replays them unchanged', () => {
+await test('BD-4: the bulk marks are a projection: a rebuild replays them unchanged', () => {
   const snap = () => sql(`select string_agg(reader_project||':'||message_id||':'||seq, ',' order by reader_project, message_id) from board_read_marks where estate_id='${E}'`)
   const before = snap()
   sql(`select rebuild_estate_projections('${E}')`)
@@ -254,7 +254,7 @@ await test('BD-4: the bulk marks are a projection — a rebuild replays them unc
 })
 
 // ── BD-2: what waits reaches the operator ─────────────────────────────────────────────────────────────────────
-await test('BD-2: requests waiting with nobody to answer them — counted whether or not the target marked them read; answered ones are not', () => {
+await test('BD-2: requests waiting with nobody to answer them: counted whether or not the target marked them read; answered ones are not', () => {
   const W = id(14), X = id(15)
   append(E, 'project.created@1', { id: W, name: 'waiting target' }, W)
   append(E, 'project.created@1', { id: X, name: 'quiet asker' }, X)

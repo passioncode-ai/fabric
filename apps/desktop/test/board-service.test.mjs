@@ -580,7 +580,7 @@ test('BD-3: com.list {unread: true} reads board_list_reader, each message says w
     assert.equal((await board.list(caller, bad)).error?.code, 'invalid_arguments', JSON.stringify(bad))
 })
 
-test('BD-3: a cursor survives a restart — the key is the estate\'s, kept by the board — and stays bound to the reader and the filter', async () => {
+test('BD-3: a cursor survives a restart: the key is the estate\'s, kept by the board, and stays bound to the reader and the filter', async () => {
   const { rpc } = fake({ board_cursor_key: { data: { ok: true, key: KEY }, error: null }, board_list_reader: () => reader() })
   const first = await createBoard({ rpc }).list(caller, { unread: true })
   assert.match(first.cursor, /^[A-Za-z0-9_-]{8,128}$/)
@@ -591,7 +591,7 @@ test('BD-3: a cursor survives a restart — the key is the estate\'s, kept by th
   assert.equal((await restarted.list({ ...caller, projectId: '79000000-0000-4000-8000-000000000012' }, { unread: true, cursor: first.cursor })).error?.code, 'cursor_reset_required')
 })
 
-test('BD-3: a key the board cannot give is logged and the run uses its own — cursors still work within the run', async () => {
+test('BD-3: a key the board cannot give is logged and the run uses its own: cursors still work within the run', async () => {
   logged.length = 0
   const { rpc } = fake({ board_cursor_key: new Error('socket hang up'), board_list_reader: () => reader() })
   const board = createBoard({ rpc })
@@ -636,7 +636,7 @@ test('BD-1: a request nobody can answer is accepted with noResponder in its rece
   assert.equal(commsReceiptSchema.safeParse({ ...receipt, request: { ...receipt.request, state: 'answered', revision: 2 } }).success, true, 'answered is a request state')
 })
 
-test('BD-1: the tool descriptions say what changed — a target\'s reply answers, unread and since, the bulk mark, noResponder', () => {
+test('BD-1: the tool descriptions say what changed: a target\'s reply answers, unread and since, the bulk mark, noResponder', () => {
   const described = new Map()
   registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => caller)
   assert.match(described.get('com.list'), /unread/); assert.match(described.get('com.list'), /since/); assert.match(described.get('com.list'), /survives/)
