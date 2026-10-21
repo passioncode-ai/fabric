@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-21T02:30:00Z · `—` · agent/release-038 → main · fast-forward
+- run: r-8db0598178fb
+- files: shared/toolOutcome.ts, main/toolTrace.ts, shared/startupFailure.ts, main/index.ts, main/sessionEnroll.ts, shared/stackStartRetry.ts and their tests, i18n, CHANGELOG, the backlog (P-20, P-21), the carry-over ledger (CO-335, CO-361, wave 4 to 0.3.9), the plans, the 0.3.8 ledger, the map
+- conflicts: none
+- summary: Fabric 0.3.8, the patch of the operator's audit of 0.3.7.
+
 ### 2026-10-21T00:30:00Z · `—` · release close → main · fast-forward
 - run: r-8db0598178fb
 - files: the 0.3.7 ledger's Release close, the handoff, P-19 and the Now line, CO-359 and CO-360, the map

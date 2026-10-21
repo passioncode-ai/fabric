@@ -7,6 +7,23 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+The patch of the operator's audit of the installed 0.3.7 (2026-10-21): the log says what happened, the startup failure
+names a full disk, and a lead session is no longer pushed out by its own subagents. No schema change: 0.3.8 admits
+schema 94, as 0.3.7 did.
+
+- **A full disk is named when the local stack will not start.** On a disk with under 3 GB free, the startup failure
+  says how much is free and that Docker (OrbStack or Docker Desktop) stops when the disk runs out. The stack's own
+  words only ever named a missing Docker socket.
+- **Many sessions of one coding agent in one project no longer push each other out at eight.** A lead with its
+  subagents (each starts its own `fabric-mcp`) reached eight in one project and the lead was the one ended; a project
+  now holds 16 sessions of one coding agent, and 64 across all projects as before.
+- **The log says why a tool turned a call down.** A tool's typed refusal (`needs-grant`, `no-session` and the like) is
+  recorded at warn with its code, not as an error with no reason (CO-335); an accepted MCP notification is no longer a
+  warning (336 an hour in the 0.3.7 log).
+- **Docker on Windows is waited for in its bare pipe form** too (`//./pipe/docker_engine`).
+
 ## 0.3.7
 
 - **Fabric starts when you log in** (macOS and Windows). It starts without a window, so agents and the board keep

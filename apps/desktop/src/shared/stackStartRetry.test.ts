@@ -128,3 +128,9 @@ describe('the socket named by the real words of the docker CLI and the Supabase 
     expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine. The system cannot find the file specified.'.replace('open //', 'open npipe:////'))).toBe('\\\\.\\pipe\\docker_engine')
   })
 })
+
+describe('the bare Windows pipe form (0.3.7 i3 errors note)', () => {
+  it('reads //./pipe/docker_engine without the npipe: prefix', () => {
+    expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine: The system cannot find the file specified.')).toBe('\\\\.\\pipe\\docker_engine')
+  })
+})

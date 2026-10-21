@@ -51,3 +51,6 @@ SCR-87 and the OF-07, OF-09, OF-10 and OF-12 remainders. F9 also answers DEC-009
 Fabric's own service descriptor (FD-12, CO-344) are 0.4.0; the deferral is posted to fabric-workspace on `cb31a510`
 with the release. The 0.3.7 hardening rows above, and CO-326, are re-dated 0.3.8 in the carry-over ledger. Ledger:
 [0.3.7 verification](../2026-10-20-release-037-verification.md).
+
+**2026-10-21, after the release.** 0.3.8 became the patch of the operator's audit of the installed 0.3.7 (P-21); everything
+this page and the carry-over ledger put in 0.3.8 for wave 4 and the hardening rows is now 0.3.9 (P-20).

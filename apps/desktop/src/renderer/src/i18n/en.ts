@@ -971,6 +971,7 @@ export const en = {
   'startup.windowTitle': "Fabric could not start",
   'startup.notRetryable': "Fabric had already opened its agent surface when this happened, so retrying in place is not safe; reopen the app instead.",
   'startup.machineSaid': "What the machine said:",
+  'startup.diskLow': "This disk has {free} GB free. Docker (OrbStack or Docker Desktop) stops when the disk runs out, and then the stack cannot start: free some space, then retry.",
   'startup.copyAt': "A copy of this is at:",
   'startup.retry': "Retry",
   'startup.copy': "Copy the details",
@@ -2632,7 +2633,7 @@ export const en = {
   'act.run.unattest': "«{task}» is held again until its run is settled",
   // 0.3.7 wave 3: История, the list of acts (SCN-168, SCN-169); wave 4 adds its filters and detail.
   'acts.title': "History",
-  'acts.lede': "Every act of yours, newest first. Undo is one press where an act can be taken back. The agents\u2019 own acts arrive here in 0.3.8.",
+  'acts.lede': "Every act of yours, newest first. Undo is one press where an act can be taken back. The agents\u2019 own acts arrive here in 0.3.9.",
   'acts.reading': "Reading the history…",
   'acts.empty': "History is empty: every act of yours will appear here.",
   'acts.failed': "History was not read.",

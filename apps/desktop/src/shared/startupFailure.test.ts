@@ -302,3 +302,16 @@ describe('an unverified schema check says which way it failed', () => {
     expect(en['startup.schema-not-ready.unverified.backend-error' as StringKey]).not.toMatch(/Docker/)
   })
 })
+
+describe('a full disk is named (0.3.8 audit: OrbStack stopped with «I/O error» three times in one day)', () => {
+  const docker = new Error('Command failed: supabase start\nfailed to inspect container health: failed to connect to the docker API at unix:///Users/a/.orbstack/run/docker.sock: connect: no such file or directory')
+  it('says how much is free when the stack would not start on a nearly full disk', () => {
+    const d = startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7 * 2 ** 30 })
+    expect(d.detail).toContain('0.7 GB free')
+  })
+  it('says nothing about the disk when there is room, when it could not be read, or for an unrelated cause', () => {
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 40 * 2 ** 30 }).detail).not.toContain('GB free')
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: null }).detail).not.toContain('GB free')
+    expect(startupDialog(classifyStartupFailure(new Error('The database schema is 89; this build requires 94–94.'), 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5 * 2 ** 30 }).detail).not.toContain('GB free')
+  })
+})

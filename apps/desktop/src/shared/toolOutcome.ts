@@ -41,6 +41,9 @@ export function classifyToolOutcome(input: {
 }): ToolOutcome {
   if (input.clientGone) return 'cancelled'
   if (input.status >= 400) return 'refused'
+  // A notification (`notifications/initialized`, a cancel) is answered 202 with no body by design (MCP streamable
+  // HTTP): it was accepted, not lost. Read as `unknown`, it put 336 warnings an hour into the log (0.3.8 audit).
+  if (input.status === 202 && (input.body === undefined || input.body === null)) return 'returned'
   if (input.body === undefined) return 'unknown'
   if (input.body === null) return 'unknown'
   const code = input.body.error?.code
@@ -142,3 +145,25 @@ export function bodyFromEnds(head: string, tail: string, complete: boolean): Par
   return { result: { isError, ...(text ? { content: [{ type: 'text', text: text[1] }] } : {}) } }
 }
 
+
+/**
+ * The typed refusal a tool answered with (`structuredContent.error.code`, or the same object as the text of its first
+ * content block): `needs-grant`, `no-session`, `kept-out` and the like. A refusal by design is not a crash: the trace
+ * records its code at warn, so the log says WHY a call was turned down (CO-335; 0.3.8 audit: 148 `session.enroll`
+ * answers an hour were logged as errors with no reason). Null for an answer with no typed code.
+ */
+export function typedRefusalCode(body: unknown): string | null {
+  const result = body && typeof body === 'object' ? (body as { result?: unknown }).result : null
+  if (!result || typeof result !== 'object' || (result as { isError?: unknown }).isError !== true) return null
+  const fromObject = (o: unknown): string | null => {
+    const code = o && typeof o === 'object' ? (o as { error?: { code?: unknown } }).error?.code : undefined
+    return typeof code === 'string' && /^[a-z][a-z0-9_-]{1,63}$/.test(code) ? code : null
+  }
+  const structured = fromObject((result as { structuredContent?: unknown }).structuredContent)
+  if (structured) return structured
+  const content = (result as { content?: unknown }).content
+  const first = Array.isArray(content) ? content[0] : null
+  const text = first && typeof first === 'object' ? (first as { text?: unknown }).text : null
+  if (typeof text !== 'string' || !text.trimStart().startsWith('{')) return null
+  try { return fromObject(JSON.parse(text)) } catch { return null }
+}

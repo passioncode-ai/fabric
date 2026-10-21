@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bodyFromEnds, TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall } from './toolOutcome.ts'
+import { bodyFromEnds, TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall, typedRefusalCode } from './toolOutcome.ts'
 
 describe('an HTTP status is not an outcome', () => {
   it('reads a JSON-RPC error inside a 200 as a failure, not a success', () => {
@@ -145,5 +145,22 @@ describe('a body too long to keep is read from its two ends (2026-10-14)', () =>
   it('a short body is parsed whole, and a stream that is no JSON-RPC response stays unknown', () => {
     expect(classifyToolOutcome({ status: 200, body: ends(big({ content: [] })) })).toBe('returned')
     expect(classifyToolOutcome({ status: 200, body: ends('event: message\n' + 'z'.repeat(5000)) })).toBe('unknown')
+  })
+})
+
+describe('the 0.3.8 audit of the 0.3.7 log', () => {
+  it('a notification answered 202 with no body was accepted, not unknown', () => {
+    expect(classifyToolOutcome({ status: 202, body: null })).toBe('returned')
+    expect(classifyToolOutcome({ status: 202 })).toBe('returned')
+  })
+  it('a typed refusal names its code, from structuredContent or from the text block', () => {
+    expect(typedRefusalCode({ result: { isError: true, structuredContent: { error: { code: 'needs-grant', message: 'x' } }, content: [] } })).toBe('needs-grant')
+    expect(typedRefusalCode({ result: { isError: true, content: [{ type: 'text', text: JSON.stringify({ error: { code: 'no-session' } }) }] } })).toBe('no-session')
+  })
+  it('a crash, a success and a schema refusal carry no typed code', () => {
+    expect(typedRefusalCode({ result: { isError: true, content: [{ type: 'text', text: 'boom' }] } })).toBeNull()
+    expect(typedRefusalCode({ result: { content: [{ type: 'text', text: JSON.stringify({ error: { code: 'x-y' } }) }] } })).toBeNull()
+    expect(typedRefusalCode({ result: { isError: true, content: [{ type: 'text', text: 'MCP error -32602: bad' }] } })).toBeNull()
+    expect(typedRefusalCode({ error: { code: -32000 } })).toBeNull()
   })
 })

@@ -57,7 +57,7 @@ export interface EnrollDeps extends FolderDeps {
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
   stillLive(bindingId: string, grantId: string): Promise<boolean>
   journal(type: 'session.enrolled@1', projectId: string, payload: Record<string, unknown>): Promise<unknown>
-  /** Live enrolled sessions one binding may hold; a further enrollment ends the least recently active. Default 8. */
+  /** Live enrolled sessions one binding may hold in one project; a further enrollment ends the least recently active. Default 16. */
   maxSessionsPerBinding?: number
   /** The ceiling across every project of one binding; defaults to MAX_ENROLLED_PER_BINDING_TOTAL. */
   maxSessionsPerBindingTotal?: number
@@ -65,8 +65,10 @@ export interface EnrollDeps extends FolderDeps {
 }
 
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
-/** Several terminals of one coding agent in one project are ordinary; a loop is not. */
-export const MAX_ENROLLED_PER_BINDING = 8
+/** Several terminals of one coding agent in one project are ordinary; a loop is not. 16 since 0.3.8: a lead session with
+ *  its subagents (each starts its own `fabric-mcp`) reached 8 in one project, and the lead, least recently active, was
+ *  the one ended (the 0.3.8 audit, 2026-10-20: a release lead with five reviewers and four fixers). */
+export const MAX_ENROLLED_PER_BINDING = 16
 /** One binding serves its coding agent in every project on the machine (2026-10-19, board thread 1afd08e7): the cap above
  *  is per project, and this ceiling bounds the binding across all of them. */
 export const MAX_ENROLLED_PER_BINDING_TOTAL = 64

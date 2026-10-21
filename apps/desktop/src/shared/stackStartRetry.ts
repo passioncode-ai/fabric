@@ -39,7 +39,8 @@ export function dockerSocketFrom(message: string): string | null {
   // running?»): the path ends at `.sock` when it has one, and trailing punctuation is never part of it (0.3.7 i2 ER-1).
   const unix = /unix:\/\/(\/[^\s'"]*?\.sock)(?![A-Za-z0-9_-])/.exec(message) ?? /unix:\/\/(\/[^\s:;,'"]+)/.exec(message)
   if (unix) return unix[1].replace(/[.;,:]+$/, '')
-  const pipe = /npipe:\/\/\/*\.\/pipe\/([A-Za-z0-9_.-]+)/.exec(message)
+  // `npipe:////./pipe/docker_engine` from the CLI, or the bare `//./pipe/docker_engine` Docker Desktop prints.
+  const pipe = /(?:npipe:)?\/\/\/*\.\/pipe\/([A-Za-z0-9_.-]+)/.exec(message)
   return pipe ? `\\\\.\\pipe\\${pipe[1].replace(/[.]+$/, '')}` : null
 }
 

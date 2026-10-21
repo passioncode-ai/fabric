@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -5222,7 +5222,10 @@ async function explainAndQuit(e: unknown): Promise<void> {
   const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: windowTitle, show: true, webPreferences: { sandbox: true, contextIsolation: true } })
   void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
   while (!quit.quitting) {
-    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, say: (key, vars) => say(key as StringKey, vars) })
+    // The data volume's free space, read once here: a full disk stops Docker and the stack's own words never say so.
+    let freeDiskBytes: number | null = null
+    try { const st = statfsSync(app.getPath('userData')); freeDiskBytes = st.bavail * st.bsize } catch { freeDiskBytes = null /* unreadable: the dialog names no disk */ }
+    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, freeDiskBytes, say: (key, vars) => say(key as StringKey, vars) })
     const { response: choice } = await dialog.showMessageBox(parent, {
       type: 'error',
       title: windowTitle,

@@ -20,7 +20,7 @@
 // away — a trace that kept results would keep whatever secret was in one.
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { bodyFromEnds, classifyToolOutcome, describeCall, type ToolOutcome } from '../shared/toolOutcome.ts'
+import { bodyFromEnds, classifyToolOutcome, describeCall, typedRefusalCode, type ToolOutcome } from '../shared/toolOutcome.ts'
 import { ops } from './opsSink.ts'
 import type { OpsOutcome } from '../shared/opsLog.ts'
 
@@ -118,10 +118,11 @@ export function beginAttempt(input: {
     return (originalEnd as (...a: unknown[]) => ServerResponse)(chunk, ...rest)
   }) as typeof input.res.end
 
-  const write = (outcome: ToolOutcome): void => {
+  const write = (outcome: ToolOutcome, refusalCode: string | null = null): void => {
     if (recorded) return
     recorded = true
-    const mapped = OPS_OUTCOME[outcome]
+    // A typed refusal is the tool answering as designed: warn with its code, never an error with no reason (CO-335).
+    const mapped = outcome === 'threw' && refusalCode ? { outcome: 'ok' as const, level: 'warn' as const } : OPS_OUTCOME[outcome]
     ops.record({
       op: subject?.tool ? `tool.${subject.tool}` : `mcp.${subject?.method ?? 'unparsed'}`,
       outcome: mapped.outcome,
@@ -141,7 +142,8 @@ export function beginAttempt(input: {
         trace_outcome: outcome,
         status: input.res.statusCode,
         ...(subject?.rpcId ? { rpc_id: subject.rpcId } : {}),
-        ...(refusedReason ? { refused: refusedReason } : {})
+        ...(refusedReason ? { refused: refusedReason } : {}),
+        ...(refusalCode ? { error_code: refusalCode } : {})
       }
     })
   }
@@ -150,7 +152,7 @@ export function beginAttempt(input: {
     // A body that did not fit is read from its two ends; one that still reads as no JSON-RPC response (a stream)
     // stays `unknown` — the honest answer for a 200 nobody could read.
     const parsed = peek ? bodyFromEnds(peek, tail, total <= PEEK_BYTES) : null
-    write(classifyToolOutcome({ status: input.res.statusCode, body: parsed }))
+    write(classifyToolOutcome({ status: input.res.statusCode, body: parsed }), typedRefusalCode(parsed))
   })
 
   input.res.on('close', () => {

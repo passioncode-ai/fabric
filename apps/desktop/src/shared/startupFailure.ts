@@ -245,6 +245,9 @@ function classifyCause(e: unknown): StartupFailure {
   }
 }
 
+/** Below this much free space on the data volume, a stack failure names the disk as the likely cause. */
+export const LOW_DISK_BYTES = 3 * 2 ** 30
+
 export interface StartupDialog {
   message: string
   detail: string
@@ -266,6 +269,7 @@ const ENGLISH: Record<string, string> = {
   'startup.notRetryable': 'Fabric had already opened its agent surface when this happened, so retrying in place is not safe; reopen the app instead.',
   'startup.machineSaid': 'What the machine said:',
   'startup.copyAt': 'A copy of this is at:',
+  'startup.diskLow': 'This disk has {free} GB free. Docker (OrbStack or Docker Desktop) stops when the disk runs out, and then the stack cannot start: free some space, then retry.',
   'startup.retry': 'Retry',
   'startup.copy': 'Copy the details',
   'startup.quit': 'Quit'
@@ -283,12 +287,13 @@ const ENGLISH: Record<string, string> = {
  */
 export function startupDialog(
   failure: StartupFailure,
-  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string }
+  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string; freeDiskBytes?: number | null }
 ): StartupDialog {
   const vars = { stackFolder: stackFolderFor(opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)) }
-  const say = (key: string): string => {
-    const said = opts.say?.(key)
-    return said !== undefined && said !== key ? said : (ENGLISH[key] ?? key)
+  const say = (key: string, v?: Record<string, string | number>): string => {
+    const said = opts.say?.(key, v)
+    const text = said !== undefined && said !== key ? said : (ENGLISH[key] ?? key)
+    return v ? text.replace(/\{(\w+)\}/g, (m, k: string) => (k in v ? String(v[k]) : m)) : text
   }
   // The cause's own title and remedy in the operator's language when the registry has them; the copied
   // details and the log keep the English, which is what a report is read in.
@@ -302,6 +307,10 @@ export function startupDialog(
     return said !== undefined && said !== key ? said : failure[part]
   }
   const parts = [own('remedy')]
+  // A full disk is the cause the stack's own words never name: OrbStack's VM stops with «I/O error» and the
+  // stack then reports a missing Docker socket (the 0.3.8 audit, 2026-10-20, three times in one day).
+  if (typeof opts.freeDiskBytes === 'number' && opts.freeDiskBytes < LOW_DISK_BYTES && (failure.cause === 'stack-would-not-start' || failure.cause === 'database-unreachable' || failure.cause === 'stack-up-but-silent'))
+    parts.push(say('startup.diskLow', { free: (opts.freeDiskBytes / 2 ** 30).toFixed(1) }))
   if (!opts.retryable) parts.push(say('startup.notRetryable'))
   parts.push(`${say('startup.machineSaid')}\n${failure.detail}`)
   parts.push(`${say('startup.copyAt')}\n${opts.logPath}`)
