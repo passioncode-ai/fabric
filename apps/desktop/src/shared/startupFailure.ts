@@ -246,21 +246,26 @@ function classifyCause(e: unknown): StartupFailure {
 }
 
 // #region audit-038-disk — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
-/** Below this much free space on the data volume, a stack failure names the disk as the likely cause. */
-export const LOW_DISK_BYTES = 3 * 2 ** 30
+/** Below this much free space on the volume that holds Fabric's data folder, a stack failure names the disk as the
+ *  likely cause. Decimal, as the dialog says it: "under 3 GB" means under 3 000 000 000 bytes (0.3.8 review UX-3). */
+export const LOW_DISK_BYTES = 3e9
+
+/** Free space as people read it: decimal GB, one digit, in the reader's locale («0,7» in Russian). The dialog, the
+ *  copied details and the log all say it through this, so the same reading is the same number (0.3.8 review UX-4). */
+export function freeDiskGb(bytes: number, locale?: string): string {
+  return (Math.max(0, bytes) / 1e9).toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}
 
 /** The causes a full disk explains: the stack would not start, started silent, timed out, its database went away, or
  *  an unclassified failure (Fabric's own ENOSPC lands there; 0.3.8 review ER-3). */
 const DISK_CAUSES: ReadonlySet<StartupCause> = new Set(['stack-would-not-start', 'stack-up-but-silent', 'stack-start-timed-out', 'database-unreachable', 'unknown'])
 
-/** The disk line's key for the platform and its number in the reader's locale (one decimal, «0,7» in Russian; under
- *  0.1 GB it says 0.1, never 0.0). Null when there is room, when the free space could not be read, or for another cause. */
+/** The disk line's key for the platform and its number in the reader's locale (`freeDiskGb`). Null when there is room, when the free space could not be read, or for another cause. */
 export function diskLowLine(failure: Pick<StartupFailure, 'cause'>, opts: { freeDiskBytes?: number | null; platform?: string; locale?: string }): { key: string; free: string } | null {
   if (typeof opts.freeDiskBytes !== 'number' || !(opts.freeDiskBytes < LOW_DISK_BYTES) || !DISK_CAUSES.has(failure.cause)) return null
   const platform = opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)
   const key = platform === 'win32' ? 'startup.diskLow.win32' : platform === 'linux' ? 'startup.diskLow.linux' : 'startup.diskLow'
-  const gb = Math.max(0.1, opts.freeDiskBytes / 1e9)
-  return { key, free: gb.toLocaleString(opts.locale === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }
+  return { key, free: freeDiskGb(opts.freeDiskBytes, opts.locale) }
 }
 // #endregion audit-038-disk
 
@@ -326,7 +331,7 @@ export function startupDialog(
   }
   const parts = [own('remedy')]
   // A full disk is the cause the stack's own words never name: OrbStack's VM stops with «I/O error» and the
-  // stack then reports a missing Docker socket (the 0.3.8 audit, 2026-10-20, three times in one day). On a low disk
+  // stack then reports a missing Docker socket (the 0.3.8 audit of 2026-10-21; three times on 2026-10-20). On a low disk
   // it is said FIRST, before «start Docker and retry», which would not help.
   const low = diskLowLine(failure, opts)
   if (low) parts.unshift(say(low.key, { free: low.free }))

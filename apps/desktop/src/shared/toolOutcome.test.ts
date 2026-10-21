@@ -170,6 +170,7 @@ describe('how a typed refusal is logged (0.3.8 review ER-2)', () => {
   it('a refusal by design is warn and ok; one that may have run is unknown; one that says something failed stays an error', () => {
     expect(refusalOps('needs-grant')).toEqual({ outcome: 'ok', level: 'warn' })
     expect(refusalOps('outcome-unknown')).toEqual({ outcome: 'unknown', level: 'warn' })
-    for (const code of ['hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal']) expect(refusalOps(code)).toEqual({ outcome: 'failed', level: 'error' })
+    for (const code of ['hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal', 'product-unreachable', 'product-refused', 'product-outdated']) expect(refusalOps(code)).toEqual({ outcome: 'failed', level: 'error' })
+    expect(refusalOps('not_available'), 'the board may have stored it').toEqual({ outcome: 'unknown', level: 'warn' })
   })
 })

@@ -147,11 +147,11 @@ export const httpTransport: TransportFactory = (url, bearer) => {
       const remaining = retryUntil - performance.now()
       if (remaining > 0) throw new FabricRateLimitError(remaining)
       const response = await fetch(input, init)
-      if (response.status === 429) {
+      if (response.status === 429 || (response.status === 503 && response.headers.get('retry-after') !== null)) {
         const delay = retryAfterMs(response.headers.get('retry-after'))
         retryUntil = Math.max(retryUntil, performance.now() + delay)
         await response.body?.cancel().catch(() => {})
-        throw new FabricRateLimitError(delay)
+        throw new FabricRateLimitError(delay, response.status)
       }
       return response
     }

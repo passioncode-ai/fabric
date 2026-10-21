@@ -139,7 +139,7 @@ describe('why the app would not start', () => {
 })
 // These cases read the macOS words; the platform is named, so the hosted Linux runner reads the same ones (0.3.5).
 
-import { startupDialog, type StartupCause } from './startupFailure.ts'
+import { freeDiskGb, startupDialog, type StartupCause } from './startupFailure.ts'
 
 describe('what the operator is actually shown', () => {
   const f = classifyStartupFailure(enoent, 'darwin')
@@ -313,13 +313,19 @@ describe('a full disk is named (0.3.8 audit: OrbStack stopped with «I/O error»
     const ru = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7e9, platform: 'darwin', say: ru, locale: 'ru' }).detail).toContain('свободно 0,7 ГБ')
     expect(startupDialog(classifyStartupFailure(docker, 'linux'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7e9, platform: 'linux' }).detail).toContain('Docker Engine stops')
-    expect(startupDialog(classifyStartupFailure(docker, 'win32'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0, platform: 'win32' }).detail).toContain('0.1 GB free. Docker Desktop stops')
+    expect(startupDialog(classifyStartupFailure(docker, 'win32'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0, platform: 'win32' }).detail).toContain('0.0 GB free. Docker Desktop stops')
   })
   it('names the disk on a stack that timed out too', () => {
     expect(startupDialog(classifyStartupFailure(timedOut, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 1e9, platform: 'darwin' }).detail).toContain('1.0 GB free')
   })
   it('says nothing about the disk when there is room, when it could not be read, or for an unrelated cause', () => {
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 40e9 }).detail).not.toContain('GB free')
+    // UX-3: "under 3 GB" is decimal, as the line says it; 3.1 GB free is room, 2.9 is not.
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 3.1e9 }).detail).not.toContain('GB free')
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 2.9e9 }).detail).toContain('2.9 GB free')
+    // UX-4: the dialog and the log say one reading as one number.
+    expect(freeDiskGb(20e6)).toBe('0.0')
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 20e6 }).detail).toContain(`${freeDiskGb(20e6)} GB free`)
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: null }).detail).not.toContain('GB free')
     expect(startupDialog(classifyStartupFailure({ message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5e9 }).detail).not.toContain('GB free')
   })

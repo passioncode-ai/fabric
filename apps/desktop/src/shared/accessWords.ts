@@ -40,6 +40,7 @@ export function sayAsk(t: Say, line: AskLine): string {
   if (line.kind === 'respond')
     return line.project.name ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities), project: line.project.name }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities) })
   // #endregion board-respond-words
+  if (line.kind === 'resolve') return t('access.ask.resolve')
   const resource = sayResource(t, line.resource)
   if (line.kind === 'inside') return t('access.ask.inside', { verbs: sayList(t, line.capabilities.map((c) => sayCapability(t, c))), resource })
   if (line.kind === 'setup-extra') return t('access.ask.setupExtra', { resource, verb: sayCapability(t, line.capability) })

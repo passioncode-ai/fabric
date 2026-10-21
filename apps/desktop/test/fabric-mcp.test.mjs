@@ -780,13 +780,17 @@ test('HTTP 429 cooldown adds a jitter of up to half the server delay, so refused
   assert.equal(calls, 2, 'and no longer than the delay plus half of it times its draw')
 })
 
-test('a lasting refusal waits longer each time, up to 30 minutes; a passing state does not grow (0.3.8 audit)', async () => {
+test('a folder that is no project waits longer each time, up to 10 minutes; what the person can lift in Fabric does not grow (0.3.8 audit, review UX-6)', async () => {
   const { backoffFor, BACKOFF_MS: B, BACKOFF_CEILING_MS } = await import(path.join(SRC, 'fabricMcp.ts'))
   assert.equal(backoffFor('no-project', 1), B['no-project'])
   assert.equal(backoffFor('no-project', 2), B['no-project'] * 2)
   assert.equal(backoffFor('no-project', 3), B['no-project'] * 4)
   assert.equal(backoffFor('no-project', 40), BACKOFF_CEILING_MS)
-  assert.equal(backoffFor('denied', 5), Math.min(BACKOFF_CEILING_MS, B.denied * 16))
+  assert.equal(BACKOFF_CEILING_MS, 10 * 60_000)
+  assert.equal(backoffFor('denied', 5), B.denied, 'a denial the person withdraws is seen within its base')
+  assert.equal(backoffFor('not-enrolled', 5), B['not-enrolled'], 'a folder the person attaches is seen within its base')
+  assert.equal(backoffFor('failed', 2), B.failed * 2, 'a repeated failure grows')
+  assert.equal(backoffFor('failed', 40), 60_000, 'to a minute, no further')
   assert.equal(backoffFor('not-running', 50), B['not-running'])
   assert.equal(backoffFor('connected', 50), B.connected)
 })
@@ -798,4 +802,23 @@ test('the run loop waits longer at each repeated no-project, and starts over aft
   await h.proxy.run(stop)
   const base = BACKOFF_MS['no-project']
   assert.deepEqual(h.slept.slice(0, 4), [base, base * 2, base * 4, base * 8])
+})
+
+test('HTTP 503 with Retry-After is waited out like a 429; a 503 without one is not (0.3.8 review i2 DA-6)', async () => {
+  const { makeHubCall } = await import(path.join(SRC, 'fabricMcpClient.ts'))
+  const originalFetch = globalThis.fetch
+  let withHeader = true
+  globalThis.fetch = async () => new Response(null, { status: 503, headers: withHeader ? { 'retry-after': '5' } : {} })
+  try {
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
+      assert.equal(e.code, 429); assert.equal(e.status, 503)
+      assert.ok(e.retryAfterMs > 4_000 && e.retryAfterMs <= 5_000)
+      return true
+    })
+    withHeader = false
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
+      assert.notEqual(e.code, 429)
+      return true
+    })
+  } finally { globalThis.fetch = originalFetch }
 })

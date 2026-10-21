@@ -82,7 +82,7 @@ test('fabric.board.join mints a one-bearer board session for a binding with a gr
 })
 
 test('fabric.project.resolve answers the contract attribution for a binding and is absent on the door (F9, DEC-0089)', async () => {
-  const access = { request: async () => ({ ok: false, refused: 'x' }), status: async () => ({ ok: false, refused: 'x' }), liveGrantsOf: async () => [] }
+  const access = { request: async () => ({ ok: false, refused: 'x' }), status: async () => ({ ok: false, refused: 'x' }), liveGrantsOf: async () => [{ callee: 'fabric', capability: 'project.resolve', resource: 'projects' }] }
   assert.ok(HUB_TOOLS.binding.includes('fabric.project.resolve')); assert.ok(!HUB_TOOLS.door.includes('fabric.project.resolve'))
   await linked(hubServerFor({ kind: 'door' }, { access }), async (client) => {
     assert.ok(!(await client.listTools()).tools.map((t) => t.name).includes('fabric.project.resolve'), 'the door resolves folders')
@@ -180,3 +180,20 @@ test('a board session whose board.respond grant expired is ended at its next cal
   } finally { await surface.stop() }
 })
 // #endregion board-session-join
+
+test('fabric.project.resolve refuses a binding without a live project.resolve or session.enroll grant: revoking it ends it (0.3.8 review i2 ER-1)', async () => {
+  const binding = { id: BINDING, agent_id: 'example-agent', revoked_at: null }
+  const asked = []
+  const resolveProject = async (p) => { asked.push(p); return { outcome: 'attached', project: PROJECT, rule: 'worktree' } }
+  const withGrants = (grants) => ({ request: async () => ({ ok: false, refused: 'x' }), status: async () => ({ ok: false, refused: 'x' }), liveGrantsOf: async () => grants })
+  await linked(hubServerFor({ kind: 'binding', binding }, { access: withGrants([{ callee: 'fabric-inbox', capability: 'read_message', resource: 'gmail:a' }]), resolveProject }), async (client) => {
+    const out = await client.callTool({ name: 'fabric.project.resolve', arguments: { path: '/x' } })
+    assert.equal(out.structuredContent.error.code, 'access-required')
+    assert.deepEqual(out.structuredContent.error.data.request.capabilities, ['project.resolve'])
+  })
+  assert.deepEqual(asked, [], 'nothing was resolved without the grant')
+  await linked(hubServerFor({ kind: 'binding', binding }, { access: withGrants([{ callee: 'fabric', capability: 'session.enroll', resource: `project:${PROJECT}` }]), resolveProject }), async (client) => {
+    const out = await client.callTool({ name: 'fabric.project.resolve', arguments: { path: '/y' } })
+    assert.equal(out.structuredContent.outcome, 'attached', 'an enrolled coding agent still resolves')
+  })
+})

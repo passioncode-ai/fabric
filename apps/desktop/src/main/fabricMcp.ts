@@ -182,12 +182,17 @@ export function boundedRetryMs(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= RATE_LIMIT_MAX_MS
     ? Math.max(1000, Math.ceil(value)) : RATE_LIMIT_FALLBACK_MS
 }
+/** The hub asked to wait: a 429, or a 503 that carries Retry-After (the full-disk stall of the 0.3.8 audit answered
+ *  2,758 of those in 12 minutes, and each was retried at once; review i2 DA-6). `code` stays 429, the cooldown's
+ *  marker; `status` is what the hub answered. */
 export class FabricRateLimitError extends Error {
   readonly code = 429
   readonly retryAfterMs: number
-  constructor(delay: unknown) {
+  readonly status: number
+  constructor(delay: unknown, status = 429) {
     const retryAfterMs = boundedRetryMs(delay)
-    super(`Fabric refused HTTP 429; wait ${Math.ceil(retryAfterMs / 1000)} seconds before another request`)
+    super(`Fabric refused HTTP ${status}; wait ${Math.ceil(retryAfterMs / 1000)} seconds before another request`)
+    this.status = status
     this.name = 'FabricRateLimitError'
     this.retryAfterMs = retryAfterMs
   }
@@ -222,16 +227,20 @@ export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
 }
 
 // #region audit-038-backoff — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
-/** A refusal that will not change by itself (a folder that is no project, a denial) waits longer each time it repeats:
- *  the base, doubled per repeat, up to 30 minutes. A Hermes running in the home folder was refused as too broad every
- *  30 s for three days (the 0.3.8 audit: 187 of 259 enrollment errors in one log). The agent's own fabric_whoami still
- *  wakes it at once. */
-export const BACKOFF_GROWS: ReadonlySet<ProxyState['kind']> = new Set(['no-project', 'denied', 'not-enrolled'])
-export const BACKOFF_CEILING_MS = 30 * 60_000
+/** A folder that is no project waits longer each time it is refused again: the base, doubled per repeat, up to
+ *  10 minutes. A Hermes running in the home folder was refused as too broad every 30 s for three days (the 0.3.8
+ *  audit: 187 of 259 enrollment errors in one log). A denial and a folder not yet attached keep their base: the person
+ *  can lift either in Fabric at any moment, and the agent should see it within a minute (0.3.8 review UX-6). The
+ *  agent's own fabric_whoami still wakes every wait at once. */
+export const BACKOFF_GROWS: ReadonlySet<ProxyState['kind']> = new Set(['no-project', 'failed'])
+export const BACKOFF_CEILING_MS = 10 * 60_000
+/** A failure that repeats (a refused access ask, a hub that keeps failing) grows too, but only to a minute: a short
+ *  outage still passes quickly, and a lasting one costs one call a minute instead of twenty (review i2 ER-4). */
+export const FAILED_CEILING_MS = 60_000
 export function backoffFor(kind: ProxyState['kind'], repeats: number): number {
   const base = BACKOFF_MS[kind]
   if (!BACKOFF_GROWS.has(kind) || repeats <= 1) return base
-  return Math.min(BACKOFF_CEILING_MS, base * 2 ** Math.min(repeats - 1, 16))
+  return Math.min(kind === 'failed' ? FAILED_CEILING_MS : BACKOFF_CEILING_MS, base * 2 ** Math.min(repeats - 1, 16))
 }
 // #endregion audit-038-backoff
 

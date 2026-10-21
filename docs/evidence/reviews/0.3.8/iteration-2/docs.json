@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "587b75c12557ca023aeb9ef5237e018b93339b1a",
+  "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-docs.md",
+  "reportSha256": "db07a19ceb26a6e95acb1e23374576e84f780ef98183cbd2b3424fde1f417355",
+  "reviewerRun": "release-038-i2-docs-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-17",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-291 and CO-277 say 0.3.9; the onboarding-036 plan gains a 2026-10-21 line (its 2026-10-20 line is kept as written)"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-2"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "DO-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-335 states the 4 KiB read and which codes stay errors and which are unknown"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-2"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the row says what the code does: no project to 10 min, a repeated failure to a minute, a 503 with Retry-After waited out"
+      ]
+    },
+    {
+      "id": "V2-23",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger and the map say 7"
+      ]
+    },
+    {
+      "id": "V2-24",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the entry lists the files this landing changes and drops `sessionEnroll.ts`"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-20 \"planned, 0.3.9, after 0.3.8\"; the final pass names CO-335 as closed in 0.3.8; the Now line says schema 94"
+      ]
+    }
+  ]
+}

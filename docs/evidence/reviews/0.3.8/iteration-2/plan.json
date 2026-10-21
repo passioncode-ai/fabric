@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "587b75c12557ca023aeb9ef5237e018b93339b1a",
+  "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-plan.md",
+  "reportSha256": "3236dee08240634de1912f22a3ba3ffff8b2185b865257a4b2fea787ffe051c4",
+  "reviewerRun": "release-038-i2-plan-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-33",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-1 and DO-9"
+      ]
+    },
+    {
+      "id": "V2-34",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-2 and DO-3"
+      ]
+    },
+    {
+      "id": "V2-35",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3"
+      ]
+    },
+    {
+      "id": "V2-36",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-360 names the five threads, thread `b0bdbfab` and SB-141's registry prerequisite"
+      ]
+    },
+    {
+      "id": "V2-37",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-20 names OF-08's first-session measurement; the 0.3.7 ledger's close is a dated record and stays as written"
+      ]
+    },
+    {
+      "id": "V2-38",
+      "source": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-360 records SB-141's registry prerequisite; the 0.3.8 publication message on thread `617c8cbe` corrects CO-339 to 0.3.9 (Release close)"
+      ]
+    },
+    {
+      "id": "V2-39",
+      "source": "PL-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: updated to the published version at this release's close (fabric-workspace `knowledge/products.md`, `roadmap.md`)"
+      ]
+    },
+    {
+      "id": "V2-40",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ci.sh full` runs locally on the iteration-2 candidate; its exit is in the ledger"
+      ]
+    },
+    {
+      "id": "V2-41",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-8; the comment dates the audit 2026-10-21"
+      ]
+    }
+  ]
+}

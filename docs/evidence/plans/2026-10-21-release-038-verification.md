@@ -34,7 +34,7 @@ Five fresh reviewers, 2026-10-21, against `00f6596f` (`00f6596fb8ceff6676f4a857c
 [documents](../reviews/0.3.8/iteration-1/2026-10-21-docs.md), [data](../reviews/0.3.8/iteration-1/2026-10-21-data.md),
 [plan](../reviews/0.3.8/iteration-1/2026-10-21-plan.md).
 
-48 findings, 6 blocking. Two changed the patch: the per-project cap rise to 16 rested on evictions that happened on
+48 findings, 7 blocking. Two changed the patch: the per-project cap rise to 16 rested on evictions that happened on
 0.3.6 (DA-1), so it is withdrawn and the cap stays 8; and Observatory's live check had failed at the access step
 (PL-2), now fixed. The errors reviewer moved the shared checkout to `v0.3.7` for about a minute by mistake and restored
 it (its report says so); no other report cites a file read in that minute.
@@ -91,3 +91,63 @@ it (its report says so); no other report cites a file read in that minute.
 | V1-48 | plan:DO-1 | Rates and dates stated more exactly than measured. | fixed: with UX-9 |
 
 Exit for iteration 1: every finding is fixed or ruled to a register row. Blocking findings open: none.
+
+## Iteration 2
+
+Five fresh reviewers, 2026-10-21, against `587b75c1` (`587b75c12557ca023aeb9ef5237e018b93339b1a`), read-only in a detached checkout that none of them moved. Reports:
+[UX](../reviews/0.3.8/iteration-2/2026-10-21-ux.md), [errors](../reviews/0.3.8/iteration-2/2026-10-21-errors.md),
+[documents](../reviews/0.3.8/iteration-2/2026-10-21-docs.md), [data](../reviews/0.3.8/iteration-2/2026-10-21-data.md),
+[plan](../reviews/0.3.8/iteration-2/2026-10-21-plan.md).
+
+41 findings, 14 blocking (many are one defect seen from several levels). Two changed the patch: the
+`project.resolve` grant gated nothing, so revoking it in Settings withdrew nothing (ER-1, DA-2), and a coding agent the
+person disconnected could take a fresh credential through the new lane (DA-3); both are fixed. The backoff decision is
+narrowed: only a folder that is no project grows (to 10 minutes), because a denial and an unattached folder are the
+person's to lift in Fabric and must be seen within a minute (UX-6). Five iteration-1 "fixed" dispositions did not hold
+(V1-14, V1-20, V1-26, V1-33, V1-47); each is fixed here and its record now says what it claims.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1 (blocking) | Settings names the new `project.resolve` grant as a tool Fabric does not know | fixed: `shared/access.ts#askLines` has a `resolve` line, `accessWords.ts` says it in both languages («узнавать, к какому проекту Fabric относится папка»); `accessWords.test.ts` "a project.resolve ask and grant" |
+| V2-2 | UX-2 (blocking) | V1-14 and V1-47 do not hold: SCN-161 names neither the disk measured nor what the number leaves out, nor the unclassified failure | fixed: SCN-161's 2026-10-21 amendment names the volume of Fabric's data folder, the purgeable space macOS leaves out, Docker on another volume, and all five causes |
+| V2-3 | UX-3 | The threshold is 3 GiB while the line shows decimal GB | fixed: `startupFailure.ts#LOW_DISK_BYTES` is 3e9; `startupFailure.test.ts`: 3.1 GB is room, 2.9 GB names the disk (watched failing at 3 GiB) |
+| V2-4 | UX-4 | On a full disk the dialog says 0.1 GB, the log 0.0 GB | fixed: one formatter, `startupFailure.ts#freeDiskGb`, for the dialog, the copied details and the log; the 0.1 floor is gone (test watched failing) |
+| V2-5 | UX-5 | "This disk" is not named, and the figure leaves out purgeable space | fixed: SCN-161 and the release notes say which volume is read and that Finder may show more on macOS; a reading while Fabric runs stays CO-362 |
+| V2-6 | UX-6 | The growing backoff slows the person's own fixes to up to 30 minutes | fixed: `main/fabricMcp.ts#backoffFor`: only a folder that is no project grows (to 10 min); a denial and a folder not yet attached keep 60 s and 30 s; SCN-137 amended (`fabric-mcp.test.mjs`, watched failing) |
+| V2-7 | UX-7 | No agent-facing text says how to ask for `project.resolve`; SCN-132 not amended | fixed: the `fabric.access.request` and `fabric.project.resolve` descriptions say how to ask (`main/hubTools.ts`); SCN-132 amended 2026-10-21 |
+| V2-8 | ER-1 (blocking) | Revoking the `project.resolve` grant withdraws nothing: every binding is served the tool | fixed: `main/hubTools.ts`: `fabric.project.resolve` answers only while the binding holds a live `project.resolve` or `session.enroll` grant, else `access-required`; `board-surface.test.mjs` (watched failing) |
+| V2-9 | ER-2 (blocking) | Settings describes the new grant as an unknown tool | fixed: with UX-1 |
+| V2-10 | ER-3 (blocking) | V1-14 and V1-47 do not hold: SCN-161 does not name the volume | fixed: with UX-2 |
+| V2-11 | ER-4 | The `failed` state retries every 3 s and never grows | fixed: `backoffFor`: `failed` doubles from 3 s up to a minute (`FAILED_CEILING_MS`; `fabric-mcp.test.mjs`) |
+| V2-12 | ER-5 | Up to 30 minutes between a person's fix and the agent; a whoami during a connection attempt is lost | fixed: with UX-6: what the person can lift waits at most its 60 s or 30 s base, so a lost wake costs no more; AGENTS.md's row is corrected |
+| V2-13 | ER-6 | `refusalOps` logs the board's `not_available` as ok | fixed: `shared/toolOutcome.ts#refusalOps`: `not_available` is `unknown`; `toolOutcome.test.ts` |
+| V2-14 | ER-7 | The immediate lane mints a binding per ask and skips the disconnect check | fixed: the disconnect check is in (`accessService.ts`, `hub-access-service.test.mjs`, watched failing); the per-ask binding is ruled to CO-363 (0.3.9) |
+| V2-15 | ER-8 | Agent-facing text is out of date: only session.enroll is said to be immediate; "the coding agent's act" for a service | fixed: the `fabric.access.request` description names both immediate asks; the allow notes say "recorded as your own act" |
+| V2-16 | ER-9 | Two honesty edges of the disk line remain | fixed: with UX-3 and UX-5 |
+| V2-17 | DO-1 (blocking) | V1-20 does not hold: CO-291, the onboarding-036 banner and CO-277 still say 0.3.8 | fixed: CO-291 and CO-277 say 0.3.9; the onboarding-036 plan gains a 2026-10-21 line (its 2026-10-20 line is kept as written) |
+| V2-18 | DO-2 (blocking) | V1-14 does not hold: SCN-161 does not say which disk | fixed: with UX-2 |
+| V2-19 | DO-3 (blocking) | V1-26 does not hold: CO-335 omits the 4 KiB limit and says every typed refusal is a warning | fixed: CO-335 states the 4 KiB read and which codes stay errors and which are unknown |
+| V2-20 | DO-4 | "Under 3 GB" is not the threshold the code uses | fixed: with UX-3 |
+| V2-21 | DO-5 | SCN-161 lists four causes; the code names the disk for five | fixed: with UX-2 |
+| V2-22 | DO-6 | AGENTS.md's fabric-mcp row says 60 s for a denial and 30 min for a refused folder | fixed: the row says what the code does: no project to 10 min, a repeated failure to a minute, a 503 with Retry-After waited out |
+| V2-23 | DO-7 | The ledger and the map count 6 blocking in iteration 1; there were 7 | fixed: the ledger and the map say 7 |
+| V2-24 | DO-8 | The MERGES entry describes `00f6596f`, not the candidate | fixed: the entry lists the files this landing changes and drops `sessionEnroll.ts` |
+| V2-25 | DO-9 | P-20 "after 0.3.7"; the final pass moves CO-335 to 0.3.9; the Now line says schema 89 | fixed: P-20 "planned, 0.3.9, after 0.3.8"; the final pass names CO-335 as closed in 0.3.8; the Now line says schema 94 |
+| V2-26 | DA-1 (blocking) | The new grant is shown as a tool Fabric does not know | fixed: with UX-1 |
+| V2-27 | DA-2 (blocking) | Revoking the grant revokes nothing | fixed: with ER-1 |
+| V2-28 | DA-3 (blocking) | A disconnected coding agent gets a fresh credential through the new lane | fixed: with ER-7: refused as disconnected before any write |
+| V2-29 | DA-4 (blocking) | V1-33 does not hold in full: `not_available` and the product codes log as ok; no write-path test | fixed: `refusalOps`: `product-unreachable`, `product-refused`, `product-outdated` are failed at error, `not_available` unknown; the write path is tested through `beginAttempt` (`test/tool-trace.test.mjs`, watched failing) |
+| V2-30 | DA-5 | Every door ask of `project.resolve` mints a binding with a year-long grant | ruled: CO-363 (0.3.9): bound the lane like enrollment and sweep uncollected bindings |
+| V2-31 | DA-6 | The backoff misses `failed` and ignores a 503's Retry-After | fixed: `failed` grows to a minute; a 503 with Retry-After is a cooldown (`fabricMcpClient.ts`, `fabric-mcp.test.mjs`, watched failing) |
+| V2-32 | DA-7 | The line fires at 3.2 GB; the log can print 0.0 | fixed: with UX-3 and UX-4 |
+| V2-33 | PL-1 (blocking) | V1-20 does not hold: the banner, P-20's status and CO-291 | fixed: with DO-1 and DO-9 |
+| V2-34 | PL-2 (blocking) | V1-14, V1-47 and V1-26 cite records that do not say what they claim | fixed: with UX-2 and DO-3 |
+| V2-35 | PL-3 | The threshold is in GiB | fixed: with UX-3 |
+| V2-36 | PL-4 | CO-360 holds 3 of the open asks; five threads and the contract's audit are unrecorded | fixed: CO-360 names the five threads, thread `b0bdbfab` and SB-141's registry prerequisite |
+| V2-37 | PL-5 | OF-08 is missing from P-20's list | fixed: P-20 names OF-08's first-session measurement; the 0.3.7 ledger's close is a dated record and stays as written |
+| V2-38 | PL-6 | Switchboard has no registry entry; the 00:17 board message still says CO-339 in 0.3.8 | ruled: CO-360 records SB-141's registry prerequisite; the 0.3.8 publication message on thread `617c8cbe` corrects CO-339 to 0.3.9 (Release close) |
+| V2-39 | PL-7 | The knowledge base still lists Fabric v0.3.6 | ruled: updated to the published version at this release's close (fabric-workspace `knowledge/products.md`, `roadmap.md`) |
+| V2-40 | PL-8 | No hosted database-backed run for 0.3.7's tag or the candidate | fixed: `ci.sh full` runs locally on the iteration-2 candidate; its exit is in the ledger |
+| V2-41 | PL-9 | The MERGES entry and a dated code comment are out of step | fixed: with DO-8; the comment dates the audit 2026-10-21 |
+
+Exit for iteration 2: every finding is fixed or ruled to a register row. Blocking findings open: none.

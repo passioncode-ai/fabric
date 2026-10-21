@@ -366,3 +366,15 @@ describe('a responder grant, as main sends it (ADR-0149 §2)', () => {
     }
   })
 })
+
+// 0.3.8 review i2 UX-1: a product's folder-attribution grant is said as what it reads, never as an unknown tool.
+describe('a project.resolve ask and grant', () => {
+  it('is "read which Fabric project a folder belongs to", in both languages, in the queue and in Agents with access', () => {
+    const line = askLines({ capabilities: ['project.resolve'], resources: ['projects'] })
+    expect(line).toEqual([{ kind: 'resolve' }])
+    expect(sayAsk(tEn, line[0])).toBe('read which Fabric project a folder belongs to')
+    expect(sayGrant(tEn, line[0])).toBe('read which Fabric project a folder belongs to')
+    expect(sayAsk(tRu, line[0])).toBe('узнавать, к какому проекту Fabric относится папка')
+    expect(sayAsk(tEn, line[0])).not.toContain('does not know')
+  })
+})

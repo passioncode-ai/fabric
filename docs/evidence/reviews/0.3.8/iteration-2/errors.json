@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "587b75c12557ca023aeb9ef5237e018b93339b1a",
+  "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-errors.md",
+  "reportSha256": "822bf56cba0d8b6aa50f19e8b267f8c071cb701f25b728e3c957374a7c56d93b",
+  "reviewerRun": "release-038-i2-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-8",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/hubTools.ts`: `fabric.project.resolve` answers only while the binding holds a live `project.resolve` or `session.enroll` grant, else `access-required`; `board-surface.test.mjs` (watched failing)"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-2"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `backoffFor`: `failed` doubles from 3 s up to a minute (`FAILED_CEILING_MS`; `fabric-mcp.test.mjs`)"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-6: what the person can lift waits at most its 60 s or 30 s base, so a lost wake costs no more; AGENTS.md's row is corrected"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/toolOutcome.ts#refusalOps`: `not_available` is `unknown`; `toolOutcome.test.ts`"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the disconnect check is in (`accessService.ts`, `hub-access-service.test.mjs`, watched failing); the per-ask binding is ruled to CO-363 (0.3.9)"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the `fabric.access.request` description names both immediate asks; the allow notes say \"recorded as your own act\""
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3 and UX-5"
+      ]
+    }
+  ]
+}

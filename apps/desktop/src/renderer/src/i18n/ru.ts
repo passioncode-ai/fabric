@@ -465,6 +465,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'access.ask.enrollThis': 'работать в этом проекте',
   'access.ask.respond': 'отвечать на запросы {capabilities} к проекту «{project}»',
   'access.ask.respondThis': 'отвечать на запросы {capabilities} к этому проекту',
+  'access.ask.resolve': 'узнавать, к какому проекту Fabric относится папка',
   'access.respond.title': 'Разрешить {name} отвечать на запросы {capabilities} {project}?',
   'access.respond.message': '{name} просит отвечать на запросы, которые другие проекты присылают {project}',
   'access.respond.what': 'Он сможет брать и выполнять запросы, которые другие проекты присылают {project} по этим возможностям. Само это разрешение не даёт ему ни тратить деньги, ни публиковать, ни удалять; свои инструменты у него остаются, а запрос никогда не одобрение.',

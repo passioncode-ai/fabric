@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "587b75c12557ca023aeb9ef5237e018b93339b1a",
+  "report": "docs/evidence/reviews/0.3.8/iteration-2/2026-10-21-data.md",
+  "reportSha256": "3694913bb7f4fe2840f740978848b032901c62efbaaba4428ff16dde5c9d7966",
+  "reviewerRun": "release-038-i2-data-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-26",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-1"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "DA-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-7: refused as disconnected before any write"
+      ]
+    },
+    {
+      "id": "V2-29",
+      "source": "DA-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `refusalOps`: `product-unreachable`, `product-refused`, `product-outdated` are failed at error, `not_available` unknown; the write path is tested through `beginAttempt` (`test/tool-trace.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-363 (0.3.9): bound the lane like enrollment and sweep uncollected bindings"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `failed` grows to a minute; a 503 with Retry-After is a cooldown (`fabricMcpClient.ts`, `fabric-mcp.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V2-32",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-3 and UX-4"
+      ]
+    }
+  ]
+}

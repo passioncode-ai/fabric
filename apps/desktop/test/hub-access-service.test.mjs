@@ -339,3 +339,13 @@ test('0.3.8: project.resolve takes exactly the resource projects, and an unknown
   assert.equal(stranger.ok, false)
   assert.equal(shown.length, 0)
 })
+
+test('0.3.8 review i2 DA-3: an agent the person disconnected gets no credential through the project.resolve lane', async () => {
+  let clock = Date.parse('2026-10-04T10:00:00Z')
+  const shown = []
+  const access = new AccessService({ store: memStore({ now: () => clock }), registry: fakeRegistry(['example-agent']), present: (p) => shown.push(p), connected: async () => true, now: () => clock, keptOut: (key) => key === 'example-agent' })
+  const r = await access.request(DOOR, { agentId: 'example-agent', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' })
+  assert.equal(r.ok, false)
+  assert.match(r.refused, /disconnected/)
+  assert.equal(shown.length, 0)
+})

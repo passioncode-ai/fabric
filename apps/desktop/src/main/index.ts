@@ -71,7 +71,7 @@ import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
-import { classifyStartupFailure, startupDialog } from '../shared/startupFailure'
+import { classifyStartupFailure, freeDiskGb, startupDialog } from '../shared/startupFailure'
 import { readBuildManifestCandidates, withSchemaReadiness } from './schemaReadiness.ts'
 import { linkOutcome, linkRefusal } from '../shared/taskLinks.ts'
 import { splashProgress } from '../shared/splashProgress'
@@ -5195,7 +5195,7 @@ async function explainAndQuit(e: unknown): Promise<void> {
   // into the log and the copied details too, which is what a report is read from (0.3.8 review UX-5).
   let freeDiskBytes: number | null = null
   try { const st = statfsSync(app.getPath('userData')); freeDiskBytes = st.bavail * st.bsize } catch { freeDiskBytes = null /* unreadable: nothing names the disk */ }
-  const diskNote = freeDiskBytes === null ? '' : `\n\nfree disk: ${(freeDiskBytes / 1e9).toFixed(1)} GB`
+  const diskNote = freeDiskBytes === null ? '' : `\n\nfree disk: ${freeDiskGb(freeDiskBytes)} GB`
   try {
     mkdirSync(path.dirname(logPath), { recursive: true })
     writeFileSync(

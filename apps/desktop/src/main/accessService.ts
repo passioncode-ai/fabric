@@ -263,6 +263,12 @@ export class AccessService {
           }
           entry = resolved.entry
         }
+        // 0.3.8 review i2 DA-3: an agent the person disconnected («Отключить», ADR-0160 §3) gets no new credential
+        // through this lane either; SCN-167 promises its next call is refused.
+        if (this.deps.keptOut?.(entry.key)) {
+          receipt('kept-out', entry.key)
+          return { ok: false, refused: `the person disconnected ${entry.name} in Fabric; it gets no access until they let it back in from Agents. Nothing was shown to the operator.` }
+        }
       } else
       // #endregion project-resolve-request
       if (asked.value.callee === FABRIC_SELF && asked.value.capabilities[0] === BOARD_RESPOND) {
@@ -394,7 +400,7 @@ export class AccessService {
           if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
           return {
             ok: true, requestId: same.id, status: 'allowed', expiresAt: same.expires_at,
-            note: 'Allowed on the operator\'s own machine and recorded as the coding agent\'s act. Poll fabric.access.status with the pollSecret from the answer that created the request; this answer carries none.'
+            note: 'Allowed on the operator\'s own machine and recorded as your own act. Poll fabric.access.status with the pollSecret from the answer that created the request; this answer carries none.'
           }
         }
         return {
@@ -438,7 +444,7 @@ export class AccessService {
         if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
         return {
           ok: true, requestId: id, status: 'allowed', expiresAt, pollSecret,
-          note: 'Allowed on the operator\'s own machine and recorded as the coding agent\'s act. Poll fabric.access.status with this requestId and pollSecret to collect the revocable credential.'
+          note: 'Allowed on the operator\'s own machine and recorded as your own act. Poll fabric.access.status with this requestId and pollSecret to collect the revocable credential.'
         }
       }
       this.deps.present({ row, connected })

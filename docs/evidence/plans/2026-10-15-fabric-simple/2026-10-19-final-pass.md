@@ -53,4 +53,4 @@ with the release. The 0.3.7 hardening rows above, and CO-326, are re-dated 0.3.8
 [0.3.7 verification](../2026-10-20-release-037-verification.md).
 
 **2026-10-21, after the release.** 0.3.8 became the patch of the operator's audit of the installed 0.3.7 (P-21); everything
-this page and the carry-over ledger put in 0.3.8 for wave 4 and the hardening rows is now 0.3.9 (P-20).
+this page and the carry-over ledger put in 0.3.8 for wave 4 and the hardening rows is now 0.3.9 (P-20). One exception: CO-335 (refusals logged with their code) stayed in 0.3.8 and closed there.

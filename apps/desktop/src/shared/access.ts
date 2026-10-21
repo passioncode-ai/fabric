@@ -287,6 +287,8 @@ export type AskLine =
   | { kind: 'enroll'; project: { id: string; name: string | null } }
   /** ADR-0149 §2: an agent asks to answer one Project's requests for these capabilities. */
   | { kind: 'respond'; project: { id: string; name: string | null }; capabilities: string[] }
+  /** A product asks to read which Fabric project a folder belongs to (`project.resolve` on `projects`; 0.3.8). */
+  | { kind: 'resolve' }
 
 export function capabilityRef(id: string): CapabilityRef {
   const known = Object.prototype.hasOwnProperty.call(PLAIN, id) || setupExtra(id) !== null
@@ -321,6 +323,9 @@ export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'> & { 
       capabilities: [...new Set(parts.filter((x) => x.project === id).map((x) => oneLine(x.capability, 128)))].sort() }]
   }
   // #endregion board-respond-words
+  // #region project-resolve-request — docs: docs/adr/0166-one-attribution-of-folders-to-projects-across-fabric-switchboard-and-observatory.md#amendments
+  if (ask.capabilities.includes(PROJECT_RESOLVE) && ask.resources.includes(PROJECTS_RESOURCE)) return [{ kind: 'resolve' as const }]
+  // #endregion project-resolve-request
   const inside = ask.capabilities.filter((c) => !isWorkspaceSetup(c))
   const setup = ask.capabilities.filter(isWorkspaceSetup)
   const lines: AskLine[] = []

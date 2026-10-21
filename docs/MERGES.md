@@ -6,9 +6,9 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ### 2026-10-21T02:30:00Z · `—` · agent/release-038 → main · fast-forward
 - run: r-8db0598178fb
-- files: shared/toolOutcome.ts, main/toolTrace.ts, shared/startupFailure.ts, main/index.ts, main/sessionEnroll.ts, shared/stackStartRetry.ts and their tests, i18n, CHANGELOG, the backlog (P-20, P-21), the carry-over ledger (CO-335, CO-361, wave 4 to 0.3.9), the plans, the 0.3.8 ledger, the map
+- files: main (toolTrace, index, accessService, hubTools, fabricMcp, fabricMcpClient), shared (toolOutcome, startupFailure, stackStartRetry, access, accessWords), i18n, their tests (toolOutcome, startupFailure, accessWords, stackStartRetry, platformWords, fabric-mcp, hub-access-service, board-surface, the new tool-trace), CHANGELOG, AGENTS.md, ADR-0166's amendment, scenarios (SCN-132, SCN-137, SCN-161), release-mac, the backlog (P-20, P-21, the Now line), the carry-over ledger (CO-277, CO-291, CO-335, CO-360 to CO-363, wave 4 to 0.3.9), the plans, the 0.3.8 ledger and reviews, the map
 - conflicts: none
-- summary: Fabric 0.3.8, the patch of the operator's audit of 0.3.7.
+- summary: Fabric 0.3.8, the patch of the operator's audit of 0.3.7: typed refusals logged with their code and level, a full disk named at start, products can ask for `project.resolve` and only a live grant answers it, a folder that is no project backs off to 10 min, a 503 with Retry-After is waited out. No schema change (94). The session cap stays 8 (a raise to 16 was withdrawn in iteration 1).
 
 ### 2026-10-21T00:30:00Z · `—` · release close → main · fast-forward
 - run: r-8db0598178fb

@@ -81,3 +81,7 @@ Git probe of the asked folder or of a Project folder failed or timed out, or whe
 knows; on the operator's own machine it is allowed at once, recorded as the asker's act, like an enrollment. Before it,
 Observatory's live check of 0.3.7 was refused at this step (`shared/access.ts#normaliseEnrollAsk`, board thread
 `617c8cbe`).
+The tool answers a binding only while it holds a live grant of `project.resolve` (this ask) or `session.enroll` (a
+coding agent working in a project); without one it refuses with `access-required` and the arguments to ask with, so a
+revoke in Settings ends it (`main/hubTools.ts`, the 0.3.8 review's ER-1; `test/board-surface.test.mjs`). An agent the
+person disconnected gets no credential through this ask (`main/accessService.ts`, DA-3).

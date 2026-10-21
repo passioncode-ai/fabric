@@ -22,7 +22,7 @@ const VERIFY_HUB =
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { AGENT_ID_PATTERN, CAPABILITY_PATTERN } from '../shared/access.ts'
+import { AGENT_ID_PATTERN, CAPABILITY_PATTERN, FABRIC_SELF, PROJECT_RESOLVE, PROJECTS_RESOURCE, SESSION_ENROLL } from '../shared/access.ts'
 import type { AccessService, HubPrincipal } from './accessService.ts'
 import type { BindingRow } from './accessStore.ts'
 import { ops } from './opsSink.ts'
@@ -124,7 +124,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       title: 'Ask the operator for access',
       description:
         principal.kind === 'door'
-          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. On the operator\'s own machine session.enroll is allowed at once and recorded as your act instead; other products still prompt. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
+          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. On the operator\'s own machine two asks of Fabric itself are allowed at once and recorded as your act instead: session.enroll (a coding agent working in a project) and project.resolve on the resource projects (read which Fabric project a folder belongs to; a registered service or a coding agent). Other products still prompt. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
           : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
       inputSchema: requestSchema
     },
@@ -224,12 +224,19 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
         description:
           'Folder attribution (fabric-agent-contract DEC-0089 and DEC-0092, folder-attribution.schema.json $defs/resolveAnswer) for one absolute folder on this computer, decided by the contract\'s own rules over what Fabric knows: the Projects\' folders with their Git facts, the folders a person detached, the temporary roots. ' +
           'The answer is {outcome: "attached", project, rule}, {outcome: "new", root}, {outcome: "refused", reason}, {outcome: "ambiguous", rule, projects} or {fault: "input-invalid"} (also for a relative path); project ids are Fabric\'s. ' +
-          'While a Git probe the answer needs failed or timed out (which is not "no Git") it is {outcome: "pending", reason: "git-unreadable", retryable: true}: no Project is named; attribute nothing, ask again later with backoff, and show a lasting pending as degraded. It reads only and records nothing.' + VERIFY_HUB,
+          'While a Git probe the answer needs failed or timed out (which is not "no Git") it is {outcome: "pending", reason: "git-unreadable", retryable: true}: no Project is named; attribute nothing, ask again later with backoff, and show a lasting pending as degraded. It reads only and records nothing. It needs a live grant: project.resolve on the resource projects (ask fabric.access.request with callee fabric, capabilities ["project.resolve"], resources ["projects"] and a reason; allowed at once for a registered service or a coding agent on the operator\'s own machine), or session.enroll for a coding agent working in a project; without one the answer is access-required.' + VERIFY_HUB,
         inputSchema: z.object({ path: z.string().min(1).max(4096).describe('The absolute folder, as the coding agent runs in it') }).strict()
       },
       async (args) =>
         guard('project.resolve', async () => {
           if (!deps.resolveProject) return refusal('hub-unavailable', 'this Fabric does not resolve folders')
+          // 0.3.8 review i2 ER-1: a binding resolves folders while it holds a live grant to: project.resolve (a
+          // product's ask), or session.enroll (a coding agent working in a project). Revoking either in Settings
+          // ends it, as the card says.
+          const grants = await deps.access.liveGrantsOf(binding)
+          if (!grants.some((g) => g.callee === FABRIC_SELF && (g.capability === PROJECT_RESOLVE || g.capability === SESSION_ENROLL)))
+            return refusal('access-required', 'this credential holds no grant to read folder attribution; ask for it with fabric.access.request',
+              { request: { callee: FABRIC_SELF, capabilities: [PROJECT_RESOLVE], resources: [PROJECTS_RESOURCE] } })
           return answer(await deps.resolveProject((args as { path: string }).path))
         })
     )

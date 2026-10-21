@@ -169,11 +169,16 @@ export function typedRefusalCode(body: unknown): string | null {
   try { return fromObject(JSON.parse(text)) } catch { return null }
 }
 
-/** How a typed refusal is logged: a refusal by design at warn, `ok`; one that says the call may have run is `unknown`;
- *  one that says Fabric or a product failed stays an error (0.3.8 review ER-2). */
-const FAILED_REFUSALS: ReadonlySet<string> = new Set(['hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal'])
+/** How a typed refusal is logged: a refusal by design at warn, `ok`; one that says the call may have run is `unknown`
+ *  (the hub's `outcome-unknown`, the board's `not_available`, which includes "it may have been stored"); one that says
+ *  Fabric or a product failed stays an error, as the hub's own record of the same call says (0.3.8 review ER-2, i2 DA-4). */
+const FAILED_REFUSALS: ReadonlySet<string> = new Set([
+  'hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal',
+  'product-unreachable', 'product-refused', 'product-outdated'
+])
+const UNKNOWN_REFUSALS: ReadonlySet<string> = new Set(['outcome-unknown', 'not_available'])
 export function refusalOps(code: string): { outcome: 'ok' | 'failed' | 'unknown'; level: 'warn' | 'error' } {
-  if (code === 'outcome-unknown') return { outcome: 'unknown', level: 'warn' }
+  if (UNKNOWN_REFUSALS.has(code)) return { outcome: 'unknown', level: 'warn' }
   if (FAILED_REFUSALS.has(code)) return { outcome: 'failed', level: 'error' }
   return { outcome: 'ok', level: 'warn' }
 }
