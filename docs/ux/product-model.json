@@ -11064,7 +11064,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2122,
+        "line": 2123,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11177,7 +11177,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2146,
+        "line": 2147,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11279,7 +11279,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2179,
+        "line": 2180,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)",
         "status_claim": "built"
       },
@@ -11358,7 +11358,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2198,
+        "line": 2199,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11464,7 +11464,7 @@
       "view": "simple-project",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2222,
+        "line": 2223,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11560,7 +11560,7 @@
       "view": "simple-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2244,
+        "line": 2245,
         "coverage_claim": "none yet as this screen; 0.3.7 wave 3 built its «Подключились сами» block above today's agents list: apps/desktop/src/renderer/src/launch/JoinedAgents.tsx («подключился сам», the proof line, «Отключить», «Отключён» and «Пустить снова»)",
         "status_claim": "designed"
       },
@@ -11656,7 +11656,7 @@
       "view": "simple-history",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2266,
+        "line": 2267,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's",
         "status_claim": "built"
       },
@@ -11759,7 +11759,7 @@
       "view": "simple-settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2290,
+        "line": 2291,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11840,7 +11840,7 @@
       "view": "simple-create",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2309,
+        "line": 2310,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4",
         "status_claim": "built"
       },
@@ -34938,7 +34938,7 @@
         "SCR-31",
         "SCR-78"
       ],
-      "coverage": "partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4)",
+      "coverage": "partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4); 0.3.9: `apps/desktop/src/main/workTools.ts` (a claim moves its task, a done release to review), `apps/desktop/src/main/fabricMcp.ts` (the 2-minute sign), `apps/desktop/test/tracking-surface.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Before starting, every agent in a project knows who holds what there; its own work is claimed on the project's board; related work is flagged to it and to the operator; every claim and release is journalled and visible on the project page and in «Where work is» — through Fabric, never a second board.",
@@ -35003,7 +35003,7 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`; wave 4 (W4-1…W4-3): the bounded page, the board's filters and the heads in `supabase/migrations/20261013000108_project_board_operator_reads.sql` (`board_thread_page_operator`, `board_thread_heads_operator`), the `comms:thread-page` / `comms:heads` IPC over `commsOperatorRead.ts`, the list's rules in `apps/desktop/src/renderer/src/launch/commsList.ts` (tested in `commsList.test.ts`), the rail's count from the heads in `App.tsx` and `LaunchShell.tsx` (\"5000+\", `FabricStrip.test.tsx`); DB tests in `apps/desktop/test/project-board-operator-db.test.mjs`",
+      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`; wave 4 (W4-1…W4-3): the bounded page, the board's filters and the heads in `supabase/migrations/20261013000108_project_board_operator_reads.sql` (`board_thread_page_operator`, `board_thread_heads_operator`), the `comms:thread-page` / `comms:heads` IPC over `commsOperatorRead.ts`, the list's rules in `apps/desktop/src/renderer/src/launch/commsList.ts` (tested in `commsList.test.ts`), the rail's count from the heads in `App.tsx` and `LaunchShell.tsx` (\"5000+\", `FabricStrip.test.tsx`); DB tests in `apps/desktop/test/project-board-operator-db.test.mjs`; 0.3.9: `apps/desktop/src/main/boardService.ts` (answered, unread, bulk read), `apps/desktop/src/renderer/src/launch/HomeBoardWaiting.tsx`, `apps/desktop/test/project-board-core-holds-db.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator watches projects coordinate without joining a session, and every message on screen is one the board holds — the screen shows the board's truth, never a renderer's cache of it.",
@@ -35108,7 +35108,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3781
+        "line": 3782
       }
     },
     {
@@ -35129,7 +35129,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3809
+        "line": 3810
       }
     },
     {
@@ -35148,7 +35148,7 @@
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3835
+        "line": 3836
       }
     },
     {
@@ -35167,7 +35167,7 @@
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3860
+        "line": 3861
       }
     },
     {
@@ -35186,7 +35186,7 @@
       "errors_recovery": "a failed reading says «Неизвестно, кто работает: работу не удалось прочитать.», with the machine's reason on its own line beneath, and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3885
+        "line": 3887
       }
     },
     {
@@ -35205,7 +35205,7 @@
       "errors_recovery": "the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3911
+        "line": 3913
       }
     },
     {
@@ -35224,7 +35224,7 @@
       "errors_recovery": "enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3937
+        "line": 3939
       }
     },
     {
@@ -35236,14 +35236,14 @@
       "screen_refs": [
         "SCR-30"
       ],
-      "coverage": "`apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try); the disk line: `apps/desktop/src/shared/startupFailure.ts` (`diskLowLine`, `freeDiskGb`, `LOW_DISK_BYTES`), `apps/desktop/src/main/index.ts` (the free space in the log and the copy), `startupFailure.test.ts` \"a full disk is named\"",
+      "coverage": "`apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try); the disk line: `apps/desktop/src/shared/startupFailure.ts` (`diskLowLine`, `freeDiskGb`, `LOW_DISK_BYTES`), `apps/desktop/src/main/index.ts` (the free space in the log and the copy), `startupFailure.test.ts` \"a full disk is named\"; 0.3.9: `apps/desktop/src/main/hubStandby.ts`, `apps/desktop/src/main/stackWatch.ts`, `apps/desktop/src/shared/stackWatch.ts`, `apps/desktop/test/stack-watch.test.mjs`, `apps/desktop/test/startup-wait.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a stack that only needed another minute never reaches the operator as «The local stack refused to start».",
       "errors_recovery": "the last refusal is thrown as it was, so the startup sheet and the copied details carry the stack's own words; Retry on that sheet starts the stack again with a fresh count.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3961
+        "line": 3963
       }
     },
     {
@@ -35262,7 +35262,7 @@
       "errors_recovery": "the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4002
+        "line": 4004
       }
     },
     {
@@ -35281,7 +35281,7 @@
       "errors_recovery": "a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4025
+        "line": 4027
       }
     },
     {
@@ -35302,7 +35302,7 @@
       "errors_recovery": "an answer that is not recorded keeps the card with its options and says so; an answer whose outcome is unknown says «Неизвестно, дошёл ли ответ — проверяю» and reads the question again before offering the options, so a second press never answers twice; a question that fails Fabric's check of the board's rules (no options, no why) is shown with «Агент не объяснил, зачем спрашивает» and «Обсудить» only.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4047
+        "line": 4049
       }
     },
     {
@@ -35321,7 +35321,7 @@
       "errors_recovery": "a move, a new task, a rename or a removed folder that is not recorded snaps back and says «Не сохранилось.» with the machine's words beneath; a task's text typed into a failed «Поставить» stays in the field; a console that cannot start says why on the button's line (no coding agent ready -> «Нет готового агента — открыть Агенты»).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4068
+        "line": 4070
       }
     },
     {
@@ -35340,7 +35340,7 @@
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4091
+        "line": 4093
       }
     },
     {
@@ -35360,7 +35360,7 @@
       "errors_recovery": "a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4113
+        "line": 4115
       }
     },
     {
@@ -35379,7 +35379,7 @@
       "errors_recovery": "a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4134
+        "line": 4136
       }
     },
     {
@@ -35398,7 +35398,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4154
+        "line": 4156
       }
     },
     {
@@ -35417,7 +35417,7 @@
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4174
+        "line": 4176
       }
     },
     {
@@ -35436,7 +35436,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4194
+        "line": 4196
       }
     },
     {
@@ -35457,7 +35457,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4215
+        "line": 4217
       }
     }
   ],

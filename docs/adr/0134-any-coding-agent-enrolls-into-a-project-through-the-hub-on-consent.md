@@ -244,4 +244,8 @@ after `/clear`) is matched to the session by that process within the same bindin
 the new id. An end with reason `clear`, an end observed before the session enrolled (`stale-end`) and a hook's end
 while the agent's own fabric-mcp still signs (`agent-still-connected`) do not end the session or release its claims. A
 connected fabric-mcp signs its session every 2 minutes (the claims renew) and re-reads `hub.json`, enrolling again by
-itself when Fabric restarted; a `--rejoin-only` fabric-mcp that finds no session exits 3. The per-binding cap stays 8.
+itself when Fabric restarted; a `--rejoin-only` fabric-mcp that finds no session exits 3. The per-binding cap stays 8. An enrollment offers
+`agentPid` only while the hub takes it (against an older hub fabric-mcp enrolls again without it, remembered per hub
+pid). When the agent's own fabric-mcp leaves an enrolled session, Fabric records its end (`session.ended@1`,
+`observed_by: fabric`, reason `agent-left`) once; a hook's later end answers `already-ended`. A task a claim moved to
+running goes back to backlog when that claim is released other than `done`, unless it moved since.

@@ -485,5 +485,6 @@ every call is answered HTTP 503 with `{"error", "code": "stack-starting" | "stac
 `Retry-After` until the database is ready (`main/hubStandby.ts`); the agent surface then takes the same listening
 sockets over and keeps the published door token, so an agent that read `hub.json` during the wait keeps a valid
 token. While Fabric runs, the runtime stack watch (`main/stackWatch.ts`) puts the hub back into that refusal mode,
-`stack-unavailable`, while the database is lost. Before it, an agent found no hub at all while the stack started or was
+`stack-unavailable`, while the database is lost. The takeover is atomic: the standby answers until the surface's
+handler is on the same sockets; a standby the hub does not take over is stopped and its `hub.json` withdrawn. Before it, an agent found no hub at all while the stack started or was
 down ([the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#stability), ST-2, ST-3).

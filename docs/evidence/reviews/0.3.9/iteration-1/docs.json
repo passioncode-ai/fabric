@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "8100be6b528836d6be784563af411ae5beada7b7",
+  "report": "docs/evidence/reviews/0.3.9/iteration-1/2026-10-21-docs.md",
+  "reportSha256": "8f66ff0ca61d06242844ede39b689c18bd16ecae7701578de40e15f6bb73f55a",
+  "reviewerRun": "release-039-i1-docs-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-16",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG `Upgrading.`: schema 95, backup, 0.3.8 cannot open 95, what the first tick does"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the watch respects a `supabase stop` until the next launch (ER-3); AGENTS.md says so"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "DO-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-277 re-ruled: the upgrade uses `supabase migration up`, which works; only `db reset` refuses and no upgrade step uses it"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the simple plan row, final pass, onboarding banner, OF-08, OF-13, P-19 and P-20 corrected; OF-08 names TR-4 and its 0.3.9 fix"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff update names P-22 and this ledger; the Now line names schema 95"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the table names 121 and 122"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"sized for 7 days within 96 MB, a cut inside the week is recorded\" in AGENTS.md, CHANGELOG and CO-362; keep-alive pings are sampled (DA-2)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan README table \"Every audit finding, where it went\""
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG Upgrading and release-mac say 4 of 6 answered at the first tick, the others get 7 days"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the amendment moved to SCN-140; SCN-140, 143 and 161 Coverage name the new files"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCR-30 and SCR-81 amended"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/loginItem.ts`"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"one sent without a deadline expires after 7 days\"; ADR-0149 \"says whether it is read\""
+      ]
+    }
+  ]
+}

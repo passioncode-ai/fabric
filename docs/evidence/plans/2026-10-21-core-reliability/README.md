@@ -49,11 +49,16 @@ Each part was built on its own branch, test first, every new test watched failin
   session enrolled and a hook's end while the agent's own fabric-mcp still signs do not end it. A connected
   fabric-mcp signs every 2 minutes (claims renew), re-reads `hub.json` and enrolls again after a Fabric restart. A
   claim moves its task to running and a `done` release to review; `fabric_agents_list` lists enrolled sessions too;
-  expired agent-sync leases are counted, not listed.
+  expired agent-sync leases are counted, not listed. The review's iteration 1 added: fabric-mcp enrolls without
+  `agentPid` against an older hub; agents hear the hub's 503 reason through fabric-mcp; an enrolled session's end is
+  recorded when its agent's fabric-mcp leaves (TR-13); a claim let go takes its task back to backlog. After a Fabric
+  restart an agent rejoins by itself, as a new Fabric session.
 - **Board.** A reply from the asked project answers a request (state `answered`, journalled); a request with no
   deadline gets 7 days; a request no project serves is accepted with `noResponder` in its receipt. `com.list` takes
   `unread` and `since` and says `read` per message; cursors survive a restart; `com.read_ack` marks up to 100 messages
-  or a thread up to a message in one call. The home shows requests nobody can answer and unread board messages. The
+  or a thread up to a message in one call. The home shows the requests between projects no agent can answer, and how long the oldest has waited. On the
+  operator's data the first tick answers 4 of the 6 queued requests (those a target replied to; the migration's header
+  says six); the other 2 expire on 2026-10-26. The
   Comms reads record their failures. Schema 95 (`20261021000120_board_core_holds.sql`).
 
 ## Every audit finding, where it went
@@ -71,7 +76,7 @@ Each part was built on its own branch, test first, every new test watched failin
 | TR-8 (Hermes in the home folder) | fixed in 0.3.8 for the log flood and the backoff; the folder itself stays too broad by design |
 | TR-9 (0.3.8 installed, 0.3.7 running) | resolved: the operator restarted Fabric into 0.3.8 at 15:01 local, 2026-10-21 |
 | TR-10, TR-12 | CO-367, CO-369 (0.3.10) |
-| TR-13 (an enrolled session's exit in the journal) | fixed in 0.3.9's review iteration 1 (the 0.3.9 ledger) |
+| TR-13 (an enrolled session's exit in the journal) | fixed in 0.3.9's review iteration 1: `session.ended@1` with reason `agent-left` |
 | TR-15 (three tasks in review) | the operator's acceptance: a task in review is accepted by a person |
 | BD-1 to BD-5 | fixed in 0.3.9 (above) |
 | BD-3's second half (com.status listing requests addressed to the caller) | not done: the contract fixes com.status's shape; `com.list {unread: true}` covers the need (CO-371 asks the contract) |

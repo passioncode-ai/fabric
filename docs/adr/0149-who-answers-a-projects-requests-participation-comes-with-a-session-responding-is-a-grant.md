@@ -250,5 +250,6 @@ request to a capability no Project serves is accepted with `noResponder` in its 
 answer it and a grant may come later. `com.list` takes `unread` and `since` and says of each message whether it is `read`; its cursor
 key lives in the database per estate, so cursors survive a restart; `com.read_ack` marks up to 100 messages, or a
 thread up to a message, in one call and one journal event. The reading filters and the bulk mark are optional: a list or a mark that uses none of them gets the
-contract's bytes. `noResponder` in a submit receipt and the `answered` state reach every caller, as additions a strict
-client of the pinned schemas must tolerate. Proposing them to fabric-agent-contract is CO-371.
+contract's bytes. `noResponder` (to the requester only, in its own `com.submit` receipt) and the `answered` state (in
+any participant's `com.get` and `com.list`, and the requester's `com.cancel` receipt) are always-on extensions outside
+the pinned contract; `com.status` carries no request state. Proposing them to fabric-agent-contract is CO-371.

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "8100be6b528836d6be784563af411ae5beada7b7",
+  "report": "docs/evidence/reviews/0.3.9/iteration-1/2026-10-21-data.md",
+  "reportSha256": "2484efa1511d74c231ea046fd86c2554873474a410afb53b3cb51ffc950771f1",
+  "reviewerRun": "release-039-i1-data-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-29",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `session.ended@1` with reason `agent-left` when the agent own fabric-mcp leaves, once (`tracking-surface.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: successful fast `mcp.ping` is counted like `ipc.*` (`ops-retention.test.mjs`: 40 agents for a week fit 96 MB, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DA-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 86.9 %, 22 outages, 22.0 h in CHANGELOG, the plan and the map"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the descriptions and ADR-0149 say who receives what; kept always-on as additive"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the migration is immutable; the plan, CHANGELOG and release-mac say 4 of 6"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a claim let go takes its task back to backlog (`work-release-session.test.mjs`, `work-claims-db.test.mjs`); renewal by ping is the plan intent"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and the plan: after a restart the agent rejoins as a new Fabric session; its claims were released at quit"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1: the home shows no unread count"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DA-9",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: they count successful reads only; failures and slow calls are always written, so no outage evidence is lost"
+      ]
+    }
+  ]
+}

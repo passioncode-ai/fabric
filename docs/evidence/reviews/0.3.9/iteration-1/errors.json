@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "8100be6b528836d6be784563af411ae5beada7b7",
+  "report": "docs/evidence/reviews/0.3.9/iteration-1/2026-10-21-errors.md",
+  "reportSha256": "3dc921e1a705cc7e22a5e48b23a8f83be18cab71082b649169f9c0eec33d89fe",
+  "reviewerRun": "release-039-i1-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-11",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `quit.ts`: closing the last window during a start does not quit; the main window opens before the wait window closes (`quit.test.mjs` win32/linux/darwin, `startup-wait.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the standby answers until the hub handler is on the same sockets (`hub-standby.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docker ps -a` before a try; one `supabase start` per try; none while containers run; a stopped stack is respected until the next launch (`stack-watch.test.mjs`, `stackStartRetry.test.ts`)"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a 6 s read deadline (past the hub 5 s); 3 slow or 2 refused reads in a row (`stackWatch.test.ts`, `stack-watch.test.mjs`)"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an untaken standby is stopped and hub.json and the door token withdrawn; sockets of a throwing takeover are closed (`hub-standby.test.mjs`)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "8100be6b528836d6be784563af411ae5beada7b7",
+  "report": "docs/evidence/reviews/0.3.9/iteration-1/2026-10-21-ux.md",
+  "reportSha256": "41b9307d13a3065804bd8341c3e365cbea09b6c022ac1cad9846b3df81391fff",
+  "reviewerRun": "release-039-i1-ux-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the panel shows only requests no agent can answer, with the oldest age, and nothing when none wait (`HomeBoardWaiting.tsx`, `commsOperatorRead.ts#waiting`; `HomeBoardWaiting.test.tsx`, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Пробуем сейчас» while a try runs, the watch keeps 30 s, Retry-After 30 s; an external stack is waited for (`stackWatch.ts`; `stackWatch.test.ts`, `StackHealthNotice.test.tsx`)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the transport reads up to 4 KB of a 429/503 body and the agent hears the code and reason (`fabricMcpClient.ts`; `fabric-mcp.test.mjs` UX-3, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "UX-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: per-OS keys `.win32`/`.linux` for both (`platformWords.test.ts`, a rule that no OrbStack string reaches Windows or Linux, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 460 x 360, resizable, follows the page height (`startup-wait.test.mjs`)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the no-responder figure is its own count; a project with only a read unanswered request says \"nothing unread\" (`CommsScreen.test.tsx`)"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the hint says a reply from the asked project answers a request; `noResponder` says the target agent asks and the operator allows"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `launch.comms.cause.target-reply` in en and ru"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabric_session_observe`, `fabric_work_claim`, `fabric_work_release` state the 0.3.9 rules (`tracking-surface.test.mjs`)"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the colon count form; an unknown age leaves the clause out (`HomeBoardWaiting.test.tsx`)"
+      ]
+    }
+  ]
+}

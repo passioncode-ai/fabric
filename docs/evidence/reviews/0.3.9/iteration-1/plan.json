@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "8100be6b528836d6be784563af411ae5beada7b7",
+  "report": "docs/evidence/reviews/0.3.9/iteration-1/2026-10-21-plan.md",
+  "reportSha256": "203d92e9d47a639a4ea58519a6f00ac2b7501bca33244d9f3d6a0152ee3ff902",
+  "reviewerRun": "release-039-i1-plan-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-38",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-1"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it enrolls again without `agentPid` when the hub refuses it, per hub pid (`fabric-mcp.test.mjs` PL-2 against a strict 0.3.8 schema, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-8"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-4"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "PL-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: corrected in the 0.3.9 publication message on the release threads (Release close)"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the Release close corrects thread a5969ac5 (noResponder and answered reach every caller), raises the hub 503 body with fabric-agent-contract (CO-371) and relinks both asks to main"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan section \"How we will know it holds\""
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the release commit sets the version, the CHANGELOG heading and the gate on this ledger"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan names them: none for the release; agents restart on their own schedule; CO-365 needs a reboot"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "plan:DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DA-3"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "plan:DO-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the merge log entry is written at the landing, in the release commit"
+      ]
+    }
+  ]
+}
