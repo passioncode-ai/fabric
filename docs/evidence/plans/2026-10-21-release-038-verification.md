@@ -77,7 +77,7 @@ it (its report says so); no other report cites a file read in that minute.
 | V1-34 | DA-5 | The disk line covers three causes and not the timeout, and a disk running out while Fabric runs is still unnamed. | fixed: with UX-4; a disk running out while Fabric runs is CO-362 |
 | V1-35 | DA-6 | The upgrade runbook says nothing about 0.3.8. | fixed: the runbook says 0.3.8 admits 94 with no step, and FROM has 94 for 0.3.7 |
 | V1-36 | DA-7 | Two places still carry the old numbering or both numbers. | fixed: with DO-2 and DO-4 |
-| V1-37 | DA-8 | For the record, the bound itself: 16 changes no memory or bookkeeping ceiling. | not-a-defect: a note on the withdrawn bound |
+| V1-37 | DA-8 | For the record, the bound itself: 16 changes no memory or bookkeeping ceiling. | not a defect: a note on the withdrawn bound |
 | V1-38 | PL-1 (blocking) | The docs gate is red at the candidate. | fixed: with ER-1 |
 | V1-39 | PL-2 (blocking) | Observatory's live check of `fabric.project.resolve` failed on the installed 0.3.7 and the audit did not see it. | fixed: `shared/access.ts`, `main/accessService.ts`: `project.resolve` on `projects` asked of Fabric, allowed at once on the operator's machine (`hub-access-service.test.mjs`, watched failing); ADR-0166 note; Observatory told on `617c8cbe` |
 | V1-40 | PL-3 (blocking) | The published 0.3.7 notes promise two things "in 0.3.8" that 0.3.8 does not ship, and 0.3.8's notes are silent. | fixed: with UX-7 |
@@ -196,4 +196,7 @@ the publication after landing (the same as 0.3.7).
 | V3-21 | PL-3 | The board correction on `bb87af23` says "up to 30 minutes" | ruled: corrected in the 0.3.8 publication message on the release threads (Release close) |
 | V3-22 | PL-4 | The 10-minute wait covers detached and ambiguous folders | fixed: with UX-1 |
 
-Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none. The fixes are one commit after the candidate; it is the verified commit.
+The reviewers read `9b309b04`; their fixes are one commit after it, `0b8dd7cb` (`0b8dd7cbb032bc0d0cadef1a7ae81220d1e9df34`), the final candidate, on
+which `ci.sh fast` passed before landing.
+
+Exit for iteration 3: 22 findings dispositioned; the final candidate `0b8dd7cbb032bc0d0cadef1a7ae81220d1e9df34` is `verifiedCommit`. Blocking findings open: none.
