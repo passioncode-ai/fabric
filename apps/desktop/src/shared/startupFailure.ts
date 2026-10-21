@@ -245,8 +245,24 @@ function classifyCause(e: unknown): StartupFailure {
   }
 }
 
+// #region audit-038-disk — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
 /** Below this much free space on the data volume, a stack failure names the disk as the likely cause. */
 export const LOW_DISK_BYTES = 3 * 2 ** 30
+
+/** The causes a full disk explains: the stack would not start, started silent, timed out, its database went away, or
+ *  an unclassified failure (Fabric's own ENOSPC lands there; 0.3.8 review ER-3). */
+const DISK_CAUSES: ReadonlySet<StartupCause> = new Set(['stack-would-not-start', 'stack-up-but-silent', 'stack-start-timed-out', 'database-unreachable', 'unknown'])
+
+/** The disk line's key for the platform and its number in the reader's locale (one decimal, «0,7» in Russian; under
+ *  0.1 GB it says 0.1, never 0.0). Null when there is room, when the free space could not be read, or for another cause. */
+export function diskLowLine(failure: Pick<StartupFailure, 'cause'>, opts: { freeDiskBytes?: number | null; platform?: string; locale?: string }): { key: string; free: string } | null {
+  if (typeof opts.freeDiskBytes !== 'number' || !(opts.freeDiskBytes < LOW_DISK_BYTES) || !DISK_CAUSES.has(failure.cause)) return null
+  const platform = opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)
+  const key = platform === 'win32' ? 'startup.diskLow.win32' : platform === 'linux' ? 'startup.diskLow.linux' : 'startup.diskLow'
+  const gb = Math.max(0.1, opts.freeDiskBytes / 1e9)
+  return { key, free: gb.toLocaleString(opts.locale === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }
+}
+// #endregion audit-038-disk
 
 export interface StartupDialog {
   message: string
@@ -269,7 +285,9 @@ const ENGLISH: Record<string, string> = {
   'startup.notRetryable': 'Fabric had already opened its agent surface when this happened, so retrying in place is not safe; reopen the app instead.',
   'startup.machineSaid': 'What the machine said:',
   'startup.copyAt': 'A copy of this is at:',
-  'startup.diskLow': 'This disk has {free} GB free. Docker (OrbStack or Docker Desktop) stops when the disk runs out, and then the stack cannot start: free some space, then retry.',
+  'startup.diskLow': 'This disk has {free} GB free. Docker (OrbStack or Docker Desktop) stops when the disk runs out, and then the local stack cannot start: free some space first.',
+  'startup.diskLow.win32': 'This disk has {free} GB free. Docker Desktop stops when the disk runs out, and then the local stack cannot start: free some space first.',
+  'startup.diskLow.linux': 'This disk has {free} GB free. Docker Engine stops when the disk runs out, and then the local stack cannot start: free some space first.',
   'startup.retry': 'Retry',
   'startup.copy': 'Copy the details',
   'startup.quit': 'Quit'
@@ -287,7 +305,7 @@ const ENGLISH: Record<string, string> = {
  */
 export function startupDialog(
   failure: StartupFailure,
-  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string; freeDiskBytes?: number | null }
+  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string; freeDiskBytes?: number | null; locale?: string }
 ): StartupDialog {
   const vars = { stackFolder: stackFolderFor(opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)) }
   const say = (key: string, v?: Record<string, string | number>): string => {
@@ -308,9 +326,10 @@ export function startupDialog(
   }
   const parts = [own('remedy')]
   // A full disk is the cause the stack's own words never name: OrbStack's VM stops with «I/O error» and the
-  // stack then reports a missing Docker socket (the 0.3.8 audit, 2026-10-20, three times in one day).
-  if (typeof opts.freeDiskBytes === 'number' && opts.freeDiskBytes < LOW_DISK_BYTES && (failure.cause === 'stack-would-not-start' || failure.cause === 'database-unreachable' || failure.cause === 'stack-up-but-silent'))
-    parts.push(say('startup.diskLow', { free: (opts.freeDiskBytes / 2 ** 30).toFixed(1) }))
+  // stack then reports a missing Docker socket (the 0.3.8 audit, 2026-10-20, three times in one day). On a low disk
+  // it is said FIRST, before «start Docker and retry», which would not help.
+  const low = diskLowLine(failure, opts)
+  if (low) parts.unshift(say(low.key, { free: low.free }))
   if (!opts.retryable) parts.push(say('startup.notRetryable'))
   parts.push(`${say('startup.machineSaid')}\n${failure.detail}`)
   parts.push(`${say('startup.copyAt')}\n${opts.logPath}`)

@@ -270,7 +270,7 @@ describe('startup remedies are each OS’s own', () => {
         for (const [name, shape] of Object.entries(shapes)) {
           const f = classifyStartupFailure(shape, platform)
           expect(f.remedy, `${name} English remedy`).not.toMatch(macOnly)
-          const d = startupDialog(f, { retryable: true, logPath: '/l', platform, ...(locale === 'none' ? {} : { say: sayIn(locale) }) })
+          const d = startupDialog(f, { retryable: true, logPath: '/l', platform, freeDiskBytes: 0, ...(locale === 'none' ? {} : { say: sayIn(locale), locale }) })
           const shown = `${d.message}\n${d.detail.replace(f.detail, '')}`
           expect(shown, `${name} dialog`).not.toMatch(macOnly)
         }
@@ -305,13 +305,22 @@ describe('an unverified schema check says which way it failed', () => {
 
 describe('a full disk is named (0.3.8 audit: OrbStack stopped with «I/O error» three times in one day)', () => {
   const docker = new Error('Command failed: supabase start\nfailed to inspect container health: failed to connect to the docker API at unix:///Users/a/.orbstack/run/docker.sock: connect: no such file or directory')
-  it('says how much is free when the stack would not start on a nearly full disk', () => {
-    const d = startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7 * 2 ** 30 })
-    expect(d.detail).toContain('0.7 GB free')
+  it('says how much is free, first, when the stack would not start on a nearly full disk', () => {
+    const d = startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7e9, platform: 'darwin' })
+    expect(d.detail.startsWith('This disk has 0.7 GB free.')).toBe(true)
+  })
+  it('in the reader\'s own number and words, per OS, and never 0.0', () => {
+    const ru = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7e9, platform: 'darwin', say: ru, locale: 'ru' }).detail).toContain('свободно 0,7 ГБ')
+    expect(startupDialog(classifyStartupFailure(docker, 'linux'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.7e9, platform: 'linux' }).detail).toContain('Docker Engine stops')
+    expect(startupDialog(classifyStartupFailure(docker, 'win32'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0, platform: 'win32' }).detail).toContain('0.1 GB free. Docker Desktop stops')
+  })
+  it('names the disk on a stack that timed out too', () => {
+    expect(startupDialog(classifyStartupFailure(timedOut, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 1e9, platform: 'darwin' }).detail).toContain('1.0 GB free')
   })
   it('says nothing about the disk when there is room, when it could not be read, or for an unrelated cause', () => {
-    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 40 * 2 ** 30 }).detail).not.toContain('GB free')
+    expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 40e9 }).detail).not.toContain('GB free')
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: null }).detail).not.toContain('GB free')
-    expect(startupDialog(classifyStartupFailure(new Error('The database schema is 89; this build requires 94–94.'), 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5 * 2 ** 30 }).detail).not.toContain('GB free')
+    expect(startupDialog(classifyStartupFailure({ message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5e9 }).detail).not.toContain('GB free')
   })
 })

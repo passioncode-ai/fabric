@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "00f6596fb8ceff6676f4a857c6b7baf732da8ec6",
+  "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-docs.md",
+  "reportSha256": "fce62206e040ecfcc328a9bd53281128d8c2c9ef9516906bc439d34a777063ec",
+  "reviewerRun": "release-038-i1-docs-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-18",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-1"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-335's version column says 0.3.8 (resolved there)"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19, the plan README, CO-291 (via P-20), the onboarding banner read 0.3.9 or name the renumbering"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff's 2026-10-21 update names P-21 and then P-20"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-7"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cap stays 8, so ADR-0134 holds; the access ask is ADR-0166's 2026-10-21 note"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger's audit section is corrected: the endings were on 0.3.6"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-9"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `refusalOps` carries the mapping and has its own test; the over-4 KiB refusal stays an error with no code, as before, said in CO-335"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: decimal GB; the free space is read once per failure, before the dialog loop"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the map's 0.3.8 entries link SCN-161 and the ledger"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: regions `audit-038-trace`, `audit-038-disk`, `audit-038-backoff`"
+      ]
+    }
+  ]
+}

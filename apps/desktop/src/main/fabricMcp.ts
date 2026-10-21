@@ -221,6 +221,20 @@ export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
   connected: 2000, 'not-running': 5000, 'no-project': 30_000, denied: 60_000, 'not-enrolled': 30_000
 }
 
+// #region audit-038-backoff — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
+/** A refusal that will not change by itself (a folder that is no project, a denial) waits longer each time it repeats:
+ *  the base, doubled per repeat, up to 30 minutes. A Hermes running in the home folder was refused as too broad every
+ *  30 s for three days (the 0.3.8 audit: 187 of 259 enrollment errors in one log). The agent's own fabric_whoami still
+ *  wakes it at once. */
+export const BACKOFF_GROWS: ReadonlySet<ProxyState['kind']> = new Set(['no-project', 'denied', 'not-enrolled'])
+export const BACKOFF_CEILING_MS = 30 * 60_000
+export function backoffFor(kind: ProxyState['kind'], repeats: number): number {
+  const base = BACKOFF_MS[kind]
+  if (!BACKOFF_GROWS.has(kind) || repeats <= 1) return base
+  return Math.min(BACKOFF_CEILING_MS, base * 2 ** Math.min(repeats - 1, 16))
+}
+// #endregion audit-038-backoff
+
 export class FabricMcpProxy {
   state: ProxyState = { kind: 'starting' }
   private session: SessionLink | null = null
@@ -595,12 +609,19 @@ export class FabricMcpProxy {
 
   /** Keep connecting until stopped/closed. whoami may wake ordinary backoff, never a server cooldown. */
   async run(stop: { stopped: boolean }): Promise<void> {
+    let last: ProxyState['kind'] | null = null
+    let repeats = 0
     while (!stop.stopped && !this.closed) {
       const s = await this.connectOnce()
       if (stop.stopped || this.closed) return
-      const woken = new Promise<void>((resolve) => { this.waker = resolve })
-      await this.pause(Math.max(BACKOFF_MS[s.kind], this.cooldownRemaining()), woken)
+      repeats = s.kind === last ? repeats + 1 : 1
+      last = s.kind
+      let wokenByAgent = false
+      const woken = new Promise<void>((resolve) => { this.waker = () => { wokenByAgent = true; resolve() } })
+      await this.pause(Math.max(backoffFor(s.kind, repeats), this.cooldownRemaining()), woken)
       this.waker = null
+      // The agent asked (fabric_whoami): the next refusal starts from the base again.
+      if (wokenByAgent) repeats = 0
     }
   }
 

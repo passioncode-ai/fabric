@@ -44,6 +44,7 @@ import {
   normaliseAccessRequest,
   projectOfResource,
   BOARD_RESPOND,
+  PROJECT_RESOLVE,
   boardResourceOf,
   requestSignature,
   type AccessAsk
@@ -242,6 +243,28 @@ export class AccessService {
       // ADR-0149 §2: answering a Project's requests. The asker is a coding agent of the runner catalogue (an enrolled or
       // launched session answers under its runner's binding) or a registry service (it joins with fabric.board.join);
       // anything else is refused before any prompt, and so is a Project this Fabric does not have.
+      // #region project-resolve-request — docs: docs/adr/0166-one-attribution-of-folders-to-projects-across-fabric-switchboard-and-observatory.md#amendments
+      // Folder attribution, read-only (0.3.8: Observatory's live check of 0.3.7 had no way to ask for it). The asker is a
+      // registry service or a coding agent Fabric knows; the binding it gets may call `fabric.project.resolve`.
+      if (asked.value.callee === FABRIC_SELF && asked.value.capabilities[0] === PROJECT_RESOLVE) {
+        if (raw.folder !== undefined) {
+          receipt('folder-not-asked', asked.value.agentId)
+          return { ok: false, refused: 'folder belongs to a session.enroll ask, not to project.resolve. Nothing was shown to the operator.' }
+        }
+        const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
+        if (runner) {
+          entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
+        } else {
+          this.deps.registry.refresh()
+          const resolved = this.deps.registry.resolve(asked.value.agentId)
+          if (!resolved.ok) {
+            receipt('not-a-resolver', asked.value.agentId)
+            return { ok: false, refused: `${asked.value.agentId} is neither a coding agent Fabric knows on this computer nor a registered agent. Nothing was shown to the operator.` }
+          }
+          entry = resolved.entry
+        }
+      } else
+      // #endregion project-resolve-request
       if (asked.value.callee === FABRIC_SELF && asked.value.capabilities[0] === BOARD_RESPOND) {
         if (raw.folder !== undefined) {
           receipt('folder-not-asked', asked.value.agentId)
@@ -366,7 +389,7 @@ export class AccessService {
         .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
       if (same) {
         receipt('already-pending', entry.key)
-        if (ask.callee === FABRIC_SELF && ask.capabilities[0] === SESSION_ENROLL) {
+        if (ask.callee === FABRIC_SELF && (ask.capabilities[0] === SESSION_ENROLL || ask.capabilities[0] === PROJECT_RESOLVE)) {
           const decided = await this.decide(same.id, 'allowed', { kind: 'agent', id: entry.key })
           if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
           return {
@@ -408,8 +431,8 @@ export class AccessService {
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
-      if (ask.callee === FABRIC_SELF && ask.capabilities[0] === SESSION_ENROLL) {
-        // ADR-0160: only this local enrollment lane is immediate. The request, the agent's own decision and the
+      if (ask.callee === FABRIC_SELF && (ask.capabilities[0] === SESSION_ENROLL || ask.capabilities[0] === PROJECT_RESOLVE)) {
+        // ADR-0160: only the local lanes are immediate: enrollment, and since 0.3.8 the read-only folder attribution. The request, the agent's own decision and the
         // revocable grant are all journalled; no product connection, board grant or cross-machine authority changes.
         const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
         if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }

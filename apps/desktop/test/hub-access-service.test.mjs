@@ -319,3 +319,23 @@ test('A6-041: the overview reads the origin requests of every live binding in ON
   assert.equal(single, 0, `the overview read ${single} origin requests one at a time`)
   assert.equal(batched, 1)
 })
+
+test('0.3.8: a registered service asks Fabric for folder attribution and is allowed at once, read-only (Observatory\'s live check of 0.3.7)', async () => {
+  const { access, shown } = setup()
+  const r = await access.request(DOOR, { agentId: 'example-agent', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute the folders this machine has to Fabric projects' })
+  assert.equal(r.ok, true, JSON.stringify(r))
+  assert.equal(r.status, 'allowed')
+  assert.equal(shown.length, 0, 'a read-only local lane opens no prompt')
+  const s = await access.status(DOOR, r.requestId, r.pollSecret)
+  assert.equal(s.ok, true)
+  assert.match(s.credential, /^[A-Za-z0-9_-]{43}$/)
+})
+
+test('0.3.8: project.resolve takes exactly the resource projects, and an unknown asker is refused before any prompt', async () => {
+  const { access, shown } = setup()
+  const wrong = await access.request(DOOR, { agentId: 'example-agent', callee: 'fabric', capabilities: ['project.resolve'], resources: ['project:abc'], reason: 'x' })
+  assert.equal(wrong.ok, false)
+  const stranger = await access.request(DOOR, { agentId: 'nobody-here', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'x' })
+  assert.equal(stranger.ok, false)
+  assert.equal(shown.length, 0)
+})

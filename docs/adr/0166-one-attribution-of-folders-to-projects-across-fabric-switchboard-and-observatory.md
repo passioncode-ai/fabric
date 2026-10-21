@@ -75,3 +75,9 @@ CO-339. Observatory reads the tool (its engine PR #309).
 `$defs/resolveAnswer`: the rules' answer, or `{outcome: "pending", reason: "git-unreadable", retryable: true}` while a
 Git probe of the asked folder or of a Project folder failed or timed out, or when one call ran past 8 s
 (`main/gitFacts.ts`, `shared/projectResolve.ts`; the 0.3.7 review, PL-4).
+
+**2026-10-21: the access a product asks for (0.3.8).** `fabric.access.request` admits, of Fabric itself, the capability
+`project.resolve` on exactly the resource `projects`, read-only, for a registered service or a coding agent Fabric
+knows; on the operator's own machine it is allowed at once, recorded as the asker's act, like an enrollment. Before it,
+Observatory's live check of 0.3.7 was refused at this step (`shared/access.ts#normaliseEnrollAsk`, board thread
+`617c8cbe`).

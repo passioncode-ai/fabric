@@ -9,20 +9,27 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-The patch of the operator's audit of the installed 0.3.7 (2026-10-21): the log says what happened, the startup failure
-names a full disk, and a lead session is no longer pushed out by its own subagents. No schema change: 0.3.8 admits
-schema 94, as 0.3.7 did.
+The patch of the operator's audit of the installed 0.3.7 (2026-10-21): other products can now get the access that
+`fabric.project.resolve` needs, the log says what happened, the startup failure names a full disk, and a coding agent
+in a folder that is no project stops asking every half minute. No schema change: 0.3.8 admits schema 94, as 0.3.7 did.
 
 - **A full disk is named when the local stack will not start.** On a disk with under 3 GB free, the startup failure
-  says how much is free and that Docker (OrbStack or Docker Desktop) stops when the disk runs out. The stack's own
-  words only ever named a missing Docker socket.
-- **Many sessions of one coding agent in one project no longer push each other out at eight.** A lead with its
-  subagents (each starts its own `fabric-mcp`) reached eight in one project and the lead was the one ended; a project
-  now holds 16 sessions of one coding agent, and 64 across all projects as before.
+  says first how much is free and that Docker stops when the disk runs out (in each system's own words), and the copied
+  details and `startup-failure.log` carry the free space. The stack's own words only ever named a missing Docker socket.
+- **Other products can ask Fabric which project a folder belongs to.** 0.3.7 shipped `fabric.project.resolve`, but a
+  product had no way to get the access it needs: `fabric.access.request` refused every ask of Fabric itself but
+  `session.enroll` and `board.respond` (Observatory's live check, 2026-10-21). Fabric now admits `project.resolve` on the
+  resource `projects`, read-only, at once on the operator's own machine, for a registered service or a coding agent it
+  knows.
+- **A coding agent in a folder that is no project stops asking every half minute.** While Fabric keeps refusing the
+  folder (too broad, denied, not enrolled), `fabric-mcp` waits twice as long each time, up to 30 minutes; the agent's
+  own `fabric_whoami` still asks at once. A Hermes in the home folder had asked every 30 s for three days.
 - **The log says why a tool turned a call down.** A tool's typed refusal (`needs-grant`, `no-session` and the like) is
   recorded at warn with its code, not as an error with no reason (CO-335); an accepted MCP notification is no longer a
-  warning (336 an hour in the 0.3.7 log).
+  warning (336 in 49 minutes of the 0.3.7 log).
 - **Docker on Windows is waited for in its bare pipe form** too (`//./pipe/docker_engine`).
+- **What 0.3.7 said would come in 0.3.8 comes in 0.3.9**: the agents' own acts in История and Fabric's own enrollment on
+  the shared attribution rules (CO-339). 0.3.8 is this patch; История now says «in a later version».
 
 ## 0.3.7
 

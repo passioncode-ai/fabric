@@ -42,8 +42,8 @@ export function classifyToolOutcome(input: {
   if (input.clientGone) return 'cancelled'
   if (input.status >= 400) return 'refused'
   // A notification (`notifications/initialized`, a cancel) is answered 202 with no body by design (MCP streamable
-  // HTTP): it was accepted, not lost. Read as `unknown`, it put 336 warnings an hour into the log (0.3.8 audit).
-  if (input.status === 202 && (input.body === undefined || input.body === null)) return 'returned'
+  // HTTP): it was accepted, not lost. Read as `unknown`, it put 336 warnings into 49 minutes of the 0.3.7 log (0.3.8 audit).
+  if (input.status === 202 && input.body === undefined) return 'returned'
   if (input.body === undefined) return 'unknown'
   if (input.body === null) return 'unknown'
   const code = input.body.error?.code
@@ -146,11 +146,12 @@ export function bodyFromEnds(head: string, tail: string, complete: boolean): Par
 }
 
 
+// #region audit-038-trace — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
 /**
  * The typed refusal a tool answered with (`structuredContent.error.code`, or the same object as the text of its first
  * content block): `needs-grant`, `no-session`, `kept-out` and the like. A refusal by design is not a crash: the trace
  * records its code at warn, so the log says WHY a call was turned down (CO-335; 0.3.8 audit: 148 `session.enroll`
- * answers an hour were logged as errors with no reason). Null for an answer with no typed code.
+ * answers in 49 minutes were logged as errors with no reason). Null for an answer with no typed code.
  */
 export function typedRefusalCode(body: unknown): string | null {
   const result = body && typeof body === 'object' ? (body as { result?: unknown }).result : null
@@ -167,3 +168,13 @@ export function typedRefusalCode(body: unknown): string | null {
   if (typeof text !== 'string' || !text.trimStart().startsWith('{')) return null
   try { return fromObject(JSON.parse(text)) } catch { return null }
 }
+
+/** How a typed refusal is logged: a refusal by design at warn, `ok`; one that says the call may have run is `unknown`;
+ *  one that says Fabric or a product failed stays an error (0.3.8 review ER-2). */
+const FAILED_REFUSALS: ReadonlySet<string> = new Set(['hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal'])
+export function refusalOps(code: string): { outcome: 'ok' | 'failed' | 'unknown'; level: 'warn' | 'error' } {
+  if (code === 'outcome-unknown') return { outcome: 'unknown', level: 'warn' }
+  if (FAILED_REFUSALS.has(code)) return { outcome: 'failed', level: 'error' }
+  return { outcome: 'ok', level: 'warn' }
+}
+// #endregion audit-038-trace

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "00f6596fb8ceff6676f4a857c6b7baf732da8ec6",
+  "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-ux.md",
+  "reportSha256": "d68af113bb8e3781b18a8922138a72698b4b54324dcc5f58df451de424e414dd",
+  "reviewerRun": "release-038-i1-ux-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startup.diskLow` has a text per OS in both languages and the English fallback; the per-OS test builds the dialog with `freeDiskBytes: 0`; `startupFailure.test.ts` \"a full disk is named\" (watched failing with one text for every OS)"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startupFailure.ts#diskLowLine`: decimal GB, the reader's number format («0,7»), never below 0.1"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the disk line comes first and no longer says «then retry»"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the disk line also for a stack that timed out, and for an unclassified failure"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/index.ts`: the free space is in `startup-failure.log` and in the copied details"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-161 amended 2026-10-21"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says what 0.3.7 promised for 0.3.8 comes in 0.3.9"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: История says «в одной из следующих версий» / \"in a later version\""
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «336 in 49 minutes», in the notes and the code comments"
+      ]
+    }
+  ]
+}

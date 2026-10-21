@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "00f6596fb8ceff6676f4a857c6b7baf732da8ec6",
+  "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-errors.md",
+  "reportSha256": "8ac78a56280b138acab2b26013081c6002c23e3b68e3ba1ffb7a8c10c5bfece7",
+  "reviewerRun": "release-038-i1-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-10",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `d637e870`: CO-335 left lane 12 and P-20; `check-plan-ids.mjs` exit 0"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/toolOutcome.ts#refusalOps`: `outcome-unknown` is unknown, `hub-unavailable`, `product-credential-unavailable`, `product-error`, `internal` stay errors (`toolOutcome.test.ts`)"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-4"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-5"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: decimal GB (1e9); the disk measured is the data volume, said in SCN-161"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cap rise is withdrawn: the per-project cap stays 8 (DA-1 measured the cause on 0.3.6, already fixed by CO-334)"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only a 202 with no bytes is `returned`; a 202 with an unreadable body stays `unknown` (`toolTrace.ts`, `toolOutcome.test.ts`)"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README, P-19 and CO-335 say 0.3.9 / resolved in 0.3.8"
+      ]
+    }
+  ]
+}

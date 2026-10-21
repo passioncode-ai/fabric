@@ -43,6 +43,10 @@ export const projectOfResource = (resource: string): string | null => (PROJECT_R
 /** ADR-0149 §2: answering a Project's requests is a grant of its own — callee `fabric`, capability `board.respond`,
  *  resource `board:<project>/<capability>`, 1 to 8 capabilities of ONE Project per ask. */
 export const BOARD_RESPOND = 'board.respond'
+/** Folder attribution (ADR-0166, DEC-0089): read-only, of Fabric itself, on the one resource `projects` (0.3.8: Observatory's
+ *  live check found no way to ask for it). */
+export const PROJECT_RESOLVE = 'project.resolve'
+export const PROJECTS_RESOURCE = 'projects'
 export const BOARD_RESOURCE = /^board:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([a-z][a-z0-9._-]{1,127})$/
 /** The Project and capability a `board:<project>/<capability>` resource names. */
 export function boardResourceOf(resource: string): { project: string; capability: string } | null {
@@ -335,8 +339,16 @@ function normaliseEnrollAsk(input: { agentId?: unknown; capabilities?: unknown; 
   if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
     return { ok: false, reason: 'agentId must be your coding agent\'s catalogue id, e.g. claude-code' }
   if (Array.isArray(input.capabilities) && input.capabilities.length === 1 && input.capabilities[0] === BOARD_RESPOND) return normaliseRespondAsk(input)
+  if (Array.isArray(input.capabilities) && input.capabilities.length === 1 && input.capabilities[0] === PROJECT_RESOLVE) {
+    if (!Array.isArray(input.resources) || input.resources.length !== 1 || input.resources[0] !== PROJECTS_RESOURCE)
+      return { ok: false, reason: `name exactly one resource, ${PROJECTS_RESOURCE}: folder attribution reads Fabric's projects` }
+    const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
+    const reason = raw.length > 1000 ? '' : oneLine(raw, 1000)
+    if (!reason) return { ok: false, reason: 'give a reason of 1 to 1000 characters — the operator reads it, as your claim' }
+    return { ok: true, value: { agentId: input.agentId, callee: FABRIC_SELF, capabilities: [PROJECT_RESOLVE], resources: [PROJECTS_RESOURCE], reason } }
+  }
   if (!Array.isArray(input.capabilities) || input.capabilities.length !== 1 || input.capabilities[0] !== SESSION_ENROLL)
-    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL} or ${BOARD_RESPOND}` }
+    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL}, ${BOARD_RESPOND} or ${PROJECT_RESOLVE}` }
   if (!Array.isArray(input.resources) || input.resources.length !== 1 || typeof input.resources[0] !== 'string' || !PROJECT_RESOURCE.test(input.resources[0]))
     return { ok: false, reason: 'name exactly one project: project:<id>, as fabric.session.enroll answered it' }
   const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
@@ -687,7 +699,7 @@ export function pendingFacts(r: RequestRowLike, connected: boolean, home?: strin
     ask: askLines(r),
     reason: oneLine(r.reason, 300),
     incremental: r.asked_by_binding !== null,
-    ...(r.callee === FABRIC_SELF && r.capabilities.includes(BOARD_RESPOND) ? { respond: respondFacts(r) } : r.callee === FABRIC_SELF ? { enroll: enrollFacts(r.registry, home) } : {}),
+    ...(r.callee === FABRIC_SELF && r.capabilities.includes(BOARD_RESPOND) ? { respond: respondFacts(r) } : r.callee === FABRIC_SELF && r.capabilities.includes(SESSION_ENROLL) ? { enroll: enrollFacts(r.registry, home) } : {}),
     requestedAt: r.requested_at,
     expiresAt: r.expires_at
   }

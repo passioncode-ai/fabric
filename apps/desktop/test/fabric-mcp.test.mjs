@@ -779,3 +779,23 @@ test('HTTP 429 cooldown adds a jitter of up to half the server delay, so refused
   await h.proxy.connectOnce()
   assert.equal(calls, 2, 'and no longer than the delay plus half of it times its draw')
 })
+
+test('a lasting refusal waits longer each time, up to 30 minutes; a passing state does not grow (0.3.8 audit)', async () => {
+  const { backoffFor, BACKOFF_MS: B, BACKOFF_CEILING_MS } = await import(path.join(SRC, 'fabricMcp.ts'))
+  assert.equal(backoffFor('no-project', 1), B['no-project'])
+  assert.equal(backoffFor('no-project', 2), B['no-project'] * 2)
+  assert.equal(backoffFor('no-project', 3), B['no-project'] * 4)
+  assert.equal(backoffFor('no-project', 40), BACKOFF_CEILING_MS)
+  assert.equal(backoffFor('denied', 5), Math.min(BACKOFF_CEILING_MS, B.denied * 16))
+  assert.equal(backoffFor('not-running', 50), B['not-running'])
+  assert.equal(backoffFor('connected', 50), B.connected)
+})
+
+test('the run loop waits longer at each repeated no-project, and starts over after the agent asks (0.3.8 audit)', async () => {
+  const h = harness({ enroll: () => 'no-project' })
+  const stop = { stopped: false }
+  h.proxy.deps.sleep = (ms) => { h.slept.push(ms); if (h.slept.length >= 4) stop.stopped = true; return Promise.resolve() }
+  await h.proxy.run(stop)
+  const base = BACKOFF_MS['no-project']
+  assert.deepEqual(h.slept.slice(0, 4), [base, base * 2, base * 4, base * 8])
+})

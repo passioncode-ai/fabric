@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bodyFromEnds, TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall, typedRefusalCode } from './toolOutcome.ts'
+import { bodyFromEnds, TOOL_OUTCOMES, classifyToolOutcome, coverageOf, describeCall, refusalOps, typedRefusalCode } from './toolOutcome.ts'
 
 describe('an HTTP status is not an outcome', () => {
   it('reads a JSON-RPC error inside a 200 as a failure, not a success', () => {
@@ -150,8 +150,9 @@ describe('a body too long to keep is read from its two ends (2026-10-14)', () =>
 
 describe('the 0.3.8 audit of the 0.3.7 log', () => {
   it('a notification answered 202 with no body was accepted, not unknown', () => {
-    expect(classifyToolOutcome({ status: 202, body: null })).toBe('returned')
     expect(classifyToolOutcome({ status: 202 })).toBe('returned')
+    // Bytes that are no JSON-RPC answer are still unknown, 202 or not (0.3.8 review ER-7).
+    expect(classifyToolOutcome({ status: 202, body: null })).toBe('unknown')
   })
   it('a typed refusal names its code, from structuredContent or from the text block', () => {
     expect(typedRefusalCode({ result: { isError: true, structuredContent: { error: { code: 'needs-grant', message: 'x' } }, content: [] } })).toBe('needs-grant')
@@ -162,5 +163,13 @@ describe('the 0.3.8 audit of the 0.3.7 log', () => {
     expect(typedRefusalCode({ result: { content: [{ type: 'text', text: JSON.stringify({ error: { code: 'x-y' } }) }] } })).toBeNull()
     expect(typedRefusalCode({ result: { isError: true, content: [{ type: 'text', text: 'MCP error -32602: bad' }] } })).toBeNull()
     expect(typedRefusalCode({ error: { code: -32000 } })).toBeNull()
+  })
+})
+
+describe('how a typed refusal is logged (0.3.8 review ER-2)', () => {
+  it('a refusal by design is warn and ok; one that may have run is unknown; one that says something failed stays an error', () => {
+    expect(refusalOps('needs-grant')).toEqual({ outcome: 'ok', level: 'warn' })
+    expect(refusalOps('outcome-unknown')).toEqual({ outcome: 'unknown', level: 'warn' })
+    for (const code of ['hub-unavailable', 'product-credential-unavailable', 'product-error', 'internal']) expect(refusalOps(code)).toEqual({ outcome: 'failed', level: 'error' })
   })
 })

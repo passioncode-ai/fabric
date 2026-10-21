@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "00f6596fb8ceff6676f4a857c6b7baf732da8ec6",
+  "report": "docs/evidence/reviews/0.3.8/iteration-1/2026-10-21-data.md",
+  "reportSha256": "d6e80925fae49066907301ae37a926c51de5d7aef326a5b4278595bb0361ee59",
+  "reviewerRun": "release-038-i1-data-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-30",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cap rise and its cause are withdrawn from the notes, CO-361, P-21 and the ledger"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-362 (0.3.9): the 20 000-line log holds hours; size it by time"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/fabricMcp.ts#backoffFor`: a lasting refusal doubles to 30 min (`fabric-mcp.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ER-2"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-4; a disk running out while Fabric runs is CO-362"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the runbook says 0.3.8 admits 94 with no step, and FROM has 94 for 0.3.7"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-2 and DO-4"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DA-8",
+      "status": "not-a-defect",
+      "evidence": [
+        "not-a-defect: a note on the withdrawn bound"
+      ]
+    }
+  ]
+}

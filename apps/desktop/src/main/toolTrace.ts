@@ -20,7 +20,7 @@
 // away — a trace that kept results would keep whatever secret was in one.
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { bodyFromEnds, classifyToolOutcome, describeCall, typedRefusalCode, type ToolOutcome } from '../shared/toolOutcome.ts'
+import { bodyFromEnds, classifyToolOutcome, describeCall, refusalOps, typedRefusalCode, type ToolOutcome } from '../shared/toolOutcome.ts'
 import { ops } from './opsSink.ts'
 import type { OpsOutcome } from '../shared/opsLog.ts'
 
@@ -122,7 +122,7 @@ export function beginAttempt(input: {
     if (recorded) return
     recorded = true
     // A typed refusal is the tool answering as designed: warn with its code, never an error with no reason (CO-335).
-    const mapped = outcome === 'threw' && refusalCode ? { outcome: 'ok' as const, level: 'warn' as const } : OPS_OUTCOME[outcome]
+    const mapped = outcome === 'threw' && refusalCode ? refusalOps(refusalCode) : OPS_OUTCOME[outcome]
     ops.record({
       op: subject?.tool ? `tool.${subject.tool}` : `mcp.${subject?.method ?? 'unparsed'}`,
       outcome: mapped.outcome,
@@ -151,7 +151,8 @@ export function beginAttempt(input: {
   input.res.on('finish', () => {
     // A body that did not fit is read from its two ends; one that still reads as no JSON-RPC response (a stream)
     // stays `unknown` — the honest answer for a 200 nobody could read.
-    const parsed = peek ? bodyFromEnds(peek, tail, total <= PEEK_BYTES) : null
+    // No bytes at all is `undefined` (a 202 notification); bytes that are no JSON-RPC response stay `null`.
+    const parsed = peek ? bodyFromEnds(peek, tail, total <= PEEK_BYTES) : total === 0 ? undefined : null
     write(classifyToolOutcome({ status: input.res.statusCode, body: parsed }), typedRefusalCode(parsed))
   })
 

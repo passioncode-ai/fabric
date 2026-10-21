@@ -5191,11 +5191,16 @@ async function explainAndQuit(e: unknown): Promise<void> {
   // app writes one, so pointing at "the log" without creating it would be a
   // second silence dressed as help.
   const logPath = path.join(app.getPath('userData'), 'startup-failure.log')
+  // The data volume's free space, read once: a full disk stops Docker and the stack's own words never say so. It goes
+  // into the log and the copied details too, which is what a report is read from (0.3.8 review UX-5).
+  let freeDiskBytes: number | null = null
+  try { const st = statfsSync(app.getPath('userData')); freeDiskBytes = st.bavail * st.bsize } catch { freeDiskBytes = null /* unreadable: nothing names the disk */ }
+  const diskNote = freeDiskBytes === null ? '' : `\n\nfree disk: ${(freeDiskBytes / 1e9).toFixed(1)} GB`
   try {
     mkdirSync(path.dirname(logPath), { recursive: true })
     writeFileSync(
       logPath,
-      `${new Date().toISOString()}  ${failure.cause}\n${failure.title}\n\n${failure.detail}\n`,
+      `${new Date().toISOString()}  ${failure.cause}\n${failure.title}\n\n${failure.detail}${diskNote}\n`,
       { encoding: 'utf8', mode: 0o600 }
     )
   } catch (writeError) {
@@ -5216,16 +5221,14 @@ async function explainAndQuit(e: unknown): Promise<void> {
   // business, and English is what it fell back to before (0.3.3).
   const escapeHtml = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
   let say: Translate = translator('en')
-  try { say = translator(readSettings().locale) } catch { /* English */ }
+  let locale = 'en'
+  try { locale = readSettings().locale; say = translator(readSettings().locale) } catch { /* English */ }
   const windowTitle = say('startup.windowTitle')
   const page = `<!doctype html><meta charset="utf-8"><title>${escapeHtml(windowTitle)}</title><body style="font:13px -apple-system,sans-serif;margin:24px">${escapeHtml(windowTitle)}</body>`
   const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: windowTitle, show: true, webPreferences: { sandbox: true, contextIsolation: true } })
   void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
   while (!quit.quitting) {
-    // The data volume's free space, read once here: a full disk stops Docker and the stack's own words never say so.
-    let freeDiskBytes: number | null = null
-    try { const st = statfsSync(app.getPath('userData')); freeDiskBytes = st.bavail * st.bsize } catch { freeDiskBytes = null /* unreadable: the dialog names no disk */ }
-    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, freeDiskBytes, say: (key, vars) => say(key as StringKey, vars) })
+    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, freeDiskBytes, locale, say: (key, vars) => say(key as StringKey, vars) })
     const { response: choice } = await dialog.showMessageBox(parent, {
       type: 'error',
       title: windowTitle,
@@ -5247,7 +5250,7 @@ async function explainAndQuit(e: unknown): Promise<void> {
     if (pressed === 'copy') {
       // Copying must not dismiss the dialog: an operator who copies then wants
       // to retry would otherwise have to reopen the app to get the button back.
-      clipboard.writeText(`${failure.cause}\n${failure.title}\n\n${failure.detail}`)
+      clipboard.writeText(`${failure.cause}\n${failure.title}\n\n${failure.detail}${diskNote}`)
       continue
     }
     if (quit.quitting) return

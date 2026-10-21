@@ -3991,6 +3991,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - Every string below is the Russian the person reads; the English twin is drawn beside it in the prototype
   (`product.html#view-simple-home?lang=en` and the other `simple-*` views).
 - **Amended 2026-10-20 (0.3.7 review, ER-4):** when Docker does not answer at start (OrbStack or Docker Desktop still starting, typical at login), Fabric waits up to 90 s, saying «Waiting for Docker to answer» on the splash, and starts the stack as soon as Docker answers; only after the deadline does it show the failure, naming Docker.
+- **Amended 2026-10-21 (0.3.8, the audit of 0.3.7):** when the stack will not start, times out, starts silent or loses its database on a disk with under 3 GB free, the startup failure says FIRST how much is free and that Docker stops when the disk runs out (Docker Desktop on Windows, Docker Engine on Linux, OrbStack or Docker Desktop on macOS), in the reader's number format; the copied details and `startup-failure.log` carry the free space.
 
 ### SCN-162: Move between the five places and the projects from the rail
 - **Persona:** P-01
