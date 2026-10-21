@@ -71,9 +71,9 @@ import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
-import { classifyStartupFailure, diskLowLine, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
+import { classifyStartupFailure, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
 import { dockerIsUnreachable } from '../shared/stackStartRetry.ts'
-import { platformKey, retryAfterSeconds, stackBackoffMs, startupHeals, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
+import { STARTUP_WAIT_LINES, retryAfterSeconds, stackBackoffMs, startupHeals, startupWaitLines, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
 import { createStackWatch, type StackWatch } from './stackWatch.ts'
 import { closeHubStandby, openHubStandby, type StandbyOpen } from './hubStandby.ts'
 import { appendBounded } from './boundedLog.ts'
@@ -5182,18 +5182,21 @@ function startupWaitText(): Record<string, string> {
   try { const chosen = readSettings().locale; locale = chosen; say = translator(chosen) } catch { /* English, as the startup dialog falls back */ }
   const w = startupWait
   if (!w) return {}
-  const seconds = Math.max(0, Math.ceil((w.nextAt - Date.now()) / 1000))
-  const free = freeDiskNow()
-  const low = diskLowLine(w.failure, { freeDiskBytes: free, locale })
-  return {
-    title: say('startup.wait.title'),
-    // Each OS names its own Docker (0.3.9 review UX-4, as 0.3.8 UX-1 did for the disk line).
-    cause: say(waitsForDocker(w.failure) ? (platformKey('startup.wait.docker', process.platform) as StringKey) : 'startup.wait.database'),
-    disk: low ? say(low.key as StringKey, { free: low.free }) : '',
-    next: w.timer ? say('startup.wait.next', { seconds, attempt: w.attempt + 1 }) : say('startup.wait.trying', { attempt: w.attempt + 1 }),
-    agents: say('startup.wait.agents'),
-    log: say('startup.wait.log', { log: path.join(app.getPath('userData'), 'startup-failure.log') })
-  }
+  // The lines and their order are `shared/stackWatch.ts#startupWaitLines`: the disk first when it is low (review i2
+  // UX-3), the agents line only while the standby holds the hub's port (review i2 UX-8).
+  const lines = startupWaitLines({
+    say: say as (key: string, vars?: Record<string, string | number>) => string,
+    failure: w.failure,
+    waitsForDocker: waitsForDocker(w.failure),
+    freeDiskBytes: freeDiskNow(),
+    locale,
+    platform: process.platform,
+    nextInS: w.timer ? Math.max(0, Math.ceil((w.nextAt - Date.now()) / 1000)) : null,
+    attempt: w.attempt + 1,
+    standby: hubStandby === null ? null : hubStandby.open ? { open: true } : { open: false, reason: hubStandby.reason },
+    logPath: path.join(app.getPath('userData'), 'startup-failure.log')
+  })
+  return Object.fromEntries(lines.map((l) => [l.id, l.text]))
 }
 
 /** The window that says what the start waits for; shown once, updated in place. */
@@ -5205,8 +5208,8 @@ function showStartupWait(): void {
   }
   const t = startupWaitText()
   const esc = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
-  const page = `<!doctype html><meta charset="utf-8"><title>${esc(t.title ?? '')}</title><body style="margin:0;padding:20px 24px;background:#0c0e10;color:#e6e9ec;font:13px -apple-system,sans-serif;line-height:1.45">` +
-    ['title', 'cause', 'disk', 'next', 'agents', 'log'].map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
+  const page = `<!doctype html><meta charset="utf-8"><title>${esc(t.title ?? '')}</title><style>p:empty{display:none}</style><body style="margin:0;padding:20px 24px;background:#0c0e10;color:#e6e9ec;font:13px -apple-system,sans-serif;line-height:1.45">` +
+    STARTUP_WAIT_LINES.map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
   // Sized to its text (0.3.9 review UX-5): the fixed 460 × 240 cut the Russian text, and with the low-disk line the
   // next-try line was the last one seen. The content area starts at the longest measured case (Russian with the disk
   // line, 330 px at 460 px wide) and then follows the page's own height; the person may resize it.

@@ -140,6 +140,23 @@ test('TR-2: while the agent\'s own fabric-mcp is connected, a rejoin\'s end neit
   assert.equal(said(await own.client.callTool({ name: 'fabric_session_observe', arguments: END })).session, 'ended', 'the agent\'s own bearer still ends it')
 })
 
+// 0.3.9 review iteration 2, ER-2: the guard judged by recency alone, so for up to five minutes after an agent died its
+// hook's end was refused and the session, its claims and their running tasks stayed. A dead agent process ends it.
+test('ER-2 (i2): a rejoin\'s end for an agent whose process is gone ends the session, however recent its last sign', async () => {
+  const gone = await connect('rt-hook-1', { ownClientLive: () => true, agentAlive: () => false }, { rejoin: true })
+  const end = said(await gone.client.callTool({ name: 'fabric_session_observe', arguments: END }))
+  assert.equal(end.session, 'ended', JSON.stringify(end))
+  const rel = await connect('rt-hook-1', { ownClientLive: () => true, agentAlive: () => false }, { rejoin: true })
+  const r = said(await rel.client.callTool({ name: 'fabric_work_release', arguments: { claims: 'session', outcome: 'let-go', reason: 'the Claude Code session ended (other)' } }))
+  assert.notEqual(r.code, 'agent-still-connected')
+  // Alive, or not known: the recency guard holds as before.
+  for (const agentAlive of [() => true, () => null]) {
+    const h = await connect('rt-hook-1', { ownClientLive: () => true, agentAlive }, { rejoin: true })
+    assert.equal(said(await h.client.callTool({ name: 'fabric_session_observe', arguments: END })).code, 'agent-still-connected')
+    assert.equal(h.ended, 0)
+  }
+})
+
 // TR-1: /clear is not the end of the agent: its process and its fabric-mcp go on.
 test('TR-1: an end for /clear keeps the session', async () => {
   const h = await connect()

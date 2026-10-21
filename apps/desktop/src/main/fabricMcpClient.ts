@@ -183,7 +183,10 @@ export const httpTransport: TransportFactory = (url, bearer) => {
     // do not replay the request, and do not copy the URL, bearer or arbitrary response body into an error.
     fetch: async (input, init) => {
       const remaining = retryUntil - performance.now()
-      if (remaining > 0) throw new FabricRateLimitError(remaining)
+      // 0.3.9 review iteration 2, ER-2: the session's DELETE (the agent leaving) is the one request the hub takes while
+      // its stack is lost, so it is never held by the cooldown; `leave` bounds it in time.
+      const leaving = (init?.method ?? '').toUpperCase() === 'DELETE'
+      if (remaining > 0 && !leaving) throw new FabricRateLimitError(remaining)
       const response = await fetch(input, init)
       if (response.status === 429 || (response.status === 503 && response.headers.get('retry-after') !== null)) {
         const delay = retryAfterMs(response.headers.get('retry-after'))

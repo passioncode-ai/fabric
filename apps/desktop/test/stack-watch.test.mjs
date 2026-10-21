@@ -211,4 +211,104 @@ test('ER-4: reads that only run out of time take three in a row to count as lost
   await tick()
   assert.equal(records('stack.lost').length, 1)
 })
+
+// 0.3.9 review iteration 2, ER-1: a try that ended while a timer's read was still in flight scheduled a second chain of
+// reads (its `clearTimeout` hit the timer that had already fired, and the read then scheduled its own next). Driven
+// through `start()` with the watch's timers held by the test, so every pending read is counted.
+test('ER-1 (i2): one chain of reads, however many tries end while a read is in flight', async () => {
+  const ops = createOps({ dir: mkdtempSync(path.join(tmpdir(), 'fabric-stack-watch-')) })
+  useOps(ops)
+  const pending = new Map()
+  let seq = 0
+  const timers = {
+    set: (fn, ms) => { const id = ++seq; pending.set(id, { fn, ms }); return id },
+    clear: (id) => { pending.delete(id) }
+  }
+  const fire = async () => {
+    const [id, t] = [...pending.entries()].sort((a, b) => a[1].ms - b[1].ms)[0]
+    pending.delete(id)
+    t.fn()
+    await settle()
+  }
+  let t = 1_000_000
+  let read = null
+  let release = null
+  const watch = createStackWatch({
+    readDatabase: () => new Promise((resolve) => { read = resolve }),
+    pingDocker: async () => true,
+    freeDisk: () => 50e9,
+    recover: async () => { await new Promise((r) => { release = r }) },
+    onChange: () => {},
+    now: () => t,
+    timers
+  })
+  // The stack is lost and a try begins: three failed reads, 10 s apart.
+  for (let i = 0; i < 3; i++) {
+    t += 10_000
+    const reading = watch.tick()
+    await settle()
+    read(false)
+    await reading
+  }
+  await settle()
+  assert.equal(typeof release, 'function', 'a try is running')
+  watch.start()
+  assert.equal(pending.size, 1)
+  for (let round = 0; round < 4; round++) {
+    // The chain's timer fires and its read is in flight when the try ends.
+    t += 30_000
+    await fire()
+    assert.equal(pending.size, 0, 'a read is in flight, nothing else pending')
+    const ending = release
+    release = null
+    ending()
+    await settle()
+    await settle()
+    read(false)
+    await settle()
+    await settle()
+    assert.equal(pending.size, 1, `round ${round}: ${pending.size} chains of reads are pending, one expected`)
+    // Let the next due try begin, so the next round ends one again during a read.
+    for (let i = 0; i < 10 && !release; i++) {
+      t += 120_000
+      await fire()
+      read(false)
+      await settle()
+      await settle()
+    }
+    assert.equal(typeof release, 'function', `round ${round}: the next try began`)
+    assert.equal(pending.size, 1)
+  }
+  watch.stop()
+  assert.equal(pending.size, 0, 'stop leaves nothing pending')
+})
+
+// 0.3.9 review iteration 2, UX-1: while Fabric holds off a start (a stack stopped by `supabase stop`, containers
+// running with a silent database), its re-check every 30 s showed «Trying now (try 1)» beside the hold.
+test('UX-1 (i2): a re-check while a hold stands is never said as a try; a start after it is', async () => {
+  const { tick, world, watch } = rig({ containers: 'running' })
+  world.database = false
+  for (let i = 0; i < 6; i++) { await tick(15_000); await settle() }
+  assert.equal(watch.view().hold, 'running')
+  // The next re-check: Docker takes its time to answer.
+  let answer
+  world.containers = new Promise((r) => { answer = r })
+  for (let i = 0; i < 4 && !answer.called; i++) { await tick(15_000); await settle() }
+  const during = watch.view()
+  assert.equal(during.hold, 'running')
+  assert.equal(during.trying, false, 'the notice says «Trying now» while Fabric holds off a start')
+  assert.equal(during.attempt, null)
+  assert.ok(world.changes.every((c) => !(c.view.trying && c.view.hold)), 'a published view said a try and a hold at once')
+  // The containers have exited meanwhile: this re-check starts the stack, and that IS said as a try.
+  let release
+  world.recovering = new Promise((r) => { release = r })
+  answer('stopped')
+  await settle()
+  await settle()
+  assert.equal(world.recovers, 1)
+  const starting = watch.view()
+  assert.deepEqual([starting.trying, starting.hold, starting.attempt], [true, null, 1])
+  release()
+  await settle()
+})
 // #endregion stack-watch

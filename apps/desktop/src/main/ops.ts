@@ -45,6 +45,9 @@ const DEFAULT_SAMPLE_WINDOW_MS = 10 * 60_000
 /** A successful call slower than this is always written: a slow path is the one worth finding (ST-13). */
 const SLOW_MS = 1_000
 const SEGMENT = /^operations\.(\d+)\.jsonl$/
+/** A rotation or prune that failed is tried again after this, doubling, held at the max (0.3.9 review i2, ER-3). */
+const MAINTENANCE_RETRY_MS = 5_000
+const MAINTENANCE_RETRY_MAX_MS = 10 * 60_000
 
 /**
  * Which records are high-frequency polling successes (59 % of the log in ST-4: `ipc.feed:replay`,
@@ -153,19 +156,43 @@ export function createOps(opts: {
     return out.sort((a, b) => a.closedAt - b.closedAt || a.name.localeCompare(b.name))
   }
 
-  /** Close the current file into a segment, then drop what is past its age or over the budget. */
-  const rotate = (at: number): void => {
-    let closedAt = at
-    while (existsSync(path.join(opts.dir, `operations.${closedAt}.jsonl`))) closedAt++
-    renameSync(file, path.join(opts.dir, `operations.${closedAt}.jsonl`))
-    size = 0
+  // #region ops-rotate-failing — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+  // 0.3.9 review iteration 2, ER-3: a rotation that threw (Windows EBUSY or EPERM while another process holds the file
+  // open) shared the append's `catch`, so a record that WAS written was counted lost, the size was read again, and every
+  // later record added an `ops.gap` line while the file grew past the budget without end. Now rotation and pruning are
+  // apart from the append: their failure is said once per streak (`ops.rotate-failed`) and retried with backoff, and
+  // while it lasts the current file may hold only what the budget leaves (`ceiling`); past it nothing is appended and
+  // each record not written is counted, which the next `ops.gap` publishes.
+  /** Failed rotations or prunes in a row, when the next try is due, and what the current file may hold meanwhile. */
+  let maintenanceFailures = 0
+  let maintenanceRetryAt = 0
+  let ceiling: number | null = null
+
+  /** Bytes in the closed segments; when they cannot be listed, the most they may hold. */
+  const closedBytes = (): number => {
+    try {
+      return segments().reduce((n, s) => n + s.bytes, 0)
+    } catch {
+      // Unlisted: assume the closed segments fill their share, so the ceiling errs towards writing less.
+      return budgetBytes - segmentBytes
+    }
+  }
+
+  /** Drop what is past its age or over the budget; answers the bytes the closed segments still hold. */
+  const prune = (at: number): number => {
     const all = segments()
     let total = all.reduce((n, s) => n + s.bytes, 0)
     let cutInsideFloor: number | null = null
     for (const s of all) {
       const tooOld = at - s.closedAt > maxAgeMs
       if (!tooOld && total <= budgetBytes - segmentBytes) break
-      rmSync(path.join(opts.dir, s.name), { force: true })
+      try {
+        rmSync(path.join(opts.dir, s.name), { force: true })
+      } catch {
+        // A segment that cannot be removed (held open, a read-only folder) stays and counts against the budget: the
+        // answer below makes that the current file's ceiling, and the next try removes it.
+        continue
+      }
       total -= s.bytes
       if (!tooOld && at - s.closedAt < retainMs) cutInsideFloor = s.closedAt
     }
@@ -180,10 +207,77 @@ export function createOps(opts: {
         },
         new Date(at)
       )
+      try {
+        appendFileSync(file, note + '\n', { mode: 0o600 })
+        size = (size ?? 0) + Buffer.byteLength(note) + 1
+      } catch {
+        // The note is about the log, not a record of anyone's: if it cannot be written the cut stays unsaid, and the
+        // next append that fails is counted as every failed append is.
+      }
+    }
+    return total
+  }
+
+  /** A rotation or a prune failed: retried with backoff; said once per streak; the current file capped meanwhile. */
+  const maintenanceFailed = (at: number, step: 'rotate' | 'prune', e: unknown, cap: number): void => {
+    maintenanceFailures++
+    maintenanceRetryAt = at + Math.min(MAINTENANCE_RETRY_MAX_MS, MAINTENANCE_RETRY_MS * 2 ** Math.min(maintenanceFailures - 1, 10))
+    const first = ceiling === null
+    ceiling = Math.max(0, cap)
+    if (!first) return
+    const note = line(
+      {
+        op: 'ops.rotate-failed',
+        outcome: 'failed',
+        level: 'warn',
+        ctx: { correlationId: 'ops-sink' },
+        error: e,
+        detail: { step, size_bytes: size, ceiling_bytes: ceiling, budget_bytes: budgetBytes, note: 'the log could not close or prune a segment; it is retried, and the log stops growing at its budget meanwhile (what is not written then is counted in the next ops.gap)' }
+      },
+      new Date(at)
+    )
+    if ((size ?? 0) + Buffer.byteLength(note) + 1 > ceiling) return
+    try {
       appendFileSync(file, note + '\n', { mode: 0o600 })
-      size += Buffer.byteLength(note) + 1
+      size = (size ?? 0) + Buffer.byteLength(note) + 1
+    } catch {
+      // Not written: the failure is still held in `ceiling` and retried; nothing else to tell from inside the logger.
     }
   }
+
+  /**
+   * Close the current file into a segment when it is full, then drop what is past its age or over the budget. Never
+   * throws: a failure is `maintenanceFailed`, and the log goes on inside its ceiling.
+   */
+  const maintain = (at: number): void => {
+    if (maintenanceFailures > 0 && at < maintenanceRetryAt) return
+    if ((size ?? 0) >= segmentBytes) {
+      let closedAt = at
+      while (existsSync(path.join(opts.dir, `operations.${closedAt}.jsonl`))) closedAt++
+      try {
+        renameSync(file, path.join(opts.dir, `operations.${closedAt}.jsonl`))
+      } catch (e) {
+        maintenanceFailed(at, 'rotate', e, budgetBytes - closedBytes())
+        return
+      }
+      size = 0
+    }
+    let closed: number
+    try {
+      closed = prune(at)
+    } catch (e) {
+      maintenanceFailed(at, 'prune', e, budgetBytes - closedBytes())
+      return
+    }
+    if (closed > budgetBytes - segmentBytes) {
+      maintenanceFailed(at, 'prune', new Error('a closed segment could not be removed'), budgetBytes - closed)
+      return
+    }
+    maintenanceFailures = 0
+    maintenanceRetryAt = 0
+    ceiling = null
+  }
+  // #endregion ops-rotate-failing
 
   const write = (text: string, at: number): void => {
     try {
@@ -196,23 +290,30 @@ export function createOps(opts: {
           size = 0
         }
       }
+      // A rotation or prune that failed is tried again when its backoff is due, before this record is weighed.
+      if (ceiling !== null) maintain(at)
       // The gap marker goes in FIRST, on the first write that works after a
       // failure — bounded to one line per outage however long it ran. Reading
       // the log later, the hole says how big it was instead of looking like a
       // quiet afternoon.
-      if (lost > 0) {
-        const missing = lost
-        const marker =
-          JSON.stringify(
+      const marker = lost > 0
+        ? JSON.stringify(
             opsRecord({
               at: new Date(at),
               op: 'ops.gap',
               outcome: 'unknown',
               level: 'warn',
               correlationId: 'ops-sink',
-              detail: { lost: missing, note: 'records the log could not write; the corpus is incomplete' }
+              detail: { lost, note: 'records the log could not write; the corpus is incomplete' }
             })
           ) + '\n'
+        : ''
+      // ER-3 (i2): while the log cannot rotate, the budget is a hard ceiling: this record is not written, and counted.
+      if (ceiling !== null && size + Buffer.byteLength(marker) + Buffer.byteLength(text) + 1 > ceiling) {
+        lost++
+        return
+      }
+      if (marker) {
         appendFileSync(file, marker, { mode: 0o600 })
         size += Buffer.byteLength(marker)
         // Cleared only once the marker is actually ON DISK. Clearing first
@@ -224,17 +325,19 @@ export function createOps(opts: {
       }
       appendFileSync(file, text + '\n', { mode: 0o600 })
       size += Buffer.byteLength(text) + 1
-      // Counted, not read: rotation renames the file and never rewrites it (ST-9's full-file trim is gone).
-      if (size >= segmentBytes) rotate(at)
     } catch {
       // Deliberate, and the only correct swallow in this repository: this runs
       // inside other people's catch blocks. There is nowhere left to report to.
       // It is not silent, though — the count is what the next successful write
       // publishes, and what `lost()` answers in the meantime.
       lost++
-      // The size is read again next time: a failed rotation leaves the file as it was.
+      // The size is read again next time.
       size = null
+      return
     }
+    // Counted, not read: rotation renames the file and never rewrites it (ST-9's full-file trim is gone). Apart from
+    // the append (ER-3, i2): the record is on disk whatever the rotation does.
+    if (size >= segmentBytes) maintain(at)
   }
 
   /** Close the sampling window when it has run its length: one line with what was counted and not written. */

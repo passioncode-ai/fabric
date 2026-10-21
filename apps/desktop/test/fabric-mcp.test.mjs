@@ -1088,3 +1088,93 @@ test('UX-3: a call refused 503 under a live session passes on the hub\'s code an
   assert.match(second, /No new request was sent/)
   assert.match(second, /stack-unavailable/)
 })
+
+// 0.3.9 review iteration 2, UX-7: the hub's reason ends "Nothing of this call was done. Wait and call again." and
+// fabric-mcp's own refusal says the same around it, so the agent read it twice. Said once, with one instruction to wait.
+test('UX-7 (i2): a refusal through fabric-mcp says "Nothing of this call was done" once, and how long to wait once', async () => {
+  const { FabricRateLimitError } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const reason = 'Fabric\'s database is not answering; Fabric is bringing it back. Nothing of this call was done. Wait and call again.'
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => 1000 } })
+  await h.proxy.connectOnce()
+  h.link.callTool = async () => { throw new FabricRateLimitError(30_000, 503, { code: 'stack-unavailable', reason }) }
+  const first = (await h.proxy.call('fabric_tasks_list', {})).content[0].text
+  assert.equal(first.match(/Nothing of this call was done/g)?.length, 1, first)
+  assert.doesNotMatch(first, /Wait and call again/, first)
+  assert.match(first, /bringing it back/)
+  assert.match(first, /wait 30 seconds/)
+  const second = (await h.proxy.call('fabric_tasks_list', {})).content[0].text
+  assert.ok((second.match(/Nothing of this call was done/g)?.length ?? 0) <= 1, second)
+  assert.doesNotMatch(second, /Wait and call again/, second)
+})
+
+// #region fabric-mcp-leave-always — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+// 0.3.9 review iteration 2, ER-2: during a stack outage the hub answers every POST 503 with Retry-After, and the
+// client's cooldown then refused the DELETE that says the agent is leaving before it was sent, so the session, its
+// claims and the tasks they moved stayed. The DELETE is the one request the hub takes while unavailable: it is sent.
+test('ER-2 (i2): the leave DELETE is sent through a 503 cooldown; other requests still wait', async () => {
+  const { createServer } = await import('node:http')
+  const { openSessionLink, httpTransport } = await clientModule()
+  const seen = []
+  const server = createServer((req, res) => {
+    let body = ''
+    req.on('data', (c) => { body += c })
+    req.on('end', () => {
+      seen.push(req.method)
+      if (req.method === 'DELETE') { res.writeHead(200).end(); return }
+      if (req.method === 'GET') { res.writeHead(405).end(); return }
+      const msg = JSON.parse(body)
+      if (msg.method === 'initialize') {
+        res.writeHead(200, { 'content-type': 'application/json', 'mcp-session-id': 'sess-1' })
+        res.end(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result: { protocolVersion: msg.params.protocolVersion, capabilities: {}, serverInfo: { name: 'hub', version: '1' } } }))
+        return
+      }
+      if (msg.id === undefined) { res.writeHead(202).end(); return }
+      res.writeHead(503, { 'content-type': 'application/json', 'retry-after': '60' })
+      res.end(JSON.stringify({ error: 'Fabric\'s database is not answering; Fabric is bringing it back.', code: 'stack-unavailable' }))
+    })
+  })
+  await new Promise((r) => server.listen(0, '127.0.0.1', r))
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/mcp`
+    const link = await openSessionLink(url, CRED, httpTransport, { leaveMs: 2000 })
+    await assert.rejects(link.ping(), (e) => e.code === 429 && e.status === 503)
+    // Still in the cooldown: another request is refused in the client, never sent.
+    const before = seen.length
+    await assert.rejects(link.ping(), (e) => e.code === 429)
+    assert.equal(seen.length, before, 'a request was sent during the cooldown')
+    await link.leave()
+    assert.equal(seen.at(-1), 'DELETE', `the hub saw ${JSON.stringify(seen)}: the leave never reached it`)
+  } finally {
+    await new Promise((r) => server.close(r))
+  }
+})
+
+// ER-2 (i2): fabric-mcp killed by a signal (a closed terminal: SIGHUP; a supervisor: SIGTERM; Ctrl-C: SIGINT) or left
+// by its agent (stdin ends) tells Fabric first, bounded, then exits; a second signal while leaving changes nothing.
+test('ER-2 (i2): a signal or stdin\'s end leaves the session once, bounded, then exits with the signal\'s code', async () => {
+  const { EventEmitter } = await import('node:events')
+  const { leaveOnExit } = await import(path.join(SRC, 'fabricMcp.ts'))
+  for (const [event, code] of [['SIGTERM', 143], ['SIGHUP', 129], ['SIGINT', 130], ['end', 0]]) {
+    const proc = new EventEmitter()
+    proc.stdin = new EventEmitter()
+    const exits = []
+    let left = 0
+    const stop = { stopped: false }
+    leaveOnExit({ proc, stop, leave: async () => { left++ }, exit: (c) => exits.push(c), deadlineMs: 1000 })
+    if (event === 'end') proc.stdin.emit('end'); else proc.emit(event)
+    proc.emit('SIGTERM')
+    await new Promise((r) => setTimeout(r, 20))
+    assert.equal(left, 1, `${event}: the session was left ${left} times`)
+    assert.equal(stop.stopped, true)
+    assert.deepEqual(exits, [code], `${event}: exits ${JSON.stringify(exits)}`)
+  }
+  // A leave that hangs (Fabric gone) never holds the exit past the deadline.
+  const proc = new EventEmitter()
+  proc.stdin = new EventEmitter()
+  const exits = []
+  leaveOnExit({ proc, stop: { stopped: false }, leave: () => new Promise(() => {}), exit: (c) => exits.push(c), deadlineMs: 30 })
+  proc.emit('SIGTERM')
+  await new Promise((r) => setTimeout(r, 120))
+  assert.deepEqual(exits, [143])
+})
+// #endregion fabric-mcp-leave-always

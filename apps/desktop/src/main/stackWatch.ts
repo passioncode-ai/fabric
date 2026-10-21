@@ -27,6 +27,7 @@ import {
   recoveryDue,
   recoveryEnded,
   recoveryPlan,
+  recoveryStarts,
   stackHealthView,
   watchDelayMs,
   type StackContainers,
@@ -55,6 +56,8 @@ export interface StackWatchDeps {
   /** Called when the state changed, and on every tick while the stack is down (the refusal's wait shortens). */
   onChange: (view: StackHealthView, refusal: StackRefusal | null) => void
   now?: () => number
+  /** The watch's own timers (its chain of reads); the probe holds them to count what is pending. */
+  timers?: { set(fn: () => void, ms: number): unknown; clear(handle: unknown): void }
 }
 
 export interface StackWatch {
@@ -96,7 +99,22 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
   const platform = deps.platform ?? process.platform
   const readDeadlineMs = deps.readDeadlineMs ?? STACK_READ_DEADLINE_MS
   let state: StackWatchState = initialStackWatch(now(), { recovers: deps.recover !== null })
-  let timer: ReturnType<typeof setTimeout> | null = null
+  const timers = deps.timers ?? {
+    set: (fn: () => void, ms: number): unknown => {
+      const handle = setTimeout(fn, ms)
+      handle.unref?.()
+      return handle
+    },
+    clear: (handle: unknown): void => clearTimeout(handle as ReturnType<typeof setTimeout>)
+  }
+  let timer: unknown = null
+  /**
+   * The one chain of reads (0.3.9 review iteration 2, ER-1). A try that ends reschedules the chain to read again in a
+   * second; when it ends while a read of the chain is in flight, that read's own reschedule is stale and must not run,
+   * or a second chain starts and every later try ending mid-read adds one more. Each schedule takes a new generation,
+   * and only a read of the current generation schedules the next.
+   */
+  let generation = 0
   let running = false
   let reading = false
   let recovering: Promise<void> | null = null
@@ -164,6 +182,11 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
         return
       }
       heldRecorded = null
+      // UX-1 (i2): a hold that stood is over; the start is said as the try it is, at once.
+      if (state.hold !== null) {
+        state = recoveryStarts(state)
+        if (state.stack === 'down') publish()
+      }
       const begun = now()
       // Why this try was made, with its record (ER-3): what was down, and what Docker said of the containers.
       const because = containers === 'stopped' ? 'the stack\'s containers exist and are not running' : 'Docker could not say whether the stack\'s containers run'
@@ -187,7 +210,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
         // again soon rather than at the backoff, so a start that worked is seen within a second.
         if (state.stack === 'down') publish()
         if (running) {
-          if (timer) clearTimeout(timer)
+          if (timer) timers.clear(timer)
           schedule(1_000)
         }
       })
@@ -223,10 +246,11 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
 
   const schedule = (delayMs?: number): void => {
     if (!running) return
-    timer = setTimeout(() => {
-      void tick().finally(() => schedule())
+    const mine = ++generation
+    timer = timers.set(() => {
+      timer = null
+      void tick().finally(() => { if (mine === generation) schedule() })
     }, delayMs ?? watchDelayMs(state, now()))
-    timer.unref?.()
   }
 
   return {
@@ -237,7 +261,8 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
     },
     stop() {
       running = false
-      if (timer) clearTimeout(timer)
+      generation++
+      if (timer) timers.clear(timer)
       timer = null
     },
     tick,

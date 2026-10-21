@@ -94,6 +94,9 @@ export interface WorkToolDeps {
   currentRuntimeSessionId?(): string | null
   /** Whether the agent's own fabric-mcp (not a rejoin) has signed this session lately (TR-2, TR-4). */
   ownClientLive?(): boolean
+  /** Whether the agent's process, as its fabric-mcp named it at enrollment, is alive on this machine; null when no
+   *  process was named (0.3.9 review iteration 2, ER-2). */
+  agentAlive?(): boolean | null
   /** Takes the one record of this session's end (DA-1): false when its agent's own fabric-mcp left and Fabric
    *  recorded the end already. `releaseEndRecord` gives it back when the hook's record could not be written. */
   claimEndRecord?(): boolean
@@ -110,13 +113,15 @@ export const STALE_END_TOLERANCE_MS = 5_000
  *   stale-end              observed before this session enrolled: an end the hooks spooled from an earlier process of
  *                          the same runtime id (`claude --resume` keeps it), delivered to the session that resumed
  *   agent-still-connected  a rejoin's end while the agent's own fabric-mcp still signs: the agent is alive; its own
- *                          fabric-mcp ends the session when it goes (its leave), with its claims
+ *                          fabric-mcp ends the session when it goes (its leave), with its claims. Not when the agent's
+ *                          process is known and gone (review iteration 2, ER-2): its leave may never have reached Fabric
+ *                          (a stack outage, a signal), and recency alone kept the session for minutes after it died
  */
-export function endRefusal(input: { observedAt: string | null; startedAt: number | null; rejoin: boolean; ownClientLive: boolean }): { code: 'stale-end' | 'agent-still-connected'; reason: string } | null {
+export function endRefusal(input: { observedAt: string | null; startedAt: number | null; rejoin: boolean; ownClientLive: boolean; agentAlive?: boolean | null }): { code: 'stale-end' | 'agent-still-connected'; reason: string } | null {
   const at = input.observedAt ? Date.parse(input.observedAt) : NaN
   if (input.startedAt !== null && Number.isFinite(at) && at < input.startedAt - STALE_END_TOLERANCE_MS)
     return { code: 'stale-end', reason: `this end was observed at ${input.observedAt}, before this session enrolled (${new Date(input.startedAt).toISOString()}): it belongs to an earlier process of the same coding-agent session. This session goes on, with its claims.` }
-  if (input.rejoin && input.ownClientLive)
+  if (input.rejoin && input.ownClientLive && input.agentAlive !== false)
     return { code: 'agent-still-connected', reason: 'the coding agent\'s own fabric-mcp is still connected and signing, so the agent has not ended; when it does, its fabric-mcp ends this session and releases its claims' }
   return null
 }
@@ -571,7 +576,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
 
       if (claims === 'session') {
         // TR-2: a session-wide release is what the hooks send at an end; the end guards apply to it too.
-        const refused = endRefusal({ observedAt: observedAt ?? null, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false })
+        const refused = endRefusal({ observedAt: observedAt ?? null, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false, agentAlive: deps.agentAlive?.() ?? null })
         if (refused) return reply({ released: false, ...refused })
         const readLive = async (): Promise<Array<{ id: string; work_id: string }>> => {
           const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
@@ -669,7 +674,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         // TR-1: /clear starts a new conversation in the same agent process; its fabric-mcp and this session go on.
         if (reason === 'clear')
           return reply({ recorded: false, code: 'session-kept', reason: '/clear keeps the agent process and its fabric-mcp, so this Fabric session goes on under the new runtime id' })
-        const refused = endRefusal({ observedAt, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false })
+        const refused = endRefusal({ observedAt, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false, agentAlive: deps.agentAlive?.() ?? null })
         if (refused) return reply({ recorded: false, ...refused })
       }
       const type = event === 'turn' ? 'session.turn.observed@1' : 'session.ended@1'

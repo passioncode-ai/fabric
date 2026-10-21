@@ -12,7 +12,7 @@
  * operations log was polling reads); the events below fire on a transition and on nothing else.
  */
 import { dockerIsUnreachable, stackStartIsTransient } from './stackStartRetry.ts'
-import { LOW_DISK_BYTES, type StartupFailure } from './startupFailure.ts'
+import { LOW_DISK_BYTES, diskLowLine, type StartupFailure } from './startupFailure.ts'
 
 /** How often a running Fabric reads the stack's health. */
 export const STACK_WATCH_MS = 30_000
@@ -191,10 +191,16 @@ export function recoveryDue(state: StackWatchState, now: number): boolean {
   return state.stack === 'down' && state.recovers && !state.trying && state.nextRecoveryAt !== null && now >= state.nextRecoveryAt
 }
 
-/** A try begins at `now`: until it ends there is no next one to count down to (UX-2). */
+/** A try begins at `now`: until it ends there is no next one to count down to (UX-2). A hold that stands stays until
+ *  Docker has said whether the stack starts (`recoveryStarts`): the re-check is not a try (review iteration 2, UX-1). */
 export function recoveryBegun(state: StackWatchState, now: number): StackWatchState {
   void now
   return { ...state, trying: true, nextRecoveryAt: null }
+}
+
+/** Docker said the stack's containers are not there to wait for: the try starts it, and a hold that stood is over. */
+export function recoveryStarts(state: StackWatchState): StackWatchState {
+  return { ...state, hold: null }
 }
 
 /**
@@ -275,13 +281,16 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
   const down = state.stack === 'down'
   const diskLow = state.disk === 'low'
   const counting = down && !state.trying && state.hold === null && state.nextRecoveryAt !== null
+  // While a hold stands (a stop someone made, containers that run, an external stack) Fabric makes no try: its re-check
+  // every 30 s asks Docker, and that is not said as «Trying now» beside the hold (review iteration 2, UX-1).
+  const trying = down && state.trying && state.hold === null
   return {
     stack: state.stack,
     why: state.why,
     since: new Date(state.since).toISOString(),
     nextTryInS: counting ? Math.max(0, Math.ceil((state.nextRecoveryAt! - now) / 1000)) : null,
-    trying: down && state.trying,
-    attempt: down && state.trying ? state.recoveries + 1 : null,
+    trying,
+    attempt: trying ? state.recoveries + 1 : null,
     hold: down ? state.hold : null,
     platform,
     diskLow,
@@ -293,5 +302,45 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
  *  the plain key OrbStack or Docker Desktop on macOS (0.3.8 UX-1, 0.3.9 review UX-4; `diskLowLine` does the same). */
 export function platformKey(key: string, platform: string): string {
   return platform === 'win32' ? `${key}.win32` : platform === 'linux' ? `${key}.linux` : key
+}
+
+/**
+ * The lines of the startup wait window, in the order shown (0.3.9 review iteration 2). UX-3: a disk under 3 GB comes
+ * right after the title, before «Docker is not answering … opens by itself»: a full disk stops Docker, and the wait
+ * would not end by itself (SCN-161's 0.3.8 amendment says the same of the failure dialog). UX-8: agents are told they
+ * are asked to wait only while the standby holds the hub's port; when it could not take it, agents reach no Fabric at
+ * all, and the line says so with the reason. Every id is always present (an empty text is a line not shown), so the
+ * window updates its lines in place by id.
+ */
+export const STARTUP_WAIT_LINES = ['title', 'disk', 'cause', 'next', 'agents', 'log'] as const
+export type StartupWaitLine = (typeof STARTUP_WAIT_LINES)[number]
+
+export function startupWaitLines(input: {
+  say: (key: string, vars?: Record<string, string | number>) => string
+  failure: Pick<StartupFailure, 'cause'>
+  waitsForDocker: boolean
+  freeDiskBytes: number | null
+  locale: string
+  platform: string
+  /** Seconds to the next try, or null while a try runs. */
+  nextInS: number | null
+  /** The try running, or the next one (1-based). */
+  attempt: number
+  /** The hub standby: open while it holds the port; null before it was tried. */
+  standby: { open: true } | { open: false; reason: string } | null
+  logPath: string
+}): Array<{ id: StartupWaitLine; text: string }> {
+  const { say } = input
+  const low = diskLowLine(input.failure, { freeDiskBytes: input.freeDiskBytes, platform: input.platform, locale: input.locale })
+  const text: Record<StartupWaitLine, string> = {
+    title: say('startup.wait.title'),
+    disk: low ? say(low.key, { free: low.free }) : '',
+    // Each OS names its own Docker (0.3.9 review UX-4, as 0.3.8 UX-1 did for the disk line).
+    cause: say(input.waitsForDocker ? platformKey('startup.wait.docker', input.platform) : 'startup.wait.database'),
+    next: input.nextInS === null ? say('startup.wait.trying', { attempt: input.attempt }) : say('startup.wait.next', { seconds: input.nextInS, attempt: input.attempt }),
+    agents: input.standby === null ? '' : input.standby.open ? say('startup.wait.agents') : say('startup.wait.agentsNoHub', { reason: input.standby.reason }),
+    log: say('startup.wait.log', { log: input.logPath })
+  }
+  return STARTUP_WAIT_LINES.map((id) => ({ id, text: text[id] }))
 }
 // #endregion stack-watch

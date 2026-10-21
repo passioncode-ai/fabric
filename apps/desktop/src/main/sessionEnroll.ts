@@ -51,7 +51,7 @@ export interface EnrollDeps extends FolderDeps {
   liveGrants(binding: BindingRow): Promise<GrantRow[]>
   projectName(projectId: string): Promise<string | null>
   /** The same mint a launched session gets (`AgentSurface.mint`), told it is an enrollment and by which runner. */
-  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true; bindingId: string }): { token: string }
+  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true; bindingId: string; agentPid?: number | null }): { token: string }
   /** The enrolled sessions this process minted, by binding and grant: what a revocation ends. */
   sessions: EnrolledSessions
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
@@ -384,7 +384,8 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   // #endregion session-enroll-bound
 
   const sessionId = randomUUID()
-  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id })
+  // ER-2 (i2): the agent's process goes to the surface too, so a hook's end for an agent that died is not refused.
+  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id, ...(agentPid !== null ? { agentPid } : {}) })
   // Registered before the re-read: a revocation from now on ends it through its listener, one before it is seen below.
   deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grant.id, projectId: folder.projectId, mintedAt: now, runtimeSessionId, agentPid })
   try {

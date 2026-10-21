@@ -30,10 +30,10 @@ const emptyDb = {
   rpc: async () => ({ data: null, error: null })
 }
 
-async function surfaceWith(ptyList = []) {
+async function surfaceWith(ptyList = [], extra = {}) {
   const ended = []
   const surface = new AgentSurface({
-    db: emptyDb, journal: null, estateId: 'e',
+    db: emptyDb, journal: null, estateId: 'e', ...extra,
     ptys: () => ({ list: () => ptyList, get: (id) => ptyList.find((p) => p.sessionId === id) ?? null }),
     work: { resolveSource: async () => ({ ok: false, part: 'repository', reason: 'none' }), leaseRefs: async () => null, endSession: (id) => ended.push(id) }
   })
@@ -91,6 +91,29 @@ test('TR-2: while the agent\'s own fabric-mcp signs, a rejoin\'s end does not en
   const rel = await call(hookClient, 'fabric_work_release', { claims: 'session', outcome: 'let-go', reason: 'the Claude Code session ended (other)' })
   assert.deepEqual([rel.released, rel.code], [false, 'agent-still-connected'])
   assert.deepEqual(ended, [])
+})
+
+// 0.3.9 review iteration 2, ER-2: the agent's process, named at enrollment, decides whether the agent still runs.
+test('ER-2 (i2): a hook\'s end for an agent whose process is gone ends the session, though its fabric-mcp signed a minute ago', async (t) => {
+  const alive = new Set([4242])
+  const appended = []
+  const journal = { append: async (e) => { appended.push(e); return { seq: appended.length } } }
+  const { surface, ended } = await surfaceWith([], { pidAlive: (pid) => alive.has(pid), journal })
+  t.after(() => surface.stop())
+  const own = surface.mint('p', 's-1', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-1', agentPid: 4242 })
+  const ownClient = await connect(surface, own.token)
+  t.after(() => ownClient.close())
+  await call(ownClient, 'fabric_whoami')
+  const hook = surface.mint('p', 's-1', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-1', rejoin: true })
+  const hookClient = await connect(surface, hook.token)
+  t.after(() => hookClient.close())
+  assert.equal((await call(hookClient, 'fabric_session_observe', END())).code, 'agent-still-connected', 'alive: the end waits for the agent\'s own leave')
+  alive.delete(4242)
+  const r = await call(hookClient, 'fabric_session_observe', END({ idempotencyKey: 'rt-1:0001780000002' }))
+  assert.equal(r.session, 'ended', JSON.stringify(r))
+  assert.equal(appended.filter((e) => e.type === 'session.ended@1').length, 1)
+  await new Promise((resolve) => setTimeout(resolve, 1_100))
+  assert.deepEqual(ended, ['s-1'])
 })
 
 test('TR-2: an end observed before the session enrolled does not end it', async (t) => {

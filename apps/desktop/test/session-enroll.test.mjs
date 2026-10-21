@@ -517,6 +517,16 @@ test('an enrolled mint tells the surface it is an enrollment, its runner, its ru
   assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id }])
 })
 
+// 0.3.9 review iteration 2, ER-2: the agent's process goes to the surface with the mint, so a hook's end for an agent
+// that died is judged by its process, not only by how recently its fabric-mcp signed.
+test('ER-2 (i2): an enrollment that names its agent process mints the session with it', async () => {
+  const origins = []
+  const h = deps()
+  h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-7', agentPid: 4242 }, h.d)
+  assert.equal(origins[0].agentPid, 4242)
+})
+
 // #region board-join-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#amendments
 // `fabric.board.join` (ADR-0149 §4) with ADR-0134's safeguards (wave-2 fix 11): an unspent bearer handed out again, a
 // cap of its own, the grant read again after the mint, and an eviction text that names tools a board session has.

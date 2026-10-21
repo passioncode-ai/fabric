@@ -1,5 +1,7 @@
 // #region board-core-holds-home — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
-// What waits on the project board, on the home (0.3.9 BD-2): requests between projects that no agent can answer now.
+// What waits on the project board, on the home (0.3.9 BD-2): requests between projects that no agent is answering now
+// (no session holds the request's slot: `board_waiting_operator`). Review i2 UX-5: said as "answering now" in both
+// languages, since a live board.respond grant may still let a session take the slot, as the receipt's `noResponder` counts.
 // Measured before this (board.md BD-2): all six requests ever sent sat queued for days and nothing outside Comms said
 // so. A failed read is said; nothing waiting shows nothing at all, so a quiet board costs the home no space.
 // Review i1 UX-1 / DA-8: the home shows only what the operator can act on. The unread-deliveries figure that stood here
