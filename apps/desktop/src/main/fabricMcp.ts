@@ -165,7 +165,8 @@ export function classifyFailure(e: unknown): CallFailure {
   if (err?.name === 'McpError') return { drop: err.code === CONNECTION_CLOSED, mayHaveRun: true }
   // StreamableHTTPError carries the HTTP status as its code. Fabric refused this one call; the session is kept.
   if (typeof err?.code === 'number' && REFUSED_BEFORE_ANY_TOOL.has(err.code))
-    return { drop: false, mayHaveRun: false, refusal: { status: err.code, reason: surfaceReason(e) ?? 'no reason given' } }
+    // A cooldown keeps code 429 as its marker; the agent is told the status the hub really answered (503, i3 ER-3).
+    return { drop: false, mayHaveRun: false, refusal: { status: typeof (err as { status?: unknown }).status === 'number' ? (err as { status: number }).status : err.code, reason: surfaceReason(e) ?? 'no reason given' } }
   // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
   // fetch's TypeError: a connection that was never made sent nothing.
@@ -183,7 +184,7 @@ export function boundedRetryMs(value: unknown): number {
     ? Math.max(1000, Math.ceil(value)) : RATE_LIMIT_FALLBACK_MS
 }
 /** The hub asked to wait: a 429, or a 503 that carries Retry-After (the full-disk stall of the 0.3.8 audit answered
- *  2,758 of those in 12 minutes, and each was retried at once; review i2 DA-6). `code` stays 429, the cooldown's
+ *  2,757 of those in 12 minutes, and each was retried at once; review i2 DA-6). `code` stays 429, the cooldown's
  *  marker; `status` is what the hub answered. */
 export class FabricRateLimitError extends Error {
   readonly code = 429
@@ -227,19 +228,23 @@ export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
 }
 
 // #region audit-038-backoff — docs: docs/evidence/plans/2026-10-21-release-038-verification.md#the-audit-that-opened-this-release
-/** A folder that is no project waits longer each time it is refused again: the base, doubled per repeat, up to
- *  10 minutes. A Hermes running in the home folder was refused as too broad every 30 s for three days (the 0.3.8
- *  audit: 187 of 259 enrollment errors in one log). A denial and a folder not yet attached keep their base: the person
- *  can lift either in Fabric at any moment, and the agent should see it within a minute (0.3.8 review UX-6). The
- *  agent's own fabric_whoami still wakes every wait at once. */
+/** A folder Fabric refuses as too broad (a filesystem root, the home folder, a folder right under it, one that holds
+ *  other projects) waits longer each time it is refused again: the base, doubled per repeat, up to 10 minutes. Nothing
+ *  the person does in Fabric lifts that refusal; only starting the agent elsewhere does. A Hermes running in the home
+ *  folder was refused as too broad every 30 s for three days (the 0.3.8 audit: 187 of 259 enrollment errors in one
+ *  log). Every other no-project refusal (a detached folder, an ambiguous match, a Git read that failed) and a denial
+ *  keep their base, because the person can lift them in Fabric or they pass by themselves (0.3.8 review UX-6, i3
+ *  UX-1). The agent's own fabric_whoami still wakes every wait at once. */
+export const LASTING_NO_PROJECT = 'This folder is too broad for a Project'
 export const BACKOFF_GROWS: ReadonlySet<ProxyState['kind']> = new Set(['no-project', 'failed'])
 export const BACKOFF_CEILING_MS = 10 * 60_000
 /** A failure that repeats (a refused access ask, a hub that keeps failing) grows too, but only to a minute: a short
  *  outage still passes quickly, and a lasting one costs one call a minute instead of twenty (review i2 ER-4). */
 export const FAILED_CEILING_MS = 60_000
-export function backoffFor(kind: ProxyState['kind'], repeats: number): number {
+export function backoffFor(kind: ProxyState['kind'], repeats: number, message?: string): number {
   const base = BACKOFF_MS[kind]
   if (!BACKOFF_GROWS.has(kind) || repeats <= 1) return base
+  if (kind === 'no-project' && !message?.startsWith(LASTING_NO_PROJECT)) return base
   return Math.min(kind === 'failed' ? FAILED_CEILING_MS : BACKOFF_CEILING_MS, base * 2 ** Math.min(repeats - 1, 16))
 }
 // #endregion audit-038-backoff
@@ -366,7 +371,7 @@ export class FabricMcpProxy {
 
   async call(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
     const remaining = this.cooldownRemaining()
-    if (remaining) return text(`Fabric is rate limited; wait ${Math.ceil(remaining / 1000)} seconds. No new request was sent.`)
+    if (remaining) return text(`Fabric asked to wait; wait ${Math.ceil(remaining / 1000)} seconds. No new request was sent.`)
     const link = this.session
     if (link) {
       try {
@@ -379,7 +384,7 @@ export class FabricMcpProxy {
         this.deps.log(`fabric-mcp: ${name} failed (${cause})`)
         if (f.refusal) {
           const { status, reason } = f.refusal
-          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 ? '; wait before you call again' : ''}.`)
+          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 || status === 503 ? '; wait before you call again' : ''}.`)
         }
         if (!f.drop) return text(`${name} failed in the client before its answer arrived (${cause}). The session stays open. The outcome is unknown — check its effect before you act again.`)
         this.dropSession(link, e)
@@ -618,16 +623,18 @@ export class FabricMcpProxy {
 
   /** Keep connecting until stopped/closed. whoami may wake ordinary backoff, never a server cooldown. */
   async run(stop: { stopped: boolean }): Promise<void> {
-    let last: ProxyState['kind'] | null = null
+    let last: string | null = null
     let repeats = 0
     while (!stop.stopped && !this.closed) {
       const s = await this.connectOnce()
       if (stop.stopped || this.closed) return
-      repeats = s.kind === last ? repeats + 1 : 1
-      last = s.kind
+      const message = s.kind === 'no-project' ? s.message : undefined
+      const key = `${s.kind}:${message ?? ''}`
+      repeats = key === last ? repeats + 1 : 1
+      last = key
       let wokenByAgent = false
       const woken = new Promise<void>((resolve) => { this.waker = () => { wokenByAgent = true; resolve() } })
-      await this.pause(Math.max(backoffFor(s.kind, repeats), this.cooldownRemaining()), woken)
+      await this.pause(Math.max(backoffFor(s.kind, repeats, message), this.cooldownRemaining()), woken)
       this.waker = null
       // The agent asked (fabric_whoami): the next refusal starts from the base again.
       if (wokenByAgent) repeats = 0

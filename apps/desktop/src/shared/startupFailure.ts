@@ -253,7 +253,8 @@ export const LOW_DISK_BYTES = 3e9
 /** Free space as people read it: decimal GB, one digit, in the reader's locale («0,7» in Russian). The dialog, the
  *  copied details and the log all say it through this, so the same reading is the same number (0.3.8 review UX-4). */
 export function freeDiskGb(bytes: number, locale?: string): string {
-  return (Math.max(0, bytes) / 1e9).toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  // Rounded down to a tenth, so a disk under 3 GB never reads "3.0" (0.3.8 review i3 UX-2).
+  return (Math.floor(Math.max(0, bytes) / 1e8) / 10).toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 /** The causes a full disk explains: the stack would not start, started silent, timed out, its database went away, or

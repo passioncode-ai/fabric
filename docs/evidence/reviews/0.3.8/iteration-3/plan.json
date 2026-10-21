@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "9b309b04d72b723a2284a9d994509e80cdce6509",
+  "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-plan.md",
+  "reportSha256": "57c912c9a1f759e09d35a4fdfbe07488c2fb93bd94b808a63e86de735814b5a3",
+  "reviewerRun": "release-038-i3-plan-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-19",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-2"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "PL-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the Release close is written after the tag, as in 0.3.7; it carries the publish time on thread `617c8cbe` with CO-339 at 0.3.9, Observatory's re-check, the note to Switchboard (SB-141, CO-360), the knowledge base rows and the workspace publication"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: corrected in the 0.3.8 publication message on the release threads (Release close)"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1"
+      ]
+    }
+  ]
+}

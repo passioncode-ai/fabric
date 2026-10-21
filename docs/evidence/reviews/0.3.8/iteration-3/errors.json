@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "9b309b04d72b723a2284a9d994509e80cdce6509",
+  "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-errors.md",
+  "reportSha256": "8da91486dd447f1bf19c475bf627d206e0472ebc73ddb0bf61e5147d6f2592c1",
+  "reviewerRun": "release-038-i3-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-5",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-1: only the too-broad refusal grows"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with UX-4"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `accessService.ts`: an uninstalled coding agent is refused before anything is journalled (`session-enroll-request.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says \"the local allow could not be recorded\""
+      ]
+    }
+  ]
+}

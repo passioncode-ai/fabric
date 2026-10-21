@@ -35236,7 +35236,7 @@
       "screen_refs": [
         "SCR-30"
       ],
-      "coverage": "`apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try)",
+      "coverage": "`apps/desktop/src/shared/stackStartRetry.ts` (`stackStartIsTransient`, `startWithRetry`, `STACK_START_RETRY`: four tries, ten seconds apart), `apps/desktop/src/main/env.ts#startStack`; test `apps/desktop/src/shared/stackStartRetry.test.ts` (a starting container waited out; Docker away said at once; the last words thrown after the fourth try); the disk line: `apps/desktop/src/shared/startupFailure.ts` (`diskLowLine`, `freeDiskGb`, `LOW_DISK_BYTES`), `apps/desktop/src/main/index.ts` (the free space in the log and the copy), `startupFailure.test.ts` \"a full disk is named\"",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a stack that only needed another minute never reaches the operator as «The local stack refused to start».",

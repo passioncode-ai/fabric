@@ -125,7 +125,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       description:
         principal.kind === 'door'
           ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. On the operator\'s own machine two asks of Fabric itself are allowed at once and recorded as your act instead: session.enroll (a coding agent working in a project) and project.resolve on the resource projects (read which Fabric project a folder belongs to; a registered service or a coding agent). Other products still prompt. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
-          : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
+          : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again, except for the two asks of Fabric itself allowed at once on the operator\'s own machine (session.enroll and project.resolve on projects); on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
       inputSchema: requestSchema
     },
     async (args) =>

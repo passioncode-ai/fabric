@@ -151,3 +151,49 @@ person's to lift in Fabric and must be seen within a minute (UX-6). Five iterati
 | V2-41 | PL-9 | The MERGES entry and a dated code comment are out of step | fixed: with DO-8; the comment dates the audit 2026-10-21 |
 
 Exit for iteration 2: every finding is fixed or ruled to a register row. Blocking findings open: none.
+
+## Iteration 3
+
+Five fresh reviewers, 2026-10-21, against `9b309b04` (`9b309b04d72b723a2284a9d994509e80cdce6509`), read-only in a detached checkout that none of them moved. Reports:
+[UX](../reviews/0.3.8/iteration-3/2026-10-21-ux.md), [errors](../reviews/0.3.8/iteration-3/2026-10-21-errors.md),
+[documents](../reviews/0.3.8/iteration-3/2026-10-21-docs.md), [data](../reviews/0.3.8/iteration-3/2026-10-21-data.md),
+[plan](../reviews/0.3.8/iteration-3/2026-10-21-plan.md).
+
+22 findings, 5 blocking, and they are two defects. The iteration-2 narrowing of the backoff still let a
+detached or ambiguous folder grow to 10 minutes, though the notes promised a person's fix is seen within a minute
+(UX-1, ER-1, DO-1): now only the too-broad refusal grows, the one nothing in Fabric lifts. And iteration 2 said a
+local full gate would be recorded and did not record it (DO-2, PL-1): it is recorded here. The data level found
+nothing blocking; the decisions the brief asked about (the live-grant gate, the disconnected agent, refusal levels
+by code, the decimal disk line, the cap of 8, the renumbering) hold at every level.
+
+Local full gate on the iteration-3 candidate: `bash scripts/ci.sh full` at `9b309b04`, exit 0, "full tier green",
+the disposable test stack created and removed (the live stack on 54321/54322 was not addressed). Hosted `ci` on
+`9b309b04`: run 39558930042, success. The workspace publication run 39558930029 failed as stale, which it is until
+the publication after landing (the same as 0.3.7).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | UX-1 (blocking) | A detached or ambiguous folder waits up to 10 minutes; V2-6 does not hold, a regression from 0.3.7 | fixed: `main/fabricMcp.ts#backoffFor`: only the too-broad refusal grows (`LASTING_NO_PROJECT`, checked against `sessionEnroll.ts#TOO_BROAD_MESSAGE`); a detached or ambiguous folder and a failed Git read keep 30 s; the run loop counts repeats per refusal; `fabric-mcp.test.mjs` (watched failing); CHANGELOG, SCN-137, AGENTS.md say so |
+| V3-2 | UX-2 | With 2.95 to 3.0 GB free the line says "3.0 GB" | fixed: `startupFailure.ts#freeDiskGb` rounds down to a tenth (`startupFailure.test.ts`, watched failing) |
+| V3-3 | UX-3 | A binding refused by `fabric.project.resolve` reads texts meant for other asks | fixed: the binding's `fabric.access.request` description names the two asks allowed at once; a failed allow says "the local allow"; the allow note for an asker that already holds a credential is ruled to CO-363 (0.3.9) |
+| V3-4 | UX-4 | A 503 cooldown is told to the agent as HTTP 429 and "rate limited" | fixed: `classifyFailure` reports the status the hub answered; the cooldown text says "Fabric asked to wait" (`fabric-mcp.test.mjs`) |
+| V3-5 | ER-1 (blocking) | V2-12 and part of V2-6 do not hold: a person's fix of a detached folder is not seen within a minute | fixed: with UX-1 |
+| V3-6 | ER-2 | A Git read that failed once lands in the growing wait | fixed: with UX-1: only the too-broad refusal grows |
+| V3-7 | ER-3 | A 503 with Retry-After is reported as HTTP 429 | fixed: with UX-4 |
+| V3-8 | ER-4 | The `project.resolve` lane skips the "is the runner installed" check | fixed: `accessService.ts`: an uninstalled coding agent is refused before anything is journalled (`session-enroll-request.test.mjs`, watched failing) |
+| V3-9 | ER-5 | A failed allow of `project.resolve` says "local enrollment" | fixed: it says "the local allow could not be recorded" |
+| V3-10 | DO-1 (blocking) | The backoff promise is false for undoing a detach; V2-6 and V2-12 do not hold | fixed: with UX-1; the code comment, the test names, the notes and SCN-137 say what the code does |
+| V3-11 | DO-2 (blocking) | V2-40 does not hold: no `ci.sh full` exit is recorded | fixed: `bash scripts/ci.sh full` on `9b309b04`: exit 0, "full tier green", the disposable stack removed (recorded in this section) |
+| V3-12 | DO-3 | CO-361 still says a lasting refusal waits up to 30 min | fixed: CO-361 says 10 min for a too-broad folder, a minute for a repeated failure |
+| V3-13 | DO-4 | Both SCN-161 amendments sit under the next section; Coverage leaves out the disk line | fixed: the amendments are inside SCN-161 and its Coverage names `startupFailure.ts`, `index.ts` and the test |
+| V3-14 | DO-5 | The OF-08 row contradicts itself | fixed: the row says it is not measured yet and is the first task of 0.3.9 |
+| V3-15 | DO-6 | The MERGES entry lists a `platformWords` test this release does not change | fixed: the entry lists the tests this landing changes |
+| V3-16 | DA-1 | CO-361 says 30 min; a code comment says 2,758 where the log has 2,757 | fixed: CO-361 corrected; the comment says 2,757 |
+| V3-17 | DA-2 | A running coding agent keeps its old `fabric-mcp` until restarted, and the notes do not say so | fixed: CHANGELOG and SCN-137 say a running agent keeps its old `fabric-mcp` until it is restarted |
+| V3-18 | DA-3 | MERGES lists a `platformWords` test | fixed: with DO-6 |
+| V3-19 | PL-1 (blocking) | V2-40 does not hold: no full CI exit is recorded | fixed: with DO-2 |
+| V3-20 | PL-2 | The ledger has no Release close yet several rows point to it | ruled: the Release close is written after the tag, as in 0.3.7; it carries the publish time on thread `617c8cbe` with CO-339 at 0.3.9, Observatory's re-check, the note to Switchboard (SB-141, CO-360), the knowledge base rows and the workspace publication |
+| V3-21 | PL-3 | The board correction on `bb87af23` says "up to 30 minutes" | ruled: corrected in the 0.3.8 publication message on the release threads (Release close) |
+| V3-22 | PL-4 | The 10-minute wait covers detached and ambiguous folders | fixed: with UX-1 |
+
+Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none. The fixes are one commit after the candidate; it is the verified commit.

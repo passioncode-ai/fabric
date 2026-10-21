@@ -273,3 +273,13 @@ test('board.respond: an unknown agent, an unknown project, a folder or a second 
     assert.equal(h.presented.length, 0); assert.equal(h.appended.length, 0)
   }
 })
+
+test('0.3.8 review i3 ER-4: a coding agent that is not installed records no project.resolve grant as its own act', async () => {
+  const h = harness({ available: async () => false })
+  const r = await h.service.request({ kind: 'door' }, { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' })
+  assert.equal(r.ok, false)
+  assert.match(r.refused, /not installed/)
+  assert.equal(h.appended.length, 0, 'nothing was journalled')
+  const ok = await harness().service.request({ kind: 'door' }, { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' })
+  assert.equal(ok.status, 'allowed')
+})

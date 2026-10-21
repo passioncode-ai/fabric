@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "9b309b04d72b723a2284a9d994509e80cdce6509",
+  "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-ux.md",
+  "reportSha256": "5b7eaeb6d27e15498ee985f34d7ef749743c235d1f04becc4eb1b5e98966cdac",
+  "reviewerRun": "release-038-i3-ux-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/fabricMcp.ts#backoffFor`: only the too-broad refusal grows (`LASTING_NO_PROJECT`, checked against `sessionEnroll.ts#TOO_BROAD_MESSAGE`); a detached or ambiguous folder and a failed Git read keep 30 s; the run loop counts repeats per refusal; `fabric-mcp.test.mjs` (watched failing); CHANGELOG, SCN-137, AGENTS.md say so"
+      ]
+    },
+    {
+      "id": "V3-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `startupFailure.ts#freeDiskGb` rounds down to a tenth (`startupFailure.test.ts`, watched failing)"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the binding's `fabric.access.request` description names the two asks allowed at once; a failed allow says \"the local allow\"; the allow note for an asker that already holds a credential is ruled to CO-363 (0.3.9)"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `classifyFailure` reports the status the hub answered; the cooldown text says \"Fabric asked to wait\" (`fabric-mcp.test.mjs`)"
+      ]
+    }
+  ]
+}

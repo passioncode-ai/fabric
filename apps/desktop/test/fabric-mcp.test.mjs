@@ -49,6 +49,7 @@ function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allow
       if (how === 'unauthorized') return { unauthorized: true }
       if (how === 'needs-grant') return { isError: true, value: NEED }
       if (how === 'no-project') return { isError: true, value: { error: { code: 'no-project', message: 'not a project' } } }
+      if (how === 'too-broad') return { isError: true, value: { error: { code: 'no-project', message: 'This folder is too broad for a Project: the home folder.' } } }
       return { isError: false, value: SESSION }
     }
     if (tool === 'fabric.access.request') return { isError: false, value: { requestId: REQ, status: requestStatus, ...(bearer === LIVE.doorToken ? { pollSecret: 'S'.repeat(43) } : {}) } }
@@ -780,12 +781,17 @@ test('HTTP 429 cooldown adds a jitter of up to half the server delay, so refused
   assert.equal(calls, 2, 'and no longer than the delay plus half of it times its draw')
 })
 
-test('a folder that is no project waits longer each time, up to 10 minutes; what the person can lift in Fabric does not grow (0.3.8 audit, review UX-6)', async () => {
-  const { backoffFor, BACKOFF_MS: B, BACKOFF_CEILING_MS } = await import(path.join(SRC, 'fabricMcp.ts'))
-  assert.equal(backoffFor('no-project', 1), B['no-project'])
-  assert.equal(backoffFor('no-project', 2), B['no-project'] * 2)
-  assert.equal(backoffFor('no-project', 3), B['no-project'] * 4)
-  assert.equal(backoffFor('no-project', 40), BACKOFF_CEILING_MS)
+test('a folder refused as too broad waits longer each time, up to 10 minutes; what the person can lift in Fabric does not grow (0.3.8 audit, review UX-6, i3 UX-1)', async () => {
+  const { backoffFor, BACKOFF_MS: B, BACKOFF_CEILING_MS, LASTING_NO_PROJECT } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const { TOO_BROAD_MESSAGE, DETACHED_PROJECT_MESSAGE, AMBIGUOUS_PROJECT_MESSAGE } = await import(path.join(SRC, 'sessionEnroll.ts'))
+  assert.ok(TOO_BROAD_MESSAGE.startsWith(LASTING_NO_PROJECT), 'the hub\'s too-broad words are the ones the backoff reads')
+  assert.equal(backoffFor('no-project', 1, TOO_BROAD_MESSAGE), B['no-project'])
+  assert.equal(backoffFor('no-project', 2, TOO_BROAD_MESSAGE), B['no-project'] * 2)
+  assert.equal(backoffFor('no-project', 3, TOO_BROAD_MESSAGE), B['no-project'] * 4)
+  assert.equal(backoffFor('no-project', 40, TOO_BROAD_MESSAGE), BACKOFF_CEILING_MS)
+  assert.equal(backoffFor('no-project', 5, DETACHED_PROJECT_MESSAGE), B['no-project'], 'an undone detach is seen within 30 s')
+  assert.equal(backoffFor('no-project', 5, AMBIGUOUS_PROJECT_MESSAGE), B['no-project'])
+  assert.equal(backoffFor('no-project', 5, 'that folder could not be read as a Git repository on this computer'), B['no-project'], 'a failed Git read passes by itself')
   assert.equal(BACKOFF_CEILING_MS, 10 * 60_000)
   assert.equal(backoffFor('denied', 5), B.denied, 'a denial the person withdraws is seen within its base')
   assert.equal(backoffFor('not-enrolled', 5), B['not-enrolled'], 'a folder the person attaches is seen within its base')
@@ -795,8 +801,8 @@ test('a folder that is no project waits longer each time, up to 10 minutes; what
   assert.equal(backoffFor('connected', 50), B.connected)
 })
 
-test('the run loop waits longer at each repeated no-project, and starts over after the agent asks (0.3.8 audit)', async () => {
-  const h = harness({ enroll: () => 'no-project' })
+test('the run loop waits longer at each repeated too-broad refusal, and starts over after the agent asks (0.3.8 audit)', async () => {
+  const h = harness({ enroll: () => 'too-broad' })
   const stop = { stopped: false }
   h.proxy.deps.sleep = (ms) => { h.slept.push(ms); if (h.slept.length >= 4) stop.stopped = true; return Promise.resolve() }
   await h.proxy.run(stop)
@@ -821,4 +827,20 @@ test('HTTP 503 with Retry-After is waited out like a 429; a 503 without one is n
       return true
     })
   } finally { globalThis.fetch = originalFetch }
+})
+
+test('a detached folder is asked about again every 30 s, so undoing the detach in Fabric is seen within a minute (0.3.8 review i3 UX-1)', async () => {
+  const h = harness({ enroll: () => 'no-project' })
+  const stop = { stopped: false }
+  h.proxy.deps.sleep = (ms) => { h.slept.push(ms); if (h.slept.length >= 4) stop.stopped = true; return Promise.resolve() }
+  await h.proxy.run(stop)
+  const base = BACKOFF_MS['no-project']
+  assert.deepEqual(h.slept.slice(0, 4), [base, base, base, base])
+})
+
+test('a 503 cooldown is told to the agent as the 503 it was, not as a 429 (0.3.8 review i3 ER-3, UX-4)', async () => {
+  const { classifyFailure, FabricRateLimitError } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const f = classifyFailure(new FabricRateLimitError(5000, 503))
+  assert.equal(f.refusal.status, 503)
+  assert.equal(classifyFailure(new FabricRateLimitError(5000)).refusal.status, 429)
 })

@@ -11,7 +11,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The patch of the operator's audit of the installed 0.3.7 (2026-10-21): other products can now get the access that
 `fabric.project.resolve` needs, the log says what happened, the startup failure names a full disk, and a coding agent
-in a folder that is no project stops asking every half minute. No schema change: 0.3.8 admits schema 94, as 0.3.7 did.
+in a folder that is too broad stops asking every half minute. No schema change: 0.3.8 admits schema 94, as 0.3.7 did.
 
 - **A full disk is named when the local stack will not start.** When the volume that holds Fabric's data has under
   3 GB free (decimal), the startup failure says first how much is free and that Docker stops when the disk runs out (in
@@ -23,11 +23,12 @@ in a folder that is no project stops asking every half minute. No schema change:
   resource `projects`, read-only, at once on the operator's own machine, for a registered service or a coding agent it
   knows (never for one the person disconnected). Settings → Agent access says it in words, and revoking it ends it:
   `fabric.project.resolve` now answers only while that grant, or a coding agent's enrollment, is live.
-- **A coding agent in a folder that is no project stops asking every half minute.** While Fabric keeps refusing the
-  folder as no project, `fabric-mcp` waits twice as long each time, up to 10 minutes; a repeated failure waits up to a
-  minute, and a 503 that names Retry-After is waited out. A denial and a folder not yet attached keep their 60 s and
-  30 s, so a person's fix in Fabric is seen within a minute; the agent's own `fabric_whoami` still asks at once. A
-  Hermes in the home folder had asked every 30 s for three days.
+- **A coding agent in a folder that is too broad stops asking every half minute.** While Fabric refuses the folder as
+  too broad (the home folder, a folder right under it, one that holds other projects), `fabric-mcp` waits twice as long
+  each time, up to 10 minutes; a repeated failure waits up to a minute, and a 503 that names Retry-After is waited out.
+  Every refusal the person can lift in Fabric keeps its wait (a detached folder 30 s, a denial 60 s), and the agent's
+  own `fabric_whoami` still asks at once. A Hermes in the home folder had asked every 30 s for three days. A coding
+  agent already running keeps its old `fabric-mcp` until it is restarted.
 - **The log says why a tool turned a call down.** A tool's typed refusal (`needs-grant`, `no-session` and the like) is
   recorded at warn with its code, not as an error with no reason (CO-335); a product's or Fabric's own failure stays
   an error, and a call that may have run is `unknown`; an accepted MCP notification is no longer a

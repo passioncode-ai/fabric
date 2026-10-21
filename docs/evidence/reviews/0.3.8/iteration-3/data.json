@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.8",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "9b309b04d72b723a2284a9d994509e80cdce6509",
+  "report": "docs/evidence/reviews/0.3.8/iteration-3/2026-10-21-data.md",
+  "reportSha256": "8b66b7d68919bbb5ea9fd794fb86f3dd29faddb78657100d7104da224ab8e112",
+  "reviewerRun": "release-038-i3-data-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-16",
+      "source": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-361 corrected; the comment says 2,757"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and SCN-137 say a running agent keeps its old `fabric-mcp` until it is restarted"
+      ]
+    },
+    {
+      "id": "V3-18",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with DO-6"
+      ]
+    }
+  ]
+}

@@ -253,6 +253,11 @@ export class AccessService {
         }
         const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
         if (runner) {
+          // As for an enrollment: the catalogue row is not enough, its program must be on this computer (i3 ER-4).
+          if (this.deps.enrollment!.available && !(await this.deps.enrollment!.available(runner.key))) {
+            receipt('runner-not-installed', runner.key)
+            return { ok: false, refused: `${runner.name} is not installed on this computer as Fabric sees it (its program is not on Fabric's PATH). Nothing was shown to the operator.` }
+          }
           entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
         } else {
           this.deps.registry.refresh()
@@ -397,7 +402,7 @@ export class AccessService {
         receipt('already-pending', entry.key)
         if (ask.callee === FABRIC_SELF && (ask.capabilities[0] === SESSION_ENROLL || ask.capabilities[0] === PROJECT_RESOLVE)) {
           const decided = await this.decide(same.id, 'allowed', { kind: 'agent', id: entry.key })
-          if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
+          if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
           return {
             ok: true, requestId: same.id, status: 'allowed', expiresAt: same.expires_at,
             note: 'Allowed on the operator\'s own machine and recorded as your own act. Poll fabric.access.status with the pollSecret from the answer that created the request; this answer carries none.'
@@ -441,7 +446,7 @@ export class AccessService {
         // ADR-0160: only the local lanes are immediate: enrollment, and since 0.3.8 the read-only folder attribution. The request, the agent's own decision and the
         // revocable grant are all journalled; no product connection, board grant or cross-machine authority changes.
         const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
-        if (!decided.ok) return { ok: false, refused: `the local enrollment could not be recorded: ${decided.reason}` }
+        if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
         return {
           ok: true, requestId: id, status: 'allowed', expiresAt, pollSecret,
           note: 'Allowed on the operator\'s own machine and recorded as your own act. Poll fabric.access.status with this requestId and pollSecret to collect the revocable credential.'

@@ -325,6 +325,7 @@ describe('a full disk is named (0.3.8 audit: OrbStack stopped with «I/O error»
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 2.9e9 }).detail).toContain('2.9 GB free')
     // UX-4: the dialog and the log say one reading as one number.
     expect(freeDiskGb(20e6)).toBe('0.0')
+    expect(freeDiskGb(2.99e9), 'under 3 GB never reads 3.0').toBe('2.9')
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 20e6 }).detail).toContain(`${freeDiskGb(20e6)} GB free`)
     expect(startupDialog(classifyStartupFailure(docker, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: null }).detail).not.toContain('GB free')
     expect(startupDialog(classifyStartupFailure({ message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5e9 }).detail).not.toContain('GB free')
