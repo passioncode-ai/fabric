@@ -19,6 +19,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { createScopedStore } from './scopedStore.ts'
 import { ORIGIN_KINDS } from '../shared/origin.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
+import { lastTaskMove, returnClaimedTaskToBacklog } from './workRelease.ts'
 import {
   AGENT_RELEASES,
   CLAIM_DEFAULT_MINUTES,
@@ -93,6 +94,10 @@ export interface WorkToolDeps {
   currentRuntimeSessionId?(): string | null
   /** Whether the agent's own fabric-mcp (not a rejoin) has signed this session lately (TR-2, TR-4). */
   ownClientLive?(): boolean
+  /** Takes the one record of this session's end (DA-1): false when its agent's own fabric-mcp left and Fabric
+   *  recorded the end already. `releaseEndRecord` gives it back when the hook's record could not be written. */
+  claimEndRecord?(): boolean
+  releaseEndRecord?(): void
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -110,7 +115,7 @@ export const STALE_END_TOLERANCE_MS = 5_000
 export function endRefusal(input: { observedAt: string | null; startedAt: number | null; rejoin: boolean; ownClientLive: boolean }): { code: 'stale-end' | 'agent-still-connected'; reason: string } | null {
   const at = input.observedAt ? Date.parse(input.observedAt) : NaN
   if (input.startedAt !== null && Number.isFinite(at) && at < input.startedAt - STALE_END_TOLERANCE_MS)
-    return { code: 'stale-end', reason: `this end was observed at ${input.observedAt}, before this session enrolled (${new Date(input.startedAt).toISOString()}): it belongs to an earlier process of the same coding-agent session. This session goes on, with its claims` }
+    return { code: 'stale-end', reason: `this end was observed at ${input.observedAt}, before this session enrolled (${new Date(input.startedAt).toISOString()}): it belongs to an earlier process of the same coding-agent session. This session goes on, with its claims.` }
   if (input.rejoin && input.ownClientLive)
     return { code: 'agent-still-connected', reason: 'the coding agent\'s own fabric-mcp is still connected and signing, so the agent has not ended; when it does, its fabric-mcp ends this session and releases its claims' }
   return null
@@ -205,6 +210,8 @@ export async function moveDoneTaskToReview(
   if (cur?.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
   return { task_moved_to: null, task_status: cur?.status ?? null, failed: failed ?? 'the move to review could not be confirmed' }
 }
+
+export { returnClaimedTaskToBacklog } from './workRelease.ts'
 
 // #region work-claim-moves-task — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
 /**
@@ -387,7 +394,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Claim your task before you start',
       description:
-        'Say which task you are working on now, and what you will touch. Name it by taskId (a task on this project\'s board), by source {repository, path, id} (a backlog row: Fabric links it to its task and files one when none exists), or as a new row: title with its origin. Refused only when another agent already holds the same task — the answer names who and since when; set askHandover to ask the holder for it. Otherwise claimed, with its expiry; related work other agents hold (the same backlog row, a linked task, an overlapping folder or file) comes back as a warning, never a refusal. Your calls renew the claim while you work. Retrying with the same idempotencyKey is the same claim, never a second.',
+        'Say which task you are working on now, and what you will touch. Name it by taskId (a task on this project\'s board), by source {repository, path, id} (a backlog row: Fabric links it to its task and files one when none exists), or as a new row: title with its origin. Refused only when another agent already holds the same task: the answer names who and since when; set askHandover to ask the holder for it. Otherwise claimed, with its expiry; related work other agents hold (the same backlog row, a linked task, an overlapping folder or file) comes back as a warning, never a refusal. A claim moves its task from backlog to running (task_moved_to says so; a task in another column stays where it is). Your calls, and your fabric-mcp\'s sign every two minutes, renew the claim while you work. Retrying with the same idempotencyKey is the same claim, never a second.',
       inputSchema: {
         taskId: z.string().uuid().optional(),
         source: z.object({ repository: z.string().min(1).max(300), path: z.string().min(1).max(300), id: z.string().min(1).max(64) }).optional()
@@ -504,7 +511,8 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       deps.onClaimed()
       // TR-3: the claimed task leaves backlog for running, read back; a move that did not land is said.
       const moved = same ? null : await moveClaimedTaskToRunning(() => ownTask(id as string), (t, to) =>
-        deps.append({ type: 'task.moved@1', payload: { task_id: t.id, from: t.status, to, note: null } }))
+        // DA-6: the move names its claim, so a release other than done can undo exactly this move.
+        deps.append({ type: 'task.moved@1', payload: { task_id: t.id, from: t.status, to, note: null, claim_id: claimId } }))
       const snap = await readWork(store, { now: deps.now(), session: deps.session })
       const sources = new Map<string, SourceRow>(snap.claims.filter((c) => c.source).map((c) => [c.work_id, c.source as SourceRow]))
       const related = relatedTo(
@@ -532,7 +540,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Release your claim when the work ends',
       description:
-        'Say how it ended: done (the task moves to review), handed-over (to the session that asked, or the one you name in to, with the note the next agent reads), or let-go (why). Name the claim by claimId or taskId — or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
+        'Say how it ended: done moves the task to review (through running when it was in backlog); handed-over (to the session that asked, or the one you name in to, with the note the next agent reads) or let-go (why) takes a task your claim moved to running back to backlog, unless it was moved since. Name the claim by claimId or taskId, or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
       inputSchema: {
         claimId: z.string().uuid().optional(),
         taskId: z.string().uuid().optional(),
@@ -551,6 +559,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const said = (note ?? reason)?.trim() || null
       if (!ending) return reply({ released: false, code: 'bad-input', reason: 'say how it ended: done, handed-over or let-go' })
       if (ending !== 'done' && !said) return reply({ released: false, code: 'bad-input', reason: `${ending} needs a note: what the next agent reads, or why` })
+      const backToBacklog = (c: { id: string; work_id: string }) =>
+        returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => lastTaskMove(store, id),
+          (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: said, claim_id: c.id } }))
       const release = async (c: { id: string; work_id: string }, extra: Record<string, unknown> = {}): Promise<number> =>
         (await deps.append({
           type: 'work.released@1',
@@ -567,7 +578,17 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
           return (live.data ?? []) as Array<{ id: string; work_id: string }>
         }
-        return reply(await releaseEveryOwnClaim(readLive, (c) => release(c)))
+        // DA-6: a session's claims let go (the hooks' end) take the tasks they moved to running back to backlog.
+        const notMovedBack: Array<{ task_id: string; reason: string }> = []
+        const answer = await releaseEveryOwnClaim(readLive, async (c) => {
+          const seq = await release(c)
+          if (ending !== 'done') {
+            const back = await backToBacklog(c)
+            if (back.failed) notMovedBack.push({ task_id: c.work_id, reason: back.failed })
+          }
+          return seq
+        })
+        return reply(notMovedBack.length ? { ...answer, tasks_not_moved_back: notMovedBack } : answer)
       }
       if (!claimId && !taskId) return reply({ released: false, code: 'bad-input', reason: 'name the claim: claimId, taskId, or claims: "session"' })
       let row: Record<string, unknown> | null = claimId ? await claimById(claimId) : null
@@ -606,7 +627,13 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const after = await claimById(row.id as string)
       if (!after?.released_at) return reply({ released: false, code: 'unconfirmed', reason: 'the release could not be confirmed; read fabric_work_list before acting again', seq })
       if (m?.failed) return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: null, seq, ...notMoved(m) })
-      return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: m?.task_moved_to ?? null, ...(m ? { task_status: m.task_status } : {}), seq })
+      // DA-6: let-go and handed-over take the task this claim moved to running back to backlog, read back.
+      const back = ending === 'done' ? null : await backToBacklog({ id: row.id as string, work_id: row.work_id as string })
+      if (back?.failed)
+        return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: null, task_status: back.task_status, seq,
+          code: 'task-not-moved', reason: `the claim is released, but its task did not go back to backlog (${back.failed}); read fabric_tasks_list` })
+      const moved = m ?? back
+      return reply({ released: true, claim_id: row.id, how: ending, handed_to: handedTo, task_moved_to: moved?.task_moved_to ?? null, ...(moved?.task_status ? { task_status: moved.task_status } : {}), seq })
     }
   )
 
@@ -616,7 +643,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Record a turn of this session, or its end',
       description:
-        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason) — the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId must be the one this session enrolled with. The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone.',
+        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason): the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId is the one this session enrolled with, or the one it was renamed to when the agent\'s session id changed (after /clear). The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone, except three, which record nothing and keep the session with its claims: an end with reason clear (session-kept: /clear keeps the agent and its fabric-mcp), an end observed before this session enrolled (stale-end: an earlier process of the same agent session), and an end sent while the agent\'s own fabric-mcp still signs (agent-still-connected: that fabric-mcp records the end and releases the claims when it leaves). A session whose end is already recorded answers already-ended.',
       inputSchema: {
         event: z.enum(['turn', 'end']),
         runtime: z.string().regex(/^[a-z][a-z0-9-]{1,40}$/),
@@ -660,7 +687,17 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         const e = await deps.append({ type: 'session.turn.observed@1', payload: facts })
         return reply({ recorded: true, seq: e.seq })
       }
-      const e = await deps.appendObserved({ type: 'session.ended@1', payload: { ...facts, observed_by: 'hook', reason: reason ?? 'other' } })
+      // DA-1: one end per session. The agent's own fabric-mcp leaving records it too (agentSurface.ts#recordAgentLeft).
+      if (deps.claimEndRecord && !deps.claimEndRecord())
+        return reply({ recorded: false, code: 'already-ended', reason: 'this session\'s end is already recorded: its coding agent\'s own fabric-mcp left and Fabric recorded the end.' })
+      let e: { seq: number }
+      try {
+        e = await deps.appendObserved({ type: 'session.ended@1', payload: { ...facts, observed_by: 'hook', reason: reason ?? 'other' } })
+      } catch (err) {
+        // Thrown on to the hook (it spools and retries); the record is free again for the retry or the agent's leave.
+        deps.releaseEndRecord?.()
+        throw err
+      }
       deps.endSession()
       return reply({ recorded: true, seq: e.seq, session: 'ended' })
     }

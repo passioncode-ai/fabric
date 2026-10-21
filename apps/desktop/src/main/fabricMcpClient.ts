@@ -19,7 +19,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { readHubDocument, writeAtomic } from './hub.ts'
-import { FabricRateLimitError, boundedRetryMs, type CredentialStore, type HubCall, type PendingRequest, type SessionLink } from './fabricMcp.ts'
+import { FabricRateLimitError, boundedRetryMs, hubRefusalOf, type CredentialStore, type HubCall, type HubRefusal, type PendingRequest, type SessionLink } from './fabricMcp.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
@@ -135,6 +135,44 @@ export function retryAfterMs(header: string | null, now = Date.now()): number {
   return boundedRetryMs(delay)
 }
 
+// #region fabric-mcp-refusal-body — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/** The largest refusal body read, and how long it may take: the hub's is one short JSON object. */
+export const REFUSAL_BODY_MAX = 4096
+export const REFUSAL_BODY_MS = 2000
+/**
+ * What the hub said with a refusal to wait (review UX-3): its 503 carries `{"error": <why>, "code": "stack-starting" |
+ * "stack-unavailable"}` (hubStandby.ts#refuseForStack). Read bounded in size and time; a body that is larger, slower or
+ * not that JSON gives nothing, and the wait still holds. Only the code and the one-line reason leave this function.
+ */
+export async function refusalSaid(response: Response): Promise<HubRefusal | undefined> {
+  const reader = response.body?.getReader()
+  if (!reader) return undefined
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const late = new Promise<'late'>((resolve) => { timer = setTimeout(() => resolve('late'), REFUSAL_BODY_MS) })
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    for (;;) {
+      const next = await Promise.race([reader.read(), late])
+      if (next === 'late' || next.done) {
+        if (next === 'late') return undefined
+        break
+      }
+      size += next.value.byteLength
+      if (size > REFUSAL_BODY_MAX) return undefined
+      chunks.push(next.value)
+    }
+    return hubRefusalOf(JSON.parse(Buffer.concat(chunks).toString('utf8')))
+  } catch {
+    // Not the hub's JSON (a proxy's page, a body cut short): no reason to pass on; the status and the wait still say it.
+    return undefined
+  } finally {
+    if (timer) clearTimeout(timer)
+    await reader.cancel().catch(() => {})
+  }
+}
+// #endregion fabric-mcp-refusal-body
+
 export const httpTransport: TransportFactory = (url, bearer) => {
   // SDK background SSE failures do not reject callTool. The same transport must therefore
   // enforce a monotonic deadline before EVERY fetch, including its next foreground POST.
@@ -150,8 +188,9 @@ export const httpTransport: TransportFactory = (url, bearer) => {
       if (response.status === 429 || (response.status === 503 && response.headers.get('retry-after') !== null)) {
         const delay = retryAfterMs(response.headers.get('retry-after'))
         retryUntil = Math.max(retryUntil, performance.now() + delay)
-        await response.body?.cancel().catch(() => {})
-        throw new FabricRateLimitError(delay, response.status)
+        // UX-3: the body says why (stack-starting, stack-unavailable); read bounded, and only its code and reason kept.
+        const said = await refusalSaid(response)
+        throw new FabricRateLimitError(delay, response.status, said)
       }
       return response
     }
@@ -171,8 +210,12 @@ export function makeHubCall(transportOf: TransportFactory = httpTransport): HubC
     let link: Awaited<ReturnType<typeof connect>> | null = null
     try {
       link = await connect(url, bearer, transportOf)
-      const r = (await link.client.callTool({ name: tool, arguments: args })) as { isError?: boolean; structuredContent?: Record<string, unknown> }
-      return { isError: Boolean(r.isError), value: r.structuredContent ?? {} }
+      const r = (await link.client.callTool({ name: tool, arguments: args })) as { isError?: boolean; structuredContent?: Record<string, unknown>; content?: unknown }
+      // PL-2: an error with no structured answer (the hub's schema refused an argument) is known by its text.
+      const said = r.isError && !r.structuredContent && Array.isArray(r.content)
+        ? r.content.map((c) => (typeof (c as { text?: unknown }).text === 'string' ? (c as { text: string }).text : '')).join(' ').slice(0, 2000)
+        : ''
+      return { isError: Boolean(r.isError), value: r.structuredContent ?? {}, ...(said ? { text: said } : {}) }
     } catch (e) {
       const status = (e as { code?: unknown } | null)?.code
       if (status === 401 || status === 403) return { unauthorized: true }

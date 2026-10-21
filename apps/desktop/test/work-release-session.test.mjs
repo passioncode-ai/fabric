@@ -187,3 +187,45 @@ test('TR-3: fabric_work_claim moves the claimed task through the read-back helpe
   const tool = src.slice(src.indexOf("'fabric_work_claim',"), src.indexOf("'fabric_work_release',"))
   assert.match(tool, /await moveClaimedTaskToRunning\(/)
 })
+
+// ── DA-6 (0.3.9 review iteration 1): a claim that moved its task to running, released any way but done, takes it back
+// to backlog; before, let-go, handed-over, a session end and the app's quit left it running with nobody on it. Only the
+// claim's own move is undone: the last move of the task must be that claim's move to running.
+const { returnClaimedTaskToBacklog } = await import(path.resolve(import.meta.dirname, '../src/main/workTools.ts'))
+
+test('DA-6: a released claim whose own move put the task in running takes it back to backlog, read back', async () => {
+  const b = ladderBoard('running')
+  const last = async () => ({ to: 'running', claim_id: 'c1' })
+  assert.deepEqual(await returnClaimedTaskToBacklog('c1', b.read, last, b.move), { task_moved_to: 'backlog', task_status: 'backlog' })
+  assert.deepEqual(b.moves, ['running->backlog'])
+})
+
+test('DA-6: a task the claim did not move there, moved since, or no longer running is left where it is', async () => {
+  for (const [status, last] of [
+    ['running', { to: 'running', claim_id: 'other' }],
+    ['running', { to: 'running' }],
+    ['running', null],
+    ['review', { to: 'review', claim_id: 'c1' }],
+    ['backlog', { to: 'running', claim_id: 'c1' }]
+  ]) {
+    const b = ladderBoard(status)
+    const r = await returnClaimedTaskToBacklog('c1', b.read, async () => last, b.move)
+    assert.deepEqual([r.task_moved_to, r.task_status], [null, status], `${status} ${JSON.stringify(last)}`)
+    assert.equal(b.moves.length, 0)
+  }
+  const refused = ladderBoard('running', { failMove: true })
+  const r = await returnClaimedTaskToBacklog('c1', refused.read, async () => ({ to: 'running', claim_id: 'c1' }), refused.move)
+  assert.deepEqual([r.task_moved_to, r.task_status], [null, 'running'])
+  assert.match(r.failed, /append refused/)
+})
+
+test('DA-6: the claim records its move, and a non-done release and a session end go through the helper (source)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const tools = readFileSync(path.resolve(import.meta.dirname, '../src/main/workTools.ts'), 'utf8')
+  const claim = tools.slice(tools.indexOf("'fabric_work_claim',"), tools.indexOf("'fabric_work_release',"))
+  assert.match(claim, /claim_id: claimId/)
+  const release = tools.slice(tools.indexOf("'fabric_work_release',"), tools.indexOf("'fabric_session_observe',"))
+  assert.match(release, /returnClaimedTaskToBacklog\(/)
+  const sessionEnd = readFileSync(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'), 'utf8')
+  assert.match(sessionEnd, /returnClaimedTaskToBacklog\(/)
+})
