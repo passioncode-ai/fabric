@@ -159,7 +159,11 @@ export const commsCancelSchema = z.strictObject({
   idempotency, request: opaqueId, expectedRevision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER).optional(), reason: z.string().min(1).max(300).optional()
 })
 const timestamp = z.iso.datetime({ offset: true })
-/** The contract's request states and Fabric's `answered` (0.3.9 BD-1): the target Project replied to a queued request. */
+/** The contract's request states and Fabric's `answered` (0.3.9 BD-1): the target Project replied to a queued request.
+ *  `answered` is outside the pinned contract's enum and is NOT opt-in (review i1 DA-4): the request object of any
+ *  participant's com.get or com.list page (`board_message_json`), and the receipt of a later com.cancel by the requester,
+ *  may carry it once the target replied, including after the first board tick past the upgrade, which answers the
+ *  legacy queued requests a target already replied to. com.status carries no request state. */
 const requestState = z.enum(['queued', 'claimed', 'accepted', 'in_progress', 'completed', 'failed_known', 'cancelled', 'expired', 'outcome_unknown', 'answered'])
 const effectState = z.enum(['not_started', 'started', 'succeeded_observed', 'failed_observed', 'unknown'])
 const receiptAttempt = z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp })
@@ -177,7 +181,9 @@ export const commsReceiptSchema = z.strictObject({
   attempt: receiptAttempt.optional(),
   transferred: z.array(z.strictObject({ request: opaqueId, revision: z.number().int().min(1), attempt: receiptAttempt })).min(1).max(64)
     .refine((t) => new Set(t.map((x) => x.request)).size === t.length, 'each transferred request once').optional(),
-  // Fabric's optional members (0.3.9): a bulk read mark's counts (BD-4), and a request nobody can answer now (BD-1).
+  // Fabric's optional members (0.3.9), outside the pinned contract: a bulk read mark's counts (BD-4), present only in
+  // the answer to a bulk com.read_ack the caller chose; and a request nobody can answer now (BD-1), sent to the
+  // requester's com.submit without an opt-in (review i1 DA-4).
   marked: z.number().int().min(0).optional(),
   alreadyRead: z.number().int().min(0).optional(),
   more: z.boolean().optional(),
@@ -442,13 +448,19 @@ export function createBoard(deps: BoardDeps) {
       const stored = receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
       // #region board-core-holds-no-responder — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
       // 0.3.9 BD-1: a request is accepted even when nobody can answer it now (its target can still answer by replying,
-      // and the operator may grant board.respond later), and the receipt says so at once. A check that cannot be read
-      // leaves the receipt as the board gave it: the request was stored either way.
+      // and an agent of the target may ask for board.respond, which the operator then allows), and the receipt says so at
+      // once. A check that cannot be read leaves the receipt as the board gave it: the request was stored either way.
+      // Who receives what (review i1 DA-4, decided here): `noResponder` goes only to the caller of THIS com.submit, the
+      // requester, in the receipt of a kind:request message whose capability nobody serves; it is sent without any
+      // opt-in, so a strict client validating the pinned comms-receipt schema (closed, additionalProperties false) sees
+      // one member the contract does not name until the contract carries it. That is accepted: the member is additive,
+      // the request is stored either way, and telling the requester at once is the point of BD-1. No other tool and no
+      // other Project ever receives it.
       if (!isRefusal(stored) && parsed.data.request) {
         const possible = await call('board_responder_possible', { p_estate: caller.estateId, p_project: parsed.data.request.target, p_capability: parsed.data.request.capability }, 'read')
         if (!isRefusal(possible) && possible.ok === true && possible.possible === false) {
           return { ...stored, noResponder: { target: parsed.data.request.target, capability: parsed.data.request.capability,
-            message: 'No agent answers this capability for that Project now. The request waits until the target replies (a reply answers it), the operator grants board.respond, or its deadline passes.' } }
+            message: 'No agent answers this capability for that Project now. The request waits until the target replies (a reply answers it), an agent of the target asks for board.respond and the operator allows it, or its deadline passes.' } }
         }
       }
       // #endregion board-core-holds-no-responder

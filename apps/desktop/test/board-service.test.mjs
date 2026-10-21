@@ -627,6 +627,10 @@ test('BD-1: a request nobody can answer is accepted with noResponder in its rece
   assert.equal(nobody.ok, true)
   assert.equal(nobody.noResponder.capability, submitRequest.request.capability)
   assert.match(nobody.noResponder.message, /reply/)
+  // Review i1 UX-7 / DA-4: nothing can be granted until an agent of the target asks for board.respond; the message says
+  // that order instead of "the operator grants".
+  assert.match(nobody.noResponder.message, /asks/); assert.doesNotMatch(nobody.noResponder.message, /operator grants/)
+  assert.ok(nobody.noResponder.message.length <= 300)
   const somebody = await createBoard({ rpc: fake({ board_submit: { data: receipt, error: null }, board_responder_possible: { data: { ok: true, possible: true }, error: null } }).rpc }).submit(caller, submitRequest)
   assert.equal(somebody.noResponder, undefined)
   logged.length = 0
@@ -643,6 +647,10 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
   assert.match(described.get('com.read_ack'), /messages/); assert.match(described.get('com.read_ack'), /upTo/)
   assert.match(described.get('com.reply'), /answered/); assert.doesNotMatch(described.get('com.reply'), /no request changes state/)
   assert.match(described.get('com.submit'), /noResponder/); assert.match(described.get('com.submit'), /7 days/)
-  for (const op of ['com.list', 'com.read_ack', 'com.reply', 'com.submit']) assert.doesNotMatch(described.get(op), /\u2014/, `${op}'s description carries an em dash`)
+  // Review i1 DA-4: noResponder and answered reach a caller that never asked for them; the descriptions say they are
+  // Fabric's own additions outside the pinned contract, and who receives each.
+  assert.match(described.get('com.submit'), /outside the pinned contract/); assert.match(described.get('com.submit'), /without asking/)
+  assert.match(described.get('com.get'), /answered/); assert.match(described.get('com.get'), /outside the pinned contract/)
+  for (const op of ['com.list', 'com.read_ack', 'com.reply', 'com.submit', 'com.get']) assert.doesNotMatch(described.get(op), /\u2014/, `${op}'s description carries an em dash`)
 })
 // #endregion board-core-holds

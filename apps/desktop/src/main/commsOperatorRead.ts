@@ -464,19 +464,16 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
     },
 
     // #region board-core-holds-waiting — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
-    /** What waits for the operator outside Comms (0.3.9 BD-2): requests nobody can answer and unread board messages,
-     *  each with its oldest. A count above zero always comes with its oldest time; anything else is unavailable. */
+    /** What waits for the operator outside Comms (0.3.9 BD-2): requests nobody can answer, with the oldest. A count
+     *  above zero always comes with its oldest time; anything else is unavailable. The unread-deliveries half the
+     *  database also answers is read past, not carried (review i1 UX-1, DA-8: one copy per recipient project, a standing
+     *  number nobody can lower); a later database that drops it reads the same. */
     async waiting(estateId: string): Promise<CommsWaitingReply> {
       return answer('board_waiting_operator', { p_estate: estateId }, 'what waits on the board', (d) => {
-        const count = (v: unknown): number | null => (isInt(v) && v >= 0 ? v : null)
-        const requests = count(d.requests), unread = count(d.unread)
-        if (requests === null || unread === null || !optStr(d.oldestRequestAt) || !optStr(d.oldestUnreadAt)) return null
-        if ((requests > 0) !== (typeof d.oldestRequestAt === 'string') || (unread > 0) !== (typeof d.oldestUnreadAt === 'string')) return null
-        return {
-          ok: true as const, requests, unread,
-          ...(typeof d.oldestRequestAt === 'string' ? { oldestRequestAt: d.oldestRequestAt } : {}),
-          ...(typeof d.oldestUnreadAt === 'string' ? { oldestUnreadAt: d.oldestUnreadAt } : {})
-        }
+        const requests = isInt(d.requests) && d.requests >= 0 ? d.requests : null
+        if (requests === null || !optStr(d.oldestRequestAt)) return null
+        if ((requests > 0) !== (typeof d.oldestRequestAt === 'string')) return null
+        return { ok: true as const, requests, ...(typeof d.oldestRequestAt === 'string' ? { oldestRequestAt: d.oldestRequestAt } : {}) }
       })
     },
     // #endregion board-core-holds-waiting

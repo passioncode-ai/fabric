@@ -358,8 +358,15 @@ export function PendingPanel({ state, nameOf, onProject, confirmedAt }: { state:
         <ul>
           {state.projects.map((p) => (
             <li key={p.project}>
+              {/* Review i1 UX-6: `requests` counts the project's UNREAD requests, `requestsWithAbsentResponder` every open
+                  request nobody answers, read or not (0.3.9 BD-2), and `oldestAt` is the older of the two. A project
+                  listed only for a read request it has not answered comes with unread 0 and requests 0, so it is said
+                  as nothing unread, with how long the oldest waits, and the requests line is its own count, never
+                  "of them". */}
               <button type="button" className="lp-link" onClick={() => onProject(p.project)}>
-                {t('launch.comms.pending.row', { project: nameOf(p.project), count: p.unread, since: ago(t, p.oldestAt), findings: p.findings, requests: p.requests })}
+                {p.unread > 0
+                  ? t('launch.comms.pending.row', { project: nameOf(p.project), count: p.unread, age: since(p.oldestAt, t), findings: p.findings, requests: p.requests })
+                  : t('launch.comms.pending.rowNoUnread', { project: nameOf(p.project), age: since(p.oldestAt, t) })}
               </button>
               {p.requestsWithAbsentResponder > 0 && <span className="lp-meta"> · {t('launch.comms.pending.noResponder', { count: p.requestsWithAbsentResponder })}</span>}
             </li>
