@@ -1320,6 +1320,8 @@ export interface FabricApi {
     related(threadId: string): Promise<import('./commsRead.ts').CommsRelatedReply>
     search(query: string, before: number | null): Promise<import('./commsRead.ts').CommsSearchReply>
     pending(): Promise<import('./commsRead.ts').CommsPendingReply>
+    /** What waits on the board for the operator, outside Comms (0.3.9 BD-2): requests nobody can answer, unread messages. */
+    waiting(): Promise<import('./commsRead.ts').CommsWaitingReply>
     /** Opens an artifact's link in the browser — only an `https:` one; any other scheme is refused in main. */
     openArtifact(url: string): Promise<import('./commsRead.ts').CommsOpenArtifactReply>
   }
@@ -1762,6 +1764,7 @@ export const IPC = {
   commsRelated: 'comms:related',
   commsSearch: 'comms:search',
   commsPending: 'comms:pending',
+  commsWaiting: 'comms:waiting',
   commsOpenArtifact: 'comms:open-artifact',
   attentionGrant: 'attention:grant',
   analyticsStatus: 'analytics:status',

@@ -308,3 +308,50 @@ test('W4-2 (comms:open-artifact): only an https link opens; javascript:, file:, 
   assert.deepEqual(await createCommsOperatorRead(fake()).openArtifact('https://example.org/x'), { ok: false, reason: 'failed' }, 'no opener wired is a failure, not a success')
 })
 // #endregion comms-operator-reads-w4
+
+// ── 0.3.9 "the core holds" (docs/evidence/plans/2026-10-21-core-reliability/board.md BD-2, BD-5) ─────────────────
+// #region board-core-holds — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+const { useOps } = await import('../src/main/opsSink.ts')
+const logged = []
+useOps({ correlate: () => 'test', record: (r) => logged.push(r), begin: () => () => {}, read: () => [], file: () => null, lost: () => 0 })
+
+test('BD-2: waiting reads requests nobody answers and unread board messages, each with its oldest; a bad shape is unavailable', async () => {
+  const good = { ok: true, requests: 6, oldestRequestAt: '2026-10-16T12:48:00.000Z', unread: 3084, oldestUnreadAt: '2026-10-16T12:48:00.000Z' }
+  const { rpc, calls } = fake({ board_waiting_operator: { data: good, error: null } })
+  assert.deepEqual(await createCommsOperatorRead({ rpc }).waiting(ESTATE), good)
+  assert.deepEqual(calls, [{ fn: 'board_waiting_operator', args: { p_estate: ESTATE } }])
+  const none = { ok: true, requests: 0, unread: 0 }
+  assert.deepEqual(await createCommsOperatorRead(fake({ board_waiting_operator: { data: none, error: null } })).waiting(ESTATE), none)
+  for (const bad of [{ ok: true, requests: '6', unread: 0 }, { ok: true, requests: 1, unread: 0 }, { ok: true, requests: -1, unread: 0 }, { ok: true, unread: 0 }])
+    assert.equal((await createCommsOperatorRead(fake({ board_waiting_operator: { data: bad, error: null } })).waiting(ESTATE)).ok, false, JSON.stringify(bad))
+})
+
+test('BD-5: a read that fails is recorded with its door and why — once per change on a poll, and again after it recovered', async () => {
+  let answer = { data: null, error: { message: 'Could not find the function board_thread_heads_operator' } }
+  const read = createCommsOperatorRead({ rpc: async () => answer })
+  logged.length = 0
+  for (let i = 0; i < 5; i++) assert.equal((await read.heads(ESTATE)).ok, false)
+  const failures = () => logged.filter(r => r.outcome === 'failed')
+  assert.equal(failures().length, 1, 'a 5 s poll failing the same way is one record, not one per tick')
+  assert.match(JSON.stringify(failures()[0]), /board_thread_heads_operator/)
+  answer = { data: 'garbage', error: null }
+  await read.heads(ESTATE)
+  assert.equal(failures().length, 2, 'a different failure is a new record')
+  answer = { data: { ok: true, heads: [], truncated: false }, error: null }
+  assert.equal((await read.heads(ESTATE)).ok, true)
+  assert.equal(failures().length, 2, 'success is not a failure')
+  assert.ok(logged.some(r => r.outcome === 'ok' && /recovered/.test(JSON.stringify(r))), 'the recovery is said once')
+  answer = { data: null, error: { message: 'Could not find the function board_thread_heads_operator' } }
+  await read.heads(ESTATE)
+  assert.equal(failures().length, 3, 'a failure after a recovery is recorded again')
+  // The older reads too: the thread list and the page.
+  logged.length = 0
+  const old = createCommsOperatorRead(fake({ board_threads_operator: { data: { ok: true, threads: 'x' }, error: null }, board_list_operator: { data: null, error: { message: 'timeout' } } }))
+  assert.equal((await old.threads(ESTATE)).ok, false); assert.equal((await old.list(ESTATE, null, 0)).ok, false)
+  assert.equal(failures().length, 2, JSON.stringify(logged))
+  // The board's own refusal is an answer, not a failure of the read path.
+  logged.length = 0
+  await createCommsOperatorRead(fake({ board_pending_operator: { data: { error: { code: 'invalid_arguments', message: 'no' } }, error: null } })).pending(ESTATE)
+  assert.equal(failures().length, 0)
+})
+// #endregion board-core-holds

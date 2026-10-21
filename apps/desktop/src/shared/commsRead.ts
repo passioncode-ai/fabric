@@ -211,6 +211,19 @@ export interface CommsPending {
 }
 export type CommsPendingReply = { ok: true; projects: CommsPending[]; more: boolean } | { ok: false; error: CommsReadError }
 
+// #region board-core-holds-waiting — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+/** What waits on the board for the operator, outside Comms (0.3.9 BD-2): requests nobody can answer now (queued or
+ *  otherwise open, no responder holds their slot, read by their target or not) and board messages no recipient has
+ *  marked read, each with its oldest. Counts only: no body, no project. */
+export interface CommsWaiting {
+  requests: number
+  oldestRequestAt?: string
+  unread: number
+  oldestUnreadAt?: string
+}
+export type CommsWaitingReply = ({ ok: true } & CommsWaiting) | { ok: false; error: CommsReadError }
+// #endregion board-core-holds-waiting
+
 /** `comms:open-artifact`: only an `https:` link opens, in the browser, through main; anything else is refused. */
 export type CommsOpenArtifactReply = { ok: true } | { ok: false; reason: 'refused' | 'failed' }
 

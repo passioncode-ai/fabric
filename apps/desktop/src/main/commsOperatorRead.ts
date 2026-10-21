@@ -49,6 +49,7 @@ import {
   type CommsThreadPageReply,
   type CommsThreadsReply,
   type CommsTimelineReply,
+  type CommsWaitingReply,
   type CommsTimelineStep
 } from '../shared/commsRead.ts'
 import { ops } from './opsSink.ts'
@@ -282,53 +283,81 @@ function every<T>(v: unknown, of: (x: unknown) => T | null): T[] | null {
 // #endregion comms-operator-reads-w4
 
 export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
+  // #region board-core-holds-read-failures — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+  /**
+   * Why each door last failed, while it is failing (0.3.9 BD-5). A read that answers `unavailable` is recorded in the log
+   * Diagnostics reads, with its door and reason: once when it starts failing or its reason changes, never once per tick
+   * of the 5 s badge poll; and once more, as recovered, when it answers again. The board's own refusals (not_found,
+   * invalid_arguments) are answers, not failures, and are not recorded.
+   */
+  const failing = new Map<string, string>()
+  const noteFailed = (fn: string, reason: string, error?: unknown): void => {
+    if (failing.get(fn) === reason) return
+    failing.set(fn, reason)
+    ops.failed('comms.read-unavailable', error ?? new Error(reason), { door: fn, reason, note: 'the operator read answered unavailable; recorded again only when the reason changes or after it recovers' })
+  }
+  const noteOk = (fn: string): void => {
+    if (!failing.delete(fn)) return
+    ops.record({ op: 'comms.read-recovered', outcome: 'ok', detail: { door: fn }, ctx: { correlationId: ops.correlate() } })
+  }
+  /** `unavailable`, recorded for its door. */
+  const down = (fn: string, message: string, error?: unknown) => {
+    noteFailed(fn, message, error)
+    return unavailable(message)
+  }
+  // #endregion board-core-holds-read-failures
   /** The door, with a thrown transport read as the same answer as a returned one:
    *  unavailable. `supabase-js` reports failures in `error`, but the door is a seam —
-   *  a throw crossing it must not become an IPC rejection the screen has to guess at. */
+   *  a throw crossing it must not become an IPC rejection the screen has to guess at.
+   *  WHY the board went quiet is recorded by `down`, once per change (0.3.9 BD-5). */
   const call = async (fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> => {
     try {
       return await deps.rpc(fn, args)
     } catch (e) {
-      // The caller is told `unavailable`; the record of WHY the board went quiet
-      // belongs here, in the log Diagnostics reads — not only on a screen.
-      ops.failed('comms.rpc-threw', e, { note: `the board read ${fn} could not be reached; the caller was told unavailable` })
-      return { data: null, error: e }
+      // Not silence: the caller is told unavailable, and `down` records why, once per change of reason.
+      return { data: null, error: e instanceof Error ? e : new Error(String(e)) }
     }
   }
   /** One wave-4 read: the door's transport error and a payload that is not an object are `unavailable`; the board's
    *  refusal travels with its code; anything else is `body`'s to read, and null from it is `unavailable` too. */
   const answer = async <T,>(fn: string, args: Record<string, unknown>, what: string, body: (data: Record<string, unknown>) => T | null): Promise<T | { ok: false; error: CommsReadError }> => {
     const { data, error } = await call(fn, args)
-    if (error) return unavailable(errorMessage(error))
-    if (!isObj(data)) return unavailable(`the board answered with something that is not ${what}`)
+    if (error) return down(fn, errorMessage(error), error)
+    if (!isObj(data)) return down(fn, `the board answered with something that is not ${what}`)
     if (isObj(data.error)) {
       const code = asStr(data.error.code)
       const message = asStr(data.error.message) ?? 'the board refused the read'
-      return failed(code === 'not_found' ? 'not_found' : code === 'invalid_arguments' ? 'invalid_arguments' : 'unavailable', message)
+      if (code === 'not_found' || code === 'invalid_arguments') { noteOk(fn); return failed(code, message) }
+      return down(fn, message)
     }
-    if (data.ok !== true) return unavailable(`the board answered with something that is not ${what}`)
+    if (data.ok !== true) return down(fn, `the board answered with something that is not ${what}`)
     const out = body(data)
-    return out ?? unavailable(`the board answered ${what} in a shape this build cannot read`)
+    if (out === null) return down(fn, `the board answered ${what} in a shape this build cannot read`)
+    noteOk(fn)
+    return out
   }
   const refused = (message: string) => failed('invalid_arguments', message)
   return {
     /** Every thread of the estate, oldest first. */
     async threads(estateId: string): Promise<CommsThreadsReply> {
-      const { data, error } = await call('board_threads_operator', { p_estate_id: estateId })
-      if (error) return unavailable(errorMessage(error))
-      if (!isObj(data)) return unavailable('the board answered with something that is not a thread list')
+      const door = 'board_threads_operator'
+      const { data, error } = await call(door, { p_estate_id: estateId })
+      if (error) return down(door, errorMessage(error), error)
+      if (!isObj(data)) return down(door, 'the board answered with something that is not a thread list')
       if (isObj(data.error)) {
         const code = asStr(data.error.code)
         const message = asStr(data.error.message) ?? 'the board refused the read'
-        return failed(code === 'invalid_arguments' ? 'invalid_arguments' : code === 'not_found' ? 'not_found' : 'unavailable', message)
+        if (code === 'invalid_arguments' || code === 'not_found') return failed(code, message)
+        return down(door, message)
       }
-      if (data.ok !== true || !Array.isArray(data.threads)) return unavailable('the board answered with something that is not a thread list')
+      if (data.ok !== true || !Array.isArray(data.threads)) return down(door, 'the board answered with something that is not a thread list')
       const threads: CommsThread[] = []
       for (const row of data.threads) {
         const thread = threadOf(row)
-        if (!thread) return unavailable('the board answered with a thread row in a shape this build cannot read')
+        if (!thread) return down(door, 'the board answered with a thread row in a shape this build cannot read')
         threads.push(thread)
       }
+      noteOk(door)
       if (threads.length === 0 && deps.journalMessages) {
         // Best effort: an unreadable count leaves the board's own answer standing, and is logged.
         try {
@@ -434,6 +463,24 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
       })
     },
 
+    // #region board-core-holds-waiting — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+    /** What waits for the operator outside Comms (0.3.9 BD-2): requests nobody can answer and unread board messages,
+     *  each with its oldest. A count above zero always comes with its oldest time; anything else is unavailable. */
+    async waiting(estateId: string): Promise<CommsWaitingReply> {
+      return answer('board_waiting_operator', { p_estate: estateId }, 'what waits on the board', (d) => {
+        const count = (v: unknown): number | null => (isInt(v) && v >= 0 ? v : null)
+        const requests = count(d.requests), unread = count(d.unread)
+        if (requests === null || unread === null || !optStr(d.oldestRequestAt) || !optStr(d.oldestUnreadAt)) return null
+        if ((requests > 0) !== (typeof d.oldestRequestAt === 'string') || (unread > 0) !== (typeof d.oldestUnreadAt === 'string')) return null
+        return {
+          ok: true as const, requests, unread,
+          ...(typeof d.oldestRequestAt === 'string' ? { oldestRequestAt: d.oldestRequestAt } : {}),
+          ...(typeof d.oldestUnreadAt === 'string' ? { oldestUnreadAt: d.oldestUnreadAt } : {})
+        }
+      })
+    },
+    // #endregion board-core-holds-waiting
+
     /** What waits for each project: delivered, held and not read (SCN-157, COM-05). */
     async pending(estateId: string): Promise<CommsPendingReply> {
       return answer('board_pending_operator', { p_estate: estateId, p_limit: 100 }, 'what waits', (d) => {
@@ -474,28 +521,31 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
       if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) return failed('invalid_arguments', 'The page request is not valid.')
       if (threadId !== null && !threadId) return failed('invalid_arguments', 'The page request is not valid.')
       const bounded = Math.max(1, Math.min(100, Math.floor(limit)))
-      const { data, error } = await call('board_list_operator', {
+      const door = 'board_list_operator'
+      const { data, error } = await call(door, {
         p_estate_id: estateId,
         p_thread: threadId,
         p_after_seq: afterSeq,
         p_limit: bounded
       })
-      if (error) return unavailable(errorMessage(error))
-      if (!isObj(data)) return unavailable('the board answered with something that is not a page')
+      if (error) return down(door, errorMessage(error), error)
+      if (!isObj(data)) return down(door, 'the board answered with something that is not a page')
       if (isObj(data.error)) {
         const code = asStr(data.error.code)
         const message = asStr(data.error.message) ?? 'the board refused the read'
-        return failed(code === 'not_found' ? 'not_found' : code === 'invalid_arguments' ? 'invalid_arguments' : 'unavailable', message)
+        if (code === 'not_found' || code === 'invalid_arguments') return failed(code, message)
+        return down(door, message)
       }
-      if (data.ok !== true || !Array.isArray(data.messages)) return unavailable('the board answered with something that is not a page')
+      if (data.ok !== true || !Array.isArray(data.messages)) return down(door, 'the board answered with something that is not a page')
       const lastSeq = asNum(data.last_seq)
-      if (lastSeq === null) return unavailable('the board answered with a page that carries no cursor')
+      if (lastSeq === null) return down(door, 'the board answered with a page that carries no cursor')
       const messages: CommsMessage[] = []
       for (const row of data.messages) {
         const message = messageOf(row)
-        if (!message) return unavailable('the board answered with a message in a shape this build cannot read')
+        if (!message) return down(door, 'the board answered with a message in a shape this build cannot read')
         messages.push(message)
       }
+      noteOk(door)
       return { ok: true, messages, lastSeq, more: data.more === true }
     }
   }

@@ -179,6 +179,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       related: (threadId) => ipc.invoke(IPC.commsRelated, threadId),
       search: (query, before) => ipc.invoke(IPC.commsSearch, query, before),
       pending: () => ipc.invoke(IPC.commsPending),
+      waiting: () => ipc.invoke(IPC.commsWaiting),
       openArtifact: (url) => ipc.invoke(IPC.commsOpenArtifact, url)
     },
     quota: {

@@ -170,6 +170,7 @@ import { answerSaid, type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
+import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
@@ -194,6 +195,7 @@ import { causeOf, type OpsLevel } from '../shared/opsLog'
  * The error is RE-THROWN: the renderer still gets its rejection, and the log is
  * a witness rather than a replacement for the failure.
  */
+const ipcOutcomes = createIpcOutcomeLog()
 function handle(
   channel: string,
   fn: (event: Electron.IpcMainInvokeEvent, ...args: never[]) => unknown
@@ -209,7 +211,10 @@ function handle(
       // every window on that document; this is the guard's second wall.
       if (!senderAllowed(event)) throw new Error(`the sender is not Fabric's renderer (${event.senderFrame?.url ?? 'no frame'})`)
       const result = await fn(event, ...(args as never[]))
-      done('ok')
+      // 0.3.9 BD-5/BD-6 (`ipcOutcome.ts`): a reply carrying ok: false is never logged ok, and a polled channel writes
+      // a line only when its state changes.
+      const line = ipcOutcomes.decide(channel, result)
+      if (line) done(line.outcome, line.detail ? { detail: line.detail } : undefined)
       return result
     } catch (e) {
       done('failed', { error: e })
@@ -3493,6 +3498,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.commsRelated, (_e, threadId: unknown): Promise<Returns<FabricApi['comms']['related']>> => commsRead.related(ACTIVE_ESTATE, threadId))
   handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsRead.search(ACTIVE_ESTATE, query, before))
   handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsRead.pending(ACTIVE_ESTATE))
+  handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => commsRead.waiting(ACTIVE_ESTATE))
   handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
   // #endregion comms-screen
 

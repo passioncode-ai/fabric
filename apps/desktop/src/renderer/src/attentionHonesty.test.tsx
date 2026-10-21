@@ -136,7 +136,9 @@ function stub(list: () => Promise<ReadEnvelope<AttentionItem[]>>): void {
         estate: { summary: async () => null, profile: async () => null },
         memory: { overview: async () => null },
         // The home's who-is-doing-what reading (2026-10-14): calm, so only the attention counts speak here.
-        work: { home: async () => ({ live: [], inWork: [], review: [], projects: [], readAt: '' }) }
+        work: { home: async () => ({ live: [], inWork: [], review: [], projects: [], readAt: '' }) },
+        // What waits on the project board (0.3.9 BD-2): calm too, for the same reason.
+        comms: { waiting: async () => ({ ok: true, requests: 0, unread: 0 }) }
       }
     })
   )

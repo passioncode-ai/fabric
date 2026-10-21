@@ -288,6 +288,7 @@ export function createBoard(deps: BoardDeps) {
       }
       reason = error ?? new Error('board_cursor_key answered no key')
     } catch (e) {
+      // Not silence: the reason is recorded just below, once per run of failures.
       reason = e
     }
     if (!keyFailureLogged) {
