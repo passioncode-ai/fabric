@@ -131,8 +131,23 @@ export const commsSubmitSchema = z.strictObject({
   if (v.kind === 'reply' && !v.replyTo) ctx.addIssue({ code: 'custom', path: ['replyTo'], message: 'a reply names the message it answers' })
 })
 export type CommsSubmit = z.infer<typeof commsSubmitSchema>
-export const commsListSchema = z.strictObject({ thread: opaqueId.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional() })
+// #region board-core-holds-inputs — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+/** `com.list` (comms-list) and Fabric's two optional filters (0.3.9 BD-3): `unread` keeps what this Project has not
+ *  marked read, `since` what was written at or after a time. Either one makes each message carry `read`; a call with
+ *  neither is the contract's call and answers the contract's page, byte for byte. */
+export const commsListSchema = z.strictObject({
+  thread: opaqueId.optional(), cursor: opaqueId.optional(), limit: z.number().int().min(1).max(100).optional(),
+  unread: z.boolean().optional(), since: z.iso.datetime({ offset: true }).optional()
+})
 export const commsMessageRefSchema = z.strictObject({ message: opaqueId })
+/** `com.read_ack` (comms-message-ref) and Fabric's bulk forms (0.3.9 BD-4): up to 100 named messages, or one thread up
+ *  to a named message of it. Exactly one form per call. */
+export const commsReadAckSchema = z.union([
+  commsMessageRefSchema,
+  z.strictObject({ messages: z.array(opaqueId).min(1).max(100) }),
+  z.strictObject({ thread: opaqueId, upTo: opaqueId })
+])
+// #endregion board-core-holds-inputs
 /** `com.status` (contract DEC-0073, `comms-status-args`): a session omits its Project or names its own. */
 export const commsStatusArgsSchema = z.strictObject({ project: projectId.optional() })
 const idempotency = z.strictObject({ epoch: z.number().int().min(1).max(2147483647), key: z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/) })
@@ -144,7 +159,8 @@ export const commsCancelSchema = z.strictObject({
   idempotency, request: opaqueId, expectedRevision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER).optional(), reason: z.string().min(1).max(300).optional()
 })
 const timestamp = z.iso.datetime({ offset: true })
-const requestState = z.enum(['queued', 'claimed', 'accepted', 'in_progress', 'completed', 'failed_known', 'cancelled', 'expired', 'outcome_unknown'])
+/** The contract's request states and Fabric's `answered` (0.3.9 BD-1): the target Project replied to a queued request. */
+const requestState = z.enum(['queued', 'claimed', 'accepted', 'in_progress', 'completed', 'failed_known', 'cancelled', 'expired', 'outcome_unknown', 'answered'])
 const effectState = z.enum(['not_started', 'started', 'succeeded_observed', 'failed_observed', 'unknown'])
 const receiptAttempt = z.strictObject({ id: opaqueId, generation: z.number().int().min(1), digest: sha256, leaseExpiresAt: timestamp })
 /** The receipt of every successful mutation (spec §1.2, `comms-receipt`): no field it does not name, so no seq (C3).
@@ -160,7 +176,12 @@ export const commsReceiptSchema = z.strictObject({
   slot: z.strictObject({ project: projectId, capability: capabilityName, generation: z.number().int().min(1), leaseExpiresAt: timestamp }).optional(),
   attempt: receiptAttempt.optional(),
   transferred: z.array(z.strictObject({ request: opaqueId, revision: z.number().int().min(1), attempt: receiptAttempt })).min(1).max(64)
-    .refine((t) => new Set(t.map((x) => x.request)).size === t.length, 'each transferred request once').optional()
+    .refine((t) => new Set(t.map((x) => x.request)).size === t.length, 'each transferred request once').optional(),
+  // Fabric's optional members (0.3.9): a bulk read mark's counts (BD-4), and a request nobody can answer now (BD-1).
+  marked: z.number().int().min(0).optional(),
+  alreadyRead: z.number().int().min(0).optional(),
+  more: z.boolean().optional(),
+  noResponder: z.strictObject({ target: projectId, capability: capabilityName, message: z.string().min(1).max(300) }).optional()
 })
 
 // ── the responder tools' argument shapes (contract DEC-0073, pinned at f00a768 with DEC-0078), strict ──────
@@ -221,7 +242,8 @@ export type BoardRpc = (fn: string, args: Record<string, unknown>) => PromiseLik
 
 export interface BoardDeps {
   rpc: BoardRpc
-  /** Binds cursors to this run; a restart resets them (`cursor_reset_required`), which the contract allows. */
+  /** A fixed cursor key (tests). Absent, the key is the estate's own, kept by the board (`board_cursor_key`), so a cursor
+   *  survives a restart (0.3.9 BD-3); a key the board cannot give is replaced by one for this run, and said in the log. */
   cursorKey?: Buffer
   now?: () => Date
   /** Whether com.status carries `idempotency.epoch`; the pin decides (`STATUS_CARRIES_EPOCH`), a test may say otherwise. */
@@ -240,21 +262,55 @@ const SQLSTATE = /^[0-9A-Z]{5}$/
 type Kind = 'read' | 'write' | 'keyless'
 
 export function createBoard(deps: BoardDeps) {
-  const key = deps.cursorKey ?? randomBytes(32)
+  /** This run's key: the directory's cursors, and the list's when the board cannot give the estate's. */
+  const runKey = deps.cursorKey ?? randomBytes(32)
   const now = deps.now ?? (() => new Date())
   const statusCarriesEpoch = deps.statusCarriesEpoch ?? STATUS_CARRIES_EPOCH
 
-  const mac = (caller: BoardCaller, thread: string | null, seq: number): string =>
-    createHmac('sha256', key).update(commsCanonical({ e: caller.estateId, g: 'participant', r: caller.projectId, s: seq, t: thread, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
-  const cursorFor = (caller: BoardCaller, thread: string | null, seq: number): string => `c${seq.toString(36)}_${mac(caller, thread, seq)}`
-  const seqFrom = (caller: BoardCaller, thread: string | null, cursor: string): number | null => {
+  // #region board-core-holds-cursor — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+  /** The estate's cursor key, read once per run from the board (0.3.9 BD-3). A failed read falls back to this run's key
+   *  and is logged once per run of failures; the next call asks again, so a board that comes back restores the key. */
+  const estateKeys = new Map<string, Buffer>()
+  let keyFailureLogged = false
+  const listKey = async (estateId: string): Promise<Buffer> => {
+    if (deps.cursorKey) return deps.cursorKey
+    const held = estateKeys.get(estateId)
+    if (held) return held
+    let reason: unknown = null
+    try {
+      const { data, error } = await deps.rpc('board_cursor_key', { p_estate: estateId })
+      const hex = data && typeof data === 'object' ? (data as { key?: unknown }).key : undefined
+      if (!error && typeof hex === 'string' && /^[0-9a-f]{64}$/.test(hex)) {
+        const k = Buffer.from(hex, 'hex')
+        estateKeys.set(estateId, k)
+        keyFailureLogged = false
+        return k
+      }
+      reason = error ?? new Error('board_cursor_key answered no key')
+    } catch (e) {
+      reason = e
+    }
+    if (!keyFailureLogged) {
+      keyFailureLogged = true
+      ops.failed('board.cursor-key', reason, { note: 'the estate\'s cursor key could not be read; com.list cursors use this run\'s key and reset at the next restart' })
+    }
+    return runKey
+  }
+  /** What a cursor is bound to: estate, reader, grant, thread, the seq and (0.3.9) Fabric's filters, when given. */
+  const mac = (k: Buffer, caller: BoardCaller, thread: string | null, seq: number, filter: { unread: boolean; since: string | null }): string =>
+    createHmac('sha256', k).update(commsCanonical({ e: caller.estateId, g: 'participant', r: caller.projectId, s: seq, t: thread, v: caller.participationGrant ?? 'participant',
+      ...(filter.unread ? { u: true } : {}), ...(filter.since !== null ? { f: filter.since } : {}) })).digest('base64url').slice(0, 22)
+  const cursorFor = (k: Buffer, caller: BoardCaller, thread: string | null, seq: number, filter: { unread: boolean; since: string | null }): string =>
+    `c${seq.toString(36)}_${mac(k, caller, thread, seq, filter)}`
+  const seqFrom = (k: Buffer, caller: BoardCaller, thread: string | null, cursor: string, filter: { unread: boolean; since: string | null }): number | null => {
     const m = /^c([0-9a-z]{1,11})_([A-Za-z0-9_-]{22})$/.exec(cursor)
     if (!m) return null
     const seq = parseInt(m[1], 36)
     if (!Number.isSafeInteger(seq)) return null
-    const want = Buffer.from(mac(caller, thread, seq)), got = Buffer.from(m[2])
+    const want = Buffer.from(mac(k, caller, thread, seq, filter)), got = Buffer.from(m[2])
     return want.length === got.length && timingSafeEqual(want, got) ? seq : null
   }
+  // #endregion board-core-holds-cursor
 
   /**
    * One board command. A7-035 and the A7-017 residual: a thrown error or an error without a SQLSTATE never reached
@@ -351,7 +407,7 @@ export function createBoard(deps: BoardDeps) {
   }
 
   const dirMac = (caller: BoardCaller, capability: string | null, after: string): string =>
-    createHmac('sha256', key).update(commsCanonical({ a: after, e: caller.estateId, f: capability, k: 'directory', r: caller.projectId, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
+    createHmac('sha256', runKey).update(commsCanonical({ a: after, e: caller.estateId, f: capability, k: 'directory', r: caller.projectId, v: caller.participationGrant ?? 'participant' })).digest('base64url').slice(0, 22)
 
   return {
     async submit(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
@@ -382,7 +438,20 @@ export function createBoard(deps: BoardDeps) {
       if (parsed.data.replyTo !== undefined) parsed.data.replyTo = boardId(parsed.data.replyTo) ?? parsed.data.replyTo
       const digest = idempotencyDigest('com.submit', parsed.data)
       if (typeof digest !== 'string') return digest
-      return receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
+      const stored = receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
+      // #region board-core-holds-no-responder — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+      // 0.3.9 BD-1: a request is accepted even when nobody can answer it now (its target can still answer by replying,
+      // and the operator may grant board.respond later), and the receipt says so at once. A check that cannot be read
+      // leaves the receipt as the board gave it: the request was stored either way.
+      if (!isRefusal(stored) && parsed.data.request) {
+        const possible = await call('board_responder_possible', { p_estate: caller.estateId, p_project: parsed.data.request.target, p_capability: parsed.data.request.capability }, 'read')
+        if (!isRefusal(possible) && possible.ok === true && possible.possible === false) {
+          return { ...stored, noResponder: { target: parsed.data.request.target, capability: parsed.data.request.capability,
+            message: 'No agent answers this capability for that Project now. The request waits until the target replies (a reply answers it), the operator grants board.respond, or its deadline passes.' } }
+        }
+      }
+      // #endregion board-core-holds-no-responder
+      return stored
     },
 
     /** `com.reply`, a participant's form. The responder's fenced form arrives with the responder tools (COM-03). */
@@ -493,13 +562,19 @@ export function createBoard(deps: BoardDeps) {
       const named = parsed.data.thread ?? null
       const thread = named === null ? null : boardId(named)
       if (named !== null && thread === null) return refusal('not_authorized', 'This Project cannot read that thread.')
+      // 0.3.9 BD-3: Fabric's filters. Either one reads `board_list_reader`, whose messages say whether they are read.
+      const filter = { unread: parsed.data.unread === true, since: parsed.data.since ?? null }
+      const extended = parsed.data.unread !== undefined || parsed.data.since !== undefined
+      const k = parsed.data.cursor !== undefined ? await listKey(caller.estateId) : null
       let after = 0
       if (parsed.data.cursor !== undefined) {
-        const seq = seqFrom(caller, thread, parsed.data.cursor)
+        const seq = seqFrom(k!, caller, thread, parsed.data.cursor, filter)
         if (seq === null) return refusal('cursor_reset_required', 'This cursor does not belong to this reader and filter; read again from the start.')
         after = seq
       }
-      const data = await call('board_list', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_thread: thread, p_after_seq: after, p_limit: parsed.data.limit ?? 50 }, 'read')
+      const data = extended
+        ? await call('board_list_reader', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_thread: thread, p_after_seq: after, p_limit: parsed.data.limit ?? 50, p_unread: filter.unread, p_since: filter.since }, 'read')
+        : await call('board_list', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_thread: thread, p_after_seq: after, p_limit: parsed.data.limit ?? 50 }, 'read')
       if (isRefusal(data)) return data
       if (data.ok !== true || !Array.isArray(data.messages) || typeof data.last_seq !== 'number') return UNAVAILABLE
       return {
@@ -507,7 +582,7 @@ export function createBoard(deps: BoardDeps) {
         audience: { project: caller.projectId, grant: 'participant' },
         snapshot: { readAt: now().toISOString() },
         messages: data.messages,
-        cursor: data.more === true ? cursorFor(caller, thread, data.last_seq) : null
+        cursor: data.more === true ? cursorFor(k ?? await listKey(caller.estateId), caller, thread, data.last_seq, filter) : null
       }
     },
 
@@ -524,11 +599,20 @@ export function createBoard(deps: BoardDeps) {
     async readAck(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       // Read marks are shared per Project: a service must not clear the unread its coding agents rely on.
       if (respondOnly(caller)) return RESPOND_ONLY
-      const parsed = commsMessageRefSchema.safeParse(input)
-      if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
-      const message = boardId(parsed.data.message)
-      if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
-      return receipt('board_read_ack', await call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message }, 'keyless'), 'keyless')
+      const parsed = commsReadAckSchema.safeParse(input)
+      if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id, up to 100 messages, or a thread and the message to mark read up to.')
+      if ('message' in parsed.data) {
+        const message = boardId(parsed.data.message)
+        if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
+        return receipt('board_read_ack', await call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message }, 'keyless'), 'keyless')
+      }
+      // 0.3.9 BD-4: many marks in one call and one journal event; all or nothing, and repeating it changes nothing.
+      const ids = 'messages' in parsed.data ? parsed.data.messages.map(boardId) : [boardId(parsed.data.thread), boardId(parsed.data.upTo)]
+      if (ids.some((x) => x === null)) return refusal('not_authorized', 'This Project cannot read one of those messages.')
+      const args = 'messages' in parsed.data
+        ? { p_messages: ids, p_thread: null, p_up_to: null }
+        : { p_messages: null, p_thread: ids[0], p_up_to: ids[1] }
+      return receipt('board_read_ack_many', await call('board_read_ack_many', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, ...args }, 'keyless'), 'keyless')
     },
 
     /**
@@ -564,7 +648,7 @@ export function createBoard(deps: BoardDeps) {
 }
 export type Board = ReturnType<typeof createBoard>
 
-export interface BoardTickResult { expired: number; rotated: number; retired: number; receipts_compacted: number; outbox_compacted: number }
+export interface BoardTickResult { answered: number; expired: number; rotated: number; retired: number; receipts_compacted: number; outbox_compacted: number }
 /**
  * One pass of the board's own upkeep for one estate (migration 86's `board_tick`), from the app's 60 s cycle:
  * deadline expiry, epoch rotation, receipt and outbox retention. It never throws into the cycle; a pass that
@@ -578,7 +662,7 @@ export async function tickBoard(rpc: BoardRpc, estateId: string): Promise<BoardT
       ops.failed('board.tick', error ?? new Error(JSON.stringify(d)), { note: 'the board upkeep pass did not run; the next cycle tries again' })
       return null
     }
-    return { expired: Number(d.expired), rotated: Number(d.rotated), retired: Number(d.retired), receipts_compacted: Number(d.receipts_compacted), outbox_compacted: Number(d.outbox_compacted) }
+    return { answered: Number(d.answered ?? 0), expired: Number(d.expired), rotated: Number(d.rotated), retired: Number(d.retired), receipts_compacted: Number(d.receipts_compacted), outbox_compacted: Number(d.outbox_compacted) }
   } catch (e) {
     ops.failed('board.tick', e, { note: 'the board upkeep pass could not reach the database; the next cycle tries again' })
     return null

@@ -17,11 +17,14 @@ export const COMMS_TRANSITIONS: Readonly<Record<string, readonly (readonly [stri
   accept: [['claimed', 'accepted']],
   effect_begin: [['accepted', 'in_progress']],
   complete: [['accepted', 'completed'], ['accepted', 'failed_known'], ['in_progress', 'completed'], ['in_progress', 'failed_known']],
-  cancel: [['queued', 'cancelled'], ['claimed', 'cancelled'], ['accepted', 'cancelled'], ['in_progress', 'outcome_unknown']],
+  cancel: [['queued', 'cancelled'], ['claimed', 'cancelled'], ['accepted', 'cancelled'], ['in_progress', 'outcome_unknown'], ['answered', 'cancelled']],
   expire: [['queued', 'expired'], ['claimed', 'expired']],
   replace: [['claimed', 'queued'], ['accepted', 'accepted']],
   lost_result: [['in_progress', 'outcome_unknown']],
-  reconcile: [['outcome_unknown', 'completed'], ['outcome_unknown', 'failed_known']]
+  reconcile: [['outcome_unknown', 'completed'], ['outcome_unknown', 'failed_known']],
+  // Fabric's own (0.3.9 BD-1, migration 95): the target Project's reply answers a queued request; its asker may still
+  // cancel it. Not in the contract's table yet: the board's journal carries it, and this port reads it as lawful.
+  answer: [['queued', 'answered']]
 })
 
 export interface TransitionFinding {

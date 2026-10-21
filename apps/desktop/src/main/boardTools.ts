@@ -21,7 +21,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import {
   commsCancelSchema, commsClaimSchema, commsCompleteSchema, commsDirectoryArgsSchema, commsEffectBeginSchema, commsEnrollSchema,
-  commsFencedSchema, commsListSchema, commsMessageRefSchema, commsProgressSchema, commsReconcileSchema, commsReplyAnySchema,
+  commsFencedSchema, commsListSchema, commsMessageRefSchema, commsProgressSchema, commsReadAckSchema, commsReconcileSchema, commsReplyAnySchema,
   commsResponderReplaceSchema, commsStatusArgsSchema, commsSubmitSchema,
   isRefusal, PINNED_COMMS_OPERATIONS, refusal, type Board, type BoardCaller, type CommsOperation
 } from './boardService.ts'
@@ -31,7 +31,7 @@ export const BOARD_TOOL_INPUT: Readonly<Record<CommsOperation, z.ZodType>> = {
   'com.submit': commsSubmitSchema,
   'com.list': commsListSchema,
   'com.get': commsMessageRefSchema,
-  'com.read_ack': commsMessageRefSchema,
+  'com.read_ack': commsReadAckSchema,
   'com.reply': commsReplyAnySchema,
   'com.cancel': commsCancelSchema,
   'com.status': commsStatusArgsSchema,
@@ -90,16 +90,20 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
       'request {target: a participant Project, capability, deadline?} only for kind request; replyTo: a message of the same thread, required for kind reply (another thread\'s message is invalid_arguments; com.reply takes the thread from replyTo); ' +
       'artifacts: at most 8 {id: uri, contentHash: sha256:<hex>}. Your Project and identity are taken from this session, never from the arguments. ' +
       'Retrying with the same key and the same message returns the same receipt; another message under that key is idempotency_conflict. ' +
-      'An answer that did not arrive may still have been stored: send it again with the same key to learn which.',
+      'An answer that did not arrive may still have been stored: send it again with the same key to learn which. ' +
+      'A request without a deadline gets one 7 days out, then expires. A request nobody can answer now is stored, and its receipt carries noResponder {target, capability, message}: ' +
+      'its target can still answer it with a reply (com.reply, or kind reply with replyTo the request), which moves it to answered.',
     inputSchema: typed('com.submit')
   }, gate('com.submit', (c, a) => board.submit(c, a)))
 
   server.registerTool('com.list', {
     title: 'Read board messages addressed to your Project',
     description:
-      'fabric-project-comms/0.1 com.list. Arguments: thread? (one thread you take part in), cursor? (from the previous page), limit? (1–100, default 50). ' +
-      'Answers one page (comms-page.schema.json), oldest first. Reading marks nothing as read: use com.read_ack. ' +
-      'A cursor from another filter or an earlier run answers cursor_reset_required; read again without it. A board that cannot be read answers not_available, never an empty page.',
+      'fabric-project-comms/0.1 com.list. Arguments: thread? (one thread you take part in), cursor? (from the previous page), limit? (1 to 100, default 50), ' +
+      'unread? (true: only messages your Project has not marked read), since? (date-time: only messages written at or after it). ' +
+      'Answers one page (comms-page.schema.json), oldest first; with unread or since each message also carries read (true or false). To see what is new, call com.list {unread: true} and mark what you handled with com.read_ack. ' +
+      'Reading marks nothing as read. A cursor survives an app restart; one from another filter or another reader answers cursor_reset_required: read again without it. ' +
+      'A board that cannot be read answers not_available, never an empty page.',
     inputSchema: typed('com.list')
   }, gate('com.list', (c, a) => board.list(c, a)))
 
@@ -111,15 +115,18 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
 
   server.registerTool('com.read_ack', {
     title: 'Mark a board message read',
-    description: 'fabric-project-comms/0.1 com.read_ack. Arguments: message (its id); no idempotency key. Explicit and idempotent: the first mark answers repeated: false and its time as at; marking it again changes nothing and answers repeated: true with the first mark\'s at.',
+    description: 'fabric-project-comms/0.1 com.read_ack. Arguments, one form per call: message (one id); or messages (1 to 100 ids); or thread and upTo (every message of that thread sent to your Project, at or before the message upTo names). ' +
+      'No idempotency key. Explicit and idempotent: the first mark answers repeated: false and its time as at; marking again changes nothing and answers repeated: true. ' +
+      'The many forms are all or nothing (a message your Project cannot read refuses the call) and answer marked and alreadyRead counts; more: true means the thread had over 1000 and you should call again.',
     inputSchema: typed('com.read_ack')
   }, gate('com.read_ack', (c, a) => board.readAck(c, a)))
 
   server.registerTool('com.reply', {
     title: 'Reply to a board message',
     description:
-      'fabric-project-comms/0.1 com.reply (comms-reply). A participant: idempotency {epoch: the one com.status names, key}; replyTo (a message of a thread you take part in); body {text, format?}; artifacts? — the reply lands in that message\'s thread. ' +
-      'A responder: fence (as com.accept takes it); body; artifacts? — the reply answers fence.request in its thread. Both forms, or neither, are refused. A reply is not a completion: no request changes state.',
+      'fabric-project-comms/0.1 com.reply (comms-reply). A participant: idempotency {epoch: the one com.status names, key}; replyTo (a message of a thread you take part in); body {text, format?}; artifacts?. The reply lands in that message\'s thread. ' +
+      'A responder: fence (as com.accept takes it); body; artifacts?. The reply answers fence.request in its thread. Both forms, or neither, are refused. ' +
+      'A participant reply from the request\'s target to a queued request answers it: the request moves to answered, and the asker sees it. A reply is not a completion: a responder still completes with com.complete.',
     inputSchema: typed('com.reply')
   }, gate('com.reply', (c, a) => board.reply(c, a)))
 

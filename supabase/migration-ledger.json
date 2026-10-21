@@ -377,6 +377,10 @@
     {
       "file": "20261020000116_withdrawn_answer_closes_decision.sql",
       "sha256": "63a67f65d5f57190c7c127e74202f4b52dd8931aee9d2f53cde7758cd3c9add4"
+    },
+    {
+      "file": "20261021000120_board_core_holds.sql",
+      "sha256": "e48ac4829e57c3edf3d8a00e4a49a7f3881f25da2f14067086331882cc3e6634"
     }
   ]
 }

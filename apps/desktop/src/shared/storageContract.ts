@@ -133,6 +133,7 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   board_attempts: 'fenced claims of board requests, a projection rebuilt from the journal; their leases are live authority',
   board_progress_notes: 'the at-most-once record of a progress note; replayed elsewhere, a key would stand for a note nobody posted there',
   board_directory_listings: 'the operator\'s directory listing per Project, a projection rebuilt from the journal',
+  board_cursor_keys: 'the key that binds this estate\'s com.list cursors; copied elsewhere it would let another estate\'s cursors verify here',
   routines: 'NOT REBUILDABLE from the mirror; a schedule the operator set is lost with it',
   project_repos: 'paths on one machine. They are evidence, not content, and they rebind per machine',
   project_repo_removals: 'rebuilt from the journal (project.repo.detached@1); machine-local repository identity and detach history, not editable workspace content',
