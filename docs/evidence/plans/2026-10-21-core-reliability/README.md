@@ -8,7 +8,7 @@ core hold; the simple plan's wave 4 moves to 0.3.10.
 
 **Evidence.** Three read-only audits of the installed system on 2026-10-21, each finding with its receipt:
 [stability](2026-10-21-stability.md) (ST-1 to ST-13), [tracking](2026-10-21-tracking.md) (TR-1 to TR-15), [board](2026-10-21-board.md) (BD-1 to BD-10).
-Measured: Fabric was available about 89.6 % of the last 7 days (21 outages, 17.5 h); 25 of 41 running Claude Code
+Measured: Fabric was available about 86.9 % of the last 7 days (22 outages, 22.0 h; the stability audit's 89.6 % left out the outage the window starts inside, recomputed by the 0.3.9 review, DA-3); 25 of 41 running Claude Code
 sessions lost their session hooks after `/clear`; all 6 board requests ever sent are still queued.
 
 ## Stability
@@ -55,6 +55,40 @@ Each part was built on its own branch, test first, every new test watched failin
   `unread` and `since` and says `read` per message; cursors survive a restart; `com.read_ack` marks up to 100 messages
   or a thread up to a message in one call. The home shows requests nobody can answer and unread board messages. The
   Comms reads record their failures. Schema 95 (`20261021000120_board_core_holds.sql`).
+
+## Every audit finding, where it went
+
+| Finding | Where |
+|---|---|
+| ST-1 to ST-4, ST-11 | fixed in 0.3.9 (above); ST-11 repaired 2026-10-21 by reinstalling the job |
+| ST-5 | fixed in 0.3.8 (refusal levels by code, CO-335) |
+| ST-6, ST-7, ST-9 | CO-364, CO-365, CO-366 (0.3.10) |
+| ST-8 (a quit past its deadline with OrbStack hung) | not a defect: the 10 s hard deadline worked as designed (exit code 3) |
+| ST-10 (one hub refusal for a slow database) | not a defect: the 503 with Retry-After is the designed answer |
+| ST-12 (44 resident fabric-mcp, about 1.6 GB) | not a defect of this release: one per open coding agent, each ends with its agent; the 2-minute sign is sampled in the log |
+| ST-13 (`ipc.stack:exposure` 2.4 s median) | carried with CO-366 (0.3.10): it runs off the main loop and freezes nothing |
+| TR-1 to TR-7, TR-11, TR-14 | fixed in 0.3.9 (above); the adapter's half of TR-1, TR-2 and TR-11 is CO-371 |
+| TR-8 (Hermes in the home folder) | fixed in 0.3.8 for the log flood and the backoff; the folder itself stays too broad by design |
+| TR-9 (0.3.8 installed, 0.3.7 running) | resolved: the operator restarted Fabric into 0.3.8 at 15:01 local, 2026-10-21 |
+| TR-10, TR-12 | CO-367, CO-369 (0.3.10) |
+| TR-13 (an enrolled session's exit in the journal) | fixed in 0.3.9's review iteration 1 (the 0.3.9 ledger) |
+| TR-15 (three tasks in review) | the operator's acceptance: a task in review is accepted by a person |
+| BD-1 to BD-5 | fixed in 0.3.9 (above) |
+| BD-3's second half (com.status listing requests addressed to the caller) | not done: the contract fixes com.status's shape; `com.list {unread: true}` covers the need (CO-371 asks the contract) |
+| BD-4's fan-out, BD-9, BD-10 | CO-370 (0.3.10) |
+| BD-6 | fixed with ST-4 |
+| BD-7, BD-8 | CO-368, CO-369 (0.3.10) |
+
+## How we will know it holds
+
+After 0.3.9 runs on the operator's machine, the release close measures, with the same queries the audits used: the
+gaps in `cycle.ran@1` over the following days (availability), the sessions whose hooks reach Fabric against the coding
+agents running, the sessions shown silent while their agents work, the board requests left queued, and whether the
+workspace-sync job ran on schedule (ST-11).
+
+**Steps that need a person:** none for the release itself (Fabric is upgraded and restarted through the lifecycle
+broker; a restart it refuses because the person holds the app waits for the person's own quit and open). The coding
+agents pick up the new fabric-mcp when each is restarted. CO-365 needs a real reboot.
 
 ## Not in this release
 

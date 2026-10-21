@@ -647,6 +647,7 @@ different destination under the same name.
 
 ### SCR-30: Estate home
 - **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by the rail SCR-84 and Главная SCR-85: no tab strip, no profile block, no Pulse, no live feed, no «Ещё на этой странице» (plan §5). It stays built until wave 4 rebuilds the home; then this row becomes retired.
+- **0.3.9 (2026-10-21, [the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#board)):** a «Ждут между проектами» panel shows the requests between projects that no agent can answer, how long the oldest has waited, and «Открыть переписку»; it is absent when nothing waits. A lost database is said by a notice on this and every screen («База данных Fabric не отвечает»), with the next try and, under 3 GB free, the disk.
 - **Used by:** FLW-21, FLW-32, FLW-33, FLW-54, FLW-69, FLW-78
 - **Purpose:** the first screen after launch — who the manager is, what it has done, which projects lead, and what is happening across all of them right now.
 - **Elements:** compact manager header (colour portrait, name/role, meaningful-events sparkline and sourced pulse); priority Board beside a resume card (decision/now/next); projects below Board and restrained agent activity below resume; controls (search, attention with count, quota, chat, new project, settings); favourites up to five; all projects by activity with per-project agent summary; live feed; floating manager control.

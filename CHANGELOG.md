@@ -10,9 +10,17 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## Unreleased
 
 Fabric 0.3.9: the core holds. The operator's priority of 2026-10-21: the hub is always there, Fabric knows which agent
-works on what, and the project board works. Measured before it: Fabric was available about 89.6 % of the last 7 days
-(21 outages, 17.5 h), 25 of 41 running Claude Code sessions had lost their session hooks after `/clear`, and all 6
+works on what, and the project board works. Measured before it: Fabric was available about 86.9 % of the last 7 days
+(22 outages, 22.0 h), 25 of 41 running Claude Code sessions had lost their session hooks after `/clear`, and all 6
 board requests ever sent were still queued. Schema 95.
+
+**Upgrading.** 0.3.9 needs schema 95 (migration `20261021000120_board_core_holds.sql`); every install is at 94, and
+0.3.9 refuses a schema-94 database on its first start until the upgrade in
+[release-mac](docs/launch/release-mac.md#upgrading-an-existing-database) is run (back up first; 0.3.8 cannot open a
+schema-95 database, so keep the backup until 0.3.9 runs). At the first minute after it, the board answers the requests
+their target already replied to (4 of the 6 on the operator's database) and gives the others a deadline 7 days after
+they were sent. Coding agents pick up the new fabric-mcp when each restarts; the new fabric-mcp still works with a hub
+that is not 0.3.9 yet.
 
 - **Fabric no longer quits when Docker or the database is not ready at start.** It waits, says what it waits for, and
   tries again (10 s growing to 2 min). Agents get a 503 `stack-starting` with Retry-After instead of no hub at all.
@@ -26,7 +34,7 @@ board requests ever sent were still queued. Schema 95.
 - **Tasks move on the board.** A claim moves its task to running; finishing it moves it to review.
   `fabric_agents_list` lists every agent in the project, and expired agent-sync leases are no longer shown as current.
 - **Board requests get answered.** A reply from the asked project answers a request; a request no agent can answer
-  says so in its receipt and expires after 7 days; the home shows what waits between projects.
+  says so in its receipt, and one sent without a deadline expires after 7 days; the home shows what waits between projects.
 - **Agents read what is new.** `com.list` takes `unread` and `since` and says which messages are read; cursors survive
   a restart; `com.read_ack` marks up to 100 messages in one call.
 - **What 0.3.8 said would come in 0.3.9 comes in 0.3.10**: the simple plan's wave 4, the agents' own acts in История,
