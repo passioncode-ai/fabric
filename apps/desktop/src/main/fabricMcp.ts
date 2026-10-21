@@ -27,13 +27,15 @@ export type ProxyState =
   | { kind: 'waiting'; projectName: string }
   | { kind: 'denied'; projectName: string }
   | { kind: 'connected'; projectName: string; projectId: string }
-  | { kind: 'failed'; reason: string }
+  /** `hubSaid`: the hub was reached and refused with its own code and reason (a 503 `stack-starting`, review UX-3). */
+  | { kind: 'failed'; reason: string; hubSaid?: HubRefusal }
   /** A rejoin (D2) found no live session of its runtime session: it asks nothing and waits to be called. */
   | { kind: 'not-enrolled'; message: string }
 
 /** One tool call to the hub as a short-lived MCP client. A refused credential (HTTP 401/403) is `unauthorized`. */
 export type HubCall = (url: string, bearer: string, tool: string, args: Record<string, unknown>) => Promise<
-  { unauthorized: true } | { unauthorized?: false; isError: boolean; value: Record<string, unknown> }
+  /** `text`: an error's text when it carried no structured answer (an argument the hub's schema refused, PL-2). */
+  { unauthorized: true } | { unauthorized?: false; isError: boolean; value: Record<string, unknown>; text?: string }
 >
 
 export interface SessionLink {
@@ -219,6 +221,14 @@ export function surfaceReason(e: unknown): string | null {
   return said ? said.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) || null : null
 }
 
+/** What the hub said with a refusal to wait, when the error carries it (FabricRateLimitError, review UX-3). */
+export function hubSaidOf(e: unknown): HubRefusal | undefined {
+  const err = e as { hubCode?: unknown; hubReason?: unknown } | null
+  const code = typeof err?.hubCode === 'string' ? err.hubCode : undefined
+  const reason = typeof err?.hubReason === 'string' ? err.hubReason : undefined
+  return code || reason ? { ...(code ? { code } : {}), ...(reason ? { reason } : {}) } : undefined
+}
+
 /** JSON-RPC code of the SDK's ConnectionClosed: the transport closed under the request. */
 const CONNECTION_CLOSED = -32000
 const NOT_CONNECTED = new Set(['ECONNREFUSED', 'ENOENT', 'EHOSTUNREACH', 'ENETUNREACH', 'EADDRNOTAVAIL'])
@@ -229,7 +239,9 @@ export function classifyFailure(e: unknown): CallFailure {
   // StreamableHTTPError carries the HTTP status as its code. Fabric refused this one call; the session is kept.
   if (typeof err?.code === 'number' && REFUSED_BEFORE_ANY_TOOL.has(err.code))
     // A cooldown keeps code 429 as its marker; the agent is told the status the hub really answered (503, i3 ER-3).
-    return { drop: false, mayHaveRun: false, refusal: { status: typeof (err as { status?: unknown }).status === 'number' ? (err as { status: number }).status : err.code, reason: surfaceReason(e) ?? 'no reason given' } }
+    return { drop: false, mayHaveRun: false, refusal: { status: typeof (err as { status?: unknown }).status === 'number' ? (err as { status: number }).status : err.code,
+      // UX-3: a cooldown carries what the hub said (its 503 body); otherwise the reason the SDK kept in its message.
+      reason: sayHubRefusal(hubSaidOf(e)) ?? surfaceReason(e) ?? 'no reason given' } }
   // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
   // fetch's TypeError: a connection that was never made sent nothing.
@@ -246,23 +258,60 @@ export function boundedRetryMs(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= RATE_LIMIT_MAX_MS
     ? Math.max(1000, Math.ceil(value)) : RATE_LIMIT_FALLBACK_MS
 }
+/** What the hub said when it refused with a wait: its machine code and its reason for the agent (review UX-3). */
+export interface HubRefusal {
+  code?: string
+  reason?: string
+}
+
+// #region fabric-mcp-hub-refusal — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+const HUB_CODE = /^[a-z][a-z0-9-]{0,63}$/
+/** The hub's refusal body (`{"error": <why>, "code": <code>}`, hubStandby.ts#refuseForStack) as something safe to show:
+ *  a code of the hub's own shape, a reason on one line within 300 characters; anything else is dropped. */
+export function hubRefusalOf(body: unknown): HubRefusal | undefined {
+  const b = body as { error?: unknown; code?: unknown } | null
+  if (!b || typeof b !== 'object') return undefined
+  const code = typeof b.code === 'string' && HUB_CODE.test(b.code) ? b.code : undefined
+  // eslint-disable-next-line no-control-regex
+  const reason = typeof b.error === 'string' ? b.error.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) || undefined : undefined
+  return code || reason ? { ...(code ? { code } : {}), ...(reason ? { reason } : {}) } : undefined
+}
+/** "<reason> (<code>)", or whichever of the two the hub gave; null when it gave neither. */
+export function sayHubRefusal(said: HubRefusal | undefined): string | null {
+  if (!said) return null
+  const reason = said.reason ? said.reason.replace(/[.\s]+$/, '') : null
+  return reason && said.code ? `${reason} (${said.code})` : reason ?? said.code ?? null
+}
+// #endregion fabric-mcp-hub-refusal
+
 /** The hub asked to wait: a 429, or a 503 that carries Retry-After (the full-disk stall of the 0.3.8 audit answered
  *  2,757 of those in 12 minutes, and each was retried at once; review i2 DA-6). `code` stays 429, the cooldown's
- *  marker; `status` is what the hub answered. */
+ *  marker; `status` is what the hub answered; `hubCode` and `hubReason` what it said (review UX-3). */
 export class FabricRateLimitError extends Error {
   readonly code = 429
   readonly retryAfterMs: number
   readonly status: number
-  constructor(delay: unknown, status = 429) {
+  readonly hubCode?: string
+  readonly hubReason?: string
+  constructor(delay: unknown, status = 429, said?: HubRefusal) {
     const retryAfterMs = boundedRetryMs(delay)
-    super(`Fabric refused HTTP ${status}; wait ${Math.ceil(retryAfterMs / 1000)} seconds before another request`)
+    const told = sayHubRefusal(said)
+    super(`Fabric refused HTTP ${status}${told ? ` (${told})` : ''}; wait ${Math.ceil(retryAfterMs / 1000)} seconds before another request`)
     this.status = status
     this.name = 'FabricRateLimitError'
     this.retryAfterMs = retryAfterMs
+    if (said?.code) this.hubCode = said.code
+    if (said?.reason) this.hubReason = said.reason
   }
 }
 
 // #endregion fabric-mcp-cooldown
+
+/** Whether a tool error is the hub's input schema refusing `key` (an MCP -32602 "Invalid arguments", "Unrecognized
+ *  key"), as an older hub answers an argument it does not know (PL-2). */
+export function refusesArgument(said: string, key: string): boolean {
+  return /invalid arguments|unrecognized key|input validation/i.test(said) && new RegExp(`\\b${key}\\b`).test(said)
+}
 
 const errorCode = (v: Record<string, unknown>): string | null => {
   const e = v.error as { code?: unknown } | undefined
@@ -316,7 +365,10 @@ export class FabricMcpProxy {
   state: ProxyState = { kind: 'starting' }
   private session: SessionLink | null = null
   private hubIdentity: { origin: string; pid: number } | null = null
-  private cooldown: { origin: string; pid: number; until: number } | null = null
+  private cooldown: { origin: string; pid: number; until: number; said?: HubRefusal } | null = null
+  /** A hub that refused `agentPid` (PL-2): a 0.3.7/0.3.8 hub's enroll schema is strict. Enrollments to it go without
+   *  the pid until hub.json names another process (Fabric restarted, perhaps into a version that takes it). */
+  private pidRefusedBy: { origin: string; pid: number } | null = null
   private closed = false
   private closeWaiters = new Set<() => void>()
   /** Said before the state while there is no session: a credential handed over and lost, which needs a new Allow. */
@@ -358,7 +410,8 @@ export class FabricMcpProxy {
     // would otherwise all come back in the same second and be refused together again.
     const delay = boundedRetryMs(e.retryAfterMs)
     const until = this.now() + delay + Math.floor(delay * 0.5 * Math.min(0.999, Math.max(0, (this.deps.random ?? Math.random)())))
-    this.cooldown = { ...this.hubIdentity, until: Math.max(until, this.cooldown?.until ?? 0) }
+    const said = hubSaidOf(error) ?? this.cooldown?.said
+    this.cooldown = { ...this.hubIdentity, until: Math.max(until, this.cooldown?.until ?? 0), ...(said ? { said } : {}) }
   }
 
   private async hubCall(...args: Parameters<HubCall>): ReturnType<HubCall> {
@@ -394,6 +447,7 @@ export class FabricMcpProxy {
       : s.kind === 'no-project' ? s.message
       : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — Fabric is asking them: a prompt in its window, or a notification when Fabric is in the background. Call this tool again in a moment.`
       : s.kind === 'denied' ? `The operator denied this coding agent the project ${s.projectName}. It stays denied until they clear the denial in Fabric (Agent access).`
+      : s.kind === 'failed' && s.hubSaid ? `Fabric answered, and asked to wait: ${sayHubRefusal(s.hubSaid)}. Call this tool again in a moment.`
       : s.kind === 'failed' ? `Fabric could not be reached: ${s.reason}.`
       : s.kind === 'not-enrolled' ? s.message
       : 'Connecting to Fabric. Call this tool again in a moment.'
@@ -438,7 +492,11 @@ export class FabricMcpProxy {
 
   async call(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
     const remaining = this.cooldownRemaining()
-    if (remaining) return text(`Fabric asked to wait; wait ${Math.ceil(remaining / 1000)} seconds. No new request was sent.`)
+    if (remaining) {
+      // UX-3: what the hub said with its wait (a 503 `stack-starting` while Fabric starts its database), when it said it.
+      const told = sayHubRefusal(this.cooldown?.said)
+      return text(`Fabric asked to wait${told ? `: ${told}` : ''}; wait ${Math.ceil(remaining / 1000)} seconds. No new request was sent.`)
+    }
     const link = this.session
     if (link) {
       try {
@@ -453,7 +511,9 @@ export class FabricMcpProxy {
         this.deps.log(`fabric-mcp: ${name} failed (${cause})`)
         if (f.refusal) {
           const { status, reason } = f.refusal
-          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 || status === 503 ? '; wait before you call again' : ''}.`)
+          const waitMs = (e as { retryAfterMs?: unknown } | null)?.retryAfterMs
+          const wait = typeof waitMs === 'number' ? `; wait ${Math.ceil(waitMs / 1000)} seconds before you call again` : '; wait before you call again'
+          return text(`Fabric refused ${name} (HTTP ${status}: ${reason}). Nothing of this call was done. The session stays open${status === 429 || status === 503 ? wait : ''}.`)
         }
         if (!f.drop) return text(`${name} failed in the client before its answer arrived (${cause}). The session stays open. The outcome is unknown — check its effect before you act again.`)
         this.dropSession(link, e)
@@ -482,7 +542,8 @@ export class FabricMcpProxy {
     } catch (e) {
       // The failure becomes the state the agent reads (fabric_whoami) and set() logs it to stderr.
       this.rememberRateLimit(e)
-      return this.set({ kind: 'failed', reason: e instanceof Error ? e.message : String(e) })
+      const hubSaid = hubSaidOf(e)
+      return this.set({ kind: 'failed', reason: e instanceof Error ? e.message : String(e), ...(hubSaid ? { hubSaid } : {}) })
     }
   }
 
@@ -552,7 +613,7 @@ export class FabricMcpProxy {
         const gone = this.moved(hub)
         if (gone) return gone
         // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
-        const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { cwd, runtimeSessionId: runtime, rejoinOnly: true, ...(agentPid ? { agentPid } : {}) })
+        const r = await this.enroll(hub, credential, { cwd, runtimeSessionId: runtime, rejoinOnly: true, ...(agentPid ? { agentPid } : {}) })
         if (r.unauthorized) continue
         if (!r.isError) return this.open(hub.mcpUrl, r.value)
       }
@@ -566,7 +627,7 @@ export class FabricMcpProxy {
       // Each credential leaves only for the hub hub.json names now, with its pid alive (ER-7).
       const gone = this.moved(hub)
       if (gone) return gone
-      const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
+      const r = await this.enroll(hub, credential, enrollArgs)
       if (r.unauthorized) {
         // Revoked, or minted by another Fabric: forget this one; the others (or the door) are tried next.
         store.forget(id)
@@ -582,13 +643,39 @@ export class FabricMcpProxy {
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
     if (need) return this.ask(hub, need.bearer, need.data, need.via)
 
-    const r = await this.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
+    const r = await this.enroll(hub, hub.doorToken, enrollArgs)
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })
     if (code !== 'needs-grant') return this.set({ kind: 'failed', reason: `the door answered ${code ?? 'a session, which it never should'}` })
     return this.ask(hub, hub.doorToken, errorData(r.value), 'door')
   }
+
+  // #region fabric-mcp-old-hub — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+  /**
+   * `fabric.session.enroll`, offered `agentPid` (TR-1) only while this hub takes it (PL-2). Between installing a newer
+   * bundle and Fabric restarting into it, this fabric-mcp meets the running older hub, whose enroll schema is strict
+   * (0.3.7, 0.3.8) and refuses the unknown key; every enrollment then failed and every hook rejoin exited 3. A refusal
+   * that names `agentPid` is answered by sending the same call once more without it, and the hub is remembered (origin
+   * and pid), so its next enrollments go without it at once. Any other refusal is the hub's answer, unchanged.
+   */
+  private async enroll(hub: { origin: string; mcpUrl: string; pid: number }, bearer: string, args: Record<string, unknown>): ReturnType<HubCall> {
+    const offered = 'agentPid' in args
+    const { agentPid: _pid, ...without } = args
+    const known = this.pidRefusedBy?.origin === hub.origin && this.pidRefusedBy.pid === hub.pid
+    if (!offered || known) return this.hubCall(hub.mcpUrl, bearer, 'fabric.session.enroll', offered ? without : args)
+    try {
+      const r = await this.hubCall(hub.mcpUrl, bearer, 'fabric.session.enroll', args)
+      if (r.unauthorized || !r.isError || !refusesArgument(r.text ?? errorMessage(r.value), 'agentPid')) return r
+    } catch (e) {
+      // An SDK that raises the schema refusal instead of answering it (McpError -32602): the same refusal.
+      if (!refusesArgument(e instanceof Error ? e.message : String(e), 'agentPid')) throw e
+    }
+    this.pidRefusedBy = { origin: hub.origin, pid: hub.pid }
+    this.deps.log('fabric-mcp: this Fabric is older and does not take agentPid; enrolling without it until Fabric restarts')
+    return this.hubCall(hub.mcpUrl, bearer, 'fabric.session.enroll', without)
+  }
+  // #endregion fabric-mcp-old-hub
 
   /**
    * hub.json read again before a credential is sent (0.3.5 review ER-7; the contract in hub.ts's header): null while it

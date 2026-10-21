@@ -341,6 +341,8 @@ interface ScopeState {
 
 /** How many ended bearers the surface remembers the reason of, so their next call is told it (ER-4). Hashes only. */
 const ENDED_REMEMBERED = 256
+/** How many sessions' recorded ends a run remembers (DA-1): far more than the sessions one run of Fabric serves. */
+const END_RECORDS_REMEMBERED = 4096
 const bearerDigest = (token: string): string => createHash('sha256').update(token, 'utf8').digest('hex')
 
 /**
@@ -420,6 +422,9 @@ export class AgentSurface {
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
   private ending = new Set<Promise<void>>()
+  /** Sessions whose `session.ended@1` this run has written or is writing (DA-1): the hook's end or the agent's leave,
+   *  whichever comes first, records it; the other records nothing. Bounded, oldest first out. */
+  private endRecorded = new Set<string>()
   // #endregion surface-session-registry
 
   // Assigned in the body rather than declared as a parameter property: Node's
@@ -1000,6 +1005,9 @@ export class AgentSurface {
     // A board session (fabric.board.join) is a session its client owns, like an enrolled one: leaving ends it, so its
     // responder slots are released and it stops being listed as held (wave-2 fix 2).
     const endsSession = (st.scope.cameIn === 'enrolled' || st.scope.surface === 'board') && !st.rejoin
+    // DA-1 (TR-13): a coding agent's own fabric-mcp leaving is its end. The hook's end is refused while this client
+    // signs (workTools.ts#endRefusal), so the end is journalled here, before the session ends and its claims go.
+    if (endsSession && st.scope.cameIn === 'enrolled' && st.scope.surface !== 'board') this.recordAgentLeft(st.scope)
     if (endsSession) (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(sessionId)
     else this.drop(token)
     ops.record({ op: 'agentSurface.session-left', outcome: 'ok', level: 'info', detail: { ended_session: endsSession, rejoin: st.rejoin },
@@ -1008,6 +1016,40 @@ export class AgentSurface {
     res.end(JSON.stringify({ left: true, sessionEnded: endsSession }))
   }
   // #endregion surface-session-leave
+
+  // #region surface-session-left-record — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+  /** Marks a session's end as recorded; false when it already was (the hook's end or an earlier leave). */
+  private claimEndRecord(sessionId: string): boolean {
+    if (this.endRecorded.has(sessionId)) return false
+    this.endRecorded.add(sessionId)
+    while (this.endRecorded.size > END_RECORDS_REMEMBERED) this.endRecorded.delete(this.endRecorded.values().next().value as string)
+    return true
+  }
+
+  /**
+   * `session.ended@1` for an enrolled session whose agent's own fabric-mcp left (its HTTP session's DELETE: the agent
+   * closed its stdin, it exited). Facts Fabric saw itself: the session, its runtime ids, when, `observed_by: fabric`,
+   * reason `agent-left`; no git facts (the hook's end carries those). Once per session: a hook end already recorded
+   * (or in flight) for it wins. Awaited by `stop()`, never thrown into the leave's answer.
+   */
+  private recordAgentLeft(scope: AgentScope): void {
+    const journal = this.deps.journal
+    if (!journal || !this.claimEndRecord(scope.sessionId)) return
+    const live = this.live.get(scope.sessionId)
+    const payload = {
+      session_id: scope.sessionId, runtime: scope.agent ?? live?.agent ?? 'unknown', runtime_session_id: live?.runtimeSessionId ?? scope.runtimeSessionId ?? null,
+      observed_at: new Date(this.now()).toISOString(), head: null, files_changed: null, lines_added: null, lines_removed: null,
+      idempotency_key: `agent-left:${scope.sessionId}`, observed_by: 'fabric', reason: 'agent-left'
+    }
+    const p: Promise<void> = journal.append({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, type: 'session.ended@1', payload } as Parameters<Journal['append']>[0])
+      .then(() => {}, (e) => {
+        // The end goes unrecorded in History; the session still ends and its claims are released.
+        ops.failed('agentSurface.session-left-record', e, { note: 'the session ends, its end is not in the journal', session_id: scope.sessionId })
+      })
+      .finally(() => { this.ending.delete(p) })
+    this.ending.add(p)
+  }
+  // #endregion surface-session-left-record
 
   /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims
    *  renewed. Any request counts: a tool call, a hook's turn through a rejoin, and fabric-mcp's own ping while the
@@ -2707,6 +2749,9 @@ export class AgentSurface {
       append: (e) => this.appendRedacted({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, ...e }),
       // session.ended@1's owner is named in desktopIngress.ts; workTools builds its payload from typed fields only.
       appendObserved: (e) => journal.append({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, ...e } as Parameters<Journal['append']>[0]),
+      // DA-1: the hook's end and the agent's leave record one end between them (recordAgentLeft).
+      claimEndRecord: () => this.claimEndRecord(scope.sessionId),
+      releaseEndRecord: () => { this.endRecorded.delete(scope.sessionId) },
       checkReference: assertAgentReference,
       sessions: () => this.projectSessions(scope.projectId),
       session: (id) => this.sessionSign(id),

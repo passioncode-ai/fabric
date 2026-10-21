@@ -25,7 +25,7 @@ export const EXTERNAL_INGRESS_OWNERS: Readonly<Record<string, string>> = Object.
   'backend.opened@1': 'owned backend registry: owner, epoch and process identity only (B3)',
   'backend.exited@1': 'owned backend registry: exit code, signal and process-group observation only (B3)',
   'session.observed@1': 'createRuntimeObserver typed liveness observation',
-  'session.ended@1': 'recordSessionExit / classifyFailure static diagnosis; fabric_session_observe (workTools.ts): ids, counts and a reason matched against [a-z0-9_-] by its schema',
+  'session.ended@1': 'recordSessionExit / classifyFailure static diagnosis; fabric_session_observe (workTools.ts): ids, counts and a reason matched against [a-z0-9_-] by its schema; AgentSurface#recordAgentLeft: ids, a time and fixed words only',
   'estate.created@1': 'bootstrap fixed estate name and bound owner',
   'project.repo.detached@1': 'reposDetach identifier only',
   'routine.updated@1': 'routinesSetEnabled identifier and boolean',

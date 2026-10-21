@@ -213,6 +213,13 @@ for (let i = 0; i < 40 && !endRow?.released_at; i++) {
   endRow = (await db.from('work_claims').select('released_at,released_how').eq('id', claimB2.claim_id).maybeSingle()).data
 }
 check(claimB2.claimed === true && endRow?.released_how === 'session-ended', "a session's claims are released when it ends", endRow)
+// DA-6 (0.3.9 review i1): the task the claim moved to running goes back to backlog when its session ends.
+let t2Status = null
+for (let i = 0; i < 40 && t2Status !== 'backlog'; i++) {
+  await sleep(100)
+  t2Status = (await db.from('project_tasks').select('status').eq('id', T2).maybeSingle()).data?.status ?? null
+}
+check(claimB2.task_moved_to === 'running' && t2Status === 'backlog', 'a session end takes the task its claim moved to running back to backlog', { moved: claimB2.task_moved_to, t2Status })
 
 // D5: a whole session at once.
 const T3 = (await a.call('fabric_task_create', { title: 'third', origin: { kind: 'observation', ref: 'y' } })).id
@@ -222,6 +229,8 @@ await a.call('fabric_work_claim', { taskId: T4 })
 const all = await a.call('fabric_work_release', { claims: 'session', outcome: 'let-go', reason: 'session end', idempotencyKey: 'end-0001' })
 const { data: liveA } = await db.from('work_claims').select('id').eq('owner_session', A).is('released_at', null)
 check(all.released === true && all.claims?.length === 2 && (liveA ?? []).length === 0, 'claims: "session" releases every claim of the session', { all, liveA })
+const { data: back34 } = await db.from('project_tasks').select('id,status').in('id', [T3, T4])
+check((back34 ?? []).length === 2 && back34.every((t) => t.status === 'backlog'), 'a let-go of the session\'s claims takes their tasks back to backlog (DA-6)', back34)
 const allAgain = await a.call('fabric_work_release', { claims: 'session', outcome: 'let-go', reason: 'session end', idempotencyKey: 'end-0001' })
 check(allAgain.released === true && allAgain.claims.length === 0, 'releasing a session again releases nothing more', allAgain)
 

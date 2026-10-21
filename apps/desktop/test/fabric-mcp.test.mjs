@@ -964,3 +964,127 @@ test('TR-11: a rejoin that finds no session is final: the run loop ends and says
   assert.equal(final?.kind, 'not-enrolled')
   assert.equal(h.calls.length, 1, 'asked once, not every 30 s')
 })
+
+// ── 0.3.9 review iteration 1 ────────────────────────────────────────────────────────────────────────────────────
+
+// PL-2: between installing the 0.3.9 bundle and Fabric restarting into 0.3.9, the new fabric-mcp meets the running
+// 0.3.7/0.3.8 hub, whose `fabric.session.enroll` schema is `.strict()` (git show v0.3.8:apps/desktop/src/main/hubTools.ts,
+// :163-:169) and refuses `agentPid`. The fake below IS that hub: a real MCP server with the 0.3.8 schema, reached
+// through the real hub client (makeHubCall) over the SDK's in-memory transport.
+async function oldStrictHub({ session = SESSION } = {}) {
+  const { McpServer } = await import('@modelcontextprotocol/sdk/server/mcp.js')
+  const { InMemoryTransport } = await import('@modelcontextprotocol/sdk/inMemory.js')
+  const { z } = await import('zod')
+  const { makeHubCall } = await clientModule()
+  const seen = []
+  const factory = () => {
+    const server = new McpServer({ name: 'fabric-0.3.8', version: '0.3.8' })
+    server.registerTool('fabric.session.enroll', {
+      inputSchema: z.object({ cwd: z.string().min(1).max(4096), runtimeSessionId: z.string().min(1).max(128).optional(), rejoinOnly: z.boolean().optional() }).strict()
+    }, async (args) => { seen.push(args); return { content: [{ type: 'text', text: 'ok' }], structuredContent: session } })
+    const [hubSide, clientSide] = InMemoryTransport.createLinkedPair()
+    void server.connect(hubSide)
+    return clientSide
+  }
+  const raw = makeHubCall(factory)
+  const sent = []
+  const hubCall = async (url, bearer, tool, args) => { sent.push(args); return raw(url, bearer, tool, args) }
+  return { hubCall, sent, seen }
+}
+
+test('PL-2: against a 0.3.8 hub that refuses agentPid, the enrollment is sent once more without it, and that is remembered for this hub', async () => {
+  const old = await oldStrictHub()
+  let hub = LIVE
+  const h = harness({ store: memCreds([CRED]), extra: { hubCall: old.hubCall, agentPid: 4242, runtimeSessionId: 'rt-1', locate: () => hub } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.deepEqual(old.sent.map((a) => 'agentPid' in a), [true, false], 'refused with agentPid, then sent without it')
+  assert.deepEqual(old.seen, [{ cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }])
+  assert.ok(h.logs.some((l) => /agentPid/.test(l) && /older Fabric|does not take/.test(l)), 'the fallback is said once on stderr')
+  // The session drops (Fabric's hub is the same process): the next enrollment goes straight without agentPid.
+  h.proxy.session = null
+  h.proxy.state = { kind: 'starting' }
+  old.sent.length = 0
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.deepEqual(old.sent.map((a) => 'agentPid' in a), [false])
+  // Fabric restarted (another pid): the new hub may be 0.3.9, so agentPid is offered again.
+  hub = { ...LIVE, pid: 2 }
+  h.proxy.session = null
+  h.proxy.state = { kind: 'starting' }
+  old.sent.length = 0
+  await h.proxy.connectOnce()
+  assert.equal('agentPid' in old.sent[0], true)
+})
+
+test('PL-2: a --rejoin-only fabric-mcp against a 0.3.8 hub rejoins without agentPid instead of exiting not-enrolled', async () => {
+  const old = await oldStrictHub()
+  const h = harness({ store: memCreds([CRED]), extra: { hubCall: old.hubCall, agentPid: 777, runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.deepEqual(old.seen, [{ cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42', rejoinOnly: true }])
+})
+
+test('PL-2: a refusal that names some other argument is not retried, and agentPid is never dropped for it', async () => {
+  const sent = []
+  const hubCall = async (url, bearer, tool, args) => {
+    sent.push(args)
+    return { isError: true, value: {}, text: 'MCP error -32602: Input validation error: Invalid arguments for tool fabric.session.enroll: cwd: Too big' }
+  }
+  const h = harness({ store: memCreds([CRED]), extra: { hubCall, agentPid: 4242 } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'failed')
+  assert.equal(sent.length, 1)
+})
+
+// UX-3: the hub's 503 says why (`stack-starting`, `stack-unavailable`, hubStandby.ts#refuseForStack); the transport
+// read only its Retry-After and cancelled the body, so the agent was told "Fabric could not be reached" (it was) or
+// "HTTP 503: no reason given" (there was one).
+const STANDBY_BODY = { error: 'Fabric is starting and its database is not ready yet. Nothing of this call was done. Wait and call again.', code: 'stack-starting', retryable: true }
+test('UX-3: the hub client reads the code and the reason of a 503, bounded, and keeps the cooldown', async () => {
+  const { makeHubCall } = await clientModule()
+  const originalFetch = globalThis.fetch
+  let body = JSON.stringify(STANDBY_BODY)
+  globalThis.fetch = async () => new Response(body, { status: 503, headers: { 'retry-after': '10', 'content-type': 'application/json' } })
+  try {
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
+      assert.equal(e.code, 429); assert.equal(e.status, 503)
+      assert.ok(e.retryAfterMs > 9_000 && e.retryAfterMs <= 10_000)
+      assert.equal(e.hubCode, 'stack-starting')
+      assert.equal(e.hubReason, STANDBY_BODY.error)
+      assert.match(e.message, /stack-starting/)
+      assert.ok(!e.message.includes(CRED))
+      return true
+    })
+    // A body that is not the hub's JSON, or too large to be one, carries no reason and still waits.
+    body = 'x'.repeat(100_000)
+    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
+      assert.equal(e.code, 429); assert.equal(e.hubCode, undefined); return true
+    })
+  } finally { globalThis.fetch = originalFetch }
+})
+
+test('UX-3: while Fabric starts, fabric_whoami says the hub\'s code and reason and how long to wait, never "could not be reached"', async () => {
+  const { FabricRateLimitError } = await import(path.join(SRC, 'fabricMcp.ts'))
+  let now = 1000
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now, hubCall: async () => { throw new FabricRateLimitError(10_000, 503, { code: 'stack-starting', reason: STANDBY_BODY.error }) } } })
+  await h.proxy.connectOnce()
+  const said = (await h.proxy.call(WAITING_TOOL, {})).content[0].text
+  assert.doesNotMatch(said, /could not be reached/)
+  assert.match(said, /stack-starting/)
+  assert.match(said, /its database is not ready yet/)
+  assert.match(said, /wait \d+ seconds/)
+})
+
+test('UX-3: a call refused 503 under a live session passes on the hub\'s code and reason, and the cooldown answer repeats them', async () => {
+  const { FabricRateLimitError } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const reason = 'Fabric\'s database is not answering; Fabric is bringing it back. Nothing of this call was done. Wait and call again.'
+  let now = 1000
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now } })
+  await h.proxy.connectOnce()
+  h.link.callTool = async () => { throw new FabricRateLimitError(30_000, 503, { code: 'stack-unavailable', reason }) }
+  const first = (await h.proxy.call('fabric_tasks_list', {})).content[0].text
+  assert.doesNotMatch(first, /no reason given/)
+  assert.match(first, /stack-unavailable/)
+  assert.match(first, /bringing it back/)
+  assert.equal(h.proxy.state.kind, 'connected', 'the session is kept')
+  const second = (await h.proxy.call('fabric_tasks_list', {})).content[0].text
+  assert.match(second, /No new request was sent/)
+  assert.match(second, /stack-unavailable/)
+})
