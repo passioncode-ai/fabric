@@ -43,6 +43,8 @@ import { closeHttpServer } from './closeHttpServer.ts'
 // session tools. The floor is the same-user floor, now written into the consent prompt.
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
+import type { StackRefusal } from '../shared/stackWatch.ts'
+import { refuseForStack, type AdoptedListeners } from './hubStandby.ts'
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { cleanOriginalText, prepareAgentPayload, prepareRetrievalText } from './desktopIngress.ts'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
@@ -441,7 +443,7 @@ export class AgentSurface {
    * hub's stable port, and a port that cannot be taken is a `HubPortUnavailable` — the caller says
    * why, rather than this moving somewhere an agent's stored origin does not point.
    */
-  async start(opts: { port?: number } = {}): Promise<void> {
+  async start(opts: { port?: number; adopt?: AdoptedListeners } = {}): Promise<void> {
     if (this.http) return
     // V2 ER-3: after restart, valid bindings must not share the unknown-token lookup bucket.
     // This snapshot is only a budget hint; every request still authenticates against live state, so a warm-up
@@ -454,6 +456,25 @@ export class AgentSurface {
     // until its own timeout with its call budget already spent, and the main
     // process logged an unhandled rejection nobody reads. An agent that HANGS is
     // worse than one that fails — it looks like work in progress.
+    // #region hub-standby-adopt — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+    // ST-3: the sockets the hub standby held while the stack started are taken over as they are, so the port is never
+    // free for a moment and the hub keeps the hub.json the standby published.
+    if (opts.adopt) {
+      const answer = (label: string) => (req: IncomingMessage, res: ServerResponse): void => {
+        void this.handle(req, res).catch((e) => {
+          ops.failed('agentSurface.agent-surface-the-request-handler-threw', e, { note: `agent surface (${label}): the request handler threw:` })
+          if (res.headersSent) res.destroy()
+          else AgentSurface.refuse(res, 500, 'the surface failed to handle this request')
+        })
+      }
+      opts.adopt.server.on('request', answer('127.0.0.1'))
+      opts.adopt.server6?.on('request', answer('[::1]'))
+      this.http = opts.adopt.server
+      this.http6 = opts.adopt.server6
+      this.port = opts.adopt.port
+      return
+    }
+    // #endregion hub-standby-adopt
     const server = createServer((req, res) => {
       void this.handle(req, res).catch((e) => {
         ops.failed('agentSurface.agent-surface-the-request-handler-threw', e, { note: 'agent surface: the request handler threw:' })
@@ -714,6 +735,17 @@ export class AgentSurface {
     res.end(JSON.stringify({ error: reason }))
   }
 
+  // #region stack-unavailable-mode — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+  /** Set while the stack is lost (ST-2): every call is refused 503 with this code and Retry-After. */
+  private unavailable: StackRefusal | null = null
+
+  /** Enter (a refusal) or leave (null) the stack-unavailable mode. The runtime stack watch sets it on a change of
+   *  state, never per tick. */
+  setUnavailable(refusal: StackRefusal | null): void {
+    this.unavailable = refusal
+  }
+  // #endregion stack-unavailable-mode
+
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // V2 ER-3: validate the local destination BEFORE reading any bearer or callback state.
     // Native clients use the published literal loopback origin; browser origins carry no authority here.
@@ -723,6 +755,12 @@ export class AgentSurface {
     }
     if (req.headers.origin !== undefined) {
       AgentSurface.refuse(res, 403, 'browser origins cannot call the Fabric agent surface')
+      return
+    }
+    // ST-2: with the database gone every call would fail on its first read; it is told to wait instead, before any
+    // credential lookup or body read. A DELETE (a client leaving) still goes through: it costs no answer the client waits on.
+    if (this.unavailable && req.method === 'POST') {
+      refuseForStack(req, res, this.port, this.unavailable)
       return
     }
     // ADR-0115 §4: a product delivering its key to the callback this hub put in its connect link.

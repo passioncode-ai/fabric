@@ -55,6 +55,7 @@ import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
 import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
+import { StackHealthNotice } from './StackHealthNotice'
 import { I18nProvider, useT, type Locale } from './i18n'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
@@ -944,6 +945,8 @@ function Shell({
           onUndone={(undone) => { if (undone.record.kind === 'draft.discard') draftsRestored(true) }} />}
       >
 
+
+      <StackHealthNotice />
 
       {linkNotice && (
         <Banner

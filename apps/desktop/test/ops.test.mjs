@@ -98,11 +98,13 @@ else if (survived.length < 4) fail('a corrupt line took the earlier records with
 else ok('one unparseable line is litter, not a reason to lose the rest')
 
 // ————————————————————————————————————————————————— it stays bounded
-const small = createOps({ dir: path.join(dir, 'capped'), cap: 50 })
+// Bounded by BYTES across rotated segments since 0.3.9 (ST-4): a 2 KiB segment and an 8 KiB budget hold a few
+// dozen lines whatever is written.
+const small = createOps({ dir: path.join(dir, 'capped'), segmentBytes: 2048, budgetBytes: 8192 })
 for (let i = 0; i < 1200; i++)
   small.record({ op: 'noise', outcome: 'ok', ctx: { correlationId: 'c' }, detail: { i } })
 const kept = small.read()
-if (kept.length > 200) fail('the log grew to ' + kept.length + ' with a cap of 50')
+if (kept.length > 200) fail('the log grew to ' + kept.length + ' with an 8 KiB budget')
 else if (!kept.some((r) => r.detail?.i >= 1100)) fail('the cap dropped the NEWEST records')
 else ok('a capped log keeps the newest — the failure being investigated right now')
 

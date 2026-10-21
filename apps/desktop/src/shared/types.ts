@@ -733,6 +733,9 @@ export interface DiagnosticsView {
 }
 
 /** Whether the local stack answered on this Mac's network addresses (audit A7-001). */
+export type { StackHealthView } from './stackWatch.ts'
+import type { StackHealthView } from './stackWatch.ts'
+
 export interface StackExposureView {
   checkedAt: string
   ports: number[]
@@ -1484,6 +1487,10 @@ export interface FabricApi {
     /** The local stack's network exposure (audit A7-001), re-checked when the last check is older than
      *  five minutes; null while no check has finished (the stack is not up yet, or the check failed). */
     exposure(): Promise<StackExposureView | null>
+    /** The local stack's health as the runtime watch last read it (0.3.9 ST-2, ST-1); null before the watch has run. */
+    health(): Promise<StackHealthView | null>
+    /** Called when the stack's health changes, and while it is down as the next try nears. */
+    onHealth(cb: (view: StackHealthView) => void): () => void
   },
   ops: {
     /** A renderer failure, reported to the main process's ops log so it is
@@ -1823,5 +1830,7 @@ export const IPC = {
   windowsOpenSession: 'windows:open-session',
   metaInfo: 'meta:info',
   opsRendererError: 'ops:renderer-error',
-  stackExposure: 'stack:exposure'
+  stackExposure: 'stack:exposure',
+  stackHealth: 'stack:health',
+  stackHealthChanged: 'stack:health-changed'
 } as const

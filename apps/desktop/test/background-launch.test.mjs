@@ -14,13 +14,15 @@ test('the flag is read from argv, and a start at login counts as a background st
   assert.match(src, /BACKGROUND_LAUNCH = startsInBackground\(process\.argv, app\.getLoginItemSettings\(\)\.wasOpenedAtLogin\)/)
 })
 test('a background launch shows no splash', () => {
-  assert.match(src, /const splash = process\.env\.SMOKE \|\| BACKGROUND_LAUNCH \? null : splashWindow\(/)
+  // 0.3.9 ST-3: nor while the start-wait window already says what Fabric waits for.
+  assert.match(src, /const splash = process\.env\.SMOKE \|\| BACKGROUND_LAUNCH \|\| startupWaitWindow \? null : splashWindow\(/)
 })
 test('a background launch opens no main window until activated, and an early activation is honoured after startup', () => {
   // A fabric:// link that arrived during the background startup is a person's act too (0.3.5 review ER-2).
   assert.match(src, /windowReady = true\s*\n\s*linksStartupDone\(\)\s*\n\s*\/\/[^\n]*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.size > 0\) createWindow\(\)/)
-  assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; return \}\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
+  // 0.3.9 ST-3: an activation while the start waits for Docker or the database shows what it waits for.
+  assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
 })
 test('a second launch during a background start is remembered as an activation (0.3.7 i2 UX-2)', () => {
-  assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!windowReady\) \{ activatedDuringStartup = true; return \}/)
+  assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}/)
 })

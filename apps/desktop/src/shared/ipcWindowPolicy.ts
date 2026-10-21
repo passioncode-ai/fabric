@@ -222,7 +222,9 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   windowsOpenSession: MAIN_ONLY,
   metaInfo: EVERY_WINDOW,
   opsRendererError: EVERY_WINDOW,
-  stackExposure: MAIN_ONLY
+  stackExposure: MAIN_ONLY,
+  stackHealth: MAIN_ONLY,
+  stackHealthChanged: MAIN_ONLY
 }
 
 /** Channel value (`feed:replay`) → its key, so a rule is found from what Electron hands the wrapper. */

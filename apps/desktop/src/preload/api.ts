@@ -11,7 +11,7 @@
 // hand it a recorder.
 
 import type { IpcRenderer } from 'electron'
-import { IPC, type FabricApi } from '../shared/types.ts'
+import { IPC, type FabricApi, type StackHealthView } from '../shared/types.ts'
 import { kindMaySpeak, type WindowKind } from '../shared/ipcWindowPolicy.ts'
 
 /** The part of `ipcRenderer` the bridge uses. */
@@ -193,7 +193,13 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       read: (query) => ipc.invoke(IPC.diagnosticsRead, query)
     },
     stack: {
-      exposure: () => ipc.invoke(IPC.stackExposure)
+      exposure: () => ipc.invoke(IPC.stackExposure),
+      health: () => ipc.invoke(IPC.stackHealth),
+      onHealth: (cb) => {
+        const listener = (_e: unknown, view: StackHealthView): void => cb(view)
+        ipc.on(IPC.stackHealthChanged, listener)
+        return () => ipc.removeListener(IPC.stackHealthChanged, listener)
+      }
     },
     ops: {
       rendererError: (info) => ipc.send(IPC.opsRendererError, info)

@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, mkdirSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync, statfsSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -71,7 +71,13 @@ import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
-import { classifyStartupFailure, freeDiskGb, startupDialog } from '../shared/startupFailure'
+import { classifyStartupFailure, diskLowLine, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
+import { dockerIsUnreachable } from '../shared/stackStartRetry.ts'
+import { retryAfterSeconds, stackBackoffMs, startupHeals, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
+import { createStackWatch, type StackWatch } from './stackWatch.ts'
+import { closeHubStandby, openHubStandby, type StandbyOpen } from './hubStandby.ts'
+import { appendBounded } from './boundedLog.ts'
+import { pingDocker } from './dockerPing.ts'
 import { readBuildManifestCandidates, withSchemaReadiness } from './schemaReadiness.ts'
 import { linkOutcome, linkRefusal } from '../shared/taskLinks.ts'
 import { splashProgress } from '../shared/splashProgress'
@@ -695,7 +701,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
     // its own clock: against a six-second block the splash's script ran 59ms
     // AFTER the block ended, so its text was not late, it was never displayed.
     // A four-minute start showed a person a bare rectangle.
-    const splash = process.env.SMOKE || BACKGROUND_LAUNCH ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
+    const splash = process.env.SMOKE || BACKGROUND_LAUNCH || startupWaitWindow ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
     const startedAt = Date.now()
     let lastLine: string | null = null
     // The window is only worth updating once it can render — before
@@ -758,6 +764,17 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
     processFailuresRecorded = true
     process.on('unhandledRejection', (reason) => ops.failed('process.unhandled-rejection', reason))
     process.on('uncaughtException', (error) => ops.failed('process.uncaught-exception', error))
+  }
+  // ST-3: the hub's port and hub.json come up before the stack, answering every call `stack-starting` until the
+  // database is ready; the hub takes the same sockets over below (`startHub`, standby). Once per process: a retry
+  // keeps the standby it has.
+  if (!hubStandby && !process.env.SMOKE) {
+    const early = registryDirs()
+    const reg = new AgentRegistry({ servicesDir: early.services, providersDir: early.providers })
+    reg.refresh()
+    hubStandby = await openHubStandby({ claimedPorts: reg.claimedPorts(), root: early.root, refusal: startupRefusal })
+    const opened = hubStandby
+    quit.onQuit(() => { if (hubStandby === opened) void closeHubStandby(opened, early.root) })
   }
   await fixPath()
   // Which Estate: the recorded choice, or the default. An unreadable choice stops here with its
@@ -1082,7 +1099,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // Agent access shows it) — and the sessions Fabric starts keep their surface on an ephemeral port, as
   // before the hub existed, with the external ingress closed: no hub.json, no door token (`startHub`,
   // driven by hub-door-db).
-  const started = await startHub({ surface, env: process.env, claimedPorts: registry.claimedPorts(), root: dirs.root })
+  const started = await startHub({ surface, env: process.env, claimedPorts: registry.claimedPorts(), root: dirs.root, standby: hubStandby?.open ? hubStandby : null })
+  // The standby's sockets are the surface's now, or it stops: either way it holds the port no longer.
+  if (hubStandby?.open && hubStandby.standby.origin) void hubStandby.standby.stop()
+  hubStandby = null
   if (started.open) {
     hubState.doorToken = started.doorToken
     quit.onQuit(() => {
@@ -4155,6 +4175,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return lastStackExposure
   })
 
+  // ST-2, ST-1 (0.3.9): the stack's health as the runtime watch last read it; the window also hears each change.
+  handle(IPC.stackHealth, (): Returns<FabricApi['stack']['health']> => stackHealthNow)
+
   // Audit A7-009: a renderer failure is recorded beside the program's own — the boundary and the
   // root's `onUncaughtError` send it here, because the renderer's console reaches nobody.
   listen(IPC.opsRendererError, (_e, info: RendererErrorInfo) => {
@@ -5064,7 +5087,7 @@ if (!isPrimary) {
     for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
     // A second launch during a background start (Windows: «Пуск» while the login start still waits for Docker) is the
     // person asking for the window; remember it as an activation, as macOS's `activate` does (0.3.7 review i2 UX-2).
-    if (!windowReady) { activatedDuringStartup = true; return }
+    if (!windowReady) { activatedDuringStartup = true; if (startupWait) showStartupWait(); return }
     // Someone tried to open Fabric again. Show them the one they have rather
     // than doing nothing, which reads as the application being broken.
     const [existing] = BrowserWindow.getAllWindows()
@@ -5102,12 +5125,182 @@ app.whenReady().then(async () => {
   await startOrExplain()
 })
 
+// #region startup-wait — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+/**
+ * ST-3 of the 0.3.9 stability audit: a start that met Docker or the database not ready ended in quit, and nothing tried
+ * again (2026-10-20: four short-lived processes in 25 min and an agent-driven start loop for 55 min). Now, for the
+ * causes waiting heals (`shared/stackWatch.ts#startupHeals`), Fabric stays up: the hub standby answers agents
+ * `stack-starting`, a small window says what Fabric waits for (none in a background start until the person asks for
+ * Fabric), each failure is appended to startup-failure.log, and the start runs again after 10 s, 20 s, 40 s … 2 min.
+ * A cause that will not heal keeps the startup dialog. A quit at any point ends the wait (LC-02).
+ */
+let hubStandby: StandbyOpen | null = null
+let startupWait: { attempt: number; nextAt: number; failure: StartupFailure; since: number; timer: ReturnType<typeof setTimeout> | null } | null = null
+let startupWaitWindow: BrowserWindow | null = null
+let startupWaitTicker: ReturnType<typeof setInterval> | null = null
+/** A start that failed for good: the standby says so to agents until the person retries or quits. */
+let startupBroken: StartupFailure | null = null
+
+/** What the hub standby answers while the start waits. */
+function startupRefusal(): StackRefusal {
+  if (startupBroken)
+    return { code: 'stack-unavailable', reason: `Fabric could not start: ${startupBroken.title} Nothing of this call was done. The person at this computer is shown why; call again later.`, retryAfterS: 60 }
+  return {
+    code: 'stack-starting',
+    reason: `Fabric is starting and its ${startupWait && waitsForDocker(startupWait.failure) ? 'Docker engine' : 'database'} is not ready yet. Nothing of this call was done. Wait and call again.`,
+    retryAfterS: retryAfterSeconds(startupWait ? startupWait.nextAt - Date.now() : 10_000)
+  }
+}
+
+function waitsForDocker(failure: StartupFailure): boolean {
+  return dockerIsUnreachable(failure.detail) || /Docker did not answer within/.test(failure.detail)
+}
+
+function freeDiskNow(): number | null {
+  try {
+    const st = statfsSync(app.getPath('userData'))
+    return st.bavail * st.bsize
+  } catch {
+    // Unreadable: nothing names the disk, and the wait goes on without it.
+    return null
+  }
+}
+
+function startupWaitText(): Record<string, string> {
+  let say: Translate = translator('en')
+  let locale = 'en'
+  try { const chosen = readSettings().locale; locale = chosen; say = translator(chosen) } catch { /* English, as the startup dialog falls back */ }
+  const w = startupWait
+  if (!w) return {}
+  const seconds = Math.max(0, Math.ceil((w.nextAt - Date.now()) / 1000))
+  const free = freeDiskNow()
+  const low = diskLowLine(w.failure, { freeDiskBytes: free, locale })
+  return {
+    title: say('startup.wait.title'),
+    cause: say(waitsForDocker(w.failure) ? 'startup.wait.docker' : 'startup.wait.database'),
+    disk: low ? say(low.key as StringKey, { free: low.free }) : '',
+    next: w.timer ? say('startup.wait.next', { seconds, attempt: w.attempt + 1 }) : say('startup.wait.trying', { attempt: w.attempt + 1 }),
+    agents: say('startup.wait.agents'),
+    log: say('startup.wait.log', { log: path.join(app.getPath('userData'), 'startup-failure.log') })
+  }
+}
+
+/** The window that says what the start waits for; shown once, updated in place. */
+function showStartupWait(): void {
+  if (process.env.SMOKE || !startupWait) return
+  if (startupWaitWindow && !startupWaitWindow.isDestroyed()) {
+    startupWaitWindow.show()
+    return
+  }
+  const t = startupWaitText()
+  const esc = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+  const page = `<!doctype html><meta charset="utf-8"><title>${esc(t.title ?? '')}</title><body style="margin:0;padding:20px 24px;background:#0c0e10;color:#e6e9ec;font:13px -apple-system,sans-serif;line-height:1.45">` +
+    ['title', 'cause', 'disk', 'next', 'agents', 'log'].map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
+  const win = new BrowserWindow({ width: 460, height: 240, resizable: false, minimizable: true, maximizable: false, fullscreenable: false, title: t.title, show: true, backgroundColor: WINDOW_CHROME.backgroundColor, webPreferences: { sandbox: true, contextIsolation: true } })
+  startupWaitWindow = win
+  win.on('closed', () => { if (startupWaitWindow === win) startupWaitWindow = null })
+  void win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
+  startupWaitTicker ??= setInterval(() => {
+    const ww = startupWaitWindow
+    if (!ww || ww.isDestroyed()) return
+    const text = startupWaitText()
+    void ww.webContents
+      .executeJavaScript(`for (const [k, v] of Object.entries(${JSON.stringify(text)})) { const p = document.getElementById(k); if (p) p.textContent = v }`)
+      .catch(() => {
+        /* the window went away mid-update; its 'closed' handler is the authority */
+      })
+  }, 1_000)
+}
+
+/** A start that waiting heals failed: record it, show the wait, and try again after the backoff. */
+function waitAndRetryStart(failure: StartupFailure): void {
+  const attempt = (startupWait?.attempt ?? 0) + 1
+  const delay = stackBackoffMs(attempt)
+  const since = startupWait?.since ?? Date.now()
+  startupWait = { attempt, nextAt: Date.now() + delay, failure, since, timer: null }
+  const free = freeDiskNow()
+  const logPath = path.join(app.getPath('userData'), 'startup-failure.log')
+  const written = appendBounded(logPath, `${new Date().toISOString()}  ${failure.cause} (waiting, try ${attempt})\n${failure.title}\n\n${failure.detail}${free === null ? '' : `\n\nfree disk: ${freeDiskGb(free)} GB`}\n\n`)
+  if (!written.ok) ops.failed('startup.wait-log', written.error)
+  ops.record({
+    op: 'startup.waiting', outcome: 'unknown', level: 'warn',
+    detail: { cause: failure.cause, waits_for: waitsForDocker(failure) ? 'docker' : 'database', attempt, next_try_s: Math.round(delay / 1000), ...(free === null ? {} : { free_disk_gb: freeDiskGb(free) }) },
+    ctx: { correlationId: ops.correlate() }
+  })
+  if (!BACKGROUND_LAUNCH || activatedDuringStartup) showStartupWait()
+  const wait = startupWait
+  wait.timer = setTimeout(() => {
+    wait.timer = null
+    if (quit.quitting) return
+    void startOrExplain()
+  }, delay)
+  wait.timer.unref?.()
+}
+
+/** The start succeeded, or failed for good: the wait ends, recorded once with how it ended. */
+function startupWaitDone(ended: 'started' | 'failed'): void {
+  const w = startupWait
+  if (!w) return
+  startupWait = null
+  if (w.timer) clearTimeout(w.timer)
+  if (startupWaitTicker) clearInterval(startupWaitTicker)
+  startupWaitTicker = null
+  if (startupWaitWindow && !startupWaitWindow.isDestroyed()) startupWaitWindow.destroy()
+  startupWaitWindow = null
+  ops.record({ op: 'startup.waited', outcome: ended === 'started' ? 'ok' : 'failed', level: 'warn', detail: { ended, tries: w.attempt, waited_s: Math.round((Date.now() - w.since) / 1000) }, ctx: { correlationId: ops.correlate() } })
+}
+quit.onQuit(() => {
+  if (startupWait?.timer) clearTimeout(startupWait.timer)
+  if (startupWaitTicker) clearInterval(startupWaitTicker)
+})
+// #endregion startup-wait
+
+// #region runtime-stack-watch — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+/** ST-2, ST-1: the stack and the disk while Fabric runs (`main/stackWatch.ts`). */
+let stackWatch: StackWatch | null = null
+let stackHealthNow: StackHealthView | null = null
+
+/** Whether Fabric owns the stack (it started it, so it may start it again): not when SUPABASE_URL names another. */
+function ownsStack(): boolean {
+  return !(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+}
+
+function startStackWatch(): void {
+  if (stackWatch) return
+  const local = ownsStack()
+  stackWatch = createStackWatch({
+    readDatabase: async (signal) => {
+      const { error } = await db.rpc('schema_version').abortSignal(signal)
+      return !error
+    },
+    // The default socket, then OrbStack's own: an OrbStack-only Mac may have no /var/run/docker.sock.
+    pingDocker: local ? async () => (await pingDocker(null)) || (process.platform === 'darwin' && (await pingDocker(path.join(homedir(), '.orbstack', 'run', 'docker.sock')))) : null,
+    freeDisk: freeDiskNow,
+    recover: local ? () => startStack() : null,
+    onChange: (view, refusal) => {
+      stackHealthNow = view
+      surface?.setUnavailable(refusal)
+      broadcast(IPC.stackHealthChanged, view)
+    }
+  })
+  stackHealthNow = stackWatch.view()
+  stackWatch.start()
+  // One reading at once, so a disk already low is said now rather than in 30 s.
+  void stackWatch.tick()
+}
+quit.onQuit(() => stackWatch?.stop())
+// #endregion runtime-stack-watch
+
 /** Everything that can fail on the way to a window — extracted so the Retry
  *  button has something to press. */
 async function startOrExplain(): Promise<void> {
   try {
+    // A Retry from the dialog is a new start: agents are told it is starting, not that it failed.
+    startupBroken = null
     const meta = await bootstrap()
     registerIpc(meta)
+    startupWaitDone('started')
+    if (!process.env.SMOKE) startStackWatch()
 
     if (process.env.SMOKE) {
       const probeEvent = await journal.append({
@@ -5152,6 +5345,15 @@ async function startOrExplain(): Promise<void> {
     // or to log as one (third review: it wrote a false stack-start-timed-out failure log).
     if (quit.quitting) { ops.failed('startup.interrupted', e, { note: 'startup was ended by a quit; nothing to explain' }); return }
     ops.failed('startup.bootstrap', e)
+    // ST-3: Docker or the database not ready yet heals by waiting. Fabric stays up, its hub refuses with
+    // `stack-starting`, the person sees what it waits for, and the start is tried again (10 s growing to 2 min).
+    const failure = classifyStartupFailure(e)
+    if (!pastRetryPoint && !process.env.SMOKE && startupHeals(failure)) {
+      waitAndRetryStart(failure)
+      return
+    }
+    startupWaitDone('failed')
+    startupBroken = failure
     void explainAndQuit(e)
   }
 }
@@ -5196,17 +5398,10 @@ async function explainAndQuit(e: unknown): Promise<void> {
   let freeDiskBytes: number | null = null
   try { const st = statfsSync(app.getPath('userData')); freeDiskBytes = st.bavail * st.bsize } catch { freeDiskBytes = null /* unreadable: nothing names the disk */ }
   const diskNote = freeDiskBytes === null ? '' : `\n\nfree disk: ${freeDiskGb(freeDiskBytes)} GB`
-  try {
-    mkdirSync(path.dirname(logPath), { recursive: true })
-    writeFileSync(
-      logPath,
-      `${new Date().toISOString()}  ${failure.cause}\n${failure.title}\n\n${failure.detail}${diskNote}\n`,
-      { encoding: 'utf8', mode: 0o600 }
-    )
-  } catch (writeError) {
-    // A log we cannot write must not become the reason nothing is shown.
-    ops.failed('index.could-not-write-the-startup-failure-log', writeError, { note: 'could not write the startup failure log:' })
-  }
+  // ST-4: appended and bounded, so every failed start of an outage is kept, not only the last.
+  const written = appendBounded(logPath, `${new Date().toISOString()}  ${failure.cause}\n${failure.title}\n\n${failure.detail}${diskNote}\n\n`)
+  // A log we cannot write must not become the reason nothing is shown.
+  if (!written.ok) ops.failed('index.could-not-write-the-startup-failure-log', written.error, { note: 'could not write the startup failure log:' })
   ops.failed('index.failure', e, { note: `bootstrap failed (${failure.cause}):` })
 
   // ASYNC, not `showMessageBoxSync` (lifecycle review 2026-10-03, finding 8): a synchronous modal blocks
@@ -5311,7 +5506,8 @@ app.on('web-contents-created', (_e, contents) => {
 app.on('window-all-closed', () => quit.windowAllClosed(process.platform))
 app.on('activate', () => {
   if (process.env.SMOKE) return
-  // Before startup has finished there is nothing a window could show yet: remember the activation.
-  if (!windowReady) { activatedDuringStartup = true; return }
+  // Before startup has finished there is nothing a window could show yet: remember the activation. While the start
+  // waits for Docker or the database (ST-3), the person who asks for Fabric is shown what it waits for.
+  if (!windowReady) { activatedDuringStartup = true; if (startupWait) showStartupWait(); return }
   if (mainWindow === null) createWindow()
 })

@@ -29,7 +29,7 @@ import { CHANNEL_RULES, WINDOW_KINDS } from '../apps/desktop/src/shared/ipcWindo
 
 const FILE = 'apps/desktop/src/main/index.ts'
 /** Channels main BROADCASTS; they have no handler and no declared answer. */
-const BROADCAST = new Set(['projectsRepoChanged', 'terminalData', 'terminalExit'])
+const BROADCAST = new Set(['projectsRepoChanged', 'terminalData', 'terminalExit', 'stackHealthChanged'])
 
 // COMMENTS FIRST. This gate used to scan raw source, so a doc comment quoting
 // the shape it refuses was read as that shape — measured on the very change

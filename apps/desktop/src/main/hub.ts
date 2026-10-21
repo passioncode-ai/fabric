@@ -260,8 +260,17 @@ export function locateHub(root: string, deps: { isAlive?: (pid: number) => boole
 
 /** What `startHub` needs of the surface: listen on a port (a refusal throws), and say where it listens. */
 export interface HubListener {
-  start(opts?: { port?: number }): Promise<void>
+  start(opts?: { port?: number; adopt?: { port: number; server: import('node:http').Server; server6: import('node:http').Server | null } }): Promise<void>
   readonly origin: string
+}
+
+/** The hub standby (`hubStandby.ts`, ST-3): the port it holds and the hub.json it already published. */
+export interface OpenStandby {
+  open: true
+  port: number
+  doorToken: string
+  hubFile: string
+  standby: { handOver(): { port: number; server: import('node:http').Server; server6: import('node:http').Server | null } }
 }
 
 /** `down` is said to sessions and agents (English, with the instruction); `downCode` and `downFact` let the
@@ -281,12 +290,26 @@ export async function startHub(opts: {
   claimedPorts: Map<number, string>
   root: string
   publish?: typeof publishHub
+  /** ST-3: the standby that held the port while the stack started; its sockets and hub.json are taken over. */
+  standby?: OpenStandby | null
 }): Promise<HubStart> {
   const chosen = hubPort(opts.env ?? process.env)
   const unclaimed = chosen.ok ? checkPortUnclaimed(chosen.port, opts.claimedPorts) : chosen
   let down: string
   let downCode: HubDownCode
   let downFact: string
+  // #region hub-standby-takeover — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+  if (opts.standby?.open && unclaimed.ok && opts.standby.port === unclaimed.port) {
+    try {
+      await opts.surface.start({ port: unclaimed.port, adopt: opts.standby.standby.handOver() })
+      ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: opts.surface.origin, hub_file: opts.standby.hubFile, from: 'standby' }, ctx: { correlationId: ops.correlate() } })
+      return { open: true, doorToken: opts.standby.doorToken, hubFile: opts.standby.hubFile }
+    } catch (e) {
+      // The handover itself cannot fail on a port; recorded, and the ordinary start below is tried as before.
+      ops.failed('hub.standby.takeover', e)
+    }
+  }
+  // #endregion hub-standby-takeover
   try {
     if (!unclaimed.ok) throw Object.assign(new Error(unclaimed.reason), { name: 'HubPortUnavailable' })
     await opts.surface.start({ port: unclaimed.port })
