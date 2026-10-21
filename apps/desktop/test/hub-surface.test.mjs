@@ -241,3 +241,19 @@ test('a binding\'s protocol traffic is not charged as calls, and one session in 
   assert.ok(looping.includes(429), `a looping session was never refused: ${looping.join(',')}`)
   assert.equal((await enroll('rt-other')).status, 200, 'another session of the same agent was refused for the loop of the first')
 })
+
+// TR-1 (0.3.9): fabric.session.enroll takes the agent's process id, at enrollment and on a rejoin, so a session whose
+// runtime id changed (/clear) is still found. Before, the strict schema refused the field as invalid input.
+test('TR-1: fabric.session.enroll accepts agentPid and refuses one that names no process', async (t) => {
+  const store = memStore(), credential = 'p'.repeat(43)
+  const binding = { id: 'pid-agent', agent_id: 'example-agent', verifier: createHash('sha256').update(credential).digest('hex'), revoked_at: null }
+  store.maps.bindings.set(binding.id, binding)
+  const { surface } = await hub({}, store)
+  t.after(() => surface.stop())
+  const enroll = (agentPid) => rpc(surface, credential, 'tools/call', { name: 'fabric.session.enroll', arguments: { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid } })
+  const ok = await enroll(4242)
+  assert.equal(ok.status, 200)
+  assert.doesNotMatch(JSON.stringify(ok.body), /Invalid|-32602|unrecognized/i, JSON.stringify(ok.body))
+  const bad = await enroll(1)
+  assert.match(JSON.stringify(bad.body), /Invalid|-32602|too_small|>=2/i, 'pid 1 names no agent process')
+})

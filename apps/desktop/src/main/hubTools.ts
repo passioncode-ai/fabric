@@ -56,7 +56,7 @@ export interface HubToolDeps {
   /** `agent.call` itself (S4). Absent, the tool refuses rather than pretending to route. */
   call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal) => Promise<ToolAnswer>
   /** `fabric.session.enroll` (ADR-0134). Absent, the tool refuses: this Fabric admits no coding agent from outside. */
-  enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean }) => Promise<EnrollAnswer>
+  enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean; agentPid?: number }) => Promise<EnrollAnswer>
   /** `fabric.board.join` (ADR-0149 §4). Absent, the tool refuses: this Fabric gives no board sessions. */
   /** `fabric.project.resolve` (F9, DEC-0089): the contract's answer for one folder. Absent, the tool refuses. */
   resolveProject?: (path: string) => Promise<Record<string, unknown>>
@@ -165,13 +165,14 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       inputSchema: z.object({
         cwd: z.string().min(1).max(4096),
         runtimeSessionId: z.string().min(1).max(128).optional(),
-        rejoinOnly: z.boolean().optional().describe('With runtimeSessionId: join the live session that coding-agent session already holds here, or be told there is none (no-session) — never ask the operator, never start a session')
+        rejoinOnly: z.boolean().optional().describe('With runtimeSessionId: join the live session that coding-agent session already holds here, or be told there is none (no-session) — never ask the operator, never start a session'),
+        agentPid: z.number().int().min(2).max(2 ** 31 - 1).optional().describe('The coding agent\'s process id. At enrollment: the agent this fabric-mcp serves. With rejoinOnly: the process the runtime session id belongs to now, so a session whose runtime id changed (/clear) is still found')
       }).strict()
     },
     async (args) =>
       guard('session.enroll', async () => {
         if (!deps.enroll) return refusal('hub-unavailable', 'this Fabric admits no coding agent from outside')
-        const r = await deps.enroll(principal.kind === 'binding' ? principal.binding : null, args as { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean })
+        const r = await deps.enroll(principal.kind === 'binding' ? principal.binding : null, args as { cwd: string; runtimeSessionId?: string; rejoinOnly?: boolean; agentPid?: number })
         return r.ok ? answer({ session: r.session }) : refusal(r.code, r.message, r.code === 'needs-grant' ? { projectId: r.projectId, projectName: r.projectName, resource: r.resource } : undefined)
       })
   )

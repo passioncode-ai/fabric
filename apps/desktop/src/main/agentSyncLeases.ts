@@ -42,6 +42,9 @@ export async function usesAgentSync(repoPath: string): Promise<boolean> {
 }
 
 export interface LeaseRefDeps {
+  /** A lease ref's commit message, read from the local repository (TR-7), or null when the object is not here. The
+   *  default reads it with the hardened `gitRun`: no transport, nothing fetched. */
+  bodyOf?(repoPath: string, sha: string): Promise<string | null>
   /** The repository's `origin` URL, or null when it has none. */
   remoteOf(repoPath: string): Promise<string | null>
   /** `git ls-remote` of a checked URL; resolves to its stdout. */
@@ -55,6 +58,8 @@ export interface LeaseRefDeps {
 
 export const LS_REMOTE_TIMEOUT_MS = 8_000
 export const LS_REMOTE_MAX_BYTES = 1_000_000
+/** How many lease bodies are read at once (TR-7): at most LEASE_REFS_MAX refs, each one local `git log`. */
+export const LEASE_BODY_READS_AT_ONCE = 8
 
 /** The default `remoteOf`: the hardened repository read, bounded. */
 export async function originOf(repoPath: string): Promise<string | null> {
@@ -85,6 +90,44 @@ export async function lsRemoteLeases(url: string): Promise<string> {
   return stdout
 }
 
+// #region agent-sync-lease-expiry — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/** The default `bodyOf`: the lease commit's message from the local object store, bounded; null when it is not here. */
+export async function leaseBodyOf(repoPath: string, sha: string): Promise<string | null> {
+  if (!/^([0-9a-f]{40}|[0-9a-f]{64})$/.test(sha)) return null
+  try {
+    return (await gitRun(repoPath, ['log', '-1', '--format=%B', sha], { timeoutMs: 3_000 })).trim() || null
+  } catch {
+    // The object is not in this repository (a lease another machine took and nobody fetched): its state is unknown.
+    return null
+  }
+}
+
+/** What a lease body says of its life (agent-sync's own rule, `ts + ttl`): live until then, expired after it, or
+ *  unknown when the body is not a lease agent-sync wrote. */
+export function leaseLife(body: string | null, now: number): { state: 'live' | 'expired' | 'unknown'; expiresAt: string | null } {
+  let v: { ts?: unknown; ttl?: unknown } | null = null
+  try {
+    v = body ? (JSON.parse(body) as { ts?: unknown; ttl?: unknown }) : null
+  } catch {
+    // Not JSON: not a lease agent-sync wrote, so its state is unknown (said by the caller), never live.
+    v = null
+  }
+  const at = typeof v?.ts === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/.test(v.ts) ? Date.parse(v.ts) : NaN
+  const ttl = typeof v?.ttl === 'number' ? v.ttl : typeof v?.ttl === 'string' && /^\d+$/.test(v.ttl) ? Number(v.ttl) : NaN
+  if (!Number.isFinite(at) || !Number.isFinite(ttl) || ttl < 0) return { state: 'unknown', expiresAt: null }
+  const expires = at + ttl * 1000
+  return { state: expires > now ? 'live' : 'expired', expiresAt: new Date(expires).toISOString() }
+}
+
+/** What is shown as current (TR-7): live and unread leases listed, expired ones only counted. */
+export type CurrentLeases = Extract<LeaseRefsRead, { read: false }> | (Extract<LeaseRefsRead, { read: true }> & { expired: number })
+export function currentLeases<T extends LeaseRefsRead>(read: T): CurrentLeases & Omit<T, 'leases' | 'read'> {
+  if (!read.read) return read as CurrentLeases & Omit<T, 'leases' | 'read'>
+  const expired = read.leases.filter((l) => l.state === 'expired').length
+  return { ...read, leases: read.leases.filter((l) => l.state !== 'expired'), expired } as CurrentLeases & Omit<T, 'leases' | 'read'>
+}
+// #endregion agent-sync-lease-expiry
+
 export function createLeaseRefReader(deps: LeaseRefDeps = { remoteOf: originOf, lsRemote: lsRemoteLeases }) {
   const now = deps.now ?? Date.now
   const ttl = deps.ttlMs ?? 60_000
@@ -107,7 +150,15 @@ export function createLeaseRefReader(deps: LeaseRefDeps = { remoteOf: originOf, 
     if (!isListableRemote(remote)) return unread('not-listable', 'the origin remote is not an https or ssh URL, and Fabric reads no other kind')
     try {
       const { leases, truncated } = parseLeaseRefs(await deps.lsRemote(remote))
-      return { read: true, remote, readAt, leases, truncated }
+      // TR-7: each ref's own body says whether it is still held. Read locally, eight at a time, never fetched.
+      const bodyOf = deps.bodyOf ?? leaseBodyOf
+      const at = now()
+      const lived: LeaseRef[] = []
+      for (let i = 0; i < leases.length; i += LEASE_BODY_READS_AT_ONCE) {
+        const batch = leases.slice(i, i + LEASE_BODY_READS_AT_ONCE)
+        lived.push(...(await Promise.all(batch.map(async (l) => ({ ...l, ...leaseLife(await bodyOf(repoPath, l.sha).catch(() => null), at) })))))
+      }
+      return { read: true, remote, readAt, leases: lived, truncated }
     } catch (e) {
       // Not silent: every branch below returns a typed reading with its reason.
       const err = e as { killed?: boolean; signal?: string; code?: unknown; message?: string }

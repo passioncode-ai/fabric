@@ -163,8 +163,10 @@ export interface EnrolledSession {
   grantId: string
   projectId: string
   mintedAt: number
-  /** The coding agent's own session id it enrolled with (D1), or null. */
+  /** The coding agent's own session id it enrolled with (D1), or null; renamed when the agent's id changes (TR-1). */
   runtimeSessionId?: string | null
+  /** The coding agent's process, as its own fabric-mcp named it at enrollment (TR-1): what a /clear does not change. */
+  agentPid?: number | null
   /** The one bearer the session hooks' rejoins (D2) hold for this session, or none (0.3.5 review iteration 2, ER-5). */
   rejoinBearer?: string | null
   /** A board session (`fabric.board.join`, ADR-0149 §4) holds several board.respond grants: any one revoked ends it. */
@@ -282,6 +284,24 @@ export class EnrolledSessions {
     return this.rows.size
   }
 
+  // #region session-runtime-rename — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+  /** The live session of this binding in this project whose agent process is `agentPid` (TR-1), or null. A board
+   *  session has no agent process and is never matched. */
+  ofAgentPid(bindingId: string, projectId: string, agentPid: number): (EnrolledSession & { state: 'unclaimed' | 'claimed' }) | null {
+    return this.liveOf(bindingId).filter((r) => r.surface !== 'board' && r.projectId === projectId && r.agentPid === agentPid).pop() ?? null
+  }
+
+  /** The agent's session now carries `runtimeSessionId` (a /clear, TR-1). A rejoin bearer minted for the old id goes:
+   *  it would answer the hooks with the old id, and the hooks now name the new one. */
+  renameRuntime(sessionId: string, runtimeSessionId: string): void {
+    const row = this.rows.get(sessionId)
+    if (!row || row.runtimeSessionId === runtimeSessionId) return
+    row.runtimeSessionId = runtimeSessionId
+    if (row.rejoinBearer) this.drop(row.rejoinBearer)
+    row.rejoinBearer = null
+  }
+  // #endregion session-runtime-rename
+
   /** The live session one runtime session of one binding enrolled in this project (D2), or null. */
   ofRuntime(bindingId: string, projectId: string, runtimeSessionId: string): (EnrolledSession & { state: 'unclaimed' | 'claimed' }) | null {
     return this.liveOf(bindingId).filter((r) => r.projectId === projectId && r.runtimeSessionId === runtimeSessionId).pop() ?? null
@@ -290,15 +310,16 @@ export class EnrolledSessions {
 // #endregion session-enroll-revocation
 
 /** `binding` null: the door asks — the folder is resolved and the project named (`needs-grant`), never a session. */
-export function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+export function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown; agentPid?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   const attempt = () => enrollSessionOnce(binding, args, deps)
   return binding === null ? attempt() : deps.sessions.enrolling(binding.id, attempt)
 }
 
-async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown; rejoinOnly?: unknown; agentPid?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   const folder = await resolveAgentFolder(args.cwd, deps)
   if (!folder.ok) return { ok: false, code: folder.code, message: folder.message }
   const runtimeSessionId = typeof args.runtimeSessionId === 'string' && RUNTIME_SESSION.test(args.runtimeSessionId) ? args.runtimeSessionId : null
+  const agentPid = typeof args.agentPid === 'number' && Number.isInteger(args.agentPid) && args.agentPid > 1 && args.agentPid < 2 ** 31 ? args.agentPid : null
   const projectName = folder.projectName ?? (await deps.projectName(folder.projectId)) ?? 'this project'
   // #region session-rejoin — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // D2 (fabric-agent-adapter#53): a short-lived fabric-mcp started by the session hooks joins the session its coding
@@ -308,7 +329,15 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   if (args.rejoinOnly === true) {
     const refuse: EnrollAnswer = { ok: false, code: 'no-session', message: NO_SESSION_MESSAGE }
     if (binding === null || runtimeSessionId === null) return refuse
-    const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
+    let held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
+    // TR-1: no session has this runtime id, but the agent process the rejoin names holds one here — the agent's id
+    // changed under it (/clear). The same binding, the same project, the same process: the session takes the new id.
+    const byProcess = !held && agentPid !== null ? deps.sessions.ofAgentPid(binding.id, folder.projectId, agentPid) : null
+    if (byProcess && (await deps.stillLive(binding.id, byProcess.grantId))) {
+      deps.sessions.renameRuntime(byProcess.sessionId, runtimeSessionId)
+      ops.record({ op: 'hub.session.runtime-renamed', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: byProcess.sessionId }, ctx: { correlationId: ops.correlate() } })
+      held = byProcess
+    }
     if (!held || !(await deps.stillLive(binding.id, held.grantId))) return refuse
     const token = deps.sessions.rejoinBearer(held.sessionId, () =>
       deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id }).token)
@@ -357,7 +386,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   const sessionId = randomUUID()
   const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id })
   // Registered before the re-read: a revocation from now on ends it through its listener, one before it is seen below.
-  deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grant.id, projectId: folder.projectId, mintedAt: now, runtimeSessionId })
+  deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grant.id, projectId: folder.projectId, mintedAt: now, runtimeSessionId, agentPid })
   try {
     if (!(await deps.stillLive(binding.id, grant.id))) {
       deps.sessions.endSession(sessionId)

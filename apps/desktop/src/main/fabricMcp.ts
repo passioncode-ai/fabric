@@ -13,6 +13,7 @@
 // credentials (`CredentialStore.pending`), so a restarted fabric-mcp — or a second one of the same runner — polls the
 // request already on the operator's screen instead of asking again. A runner may hold several credentials (one per
 // binding); each is tried, and none is ever overwritten by another.
+import { readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import type { HubLocation } from './hub.ts'
 
@@ -42,6 +43,8 @@ export interface SessionLink {
   /** Leaves the session for good, telling Fabric first (the HTTP session's DELETE), then closes; bounded, never
    *  throws. Fabric ends an enrolled session whose agent left, so its claims do not outlive it (0.3.5 review i2 ER-4). */
   leave?(): Promise<void>
+  /** One lightweight round trip on the session (MCP ping): the agent's sign of life while it works (TR-4). */
+  ping?(): Promise<void>
   /** Set by the proxy: called once when the session ends (Fabric quit, the bearer revoked). */
   onclose?: () => void
 }
@@ -89,7 +92,19 @@ export interface ProxyDeps {
    * never the door, never a request to the operator, never a new session; otherwise stay not-enrolled.
    */
   rejoinOnly?: boolean
+  /** The coding agent's own process (TR-1): fabric-mcp's parent for the agent's own server; for a rejoin, the process
+   *  its runtime session id belongs to now. What survives a `/clear`, which gives the agent a new runtime id. */
+  agentPid?: number | null
+  /** The runtime session id the agent has NOW (Claude Code's session file of the agent's pid), read at each
+   *  enrollment; null when unknown, and then `runtimeSessionId` is sent (TR-1). */
+  currentRuntimeSessionId?: () => string | null
+  /** How often a connected session is signed with a ping (TR-4). Default SIGN_EVERY_MS. */
+  signEveryMs?: number
 }
+
+/** A connected fabric-mcp signs its session this often, so a working agent reads as live (TR-4): well inside the
+ *  10-minute silence rule and the 5-minute claim renewal, one ping per two minutes per agent. */
+export const SIGN_EVERY_MS = 2 * 60_000
 
 /** The runtime session ids fabric-mcp passes on: what Fabric's enrollment accepts (`sessionEnroll.ts`). */
 export const RUNTIME_SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
@@ -110,6 +125,54 @@ export function runtimeSessionIdOf(runner: string, argv: readonly string[], env:
   return runner === 'claude-code' ? (env.CLAUDE_CODE_SESSION_ID ?? null) : null
 }
 // #endregion fabric-mcp-runtime-session
+
+// #region claude-session-files — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/**
+ * Claude Code's own record of its running sessions (TR-1): `<config>/sessions/<pid>.json`, one per running claude
+ * process, whose `sessionId` is the session the process has NOW. `/clear` gives the session a new id and rewrites
+ * this file; the MCP servers it started keep the old id in their environment. Read here, bounded, only the `*.json`
+ * files (the `*.key` files beside them are never opened), and a record whose `pid` is not its file's name is not
+ * believed. Measured 2026-10-21 on Claude Code 2.1: 82 entries; each record carries `pid` and `sessionId`.
+ */
+export const CLAUDE_SESSION_FILE_MAX = 64 * 1024
+export const CLAUDE_SESSION_FILES_MAX = 512
+export function claudeSessionsDir(env: Readonly<Record<string, string | undefined>>, home: string): string {
+  return path.join(env.CLAUDE_CONFIG_DIR || path.join(home, '.claude'), 'sessions')
+}
+function readSessionRecord(file: string): { pid: unknown; sessionId: unknown } | null {
+  try {
+    if (statSync(file).size > CLAUDE_SESSION_FILE_MAX) return null
+    const v = JSON.parse(readFileSync(file, 'utf8')) as { pid?: unknown; sessionId?: unknown } | null
+    return v && typeof v === 'object' ? { pid: v.pid, sessionId: v.sessionId } : null
+  } catch {
+    // Absent, unreadable or not JSON: no record, which the caller reads as "not known".
+    return null
+  }
+}
+/** The session id the claude process `pid` has now, or null. */
+export function claudeSessionOfPid(dir: string, pid: number): string | null {
+  if (!Number.isInteger(pid) || pid < 2) return null
+  const r = readSessionRecord(path.join(dir, `${pid}.json`))
+  return r && r.pid === pid && typeof r.sessionId === 'string' && RUNTIME_SESSION_ID.test(r.sessionId) ? r.sessionId : null
+}
+/** The claude process whose current session is `runtimeSessionId`, or null. */
+export function claudePidOfSession(dir: string, runtimeSessionId: string): number | null {
+  let names: string[]
+  try {
+    names = readdirSync(dir)
+  } catch {
+    // No sessions folder: Claude Code keeps none here, so no process is known.
+    return null
+  }
+  for (const name of names.filter((n) => /^\d{2,10}\.json$/.test(n)).slice(0, CLAUDE_SESSION_FILES_MAX)) {
+    const pid = Number(name.slice(0, -'.json'.length))
+    if (claudeSessionOfPid(dir, pid) === runtimeSessionId) return pid
+  }
+  return null
+}
+/** A pid that can name an agent process (never 0, 1 or a negative). */
+export const agentPidOf = (pid: unknown): number | null => (typeof pid === 'number' && Number.isInteger(pid) && pid > 1 && pid < 2 ** 31 ? pid : null)
+// #endregion claude-session-files
 
 // #region fabric-mcp-failures — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
 /**
@@ -262,6 +325,10 @@ export class FabricMcpProxy {
   private waker: (() => void) | null = null
   /** Set by the stdio side: tell the agent its tool list changed. */
   onToolsChanged: () => void = () => {}
+  /** Set by the stdio side: the run loop ended for good in this state (a rejoin that found no session, TR-11). */
+  onFinal: (state: ProxyState) => void = () => {}
+  /** When the session was last signed (opened, called, pinged): the next ping is due SIGN_EVERY_MS after it. */
+  private signedAt = 0
 
   private deps: ProxyDeps
   constructor(deps: ProxyDeps) {
@@ -375,7 +442,9 @@ export class FabricMcpProxy {
     const link = this.session
     if (link) {
       try {
-        return await link.callTool(name, args)
+        const answer = await link.callTool(name, args)
+        this.signedAt = this.now()
+        return answer
       } catch (e) {
         // Logged to stderr (fabric-mcp has no ops sink) and said to the agent in the answer below.
         this.rememberRateLimit(e)
@@ -417,15 +486,63 @@ export class FabricMcpProxy {
     }
   }
 
+  // #region fabric-mcp-keepalive — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+  /**
+   * A held session, looked after on every pass of the run loop (every 2 s): a hub that is gone or restarted (another
+   * pid or origin in hub.json: a cheap file read, no network) drops the session at once, so it is enrolled again
+   * without waiting for the agent's next call (TR-5); and every SIGN_EVERY_MS one ping signs it (TR-4), so an agent
+   * that works without calling Fabric reads as live and its claims renew. A ping refused because the session is gone
+   * drops it like a call would; a ping that failed in the client keeps it. Nothing is logged for a sign that went
+   * through.
+   */
+  private async keepAlive(link: SessionLink): Promise<boolean> {
+    const hub = this.deps.locate()
+    const held = this.hubIdentity
+    if (!hub.ok || !held || hub.origin !== held.origin || hub.pid !== held.pid) {
+      this.dropSession(link, hub.ok ? 'Fabric restarted (hub.json names another process)' : `Fabric's hub is gone (${hub.reason})`)
+      return false
+    }
+    if (!link.ping || this.now() - this.signedAt < (this.deps.signEveryMs ?? SIGN_EVERY_MS)) return true
+    try {
+      await link.ping()
+      this.signedAt = this.now()
+      return true
+    } catch (e) {
+      this.rememberRateLimit(e)
+      const f = classifyFailure(e)
+      // A client-side failure (a timeout) keeps the session; the next pass tries again after the interval.
+      this.signedAt = this.now()
+      if (!f.drop) {
+        this.deps.log(`fabric-mcp: a sign of life failed in the client (${e instanceof Error ? e.message : String(e)}); the session is kept`)
+        return true
+      }
+      this.dropSession(link, e)
+      return false
+    }
+  }
+  // #endregion fabric-mcp-keepalive
+
   private async attempt(): Promise<ProxyState> {
-    if (this.session) return this.state
+    if (this.session && (await this.keepAlive(this.session))) return this.state
     const hub = this.deps.locate()
     if (!hub.ok) return this.set({ kind: hub.code, reason: hub.reason })
     this.hubIdentity = { origin: hub.origin, pid: hub.pid }
     const cwd = this.deps.cwd
     const store = this.deps.store
-    const runtime = this.deps.runtimeSessionId && RUNTIME_SESSION_ID.test(this.deps.runtimeSessionId) ? this.deps.runtimeSessionId : null
-    const enrollArgs: Record<string, unknown> = runtime ? { cwd, runtimeSessionId: runtime } : { cwd }
+    // TR-1: the id the agent has now (after a /clear) when it can be read, else the one it started with.
+    let now: string | null = null
+    if (!this.deps.rejoinOnly && this.deps.currentRuntimeSessionId) {
+      try {
+        now = this.deps.currentRuntimeSessionId()
+      } catch {
+        // An unreadable session file is "not known": the id the agent started with is sent instead.
+        now = null
+      }
+    }
+    const named = now ?? this.deps.runtimeSessionId
+    const runtime = named && RUNTIME_SESSION_ID.test(named) ? named : null
+    const agentPid = agentPidOf(this.deps.agentPid)
+    const enrollArgs: Record<string, unknown> = { cwd, ...(runtime ? { runtimeSessionId: runtime } : {}), ...(agentPid ? { agentPid } : {}) }
 
     // #region fabric-mcp-rejoin — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
     if (this.deps.rejoinOnly) {
@@ -435,7 +552,7 @@ export class FabricMcpProxy {
         const gone = this.moved(hub)
         if (gone) return gone
         // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
-        const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
+        const r = await this.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { cwd, runtimeSessionId: runtime, rejoinOnly: true, ...(agentPid ? { agentPid } : {}) })
         if (r.unauthorized) continue
         if (!r.isError) return this.open(hub.mcpUrl, r.value)
       }
@@ -610,6 +727,7 @@ export class FabricMcpProxy {
       this.wake()
     }
     this.session = link
+    this.signedAt = this.now()
     this.set({ kind: 'connected', projectName: String(s.projectName ?? ''), projectId: String(s.projectId ?? '') })
     this.onToolsChanged()
     return this.state
@@ -628,6 +746,12 @@ export class FabricMcpProxy {
     while (!stop.stopped && !this.closed) {
       const s = await this.connectOnce()
       if (stop.stopped || this.closed) return
+      // TR-11: a rejoin asks once. No live session of its runtime id is the answer, not a state to wait out: a hook
+      // that kept retrying held its worker to its deadline and spawned another fabric-mcp on the next turn.
+      if (this.deps.rejoinOnly && s.kind === 'not-enrolled') {
+        this.onFinal(s)
+        return
+      }
       const message = s.kind === 'no-project' ? s.message : undefined
       const key = `${s.kind}:${message ?? ''}`
       repeats = key === last ? repeats + 1 : 1
