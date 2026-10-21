@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dockerIsUnreachable, dockerSocketFrom, stackStartIsTransient, startWithRetry, waitForDocker } from './stackStartRetry'
+import { dockerIsUnreachable, dockerSocketFrom, recoveryStart, stackStartIsTransient, startWithRetry, waitForDocker } from './stackStartRetry'
 
 // The words measured on the operator's Mac, 2026-10-14.
 const STARTING = 'Command failed: supabase start -x realtime\nsupabase start is already running.\n\u001b[31msupabase_db_fabric container is not ready: starting\u001b[39m'
@@ -132,5 +132,30 @@ describe('the socket named by the real words of the docker CLI and the Supabase 
 describe('the bare Windows pipe form (0.3.7 i3 errors note)', () => {
   it('reads //./pipe/docker_engine without the npipe: prefix', () => {
     expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine: The system cannot find the file specified.')).toBe('\\\\.\\pipe\\docker_engine')
+  })
+})
+
+// 0.3.9 review ER-3: the runtime watch's try ran the launch's start, which repeats «supabase start is already running»
+// four times, 10 s apart, per try. A try while Fabric runs is one `supabase start`: «already running» means there is
+// nothing to start, and the watch's own backoff is the retry.
+describe('recoveryStart: one start per try of the runtime watch (ER-3)', () => {
+  it('«already running» ends the try at once, as nothing to start', async () => {
+    let n = 0
+    const r = await recoveryStart(async () => { n++; throw new Error(STARTING) }, { sleep })
+    expect(r).toBe('already-running')
+    expect(n).toBe(1)
+  })
+  it('a start that works says so; any other refusal is thrown with the stack\'s own words, never retried here', async () => {
+    expect(await recoveryStart(async () => {}, { sleep })).toBe('started')
+    let n = 0
+    await expect(recoveryStart(async () => { n++; throw new Error('supabase_db_fabric container is not ready: starting') }, { sleep })).rejects.toThrow(/not ready: starting/)
+    expect(n).toBe(1)
+  })
+  it('still waits for Docker that is not there yet, once', async () => {
+    let n = 0
+    let up = false
+    const r = await recoveryStart(async () => { n++; if (!up) throw new Error(NO_DOCKER) }, { sleep, pingDocker: async () => (up = true), dockerWait: { totalMs: 100, pollMs: 10 } })
+    expect(r).toBe('started')
+    expect(n).toBe(2)
   })
 })

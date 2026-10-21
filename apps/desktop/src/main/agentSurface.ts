@@ -447,7 +447,7 @@ export class AgentSurface {
    * hub's stable port, and a port that cannot be taken is a `HubPortUnavailable` — the caller says
    * why, rather than this moving somewhere an agent's stored origin does not point.
    */
-  async start(opts: { port?: number; adopt?: AdoptedListeners } = {}): Promise<void> {
+  async start(opts: { port?: number; adopt?: AdoptedListeners | (() => AdoptedListeners) } = {}): Promise<void> {
     if (this.http) return
     // V2 ER-3: after restart, valid bindings must not share the unknown-token lookup bucket.
     // This snapshot is only a budget hint; every request still authenticates against live state, so a warm-up
@@ -463,7 +463,11 @@ export class AgentSurface {
     // #region hub-standby-adopt — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
     // ST-3: the sockets the hub standby held while the stack started are taken over as they are, so the port is never
     // free for a moment and the hub keeps the hub.json the standby published.
+    // 0.3.9 review ER-2: given as a function, the handover runs HERE, after the prime above and in the same synchronous
+    // step that attaches this surface's handler, so the standby answers every request until the surface does: a request
+    // can never reach the sockets while neither handler is on them.
     if (opts.adopt) {
+      const adopted = typeof opts.adopt === 'function' ? opts.adopt() : opts.adopt
       const answer = (label: string) => (req: IncomingMessage, res: ServerResponse): void => {
         void this.handle(req, res).catch((e) => {
           ops.failed('agentSurface.agent-surface-the-request-handler-threw', e, { note: `agent surface (${label}): the request handler threw:` })
@@ -471,11 +475,11 @@ export class AgentSurface {
           else AgentSurface.refuse(res, 500, 'the surface failed to handle this request')
         })
       }
-      opts.adopt.server.on('request', answer('127.0.0.1'))
-      opts.adopt.server6?.on('request', answer('[::1]'))
-      this.http = opts.adopt.server
-      this.http6 = opts.adopt.server6
-      this.port = opts.adopt.port
+      adopted.server.on('request', answer('127.0.0.1'))
+      adopted.server6?.on('request', answer('[::1]'))
+      this.http = adopted.server
+      this.http6 = adopted.server6
+      this.port = adopted.port
       return
     }
     // #endregion hub-standby-adopt

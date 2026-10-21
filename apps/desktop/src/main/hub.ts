@@ -258,9 +258,13 @@ export function locateHub(root: string, deps: { isAlive?: (pid: number) => boole
 }
 // #endregion hub-locate
 
+/** The listening sockets the hub standby hands over (`hubStandby.ts#AdoptedListeners`). */
+type Listeners = { port: number; server: import('node:http').Server; server6: import('node:http').Server | null }
+
 /** What `startHub` needs of the surface: listen on a port (a refusal throws), and say where it listens. */
 export interface HubListener {
-  start(opts?: { port?: number; adopt?: { port: number; server: import('node:http').Server; server6: import('node:http').Server | null } }): Promise<void>
+  /** `adopt` as a function is called by the surface at the moment it attaches its handler (ER-2). */
+  start(opts?: { port?: number; adopt?: Listeners | (() => Listeners) }): Promise<void>
   readonly origin: string
 }
 
@@ -270,7 +274,15 @@ export interface OpenStandby {
   port: number
   doorToken: string
   hubFile: string
-  standby: { handOver(): { port: number; server: import('node:http').Server; server6: import('node:http').Server | null } }
+  standby: { handOver(): Listeners; stop(): Promise<void> }
+}
+
+/** Sockets taken from the standby that no surface answers on (a takeover that threw): closed, never left listening. */
+async function closeListeners(l: Listeners): Promise<void> {
+  await Promise.all([l.server, l.server6].filter((s): s is import('node:http').Server => s !== null).map((s) => new Promise<void>((r) => {
+    s.closeAllConnections?.()
+    s.close(() => r())
+  })))
 }
 
 /** `down` is said to sessions and agents (English, with the instruction); `downCode` and `downFact` let the
@@ -299,15 +311,28 @@ export async function startHub(opts: {
   let downCode: HubDownCode
   let downFact: string
   // #region hub-standby-takeover — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
-  if (opts.standby?.open && unclaimed.ok && opts.standby.port === unclaimed.port) {
-    try {
-      await opts.surface.start({ port: unclaimed.port, adopt: opts.standby.standby.handOver() })
-      ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: opts.surface.origin, hub_file: opts.standby.hubFile, from: 'standby' }, ctx: { correlationId: ops.correlate() } })
-      return { open: true, doorToken: opts.standby.doorToken, hubFile: opts.standby.hubFile }
-    } catch (e) {
-      // The handover itself cannot fail on a port; recorded, and the ordinary start below is tried as before.
-      ops.failed('hub.standby.takeover', e)
+  /** The standby was given and not taken over: its hub.json is withdrawn if the hub does not open (ER-5). */
+  let standbyReleased = false
+  if (opts.standby?.open) {
+    if (unclaimed.ok && opts.standby.port === unclaimed.port) {
+      const standby = opts.standby
+      let adopted: Listeners | null = null
+      try {
+        // The handover happens inside `start`, when the surface's handler goes on (ER-2).
+        await opts.surface.start({ port: unclaimed.port, adopt: () => (adopted = standby.standby.handOver()) })
+        if (!opts.surface.origin) throw new Error('the surface took the standby\'s sockets over but does not listen on them')
+        ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: opts.surface.origin, hub_file: standby.hubFile, from: 'standby' }, ctx: { correlationId: ops.correlate() } })
+        return { open: true, doorToken: standby.doorToken, hubFile: standby.hubFile }
+      } catch (e) {
+        // Recorded; the sockets nobody answers on are closed (ER-5), and the ordinary start below is tried on the port.
+        ops.failed('hub.standby.takeover', e)
+        const orphaned = adopted as Listeners | null
+        if (orphaned && !opts.surface.origin) await closeListeners(orphaned)
+      }
     }
+    // Not taken over: the standby stops, so its port is free for the ordinary start and nothing listens unanswered.
+    await opts.standby.standby.stop()
+    standbyReleased = true
   }
   // #endregion hub-standby-takeover
   try {
@@ -325,6 +350,11 @@ export async function startHub(opts: {
     // The observation only: the surface says "port N on HOST is …, so agents … . Close …" — keep the first clause.
     downFact = !unclaimed.ok ? unclaimed.fact : ((e as Error).message.split(/, so agents /)[0] ?? (e as Error).message)
     ops.failed('index.hub-not-listening', e, { reason: down })
+    // ER-5: the standby's hub.json named this live process on a port nobody answers now; agents must read `not-running`.
+    if (standbyReleased) {
+      const w = withdrawHub(opts.root)
+      if (!w.removed) ops.record({ op: 'hub.standby.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
+    }
   }
   try {
     if (!opts.surface.origin) await opts.surface.start()

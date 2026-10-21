@@ -90,6 +90,28 @@ test('once quitting, window-all-closed quits on macOS too; before that it does n
   assert.deepEqual(calls, ['quit'])
 })
 
+// 0.3.9 review ER-1: on Windows and Linux the startup wait window (or the splash) was the only window, and destroying it
+// as the start succeeded, or before the failure dialog, fired `window-all-closed`, which quit there. While the start is in
+// progress the event is ignored on every platform; once the main window is up, or once quitting, the old rule holds.
+test('ER-1: while the start is in progress, window-all-closed quits on no platform; after it, Windows and Linux quit', () => {
+  for (const platform of ['win32', 'linux', 'darwin']) {
+    const calls = []
+    let starting = true
+    const q = createQuitCoordinator({ app: { quit: () => calls.push('quit'), exit: () => {} }, ready: () => false, starting: () => starting, shutdown: async () => {}, setTimer: () => ({}) })
+    q.windowAllClosed(platform)
+    assert.deepEqual(calls, [], `${platform}: closing the wait window or the splash during the start quit Fabric`)
+    starting = false
+    q.windowAllClosed(platform)
+    assert.deepEqual(calls, platform === 'darwin' ? [] : ['quit'], `${platform}: the last window closing after the start`)
+  }
+  // A quit that has begun is finished whatever the start is doing.
+  const calls = []
+  const q = createQuitCoordinator({ app: { quit: () => calls.push('quit'), exit: () => {} }, ready: () => false, starting: () => true, shutdown: async () => {}, setTimer: () => ({}) })
+  q.beforeQuit({ preventDefault() {} })
+  q.windowAllClosed('linux')
+  assert.deepEqual(calls, ['quit'])
+})
+
 test('quitting stops every scheduler first, once, including one registered late', () => {
   const stopped = []
   const q = createQuitCoordinator({ app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}), setTimer: () => ({}) })

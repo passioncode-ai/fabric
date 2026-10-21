@@ -7,8 +7,10 @@
 import { useEffect, useState } from 'react'
 import type { StackHealthView } from '../../shared/types'
 import { freeDiskGb } from '../../shared/startupFailure'
+import { platformKey } from '../../shared/stackWatch'
 import { Banner } from './components'
 import { useLocale, useT } from './i18n'
+import type { StringKey } from './i18n/en'
 
 export function StackHealthNotice(): React.JSX.Element | null {
   const t = useT()
@@ -31,13 +33,21 @@ export function StackHealthNotice(): React.JSX.Element | null {
   if (!view) return null
   const free = view.freeDiskBytes === null ? null : freeDiskGb(view.freeDiskBytes, locale)
   if (view.stack === 'down') {
-    const cause = view.why === 'docker' ? 'stack.health.docker' : 'stack.health.database'
+    // Said as it is (0.3.9 review UX-2, UX-4, ER-3): a stack Fabric does not bring back is waited for, never promised;
+    // a try in flight is said as one, never as a countdown frozen at 0; each OS names its own Docker.
+    const cause: StringKey =
+      view.hold === 'external' ? 'stack.health.external'
+        : view.hold === 'stopped' ? 'stack.health.stopped'
+          : view.hold === 'running' ? 'stack.health.waitingContainers'
+            : view.why === 'docker' ? (platformKey('stack.health.docker', view.platform ?? 'darwin') as StringKey)
+              : 'stack.health.database'
     return (
       <Banner>
         <b>{t('stack.health.title')}</b>
         {view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
         <p>{t(cause)}</p>
-        {view.nextTryInS !== null && <p>{t('stack.health.nextTry', { seconds: view.nextTryInS })}</p>}
+        {view.trying && view.attempt !== null ? <p>{t('startup.wait.trying', { attempt: view.attempt })}</p>
+          : view.nextTryInS !== null && <p>{t('stack.health.nextTry', { seconds: view.nextTryInS })}</p>}
       </Banner>
     )
   }

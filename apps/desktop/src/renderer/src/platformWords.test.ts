@@ -20,3 +20,24 @@ describe('platform words', () => {
     })
   }
 })
+
+// 0.3.8 UX-1 and 0.3.9 review UX-4: Docker on Windows is Docker Desktop and on Linux Docker Engine; OrbStack exists only
+// on macOS. A string that names OrbStack has `.win32` and `.linux` variants that do not, or is listed here with why.
+const ORBSTACK_ANYWHERE: Record<string, string> = {
+  'diagnostics.exposure.orbstack': 'a heading of the OrbStack remedy, beside the Docker Desktop one: both are offered as options',
+  'startup.stack-start-timed-out.remedy': 'pre-0.3.9 remedy that names the engines as alternatives; per-OS keys are a board row (0.3.9 stability notes, i1)',
+  'startup.stack-would-not-start.remedy': 'pre-0.3.9 remedy that names the engines as alternatives; per-OS keys are a board row (0.3.9 stability notes, i1)',
+}
+
+describe('each platform names its own Docker', () => {
+  for (const [name, table] of [['en', en], ['ru', ru]] as const) {
+    it(`no ${name} string that names OrbStack is shown on Windows or Linux`, () => {
+      const t = table as Record<string, string>
+      const offenders = Object.entries(t)
+        .filter(([key, text]) => /OrbStack/.test(text) && !(key in ORBSTACK_ANYWHERE) && !/\.(win32|linux)$/.test(key))
+        .filter(([key]) => !(t[`${key}.win32`] && t[`${key}.linux`] && !/OrbStack/.test(t[`${key}.win32`] + t[`${key}.linux`])))
+        .map(([key]) => key)
+      expect(offenders).toEqual([])
+    })
+  }
+})

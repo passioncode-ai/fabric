@@ -8,6 +8,7 @@ import path from 'node:path'
 import { STACK_EXCLUDED_SERVICES } from '../src/main/stackServices.ts'
 
 const repo = path.resolve(import.meta.dirname, '../../..')
+const SRC = path.resolve(import.meta.dirname, '../src/main')
 
 test('the app excludes exactly the services the disposable test stack excludes', () => {
   const src = readFileSync(path.join(repo, 'scripts/test-stack.mjs'), 'utf8')
@@ -50,4 +51,20 @@ test('only the excluded containers that exist are removed; a docker that fails i
   const broken = await removeExcludedContainers('fabric', async () => { throw new Error('docker: not found') })
   assert.equal(broken.removed.length, 0)
   assert.match(broken.error, /docker: not found/)
+})
+
+// 0.3.9 review ER-3: whether the runtime watch's try starts the stack is decided from what Docker reports of its database
+// container: gone (as after `supabase stop`) is a stop to respect, running is a database still coming up.
+test('ER-3: the database container\'s state, as the watch reads it', async () => {
+  const { containerStateFrom, databaseContainer } = await import(path.join(SRC, 'stackServices.ts'))
+  assert.equal(containerStateFrom(''), 'absent')
+  assert.equal(containerStateFrom('running\n'), 'running')
+  assert.equal(containerStateFrom('restarting'), 'running')
+  assert.equal(containerStateFrom('paused'), 'running')
+  for (const st of ['exited', 'created', 'dead', 'removing']) assert.equal(containerStateFrom(st), 'stopped')
+  assert.equal(containerStateFrom('something new'), 'unknown')
+  const asked = []
+  assert.equal(await databaseContainer('fabric', async (args) => { asked.push(args); return 'exited\n' }), 'stopped')
+  assert.deepEqual(asked, [['ps', '-a', '--filter', 'name=^supabase_db_fabric$', '--format', '{{.State}}']])
+  await assert.rejects(databaseContainer('fabric', async () => { throw new Error('Cannot connect to the Docker daemon') }), /Docker daemon/)
 })

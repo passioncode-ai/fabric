@@ -3,9 +3,19 @@
 // tries, and the runtime watch's state machine (a record once per change of state, never once per tick).
 import { describe, expect, it } from 'vitest'
 import { classifyStartupFailure } from './startupFailure.ts'
+import { HUB_DB_DEADLINE_MS } from '../main/accessStore.ts'
+import { en } from '../renderer/src/i18n/en.ts'
+import { ru } from '../renderer/src/i18n/ru.ts'
 import {
   DISK_RECOVERED_BYTES,
   STACK_DOWN_AFTER,
+  STACK_DOWN_AFTER_SLOW,
+  STACK_READ_DEADLINE_MS,
+  STACK_WATCH_MS,
+  platformKey,
+  recoveryBegun,
+  recoveryEnded,
+  recoveryPlan,
   hubRefusalFor,
   initialStackWatch,
   observeStack,
@@ -171,6 +181,126 @@ describe('what the hub and the person are told', () => {
     expect(v.nextTryInS).toBe(10)
     const up = stackHealthView(initialStackWatch(0), 0)
     expect(up).toMatchObject({ stack: 'up', why: null, diskLow: false, diskLikelyCause: false, nextTryInS: null })
+  })
+})
+
+const lost = (opts?: { recovers?: boolean }) => {
+  let r = observeStack(initialStackWatch(0, opts), dbGone, 30_000)
+  r = observeStack(r.state, dbGone, 60_000)
+  return r.state
+}
+
+// 0.3.9 review UX-2: a try that ran past its due time (Docker hung: up to 90 s waiting for it, then a 240 s start) left
+// the next try in the past, so the notice read «Next try in 0 s», the hub's Retry-After fell to 5 s and the watch read
+// every second; an external stack was promised a recovery that never comes.
+describe('a try in flight, and a stack Fabric does not bring back (UX-2)', () => {
+  it('while a try runs: no countdown, the try is said, the watch reads at its normal pace, agents wait 30 s', () => {
+    const s = recoveryBegun(lost(), 70_000)
+    expect(recoveryDue(s, 1e9)).toBe(false)
+    for (const t of [70_000, 95_000, 400_000]) {
+      const v = stackHealthView(s, t)
+      expect(v.nextTryInS).toBeNull()
+      expect(v).toMatchObject({ trying: true, attempt: 1 })
+      expect(watchDelayMs(s, t)).toBe(STACK_WATCH_MS)
+      expect(hubRefusalFor(s, t)!.retryAfterS).toBe(30)
+    }
+    expect(hubRefusalFor(s, 400_000)!.reason).toMatch(/trying to bring it back now/)
+  })
+
+  it('the next try is due a backoff after the try ENDS, not after it began', () => {
+    const begun = recoveryBegun(lost(), 70_000)
+    const ended = recoveryEnded(begun, 400_000, { tried: true })
+    expect(ended).toMatchObject({ trying: false, recoveries: 1, nextRecoveryAt: 420_000 })
+    expect(stackHealthView(ended, 400_000)).toMatchObject({ trying: false, nextTryInS: 20 })
+    expect(recoveryTried(lost(), 70_000).nextRecoveryAt).toBe(90_000)
+  })
+
+  it('an external stack: no try is ever due, no countdown, and nobody is told Fabric brings it back', () => {
+    const s = lost({ recovers: false })
+    expect(s.hold).toBe('external')
+    expect(recoveryDue(s, 1e9)).toBe(false)
+    expect(watchDelayMs(s, 60_000)).toBe(STACK_WATCH_MS)
+    expect(stackHealthView(s, 60_000)).toMatchObject({ nextTryInS: null, hold: 'external', trying: false })
+    const refusal = hubRefusalFor(s, 60_000)!
+    expect(refusal.reason).not.toMatch(/bringing it back/)
+    expect(refusal.reason).toMatch(/does not run this database/)
+    expect(refusal.retryAfterS).toBe(30)
+  })
+})
+
+// 0.3.9 review ER-3: the watch started a stack the operator had stopped (`supabase stop`), and ran `supabase start`
+// against containers that were running all along. The decision is made from what Docker reports of the containers.
+describe('whether a try starts the stack (ER-3)', () => {
+  it('starts only containers that exist and are not running; gone is a stop, running is a wait', () => {
+    expect(recoveryPlan('stopped')).toBe('start')
+    expect(recoveryPlan('unknown')).toBe('start')
+    expect(recoveryPlan('absent')).toBe('stopped')
+    expect(recoveryPlan('running')).toBe('running')
+  })
+
+  it('a held try counts no attempt, re-checks at the next reading, and says why to the hub and the person', () => {
+    const held = recoveryEnded(recoveryBegun(lost(), 70_000), 71_000, { held: 'stopped' })
+    expect(held).toMatchObject({ hold: 'stopped', recoveries: 0, trying: false, nextRecoveryAt: 71_000 + STACK_WATCH_MS })
+    expect(stackHealthView(held, 71_000)).toMatchObject({ hold: 'stopped', nextTryInS: null })
+    expect(hubRefusalFor(held, 71_000)!.reason).toMatch(/was stopped/)
+    expect(hubRefusalFor(held, 71_000)!.reason).not.toMatch(/bringing it back/)
+    const waiting = recoveryEnded(recoveryBegun(lost(), 70_000), 71_000, { held: 'running' })
+    expect(hubRefusalFor(waiting, 71_000)!.reason).toMatch(/containers are running/)
+    // A real try after a hold clears it.
+    const tried = recoveryEnded(recoveryBegun(held, 101_000), 102_000, { tried: true })
+    expect(tried).toMatchObject({ hold: null, recoveries: 1 })
+  })
+})
+
+// 0.3.9 review ER-4: the watch's read gave up at 3 s while the hub's own database deadline is 5 s, and the audit measured
+// 5 to 9 s answers here, so a slow but working database put every agent call into refusal.
+describe('a slow database is not a lost one (ER-4)', () => {
+  it('the watch waits for the database at least as long as the hub does', () => {
+    expect(STACK_READ_DEADLINE_MS).toBeGreaterThanOrEqual(HUB_DB_DEADLINE_MS)
+  })
+  it('slow answers need more of them in a row than failures do, and one answer resets the count', () => {
+    const slow = { database: 'slow' as const, docker: true, freeDiskBytes: 50e9 }
+    expect(STACK_DOWN_AFTER_SLOW).toBeGreaterThan(STACK_DOWN_AFTER)
+    let r = observeStack(initialStackWatch(0), slow, 30_000)
+    r = observeStack(r.state, slow, 60_000)
+    expect(r.state.stack).toBe('up')
+    r = observeStack(r.state, ok, 90_000)
+    r = observeStack(r.state, slow, 120_000)
+    r = observeStack(r.state, slow, 150_000)
+    expect(r.state.stack).toBe('up')
+    r = observeStack(r.state, slow, 180_000)
+    expect(r.events[0]).toMatchObject({ kind: 'stack-lost', why: 'database' })
+    // A refused connection among them is a failure: two of those in a row are a loss, as before.
+    let h = observeStack(initialStackWatch(0), slow, 30_000)
+    h = observeStack(h.state, dbGone, 60_000)
+    expect(h.state.stack).toBe('down')
+  })
+})
+
+// 0.3.9 review UX-4: the wait window and the notice named OrbStack on Windows and Linux, as 0.3.8 UX-1 had fixed for
+// the disk line. Each OS names its own Docker, in both languages.
+describe('each platform names its own Docker (UX-4)', () => {
+  it('picks the .win32 and .linux keys, and the macOS one elsewhere', () => {
+    expect(platformKey('stack.health.docker', 'win32')).toBe('stack.health.docker.win32')
+    expect(platformKey('stack.health.docker', 'linux')).toBe('stack.health.docker.linux')
+    expect(platformKey('stack.health.docker', 'darwin')).toBe('stack.health.docker')
+  })
+  for (const [name, table] of [['en', en], ['ru', ru]] as const) {
+    it(`${name}: Windows says Docker Desktop, Linux Docker Engine, and neither says OrbStack`, () => {
+      const t = table as Record<string, string>
+      for (const key of ['startup.wait.docker', 'stack.health.docker']) {
+        expect(t[key]).toMatch(/OrbStack/)
+        expect(t[`${key}.win32`]).toMatch(/Docker Desktop/)
+        expect(t[`${key}.linux`]).toMatch(/Docker Engine/)
+        expect(t[`${key}.win32`]).not.toMatch(/OrbStack/)
+        expect(t[`${key}.linux`]).not.toMatch(/OrbStack/)
+      }
+      for (const key of ['startup.wait.docker', 'stack.health.docker', 'stack.health.external', 'stack.health.stopped', 'stack.health.waitingContainers'].flatMap((k) => [k, `${k}.win32`, `${k}.linux`]))
+        if (t[key] !== undefined) expect(t[key]).not.toMatch(/\u2014/)
+    })
+  }
+  it('the view carries the platform the notice speaks for', () => {
+    expect(stackHealthView(lost(), 60_000, 'linux').platform).toBe('linux')
   })
 })
 // #endregion stack-watch

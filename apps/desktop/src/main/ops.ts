@@ -3,7 +3,7 @@
 // A FILE, NOT A TABLE, and the reason decides it: the failures that matter most
 // are the ones where the database is unreachable. A monitor that needs Postgres
 // to record that Postgres is down records nothing on the night it is needed.
-// JSONL under `userData/logs`, one file, capped by line count, newest kept.
+// JSONL under `userData/logs`: the current file and rotated segments, bounded by bytes (see `ops-retention` below).
 //
 // ELECTRON-FREE for the same reason `localState.ts` is: the directory arrives as
 // an argument, so a probe can fill it, corrupt it and take away its permissions.
@@ -31,7 +31,12 @@ const DAY_MS = 24 * 3_600_000
 const DEFAULT_SEGMENT_BYTES = 8 * 1024 * 1024
 /** The whole log, every segment included, never passes this: a hard ceiling, because a full disk is ST-1's outage. */
 const DEFAULT_BUDGET_BYTES = 96 * 1024 * 1024
-/** The history the budget is sized for: a week. */
+/**
+ * The history the budget is sized for: a week. Not a guarantee: the byte budget wins. Closed segments keep at most
+ * `budget - segment` (88 MiB by default), so a full week is kept while the log writes under about 13 MB a day (about
+ * 550 KB an hour); the rate measured after sampling is about 190 KB an hour. A cut inside the week writes
+ * `ops.retention-short`, so a shorter history is a fact in the log (0.3.9 review DA-2, DO-7).
+ */
 const DEFAULT_RETAIN_MS = 7 * DAY_MS
 /** Older segments go even under the budget. */
 const DEFAULT_MAX_AGE_MS = 30 * DAY_MS
@@ -43,11 +48,12 @@ const SEGMENT = /^operations\.(\d+)\.jsonl$/
 
 /**
  * Which records are high-frequency polling successes (59 % of the log in ST-4: `ipc.feed:replay`,
- * `ipc.terminal:list`, `ipc.comms:heads`): a successful, fast, informational IPC call. A failure, a warning, a slow
- * call and every state change are never sampled.
+ * `ipc.terminal:list`, `ipc.comms:heads`): a successful, fast, informational IPC call. And fabric-mcp's keep-alive
+ * `mcp.ping`, one per connected agent every 2 minutes (0.3.9 review DA-2: at 40 agents about 70 % of the bytes, which
+ * cut the week to about 6 days). A failure, a warning, a slow call and every state change are never sampled.
  */
 export function sampledByDefault(input: { op: string; outcome: OpsOutcome; level?: OpsLevel; ms?: number }): boolean {
-  return input.op.startsWith('ipc.') && input.outcome === 'ok' && (input.level === undefined || input.level === 'info') && (input.ms ?? 0) < SLOW_MS
+  return (input.op.startsWith('ipc.') || input.op === 'mcp.ping') && input.outcome === 'ok' && (input.level === undefined || input.level === 'info') && (input.ms ?? 0) < SLOW_MS
 }
 // #endregion ops-retention
 
