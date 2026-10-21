@@ -18,12 +18,14 @@ const { createOps } = await import(path.join(SRC, 'ops.ts'))
 const { useOps } = await import(path.join(SRC, 'opsSink.ts'))
 const { createStackWatch } = await import(path.join(SRC, 'stackWatch.ts'))
 
-function rig({ external = false } = {}) {
+function rig({ external = false, containers = null, readDeadlineMs } = {}) {
   const ops = createOps({ dir: mkdtempSync(path.join(tmpdir(), 'fabric-stack-watch-')) })
   useOps(ops)
-  const world = { database: true, docker: true, free: 50e9, t: 1_000_000, recovers: 0, recovering: null, changes: [] }
+  const world = { database: true, docker: true, free: 50e9, t: 1_000_000, recovers: 0, recovering: null, changes: [], containers }
   const watch = createStackWatch({
-    readDatabase: async () => world.database,
+    readDatabase: async () => (world.database === 'hang' ? new Promise(() => {}) : world.database),
+    ...(containers ? { containers: async () => world.containers } : {}),
+    ...(readDeadlineMs ? { readDeadlineMs } : {}),
     pingDocker: external ? null : async () => world.docker,
     freeDisk: () => world.free,
     recover: external ? null : async () => {
@@ -120,5 +122,93 @@ test('ST-2: an external stack is watched, refused while down, and never started 
   assert.equal(records('stack.lost')[0].detail.why, 'database')
   assert.equal(world.recovers, 0)
   assert.equal(watch.refusal()?.code, 'stack-unavailable')
+})
+const settle = () => new Promise((r) => setImmediate(r))
+
+// 0.3.9 review UX-2: a try that ran past its due time (Docker hung) left the next try in the past, so every view read
+// «next try in 0 s», Retry-After fell to 5 s and the watch read every second until the try ended.
+test('UX-2: while a try runs, the view says so (no countdown at 0) and agents wait 30 s; the next is due after it ends', async () => {
+  const { tick, world, watch } = rig()
+  let release
+  world.recovering = new Promise((r) => { release = r })
+  world.database = false
+  await tick()
+  await tick()
+  await tick(10_000)
+  assert.equal(world.recovers, 1)
+  for (let i = 0; i < 20; i++) {
+    await tick(15_000)
+    const v = watch.view()
+    assert.equal(v.trying, true)
+    assert.equal(v.attempt, 1)
+    assert.equal(v.nextTryInS, null, `the notice counts down to a try that is running (${v.nextTryInS} s)`)
+    assert.equal(watch.refusal().retryAfterS, 30)
+  }
+  assert.ok(world.changes.every((c) => !(c.view.stack === 'down' && c.view.nextTryInS === 0)), 'a view said next try in 0 s')
+  release()
+  await settle()
+  await settle()
+  const v = watch.view()
+  assert.equal(v.trying, false)
+  assert.equal(v.nextTryInS, 20, 'the next try waits the backoff from the end of the last one')
+  assert.equal(world.changes.at(-1).view.trying, false, 'the end of the try is published')
+})
+
+test('UX-2: an external stack is said as waited for, never as being brought back', async () => {
+  const { tick, world, watch } = rig({ external: true })
+  world.database = false
+  for (let i = 0; i < 4; i++) await tick()
+  assert.equal(watch.view().hold, 'external')
+  assert.equal(watch.view().nextTryInS, null)
+  assert.doesNotMatch(watch.refusal().reason, /bringing it back/)
+  assert.equal(watch.refusal().retryAfterS, 30)
+})
+
+// 0.3.9 review ER-3: the watch started a stack the operator stopped (`supabase stop`), and ran `supabase start` against
+// containers that were running all along; and it recorded no reason for a try.
+test('ER-3: containers gone (a deliberate stop) are not started again, and that is recorded once', async () => {
+  const { tick, world, watch, records } = rig({ containers: 'absent' })
+  world.database = false
+  for (let i = 0; i < 20; i++) { await tick(15_000); await settle() }
+  assert.equal(world.recovers, 0, 'Fabric started a stack that was stopped on purpose')
+  assert.equal(watch.view().hold, 'stopped')
+  const held = records('stack.recover.held')
+  assert.equal(held.length, 1)
+  assert.equal(held[0].detail.hold, 'stopped')
+  assert.equal(held[0].detail.containers, 'absent')
+  // Started again by the person: the stack is back and the hold is gone.
+  world.database = true
+  await tick()
+  assert.equal(watch.view().stack, 'up')
+  assert.equal(watch.view().hold, null)
+})
+
+test('ER-3: running containers are waited for, not started; stopped ones are started, with why', async () => {
+  const run = rig({ containers: 'running' })
+  run.world.database = false
+  for (let i = 0; i < 10; i++) { await run.tick(15_000); await settle() }
+  assert.equal(run.world.recovers, 0, '`supabase start` ran against containers that were running')
+  assert.equal(run.watch.view().hold, 'running')
+  // The containers exit: now a start is the remedy.
+  run.world.containers = 'stopped'
+  for (let i = 0; i < 4 && run.world.recovers === 0; i++) { await run.tick(15_000); await settle() }
+  assert.equal(run.world.recovers, 1)
+  const tried = run.records('stack.recover')
+  assert.equal(tried.length, 1)
+  assert.equal(tried[0].detail.containers, 'stopped')
+  assert.equal(tried[0].detail.down, 'database')
+  assert.match(tried[0].detail.because, /not running/)
+})
+
+// 0.3.9 review ER-4: a slow but working database (answers after the read deadline) is not a lost stack at once.
+test('ER-4: reads that only run out of time take three in a row to count as lost; the hub keeps answering until then', async () => {
+  const { tick, world, watch, records } = rig({ readDeadlineMs: 20 })
+  world.database = 'hang'
+  await tick()
+  await tick()
+  assert.equal(records('stack.lost').length, 0, 'two slow reads put the hub into refusal')
+  assert.equal(watch.refusal(), null)
+  await tick()
+  assert.equal(records('stack.lost').length, 1)
 })
 // #endregion stack-watch

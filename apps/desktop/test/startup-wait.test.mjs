@@ -19,7 +19,7 @@ test('ST-3: a start that waiting heals waits and tries again; only the rest reac
   const caught = between('async function startOrExplain', 'async function explainAndQuit')
   const heal = caught.indexOf('startupHeals(failure)')
   const wait = caught.indexOf('waitAndRetryStart(failure)')
-  const explain = caught.indexOf('void explainAndQuit(e)')
+  const explain = caught.indexOf('explainAndQuit(e)')
   assert.ok(heal > 0 && wait > heal && explain > wait, 'the heal test must come before the dialog')
   assert.match(caught, /if \(!pastRetryPoint && !process\.env\.SMOKE && startupHeals\(failure\)\) \{\s*\n\s*waitAndRetryStart\(failure\)\s*\n\s*return\s*\n\s*\}/)
 })
@@ -38,15 +38,39 @@ test('ST-3: the hub standby opens before the stack starts and is taken over by t
 })
 
 test('ST-2: the runtime stack watch starts once the app has started, and puts the hub into the refusal mode', () => {
-  assert.match(src, /registerIpc\(meta\)\s*\n\s*startupWaitDone\('started'\)\s*\n\s*if \(!process\.env\.SMOKE\) startStackWatch\(\)/)
+  assert.match(src, /registerIpc\(meta\)\s*\n\s*if \(!process\.env\.SMOKE\) startStackWatch\(\)/)
   const watch = between('function startStackWatch', 'quit.onQuit(() => stackWatch?.stop())')
   assert.match(watch, /surface\?\.setUnavailable\(refusal\)/)
-  assert.match(watch, /recover: local \? \(\) => startStack\(\) : null/)
+  assert.match(watch, /recover: local \? \(\) => recoverStack\(\) : null/)
+  assert.match(watch, /containers: local \? \(\) => stackDatabaseContainer\(\) : null/)
 })
 
 test('ST-4: startup-failure.log is appended, bounded, never overwritten', () => {
   const explain = between('async function explainAndQuit', "app.on('before-quit'")
   assert.match(explain, /appendBounded\(logPath,/)
   assert.doesNotMatch(explain, /writeFileSync\(\s*\n?\s*logPath/)
+})
+test('ER-1: the wait window and the splash are scaffolding: their going never quits a start on Windows or Linux', () => {
+  // The coordinator ignores window-all-closed until the main window is up (quit.test.mjs drives the rule itself).
+  assert.match(src, /createQuitCoordinator\(\{[\s\S]*?starting: \(\) => !windowReady,/)
+  // The main window exists before the wait window goes; the failure dialog's window exists before it goes too.
+  const run = between('async function startOrExplain', 'async function explainAndQuit')
+  assert.ok(run.indexOf('createWindow()') > 0 && run.indexOf("startupWaitDone('started')") > run.indexOf('createWindow()'), 'the wait window is destroyed before the main window exists')
+  assert.ok(run.indexOf('explainAndQuit(e)') > 0 && run.indexOf("startupWaitDone('failed')") > run.indexOf('explainAndQuit(e)'), 'the wait window is destroyed before the failure dialog has its window')
+  // A person who closes the wait window or the splash on Windows or Linux quits, as closing Fabric's last window does there.
+  assert.match(between('function showStartupWait', 'function waitAndRetryStart'), /quitWhenPersonCloses\(win\)/)
+  assert.match(between('async function resolveEnvStartingStackIfNeeded', 'async function bootstrap()'), /if \(splash\) quitWhenPersonCloses\(splash\)/)
+  const helper = between('function quitWhenPersonCloses', '\n}\n')
+  assert.match(helper, /win\.on\('close', \(\) => \{ if \(process\.platform !== 'darwin' && !quit\.quitting\) app\.quit\(\) \}\)/)
+})
+test('UX-4, UX-5: the wait window names this OS\'s Docker, and fits its text', () => {
+  const text = between('function startupWaitText', 'function showStartupWait')
+  assert.match(text, /platformKey\('startup\.wait\.docker', process\.platform\)/)
+  const show = between('function showStartupWait', 'function quitWhenPersonCloses')
+  assert.doesNotMatch(show, /height: 240, resizable: false/)
+  assert.match(show, /useContentSize: true, resizable: true/)
+  assert.match(show, /did-finish-load', \(\) => fitStartupWait\(win\)/)
+  assert.match(src, /const STARTUP_WAIT_HEIGHT = (\d+)/)
+  assert.ok(Number(/const STARTUP_WAIT_HEIGHT = (\d+)/.exec(src)[1]) >= 330, 'the first height cuts the longest measured page (330 px)')
 })
 // #endregion startup-wait

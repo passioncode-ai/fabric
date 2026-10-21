@@ -11,7 +11,7 @@ import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
+import { fixPath, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
@@ -73,7 +73,7 @@ import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, diskLowLine, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
 import { dockerIsUnreachable } from '../shared/stackStartRetry.ts'
-import { retryAfterSeconds, stackBackoffMs, startupHeals, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
+import { platformKey, retryAfterSeconds, stackBackoffMs, startupHeals, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
 import { createStackWatch, type StackWatch } from './stackWatch.ts'
 import { closeHubStandby, openHubStandby, type StandbyOpen } from './hubStandby.ts'
 import { appendBounded } from './boundedLog.ts'
@@ -534,6 +534,9 @@ for (const arg of process.argv.slice(1)) if (isFabricLink(arg)) acceptLink(arg)
 const quit = createQuitCoordinator({
   app,
   ready: () => !!ptys && !!stopRuntime,
+  // 0.3.9 review ER-1: until the main window is up, the splash, the wait window and the failure dialog's window are
+  // the start's own; their going is not the person closing Fabric's last window (Windows and Linux quit on that).
+  starting: () => !windowReady,
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
@@ -707,6 +710,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
     // AFTER the block ended, so its text was not late, it was never displayed.
     // A four-minute start showed a person a bare rectangle.
     const splash = process.env.SMOKE || BACKGROUND_LAUNCH || startupWaitWindow ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
+    if (splash) quitWhenPersonCloses(splash)
     const startedAt = Date.now()
     let lastLine: string | null = null
     // The window is only worth updating once it can render — before
@@ -5183,7 +5187,8 @@ function startupWaitText(): Record<string, string> {
   const low = diskLowLine(w.failure, { freeDiskBytes: free, locale })
   return {
     title: say('startup.wait.title'),
-    cause: say(waitsForDocker(w.failure) ? 'startup.wait.docker' : 'startup.wait.database'),
+    // Each OS names its own Docker (0.3.9 review UX-4, as 0.3.8 UX-1 did for the disk line).
+    cause: say(waitsForDocker(w.failure) ? (platformKey('startup.wait.docker', process.platform) as StringKey) : 'startup.wait.database'),
     disk: low ? say(low.key as StringKey, { free: low.free }) : '',
     next: w.timer ? say('startup.wait.next', { seconds, attempt: w.attempt + 1 }) : say('startup.wait.trying', { attempt: w.attempt + 1 }),
     agents: say('startup.wait.agents'),
@@ -5202,9 +5207,14 @@ function showStartupWait(): void {
   const esc = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
   const page = `<!doctype html><meta charset="utf-8"><title>${esc(t.title ?? '')}</title><body style="margin:0;padding:20px 24px;background:#0c0e10;color:#e6e9ec;font:13px -apple-system,sans-serif;line-height:1.45">` +
     ['title', 'cause', 'disk', 'next', 'agents', 'log'].map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
-  const win = new BrowserWindow({ width: 460, height: 240, resizable: false, minimizable: true, maximizable: false, fullscreenable: false, title: t.title, show: true, backgroundColor: WINDOW_CHROME.backgroundColor, webPreferences: { sandbox: true, contextIsolation: true } })
+  // Sized to its text (0.3.9 review UX-5): the fixed 460 × 240 cut the Russian text, and with the low-disk line the
+  // next-try line was the last one seen. The content area starts at the longest measured case (Russian with the disk
+  // line, 330 px at 460 px wide) and then follows the page's own height; the person may resize it.
+  const win = new BrowserWindow({ width: STARTUP_WAIT_WIDTH, height: STARTUP_WAIT_HEIGHT, useContentSize: true, resizable: true, minWidth: 360, minHeight: 160, minimizable: true, maximizable: false, fullscreenable: false, title: t.title, show: true, backgroundColor: WINDOW_CHROME.backgroundColor, webPreferences: { sandbox: true, contextIsolation: true } })
   startupWaitWindow = win
+  quitWhenPersonCloses(win)
   win.on('closed', () => { if (startupWaitWindow === win) startupWaitWindow = null })
+  win.webContents.once('did-finish-load', () => fitStartupWait(win))
   void win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
   startupWaitTicker ??= setInterval(() => {
     const ww = startupWaitWindow
@@ -5212,10 +5222,41 @@ function showStartupWait(): void {
     const text = startupWaitText()
     void ww.webContents
       .executeJavaScript(`for (const [k, v] of Object.entries(${JSON.stringify(text)})) { const p = document.getElementById(k); if (p) p.textContent = v }`)
+      .then(() => fitStartupWait(ww))
       .catch(() => {
         /* the window went away mid-update; its 'closed' handler is the authority */
       })
   }, 1_000)
+}
+
+const STARTUP_WAIT_WIDTH = 460
+/** The longest measured page (Russian with the low-disk line: 330 px at 460 px wide), with room to spare. */
+const STARTUP_WAIT_HEIGHT = 360
+const STARTUP_WAIT_MAX_HEIGHT = 640
+
+/** The wait window's content area follows its page's height, so no line is below the edge (UX-5). */
+function fitStartupWait(win: BrowserWindow): void {
+  if (win.isDestroyed()) return
+  void win.webContents
+    .executeJavaScript('Math.ceil(document.body.scrollHeight)')
+    .then((h: unknown) => {
+      if (win.isDestroyed() || typeof h !== 'number' || !Number.isFinite(h)) return
+      const [width, height] = win.getContentSize()
+      const want = Math.max(160, Math.min(STARTUP_WAIT_MAX_HEIGHT, h))
+      if (Math.abs(want - height) > 4) win.setContentSize(width, want)
+    })
+    .catch(() => {
+      /* the window went away mid-measure; its 'closed' handler is the authority */
+    })
+}
+
+/**
+ * A window of the start (the splash, the wait window) closed by the person: on Windows and Linux that is closing
+ * Fabric's only window, which quits there, as it did before 0.3.9. `destroy()` (the start ending the window itself)
+ * emits no 'close', so only the person's act reaches this; `window-all-closed` is ignored while the start runs (ER-1).
+ */
+function quitWhenPersonCloses(win: BrowserWindow): void {
+  win.on('close', () => { if (process.platform !== 'darwin' && !quit.quitting) app.quit() })
 }
 
 /** A start that waiting heals failed: record it, show the wait, and try again after the backoff. */
@@ -5282,7 +5323,10 @@ function startStackWatch(): void {
     // The default socket, then OrbStack's own: an OrbStack-only Mac may have no /var/run/docker.sock.
     pingDocker: local ? async () => (await pingDocker(null)) || (process.platform === 'darwin' && (await pingDocker(path.join(homedir(), '.orbstack', 'run', 'docker.sock')))) : null,
     freeDisk: freeDiskNow,
-    recover: local ? () => startStack() : null,
+    // One `supabase start` per try, and none when Docker says the containers are gone (a deliberate stop) or running
+    // (a database still coming up): 0.3.9 review ER-3.
+    recover: local ? () => recoverStack() : null,
+    containers: local ? () => stackDatabaseContainer() : null,
     onChange: (view, refusal) => {
       stackHealthNow = view
       surface?.setUnavailable(refusal)
@@ -5305,7 +5349,6 @@ async function startOrExplain(): Promise<void> {
     startupBroken = null
     const meta = await bootstrap()
     registerIpc(meta)
-    startupWaitDone('started')
     if (!process.env.SMOKE) startStackWatch()
 
     if (process.env.SMOKE) {
@@ -5343,6 +5386,8 @@ async function startOrExplain(): Promise<void> {
     linksStartupDone()
     // A link that arrived during a background launch is a person's act: it opens the window as activation does.
     if (!BACKGROUND_LAUNCH || activatedDuringStartup || pendingLinks.size > 0) createWindow()
+    // After the main window exists (ER-1): the wait window is never the last window to go while the start hands over.
+    startupWaitDone('started')
   } catch (e) {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log
@@ -5358,9 +5403,11 @@ async function startOrExplain(): Promise<void> {
       waitAndRetryStart(failure)
       return
     }
-    startupWaitDone('failed')
     startupBroken = failure
-    void explainAndQuit(e)
+    // The dialog's window is created before its first await, so it exists before the wait window goes (ER-1).
+    const explained = explainAndQuit(e)
+    startupWaitDone('failed')
+    void explained
   }
 }
 

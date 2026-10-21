@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 
-const { createOps } = await import(path.resolve(import.meta.dirname, '../src/main/ops.ts'))
+const { createOps, sampledByDefault } = await import(path.resolve(import.meta.dirname, '../src/main/ops.ts'))
 const { appendBounded } = await import(path.resolve(import.meta.dirname, '../src/main/boundedLog.ts'))
 
 const HOUR = 3_600_000
@@ -103,5 +103,36 @@ test('ST-4: startup-failure.log appends, bounded, and keeps the newest', () => {
   // A file it cannot write does not throw: it runs on the way to a dialog.
   writeFileSync(path.join(dir, 'blocker'), '')
   assert.doesNotThrow(() => appendBounded(path.join(dir, 'blocker', 'nested.log'), 'x\n', { maxBytes: 100 }))
+})
+// 0.3.9 review DA-2: every connected fabric-mcp pings the hub every 2 minutes and each ping was a ~375-byte line, so at
+// the 40-odd agents this machine runs the pings were about 70 % of the log's bytes and the 96 MB budget cut the week at
+// about 6 days. A successful fast `mcp.ping` is counted like an `ipc.*` read; a failed or slow ping is still written.
+test('DA-2: forty agents pinging every 2 minutes for a week fit the default budget, and the week is kept', () => {
+  assert.equal(sampledByDefault({ op: 'mcp.ping', outcome: 'ok', level: 'info', ms: 3 }), true)
+  assert.equal(sampledByDefault({ op: 'mcp.ping', outcome: 'unknown', level: 'warn', ms: 3 }), false)
+  assert.equal(sampledByDefault({ op: 'mcp.ping', outcome: 'ok', level: 'info', ms: 4_000 }), false)
+  assert.equal(sampledByDefault({ op: 'mcp.initialize', outcome: 'ok', level: 'info', ms: 3 }), false, 'a session joining is a fact, never sampled')
+  const dir = fresh()
+  let t = Date.parse('2026-10-01T00:00:00Z')
+  const ops = createOps({ dir, now: () => new Date(t) })
+  const agents = 40
+  const ping = (i) => ({ op: 'mcp.ping', outcome: 'ok', level: 'info', ms: 2, ctx: { correlationId: 'c0f1e2d3-a4b5-4c6d-8e7f-90a1b2c3d4e5', estateId: 'e0f1e2d3-a4b5-4c6d-8e7f-90a1b2c3d4e5', projectId: 'p0f1e2d3-a4b5-4c6d-8e7f-90a1b2c3d4e5', sessionId: `s${i}f1e2d3-a4b5-4c6d-8e7f-90a1b2c3d4e5` }, detail: { attempt_id: 'a0f1e2d3-a4b5-4c6d-8e7f-90a1b2c3d4e5', trace_outcome: 'returned', status: 200, rpc_id: 1234 } })
+  // Every 2 minutes for 7 days: each agent's ping, and the rest of the log at the rate 0.3.9 still writes (about
+  // 187 KB an hour, measured 2026-10-21, so about 6.2 KB per 2 minutes; written here as two lines of that size together,
+  // the same bytes in fewer writes).
+  for (let step = 0; step < 7 * 24 * 30; step++) {
+    for (let a = 0; a < agents; a++) ops.record(ping(a))
+    for (let k = 0; k < 2; k++) ops.record({ op: 'tool.fabric_heartbeat', outcome: 'ok', level: 'info', ms: 40, ctx, detail: { pad: 'p'.repeat(3_050) } })
+    t += 120_000
+  }
+  const all = ops.read()
+  assert.ok(!all.some((r) => r.op === 'ops.retention-short'), 'the budget cut the week')
+  const oldest = Date.parse(all[0].at)
+  assert.ok(t - oldest >= 7 * DAY - 2 * 60_000, `kept only ${((t - oldest) / HOUR).toFixed(1)} h`)
+  assert.ok(bytesIn(dir) <= 96 * 1024 * 1024, `${bytesIn(dir)} bytes`)
+  const pings = all.filter((r) => r.op === 'mcp.ping').length
+  assert.ok(pings <= 7 * 24 * 6 + 10, `${pings} ping lines: pings are written, not counted`)
+  const counted = all.filter((r) => r.op === 'ops.sampled').reduce((n, r) => n + (r.detail?.counts?.['mcp.ping'] ?? 0), 0)
+  assert.ok(counted + pings >= agents * 7 * 24 * 30 - agents * 6, 'the pings were dropped, not counted')
 })
 // #endregion ops-retention

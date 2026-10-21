@@ -36,6 +36,14 @@ export interface QuitOptions {
   shutdown: () => Promise<unknown>
   /** False until the runtime that needs a drain exists; before that a quit proceeds at once. */
   ready: () => boolean
+  /**
+   * True while the start is in progress (the splash, the startup wait window, the failure dialog's own window, the
+   * handover to the main window). Those windows are Fabric's own scaffolding, not the person's last window: on Windows
+   * and Linux destroying the only one fired `window-all-closed` and quit a start that had just succeeded (0.3.9 review
+   * ER-1). While this holds, `window-all-closed` quits on no platform unless a quit has already begun; a person who
+   * closes such a window is answered by that window's own `close` handler (index.ts).
+   */
+  starting?: () => boolean
   /** Upper bound from the first quit request to process exit. */
   hardDeadlineMs?: number
   schedule?: (fn: () => void) => void
@@ -134,7 +142,11 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
         })
     },
     windowAllClosed(platform) {
-      if (quitting || platform !== 'darwin') o.app.quit()
+      if (quitting) { o.app.quit(); return }
+      // #region startup-window-scaffolding — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+      if (o.starting?.()) return
+      // #endregion startup-window-scaffolding
+      if (platform !== 'darwin') o.app.quit()
     }
   }
 }

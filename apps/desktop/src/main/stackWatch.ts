@@ -1,13 +1,16 @@
 // #region stack-watch — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
 /**
  * The runtime stack watch (ST-2 and ST-1 of the 0.3.9 stability audit). While Fabric runs, every 30 s: one cheap read
- * of the database (bounded at 3 s), Docker's `/_ping` when that read fails, and the free space of the volume that
- * holds Fabric's data. What a reading means is `shared/stackWatch.ts`; this supplies the readings and acts:
+ * of the database (bounded at 6 s, past the hub's own 5 s deadline: review ER-4), Docker's `/_ping` when that read
+ * fails, and the free space of the volume that holds Fabric's data. What a reading means is `shared/stackWatch.ts`;
+ * this supplies the readings and acts:
  *
  *   - a lost stack and its return are recorded ONCE each (`stack.lost`, `stack.back`), never per tick;
  *   - while it is lost the hub refuses every call `stack-unavailable` with Retry-After (`onChange`);
- *   - Fabric tries to bring it back through the same start path as at launch (`recover`), with backoff from 10 s to
- *     2 min, one try at a time, never for an external stack it did not start;
+ *   - Fabric tries to bring it back through the launch's start path, run once per try (`recover`), with backoff from
+ *     10 s to 2 min counted from the END of a try, one try at a time, never for an external stack it did not start;
+ *     a try first asks Docker for the stack's containers (`containers`): gone is a stop someone made, which Fabric
+ *     respects, and running is a database still coming up, which a start cannot help (review ER-3);
  *   - a low disk (under 3 GB) is recorded once per crossing and goes with the stack's state to the window, naming the
  *     disk as the likely cause when the stack is down.
  *
@@ -20,11 +23,15 @@ import {
   hubRefusalFor,
   initialStackWatch,
   observeStack,
+  recoveryBegun,
   recoveryDue,
-  recoveryTried,
+  recoveryEnded,
+  recoveryPlan,
   stackHealthView,
   watchDelayMs,
+  type StackContainers,
   type StackHealthView,
+  type StackHold,
   type StackRefusal,
   type StackWatchEvent,
   type StackWatchState
@@ -37,8 +44,14 @@ export interface StackWatchDeps {
   pingDocker: (() => Promise<boolean>) | null
   /** Free bytes on the volume that holds Fabric's data, or null when it cannot be read. */
   freeDisk: () => number | null
-  /** Bring the stack back (the launch's start path, bounded); null when Fabric does not own the stack. */
-  recover: (() => Promise<void>) | null
+  /** Bring the stack back (the launch's start path, once, bounded); null when Fabric does not own the stack. */
+  recover: (() => Promise<'started' | 'already-running' | void>) | null
+  /** What Docker says of the stack's database container (ER-3); absent, every due try starts the stack. */
+  containers?: (() => Promise<StackContainers>) | null
+  /** The database read's deadline; the probe shortens it. */
+  readDeadlineMs?: number
+  /** Whose words the view is for (UX-4); the process's own platform unless given. */
+  platform?: string
   /** Called when the state changed, and on every tick while the stack is down (the refusal's wait shortens). */
   onChange: (view: StackHealthView, refusal: StackRefusal | null) => void
   now?: () => number
@@ -80,46 +93,104 @@ function recordEvent(e: StackWatchEvent): void {
 
 export function createStackWatch(deps: StackWatchDeps): StackWatch {
   const now = deps.now ?? Date.now
-  let state: StackWatchState = initialStackWatch(now())
+  const platform = deps.platform ?? process.platform
+  const readDeadlineMs = deps.readDeadlineMs ?? STACK_READ_DEADLINE_MS
+  let state: StackWatchState = initialStackWatch(now(), { recovers: deps.recover !== null })
   let timer: ReturnType<typeof setTimeout> | null = null
   let running = false
   let reading = false
   let recovering: Promise<void> | null = null
+  /** The hold last recorded, so a hold is recorded once per change, not once per re-check. */
+  let heldRecorded: StackHold | null = null
 
-  const readDatabase = async (): Promise<boolean> => {
+  const view = (): StackHealthView => stackHealthView(state, now(), platform)
+  const publish = (): void => deps.onChange(view(), hubRefusalFor(state, now()))
+
+  /** True when the database answered, false when it refused or broke, `'slow'` when it ran out of time (ER-4). */
+  const readDatabase = async (): Promise<boolean | 'slow'> => {
     const ac = new AbortController()
-    const deadline = setTimeout(() => ac.abort(), STACK_READ_DEADLINE_MS)
+    const deadline = setTimeout(() => ac.abort(), readDeadlineMs)
     deadline.unref?.()
     try {
-      return await Promise.race([
-        deps.readDatabase(ac.signal),
-        new Promise<boolean>((resolve) => ac.signal.addEventListener('abort', () => resolve(false), { once: true }))
+      return await Promise.race<boolean | 'slow'>([
+        deps.readDatabase(ac.signal).then((answered) => (answered ? true : ac.signal.aborted ? 'slow' : false)),
+        new Promise<'slow'>((resolve) => ac.signal.addEventListener('abort', () => resolve('slow'), { once: true }))
       ])
     } catch (e) {
-      // A read that threw is a database that did not answer: the state machine counts it, and records the loss once.
+      // A read that threw is a database that did not answer (or ran out of time, when the deadline ended it): the state
+      // machine counts it, and records the loss once.
       void e
-      return false
+      return ac.signal.aborted ? 'slow' : false
     } finally {
       clearTimeout(deadline)
     }
   }
 
+  const askContainers = async (): Promise<StackContainers> => {
+    if (!deps.containers) return 'unknown'
+    try {
+      return await deps.containers()
+    } catch (e) {
+      // Docker could not be asked: the try starts the stack, which waits for Docker first; the reason is recorded with it.
+      void e
+      return 'unknown'
+    }
+  }
+
   const tryRecover = (): void => {
     if (!deps.recover || recovering) return
-    state = recoveryTried(state, now())
-    const attempt = state.recoveries
-    const begun = now()
+    state = recoveryBegun(state, now())
+    const attempt = state.recoveries + 1
+    const down = state.why
     recovering = (async () => {
+      const containers = await askContainers()
+      const plan = recoveryPlan(containers)
+      if (plan !== 'start') {
+        // ER-3: a stop someone made (containers gone), or a database whose containers run: no `supabase start`.
+        state = recoveryEnded(state, now(), { held: plan })
+        if (heldRecorded !== plan) {
+          heldRecorded = plan
+          ops.record({
+            op: 'stack.recover.held', outcome: 'ok', level: 'warn',
+            detail: {
+              hold: plan, containers, down,
+              note: plan === 'stopped'
+                ? 'the stack\'s containers are gone, as after supabase stop: Fabric does not start it again by itself'
+                : 'the stack\'s containers are running and the database does not answer: a start would only say «already running», so Fabric waits'
+            },
+            ctx: { correlationId: ops.correlate() }
+          })
+        }
+        return
+      }
+      heldRecorded = null
+      const begun = now()
+      // Why this try was made, with its record (ER-3): what was down, and what Docker said of the containers.
+      const because = containers === 'stopped' ? 'the stack\'s containers exist and are not running' : 'Docker could not say whether the stack\'s containers run'
       try {
-        await deps.recover!()
-        ops.record({ op: 'stack.recover', outcome: 'ok', level: 'warn', ms: now() - begun, detail: { attempt }, ctx: { correlationId: ops.correlate() } })
+        const result = await deps.recover!()
+        ops.record({ op: 'stack.recover', outcome: 'ok', level: 'warn', ms: now() - begun, detail: { attempt, down, containers, because, result: result ?? 'started' }, ctx: { correlationId: ops.correlate() } })
       } catch (e) {
         // Bounded by the backoff: at most one record per try, and the tries are 10 s to 2 min apart.
-        ops.record({ op: 'stack.recover', outcome: 'failed', level: 'warn', ms: now() - begun, detail: { attempt, why: (e instanceof Error ? e.message : String(e)).split('\n').slice(-2).join(' ').slice(0, 300) }, ctx: { correlationId: ops.correlate() } })
-      } finally {
-        recovering = null
+        ops.record({ op: 'stack.recover', outcome: 'failed', level: 'warn', ms: now() - begun, detail: { attempt, down, containers, because, why: (e instanceof Error ? e.message : String(e)).split('\n').slice(-2).join(' ').slice(0, 300) }, ctx: { correlationId: ops.correlate() } })
       }
+      state = recoveryEnded(state, now(), { tried: true })
     })()
+      .catch((e) => {
+        // Not reachable by design (each step above records its own failure); a defect here must not leave `trying` set.
+        ops.failed('stack.watch.recover', e)
+        if (state.trying) state = recoveryEnded(state, now(), { tried: true })
+      })
+      .finally(() => {
+        recovering = null
+        // The try's end changes what the person and the agents are told (UX-2): said at once, and the stack is read
+        // again soon rather than at the backoff, so a start that worked is seen within a second.
+        if (state.stack === 'down') publish()
+        if (running) {
+          if (timer) clearTimeout(timer)
+          schedule(1_000)
+        }
+      })
   }
 
   const tick = async (): Promise<void> => {
@@ -140,8 +211,9 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       const observed = observeStack(state, { database, docker, freeDiskBytes: free }, t)
       state = observed.state
       for (const e of observed.events) recordEvent(e)
+      if (state.stack === 'up') heldRecorded = null
       if (recoveryDue(state, t)) tryRecover()
-      if (observed.events.length > 0 || state.stack === 'down') deps.onChange(stackHealthView(state, t), hubRefusalFor(state, t))
+      if (observed.events.length > 0 || state.stack === 'down') publish()
     } catch (e) {
       ops.failed('stack.watch.tick', e)
     } finally {
@@ -149,11 +221,11 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
     }
   }
 
-  const schedule = (): void => {
+  const schedule = (delayMs?: number): void => {
     if (!running) return
     timer = setTimeout(() => {
-      void tick().finally(schedule)
-    }, watchDelayMs(state, now()))
+      void tick().finally(() => schedule())
+    }, delayMs ?? watchDelayMs(state, now()))
     timer.unref?.()
   }
 
@@ -169,7 +241,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       timer = null
     },
     tick,
-    view: () => stackHealthView(state, now()),
+    view,
     refusal: () => hubRefusalFor(state, now())
   }
 }

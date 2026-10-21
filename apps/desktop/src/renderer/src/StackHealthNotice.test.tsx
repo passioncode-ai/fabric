@@ -13,7 +13,7 @@ import type { StackHealthView } from '../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false }
+const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false }
 
 function mount(view: StackHealthView | null, locale: 'en' | 'ru' = 'en'): { push: (v: StackHealthView) => void } {
   let listener: ((v: StackHealthView) => void) | null = null
@@ -55,6 +55,43 @@ describe('the stack health notice', () => {
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toContain(ru['stack.health.diskTitle']!)
     expect(alert.textContent).toContain('2,5 ГБ')
+  })
+
+  // 0.3.9 review UX-2: a try that runs past its due time read «Next try in 0 s» for minutes; an external stack was
+  // promised a recovery that never comes.
+  it('while a try runs, says it is trying now and which try, never a countdown at 0', async () => {
+    mount({ ...up, stack: 'down', why: 'docker', nextTryInS: null, trying: true, attempt: 3 })
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Trying now (try 3).')
+    expect(alert.textContent).not.toMatch(/Next try in/)
+  })
+
+  it('for a stack Fabric does not bring back, says Fabric waits for it, never that it is bringing it back', async () => {
+    mount({ ...up, stack: 'down', why: 'database', hold: 'external' })
+    const external = (await screen.findByRole('alert')).textContent ?? ''
+    expect(external).toContain(en['stack.health.external'])
+    expect(external).not.toMatch(/bringing it back|Next try/)
+    cleanup()
+    mount({ ...up, stack: 'down', why: 'database', hold: 'stopped' }, 'ru')
+    const stopped = (await screen.findByRole('alert')).textContent ?? ''
+    expect(stopped).toContain(ru['stack.health.stopped']!)
+    expect(stopped).not.toMatch(/поднимает её снова/)
+    cleanup()
+    mount({ ...up, stack: 'down', why: 'database', hold: 'running' })
+    expect((await screen.findByRole('alert')).textContent).toContain(en['stack.health.waitingContainers'])
+  })
+
+  // 0.3.9 review UX-4: each OS names its own Docker.
+  it('names Docker Desktop on Windows and Docker Engine on Linux, never OrbStack there', async () => {
+    mount({ ...up, stack: 'down', why: 'docker', nextTryInS: 20, platform: 'win32' })
+    const win = (await screen.findByRole('alert')).textContent ?? ''
+    expect(win).toContain(en['stack.health.docker.win32'])
+    expect(win).not.toMatch(/OrbStack/)
+    cleanup()
+    mount({ ...up, stack: 'down', why: 'docker', nextTryInS: 20, platform: 'linux' }, 'ru')
+    const linux = (await screen.findByRole('alert')).textContent ?? ''
+    expect(linux).toContain(ru['stack.health.docker.linux']!)
+    expect(linux).not.toMatch(/OrbStack/)
   })
 
   it('reads nothing when the bridge has no health (an older preload)', async () => {

@@ -137,4 +137,82 @@ test('ST-3: a standby whose port is taken says so and leaves the start to report
   assert.equal(locateHub(root).ok, false, 'no hub.json for a port Fabric does not hold')
   blocker.close()
 })
+// 0.3.9 review ER-2: `handOver()` removed the standby's handler before the surface had attached its own (it first awaits
+// a database read), so a request in that window was answered by nobody. The takeover is atomic now: the standby
+// answers until the surface's handler is on the very same sockets.
+test('ER-2: a request during the handover is answered stack-starting, never left without an answer', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'fabric-hub-standby-'))
+  const port = await freePort()
+  const opened = await openHubStandby({ env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root, refusal: starting })
+  let primed
+  const prime = new Promise((r) => { primed = r })
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', hub: { access: { primeCredentialVerifiers: () => prime }, doorToken: () => null } })
+  const hubStarting = startHub({ surface, env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root, standby: opened })
+  try {
+    await new Promise((r) => setTimeout(r, 50))
+    const during = await Promise.race([post(`http://127.0.0.1:${port}`), new Promise((r) => setTimeout(() => r('hung'), 2_000))])
+    assert.notEqual(during, 'hung', 'a request sent while the hub was taking over got no answer')
+    assert.equal(during.status, 503)
+    assert.equal(during.body.code, 'stack-starting')
+    primed()
+    const started = await hubStarting
+    assert.equal(started.open, true)
+    assert.equal((await post(surface.origin)).status, 401, 'once taken over, the surface answers')
+  } finally {
+    primed()
+    await hubStarting.catch(() => {})
+    await surface.stop()
+  }
+})
+
+// 0.3.9 review ER-5: a hub that did not take the standby over left hub.json naming this live process on a port nobody
+// answered, and a takeover that threw left the adopted sockets listening with no handler.
+test('ER-5: a standby the hub does not take over is stopped and its hub.json withdrawn', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'fabric-hub-standby-'))
+  const port = await freePort()
+  const opened = await openHubStandby({ env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root, refusal: starting })
+  assert.equal(locateHub(root).ok, true)
+  // An agent registered between the two registry reads claims the hub's port: the hub cannot open there.
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  const started = await startHub({ surface, env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map([[port, 'another-agent']]), root, standby: opened })
+  try {
+    assert.equal(started.open, false)
+    assert.equal(locateHub(root).ok, false, 'hub.json still names this process on a port nobody answers')
+    const free = createServer()
+    await new Promise((resolve, reject) => { free.once('error', reject); free.listen(port, '127.0.0.1', resolve) })
+    free.close()
+  } finally {
+    await surface.stop()
+  }
+})
+
+test('ER-5: a takeover that throws closes the adopted sockets, and the hub opens on its port the ordinary way', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'fabric-hub-standby-'))
+  const port = await freePort()
+  const opened = await openHubStandby({ env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root, refusal: starting })
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  const real = surface.start.bind(surface)
+  let failedOnce = false
+  surface.start = async (o = {}) => {
+    if (o.adopt && !failedOnce) {
+      failedOnce = true
+      if (typeof o.adopt === 'function') o.adopt()
+      else o.adopt
+      throw new Error('planted: the takeover failed after the sockets were handed over')
+    }
+    return real(o)
+  }
+  const started = await startHub({ surface, env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root, standby: opened })
+  try {
+    assert.equal(failedOnce, true)
+    assert.equal(started.open, true, 'the hub did not open on its port after a failed takeover: ' + (started.down ?? ''))
+    assert.equal(surface.origin, `http://127.0.0.1:${port}`)
+    assert.equal((await post(surface.origin)).status, 401)
+    const located = locateHub(root)
+    assert.equal(located.ok, true)
+    assert.equal(located.doorToken, started.doorToken)
+  } finally {
+    await surface.stop()
+  }
+})
 // #endregion hub-standby

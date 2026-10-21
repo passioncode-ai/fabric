@@ -12,8 +12,9 @@ import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
-import { STACK_EXCLUDED_SERVICES, removeExcludedContainers } from './stackServices.ts'
-import { startWithRetry } from '../shared/stackStartRetry.ts'
+import { STACK_EXCLUDED_SERVICES, databaseContainer, removeExcludedContainers } from './stackServices.ts'
+import type { StackContainers } from '../shared/stackWatch.ts'
+import { recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
@@ -140,6 +141,27 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
     }
   })
 }
+
+// #region stack-recover-once — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+/**
+ * One try of the runtime stack watch (0.3.9 review ER-3): the launch's start, run ONCE. `startStack` repeats «supabase
+ * start is already running» four times, 10 s apart, which per watch try was four CLI runs against containers that were
+ * up; here «already running» ends the try as nothing to start, and the watch's backoff is the retry. Docker that is not
+ * there yet is still waited for (90 s), once.
+ */
+export async function recoverStack(): Promise<'started' | 'already-running'> {
+  stopRequested = false
+  return recoveryStart(() => startStackOnce(), {
+    stopped: () => stopRequested,
+    pingDocker: (socket) => pingDocker(socket)
+  })
+}
+
+/** What Docker says of the stack's database container, for the watch's decision (`stackServices.ts#databaseContainer`). */
+export async function stackDatabaseContainer(): Promise<StackContainers> {
+  return databaseContainer('fabric', async (args) => (await run('docker', args, { encoding: 'utf8', timeout: 10_000 })).stdout)
+}
+// #endregion stack-recover-once
 
 async function startStackOnce(onLine?: (line: string) => void): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.

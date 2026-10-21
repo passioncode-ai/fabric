@@ -147,4 +147,28 @@ export async function startWithRetry(
     }
   }
 }
+
+/** The stack's words that `supabase start` found it already there (running, or its containers coming up). */
+export function stackAlreadyRunning(message: string): boolean {
+  return /supabase start is already running/i.test(message)
+}
+
+/**
+ * One try of the runtime watch to bring the stack back (0.3.9 review ER-3). The launch's `startWithRetry` repeats a
+ * transient refusal four times, 10 s apart, which per watch try meant four `supabase start` runs against containers
+ * that were up all along. Here the start runs once (Docker that is not there yet is still waited for, once): «already
+ * running» answers that there is nothing to start, and the watch's own backoff (10 s growing to 2 min) is the retry.
+ */
+export async function recoveryStart(
+  start: () => Promise<void>,
+  opts: Omit<Parameters<typeof startWithRetry>[1] & object, 'plan' | 'onRetry'> = {}
+): Promise<'started' | 'already-running'> {
+  try {
+    await startWithRetry(start, { ...opts, plan: { attempts: 1, waitMs: 0 } })
+    return 'started'
+  } catch (e) {
+    if (stackAlreadyRunning(e instanceof Error ? e.message : String(e))) return 'already-running'
+    throw e
+  }
+}
 // #endregion stack-start-retry

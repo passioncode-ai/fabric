@@ -47,3 +47,24 @@ export async function removeExcludedContainers(
   }
 }
 // #endregion stack-services
+
+// #region stack-database-container — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+/**
+ * What Docker says of the stack's database container (0.3.9 review ER-3), for the runtime watch to decide whether a try
+ * starts the stack. `supabase stop` removes the project's containers (their volumes stay), so a container that is gone
+ * while Docker answers is a stop someone made; one that is running while the database does not answer is a database
+ * still coming up (Docker's `unless-stopped` restart, or its own recovery), which `supabase start` cannot help.
+ */
+export function containerStateFrom(output: string): import('../shared/stackWatch.ts').StackContainers {
+  const state = output.trim().split('\n')[0]?.trim().toLowerCase() ?? ''
+  if (state === '') return 'absent'
+  if (state === 'running' || state === 'restarting' || state === 'paused') return 'running'
+  if (state === 'exited' || state === 'created' || state === 'dead' || state === 'removing') return 'stopped'
+  return 'unknown'
+}
+
+/** Asks Docker; a Docker that does not answer throws, and the watch reads that as `unknown` (a start, which waits for it). */
+export async function databaseContainer(projectId: string, docker: (args: string[]) => Promise<string>): Promise<import('../shared/stackWatch.ts').StackContainers> {
+  return containerStateFrom(await docker(['ps', '-a', '--filter', `name=^supabase_db_${projectId}$`, '--format', '{{.State}}']))
+}
+// #endregion stack-database-container
