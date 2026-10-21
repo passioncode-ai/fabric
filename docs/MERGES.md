@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-21T00:30:00Z · `—` · release close → main · fast-forward
+- run: r-8db0598178fb
+- files: the 0.3.7 ledger's Release close, the handoff, P-19 and the Now line, CO-359 and CO-360, the map
+- conflicts: none
+- summary: Fabric 0.3.7 is published (00:05 UTC) and installed at schema 94; the board posts and the tester's note are sent.
+
 ### 2026-10-21T00:30:00Z · `—` · agent/release-037-i1-fixes → main · merge (main moved by workspace pins only)
 - run: r-8db0598178fb
 - files: main (loginShellPath, gitFacts, dockerPing, env, index, hubTools, actRunExecutors, actSessionExecutors, actLog, sessionBundle), shared (projectResolve, stackStartRetry, loginItem, answerCommit, sessionHistory, decisions, schemaContract), renderer (SessionStop, SessionWindow, OperatorError, draftNotKept, LaunchShell, SettingsScreen, JoinedAgents, HomeParts, EstateAgents, История strings, i18n), migration 116 and the ledger, docs (CHANGELOG, release-mac, scenarios, carry-over, backlog, plans, ADR index, AGENTS.md, the archive record, the testers' brief), the 0.3.7 ledger and iteration-1 reviews

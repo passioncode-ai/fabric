@@ -185,3 +185,25 @@ Owed by this release to other projects and to the operator, each closed with its
 | FD-12 moved to 0.4.0 (CO-344) | fabric-dashboards, board | the post |
 | The attribution capability's name for the knowledge page, and SD-3 / MA-06's row | fabric-workspace, board | the answer posted |
 | The workspace publication after the release commit | `node scripts/workspace.mjs publish` | `check --require-child` exit 0 |
+
+### Release close: state on 2026-10-21
+
+- **Published.** Tag `v0.3.7` on `cdc61fb2` (the release commit `facb2455`, the workspace-pin merge `13d2f911`, the
+  receipt word fix `cdc61fb2`); preflight `release-mac.mjs --check-only --tag v0.3.7`: "is on origin/main and its
+  release gate is clear". Release run 39516315609: preflight, guard, macOS, Windows x64 and arm64, Linux x64 and arm64,
+  publish all green. GitHub release published 2026-10-21 00:05:18 UTC, prerelease, 14 assets.
+- **Installed on the operator's Mac.** `Fabric-0.3.7-universal.dmg` checksum OK against `SHA256SUMS`; `codesign
+  --verify --deep --strict` OK; `spctl`: Notarized Developer ID. The first start refused schema 89 and copied its
+  migrations; backup `~/Library/Application Support/Fabric/backups/pre-0.3.7.dump` (custom format, `pg_restore --list`
+  1671 entries); `supabase migration up --local` applied 112 to 116; `schema_version()` 94, journal 11 208 events before
+  and after, the estate-path unique index present. 0.3.7 runs (`ipc.work:home` ok, 2026-10-21 00:15 UTC). The separate
+  disposable-stack rehearsal (runbook step 3) was not run: free disk was under 2 GB and a second stack had crashed
+  OrbStack twice that day; the SQL chain 89 → 94 was proven on disposable clusters by this ledger's data reviews.
+- **Board.** Publish time on `0cc62467` (FAB-H01, PLAT-019); CO-322 part 1 and the updater's 0.4.0 on `cb31a510`;
+  `fabric.project.resolve` and DEC-0092 on `617c8cbe` (Observatory's live check, Switchboard SB-141, CT-26, CT-63);
+  the release and FD-12's move (CO-344) to every project on `bb87af23`, `8448237d`, `0f5d0589`.
+- **Knowledge base.** fabric-workspace PR #321 (`508e6921`) before the tag: RM-19 and the lifecycle row.
+- **The tester.** The testers' brief ([`docs/launch/testers-brief.md`](../../launch/testers-brief.md)) and a short note
+  sent to the tester in Telegram on the operator's instruction (2026-10-21).
+- **Open.** OF-08 (agents at work shown silent) is measured on the installed 0.3.7 in 0.3.8's first session; the
+  workspace publication follows with the scheduled sync.
