@@ -57,9 +57,9 @@ Each part was built on its own branch, test first, every new test watched failin
   deadline gets 7 days (one with a deadline keeps it); a request whose target Project has no live responder is accepted
   with `noResponder` in the requester's receipt. `com.list` takes
   `unread` and `since` and says `read` per message; cursors survive a restart; `com.read_ack` marks up to 100 messages
-  or a thread up to a message in one call. The home shows the requests between projects no agent can answer, and how long the oldest has waited. On the
-  operator's data (8 queued requests on 2026-10-21) the first tick answers the 4 a target replied to; the migration's
-  header says six; of the other 4, 2 expire on 2026-10-26 and 2 on 2026-10-28. The
+  or a thread up to a message in one call. The home shows the requests between projects no agent is answering now, and how long the oldest has waited. On the
+  operator's data the first tick answers every queued request its target already replied to (all 9 on 2026-10-22,
+  after Fabric answered its own two; the migration's header says six). The
   Comms reads record their failures. Schema 95 (`20261021000120_board_core_holds.sql`).
 
 **Review iteration 2 added** ([notes](2026-10-21-notes-i2.md)): the stack watch keeps exactly one chain of reads and
@@ -98,18 +98,34 @@ gaps in `cycle.ran@1` over the following days (availability), the sessions whose
 agents running, the sessions shown silent while their agents work, the board requests left queued, and whether the
 workspace-sync job ran on schedule (ST-11).
 
-**Rollout order on the operator's machine** (0.3.9 review, PL-1): 1. the agent backs up the database and rehearses the
-94 to 95 migration on a copy (`rehearse-upgrade.mjs`); 2. it installs the 0.3.9 bundle in `/Applications` (the new
-fabric-mcp works against the 0.3.8 still running, PL-2); 3. it migrates the live database to 95 while 0.3.8 runs (the
-0.3.9 review's iteration 3 checks 0.3.8 against schema 95 on a copy); 4. the next quit and open of Fabric runs 0.3.9 on a
-ready database: through the lifecycle broker when it started the app, otherwise the person's own Cmd+Q and open, the one
-step a person may need (the broker does not stop an app the person opened); 5. the agent verifies the version, the
-schema and the hub. The hub is down only for that quit and open. Until 0.3.9 runs, the new 2-minute pings of updated
-fabric-mcp processes fill 0.3.8's line-capped log faster (PL-7). The coding agents pick up the new fabric-mcp when each is
-restarted. CO-365 needs a real reboot.
+**Rollout order on the operator's machine** (0.3.9 review, iteration 2 PL-1 and iteration 3 PL-1; it follows
+[release-mac](../../../launch/release-mac.md#upgrading-an-existing-database): writers stopped before the migration, old
+code never run on a newer schema):
+
+1. The agent dumps the live database (`pre-0.3.9.dump`) and rehearses 94 to 95 on it with
+   `rehearse-upgrade.mjs --from 94 --ref v0.3.9`, which must PASS.
+2. The agent installs the 0.3.9 bundle in `/Applications`, keeping the 0.3.8 bundle beside it. The running 0.3.8 keeps
+   running from memory; the new fabric-mcp enrolls against it without `agentPid` (iteration 1 PL-2).
+3. Fabric is quit: through the lifecycle broker when it started the app, otherwise the person's own Cmd+Q, and the
+   person does not open it again. This is the one step a person may need (the broker does not stop an app the person
+   opened). The hub is down from here to step 5.
+4. With the writers stopped the agent takes a second dump (`pre-0.3.9-quiet.dump`, the rollback point), copies
+   `20261021000120_board_core_holds.sql` from the installed bundle's stack into the working stack folder
+   (`~/Library/Application Support/@fabric/desktop/stack/supabase/migrations/`, as the app itself does when it
+   materializes its stack), runs `supabase migration up --local` there, and checks `schema_version()` reads 95 and the
+   journal count is unchanged.
+5. The agent starts Fabric through the lifecycle broker and verifies the version (0.3.9), the schema, the hub
+   (`hub.json` and a `fabric_whoami`) and the board tick (the queued requests their target replied to read
+   `answered`).
+
+**Rollback:** stop Fabric, restore `pre-0.3.9-quiet.dump` by release-mac step 5 and start the kept 0.3.8 bundle; nothing
+written between the second dump and the rollback survives, and nothing is written in that window because the writers
+are stopped. Until 0.3.9 runs, the 2-minute pings of updated fabric-mcp processes fill 0.3.8's line-capped log faster
+(iteration 2 PL-7). The coding agents pick up the new fabric-mcp when each is restarted. CO-365 needs a real reboot.
 
 ## Not in this release
 
 ST-6 (CO-364), ST-7 (CO-365), ST-9 (CO-366), TR-10 (CO-367), BD-7 (CO-368), BD-8 and TR-12 (CO-369), the reply fan-out
-of BD-4, BD-9 and BD-10 (CO-370), the halves in fabric-agent-adapter and fabric-agent-contract (CO-371): all 0.3.10, in
+of BD-4, BD-9 and BD-10 (CO-370), the halves in fabric-agent-adapter and fabric-agent-contract (CO-371), and the 0.3.9 review's carried findings (CO-373 to
+CO-375, CO-378): all 0.3.10, in
 the [carry-over ledger](../../specs/2026-08-16-software-fabric-carryover.md). A coding agent picks up the new fabric-mcp when it restarts.

@@ -132,3 +132,19 @@ outgrow its budget.
 | V2-35 | PL-7 | The upgrade window shortens 0.3.8 log evidence | fixed: the rollout order migrates first so the window is one quit and open; the plan says so |
 
 Exit for iteration 2: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
+
+## Release close
+
+Written as each step of the rollout ([plan](2026-10-21-core-reliability/README.md), "Rollout order") lands. Owed here,
+by the rows that point to it:
+
+- the publication: the tag, the release run, the assets;
+- the install: both dumps, the rehearsal receipt, the 94 to 95 run with `schema_version()` and the journal count (CO-277's
+  measurement), the version running, the hub and the board tick (the queued requests their target replied to read
+  `answered`);
+- the board: the 0.3.9 publication message on the release threads (wave 4 is 0.3.10; the backoff and the hub's 503),
+  the links on threads `02bf19c5` and `a5969ac5` moved to `main`, the answers from fabric-agent-adapter and
+  fabric-agent-contract if they came;
+- the knowledge base's version rows and the workspace publication;
+- the first measurements of "How we will know it holds" (the plan), against the audits' baselines.
+

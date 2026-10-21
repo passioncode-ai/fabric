@@ -407,7 +407,7 @@ A session's surface also carries the project board of `fabric-project-comms/0.1`
 | Tool | Does | Journals |
 |---|---|---|
 | `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt; a reply must be in `replyTo`'s own thread | `comms.message_submitted@1` (ids and digest, never the body) |
-| `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter, participation and run | — (read) |
+| `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter and participation, and (0.3.9) survives a restart: its key lives in the database per estate| — (read) |
 | `com.get` | one message; an absent one and another Project's read alike | — (read) |
 | `com.read_ack` | an explicit read mark, without an idempotency key; a second mark answers `repeated: true` with the first mark's time | `comms.read_acked@1` |
 | `com.status` | whether the board can be read, the unread count, the Project's responders per capability (active, stale, absent, with generation), mirror off, and the epoch the session submits under (`idempotency`, never told to a viewer); `project` may name only the session's own Project | — (read) |
@@ -428,7 +428,7 @@ database per estate, so cursors survive a restart; `com.read_ack` marks up to 10
 in one call and one `comms.read_acked_many@1`; a non-request message from the target Project naming a queued request
 answers it (state `answered`, `comms.request_transitioned@1` with cause `target-reply`); a request sent without a
 deadline gets one 7 days out; the requester's receipt carries `noResponder` when the target Project has no live
-responder. The tick also answers queued requests their target already replied to.
+responder. The tick also answers queued requests their target already replied to, and gives a request sent without a deadline one 7 days after it was sent.
 
 The board's own upkeep is not a tool: `board_tick`, on the app's 60-second cycle, expires requests whose deadline
 passed (`comms.request_transitioned@1`, cause `deadline`), rotates idempotency epochs (`comms.epoch_rotated@1`) and
