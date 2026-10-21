@@ -677,3 +677,52 @@ test('a binding still has a ceiling across all its projects', async () => {
   }
   assert.equal(h.sessions.liveOf(binding.id).length, 3, 'the binding-wide ceiling evicts the least recently active anywhere')
 })
+
+// ── TR-1 (0.3.9): a session keeps its identity after /clear ──────────────────────────────────────────────────────
+// Claude Code gives a session a new runtime id on /clear; its fabric-mcp keeps the one it enrolled with. The process
+// is what stays: the agent's own fabric-mcp names its agent pid at enrollment, and a rejoin with the new id names the
+// pid Claude Code's session file gives that id. Matched in this binding and project only, then the session carries
+// the new id.
+test('TR-1: a rejoin with a new runtime id finds its session by the agent pid, and the session is renamed', async () => {
+  const h = deps()
+  const main = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  h.surface.claimAll()
+  const before = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
+  assert.equal(before.code, 'no-session', 'without the pid the new id finds nothing')
+  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  assert.equal(r.ok, true, JSON.stringify(r))
+  assert.equal(r.session.sessionId, main.session.sessionId, 'the same session')
+  assert.equal(h.sessions.ofRuntime(binding.id, P, 'rt-new')?.sessionId, main.session.sessionId, 'the session carries the new id')
+  assert.equal(h.sessions.ofRuntime(binding.id, P, 'rt-old'), null, 'and no longer the old one')
+  const again = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
+  assert.equal(again.session?.sessionId, main.session.sessionId, 'the next rejoin finds it by the new id alone')
+  assert.equal(h.journaled.length, 1, 'no new session journalled')
+})
+
+test('TR-1: the rejoin bearer minted for the old id is dropped on the rename; the new one carries the new id', async () => {
+  const minted = []
+  const h = deps()
+  const mint = h.d.mint
+  h.d.mint = (projectId, sessionId, taskId, origin) => { minted.push(origin); return mint(projectId, sessionId, taskId, origin) }
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  h.surface.claimAll()
+  const old = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', rejoinOnly: true }, h.d)
+  const renamed = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  assert.notEqual(renamed.session.bearer, old.session.bearer)
+  assert.equal(h.surface.held.has(old.session.bearer), false, 'the old id\'s rejoin bearer is revoked')
+  assert.equal(minted.at(-1).runtimeSessionId, 'rt-new')
+  assert.equal(minted.at(-1).rejoin, true)
+})
+
+test('TR-1: another agent\'s pid, a pid in another project, or a board session is never matched', async () => {
+  const h = deps()
+  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  h.surface.claimAll()
+  for (const args of [{ agentPid: 999 }, { agentPid: 'x' }, {}]) {
+    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, ...args }, h.d)
+    assert.equal(r.code, 'no-session', JSON.stringify(args))
+  }
+  const other = { id: 'b-2', agent_id: 'claude-code', revoked_at: null }
+  const r = await enrollSession(other, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  assert.equal(r.code, 'no-session', 'another binding never borrows this one\'s session')
+})

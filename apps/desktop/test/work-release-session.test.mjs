@@ -132,3 +132,58 @@ test('fabric_work_release goes through the read-back move on a first done releas
   assert.match(first, /await toReview\(/)
   assert.doesNotMatch(first, /moved = 'review'/, 'never reported from the append')
 })
+
+// ── TR-3 (0.3.9): a claim and a release move the task on the board ─────────────────────────────────────────────
+// The audit found 8 tasks released `done` still in backlog: a claim never moved its task to running, the ladder does
+// not lead from backlog to review, and the release answered `task_moved_to: null` with no `failed`.
+const { moveClaimedTaskToRunning } = await import(path.resolve(import.meta.dirname, '../src/main/workTools.ts'))
+
+/** A board that applies each move it is given (to: the target), or ignores/refuses it. */
+function ladderBoard(status, { failMove = false, ignoreMove = false } = {}) {
+  let st = status
+  const moves = []
+  return {
+    moves,
+    read: async () => (st === null ? null : { id: 't1', status: st }),
+    move: async (task, to) => { moves.push(`${task.status}->${to}`); if (failMove) throw new Error('append refused'); if (!ignoreMove) st = to }
+  }
+}
+
+test('TR-3: done from backlog goes through running to review, each step read back', async () => {
+  const b = ladderBoard('backlog')
+  assert.deepEqual(await moveDoneTaskToReview(b.read, b.move), { task_moved_to: 'review', task_status: 'review' })
+  assert.deepEqual(b.moves, ['backlog->running', 'running->review'])
+})
+
+test('TR-3: a done move that cannot happen is reported, never a silent success', async () => {
+  const ignored = ladderBoard('backlog', { ignoreMove: true })
+  const r = await moveDoneTaskToReview(ignored.read, ignored.move)
+  assert.equal(r.task_moved_to, null)
+  assert.equal(r.task_status, 'backlog')
+  assert.ok(r.failed, 'the answer says the move did not land')
+  // A closed task still moves nothing and fails nothing.
+  const closed = ladderBoard('cancelled')
+  assert.deepEqual(await moveDoneTaskToReview(closed.read, closed.move), { task_moved_to: null, task_status: 'cancelled' })
+})
+
+test('TR-3: a claim moves its backlog task to running, read back; any other column is left as it is', async () => {
+  const b = ladderBoard('backlog')
+  assert.deepEqual(await moveClaimedTaskToRunning(b.read, b.move), { task_moved_to: 'running', task_status: 'running' })
+  assert.deepEqual(b.moves, ['backlog->running'])
+  for (const st of ['running', 'review']) {
+    const o = ladderBoard(st)
+    assert.deepEqual(await moveClaimedTaskToRunning(o.read, o.move), { task_moved_to: null, task_status: st })
+    assert.equal(o.moves.length, 0)
+  }
+  const refused = ladderBoard('backlog', { failMove: true })
+  const r = await moveClaimedTaskToRunning(refused.read, refused.move)
+  assert.deepEqual([r.task_moved_to, r.task_status], [null, 'backlog'])
+  assert.match(r.failed, /append refused/)
+})
+
+test('TR-3: fabric_work_claim moves the claimed task through the read-back helper (source)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/main/workTools.ts'), 'utf8')
+  const tool = src.slice(src.indexOf("'fabric_work_claim',"), src.indexOf("'fabric_work_release',"))
+  assert.match(tool, /await moveClaimedTaskToRunning\(/)
+})

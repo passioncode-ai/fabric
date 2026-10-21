@@ -71,3 +71,45 @@ test('the default reader refuses a remote that is not https or ssh before runnin
   for (const url of ['ext::sh -c id', 'file:///etc', '/local', '--upload-pack=touch /tmp/x'])
     await assert.rejects(() => lsRemoteLeases(url), /not an https or ssh URL/)
 })
+
+// ── TR-7 (0.3.9): only live leases are shown as current ──────────────────────────────────────────────────────────
+// The audit decoded 49 lease refs on the fabric remote: 49 expired, 0 live, the oldest 16.9 days. A ref's commit body
+// is the lease (`{"key","run","ts","ttl","host"}`, ts ISO in UTC, ttl seconds); Fabric now reads it.
+const { currentLeases } = await import(path.resolve(import.meta.dirname, '../src/main/agentSyncLeases.ts'))
+const SHA = (c) => c.repeat(40)
+const THREE = `${SHA('a')}\trefs/agent-sync/leases/live.md\n${SHA('b')}\trefs/agent-sync/leases/old.md\n${SHA('c')}\trefs/agent-sync/leases/unread.md\n`
+const BODIES = {
+  [SHA('a')]: JSON.stringify({ key: 'live.md', run: 'r1', ts: '2026-10-21T12:00:00Z', ttl: 3600, host: 'h' }),
+  [SHA('b')]: JSON.stringify({ key: 'old.md', run: 'r2', ts: '2026-10-04T12:00:00Z', ttl: 3600, host: 'h' })
+}
+
+test('TR-7: each lease is read from its commit: live with its expiry, expired, or unread when the object is not here', async () => {
+  const r = createLeaseRefReader({ ...USES, remoteOf: async () => 'https://h/o/n', lsRemote: async () => THREE,
+    bodyOf: async (_repo, sha) => BODIES[sha] ?? null, now: () => Date.parse('2026-10-21T12:30:00Z') })
+  const got = await r.read('/repo')
+  assert.equal(got.read, true)
+  const by = Object.fromEntries(got.leases.map((l) => [l.key, l]))
+  assert.equal(by['live.md'].state, 'live')
+  assert.equal(by['live.md'].expiresAt, '2026-10-21T13:00:00.000Z')
+  assert.equal(by['old.md'].state, 'expired')
+  assert.equal(by['unread.md'].state, 'unknown')
+})
+
+test('TR-7: what agents and screens are shown: live (and unread) leases, and only a count of the expired', async () => {
+  const r = createLeaseRefReader({ ...USES, remoteOf: async () => 'https://h/o/n', lsRemote: async () => THREE,
+    bodyOf: async (_repo, sha) => BODIES[sha] ?? null, now: () => Date.parse('2026-10-21T12:30:00Z') })
+  const shown = currentLeases(await r.read('/repo'))
+  assert.deepEqual(shown.leases.map((l) => l.key), ['live.md', 'unread.md'])
+  assert.equal(shown.expired, 1)
+  const view = leasesView({ ...(await r.read('/repo')), repository: '/repo' })
+  assert.deepEqual(view.leases.map((l) => l.key), ['live.md', 'unread.md'])
+  assert.equal(view.expired, 1)
+  assert.deepEqual(currentLeases({ read: false, code: 'timeout', reason: 'x', readAt: 'y' }), { read: false, code: 'timeout', reason: 'x', readAt: 'y' })
+})
+
+test('TR-7: a body that is not a lease (not JSON, no ts, a ttl that is no number) is unread, never live', async () => {
+  for (const body of ['nope', JSON.stringify({ key: 'k' }), JSON.stringify({ ts: 'soon', ttl: 60 }), JSON.stringify({ ts: '2026-10-21T12:00:00Z', ttl: 'long' })]) {
+    const r = createLeaseRefReader({ ...USES, remoteOf: async () => 'https://h/o/n', lsRemote: async () => OUT, bodyOf: async () => body, now: () => Date.parse('2026-10-21T12:30:00Z') })
+    assert.equal((await r.read('/repo')).leases[0].state, 'unknown', body)
+  }
+})

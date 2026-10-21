@@ -82,9 +82,10 @@ import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
 import type { McpServer as HubServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { registerWorkTools, type LiveSession } from './workTools.ts'
+import { currentLeases } from './agentSyncLeases.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
-import { CLAIM_DEFAULT_MINUTES, refusalAfterWrite, runHoldRefusal, type CameIn } from '../shared/workClaims.ts'
+import { CLAIM_DEFAULT_MINUTES, refusalAfterWrite, runHoldRefusal, sessionStale, type CameIn } from '../shared/workClaims.ts'
 import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -263,6 +264,9 @@ const SOURCE_SCHEMA = z
 /** How often a claim holder's calls renew its claims, and how close to its expiry a claim must be to be renewed. */
 export const RENEW_EVERY_MS = 5 * 60_000
 export const RENEW_WITHIN_MS = 15 * 60_000
+/** The agent's own client counts as connected while it signed within this (TR-2): fabric-mcp signs every two minutes
+ *  (`fabricMcp.ts#SIGN_EVERY_MS`), so two missed signs and a half mean it is gone or hung. */
+export const OWN_CLIENT_LIVE_MS = 5 * 60_000
 
 export const DEFAULT_LIMITS: AgentSurfaceLimits = {
   claimWindowMs: 120_000,
@@ -411,7 +415,7 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
-  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null }>()
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
@@ -564,6 +568,10 @@ export class AgentSurface {
     const now = this.now()
     if (!known)
       this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId })
+    // TR-1: a rejoin minted under a runtime id the session did not have is the rename the enrollment matched by the
+    // agent's process (a /clear): the session carries the new id from now on.
+    else if (origin?.rejoin && origin.runtimeSessionId && origin.runtimeSessionId !== known.runtimeSessionId)
+      known.runtimeSessionId = origin.runtimeSessionId
     // #region surface-unclaimed-sweep — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
     // A bearer no client presented within its claim window is swept here (0.3.5 review iteration 2, ER-5): a hook
     // process that died before its initialize would otherwise stay in the map for the life of the app, because the
@@ -907,9 +915,9 @@ export class AgentSurface {
       // must not both find it unclaimed, and burning it on a failed handshake is
       // the safe direction to be wrong in.
       st.claimedAt = now
-      this.touched(st.scope)
+      this.touched(st.scope, !st.rejoin)
 
-      const mcp = this.serverFor(st.scope)
+      const mcp = this.serverFor(st.scope, st.rejoin)
       // M104 — the id is OURS, so both fields can be set before the response
       // goes out. Letting the transport mint it meant `st.transport` and
       // `st.mcpSessionId` were assigned only after `handleRequest` had already
@@ -971,7 +979,7 @@ export class AgentSurface {
       AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
       return
     }
-    this.touched(st.scope)
+    this.touched(st.scope, !st.rejoin)
     await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
 
@@ -1001,11 +1009,16 @@ export class AgentSurface {
   }
   // #endregion surface-session-leave
 
-  /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims renewed. */
-  private touched(scope: AgentScope): void {
+  /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims
+   *  renewed. Any request counts: a tool call, a hook's turn through a rejoin, and fabric-mcp's own ping while the
+   *  agent works (TR-4). `own`: from the session's own client, not a rejoin (TR-2). */
+  private touched(scope: AgentScope, own = true): void {
     const now = this.now()
     const s = this.live.get(scope.sessionId)
-    if (s) s.lastCallAt = now
+    if (s) {
+      s.lastCallAt = now
+      if (own) s.lastOwnCallAt = now
+    }
     const due = this.claimHolders.get(scope.sessionId)
     if (due === undefined || now < due) return
     this.claimHolders.set(scope.sessionId, now + RENEW_EVERY_MS)
@@ -1307,7 +1320,7 @@ export class AgentSurface {
 
   /** A server instance bound to one scope: the tools close over it, so no tool
    *  can reach a project the credential does not name. */
-  private serverFor(scope: AgentScope): McpServer {
+  private serverFor(scope: AgentScope, rejoin = false): McpServer {
     const { db, journal, ptys } = this.deps
     // S02.a — the credential already named one project, and most tools already
     // carried `.eq('project_id', …)` by hand. This makes it structural: every
@@ -1483,24 +1496,36 @@ export class AgentSurface {
             sessions: null,
             unreadable: 'Fabric cannot see the terminal manager right now, so this is not a report that nobody else is working here — it is no report at all. Ask again in a moment.'
           })
-        const observed = manager.list(scope.projectId)
-        const { data: claims } = await store
+        // #region agents-list-every-session — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+        // TR-6: every session of this project, whichever way it came in: the terminals Fabric runs AND the agents that
+        // enrolled through fabric-mcp from their own terminals (the same set fabric_work_list reads). Built from the
+        // terminals alone it was always empty on a machine where every agent runs outside Fabric. A stage report is
+        // shown only beside a session still here, never for one that ended (TR-14).
+        const now = this.now()
+        const terminals = new Map(manager.list(scope.projectId).map((p) => [p.sessionId, p]))
+        const { data: claims, error: stagesError } = await store
           .select('agent_stages', '*')
           .eq('project_id', scope.projectId)
         const byId = new Map((claims ?? []).map((c) => [c.session_id as string, c]))
         return json({
-          sessions: observed.map((s) => {
+          ...(stagesError ? { claims_unreadable: `the stage reports could not be read: ${stagesError.message}` } : {}),
+          sessions: this.projectSessions(scope.projectId).map((s) => {
             const claim = byId.get(s.sessionId)
+            const pty = terminals.get(s.sessionId)
             return {
               session_id: s.sessionId,
               is_you: s.sessionId === scope.sessionId,
-              observed: {
-                agent: s.optionId,
-                state: s.state,
-                started_at: s.startedAt,
-                last_activity_at: s.lastActivityAt,
-                exit_code: s.exitCode
-              },
+              came_in: s.cameIn,
+              observed: pty
+                ? { agent: s.agent ?? pty.optionId, state: pty.state, started_at: pty.startedAt, last_activity_at: pty.lastActivityAt, exit_code: pty.exitCode, by: 'its terminal in Fabric' }
+                : {
+                    agent: s.agent,
+                    state: sessionStale(s.lastSignAt, s.startedAt, now) ? 'silent' : 'active',
+                    started_at: new Date(s.startedAt).toISOString(),
+                    last_activity_at: s.lastSignAt ? new Date(s.lastSignAt).toISOString() : null,
+                    exit_code: null,
+                    by: 'its calls and signs to Fabric'
+                  },
               claimed: claim
                 ? {
                     stage: claim.stage,
@@ -1514,6 +1539,7 @@ export class AgentSurface {
             }
           })
         })
+        // #endregion agents-list-every-session
       }
     )
 
@@ -2666,7 +2692,7 @@ export class AgentSurface {
             expired: new Date(l.expires_at as string).getTime() <= now,
             write_scopes: l.write_scopes ?? []
           })),
-          agent_sync_leases: refs ?? { read: false, reason: this.deps.work ? 'this project has no repository' : 'this Fabric does not read agent-sync leases' },
+          agent_sync_leases: refs ? currentLeases(refs) : { read: false, reason: this.deps.work ? 'this project has no repository' : 'this Fabric does not read agent-sync leases' },
           note: 'agent-sync leases are shown, never taken here: a lease names a guarded file or a task key on the repository\'s remote, and its holder and expiry are read with agent_sync.py status'
         })
       }
@@ -2676,7 +2702,7 @@ export class AgentSurface {
     // trusted principal. Identity is closed over the scope, so no argument can name another Project.
     // Claims (REQ-38) and the session's own observations (the hook pack's D4/D5): `workTools.ts`.
     registerWorkTools(server, {
-      scope: { ...scope, agent: scope.agent ?? ptys()?.get(scope.sessionId)?.optionId ?? null },
+      scope: { ...scope, agent: scope.agent ?? ptys()?.get(scope.sessionId)?.optionId ?? null, rejoin },
       store,
       append: (e) => this.appendRedacted({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, ...e }),
       // session.ended@1's owner is named in desktopIngress.ts; workTools builds its payload from typed fields only.
@@ -2696,7 +2722,15 @@ export class AgentSurface {
       endSession: () => {
         setTimeout(() => (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(scope.sessionId), 1_000).unref?.()
       },
-      now: this.now
+      now: this.now,
+      // #region work-tools-session-facts — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+      sessionStartedAt: () => this.live.get(scope.sessionId)?.mintedAt ?? null,
+      currentRuntimeSessionId: () => this.live.get(scope.sessionId)?.runtimeSessionId ?? null,
+      ownClientLive: () => {
+        const at = this.live.get(scope.sessionId)?.lastOwnCallAt
+        return typeof at === 'number' && this.now() - at < OWN_CLIENT_LIVE_MS
+      }
+      // #endregion work-tools-session-facts
     })
 
     // The runner underneath, never a created agent's id (M125): board_grant_for compares the runner's binding (ADR-0149 §3).

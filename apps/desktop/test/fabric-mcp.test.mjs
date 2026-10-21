@@ -844,3 +844,123 @@ test('a 503 cooldown is told to the agent as the 503 it was, not as a 429 (0.3.8
   assert.equal(f.refusal.status, 503)
   assert.equal(classifyFailure(new FabricRateLimitError(5000)).refusal.status, 429)
 })
+
+// ── 0.3.9 "the core holds": tracking (docs/evidence/plans/2026-10-21-core-reliability/tracking.md) ───────────────
+
+// TR-1: the agent's process is what survives /clear. The main fabric-mcp names it (its parent pid, the agent), and
+// enrolls with the runtime id the agent has NOW, not only the one in its environment at start.
+test('TR-1: an enrollment names the agent process, and the runtime id the agent has now', async () => {
+  let current = 'rt-new'
+  const h = harness({ store: memCreds([CRED]), extra: { runtimeSessionId: 'rt-env', agentPid: 4242, currentRuntimeSessionId: () => current } })
+  await h.proxy.connectOnce()
+  assert.deepEqual(h.calls[0].args, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', agentPid: 4242 })
+  current = null
+  const g = harness({ store: memCreds([CRED]), extra: { runtimeSessionId: 'rt-env', agentPid: 4242, currentRuntimeSessionId: () => current } })
+  await g.proxy.connectOnce()
+  assert.equal(g.calls[0].args.runtimeSessionId, 'rt-env', 'unknown now: the environment\'s id')
+  const bad = harness({ store: memCreds([CRED]), extra: { agentPid: 1 } })
+  await bad.proxy.connectOnce()
+  assert.equal('agentPid' in bad.calls[0].args, false, 'pid 1 names no agent')
+})
+
+test('TR-1: a rejoin names the agent process it found for its runtime id', async () => {
+  const h = harness({ store: memCreds([CRED]), extra: { runtimeSessionId: 'rt-42', rejoinOnly: true, agentPid: 777 } })
+  await h.proxy.connectOnce()
+  assert.deepEqual(h.calls[0].args, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-42', rejoinOnly: true, agentPid: 777 })
+})
+
+test('TR-1: Claude Code\'s session file maps a pid to its current session id and back; .key files are never read', async () => {
+  const { claudeSessionOfPid, claudePidOfSession, claudeSessionsDir } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const dir = mkdtempSync(path.join(tmpdir(), 'claude-sessions-'))
+  writeFileSync(path.join(dir, '4242.json'), JSON.stringify({ pid: 4242, sessionId: 'rt-new', status: 'busy' }))
+  writeFileSync(path.join(dir, '5151.json'), JSON.stringify({ pid: 5151, sessionId: 'rt-other' }))
+  writeFileSync(path.join(dir, '6000.json'), JSON.stringify({ pid: 6001, sessionId: 'rt-liar' }))
+  writeFileSync(path.join(dir, '7000.json'), '{not json')
+  writeFileSync(path.join(dir, '4242.abc.key'), 'SECRET')
+  assert.equal(claudeSessionOfPid(dir, 4242), 'rt-new')
+  assert.equal(claudeSessionOfPid(dir, 6000), null, 'a file whose pid is not its name is not believed')
+  assert.equal(claudeSessionOfPid(dir, 9999), null)
+  assert.equal(claudePidOfSession(dir, 'rt-new'), 4242)
+  assert.equal(claudePidOfSession(dir, 'rt-liar'), null)
+  assert.equal(claudePidOfSession(dir, 'rt-gone'), null)
+  assert.equal(claudePidOfSession(path.join(dir, 'absent'), 'rt-new'), null)
+  assert.equal(claudeSessionsDir({ CLAUDE_CONFIG_DIR: '/x/cfg' }, '/home/me'), '/x/cfg/sessions')
+  assert.equal(claudeSessionsDir({}, '/home/me'), '/home/me/.claude/sessions')
+})
+
+// TR-4: a live agent signs while it works, not only when it calls a Fabric tool.
+test('TR-4: while connected, the session is signed every signEveryMs with one ping, and not more often', async () => {
+  let now = 0, pings = 0
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now, signEveryMs: 120_000 } })
+  h.link.ping = async () => { pings++ }
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  now = 60_000
+  await h.proxy.connectOnce()
+  assert.equal(pings, 0, 'not before its interval')
+  now = 121_000
+  await h.proxy.connectOnce()
+  assert.equal(pings, 1)
+  now = 122_000
+  await h.proxy.connectOnce()
+  assert.equal(pings, 1, 'one sign per interval')
+  assert.equal(h.logs.filter((l) => /sign|ping/i.test(l)).length, 0, 'no log line for a sign that went through')
+})
+
+// TR-5: a Fabric restart is noticed without the agent calling anything.
+test('TR-5: a hub that restarted (another pid) drops the dead session and enrolls again, by itself', async () => {
+  let hub = LIVE
+  const h = harness({ store: memCreds([CRED]), extra: { locate: () => hub } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  hub = { ...LIVE, pid: 2 }
+  const s = await h.proxy.connectOnce()
+  assert.equal(s.kind, 'connected')
+  assert.deepEqual(trail(h), ['cred:fabric.session.enroll', 'cred:fabric.session.enroll'], 'enrolled again with the new hub')
+  assert.equal(h.opened.length, 2)
+  assert.ok(h.logs.some((l) => /restarted|changed/.test(l)))
+})
+
+test('TR-5: a hub that is gone drops the session; it enrolls again once the hub is back', async () => {
+  let hub = LIVE
+  const h = harness({ store: memCreds([CRED]), extra: { locate: () => hub } })
+  await h.proxy.connectOnce()
+  hub = { ok: false, code: 'not-running', reason: 'no hub.json' }
+  assert.equal((await h.proxy.connectOnce()).kind, 'not-running')
+  assert.deepEqual((await h.proxy.tools()).map((t) => t.name), [WAITING_TOOL])
+  hub = { ...LIVE, pid: 3 }
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+})
+
+test('TR-5: a sign refused because the session is gone (401/404) drops it and enrolls again', async () => {
+  let now = 0
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now, signEveryMs: 1000 } })
+  h.link.ping = async () => { throw Object.assign(new Error('Session not found'), { code: 404 }) }
+  await h.proxy.connectOnce()
+  now = 2000
+  const s = await h.proxy.connectOnce()
+  assert.equal(s.kind, 'connected')
+  assert.equal(h.opened.length, 2, 'a new session')
+})
+
+test('TR-5: a sign that fails in the client (a timeout) keeps the session', async () => {
+  let now = 0
+  const h = harness({ store: memCreds([CRED]), extra: { now: () => now, signEveryMs: 1000 } })
+  h.link.ping = async () => { throw Object.assign(new Error('Request timed out'), { name: 'McpError', code: -32001 }) }
+  await h.proxy.connectOnce()
+  now = 2000
+  await h.proxy.connectOnce()
+  assert.equal(h.opened.length, 1)
+  assert.equal(h.proxy.state.kind, 'connected')
+})
+
+// TR-11: a rejoin that finds no session says so once and ends, instead of retrying until the hook's deadline.
+test('TR-11: a rejoin that finds no session is final: the run loop ends and says why', async () => {
+  const h = harness({ store: memCreds([CRED]), enroll: () => 'no-project', extra: { runtimeSessionId: 'rt-42', rejoinOnly: true } })
+  let final = null
+  h.proxy.onFinal = (state) => { final = state }
+  // Bounded: the old loop retried for ever; stop it after five passes so the failure is an assertion, not a hang.
+  const stop = { stopped: false }
+  h.proxy.deps.sleep = (ms) => { h.slept.push(ms); if (h.slept.length >= 5) stop.stopped = true; return Promise.resolve() }
+  await h.proxy.run(stop)
+  assert.equal(final?.kind, 'not-enrolled')
+  assert.equal(h.calls.length, 1, 'asked once, not every 30 s')
+})

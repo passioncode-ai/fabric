@@ -399,6 +399,10 @@ export interface LeaseRef {
   key: string
   ref: string
   sha: string
+  /** TR-7: read from the lease's own commit (its `ts` + `ttl`): live until `expiresAt`, expired, or unknown when the
+   *  commit is not in the local repository or is not a lease. Absent: not read. */
+  state?: 'live' | 'expired' | 'unknown'
+  expiresAt?: string | null
 }
 
 export const LEASE_REF_PREFIX = 'refs/agent-sync/leases/'
@@ -487,7 +491,7 @@ export interface WorkHeldView {
 export type LeaseReadCode = 'not-used' | 'no-origin' | 'not-listable' | 'remote-unreadable' | 'timeout' | 'too-large' | 'refused'
 
 export type WorkLeasesView =
-  | { read: true; repository: string; readAt: string; leases: Array<{ key: string }>; truncated: boolean }
+  | { read: true; repository: string; readAt: string; leases: Array<{ key: string }>; truncated: boolean; /** Expired leases, counted, not listed (TR-7). */ expired?: number }
   | { read: false; code: Exclude<LeaseReadCode, 'not-used'> }
 
 export interface ProjectWorkView {

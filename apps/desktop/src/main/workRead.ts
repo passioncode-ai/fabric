@@ -7,7 +7,7 @@
  * from a read that did not happen (M108, IMP-04).
  */
 import type { createScopedStore } from './scopedStore.ts'
-import type { LeaseRefsRead } from './agentSyncLeases.ts'
+import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
 import {
   claimLife,
   relatedPairs,
@@ -232,7 +232,11 @@ export async function readProjectWork(
 /** The screens' view of the lease read: null for a repository that does not use agent-sync (no block at all), and an
  *  unread list as its code alone — each window says it in its own language (0.3.5 review UX-5). */
 export function leasesView(refs: LeaseRefsRead & { repository: string }): WorkLeasesView | null {
-  if (refs.read) return { read: true, repository: refs.repository, readAt: refs.readAt, leases: refs.leases.map((l) => ({ key: l.key })), truncated: refs.truncated }
+  if (refs.read) {
+    // TR-7: an expired lease is not current; it is counted, not shown as one.
+    const shown = currentLeases(refs)
+    return { read: true, repository: refs.repository, readAt: refs.readAt, leases: shown.read ? shown.leases.map((l) => ({ key: l.key })) : [], truncated: refs.truncated, ...(shown.read && shown.expired ? { expired: shown.expired } : {}) }
+  }
   return refs.code === 'not-used' ? null : { read: false, code: refs.code }
 }
 

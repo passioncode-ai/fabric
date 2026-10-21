@@ -190,6 +190,8 @@ export async function openSessionLink(url: string, bearer: string, transportOf: 
   const link: SessionLink = {
     listTools: async () => (await client.listTools()).tools,
     callTool: async (name, args) => (await client.callTool({ name, arguments: args })) as Record<string, unknown>,
+    // TR-4: the session's sign of life while the agent works; the smallest request MCP has.
+    ping: async () => { await client.ping() },
     close: () => client.close(),
     // The SDK's close() sends nothing to the server; terminateSession() is the HTTP session's DELETE (0.3.5 review i2
     // ER-4). Bounded: a Fabric that is gone or hung must not hold the coding agent's exit.

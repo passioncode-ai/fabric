@@ -32,13 +32,13 @@ const emptyStore = {
   }
 }
 
-async function connect(runtimeSessionId = 'rt-hook-1') {
+async function connect(runtimeSessionId = 'rt-hook-1', extra = {}, scopeExtra = {}) {
   const appended = []
   const observed = []
   let ended = 0
   const server = new McpServer({ name: 'fabric', version: 'test' })
   registerWorkTools(server, {
-    scope: { estateId: 'e', projectId: 'p', sessionId: 's-1', taskId: null, cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId },
+    scope: { estateId: 'e', projectId: 'p', sessionId: 's-1', taskId: null, cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId, ...scopeExtra },
     store: emptyStore,
     append: async (e) => { appended.push(e); return { seq: appended.length } },
     appendObserved: async (e) => { observed.push(e); return { seq: 100 + observed.length } },
@@ -49,7 +49,8 @@ async function connect(runtimeSessionId = 'rt-hook-1') {
     leaseRefs: async () => null,
     onClaimed: () => {},
     endSession: () => { ended++ },
-    now: () => Date.parse('2026-10-13T10:00:00Z')
+    now: () => Date.parse('2026-10-13T10:00:00Z'),
+    ...extra
   })
   const [a, b] = InMemoryTransport.createLinkedPair()
   await server.connect(a)
@@ -103,4 +104,54 @@ test('the facts still refuse what is not a count: a negative or fractional numbe
     assert.equal(r.isError, true, `accepted ${JSON.stringify(bad)}`)
   }
   assert.equal(h.appended.length, 0)
+})
+
+// ── 0.3.9 tracking (docs/evidence/plans/2026-10-21-core-reliability/tracking.md) ─────────────────────────────────
+const END = { ...hookTurn({}), event: 'end', reason: 'prompt_input_exit', idempotencyKey: 'rt-hook-1:0001780000009' }
+
+// TR-2: `claude --resume` keeps the runtime id, so an end the hooks spooled from the previous process reaches the new
+// session. An end observed before this session enrolled is not this session's end.
+test('TR-2: an end observed before the session enrolled does not end it, and says so', async () => {
+  const h = await connect('rt-hook-1', { sessionStartedAt: () => Date.parse('2026-10-13T11:00:00Z') })
+  const r = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: END }))
+  assert.equal(r.recorded, false)
+  assert.equal(r.code, 'stale-end')
+  assert.equal(h.ended, 0)
+  assert.equal(h.observed.length, 0)
+  const later = await connect('rt-hook-1', { sessionStartedAt: () => Date.parse('2026-10-13T09:59:59.500Z') })
+  assert.equal(said(await later.client.callTool({ name: 'fabric_session_observe', arguments: END })).session, 'ended', 'an end observed after the enrollment ends it')
+})
+
+test('TR-2: a session-wide release from the hooks observed before the enrollment releases nothing', async () => {
+  const h = await connect('rt-hook-1', { sessionStartedAt: () => Date.parse('2026-10-13T11:00:00Z') })
+  const r = said(await h.client.callTool({ name: 'fabric_work_release', arguments: { claims: 'session', outcome: 'let-go', reason: 'the Claude Code session ended (other)', observedAt: '2026-10-13T10:00:00Z' } }))
+  assert.equal(r.released, false)
+  assert.equal(r.code, 'stale-end')
+})
+
+test('TR-2: while the agent\'s own fabric-mcp is connected, a rejoin\'s end neither ends the session nor releases its claims', async () => {
+  const h = await connect('rt-hook-1', { ownClientLive: () => true }, { rejoin: true })
+  const end = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: END }))
+  assert.deepEqual([end.recorded, end.code], [false, 'agent-still-connected'])
+  const rel = said(await h.client.callTool({ name: 'fabric_work_release', arguments: { claims: 'session', outcome: 'let-go', reason: 'the Claude Code session ended (other)' } }))
+  assert.deepEqual([rel.released, rel.code], [false, 'agent-still-connected'])
+  assert.equal(h.ended, 0)
+  const own = await connect('rt-hook-1', { ownClientLive: () => true })
+  assert.equal(said(await own.client.callTool({ name: 'fabric_session_observe', arguments: END })).session, 'ended', 'the agent\'s own bearer still ends it')
+})
+
+// TR-1: /clear is not the end of the agent: its process and its fabric-mcp go on.
+test('TR-1: an end for /clear keeps the session', async () => {
+  const h = await connect()
+  const r = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...END, reason: 'clear' } }))
+  assert.deepEqual([r.recorded, r.code], [false, 'session-kept'])
+  assert.equal(h.ended, 0)
+})
+
+test('TR-1: a turn naming the session\'s current (renamed) runtime id is this session\'s', async () => {
+  const h = await connect('rt-old', { currentRuntimeSessionId: () => 'rt-hook-1' })
+  const r = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({}) }))
+  assert.equal(r.recorded, true, JSON.stringify(r))
+  const other = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), runtimeSessionId: 'rt-x', idempotencyKey: 'rt-x:0001' } }))
+  assert.equal(other.code, 'not-this-session')
 })

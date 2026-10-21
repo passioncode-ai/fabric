@@ -41,7 +41,7 @@ import {
 } from '../shared/workClaims.ts'
 import { readRunHolds, readWork, type SessionSign } from './workRead.ts'
 import type { SourceResolution } from './backlogSource.ts'
-import type { LeaseRefsRead } from './agentSyncLeases.ts'
+import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 
@@ -54,6 +54,8 @@ export interface WorkScope {
   agent: string | null
   /** The coding agent's own session id (Claude Code's CLAUDE_CODE_SESSION_ID), when it enrolled with one. */
   runtimeSessionId: string | null
+  /** This bearer is a rejoin's (the session hooks', D2), not the agent's own fabric-mcp. */
+  rejoin?: boolean
 }
 
 /** A session of this project as Fabric knows it now: launched (a terminal) or enrolled (through the hub). */
@@ -85,7 +87,35 @@ export interface WorkToolDeps {
   /** Ends this session in Fabric (an `end` observation), after the answer has gone. */
   endSession(): void
   now(): number
+  /** When this session (re)enrolled in this run of Fabric, ms; null when unknown (TR-2). */
+  sessionStartedAt?(): number | null
+  /** The runtime id the session carries now: renamed when the agent's id changed under it (/clear, TR-1). */
+  currentRuntimeSessionId?(): string | null
+  /** Whether the agent's own fabric-mcp (not a rejoin) has signed this session lately (TR-2, TR-4). */
+  ownClientLive?(): boolean
 }
+
+// #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/** The hooks stamp an observation to the second (`%Y-%m-%dT%H:%M:%SZ`): an end in the enrollment's own second is not
+ *  stale. Anything earlier than this before the enrollment is (TR-2). */
+export const STALE_END_TOLERANCE_MS = 5_000
+
+/**
+ * Why an end or a session-wide release from the hooks must not end this session (TR-1, TR-2), or null when it may:
+ *   stale-end              observed before this session enrolled: an end the hooks spooled from an earlier process of
+ *                          the same runtime id (`claude --resume` keeps it), delivered to the session that resumed
+ *   agent-still-connected  a rejoin's end while the agent's own fabric-mcp still signs: the agent is alive; its own
+ *                          fabric-mcp ends the session when it goes (its leave), with its claims
+ */
+export function endRefusal(input: { observedAt: string | null; startedAt: number | null; rejoin: boolean; ownClientLive: boolean }): { code: 'stale-end' | 'agent-still-connected'; reason: string } | null {
+  const at = input.observedAt ? Date.parse(input.observedAt) : NaN
+  if (input.startedAt !== null && Number.isFinite(at) && at < input.startedAt - STALE_END_TOLERANCE_MS)
+    return { code: 'stale-end', reason: `this end was observed at ${input.observedAt}, before this session enrolled (${new Date(input.startedAt).toISOString()}): it belongs to an earlier process of the same coding-agent session. This session goes on, with its claims` }
+  if (input.rejoin && input.ownClientLive)
+    return { code: 'agent-still-connected', reason: 'the coding agent\'s own fabric-mcp is still connected and signing, so the agent has not ended; when it does, its fabric-mcp ends this session and releases its claims' }
+  return null
+}
+// #endregion work-session-end-guards
 
 /**
  * `fabric_work_release {claims: "session"}` (D5), READ BACK like the single-claim branch (0.3.5 review ER-8): every
@@ -135,7 +165,7 @@ export async function releaseEveryOwnClaim(
  */
 export async function moveDoneTaskToReview(
   readTask: () => Promise<{ id: string; status: TaskState } | null>,
-  move: (task: { id: string; status: TaskState }) => Promise<unknown>
+  move: (task: { id: string; status: TaskState }, to: TaskState) => Promise<unknown>
 ): Promise<{ task_moved_to: 'review' | null; task_status: TaskState | null; failed?: string }> {
   const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
   let task: { id: string; status: TaskState } | null
@@ -147,10 +177,59 @@ export async function moveDoneTaskToReview(
   }
   if (!task) return { task_moved_to: null, task_status: null }
   if (task.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
-  if (!mayMove('agent', task.status, 'review').ok) return { task_moved_to: null, task_status: task.status }
+  // A closed task moves nothing and fails nothing: the operator already decided it.
+  if (TERMINAL.includes(task.status)) return { task_moved_to: null, task_status: task.status }
+  // TR-3: the ladder does not lead from backlog to review; a task released done from backlog goes through running.
+  const steps: TaskState[] = task.status === 'backlog' ? ['running', 'review'] : ['review']
+  let failed: string | null = null
+  let cur: { id: string; status: TaskState } | null = task
+  for (const to of steps) {
+    if (!cur) break
+    const may = mayMove('agent', cur.status, to)
+    if (!may.ok) { failed = may.reason; break }
+    try {
+      await move(cur, to)
+    } catch (e) {
+      // Returned to the agent as `failed`, with the status read back below.
+      failed = said(e)
+      break
+    }
+    try {
+      cur = await readTask()
+    } catch (e) {
+      // Unread is not moved: nothing is claimed as done.
+      return { task_moved_to: null, task_status: task.status, failed: said(e) }
+    }
+    if (cur?.status !== to) { failed = `the move to ${to} could not be confirmed`; break }
+  }
+  if (cur?.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
+  return { task_moved_to: null, task_status: cur?.status ?? null, failed: failed ?? 'the move to review could not be confirmed' }
+}
+
+// #region work-claim-moves-task — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
+/**
+ * A claim moves its task from backlog to running (TR-3), READ BACK like the done release's move: `task_moved_to` is
+ * `running` only when the board says so, and `failed` says why it is not. A task in any other column is left where it
+ * is: running already, in review (the agent works on it again but the operator reads it there), or closed.
+ */
+export async function moveClaimedTaskToRunning(
+  readTask: () => Promise<{ id: string; status: TaskState } | null>,
+  move: (task: { id: string; status: TaskState }, to: TaskState) => Promise<unknown>
+): Promise<{ task_moved_to: 'running' | null; task_status: TaskState | null; failed?: string }> {
+  const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+  let task: { id: string; status: TaskState } | null
+  try {
+    task = await readTask()
+  } catch (e) {
+    // Returned to the agent as `failed`: the claim stands, the move is unknown.
+    return { task_moved_to: null, task_status: null, failed: said(e) }
+  }
+  if (!task || task.status !== 'backlog') return { task_moved_to: null, task_status: task?.status ?? null }
+  const may = mayMove('agent', 'backlog', 'running')
+  if (!may.ok) return { task_moved_to: null, task_status: 'backlog', failed: may.reason }
   let failed: string | null = null
   try {
-    await move(task)
+    await move(task, 'running')
   } catch (e) {
     // Returned to the agent as `failed`, with the status read back below.
     failed = said(e)
@@ -159,12 +238,12 @@ export async function moveDoneTaskToReview(
   try {
     after = await readTask()
   } catch (e) {
-    // Unread is not moved: nothing is claimed as done.
-    return { task_moved_to: null, task_status: task.status, failed: failed ?? said(e) }
+    return { task_moved_to: null, task_status: 'backlog', failed: failed ?? said(e) }
   }
-  if (after?.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
-  return { task_moved_to: null, task_status: after?.status ?? null, failed: failed ?? 'the move to review could not be confirmed' }
+  if (after?.status === 'running') return { task_moved_to: 'running', task_status: 'running' }
+  return { task_moved_to: null, task_status: after?.status ?? null, failed: failed ?? 'the move to running could not be confirmed' }
 }
+// #endregion work-claim-moves-task
 
 const reply = (value: Record<string, unknown>) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const KEY = z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/)
@@ -295,7 +374,8 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         released_by_operator: recent
           .filter((r) => r.owner_session === scope.sessionId && r.released_how === 'operator')
           .map((r) => ({ claim_id: r.id, task_id: r.work_id, at: r.released_at })),
-        agent_sync_leases: leases === null ? { read: false, reason: 'this project has no repository' } : leases,
+        // TR-7: only leases still held are listed; expired ones are counted.
+        agent_sync_leases: leases === null ? { read: false, reason: 'this project has no repository' } : currentLeases(leases),
         read_at: snap.readAt
       })
     }
@@ -422,6 +502,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         }))
       }
       deps.onClaimed()
+      // TR-3: the claimed task leaves backlog for running, read back; a move that did not land is said.
+      const moved = same ? null : await moveClaimedTaskToRunning(() => ownTask(id as string), (t, to) =>
+        deps.append({ type: 'task.moved@1', payload: { task_id: t.id, from: t.status, to, note: null } }))
       const snap = await readWork(store, { now: deps.now(), session: deps.session })
       const sources = new Map<string, SourceRow>(snap.claims.filter((c) => c.source).map((c) => [c.work_id, c.source as SourceRow]))
       const related = relatedTo(
@@ -431,7 +514,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         await edgesOf(store, id)
       )
       return reply(claimAnswer(settled, {
-        task: { id, title: task.title ?? task.instruction.slice(0, 200), status: task.status },
+        task: { id, title: task.title ?? task.instruction.slice(0, 200), status: moved?.task_status ?? task.status },
+        ...(moved?.task_moved_to ? { task_moved_to: moved.task_moved_to } : {}),
+        ...(moved?.failed ? { task_not_moved: `the claim stands, but its task did not move to running (${moved.failed}); read fabric_tasks_list` } : {}),
         filed,
         same_claim: same,
         ...(resolved ? { source: { repository: resolved.repository, path: resolved.path, id: resolved.rowId, id_checked: resolved.idChecked } } : {}),
@@ -457,10 +542,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         to: z.string().uuid().optional().describe('With handed-over: the session that takes it; by default the one that asked'),
         note: z.string().max(2000).optional().describe('What the next agent reads, or why you let it go'),
         reason: z.string().max(2000).optional().describe('The same as note'),
+        observedAt: z.string().datetime({ offset: true }).optional().describe('For the session hooks: when the end that prompts this release was observed; an end from before this session enrolled releases nothing'),
         idempotencyKey: KEY.optional()
       }
     },
-    async ({ claimId, taskId, claims, how, outcome, to, note, reason, idempotencyKey }) => {
+    async ({ claimId, taskId, claims, how, outcome, to, note, reason, observedAt, idempotencyKey }) => {
       const ending: AgentRelease | undefined = how ?? outcome
       const said = (note ?? reason)?.trim() || null
       if (!ending) return reply({ released: false, code: 'bad-input', reason: 'say how it ended: done, handed-over or let-go' })
@@ -473,6 +559,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         })).seq
 
       if (claims === 'session') {
+        // TR-2: a session-wide release is what the hooks send at an end; the end guards apply to it too.
+        const refused = endRefusal({ observedAt: observedAt ?? null, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false })
+        if (refused) return reply({ released: false, ...refused })
         const readLive = async (): Promise<Array<{ id: string; work_id: string }>> => {
           const live = await store.select('work_claims', 'id,work_id').eq('owner_session', scope.sessionId).is('released_at', null)
           if (live.error) throw new Error(`the claims could not be read: ${live.error.message}`)
@@ -492,7 +581,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       if (row.owner_session !== scope.sessionId) return reply({ released: false, code: 'not-yours', reason: 'another session holds that claim' })
       // The move of a done task, read back; a repeat calls it again to finish a move that did not land (ER-8).
       const toReview = (taskId: string) =>
-        moveDoneTaskToReview(() => ownTask(taskId), (task) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to: 'review', note: said } }))
+        moveDoneTaskToReview(() => ownTask(taskId), (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: said } }))
       const notMoved = (m: { task_status: TaskState | null; failed?: string }) => ({
         code: 'task-not-moved',
         task_status: m.task_status,
@@ -544,9 +633,18 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       }
     },
     async ({ event, runtime, runtimeSessionId, observedAt, head, filesChanged, linesAdded, linesRemoved, reason, idempotencyKey }) => {
-      if (!scope.runtimeSessionId || scope.runtimeSessionId !== runtimeSessionId)
+      // TR-1: the id the session carries now (renamed after a /clear) is this session's too.
+      const current = deps.currentRuntimeSessionId?.() ?? null
+      if (runtimeSessionId !== scope.runtimeSessionId && runtimeSessionId !== current)
         return reply({ recorded: false, code: 'not-this-session', reason: 'runtimeSessionId is not the one this session enrolled with' })
       if (event === 'turn' && reason !== undefined) return reply({ recorded: false, code: 'bad-input', reason: 'reason belongs to an end' })
+      if (event === 'end') {
+        // TR-1: /clear starts a new conversation in the same agent process; its fabric-mcp and this session go on.
+        if (reason === 'clear')
+          return reply({ recorded: false, code: 'session-kept', reason: '/clear keeps the agent process and its fabric-mcp, so this Fabric session goes on under the new runtime id' })
+        const refused = endRefusal({ observedAt, startedAt: deps.sessionStartedAt?.() ?? null, rejoin: scope.rejoin === true, ownClientLive: deps.ownClientLive?.() ?? false })
+        if (refused) return reply({ recorded: false, ...refused })
+      }
       const type = event === 'turn' ? 'session.turn.observed@1' : 'session.ended@1'
       const prior = await store.select('journal', 'seq').eq('type', type)
         .eq('payload->>session_id', scope.sessionId).eq('payload->>idempotency_key', idempotencyKey).limit(1)
