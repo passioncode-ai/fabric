@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-21T08:40:00Z · `—` · release close → main · fast-forward
+- run: r-8db0598178fb
+- files: the 0.3.8 ledger's Release close, the handoff, P-21 and the Now line, the map
+- conflicts: none
+- summary: Fabric 0.3.8 is published (08:22 UTC) and installed in /Applications; the running app restarts into it at the operator's next quit and open.
+
 ### 2026-10-21T02:30:00Z · `—` · agent/release-038 → main · fast-forward
 - run: r-8db0598178fb
 - files: main (toolTrace, index, accessService, hubTools, fabricMcp, fabricMcpClient), shared (toolOutcome, startupFailure, stackStartRetry, access, accessWords), i18n, their tests (toolOutcome, startupFailure, accessWords, stackStartRetry, fabric-mcp, hub-access-service, session-enroll-request, board-surface, the new tool-trace), CHANGELOG, AGENTS.md, ADR-0166's amendment, scenarios (SCN-132, SCN-137, SCN-161), release-mac, the backlog (P-20, P-21, the Now line), the carry-over ledger (CO-277, CO-291, CO-335, CO-360 to CO-363, wave 4 to 0.3.9), the plans, the 0.3.8 ledger and reviews, the map

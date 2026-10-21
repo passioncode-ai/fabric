@@ -200,3 +200,25 @@ The reviewers read `9b309b04`; their fixes are one commit after it, `0b8dd7cb` (
 which `ci.sh fast` passed before landing.
 
 Exit for iteration 3: 22 findings dispositioned; the final candidate `0b8dd7cbb032bc0d0cadef1a7ae81220d1e9df34` is `verifiedCommit`. Blocking findings open: none.
+
+## Release close: state on 2026-10-21
+
+- **Published.** [v0.3.8](https://github.com/passioncode-ai/fabric/releases/tag/v0.3.8) at 2026-10-21 08:22:43 UTC
+  (measured `gh release view v0.3.8`: prerelease, 14 assets), tag on `a3b8d9b4`; release run 39566358959 green (guard,
+  preflight, macOS, Windows x64 and arm64, Linux x64 and arm64, publish). Hosted `ci` on `a3b8d9b4`: run 39565129396,
+  success.
+- **Installed on the operator's Mac.** The universal DMG matched `SHA256SUMS`; `spctl` reads "Notarized Developer ID";
+  `/Applications/Fabric.app` is 0.3.8 (`CFBundleShortVersionString`), the 0.3.7 bundle kept outside `/Applications`.
+  The running process is still 0.3.7: the operator opened it, so the lifecycle broker answers `in_use_by_person`
+  (`taken_over_by_person`) to a restart and the next quit and open of Fabric runs 0.3.8. No database step: schema 94.
+  Between 0.3.7 and 0.3.8 no dependency, preload or IPC changed (`git diff v0.3.7 v0.3.8 --stat`), so a window the old
+  process opens from the new bundle meets the same contract.
+- **Running coding agents** keep the `fabric-mcp` they started with until each is restarted (iteration 3, DA-2).
+- **Board.** The publication message on thread `617c8cbe` (Observatory: `project.resolve` is live in 0.3.8, rerun the
+  live check after the restart; CO-339 is 0.3.9) and on the three release threads (0.3.8 published; the backoff is
+  10 minutes for a too-broad folder, not the 30 minutes the earlier correction said). Switchboard's SB-141 needs a
+  registry entry in Fabric before its `project.resolve` ask is admitted (CO-360).
+- **Knowledge base and workspace.** fabric-workspace `knowledge/products.md` and `roadmap.md` move from v0.3.6 to
+  v0.3.8; the workspace publication follows the landing.
+- **Open after the release:** OF-08's measurement is the first task of 0.3.9 (P-20); CO-360, CO-362 and CO-363 are
+  0.3.9.
