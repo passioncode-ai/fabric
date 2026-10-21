@@ -77,7 +77,17 @@ Run: owned-cluster suites `run-project-board-core-holds-db`, `run-project-board-
 `run-hub-upgrade-db`, `run-restore-authority-db`, `run-board-deferral-db`, `run-write-rules-db`: all pass. Unit: the five
 files above, `board-tool-schemas`, `board-surface`, `contract-consumer`, full `vitest run` (197 files, 2318 tests).
 Gates: `pnpm -C apps/desktop typecheck`, `check-regions`, `check-ops`, `check-list-reads`, `check-migration-order`,
-`check-ipc-contract`; `bash scripts/ci.sh fast`: see the last section.
+`check-ipc-contract`, and the ci.sh "ipc" to "commands" step scripts: all pass. The whole `apps/desktop` test chain
+(`package.json` `test`, after `pnpm build`): 133 commands pass without a database, and the 19 that need one pass on the
+disposable stack (`node scripts/test-stack.mjs run`, API 55421 / DB 55422, migrations 95 + seed; the live stack untouched).
+
+`bash scripts/ci.sh fast` stops in its documentation step, for two reasons that are the integrator's, not this branch's:
+1. `check-design-map.mjs`: "Changed iteration reuses the committed top entry: add a NEW top changelog entry" (the
+   design map is `docs/reports/`, written by the integrator).
+2. `check-registers.mjs`: "52 line citation(s) in living documents", all in the plan this branch started from
+   (`docs/evidence/plans/2026-10-21-core-reliability/board.md` and its siblings cite `file:line`; the gate treats a
+   dated folder's files as living). Present on the base commit `024216bc`; nothing here adds one.
+With the design-map line taken out of `gates:docs` locally (not committed), the step reaches only the second failure.
 
 ## User-visible strings (en / ru)
 
