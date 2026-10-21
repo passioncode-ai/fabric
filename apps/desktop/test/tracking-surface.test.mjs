@@ -216,7 +216,39 @@ test('UX-9: the tool descriptions say which ends do not end the session, that a 
   assert.match(tools.get('fabric_work_claim'), /moves its task from backlog to running/)
   assert.match(tools.get('fabric_work_release'), /done moves the task to review/)
   assert.match(tools.get('fabric_work_release'), /back to backlog/)
-  for (const name of ['fabric_session_observe', 'fabric_work_claim', 'fabric_work_release']) assert.doesNotMatch(tools.get(name), /—/, name)
+  for (const name of ['fabric_session_observe', 'fabric_work_claim', 'fabric_work_release']) assert.doesNotMatch(tools.get(name), /\u2014/, name)
   const stale = await call(client, 'fabric_session_observe', END({ runtimeSessionId: 'rt-d', observedAt: '2026-10-18T03:02:07Z' }))
   assert.match(stale.reason, /\.$/, 'the stale-end reason ends with a full stop')
+})
+
+// 0.3.9 review iteration 3, UX-4: the tool's description still said 0.3.8's "the other sessions running in this
+// project", and its unreadable answer blamed only the terminal manager. It lists every session, the caller's marked
+// is_you, the terminals Fabric runs and the agents enrolled from their own terminals, active or silent; when it cannot
+// answer it names what it could not read.
+test('UX-4 (i3): fabric_agents_list says what 0.3.9 lists, and an unreadable answer names what could not be read', async (t) => {
+  const { surface } = await surfaceWith([])
+  t.after(() => surface.stop())
+  const scope = surface.mint('p', 's-1', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-1' })
+  const client = await connect(surface, scope.token)
+  t.after(() => client.close())
+  const tool = (await client.listTools()).tools.find((x) => x.name === 'fabric_agents_list')
+  assert.doesNotMatch(tool.description, /^The other sessions/)
+  for (const said of [/every session/i, /is_you/, /enrolled from their own terminals/, /silent/, /came_in/])
+    assert.match(tool.description, said)
+  assert.doesNotMatch(tool.description, /\u2014/)
+
+  const blind = new AgentSurface({
+    db: emptyDb, journal: null, estateId: 'e', ptys: () => null,
+    work: { resolveSource: async () => ({ ok: false, part: 'repository', reason: 'none' }), leaseRefs: async () => null, endSession: () => {} }
+  })
+  await blind.start()
+  t.after(() => blind.stop())
+  const own = blind.mint('p', 's-2', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-2' })
+  const blindClient = await connect(blind, own.token)
+  t.after(() => blindClient.close())
+  const r = await call(blindClient, 'fabric_agents_list')
+  assert.equal(r.sessions, null)
+  assert.match(r.unreadable, /terminals Fabric runs/)
+  assert.match(r.unreadable, /enrolled from their own terminals/)
+  assert.doesNotMatch(r.unreadable, /\u2014/)
 })

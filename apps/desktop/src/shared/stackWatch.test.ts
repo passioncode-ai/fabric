@@ -332,9 +332,11 @@ describe('the startup wait window (review iteration 2, UX-3, UX-8)', () => {
       const say = translator(locale)
       const open = startupWaitLines({ ...base, locale, say, freeDiskBytes: 50e9, standby: { open: true } }).find((l) => l.id === 'agents')!.text
       expect(open).toBe(say('startup.wait.agents'))
-      const closed = startupWaitLines({ ...base, locale, say, freeDiskBytes: 50e9, standby: { open: false, reason: 'EADDRINUSE 127.0.0.1:47070' } }).find((l) => l.id === 'agents')!.text
+      const closedLines = startupWaitLines({ ...base, locale, say, freeDiskBytes: 50e9, standby: { open: false, reason: 'EADDRINUSE 127.0.0.1:47070' } })
+      const closed = closedLines.find((l) => l.id === 'agents')!.text
       expect(closed).not.toBe(say('startup.wait.agents'))
-      expect(closed).toContain('EADDRINUSE 127.0.0.1:47070')
+      // Review iteration 3, UX-2: the reason is the machine's, on its own quieter line, never inside the sentence.
+      expect(closedLines.find((l) => l.id === 'agentsWhy')!.text).toContain('EADDRINUSE 127.0.0.1:47070')
       expect(closed).not.toMatch(/\u2014/)
     }
   })
@@ -344,5 +346,52 @@ describe('the startup wait window (review iteration 2, UX-3, UX-8)', () => {
     expect(startupWaitLines({ ...base, say, freeDiskBytes: null, standby: { open: true }, nextInS: null }).find((l) => l.id === 'next')!.text).toBe('Trying now (try 2).')
     expect(startupWaitLines({ ...base, say, freeDiskBytes: null, standby: { open: true } }).find((l) => l.id === 'next')!.text).toBe('Next try in 20 s (try 2).')
   })
+})
+// 0.3.9 review iteration 3, UX-2: the no-hub line put the standby's English reason inside the Russian sentence, and the
+// reason itself repeated that agents cannot reach Fabric. The sentence says it once, in the reader's language; the
+// machine's reason stands on its own line, after it, as the machine's words.
+describe('the wait window says a hub it could not open once, in the reader\'s language (review iteration 3, UX-2)', () => {
+  const translator = (locale: 'en' | 'ru') => typedTranslator(locale) as unknown as (key: string, vars?: Record<string, string | number>) => string
+  const failure = classifyStartupFailure('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')
+  const reason = 'port 47070 on 127.0.0.1 is already in use by another program, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then quit and reopen Fabric'
+  for (const locale of ['en', 'ru'] as const) {
+    it(`${locale}: the agents line carries no machine reason; the reason is its own line, right after it`, () => {
+      const say = translator(locale)
+      const lines = startupWaitLines({ failure, waitsForDocker: true, locale, platform: 'darwin', nextInS: 20, attempt: 2, logPath: '/tmp/l', say, freeDiskBytes: 50e9, standby: { open: false, reason } })
+      const agents = lines.find((l) => l.id === 'agents')!.text
+      expect(agents).not.toContain(reason)
+      expect(agents).not.toMatch(/[()]/)
+      // The Russian sentence holds no English words but the product's name.
+      if (locale === 'ru') expect(agents.replace(/Fabric/g, '')).not.toMatch(/[A-Za-z]{3,}/)
+      const why = lines.find((l) => l.id === 'agentsWhy')!
+      expect(why.text).toContain(reason)
+      expect(lines.map((l) => l.id).indexOf('agentsWhy')).toBe(lines.map((l) => l.id).indexOf('agents') + 1)
+      expect(agents + why.text).not.toMatch(/\u2014/)
+      // While the standby holds the port there is no reason to show.
+      const open = startupWaitLines({ failure, waitsForDocker: true, locale, platform: 'darwin', nextInS: 20, attempt: 2, logPath: '/tmp/l', say, freeDiskBytes: 50e9, standby: { open: true } })
+      expect(open.find((l) => l.id === 'agentsWhy')!.text).toBe('')
+    })
+  }
+})
+
+// 0.3.9 review iteration 3, UX-1: in 0.3.8 a Docker that was away ended in the dialog that said to start it; in 0.3.9
+// that cause is waited for, and the wait window and the running notice no longer said what the person can do. Each
+// OS says how to start its Docker, in both languages.
+describe('when Docker is away, the person is told to start it, per OS (review iteration 3, UX-1)', () => {
+  const how: Record<'en' | 'ru', Record<'darwin' | 'win32' | 'linux', RegExp>> = {
+    en: { darwin: /If Docker is not running, open OrbStack or Docker Desktop\./, win32: /If Docker is not running, start Docker Desktop\./, linux: /If Docker is not running, start it: sudo systemctl start docker\./ },
+    ru: { darwin: /Если Docker не запущен, откройте OrbStack или Docker Desktop\./, win32: /Если Docker не запущен, запустите Docker Desktop\./, linux: /Если Docker не запущен, запустите его: sudo systemctl start docker\./ }
+  }
+  for (const [name, table] of [['en', en], ['ru', ru]] as const) {
+    it(`${name}: the wait window and the notice name the step for this OS`, () => {
+      const t = table as Record<string, string>
+      for (const key of ['startup.wait.docker', 'stack.health.docker'])
+        for (const platform of ['darwin', 'win32', 'linux'] as const) {
+          const words = t[platformKey(key, platform)]
+          expect(words, `${name} ${key} ${platform}`).toMatch(how[name][platform])
+          expect(words).not.toMatch(/\u2014/)
+        }
+    })
+  }
 })
 // #endregion stack-watch

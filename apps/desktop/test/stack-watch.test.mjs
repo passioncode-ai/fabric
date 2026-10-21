@@ -311,4 +311,68 @@ test('UX-1 (i2): a re-check while a hold stands is never said as a try; a start 
   release()
   await settle()
 })
+// 0.3.9 review iteration 3, ER-1: `stop()` (a quit) only stopped the scheduling; a read already in flight went on to
+// the try, and the try launched `supabase start` after the quit had begun. After stop no try may begin, and a try whose
+// Docker question was in flight when stop came launches nothing.
+test('ER-1 (i3): after stop, a read in flight starts no try', async () => {
+  const ops = createOps({ dir: mkdtempSync(path.join(tmpdir(), 'fabric-stack-watch-')) })
+  useOps(ops)
+  const pending = new Map()
+  let seq = 0
+  const timers = {
+    set: (fn, ms) => { const id = ++seq; pending.set(id, { fn, ms }); return id },
+    clear: (id) => { pending.delete(id) }
+  }
+  let t = 1_000_000
+  let read = null
+  let recovers = 0
+  const watch = createStackWatch({
+    readDatabase: () => new Promise((resolve) => { read = resolve }),
+    pingDocker: async () => false,
+    freeDisk: () => 50e9,
+    recover: async () => { recovers++ },
+    onChange: () => {},
+    now: () => t,
+    timers
+  })
+  watch.start()
+  // Two failed reads through the chain: the stack is lost, a try is due at the next.
+  for (let i = 0; i < 2; i++) {
+    const [id, timer] = [...pending.entries()][0]
+    pending.delete(id)
+    t += 30_000
+    timer.fn()
+    await settle()
+    read(false)
+    await settle()
+    await settle()
+  }
+  assert.equal(watch.view().stack, 'down')
+  assert.equal(recovers, 0)
+  // The next read is in flight, a try is due when it ends, and the quit stops the watch now.
+  const [id, timer] = [...pending.entries()][0]
+  pending.delete(id)
+  t += 30_000
+  timer.fn()
+  await settle()
+  watch.stop()
+  read(false)
+  for (let i = 0; i < 5; i++) await settle()
+  assert.equal(recovers, 0, 'the watch started the stack after stop')
+  assert.equal(pending.size, 0, 'stop leaves nothing pending')
+})
+
+test('ER-1 (i3): a try whose Docker question is in flight when stop comes launches nothing', async () => {
+  const { tick, world, watch } = rig({ containers: 'stopped' })
+  world.database = false
+  let answer
+  world.containers = new Promise((r) => { answer = r })
+  for (let i = 0; i < 6 && !answer.started; i++) { await tick(15_000); await settle() }
+  assert.equal(watch.view().trying, true, 'a try is asking Docker')
+  watch.stop()
+  answer('stopped')
+  for (let i = 0; i < 5; i++) await settle()
+  assert.equal(world.recovers, 0, 'the try launched supabase start after stop')
+  assert.equal(watch.view().trying, false, 'the try ended')
+})
 // #endregion stack-watch

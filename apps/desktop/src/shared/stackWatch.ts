@@ -309,10 +309,10 @@ export function platformKey(key: string, platform: string): string {
  * right after the title, before «Docker is not answering … opens by itself»: a full disk stops Docker, and the wait
  * would not end by itself (SCN-161's 0.3.8 amendment says the same of the failure dialog). UX-8: agents are told they
  * are asked to wait only while the standby holds the hub's port; when it could not take it, agents reach no Fabric at
- * all, and the line says so with the reason. Every id is always present (an empty text is a line not shown), so the
- * window updates its lines in place by id.
+ * all, and the line says so, with the machine's reason on a line of its own (review iteration 3, UX-2). Every id is
+ * always present (an empty text is a line not shown), so the window updates its lines in place by id.
  */
-export const STARTUP_WAIT_LINES = ['title', 'disk', 'cause', 'next', 'agents', 'log'] as const
+export const STARTUP_WAIT_LINES = ['title', 'disk', 'cause', 'next', 'agents', 'agentsWhy', 'log'] as const
 export type StartupWaitLine = (typeof STARTUP_WAIT_LINES)[number]
 
 export function startupWaitLines(input: {
@@ -338,7 +338,10 @@ export function startupWaitLines(input: {
     // Each OS names its own Docker (0.3.9 review UX-4, as 0.3.8 UX-1 did for the disk line).
     cause: say(input.waitsForDocker ? platformKey('startup.wait.docker', input.platform) : 'startup.wait.database'),
     next: input.nextInS === null ? say('startup.wait.trying', { attempt: input.attempt }) : say('startup.wait.next', { seconds: input.nextInS, attempt: input.attempt }),
-    agents: input.standby === null ? '' : input.standby.open ? say('startup.wait.agents') : say('startup.wait.agentsNoHub', { reason: input.standby.reason }),
+    agents: input.standby === null ? '' : input.standby.open ? say('startup.wait.agents') : say('startup.wait.agentsNoHub'),
+    // Review iteration 3, UX-2: the standby's reason is the machine's, in English; it stands on its own quieter line,
+    // never inside the reader's sentence (which says once that agents do not reach Fabric).
+    agentsWhy: input.standby !== null && !input.standby.open ? say('startup.wait.agentsWhy', { reason: input.standby.reason }) : '',
     log: say('startup.wait.log', { log: input.logPath })
   }
   return STARTUP_WAIT_LINES.map((id) => ({ id, text: text[id] }))

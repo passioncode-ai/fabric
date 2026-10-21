@@ -88,4 +88,30 @@ test('UX-3, UX-8 (i2): the wait window takes its lines and their order from star
   assert.doesNotMatch(show, /\['title', 'cause', 'disk'/, 'the disk line comes after the cause')
   assert.match(show, /p:empty\{display:none\}/)
 })
+// 0.3.9 review iteration 3, UX-1: every failed try called showStartupWait(), which on macOS shows and focuses the
+// window, so an outage of hours pulled Fabric over the person's work every couple of minutes, and a window the
+// person closed came back at the next try. Only the first wait shows it, and the person's own activation; later tries
+// change its text in place (the ticker).
+test('UX-1 (i3): a later try updates the wait window in place; only the first wait and the person\'s activation show it', () => {
+  const wait = between('function waitAndRetryStart', 'function startupWaitDone')
+  assert.match(wait, /if \(attempt === 1 && \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup\)\) showStartupWait\(\)/)
+  assert.equal((wait.match(/showStartupWait\(\)/g) ?? []).length, 1, 'a try shows the window another way')
+  assert.equal((src.match(/activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\)/g) ?? []).length, 2, 'the person\'s activation (activate, second-instance) still brings it back')
+  assert.match(between('function showStartupWait', 'function quitWhenPersonCloses'), /setInterval\(\(\) => \{[\s\S]*?textContent = v/, 'the ticker updates the text in place')
+})
+
+// 0.3.9 review iteration 3, ER-1: `recoverStack` (the runtime watch's try) cleared the quit's stop flag and launched
+// `supabase start` after the quit had begun. The flag a quit sets is never cleared, and neither start begins after it.
+// env.ts imports Electron, so it is pinned by source; the watch's own half is driven in stack-watch.test.mjs.
+test('ER-1 (i3): a quit\'s stop is never undone, and no start begins after it', () => {
+  const env = readFileSync(path.join(import.meta.dirname, '../src/main/env.ts'), 'utf8')
+  assert.equal((env.match(/(?<!let )stopRequested = false/g) ?? []).length, 0, 'something clears the quit\'s stop flag')
+  const slice = (from, to) => env.slice(env.indexOf(from), env.indexOf(to, env.indexOf(from)))
+  const recover = slice('export async function recoverStack', 'export async function stackDatabaseContainer')
+  assert.match(recover, /if \(stopRequested\) throw new Error\(/)
+  assert.ok(recover.indexOf('if (stopRequested) throw') < recover.indexOf('recoveryStart('), 'the start begins before the check')
+  const start = slice('export async function startStack', '// #region stack-recover-once')
+  assert.match(start, /if \(stopRequested\) throw new Error\(/)
+  assert.ok(start.indexOf('if (stopRequested) throw') < start.indexOf('startWithRetry('), 'the start begins before the check')
+})
 // #endregion startup-wait

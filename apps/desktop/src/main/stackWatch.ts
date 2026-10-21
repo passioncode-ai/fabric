@@ -116,6 +116,12 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
    */
   let generation = 0
   let running = false
+  /**
+   * Set by `stop()` (a quit) and never cleared (0.3.9 review iteration 3, ER-1): `running` only stops the chain, while
+   * a read already in flight would go on to a try and launch `supabase start` after the quit began. No try begins
+   * once this is set, and a try that was asking Docker when it was set launches nothing.
+   */
+  let stopped = false
   let reading = false
   let recovering: Promise<void> | null = null
   /** The hold last recorded, so a hold is recorded once per change, not once per re-check. */
@@ -156,12 +162,18 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
   }
 
   const tryRecover = (): void => {
-    if (!deps.recover || recovering) return
+    if (!deps.recover || recovering || stopped) return
     state = recoveryBegun(state, now())
     const attempt = state.recoveries + 1
     const down = state.why
     recovering = (async () => {
       const containers = await askContainers()
+      if (stopped) {
+        // ER-1 (i3): the watch was stopped (a quit) while Docker was asked: nothing is started after it, and nothing is
+        // recorded, since the quit itself is (quit.ts) and the stack's state is read afresh at the next launch.
+        state = { ...state, trying: false }
+        return
+      }
       const plan = recoveryPlan(containers)
       if (plan !== 'start') {
         // ER-3: a stop someone made (containers gone), or a database whose containers run: no `supabase start`.
@@ -235,7 +247,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       state = observed.state
       for (const e of observed.events) recordEvent(e)
       if (state.stack === 'up') heldRecorded = null
-      if (recoveryDue(state, t)) tryRecover()
+      if (!stopped && recoveryDue(state, t)) tryRecover()
       if (observed.events.length > 0 || state.stack === 'down') publish()
     } catch (e) {
       ops.failed('stack.watch.tick', e)
@@ -261,6 +273,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
     },
     stop() {
       running = false
+      stopped = true
       generation++
       if (timer) timers.clear(timer)
       timer = null
