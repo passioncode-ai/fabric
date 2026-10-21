@@ -128,8 +128,9 @@ await test('FAC-SEM-026: a request targets a participant, only a request carries
   assert.equal(submit(A, PA2, message(threadA, { replyTo: requestA }), digest(48)).ok, true, 'a plain message may name what it answers')
   assert.equal(reply.ok, true, JSON.stringify(reply))
   assert.equal(get(A, PA1, reply.message).message.replyTo, requestA)
-  // A reply is not a completion: the request stays queued.
-  assert.equal(get(A, PA1, requestA).message.request.state, 'queued')
+  // A reply is not a completion, but a reply from the request's target answers it (0.3.9 BD-1, migration 95): the
+  // asker reads it answered. Before 0.3.9 it stayed queued for ever.
+  assert.equal(get(A, PA1, requestA).message.request.state, 'answered')
 })
 
 await test('limits: 65,536 bytes of body pass and one more byte is refused before storage; 8 artifacts, 16 participants', () => {
@@ -189,7 +190,7 @@ await test('only the board commands append board events; no API role reads a boa
   refuses(`set role anon; select board_submit('${A}','${PA1}',${j(agent())},${j(message(threadA))},${lit(digest(80))})`, /permission denied/)
 })
 
-await test('primary rows are immutable; a rebuild replays the projections unchanged and the queued request survives', () => {
+await test('primary rows are immutable; a rebuild replays the projections unchanged and the answered request survives', () => {
   refuses(`update board_messages set kind='finding' where id='${requestA}'`, /immutable/)
   refuses(`delete from board_threads where id='${threadA}'`, /immutable/)
   const snapshot = () => sql(`select string_agg(message_id||':'||state||':'||effect||':'||revision||':'||submitted_seq, ',' order by message_id) from board_requests where estate_id='${A}';
@@ -197,7 +198,7 @@ await test('primary rows are immutable; a rebuild replays the projections unchan
   const before = snapshot()
   sql(`select rebuild_estate_projections('${A}')`)
   assert.equal(snapshot(), before)
-  assert.equal(get(A, PA2, requestA).message.request.state, 'queued')
+  assert.equal(get(A, PA2, requestA).message.request.state, 'answered')
 })
 
 // Migration 83 (suffix 94) — the operator's read path (COM-06/COM-07; ADR-0117 D3 sanctions the LOCAL
@@ -257,11 +258,15 @@ await test('operator read refuses what is not there and never writes: no marks, 
 // only reconciliation leaves it). The filters narrow the already-answered list and never re-query the
 // board, so the aggregate has to come from here. To WATCH these fail, run the runner with
 // FABRIC_SKIP_MIGRATION=20261011000100_project_board_thread_aggregates.sql.
-await test('thread aggregates: kinds are what the thread holds, sorted and distinct; a queued request is open', () => {
+await test('thread aggregates: kinds are what the thread holds, sorted and distinct; a queued request is open, an answered one is not', () => {
   const t = threadsOp(A).threads.find((x) => x.id === threadA)
   assert.ok(t, 'threadA missing')
   assert.deepEqual(t.kinds, ['message', 'reply', 'request'], JSON.stringify(t.kinds))
-  assert.ok(t.openRequests >= 1, JSON.stringify(t))
+  // requestA was answered by its target's reply (0.3.9 BD-1): it no longer waits on anyone.
+  assert.equal(t.openRequests, 0, JSON.stringify(t))
+  const asked = submit(A, PA1, request(PA2, [PA2]), digest(89))
+  assert.equal(asked.ok, true, JSON.stringify(asked))
+  assert.equal(threadsOp(A).threads.find((x) => x.id === asked.thread).openRequests, 1, 'a queued request is open')
   const fresh = submit(A, PA1, { idempotency: { epoch: 1, key: key() }, thread: { new: { participants: [PA2], subject: 'Plain notes' } }, kind: 'finding', body: { text: 'f' } }, digest(90))
   assert.equal(fresh.ok, true, JSON.stringify(fresh))
   const f = threadsOp(A).threads.find((x) => x.id === fresh.thread)

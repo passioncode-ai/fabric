@@ -10,6 +10,7 @@ import { resumePoint } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
 import { HomeBoard, HomeLive, HomeRhythm } from './launch/HomeParts'
 import { HomeAgents, HomeStats, HomeWorkLanes, useHome } from './launch/HomeWork'
+import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
 import { orderProjects } from '../../shared/homeLive.ts'
 import { since } from './duration'
 import {
@@ -46,7 +47,8 @@ export function EstateHome({
   onAddTopic,
   onPulse,
   onPersona,
-  onAgents = () => {}
+  onAgents = () => {},
+  onComms
 }: {
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
    *  estate holds no projects" — and saying it before looking is the one lie a
@@ -93,6 +95,8 @@ export function EstateHome({
   onPersona?: () => void
   /** «Все агенты»: the live consoles (SCR-50). */
   onAgents?: () => void
+  /** Comms (SCR-81), from what waits on the project board (0.3.9 BD-2). */
+  onComms?: () => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
   const showConsole = useOpenConsole()
@@ -520,6 +524,8 @@ export function EstateHome({
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
+          {/* 0.3.9 BD-2: requests between projects nobody can answer, and unread board messages, outside Comms. */}
+          <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} />
           <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} onBoard={onBoard} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">

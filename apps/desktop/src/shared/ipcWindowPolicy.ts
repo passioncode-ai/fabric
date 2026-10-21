@@ -161,6 +161,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   commsRelated: MAIN_ONLY,
   commsSearch: MAIN_ONLY,
   commsPending: MAIN_ONLY,
+  commsWaiting: MAIN_ONLY,
   commsOpenArtifact: MAIN_ONLY,
   attentionGrant: MAIN_ONLY,
   analyticsStatus: MAIN_ONLY,

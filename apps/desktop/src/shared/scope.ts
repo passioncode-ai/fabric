@@ -88,6 +88,7 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   board_attempts: { private: 'one fenced claim per request (generation, enrollment, lease), a projection; the board commands only' },
   board_progress_notes: { private: 'the at-most-once record of a responder\'s progress note per attempt and key; board_progress only' },
   board_directory_listings: { private: 'whether the operator unlisted a Project from the project directory, a projection; board_directory only' },
+  board_cursor_keys: { private: 'the HMAC key that binds com.list cursors, one per estate (0.3.9 BD-3); board_cursor_key only, never exported' },
   ceo_conversations: { private: 'private Person/subject identity; dedicated CEO authorization only' },
   ceo_private_contents: { private: 'immutable private discussion; dedicated owner-authorized reader only' },
   ceo_messages: { private: 'private ordered message identities; dedicated CEO reader only' },

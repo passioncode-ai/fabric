@@ -93,7 +93,8 @@ test('the caller\'s identity comes from the scope and the digest from the board,
   const board = createBoard({ rpc })
   const r = await board.submit(caller, submitRequest)
   assert.equal(r.ok, true)
-  assert.equal(calls.length, 1)
+  // One write; a request's receipt is followed by one read of whether anyone can answer it (0.3.9 BD-1).
+  assert.deepEqual(calls.map(c => c.fn), ['board_submit', 'board_responder_possible'])
   const a = calls[0].args
   assert.equal(a.p_estate_id, caller.estateId); assert.equal(a.p_sender, caller.projectId); assert.deepEqual(a.p_principal, caller.principal)
   assert.equal(a.p_digest, commsDigest('com.submit', submitRequest))
@@ -123,14 +124,16 @@ test('a page is the contract\'s comms-page; its cursor continues for this reader
   assert.match(first.cursor, /^[A-Za-z0-9_-]{8,128}$/)
   const second = await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor, limit: 1 })
   assert.equal(calls.at(-1).args.p_after_seq, 7); assert.equal(second.messages.length, 1)
-  const n = calls.length
+  // The cursor key is read from the board (0.3.9 BD-3); what must not happen is a PAGE read on a reset cursor.
+  const pages = () => calls.filter(c => c.fn === 'board_list' || c.fn === 'board_list_reader').length
+  const n = pages()
   const otherReader = { ...caller, projectId: '79000000-0000-4000-8000-000000000012' }
   assert.equal((await board.list(otherReader, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor })).error.code, 'cursor_reset_required')
   assert.equal((await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d2', cursor: first.cursor })).error.code, 'cursor_reset_required')
   assert.equal((await board.list(caller, { cursor: first.cursor })).error.code, 'cursor_reset_required', 'dropping the filter is a different audience')
   assert.equal((await createBoard({ rpc }).list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor })).error.code, 'cursor_reset_required', 'another run\'s key')
   assert.equal((await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor.slice(0, -1) + (first.cursor.endsWith('A') ? 'B' : 'A') })).error.code, 'cursor_reset_required', 'a tampered MAC')
-  assert.equal(calls.length, n, 'a reset cursor never reaches the board')
+  assert.equal(pages(), n, 'a reset cursor never reaches the board')
   const last = await createBoard({ rpc: fake({ board_list: { data: { ok: true, messages: [], last_seq: 3, more: false }, error: null } }).rpc }).list(caller, {})
   assert.equal(last.cursor, null, 'an exhausted snapshot has no cursor')
 })
@@ -369,7 +372,7 @@ test('the pinned set follows the vendored pin: an unserved operation has no argu
 test('the cycle\'s board upkeep never throws: a pass that fails is logged and answers null', async () => {
   const { tickBoard } = await import('../src/main/boardService.ts')
   const { rpc, calls } = fake({ board_tick: { data: { ok: true, expired: 1, rotated: 0, retired: 0, receipts_compacted: 0, outbox_compacted: 2 }, error: null } })
-  assert.deepEqual(await tickBoard(rpc, caller.estateId), { expired: 1, rotated: 0, retired: 0, receipts_compacted: 0, outbox_compacted: 2 })
+  assert.deepEqual(await tickBoard(rpc, caller.estateId), { answered: 0, expired: 1, rotated: 0, retired: 0, receipts_compacted: 0, outbox_compacted: 2 }, 'a board before 0.3.9 answers no count of answered requests: 0')
   assert.deepEqual(calls[0], { fn: 'board_tick', args: { p_estate_id: caller.estateId } })
   for (const answer of [new Error('down'), { data: null, error: { code: '55P03', message: 'lock timeout' } }, { data: { error: { code: 'invalid_arguments' } }, error: null }]) {
     logged.length = 0
@@ -552,3 +555,94 @@ test('DEC-0077: a directory page lists each Project once and each capability onc
   }
 })
 // #endregion project-board-service-w2-fixes
+
+// ── 0.3.9 "the core holds", the board part (docs/evidence/plans/2026-10-21-core-reliability/board.md BD-1, BD-3, BD-4) ──
+// #region board-core-holds — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
+const KEY = 'ab'.repeat(32)
+const reader = (extra = {}) => ({ data: { ok: true, messages: [{ ...fixtures.document('current/positive/comms-page.json').messages[0], read: false }], last_seq: 9, more: true, ...extra }, error: null })
+
+test('BD-3: com.list {unread: true} reads board_list_reader, each message says whether it is read; the plain call keeps the contract page', async () => {
+  const { rpc, calls } = fake({ board_cursor_key: { data: { ok: true, key: KEY }, error: null }, board_list_reader: () => reader(),
+    board_list: { data: { ok: true, messages: [fixtures.document('current/positive/comms-page.json').messages[0]], last_seq: 3, more: false }, error: null } })
+  const board = createBoard({ rpc })
+  const page = await board.list(caller, { unread: true, limit: 10 })
+  assert.equal(page.messages[0].read, false)
+  const asked = calls.find(c => c.fn === 'board_list_reader')
+  assert.ok(asked, 'the unread read never reached the board')
+  assert.equal(asked.args.p_unread, true); assert.equal(asked.args.p_since, null); assert.equal(asked.args.p_limit, 10)
+  const plain = await board.list(caller, {})
+  assert.equal(validators['comms-page.schema.json'](plain), true, 'the plain page stays the contract page')
+  assert.equal(calls.filter(c => c.fn === 'board_list').length, 1)
+  const since = await board.list(caller, { since: '2026-10-20T00:00:00Z' })
+  assert.equal(calls.at(-1).args.p_since, '2026-10-20T00:00:00Z'); assert.equal(calls.at(-1).args.p_unread, false)
+  assert.ok(Array.isArray(since.messages))
+  for (const bad of [{ unread: 'yes' }, { since: 'yesterday' }, { unread: true, estate_id: caller.estateId }])
+    assert.equal((await board.list(caller, bad)).error?.code, 'invalid_arguments', JSON.stringify(bad))
+})
+
+test('BD-3: a cursor survives a restart: the key is the estate\'s, kept by the board, and stays bound to the reader and the filter', async () => {
+  const { rpc } = fake({ board_cursor_key: { data: { ok: true, key: KEY }, error: null }, board_list_reader: () => reader() })
+  const first = await createBoard({ rpc }).list(caller, { unread: true })
+  assert.match(first.cursor, /^[A-Za-z0-9_-]{8,128}$/)
+  const restarted = createBoard({ rpc })
+  const next = await restarted.list(caller, { unread: true, cursor: first.cursor })
+  assert.equal(next.error, undefined, JSON.stringify(next))
+  assert.equal((await restarted.list(caller, { cursor: first.cursor })).error?.code, 'cursor_reset_required', 'the unread filter is part of the audience')
+  assert.equal((await restarted.list({ ...caller, projectId: '79000000-0000-4000-8000-000000000012' }, { unread: true, cursor: first.cursor })).error?.code, 'cursor_reset_required')
+})
+
+test('BD-3: a key the board cannot give is logged and the run uses its own: cursors still work within the run', async () => {
+  logged.length = 0
+  const { rpc } = fake({ board_cursor_key: new Error('socket hang up'), board_list_reader: () => reader() })
+  const board = createBoard({ rpc })
+  const first = await board.list(caller, { unread: true })
+  assert.ok(first.cursor)
+  assert.equal((await board.list(caller, { unread: true, cursor: first.cursor })).error, undefined)
+  assert.ok(logged.some(x => x.outcome === 'failed' && /cursor/.test(JSON.stringify(x))), JSON.stringify(logged))
+})
+
+test('BD-4: com.read_ack marks a list of messages or a thread up to a message in one call; one message keeps the contract call', async () => {
+  const many = { ok: true, repeated: false, marked: 2, alreadyRead: 1, at: '2026-10-21T07:00:00.000Z' }
+  const { rpc, calls } = fake({ board_read_ack_many: { data: many, error: null }, board_read_ack: { data: { ok: true, repeated: false, message: M1, at: '2026-10-21T07:00:00.000Z' }, error: null } })
+  const board = createBoard({ rpc })
+  const r = await board.readAck(caller, { messages: [M1.toUpperCase(), T1] })
+  assert.deepEqual(r, many)
+  const call = calls.at(-1)
+  assert.equal(call.fn, 'board_read_ack_many'); assert.deepEqual(call.args.p_messages, [M1, T1]); assert.equal(call.args.p_thread, null); assert.equal(call.args.p_up_to, null)
+  await board.readAck(caller, { thread: T1, upTo: M1 })
+  assert.deepEqual([calls.at(-1).args.p_thread, calls.at(-1).args.p_up_to, calls.at(-1).args.p_messages], [T1, M1, null])
+  await board.readAck(caller, { message: M1 })
+  assert.equal(calls.at(-1).fn, 'board_read_ack')
+  const n = calls.length
+  for (const bad of [{}, { messages: [] }, { messages: Array.from({ length: 101 }, () => M1) }, { message: M1, messages: [M1] }, { thread: T1 }, { messages: ['abcdefgh'] }])
+    assert.ok(['invalid_arguments', 'not_authorized'].includes((await board.readAck(caller, bad)).error?.code), JSON.stringify(bad))
+  assert.equal(calls.length, n, 'a malformed bulk mark reached the board')
+  const service = { ...caller, surface: 'board' }
+  assert.equal((await board.readAck(service, { messages: [M1] })).error.code, 'not_authorized', 'a board session never clears its Project\'s marks')
+})
+
+test('BD-1: a request nobody can answer is accepted with noResponder in its receipt; one somebody can answer is not', async () => {
+  const receipt = { ...goodReceipt, request: { id: M1, state: 'queued', effect: 'not_started', revision: 1 } }
+  const nobody = await createBoard({ rpc: fake({ board_submit: { data: receipt, error: null }, board_responder_possible: { data: { ok: true, possible: false }, error: null } }).rpc }).submit(caller, submitRequest)
+  assert.equal(nobody.ok, true)
+  assert.equal(nobody.noResponder.capability, submitRequest.request.capability)
+  assert.match(nobody.noResponder.message, /reply/)
+  const somebody = await createBoard({ rpc: fake({ board_submit: { data: receipt, error: null }, board_responder_possible: { data: { ok: true, possible: true }, error: null } }).rpc }).submit(caller, submitRequest)
+  assert.equal(somebody.noResponder, undefined)
+  logged.length = 0
+  const unknown = await createBoard({ rpc: fake({ board_submit: { data: receipt, error: null }, board_responder_possible: new Error('timeout') }).rpc }).submit(caller, submitRequest)
+  assert.equal(unknown.ok, true, 'the request was stored; an unreadable check does not undo it'); assert.equal(unknown.noResponder, undefined)
+  assert.ok(logged.some(x => x.outcome === 'failed'), 'the unreadable check is logged')
+  assert.equal(commsReceiptSchema.safeParse({ ...receipt, request: { ...receipt.request, state: 'answered', revision: 2 } }).success, true, 'answered is a request state')
+})
+
+test('BD-1: the tool descriptions say what changed: a target\'s reply answers, unread and since, the bulk mark, noResponder', () => {
+  const described = new Map()
+  registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => caller)
+  assert.match(described.get('com.list'), /unread/); assert.match(described.get('com.list'), /since/); assert.match(described.get('com.list'), /survives/)
+  assert.match(described.get('com.read_ack'), /messages/); assert.match(described.get('com.read_ack'), /upTo/)
+  assert.match(described.get('com.reply'), /answered/); assert.doesNotMatch(described.get('com.reply'), /no request changes state/)
+  assert.match(described.get('com.submit'), /noResponder/); assert.match(described.get('com.submit'), /7 days/)
+  for (const op of ['com.list', 'com.read_ack', 'com.reply', 'com.submit']) assert.doesNotMatch(described.get(op), /\u2014/, `${op}'s description carries an em dash`)
+})
+// #endregion board-core-holds

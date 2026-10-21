@@ -352,7 +352,9 @@ await test('pending: per project, what was delivered, held and not marked read â
   assert.equal(pb.findings, 1); assert.equal(pb.requests, 1); assert.equal(pb.requestsWithAbsentResponder, 1, 'no agent answers reports.weekly')
   assert.match(pb.oldestAt, /Z$/)
   void r
-  assert.deepEqual(call('board_pending_operator', q(OTHER), '100').projects, [], 'a thread whose only participant is its sender delivers nothing')
+  // A thread whose only participant is its sender delivers nothing; its request to itself still waits on nobody (0.3.9
+  // BD-2: a request nobody answers is counted from the request, not from an unread delivery).
+  assert.deepEqual(call('board_pending_operator', q(OTHER), '100').projects.map(x => [x.project, x.unread, x.requestsWithAbsentResponder]), [[F, 0, 1]])
   assert.ok(!call('board_pending_operator', q(E), '100').projects.some(x => [PA, PB, PC].includes(x.project)), 'the estate is the boundary')
   assert.equal(call('board_pending_operator', 'null', '100').error?.code, 'invalid_arguments')
 })
