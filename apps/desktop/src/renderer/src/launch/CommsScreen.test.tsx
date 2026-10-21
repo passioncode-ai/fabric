@@ -733,6 +733,19 @@ describe('a request\'s timeline and related threads (SCN-147 step 7)', () => {
     expect(texts[1]).toMatch(/claimed → cancelled · by the requester$/)
     expect(timeline).toHaveBeenCalledWith(REQ_ID)
   })
+  // Review i1 UX-8: 0.3.9's cause `target-reply` reached the screen as the raw word in both languages.
+  it('a request answered by its target says so in words, in en and ru (UX-8)', async () => {
+    expect(en['launch.comms.cause.target-reply' as keyof typeof en]).toBeTruthy()
+    expect(ru['launch.comms.cause.target-reply' as keyof typeof ru]).toBeTruthy()
+    const timeline = vi.fn(async () => ({ ok: true, more: false, steps: [
+      { op: 'answer', from: 'queued', to: 'answered', cause: 'target-reply', at: '2026-10-11T08:00:00.000Z' }] }))
+    await openRequest('answered', { timeline })
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.timeline.title'] }))
+    const steps = await screen.findAllByRole('listitem')
+    const text = steps.map((s) => s.textContent ?? '').find((s) => s.includes('→')) ?? ''
+    expect(text).toContain(en['launch.comms.cause.target-reply' as keyof typeof en])
+    expect(text).not.toContain('target-reply')
+  })
   it('a timeline that cannot be read says so where it would be', async () => {
     await openRequest('queued', { timeline: async () => ({ ok: false, error: { code: 'unavailable', message: 'down' } }) })
     fireEvent.click(screen.getByRole('button', { name: en['launch.comms.timeline.title'] }))
@@ -835,7 +848,7 @@ describe('what waits for a project (SCN-157)', () => {
   it('lists each project with what waits, and opening one narrows the list to it', async () => {
     const comms = board({ threads: [THREAD, THREAD_B], over: { pending: async () => ({ ok: true, more: false, projects: [ROW] }) } })
     show()
-    const row = await screen.findByRole('button', { name: /^Beacon: unread 3, the oldest .+ ago; findings 1, requests 2$/ })
+    const row = await screen.findByRole('button', { name: /^Beacon: unread 3, findings 1, requests 2; the longest wait .+$/ })
     expect(row.closest('li')!.textContent).toContain(en['launch.comms.pending.noResponder'].replace('{count}', '1'))
     fireEvent.click(row)
     await waitFor(() => expect(comms.threadPage).toHaveBeenCalledWith({ project: 'p2' }, null, 50))
@@ -851,6 +864,19 @@ describe('what waits for a project (SCN-157)', () => {
     show()
     await screen.findByRole('button', { name: /^Beacon: unread 3/ })
     expect(screen.queryByText(/more projects/i)).toBeNull()
+  })
+  // Review i1 UX-6: a project whose request was read but nobody answers it comes with unread 0 and requests 0 (requests
+  // counts unread ones), so "requests 0 · 1 of them have no agent" contradicted itself. The two numbers now agree.
+  it('a read request nobody answers is said on its own, never as "1 of them" of zero (UX-6)', async () => {
+    const READ_ONLY = { project: 'p2', unread: 0, oldestAt: '2026-10-11T06:00:00.000Z', findings: 0, requests: 0, requestsWithAbsentResponder: 1 }
+    board({ threads: [THREAD], over: { pending: async () => ({ ok: true, more: false, projects: [READ_ONLY] }) } })
+    show()
+    const row = await screen.findByRole('button', { name: /^Beacon: nothing unread; the longest wait .+$/ })
+    const text = row.closest('li')!.textContent ?? ''
+    expect(text).not.toMatch(/of them|unread 0|requests 0/)
+    expect(text).toContain(en['launch.comms.pending.noResponder'].replace('{count}', '1'))
+    expect(en['launch.comms.pending.noResponder']).toMatch(/: \{count\}$/)
+    expect(ru['launch.comms.pending.noResponder']).toMatch(/: \{count\}$/)
   })
   it('says nothing waits when nothing does, and that it could not be read when it could not — the list is unaffected', async () => {
     board({ threads: [THREAD] })

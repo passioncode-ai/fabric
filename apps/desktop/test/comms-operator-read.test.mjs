@@ -315,14 +315,16 @@ const { useOps } = await import('../src/main/opsSink.ts')
 const logged = []
 useOps({ correlate: () => 'test', record: (r) => logged.push(r), begin: () => () => {}, read: () => [], file: () => null, lost: () => 0 })
 
-test('BD-2: waiting reads requests nobody answers and unread board messages, each with its oldest; a bad shape is unavailable', async () => {
-  const good = { ok: true, requests: 6, oldestRequestAt: '2026-10-16T12:48:00.000Z', unread: 3084, oldestUnreadAt: '2026-10-16T12:48:00.000Z' }
-  const { rpc, calls } = fake({ board_waiting_operator: { data: good, error: null } })
-  assert.deepEqual(await createCommsOperatorRead({ rpc }).waiting(ESTATE), good)
+test('BD-2: waiting reads requests nobody answers, with the oldest; a bad shape is unavailable', async () => {
+  // Review i1 UX-1 / DA-8: the unread-deliveries half the database still answers is not carried to the home: it counts
+  // one copy per recipient project (3,103 on the operator's data) and nothing the operator does lowers it.
+  const answered = { ok: true, requests: 6, oldestRequestAt: '2026-10-16T12:48:00.000Z', unread: 3084, oldestUnreadAt: '2026-10-16T12:48:00.000Z' }
+  const { rpc, calls } = fake({ board_waiting_operator: { data: answered, error: null } })
+  assert.deepEqual(await createCommsOperatorRead({ rpc }).waiting(ESTATE), { ok: true, requests: 6, oldestRequestAt: '2026-10-16T12:48:00.000Z' })
   assert.deepEqual(calls, [{ fn: 'board_waiting_operator', args: { p_estate: ESTATE } }])
-  const none = { ok: true, requests: 0, unread: 0 }
-  assert.deepEqual(await createCommsOperatorRead(fake({ board_waiting_operator: { data: none, error: null } })).waiting(ESTATE), none)
-  for (const bad of [{ ok: true, requests: '6', unread: 0 }, { ok: true, requests: 1, unread: 0 }, { ok: true, requests: -1, unread: 0 }, { ok: true, unread: 0 }])
+  assert.deepEqual(await createCommsOperatorRead(fake({ board_waiting_operator: { data: { ok: true, requests: 0, unread: 3103, oldestUnreadAt: '2026-10-16T12:48:00.000Z' }, error: null } })).waiting(ESTATE), { ok: true, requests: 0 })
+  assert.deepEqual(await createCommsOperatorRead(fake({ board_waiting_operator: { data: { ok: true, requests: 0 }, error: null } })).waiting(ESTATE), { ok: true, requests: 0 }, 'a later database without the unread half still reads')
+  for (const bad of [{ ok: true, requests: '6', unread: 0 }, { ok: true, requests: 1, unread: 0 }, { ok: true, requests: -1, unread: 0 }, { ok: true, unread: 0 }, { ok: true, requests: 0, oldestRequestAt: 7 }])
     assert.equal((await createCommsOperatorRead(fake({ board_waiting_operator: { data: bad, error: null } })).waiting(ESTATE)).ok, false, JSON.stringify(bad))
 })
 
