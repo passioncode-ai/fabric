@@ -109,7 +109,11 @@ let starting: { kill(signal?: NodeJS.Signals): boolean } | null = null
  * for up to its 240 s limit. Containers it had already started stay, as they would after any start; the
  * next launch's start picks them up.
  */
-/** Set by a quit; the retry between tries reads it so no new start begins after it (DO-5). */
+/**
+ * Set by a quit and never cleared (0.3.9 review iteration 3, ER-1): the retry between tries reads it so no new start
+ * begins after it (DO-5), and neither the launch's start nor the runtime watch's try begins once it is set. Clearing it
+ * at the start of each start let a try of the runtime watch undo a quit that had begun.
+ */
 let stopRequested = false
 export function stopStartingStack(): void {
   stopRequested = true
@@ -122,7 +126,7 @@ export function stopStartingStack(): void {
  * «not ready: starting» right after Docker returns is retried, never shown as «The local stack refused to start».
  */
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
-  stopRequested = false
+  if (stopRequested) throw new Error('Fabric is quitting, so the local stack is not started.')
   let dockerWaitLogged = false
   await startWithRetry(() => startStackOnce(onLine), {
     stopped: () => stopRequested,
@@ -150,7 +154,7 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
  * there yet is still waited for (90 s), once.
  */
 export async function recoverStack(): Promise<'started' | 'already-running'> {
-  stopRequested = false
+  if (stopRequested) throw new Error('Fabric is quitting, so the local stack is not started again.')
   return recoveryStart(() => startStackOnce(), {
     stopped: () => stopRequested,
     pingDocker: (socket) => pingDocker(socket)

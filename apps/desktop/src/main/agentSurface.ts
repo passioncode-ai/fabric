@@ -1540,7 +1540,7 @@ export class AgentSurface {
       {
         title: 'Who else is working here',
         description:
-          'The other sessions running in this project: what Fabric observes about each (state, last activity) and what each agent has claimed about itself (its reported stage). Observation and claim are labelled separately and should not be conflated.',
+          'Every session in this project, yours marked is_you: the terminals Fabric runs and the agents enrolled from their own terminals, with how each came in (came_in). For each, what Fabric observes (state: a terminal\'s own state, or active or silent for an enrolled agent by its last call or sign; last activity; by what it was observed) and what the agent has claimed about itself (its reported stage). Observation and claim are labelled separately and should not be conflated.',
         inputSchema: {}
       },
       async () => {
@@ -1551,7 +1551,7 @@ export class AgentSurface {
         if (!manager)
           return json({
             sessions: null,
-            unreadable: 'Fabric cannot see the terminal manager right now, so this is not a report that nobody else is working here — it is no report at all. Ask again in a moment.'
+            unreadable: 'Fabric cannot read its terminal manager right now, so it cannot tell the terminals Fabric runs apart from the agents enrolled from their own terminals, and lists neither. This is not a report that nobody else is working here: it is no report at all. Ask again in a moment.'
           })
         // #region agents-list-every-session — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
         // TR-6: every session of this project, whichever way it came in: the terminals Fabric runs AND the agents that

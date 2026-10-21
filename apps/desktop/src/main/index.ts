@@ -5209,7 +5209,7 @@ function showStartupWait(): void {
   const t = startupWaitText()
   const esc = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
   const page = `<!doctype html><meta charset="utf-8"><title>${esc(t.title ?? '')}</title><style>p:empty{display:none}</style><body style="margin:0;padding:20px 24px;background:#0c0e10;color:#e6e9ec;font:13px -apple-system,sans-serif;line-height:1.45">` +
-    STARTUP_WAIT_LINES.map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
+    STARTUP_WAIT_LINES.map((k) => `<p id="${k}" style="margin:0 0 8px${k === 'title' ? ';font-weight:600;font-size:14px' : ''}${k === 'log' || k === 'agentsWhy' ? ';opacity:.7;font-size:12px' : ''}">${esc(t[k] ?? '')}</p>`).join('') + '</body>'
   // Sized to its text (0.3.9 review UX-5): the fixed 460 × 240 cut the Russian text, and with the low-disk line the
   // next-try line was the last one seen. The content area starts at the longest measured case (Russian with the disk
   // line, 330 px at 460 px wide) and then follows the page's own height; the person may resize it.
@@ -5277,7 +5277,10 @@ function waitAndRetryStart(failure: StartupFailure): void {
     detail: { cause: failure.cause, waits_for: waitsForDocker(failure) ? 'docker' : 'database', attempt, next_try_s: Math.round(delay / 1000), ...(free === null ? {} : { free_disk_gb: freeDiskGb(free) }) },
     ctx: { correlationId: ops.correlate() }
   })
-  if (!BACKGROUND_LAUNCH || activatedDuringStartup) showStartupWait()
+  // The window comes forward at the first wait only (0.3.9 review iteration 3, UX-1): a later try changes its text in
+  // place (the ticker), and a window the person closed stays closed until they activate Fabric (activate,
+  // second-instance), so an outage of hours does not pull Fabric over their work at every try.
+  if (attempt === 1 && (!BACKGROUND_LAUNCH || activatedDuringStartup)) showStartupWait()
   const wait = startupWait
   wait.timer = setTimeout(() => {
     wait.timer = null
