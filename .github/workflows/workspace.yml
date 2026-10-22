@@ -16,7 +16,14 @@ jobs:
         with:
           node-version: 24
       - name: Verify source age, digest and parent pin
-        run: node scripts/workspace.mjs check
+        # By the publication contract (docs/architecture/report-workspace.md#a-pending-publication-on-a-push) a source
+        # commit is stale until the scheduled sync pins its publication, so a push passes with a "pending publication"
+        # notice while the receipt verifies and HEAD is under 6 h old (three sync periods); a broken or foreign
+        # receipt, or a publication overdue past the window, still fails. Pull requests keep the strict check.
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "push" ]; then node scripts/workspace.mjs check --allow-pending 6; else node scripts/workspace.mjs check; fi
       - name: Verify immutable export protocol
         run: node --test scripts/test/workspace-snapshot.test.mjs
       - name: Verify the other tool repositories' export, receipt and lag

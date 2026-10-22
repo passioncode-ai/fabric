@@ -68,6 +68,8 @@ node scripts/check-conflict-markers.mjs
 # 0.3.5 verification, iteration 2, DO-1: release.yml did not parse for two days and nothing local noticed —
 # GitHub refuses a workflow that is not YAML, so a tag would have released nothing.
 python3 scripts/check-workflows.py
+# 2026-10-22: a scheduled run cancelled a push run in the same concurrency group; the gate refuses that shape.
+node --test scripts/test/check-workflows.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs

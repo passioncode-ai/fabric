@@ -15,7 +15,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: platforms-${{ github.ref }}
+  # The event is in the group: the nightly schedule never cancels a manual dispatch on the same ref
+  # (scripts/check-workflows.py refuses a scheduled workflow whose group omits it).
+  group: platforms-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:

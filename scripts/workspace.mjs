@@ -3,7 +3,7 @@ import {homedir} from 'node:os'
 import {createHash,randomUUID} from 'node:crypto'
 import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 import path from 'node:path'
-import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
+import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor,checkArgs,pendingNotice} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,dropChildLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,checkDeployCredentials,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
@@ -50,7 +50,11 @@ if(cmd==='status'){
   else console.log('NEXT: open '+config().public_origin)
  }catch(e){console.log(e.message);console.log('NEXT: finish the current source iteration, then run node scripts/workspace.mjs publish')}
 }else if(cmd==='check'){
- console.log('PASS workspace publication: '+JSON.stringify(checkReceipt(root,{requireChild:process.argv.includes('--require-child'),sourceDirs:localSourceDirs(root)})))
+ // `--allow-pending` is the CI push run's mode (region workspace-pending in workspace-snapshot.mjs): a source commit
+ // waiting for its scheduled publication passes with a notice; everything else stays the strict check.
+ const r=checkReceipt(root,{...checkArgs(process.argv.slice(3)),sourceDirs:localSourceDirs(root)})
+ if(r.pending){const [line,notice]=pendingNotice(r).split('\n');console.log(line);if(process.env.GITHUB_ACTIONS==='true')console.log(notice);console.log(JSON.stringify(r))}
+ else console.log('PASS workspace publication: '+JSON.stringify(r))
 }else if(cmd==='export'){
  const ref=process.argv[3]||'HEAD',target=path.resolve(process.argv[4]||child)
  if(target===root)throw Error('Cannot export into the source repository')
@@ -216,4 +220,4 @@ if(cmd==='status'){
  const bad=rows.filter(r=>['stale','diverged','unpublished'].includes(r.state)),unread=rows.filter(r=>r.state==='unreachable')
  console.log(rows.length+' source(s), grace '+graceHours+' h: '+(bad.length?bad.length+' behind. NEXT: node scripts/workspace.mjs publish':unread.length?unread.length+' unreadable; nothing is known about them':'all current'))
  process.exit(bad.length?1:unread.length?2:0)
-}else throw Error('Usage: node scripts/workspace.mjs [status|check [--require-child]|export [commit] [target]|publish [--resume]|lag [--grace-hours N]|sync]')
+}else throw Error('Usage: node scripts/workspace.mjs [status|check [--require-child|--allow-pending [hours]]|export [commit] [target]|publish [--resume]|lag [--grace-hours N]|sync]')

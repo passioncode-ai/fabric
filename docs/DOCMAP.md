@@ -99,7 +99,7 @@ facts stay here; the `workspace` submodule owns the host and maintenance skill. 
 | Gate | Command | Scope | Blocking |
 |---|---|---|---|
 | Engineering design integrity | `node scripts/check-system-model.mjs` and `node scripts/build-system-map.mjs --check` | task/requirement coverage, dependency DAG, cycle guards, pinned sources and deterministic HTML; no runtime correctness claim | yes |
-| Workspace publication | `node scripts/workspace.mjs check --require-child` | source age across all non-publication paths, content digest, parent gitlink, child manifest and bytes; combined local check; source and host CI run separately | yes for publication |
+| Workspace publication | `node scripts/workspace.mjs check --require-child` | source age across all non-publication paths, content digest, parent gitlink, child manifest and bytes; combined local check; source and host CI run separately. A push run uses `check --allow-pending 6`: a valid receipt awaiting the scheduled pin passes with a notice for 6 h, a broken one fails | yes for publication |
 | Design map freshness and links | `node scripts/check-design-map.mjs` | source fingerprint, unique anchors, local link targets and precise top-entry review links; does not prove semantic completeness | yes |
 | Documentation structure | `bash scripts/check-docs.sh` | decision-home uniqueness, ADR ids, required canonical homes, local Markdown links | yes |
 | Commands in living docs | `node scripts/check-pnpm-commands.mjs` (run by `check-docs.sh`) | every backticked `pnpm …` command in a living Markdown file names an existing script of the package it filters; dated records are skipped; a promised script is allowed only while its milestone row is open (`PLANNED`) | yes |

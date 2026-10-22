@@ -24,8 +24,12 @@ on:
 
 concurrency:
   # A second push supersedes the first: two runs of the same branch tell you the
-  # same thing and only the later one is about the code you have.
-  group: ci-${{ github.ref }}
+  # same thing and only the later one is about the code you have. The event is in
+  # the group so the nightly schedule never cancels a push run on the same ref
+  # (2026-10-22: push run 39699805163 on main was cancelled by the 00:34 schedule,
+  # and the release guard then had to wait for the schedule's run).
+  # scripts/check-workflows.py refuses a scheduled workflow whose group omits it.
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:

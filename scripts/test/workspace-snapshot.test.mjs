@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,symlinkSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
-import {snapshot,writeSnapshot,verifyContent,verifyCommittedSnapshot,checkReceipt,git,receiptPath,digest,sourceSelected} from '../workspace-snapshot.mjs'
+import {snapshot,writeSnapshot,verifyContent,verifyCommittedSnapshot,checkReceipt,git,receiptPath,digest,sourceSelected,pendingNotice,checkArgs} from '../workspace-snapshot.mjs'
 test('the common backlog includes root source registers without exporting hidden configuration',()=>{
  for(const name of ['BACKLOG.md','ROADMAP.md','docs/backlog-sources.json']) assert.equal(sourceSelected(name),true,name)
  for(const name of ['.env','.claude/backlog.json','node_modules/BACKLOG.md','src/tasks.js']) assert.equal(sourceSelected(name),false,name)
@@ -80,3 +80,52 @@ test('committed snapshot verification preserves Unicode paths instead of Git dis
  const target=repo();writeSnapshot(target,snapshot(root));commit(target)
  assert.equal(verifyCommittedSnapshot(target).files.some(f=>f.path==='docs/заметки проекта.md'),true)
 })
+// #region workspace-pending-tests — docs: docs/architecture/report-workspace.md#a-pending-publication-on-a-push
+// By the publication contract a source commit is stale until the pin commit follows it (the scheduled sync, every
+// 2 h), so a strict check on every push was red on every source push to main (runs 39565129315, 39592566608,
+// 39699805184) and a broken publication looked exactly like the expected wait. `allowPendingHours` tells them apart.
+function pendingFixture(){
+ const {root,ref}=fixture(),s=snapshot(root,ref),child=repo();write(child,'README.md','host');const ws=commit(child)
+ write(root,receiptPath,JSON.stringify({schema:1,source_commit:ref,workspace_commit:ws,content_digest:s.manifest.content_digest,heroku_app:'fabric-workspace',release:7}))
+ mkdirSync(path.join(root,'workspace'));git(root,'update-index','--add','--cacheinfo','160000,'+ws+',workspace');commit(root,'pin')
+ write(root,'apps/code.js','new implementation');commit(root,'source change after the publication')
+ const head=Date.parse(git(root,'show','-s','--format=%cI','HEAD').toString().trim())
+ return {root,ref,ws,head}
+}
+const HOUR=3600_000
+test('a stale but valid receipt is a pending publication inside the window and overdue past it',()=>{
+ const {root,ref,head}=pendingFixture()
+ assert.throws(()=>checkReceipt(root),/stale/,'the strict check is unchanged')
+ const r=checkReceipt(root,{allowPendingHours:6,now:head+HOUR})
+ assert.equal(r.source,ref);assert.equal(r.pending.window_hours,6);assert.equal(r.pending.age_hours,1);assert.deepEqual(r.pending.changes,['apps/code.js'])
+ assert.match(pendingNotice(r),/^::notice title=Workspace publication pending::/m)
+ assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+7*HOUR}),/overdue/)
+ // A current publication carries no pending block.
+ const fresh=fixture(),s=snapshot(fresh.root,fresh.ref),child=repo();write(child,'README.md','host');const ws=commit(child)
+ write(fresh.root,receiptPath,JSON.stringify({schema:1,source_commit:fresh.ref,workspace_commit:ws,content_digest:s.manifest.content_digest,heroku_app:'fabric-workspace',release:7}))
+ mkdirSync(path.join(fresh.root,'workspace'));git(fresh.root,'update-index','--add','--cacheinfo','160000,'+ws+',workspace');commit(fresh.root,'pin')
+ assert.equal(checkReceipt(fresh.root,{allowPendingHours:6}).pending,undefined)
+})
+test('the pending window never covers a broken receipt: a tampered digest, a wrong pin, a foreign source or a dirty tree',()=>{
+ {const {root,ref,ws,head}=pendingFixture(),r=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
+  r.content_digest='0'.repeat(64);write(root,receiptPath,JSON.stringify(r));commit(root,'tampered')
+  assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/digest/)
+  assert.ok(ref&&ws)}
+ {const {root,head}=pendingFixture()
+  git(root,'update-index','--add','--cacheinfo','160000,'+'b'.repeat(40)+',workspace');commit(root,'wrong pin')
+  assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/gitlink/)}
+ {const {root,head}=pendingFixture(),other=fixture(),r=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
+  // A commit with the same documents that HEAD does not contain: valid digest, not this history's publication.
+  git(root,'fetch','-q',other.root,other.ref);r.source_commit=other.ref;write(root,receiptPath,JSON.stringify(r));commit(root,'foreign receipt')
+  assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/not an ancestor/)}
+ {const {root,head}=pendingFixture();write(root,'apps/code.js','uncommitted')
+  assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/stale/)}
+})
+test('check options: --allow-pending takes hours (6 by default) and never combines with the strict --require-child',()=>{
+ assert.deepEqual(checkArgs([]),{requireChild:false,allowPendingHours:null})
+ assert.deepEqual(checkArgs(['--require-child']),{requireChild:true,allowPendingHours:null})
+ assert.deepEqual(checkArgs(['--allow-pending']),{requireChild:false,allowPendingHours:6})
+ assert.deepEqual(checkArgs(['--allow-pending','12']),{requireChild:false,allowPendingHours:12})
+ for(const bad of [['--allow-pending','-1'],['--allow-pending','soon'],['--allow-pending','6','--require-child'],['--strict']])assert.throws(()=>checkArgs(bad),/check/,JSON.stringify(bad))
+})
+// #endregion workspace-pending-tests

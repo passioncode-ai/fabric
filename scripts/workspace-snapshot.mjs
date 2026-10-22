@@ -124,12 +124,36 @@ export function verifyCommittedSnapshot(target){
  return manifest
 }
 
-export function checkReceipt(root,{requireChild=false,sourceDirs=null}={}){
+// #region workspace-pending — docs: docs/architecture/report-workspace.md#a-pending-publication-on-a-push
+// By the publication contract a source commit is stale until the pin commit follows it, so `check` on a push to
+// main was red on every source push and a broken publication looked like the expected wait. `--allow-pending`
+// (CI push runs only) passes a stale source while the receipt itself verifies and HEAD is younger than the window;
+// a broken receipt, a foreign one or an overdue publication still fails. `check` and `--require-child` stay strict.
+export const PENDING_DEFAULT_HOURS=6
+export function checkArgs(argv){
+ const usage='Usage: node scripts/workspace.mjs check [--require-child | --allow-pending [hours]]'
+ let requireChild=false,allowPendingHours=null
+ for(let i=0;i<argv.length;i++){
+  if(argv[i]==='--require-child')requireChild=true
+  else if(argv[i]==='--allow-pending'){
+   allowPendingHours=PENDING_DEFAULT_HOURS
+   if(i+1<argv.length&&!argv[i+1].startsWith('--')){const h=Number(argv[++i]);if(!Number.isFinite(h)||h<0)throw Error('check --allow-pending takes a non-negative number of hours, not '+JSON.stringify(argv[i]));allowPendingHours=h}
+  }else throw Error('Unknown check option '+JSON.stringify(argv[i])+'. '+usage)
+ }
+ if(requireChild&&allowPendingHours!==null)throw Error('check --require-child is the complete publication check and stays strict; --allow-pending is for CI push runs only')
+ return {requireChild,allowPendingHours}
+}
+export function pendingNotice(r){
+ const p=r.pending,head='Workspace publication pending: the source changed after the published '+r.source.slice(0,12)+' ('+p.changes.length+' path(s), e.g. '+p.changes.slice(0,3).join(', ')+'); HEAD was committed '+p.age_hours+' h ago, inside the '+p.window_hours+' h window. The receipt, its digest and the parent pin verify; the scheduled sync publishes and pins it.'
+ return 'PENDING '+head+'\n::notice title=Workspace publication pending::'+head
+}
+// #endregion workspace-pending
+export function checkReceipt(root,{requireChild=false,sourceDirs=null,allowPendingHours=null,now=Date.now()}={}){
  const receipt=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
  if(receipt.schema!==1||!/^[a-f0-9]{40}$/.test(receipt.source_commit||'')||!/^[a-f0-9]{40}$/.test(receipt.workspace_commit||'')||!/^[a-f0-9]{64}$/.test(receipt.content_digest||'')||!deployedAt(receipt))throw Error('Invalid workspace receipt: immutable source/workspace SHAs, digest, app and deployment are required')
  const pins=receipt.sources??[]
  if(!Array.isArray(pins)||(pins.length&&!/^[a-f0-9]{64}$/.test(receipt.fabric_digest||''))||new Set(pins.map(x=>x?.id)).size!==pins.length||!pins.every(x=>sourceId.test(x?.id||'')&&sourceRepository.test(x.repository||'')&&/^[a-f0-9]{40}$/.test(x.commit||'')&&/^[a-f0-9]{64}$/.test(x.files_digest||'')))throw Error('Invalid workspace receipt: every source needs an id, a passioncode-ai repository, an immutable commit and its files digest, plus the Fabric digest')
- git(root,'merge-base','--is-ancestor',receipt.source_commit,'HEAD')
+ try{git(root,'merge-base','--is-ancestor',receipt.source_commit,'HEAD')}catch{throw Error('Receipt source commit '+receipt.source_commit.slice(0,12)+' is not an ancestor of HEAD; this history never published it')}
  if(existsSync(path.join(root,'workspace.config.json'))){
   const config=JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
   if(receipt.platform==='digitalocean'&&config.do_app!==receipt.do_app)throw Error('Receipt names a different App Platform app')
@@ -153,11 +177,20 @@ export function checkReceipt(root,{requireChild=false,sourceDirs=null}={}){
  }
  const changes=git(root,'diff','--name-only',receipt.source_commit,'HEAD').toString().trim().split('\n').filter(p=>p&&!publicationOnly(p))
  const dirty=git(root,'status','--porcelain','--untracked-files=normal').toString().split('\n').filter(Boolean).filter(row=>!publicationOnly(row.slice(3)))
- if(changes.length||dirty.length)throw Error('Workspace is stale; finish source changes, commit, then node scripts/workspace.mjs publish. '+[...changes,...dirty].slice(0,8).join(', '))
+ const stale='Workspace is stale; finish source changes, commit, then node scripts/workspace.mjs publish. '+[...changes,...dirty].slice(0,8).join(', ')
+ // Pending, not broken (region workspace-pending): only committed changes, only inside the window, and only after
+ // the receipt above verified; the gitlink and the child below are still checked before the pending answer.
+ let pending=null
+ if(changes.length||dirty.length){
+  if(allowPendingHours===null||dirty.length)throw Error(stale)
+  const committed=commitDate(root,'HEAD'),age=Math.round((now-Date.parse(committed))/360000)/10
+  if(!(age<=allowPendingHours))throw Error('Workspace publication is overdue: HEAD was committed '+committed+', '+age+' h ago, past the '+allowPendingHours+' h pending window (the scheduled sync publishes every 2 h). '+stale)
+  pending={head_committed:committed,age_hours:age,window_hours:allowPendingHours,changes}
+ }
  const staged=git(root,'ls-files','--stage','workspace').toString().trim()
  if(staged.split(/\s+/)[0]!=='160000'||staged.split(/\s+/)[1]!==receipt.workspace_commit)throw Error('Workspace gitlink and receipt disagree')
  const child=path.join(root,'workspace')
- const result=extra=>({source:receipt.source_commit,workspace:receipt.workspace_commit,files:s.manifest.files.length,...(pins.length?{sources}:{}),...extra})
+ const result=extra=>({source:receipt.source_commit,workspace:receipt.workspace_commit,files:s.manifest.files.length,...(pins.length?{sources}:{}),...extra,...(pending?{pending}:{})})
  if(existsSync(path.join(child,'.git'))){
   if(git(child,'rev-parse','HEAD').toString().trim()!==receipt.workspace_commit)throw Error('Initialized submodule is at the wrong commit')
   if(git(child,'status','--porcelain').toString().trim())throw Error('Workspace has uncommitted changes')

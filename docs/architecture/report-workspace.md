@@ -60,11 +60,41 @@ flowchart LR
 
 `node scripts/workspace.mjs status` is the safe entry point. `export` only generates a
 snapshot; it does not publish. `check --require-child` is the complete local/CI check.
+A push run uses `check --allow-pending 6` instead, which tells a publication still waiting
+for the scheduled sync apart from a broken one
+([A pending publication on a push](#a-pending-publication-on-a-push)).
 The ordinary fast suite stays runnable without credentials or initialized submodules;
 parent CI checks the source/receipt/gitlink; child CI checks its own manifest bytes and host.
 GitHub policy disables deploy keys on this repository (API returned 422 on 2026-09-07),
 so no personal token is copied into CI. The publishing agent performs the combined
 `--require-child` check locally. Parent CI alone does not attest the private child bytes.
+
+### A pending publication on a push
+
+By step 5 a source commit is always stale until the pin commit that follows it, and on `main`
+that commit comes from the scheduled sync ([Keeping it current](#keeping-it-current)), up to
+two hours later. A strict `check` on every push was therefore red on every source push to
+`main` (runs 39565129315, 39592566608 and 39699805184), and a broken publication looked
+exactly like the expected wait. Since 2026-10-22 the `workspace publication` workflow runs
+`node scripts/workspace.mjs check --allow-pending 6` for push events
+(`scripts/workspace-snapshot.mjs#checkArgs`, region `workspace-pending`):
+
+| The push | The answer |
+|---|---|
+| receipt verifies (schema, digest, deployment, parent gitlink, the child when present), its source commit is an ancestor of HEAD, the source changed after it, HEAD committed less than 6 h ago | pass, `PENDING Workspace publication pending …` and a GitHub `::notice::` line |
+| the same, HEAD committed 6 h ago or more (three sync periods) | fail, "Workspace publication is overdue" |
+| a tampered digest, a wrong gitlink, an invalid receipt | fail, as the strict check |
+| a receipt whose source commit is not in this history | fail, "is not an ancestor of HEAD" |
+| uncommitted source changes | fail, "Workspace is stale" (only committed work can be pending) |
+
+The window is measured from HEAD's commit time, so a stalled sync that keeps receiving fresh
+pushes stays green on those pushes; the sync's own status (`~/.cache/fabric-workspace/sync-status.json`)
+and `check --require-child` are where a stalled sync shows. Pull requests, `check` without the
+option, the release step (`docs/launch/release-mac.md` step 10) and `check --require-child`
+stay strict; `--allow-pending` with `--require-child` is refused. Tests in
+`scripts/test/workspace-snapshot.test.mjs`: "a stale but valid receipt is a pending
+publication inside the window and overdue past it", "the pending window never covers a
+broken receipt…" and "check options…".
 
 ## Deployment on DigitalOcean App Platform
 
@@ -181,7 +211,7 @@ A push that loses a race with another session fails the run; the next run starts
 | Failure | Observable result | Recovery |
 |---|---|---|
 | Missing submodule | status names initialization command | `git submodule update --init workspace` |
-| Changed source after publication | gate reports stale source | finish source iteration, publish new snapshot |
+| Changed source after publication | gate reports stale source; a push run reports a pending publication for 6 h, then overdue | finish source iteration, publish new snapshot (on `main` the scheduled sync does) |
 | Uncommitted work / divergent child main | publisher refuses | inspect and commit/merge owned work; no reset |
 | Tampered snapshot / missing file | child verification fails | export again from the named source commit |
 | GitHub push fails | parent pin remains old | repair access, inspect child state and retry |
@@ -213,7 +243,7 @@ collaborative comments are added here: the existing prototype review export rema
 
 `node --test scripts/test/workspace-snapshot.test.mjs` exercises immutable-source export,
 unsafe path refusal, generated-content ownership, tamper detection, pointer-only cycles,
-code-only drift and false receipts. `node scripts/test/check-design-map.test.mjs` covers
+code-only drift, false receipts and the pending window of a push run. `node scripts/test/check-design-map.test.mjs` covers
 map gate behavior. `node --test scripts/test/workspace-sources.test.mjs` covers the other
 repositories: selection, refusals, byte-compatible manifests, partial and full receipt
 checks and every lag state. Workspace `npm test` owns web auth/serving tests; deployment evidence

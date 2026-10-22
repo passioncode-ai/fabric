@@ -7,6 +7,16 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- CI tells a publication still waiting for the scheduled sync apart from a broken one: the `workspace publication`
+  workflow runs `node scripts/workspace.mjs check --allow-pending 6` on a push, which passes with a "pending
+  publication" notice while the receipt, its digest and the parent pin verify and HEAD is under 6 h old, and still
+  fails on a broken, foreign or overdue receipt. Every source push to `main` was red before
+  ([report-workspace](docs/architecture/report-workspace.md#a-pending-publication-on-a-push)). The nightly schedule no
+  longer cancels a push run on the same ref: `ci.yml` and `platforms.yml` name the event in their concurrency group,
+  and `scripts/check-workflows.py` refuses a scheduled workflow that does not.
+
 ## 0.3.9
 
 Fabric 0.3.9: the core holds. The operator's priority of 2026-10-21: the hub is always there, Fabric knows which agent

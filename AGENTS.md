@@ -92,6 +92,9 @@ Source facts remain beside Fabric code. After a reviewed source iteration is com
 run `node scripts/workspace.mjs publish` to publish, verify and pin its workspace snapshot.
 `node scripts/workspace.mjs check --require-child` verifies the relationship. See the
 [publication contract](docs/architecture/report-workspace.md) for the two-commit cycle.
+A push run in CI uses `check --allow-pending 6`: a source commit still waiting for the
+scheduled sync's pin passes with a notice, a broken or overdue publication fails
+([a pending publication](docs/architecture/report-workspace.md#a-pending-publication-on-a-push)).
 
 Every meaningful project iteration updates the living [design map](docs/reports/map.html)
 in the same change. This includes architecture, data, code, features and documentation:
