@@ -143,7 +143,7 @@ Hosted `ci` on `39b72c07`: success. The UX reviewer built the candidate's render
 25 findings, 1 blocking (a ledger cell the gate refuses), and 5 more from the verifier of the final candidate's difference. Two reviewers independently found that iteration 2's
 `errorShape` turned an object without a message into JSON before redaction, so a `password` or `token` field would reach
 the log in clear (ER-1, DA-1; no caller passes such an object today). Its fix and the others below make the final
-candidate `__FINAL__`: the reviewers read `39b72c07`, and the receipts and the release gate name the final candidate,
+candidate `f2a0a9c5` (`f2a0a9c52ec849594622da118638b7e8020b9891`): the reviewers read `39b72c07`, and the receipts and the release gate name the final candidate,
 as 0.3.8's did. The difference is the fixes in this table, each with its test watched failing, and the documents. A
 fresh verifier read the first version of that difference (`17793816`) and failed it: two rows below were not fixed in
 every case the findings named, and three tests proved less than they said (V3-20 to V3-24). A second fresh verifier read
@@ -151,6 +151,9 @@ the next version (`a5ab2548`) and failed it again: the one-pass redaction had dr
 A third, on `ea9adf06`, found a third shape of the same kind (V3-29 to V3-33), and a seam verifier passed it (V3-34).
 A fourth, on `1b57a73a`, found the name no longer masked and a code still written (V3-35 to V3-38); the seam verifier
 passed `1b57a73a` again.
+A fifth, on `f0c92f90`, passed the unit and seam tiers and found only documents to correct (V3-39 to V3-44);
+product readings on `32883b4f` and on the final candidate found no behaviour left false (V3-45 to V3-48;
+the sixth verification is recorded after this table, because it was read after the verified commit).
 So the log now writes less instead of masking more: a plain object's values never reach it. The fixes make the final
 candidate; the verifiers' reports are kept with the iteration-3 reports.
 
@@ -203,6 +206,12 @@ candidate; the verifiers' reports are kept with the iteration-3 reports.
 | V3-45 | product verifier (on `32883b4f`, no behaviour blocking) | V3-2, V3-3 and V3-21 cite tests and a mechanism no longer in the tree | fixed by this row: V3-29 replaced their mechanism (a plain object's values are never written); their proof is now `opsLog.test.ts` "never writes a value of a plain-object error without a message, whatever shape the secret has" and "reads no getter and no toJSON, and never throws on circular, BigInt or a revoked Proxy", into which V3-21's case was merged |
 | V3-46 | product verifier | SCR-84 gave no short-window share for the act line | fixed: "(30 % in a window under 640 px high)" |
 | V3-47 | product verifier | SCN-042 and SCR-64 call the panel an overlay; SCN-168 and SCR-88 say «Ещё раньше» loads on scroll; back navigation's scroll is undecided; the notes do not name the keyboard limit; SCN-073 has no pointer to CO-387; the handoff misses CO-386 and CO-387; V3-20 names the fixture's «Вернуть» | fixed: dated notes on SCN-042, SCR-64 and SCN-073; «Ещё раньше» loads on a press; SCN-162 and the notes say what ⌘[ does (CO-388, the operator's decision) and name CO-384; the handoff names CO-386 to CO-388; V3-20 says the undo control |
+| V3-48 | product verifier (on `f2a0a9c5`: pass) | SCN-058 has no pointer to CO-388; the CHANGELOG said "a notice" for a notice above the page; the no-sideways-scroll claim is proven for wrapping content only; SCR-84's "under 640 px" is at most 640; the CHANGELOG named the workflow check loosely; SCN-162's swipe step and the stack exposure warning drifted before this release | fixed in the release commit: the CHANGELOG's two lines. Ruled for the rest: SCN-058's pointer, the sideways claim and the 640 wording go with CO-388 and CO-384 to 0.3.11, and the Release close lists them for those rows; the two older drifts are outside this release's change and the Release close lists them too |
+
+Sixth verification, 2026-10-22 (product tier, task-pipeline verifier-product): the documents, scenarios and screens at
+`f2a0a9c5`; its code is `f0c92f90`'s, which the fifth verification's unit and seam tiers passed, and under `apps`,
+`scripts` and `supabase` the two differ only by the browser case V3-42 adds to `scripts/test/shell-scroll.browser.mjs`
+(10 lines). Verdict: pass, no documented or user-facing behaviour left false; its six risks are V3-48.
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 
@@ -211,3 +220,12 @@ Exit for iteration 3: every finding is fixed or ruled to a register row or the R
 Written as each step lands: the gate's library run on the release commit; the publication (the tag, the release run,
 the assets); the install and the person's quit and open with step 3's broker check; the version, the schema and the hub;
 the scroll on the real app; the publication post with the version correction (CO-383); the workspace publication.
+
+Local gate on the final candidate `f2a0a9c5`, 2026-10-22: `bash scripts/ci.sh fast` stopped at `claude-owned-stdio`
+inside Electron main (`apps/desktop/test/claude-owned-stdio.test.mjs:42`, a launch read as `outcome_unknown` instead of
+`owned` under a loaded machine; 0.3.10 does not touch the suite, and the whole gate passed on `f0c92f90`). The same
+script from that suite to its end: `CI_EXIT=0`.
+
+For 0.3.11 from V3-48: CO-388 takes SCN-058's pointer; CO-384 takes the sideways claim's proof for content that does not
+wrap and SCR-84's "at most 640 px"; SCN-162's swipe step and the stack exposure warning are older drifts to read in
+0.3.11's documents review.

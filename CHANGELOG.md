@@ -7,7 +7,10 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.10
+
+Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the
+window itself never does. Schema 95, unchanged: the upgrade is the bundle alone.
 
 - Schema 95, unchanged: installing 0.3.10 over 0.3.9 replaces the bundle only.
 - The operations log says what a database refusal was: a failure that is a plain object (PostgREST's
@@ -25,7 +28,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   at the first tick after 2026-10-28 23:19 UTC unless its target answers (CO-381).
 - Every page of Fabric scrolls again (the operator, 2026-10-22: «главный экран не скроллится»). Since 0.3.7 the
   shell grew past the window inside a box that clips, so a page longer than the window could not be reached at all.
-  The shell now has the window's height and each page, Settings included, scrolls inside it: the rail, the top bar, a notice, a side panel
+  The shell now has the window's height and each page, Settings included, scrolls inside it: the rail, the top bar, a notice above the page, a side panel
   (search, Fabric chat, private history, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
   stays above that line. A page keeps the window's width (no sideways scroll), a console still fills its page, and
   moving to another place, another project or the workspace opened from a project starts it at the top. Beside an open side panel the agents grid takes one
@@ -39,7 +42,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   fails on a broken, foreign or overdue receipt. Every source push to `main` was red before
   ([report-workspace](docs/architecture/report-workspace.md#a-pending-publication-on-a-push)). The nightly schedule no
   longer cancels a push run on the same ref: `ci.yml` and `platforms.yml` name the event in their concurrency group,
-  and `scripts/check-workflows.py` refuses a scheduled workflow that does not.
+  and `scripts/check-workflows.py` refuses a scheduled workflow whose group cancels in progress without naming
+  the event.
 
 ## 0.3.9
 

@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "f2a0a9c52ec849594622da118638b7e8020b9891",
+  "report": "docs/evidence/reviews/0.3.10/iteration-3/2026-10-22-errors.md",
+  "reportSha256": "dc142bdf30109095a7f954d3ad5f4dcf2d37c51e3298e138de18dc2420da1e38",
+  "reviewerRun": "release-0310-i3-errors-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-2",
+      "source": "ER-1, DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: such an object is bounded and redacted as a structure before it becomes text (`shared/opsLog.ts#errorParts` (named `errorShape` until the final candidate)); `opsLog.test.ts` \"masks a secret field\" (watched failing on `39b72c07`)"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "ER-2, DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: own data properties only, `boundStructure` for the rest, a guard that keeps the record; `opsLog.test.ts` \"never runs an error's getters\" (watched failing)"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "ER-3, UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page keeps `min(50%, 100% - 8rem)`; below 640 px of height the notices lose their outer spacing and take at most 15 %, the act line 30 %, the page a third (`rail.css`); browser cases at 240 and at 360 to 900 px with three notices and a refused act"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "ER-4, UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tiny-window case with a refused act fails with the cap removed (watched)"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `appRoute.test.ts` checks App passes `scrollKeyOf(active, workspaceFor)` (watched failing with App's own `placeKey`)"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: covered in `appRoute.test.ts`"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "f2a0a9c52ec849594622da118638b7e8020b9891",
+  "report": "docs/evidence/reviews/0.3.10/iteration-3/2026-10-22-plan.md",
+  "reportSha256": "d6f6c3112b9aa522b8de6d9b262b1c9c441917e786b769be6301c3eb355b936c",
+  "reviewerRun": "release-0310-i3-plan-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `not a defect` in the ledger (`scripts/lib/release-gate.mjs` DISPOSED); the receipts keep `not-a-defect`"
+      ]
+    },
+    {
+      "id": "V3-12",
+      "source": "DO-5, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-23 and this ledger name it"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release lead runs the gate's library on the release commit before landing (Release close)"
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Owed says which release closes what; the Release close section below"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-383 sends it with 0.3.10's publication post"
+      ]
+    },
+    {
+      "id": "V3-18",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person quits and opens Fabric again; the agent does not stop it through the broker"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it points to the quit-and-open step"
+      ]
+    }
+  ]
+}

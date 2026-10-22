@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T19:40:00Z · `—` · agent/release-0310 → main · fast-forward
+- run: r-8642aee374a2
+- files: rail.css, LaunchShell.tsx, App.tsx, styles.css, shared/appRoute.ts (`scrollKeyOf`), shared/opsLog.ts (`errorParts`), their tests and shell-scroll.browser.mjs; P-23 and P-20, CO-382 to CO-388, the reading note, SCN-162, SCR-84, release-mac, operating-surfaces, the dated plan lines, CHANGELOG `## 0.3.10`, the 0.3.10 ledger with its 15 review reports, six verifications and the receipts, the release gate, the pack
+- conflicts: none
+- summary: Fabric 0.3.10, the scroll patch: every page scrolls and the window never does; the operations log says what a database refusal was; three review iterations (42, 31, 25 findings), verified commit f2a0a9c5; schema 95.
+
 ### 2026-10-22T14:30:28Z · `—` · agent/co380-co381 → main · fast-forward
 - run: r-8642aee374a2
 - files: CHANGELOG (Unreleased correction), docs/launch/release-mac.md (0.3.9 paragraph), CO-381 resolved, the 0.3.9 Release close, P-20 and P-22, the state handoff's update, launch.css (CO-380's comment), the map

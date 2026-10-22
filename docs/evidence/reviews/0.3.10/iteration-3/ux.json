@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "f2a0a9c52ec849594622da118638b7e8020b9891",
+  "report": "docs/evidence/reviews/0.3.10/iteration-3/2026-10-22-ux.md",
+  "reportSha256": "82f5ee828dc9cefebd8b34f100dd17474f6fc504ec273d050f094478846c7524",
+  "reviewerRun": "release-0310-i3-ux-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-4",
+      "source": "ER-3, UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page keeps `min(50%, 100% - 8rem)`; below 640 px of height the notices lose their outer spacing and take at most 15 %, the act line 30 %, the page a third (`rail.css`); browser cases at 240 and at 360 to 900 px with three notices and a refused act"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "ER-4, UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tiny-window case with a refused act fails with the cap removed (watched)"
+      ]
+    }
+  ]
+}

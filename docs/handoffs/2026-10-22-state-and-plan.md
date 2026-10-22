@@ -79,3 +79,8 @@ after a rail move), CO-385 (a long notice's hidden actions), CO-386 (the redacti
 **Exact next task:** the 0.3.10 release commit (version, CHANGELOG `## 0.3.10`, the release gate with the iteration-3
 receipts on the final candidate), the gate's library run on it, the tag, the install and the ledger's Release close;
 then 0.3.11 (P-20). (Updated after iteration 3 and its verifiers closed.)
+
+Release commit, 2026-10-22: three iterations closed (42, 31 and 25 findings; 6, 2 and 1 blocking, every one fixed or
+ruled), the verified commit `f2a0a9c5`, after six readings of its difference (four failed, the last two passed).
+**Exact next task:** tag `v0.3.10`, watch the release run, install the bundle, the person's quit and open, then the
+ledger's Release close; then 0.3.11 (P-20).
