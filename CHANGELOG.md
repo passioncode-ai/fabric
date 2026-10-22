@@ -12,7 +12,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - Schema 95, unchanged: installing 0.3.10 over 0.3.9 replaces the bundle only.
 - The operations log says what a database refusal was: a failure that is a plain object (PostgREST's
   `{ message, code }`) was written as «[object Object]», which hid every failed board upkeep pass (17 in the log since
-  2026-10-21, 4 of them after the 0.3.9 rollout); it now carries the message and the code, through the redaction rules.
+  2026-10-21, 4 of them after the 0.3.9 rollout); it now carries the message and a code of a fixed shape (a SQLSTATE such as `57014`), through the redaction rules.
   A plain object with no message is written as the names of its fields, never their values
   (`shared/opsLog.ts#errorParts`).
 - What 0.3.9's notes promised for 0.3.10 moves to 0.3.11, because 0.3.10 is the scroll patch: the simple plan's wave 4

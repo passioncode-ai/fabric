@@ -146,6 +146,8 @@ fresh verifier read the first version of that difference (`17793816`) and failed
 every case the findings named, and three tests proved less than they said (V3-20 to V3-24). A second fresh verifier read
 the next version (`a5ab2548`) and failed it again: the one-pass redaction had dropped the text rules (V3-25 to V3-28).
 A third, on `ea9adf06`, found a third shape of the same kind (V3-29 to V3-33), and a seam verifier passed it (V3-34).
+A fourth, on `1b57a73a`, found the name no longer masked and a code still written (V3-35 to V3-38); the seam verifier
+passed `1b57a73a` again.
 So the log now writes less instead of masking more: a plain object's values never reach it. The fixes make the final
 candidate; the verifiers' reports are kept with the iteration-3 reports.
 
@@ -185,6 +187,10 @@ candidate; the verifiers' reports are kept with the iteration-3 reports.
 | V3-32 | third final-candidate verifier (unit) | One secret counted twice; a PostgREST object's `details` and `hint` dropped | not a defect after V3-29: no value of an object is written, so nothing is counted twice; `details` and `hint` can hold row data (a key's value), so a refusal says its message and code only |
 | V3-33 | third final-candidate verifier (unit) | A bare `Bearer` token, and header pairs or unknown key headers in a record's `detail`, stay in clear (all as in v0.3.9) | ruled: CO-386, widened to these shapes |
 | V3-34 | final-candidate verifier (seam, on `ea9adf06`: pass) | A cut message carried no truncation marker; an object whose meaning is in `toString` lost it; ProjectHome's top-of-page reset now runs before `revealSection` aligns a section | fixed: the message is capped by the shared `cap`, with its marker; not a defect: such an object now says its field names; not a defect: `revealSection` re-aligns for 1.5 s after the reset (`LaunchShell.tsx#revealSection`), the seam verifier's reading |
+| V3-35 | fourth final-candidate verifier (unit, on `1b57a73a`, blocking); the seam verifier as a risk | An Error's name was no longer redacted or capped, as v0.3.9 did through its object pass: a token in a name reached the record, a 5 000-character name was written whole | fixed: the name goes through the text rules and the shared cap like the message, its counts merged (`opsLog.ts#opsRecord`); `opsLog.test.ts` "redacts and caps an Error's name as v0.3.9 did" (watched failing on `1b57a73a`) |
+| V3-36 | fourth final-candidate verifier (unit, blocking) | A plain object without a message still wrote its `code`, a value | fixed: the field-names line carries no code; a code is written only beside a message, and only of a fixed shape (`^[A-Za-z0-9_.-]{1,32}$` or a number, as `causeOf` keeps it); the eight-shapes test adds four code shapes (watched failing on `1b57a73a`) |
+| V3-37 | fourth final-candidate verifier (unit) | The single-read test did not watch the message half | fixed: a message getter that changes between reads, watched failing with the message read twice |
+| V3-38 | fourth final-candidate verifier (unit); seam verifier (on `1b57a73a`: pass) | A key made only of letters can still be a secret; an Error's own getters run once (as in v0.3.9); a plain object without a message now says only field names (the stated trade) | not a defect: field names are the diagnosis the change keeps, and a letters-only key under 25 characters is written as a name; the Error path reads as v0.3.9 did; the trade is the CHANGELOG's |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 

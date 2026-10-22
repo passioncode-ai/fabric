@@ -85,12 +85,12 @@ describe('what never reaches the log', () => {
     const shapes: unknown[] = [
       { password: S, token: S }, { headers: [{ name: 'Authorization', value: `Bearer ${S}` }] },
       { headers: [{ name: 'set-cookie', value: `sid=${S}` }, { name: 'cookie', value: S }, { name: 'password', value: S }, { name: 'token', value: S }] },
-      { headers: { 'x-agw-key': S } }, { apikey: S }, { auth: `Bearer ${S}` }, { nested: { deep: [{ v: S }] } }, { [S]: 1 }
+      { headers: { 'x-agw-key': S } }, { apikey: S }, { auth: `Bearer ${S}` }, { nested: { deep: [{ v: S }] } }, { [S]: 1 },
+      { code: S }, { state: 'a', code: S }, { message: '', code: S }, { message: 'refused', code: `x ${S}` }
     ]
     for (const error of shapes) {
       const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error })
       expect(JSON.stringify(r)).not.toContain(S.slice(0, 20))
-      expect(r.error?.message).toMatch(/^\[a failure that is not an Error, with no message; its fields: /)
     }
   })
 
@@ -114,6 +114,19 @@ describe('what never reaches the log', () => {
     const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: flip })
     expect(r.error?.name).toBe('FlipError')
     expect(reads).toBe(1)
+    let mreads = 0
+    const flipM = Object.defineProperty(new Error('m'), 'message', { get: () => (mreads++ === 0 ? 'first' : (42 as unknown as string)) })
+    expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: flipM }).error?.message).toBe('first')
+    expect(mreads).toBe(1)
+  })
+
+  it('redacts and caps an Error\'s name as v0.3.9 did (final-candidate verification)', () => {
+    const e = new Error('m'); e.name = 'GITHUB_TOKEN=ghp_' + 'a'.repeat(36)
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: e })
+    expect(r.error?.name).not.toContain('a'.repeat(36))
+    expect(r.redactions?.some((x) => x.rule === 'assignment')).toBe(true)
+    const long = new Error('m'); long.name = 'N'.repeat(5000)
+    expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: long }).error!.name.length).toBeLessThan(700)
   })
 
   it('says an Error with a non-string name or message as text, and never throws on a circular one', () => {

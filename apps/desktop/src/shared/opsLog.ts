@@ -147,13 +147,17 @@ export function opsRecord(input: {
   let errorField: { name: string; message: string } | undefined
   if (input.error !== undefined) {
     const parts = errorParts(input.error)
-    const text = redact(parts.message)
-    for (const c of text.redactions) {
-      const seen = redactions.find((r) => r.rule === c.rule)
-      if (seen) seen.count += c.count
-      else redactions.push({ ...c })
+    // Both the name and the message go through the text rules and the cap, as v0.3.9's object pass did.
+    const said = (raw: string): string => {
+      const text = redact(raw)
+      for (const c of text.redactions) {
+        const seen = redactions.find((r) => r.rule === c.rule)
+        if (seen) seen.count += c.count
+        else redactions.push({ ...c })
+      }
+      return String((cap({ m: text.text }) as { m: unknown }).m)
     }
-    errorField = { name: parts.name, message: String((cap({ m: text.text }) as { m: unknown }).m) }
+    errorField = { name: said(parts.name), message: said(parts.message) }
   }
 
   return {
@@ -177,8 +181,9 @@ export function opsRecord(input: {
  *  «[object Object]», which hid every failed board tick, 0.3.10 review DA-3): its message and code. Any other object:
  *  the NAMES of its own fields, never their values. Three verifications of 0.3.10 found a new way for a value to reach
  *  the log each time the values were written and masked (a field rule, a header pair, an unknown header); names carry
- *  the diagnosis without that risk. It reads each property once, own data properties only, never a getter or `toJSON`,
- *  and nothing it is handed can make the record throw. */
+ *  the diagnosis without that risk. It reads each property once; of a plain object only own data properties, never a
+ *  getter or `toJSON` (an Error's own name and message are read as v0.3.9 read them); nothing it is handed can make the
+ *  record throw. */
 function errorParts(e: unknown): { name: string; message: string } {
   try {
     if (e instanceof Error) {
@@ -193,11 +198,12 @@ function errorParts(e: unknown): { name: string; message: string } {
     }
     const message = own('message')
     const code = own('code')
-    const suffix = typeof code === 'string' || typeof code === 'number' ? ` (${String(code).slice(0, 32)})` : ''
-    if (typeof message === 'string' && message) return { name: 'Error', message: message + suffix }
+    // A code of a fixed shape only (a SQLSTATE such as `57014`, an `ECONNREFUSED`), as `causeOf` keeps it.
+    const fixed = typeof code === 'number' ? String(code) : typeof code === 'string' && /^[A-Za-z0-9_.-]{1,32}$/.test(code) ? code : null
+    if (typeof message === 'string' && message) return { name: 'Error', message: fixed ? `${message} (${fixed})` : message }
     // A name that does not read as a field name (a token used as a key) is not written either.
     const names = Object.keys(e).slice(0, 20).map((k) => (/^[A-Za-z_][A-Za-z_-]{0,19}[0-9]{0,4}$/.test(k) ? k : '[omitted]'))
-    return { name: 'Error', message: `[a failure that is not an Error, with no message; its fields: ${names.join(', ') || 'none'}]${suffix}` }
+    return { name: 'Error', message: `[a failure that is not an Error, with no message; its fields: ${names.join(', ') || 'none'}]` }
   } catch {
     return { name: 'Error', message: '[omitted: unreadable error]' }
   }
