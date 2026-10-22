@@ -162,6 +162,10 @@ on disk says only "call the tools"; the full, version-matched contract is what
 `fabric_whoami` returns**, extended with the task rules. A document cannot drift
 from the binary when the binary is the document.
 
+Since P-24 ([ADR-0172](../adr/0172-the-interface-language-is-the-agents-working-language.md)) it also names the
+working language, `protocol.language` (the interface's `settings.locale`, read at each call), and the rule right after
+the date says what to write in it (`shared/protocol.ts#buildProtocol`).
+
 ### 5.1 An agent does not close its own task
 
 The ladder lives in `apps/desktop/src/shared/ladder.ts` and it knows who is

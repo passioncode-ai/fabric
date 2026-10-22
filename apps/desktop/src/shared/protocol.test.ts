@@ -95,3 +95,30 @@ describe('what the protocol refuses to claim', () => {
     expect(Object.keys(p)).not.toContain('understood')
   })
 })
+
+describe('the working language (P-24): agents write in the language of Fabric\'s interface', () => {
+  it('names the language, natively too, and says so in a rule right after the date', () => {
+    const p = buildProtocol({ now: at, timeZone: 'UTC', language: 'ru' })
+    expect(p.language).toEqual({ code: 'ru', name: 'Russian', native: 'Русский' })
+    expect(p.rules[1]).toMatch(/^\[ADVICE\] Write everything a person will read in Russian \(Русский\)/)
+    expect(p.rules[1]).toMatch(/board messages/)
+    expect(p.rules[1]).toMatch(/Keep code, identifiers, commands, paths and quotations as they are/)
+  })
+
+  it('is English when the interface is', () => {
+    const p = buildProtocol({ now: at, timeZone: 'UTC', language: 'en' })
+    expect(p.language.code).toBe('en')
+    expect(p.rules[1]).toMatch(/in English \(English\)/)
+  })
+
+  it('is a different protocol in another language, so a session can tell which rules it had', () => {
+    const ru = buildProtocol({ now: at, timeZone: 'UTC', language: 'ru' })
+    const en = buildProtocol({ now: at, timeZone: 'UTC', language: 'en' })
+    expect(protocolHash(ru)).not.toBe(protocolHash(en))
+  })
+
+  it('no other rule sends the agent to guess the language from how it is spoken to', () => {
+    const p = buildProtocol({ now: at, timeZone: 'UTC', language: 'ru' })
+    for (const rule of p.rules) expect(rule).not.toMatch(/language they write to you in|in their language/)
+  })
+})

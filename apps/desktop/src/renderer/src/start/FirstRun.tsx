@@ -10,7 +10,7 @@ import { PERSONA_NAME_MAX, PERSONA_STYLES, personaName, variantsOf, type Persona
 import type { ExecutorRow, ScanView } from '../../../shared/startPaths.ts'
 import { defaultBuilder, mayPick, withHead } from '../../../shared/builderChoice.ts'
 import type { RunnerFallback } from '../../../shared/runnerRoute.ts'
-import { useT } from '../i18n'
+import { LOCALES, useLocale, useT, type Locale } from '../i18n'
 import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
 import { FALLBACK_CHANGED } from '../useFallbackChoice'
@@ -20,11 +20,15 @@ import { programOf } from './startParts'
 export interface FirstRunProps {
   /** The operator chose a path (or skipped): stamp completion, then go there. */
   onFinish(next: StartPath | 'home'): void
+  /** The interface's language, which is also the agents' working language (P-24). */
+  locale?: Locale
+  /** Writes the language to Settings at once, so the rest of the first run already reads in it. */
+  onLocale?(next: Locale): Promise<void> | void
 }
 
 type Step = 1 | 2 | 3
 
-export function FirstRun({ onFinish }: FirstRunProps): React.JSX.Element {
+export function FirstRun({ onFinish, locale, onLocale }: FirstRunProps): React.JSX.Element {
   const t = useT()
   const [step, setStep] = useState<Step>(1)
   // Each step announces itself: focus moves to its heading, so a keyboard or screen-reader user is told
@@ -43,15 +47,38 @@ export function FirstRun({ onFinish }: FirstRunProps): React.JSX.Element {
           </li>
         ))}
       </ol>
-      {step === 1 && <PersonaStep onNext={() => setStep(2)} />}
+      {step === 1 && <PersonaStep onNext={() => setStep(2)} locale={locale} onLocale={onLocale} />}
       {step === 2 && <ExecutorStep onBack={() => setStep(1)} onNext={() => setStep(3)} />}
       {step === 3 && <StartStep onBack={() => setStep(2)} onFinish={onFinish} />}
     </div>
   )
 }
 
-function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
+// #region first-run-language — docs: docs/ux/scenarios.md#scn-126-first-run-name-and-look-your-projects-folder-the-four-actions-the-familys-own-agents-first
+// P-24 (the operator, 2026-10-22): the language is chosen first, and the field says what it governs: the interface and
+// what every agent writes for the person. A choice is written at once, so the next steps already read in it.
+function FirstRunLanguage({ locale, onLocale }: { locale: Locale; onLocale?(next: Locale): Promise<void> | void }): React.JSX.Element {
   const t = useT()
+  return (
+    <div className="lp-field" role="radiogroup" aria-labelledby="first-language-label" aria-describedby="first-language-hint">
+      <span id="first-language-label">{t('first.language')}</span>
+      <div className="fp-language">
+        {LOCALES.map((code) => (
+          <label key={code}>
+            <input type="radio" name="first-language" value={code} checked={locale === code} onChange={() => void onLocale?.(code)} />
+            {t(code === 'ru' ? 'settings.localeRuUntranslated' : 'settings.localeEn')}
+          </label>
+        ))}
+      </div>
+      <small id="first-language-hint">{t('first.languageHint')}</small>
+    </div>
+  )
+}
+// #endregion first-run-language
+
+function PersonaStep({ onNext, locale, onLocale }: { onNext(): void; locale?: Locale; onLocale?(next: Locale): Promise<void> | void }): React.JSX.Element {
+  const t = useT()
+  const shownLocale = useLocale()
   const { persona, save } = usePersona()
   const [draft, setDraft] = useState<Persona>(persona)
   const [name, setName] = useState(persona.name ?? '')
@@ -89,6 +116,7 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
       </div>
       <div className="lp-panel">
         {problem && <div className="lp-callout" role="alert"><p>{problem}</p><button type="button" className="lp-button" onClick={onNext}>{t('first.persona.continueAnyway')}</button></div>}
+        <FirstRunLanguage locale={locale ?? shownLocale} onLocale={onLocale} />
         <label className="lp-field">
           {t('first.persona.name')}
           <input value={name} maxLength={PERSONA_NAME_MAX + 10} placeholder={t('launch.brand.product')} onChange={(e) => { touched.current = true; setName(e.target.value) }} aria-invalid={tooLong} aria-describedby="first-persona-name-hint" />

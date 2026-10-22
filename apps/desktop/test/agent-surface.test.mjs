@@ -84,7 +84,12 @@ const ptys = () => ({
 // The policy port is REAL here. It used to be absent, so the effect-request
 // tool was listed to agents and never once called by anything.
 const policy = new Policy({ db, journal })
-const surface = new AgentSurface({ db, journal: createDesktopJournal(journal), ptys, policy, estateId: ESTATE })
+// P-24: the working language is read from Settings at each fabric_whoami; a read that throws costs nothing.
+let surfaceLanguage = 'ru'
+const surface = new AgentSurface({
+  db, journal: createDesktopJournal(journal), ptys, policy, estateId: ESTATE,
+  language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage }
+})
 await surface.start()
 
 // 1 — an unminted credential, and none at all
@@ -141,6 +146,17 @@ const me = await call('fabric_whoami')
 if (me.project?.id === projectId && me.session_id === sessionId && me.rules?.length)
   ok('fabric_whoami answers with this session and the rules that apply')
 else fail('whoami returned ' + JSON.stringify(me))
+
+// P-24 — the session is told the working language, and the rule right after the date says what to write in it.
+me.protocol?.language?.code === 'ru' && /in Russian \(Русский\)/.test(me.rules[1] ?? '')
+  ? ok('fabric_whoami names the working language from Settings (Russian) and the rule after the date says so')
+  : fail('no Russian working language in whoami: ' + JSON.stringify({ language: me.protocol?.language, rule: me.rules?.[1] }))
+surfaceLanguage = 'throw'
+const unread = await call('fabric_whoami')
+unread.protocol?.language?.code === 'en' && unread.rules?.length
+  ? ok('a Settings read that throws leaves the rules served, in English')
+  : fail('a throwing Settings read changed whoami: ' + JSON.stringify(unread.protocol?.language))
+surfaceLanguage = 'ru'
 
 // M177 — what the session is told, and whether it can be told what it was told.
 const today = new Date().toISOString().slice(0, 10)

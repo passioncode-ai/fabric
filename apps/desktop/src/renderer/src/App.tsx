@@ -1055,6 +1055,17 @@ function Shell({
         )}
         {active.kind === 'welcome' && (
           <FirstRun
+            locale={settings.locale}
+            onLocale={async (locale) => {
+              // P-24: written at once, so the rest of the first run (and every agent's next rules) read in it.
+              try {
+                const written = await window.fabric.settings.write({ locale })
+                onSettings(written.settings)
+                if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+              } catch (e) {
+                setError(t('settings.notSaved', { reason: errorText(e) }))
+              }
+            }}
             onFinish={async (next) => {
               // Finishing or skipping is the same act: the first run is not shown again, and Help reopens it.
               // A write that fails — refused or thrown — is said, and the operator still goes where they chose.
