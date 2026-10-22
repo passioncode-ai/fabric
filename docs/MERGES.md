@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T01:00:00Z · `—` · agent/of-walk-1023 → main · fast-forward
+- run: r-8642aee374a2
+- files: the walk of 2026-10-22/23 (OF-14 to OF-40, D-1 to D-5), the plan's wave 4 row, P-20; SCN-143, SCN-163 to SCN-166, SCN-168, SCN-170, SCN-171 amended, SCN-173 to SCN-175 new; the product model, report and previews; the map
+- conflicts: none
+- summary: the operator's walk of the installed 0.3.10 planned for wave 4 (0.3.11), scenarios first.
+
 ### 2026-10-23T00:10:00Z · `—` · agent/co389-start-timeout → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/stackWatch.ts (`startupHeals`), stackWatch.test.ts, CO-389 resolved, the recount, CHANGELOG Unreleased, the map
