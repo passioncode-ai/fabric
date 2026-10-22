@@ -1,5 +1,7 @@
 # Fabric 0.3.6 — onboarding that lands in a working project (plan, 2026-10-13)
 
+*2026-10-22: wave 4, which this page numbers 0.3.10, is now 0.3.11 (P-20); 0.3.10 became the scroll patch (P-23).*
+
 > **2026-10-20:** absorbed into the [simple Fabric plan](../2026-10-15-fabric-simple/README.md); its wizard, scan, open and
 > create flows are that plan's wave 4, released in 0.3.8 (P-20). CO-291's fix lands with them.
 >

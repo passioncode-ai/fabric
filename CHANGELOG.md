@@ -10,6 +10,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## Unreleased
 
 - Schema 95, unchanged: installing 0.3.10 over 0.3.9 replaces the bundle only.
+- The operations log says what a database refusal was: a failure that is a plain object (PostgREST's
+  `{ message, code }`) was written as «[object Object]», which hid every failed board upkeep pass (17 since 0.3.9);
+  it now carries the message and the code, still redacted (`shared/opsLog.ts#errorShape`).
 - What 0.3.9's notes promised for 0.3.10 moves to 0.3.11, because 0.3.10 is the scroll patch: the simple plan's wave 4
   (the five places rebuilt to the prototype, История's filters, the first run), the agents' own acts in История, and
   enrollment on the contract's resolver (CO-339).
@@ -22,8 +25,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   The shell now has the window's height and each page, Settings included, scrolls inside it: the rail, the top bar, a notice, a side panel
   (search, Fabric chat, private history, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
   stays above that line. A page keeps the window's width (no sideways scroll), a console still fills its page, and
-  moving to another place or project starts it at the top. Beside an open side panel the agents grid takes one
-  column below 1250 px instead of running under the panel. `scripts/test/shell-scroll.browser.mjs` holds this in
+  moving to another place, another project or the workspace opened from a project starts it at the top. Beside an open side panel the agents grid takes one
+  column up to 1440 px instead of running under the panel. `scripts/test/shell-scroll.browser.mjs` holds the scrolling in
   Chrome with the renderer's own stylesheets.
 - CI tells a publication still waiting for the scheduled sync apart from a broken one: the `workspace publication`
   workflow runs `node scripts/workspace.mjs check --allow-pending 6` on a push, which passes with a "pending

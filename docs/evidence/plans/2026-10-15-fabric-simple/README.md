@@ -1,5 +1,7 @@
 # Fabric 0.3.7 — simple: the place a person starts, sees and steers (plan, 2026-10-15)
 
+*2026-10-22: wave 4, which this page numbers 0.3.10, is now 0.3.11 (P-20); 0.3.10 became the scroll patch (P-23).*
+
 **Objective (the operator, 2026-10-15).** Fabric is too complex. It is software for people: the agents talk to each
 other on their own, and what Fabric shows is shown to a person. Keep the flows and mechanics that serve that person,
 remove the rest, and make Fabric the place where everything starts: open a console of your coding agents, see your

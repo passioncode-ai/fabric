@@ -138,8 +138,7 @@ export function opsRecord(input: {
   const raw = boundStructure(input.detail ?? {})
   if (input.error !== undefined) {
     const e = input.error
-    raw.__error =
-      e instanceof Error ? { name: e.name, message: e.message } : { name: 'Error', message: String(e) }
+    raw.__error = e instanceof Error ? { name: e.name, message: e.message } : errorShape(e)
   }
 
   const sanitized = redactPayload(raw)
@@ -164,6 +163,17 @@ export function opsRecord(input: {
     ...(errorField ? { error: errorField } : {}),
     ...(redactions.length ? { redactions } : {})
   }
+}
+
+/** A thrown or returned failure that is not an Error, as the log says it. PostgREST answers an RPC failure with a plain
+ *  object `{ message, code, details, hint }`; `String()` of it is «[object Object]», which hid every board tick failure
+ *  (0.3.10 review DA-3). Its message and code are kept; any other object is written as JSON. Redaction runs after. */
+function errorShape(e: unknown): { name: string; message: string } {
+  if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
+  const o = e as { message?: unknown; code?: unknown }
+  const code = typeof o.code === 'string' || typeof o.code === 'number' ? ` (${String(o.code)})` : ''
+  if (typeof o.message === 'string' && o.message) return { name: 'Error', message: o.message + code }
+  try { return { name: 'Error', message: JSON.stringify(e) ?? String(e) } } catch { return { name: 'Error', message: String(e) } }
 }
 
 /** Is `level` at or above `floor`? So a filter can mean "this and worse". */

@@ -67,6 +67,11 @@
    the place's height, and it would grow past it instead of scrolling (Settings, 0.3.10 review ER-1). */
 .fab-place>.shell>.content{padding-bottom:var(--space-4)}
 .fab-place>.shell>.ceo-panel{min-height:0}
+/* An absolutely placed element inside a page (a visually hidden label) is placed against the page, never the window:
+   placed against the window it made the document taller and the WINDOW scrolled the rail and the top bar away (0.3.10
+   review, iteration 2, UX-1). The main window's document never scrolls; detached windows have no `.launch-root`. */
+.fab-place>.shell>main,.fab-place>.shell>aside{position:relative}
+html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 /* A notice above the page never takes it over: past a third of the place it scrolls inside itself. */
 .fab-place>:not(.shell):not(.act-line){flex:0 1 auto;min-height:0;max-height:33%;overflow-y:auto}
 /* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
@@ -78,9 +83,10 @@
   .rail-places a,.rail-projects a{justify-content:center;padding:0}
   .rail-n,.rail-c{margin-left:0}
 }
-@media print{.rail{display:none}.fab-shell{display:block;height:auto}.fab-place,.fab-place>.shell>main{overflow:visible;min-height:auto;height:auto}}
+/* Print: the page in full, without the rail, the top bar or the act line (0.3.10 review ER-1, iteration 2). */
+@media print{html:has(.app.launch-root),html:has(.app.launch-root)>body,#root,.app.launch-root{height:auto;overflow:visible}.rail,.fab-top,.fab-place>.act-line{display:none}.fab-shell,.fab-main,.fab-place,.fab-place>.shell{display:block;height:auto;min-height:0;overflow:visible}.fab-place>.shell>main{overflow:visible;height:auto;min-height:0}}
 /* The act line (ADR-0160 §1): one quiet line at the foot of the place, never a toast or a banner. */
-.act-line{flex:none;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
+.act-line{flex:none;max-height:40%;overflow-y:auto;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
 .act-line-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
 .act-line-undo:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
 .act-line-undo[disabled]{color:var(--app-muted);cursor:default}

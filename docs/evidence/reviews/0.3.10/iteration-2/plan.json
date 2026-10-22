@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "b6b8d10fcf14cf1b0885ca32616912c0a216985d",
+  "report": "docs/evidence/reviews/0.3.10/iteration-2/2026-10-22-plan.md",
+  "reportSha256": "65659d86a0f4d2023bf6a6fde4ee7af22c311a031eaa2f26bd93df21fdf8cd61",
+  "reviewerRun": "release-0310-i2-plan-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-2",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `not-a-defect`, the gate's word (`scripts/lib/release-gate.mjs`)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-7, UX-2, DO-1, DA-4, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1440 px; the browser test is said to hold the scrolling; the workspace reset and the log fix are named"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "DO-2, PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the note covers rows written before P-23 opened (CO-379 and earlier); P-20 names CO-379"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "DO-4, PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 0.3.9 and 0.3.10 from 2026-10-21, 0.3.11 from 2026-10-22"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "DO-5, DA-1, PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.3.8 sentence is back in the 0.3.9 paragraph; the 0.3.10 line says a 0.3.8 install copies migration 120 from the installed 0.3.10 bundle"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "DO-6, PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-383 names both and closes with the release after 0.3.10, as the ledger says; the 0.3.9 ledger points to where its debts went"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "DO-7, PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: its evening update names the quit-and-open step and CO-382 to CO-385"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: in the same run, a fabric-workspace pull request for `knowledge/plans.md` and Fabric's status file (Release close names it)"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rollout step 3 checks `startedBy: person` and the broker log for that window"
+      ]
+    }
+  ]
+}

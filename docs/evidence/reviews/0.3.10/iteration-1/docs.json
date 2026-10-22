@@ -13,7 +13,7 @@
     {
       "id": "V1-5",
       "source": "ER-5, DO-9, UX-6",
-      "status": "not a defect",
+      "status": "not-a-defect",
       "evidence": [
         "not a defect for the local gate: `scripts/ci.sh` runs `run-browser-suites.sh`, which ran `shell-scroll.browser.mjs` (`ok` in the 2026-10-22 local `ci.sh fast` log); hosted CI says NOT_RUN without an installed Playwright and Chrome, by CO-171's rule; the stylesheet order in the test's header corrected to the bundle's, and Settings, notices and focus cases added"
       ]

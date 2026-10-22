@@ -67,6 +67,29 @@ try{
     assert.ok(r.place===0&&r.act<=721&&r.top===0,`focus at the foot of Settings scrolls the page, not the place (${JSON.stringify(r)})`);checks++
     await page.close()
   }
+  {
+    // A visually hidden label deep in a page (the project page has them) never makes the window scroll (iteration 2 UX-1).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(shell({page:`<div class="lp">${cards}<label class="st-visually-hidden" style="position:absolute;top:3000px">hidden</label><p id="last">LAST</p></div>`}))
+    await page.mouse.move(100,400); for(let i=0;i<10;i++) await page.mouse.wheel(0,600)
+    await page.keyboard.press('PageDown'); await page.keyboard.press('End'); await page.waitForTimeout(100)
+    const w=await page.evaluate(()=>({doc:document.scrollingElement.scrollTop,rail:document.querySelector('.rail').getBoundingClientRect().top,top:document.querySelector('.fab-top').getBoundingClientRect().top}))
+    assert.ok(w.doc===0&&w.rail===0&&w.top===0,`the window itself never scrolls (${JSON.stringify(w)})`);checks++
+    await page.close()
+  }
+  {
+    // Print shows the whole page, not one window of it (0.3.10 review ER-1, iteration 2).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(shell({page:`<div class="lp">${cards}<p id="last">LAST</p></div>`}))
+    await page.emulateMedia({media:'print'})
+    const pr=await page.evaluate(()=>{const m=document.querySelector('.fab-place>.shell>main');return{clipped:m.scrollHeight>m.clientHeight+1,doc:document.documentElement.scrollHeight,rail:getComputedStyle(document.querySelector('.rail')).display,act:getComputedStyle(document.getElementById('act')).display}})
+    assert.ok(!pr.clipped&&pr.doc>2000&&pr.rail==='none'&&pr.act==='none',`print shows the whole page (${JSON.stringify(pr)})`);checks++
+    // A short window: the act line stays inside the window (ER-4).
+    await page.emulateMedia({media:'screen'});await page.setViewportSize({width:1280,height:360})
+    const act=await page.evaluate(()=>document.getElementById('act').getBoundingClientRect())
+    assert.ok(act.bottom<=361&&act.top>=0,`a short window keeps the act line in it (${JSON.stringify(act)})`);checks++
+    await page.close()
+  }
   for(const notice of ['',`<div class="banner">Нет связи с базой.</div>`]){
     const page=await browser.newPage({viewport:{width:1280,height:720}})
     await page.setContent(shell({notice,page:`<div class="session-window"><div class="terminal-host" id="term" style="flex:1"><div class="xterm">x</div></div></div>`}))

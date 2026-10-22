@@ -306,3 +306,15 @@ export function focusFor(focus: Focus | null, projectId: string): EntityRef | nu
 export function focusSurvives(focus: Focus, openProjects: readonly string[]): boolean {
   return openProjects.includes(focus.projectId)
 }
+
+/**
+ * Which page the shell's place shows, for the scroll: a new key starts the page at its top (LaunchShell, SCR-84). It is
+ * the route with what makes it another page (the project, the console, the draft, the start path, the release, the
+ * board's item) and the workspace opened from a project (0.3.10 review UX-4). Settings is NOT part of it: Settings
+ * opens over a page that stays mounted, and coming back finds that page where it was left (SCR-52; 0.3.10 review ER-6).
+ */
+export function scrollKeyOf(route: AppRoute, workspaceFor: string | null): string {
+  const r = route as Record<string, unknown>
+  const part = (k: string): string => (typeof r[k] === 'string' ? (r[k] as string) : '')
+  return [route.kind, part('projectId'), part('sessionId'), part('id'), part('path'), part('release'), part('item'), workspaceFor ?? ''].join('|')
+}

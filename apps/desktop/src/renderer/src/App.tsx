@@ -27,6 +27,7 @@ import {
   revealAt,
   routeToEntity,
   routeToProject,
+  scrollKeyOf,
   withoutAddress,
   type AppRoute,
   type Tab
@@ -923,9 +924,9 @@ function Shell({
         projectsReadAt={projectsReadAt}
         onRetryProjects={() => void refreshProjects()}
         at={railAt}
-        // The page starts at its top on a new place, another project in the same place, or the workspace opened from a
-        // project page (0.3.10 review UX-4). placeKey itself also times «new since», so the scroll key is its own.
-        placeKey={`${placeKey}|${'projectId' in active ? active.projectId ?? '' : ''}|${workspaceFor ?? ''}`}
+        // The page starts at its top on a new page of the place (shared/appRoute.ts#scrollKeyOf, SCR-84); App's own
+        // placeKey also times «new since» and includes Settings, so the scroll key is its own.
+        placeKey={scrollKeyOf(active, workspaceFor)}
         title={placeTitle}
         pins={pins}
         lastActivity={lastActivity}

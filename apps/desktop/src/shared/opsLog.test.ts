@@ -70,6 +70,22 @@ describe('what never reaches the log', () => {
     expect(JSON.stringify(r)).not.toContain('at Object')
   })
 
+  it('says what a database refusal was when it is a plain object, never «[object Object]» (0.3.10 review DA-3)', () => {
+    // PostgREST answers an RPC failure with a plain object; the board tick logged 17 of them as «[object Object]».
+    const r = opsRecord({ at: new Date(0), op: 'board.tick', outcome: 'failed', correlationId: 'c',
+      error: { message: 'canceling statement due to statement timeout', code: '57014', details: null, hint: null } })
+    expect(r.error).toEqual({ name: 'Error', message: 'canceling statement due to statement timeout (57014)' })
+    const bare = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { ok: false, reason: 'no estate' } })
+    expect(bare.error?.message).toBe('{"ok":false,"reason":"no estate"}')
+    expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: 'plain words' }).error?.message).toBe('plain words')
+  })
+
+  it('redacts a secret in a plain-object error too', () => {
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c',
+      error: { message: 'connect failed: postgres://u:hunter2secretvalue@db:5432/x', code: 'ECONNREFUSED' } })
+    expect(r.error?.message).not.toContain('hunter2secretvalue')
+  })
+
   it('caps a long detail value rather than writing a file into the log', () => {
     const r = opsRecord({
       at,

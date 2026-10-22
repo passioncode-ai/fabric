@@ -228,3 +228,6 @@ by the rows that point to it:
   stopped for idleness by the broker's supervisor at 11:29:56, 11:46:33 and 12:04:46 UTC and started again each time by
   an agent's ensure, until the person took it over at 12:05 UTC (`~/Library/Logs/local-lifecycle/broker.log`). These
   gaps count against the availability measurement owed above: CO-382.
+- **Where the debts went.** The release-thread posts, the relink of threads `02bf19c5` and `a5969ac5`, the board asks
+  and the measurements are carried by the 0.3.10 ledger ("Owed from 0.3.9's Release close") and CO-383; the broker's
+  idle stops by CO-382.

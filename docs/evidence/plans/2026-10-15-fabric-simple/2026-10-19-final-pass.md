@@ -1,5 +1,7 @@
 # Fabric 0.3.7: the final pass to a usable ecosystem (2026-10-19)
 
+*2026-10-22: wave 4, which this page numbers 0.3.10, is now 0.3.11 (P-20); 0.3.10 became the scroll patch (P-23).*
+
 The operator, 2026-10-19: finish, in one last pass, everything the ecosystem needs to be used in its final form; ask
 the other projects what they need from Fabric, read Fabric's backlog for what is critical, write the plan and follow it
 until everything is done. This page is that plan. Its order is the order of work; each step lands on `main` through the

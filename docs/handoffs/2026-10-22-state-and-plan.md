@@ -64,3 +64,14 @@ rebuilt; only its misleading comment in `launch.css` was marked. Fabric's status
 **Exact next task:** Fabric 0.3.10, the scroll patch (P-23, [ledger](../evidence/plans/2026-10-22-release-0310-verification.md)):
 its three review iterations, the release and the install; then 0.3.11 (P-20, wave 4, with CO-336 and CO-372); the
 0.3.9 Release close measurements after a few days of the new build.
+
+## Update 2026-10-22, evening: 0.3.10 in review
+
+0.3.10 is the scroll patch (P-23). Iteration 1 found that Настройки still did not scroll (fixed) and that the broker
+stops Fabric when it is idle (CO-382, the broker's enrollment is the operator's). **One person step** for its rollout:
+quit Fabric and open it again once the 0.3.10 bundle is installed; the agent never starts Fabric through the broker.
+New rows: CO-382 (the broker's idle stop), CO-383 (board asks and 0.3.9's Release close debts), CO-384 (the keyboard
+after a rail move). The operations log no longer hides a database refusal as «[object Object]» (iteration 2 DA-3).
+
+**Exact next task:** the 0.3.10 ledger's next open iteration, then the release commit, the tag, the install and its
+Release close; then 0.3.11 (P-20).

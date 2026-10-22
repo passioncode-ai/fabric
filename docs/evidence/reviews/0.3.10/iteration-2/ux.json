@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "b6b8d10fcf14cf1b0885ca32616912c0a216985d",
+  "report": "docs/evidence/reviews/0.3.10/iteration-2/2026-10-22-ux.md",
+  "reportSha256": "0929706c2ed876b9c7f5f6e5b0274f9c3e2ef65af41a01b472ace566273e1b88",
+  "reviewerRun": "release-0310-i2-ux-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: pages and panels in the place are `position:relative`, and the main window's document never scrolls (`html:has(.app.launch-root)`, `rail.css`); browser case \"the window itself never scrolls\" with a hidden label deep in a page, the wheel, PageDown and End (watched failing on `b6b8d10f`'s stylesheets)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-7, UX-2, DO-1, DA-4, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1440 px; the browser test is said to hold the scrolling; the workspace reset and the log fix are named"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it names the browser test, `Rail.test.tsx` and `appRoute.test.ts`"
+      ]
+    }
+  ]
+}

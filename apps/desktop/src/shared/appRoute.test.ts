@@ -10,6 +10,7 @@ import {
   routeToEntity,
   routeToProject,
   sameRoute,
+  scrollKeyOf,
   withoutAddress,
   type AppRoute,
   type Focus
@@ -221,5 +222,21 @@ describe('Releases are a place, and one release is an address (ADR-0084)', () =>
     expect(returnableTo({ kind: 'releases' }, { kind: 'releases', projectId: 'p1' })).toEqual({ kind: 'releases' })
     expect(returnableTo({ kind: 'releases', projectId: 'p1' }, { kind: 'releases', projectId: 'p1', release: 'r1' })).toBeNull()
     expect(returnableTo({ kind: 'pulse' }, { kind: 'releases' })).toEqual({ kind: 'pulse' })
+  })
+})
+
+describe('the scroll key of the place (SCR-84)', () => {
+  it('changes with another place, another project in the same place, a console and the workspace', () => {
+    const keys = [
+      scrollKeyOf({ kind: 'home' }, null), scrollKeyOf({ kind: 'history' }, null),
+      scrollKeyOf({ kind: 'board', projectId: 'p1' }, null), scrollKeyOf({ kind: 'board', projectId: 'p2' }, null),
+      scrollKeyOf({ kind: 'console', sessionId: 's1' }, null), scrollKeyOf({ kind: 'console', sessionId: 's2' }, null),
+      scrollKeyOf({ kind: 'project', projectId: 'p1' } as AppRoute, null), scrollKeyOf({ kind: 'project', projectId: 'p1' } as AppRoute, 'p1')
+    ]
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+  it('is the same for the same page, so a re-render or Settings opened over it keeps the position', () => {
+    expect(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null)).toBe(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null))
+    expect(scrollKeyOf.length).toBe(2) // Settings is not an input: closing it finds the page where it was (ER-6)
   })
 })

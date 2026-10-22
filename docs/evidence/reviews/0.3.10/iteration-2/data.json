@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "b6b8d10fcf14cf1b0885ca32616912c0a216985d",
+  "report": "docs/evidence/reviews/0.3.10/iteration-2/2026-10-22-data.md",
+  "reportSha256": "48b704c2d46c199597fa8b117b68c061808921476b7f35af3f6f249a53c220ef",
+  "reviewerRun": "release-0310-i2-data-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-3",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/opsLog.ts#errorShape` keeps a plain object's message and code, still redacted; `opsLog.test.ts` (watched failing)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-7, UX-2, DO-1, DA-4, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1440 px; the browser test is said to hold the scrolling; the workspace reset and the log fix are named"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "DO-5, DA-1, PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.3.8 sentence is back in the 0.3.9 paragraph; the 0.3.10 line says a 0.3.8 install copies migration 120 from the installed 0.3.10 bundle"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-22 says within two minutes, the first tick at 11:15:22 UTC failed and the next answered nine"
+      ]
+    }
+  ]
+}

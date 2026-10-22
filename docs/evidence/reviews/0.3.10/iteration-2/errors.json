@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "b6b8d10fcf14cf1b0885ca32616912c0a216985d",
+  "report": "docs/evidence/reviews/0.3.10/iteration-2/2026-10-22-errors.md",
+  "reportSha256": "e8a634926c59959896197811256130cc5cd6a306f4b8f64dcdc88d38e8305b4c",
+  "reviewerRun": "release-0310-i2-errors-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-4",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: in print the window, the shell and the page are auto height and visible, the rail, the top bar and the act line hidden (`rail.css`); browser case (watched failing on `b6b8d10f`)"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "ER-2",
+      "status": "not-a-defect",
+      "evidence": [
+        "not-a-defect: since V1-3 nothing overflows the place, so `clip` and `hidden` behave the same here; `clip` stays as defence in depth, and the focus case proves the outcome (the page scrolls, the place does not) whichever value it has. V1-2's row is corrected by this one"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the key is `shared/appRoute.ts#scrollKeyOf`, with tests in `appRoute.test.ts` (watched failing with the key reduced to the route's kind)"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the act line is at most 40 % of the place and scrolls inside itself; browser case at 1280 x 360"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-385, 0.3.11"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Settings is not part of the scroll key (`scrollKeyOf`), so closing it finds the page where it was (SCR-52)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "ER-7, UX-2, DO-1, DA-4, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 1440 px; the browser test is said to hold the scrolling; the workspace reset and the log fix are named"
+      ]
+    }
+  ]
+}
