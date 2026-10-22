@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- The simple plan's wave 4 (the five places rebuilt to the prototype, История's filters, the first run), which 0.3.9's
+  notes promised for 0.3.10, moves to 0.3.11: 0.3.10 is the scroll patch.
 - Correction to the 0.3.9 notes: a request stored before 0.3.9 without a deadline is not given one. It keeps
   `deadline` null and the board's tick expires it once its message is 7 days old (`board_request_tick`, migration 120;
   `project-board-core-holds-db.test.mjs`, BD-1). On the operator's database one such request, sent 2026-10-21, expires
