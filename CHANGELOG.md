@@ -9,6 +9,14 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- Every page of Fabric scrolls again (the operator, 2026-10-22: «главный экран не скроллится»). Since 0.3.7 the
+  shell grew past the window inside a box that clips, so a page longer than the window could not be reached at all.
+  The shell now has the window's height and the page scrolls inside it: the rail, the top bar, a notice, a side panel
+  (search, Fabric chat, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
+  stays above that line. A page keeps the window's width (no sideways scroll), a console still fills its page, and
+  moving to another place or project starts it at the top. Beside an open side panel the agents grid takes one
+  column below 1250 px instead of running under the panel. `scripts/test/shell-scroll.browser.mjs` holds this in
+  Chrome with the renderer's own stylesheets.
 - CI tells a publication still waiting for the scheduled sync apart from a broken one: the `workspace publication`
   workflow runs `node scripts/workspace.mjs check --allow-pending 6` on a push, which passes with a "pending
   publication" notice while the receipt, its digest and the parent pin verify and HEAD is under 6 h old, and still

@@ -178,7 +178,7 @@ export function ProjectHome({
   // Opening a task, or leaving it, starts at the top of the page — not at the scroll position of
   // the row that was clicked, which would open the workspace in its middle.
   useEffect(() => {
-    document.querySelector('.app-main')?.scrollTo?.({ top: 0 })
+    document.querySelector('.fab-place > .shell > .content')?.scrollTo?.({ top: 0 })
   }, [openTask])
 
   useEffect(() => {

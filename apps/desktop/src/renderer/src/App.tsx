@@ -923,6 +923,7 @@ function Shell({
         projectsReadAt={projectsReadAt}
         onRetryProjects={() => void refreshProjects()}
         at={railAt}
+        placeKey={placeKey}
         title={placeTitle}
         pins={pins}
         lastActivity={lastActivity}

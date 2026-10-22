@@ -1,7 +1,12 @@
 /* The shell of Fabric 0.3.7 (SCN-162, SCR-84): the rail and the top bar, after the prototype's `.sx-rail` and
    `.sx-top` (scripts/product/simple.css). Colours are the app's roles only; gold is for what needs the person. */
-.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100vh;background:var(--app-bg)}
-.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;gap:0;background:var(--app-panel);position:sticky;top:0;height:100vh;overflow:hidden;-webkit-app-region:drag}
+/* The window never scrolls; the page does. The shell is exactly the window's height, and the height is passed down
+   to the page's own scroller, `main.content` in App's `.shell` (styles.css), so the rail, the top bar, a notice above
+   the page, a side panel and the act line stay put while the page scrolls (2026-10-22, the operator: «главный экран
+   не скроллится»: the shell grew past `.app.launch-root`, which clips, and nothing scrolled).
+   scripts/test/shell-scroll.browser.mjs holds this with the real nesting. */
+.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%;min-height:0;background:var(--app-bg)}
+.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;gap:0;background:var(--app-panel);min-height:0;overflow:hidden;-webkit-app-region:drag}
 .rail a,.rail button{-webkit-app-region:no-drag}
 .rail-brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px}
 .rail-brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
@@ -36,8 +41,8 @@
 /* This computer, only when something needs a look (OF-05): one quiet line at the foot of the rail. */
 .rail-machine{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:8px 8px 2px;border-top:1px solid var(--app-line);font-size:12px;color:var(--app-ink)}
 .rail-dot.trouble{background:var(--state-danger)}
-.fab-main{min-width:0;display:flex;flex-direction:column}
-.fab-top{height:44px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;background:var(--app-bg);z-index:2;-webkit-app-region:drag}
+.fab-main{min-width:0;min-height:0;display:flex;flex-direction:column}
+.fab-top{height:44px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 20px;gap:12px;flex:none;background:var(--app-bg);z-index:2;-webkit-app-region:drag}
 .fab-top h1{font-size:14px;font-weight:600;margin:0;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* The open consoles as tabs in the top bar (OF-03, SCN-172): the console sign, the project, the coding agent, ×. */
 .fab-consoles{min-width:0;flex:0 1 auto;margin-left:auto;overflow-x:auto;-webkit-app-region:no-drag}
@@ -51,8 +56,13 @@
 .fab-console-close{height:100%;width:24px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:0 8px 8px 0}
 @media(hover:hover){.fab-console-open:hover,.fab-console-close:hover{color:var(--app-ink)}}
 .fab-console-open:focus-visible,.fab-console-close:focus-visible{outline:2px solid var(--app-focus);outline-offset:-2px}
-.fab-place{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
-.fab-place>.shell,.fab-place>.app-shell-content{flex:1 1 auto}
+.fab-place{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.fab-place>.shell,.fab-place>.app-shell-content{flex:1 1 0;min-height:0}
+/* The page is the scroller; what is pinned to its foot (the scan's «Add N as projects») stays above the act line. */
+.fab-place>.shell>.content{min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding-bottom:var(--space-4)}
+.fab-place>.shell>.ceo-panel{min-height:0}
+/* A notice above the page never takes it over: past a third of the place it scrolls inside itself. */
+.fab-place>:not(.shell):not(.act-line){flex:none;max-height:33%;overflow-y:auto}
 /* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
 @media(max-width:900px){
   .fab-shell{grid-template-columns:64px minmax(0,1fr)}
@@ -62,9 +72,9 @@
   .rail-places a,.rail-projects a{justify-content:center;padding:0}
   .rail-n,.rail-c{margin-left:0}
 }
-@media print{.rail{display:none}.fab-shell{display:block}}
+@media print{.rail{display:none}.fab-shell{display:block;height:auto}.fab-place,.fab-place>.shell>.content{overflow:visible}}
 /* The act line (ADR-0160 §1): one quiet line at the foot of the place, never a toast or a banner. */
-.act-line{position:sticky;bottom:0;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
+.act-line{flex:none;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
 .act-line-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
 .act-line-undo:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
 .act-line-undo[disabled]{color:var(--app-muted);cursor:default}

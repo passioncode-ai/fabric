@@ -7,7 +7,7 @@
 // and nothing else (OF-05, 2026-10-19): search is ⌘K, there is no profile block and no conversation with Fabric on
 // the rail (it opens from Help), and the foot line about this computer shows only when something needs a look.
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { railProjects } from '../../../shared/railProjects.ts'
 import { useLocale, useT } from '../i18n'
@@ -102,6 +102,9 @@ export interface LaunchShellProps {
   onSearch(): void
   /** The act line at the foot of the place (ADR-0160 §1): «{что сделано} · Отменить». */
   actLine?: React.ReactNode
+  /** Which page the place shows, finer than `at` (the board and the plan both mark nothing on the rail): a new key
+   *  starts the page at its top. */
+  placeKey?: string
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
   consoles?: React.ReactNode
   children: React.ReactNode
@@ -139,6 +142,17 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     ? new Date(props.projectsReadAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
     : null
   const go = (e: React.MouseEvent, fn: () => void): void => { e.preventDefault(); fn() }
+  // The page scrolls inside the place (rail.css): another place, or another project, starts at its top rather than
+  // at the scroll position the last one was left at. The rail's own mark is too coarse for this (the board, the
+  // plan and Help all mark nothing), so App names the place it shows.
+  const place = useRef<HTMLDivElement>(null)
+  const where = props.placeKey ?? (at.kind === 'project' ? `project:${at.projectId}` : at.kind)
+  useEffect(() => {
+    const box = place.current
+    if (!box) return
+    box.scrollTo?.({ top: 0 })
+    for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > .content')) page.scrollTo?.({ top: 0 })
+  }, [where])
   return (
     <div className="fab-shell">
       <aside className="rail" aria-label={t('rail.aside')}>
@@ -225,7 +239,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <h1>{props.title}</h1>
           {props.consoles}
         </header>
-        <div className="fab-place">
+        <div className="fab-place" ref={place}>
           {props.children}
           {props.actLine}
         </div>

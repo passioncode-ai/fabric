@@ -196,3 +196,27 @@ by the rows that point to it:
 - the knowledge base's version rows and the workspace publication;
 - the first measurements of "How we will know it holds" (the plan), against the audits' baselines.
 
+
+### State on 2026-10-22
+
+- **Publication.** Tag `v0.3.9`, release run 39700637084 success (17 min 45 s), published 2026-10-22 00:53 UTC as a
+  pre-release with the universal DMG, Windows x64 and arm64 installers, Linux x64 and arm64 AppImage and `.deb`, and a
+  receipt per platform (`gh release view v0.3.9`).
+- **Install and upgrade, the operator's Mac.** Step 1: `pre-0.3.9.dump` (2 473 595 bytes, sha256 `3368826d…`) and its
+  rehearsal PASS (94 → 95, journal 14 345 unchanged, 77 → 78 tables; `pre-0.3.9.dump.rehearsal.json`, 00:29 UTC). Step 2:
+  the 0.3.9 bundle in `/Applications`; the 0.3.8 bundle was not kept beside it (the rollback takes `Fabric-0.3.8-*.dmg`
+  from the v0.3.8 release instead). At 11:02 UTC the app was started again on the 0.3.9 bundle by the lifecycle broker,
+  refused schema 94 at bootstrap (`SchemaReadinessError`, the hub in standby answering 503) and kept no writer. Step 3:
+  stopped through the broker (operation `74764818`, SIGTERM, 11:13 UTC; no person step was needed because the broker
+  had started it). Step 4: `pre-0.3.9-quiet.dump` taken with the writers stopped (2 583 782 bytes, sha256
+  `f338df87…`, 11:14:03 UTC, no other database client), `supabase migration up --local` applied
+  `20261021000120_board_core_holds.sql`, `schema_version()` 95, journal 15 493 before and after. Step 5: started
+  through the broker (operation `75313801`): version 0.3.9, hub published at 11:14:18 UTC, `fabric_whoami` answered
+  and this coding agent's session rejoined by itself under a new session id (TR-4 on the live machine).
+- **The board tick.** Within two minutes 9 of the 10 board requests read `answered`; the tenth (`board.respond`, sent
+  2026-10-21 23:19 UTC) stayed `queued` with no deadline, which the plan says it should have had:
+  [CO-381](../specs/2026-08-16-software-fabric-carryover.md).
+- **Owed.** The board posts on the release threads, the knowledge base's version rows (fabric-workspace already says
+  0.3.9 is published, `1a2e0675`), and the first measurements of the plan's "How we will know it holds", which need
+  days of the new build running: the availability gaps in `cycle.ran@1`, sessions whose hooks reach Fabric against the
+  coding agents running, requests left queued, the workspace-sync schedule.

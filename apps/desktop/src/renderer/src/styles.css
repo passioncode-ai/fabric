@@ -176,6 +176,8 @@ button:disabled { opacity: .4; cursor: default; }
   .project-columns,
   .project-columns-3 { grid-template-columns: 1fr; }
 }
+/* Beside an open side panel the page is 22rem narrower than the window: one column before the third runs under it. */
+@media (max-width: 1250px) { .shell-with-panel .project-columns-3 { grid-template-columns: 1fr; } }
 
 
 
