@@ -106,7 +106,7 @@ taller, and the wheel over the rail or PageDown moved the rail and the top bar a
 |---|---|---|---|
 | V2-1 | UX-1 (blocking) | On a project page the window itself scrolls, down to blank | fixed: pages and panels in the place are `position:relative`, and the main window's document never scrolls (`html:has(.app.launch-root)`, `rail.css`); browser case "the window itself never scrolls" with a hidden label deep in a page, the wheel, PageDown and End (watched failing on `b6b8d10f`'s stylesheets) |
 | V2-2 | PL-1 (blocking) | Three iteration-1 receipts say `not a defect`, which the gate refuses | fixed: `not-a-defect`, the gate's word (`scripts/lib/release-gate.mjs`) |
-| V2-3 | DA-3 | A failed board tick is logged as «[object Object]» | fixed: `shared/opsLog.ts#errorShape` keeps a plain object's message and code, still redacted; `opsLog.test.ts` (watched failing) |
+| V2-3 | DA-3 | A failed board tick is logged as «[object Object]» | fixed: `shared/opsLog.ts#errorParts` (named `errorShape` until the final candidate) keeps a plain object's message and code, still redacted; `opsLog.test.ts` (watched failing) |
 | V2-4 | ER-1 | Print still prints one page | fixed: in print the window, the shell and the page are auto height and visible, the rail, the top bar and the act line hidden (`rail.css`); browser case (watched failing on `b6b8d10f`) |
 | V2-5 | ER-2 | The test named for V1-2 does not fail without it | not a defect: since V1-3 nothing overflows the place, so `clip` and `hidden` behave the same here; `clip` stays as defence in depth, and the focus case proves the outcome (the page scrolls, the place does not) whichever value it has. V1-2's row is corrected by this one |
 | V2-6 | ER-3 | The App scroll key has no test | fixed: the key is `shared/appRoute.ts#scrollKeyOf`, with tests in `appRoute.test.ts` (watched failing with the key reduced to the route's kind) |
@@ -137,17 +137,19 @@ detached checkout. Reports: [UX](../reviews/0.3.10/iteration-3/2026-10-22-ux.md)
 Hosted `ci` on `39b72c07`: success. The UX reviewer built the candidate's renderer and ran it in 280 configurations
 (20 places, 7 sizes, en and ru): the window never moved and every page reached its foot.
 
-25 findings, 1 blocking (a ledger cell the gate refuses). Two reviewers independently found that iteration 2's
+25 findings, 1 blocking (a ledger cell the gate refuses), and 5 more from the verifier of the final candidate's difference. Two reviewers independently found that iteration 2's
 `errorShape` turned an object without a message into JSON before redaction, so a `password` or `token` field would reach
 the log in clear (ER-1, DA-1; no caller passes such an object today). Its fix and the others below make the final
 candidate `__FINAL__`: the reviewers read `39b72c07`, and the receipts and the release gate name the final candidate,
-as 0.3.8's did. The difference is the fixes in this table, each with its test watched failing, and the documents; a
-fresh verifier read that difference before the release (Release close).
+as 0.3.8's did. The difference is the fixes in this table, each with its test watched failing, and the documents. A
+fresh verifier read the first version of that difference (`17793816`) and failed it: two rows below were not fixed in
+every case the findings named, and three tests proved less than they said (V3-20 to V3-24). Their fixes make the final
+candidate; the verifier's report is kept with the iteration-3 reports.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
 | V3-1 | PL-1 (blocking) | Ledger row V2-5 says `not-a-defect`, which the gate's ledger check refuses | fixed: `not a defect` in the ledger (`scripts/lib/release-gate.mjs` DISPOSED); the receipts keep `not-a-defect` |
-| V3-2 | ER-1, DA-1 | `errorShape` serializes an object without a message before redaction: a secret field reaches the log | fixed: such an object is bounded and redacted as a structure before it becomes text (`shared/opsLog.ts#errorShape`); `opsLog.test.ts` "masks a secret field" (watched failing on `39b72c07`) |
+| V3-2 | ER-1, DA-1 | `errorShape` serializes an object without a message before redaction: a secret field reaches the log | fixed: such an object is bounded and redacted as a structure before it becomes text (`shared/opsLog.ts#errorParts` (named `errorShape` until the final candidate)); `opsLog.test.ts` "masks a secret field" (watched failing on `39b72c07`) |
 | V3-3 | ER-2, DA-2 | `errorShape` runs getters and `toJSON`; a throwing getter drops the record; a huge body is serialized whole; circular and BigInt read «[object Object]» | fixed: own data properties only, `boundStructure` for the rest, a guard that keeps the record; `opsLog.test.ts` "never runs an error's getters" (watched failing) |
 | V3-4 | ER-3, UX-1 | In a short window notices push the act line past the window | fixed: the page keeps `min(50%, 100% - 8rem)`; below 640 px of height the notices lose their outer spacing and take at most 15 %, the act line 30 %, the page a third (`rail.css`); browser cases at 240 and at 360 to 900 px with three notices and a refused act |
 | V3-5 | ER-4, UX-2 | The short-window case does not fail without the act line's cap | fixed: the tiny-window case with a refused act fails with the cap removed (watched) |
@@ -165,6 +167,11 @@ fresh verifier read that difference before the release (Release close).
 | V3-17 | PL-4 | CO-383 holds the version correction until 0.3.11 | fixed: CO-383 sends it with 0.3.10's publication post |
 | V3-18 | PL-5 | Rollout step 3 says nothing for a failed check | fixed: the person quits and opens Fabric again; the agent does not stop it through the broker |
 | V3-19 | PL-6 | The handoff's "Waiting on" still says the person owes nothing | fixed: it points to the quit-and-open step |
+| V3-20 | final-candidate verifier (V3-4) | Above 640 px three notices and a long refusal still pushed the act line out (1280 x 720: 472 to 742) | fixed: in the place notices have no outer margin and a small padding, the page keeps `min(40%, 100% - 12rem)` and the act line its 40 % (`rail.css`); browser case at ten window sizes from 1280 x 360 to 1280 x 1200 with a 100-sentence refusal, «Вернуть» focused and in the window (watched failing on `17793816`'s stylesheet and with the act line's cap removed) |
+| V3-21 | final-candidate verifier (V3-3) | A revoked Proxy still made the record throw: `instanceof Error` ran outside the guard | fixed: `errorParts` guards the whole reading, the `instanceof` included; `opsLog.test.ts` "never throws on what it is handed" (watched failing on `17793816`) |
+| V3-22 | final-candidate verifier | Redaction ran twice: the structural pass's counts were lost and the text pass swallowed fields after a header credential | fixed: the plain object's bounded structure goes through the record's one redaction pass and becomes text after it; `opsLog.test.ts` "masks a plain-object error in the one redaction pass" (counted; `details` and `hint` kept) |
+| V3-23 | final-candidate verifier | The DA-2 test passed with getters running; circular and BigInt untested | fixed: a call counter on a getter and `toJSON` that do not throw stays 0 (watched failing with the object serialized through `JSON`); circular and BigInt cases |
+| V3-24 | final-candidate verifier | The App key test passed with the key kept only in a comment | fixed: comments are stripped and every `placeKey=` App passes must be `scrollKeyOf(active, workspaceFor)` (watched failing with the old key in a comment) |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 

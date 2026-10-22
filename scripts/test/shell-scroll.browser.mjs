@@ -27,7 +27,7 @@ const pages={
   panel:{withPanel:true,page:`<div class="lp">${cards}<p id="last">LAST</p></div>`},
   // Settings is rendered beside the hidden page, not inside it (0.3.10 review ER-1).
   settings:{page:`<p>the page under Settings</p>`,settings:`<main class="lp lp-settings">${cards}<p id="last">LAST</p></main>`},
-  // Three notices at once (stack health, a link notice, an error): the page keeps half the place (ER-3).
+  // Three notices at once (stack health, a link notice, an error): the page keeps 40 % of the place (ER-3).
   notices:{notice:[1,2,3].map(i=>`<div class="banner" id="${i===1?'notice':'n'+i}">${'Уведомление. '.repeat(120)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`},
   scan:{page:`<div class="st">${cards}<p id="last">LAST</p><div class="st-foot" id="foot"><button>Add 12 as projects</button></div></div>`},
 }
@@ -44,7 +44,9 @@ try{
       assert.ok(geo.last>720,`${name}@${width}: the fixture is taller than the window`)
       assert.ok(geo.placeScroll<=geo.place+1&&geo.windowScroll<=0&&geo.contentScroll<=1,`${name}@${width}: nothing scrolls sideways (${JSON.stringify(geo)})`);checks++
       assert.ok(geo.content>=Math.min(geo.place-(spec.withPanel?400:0),geo.place)*0.9,`${name}@${width}: the page keeps the place's width (${JSON.stringify(geo)})`);checks++
-      await page.mouse.move(spec.withPanel?200+20:width-100,400)
+      // The wheel over the page itself (with notices above it, its middle moves).
+      const at=await page.evaluate(()=>{const r=document.querySelector('.fab-place>.shell>main:not([hidden])').getBoundingClientRect();return{x:r.left+Math.min(200,r.width/2),y:r.top+r.height/2}})
+      await page.mouse.move(at.x,at.y)
       for(let i=0;i<60;i++) await page.mouse.wheel(0,400)
       await page.waitForTimeout(150)
       const after=await page.evaluate(([pin,rect])=>{const f=eval(rect);return{pins:Object.fromEntries(pin.map(s=>[s,f(s)?.top])),last:f('#last'),act:f('#act'),foot:f('#foot')}},[pin,rect.toString()])
@@ -54,7 +56,7 @@ try{
       checks++
       assert.ok(after.act.bottom<=721&&after.act.top>=600,`${name}@${width}: the act line is at the window's foot (${JSON.stringify(after.act)})`);checks++
       if(after.foot) {assert.ok(after.foot.bottom<=after.act.top+1,`${name}@${width}: the scan's foot stays above the act line (${JSON.stringify(after)})`);checks++}
-      if(name==='notices'){const h=await page.evaluate(()=>({page:document.querySelector('.fab-place>.shell').getBoundingClientRect().height,place:document.querySelector('.fab-place').getBoundingClientRect().height}));assert.ok(h.page>=h.place*0.45,`notices@${width}: the page keeps half the place (${JSON.stringify(h)})`);checks++}
+      if(name==='notices'){const h=await page.evaluate(()=>({page:document.querySelector('.fab-place>.shell').getBoundingClientRect().height,place:document.querySelector('.fab-place').getBoundingClientRect().height}));assert.ok(h.page>=h.place*0.39,`notices@${width}: the page keeps 40 % of the place (${JSON.stringify(h)})`);checks++}
       await page.close()
     }
   }
@@ -101,11 +103,12 @@ try{
   }
   {
     // A short window with three notices and a refused act: the act line stays whole in the window (iteration 3 UX-1).
-    for(const h of [360,480,520,600,640,660,720,900]){
-    const page=await browser.newPage({viewport:{width:1280,height:h}})
-    await page.setContent(shell({notice:[1,2,3].map(i=>`<div class="banner"${i===1?' id="notice"':''}>${'Уведомление. '.repeat(60)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`}).replace('Отменено · <button class="act-line-undo">Вернуть</button>',`<span class="act-line-refused">${'Не отменено: причина. '.repeat(30)}</span><button class="act-line-undo">Вернуть</button>`))
+    for(const [w,h] of [[1280,360],[1280,480],[1280,520],[1280,600],[1280,640],[1280,660],[1280,720],[800,720],[1280,900],[1280,1200]]){
+    const page=await browser.newPage({viewport:{width:w,height:h}})
+    await page.setContent(shell({notice:[1,2,3].map(i=>`<div class="banner"${i===1?' id="notice"':''}>${'Уведомление. '.repeat(60)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`}).replace('Отменено · <button class="act-line-undo">Вернуть</button>',`<span class="act-line-refused">${'Не отменено: причина. '.repeat(100)}</span><button class="act-line-undo">Вернуть</button>`))
     const a3=await page.evaluate(()=>{const r=document.getElementById('act').getBoundingClientRect();return{top:r.top,bottom:r.bottom}})
-    assert.ok(a3.bottom<=h+1&&a3.top>=0,`three notices at ${h} px leave the act line whole (${JSON.stringify(a3)})`);checks++
+    const undo=await page.evaluate(()=>{const b=document.querySelector('#act .act-line-undo');b.focus();const r=b.getBoundingClientRect();return{top:r.top,bottom:r.bottom}})
+    assert.ok(a3.bottom<=h+1&&a3.top>=0&&undo.top>=0&&undo.bottom<=h+1,`three notices at ${w}x${h} leave the act line and «Вернуть» in the window (${JSON.stringify({a3,undo})})`);checks++
     await page.close()
     }
   }

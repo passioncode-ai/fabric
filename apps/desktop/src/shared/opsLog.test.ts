@@ -97,6 +97,35 @@ describe('what never reaches the log', () => {
     expect(JSON.stringify(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: huge })).length).toBeLessThan(20_000)
   })
 
+  it('reads no getter and no toJSON even when they would answer, and keeps circular and BigInt errors readable', () => {
+    let calls = 0
+    const quiet = Object.defineProperty({ toJSON: () => { calls++; return { leaked: true } } }, 'detailText', { get: () => { calls++; return 'from a getter' }, enumerable: true })
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: quiet })
+    expect(calls).toBe(0)
+    expect(r.error?.message).not.toContain('from a getter')
+    const circular: Record<string, unknown> = { reason: 'loop' }; circular.self = circular
+    for (const error of [circular, { n: 10n, reason: 'big' }]) {
+      const m = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error }).error?.message ?? ''
+      expect(m).not.toContain('unreadable')
+      expect(m).toMatch(/loop|big/)
+    }
+  })
+
+  it('never throws on what it is handed, a revoked Proxy included (iteration 3 verification)', () => {
+    const { proxy, revoke } = Proxy.revocable({}, {}); revoke()
+    expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: proxy }).op).toBe('x')
+  })
+
+  it('masks a plain-object error in the one redaction pass: counted, and its other fields kept', () => {
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { password: 'pw-0123456789abcdef', details: 'diag text' } })
+    expect(r.redactions?.length ?? 0).toBeGreaterThan(0)
+    expect(r.error?.message).toContain('diag text')
+    const h = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { headers: { 'x-api-key': 'k-0123456789abcdef' }, details: 'the table is locked', hint: 'retry' } })
+    expect(h.error?.message).toContain('the table is locked')
+    expect(h.error?.message).toContain('retry')
+    expect(h.error?.message).not.toContain('k-0123456789abcdef')
+  })
+
   it('redacts a secret in a plain-object error too', () => {
     const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c',
       error: { message: 'connect failed: postgres://u:hunter2secretvalue@db:5432/x', code: 'ECONNREFUSED' } })

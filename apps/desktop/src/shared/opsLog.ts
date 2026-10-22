@@ -136,18 +136,21 @@ export function opsRecord(input: {
     )
 
   const raw = boundStructure(input.detail ?? {})
-  if (input.error !== undefined) {
-    const e = input.error
-    raw.__error = e instanceof Error ? { name: e.name, message: e.message } : errorShape(e)
-  }
+  if (input.error !== undefined) raw.__error = errorParts(input.error)
 
+  // ONE redaction pass over the detail and the error together, so a field of a plain-object error is masked as a field
+  // and counted (0.3.10 review, iteration 3 verification: a second, text-only pass lost its counts and swallowed text).
   const sanitized = redactPayload(raw)
   // Truncating first can remove a PEM footer and turn a recognizable secret
   // into unmatched text. Only already-sanitized values may be capped.
   const payload = cap(sanitized.payload) as Record<string, unknown>
   const redactions = sanitized.redactions
-  const errorField = payload.__error as { name: string; message: string } | undefined
+  const parts = payload.__error as { name: string; message?: string; body?: unknown } | undefined
   delete payload.__error
+  // A plain object's redacted, capped structure becomes the message only now; a bounded line, never a file.
+  const errorField = parts
+    ? { name: parts.name, message: typeof parts.message === 'string' ? parts.message : String(JSON.stringify(parts.body ?? null)).slice(0, 4_000) }
+    : undefined
 
   return {
     at: input.at.toISOString(),
@@ -165,13 +168,15 @@ export function opsRecord(input: {
   }
 }
 
-/** A thrown or returned failure that is not an Error, as the log says it. PostgREST answers an RPC failure with a plain
- *  object `{ message, code, details, hint }`; `String()` of it is «[object Object]», which hid every board tick failure
- *  (0.3.10 review DA-3). Its message and code are kept; any other object is written as JSON. Redaction runs after. */
-function errorShape(e: unknown): { name: string; message: string } {
-  if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
+/** A thrown or returned failure, as the log says it: an Error's name and message; a plain object's message and code
+ *  (PostgREST answers an RPC failure with `{ message, code, details, hint }`, whose `String()` is «[object Object]»,
+ *  which hid every failed board tick, 0.3.10 review DA-3); any other object as its bounded structure, which the
+ *  record's one redaction pass masks field by field before it becomes text. It reads own data properties only, never
+ *  a getter or `toJSON`, and nothing it is handed can make the record throw, a revoked Proxy included. */
+function errorParts(e: unknown): { name: string; message?: string; body?: unknown } {
   try {
-    // Own data properties only: logging never runs an error's getters or toJSON (0.3.10 review, iteration 3, DA-2).
+    if (e instanceof Error) return { name: e.name, message: e.message }
+    if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
     const own = (key: string): unknown => {
       const d = Object.getOwnPropertyDescriptor(e, key)
       return d && 'value' in d ? d.value : undefined
@@ -180,9 +185,7 @@ function errorShape(e: unknown): { name: string; message: string } {
     const code = own('code')
     const suffix = typeof code === 'string' || typeof code === 'number' ? ` (${String(code).slice(0, 32)})` : ''
     if (typeof message === 'string' && message) return { name: 'Error', message: message + suffix }
-    // Any other object is bounded and redacted as a structure BEFORE it becomes text, so a `password` or `token` field
-    // is masked as it is in `detail` (iteration 3, DA-1); the record's own cap applies after.
-    return { name: 'Error', message: JSON.stringify(redactPayload(boundStructure(e as Record<string, unknown>)).payload) }
+    return { name: 'Error', body: boundStructure({ error: e }).error }
   } catch {
     return { name: 'Error', message: '[omitted: unreadable error]' }
   }

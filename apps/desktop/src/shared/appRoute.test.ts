@@ -245,8 +245,11 @@ describe('the scroll key of the place (SCR-84)', () => {
   it('is what App gives the shell, with the workspace and without Settings (iteration 3 ER-5)', async () => {
     // App's own placeKey times «new since» and includes Settings; the shell must get the scroll key instead.
     const { readFileSync } = await import('node:fs')
-    const app = readFileSync(`${process.cwd()}/src/renderer/src/App.tsx`, 'utf8')
-    expect(app).toMatch(/placeKey=\{scrollKeyOf\(active, workspaceFor\)\}/)
+    const source = readFileSync(`${process.cwd()}/src/renderer/src/App.tsx`, 'utf8')
+    // Comments out, so a key kept only in a comment does not pass (iteration 3 verification).
+    const app = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\s*\}/g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+    const passed = [...app.matchAll(/placeKey=\{([^}]*)\}/g)].map((m) => m[1].trim())
+    expect(passed).toEqual(['scrollKeyOf(active, workspaceFor)'])
   })
   it('is the same for the same page, so a re-render or Settings opened over it keeps the position', () => {
     expect(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null)).toBe(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null))
