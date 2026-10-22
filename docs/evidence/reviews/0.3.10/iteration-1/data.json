@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "49f12c9a7d1cc28f82d3f3bfc36966fab3dba874",
+  "report": "docs/evidence/reviews/0.3.10/iteration-1/2026-10-22-data.md",
+  "reportSha256": "9323b8db44f817668f76f129bcdbce99df0dcaa7bd0eb7a1b0575cec5a504665",
+  "reviewerRun": "release-0310-i1-data-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-12",
+      "source": "DO-2, DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `board_tick` in CHANGELOG, release-mac and CO-381"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"the first tick after 2026-10-28 23:19 UTC\""
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "DA-3, PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"0.3.10 admits schema 95\" in release-mac, a schema line in CHANGELOG"
+      ]
+    }
+  ]
+}

@@ -219,16 +219,17 @@ describe('the place scroller', () => {
   // The page scrolls inside the place (rail.css; scripts/test/shell-scroll.browser.mjs proves the wheel reaches the
   // foot of a long page). Moving to another place, or another project, starts it at its top.
   it('starts a new place, or another project, at its top; the same place keeps its position', () => {
-    const scrollTo = vi.fn()
+    // Counts the resets of the page itself (`.shell > main`), the scroller a person moves (0.3.10 review ER-4).
+    const scrollTo = vi.fn(function (this: HTMLElement, _o?: ScrollToOptions) { return this })
     const original = HTMLElement.prototype.scrollTo
     HTMLElement.prototype.scrollTo = scrollTo as unknown as typeof original
     try {
       vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: false })) } } }))
-      const calls = (): number => scrollTo.mock.calls.filter(([o]) => (o as ScrollToOptions)?.top === 0).length
+      const calls = (): number => scrollTo.mock.calls.filter(([o], i) => (o as ScrollToOptions)?.top === 0 && (scrollTo.mock.contexts[i] as HTMLElement).matches('.shell > main')).length
       const props = (at: LaunchShellProps['at']): LaunchShellProps => ({
         projects: [project('p1', 'Atlas')], projectsProblem: null, projectsReadAt: null, onRetryProjects: vi.fn(), at, title: 'T',
         pins: [], lastActivity: {}, live: new Set<string>(), waiting: null, machine: 'ok', onPlace: vi.fn(), onCreateProject: vi.fn(),
-        onProject: vi.fn(), onSearch: vi.fn(), children: <p>body</p>
+        onProject: vi.fn(), onSearch: vi.fn(), children: <div className="shell"><main className="content"><p>body</p></main></div>
       })
       const { rerender } = render(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'home' })} /></I18nProvider>)
       const first = calls()

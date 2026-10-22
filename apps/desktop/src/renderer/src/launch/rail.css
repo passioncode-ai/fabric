@@ -56,13 +56,19 @@
 .fab-console-close{height:100%;width:24px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:0 8px 8px 0}
 @media(hover:hover){.fab-console-open:hover,.fab-console-close:hover{color:var(--app-ink)}}
 .fab-console-open:focus-visible,.fab-console-close:focus-visible{outline:2px solid var(--app-focus);outline-offset:-2px}
-.fab-place{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-.fab-place>.shell,.fab-place>.app-shell-content{flex:1 1 0;min-height:0}
+.fab-place{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:clip}
+/* Clip, never hidden: a hidden box still scrolls when focus or scrollIntoView reaches inside it, which pushed the
+   act line out of the window (0.3.10 review ER-2). The page keeps at least half the place, however many notices. */
+.fab-place>.shell,.fab-place>.app-shell-content{flex:1 1 0;min-height:50%}
 /* The page is the scroller; what is pinned to its foot (the scan's «Add N as projects») stays above the act line. */
-.fab-place>.shell>.content{min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding-bottom:var(--space-4)}
+/* Every page in the shell scrolls: `main.content`, and Settings, which App renders beside it (0.3.10 review ER-1). */
+.fab-place>.shell>main{flex:1 1 0;min-width:0;min-height:0;overflow-y:auto;scrollbar-gutter:stable;margin-block:0}
+/* `.lp` centres a page with `margin:auto`; vertical auto margins in this row would stop the page from stretching to
+   the place's height, and it would grow past it instead of scrolling (Settings, 0.3.10 review ER-1). */
+.fab-place>.shell>.content{padding-bottom:var(--space-4)}
 .fab-place>.shell>.ceo-panel{min-height:0}
 /* A notice above the page never takes it over: past a third of the place it scrolls inside itself. */
-.fab-place>:not(.shell):not(.act-line){flex:none;max-height:33%;overflow-y:auto}
+.fab-place>:not(.shell):not(.act-line){flex:0 1 auto;min-height:0;max-height:33%;overflow-y:auto}
 /* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
 @media(max-width:900px){
   .fab-shell{grid-template-columns:64px minmax(0,1fr)}
@@ -72,7 +78,7 @@
   .rail-places a,.rail-projects a{justify-content:center;padding:0}
   .rail-n,.rail-c{margin-left:0}
 }
-@media print{.rail{display:none}.fab-shell{display:block;height:auto}.fab-place,.fab-place>.shell>.content{overflow:visible}}
+@media print{.rail{display:none}.fab-shell{display:block;height:auto}.fab-place,.fab-place>.shell>main{overflow:visible;min-height:auto;height:auto}}
 /* The act line (ADR-0160 §1): one quiet line at the foot of the place, never a toast or a banner. */
 .act-line{flex:none;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
 .act-line-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}

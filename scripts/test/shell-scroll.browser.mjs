@@ -1,5 +1,6 @@
 // The 0.3.7 shell scrolls (2026-10-22, the operator: «главный экран не скроллится»). The renderer's own stylesheets,
-// in main.tsx's order, on the markup LaunchShell.tsx and App.tsx render: `.fab-place > [notice] .shell > main.content`
+// in the order the built bundle loads them (App's import graph first: rail.css, launch.css, Onboarding.launch.css,
+// start.css; then main.tsx's), on the markup LaunchShell.tsx and App.tsx render: `.fab-place > [notice] .shell > main.content`
 // with an optional side panel, then the act line. A page taller than the window is reached with the mouse wheel; the
 // rail, the top bar, a notice, a side panel and the act line stay where they are; the page keeps the place's width
 // (nothing scrolls sideways, in the window or in the place); a console fills the page; the scan's pinned foot stays
@@ -11,19 +12,23 @@ import assert from 'node:assert/strict'
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright')
 const base=new URL('../../',import.meta.url),read=p=>readFileSync(new URL(p,base),'utf8')
 const src='apps/desktop/src/renderer/src/'
-const css=['tokens.paperclip.css','tokens.passioncode.css','tokens.app.css','styles.css','components.css','launch/launch.css','start/start.css','Onboarding.launch.css','launch/rail.css'].map(f=>read(src+f)).join('\n')
+const css=['launch/rail.css','launch/launch.css','Onboarding.launch.css','start/start.css','tokens.paperclip.css','tokens.passioncode.css','tokens.app.css','styles.css','components.css'].map(f=>read(src+f)).join('\n')
 const long='A sentence long enough to be wider than any window if nothing wrapped it, '.repeat(6)
 const cards=Array.from({length:40},(_,i)=>`<section class="lp-card"><h3>Card ${i}</h3><p>${i===3?long:'row'}</p></section>`).join('')
 const projects=Array.from({length:60},(_,i)=>`<li><a href="#"><span class="rail-dot"></span><span class="rail-name">project ${i}</span></a></li>`).join('')
 const panel=`<aside class="ceo-panel" id="panel"><div class="panel-head"><h2 class="panel-title">Search</h2></div>${Array.from({length:60},(_,i)=>`<p>hit ${i}</p>`).join('')}</aside>`
-const shell=({page,notice='',withPanel=false})=>`<!doctype html><html><head><style>${css}</style></head><body><div id="root"><div class="app launch-root"><div class="fab-shell">
+const shell=({page,notice='',withPanel=false,settings=''})=>`<!doctype html><html><head><style>${css}</style></head><body><div id="root"><div class="app launch-root"><div class="fab-shell">
 <aside class="rail"><div class="rail-brand"><b>Fabric</b></div><button class="rail-create">+</button><nav class="rail-places"><a href="#" class="on"><span class="rail-name">Главная</span></a></nav><p class="rail-sect">Проекты</p><div class="rail-projects"><ul>${projects}</ul></div></aside>
-<div class="fab-main"><header class="fab-top"><h1>Главная</h1></header><div class="fab-place">${notice}<div class="${withPanel?'shell shell-with-panel':'shell'}"><main class="content">${page}</main>${withPanel?panel:''}</div><div class="act-line" id="act">Отменено · <button class="act-line-undo">Вернуть</button></div></div></div></div></div></div></body></html>`
+<div class="fab-main"><header class="fab-top"><h1>Главная</h1></header><div class="fab-place">${notice}<div class="${withPanel?'shell shell-with-panel':'shell'}"><main class="content"${settings?' hidden':''}>${page}</main>${settings}${withPanel?panel:''}</div><div class="act-line" id="act">Отменено · <button class="act-line-undo">Вернуть</button></div></div></div></div></div></div></body></html>`
 const pages={
   home:{page:`<div class="lp">${cards}<p id="last">LAST</p></div>`},
   history:{page:`<div class="hx"><ul class="hx-list">${Array.from({length:80},(_,i)=>`<li class="hx-row"><div class="hx-act"><span class="hx-time">10:0${i%10}</span><span class="hx-who">agent</span><span class="hx-said">act ${i}</span><span class="hx-end"></span></div></li>`).join('')}</ul><p id="last">LAST</p></div>`},
   notice:{notice:`<div class="banner" id="notice">Стек недоступен. Пробуем сейчас.</div>`,page:`${cards}<p id="last">LAST</p>`},
   panel:{withPanel:true,page:`<div class="lp">${cards}<p id="last">LAST</p></div>`},
+  // Settings is rendered beside the hidden page, not inside it (0.3.10 review ER-1).
+  settings:{page:`<p>the page under Settings</p>`,settings:`<main class="lp lp-settings">${cards}<p id="last">LAST</p></main>`},
+  // Three notices at once (stack health, a link notice, an error): the page keeps half the place (ER-3).
+  notices:{notice:[1,2,3].map(i=>`<div class="banner" id="${i===1?'notice':'n'+i}">${'Уведомление. '.repeat(120)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`},
   scan:{page:`<div class="st">${cards}<p id="last">LAST</p><div class="st-foot" id="foot"><button>Add 12 as projects</button></div></div>`},
 }
 const rect=sel=>{const e=document.querySelector(sel);if(!e)return null;const r=e.getBoundingClientRect();return{top:r.top,bottom:r.bottom,width:r.width,height:r.height}}
@@ -35,7 +40,7 @@ try{
       await page.setContent(shell(spec))
       const pin=['.rail','.fab-top','#act','#notice','#panel']
       const before=await page.evaluate(([pin,rect])=>Object.fromEntries(pin.map(s=>[s,eval(rect)(s)?.top])),[pin,rect.toString()])
-      const geo=await page.evaluate(()=>{const p=document.querySelector('.fab-place'),c=document.querySelector('.content');return{place:p.clientWidth,placeScroll:p.scrollWidth,content:c.getBoundingClientRect().width,contentScroll:c.scrollWidth-c.clientWidth,windowScroll:document.documentElement.scrollWidth-innerWidth,last:document.getElementById('last').getBoundingClientRect().bottom}})
+      const geo=await page.evaluate(()=>{const p=document.querySelector('.fab-place'),c=document.querySelector('.fab-place>.shell>main:not([hidden])');return{place:p.clientWidth,placeScroll:p.scrollWidth,content:c.getBoundingClientRect().width,contentScroll:c.scrollWidth-c.clientWidth,windowScroll:document.documentElement.scrollWidth-innerWidth,last:document.getElementById('last').getBoundingClientRect().bottom}})
       assert.ok(geo.last>720,`${name}@${width}: the fixture is taller than the window`)
       assert.ok(geo.placeScroll<=geo.place+1&&geo.windowScroll<=0&&geo.contentScroll<=1,`${name}@${width}: nothing scrolls sideways (${JSON.stringify(geo)})`);checks++
       assert.ok(geo.content>=Math.min(geo.place-(spec.withPanel?400:0),geo.place)*0.9,`${name}@${width}: the page keeps the place's width (${JSON.stringify(geo)})`);checks++
@@ -49,8 +54,18 @@ try{
       checks++
       assert.ok(after.act.bottom<=721&&after.act.top>=600,`${name}@${width}: the act line is at the window's foot (${JSON.stringify(after.act)})`);checks++
       if(after.foot) {assert.ok(after.foot.bottom<=after.act.top+1,`${name}@${width}: the scan's foot stays above the act line (${JSON.stringify(after)})`);checks++}
+      if(name==='notices'){const h=await page.evaluate(()=>({page:document.querySelector('.fab-place>.shell').getBoundingClientRect().height,place:document.querySelector('.fab-place').getBoundingClientRect().height}));assert.ok(h.page>=h.place*0.45,`notices@${width}: the page keeps half the place (${JSON.stringify(h)})`);checks++}
       await page.close()
     }
+  }
+  {
+    // Focus reaching a control at the foot of Settings scrolls the page, never the place (0.3.10 review ER-2).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(shell({page:'<p>under</p>',settings:`<main class="lp lp-settings">${cards}<button id="deep">deep</button></main>`}))
+    await page.evaluate(()=>{document.getElementById('deep').focus();document.getElementById('deep').scrollIntoView({block:'end'})})
+    const r=await page.evaluate(()=>({place:document.querySelector('.fab-place').scrollTop,act:document.getElementById('act').getBoundingClientRect().bottom,top:document.querySelector('.fab-top').getBoundingClientRect().top}))
+    assert.ok(r.place===0&&r.act<=721&&r.top===0,`focus at the foot of Settings scrolls the page, not the place (${JSON.stringify(r)})`);checks++
+    await page.close()
   }
   for(const notice of ['',`<div class="banner">Нет связи с базой.</div>`]){
     const page=await browser.newPage({viewport:{width:1280,height:720}})

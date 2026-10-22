@@ -428,7 +428,7 @@ database per estate, so cursors survive a restart; `com.read_ack` marks up to 10
 in one call and one `comms.read_acked_many@1`; a non-request message from the target Project naming a queued request
 answers it (state `answered`, `comms.request_transitioned@1` with cause `target-reply`); a request sent without a
 deadline gets one 7 days out; the requester's receipt carries `noResponder` when the target Project has no live
-responder. The tick also answers queued requests their target already replied to, and gives a request sent without a deadline one 7 days after it was sent.
+responder. The tick also answers queued requests their target already replied to, and expires a request stored before 0.3.9 without a deadline once its message is 7 days old: it reads the message's time and writes no deadline into the row (`board_tick`, migration 120 §7a; CO-381).
 
 The board's own upkeep is not a tool: `board_tick`, on the app's 60-second cycle, expires requests whose deadline
 passed (`comms.request_transitioned@1`, cause `deadline`), rotates idempotency epochs (`comms.epoch_rotated@1`) and

@@ -302,7 +302,8 @@ agent's history read, 94 as an archive source). 89 + 5 = **94**, whatever the su
 reservation). The procedure is the same with 94 in place of 89.
 
 **0.3.8 admits schema 94**, as 0.3.7 does: it adds no migration, so a database already at 94 needs no upgrade step.
-**0.3.9 admits schema 95** (migration `20261021000120_board_core_holds.sql`, the board's answered requests and cursor key): a database at 94 takes the upgrade below, `FROM` 94. In the first minute after it, the board answers the queued requests their target already replied to and expires the others once their message is 7 days old, at the tick, without writing a deadline into the row (`deadline` stays null; `board_request_tick` reads the message's time, migration 120 §7a). On the operator's database 9 of the 10 queued requests read `answered` two minutes after the 2026-10-22 upgrade; the tenth expires on 2026-10-28 unless answered (CO-381). With 0.3.8 installed the step-4 stack folder holds 0.3.8's migrations: copy `20261021000120_board_core_holds.sql` into it from the installed 0.3.9 bundle's stack before `supabase migration up --local`, with Fabric quit; never run `supabase` inside the signed bundle.
+**0.3.9 admits schema 95** (migration `20261021000120_board_core_holds.sql`, the board's answered requests and cursor key): a database at 94 takes the upgrade below, `FROM` 94. In the first minute after it, the board answers the queued requests their target already replied to and expires the others that have no deadline of their own once their message is 7 days old, at the tick, without writing a deadline into the row (`deadline` stays null; `board_tick` reads the message's time, migration 120 §7a). On the operator's database 9 of the 10 queued requests read `answered` two minutes after the 2026-10-22 upgrade; the tenth expires at the first tick after 2026-10-28 23:19 UTC unless answered (CO-381).
+**0.3.10 admits schema 95**, as 0.3.9 does: it adds no migration and changes no main-process code, so a database at 95 needs no upgrade step and the upgrade is the bundle alone; going back to 0.3.9 is the 0.3.9 bundle alone. With 0.3.8 installed the step-4 stack folder holds 0.3.8's migrations: copy `20261021000120_board_core_holds.sql` into it from the installed 0.3.9 bundle's stack before `supabase migration up --local`, with Fabric quit; never run `supabase` inside the signed bundle.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -371,7 +372,7 @@ reservation). The procedure is the same with 94 in place of 89.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 and 0.3.10).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

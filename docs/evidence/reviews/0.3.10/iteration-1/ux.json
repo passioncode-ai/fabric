@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "49f12c9a7d1cc28f82d3f3bfc36966fab3dba874",
+  "report": "docs/evidence/reviews/0.3.10/iteration-1/2026-10-22-ux.md",
+  "reportSha256": "e39bc6f0215379f581cabd88c8821ae409af65bfd3dd58179f4acdfd444d2807",
+  "reviewerRun": "release-0310-i1-ux-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1, ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every `main` in `.fab-place > .shell` scrolls, with `margin-block:0` against `.lp`'s auto margins (`rail.css`); `shell-scroll.browser.mjs` cases `settings` at 1280 and 800 (watched failing on `49f12c9a`'s stylesheets)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "ER-3, UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page keeps at least half the place, notices shrink and scroll inside themselves (`rail.css`); browser case `notices` (three tall ones)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "ER-5, DO-9, UX-6",
+      "status": "not a defect",
+      "evidence": [
+        "not a defect for the local gate: `scripts/ci.sh` runs `run-browser-suites.sh`, which ran `shell-scroll.browser.mjs` (`ok` in the 2026-10-22 local `ci.sh fast` log); hosted CI says NOT_RUN without an installed Playwright and Chrome, by CO-171's rule; the stylesheet order in the test's header corrected to the bundle's, and Settings, notices and focus cases added"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-384, 0.3.11 with wave 4 (moving focus on navigation changes what a screen reader says)"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: LaunchShell's key is App's place key with the project and the workspace (`App.tsx`)"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one column beside a panel up to 1440 px (`styles.css`)"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-7, DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-162 \"Scroll (0.3.10)\"; SCR-84 and the notes name Settings, the notices and the workspace"
+      ]
+    }
+  ]
+}

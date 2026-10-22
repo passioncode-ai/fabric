@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "49f12c9a7d1cc28f82d3f3bfc36966fab3dba874",
+  "report": "docs/evidence/reviews/0.3.10/iteration-1/2026-10-22-docs.md",
+  "reportSha256": "5cf5c0a0f8884f4f2e66d094cbd83539ee8589122640c62e158cba72977c2878",
+  "reviewerRun": "release-0310-i1-docs-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-5",
+      "source": "ER-5, DO-9, UX-6",
+      "status": "not a defect",
+      "evidence": [
+        "not a defect for the local gate: `scripts/ci.sh` runs `run-browser-suites.sh`, which ran `shell-scroll.browser.mjs` (`ok` in the 2026-10-22 local `ci.sh fast` log); hosted CI says NOT_RUN without an installed Playwright and Chrome, by CO-171's rule; the stylesheet order in the test's header corrected to the bundle's, and Settings, notices and focus cases added"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-7, DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-162 \"Scroll (0.3.10)\"; SCR-84 and the notes name Settings, the notices and the workspace"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says the tick expires it at 7 days by the message's time and writes no deadline"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "DO-2, DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `board_tick` in CHANGELOG, release-mac and CO-381"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "DO-3, PL-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the replace is undone in the carry-over register and the simple plan; one dated reading note at the head of the register says a pre-2026-10-22 row naming 0.3.10 means wave 4, now 0.3.11; P-20 says the renumbering"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with V1-13 the cells keep their words; CO-381's cell says the notes were corrected"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "DO-5, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: those sections are marked superseded by the afternoon update"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "DO-6, PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the knowledge base page is corrected in a fabric-workspace pull request after this release lands (Release close)"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG names the agents' own acts in История and CO-339 too"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "DO-8, PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger and P-23 name `ba78b7b8` and `10325066`"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "DO-10, PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the entry is removed; it is written in the release commit"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this iteration's map entry links the ledger and SCR-84"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"the others that have no deadline of their own\""
+      ]
+    }
+  ]
+}

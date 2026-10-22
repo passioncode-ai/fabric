@@ -224,3 +224,7 @@ by the rows that point to it:
   message is 7 days old, read from the message's time, and writes no deadline into the row; the tenth request expires on
   2026-10-28 23:19 UTC unless answered. The notes that said it gets a deadline are corrected (CHANGELOG `Unreleased`,
   release-mac).
+- **The broker's idle stops (added by the 0.3.10 review, PL-2).** Started through the broker at 11:14:18 UTC, Fabric was
+  stopped for idleness by the broker's supervisor at 11:29:56, 11:46:33 and 12:04:46 UTC and started again each time by
+  an agent's ensure, until the person took it over at 12:05 UTC (`~/Library/Logs/local-lifecycle/broker.log`). These
+  gaps count against the availability measurement owed above: CO-382.

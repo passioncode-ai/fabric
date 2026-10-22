@@ -151,7 +151,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     const box = place.current
     if (!box) return
     box.scrollTo?.({ top: 0 })
-    for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > .content')) page.scrollTo?.({ top: 0 })
+    for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > main')) page.scrollTo?.({ top: 0 })
   }, [where])
   return (
     <div className="fab-shell">

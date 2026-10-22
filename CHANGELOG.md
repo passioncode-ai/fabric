@@ -9,16 +9,18 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- The simple plan's wave 4 (the five places rebuilt to the prototype, История's filters, the first run), which 0.3.9's
-  notes promised for 0.3.10, moves to 0.3.11: 0.3.10 is the scroll patch.
+- Schema 95, unchanged: installing 0.3.10 over 0.3.9 replaces the bundle only.
+- What 0.3.9's notes promised for 0.3.10 moves to 0.3.11, because 0.3.10 is the scroll patch: the simple plan's wave 4
+  (the five places rebuilt to the prototype, История's filters, the first run), the agents' own acts in История, and
+  enrollment on the contract's resolver (CO-339).
 - Correction to the 0.3.9 notes: a request stored before 0.3.9 without a deadline is not given one. It keeps
-  `deadline` null and the board's tick expires it once its message is 7 days old (`board_request_tick`, migration 120;
+  `deadline` null and the board's tick expires it once its message is 7 days old (`board_tick`, migration 120;
   `project-board-core-holds-db.test.mjs`, BD-1). On the operator's database one such request, sent 2026-10-21, expires
-  on 2026-10-28 unless its target answers (CO-381).
+  at the first tick after 2026-10-28 23:19 UTC unless its target answers (CO-381).
 - Every page of Fabric scrolls again (the operator, 2026-10-22: «главный экран не скроллится»). Since 0.3.7 the
   shell grew past the window inside a box that clips, so a page longer than the window could not be reached at all.
-  The shell now has the window's height and the page scrolls inside it: the rail, the top bar, a notice, a side panel
-  (search, Fabric chat, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
+  The shell now has the window's height and each page, Settings included, scrolls inside it: the rail, the top bar, a notice, a side panel
+  (search, Fabric chat, private history, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
   stays above that line. A page keeps the window's width (no sideways scroll), a console still fills its page, and
   moving to another place or project starts it at the top. Beside an open side panel the agents grid takes one
   column below 1250 px instead of running under the panel. `scripts/test/shell-scroll.browser.mjs` holds this in

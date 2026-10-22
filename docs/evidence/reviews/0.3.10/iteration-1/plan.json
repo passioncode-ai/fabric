@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "49f12c9a7d1cc28f82d3f3bfc36966fab3dba874",
+  "report": "docs/evidence/reviews/0.3.10/iteration-1/2026-10-22-plan.md",
+  "reportSha256": "036bd2f49d8c26068a03cdc590787ec7c40c85eddb6ef41aa91595a0e81e00dd",
+  "reviewerRun": "release-0310-i1-plan-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-13",
+      "source": "DO-3, PL-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the replace is undone in the carry-over register and the simple plan; one dated reading note at the head of the register says a pre-2026-10-22 row naming 0.3.10 means wave 4, now 0.3.11; P-20 says the renumbering"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "DO-5, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: those sections are marked superseded by the afternoon update"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "DO-6, PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the knowledge base page is corrected in a fabric-workspace pull request after this release lands (Release close)"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "DO-8, PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger and P-23 name `ba78b7b8` and `10325066`"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "DO-10, PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the entry is removed; it is written in the release commit"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "DA-3, PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"0.3.10 admits schema 95\" in release-mac, a schema line in CHANGELOG"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"Rollout on the operator's Mac\" above, with the one person step; the Release close follows the release"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "PL-2 (blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-382 (the broker's enrollment is the operator's); the rollout no longer starts Fabric through the broker; the 0.3.9 Release close says so"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with V1-13's reading note; the dated plan pages keep their words"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "PL-7, PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-383 and \"Owed from 0.3.9's Release close\" above"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-383"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lane 2 names P-23"
+      ]
+    }
+  ]
+}

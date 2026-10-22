@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.10",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "49f12c9a7d1cc28f82d3f3bfc36966fab3dba874",
+  "report": "docs/evidence/reviews/0.3.10/iteration-1/2026-10-22-errors.md",
+  "reportSha256": "506019b1b1e12a174290b9e7667cf68954c10f8cdfc818f304d8b54cfe851ef3",
+  "reviewerRun": "release-0310-i1-errors-20261022",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "UX-1, ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every `main` in `.fab-place > .shell` scrolls, with `margin-block:0` against `.lp`'s auto margins (`rail.css`); `shell-scroll.browser.mjs` cases `settings` at 1280 and 800 (watched failing on `49f12c9a`'s stylesheets)"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `overflow:clip` (`rail.css`); browser case: focus at the foot of Settings scrolls the page, never the place"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "ER-3, UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page keeps at least half the place, notices shrink and scroll inside themselves (`rail.css`); browser case `notices` (three tall ones)"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `Rail.test.tsx` renders `.shell > main.content` and counts resets of that element only (watched failing with the reset loop pointed elsewhere)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "ER-5, DO-9, UX-6",
+      "status": "not a defect",
+      "evidence": [
+        "not a defect for the local gate: `scripts/ci.sh` runs `run-browser-suites.sh`, which ran `shell-scroll.browser.mjs` (`ok` in the 2026-10-22 local `ci.sh fast` log); hosted CI says NOT_RUN without an installed Playwright and Chrome, by CO-171's rule; the stylesheet order in the test's header corrected to the bundle's, and Settings, notices and focus cases added"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: in print the place and the page are `overflow:visible` with auto height (`rail.css`); the app has no print command"
+      ]
+    }
+  ]
+}

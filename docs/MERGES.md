@@ -4,12 +4,6 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-22T16:00:00Z · `—` · agent/release-0310 → main · fast-forward
-- run: r-8642aee374a2
-- files: P-23 (0.3.10, the scroll patch) and P-20 renumbered to 0.3.11, the carry-over rows' version column (0.3.10 → 0.3.11), the simple plan, CHANGELOG, the 0.3.10 ledger and its review reports, the release gate, the handoff, the map
-- conflicts: none
-- summary: Fabric 0.3.10 is the scroll patch; wave 4 moves to 0.3.11.
-
 ### 2026-10-22T14:00:00Z · `—` · agent/co380-co381 → main · fast-forward
 - run: r-8642aee374a2
 - files: CHANGELOG (Unreleased correction), docs/launch/release-mac.md (0.3.9 paragraph), CO-381 resolved, the 0.3.9 Release close, P-20 and P-22, the state handoff's update, launch.css (CO-380's comment), the map

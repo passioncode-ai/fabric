@@ -20,6 +20,8 @@ unfinished, merge it into the project plan and into fabric-workspace as the one 
 
 ## Left, in priority order
 
+*Superseded the same afternoon: 0.3.10 became the scroll patch and wave 4 is 0.3.11; read the updates below.*
+
 1. **Fabric 0.3.10 (P-20)**: the simple plan's wave 4 (the five places rebuilt to the prototype, История's filters,
    the first run, the walk from zero), enrollment on the contract's resolver (CO-339, CO-343), CO-331's aliases, the
    hardening rows P-20 names, the core audit's carried rows CO-364 to CO-375, CO-377, CO-378, and now CO-380 (dead
@@ -46,7 +48,7 @@ empty for each): `agent/auto-project-registration-20261017`, `agent/co328-auto-a
 The Fabric task «Довести волну 3 Fabric 0.3.7 … до main» is in review and its work is released in 0.3.7; closing it is
 the operator's move.
 
-## Exact next task
+## Exact next task (morning, superseded below)
 
 Land `agent/ui-scroll-0310` on `main` (its gates in the commit message), then start 0.3.10 (P-20) with CO-381 (a
 failing test for the request the first tick skipped), then wave 4.
