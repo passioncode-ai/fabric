@@ -1480,6 +1480,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Automatic switching:** Явно включаемый pool/strategy/threshold; monitoring, waiting-boundary, cooling-down, exhausted, held, paused. Включение разрешает дальнейшие подходящие смены без второго confirmation. SCN-088/089; ADR-0052.
 
 ### SCR-64: CEO conversation
+
+*2026-10-22 (0.3.10): the panel sits beside the page, which narrows, and scrolls inside itself; the page keeps its own scroll.*
 - **Used by:** FLW-57, FLW-24
 - **Purpose:** The one conversation with Fabric, opened from the avatar on every surface, that keeps what the operator says and tells the truth about each send.
 - **Elements:** header with Fabric's name and the conversation scope; history and New; the conversation, the only growing area; context chips (None, one Project; several and All refused in this slice); composer with Send (the one primary action); per-message state line; kept drafts and sends list when capacity is full; minimise.
@@ -2189,7 +2191,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | error | the list could not be read | none | «Проекты не прочитаны.» with the machine's words beneath and «Повторить»; the last reading beneath it marked «как было в {время}» |
   | success | the list read | none | favourites first, then by latest activity |
   | folded | the window narrower than 900 px | none | icons with their counts, names in tooltips |
-- **Scroll (2026-10-22):** the window never scrolls; the shell has the window's height and each page under the top bar scrolls by itself (`main.content`, and Settings beside it); a notice above the page scrolls inside itself past a third of the place (15 % in a window under 640 px high), and the page keeps 40 % of the place (a third in a short window), while the act line comes first and scrolls inside itself past 40 %; the rail, the top bar, a side panel and the act line stay put; another place, project or the workspace starts at the top, and Settings does not reset the page under it; an absolutely placed element is placed against its page, so the window itself never scrolls (`LaunchShell.tsx#LaunchShell`, `placeKey`; `rail.css`; `scripts/test/shell-scroll.browser.mjs`).
+- **Scroll (2026-10-22):** the window never scrolls; the shell has the window's height and each page under the top bar scrolls by itself (`main.content`, and Settings beside it); a notice above the page scrolls inside itself past a third of the place (15 % in a window under 640 px high), and the page keeps 40 % of the place (a third in a short window), while the act line comes first and scrolls inside itself past 40 % (30 % in a window under 640 px high); the rail, the top bar, a side panel and the act line stay put; another place, project or the workspace starts at the top, and Settings does not reset the page under it; an absolutely placed element is placed against its page, so the window itself never scrolls (`LaunchShell.tsx#LaunchShell`, `placeKey`; `rail.css`; `scripts/test/shell-scroll.browser.mjs`).
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
 - **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)
 - **Scenarios:** SCN-162
@@ -2277,7 +2279,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | filtered-empty | filters match nothing | none | «Ничего не найдено» with «Сбросить фильтры» |
   | error | the history could not be read | none | «История не прочитана.» with «Повторить»; an earlier reading kept and marked |
   | success | read | none | days of acts |
-  | long | older acts exist | none | «Ещё раньше» loads them as the person scrolls |
+  | long | older acts exist | none | «Ещё раньше» loads them when the person presses it |
   | undoing | «Отменить» pressed | none | the button busy |
   | undone | the inverse recorded | none | «Отменено · {время}» beside «Вы отменили: …» with its own «Отменить» |
   | cannot-undo | no inverse | none | «Нельзя отменить» with why |

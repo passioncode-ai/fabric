@@ -73,7 +73,8 @@ its three review iterations, the release and the install; then 0.3.11 (P-20, wav
 stops Fabric when it is idle (CO-382, the broker's enrollment is the operator's). **One person step** for its rollout:
 quit Fabric and open it again once the 0.3.10 bundle is installed; the agent never starts Fabric through the broker.
 New rows: CO-382 (the broker's idle stop), CO-383 (board asks and 0.3.9's Release close debts), CO-384 (the keyboard
-after a rail move), CO-385 (a long notice's hidden actions). The operations log no longer hides a database refusal as «[object Object]» (iteration 2 DA-3).
+after a rail move), CO-385 (a long notice's hidden actions), CO-386 (the redaction's assignment rule), CO-387
+(Diagnostics on the project page), CO-388 (the scroll position on going back). The operations log no longer hides a database refusal as «[object Object]» (iteration 2 DA-3).
 
 **Exact next task:** the 0.3.10 release commit (version, CHANGELOG `## 0.3.10`, the release gate with the iteration-3
 receipts on the final candidate), the gate's library run on it, the tag, the install and the ledger's Release close;

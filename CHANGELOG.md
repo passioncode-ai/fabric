@@ -29,7 +29,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   (search, Fabric chat, private history, agent access) and the «Отменить» line stay where they are, and the scan's «Add N as projects»
   stays above that line. A page keeps the window's width (no sideways scroll), a console still fills its page, and
   moving to another place, another project or the workspace opened from a project starts it at the top. Beside an open side panel the agents grid takes one
-  column up to 1440 px instead of running under the panel. `scripts/test/shell-scroll.browser.mjs` holds the scrolling in
+  column up to 1440 px instead of running under the panel. After moving by the rail, the keyboard (PageDown, Space) scrolls
+  the page once focus is in it (CO-384); going back with ⌘[ opens the previous page at its top (CO-388).
+  `scripts/test/shell-scroll.browser.mjs` holds the scrolling in
   Chrome with the renderer's own stylesheets.
 - CI tells a publication still waiting for the scheduled sync apart from a broken one: the `workspace publication`
   workflow runs `node scripts/workspace.mjs check --allow-pending 6` on a push, which passes with a "pending

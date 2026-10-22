@@ -40,8 +40,8 @@ to 0.3.9.
 
 Carried here so the next releases close them (the version correction goes out with 0.3.10's publication post, the rest
 with 0.3.11, CO-383): the posts on the release threads with the version correction (wave 4 is
-0.3.11) and the relink of threads `02bf19c5` and `a5969ac5` to `main` (CO-383); the knowledge base's plan rows
-(fabric-workspace `knowledge/plans.md`); and the measurements of "How we will know it holds", which now also count the
+0.3.11) and the relink of threads `02bf19c5` and `a5969ac5` to `main` (CO-383); the knowledge base's plan rows were corrected
+on 2026-10-22 (fabric-workspace PR #371, `7648003c`), and the workspace pin follows at the next publication; and the measurements of "How we will know it holds", which now also count the
 broker's idle stops (CO-382).
 
 ## Iteration 1
@@ -175,7 +175,7 @@ candidate; the verifiers' reports are kept with the iteration-3 reports.
 | V3-17 | PL-4 | CO-383 holds the version correction until 0.3.11 | fixed: CO-383 sends it with 0.3.10's publication post |
 | V3-18 | PL-5 | Rollout step 3 says nothing for a failed check | fixed: the person quits and opens Fabric again; the agent does not stop it through the broker |
 | V3-19 | PL-6 | The handoff's "Waiting on" still says the person owes nothing | fixed: it points to the quit-and-open step |
-| V3-20 | final-candidate verifier (V3-4) | Above 640 px three notices and a long refusal still pushed the act line out (1280 x 720: 472 to 742) | fixed: in the place notices have no outer margin and a small padding, the page keeps `min(40%, 100% - 12rem)` and the act line its 40 % (`rail.css`); browser case at ten window sizes from 1280 x 360 to 1280 x 1200 with a 100-sentence refusal, «Вернуть» focused and in the window (watched failing on `17793816`'s stylesheet and with the act line's cap removed) |
+| V3-20 | final-candidate verifier (V3-4) | Above 640 px three notices and a long refusal still pushed the act line out (1280 x 720: 472 to 742) | fixed: in the place notices have no outer margin and a small padding, the page keeps `min(40%, 100% - 12rem)` and the act line its 40 % (`rail.css`); browser case at ten window sizes from 1280 x 360 to 1280 x 1200 with a 100-sentence refusal, the undo control (the fixture's «Вернуть») focused and in the window (watched failing on `17793816`'s stylesheet and with the act line's cap removed) |
 | V3-21 | final-candidate verifier (V3-3) | A revoked Proxy still made the record throw: `instanceof Error` ran outside the guard | fixed: `errorParts` guards the whole reading, the `instanceof` included; `opsLog.test.ts` "never throws on what it is handed" (watched failing on `17793816`) |
 | V3-22 | final-candidate verifier | Redaction ran twice: the structural pass's counts were lost and the text pass swallowed fields after a header credential | fixed: the plain object's bounded structure goes through the record's one redaction pass and becomes text after it; `opsLog.test.ts` "masks a plain-object error in the one redaction pass" (counted; `details` and `hint` kept) |
 | V3-23 | final-candidate verifier | The DA-2 test passed with getters running; circular and BigInt untested | fixed: a call counter on a getter and `toJSON` that do not throw stays 0 (watched failing with the object serialized through `JSON`); circular and BigInt cases |
@@ -200,6 +200,9 @@ candidate; the verifiers' reports are kept with the iteration-3 reports.
 | V3-42 | product verifier | "Closing Settings finds the page where it was" rested on the key test alone | fixed: SCR-84 says Settings does not reset the page; browser case: a scrolled page hidden under Settings and shown again keeps its offset |
 | V3-43 | product verifier | Diagnostics, which SCN-073 says was retired in 0.3.7, still renders in the project page and now shows the new wording; old «[object Object]» records stay until rotation | ruled: CO-387, 0.3.11; the Release close reads only records written after the 0.3.10 start |
 | V3-44 | product verifier | The handoff's next task was stale | fixed: it names the release commit, the gate's library run and the Release close |
+| V3-45 | product verifier (on `32883b4f`, no behaviour blocking) | V3-2, V3-3 and V3-21 cite tests and a mechanism no longer in the tree | fixed by this row: V3-29 replaced their mechanism (a plain object's values are never written); their proof is now `opsLog.test.ts` "never writes a value of a plain-object error without a message, whatever shape the secret has" and "reads no getter and no toJSON, and never throws on circular, BigInt or a revoked Proxy", into which V3-21's case was merged |
+| V3-46 | product verifier | SCR-84 gave no short-window share for the act line | fixed: "(30 % in a window under 640 px high)" |
+| V3-47 | product verifier | SCN-042 and SCR-64 call the panel an overlay; SCN-168 and SCR-88 say «Ещё раньше» loads on scroll; back navigation's scroll is undecided; the notes do not name the keyboard limit; SCN-073 has no pointer to CO-387; the handoff misses CO-386 and CO-387; V3-20 names the fixture's «Вернуть» | fixed: dated notes on SCN-042, SCR-64 and SCN-073; «Ещё раньше» loads on a press; SCN-162 and the notes say what ⌘[ does (CO-388, the operator's decision) and name CO-384; the handoff names CO-386 to CO-388; V3-20 says the undo control |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 

@@ -1269,6 +1269,8 @@ R0 revision 2026-09-26: every Board ticket opens its own CEO conversation, pinne
 - **Product:** unobserved
 
 ### SCN-042: Ask the manager, and get an artefact rather than advice
+
+*2026-10-22 (0.3.10): an open side panel sits beside the page, which narrows; the agents grid takes one column up to 1440 px beside it.*
 - **Persona:** P-01
 - **Feature:** Manager
 - **Traces:** ST-031, FLW-24, FLW-57 (JTBD-01, JTBD-05)
@@ -2011,6 +2013,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 
 ### SCN-073: Диагностика
+
+*2026-10-22: Diagnostics still renders in the project page's side column and, from 0.3.10, shows the operations log's new wording; whether it goes is CO-387 (0.3.11).*
 - **Persona:** P-01
 - **Feature:** Диагностика
 - **Traces:** FLW-42; SCR-54
@@ -4014,7 +4018,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   4. Person presses «＋ Создать» -> «Создать» opens in the main area (SCN-171), not a menu over the page.
   5. Person presses ⌘K -> search opens beside the place, its field focused. The top bar holds only the place's name and the open consoles (OF-05, 2026-10-19): no search field, no profile, no conversation with Fabric (that opens from Help).
 - **Expected result:** every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.
-- **Scroll (0.3.10, 2026-10-22):** a page longer than the window scrolls by the wheel, the trackpad and Tab inside the place, Settings included, while the rail, the top bar, a notice, a side panel and «Отменить» stay where they are; another place, another project or the workspace opened from a project starts at its top. The window itself never scrolls. The keyboard's PageDown and Space reach the page only once focus is in it (CO-384). Proof: `scripts/test/shell-scroll.browser.mjs` (the renderer's stylesheets in Chrome: the wheel, focus, Settings, notices, a hidden label, print, a short window), `launch/Rail.test.tsx` (the page reset), `shared/appRoute.test.ts` (`scrollKeyOf`).
+- **Scroll (0.3.10, 2026-10-22):** a page longer than the window scrolls by the wheel, the trackpad and Tab inside the place, Settings included, while the rail, the top bar, a notice, a side panel and «Отменить» stay where they are; another place, another project or the workspace opened from a project starts at its top. The window itself never scrolls. Going back with ⌘[ opens the previous page at its top, not where it was left (CO-388). The keyboard's PageDown and Space reach the page only once focus is in it (CO-384). Proof: `scripts/test/shell-scroll.browser.mjs` (the renderer's stylesheets in Chrome: the wheel, focus, Settings, notices, a hidden label, print, a short window), `launch/Rail.test.tsx` (the page reset), `shared/appRoute.test.ts` (`scrollKeyOf`).
 - **Alt paths:** no project yet -> the list says «Проектов пока нет» with «Создать проект» (SCN-171); more than twelve projects -> the list scrolls inside the rail and keeps favourites on top; a project's name longer than the rail -> cut with an ellipsis, the full name in its tooltip; the window narrower than 900 px -> the rail folds to icons with the counts, its names in tooltips.
 - **UI elements:** the mark and «Fabric · by PassionCode»; «＋ Создать»; the five place rows with Главная's gold count of questions; «Проекты» label; project rows (dot, star, count); the trouble line at the foot, only on trouble; ⌘K for search.
 - **States covered:** loading (the list reads — «Читаю проекты…», never "no projects"), empty (no project), error (the list could not be read — «Проекты не прочитаны.» with the machine's words beneath and «Повторить»; the five places stay usable), success
@@ -4147,7 +4151,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Expected result:** the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.
 - **Alt paths:** nothing yet -> «История пуста: здесь появится каждое действие — ваше и агентов.»; the filters match nothing -> «Ничего не найдено» with «Сбросить фильтры»; releases are «Что: выпуски» (the Releases log becomes this filter, plan §2); decisions are «Что: решения» (the project's Decisions section, cut, is reached here).
 - **UI elements:** day groups; act rows (time, actor sign and name, sentence, project, «Отменить» / «Нельзя отменить»); filters «Кто», «Проект», «Что»; search; detail pane.
-- **States covered:** loading («Читаю историю…»), empty, filtered-empty, error («История не прочитана.» with the machine's words beneath and «Повторить»), success, long (older days load as the person scrolls — «Ещё раньше»)
+- **States covered:** loading («Читаю историю…»), empty, filtered-empty, error («История не прочитана.» with the machine's words beneath and «Повторить»), success, long (older days load when the person presses «Ещё раньше»)
 - **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
 - **Telemetry:** planned only.
 - **Status:** draft
