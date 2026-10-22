@@ -61,6 +61,16 @@ try{
     }
   }
   {
+    // Settings over a scrolled page does not reset it: the page is hidden, then shown with its offset (V3-42).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(shell({page:`<div class="lp">${cards}<p id="last">LAST</p></div>`}))
+    const kept=await page.evaluate(async()=>{const m=document.querySelector('.fab-place>.shell>main.content');m.scrollTop=900;const before=m.scrollTop
+      m.hidden=true;const s=document.createElement('main');s.className='lp lp-settings';s.textContent='Settings';m.after(s);await new Promise(r=>requestAnimationFrame(()=>r()))
+      s.remove();m.hidden=false;await new Promise(r=>requestAnimationFrame(()=>r()));return{before,after:m.scrollTop}})
+    assert.ok(kept.before>0&&kept.after===kept.before,`Settings over a page keeps the page's offset (${JSON.stringify(kept)})`);checks++
+    await page.close()
+  }
+  {
     // Focus reaching a control at the foot of Settings scrolls the page, never the place (0.3.10 review ER-2).
     const page=await browser.newPage({viewport:{width:1280,height:720}})
     await page.setContent(shell({page:'<p>under</p>',settings:`<main class="lp lp-settings">${cards}<button id="deep">deep</button></main>`}))

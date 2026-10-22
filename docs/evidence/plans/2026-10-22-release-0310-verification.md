@@ -23,7 +23,10 @@ to 0.3.9.
 
 1. The agent installs the signed 0.3.10 bundle in `/Applications`, keeping the 0.3.9 DMG of the v0.3.9 release as the
    way back. The running 0.3.9 keeps running from memory.
-2. **The person quits Fabric and opens it again** (Cmd+Q, then open Fabric). This is the one person step: the running
+2. **The person quits Fabric and opens it again** (Cmd+Q, then open Fabric). Quitting ends every console session and
+   every coding agent running in a Fabric console (AGENTS.md, Lifecycle: an 8 s drain, then the 10 s deadline); agents
+   running outside Fabric rejoin by themselves. So the agent first lists the live console sessions and says them, and the
+   person quits when none runs work they need, or knowingly ends it. This is the one person step: the running
    0.3.9 was opened by the person (`lifecycle.status`, `startedBy: person`), so the broker will not stop it, and the agent
    does not start Fabric through the broker, because the broker stops an app it started after 15 idle minutes
    (CO-382; three stops after the 0.3.9 rollout).
@@ -191,6 +194,12 @@ candidate; the verifiers' reports are kept with the iteration-3 reports.
 | V3-36 | fourth final-candidate verifier (unit, blocking) | A plain object without a message still wrote its `code`, a value | fixed: the field-names line carries no code; a code is written only beside a message, and only of a fixed shape (`^[A-Za-z0-9_.-]{1,32}$` or a number, as `causeOf` keeps it); the eight-shapes test adds four code shapes (watched failing on `1b57a73a`) |
 | V3-37 | fourth final-candidate verifier (unit) | The single-read test did not watch the message half | fixed: a message getter that changes between reads, watched failing with the message read twice |
 | V3-38 | fourth final-candidate verifier (unit); seam verifier (on `1b57a73a`: pass) | A key made only of letters can still be a secret; an Error's own getters run once (as in v0.3.9); a plain object without a message now says only field names (the stated trade) | not a defect: field names are the diagnosis the change keeps, and a letters-only key under 25 characters is written as a name; the Error path reads as v0.3.9 did; the trade is the CHANGELOG's |
+| V3-39 | product verifier (on `f0c92f90`, no behaviour blocking) | The CHANGELOG's count of hidden failures was out of date and left out the board commands | fixed: the count names its time of measurement (2026-10-22 19:04 UTC) and both ops (`board.tick`, `board.rpc-unreadable`), counted from the operator's log file, values never read |
+| V3-40 | product verifier | SCR-84 said the page keeps at least half of the place | fixed: SCR-84 says what the stylesheet does (40 %, a third in a short window; notices a third, 15 % in a short window; the act line first) |
+| V3-41 | product verifier | The person's quit ends every console session; the rollout did not say so | fixed: rollout step 2 lists the live console sessions first |
+| V3-42 | product verifier | "Closing Settings finds the page where it was" rested on the key test alone | fixed: SCR-84 says Settings does not reset the page; browser case: a scrolled page hidden under Settings and shown again keeps its offset |
+| V3-43 | product verifier | Diagnostics, which SCN-073 says was retired in 0.3.7, still renders in the project page and now shows the new wording; old «[object Object]» records stay until rotation | ruled: CO-387, 0.3.11; the Release close reads only records written after the 0.3.10 start |
+| V3-44 | product verifier | The handoff's next task was stale | fixed: it names the release commit, the gate's library run and the Release close |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 
