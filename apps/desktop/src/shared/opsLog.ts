@@ -28,7 +28,7 @@
 //      log. Stacks are dropped: they carry paths, and the name and message are
 //      what a reader needs.
 
-import { redactPayload } from './redact.ts'
+import { redact, redactPayload } from './redact.ts'
 
 export const LEVELS = ['debug', 'info', 'warn', 'error'] as const
 export type OpsLevel = (typeof LEVELS)[number]
@@ -144,13 +144,23 @@ export function opsRecord(input: {
   // Truncating first can remove a PEM footer and turn a recognizable secret
   // into unmatched text. Only already-sanitized values may be capped.
   const payload = cap(sanitized.payload) as Record<string, unknown>
-  const redactions = sanitized.redactions
+  const redactions = [...sanitized.redactions]
   const parts = payload.__error as { name: string; message?: string; body?: unknown } | undefined
   delete payload.__error
-  // A plain object's redacted, capped structure becomes the message only now; a bounded line, never a file.
-  const errorField = parts
-    ? { name: parts.name, message: typeof parts.message === 'string' ? parts.message : String(JSON.stringify(parts.body ?? null)).slice(0, 4_000) }
-    : undefined
+  // A plain object's redacted, capped structure becomes the message only now, and the text rules run over it too: a
+  // header given as a name/value pair, or a key the field-name rule does not know, is a secret only text can see
+  // (0.3.10 final-candidate verification). One value per line keeps a marker's tail from swallowing the next field.
+  let errorField: { name: string; message: string } | undefined
+  if (parts && typeof parts.message === 'string') errorField = { name: parts.name, message: parts.message }
+  else if (parts) {
+    const text = redact(String(JSON.stringify(parts.body ?? null, null, 1)))
+    for (const c of text.redactions) {
+      const seen = redactions.find((r) => r.rule === c.rule)
+      if (seen) seen.count += c.count
+      else redactions.push({ ...c })
+    }
+    errorField = { name: parts.name, message: text.text.replace(/\n\s*/g, ' ').slice(0, 4_000) }
+  }
 
   return {
     at: input.at.toISOString(),
@@ -175,7 +185,11 @@ export function opsRecord(input: {
  *  a getter or `toJSON`, and nothing it is handed can make the record throw, a revoked Proxy included. */
 function errorParts(e: unknown): { name: string; message?: string; body?: unknown } {
   try {
-    if (e instanceof Error) return { name: e.name, message: e.message }
+    if (e instanceof Error) {
+      // An Error whose name or message is not a string (assigned by hand) is still said as text, never an object.
+      const name = typeof e.name === 'string' ? e.name : 'Error'
+      return typeof e.message === 'string' ? { name, message: e.message } : { name, body: boundStructure({ m: e.message as unknown }).m }
+    }
     if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
     const own = (key: string): unknown => {
       const d = Object.getOwnPropertyDescriptor(e, key)

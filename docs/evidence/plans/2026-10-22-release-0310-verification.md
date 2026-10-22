@@ -143,8 +143,9 @@ the log in clear (ER-1, DA-1; no caller passes such an object today). Its fix an
 candidate `__FINAL__`: the reviewers read `39b72c07`, and the receipts and the release gate name the final candidate,
 as 0.3.8's did. The difference is the fixes in this table, each with its test watched failing, and the documents. A
 fresh verifier read the first version of that difference (`17793816`) and failed it: two rows below were not fixed in
-every case the findings named, and three tests proved less than they said (V3-20 to V3-24). Their fixes make the final
-candidate; the verifier's report is kept with the iteration-3 reports.
+every case the findings named, and three tests proved less than they said (V3-20 to V3-24). A second fresh verifier read
+the next version (`a5ab2548`) and failed it again: the one-pass redaction had dropped the text rules (V3-25 to V3-28).
+Their fixes make the final candidate; both verifiers' reports are kept with the iteration-3 reports.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -172,6 +173,10 @@ candidate; the verifier's report is kept with the iteration-3 reports.
 | V3-22 | final-candidate verifier | Redaction ran twice: the structural pass's counts were lost and the text pass swallowed fields after a header credential | fixed: the plain object's bounded structure goes through the record's one redaction pass and becomes text after it; `opsLog.test.ts` "masks a plain-object error in the one redaction pass" (counted; `details` and `hint` kept) |
 | V3-23 | final-candidate verifier | The DA-2 test passed with getters running; circular and BigInt untested | fixed: a call counter on a getter and `toJSON` that do not throw stays 0 (watched failing with the object serialized through `JSON`); circular and BigInt cases |
 | V3-24 | final-candidate verifier | The App key test passed with the key kept only in a comment | fixed: comments are stripped and every `placeKey=` App passes must be `scrollKeyOf(active, workspaceFor)` (watched failing with the old key in a comment) |
+| V3-25 | second final-candidate verifier (blocking) | The one-pass fix (V3-22) dropped the text rules over a plain-object error: a header given as a name/value pair, an `x-agw-key` header and an `apikey` field would reach the log in clear | fixed: after the field pass the body becomes JSON with one value per line and the text rules run over it, their counts merged (`opsLog.ts#opsRecord`); `opsLog.test.ts` "runs the text rules over a plain-object error too" (watched failing on `a5ab2548`) |
+| V3-26 | second final-candidate verifier | An Error with a non-string message or name gave `null` or an object; a circular message threw | fixed: the name falls back to `Error`, a non-string message goes as a bounded body; `opsLog.test.ts` "says an Error with a non-string name or message as text" (watched failing on `a5ab2548`) |
+| V3-27 | second final-candidate verifier | The text redaction misses a bare `PASSWORD=` and a lowercase `password=` (also in v0.3.9) | ruled: CO-386, 0.3.11 |
+| V3-28 | second final-candidate verifier | With notices the page keeps 40 % of the place, not half | not a defect: the trade V3-20 states, so the act line fits at every height; the page stays reachable in all 3 780 measured configurations |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 

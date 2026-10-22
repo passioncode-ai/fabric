@@ -76,7 +76,7 @@ describe('what never reaches the log', () => {
       error: { message: 'canceling statement due to statement timeout', code: '57014', details: null, hint: null } })
     expect(r.error).toEqual({ name: 'Error', message: 'canceling statement due to statement timeout (57014)' })
     const bare = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { ok: false, reason: 'no estate' } })
-    expect(bare.error?.message).toBe('{"ok":false,"reason":"no estate"}')
+    expect(bare.error?.message.replace(/\s/g, '')).toBe('{"ok":false,"reason":"noestate"}')
     expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: 'plain words' }).error?.message).toBe('plain words')
   })
 
@@ -85,7 +85,7 @@ describe('what never reaches the log', () => {
       error: { ok: false, password: 'hunter2secretvalue', token: 'tok-abcdef0123456789' } })
     expect(r.error?.message).not.toContain('hunter2secretvalue')
     expect(r.error?.message).not.toContain('tok-abcdef0123456789')
-    expect(r.error?.message).toContain('"ok":false')
+    expect(r.error?.message.replace(/\s/g, '')).toContain('"ok":false')
   })
 
   it('never runs an error\'s getters or toJSON, and a hostile one still leaves a record (iteration 3 DA-2)', () => {
@@ -124,6 +124,31 @@ describe('what never reaches the log', () => {
     expect(h.error?.message).toContain('the table is locked')
     expect(h.error?.message).toContain('retry')
     expect(h.error?.message).not.toContain('k-0123456789abcdef')
+  })
+
+  it('runs the text rules over a plain-object error too: a header pair, an unknown key header, apikey (final-candidate verification)', () => {
+    const cases: [unknown, string, string | null][] = [
+      [{ headers: [{ name: 'Authorization', value: 'Bearer S3cr3tTokenValue0123456789' }], keep: 'kept-field' }, 'S3cr3tTokenValue0123456789', 'kept-field'],
+      [{ headers: { 'x-agw-key': 'agwS3cr3tValue0123456789abcd' }, details: 'diag-kept' }, 'agwS3cr3tValue0123456789abcd', 'diag-kept'],
+      [{ apikey: 'apiS3cr3tValue0123456789abcd' }, 'apiS3cr3tValue0123456789abcd', null]
+    ]
+    for (const [error, secret, kept] of cases) {
+      const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error })
+      expect(JSON.stringify(r)).not.toContain(secret)
+      expect(r.redactions?.length ?? 0).toBeGreaterThan(0)
+      if (kept) expect(r.error?.message).toContain(kept)
+    }
+  })
+
+  it('says an Error with a non-string name or message as text, and never throws on a circular one', () => {
+    const circular: Record<string, unknown> = { a: 1 }; circular.self = circular
+    const odd = Object.assign(new Error('x'), { message: circular as unknown as string })
+    const named = Object.assign(new Error('boom'), { name: { a: 1 } as unknown as string })
+    for (const error of [odd, named]) {
+      const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error })
+      expect(typeof r.error?.name).toBe('string')
+      expect(typeof r.error?.message).toBe('string')
+    }
   })
 
   it('redacts a secret in a plain-object error too', () => {
