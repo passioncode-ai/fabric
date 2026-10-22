@@ -15,6 +15,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   reports and the documentation it writes for the person; code, commands and paths stay as they are, and a project's
   own rule for its documents wins. The first run asks the language first and says this; Settings says it under
   «Язык». Rows already on the board keep the language they were written in.
+- A start that meets a database too busy to finish a query in time (PostgreSQL's statement timeout) waits and tries
+  again, as it does when the database does not answer, instead of stopping on «could not work out why» (CO-389; seen on
+  the 0.3.10 install with the disk nearly full).
 
 ## 0.3.10
 

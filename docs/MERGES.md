@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T00:10:00Z · `—` · agent/co389-start-timeout → main · fast-forward
+- run: r-8642aee374a2
+- files: shared/stackWatch.ts (`startupHeals`), stackWatch.test.ts, CO-389 resolved, the recount, CHANGELOG Unreleased, the map
+- conflicts: none
+- summary: CO-389, a start that hits the statement timeout waits and retries.
+
 ### 2026-10-22T23:05:00Z · `—` · agent/p24-working-language-r → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/protocol.ts (`workingLanguage`, the language rule), protocolObligations.ts, agentSurface.ts (`fabric_whoami` names the language), workTools.ts, index.ts, start/FirstRun.tsx (region `first-run-language`), SettingsScreen.tsx, App.tsx, i18n en/ru, start.css, their tests; ADR-0172 and the pipeline reservation moved to ADR-0173; SCN-126, SCN-170; operating-surfaces; P-24; CO-390; CHANGELOG Unreleased

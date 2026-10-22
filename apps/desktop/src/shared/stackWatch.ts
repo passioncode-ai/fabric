@@ -70,7 +70,10 @@ export function startupHeals(failure: Pick<StartupFailure, 'cause' | 'detail' | 
       return failure.remedyKey === 'startup.schema-not-ready.unverified.timeout' || failure.remedyKey === 'startup.schema-not-ready.unverified.transport'
     case 'stack-would-not-start':
     case 'unknown':
-      return dockerIsUnreachable(failure.detail) || stackStartIsTransient(failure.detail) || /Docker did not answer within/.test(failure.detail)
+      // CO-389: a query the database was too busy to finish in time (PostgreSQL's statement_timeout, SQLSTATE 57014)
+      // heals by waiting; the start reads nothing past its retry point before it fails this way.
+      return dockerIsUnreachable(failure.detail) || stackStartIsTransient(failure.detail) || /Docker did not answer within/.test(failure.detail) ||
+        /canceling statement due to statement timeout/i.test(failure.detail)
     default:
       return false
   }

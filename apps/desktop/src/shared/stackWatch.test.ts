@@ -45,6 +45,14 @@ describe('startupHeals: a start that waits instead of quitting (ST-3)', () => {
     expect(startupHeals(classifyStartupFailure(Object.assign(new Error('transport'), { code: 'FABRIC_SCHEMA_NOT_READY', why: 'unverified', check: 'transport' })))).toBe(true)
   })
 
+  it('waits for a database too busy to answer a start\'s query in time (CO-389)', () => {
+    // The 0.3.10 install, 2026-10-22 21:54:55 UTC: the first start's estates read hit the statement timeout with the
+    // disk nearly full, and the start stopped on the dialog; the same read took 0.04 s a minute later.
+    expect(startupHeals(classifyStartupFailure({ message: 'estates read failed: canceling statement due to statement timeout' }))).toBe(true)
+    // A plain refusal that only mentions a statement is still the dialog's.
+    expect(startupHeals(classifyStartupFailure({ message: 'estates read failed: syntax error at or near "statement"' }))).toBe(false)
+  })
+
   it('keeps the dialog for what a retry cannot fix', () => {
     expect(startupHeals(classifyStartupFailure({ message: 'spawnSync supabase ENOENT', code: 'ENOENT' }))).toBe(false)
     expect(startupHeals(classifyStartupFailure({ message: 'Cannot locate the fabric repository' }))).toBe(false)
