@@ -228,10 +228,12 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             </label>
             <label className="lp-field">
               {t('settings.language')}
-              <select value={settings.locale} onChange={(e) => void onChange({ locale: e.target.value as AppSettings['locale'] })}>
+              <select value={settings.locale} aria-describedby="settings-language-hint" onChange={(e) => void onChange({ locale: e.target.value as AppSettings['locale'] })}>
                 <option value="en">{t('settings.localeEn')}</option>
                 <option value="ru">{t('settings.localeRuUntranslated')}</option>
               </select>
+              {/* P-24: the interface's language is the agents' working language; the field says so. */}
+              <small id="settings-language-hint">{t('settings.languageHint')}</small>
             </label>
           </section>
           <section className="lp-panel" aria-labelledby="settings-data-title">

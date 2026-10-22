@@ -57,6 +57,16 @@ function start(path: StartPath, projects: { id: string; name: string }[] | null 
 }
 
 describe('the first run (SCN-126)', () => {
+  it('step 1 asks the language and says the agents will write in it (P-24); a choice reaches Settings at once', async () => {
+    bridge()
+    const onLocale = vi.fn(async () => {})
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} locale="en" onLocale={onLocale} /></PersonaProvider></I18nProvider>)
+    const group = await screen.findByRole('radiogroup', { name: en['first.language'] })
+    expect(within(group).getByRole('radio', { name: en['settings.localeEn'] }) as HTMLInputElement).toHaveProperty('checked', true)
+    expect(screen.getByText(en['first.languageHint'])).toBeTruthy()
+    fireEvent.click(within(group).getByRole('radio', { name: en['settings.localeRuUntranslated'] }))
+    expect(onLocale).toHaveBeenCalledWith('ru')
+  })
   // #region executor-auth-render-test — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
   const executor = (authentication?: ExecutorRow['authentication']): ExecutorRow => ({ id: 'claude-code', label: 'Claude Code', connected: false, state: 'found', version: '2.1.289', path: '/fixture/claude', install: null, authentication })
   it('shows separate sign-in states without promoting connectivity or blocking continuation', async () => {

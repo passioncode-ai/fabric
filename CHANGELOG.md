@@ -7,6 +7,15 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- Agents write in Fabric's language (P-24, [ADR-0172](docs/adr/0172-the-interface-language-is-the-agents-working-language.md);
+  the operator, 2026-10-22: «доска не на русском»). `fabric_whoami` names the interface's language and, right after the
+  date, asks every agent to write what a person reads in it: task titles and briefs, stages, notes, board messages,
+  reports and the documentation it writes for the person; code, commands and paths stay as they are, and a project's
+  own rule for its documents wins. The first run asks the language first and says this; Settings says it under
+  «Язык». Rows already on the board keep the language they were written in.
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

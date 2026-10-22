@@ -940,6 +940,7 @@ export const en = {
   'settings.themeLight': 'Light',
   'settings.themeSystem': 'System',
   'settings.language': 'Language',
+  'settings.languageHint': 'Your agents write in it too: tasks, reports, board messages and the documentation they write for you. An agent learns a new language the next time it asks Fabric for its rules.',
   // Endonyms: a language picker names each language in that language, so these
   // are registry rows that every locale keeps identical rather than translates.
   'settings.localeEn': 'English',
@@ -2221,6 +2222,8 @@ export const en = {
   'first.persona.lede': "I run your projects with the coding agents you already use. Give me a name and a face: that changes how I look, never what I may do.",
   'first.persona.character': "Character",
   'first.persona.variant': "Variant",
+  'first.language': 'Language',
+  'first.languageHint': 'Fabric speaks to you in it, and your agents write in it: tasks, reports, board messages and the documentation they write for you. You can change it in Settings.',
   'first.persona.name': "Name",
   'first.persona.nameHint': "Leave it empty to keep “Fabric”.",
   'first.persona.tooLong': "At most {max} characters.",

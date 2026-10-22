@@ -1037,6 +1037,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const hubAccess = access
   surface = new AgentSurface({
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
+    // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
+    language: () => readSettings().locale,
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,

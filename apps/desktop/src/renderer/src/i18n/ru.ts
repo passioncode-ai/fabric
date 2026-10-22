@@ -295,6 +295,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.themeLight': 'Светлая',
   'settings.themeSystem': 'Системная',
   'settings.language': 'Язык',
+  'settings.languageHint': 'На нём пишут и ваши агенты: задачи, отчёты, сообщения на доске и документацию для вас. Новый язык агент узнаёт, когда в следующий раз спрашивает у Fabric свои правила.',
   // Эндонимы: селектор языков называет каждый язык на нём самом — эти строки
   // одинаковы во всех локалях, а не переводятся.
   'settings.notSaved': "Настройки не сохранены: {reason}. На экране — то, что записано на диске.",
@@ -2089,6 +2090,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'first.persona.lede': "Я веду ваши проекты вместе с агентами для кода, которыми вы уже пользуетесь. Дайте мне имя и облик: он меняет только то, как я выгляжу, а не то, что мне разрешено.",
   'first.persona.character': "Характер",
   'first.persona.variant': "Вариант",
+  'first.language': 'Язык',
+  'first.languageHint': 'На нём Fabric говорит с вами и на нём пишут ваши агенты: задачи, отчёты, сообщения на доске и документацию для вас. Его можно сменить в Настройках.',
   'first.persona.name': "Имя",
   'first.persona.nameHint': "Оставьте пустым — будет «Fabric».",
   'first.persona.tooLong': "Не больше {max} символов.",

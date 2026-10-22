@@ -307,6 +307,8 @@ export interface AgentSurfaceDeps {
    * (REQ-38: a session's claims end with it). Awaited, bounded, by `stop()`; never throws into the caller.
    */
   onSessionEnded?: (sessionId: string, why: 'ended' | 'app-quit') => Promise<void>
+  /** The interface's locale (`settings.locale`), the agents' working language (P-24). Absent or throwing: English. */
+  language?: () => string | undefined
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -443,6 +445,14 @@ export class AgentSurface {
     this.pidAlive = deps.pidAlive ?? pidAlive
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
     this.board = createBoard({ rpc: (fn, args) => deps.db.rpc(fn, args) })
+  }
+
+  /** The working language's locale (P-24). A settings read that throws must not cost an agent its rules. */
+  private readLanguage(): string | undefined {
+    try { return this.deps.language?.() } catch (e) {
+      ops.failed('agentSurface.working-language-read', e, { note: 'the settings could not be read; the rules name English' })
+      return undefined
+    }
   }
 
   /** The address a session's mcp.json points at. Empty until start() resolves. */
@@ -1419,7 +1429,9 @@ export class AgentSurface {
         // One protocol per call, stamped with the server's own clock and zone.
         const protocol = buildProtocol({
           now: new Date(),
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          // P-24: read per call, so a language changed in Settings reaches the next session that asks.
+          language: this.readLanguage()
         })
 
         if (!this.oriented.has(scope.sessionId)) {
@@ -1496,6 +1508,7 @@ export class AgentSurface {
             version: protocol.version,
             hash: protocolHash(protocol),
             now: protocol.now,
+            language: protocol.language,
             vocabulary: protocol.vocabulary
           },
           rules: protocol.rules
@@ -1510,7 +1523,7 @@ export class AgentSurface {
         description:
           'Tell Fabric where you are in the work, so the operator can see it without reading your transcript. Recorded as your own claim, shown beside what Fabric observes about this session. Call it whenever the stage changes.',
         inputSchema: {
-          stage: z.string().min(1).max(120).describe('What you are doing now, as one plain sentence the project\'s owner understands without context, in their language — the work and its aim, not a file, command or internal id ("Making a version where the computer stays awake while an agent works, then releasing it")'),
+          stage: z.string().min(1).max(120).describe('What you are doing now, as one plain sentence the project\'s owner understands without context, in the working language fabric_whoami names — the work and its aim, not a file, command or internal id ("Making a version where the computer stays awake while an agent works, then releasing it")'),
           step: z.number().int().positive().optional().describe('Which step you are on'),
           ofSteps: z.number().int().positive().optional().describe('How many steps you expect'),
           note: z.string().max(400).optional().describe('One line of detail, optional')
@@ -1869,7 +1882,7 @@ export class AgentSurface {
         description:
           'Put work on the board — something you found that should happen, or a piece you are splitting off. It lands in backlog for the operator to see. You must say where it came from: a card with no evidence behind it is noise on someone else’s board.',
         inputSchema: {
-          title: z.string().min(3).max(200).describe('What should happen, in a line the project\'s owner understands without context, in their language ("Keep the computer awake while an agent works"); an id goes in source, not here'),
+          title: z.string().min(3).max(200).describe('What should happen, in a line the project\'s owner understands without context, in the working language fabric_whoami names ("Keep the computer awake while an agent works"); an id goes in source, not here'),
           origin: z
             .object({
               // M124 — `document` and `memory` join the list. Before them an
@@ -2459,7 +2472,7 @@ export class AgentSurface {
       {
         title: 'Draft what a task is for',
         description:
-          'Write the brief of a task you are working on: what should happen, why, and what will be true when it is done. The "what" section is the task\'s summary on the home screen and the project page: write it first, as one or two plain sentences the owner understands without context, in their language. Yours is a DRAFT — the operator can replace any section, and both versions stay readable. Keep it to the task; anything worth knowing past this task belongs in fabric_memory_remember.',
+          'Write the brief of a task you are working on: what should happen, why, and what will be true when it is done. The "what" section is the task\'s summary on the home screen and the project page: write it first, as one or two plain sentences the owner understands without context, in the working language fabric_whoami names. Yours is a DRAFT — the operator can replace any section, and both versions stay readable. Keep it to the task; anything worth knowing past this task belongs in fabric_memory_remember.',
         inputSchema: {
           taskId: z.string().uuid(),
           section: z.enum(['what', 'why', 'expected']),

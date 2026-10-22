@@ -41,9 +41,29 @@ export interface ProtocolVocabulary {
   floorClasses: string[]
 }
 
+/** The language every agent writes person-facing text in: the language of Fabric's interface, which the person
+ *  chose at the first run or in Settings (P-24). Named in English and in itself, so an agent that reads either
+ *  cannot mistake it. */
+export interface WorkingLanguage {
+  code: 'en' | 'ru'
+  name: string
+  native: string
+}
+
+const WORKING_LANGUAGES: Record<WorkingLanguage['code'], WorkingLanguage> = {
+  en: { code: 'en', name: 'English', native: 'English' },
+  ru: { code: 'ru', name: 'Russian', native: 'Русский' }
+}
+
+/** The settings' locale as a working language; anything unknown is English, as the interface is. */
+export function workingLanguage(locale: string | undefined): WorkingLanguage {
+  return locale === 'ru' ? WORKING_LANGUAGES.ru : WORKING_LANGUAGES.en
+}
+
 export interface Protocol {
   version: string
   now: { utc: string; timeZone: string }
+  language: WorkingLanguage
   vocabulary: ProtocolVocabulary
   rules: string[]
   /** This protocol was handed over. Whether it was read is a different fact and
@@ -73,7 +93,10 @@ export function buildProtocol(input: {
   timeZone: string
   ladder?: Record<string, readonly TaskState[]>
   extraRules?: string[]
+  /** The interface's locale (`settings.locale`); English when absent. */
+  language?: string
 }): Protocol {
+  const language = workingLanguage(input.language)
   const ladder = input.ladder ?? LADDER
   const taskStates = Object.keys(ladder) as TaskState[]
 
@@ -92,6 +115,12 @@ export function buildProtocol(input: {
     // question from its training data and sounds certain doing it.
     `Today is ${input.now.toISOString().slice(0, 10)} (${input.now.toISOString()}, ${input.timeZone}). ` +
       'Fabric told you; do not date anything from memory, and do not assume a library, an API or a version you remember is still current.',
+    // SECOND (P-24, the operator 2026-10-22: «чтобы агенты репортили данные на том языке, на котором стоит интерфейс»).
+    // The tools used to ask for "their language" without naming it, and agents wrote English on a Russian board.
+    `[ADVICE] Write everything a person will read in ${language.name} (${language.native}), the language of Fabric's ` +
+      'interface, which the person chose: task titles and briefs, stages, notes, questions, board messages, reports and ' +
+      'the documentation you write for them. Keep code, identifiers, commands, paths and quotations as they are. Where a ' +
+      "project's own instructions fix the language of its documents, they win for those documents.",
     `A task is in one of: ${taskStates.join(', ')}. From where it is now, you may move it to ` +
       taskStates
         .filter((s) => agentMoves[s].length)
@@ -102,7 +131,7 @@ export function buildProtocol(input: {
     ...(input.extraRules ?? [])
   ]
 
-  return { version: PROTOCOL_VERSION, now: { utc: input.now.toISOString(), timeZone: input.timeZone }, vocabulary, rules, served: true }
+  return { version: PROTOCOL_VERSION, now: { utc: input.now.toISOString(), timeZone: input.timeZone }, language, vocabulary, rules, served: true }
 }
 
 /**
