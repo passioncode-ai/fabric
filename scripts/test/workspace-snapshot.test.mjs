@@ -115,7 +115,10 @@ test('the pending window never covers a broken receipt: a tampered digest, a wro
   git(root,'update-index','--add','--cacheinfo','160000,'+'b'.repeat(40)+',workspace');commit(root,'wrong pin')
   assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/gitlink/)}
  {const {root,head}=pendingFixture(),other=fixture(),r=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
-  // A commit with the same documents that HEAD does not contain: valid digest, not this history's publication.
+  // A commit with the same documents that HEAD does not contain: valid digest, not this history's publication. Its own
+  // history gets one more commit so it can never be this one: two fixtures made in the same second hash alike (hosted
+  // CI, run 39709873342: nothing to commit).
+  write(other.root,'apps/elsewhere.js','another history');other.ref=commit(other.root,'another history')
   git(root,'fetch','-q',other.root,other.ref);r.source_commit=other.ref;write(root,receiptPath,JSON.stringify(r));commit(root,'foreign receipt')
   assert.throws(()=>checkReceipt(root,{allowPendingHours:6,now:head+HOUR}),/not an ancestor/)}
  {const {root,head}=pendingFixture();write(root,'apps/code.js','uncommitted')
