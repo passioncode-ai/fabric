@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T02:20:00Z · `—` · agent/ci-publication-pending → main · fast-forward
+- run: r-8db0598178fb
+- files: scripts/workspace.mjs, scripts/workspace-snapshot.mjs (`check --allow-pending`), .github/workflows/workspace.yml, ci.yml and platforms.yml (concurrency by event), scripts/check-workflows.py and its test, scripts/test/workspace-snapshot.test.mjs (the foreign fixture), report-workspace.md, AGENTS.md, DOCMAP, CHANGELOG, the carry-over ledger (CO-379), the map
+- conflicts: none
+- summary: CI stops being red by construction: a pending workspace publication is not a broken one, a schedule never cancels a push, and a test fixture no longer depends on the second it runs in.
+
 ### 2026-10-22T08:00:00Z · `—` · agent/core-stability → main · fast-forward
 - run: r-8db0598178fb
 - files: stability (main/hubStandby.ts, main/stackWatch.ts, shared/stackWatch.ts, main/ops.ts, main/env.ts, main/quit.ts, main/index.ts startup wait, hub and surface takeover), tracking (main/fabricMcp.ts, fabricMcpClient.ts, fabricMcpMain.ts, sessionEnroll.ts, workTools.ts, workRelease.ts, agentSurface.ts), board (main/boardService.ts, main/commsOperatorRead.ts, hubTools board tools, renderer HomeBoardWaiting, StackHealthNotice, CommsScreen, migration 120), i18n, surfaceTools, their tests, CHANGELOG, AGENTS.md, ADR-0115/0134/0149 amendments, CONTEXT.md, operating-surfaces.md, scenarios and screens, release-mac, the task-pipeline persistence contract, the backlog (P-22; P-20 to 0.3.10), the carry-over ledger (CO-362 closed, CO-364 to CO-378), the plan with its audits and notes, the 0.3.9 ledger and reviews, the map; the branches agent/core-st, core-tr, core-bd, core-st2, core-tr2, core-bd2, core-i2, core-i3 merged into it
