@@ -11,7 +11,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - Schema 95, unchanged: installing 0.3.10 over 0.3.9 replaces the bundle only.
 - The operations log says what a database refusal was: a failure that is a plain object (PostgREST's
-  `{ message, code }`) was written as «[object Object]», which hid every failed board upkeep pass (17 since 0.3.9);
+  `{ message, code }`) was written as «[object Object]», which hid every failed board upkeep pass (17 in the log since 2026-10-21, 4 of them after the 0.3.9 rollout);
   it now carries the message and the code, still redacted (`shared/opsLog.ts#errorShape`).
 - What 0.3.9's notes promised for 0.3.10 moves to 0.3.11, because 0.3.10 is the scroll patch: the simple plan's wave 4
   (the five places rebuilt to the prototype, История's filters, the first run), the agents' own acts in История, and

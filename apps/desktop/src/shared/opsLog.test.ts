@@ -80,6 +80,23 @@ describe('what never reaches the log', () => {
     expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: 'plain words' }).error?.message).toBe('plain words')
   })
 
+  it('masks a secret field of a plain-object error with no message, as in detail (iteration 3 DA-1)', () => {
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c',
+      error: { ok: false, password: 'hunter2secretvalue', token: 'tok-abcdef0123456789' } })
+    expect(r.error?.message).not.toContain('hunter2secretvalue')
+    expect(r.error?.message).not.toContain('tok-abcdef0123456789')
+    expect(r.error?.message).toContain('"ok":false')
+  })
+
+  it('never runs an error\'s getters or toJSON, and a hostile one still leaves a record (iteration 3 DA-2)', () => {
+    const hostile = Object.defineProperty({ toJSON: () => { throw new Error('ran toJSON') } }, 'message', { get: () => { throw new Error('ran a getter') }, enumerable: true })
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: hostile })
+    expect(r.op).toBe('x')
+    expect(r.error?.message).not.toContain('ran')
+    const huge = { rows: Array.from({ length: 50_000 }, (_, i) => ({ i, text: 'x'.repeat(100) })) }
+    expect(JSON.stringify(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: huge })).length).toBeLessThan(20_000)
+  })
+
   it('redacts a secret in a plain-object error too', () => {
     const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c',
       error: { message: 'connect failed: postgres://u:hunter2secretvalue@db:5432/x', code: 'ECONNREFUSED' } })

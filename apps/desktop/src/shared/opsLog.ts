@@ -170,10 +170,22 @@ export function opsRecord(input: {
  *  (0.3.10 review DA-3). Its message and code are kept; any other object is written as JSON. Redaction runs after. */
 function errorShape(e: unknown): { name: string; message: string } {
   if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
-  const o = e as { message?: unknown; code?: unknown }
-  const code = typeof o.code === 'string' || typeof o.code === 'number' ? ` (${String(o.code)})` : ''
-  if (typeof o.message === 'string' && o.message) return { name: 'Error', message: o.message + code }
-  try { return { name: 'Error', message: JSON.stringify(e) ?? String(e) } } catch { return { name: 'Error', message: String(e) } }
+  try {
+    // Own data properties only: logging never runs an error's getters or toJSON (0.3.10 review, iteration 3, DA-2).
+    const own = (key: string): unknown => {
+      const d = Object.getOwnPropertyDescriptor(e, key)
+      return d && 'value' in d ? d.value : undefined
+    }
+    const message = own('message')
+    const code = own('code')
+    const suffix = typeof code === 'string' || typeof code === 'number' ? ` (${String(code).slice(0, 32)})` : ''
+    if (typeof message === 'string' && message) return { name: 'Error', message: message + suffix }
+    // Any other object is bounded and redacted as a structure BEFORE it becomes text, so a `password` or `token` field
+    // is masked as it is in `detail` (iteration 3, DA-1); the record's own cap applies after.
+    return { name: 'Error', message: JSON.stringify(redactPayload(boundStructure(e as Record<string, unknown>)).payload) }
+  } catch {
+    return { name: 'Error', message: '[omitted: unreadable error]' }
+  }
 }
 
 /** Is `level` at or above `floor`? So a filter can mean "this and worse". */

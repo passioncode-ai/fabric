@@ -234,6 +234,19 @@ describe('the scroll key of the place (SCR-84)', () => {
       scrollKeyOf({ kind: 'project', projectId: 'p1' } as AppRoute, null), scrollKeyOf({ kind: 'project', projectId: 'p1' } as AppRoute, 'p1')
     ]
     expect(new Set(keys).size).toBe(keys.length)
+    const more = [
+      scrollKeyOf({ kind: 'draft', id: 'd1' } as AppRoute, null), scrollKeyOf({ kind: 'draft', id: 'd2' } as AppRoute, null),
+      scrollKeyOf({ kind: 'start', path: 'add' }, null), scrollKeyOf({ kind: 'start', path: 'scan' }, null),
+      scrollKeyOf({ kind: 'releases', release: 'r1' }, null), scrollKeyOf({ kind: 'releases', release: 'r2' }, null),
+      scrollKeyOf({ kind: 'board', item: 'i1' }, null), scrollKeyOf({ kind: 'board', item: 'i2' }, null)
+    ]
+    expect(new Set(more).size).toBe(more.length)
+  })
+  it('is what App gives the shell, with the workspace and without Settings (iteration 3 ER-5)', async () => {
+    // App's own placeKey times «new since» and includes Settings; the shell must get the scroll key instead.
+    const { readFileSync } = await import('node:fs')
+    const app = readFileSync(`${process.cwd()}/src/renderer/src/App.tsx`, 'utf8')
+    expect(app).toMatch(/placeKey=\{scrollKeyOf\(active, workspaceFor\)\}/)
   })
   it('is the same for the same page, so a re-render or Settings opened over it keeps the position', () => {
     expect(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null)).toBe(scrollKeyOf({ kind: 'plan', projectId: 'p1' }, null))

@@ -35,6 +35,8 @@ unfinished, merge it into the project plan and into fabric-workspace as the one 
 
 ## Waiting on
 
+*For 0.3.10 the person quits Fabric and opens it again once the bundle is installed; see the evening update.*
+
 - A person: nothing for 0.3.9 (the broker started the app it then stopped). CO-365 needs a real reboot to be measured.
 - Other projects: CO-331's remainder (fabric-agent-contract, project-observatory, fabric-switchboard; thread
   `617c8cbe`); CO-371 (the hub's 503 body and the backoff, fabric-agent-adapter and fabric-agent-contract).
@@ -71,7 +73,7 @@ its three review iterations, the release and the install; then 0.3.11 (P-20, wav
 stops Fabric when it is idle (CO-382, the broker's enrollment is the operator's). **One person step** for its rollout:
 quit Fabric and open it again once the 0.3.10 bundle is installed; the agent never starts Fabric through the broker.
 New rows: CO-382 (the broker's idle stop), CO-383 (board asks and 0.3.9's Release close debts), CO-384 (the keyboard
-after a rail move). The operations log no longer hides a database refusal as «[object Object]» (iteration 2 DA-3).
+after a rail move), CO-385 (a long notice's hidden actions). The operations log no longer hides a database refusal as «[object Object]» (iteration 2 DA-3).
 
 **Exact next task:** the 0.3.10 ledger's next open iteration, then the release commit, the tag, the install and its
 Release close; then 0.3.11 (P-20).

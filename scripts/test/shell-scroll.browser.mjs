@@ -90,6 +90,25 @@ try{
     assert.ok(act.bottom<=361&&act.top>=0,`a short window keeps the act line in it (${JSON.stringify(act)})`);checks++
     await page.close()
   }
+  {
+    // A tiny window with a notice and a long act line (a refusal with its words): the line's foot stays in the window,
+    // and the line scrolls inside itself (iteration 3 ER-3, ER-4).
+    const page=await browser.newPage({viewport:{width:800,height:240}})
+    await page.setContent(shell({notice:`<div class="banner" id="notice">${'Уведомление. '.repeat(40)}</div>`,page:`${cards}<p id="last">LAST</p>`}).replace('Отменено · <button class="act-line-undo">Вернуть</button>',`<span class="act-line-refused">${'Не отменено: причина. '.repeat(60)}</span><button class="act-line-undo">Вернуть</button>`))
+    const a=await page.evaluate(()=>{const r=document.getElementById('act').getBoundingClientRect();return{top:r.top,bottom:r.bottom}})
+    assert.ok(a.bottom<=241&&a.top>=0,`a tiny window keeps the whole act line in it (${JSON.stringify(a)})`);checks++
+    await page.close()
+  }
+  {
+    // A short window with three notices and a refused act: the act line stays whole in the window (iteration 3 UX-1).
+    for(const h of [360,480,520,600,640,660,720,900]){
+    const page=await browser.newPage({viewport:{width:1280,height:h}})
+    await page.setContent(shell({notice:[1,2,3].map(i=>`<div class="banner"${i===1?' id="notice"':''}>${'Уведомление. '.repeat(60)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`}).replace('Отменено · <button class="act-line-undo">Вернуть</button>',`<span class="act-line-refused">${'Не отменено: причина. '.repeat(30)}</span><button class="act-line-undo">Вернуть</button>`))
+    const a3=await page.evaluate(()=>{const r=document.getElementById('act').getBoundingClientRect();return{top:r.top,bottom:r.bottom}})
+    assert.ok(a3.bottom<=h+1&&a3.top>=0,`three notices at ${h} px leave the act line whole (${JSON.stringify(a3)})`);checks++
+    await page.close()
+    }
+  }
   for(const notice of ['',`<div class="banner">Нет связи с базой.</div>`]){
     const page=await browser.newPage({viewport:{width:1280,height:720}})
     await page.setContent(shell({notice,page:`<div class="session-window"><div class="terminal-host" id="term" style="flex:1"><div class="xterm">x</div></div></div>`}))

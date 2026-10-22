@@ -4,7 +4,8 @@ The operator, 2026-10-22: «главный экран не скроллится 
 исправить», then «дальше до конца». Since 0.3.7 no page of Fabric could be scrolled. 0.3.10 is that patch (P-23):
 everything on `main` since v0.3.9, which is the scroll fix (PR #36), CO-381's resolution with the corrected 0.3.9 notes
 (PR #37), the renumbering of the simple plan's wave 4 to 0.3.11 (P-20), and the CI fixes on `main` since v0.3.9
-(`ba78b7b8`, a pending workspace publication is not a broken one; `10325066`, a test fixture). Schema 95, unchanged.
+(`ba78b7b8`, a pending workspace publication is not a broken one; `10325066`, a test fixture), and the operations log's
+wording of a refused database query (iteration 2). Schema 95, unchanged.
 
 ## Protocol
 
@@ -28,12 +29,14 @@ to 0.3.9.
    (CO-382; three stops after the 0.3.9 rollout).
 3. The agent checks that the broker did not start Fabric between the quit and the open (`lifecycle.status` says
    `startedBy: person`; no `ensure` for `fabric.desktop` in `~/Library/Logs/local-lifecycle/broker.log` in that window;
-   iteration 2 PL-5), then verifies the version (0.3.10), the schema (95), the hub (`hub.json` and a `fabric_whoami`), and the scroll on
+   iteration 2 PL-5); if the broker did start it, the person quits Fabric and opens it again, and the agent does not
+   stop it through the broker (iteration 3 PL-5). Then the agent verifies the version (0.3.10), the schema (95), the hub (`hub.json` and a `fabric_whoami`), and the scroll on
    the real app (Главная, a project, Настройки, История).
 
 ## Owed from 0.3.9's Release close
 
-Carried here so the next release closes them: the posts on the release threads with the version correction (wave 4 is
+Carried here so the next releases close them (the version correction goes out with 0.3.10's publication post, the rest
+with 0.3.11, CO-383): the posts on the release threads with the version correction (wave 4 is
 0.3.11) and the relink of threads `02bf19c5` and `a5969ac5` to `main` (CO-383); the knowledge base's plan rows
 (fabric-workspace `knowledge/plans.md`); and the measurements of "How we will know it holds", which now also count the
 broker's idle stops (CO-382).
@@ -97,7 +100,7 @@ Local `ci.sh fast` on `b6b8d10f`: exit 0.
 itself still scrolled on a project page (UX-1): visually hidden labels placed against the window made the document
 taller, and the wheel over the rail or PageDown moved the rail and the top bar away, down to a blank window (also in
 0.3.9). The data reviewer found that the operations log wrote every failed board upkeep pass as «[object Object]»
-(DA-3, 17 since 0.3.9).
+(DA-3: 17 in the log since 2026-10-21, 13 of them while 0.3.8 still ran).
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -105,7 +108,7 @@ taller, and the wheel over the rail or PageDown moved the rail and the top bar a
 | V2-2 | PL-1 (blocking) | Three iteration-1 receipts say `not a defect`, which the gate refuses | fixed: `not-a-defect`, the gate's word (`scripts/lib/release-gate.mjs`) |
 | V2-3 | DA-3 | A failed board tick is logged as «[object Object]» | fixed: `shared/opsLog.ts#errorShape` keeps a plain object's message and code, still redacted; `opsLog.test.ts` (watched failing) |
 | V2-4 | ER-1 | Print still prints one page | fixed: in print the window, the shell and the page are auto height and visible, the rail, the top bar and the act line hidden (`rail.css`); browser case (watched failing on `b6b8d10f`) |
-| V2-5 | ER-2 | The test named for V1-2 does not fail without it | not-a-defect: since V1-3 nothing overflows the place, so `clip` and `hidden` behave the same here; `clip` stays as defence in depth, and the focus case proves the outcome (the page scrolls, the place does not) whichever value it has. V1-2's row is corrected by this one |
+| V2-5 | ER-2 | The test named for V1-2 does not fail without it | not a defect: since V1-3 nothing overflows the place, so `clip` and `hidden` behave the same here; `clip` stays as defence in depth, and the focus case proves the outcome (the page scrolls, the place does not) whichever value it has. V1-2's row is corrected by this one |
 | V2-6 | ER-3 | The App scroll key has no test | fixed: the key is `shared/appRoute.ts#scrollKeyOf`, with tests in `appRoute.test.ts` (watched failing with the key reduced to the route's kind) |
 | V2-7 | ER-4 | In a short window the act line is clipped | fixed: the act line is at most 40 % of the place and scrolls inside itself; browser case at 1280 x 360 |
 | V2-8 | ER-5 | A long notice hides its own Dismiss | ruled: CO-385, 0.3.11 |
@@ -124,3 +127,49 @@ taller, and the wheel over the rail or PageDown moved the rail and the top bar a
 | V2-21 | PL-5 | Between the quit and the open an agent's ensure could make 0.3.10 broker-owned again | fixed: rollout step 3 checks `startedBy: person` and the broker log for that window |
 
 Exit for iteration 2: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
+
+## Iteration 3
+
+Five fresh reviewers, 2026-10-22, against `39b72c07` (`39b72c07ce2414658fae3584265dc6bc90c596e2`), read-only in a
+detached checkout. Reports: [UX](../reviews/0.3.10/iteration-3/2026-10-22-ux.md),
+[errors](../reviews/0.3.10/iteration-3/2026-10-22-errors.md), [documents](../reviews/0.3.10/iteration-3/2026-10-22-docs.md),
+[data](../reviews/0.3.10/iteration-3/2026-10-22-data.md), [plan](../reviews/0.3.10/iteration-3/2026-10-22-plan.md).
+Hosted `ci` on `39b72c07`: success. The UX reviewer built the candidate's renderer and ran it in 280 configurations
+(20 places, 7 sizes, en and ru): the window never moved and every page reached its foot.
+
+25 findings, 1 blocking (a ledger cell the gate refuses). Two reviewers independently found that iteration 2's
+`errorShape` turned an object without a message into JSON before redaction, so a `password` or `token` field would reach
+the log in clear (ER-1, DA-1; no caller passes such an object today). Its fix and the others below make the final
+candidate `__FINAL__`: the reviewers read `39b72c07`, and the receipts and the release gate name the final candidate,
+as 0.3.8's did. The difference is the fixes in this table, each with its test watched failing, and the documents; a
+fresh verifier read that difference before the release (Release close).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | PL-1 (blocking) | Ledger row V2-5 says `not-a-defect`, which the gate's ledger check refuses | fixed: `not a defect` in the ledger (`scripts/lib/release-gate.mjs` DISPOSED); the receipts keep `not-a-defect` |
+| V3-2 | ER-1, DA-1 | `errorShape` serializes an object without a message before redaction: a secret field reaches the log | fixed: such an object is bounded and redacted as a structure before it becomes text (`shared/opsLog.ts#errorShape`); `opsLog.test.ts` "masks a secret field" (watched failing on `39b72c07`) |
+| V3-3 | ER-2, DA-2 | `errorShape` runs getters and `toJSON`; a throwing getter drops the record; a huge body is serialized whole; circular and BigInt read «[object Object]» | fixed: own data properties only, `boundStructure` for the rest, a guard that keeps the record; `opsLog.test.ts` "never runs an error's getters" (watched failing) |
+| V3-4 | ER-3, UX-1 | In a short window notices push the act line past the window | fixed: the page keeps `min(50%, 100% - 8rem)`; below 640 px of height the notices lose their outer spacing and take at most 15 %, the act line 30 %, the page a third (`rail.css`); browser cases at 240 and at 360 to 900 px with three notices and a refused act |
+| V3-5 | ER-4, UX-2 | The short-window case does not fail without the act line's cap | fixed: the tiny-window case with a refused act fails with the cap removed (watched) |
+| V3-6 | ER-5 | What App gives the shell as the key is untested | fixed: `appRoute.test.ts` checks App passes `scrollKeyOf(active, workspaceFor)` (watched failing with App's own `placeKey`) |
+| V3-7 | ER-6 | `scrollKeyOf`'s tests miss the draft, start path, release and board item | fixed: covered in `appRoute.test.ts` |
+| V3-8 | DO-1, DA-3 | "17 since 0.3.9": 13 of the 17 ran under 0.3.8 | fixed: 17 since 2026-10-21, 4 after the 0.3.9 rollout (CHANGELOG, this ledger, the map) |
+| V3-9 | DO-2 | The reading note's boundary misses CO-380 and CO-381; CO-380's cell was rewritten | fixed: the boundary is 14:13 UTC, CO-381 and earlier; CO-380's cell keeps its words |
+| V3-10 | DO-3 | release-mac gives a wrong reason for a 0.3.8 install's step | fixed: the bundle's first start copies migration 120 into the stack folder |
+| V3-11 | DO-4 | The core-reliability plan has no dated 0.3.11 line | fixed: dated line added |
+| V3-12 | DO-5, PL-7 | The scope statements omit the operations log fix | fixed: P-23 and this ledger name it |
+| V3-13 | DO-6 | V2-17 says the handoff names CO-385; it did not | fixed: the handoff names CO-382 to CO-385 |
+| V3-14 | DO-7 | Two merge-log entries carry times before their merges | fixed: 12:42:33Z and 14:30:28Z, the merges' times |
+| V3-15 | PL-2 | The release gate is never run on the release commit before it lands | fixed: the release lead runs the gate's library on the release commit before landing (Release close) |
+| V3-16 | PL-3 | The Owed list is stale and there is no Release close list | fixed: Owed says which release closes what; the Release close section below |
+| V3-17 | PL-4 | CO-383 holds the version correction until 0.3.11 | fixed: CO-383 sends it with 0.3.10's publication post |
+| V3-18 | PL-5 | Rollout step 3 says nothing for a failed check | fixed: the person quits and opens Fabric again; the agent does not stop it through the broker |
+| V3-19 | PL-6 | The handoff's "Waiting on" still says the person owes nothing | fixed: it points to the quit-and-open step |
+
+Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
+
+## Release close
+
+Written as each step lands: the gate's library run on the release commit; the publication (the tag, the release run,
+the assets); the install and the person's quit and open with step 3's broker check; the version, the schema and the hub;
+the scroll on the real app; the publication post with the version correction (CO-383); the workspace publication.
