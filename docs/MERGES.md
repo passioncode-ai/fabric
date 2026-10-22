@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T14:00:00Z · `—` · agent/co380-co381 → main · fast-forward
+- run: r-8642aee374a2
+- files: CHANGELOG (Unreleased correction), docs/launch/release-mac.md (0.3.9 paragraph), CO-381 resolved, the 0.3.9 Release close, P-20 and P-22, the state handoff's update, launch.css (CO-380's comment), the map
+- conflicts: none
+- summary: CO-381 is not a defect (an older request without a deadline expires at 7 days by the message's time); the notes that said it gets a deadline are corrected.
+
 ### 2026-10-22T12:30:00Z · `—` · agent/ui-scroll-0310 → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/rail.css, launch/LaunchShell.tsx (`placeKey`, the page back to its top), App.tsx, ProjectHome.tsx, styles.css (agents grid beside a panel), launch/Rail.test.tsx, scripts/test/shell-scroll.browser.mjs, CHANGELOG, SCR-84, CO-380 and CO-381, P-20 and P-22, the 0.3.9 Release close, the state handoff, the map, the product report and its previews

@@ -220,3 +220,7 @@ by the rows that point to it:
   0.3.9 is published, `1a2e0675`), and the first measurements of the plan's "How we will know it holds", which need
   days of the new build running: the availability gaps in `cycle.ran@1`, sessions whose hooks reach Fabric against the
   coding agents running, requests left queued, the workspace-sync schedule.
+- **CO-381, resolved the same day.** Not a defect: migration 120 expires an older request with no deadline once its
+  message is 7 days old, read from the message's time, and writes no deadline into the row; the tenth request expires on
+  2026-10-28 23:19 UTC unless answered. The notes that said it gets a deadline are corrected (CHANGELOG `Unreleased`,
+  release-mac).

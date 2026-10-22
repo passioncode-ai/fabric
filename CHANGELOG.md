@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- Correction to the 0.3.9 notes: a request stored before 0.3.9 without a deadline is not given one. It keeps
+  `deadline` null and the board's tick expires it once its message is 7 days old (`board_request_tick`, migration 120;
+  `project-board-core-holds-db.test.mjs`, BD-1). On the operator's database one such request, sent 2026-10-21, expires
+  on 2026-10-28 unless its target answers (CO-381).
 - Every page of Fabric scrolls again (the operator, 2026-10-22: «главный экран не скроллится»). Since 0.3.7 the
   shell grew past the window inside a box that clips, so a page longer than the window could not be reached at all.
   The shell now has the window's height and the page scrolls inside it: the rail, the top bar, a notice, a side panel

@@ -50,3 +50,14 @@ the operator's move.
 
 Land `agent/ui-scroll-0310` on `main` (its gates in the commit message), then start 0.3.10 (P-20) with CO-381 (a
 failing test for the request the first tick skipped), then wave 4.
+
+## Update 2026-10-22, afternoon
+
+The scroll fix landed on `main` (PR #36, `297d95ba`). CO-381 is resolved, not a code defect: migration 120 expires an
+older request without a deadline once its message is 7 days old and writes no deadline into the row; the notes that
+said otherwise are corrected (CHANGELOG `Unreleased`, release-mac). CO-380 stays in wave 4, where the places are
+rebuilt; only its misleading comment in `launch.css` was marked. Fabric's status in fabric-workspace is
+`docs/reports/2026-10-22-passioncode-status/fabric.md` (PR #365, `46c40407`).
+
+**Exact next task:** 0.3.10 (P-20): the simple plan's wave 4, with CO-336 and CO-372; the 0.3.9 Release close
+measurements after a few days of the new build.
