@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T12:30:00Z · `—` · agent/ui-scroll-0310 → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/rail.css, launch/LaunchShell.tsx (`placeKey`, the page back to its top), App.tsx, ProjectHome.tsx, styles.css (agents grid beside a panel), launch/Rail.test.tsx, scripts/test/shell-scroll.browser.mjs, CHANGELOG, SCR-84, CO-380 and CO-381, P-20 and P-22, the 0.3.9 Release close, the state handoff, the map, the product report and its previews
+- conflicts: none
+- summary: Every page of Fabric scrolls again (none had since 0.3.7); the rail, the top bar, notices, side panels and the act line stay put; 0.3.9's rollout recorded (schema 95).
+
 ### 2026-10-22T02:20:00Z · `—` · agent/ci-publication-pending → main · fast-forward
 - run: r-8db0598178fb
 - files: scripts/workspace.mjs, scripts/workspace-snapshot.mjs (`check --allow-pending`), .github/workflows/workspace.yml, ci.yml and platforms.yml (concurrency by event), scripts/check-workflows.py and its test, scripts/test/workspace-snapshot.test.mjs (the foreign fixture), report-workspace.md, AGENTS.md, DOCMAP, CHANGELOG, the carry-over ledger (CO-379), the map
