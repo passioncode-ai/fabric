@@ -32,7 +32,10 @@ that is not 0.3.9 yet.
   brings the stack back with one `supabase start` per try («Пробуем сейчас» while it runs). An external stack is
   waited for, never restarted; a stack stopped with `supabase stop` is not started again while Fabric runs; no try
   while its containers still run. A disk under 3 GB is named, first, as the likely cause. A held re-check is never
-  shown as a try, and the watch keeps one chain of reads.
+  shown as a try, and the watch keeps one chain of reads. When Docker is not running, the wait window and the notice
+  say how to start it on each system (OrbStack or Docker Desktop on macOS, Docker Desktop on Windows,
+  `sudo systemctl start docker` on Linux); the wait window comes forward once, not at every try. A quit is never undone:
+  no `supabase start` runs after a quit began.
 - **The operations log is sized for a week** in rotated segments within 96 MB (a cut inside the week is recorded);
   fast successful IPC calls and agents' keep-alive pings are counted, not written each time; failures and slow calls
   are always written. When the log cannot rotate it stops at its budget and says so once (`ops.rotate-failed`). `startup-failure.log` appends every failed start, keeping the newest 256 KiB.
@@ -42,6 +45,7 @@ that is not 0.3.9 yet.
   is not shown silent while it works and its claims do not lapse. When an agent leaves, Fabric records its session's
   end: fabric-mcp leaves on SIGTERM, SIGHUP, SIGINT and stdin's end, even through a hub cooldown, and a hook's end for
   an agent whose process is gone ends the session (claims released, tasks back to backlog). The new fabric-mcp also works with an older Fabric still running. A coding agent picks this up when it restarts.
+- **`fabric_agents_list` lists every session in the project**, the caller's included, with how each came in.
 - **Tasks move on the board.** A claim moves its task to running; finishing it moves it to review; letting it go
   takes the task back to backlog.
   `fabric_agents_list` lists every agent in the project, and expired agent-sync leases are no longer shown as current.

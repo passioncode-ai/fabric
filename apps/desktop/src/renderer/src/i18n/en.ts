@@ -648,7 +648,7 @@ export const en = {
   'harness.tool.com.reconcile': "Settle a request whose result is unknown, from what was observed",
   'harness.tool.com.responder_replace': "Take over answering a capability from another session",
   'harness.tool.com.directory': "Which projects of this estate messages can be addressed to",
-  'harness.tool.fabric_agents_list': "The other sessions in this project — what each claims and what Fabric observed",
+  'harness.tool.fabric_agents_list': "Every session in this project, yours included: what each claims and what Fabric observed",
   'harness.tool.fabric_stage_report': "Say where the work is, as a claim beside what Fabric observes",
   'harness.tool.fabric_memory_search': "What this project already knows about itself",
   'harness.tool.fabric_memory_remember': "Record a fact worth keeping, with where it was learned",

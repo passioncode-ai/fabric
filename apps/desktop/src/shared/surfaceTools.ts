@@ -47,7 +47,7 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'com.reconcile', purpose: 'Settle a request whose result is unknown, from what was observed', records: true },
   { name: 'com.responder_replace', purpose: 'Take over answering a capability from another session', records: true },
   { name: 'com.directory', purpose: 'Which projects of this estate messages can be addressed to', records: false },
-  { name: 'fabric_agents_list', purpose: 'The other sessions in this project — what each claims and what Fabric observed', records: false },
+  { name: 'fabric_agents_list', purpose: 'Every session in this project, yours included: what each claims and what Fabric observed', records: false },
   { name: 'fabric_stage_report', purpose: 'Say where you are in the work, as a claim beside what Fabric observes', records: true },
   { name: 'fabric_memory_search', purpose: 'What this project already knows about itself', records: true },
   { name: 'fabric_memory_remember', purpose: 'Record a fact worth keeping, with where it was learned', records: true },

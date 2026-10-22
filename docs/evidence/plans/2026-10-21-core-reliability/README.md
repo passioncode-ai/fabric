@@ -67,6 +67,10 @@ never shows a held re-check as a try; fabric-mcp leaves on a signal or stdin's e
 hook's end for an agent whose process is gone ends the session; the log stops at its budget when it cannot rotate; the
 wait window puts a low disk first and says agents wait only while Fabric holds the hub's port.
 
+**Review iteration 3 added** ([notes](2026-10-21-notes-i3.md)): the stack watch never starts the stack after a quit
+began; the wait window comes forward once; the person is told how to start Docker on each system; the no-hub line is
+said once in the reader's language; `fabric_agents_list` describes every session, in the tool and in Settings.
+
 ## Every audit finding, where it went
 
 | Finding | Where |

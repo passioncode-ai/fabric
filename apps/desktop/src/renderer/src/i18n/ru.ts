@@ -1860,7 +1860,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'harness.tool.com.reconcile': "Закрыть запрос с неизвестным результатом по тому, что наблюдалось",
   'harness.tool.com.responder_replace': "Перехватить ответы по возможности у другой сессии",
   'harness.tool.com.directory': "Каким проектам этого пространства можно писать",
-  'harness.tool.fabric_agents_list': "Другие сессии в этом проекте — что каждая заявляет и что наблюдал Fabric",
+  'harness.tool.fabric_agents_list': "Все сессии в этом проекте, включая вашу: что каждая заявляет и что наблюдал Fabric",
   'harness.tool.fabric_stage_report': "Сообщить, на каком этапе работа: это заявление агента, оно показывается рядом с тем, что наблюдает Fabric",
   'harness.tool.fabric_memory_search': "Что этот проект уже знает о себе",
   'harness.tool.fabric_memory_remember': "Записать факт, который стоит сохранить, и откуда он известен",
