@@ -136,30 +136,24 @@ export function opsRecord(input: {
     )
 
   const raw = boundStructure(input.detail ?? {})
-  if (input.error !== undefined) raw.__error = errorParts(input.error)
-
-  // ONE redaction pass over the detail and the error together, so a field of a plain-object error is masked as a field
-  // and counted (0.3.10 review, iteration 3 verification: a second, text-only pass lost its counts and swallowed text).
   const sanitized = redactPayload(raw)
   // Truncating first can remove a PEM footer and turn a recognizable secret
   // into unmatched text. Only already-sanitized values may be capped.
   const payload = cap(sanitized.payload) as Record<string, unknown>
   const redactions = [...sanitized.redactions]
-  const parts = payload.__error as { name: string; message?: string; body?: unknown } | undefined
-  delete payload.__error
-  // A plain object's redacted, capped structure becomes the message only now, and the text rules run over it too: a
-  // header given as a name/value pair, or a key the field-name rule does not know, is a secret only text can see
-  // (0.3.10 final-candidate verification). One value per line keeps a marker's tail from swallowing the next field.
+  // The error is said apart from the detail, so a detail key can never stand in for it (final-candidate verification),
+  // and only as text: its name and its message, each through the text rules, then capped. What `errorParts` hands over
+  // is all text by construction: a plain object's values never reach it (see there).
   let errorField: { name: string; message: string } | undefined
-  if (parts && typeof parts.message === 'string') errorField = { name: parts.name, message: parts.message }
-  else if (parts) {
-    const text = redact(String(JSON.stringify(parts.body ?? null, null, 1)))
+  if (input.error !== undefined) {
+    const parts = errorParts(input.error)
+    const text = redact(parts.message)
     for (const c of text.redactions) {
       const seen = redactions.find((r) => r.rule === c.rule)
       if (seen) seen.count += c.count
       else redactions.push({ ...c })
     }
-    errorField = { name: parts.name, message: text.text.replace(/\n\s*/g, ' ').slice(0, 4_000) }
+    errorField = { name: parts.name, message: String((cap({ m: text.text }) as { m: unknown }).m) }
   }
 
   return {
@@ -178,19 +172,21 @@ export function opsRecord(input: {
   }
 }
 
-/** A thrown or returned failure, as the log says it: an Error's name and message; a plain object's message and code
- *  (PostgREST answers an RPC failure with `{ message, code, details, hint }`, whose `String()` is «[object Object]»,
- *  which hid every failed board tick, 0.3.10 review DA-3); any other object as its bounded structure, which the
- *  record's one redaction pass masks field by field before it becomes text. It reads own data properties only, never
- *  a getter or `toJSON`, and nothing it is handed can make the record throw, a revoked Proxy included. */
-function errorParts(e: unknown): { name: string; message?: string; body?: unknown } {
+/** A thrown or returned failure, as the log says it, in text only. An Error: its name and message. A plain object with a
+ *  string message (PostgREST answers an RPC failure with `{ message, code, details, hint }`, whose `String()` is
+ *  «[object Object]», which hid every failed board tick, 0.3.10 review DA-3): its message and code. Any other object:
+ *  the NAMES of its own fields, never their values. Three verifications of 0.3.10 found a new way for a value to reach
+ *  the log each time the values were written and masked (a field rule, a header pair, an unknown header); names carry
+ *  the diagnosis without that risk. It reads each property once, own data properties only, never a getter or `toJSON`,
+ *  and nothing it is handed can make the record throw. */
+function errorParts(e: unknown): { name: string; message: string } {
   try {
     if (e instanceof Error) {
-      // An Error whose name or message is not a string (assigned by hand) is still said as text, never an object.
-      const name = typeof e.name === 'string' ? e.name : 'Error'
-      return typeof e.message === 'string' ? { name, message: e.message } : { name, body: boundStructure({ m: e.message as unknown }).m }
+      const name: unknown = e.name
+      const message: unknown = e.message
+      return { name: typeof name === 'string' ? name : 'Error', message: typeof message === 'string' ? message : '[omitted: a message that is not text]' }
     }
-    if (e === null || typeof e !== 'object') return { name: 'Error', message: String(e) }
+    if (e === null || typeof e !== 'object') return { name: 'Error', message: typeof e === 'symbol' ? '[omitted: symbol]' : String(e) }
     const own = (key: string): unknown => {
       const d = Object.getOwnPropertyDescriptor(e, key)
       return d && 'value' in d ? d.value : undefined
@@ -199,7 +195,9 @@ function errorParts(e: unknown): { name: string; message?: string; body?: unknow
     const code = own('code')
     const suffix = typeof code === 'string' || typeof code === 'number' ? ` (${String(code).slice(0, 32)})` : ''
     if (typeof message === 'string' && message) return { name: 'Error', message: message + suffix }
-    return { name: 'Error', body: boundStructure({ error: e }).error }
+    // A name that does not read as a field name (a token used as a key) is not written either.
+    const names = Object.keys(e).slice(0, 20).map((k) => (/^[A-Za-z_][A-Za-z_-]{0,19}[0-9]{0,4}$/.test(k) ? k : '[omitted]'))
+    return { name: 'Error', message: `[a failure that is not an Error, with no message; its fields: ${names.join(', ') || 'none'}]${suffix}` }
   } catch {
     return { name: 'Error', message: '[omitted: unreadable error]' }
   }

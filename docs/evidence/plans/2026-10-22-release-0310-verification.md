@@ -145,7 +145,9 @@ as 0.3.8's did. The difference is the fixes in this table, each with its test wa
 fresh verifier read the first version of that difference (`17793816`) and failed it: two rows below were not fixed in
 every case the findings named, and three tests proved less than they said (V3-20 to V3-24). A second fresh verifier read
 the next version (`a5ab2548`) and failed it again: the one-pass redaction had dropped the text rules (V3-25 to V3-28).
-Their fixes make the final candidate; both verifiers' reports are kept with the iteration-3 reports.
+A third, on `ea9adf06`, found a third shape of the same kind (V3-29 to V3-33), and a seam verifier passed it (V3-34).
+So the log now writes less instead of masking more: a plain object's values never reach it. The fixes make the final
+candidate; the verifiers' reports are kept with the iteration-3 reports.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -177,6 +179,12 @@ Their fixes make the final candidate; both verifiers' reports are kept with the 
 | V3-26 | second final-candidate verifier | An Error with a non-string message or name gave `null` or an object; a circular message threw | fixed: the name falls back to `Error`, a non-string message goes as a bounded body; `opsLog.test.ts` "says an Error with a non-string name or message as text" (watched failing on `a5ab2548`) |
 | V3-27 | second final-candidate verifier | The text redaction misses a bare `PASSWORD=` and a lowercase `password=` (also in v0.3.9) | ruled: CO-386, 0.3.11 |
 | V3-28 | second final-candidate verifier | With notices the page keeps 40 % of the place, not half | not a defect: the trade V3-20 states, so the act line fits at every height; the page stays reachable in all 3 780 measured configurations |
+| V3-29 | third final-candidate verifier (unit, blocking) | A plain-object error carrying a `{name, value}` header pair named `cookie`, `set-cookie`, `password` or `token` reached the log in clear: a third shape, after the field rule (V3-2) and the text rules (V3-25), in which writing a value and masking it let a value through | fixed by writing less: an Error says its name and message; a plain object with a message says its message and code; any other plain object says the NAMES of its fields that read as field names, never a value (`opsLog.ts#errorParts`); the message goes through the text rules and the shared cap. `opsLog.test.ts` "never writes a value of a plain-object error without a message, whatever shape the secret has" (eight shapes, watched failing on `ea9adf06`). This replaces the body path of V3-22 and V3-25 |
+| V3-30 | third final-candidate verifier (unit) | An Error's name and message were read twice; a getter changing between reads gave a number | fixed: each read once (`errorParts`); `opsLog.test.ts` "reads an Error's name and message once each" (watched failing on `ea9adf06`) |
+| V3-31 | third final-candidate verifier (unit) | A detail key `__error` stood in for the error | fixed: the error is said apart from the detail; `opsLog.test.ts` "keeps a detail key named __error apart" (watched failing on `ea9adf06`) |
+| V3-32 | third final-candidate verifier (unit) | One secret counted twice; a PostgREST object's `details` and `hint` dropped | not a defect after V3-29: no value of an object is written, so nothing is counted twice; `details` and `hint` can hold row data (a key's value), so a refusal says its message and code only |
+| V3-33 | third final-candidate verifier (unit) | A bare `Bearer` token, and header pairs or unknown key headers in a record's `detail`, stay in clear (all as in v0.3.9) | ruled: CO-386, widened to these shapes |
+| V3-34 | final-candidate verifier (seam, on `ea9adf06`: pass) | A cut message carried no truncation marker; an object whose meaning is in `toString` lost it; ProjectHome's top-of-page reset now runs before `revealSection` aligns a section | fixed: the message is capped by the shared `cap`, with its marker; not a defect: such an object now says its field names; not a defect: `revealSection` re-aligns for 1.5 s after the reset (`LaunchShell.tsx#revealSection`), the seam verifier's reading |
 
 Exit for iteration 3: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 

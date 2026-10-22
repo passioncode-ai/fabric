@@ -76,68 +76,44 @@ describe('what never reaches the log', () => {
       error: { message: 'canceling statement due to statement timeout', code: '57014', details: null, hint: null } })
     expect(r.error).toEqual({ name: 'Error', message: 'canceling statement due to statement timeout (57014)' })
     const bare = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { ok: false, reason: 'no estate' } })
-    expect(bare.error?.message.replace(/\s/g, '')).toBe('{"ok":false,"reason":"noestate"}')
+    expect(bare.error?.message).toBe('[a failure that is not an Error, with no message; its fields: ok, reason]')
     expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: 'plain words' }).error?.message).toBe('plain words')
   })
 
-  it('masks a secret field of a plain-object error with no message, as in detail (iteration 3 DA-1)', () => {
-    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c',
-      error: { ok: false, password: 'hunter2secretvalue', token: 'tok-abcdef0123456789' } })
-    expect(r.error?.message).not.toContain('hunter2secretvalue')
-    expect(r.error?.message).not.toContain('tok-abcdef0123456789')
-    expect(r.error?.message.replace(/\s/g, '')).toContain('"ok":false')
+  it('never writes a value of a plain-object error without a message, whatever shape the secret has (three verifications)', () => {
+    const S = 'S3cr3tValue0123456789abcdef'
+    const shapes: unknown[] = [
+      { password: S, token: S }, { headers: [{ name: 'Authorization', value: `Bearer ${S}` }] },
+      { headers: [{ name: 'set-cookie', value: `sid=${S}` }, { name: 'cookie', value: S }, { name: 'password', value: S }, { name: 'token', value: S }] },
+      { headers: { 'x-agw-key': S } }, { apikey: S }, { auth: `Bearer ${S}` }, { nested: { deep: [{ v: S }] } }, { [S]: 1 }
+    ]
+    for (const error of shapes) {
+      const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error })
+      expect(JSON.stringify(r)).not.toContain(S.slice(0, 20))
+      expect(r.error?.message).toMatch(/^\[a failure that is not an Error, with no message; its fields: /)
+    }
   })
 
-  it('never runs an error\'s getters or toJSON, and a hostile one still leaves a record (iteration 3 DA-2)', () => {
-    const hostile = Object.defineProperty({ toJSON: () => { throw new Error('ran toJSON') } }, 'message', { get: () => { throw new Error('ran a getter') }, enumerable: true })
-    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: hostile })
-    expect(r.op).toBe('x')
-    expect(r.error?.message).not.toContain('ran')
-    const huge = { rows: Array.from({ length: 50_000 }, (_, i) => ({ i, text: 'x'.repeat(100) })) }
-    expect(JSON.stringify(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: huge })).length).toBeLessThan(20_000)
-  })
-
-  it('reads no getter and no toJSON even when they would answer, and keeps circular and BigInt errors readable', () => {
+  it('reads no getter and no toJSON, and never throws on circular, BigInt or a revoked Proxy', () => {
     let calls = 0
     const quiet = Object.defineProperty({ toJSON: () => { calls++; return { leaked: true } } }, 'detailText', { get: () => { calls++; return 'from a getter' }, enumerable: true })
     const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: quiet })
     expect(calls).toBe(0)
     expect(r.error?.message).not.toContain('from a getter')
     const circular: Record<string, unknown> = { reason: 'loop' }; circular.self = circular
-    for (const error of [circular, { n: 10n, reason: 'big' }]) {
-      const m = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error }).error?.message ?? ''
-      expect(m).not.toContain('unreadable')
-      expect(m).toMatch(/loop|big/)
-    }
-  })
-
-  it('never throws on what it is handed, a revoked Proxy included (iteration 3 verification)', () => {
     const { proxy, revoke } = Proxy.revocable({}, {}); revoke()
-    expect(opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: proxy }).op).toBe('x')
-  })
-
-  it('masks a plain-object error in the one redaction pass: counted, and its other fields kept', () => {
-    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { password: 'pw-0123456789abcdef', details: 'diag text' } })
-    expect(r.redactions?.length ?? 0).toBeGreaterThan(0)
-    expect(r.error?.message).toContain('diag text')
-    const h = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: { headers: { 'x-api-key': 'k-0123456789abcdef' }, details: 'the table is locked', hint: 'retry' } })
-    expect(h.error?.message).toContain('the table is locked')
-    expect(h.error?.message).toContain('retry')
-    expect(h.error?.message).not.toContain('k-0123456789abcdef')
-  })
-
-  it('runs the text rules over a plain-object error too: a header pair, an unknown key header, apikey (final-candidate verification)', () => {
-    const cases: [unknown, string, string | null][] = [
-      [{ headers: [{ name: 'Authorization', value: 'Bearer S3cr3tTokenValue0123456789' }], keep: 'kept-field' }, 'S3cr3tTokenValue0123456789', 'kept-field'],
-      [{ headers: { 'x-agw-key': 'agwS3cr3tValue0123456789abcd' }, details: 'diag-kept' }, 'agwS3cr3tValue0123456789abcd', 'diag-kept'],
-      [{ apikey: 'apiS3cr3tValue0123456789abcd' }, 'apiS3cr3tValue0123456789abcd', null]
-    ]
-    for (const [error, secret, kept] of cases) {
-      const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error })
-      expect(JSON.stringify(r)).not.toContain(secret)
-      expect(r.redactions?.length ?? 0).toBeGreaterThan(0)
-      if (kept) expect(r.error?.message).toContain(kept)
+    for (const error of [circular, { n: 10n }, proxy]) {
+      const m = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error }).error?.message ?? ''
+      expect(typeof m).toBe('string')
     }
+  })
+
+  it('reads an Error\'s name and message once each, and says a non-string one as text', () => {
+    let reads = 0
+    const flip = Object.defineProperty(new Error('m'), 'name', { get: () => (reads++ === 0 ? 'FlipError' : 42) })
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', error: flip })
+    expect(r.error?.name).toBe('FlipError')
+    expect(reads).toBe(1)
   })
 
   it('says an Error with a non-string name or message as text, and never throws on a circular one', () => {
@@ -149,6 +125,12 @@ describe('what never reaches the log', () => {
       expect(typeof r.error?.name).toBe('string')
       expect(typeof r.error?.message).toBe('string')
     }
+  })
+
+  it('keeps a detail key named __error apart from the error (final-candidate verification)', () => {
+    const r = opsRecord({ at: new Date(0), op: 'x', outcome: 'failed', correlationId: 'c', detail: { __error: 'x' } })
+    expect(r.error).toBeUndefined()
+    expect(r.detail?.__error).toBe('x')
   })
 
   it('redacts a secret in a plain-object error too', () => {
