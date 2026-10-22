@@ -229,3 +229,33 @@ script from that suite to its end: `CI_EXIT=0`.
 For 0.3.11 from V3-48: CO-388 takes SCN-058's pointer; CO-384 takes the sideways claim's proof for content that does not
 wrap and SCR-84's "at most 640 px"; SCN-162's swipe step and the stack exposure warning are older drifts to read in
 0.3.11's documents review.
+
+### State on 2026-10-22
+
+- **Release commit and landing.** `6671833e` (PR #38) on `main` by fast-forward at 19:49 UTC; hosted `ci` on it: success
+  (push and pull request); `workspace publication` on the push: success, on the pull request: failure, as on every
+  source branch (the pull-request check has no `--allow-pending`). `node scripts/release-mac.mjs --check-only --tag
+  v0.3.10`: "is on origin/main and its release gate is clear".
+- **Publication.** Tag `v0.3.10` on `6671833e`; release run 39843504757 success (preflight, guard, macOS, Windows x64 and
+  arm64, Linux x64 and arm64, publish); published 2026-10-22 20:26:27 UTC as a pre-release with 14 assets
+  (`gh release view v0.3.10`).
+- **The bundle.** `Fabric-0.3.10-universal.dmg` matches `SHA256SUMS`; `codesign --verify --deep --strict` passes and
+  `spctl` reads "accepted, source=Notarized Developer ID"; `CFBundleShortVersionString` 0.3.10.
+- **The board.** The publication post with the version correction (CO-383's first half: wave 4, the agents' acts and
+  CO-339 are 0.3.11; a request stored before 0.3.9 without a deadline keeps it null) on the four release threads
+  `0f5d0589`, `617c8cbe`, `8448237d`, `bb87af23` at 20:28 UTC (messages `ed4944c7`, `42139411`, `a317b401`, `8acf1988`).
+  The rest of CO-383 stays with 0.3.11.
+- **The knowledge base.** products, roadmap and plans name v0.3.10 (fabric-workspace PR #378).
+- **The install, the operator's Mac.** The live consoles were listed first: none (Fabric's only children were its GPU
+  and utility helpers). The person quit Fabric at 21:54:26 UTC; the 0.3.10 bundle was in `/Applications` at 21:54:30
+  (the 0.3.9 bundle was not kept beside it; a rollback takes `Fabric-0.3.9-universal.dmg` from the v0.3.9 release); the
+  app started again at 21:54:32 (pid 10937, not by the broker). That first start stopped on the failure window:
+  "estates read failed: canceling statement due to statement timeout" at 21:54:55, with 3.4 GB free and swap 9.5 of 10 GB
+  used. The same read took 0.04 s a minute later. 1.7 GB of this release's own staging was removed (free 2.8 to 4.5 GB),
+  and the broker's restart (operation `9a9d8c7f`, 21:56:04) started pid 24589 normally: version 0.3.10
+  (`CFBundleShortVersionString`), `schema_version()` 95, `hub.json` names pid 24589 on `127.0.0.1:47070`, and
+  `fabric_whoami` answered at 21:56:37. The failure is CO-389, for 0.3.11 (no timeout case at start, no retry).
+  The broker started this process, so it stops it after 15 idle minutes unless the person uses Fabric (CO-382).
+- **The scroll on the real app.** The person read the home page of the installed 0.3.10 at 22:00 UTC and reported only
+  the board's language (P-24, the working language, for 0.3.11), not the scroll.
+

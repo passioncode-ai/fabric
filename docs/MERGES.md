@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T22:10:00Z · `—` · agent/release-0310-close → main · fast-forward
+- run: r-8642aee374a2
+- files: the 0.3.10 ledger's Release close, P-23 released, P-24 added, the Now line, CO-383, CO-384, CO-388 and CO-389, the handoff, the map
+- conflicts: none
+- summary: Fabric 0.3.10 published and installed (schema 95); the first start's statement timeout is CO-389; the working language is P-24 for 0.3.11.
+
 ### 2026-10-22T19:40:00Z · `—` · agent/release-0310 → main · fast-forward
 - run: r-8642aee374a2
 - files: rail.css, LaunchShell.tsx, App.tsx, styles.css, shared/appRoute.ts (`scrollKeyOf`), shared/opsLog.ts (`errorParts`), their tests and shell-scroll.browser.mjs; P-23 and P-20, CO-382 to CO-388, the reading note, SCN-162, SCR-84, release-mac, operating-surfaces, the dated plan lines, CHANGELOG `## 0.3.10`, the 0.3.10 ledger with its 15 review reports, six verifications and the receipts, the release gate, the pack

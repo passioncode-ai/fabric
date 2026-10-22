@@ -84,3 +84,7 @@ Release commit, 2026-10-22: three iterations closed (42, 31 and 25 findings; 6, 
 ruled), the verified commit `f2a0a9c5`, after six readings of its difference (four failed, the last two passed).
 **Exact next task:** tag `v0.3.10`, watch the release run, install the bundle, the person's quit and open, then the
 ledger's Release close; then 0.3.11 (P-20).
+
+Released and installed, 2026-10-22: v0.3.10 published at 20:26 UTC and running on the operator's Mac (schema 95, hub
+answering); the first start's statement timeout is CO-389. The operator asked for Fabric's working language (P-24).
+**Exact next task:** 0.3.11 (P-20 with P-24 and CO-389): start with P-24's scenarios and decision, then wave 4.
