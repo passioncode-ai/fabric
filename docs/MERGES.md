@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-22T23:05:00Z · `—` · agent/p24-working-language-r → main · fast-forward
+- run: r-8642aee374a2
+- files: shared/protocol.ts (`workingLanguage`, the language rule), protocolObligations.ts, agentSurface.ts (`fabric_whoami` names the language), workTools.ts, index.ts, start/FirstRun.tsx (region `first-run-language`), SettingsScreen.tsx, App.tsx, i18n en/ru, start.css, their tests; ADR-0172 and the pipeline reservation moved to ADR-0173; SCN-126, SCN-170; operating-surfaces; P-24; CO-390; CHANGELOG Unreleased
+- conflicts: none (rebased onto the workspace pin e609a07a; PR #40 superseded by #41)
+- summary: P-24, the working language: agents write in the language of Fabric's interface, which the first run asks first.
+
 ### 2026-10-22T22:10:00Z · `—` · agent/release-0310-close → main · fast-forward
 - run: r-8642aee374a2
 - files: the 0.3.10 ledger's Release close, P-23 released, P-24 added, the Now line, CO-383, CO-384, CO-388 and CO-389, the handoff, the map

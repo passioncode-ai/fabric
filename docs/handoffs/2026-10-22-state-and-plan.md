@@ -88,3 +88,7 @@ ledger's Release close; then 0.3.11 (P-20).
 Released and installed, 2026-10-22: v0.3.10 published at 20:26 UTC and running on the operator's Mac (schema 95, hub
 answering); the first start's statement timeout is CO-389. The operator asked for Fabric's working language (P-24).
 **Exact next task:** 0.3.11 (P-20 with P-24 and CO-389): start with P-24's scenarios and decision, then wave 4.
+
+P-24 landed, 2026-10-22 (`0a46332a`, PR #41): agents write in the language of Fabric's interface (ADR-0172); the first
+run asks it first. The workspace sync's stale lock was removed and the wiki published (CO-390 for the fix in code).
+**Exact next task:** 0.3.11 (P-20 with P-24, CO-389 and CO-390): wave 4's places, then the release iterations.
