@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.9
 
 Fabric 0.3.9: the core holds. The operator's priority of 2026-10-21: the hub is always there, Fabric knows which agent
 works on what, and the project board works. Measured before it: Fabric was available about 86.9 % of the last 7 days

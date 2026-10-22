@@ -4,11 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-21T16:00:00Z · `—` · agent/core-stability → main · fast-forward
+### 2026-10-22T08:00:00Z · `—` · agent/core-stability → main · fast-forward
 - run: r-8db0598178fb
-- files: stability (main/hubStandby.ts, main/stackWatch.ts, shared/stackWatch.ts, main/ops.ts, main/index.ts startup wait, hub and surface takeover), tracking (main/fabricMcp.ts, sessionEnroll.ts, workTools.ts, workClaims.ts, agentSurface.ts), board (main/boardService.ts, hubTools board tools, comms reads, renderer HomeBoardWaiting, migration 120), their tests, i18n, CHANGELOG, AGENTS.md, ADR-0115/0134/0149 amendments, CONTEXT.md, scenarios (SCN-140, 141, 143, 161), release-mac, the backlog (P-20 to 0.3.10, P-22), the carry-over ledger (CO-362 closed, CO-364 to CO-371), the plan and its three audits, the map
-- conflicts: apps/desktop/package.json (the test script, both branches' tests kept)
-- summary: Fabric 0.3.9, the core holds: uptime, tracking and the board, from three audits of the installed system.
+- files: stability (main/hubStandby.ts, main/stackWatch.ts, shared/stackWatch.ts, main/ops.ts, main/env.ts, main/quit.ts, main/index.ts startup wait, hub and surface takeover), tracking (main/fabricMcp.ts, fabricMcpClient.ts, fabricMcpMain.ts, sessionEnroll.ts, workTools.ts, workRelease.ts, agentSurface.ts), board (main/boardService.ts, main/commsOperatorRead.ts, hubTools board tools, renderer HomeBoardWaiting, StackHealthNotice, CommsScreen, migration 120), i18n, surfaceTools, their tests, CHANGELOG, AGENTS.md, ADR-0115/0134/0149 amendments, CONTEXT.md, operating-surfaces.md, scenarios and screens, release-mac, the task-pipeline persistence contract, the backlog (P-22; P-20 to 0.3.10), the carry-over ledger (CO-362 closed, CO-364 to CO-378), the plan with its audits and notes, the 0.3.9 ledger and reviews, the map; the branches agent/core-st, core-tr, core-bd, core-st2, core-tr2, core-bd2, core-i2, core-i3 merged into it
+- conflicts: apps/desktop/package.json (the test script, every branch's tests kept)
+- summary: Fabric 0.3.9, the core holds: uptime, tracking and the board, from three audits of the installed system; three review iterations (48, 35, 24 findings), verified commit 2ef8d197; schema 95.
 
 ### 2026-10-21T08:40:00Z · `—` · release close → main · fast-forward
 - run: r-8db0598178fb

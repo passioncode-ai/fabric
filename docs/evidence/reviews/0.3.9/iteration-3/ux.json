@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "2ef8d1971328713d3751b2b9754995f339d31056",
+  "report": "docs/evidence/reviews/0.3.9/iteration-3/2026-10-21-ux.md",
+  "reportSha256": "a39c97acadb2799137e6247afbcae9c4636c40f52eec4f6d841dd6ddc75365c5",
+  "reviewerRun": "release-039-i3-ux-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the wait window and the notice say how to start Docker per OS, en and ru (`stackWatch.test.ts`, watched failing)"
+      ]
+    },
+    {
+      "id": "V3-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: said once; the system reason on its own line «Что ответила система: …» (`stackWatch.test.ts`, watched failing)"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, plan, SCR-30 and SCN-143 say \"no agent is answering now\""
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tool description, its unreadable answer and the Settings tool list describe every session (`tracking-surface.test.mjs`, watched failing)"
+      ]
+    }
+  ]
+}

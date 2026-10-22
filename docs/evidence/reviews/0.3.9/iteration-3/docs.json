@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "2ef8d1971328713d3751b2b9754995f339d31056",
+  "report": "docs/evidence/reviews/0.3.9/iteration-3/2026-10-21-docs.md",
+  "reportSha256": "93f2bb7063cf5afb8e3198e39553c5eee50115de14351aa812520fcb59c1ab0b",
+  "reviewerRun": "release-039-i3-docs-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-8",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, plan and release-mac state the rule and date the count (all 9 on 2026-10-22); the Release close re-reads it at install"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rollout follows release-mac: quit, second dump, copy migration 120 from the installed bundle, migrate, start"
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both corrected"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with ux UX-3"
+      ]
+    },
+    {
+      "id": "V3-12",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-366 and CO-371 name them"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/workClaims.ts`; CO-277 status says 0.3.10"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both updated"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"calls\", \"leaves at most 5 s then exits\", \"keeping the newest 256 KiB\""
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the entry is rewritten in the release commit, at the landing"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-20 and the plan name them"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "2ef8d1971328713d3751b2b9754995f339d31056",
+  "report": "docs/evidence/reviews/0.3.9/iteration-3/2026-10-21-plan.md",
+  "reportSha256": "4e83aee2c8584396b149b21261b5d7ed949fa2628f6bb78ab26f40b6b18d4bb0",
+  "reviewerRun": "release-039-i3-plan-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-20",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with docs DO-2: writers stopped before the migration, the exact copy-and-migrate step, the schema read before start, a second dump as the rollback point, rollback stated"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close section lists everything owed to it and is filled at install"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with docs DO-1"
+      ]
+    },
+    {
+      "id": "V3-23",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-376 (RM21-S4) and CO-377 filed and answered on threads fc563ce0 and 27750925"
+      ]
+    },
+    {
+      "id": "V3-24",
+      "source": "plan:DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-22 says sized for a week within 96 MB"
+      ]
+    }
+  ]
+}

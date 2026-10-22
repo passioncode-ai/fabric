@@ -133,6 +133,54 @@ outgrow its budget.
 
 Exit for iteration 2: every finding is fixed or ruled to a register row or the Release close. Blocking findings open: none.
 
+## Iteration 3
+
+Five fresh reviewers, 2026-10-21 to 2026-10-22, against `95957e55` (`95957e55e7e24653d7cd5eccfea0e144cbd68196`), read-only in a detached checkout.
+Reports: [UX](../reviews/0.3.9/iteration-3/2026-10-21-ux.md), [errors](../reviews/0.3.9/iteration-3/2026-10-21-errors.md),
+[documents](../reviews/0.3.9/iteration-3/2026-10-21-docs.md), [data](../reviews/0.3.9/iteration-3/2026-10-21-data.md),
+[plan](../reviews/0.3.9/iteration-3/2026-10-21-plan.md). Hosted `ci` on `95957e55`: run 39678914944, success. The data
+reviewer restored a copy of the operator's database, applied migration 120 (one transaction, 94 to 95), ran the first
+tick (9 answered, none expired, a second tick wrote nothing) and found that 0.3.8 cannot start on schema 95 but keeps
+running on it: which is why the rollout quits Fabric before the migration.
+
+24 findings, 3 blocking, all three about documents: the rollout as written could not run and contradicted
+release-mac (now it follows release-mac: quit, second dump, copy-and-migrate, start), the Release close the rows point
+to did not exist (now it lists what it owes), and the upgrade count was stale. The code findings were small and are
+fixed in `agent/core-i3` ([notes](2026-10-21-core-reliability/2026-10-21-notes-i3.md)).
+
+The reviewers read `95957e55`; their fixes and this iteration's documents are one commit after it, `2ef8d197`
+(`2ef8d1971328713d3751b2b9754995f339d31056`), the final candidate, on which `ci.sh fast` passed before landing (a first run failed once in
+`executor-detect` on a timeout under load; the test is untouched by this release and passed three runs alone).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | UX-1 | Nobody tells the person to start Docker when it is not running | fixed: the wait window and the notice say how to start Docker per OS, en and ru (`stackWatch.test.ts`, watched failing) |
+| V3-2 | UX-2 | English reason inside the Russian no-hub line, said twice | fixed: said once; the system reason on its own line «Что ответила система: …» (`stackWatch.test.ts`, watched failing) |
+| V3-3 | UX-3 | Four documents still say "no agent can answer" | fixed: CHANGELOG, plan, SCR-30 and SCN-143 say "no agent is answering now" |
+| V3-4 | UX-4 | fabric_agents_list description says "the other sessions" | fixed: the tool description, its unreadable answer and the Settings tool list describe every session (`tracking-surface.test.mjs`, watched failing) |
+| V3-5 | ER-1 | The stack watch can start the stack after a quit began | fixed: `stop()` sets a flag never cleared; no try after it; the quit stop flag is never reset (`stack-watch.test.mjs`, `startup-wait.test.mjs`, watched failing) |
+| V3-6 | ER-2 | On Windows the /clear rename cannot match (cmd.exe pid) | ruled: CO-378 (0.3.10) |
+| V3-7 | UX-1 | The wait window comes to the front at every failed try | fixed: shown at the first wait and on activation only (`startup-wait.test.mjs`, watched failing) |
+| V3-8 | DO-1 (blocking) | The upgrade count is false: all 9 queued have a target reply | fixed: CHANGELOG, plan and release-mac state the rule and date the count (all 9 on 2026-10-22); the Release close re-reads it at install |
+| V3-9 | DO-2 | Rollout step 3 names no command and contradicts release-mac | fixed: the rollout follows release-mac: quit, second dump, copy migration 120 from the installed bundle, migrate, start |
+| V3-10 | DO-3 | The map entry and P-22 still say restart identity and "keeps a week" | fixed: both corrected |
+| V3-11 | DO-4 | "No agent can answer" in four documents | fixed: with ux UX-3 |
+| V3-12 | DO-5 | ST-13 and BD-3 second half point to rows that do not carry them | fixed: CO-366 and CO-371 name them |
+| V3-13 | DO-6 | CO-373 and CO-375 cite main/workClaims.ts; CO-277 status stale | fixed: `shared/workClaims.ts`; CO-277 status says 0.3.10 |
+| V3-14 | DO-7 | operating-surfaces says the cursor is bound to the run; the tick paragraph omits the new passes | fixed: both updated |
+| V3-15 | DO-8 | Three sentences overstate: reads sampled, fabric-mcp exits at once, startup log keeps every start | fixed: "calls", "leaves at most 5 s then exits", "keeping the newest 256 KiB" |
+| V3-16 | DO-9 | MERGES records a landing that has not happened | fixed: the entry is rewritten in the release commit, at the landing |
+| V3-17 | DO-10 | P-20 and the plan omit CO-372 to CO-375 | fixed: P-20 and the plan name them |
+| V3-18 | data:PL-1 | Step 3 has no command; the stack folder holds 0.3.8 migrations | fixed: with docs DO-2 |
+| V3-19 | DA-1 | The upgrade numbers no longer match the data | fixed: with docs DO-1 |
+| V3-20 | PL-1 (blocking) | The rollout cannot run as written and contradicts release-mac; V2-29 holds in part | fixed: with docs DO-2: writers stopped before the migration, the exact copy-and-migrate step, the schema read before start, a second dump as the rollback point, rollback stated |
+| V3-21 | PL-2 (blocking) | The ledger has no Release close though rows point to it | fixed: the Release close section lists everything owed to it and is filled at install |
+| V3-22 | PL-3 | The request counts are stale again | fixed: with docs DO-1 |
+| V3-23 | PL-4 | Two new asks to Fabric in no register | fixed: CO-376 (RM21-S4) and CO-377 filed and answered on threads fc563ce0 and 27750925 |
+| V3-24 | plan:DO-1 | P-22 still says the log keeps a week | fixed: P-22 says sized for a week within 96 MB |
+
+Exit for iteration 3: 24 findings dispositioned; the final candidate `2ef8d1971328713d3751b2b9754995f339d31056` is `verifiedCommit`. Blocking findings open: none.
+
 ## Release close
 
 Written as each step of the rollout ([plan](2026-10-21-core-reliability/README.md), "Rollout order") lands. Owed here,

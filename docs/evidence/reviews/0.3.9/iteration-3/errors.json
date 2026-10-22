@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.9",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "2ef8d1971328713d3751b2b9754995f339d31056",
+  "report": "docs/evidence/reviews/0.3.9/iteration-3/2026-10-21-errors.md",
+  "reportSha256": "8225eda1f30c0b09d9ef727a1337919ff3b42ba0a0e7ecd0f60220c55f07af0b",
+  "reviewerRun": "release-039-i3-errors-20261021",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-5",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `stop()` sets a flag never cleared; no try after it; the quit stop flag is never reset (`stack-watch.test.mjs`, `startup-wait.test.mjs`, watched failing)"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-378 (0.3.10)"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: shown at the first wait and on activation only (`startup-wait.test.mjs`, watched failing)"
+      ]
+    }
+  ]
+}
