@@ -4749,6 +4749,7 @@
       "id": "SCR-32",
       "title": "Task page",
       "flow_ids": [
+        "FLW-100",
         "FLW-22",
         "FLW-23",
         "FLW-32",
@@ -4760,6 +4761,7 @@
         "FLW-56"
       ],
       "scenario_ids": [
+        "SCN-174",
         "SCN-045",
         "SCN-060",
         "SCN-067",
@@ -4770,7 +4772,6 @@
         "SCN-062",
         "SCN-091",
         "SCN-141",
-        "SCN-174",
         "SCN-176"
       ],
       "states": {
@@ -4784,7 +4785,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 737,
-        "coverage_claim": "none yet",
+        "coverage_claim": "`apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12)",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -4971,7 +4972,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 760,
+        "line": 761,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5149,7 +5150,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 778,
+        "line": 779,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5323,7 +5324,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 800,
+        "line": 801,
         "coverage_claim": "`apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs` (UX28-05). The `error` row above was specified from the start and the code answered `0` until this change. The `skills with the mandatory task skill marked` element is NOT built — it is M123's — and no skills row is shown rather than an empty one that would read as \"none installed\"",
         "status_claim": "designed"
       },
@@ -5489,7 +5490,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 821,
+        "line": 822,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5651,7 +5652,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 842,
+        "line": 843,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5800,7 +5801,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 862,
+        "line": 863,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5964,7 +5965,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 877,
+        "line": 878,
         "coverage_claim": "the list order, the attach lifecycle and the ended-session snapshot — `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. NOT covered: the launch control at the head of the list, the task the agent holds, and view-files — all named in Elements and none built",
         "status_claim": "designed"
       },
@@ -6166,7 +6167,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 907,
+        "line": 908,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6346,6 +6347,7 @@
       "id": "SCR-41",
       "title": "Ranked Board and question detail",
       "flow_ids": [
+        "FLW-99",
         "FLW-25",
         "FLW-26",
         "FLW-27",
@@ -6354,6 +6356,7 @@
         "FLW-75"
       ],
       "scenario_ids": [
+        "SCN-173",
         "SCN-132",
         "SCN-050",
         "SCN-051",
@@ -6362,7 +6365,6 @@
         "SCN-058",
         "SCN-054",
         "SCN-062",
-        "SCN-173",
         "SCN-177"
       ],
       "states": {
@@ -6375,8 +6377,8 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 928,
-        "coverage_claim": "none yet",
+        "line": 929,
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -6578,7 +6580,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 954,
+        "line": 956,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -6754,7 +6756,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 974,
+        "line": 976,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6907,7 +6909,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 996,
+        "line": 998,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7048,7 +7050,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1020,
+        "line": 1022,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -7191,7 +7193,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1046,
+        "line": 1048,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7338,7 +7340,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1072,
+        "line": 1074,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7479,7 +7481,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1097,
+        "line": 1099,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7591,7 +7593,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1122,
+        "line": 1124,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7675,7 +7677,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1145,
+        "line": 1147,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7760,7 +7762,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1168,
+        "line": 1170,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7858,7 +7860,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1191,
+        "line": 1193,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/SettingsScreen.tsx (2026-10-14: the screen, the agents on this computer from Switchboard's catalogue or Fabric's own detection, the launch fallback order, sleep, look, and data and access — usage counts and the buttons to private history and Agent access), apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx; the estate-scoped half (estate name, default memory, CEO trust, project priority) is designed, not built",
         "status_claim": "designed"
       },
@@ -7953,7 +7955,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1229,
+        "line": 1231,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8036,7 +8038,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1252,
+        "line": 1254,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -8119,7 +8121,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1276,
+        "line": 1278,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8208,7 +8210,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1299,
+        "line": 1301,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8291,7 +8293,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1322,
+        "line": 1324,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8374,7 +8376,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1345,
+        "line": 1347,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8457,7 +8459,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1368,
+        "line": 1370,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8542,7 +8544,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1391,
+        "line": 1393,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8629,7 +8631,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1414,
+        "line": 1416,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8717,7 +8719,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1436,
+        "line": 1438,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8809,7 +8811,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1458,
+        "line": 1460,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8958,7 +8960,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1482,
+        "line": 1484,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -9107,7 +9109,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1512,
+        "line": 1514,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9223,7 +9225,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1675,
+        "line": 1677,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9298,7 +9300,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1693,
+        "line": 1695,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9373,7 +9375,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1710,
+        "line": 1712,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9448,7 +9450,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1727,
+        "line": 1729,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9525,7 +9527,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1756,
+        "line": 1758,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps, with the REQ-40 agent choice in region `first-run-agent-choice` and apps/desktop/src/shared/builderChoice.ts; the 0.4.0 order is designed, not built)",
         "status_claim": "designed"
       },
@@ -9661,7 +9663,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1787,
+        "line": 1789,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9757,7 +9759,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1808,
+        "line": 1810,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9927,7 +9929,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1845,
+        "line": 1847,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -10022,7 +10024,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1866,
+        "line": 1868,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10131,7 +10133,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1890,
+        "line": 1892,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10238,7 +10240,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1912,
+        "line": 1914,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -10338,7 +10340,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1944,
+        "line": 1946,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10555,7 +10557,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1991,
+        "line": 1993,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10681,7 +10683,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2021,
+        "line": 2023,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10759,7 +10761,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2040,
+        "line": 2042,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10862,7 +10864,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2061,
+        "line": 2063,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); the unread slice — the rail badge and badge poll in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `apps/desktop/src/renderer/src/App.tsx`, the operator-local read marks `AppSettings.commsReadThrough` (`apps/desktop/src/shared/types.ts`) and their patch validation (`apps/desktop/src/shared/appSettings.ts`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
@@ -11070,7 +11072,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2125,
+        "line": 2128,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11183,7 +11185,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2149,
+        "line": 2152,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11285,7 +11287,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2182,
+        "line": 2185,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)",
         "status_claim": "built"
       },
@@ -11364,9 +11366,9 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2202,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "line": 2205,
+        "coverage_claim": "`apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx` (0.3.11 and 0.3.12, see the amendment above)",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11470,7 +11472,7 @@
       "view": "simple-project",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2226,
+        "line": 2230,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11566,9 +11568,9 @@
       "view": "simple-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2248,
-        "coverage_claim": "none yet as this screen; 0.3.7 wave 3 built its «Подключились сами» block above today's agents list: apps/desktop/src/renderer/src/launch/JoinedAgents.tsx («подключился сам», the proof line, «Отключить», «Отключён» and «Пустить снова»)",
-        "status_claim": "designed"
+        "line": 2252,
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, `apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/JoinedAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.tsx` (0.3.11 and 0.3.12, see the amendment above)",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11662,7 +11664,7 @@
       "view": "simple-history",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2270,
+        "line": 2275,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's",
         "status_claim": "built"
       },
@@ -11731,6 +11733,7 @@
       "task_ids": [],
       "scenario_ids": [
         "SCN-170",
+        "SCN-160",
         "SCN-134",
         "SCN-135"
       ],
@@ -11765,9 +11768,9 @@
       "view": "simple-settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2294,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "line": 2299,
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (see the amendment above)",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11846,7 +11849,7 @@
       "view": "simple-create",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2313,
+        "line": 2319,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4",
         "status_claim": "built"
       },
@@ -35394,7 +35397,7 @@
       "screen_refs": [
         "SCR-87"
       ],
-      "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)",
+      "coverage": "`apps/desktop/src/renderer/src/launch/AgentPage.tsx` and `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork` (0.3.12, see the end of this line); before: waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)",
       "registry_status": "implemented in part (0.3.12 S6, CO-393): every agent at work with its page beside the list (the task it holds, what it is doing, its results, what it did by day) and its console, project and task one press away. Not built: the two groups of step 1 with each coding agent's readiness (SCN-160 lists them in Settings), «Что получает агент» (step 3) and «Создать агента» at the top",
       "product_observation": "unobserved",
       "expected_result": "every agent the person has is on one list with what it is doing, and its console is one press away.",
@@ -35524,7 +35527,9 @@
     {
       "id": "SCN-173",
       "title": "See all the work as a board and follow a task through its stages",
-      "flow_ids": [],
+      "flow_ids": [
+        "FLW-99"
+      ],
       "screen_refs": [
         "SCR-41"
       ],
@@ -35541,7 +35546,9 @@
     {
       "id": "SCN-174",
       "title": "Open a task and read what it is, why, and what will be ready",
-      "flow_ids": [],
+      "flow_ids": [
+        "FLW-100"
+      ],
       "screen_refs": [
         "SCR-32"
       ],
@@ -37680,6 +37687,45 @@
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-171"
+      ]
+    },
+    {
+      "id": "FLW-99",
+      "title": "Follow the work on the Board, from a card to its task",
+      "goal": "the person sees every task in its stage and opens the one they want.",
+      "entry_points": "«Доска» from Главная («Кто что делает» or «Открыть доску»); a project page's kanban strip; «Нужны вы» for the person's part.",
+      "success_exit": "the task's page is open (FLW-100), with the way back to the Board.",
+      "screen_refs": [
+        "SCR-41",
+        "SCR-32"
+      ],
+      "source": {
+        "file": "docs/ux/flows.md",
+        "line": 3041
+      },
+      "mermaid_source": "flowchart TD\n  B[Screen: SCR-41 Доска] --> R{Board read?}\n  R -->|no| R_err[Доска не прочитана · Повторить]\n  R_err -->|Повторить| R\n  R -->|yes| K[Очередь · В работе · На проверке · Готово]\n  K -->|project filter| K\n  K -->|a card| T[Screen: SCR-32 the task's page]\n  T -->|Назад| K",
+      "status": "target_or_mixed_not_coverage_claim",
+      "scenario_ids": [
+        "SCN-173"
+      ]
+    },
+    {
+      "id": "FLW-100",
+      "title": "Open a task and read what it is for",
+      "goal": "the person reads what the task is, why it exists and what will be true when it is done, then goes back where they were.",
+      "entry_points": "a card on the Board; a lane row on Главная; a project page's strip; an agent's page («Открыть его задачу»).",
+      "success_exit": "the person knows the task's purpose and state, and is back where they came from with the scroll kept.",
+      "screen_refs": [
+        "SCR-32"
+      ],
+      "source": {
+        "file": "docs/ux/flows.md",
+        "line": 3068
+      },
+      "mermaid_source": "flowchart TD\n  F[A card, a lane row or an agent's page] --> T[Screen: SCR-32 Task page]\n  T --> R{Task read?}\n  R -->|no| R_err[Задача не прочитана · Повторить]\n  R -->|yes| BR{Brief written?}\n  BR -->|no| E[Brief empty: what to write, with the agent's draft if any]\n  BR -->|yes| D[Для чего эта задача: что, почему, что будет верно]\n  D --> S[State, who works on it, since when]\n  S -->|Назад| F",
+      "status": "target_or_mixed_not_coverage_claim",
+      "scenario_ids": [
+        "SCN-174"
       ]
     }
   ],

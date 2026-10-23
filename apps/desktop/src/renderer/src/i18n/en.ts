@@ -2240,6 +2240,8 @@ export const en = {
   'launch.kanban.lede': "Every task from the queue to done, across your projects.",
   'launch.kanban.ledeProject': "This project's tasks, from the queue to done.",
   'launch.kanban.unreadable': "The board could not be read.",
+  'launch.board.modes': "How to show the board",
+  'launch.board.list': "The topics and questions",
   'launch.board.mode.kanban': "By stage",
   'launch.board.mode.needs': "Needs you",
   'launch.home.board.kicker': "First things first",

@@ -33,6 +33,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   settings write is said at the foot of the Settings screen, in view (CO-313).
 - Агенты has an agent page: choosing an agent in the list opens, beside it, the task it holds, what it is doing now,
   its results and what it did by day, with its console, project and task one press away (CO-393, SCN-166).
+- On the Board, a row you pick brings its detail into view, and a screen reader hears the switch and the list by their
+  own names. The screen and flow pages say what ships today (CO-400).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

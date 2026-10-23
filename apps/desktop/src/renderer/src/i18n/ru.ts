@@ -1581,6 +1581,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.kanban.lede': "Все задачи от очереди до готовых, по всем проектам.",
   'launch.kanban.ledeProject': "Задачи этого проекта, от очереди до готовых.",
   'launch.kanban.unreadable': "Доску не удалось прочитать.",
+  'launch.board.modes': "Как показать доску",
+  'launch.board.list': "Темы и вопросы",
   'launch.board.mode.kanban': "По этапам",
   'launch.board.mode.needs': "Нужны вы",
   'launch.home.board.kicker': "Сначала важное",

@@ -168,6 +168,16 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
     h?.focus({ preventScroll: true })
     h?.scrollIntoView?.({ block: 'start' })
   })
+  // A row the person picks brings its detail into view and focus too: in one column the detail sits under the whole list,
+  // and nothing showed that it had opened (0.3.11 review, iteration 3, UX-6; CO-400).
+  const picked = useRef(false)
+  useEffect(() => {
+    if (!picked.current || !chosen || chosen.entry.ref !== selected) return
+    picked.current = false
+    const h = document.getElementById('topic-title')
+    h?.focus({ preventScroll: true })
+    h?.scrollIntoView?.({ block: 'nearest' })
+  })
   const observed = open?.asOf ? new Date(open.asOf).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : null
   /** A board row's kind in words. Set-aside and resolved rows are authored questions, whatever
    *  the question's own kind (decision, access…): the board names them as questions. */
@@ -200,7 +210,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         </div>
       </header>
       {/* OF-19 (the operator's walk, 2026-10-22): the kanban of every task by stage, and the queue of what needs the person. */}
-      <div className="lp-modes" role="group" aria-label={t('launch.board.title')}>
+      <div className="lp-modes" role="group" aria-label={t('launch.board.modes')}>
         <button type="button" className="lp-button" aria-pressed={mode === 'kanban'} onClick={() => setMode('kanban')}>{t('launch.board.mode.kanban')}</button>
         <button type="button" className="lp-button" aria-pressed={mode === 'needs'} onClick={() => setMode('needs')}>{t('launch.board.mode.needs')}</button>
       </div>
@@ -251,7 +261,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         <div className="lp-callout" role="status"><b>{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</b></div>
       )}
       <div className="lp-board-layout">
-        <section className="lp-panel" aria-label={t('launch.board.title')}>
+        <section className="lp-panel" aria-label={t('launch.board.list')}>
           <div className="lp-tabs" role="group" aria-label={t('launch.board.filter')}>
             {(['open', 'later', 'done', 'all'] as Filter[]).map((f) => (
               <button key={f} type="button" className="lp-button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
@@ -271,7 +281,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           )}
           {rows?.map((r, i) => (
             <button key={r.entry.ref} type="button" className="lp-topic" aria-expanded={selected === r.entry.ref}
-              onClick={() => setSelected(selected === r.entry.ref ? null : r.entry.ref)}>
+              onClick={() => { picked.current = selected !== r.entry.ref; setSelected(selected === r.entry.ref ? null : r.entry.ref) }}>
               <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
               <span>
                 <span className="lp-topic-title">{titleOf(r.entry, t)}</span>
