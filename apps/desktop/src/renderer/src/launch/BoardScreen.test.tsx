@@ -723,6 +723,10 @@ describe('the board header after iteration 2 (V2-13)', () => {
     expect(screen.getByRole('button', { name: en['launch.board.addTopic'] }).getAttribute('aria-expanded')).toBe('false')
     fireEvent.click(b)
     expect(screen.getByRole('button', { name: en['launch.board.reviewEnd'] })).toBeTruthy()
+    // «Add a topic» pressed on the kanban with its form already open keeps the form open (VF2-1).
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.mode.kanban'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.addTopic'] }))
+    expect(screen.getByRole('button', { name: en['launch.board.addTopic'] }).getAttribute('aria-expanded')).toBe('true')
   })
   it("a project's own board says it is that project's tasks (V3-13)", () => {
     stub()

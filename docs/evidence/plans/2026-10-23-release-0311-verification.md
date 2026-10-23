@@ -191,7 +191,8 @@ gate had found the same and its fix `afff7495` followed the candidate. The error
 one by one in a scratch copy and found eight that no test held (ER-7). As 0.3.8 and 0.3.10 did, the fixes make the
 final candidate; the reviewers read `6481e524`, and a fresh verifier reads the final candidate's difference from it.
 The first verifier read `20ea082f` (the fixes and the ADR-0177 reservation the full gate asked for) and failed it on the
-uncommitted reports and on tests that did not hold their fixes (V3-31 to V3-39); its report is
+uncommitted reports and on tests that did not hold their fixes (V3-31 to V3-39); a second verifier read `e569bb5b` and
+found two more tests missing and a ruling's row silent (V3-40 to V3-43), all fixed in the final candidate; the first report is
 [the final-candidate verification](../reviews/0.3.11/iteration-3/2026-10-23-final-candidate-verification.md).
 
 | ID | Source | Finding (short) | Disposition |
@@ -235,6 +236,10 @@ uncommitted reports and on tests that did not hold their fixes (V3-31 to V3-39);
 | V3-37 | final-candidate verifier | Rows read «fixed» for work the release commit does | fixed: V3-18, V3-22, V3-26 and V3-27 say «fixed in the release commit» |
 | V3-38 | final-candidate verifier | V3-16 is «not a defect» while the case was changed | not a defect: the row now says the case also renders inside the home's side column |
 | V3-39 | final-candidate verifier | The Russian stale line, an unused key, the open thread's poll | fixed: «посты ниже прочитаны …», `task.back` removed, the AGENTS.md row names the open thread's poll |
+| V3-40 | second final-candidate verifier (on `e569bb5b`) | «Add a topic» pressed on the kanban had no test | fixed: `BoardScreen.test.tsx` presses it with the form open and expects it to stay open (watched failing with the old toggle) |
+| V3-41 | second final-candidate verifier | CO-405 did not name the three texts V3-35 handed it | fixed: CO-405 names the strip, the stale date and the way back |
+| V3-42 | second final-candidate verifier | No test held the deadline timer being cleared; the deadline test had a 1 s margin | fixed: `CommsFeed.test.tsx` «a healthy board is never said stale by an earlier read's deadline» (watched failing without `clearTimeout`); the deadline test checks at 50 s and 61 s |
+| V3-43 | second final-candidate verifier | The ADR-0176 lease was still on origin; iteration 3's receipts and the Release close's acts are owed | fixed: the lease is released (`agent_sync.py release`); the receipts are written in the release commit, as 0.3.10's were, and the Release close lists its acts |
 
 Exit for iteration 3: every finding is fixed, ruled to a register row or not a defect. Blocking findings open: none.
 
