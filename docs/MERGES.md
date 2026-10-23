@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s6-agent → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/AgentPage.tsx and its test (new), launch/HomeWork.tsx (AgentsAtWork selects, HomeAgents onSelect, Doing exported), launch/HistoryScreen.tsx (dayLabel exported), App.tsx, launch.css, i18n; the W2 spec (W2-10); SCN-166; CO-393 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: the agent page beside the list on Агенты (CO-393).
+
 ### __LANDED__ · `—` · agent/0312-s6-wording → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/HomeWork.tsx (KeptNote) and its test, shared/agentCatalog.ts (refused, timeout) and its test, launch/SettingsScreen.tsx (the pinned refusal) and its test, App.tsx, launch.css, i18n; CO-313 resolved; the backlog; CHANGELOG; the map

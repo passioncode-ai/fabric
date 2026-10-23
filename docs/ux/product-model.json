@@ -35394,8 +35394,8 @@
       "screen_refs": [
         "SCR-87"
       ],
-      "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`)",
-      "registry_status": "draft: 0.3.11 lists every agent at work and opens its console or project; the agent page is CO-393, 0.3.12",
+      "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)",
+      "registry_status": "implemented in part (0.3.12 S6, CO-393): every agent at work with its page beside the list (the task it holds, what it is doing, its results, what it did by day) and its console, project and task one press away. Not built: the two groups of step 1 with each coding agent's readiness (SCN-160 lists them in Settings), «Что получает агент» (step 3) and «Создать агента» at the top",
       "product_observation": "unobserved",
       "expected_result": "every agent the person has is on one list with what it is doing, and its console is one press away.",
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",

@@ -76,7 +76,7 @@ export function HomeStats({ reading, waiting, onAgents, onBoard, onWaiting }: { 
   )
 }
 
-function Doing({ item, bare = false }: { item: Pick<LiveAgent, 'doing'> & { summary?: string | null }; bare?: boolean }): React.JSX.Element {
+export function Doing({ item, bare = false }: { item: Pick<LiveAgent, 'doing'> & { summary?: string | null }; bare?: boolean }): React.JSX.Element {
   const t = useT()
   // D-4 (the operator's walk, 2026-10-22): the task an agent holds is what it is doing; its latest action changes every
   // second and says little. The action is shown only for an agent that holds no task.
@@ -182,8 +182,11 @@ export function HomeWorkLanes({ reading, onOpen, onOpenTask, onSession, onBoard 
 
 /** Every working session, in its own words: who, where, what it is doing now. Opens its console when Fabric holds
  *  one, else its project. */
-export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, projectId, title }: {
+export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, projectId, title, selected, onSelect }: {
   reading: HomeReading
+  /** On Агенты (CO-393): a row selects its agent, whose page opens beside the list, instead of leaving the place. */
+  onSelect?(sessionId: string): void
+  selected?: string | null
   /** OF-16: the one way to the comms from the home. */
   onComms?(): void
   onOpen(projectId: string): void
@@ -233,7 +236,9 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
             const go = a.console ? () => onSession(a.sessionId) : a.projectId ? () => onOpen(a.projectId!) : onAll
             return (
               <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
-                {go
+                {onSelect
+                  ? <button type="button" className={`lp-button lh-agent ${selected === a.sessionId ? 'is-selected' : ''}`} aria-pressed={selected === a.sessionId} onClick={() => onSelect(a.sessionId)}>{inner}</button>
+                  : go
                   ? <button type="button" className="lp-button lh-agent" onClick={go} title={a.console ? t('launch.home.agents.openConsole') : a.projectId ? t('launch.home.agents.openProject') : undefined}>{inner}</button>
                   : <div className="lh-agent">{inner}</div>}
               </li>
@@ -250,21 +255,34 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
  * agent opened in a terminal and joined through fabric-mcp is listed as well as a console Fabric holds; the console
  * opens in one press when Fabric holds one, else the agent's project.
  */
-export function AgentsAtWork({ mark, onOpen }: { mark: number; onOpen(projectId: string): void }): React.JSX.Element {
+export function AgentsAtWork({ mark, onOpen, page }: {
+  mark: number
+  onOpen(projectId: string): void
+  /** The agent's page beside the list (CO-393), drawn by the caller so this file does not import it back. */
+  page?(agent: LiveAgent, openConsole: (sessionId: string) => void): React.ReactNode
+}): React.JSX.Element {
   const t = useT()
   const reading = useHome(mark)
   const showConsole = useOpenConsole()
   const [problem, setProblem] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(null)
   const openConsole = (sessionId: string): void => {
     setProblem(null)
     showConsole(sessionId).catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
   }
+  // An agent that has left the list leaves no page behind under its name.
+  const chosen = (reading.view?.live ?? []).find((a) => a.sessionId === selected) ?? null
   return (
     <>
       {/* The place's own name, so a screen reader and the rail's focus move land on it (0.3.11 review, iteration 2, UX-10). */}
       <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {problem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={problem} />}
-      <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} />
+      {page ? (
+        <div className="lh-agents-place">
+          <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} selected={chosen?.sessionId ?? null} onSelect={setSelected} />
+          {chosen ? page(chosen, openConsole) : <p className="lp-meta lh-agent-pick">{t('agentPage.pick')}</p>}
+        </div>
+      ) : <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} />}
     </>
   )
 }
