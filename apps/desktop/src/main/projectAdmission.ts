@@ -142,6 +142,8 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
     deps.mirror?.()
     const current = await deps.readProject(id)
     if (!current) throw new Error('the new project could not be read after admission')
+    // The project is admitted either way: the host's filer records any failure (`onboarding.file`) before it throws, and
+    // the page's «Познакомиться с проектом» files it again (DA-5).
     if (deps.onboard) await deps.onboard(id, name).catch(() => undefined)
     return current
   }

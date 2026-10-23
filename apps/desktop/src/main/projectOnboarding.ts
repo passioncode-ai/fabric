@@ -59,6 +59,54 @@ export function onboardingTask(projectName: string, locale: string | null | unde
   }
 }
 
+/** What filing the onboarding task needs from the host (`main/index.ts`): its journal and its task read. */
+export interface OnboardingFilerDeps {
+  /** The task by id: null when it does not exist; its three brief parts as stored (null or empty when unwritten). */
+  readTask(taskId: string): Promise<{ brief: { what: string | null; why: string | null; expected: string | null } } | null>
+  /** Appends one event as Fabric's own act (`fabric-onboarding`) in the project. */
+  append(event: { type: 'task.created@1' | 'task.brief.edited@1'; projectId: string; payload: Record<string, unknown> }): Promise<unknown>
+  /** The interface's language, or null when unknown. */
+  locale(): string | null
+  /** Records a failure; the filer throws it on afterwards. */
+  failed(e: unknown, detail: { projectId: string; taskId: string }): void
+}
+
+/**
+ * DA-5 / ER-6: files a project's onboarding task as one act. The task absent, it is created with its three brief parts;
+ * present with a part still empty (an earlier filing stopped after the creation), the missing parts are written, so the
+ * intake rule of ADR-0176 is met in the end; whole, nothing is written. Two presses for one project at once (the
+ * admission and the page's button) run one after the other, so the second finds the first's task and journals nothing
+ * twice. Every failure, a refused read included, is recorded through `failed` before it is thrown.
+ */
+export function createOnboardingFiler(deps: OnboardingFilerDeps): (projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }> {
+  const queue = new Map<string, Promise<unknown>>()
+  const file = async (projectId: string, name: string): Promise<{ taskId: string; filed: boolean }> => {
+    const taskId = onboardingTaskId(projectId)
+    try {
+      const existing = await deps.readTask(taskId)
+      const task = onboardingTask(name, deps.locale())
+      if (!existing)
+        await deps.append({ type: 'task.created@1', projectId,
+          payload: { id: taskId, title: task.title, instruction: task.instruction, origin: { kind: 'observation', ref: `project:${projectId}` }, section: null, task_type: 'development' } })
+      for (const section of ['what', 'why', 'expected'] as const)
+        if (!existing || !existing.brief[section]?.trim())
+          await deps.append({ type: 'task.brief.edited@1', projectId, payload: { task_id: taskId, section, body_md: task.brief[section] } })
+      return { taskId, filed: !existing }
+    } catch (e) {
+      deps.failed(e, { projectId, taskId })
+      throw e
+    }
+  }
+  return (projectId, name) => {
+    const key = projectId.toLowerCase()
+    const run = (queue.get(key) ?? Promise.resolve()).then(() => file(projectId, name), () => file(projectId, name))
+    const settled = run.then(() => undefined, () => undefined)
+    queue.set(key, settled)
+    void settled.then(() => { if (queue.get(key) === settled) queue.delete(key) })
+    return run
+  }
+}
+
 /**
  * DA-2 / ER-2 (decided 2026-10-24): a project's business is the person's, because the board's wall between businesses
  * reads it and the party it walls must not be able to take it down. An agent's profile may set `business` only while

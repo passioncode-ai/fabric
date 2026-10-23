@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import test from 'node:test'
 
-const { onboardingTask, onboardingTaskId, agentProfilePayload } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
+const { onboardingTask, onboardingTaskId, agentProfilePayload, createOnboardingFiler } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
 const { specGaps } = await import(path.resolve(import.meta.dirname, '../src/shared/taskSpec.ts'))
 const P = '00000000-0000-4000-8000-000000000011'
 
@@ -58,5 +58,63 @@ test('DA-2: an agent cannot clear or change the business the person set; the per
   // A call without a business is not judged by it, and a call naming nothing writes nothing.
   assert.deepEqual(agentProfilePayload({ goal: 'g' }, person), { ok: true, payload: { goal: 'g' } })
   assert.equal(agentProfilePayload({}, person).ok, false)
+})
+
+// DA-5 / ER-6: filing is one act. A fake host: a task table the appends project into, and a journal that can refuse.
+const host = ({ failAt = -1, readFails = false, slowRead = 0 } = {}) => {
+  const tasks = new Map()
+  const journal = []
+  const failures = []
+  const deps = {
+    async readTask(taskId) {
+      if (readFails) throw new Error('the onboarding task could not be read: stack lost')
+      if (slowRead) await new Promise((r) => setTimeout(r, slowRead))
+      const t = tasks.get(taskId)
+      return t ? { brief: { ...t } } : null
+    },
+    async append(event) {
+      // A real gap, so a second press's read can land between the first's read and its creation.
+      if (slowRead) await new Promise((r) => setTimeout(r, 5))
+      if (journal.length === failAt) throw new Error('journal refused')
+      journal.push(event)
+      if (event.type === 'task.created@1' && !tasks.has(event.payload.id)) tasks.set(event.payload.id, { what: null, why: null, expected: null })
+      if (event.type === 'task.brief.edited@1') tasks.get(event.payload.task_id)[event.payload.section] = event.payload.body_md
+    },
+    locale: () => 'en',
+    failed: (e, detail) => failures.push([e.message, detail.projectId])
+  }
+  return { deps, tasks, journal, failures }
+}
+
+test('DA-5: a filing stopped after the creation is completed by the next press, which writes only the missing parts', async () => {
+  const h = host({ failAt: 2 })
+  const file = createOnboardingFiler(h.deps)
+  await assert.rejects(file(P, 'fabric'), /journal refused/)
+  assert.deepEqual(h.failures, [['journal refused', P]], 'the failure is recorded before it is thrown')
+  assert.deepEqual(h.journal.map((e) => e.type), ['task.created@1', 'task.brief.edited@1'])
+  const ok = host()
+  ok.tasks.set(onboardingTaskId(P), { what: h.tasks.get(onboardingTaskId(P)).what, why: null, expected: '  ' })
+  const again = await createOnboardingFiler(ok.deps)(P, 'fabric')
+  assert.deepEqual(again, { taskId: onboardingTaskId(P), filed: false })
+  assert.deepEqual(ok.journal.map((e) => e.payload.section), ['why', 'expected'], 'only the empty parts are written')
+  const brief = ok.tasks.get(onboardingTaskId(P))
+  assert.deepEqual(specGaps({ brief_what: brief.what, brief_why: brief.why, brief_expected: brief.expected }), [])
+  assert.equal((await createOnboardingFiler(ok.deps)(P, 'fabric')).filed, false)
+  assert.equal(ok.journal.length, 2, 'a whole task writes nothing')
+})
+
+test('DA-5: two presses at once for one project journal the creation and the brief once', async () => {
+  const h = host({ slowRead: 20 })
+  const file = createOnboardingFiler(h.deps)
+  const [a, b] = await Promise.all([file(P, 'fabric'), file(P.toUpperCase(), 'fabric')])
+  assert.deepEqual([a.filed, b.filed].sort(), [false, true])
+  assert.deepEqual(h.journal.map((e) => e.type), ['task.created@1', 'task.brief.edited@1', 'task.brief.edited@1', 'task.brief.edited@1'])
+})
+
+test('ER-6: a refused read is recorded before it is thrown, never swallowed silently', async () => {
+  const h = host({ readFails: true })
+  await assert.rejects(createOnboardingFiler(h.deps)(P, 'fabric'), /could not be read/)
+  assert.deepEqual(h.failures, [['the onboarding task could not be read: stack lost', P]])
+  assert.equal(h.journal.length, 0)
 })
 // #endregion project-onboarding
