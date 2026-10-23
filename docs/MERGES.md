@@ -4,13 +4,19 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T16:30:00Z · `—` · agent/0312-triage → main · fast-forward
+- run: r-8642aee374a2
+- files: docs/evidence/plans/2026-10-23-release-0312-triage.md (new); the carry-over register (the triage note, CO-293 closed, CO-371 recorded); the backlog (P-25, the Now line, the open count); the map
+- conflicts: none
+- summary: 0.3.12's triage decides every carried row: 40 in three waves of 0.3.12, 16 in 0.3.13 (the contract's repin, one schema step), 10 in 0.4.0, one to its owners, one closed. Also gives the 0.3.11 landing entry its time.
+
 ### 2026-10-23T16:00:00Z · `—` · agent/co-377 → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/announcements.ts (new), launch/CommsAnnouncements.tsx (new), CommsScreen.tsx (the third tab), launch.css, i18n, tests; SCN-178; CO-377; CHANGELOG; AGENTS.md; the map
 - conflicts: none
 - summary: Comms shows which projects have not answered an announcement (CO-377, for 0.3.12, promised by 2026-10-31).
 
-### 2026-10-23T__LANDED__ · `—` · agent/release-0311 → main · fast-forward
+### 2026-10-23T12:44:00Z · `—` · agent/release-0311 → main · fast-forward
 - run: r-8642aee374a2
 - files: Fabric 0.3.11: wave 4 as the operator's walk set it (agent/w4-home, w4-board, w4-agents, w4-comms, w4-carry, merged into agent/rel-0311-i1 and agent/rel-0311-i3 rather than landed one by one), three review iterations' fixes, ADR-0176, the ledger and its 15 reviews, the release commit
 - conflicts: none
