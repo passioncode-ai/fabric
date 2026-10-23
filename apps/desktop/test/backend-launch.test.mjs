@@ -118,7 +118,12 @@ try {
   })
 
   await test('a root exit between owned and bind is unknown, never a clean start', async () => {
-    const w = world({ db: { bind_task_run: async a => { const t = childOf(); process.kill(t.child.pid, 'SIGKILL'); await until(() => t.exited, 'root exit'); await delay(20); return { data: { bound: true, task_run_id: a.p_run_id, session_id: a.p_session_id } } } } })
+    // CO-332: the kill waits until the registry holds the child as owned, so a loaded machine cannot let the exit be seen
+    // first and turn this into the other, earlier case (failed before spawn) that its own test covers.
+    const w = world({ db: { bind_task_run: async a => {
+      await until(() => { try { return w.registry.snapshot(w.backend.handle(a.p_session_id)).physicalState === 'owned' } catch { return false } }, 'owned before the kill')
+      const t = childOf(); process.kill(t.child.pid, 'SIGKILL'); await until(() => t.exited, 'root exit'); await delay(20)
+      return { data: { bound: true, task_run_id: a.p_run_id, session_id: a.p_session_id } } } } })
     const { result, r } = await go(w)
     unknown(w, result); assert.equal(w.backend.get(r.session_id), null)
   })

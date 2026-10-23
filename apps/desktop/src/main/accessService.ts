@@ -141,6 +141,8 @@ const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
 const POLL_SECRET = CREDENTIAL
 
+/** CO-363: the `project.resolve` credentials one agent may hold at once; older ones are revoked as new ones are given. */
+export const RESOLVE_BINDINGS_PER_AGENT = 3
 const refuse = (code: AccessActRefusal, reason: string): AccessActAnswer => ({ ok: false, code, reason })
 
 export function verifierOf(credential: string): string {
@@ -452,6 +454,7 @@ export class AccessService {
         // revocable grant are all journalled; no product connection, board grant or cross-machine authority changes.
         const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
         if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
+        if (ask.capabilities[0] === PROJECT_RESOLVE) await this.boundResolveBindings(entry.key, (await this.deps.store.request(id))?.granted_binding_id ?? null)
         return {
           ok: true, requestId: id, status: 'allowed', expiresAt, pollSecret,
           note: 'Allowed on the operator\'s own machine and recorded as your own act. Poll fabric.access.status with this requestId and pollSecret to collect the revocable credential.'
@@ -590,6 +593,31 @@ export class AccessService {
       ops.record({ op: 'hub.access.grant-revoked', outcome: 'ok', detail: { grant_id: grantId, agent_id: live.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
+  }
+
+  /**
+   * CO-363: the `project.resolve` lane is allowed at once, and each ask used to leave another year-long credential. After
+   * each one, this agent's credentials that hold nothing but `project.resolve` are bounded: one never collected after
+   * the request's 10 minutes is revoked, and of the rest only the newest RESOLVE_BINDINGS_PER_AGENT stay. A credential
+   * with any other grant is never touched; a failed sweep is recorded and the new credential stands.
+   */
+  private async boundResolveBindings(agentId: string, keep: string | null): Promise<void> {
+    try {
+      const now = this.now()
+      const liveAt = new Date(now).toISOString()
+      const mine = (await this.deps.store.liveBindings()).filter((b) => b.agent_id === agentId && b.id !== keep)
+      const resolveOnly: BindingRow[] = []
+      for (const b of mine) {
+        const grants = await this.deps.store.grants({ bindingId: b.id, liveAt })
+        if (grants.length > 0 && grants.every((g) => g.capability === PROJECT_RESOLVE)) resolveOnly.push(b)
+      }
+      const uncollected = resolveOnly.filter((b) => b.claimed_at === null && now - Date.parse(b.created_at) > ACCESS_REQUEST_TTL_MS)
+      const kept = resolveOnly.filter((b) => !uncollected.includes(b)).sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+      const surplus = kept.slice(Math.max(0, RESOLVE_BINDINGS_PER_AGENT - (keep ? 1 : 0)))
+      for (const b of [...uncollected, ...surplus]) await this.revokeBinding(b.id, HUB_ACTOR)
+    } catch (e) {
+      ops.failed('hub.access.resolve-sweep', e, { agent_id: agentId })
+    }
   }
 
   revokeBinding(bindingId: string, actor: AccessActor): Promise<AccessActAnswer> {

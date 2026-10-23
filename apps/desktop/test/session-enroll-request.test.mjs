@@ -295,3 +295,13 @@ test('0.3.8 review i3 ER-4: a coding agent that is not installed records no proj
   const ok = await harness().service.request({ kind: 'door' }, { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' })
   assert.equal(ok.status, 'allowed')
 })
+
+test('CO-363: the project.resolve lane keeps at most three of an agent\'s credentials, the newest; other grants are never swept', async () => {
+  const h = harness()
+  const ask = { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' }
+  for (let i = 0; i < 5; i++) assert.equal((await h.service.request({ kind: 'door' }, ask)).status, 'allowed')
+  const revoked = h.appended.filter((e) => e.type === 'access.binding.revoked@1').length
+  const live = h.appended.filter((e) => e.type === 'access.decided@1' && e.payload.new_binding).length - revoked
+  assert.equal(live, 3, 'five asks leave three live credentials')
+  assert.equal(h.appended.filter((e) => e.type === 'access.binding.revoked@1').every((e) => e.actor.kind === 'system'), true, 'swept by the hub, not said to be the person')
+})

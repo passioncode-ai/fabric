@@ -49,6 +49,14 @@ cleanup_tmp() {
 }
 trap cleanup_tmp EXIT
 
+# CO-379: a machine loaded above its core count makes timing tests fail that pass alone; said once at the start, so a
+# timeout in this run reads as the machine's before it is read as the code's. A notice only: nothing is skipped.
+cores="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
+load="$(uptime | sed -E 's/.*load averages?: *([0-9.,]+).*/\1/' | tr ',' '.')"
+if awk -v l="$load" -v c="$cores" 'BEGIN { exit !(l + 0 > c + 0) }'; then
+  echo "NOTE: this machine's load ($load) is above its $cores cores; a timeout below may be the machine's, not the code's."
+fi
+
 step "types"
 pnpm -r typecheck
 

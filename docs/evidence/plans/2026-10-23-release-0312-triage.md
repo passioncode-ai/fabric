@@ -55,6 +55,13 @@ Two batches that each touch many files of one kind and are safest done once, aft
 |---|---|
 | CO-371 | Both halves live in other repositories (fabric-agent-adapter's session hooks, fabric-agent-contract's board states). Fabric asked on the board on 2026-10-23 (thread `a5969ac5`, message `6ba8440a`); Fabric's own part is none until they answer. The row stays open with its home in those repositories, and W1's board triage (CO-360) tracks the answer |
 
+## Moved again during 0.3.12 (a new decision for each)
+
+| Row | From | To | Reason |
+|---|---|---|---|
+| CO-370 | 0.3.12 W3 | 0.3.13, the one schema step | Its three halves are SQL: staggering the epochs' age rotation (`board_epoch_gate`), `board_list` using the participants index, and replies addressed to the sender by default; 0.3.12 keeps its one schema step for the project profile (W2-2). BD-9 is low: a session that holds a closed epoch reads `com.status` and resends |
+| CO-373 | 0.3.12 W3 | 0.3.13, the one schema step | The lease's expiry in the three waiting checks is a migration of `board_waiting_operator` by the row's own words, and a claim that lapses without a release moving its task back needs the projector; both belong with the 0.3.13 integrity step |
+
 ## Retired
 
 | Row | Reason |
@@ -106,10 +113,10 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-367 | 0.3.12 W2 | repositories without a project are offered to onboarding |
 | CO-368 | 0.3.12 W2 | an operator rule broken today; moved from W1 on 2026-10-23: Fabric has no notion of a project's business, so the wall needs the business field the project page (W2) adds |
 | CO-369 | 0.3.12 W2 | with CO-368: the directory names a project by its repository when names collide |
-| CO-370 | 0.3.12 W3 | the epochs age out together around 2026-11-15, before 0.3.13 |
+| CO-370 | 0.3.13 | moved 2026-10-23 (above): SQL, the one schema step |
 | CO-371 | its owners | asked on `a5969ac5` |
 | CO-372 | 0.4.0 | sharing |
-| CO-373 | 0.3.12 W3 | a lapsed responder and a lapsed claim |
+| CO-373 | 0.3.13 | moved 2026-10-23 (above): SQL, the one schema step |
 | CO-374 | 0.3.12 W3 | the stack watch's gaps |
 | CO-375 | 0.3.12 W3 | tracking's leftovers |
 | CO-377 | done | `4f0e1d40` |
@@ -135,8 +142,8 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-404 | 0.3.12 W1 | ADR-0176 §2, §3 |
 | CO-405 | 0.3.12 W3 | the reads' edges |
 
-Counts, recomputed from this table: 0.3.12 W1 6, W2 15, W3 19 (40 in 0.3.12); 0.3.13 16; 0.4.0 10; its owners 1;
-retired 1; done 1; 69 in all.
+Counts, recomputed from this table (2026-10-23, after the moves above): 0.3.12 W1 6, W2 15, W3 18 (39 in 0.3.12); 0.3.13 19;
+0.4.0 13; its owners 1; retired 1; done 1; 74 in all.
 
 ## Added on 2026-10-23: the board's asks
 

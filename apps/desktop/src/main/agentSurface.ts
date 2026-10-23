@@ -386,8 +386,13 @@ export function bindingCallBucket(bindingId: string, body: unknown): string | nu
   return typeof rt === 'string' && rt.length > 0 && rt.length <= 128 ? `binding:${bindingId}:session:${rt}` : `binding:${bindingId}:calls`
 }
 
+/** CO-346: the distinct `runtimeSessionId` windows one binding may hold in a budget window; past them its calls share one. */
+export const SESSION_WINDOWS_PER_BINDING = 16
+
 export class AgentSurface {
   private states = new Map<string, ScopeState>()
+  /** Per binding, the session ids given their own budget window in the current window (CO-346). */
+  private bindingSessions = new Map<string, { windowStart: number; ids: Set<string> }>()
   /**
    * Why a bearer this surface held was ended, by its sha256 (0.3.5 review iteration 2, ER-4): an evicted session's
    * next call is told it was evicted and that its claims went, not "unknown credential", which its client could
@@ -1139,6 +1144,27 @@ export class AgentSurface {
   }
   // #endregion claim-renewal
 
+  /** A binding's per-session window, unless it already holds SESSION_WINDOWS_PER_BINDING others in this window; then the
+   *  binding's one shared window, so varying `runtimeSessionId` cannot raise its budget (CO-346). */
+  private boundedCallBucket(bindingId: string, bucket: string | null): string | null {
+    const marker = `binding:${bindingId}:session:`
+    if (!bucket || !bucket.startsWith(marker)) return bucket
+    const now = this.now()
+    let seen = this.bindingSessions.get(bindingId)
+    if (!seen || now - seen.windowStart >= this.limits.budgetWindowMs) {
+      seen = { windowStart: now, ids: new Set() }
+      this.bindingSessions.set(bindingId, seen)
+      // Bounded like the budget map: bindings whose window has passed are forgotten.
+      if (this.bindingSessions.size > 4096)
+        for (const [k, v] of this.bindingSessions) if (now - v.windowStart >= this.limits.budgetWindowMs) this.bindingSessions.delete(k)
+    }
+    const id = bucket.slice(marker.length)
+    if (seen.ids.has(id)) return bucket
+    if (seen.ids.size >= SESSION_WINDOWS_PER_BINDING) return `binding:${bindingId}:calls`
+    seen.ids.add(id)
+    return bucket
+  }
+
   /** Spend one call from `key`'s window; false when the window's `limit` is already spent. */
   private spend(key: string, limit: number): boolean {
     const now = this.now()
@@ -1258,7 +1284,7 @@ export class AgentSurface {
       // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
       const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
       ctx.sessionId = principal.kind === 'door' ? 'door' : key
-      const callKey = principal.kind === 'door' ? key : bindingCallBucket(principal.binding.id, body)
+      const callKey = principal.kind === 'door' ? key : this.boundedCallBucket(principal.binding.id, bindingCallBucket(principal.binding.id, body))
       if (callKey && !this.spend(callKey, this.limits.budgetCalls)) {
         const now = this.now()
         const bucket = this.externalBudget.get(callKey)

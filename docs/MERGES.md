@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-w3d → main · fast-forward
+- run: r-8642aee374a2
+- files: main/accessService.ts and test/session-enroll-request.test.mjs (CO-363); main/agentSurface.ts and test/hub-surface.test.mjs (CO-346); test/login-shell-path.test.mjs and scripts/ci.sh (CO-379); test/backend-launch.test.mjs (CO-332); the triage (CO-370 and CO-373 moved to 0.3.13); the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 W3d: the hub's bounds (CO-346, CO-363), steady tests under load (CO-332, CO-379); CO-370 and CO-373 moved to 0.3.13.
+
 ### __LANDED__ · `—` · agent/0312-w3c → main · fast-forward
 - run: r-8642aee374a2
 - files: main/workRead.ts and test/work-read-views.test.mjs; launch/HistoryScreen.tsx and its test, App.tsx; launch/commsNewest.ts, launch/CommsFeed.tsx and their tests; CommsScreen.test.tsx, TaskPage.test.tsx; shared/protocolObligations.ts and main/boardTools.ts (reply only with the answer); i18n; CO-405 resolved; CO-412 filed; the backlog; CHANGELOG; the map

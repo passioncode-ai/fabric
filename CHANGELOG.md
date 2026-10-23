@@ -52,6 +52,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   agents did even while the projects list cannot be read; Comms' feed says when it shows fewer posts than the board
   may hold (CO-405). The board rule for agents adds: reply to a request only with the answer itself, since a reply
   closes it.
+- The hub bounds what agents can pile up: the folder-attribution lane keeps at most three credentials per agent and
+  sweeps uncollected ones (CO-363), and a credential cannot raise its call budget by inventing session ids (CO-346).
+  Two tests that failed only on a loaded machine are steady, and the gate says when the machine is loaded (CO-379,
+  CO-332).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).
