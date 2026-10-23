@@ -37,6 +37,7 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { onboardingTask, onboardingTaskId } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics } from '../shared/projectAnalytics.ts'
+import { composeGraph } from '../shared/projectGraph.ts'
 import { folderProjectId, gitTopLevel } from './folderResolver.ts'
 import { readGitFacts } from './gitFacts.ts'
 import { promises as fsPromises } from 'node:fs'
@@ -1904,6 +1905,23 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       createdAt: new Map((tasks.rows as Array<{ id: string; started_at: string }>).map((r) => [r.id, r.started_at])),
       openQuestions: ((questions.data ?? []) as Array<{ asked_at: string }>).map((q) => ({ askedAt: q.asked_at })),
       now
+    })
+  })
+  handle(IPC.projectsGraph, async (): Promise<Returns<FabricApi['projects']['graph']>> => {
+    const projectsRead = await store.select('projects', 'id,name,summary,business,repo_path').eq('status', 'active').limit(2000)
+    if (projectsRead.error) throw new Error(`the projects could not be read: ${projectsRead.error.message}`)
+    const relationsRead = await store.select('project_relations', 'project_id,kind,target').limit(20000)
+    if (relationsRead.error) throw new Error(`the relations could not be read: ${relationsRead.error.message}`)
+    const threadsRead = await db.rpc('board_threads_operator', { p_estate_id: ACTIVE_ESTATE })
+    if (threadsRead.error) throw new Error(`the board's threads could not be read: ${threadsRead.error.message}`)
+    // The operator's thread read answers {ok, threads} or a refusal {error}; a refusal is said, never drawn as no threads.
+    const answer = threadsRead.data as { ok?: boolean; threads?: unknown; error?: { message?: string } } | null
+    if (!answer || answer.ok !== true || !Array.isArray(answer.threads)) throw new Error(`the board's threads could not be read: ${answer?.error?.message ?? 'an answer this build cannot read'}`)
+    const threads = answer.threads as Array<{ participants?: unknown; messageCount?: unknown }>
+    return composeGraph({
+      projects: (projectsRead.data ?? []) as Array<{ id: string; name: string; summary: string | null; business: string | null; repo_path: string | null }>,
+      relations: (relationsRead.data ?? []) as Array<{ project_id: string; kind: 'depends-on' | 'used-by' | 'same-business' | 'talks-to' | 'other'; target: string }>,
+      threads: threads.filter((x) => Array.isArray(x.participants)).map((x) => ({ participants: x.participants as string[], messageCount: typeof x.messageCount === 'number' ? x.messageCount : 0 }))
     })
   })
   // #endregion project-profile-ipc

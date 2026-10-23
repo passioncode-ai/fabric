@@ -603,3 +603,15 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lp-analytics dd{ margin: 0; display: flex; align-items: flex-end; gap: var(--space-2); justify-self: end; }
 .lp-analytics-bars{ display: inline-flex; align-items: flex-end; gap: var(--space-1); height: var(--space-4); }
 .lp-analytics-bars span{ display: block; width: var(--space-1); min-height: var(--report-line); background: var(--app-accent); }
+/* SCN-175 (W2 S5): the project graph. Columns are businesses; nodes sit over a layer of lines. */
+.lg-scroll{ overflow: auto; border: var(--report-line) solid var(--app-line); background: var(--app-panel); }
+.lg-canvas{ position: relative; }
+.lg-lines{ position: absolute; inset: 0; pointer-events: none; }
+.lg-line{ stroke: var(--app-line); stroke-width: 1.5; }
+.lg-line.board{ stroke-dasharray: 4 4; }
+.lg-column{ position: absolute; top: var(--space-2); margin: 0; font-size: var(--app-fs-caption); }
+.lg-node{ position: absolute; display: flex; flex-direction: column; justify-content: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); text-align: left; border: var(--report-line) solid var(--app-line); background: var(--app-panel-quiet); overflow: hidden; }
+.lg-node b, .lg-node small{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-node.centre{ border-color: var(--app-accent); }
+.lg-node.outside{ border-style: dashed; }
+button.lg-node{ cursor: pointer; }

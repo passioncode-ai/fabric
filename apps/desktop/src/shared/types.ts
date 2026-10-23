@@ -970,6 +970,8 @@ export interface FabricApi {
     people(projectId: string): Promise<GitPeopleView>
     /** W2 S4b (OF-39): how work goes in this project over the last eight weeks, from the journal. */
     analytics(projectId: string): Promise<import('./projectAnalytics').ProjectAnalytics>
+    /** W2 S5 (OF-32, SCN-175): every active project, its business, its recorded relations and the board threads between projects. */
+    graph(): Promise<import('./projectGraph').ProjectGraph>
     /**
      * M107 — a repository this estate watches has moved; the argument is its
      * path and the caller decides whether it cares (`shared/repoWatch.ts`).
@@ -1735,6 +1737,7 @@ export const IPC = {
   projectsOnboard: 'projects:onboard',
   projectsPeople: 'projects:people',
   projectsAnalytics: 'projects:analytics',
+  projectsGraph: 'projects:graph',
   /**
    * M107 — main→renderer, and a SEPARATE NAME on purpose. The watcher used to
    * broadcast on `projects:repo-states`, the same name `ipcMain.handle` answers

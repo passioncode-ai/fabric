@@ -32,6 +32,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       onboard: (projectId) => ipc.invoke(IPC.projectsOnboard, projectId),
       people: (projectId) => ipc.invoke(IPC.projectsPeople, projectId),
       analytics: (projectId) => ipc.invoke(IPC.projectsAnalytics, projectId),
+      graph: () => ipc.invoke(IPC.projectsGraph),
       onRepoChanged: (cb) => {
         const listener = (_e: unknown, repoPath: string): void => cb(repoPath)
         ipc.on(IPC.projectsRepoChanged, listener)

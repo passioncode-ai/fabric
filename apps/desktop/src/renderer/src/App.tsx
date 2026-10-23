@@ -38,6 +38,7 @@ import { EditorWindow } from './EditorWindow'
 import { EstateHome } from './EstateHome'
 import { mergeDraft, type TaskDraft } from '../../shared/taskDraft.ts'
 import { BoardScreen } from './launch/BoardScreen'
+import { GraphScreen } from './launch/GraphScreen'
 import { CommsScreen } from './launch/CommsScreen'
 import { PersonaProvider } from './launch/persona'
 import { PlanScreen } from './launch/PlanScreen'
@@ -905,6 +906,7 @@ function Shell({
     : active.kind === 'project' || active.kind === 'guide' ? ((projects ?? []).find((p) => p.id === active.projectId)?.name ?? t('app.loading'))
     : active.kind === 'board' ? t('launch.nav.board')
     : active.kind === 'comms' ? t('launch.nav.comms')
+    : active.kind === 'graph' ? t('graph.title')
     : active.kind === 'plan' ? t('launch.nav.plan')
     : active.kind === 'quota' ? t('launch.nav.quota')
     : active.kind === 'help' ? t('launch.nav.help')
@@ -931,6 +933,7 @@ function Shell({
         // CO-388: set by ⌘[ / ⌘] before the route changes and cleared by the effect above, which runs after the shell's own
         // (a child's effects run first), so the shell reads it true exactly on the render a travel caused.
         restoreScroll={travelling.current}
+        onGraph={(projectId) => setActive(projectId ? { kind: 'graph', projectId } : { kind: 'graph' })}
         title={placeTitle}
         pins={pins}
         lastActivity={lastActivity}
@@ -1027,6 +1030,10 @@ function Shell({
             onError={setError}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
           />
+        )}
+        {active.kind === 'graph' && (
+          <GraphScreen projectId={active.projectId ?? null} feedMark={markOf(marks, ['project'])}
+            onProject={openProject} onWhole={() => setActive({ kind: 'graph' })} />
         )}
         {active.kind === 'comms' && (
           <CommsScreen
@@ -1309,7 +1316,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

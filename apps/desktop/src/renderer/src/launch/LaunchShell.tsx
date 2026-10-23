@@ -107,6 +107,8 @@ export interface LaunchShellProps {
   placeKey?: string
   /** CO-388: this place was reached by going back or forward (⌘[, ⌘]); it opens where it was left, not at its top. */
   restoreScroll?: boolean
+  /** SCN-175: opens the project graph, centred on a project when one is named; absent hides the graph's entries. */
+  onGraph?(projectId: string | null): void
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
   consoles?: React.ReactNode
   children: React.ReactNode
@@ -249,10 +251,19 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>{t('glyph.star')}</span>}
                       {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
                     </a>
+                    {props.onGraph && (
+                      <button type="button" className="rail-graph" aria-label={t('rail.graphOf', { name: p.name })} title={t('rail.graphOf', { name: p.name })}
+                        onClick={() => props.onGraph?.(p.id)}>
+                        <span aria-hidden="true">{t('glyph.graph')}</span>
+                      </button>
+                    )}
                   </li>
                 )
               })}
             </ul>
+          )}
+          {rows.length > 1 && props.onGraph && (
+            <button type="button" className="rail-small" onClick={() => props.onGraph?.(null)}>{t('rail.graph')}</button>
           )}
         </div>
         {props.machine === 'trouble' && (

@@ -75,6 +75,8 @@ export type AppRoute =
   | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean }
   /** SCR-81. What projects tell each other, read by the operator. A single place, like the agents view. */
   | { kind: 'comms' }
+  /** SCN-175 (W2 S5): how the projects relate; `projectId` centres the graph on one project and its neighbours. */
+  | { kind: 'graph'; projectId?: string | null }
   /** SCR-40. Every project by default; `projectId` opens one project's goals. */
   | { kind: 'plan'; projectId?: string | null }
   /** SCR-42. Every project by default; `projectId` narrows it to one. */
@@ -140,6 +142,8 @@ export function returnableTo(origin: AppRoute | null, active: AppRoute): AppRout
   if (origin.kind === 'guide' && active.kind === 'guide')
     return origin.projectId === active.projectId ? null : origin
   if (origin.kind === 'pulse' && active.kind === 'pulse')
+    return (origin.projectId ?? null) === (active.projectId ?? null) ? null : origin
+  if (origin.kind === 'graph' && active.kind === 'graph')
     return (origin.projectId ?? null) === (active.projectId ?? null) ? null : origin
   if (origin.kind === 'plan' && active.kind === 'plan')
     return (origin.projectId ?? null) === (active.projectId ?? null) ? null : origin
@@ -268,6 +272,7 @@ export function sameRoute(a: AppRoute, b: AppRoute): boolean {
   if (a.kind === 'guide' && b.kind === 'guide') return a.projectId === b.projectId
   if (a.kind === 'pulse' && b.kind === 'pulse') return (a.projectId ?? null) === (b.projectId ?? null)
   if (a.kind === 'plan' && b.kind === 'plan') return (a.projectId ?? null) === (b.projectId ?? null)
+  if (a.kind === 'graph' && b.kind === 'graph') return (a.projectId ?? null) === (b.projectId ?? null)
   if (a.kind === 'releases' && b.kind === 'releases')
     return (a.projectId ?? null) === (b.projectId ?? null) && (a.release ?? null) === (b.release ?? null)
   if (a.kind === 'board' && b.kind === 'board')

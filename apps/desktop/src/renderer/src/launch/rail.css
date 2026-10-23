@@ -148,3 +148,8 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .hx-agents h3{font-size:15px;margin:0 0 var(--space-2)}
 .hx-ops{margin-top:var(--space-6,32px)}
 .hx-ops>summary{cursor:pointer;color:var(--app-muted);font-size:13px}
+/* SCN-175: the graph around a project, beside its row. */
+.rail-projects li{ display: flex; align-items: center; }
+.rail-projects li > a{ flex: 1 1 auto; min-width: 0; }
+.rail-graph{ flex: 0 0 auto; border: 0; background: none; color: var(--app-muted); cursor: pointer; padding: 0 var(--space-1); }
+@media(hover:hover) {.rail-graph:hover{ color: var(--app-accent); }}

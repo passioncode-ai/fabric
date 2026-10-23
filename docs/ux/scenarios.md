@@ -178,7 +178,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-172 | Keep several consoles open as tabs along the top and switch between them | Shell | P-01 | ST-032, ST-037, FLW-93, FLW-96, SCR-84, SCR-87 | implemented | unobserved |
 | SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
 | SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
-| SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | draft | unobserved |
+| SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | implemented | unobserved |
 | SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | implemented | unobserved |
 | SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | implemented | unobserved |
 | SCN-178 | See which projects have not answered an announcement | Project communications | P-01 | FLW-83, SCR-81 | implemented | unobserved |
@@ -4328,8 +4328,8 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** an organization that cannot be read is drawn without its uncloned repositories and says so.
 - **Design rationale:** the operator, 2026-10-22: «построили карту связи, типа графа ... вижу всю экосистему проекта» (OF-32).
 - **Telemetry:** planned only.
-- **Status:** draft
-- **Coverage:** none yet
+- **Status:** implemented (0.3.12 wave 2, slice S5): the `graph` route, its entries on the rail (a graph mark beside each project, «Граф проектов» under the list); edges are the profile's relations and the board's threads; a not-cloned repository of the same GitHub owner waits for a GitHub read Fabric does not have, and an unrelated project shows the empty graph's sentence rather than «Найти связи»
+- **Coverage:** `apps/desktop/src/shared/projectGraph.test.ts`, `apps/desktop/src/renderer/src/launch/GraphScreen.test.tsx`
 - **Product:** unobserved
 
 ### SCN-176: A task starts only once its spec is whole, gathered by questions

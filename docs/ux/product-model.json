@@ -35562,8 +35562,8 @@
       "screen_refs": [
         "SCR-40"
       ],
-      "coverage": "none yet",
-      "registry_status": "draft",
+      "coverage": "`apps/desktop/src/shared/projectGraph.test.ts`, `apps/desktop/src/renderer/src/launch/GraphScreen.test.tsx`",
+      "registry_status": "implemented (0.3.12 wave 2, slice S5): the `graph` route, its entries on the rail (a graph mark beside each project, «Граф проектов» under the list); edges are the profile's relations and the board's threads; a not-cloned repository of the same GitHub owner waits for a GitHub read Fabric does not have, and an unrelated project shows the empty graph's sentence rather than «Найти связи»",
       "product_observation": "unobserved",
       "expected_result": "the person sees a project's ecosystem: what it depends on, who talks to it, and what exists without a local folder.",
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",

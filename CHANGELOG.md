@@ -22,6 +22,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- A graph of the projects: businesses are columns, lines are the relations the onboarding agents recorded and the
+  board's threads between projects, a target outside Fabric is drawn apart. «Граф проектов» on the rail opens it whole,
+  the mark beside a project opens it centred on that project and its neighbours, and a project opens its page (OF-32,
+  SCN-175).
 - On Главная a task in «В работе», on review or finished opens its own page, as a card on the Board does (a task whose
   agent has a console still opens the console) (CO-394). Going back with ⌘[ (or forward with ⌘]) opens the page where
   you left it; any other move opens a page at its top (CO-388, SCN-058).
