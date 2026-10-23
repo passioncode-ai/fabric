@@ -161,7 +161,7 @@ import {
   type ManifestRead
 } from '../shared/buildManifest.ts'
 import { createOps } from './ops'
-import { boardEntries, cutBoard, scopeBoard, type BoardCut, type BoardQuestion } from '../shared/board'
+import { boardEntries, cutBoard, PERSON_KINDS, scopeBoard, type BoardCut, type BoardQuestion } from '../shared/board'
 import { deferredEntries, resolvedEntries, type DeferredEntry, type ResolvedEntry } from '../shared/boardResolved.ts'
 import { releaseEntries, type ReleaseEntry } from '../shared/releases.ts'
 import { envelope, type Omission, type ReadEnvelope, type SourceReceipt } from '../shared/readEnvelope'
@@ -3450,14 +3450,16 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    */
   const readBoard = async (
     projectId: string | null,
-    limit: number
+    limit: number,
+    /** CO-391: only what a person can resolve (`PERSON_KINDS`), as the home's «Нужны вы» shows. */
+    personOnly = false
   ): Promise<ReadEnvelope<BoardCut>> => {
     const now = new Date()
     const stamp = now.toISOString()
     const [obligations, questionRead, blockRead, projectRead, deferralRead] = await Promise.all([
       readAttentionWithSources(stamp),
       store
-        .select('questions', 'id,project_id,text,kind,asked_at,status,revision,options')
+        .select('questions', 'id,project_id,text,kind,asked_at,status,revision,options,asked_by_kind,asked_by_id')
         .eq('estate_id', ACTIVE_ESTATE)
         .eq('status', 'open'),
       store.select('question_blocks', 'question_id').eq('estate_id', ACTIVE_ESTATE),
@@ -3475,7 +3477,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       (projectRead.data ?? []).map((r) => [r.id as string, r as { name: string; priority_tier: string | null }])
     )
 
+    // CO-391: an asking agent named by the runner its session claimed work as; a read that fails names no agent.
+    const askerSessions = [...new Set((questionRead.data ?? []).filter((q) => q.asked_by_kind === 'agent').map((q) => q.asked_by_id as string))]
+    const askerRead = askerSessions.length ? await store.selectIn('work_claims', 'owner_session,agent', 'owner_session', askerSessions) : { rows: [], failed: null }
+    const agentOf = new Map<string, string>()
+    for (const r of (askerRead.rows ?? []) as Array<{ owner_session: string; agent: string | null }>) if (r.agent) agentOf.set(r.owner_session, r.agent)
     const questions: BoardQuestion[] = (questionRead.data ?? []).filter((q) => !setAside.has(q.id as string)).map((q) => ({
+      askedBy: q.asked_by_kind === 'person' ? { kind: 'person' as const, agent: null } : { kind: 'agent' as const, agent: agentOf.get(q.asked_by_id as string) ?? null },
       id: q.id as string,
       projectId: (q.project_id as string | null) ?? null,
       projectName: projects.get(q.project_id as string)?.name ?? null,
@@ -3507,7 +3515,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         }).weight,
       now
     })
-    const scoped = projectId ? scopeBoard(all, projectId) : all
+    const kinds = personOnly ? all.filter((e) => PERSON_KINDS.has(e.kind)) : all
+    const scoped = projectId ? scopeBoard(kinds, projectId) : kinds
 
     const receipt = (name: string, r: { error: { message?: string } | null }): SourceReceipt =>
       r.error ? { name, status: 'error', asOf: null, errorCode: r.error.message ?? 'unknown' } : { name, status: 'ok', asOf: stamp }
@@ -3538,8 +3547,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     })
   }
 
-  handle(IPC.boardQuery, (_e, q?: { projectId?: string | null; limit?: number }): Promise<Returns<FabricApi['board']['query']>> =>
-    readBoard(q?.projectId ?? null, q?.limit ?? 5)
+  handle(IPC.boardQuery, (_e, q?: { projectId?: string | null; limit?: number; personOnly?: boolean }): Promise<Returns<FabricApi['board']['query']>> =>
+    readBoard(q?.projectId ?? null, q?.limit ?? 5, q?.personOnly === true)
   )
 
   /** SCR-41 «Разобрано»: answered questions, newest first, bounded. Two reads, each with its

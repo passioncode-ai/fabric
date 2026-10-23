@@ -471,6 +471,8 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* Главная's greeting line under the product name (SCN-163 step 1, CO-391); the prototype has none. */
+.lh-identity .lh-greeting{margin:var(--space-1) 0 0;font-size:13px;color:var(--app-muted);white-space:normal}
 /* An access request's facts sit as a block above its two buttons (SCR-41, verification iteration 1 for
    0.3.1, UX-8); the prototype has no access row, so these are the app's own. */
 /* Iteration 2: a class of its own — an unscoped `.lp-facts` here overrode the prototype's grid for every

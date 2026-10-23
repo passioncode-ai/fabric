@@ -30,3 +30,34 @@ describe('the home says what is needed from the person (OF-14)', () => {
     expect(onBoard).toHaveBeenCalledWith(entry.ref)
   })
 })
+
+describe('«Нужны вы» shows only what the person resolves, naming who asks (CO-391)', () => {
+  it('asks the board for the person\'s part only, and names the asking agent, an unknown agent or a person', async () => {
+    const q = (id: string, askedBy: unknown) => ({ kind: 'question', ref: `question:${id}`, projectId: 'p1', projectName: 'Fabric', title: `Q ${id}`, detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy })
+    const query = vi.fn(async () => ({ data: { items: [q('1', { kind: 'agent', agent: 'claude-code' }), q('2', { kind: 'agent', agent: null }), q('3', { kind: 'person', agent: null })], total: 3, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query } } }))
+    const { container } = render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Q 1')).toBeTruthy())
+    expect(query).toHaveBeenCalledWith({ projectId: null, limit: 3, personOnly: true })
+    const text = container.textContent ?? ''
+    expect(text).toMatch(/Fabric · Claude Code asks/)
+    expect(text).toContain('Fabric · ' + en['needsYou.askedByAnAgent'])
+    expect(text).toContain('Fabric · ' + en['needsYou.askedByPerson'])
+  })
+})
+
+describe('a question on Главная is answered where it is read (SCN-163 step 2, CO-391)', () => {
+  it('shows the options as buttons and records the chosen one; the count reaches the greeting', async () => {
+    const item = { kind: 'question', ref: 'question:q9', subject: { kind: 'question', id: 'q9' }, projectId: 'p1', projectName: 'Fabric', title: 'Which?', detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy: { kind: 'person', agent: null }, question: { revision: 2, options: [{ id: 'a', label: 'Keep it' }, { id: 'b', label: 'Drop it' }] } }
+    const query = vi.fn(async () => ({ data: { items: [item], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' }))
+    const answer = vi.fn(async (_input: unknown) => ({ committed: true, repeated: false, unblocked: [], stillBlocked: [], continuations: [] }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query }, questions: { answer } } }))
+    const onTotal = vi.fn()
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} onTotal={onTotal} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Which?')).toBeTruthy())
+    expect(onTotal).toHaveBeenCalledWith(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Drop it' }))
+    await waitFor(() => expect(answer).toHaveBeenCalled())
+    expect(answer.mock.calls[0]?.[0]).toMatchObject({ questionId: 'q9', projectId: 'p1', expectedRevision: 2, chosenOption: 'b' })
+  })
+})

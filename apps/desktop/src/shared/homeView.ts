@@ -95,3 +95,9 @@ export function eventsOfDay<T extends Ev>(events: readonly T[] | null, date: str
     .filter((e) => localDate(new Date(e.occurred_at)) === date && (kind === 'all' || eventKind(e) === kind))
     .sort((a, b) => b.seq - a.seq)
 }
+
+/** The part of the day Главная greets by (SCN-163 step 1): morning 5–11, day 12–16, evening 17–22, night otherwise. */
+export function dayPart(now: Date): 'morning' | 'day' | 'evening' | 'night' {
+  const h = now.getHours()
+  return h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'day' : h >= 17 && h < 23 ? 'evening' : 'night'
+}
