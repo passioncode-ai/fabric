@@ -25,7 +25,7 @@ type Read =
   | { at: 'failed'; says: string; kept: { rows: ActView[]; next: number | null; readAt: string } | null }
 
 /** «Сегодня», «Вчера» or the date: the day a row of История is grouped under. */
-function dayLabel(iso: string, t: Translate, locale: string): string {
+export function dayLabel(iso: string, t: Translate, locale: string): string {
   const d = new Date(iso), now = new Date()
   const startOf = (x: Date): number => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
   const days = Math.round((startOf(now) - startOf(d)) / 86_400_000)

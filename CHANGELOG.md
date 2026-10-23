@@ -31,6 +31,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - Failures are said where they are seen: after a failed read the home's lanes say the time of the view they keep;
   Settings tells Switchboard refusing its catalogue, and not answering in 5 seconds, apart from a failure; a refused
   settings write is said at the foot of the Settings screen, in view (CO-313).
+- Агенты has an agent page: choosing an agent in the list opens, beside it, the task it holds, what it is doing now,
+  its results and what it did by day, with its console, project and task one press away (CO-393, SCN-166).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

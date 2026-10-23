@@ -62,6 +62,7 @@ import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type Pro
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
 import { JoinedAgents } from './launch/JoinedAgents'
+import { AgentPage } from './launch/AgentPage'
 import { AgentsAtWork } from './launch/HomeWork'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
@@ -1155,7 +1156,11 @@ function Shell({
           <>
           {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
           {/* OF-30 (the operator's walk, 2026-10-22): every agent at work, a terminal's included, by the task it holds. */}
-          <AgentsAtWork mark={markOf(marks, ['work', 'task', 'agent', 'session'])} onOpen={openProject} />
+          <AgentsAtWork mark={markOf(marks, ['work', 'task', 'agent', 'session'])} onOpen={openProject}
+            page={(agent, openConsole) => (
+              <AgentPage key={agent.sessionId} agent={agent} mark={markOf(marks, ['work', 'task', 'agent', 'session'])} onConsole={openConsole}
+                onOpenProject={openProject} onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })} />
+            )} />
           <JoinedAgents projects={projects} mark={markOf(marks, ['act', 'access'])} />
           <EstateAgents
             // NULL TRAVELS (M108, UXA-C05). Five lines below, `EstateHome` is
