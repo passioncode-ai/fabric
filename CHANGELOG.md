@@ -7,6 +7,13 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- Comms has a third tab, «Объявления»: every announcement on the project board with how many of the projects it
+  touches have answered, who has not yet, and how the others answered (adapted, filed a row, not affected); «Ждут
+  ответа» shows only those still owed an answer, and an announcement opens its thread (CO-377, SCN-178; asked by
+  fabric-workspace on threads `c430513b` and `27750925`).
+
 ## 0.3.11
 
 Fabric 0.3.11: the places the operator walked through on 0.3.10, rebuilt in the order they asked for, and agents that

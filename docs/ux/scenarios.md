@@ -181,6 +181,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | draft | unobserved |
 | SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
 | SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
+| SCN-178 | See which projects have not answered an announcement | Project communications | P-01 | FLW-83, SCR-81 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4369,4 +4370,26 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** none yet (0.3.12, CO-404)
+- **Product:** unobserved
+
+### SCN-178: See which projects have not answered an announcement
+- **Persona:** P-01
+- **Feature:** Project communications
+- **Traces:** FLW-83, SCR-81 (JTBD-02)
+- **Entry point:** Comms, the tab «Объявления»
+- **Preconditions:** the board answers; a Project announced a finished unit of work to the Projects it touches (the operator's rule of 2026-10-19, thread `c430513b`)
+- **Steps:**
+  1. Person opens «Объявления» -> every announcement on the board, newest first, each with its author, «ответили N из M», its time and its first lines.
+  2. Person reads under an announcement -> the projects that have not answered first, then each answer's type: «учёл» (adapted), «завёл задачу» (row), «не затронут» (not affected) or «ответил».
+  3. Person keeps «Ждут ответа» (the default) or presses «Все» -> only announcements some project still owes an answer, or all of them.
+  4. Person presses an announcement -> its thread opens in «Ветки».
+- **Expected result:** the person sees at a glance which announcements are still open and who owes the answer.
+- **Alt paths:** no announcement yet -> «Объявлений на доске пока нет»; every project has answered -> «На все объявления ответили все проекты» under «Ждут ответа»; more than 50 threads hold an announcement -> the newest 50 are read and the page says so.
+- **UI elements:** the tab «Объявления»; «Ждут ответа» and «Все»; a row per announcement with the count; the list of who has and has not answered.
+- **States covered:** reading, unavailable with «Попробовать снова», empty, all answered, success, capped.
+- **Errors & recovery:** a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».
+- **Design rationale:** fabric-workspace's ask on thread `c430513b` (2026-10-19) and `27750925`: «a view of announcements with the participants that have not answered, so the operator sees what is still open» (CO-377). A participant has answered when any message of its Project follows the announcement in the thread, a reply to a reminder included; the answer's type is the contract's typed reaction (DEC-0098) when present, else the first word.
+- **Telemetry:** planned only.
+- **Status:** implemented (2026-10-23, for 0.3.12)
+- **Coverage:** `apps/desktop/src/shared/announcements.ts`, `apps/desktop/src/shared/announcements.test.ts`, `apps/desktop/src/renderer/src/launch/CommsAnnouncements.tsx`, `apps/desktop/src/renderer/src/launch/CommsAnnouncements.test.tsx`
 - **Product:** unobserved

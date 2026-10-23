@@ -40,6 +40,7 @@ import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { FabricStrip } from './FabricStrip'
 import { CommsFeed } from './CommsFeed'
+import { CommsAnnouncements } from './CommsAnnouncements'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { runnerLabel } from '../runnerLabel'
 import { ALL_THREADS, MAX_HELD, PAGE as LIST_PAGE, appendOlder, boardFilterOf, cursorOf, mergeFirstPage, type Held, type ThreadFilters } from './commsList'
@@ -96,7 +97,7 @@ type Opened = { thread: CommsThread; from: 'list' | 'search' | 'related'; focusS
 
 export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, heads, mode: initialMode = 'feed' }: {
   /** OF-29 (the operator's walk, 2026-10-22): the feed opens first; the threads are the second tab. */
-  mode?: 'feed' | 'threads'
+  mode?: 'feed' | 'threads' | 'announcements'
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
   projects: ProjectRow[] | null
@@ -114,7 +115,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
-  const [mode, setMode] = useState<'feed' | 'threads'>(initialMode)
+  const [mode, setMode] = useState<'feed' | 'threads' | 'announcements'>(initialMode)
   const nameOf = (id: string): string => (projects ?? []).find((p) => p.id === id)?.name ?? shortId(id)
 
   const [held, setHeld] = useState<Held | null>(null)
@@ -313,7 +314,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   return (
     <div className="lp" data-launch-view="comms">
       {/* Under «Лента» the strip says how the feed reads; the thread list's own time is «Ветки»' (iteration 3, ER-6, DA-3). */}
-      <FabricStrip text={mode === 'feed' ? t('launch.comms.feed.strip') : observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
+      <FabricStrip text={mode === 'feed' ? t('launch.comms.feed.strip') : mode === 'announcements' ? t('launch.comms.ann.strip') : observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.comms.kicker')}</p>
@@ -324,8 +325,11 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
       <div className="lp-modes" role="group" aria-label={t('launch.comms.title')}>
         <button type="button" className="lp-button" aria-pressed={mode === 'feed'} onClick={() => setMode('feed')}>{t('launch.comms.mode.feed')}</button>
         <button type="button" className="lp-button" aria-pressed={mode === 'threads'} onClick={() => setMode('threads')}>{t('launch.comms.mode.threads')}</button>
+        {/* CO-377: which projects have not answered an announcement. */}
+        <button type="button" className="lp-button" aria-pressed={mode === 'announcements'} onClick={() => setMode('announcements')}>{t('launch.comms.mode.announcements')}</button>
       </div>
       {mode === 'feed' && <CommsFeed mark={attempt} nameOf={nameOf} onOpen={openPost} />}
+      {mode === 'announcements' && <CommsAnnouncements mark={attempt} nameOf={nameOf} onOpen={(th) => { openThread(th, 'search'); setMode('threads') }} />}
       {mode === 'threads' && (<>
       {threadsError && threads === null ? (
         // UNAVAILABLE, never an empty list: the board did not answer at all.
