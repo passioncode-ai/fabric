@@ -33,6 +33,41 @@ interface Rule {
   keep?: (match: RegExpMatchArray) => string
 }
 
+/** Words a value takes in ordinary text and code, never a credential: `SECRET: none`, `token = null`. */
+const PLAIN_VALUE = /^(?:on|off|yes|no|true|false|none|null|nil|undefined|empty|unset|n\/a|-|0x0|\*+|x+)$/i
+
+/** A name that is an upper-case keyword alone, `PASSWORD` or `TOKEN_FILE`, rather than a longer name holding one
+ *  after its first letter (`GITHUB_TOKEN`, `TOKEN_SECRET`): those keep v0.3.11's rule unchanged. */
+const bareKeyword = (name: string): boolean =>
+  !/^[A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTHORIZATION)/.test(name)
+
+/** A value after a bare upper-case keyword that is taken as a secret. The separator must be `=` (an environment line,
+ *  `PASSWORD=hunter2`) or a quoted name's `:` (`"TOKEN": "…"` in JSON): `TOKEN: 42 used` and `SECRET: none here` are
+ *  prose and log lines. And not a plain word or a small number: `KEY=1`, `TOKEN=on`. */
+const bareValueIsSecret = (separator: string, value: string): boolean => {
+  if (!separator.includes('=') && !/["']/.test(separator)) return false
+  if (value.startsWith('[redacted:')) return true
+  const bare = value.replace(/^\\*["']|\\*["']$/g, '')
+  return bare.length > 0 && !PLAIN_VALUE.test(bare) && !/^\d{1,6}$/.test(bare)
+}
+
+/** A value after a lower-case `password=` / `token =` that is taken as a secret: not code and not a plain word. */
+const lowerValueIsSecret = (name: string, separator: string, value: string): boolean => {
+  if (value.startsWith('[redacted:')) return true
+  if (/^["']/.test(value)) return value.length > 2 && !PLAIN_VALUE.test(value.slice(1, -1))
+  if (value.includes('(')) return false // a call: `token = getToken()`
+  if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+$/.test(value)) return false // a member: `token = this.token`
+  if (/\s/.test(separator) && /^[A-Za-z_$][\w$]*$/.test(value) && !/\d/.test(value)) return false // `token = token`
+  if (PLAIN_VALUE.test(value)) return false
+  // A password is short and may be all digits (`password=1234`); a token, secret or key is a long opaque string, so a
+  // short value under such a name (`token=42`, `token=abc`) is a count or a placeholder.
+  return /pass/.test(name) ? value.length >= 4 : value.length >= 8
+}
+
+/** A `{ name, value }` pair's value worth taking as a credential: a string, not a count or a plain word. */
+const pairValueIsSecret = (value: unknown): boolean =>
+  typeof value === 'string' && value !== '' && !PLAIN_VALUE.test(value) && !/^\d{1,6}$/.test(value)
+
 const RULES: Rule[] = [
   {
     name: 'private-key',
@@ -77,16 +112,21 @@ const RULES: Rule[] = [
     // `FABRIC_BRIDGE_AUTHORIZATION=Bearer …` kept the token after the space (audit 2026-10-06 DA-4).
     // The name may close a quote (`"GITHUB_TOKEN": "…"` in a JSON-printed environment), and the value
     // may be quoted with escaped quotes (`\"…\"` in JSON printed inside JSON).
-    // The name may be the keyword alone (`PASSWORD=…`, CO-386), not only a longer name ending in it.
-    re: /\b((?:[A-Z][A-Z0-9_]*)?(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTHORIZATION)[A-Z0-9_]*)((?:\\*["'])?\s*[=:]\s*)((?:(?:[Bb]earer|[Bb]asic)\s+)?(?:\[redacted: assignment\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|\\+"[^"\\\n]*\\+"|[^\s\n]+))/g,
-    keep: (m) => `${m[1]}${m[2]}[redacted: assignment]`
+    // The name may be the keyword alone (`PASSWORD=…`, CO-386), not only a longer name holding it. A bare keyword is a
+    // whole word (or the keyword and an `_…` suffix, `TOKEN_FILE`): `KEYBOARD` and `TOKENS` are not names of a secret
+    // (0.3.12 review DO-3 / ER-4). It is held to more in `keep` below, because it is also an ordinary word in a log.
+    re: /\b((?:[A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTHORIZATION)[A-Z0-9_]*|(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS|CREDENTIAL|AUTHORIZATION)(?:_[A-Z0-9_]*)?(?![A-Z0-9_])))((?:\\*["'])?\s*[=:]\s*)((?:(?:[Bb]earer|[Bb]asic)\s+)?(?:\[redacted: assignment\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|\\+"[^"\\\n]*\\+"|[^\s\n]+))/g,
+    keep: (m) => (bareKeyword(m[1]) && !bareValueIsSecret(m[2], m[3]) ? m[0] : `${m[1]}${m[2]}[redacted: assignment]`)
   },
   {
     name: 'assignment-lower',
     // The same in lower case with `=` (CO-386): `password=hunter2` in a log line or a query string, `db_password=…`.
     // `=` only, so a type annotation in source (`password: string`) is left alone; the value stops at `&`.
-    re: /\b((?:[a-z][a-z0-9_]*_)?(?:password|passwd|secret|token|api_?key|apikey))(\s*=\s*)(\[redacted: assignment\](?=$|[\s"',;&)}\]\\]|[.!?](?=\s|$))|"[^"\n]*"|'[^'\n]*'|[^\s&"',;)}\]]+)/g,
-    keep: (m) => `${m[1]}${m[2]}[redacted: assignment]`
+    // Not a comparison (`password === confirm`: the value may not start with `=`), and in `keep` not code: a call
+    // (`token = getToken()`), a member (`token = this.token`), a bare identifier written with spaces round the `=`,
+    // a literal such as `null`, or a small count under a token or key name (0.3.12 review ER-4).
+    re: /\b((?:[a-z][a-z0-9_]*_)?(?:password|passwd|secret|token|api_?key|apikey))(\s*=(?!=)\s*)(\[redacted: assignment\](?=$|[\s"',;&)}\]\\]|[.!?](?=\s|$))|"[^"\n]*"|'[^'\n]*'|[^\s&"',;)}\]=][^\s&"',;)}\]]*)/g,
+    keep: (m) => (lowerValueIsSecret(m[1], m[2], m[3]) ? `${m[1]}${m[2]}[redacted: assignment]` : m[0])
   },
   {
     name: 'authorization',
@@ -221,7 +261,8 @@ export function redactPayload(payload: Record<string, unknown>): {
       const out: Record<string, unknown> = Object.create(null)
       const obj = value as Record<string, unknown>
       // A header written as a pair, `{ name: 'Authorization', value: 'Bearer …' }` (CO-386): the value goes, the name stays.
-      const pairSecret = typeof obj.name === 'string' && 'value' in obj && sensitiveName(obj.name)
+      // A count or a plain word is a parameter (`{ name: 'max_token', value: 4096 }`), not a credential (0.3.12 review ER-4).
+      const pairSecret = typeof obj.name === 'string' && pairValueIsSecret(obj.value) && sensitiveName(obj.name)
       for (const [k, v] of Object.entries(obj)) {
         // Credential-bearing fields carry meaning even when their value has no
         // recognizable prefix. Match words, not arbitrary "key" substrings:

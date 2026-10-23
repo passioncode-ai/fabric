@@ -95,4 +95,9 @@ describe('a record\'s detail: the fields CO-386 named', () => {
     expect((payload.headers as Array<Record<string, unknown>>)[0]).toEqual({ name: 'Authorization', value: '[redacted: credential-field]' })
     expect((payload.headers as Array<Record<string, unknown>>)[1]).toEqual({ name: 'Accept', value: 'json' })
   })
+  it('a {name, value} pair whose value is a count or a plain word is data, not a credential (0.3.12 review ER-4)', () => {
+    const input = { params: [{ name: 'max_token', value: 4096 }, { name: 'token', value: 'off' }, { name: 'x-ratelimit-token', value: '12' }] }
+    expect(redactPayload(input)).toEqual({ payload: input, redactions: [] })
+    expect(redactPayload({ h: [{ name: 'x-api-token', value: 'ab12cd34ef56' }] }).payload).toEqual({ h: [{ name: 'x-api-token', value: '[redacted: credential-field]' }] })
+  })
 })

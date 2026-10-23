@@ -246,4 +246,52 @@ describe('the edges CO-386 named', () => {
       expect(redact(once).text).toBe(once)
     }
   })
+  it('leaves ordinary code and prose alone: the journal keeps what it is given (0.3.12 review DO-3 / ER-4)', () => {
+    const ordinary = [
+      'if (password === confirm) return',
+      'if (password !== confirm) return',
+      'const token = getToken()',
+      'const token = await this.auth.getToken(session)',
+      'token = this.token',
+      'let secret = secret ?? fallback',
+      'password == other',
+      'TOKEN: 42',
+      'TOKEN: 42 tokens used',
+      'KEYBOARD: on',
+      'TOKENS: 1234 used',
+      'SECRET: none here',
+      'KEY=1',
+      'TOKEN=on',
+      'PASSWORD: required',
+      'password = null',
+      'token = undefined',
+      'token=42',
+      'max_tokens=100 temperature=0.2',
+      'the session token=abc in prose',
+      'KEYS: 3 found, CREDENTIALS: none',
+      'Set the KEYBOARD_LAYOUT=us before start',
+      'resetPassword(user)',
+      'a password manager keeps the token for you',
+      'apiKey: string',
+      'const { token } = props',
+    ]
+    for (const line of ordinary) expect(redact(line), line).toEqual({ text: line, redactions: [] })
+  })
+  it('still removes the shapes that carry a value: env lines, quoted JSON names, query strings, literals', () => {
+    const cases: Array<[string, string]> = [
+      ['PASSWORD=hunter2', 'PASSWORD=[redacted: assignment]'],
+      ['TOKEN=ab12cd34ef56', 'TOKEN=[redacted: assignment]'],
+      ['TOKEN_FILE=/run/secrets/x', 'TOKEN_FILE=[redacted: assignment]'],
+      ['{"TOKEN": "ab12cd34ef56"}', '{"TOKEN": [redacted: assignment]}'],
+      ['GITHUB_TOKEN: abc123', 'GITHUB_TOKEN: [redacted: assignment]'],
+      ['token=ab12cd34ef56&x=1', 'token=[redacted: assignment]&x=1'],
+      ['password=1234', 'password=[redacted: assignment]'],
+      ['const password = "hunter2"', 'const password = [redacted: assignment]'],
+      ['secret = s3cr3tValue9', 'secret = [redacted: assignment]'],
+    ]
+    for (const [input, output] of cases) {
+      expect(redact(input).text, input).toBe(output)
+      expect(redact(output).text, input).toBe(output)
+    }
+  })
 })
