@@ -10,7 +10,7 @@ const base = { id: 'p1', estate_id: 'e', name: 'fabric', purpose: null, repo_pat
 const install = (over: Record<string, unknown> = {}) => {
   const api = {
     relations: vi.fn(async () => [{ kind: 'depends-on', target: 'fabric-agent-contract', note: 'the contract' }]),
-    people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 12, lastAt: '2026-10-20T10:00:00Z' }], unread: [] })),
+    people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 12, lastAt: '2026-10-20T10:00:00Z' }], unread: [], read: 1 })),
     setBusiness: vi.fn(async (_id: string, b: string) => ({ ...base, business: b || null })),
     onboard: vi.fn(async () => ({ taskId: 't-onboard', filed: true })),
     ...over
@@ -88,5 +88,28 @@ describe('the project page says what the project is (W2 S4)', () => {
     await waitFor(() => expect(screen.getByText(en['launch.profile.relationsUnreadable'])).toBeTruthy())
     await waitFor(() => expect(screen.getByText(en['launch.profile.peopleUnreadable'])).toBeTruthy())
     expect(screen.queryByText(en['launch.profile.noRelations'])).toBeNull()
+  })
+
+  it('says the history could not be read, with its folders, when no repository was read; never «no commits» (UX-6, ER-3)', async () => {
+    install({ people: vi.fn(async () => ({ people: [], unread: [{ path: '/w/plain', reason: 'fatal: not a git repository' }], read: 0 })) })
+    show(base)
+    await waitFor(() => expect(screen.getByText(en['launch.profile.peopleUnread'])).toBeTruthy())
+    expect(screen.getByText('/w/plain: fatal: not a git repository')).toBeTruthy()
+    expect(screen.queryByText(en['launch.profile.noPeople'])).toBeNull()
+    expect(screen.queryByText(/the people above/)).toBeNull()
+  })
+
+  it('with part of the history unread, never says «the people above» when none is shown, and counts one repository in the singular', async () => {
+    install({ people: vi.fn(async () => ({ people: [], unread: [{ path: '/w/b', reason: 'fatal: bad object' }], read: 1 })) })
+    show(base)
+    await waitFor(() => expect(screen.getByText(en['launch.profile.noPeopleSome'])).toBeTruthy())
+    expect(screen.queryByText(/the people above/)).toBeNull()
+    expect(screen.queryByText(en['launch.profile.noPeople'])).toBeNull()
+    cleanup()
+    install({ people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 2, lastAt: '2026-10-20T10:00:00Z' }], unread: [{ path: '/w/b', reason: 'fatal: bad object' }], read: 1 })) })
+    show(base)
+    await waitFor(() => expect(screen.getByText(en['launch.profile.peopleSomeOne'])).toBeTruthy())
+    expect(screen.queryByText(/1 repositories/)).toBeNull()
+    expect(screen.getByText('/w/b: fatal: bad object')).toBeTruthy()
   })
 })

@@ -118,6 +118,8 @@ export interface ProjectRelation {
 export interface GitPeopleView {
   people: Array<{ name: string; email: string; commits: number; lastAt: string }>
   unread: Array<{ path: string; reason: string }>
+  /** How many repositories were read; 0 with `unread` non-empty means no history could be read at all. */
+  read: number
 }
 
 export type MemoryBackend = 'local' | 'cloud'

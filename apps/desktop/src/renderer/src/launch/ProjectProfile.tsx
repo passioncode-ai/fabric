@@ -122,7 +122,7 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
       <p className="lp-kicker">{t('launch.profile.people')}</p>
       {peopleProblem && <FailureNote said={t('launch.profile.peopleUnreadable')} detail={peopleProblem} />}
       {people === null && !peopleProblem && <p className="lp-meta">{t('estate.reading')}</p>}
-      {people?.people.length === 0 && <p className="lp-meta">{t('launch.profile.noPeople')}</p>}
+      {people && people.people.length === 0 && people.unread.length === 0 && <p className="lp-meta">{t('launch.profile.noPeople')}</p>}
       {people && people.people.length > 0 && (
         <ul>
           {people.people.slice(0, 12).map((p) => (
@@ -132,7 +132,21 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
           ))}
         </ul>
       )}
-      {people && people.unread.length > 0 && <p className="lp-meta">{t('launch.profile.peopleSome', { count: people.unread.length })}</p>}
+      {/* UX-6 / ER-3: a history Git could not read is said with its folders and reasons, never shown as no commits. */}
+      {people && people.unread.length > 0 && (
+        <>
+          <p className="lp-meta">
+            {(people.read ?? 0) === 0
+              ? t('launch.profile.peopleUnread')
+              : people.people.length === 0
+                ? t('launch.profile.noPeopleSome')
+                : people.unread.length === 1
+                  ? t('launch.profile.peopleSomeOne')
+                  : t('launch.profile.peopleSome', { count: people.unread.length })}
+          </p>
+          <ul className="lp-meta">{people.unread.map((u) => <li key={u.path}>{t('launch.profile.unreadFolder', { path: u.path, reason: u.reason })}</li>)}</ul>
+        </>
+      )}
     </section>
   )
 }
