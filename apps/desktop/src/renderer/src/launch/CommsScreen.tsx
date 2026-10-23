@@ -206,11 +206,14 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
       }
     }
     void load()
+    // Read once while «Лента» shows (its header still says when the board answered); poll only the threads tab
+    // (0.3.11 review, iteration 2, DA-4: the hidden list read the board every 2.5 s under the feed).
+    if (mode !== 'threads') return () => { alive = false }
     const timer = setInterval(() => void load(), COMMS_POLL_MS)
     return () => { alive = false; clearInterval(timer) }
     // `now` is the clock; the read re-runs on the filters and on Try again, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attempt, filters])
+  }, [attempt, filters, mode])
 
   // Who answers, and what waits: each its own read on the same clock, each failing on its own (SCN-147, SCN-157).
   useEffect(() => {
@@ -229,9 +232,10 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
       } else setPending((s) => (s.kind === 'read' ? { ...s, stale: true } : { kind: 'unavailable' }))
     }
     void load()
+    if (mode !== 'threads') return () => { alive = false }
     const timer = setInterval(() => void load(), COMMS_POLL_MS)
     return () => { alive = false; clearInterval(timer) }
-  }, [locale])
+  }, [locale, mode])
 
   // A thread with no subject is named by its first words: one bounded read per such
   // thread, cached — never a re-read on every poll.

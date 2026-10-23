@@ -163,7 +163,7 @@ on disk says only "call the tools"; the full, version-matched contract is what
 from the binary when the binary is the document.
 
 Since P-24 ([ADR-0172](../adr/0172-the-interface-language-is-the-agents-working-language.md)) it also names the
-working language, `protocol.language` (the interface's `settings.locale`, read at each call; null, with no rule, while the person has switched «Агенты пишут на языке интерфейса» off or the settings cannot be read, [ADR-0174](../adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)), and the rule right after
+working language (since 0.3.11 the protocol's `version` is 2, which adds this field), `protocol.language` (the interface's `settings.locale`, read at each call; null, with no rule, while the person has switched «Агенты пишут на языке интерфейса» off or the settings cannot be read, [ADR-0174](../adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)), and the rule right after
 the date says what to write in it (`shared/protocol.ts#buildProtocol`).
 
 ### 5.1 An agent does not close its own task

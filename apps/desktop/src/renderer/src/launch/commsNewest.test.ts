@@ -39,4 +39,13 @@ describe('newestPosts (DA-1)', () => {
     const list = vi.fn(async (): Promise<CommsPageReply> => ({ ok: false, error: { code: 'unavailable', message: 'down' } as never }))
     expect(await newestPosts(list, 100)).toBeNull()
   })
+  it('finds the newest 100 when the newest stretch is quiet and an older one busy (DA-2)', async () => {
+    const busy = Array.from({ length: 4000 }, (_, i) => 10000 + i)
+    const quiet = Array.from({ length: 50 }, (_, i) => 20000 + i * 300)
+    const { list, last } = board([...busy, ...quiet])
+    const got = await newestPosts(list, last)
+    expect(got).toHaveLength(100)
+    expect(got?.[0].id).toBe(`m${last}`)
+    expect(list.mock.calls.length).toBeLessThanOrEqual(14 * 5)
+  })
 })

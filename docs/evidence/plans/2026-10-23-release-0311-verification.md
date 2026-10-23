@@ -23,11 +23,15 @@ candidate; their reports are committed under `docs/evidence/reviews/0.3.11/itera
 0.3.11 adds no migration; the upgrade is the bundle alone and so is going back to 0.3.10. As for 0.3.10
 ([its rollout](2026-10-22-release-0310-verification.md#rollout-on-the-operators-mac)):
 
-1. The agent installs the signed 0.3.11 bundle in `/Applications`; a rollback takes `Fabric-0.3.10-universal.dmg` from
-   the v0.3.10 release. The running 0.3.10 keeps running from memory.
-2. The agent lists the live console sessions and says them; then **the person quits Fabric and opens it again**. The
-   running 0.3.10 is the person's (`lifecycle.status`, `startedBy: person`), and the agent never starts or restarts
-   Fabric through the broker while CO-382 is open: a broker-started Fabric is stopped after 15 idle minutes.
+0. The agent measures the disk and swap (`df -h`, `sysctl vm.swapusage`) and frees space until more than 3 GB is free
+   (Fabric's own warning), so the first start does not meet the statement timeout 0.3.10's did (CO-389 waits it out,
+   but the start is slower); the measurement goes in the Release close.
+1. The agent downloads and verifies the signed 0.3.11 bundle (`SHA256SUMS`, `codesign`, `spctl`); a rollback takes
+   `Fabric-0.3.10-universal.dmg` from the v0.3.10 release.
+2. The agent lists the live console sessions and says them; then **the person quits Fabric**, the agent puts the 0.3.11
+   bundle in `/Applications`, and **the person opens Fabric**. The running 0.3.10 is the person's (`lifecycle.status`,
+   `startedBy: person`), and the agent never starts or restarts Fabric through the broker while CO-382 is open: a
+   broker-started Fabric is stopped after 15 idle minutes.
 3. The agent checks that the broker did not start Fabric between the quit and the open (`startedBy: person`; no
    `ensure` for `fabric.desktop` in `~/Library/Logs/local-lifecycle/broker.log` in that window), then verifies the version
    (0.3.11), the schema (95), the hub (`hub.json` and a `fabric_whoami` naming the working language), and on the real
@@ -45,7 +49,7 @@ candidate; their reports are committed under `docs/evidence/reviews/0.3.11/itera
 - The knowledge base: `products.md`, `roadmap.md` and `plans.md` rows 2 and 13 name 0.3.11 and 0.3.12 (a fabric-workspace
   pull request in the Release close).
 - The measurements of 0.3.9's "How we will know it holds", with the broker's idle stops (CO-382), read at the 0.3.11
-  install.
+  install; CO-382 is decided on what they show.
 - From 0.3.10's V3-48: SCN-162's swipe step and the stack exposure warning, read in this release's documents review;
   CO-384's two items are done (non-wrapping content, «at most 640 px»).
 - New asks since: CO-396 (CT-81, `board_tick` step a0) and CO-397 (`fabric_whoami`'s board rule against DEC-0102), both
@@ -114,7 +118,58 @@ Exit for iteration 1: every finding is fixed, ruled to a register row or not a d
 
 ## Iteration 2
 
-_Not started._
+Five fresh reviewers, 2026-10-23, against `1f7a16ac` (`1f7a16acf4033c40f17eb1114501133f1bcbed52`), read-only in a detached checkout. All five
+stopped on the account's session limit midway and were resumed from where they stopped. Reports:
+[UX](../reviews/0.3.11/iteration-2/2026-10-23-ux.md), [errors](../reviews/0.3.11/iteration-2/2026-10-23-errors.md),
+[documents](../reviews/0.3.11/iteration-2/2026-10-23-docs.md), [data](../reviews/0.3.11/iteration-2/2026-10-23-data.md),
+[plan](../reviews/0.3.11/iteration-2/2026-10-23-plan.md). The local gate on the next commit found the prototype's board and
+task views without a page heading in some states (the product report's browser suite); fixed in `caefb24b`, 17 of 17
+browser suites pass.
+
+46 findings, none blocking. The data reviewer found the full tier's database test still expecting English where
+iteration 1 made a failed settings read name no language (DA-1); the UX reviewer measured that the release's new toggle
+buttons never looked pressed (UX-1); the errors reviewer slowed the board and watched the feed start reads on top of
+each other and never leave «Читаю…» (ER-1). During this iteration the operator decided two more things (ADR-0176): a task
+starts only once its spec is gathered by questions, and work another project's agent should do crosses by the machine's
+trust; both are 0.3.12's first work (CO-403, CO-404, SCN-176, SCN-177).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | DA-1 | The database test still expects English when the settings read throws | fixed: `apps/desktop/test/agent-surface.test.mjs` expects no language on a failed read and on the switch off (ADR-0174) |
+| V2-2 | UX-1 | The new toggle buttons never look pressed | fixed: a pressed `.lp-button` in `.lp-modes` and `.lc-filters` has the `.lp-tabs` look (`launch.css`) |
+| V2-3 | ER-1 | The feed starts reads on top of each other under a slow board | fixed: one read at a time, a poll during a read waits for the next tick (`launch/CommsFeed.tsx`); `CommsFeed.test.tsx` «never starts a read while one runs» |
+| V2-4 | DA-2, ER-2 | The newest-posts search swings between two windows and returns fewer than 100 | fixed: the window lies between the widest too-few and the narrowest too-many and converges (`launch/commsNewest.ts`); `commsNewest.test.ts` «a quiet newest stretch over a busy one» (watched failing on the candidate) |
+| V2-5 | DA-3 | A read on a post-dense board fetches five times what it keeps | not a defect: within the documented bound of the AGENTS.md row (at most 10 windows of 5 pages); on the operator's board 2 calls |
+| V2-6 | DA-4 | The hidden thread list reads the board every 2.5 s under the feed | fixed: the thread list and its responders read once and poll only in «Ветки» (`launch/CommsScreen.tsx`) |
+| V2-7 | DA-5, ER-6, ER-7, ER-10 | A project's board takes claims from an estate-wide capped read; main-process reads untested; История's feed waits on a failed projects read | ruled: CO-405, 0.3.12 |
+| V2-8 | DA-6, DO-8 | Protocol version 2 is not told to its readers | fixed: CHANGELOG and `operating-surfaces.md` say the protocol is version 2 and why |
+| V2-9 | ER-3 | An unreadable settings file names a language the person may have switched off | fixed: an `unreadable` settings read names no language (`main/index.ts`, `readSettingsState`) |
+| V2-10 | ER-4 | A claimed task back in the queue shows in two columns | fixed: a task in the queue is not in «В работе» (`shared/homeLive.ts`) |
+| V2-11 | ER-5 | An unread column shows the count 0 | fixed: its count reads «?» (`KanbanBoard.tsx`, `HomeWork.tsx`) |
+| V2-12 | ER-8 | The feed keeps a project filter whose posts left the read | fixed: such a filter is dropped (`CommsFeed.tsx`) |
+| V2-13 | ER-9, UX-2 | The board header's actions can close what is open and keep the queue's heading on the kanban | fixed: an action that switches the tab opens, never closes; the kanban has its own kicker, heading and lede (`BoardScreen.tsx`, i18n) |
+| V2-14 | UX-3, UX-5 | On a project page the agents heading overflows and the compact row says nothing | fixed: the one-line heading rule is the home's side column only, the compact row shows the task alone; the browser case runs at 230 px (`launch.css`, `HomeWork.tsx`, `shell-scroll.browser.mjs`) |
+| V2-15 | UX-4 | Arriving with a row in one column leaves its detail 5800 px down | fixed: the arrived row's detail takes focus and comes into view (`BoardScreen.tsx`) |
+| V2-16 | UX-6, DO-9 | The feed's filtered empty and failed refresh say too little | fixed: «Под этот фильтр ничего не подходит» with «Показать всё»; a failed refresh says when the posts were read, with «Попробовать снова»; «просьба» in both places |
+| V2-17 | UX-7 | История's feed shows an em dash for an event with no project | fixed: «без проекта» (`Feed.tsx`) |
+| V2-18 | UX-8, PL-3, DO-1 | Scenario statuses and the task labels disagree with the code | fixed: SCN-163, SCN-168 and SCN-170 implemented in both places with what is not built named; SCN-166, SCN-173 and SCN-174 draft; SCN-174 and OF-21 name the shipped labels |
+| V2-19 | UX-9 | The language hint is read twice by a screen reader | fixed: the hint sits outside the label as the select's description (`SettingsScreen.tsx`) |
+| V2-20 | UX-10 | Агенты has no page heading | fixed: an h2 «Агенты» (`HomeWork.tsx#AgentsAtWork`) |
+| V2-21 | UX-11 | Derived rows say an agent wrote nothing; «You are needed» | fixed: «Кроме заголовка, здесь ничего нет»; «Needs you» |
+| V2-22 | UX-12 | A capped empty column does not say what to do | fixed: it says a project's own board shows all of its tasks |
+| V2-23 | DO-2 | SCN-126 and SCN-170 quote the retired hint | fixed: dated lines quote the shipped hint |
+| V2-24 | DO-3, DO-6 | Unbuilt parts handed to rows that do not hold them; the swipe and SCN-073's warning | fixed: CO-401 holds OF-29's half, the board filters, the task history and the swipe; SCN-143 and SCN-162 cite it; SCN-073 says the warning is on the home |
+| V2-25 | DO-4, PL-8 | The merge log records landings that have not happened | fixed: the release commit folds them into the one landing with its time (Release close) |
+| V2-26 | DO-5, PL-4 | `main` moved again | fixed: `origin/main` is merged into the branch again; the reviewed candidates stay ancestors |
+| V2-27 | DO-7 | Walk status cells are spliced | fixed: OF-14, OF-19, OF-23, OF-30 and OF-35 rewritten as «partly done … ; not built: … (CO-…)» |
+| V2-28 | DO-10 | P-20 sweeps CO-291 the note does not list | fixed: P-20 keeps CO-291 on its own trigger |
+| V2-29 | PL-1 | The rollout does not check the disk | fixed: step 0 measures the disk and swap and frees space above 3 GB before the quit (Rollout) |
+| V2-30 | PL-2 | 0.3.12 carries 66 rows with no step that decides them | fixed: P-25 opens with a triage of every carried row, CO-377 first by 2026-10-31 |
+| V2-31 | PL-5 | DEC-0106 affects `estate-record/1` and has no row | ruled: CO-402, 0.3.12 |
+| V2-32 | PL-6 | CO-382's measurement is due at the install | fixed: the Owed list names it |
+| V2-33 | PL-7 | The bundle is replaced while Fabric runs | fixed: the bundle goes in after the person quits (Rollout) |
+
+Exit for iteration 2: every finding is fixed, ruled to a register row or not a defect. Blocking findings open: none.
 
 ## Iteration 3
 

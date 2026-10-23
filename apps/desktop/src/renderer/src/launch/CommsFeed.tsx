@@ -2,7 +2,7 @@
 // Comms as a feed (the operator's walk of 2026-10-22, OF-29): the newest posts of every thread first, each saying which
 // project wrote it, of what kind and what it says; a focus filter narrows to one project or to requests; a post opens
 // its thread. Read as the threads are: a board that does not answer is said, never shown as an empty feed.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
 import { useLocale, useT } from '../i18n'
 import { newestPosts } from './commsNewest'
@@ -14,7 +14,7 @@ export const FEED_POLL_MS = 15000
 /** How much of a post the feed shows before «открыть ветку». */
 const PREVIEW = 280
 
-type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean } | { at: 'failed' }
+type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean; readAt: string } | { at: 'failed' }
 
 export function CommsFeed({ mark, nameOf, onOpen }: {
   /** Read again when this changes (the screen's «Попробовать снова»); the feed also reads every FEED_POLL_MS. */
@@ -32,21 +32,28 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
     const timer = setInterval(() => setTick((n) => n + 1), FEED_POLL_MS)
     return () => clearInterval(timer)
   }, [])
+  // One read at a time: a poll that comes while a read is still running waits for the next tick, so a slow board never
+  // starts reads on top of each other or leaves the feed reading forever (0.3.11 review, iteration 2, ER-1).
+  const mounted = useRef(true)
+  const busy = useRef(false)
+  useEffect(() => () => { mounted.current = false }, [])
   useEffect(() => {
-    let alive = true
+    if (busy.current) return
+    busy.current = true
     void (async () => {
       try {
         const heads = await window.fabric.comms.heads()
         const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
         const posts = last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
-        if (!alive) return
+        if (!mounted.current) return
         // A refresh that fails keeps what was read and says it is old, rather than emptying the feed.
-        setRead((was) => posts ? { at: 'ready', posts, stale: false } : was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
+        setRead((was) => posts ? { at: 'ready', posts, stale: false, readAt: new Date().toISOString() } : was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
       } catch {
-        if (alive) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
+        if (mounted.current) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
+      } finally {
+        busy.current = false
       }
     })()
-    return () => { alive = false }
   }, [mark, tick])
   if (read.at === 'reading') return <p className="lp-meta">{t('launch.comms.reading')}</p>
   if (read.at === 'failed') return (
@@ -56,7 +63,9 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
     </div>
   )
   const projects = [...new Set(read.posts.map((p) => p.sender.project))]
-  const shown = read.posts.filter((p) => (!project || p.sender.project === project) && (!requests || p.kind === 'request'))
+  // A project whose posts left the newest read no longer filters (0.3.11 review, iteration 2, ER-8).
+  const scope = projects.includes(project) ? project : ''
+  const shown = read.posts.filter((p) => (!scope || p.sender.project === scope) && (!requests || p.kind === 'request'))
   const kindOf = (kind: string): string => {
     const key = `launch.comms.kind.${kind}` as 'launch.comms.kind.message'
     const said = t(key)
@@ -70,14 +79,25 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
         <button type="button" className="lp-button" aria-pressed={requests} onClick={() => setRequests(true)}>{t('launch.comms.feed.requests')}</button>
         <label className="lp-field lc-project">
           {t('launch.comms.feed.project')}
-          <select value={project} onChange={(e) => setProject(e.target.value)}>
+          <select value={scope} onChange={(e) => setProject(e.target.value)}>
             <option value="">{t('launch.comms.feed.allProjects')}</option>
             {projects.map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
           </select>
         </label>
       </div>
-      {read.stale && <p className="lp-meta" role="status">{t('launch.comms.unavailable')}</p>}
-      {shown.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
+      {read.stale && (
+        <p className="lp-meta" role="status">
+          {t('launch.comms.feed.stale', { time: new Date(read.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}{' '}
+          <button type="button" className="lp-button lh-text-link" onClick={() => setTick((n) => n + 1)}>{t('launch.comms.tryAgain')}</button>
+        </p>
+      )}
+      {shown.length === 0 && read.posts.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
+      {shown.length === 0 && read.posts.length > 0 && (
+        <p className="lp-meta">
+          {t('launch.comms.feed.noMatch')}{' '}
+          <button type="button" className="lp-button lh-text-link" onClick={() => { setRequests(false); setProject('') }}>{t('launch.comms.feed.showAll')}</button>
+        </p>
+      )}
       <ol className="lc-posts">
         {shown.map((p) => {
           const text = p.body?.text ?? t('launch.comms.feed.redacted')

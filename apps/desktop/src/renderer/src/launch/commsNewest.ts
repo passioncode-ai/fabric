@@ -10,11 +10,16 @@ type List = (threadId: string | null, afterSeq: number, limit?: number) => Promi
 /** How many pages of 100 one window may read before it is called too wide. */
 const PAGES = 5
 /** How many windows one reading may try. */
-const PASSES = 10
+const PASSES = 14
 
 /** The newest `want` posts, newest first; null when the board did not answer. */
 export async function newestPosts(list: List, lastSeq: number, want = 100, firstWindow = 2000): Promise<CommsMessage[] | null> {
+  // A window either reads to its end holding too few posts (`few`), or holds more than PAGES can reach (`many`).
+  // The next window lies between the widest too-few and the narrowest too-many, so the search converges instead of
+  // swinging between them (0.3.11 review, iteration 2, DA-2: a quiet newest stretch over a busy older one).
   let window = Math.max(1, firstWindow)
+  let few = 0
+  let many = Infinity
   let best: CommsMessage[] = []
   for (let pass = 0; pass < PASSES; pass++) {
     const after = Math.max(0, lastSeq - window)
@@ -29,14 +34,15 @@ export async function newestPosts(list: List, lastSeq: number, want = 100, first
       cursor = reply.lastSeq
     }
     if (more) {
-      // Too many posts in the window to reach its end: what was read are its oldest. Narrow it.
-      if (window <= 1) break
-      window = Math.max(1, Math.floor(window / 4))
-      continue
+      many = Math.min(many, window)
+    } else {
+      if (seen.length >= best.length) best = seen
+      if (seen.length >= want || after === 0) break
+      few = Math.max(few, window)
     }
-    best = seen
-    if (seen.length >= want || after === 0) break
-    window *= 4
+    const next = many === Infinity ? window * 4 : Math.floor((few + many) / 2)
+    if (next <= few || next >= many) break
+    window = next
   }
   return [...best].sort((a, b) => b.at.localeCompare(a.at)).slice(0, want)
 }

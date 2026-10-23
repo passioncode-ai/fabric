@@ -573,6 +573,8 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lk-card:hover{border-color:var(--app-line-strong,var(--app-line))}
 .lk-card small{color:var(--app-muted);font-size:11.5px}
 .lp-modes{display:flex;gap:var(--space-1);margin:0 0 var(--space-4)}
+/* A pressed mode or filter looks pressed, as `.lp-tabs` does (0.3.11 review, iteration 2, UX-1). */
+.lp-modes .lp-button[aria-pressed=true],.lc-filters .lp-button[aria-pressed=true]{background:var(--app-panel-quiet);color:var(--app-ink);font-weight:600;border-color:var(--app-line-strong);box-shadow:inset 0 -2px var(--app-accent)}
 /* OF-22: the way back at the top left, above a page's title. */
 .lp-back{display:inline-flex;align-items:center;gap:var(--space-1);margin:0 0 var(--space-2);padding:0;border:0;background:none;color:var(--app-muted);font:inherit;font-size:13px;cursor:pointer}
 .lp-back:hover{color:var(--app-ink)}
@@ -587,7 +589,7 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lc-text{font-size:14px;line-height:1.5;white-space:pre-line}
 /* OF-23: a project's agents, one line each: who, what task, since when. */
 .lh-agents .lp-panel-head{flex-wrap:wrap}
-.lh-agents .lp-panel-head h3{flex:none;white-space:nowrap}
+.lh-side-column .lh-agents .lp-panel-head h3{flex:none;white-space:nowrap}
 .lh-agent-list.lh-compact .lh-agent{display:flex;flex-direction:row;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0;max-width:100%}
 .lh-agent-list.lh-compact .lh-agent-head{display:contents}
 .lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}

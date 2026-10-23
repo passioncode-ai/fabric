@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "1f7a16acf4033c40f17eb1114501133f1bcbed52",
+  "report": "docs/evidence/reviews/0.3.11/iteration-2/2026-10-23-data.md",
+  "reportSha256": "40967b3274a2d6545227e83eb165228a19916eec1d034c6aa43d3f13405c31bd",
+  "reviewerRun": "release-0311-i2-data-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `apps/desktop/test/agent-surface.test.mjs` expects no language on a failed read and on the switch off (ADR-0174)"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the window lies between the widest too-few and the narrowest too-many and converges (`launch/commsNewest.ts`); `commsNewest.test.ts` «a quiet newest stretch over a busy one» (watched failing on the candidate)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-5",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: within the documented bound of the AGENTS.md row (at most 10 windows of 5 pages); on the operator's board 2 calls"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the thread list and its responders read once and poll only in «Ветки» (`launch/CommsScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V2-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-405, 0.3.12"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and `operating-surfaces.md` say the protocol is version 2 and why"
+      ]
+    }
+  ]
+}

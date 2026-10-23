@@ -63,7 +63,7 @@ import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
 import { compileContextPack, contextDemandFor, type LaunchTrigger, type ContextPack } from './contextPack'
 import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
-import { readSettings, writeSettings } from './settings'
+import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createCodeStatsReader } from './codeStats'
@@ -1039,7 +1039,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
-    language: () => workingLanguageOf(readSettings()),
+    // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
+    // (0.3.11 review, iteration 2, ER-3: the person may have switched it off).
+    language: () => { const s = readSettingsState(); return s.status === 'unreadable' ? null : workingLanguageOf(s.value) },
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,

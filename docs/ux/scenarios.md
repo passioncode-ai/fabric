@@ -169,16 +169,18 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-163 | See on Главная what needs me, what is being done now, and my projects | Home | P-01 | ST-037, ST-044, ST-032, FLW-94, SCR-85 | implemented | unobserved |
 | SCN-164 | Answer a question in plain words with one press, and take the answer back | Questions | P-01 | ST-044, ST-030, FLW-94, SCR-85, SCR-86, SCR-88 | draft | unobserved |
 | SCN-165 | Open a project and steer it from one page | Projects | P-01 | ST-032, ST-034, ST-030, FLW-95, SCR-86 | draft | unobserved |
-| SCN-166 | See every agent and open its console in one press | Agents | P-01 | ST-037, ST-041, ST-050, FLW-96, SCR-87 | implemented | unobserved |
+| SCN-166 | See every agent and open its console in one press | Agents | P-01 | ST-037, ST-041, ST-050, FLW-96, SCR-87 | draft | unobserved |
 | SCN-167 | A coding agent opened outside Fabric is let in, and the person disconnects it with one press | Agents | P-01 | ST-045, FLW-96, SCR-87, SCR-88 | draft | unobserved |
 | SCN-168 | Read every act in История — who did it, when and to what | History | P-01 | ST-033, ST-034, FLW-97, SCR-88 | implemented | unobserved |
 | SCN-169 | Undo an act, or read why it cannot be undone | History | P-01 | ST-033, FLW-97, SCR-88 | draft | unobserved |
 | SCN-170 | Set how Fabric behaves in Настройки | Settings | P-01 | FLW-40, SCR-89 | implemented | unobserved |
 | SCN-171 | Start something new from «Создать» — a project, an agent, or a projects folder | Start paths | P-01 | ST-001, ST-050, FLW-98, SCR-90 | draft | unobserved |
 | SCN-172 | Keep several consoles open as tabs along the top and switch between them | Shell | P-01 | ST-032, ST-037, FLW-93, FLW-96, SCR-84, SCR-87 | implemented | unobserved |
-| SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, SCR-41 | implemented | unobserved |
-| SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, SCR-32 | implemented | unobserved |
+| SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
+| SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
 | SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | draft | unobserved |
+| SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
+| SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -2035,7 +2037,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — S05 added. Its gap as the audit read it: No export selection/preview/redacted export surface. Successful refresh does not clear prior problem; metadata failure swallowed. Diagnostic log is rotating evidence, not archived agent trajectory.
 - **Status:** retired
 - **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Diagnostics is cut (0.3.7 plan §5); every failure is an act in История (SCN-168) with our sentence and the machine's words beneath it.
-- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.
+- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning on the home (`EstateHome.tsx`, 0.3.11 review DO-6); safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
 
 
@@ -3221,6 +3223,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Amended 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the first run follows the onboarding plan's five steps (persona → coding agents → connection → projects → first project at work, decided by the operator 2026-10-13); the usage-counts question is asked in step 1, beside the language, and is not a banner (ADR-0160 §5, SCN-134); the projects step runs «Создать»'s paths (SCN-171).
 - **Coverage:** partial — the 0.3.x first run (name and look, agent detection, the four actions): apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx; the agent choice (REQ-40): apps/desktop/src/renderer/src/start/FirstRun.tsx region `first-run-agent-choice`, apps/desktop/src/shared/builderChoice.ts (`mayPick`, `withHead`); CO-176 main observer `apps/desktop/src/main/executorAuth.ts`, disposable-process negatives `apps/desktop/test/executor-auth.test.mjs`. The 0.4.0 order (the folder, the scan and the import inside the first run, the family setup step) has none yet. Local source/fixture proof does not establish packaged native or account-identity acceptance.
 - **Product:** unobserved
+- **2026-10-23 (0.3.11, ADR-0174):** the shipped hint says agents write tasks, notes, reports and board messages in the language, and that a project's repository keeps its own language («…задачи, заметки, отчёты и сообщения на доске. Документы в репозитории проекта остаются на языке проекта…»); the earlier quote naming «документацию для вас» is retired.
 
 ### SCN-127: Add an existing project from one folder
 - **Persona:** P-01
@@ -3654,7 +3657,7 @@ that choice in its own messages too (corrected 2026-10-13, wave-2 product findin
 - **Amended 2026-10-14 (release review UX-6, UX-7):** the "Coding agent" filter names each agent the way the rest of Fabric does — "Claude Code", never its id `claude-code` — and the id stays the value the board is asked for. An older page the board did not answer is said under the list, "Comms did not answer, so the older threads were not read. Try again." / «Переписка не ответила, более старые треды не прочитаны. Попробуйте ещё раз.», with the board's own words on a second line, and "Show older threads" stays, asking the same page again; it is never read as the list's end, and it is no longer said as a failed poll.
 - **Deferred, said now rather than discovered later:** each has its home, and none is a promise of this screen. Participant read marks (a project seeing that another project read its message — the contract's, not the operator's), artifact links and virtualized history are the rest of COM-07 in [the comms plan](../evidence/plans/2026-10-04-project-communications.md). Pause/stop controls are COM-06's operator controls, which the operator approved for a later wave on 2026-10-12 (decision D9). The Telegram mirror is COM-08. A restored estate (CO-212) now brings its messages back with it — SCN-146, ADR-0149; one restored from an archive written before board history travelled shows none of their texts, and since 2026-10-13 says so instead of saying nothing was exchanged (SCN-146's alternative path).
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** Comms reads as a feed, newest first: each post shows the project, its kind (просьба, ответ, находка, объявление), a short summary and its thread, with a focus filter (one project, requests only, waiting for an answer) (OF-29).
-- **Shipped 2026-10-23 (0.3.11):** «Лента» is what Comms opens on, «Ветки» the second tab; it reads the newest 100 posts through the board's page, newest first, every 15 s while open, and says a board that did not answer with «Попробовать снова». Filters shipped: «Только просьбы» and a project; «waiting for an answer» and the thread named under each post are not built (0.3.12, with CO-400). Coverage: `apps/desktop/src/renderer/src/launch/CommsFeed.tsx`, `apps/desktop/src/renderer/src/launch/commsNewest.ts` and their tests.
+- **Shipped 2026-10-23 (0.3.11):** «Лента» is what Comms opens on, «Ветки» the second tab; it reads the newest 100 posts through the board's page, newest first, every 15 s while open, and says a board that did not answer with «Попробовать снова». Filters shipped: «Только просьбы» and a project; «waiting for an answer» and the thread named under each post are not built (0.3.12, CO-401). Coverage: `apps/desktop/src/renderer/src/launch/CommsFeed.tsx`, `apps/desktop/src/renderer/src/launch/commsNewest.ts` and their tests.
 - **Status:** draft
 - **Coverage:** built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` (the unread slice's rail badge); the badge poll and the read-mark writes in `apps/desktop/src/renderer/src/App.tsx`; the operator-local read marks in `apps/desktop/src/shared/types.ts` (`AppSettings.commsReadThrough`) and their patch validation in `apps/desktop/src/shared/appSettings.ts`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`; wave 4 (W4-1…W4-3): the bounded page, the board's filters and the heads in `supabase/migrations/20261013000108_project_board_operator_reads.sql` (`board_thread_page_operator`, `board_thread_heads_operator`), the `comms:thread-page` / `comms:heads` IPC over `commsOperatorRead.ts`, the list's rules in `apps/desktop/src/renderer/src/launch/commsList.ts` (tested in `commsList.test.ts`), the rail's count from the heads in `App.tsx` and `LaunchShell.tsx` ("5000+", `FabricStrip.test.tsx`); DB tests in `apps/desktop/test/project-board-operator-db.test.mjs`; 0.3.9: `apps/desktop/src/main/boardService.ts` (answered, unread, bulk read), `apps/desktop/src/renderer/src/launch/HomeBoardWaiting.tsx`, `apps/desktop/test/project-board-core-holds-db.test.mjs`; 2026-10-23 (OF-29): the feed `apps/desktop/src/renderer/src/launch/CommsFeed.tsx`, «Лента» first in `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, test `CommsFeed.test.tsx`
 - **Product:** unobserved
@@ -4035,6 +4038,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe
 - **Product:** unobserved
 - **Amended 2026-10-20 (0.3.7 review, UX-9, UX-10):** the folded rail keeps its names in tooltips and accessible names; the foot line appears only when this computer's journal cannot be read.
+- **2026-10-23 (0.3.11 review, iteration 2, DO-6):** the trackpad swipe back is not built; it is 0.3.12, in CO-401.
 
 ### SCN-163: See on Главная what needs me, what is being done now, and my projects
 - **Persona:** P-01
@@ -4055,7 +4059,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.
 - **Telemetry:** planned only.
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** «Нужны вы» (the questions) and «Где остановились» are the first two sections (OF-15). What the home lists is what is needed **from the person**, each row saying who asks (agent and project), what for and how long it waits, opening in place to read all of it; rows meant for agents are on the Board screen (SCN-173), not here (OF-14). «Сейчас» becomes «Агенты в работе»: a box that scrolls inside itself, active agents first, then idle ones, each line naming the task the agent holds (its claimed task's title), never its latest action (OF-17, D-4); the box carries the one «Открыть переписку» (OF-16). «Кто что делает» is two columns, «В работе» and «Закончили», and pressing it opens the Board screen (OF-18).
-- **Status:** draft
+- **Status:** implemented (0.3.11, 2026-10-23); not built yet: CO-391 (what only the person can resolve, the asker named), 0.3.12
 - **Coverage:** since 0.3.11 (the walk's order, OF-14 to OF-18): `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/homeLive.ts`, with `HomeParts.test.tsx`, `HomeWork.test.tsx` and `homeLive.test.ts`; before 0.3.11 there was none for the place itself (today's home was SCN-158's). Wave 3 moved two notices onto it as questions, never banners: the local database reachable from the network (`apps/desktop/src/renderer/src/StackExposureNotice.tsx`) and the usage-count question (`apps/desktop/src/renderer/src/UsageCountsNotice.tsx`), both rendered by `EstateHome.tsx`; an agent's ask of a product is the board's question reached from it, no native prompt (`apps/desktop/src/main/index.ts`, the hub's `present`); 2026-10-23 (the walk's OF-14 to OF-17): «Нужны вы» with rows that open in place (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#HomeBoard`, test `HomeParts.test.tsx`), «Где остановились» under it (`EstateHome.tsx`), «Агенты в работе» by planned task, active first, scrolling, with «Открыть переписку» (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#HomeAgents`, `HomeWork.test.tsx`)
 - **Product:** unobserved
 
@@ -4123,7 +4127,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».
 - **Telemetry:** planned only.
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** the list must load or say why it did not (OF-30: the operator saw «выберите агента слева» with nothing to choose); choosing an agent opens its page beside the list, the page being its flow: the task it holds, what it did, results, then its history.
-- **Status:** draft
+- **Status:** draft: 0.3.11 lists every agent at work and opens its console or project; the agent page is CO-393, 0.3.12
 - **Amended 2026-10-20 (OF-09):** until SCR-87 is built, the agent picked in Агенты shows its flow newest first: each act in words (a task it moved, a decision it recorded, its stage, its session opened) with who wrote it, read also by the agent as the event's actor; «Открыть сессию» opens its console beside it.
 - **Coverage:** none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`)
 - **Product:** unobserved
@@ -4166,7 +4170,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.
 - **Telemetry:** planned only.
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** История must show what agents and people did, newest first, from the journal; the operator found it empty (OF-34). An empty История is shown only when the journal holds no act, and then says so.
-- **Status:** draft
+- **Status:** implemented (0.3.11, 2026-10-23); not built yet: CO-395 (the agents' rows by day with their names), and История's filters and detail pane with P-25, 0.3.12
 - **Coverage:** the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.; 2026-10-23 (OF-34): «Что делали агенты» under the acts, the journal's events (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`)
 - **Product:** unobserved
 
@@ -4208,10 +4212,11 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Amended 2026-10-22 (P-24, [ADR-0172](../adr/0172-the-interface-language-is-the-agents-working-language.md)):** under «Язык» the section says that the agents write in it too: «На нём пишут и ваши агенты: задачи, отчёты, сообщения на доске и документацию для вас. Новый язык агент узнаёт, когда в следующий раз спрашивает у Fabric свои правила.» Rows already on the board stay in the language they were written in.
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** every section says what it changes and holds nothing that belongs elsewhere (OF-33). The account-quota panel is retired: quotas are Switchboard's, and Fabric reads Switchboard where it chooses a runner (OF-35, D-3). «Не давать компьютеру засыпать» is verified on the installed app with `pmset -g assertions` (OF-36). A new switch under «Язык»: «Переводить тексты агентов на язык интерфейса», on by default; off keeps the agents' own language (OF-38).
 - **Shipped 2026-10-23 (0.3.11):** the switch reads «Агенты пишут на языке интерфейса»; while it is off, the hint under «Язык» says agents write in their own language. The quota panel's entry is gone from Settings, but Fabric still reads the quota and the project page still shows its cell (CO-392, 0.3.12).
-- **Status:** draft
-- **Coverage:** none yet — wave 4 redraws SCN-160's screen; 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174)
+- **Status:** implemented (0.3.11, 2026-10-23); not built yet: CO-392 (the quota still read for the project page), 0.3.12
+- **Coverage:** `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (0.3.11; before it, none: wave 4 redrew SCN-160's screen); 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174) Since 0.3.11: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (the language and its switch), `apps/desktop/src/shared/appSettings.ts#workingLanguageOf` and `appSettings.test.ts`.
 - **Product:** unobserved
 - **Amended 2026-10-20 (0.3.7 review, UX-13, UX-3):** «Компьютер» carries «Запускать Fabric при входе в систему», on by default, only on macOS and Windows in an installed build; on Linux and in a development build the row is absent. A login start opens no window; the note says where to open Fabric (the Dock on macOS, the «Пуск» menu on Windows). When the system does not do what the box says, one line says so: macOS waits for approval in «Объекты входа»; it is turned off in «Объекты входа» or «Автозагрузка»; the system still starts Fabric after the box was cleared; or the system could not be read. «Разрешения агентов» is the same screen's permission choice (SCN-160).
+- **2026-10-23 (0.3.11, ADR-0174):** the shipped hint says agents write tasks, notes, reports and board messages in the language, and that a project's repository keeps its own language («…задачи, заметки, отчёты и сообщения на доске. Документы в репозитории проекта остаются на языке проекта…»); the earlier quote naming «документацию для вас» is retired.
 
 ### SCN-171: Start something new from «Создать» — a project, an agent, or a projects folder
 - **Persona:** P-01
@@ -4276,7 +4281,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».
 - **Design rationale:** the operator, 2026-10-22: «хотелось бы видеть её канбаном ... в работе, на проверке»; the columns are Fabric's ladder (`apps/desktop/src/shared/ladder.ts`), not customizable in 0.3.11 (D-1).
 - **Telemetry:** planned only.
-- **Status:** draft
+- **Status:** draft: 0.3.11 ships the kanban with the project filter; the agent filter, «Отменено» and remembered filters are CO-401, 0.3.12
 - **Coverage:** partial (2026-10-23): the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters
 - **Product:** unobserved
 
@@ -4288,7 +4293,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Preconditions:** the task exists in a project the person can see
 - **Steps:**
   1. Person opens a task -> back to where they came from at the top left above the title; the title in plain words.
-  2. Person reads the task -> «Что сделать», «Зачем», «Что будет готово» (the brief), its state and the history of its moves, who works on it and since when, what blocks it.
+  2. Person reads the task -> «Для чего эта задача» with «Что должно произойти», «Почему», «Что будет верно, когда задача выполнена» (the brief; labels as shipped in 0.3.11), its state and the history of its moves, who works on it and since when, what blocks it.
   3. Person reads related work -> the project's tasks linked to it (follows, blocks, spawned) and its result once done.
 - **Expected result:** the person understands the task without asking its agent.
 - **Alt paths:** a task with no brief says «Агент ещё не описал задачу» and shows its title and history.
@@ -4297,7 +4302,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a task that cannot be read says so and keeps the way back.
 - **Design rationale:** the operator, 2026-10-22: «если провалюсь в задачу, ничего не понятно, о чём эта задача ... сделать нормальную структуру задачи, шаблонный вид» (OF-21, OF-22).
 - **Telemetry:** planned only.
-- **Status:** draft
+- **Status:** draft: 0.3.11 ships the template order and the way back; the move history and blockers are CO-401, 0.3.12
 - **Coverage:** partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project
 - **Product:** unobserved
 
@@ -4321,4 +4326,47 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** none yet
+- **Product:** unobserved
+
+### SCN-176: A task starts only once its spec is whole, gathered by questions
+- **Persona:** P-01
+- **Feature:** Task
+- **Traces:** ST-037, SCR-32 (JTBD-02)
+- **Entry point:** a task set for an agent, by the person in Fabric or by another agent on the board
+- **Preconditions:** an agent takes the task (a claim)
+- **Steps:**
+  1. Agent reads the task -> if what should happen, why, what will be true when done, what is out of scope or a constraint is missing, it asks the person (a question on the board, SCN-164) before anything else.
+  2. Person answers -> the agent asks the next missing part, one question at a time, until the spec is whole; it builds nothing, files nothing and hands nothing on meanwhile.
+  3. Spec whole -> the agent writes the brief (what, why, expected) and starts; the task page shows it (SCN-174).
+- **Expected result:** no task is built from a one-line instruction; the person sees what was agreed before work starts.
+- **Alt paths:** the person is away -> the task waits as «Спецификация не собрана» with the open question on «Нужны вы»; a task filed by another agent -> the questions go to that agent's project on the board.
+- **UI elements:** «Спецификация не собрана» on the task page and its card; the open question on «Нужны вы».
+- **States covered:** asking, waiting for an answer, whole, started.
+- **Errors & recovery:** a question that cannot be posted keeps the task in the queue and says why.
+- **Design rationale:** the operator, 2026-10-23: «при начале и постановке задачи всегда нужно убедиться, что вся спецификация собрана, и не отпускать, пока не собрана грилингом» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet (0.3.12, CO-403)
+- **Product:** unobserved
+
+### SCN-177: Work another project's agent should do crosses by the machine's trust
+- **Persona:** P-01
+- **Feature:** Board
+- **Traces:** ST-037, SCR-41 (JTBD-02)
+- **Entry point:** an agent working on feature A needs a change that another project's agent owns
+- **Preconditions:** both projects are on the board; Fabric knows whether this machine is the operator's (Settings)
+- **Steps:**
+  1. Agent files a request on the owning project's board -> what is needed and why, linked to its task.
+  2. On a trusted machine (the operator's own, or a remote one the operator marked as theirs) -> the owning project's agent takes it if online; if none is, the asking agent makes the change itself in that repository under its rules and records it on the request.
+  3. On a machine that is not the operator's -> the asking agent never edits the other project; the request waits on the board until that project's agent is online and takes it.
+  4. Person reads the board -> sees who asked whom, what for, and who did it.
+- **Expected result:** a team's agents pass work between each other through the board, and an organization's machine never writes into a project it does not own.
+- **Alt paths:** trust unknown -> treated as not trusted; the owning project has no agent at all -> the request reaches «Нужны вы».
+- **UI elements:** «Этот компьютер мой» in Settings; the request and its outcome on the board.
+- **States covered:** filed, taken by the owner, done by the asker (trusted), waiting (untrusted), done.
+- **Errors & recovery:** a request the board refuses stays with the asking agent, which says so on its task.
+- **Design rationale:** the operator, 2026-10-23: «если проект личный или машина моя ... если агент есть, он подхватит, если нет, второй агент может сам; а если машина не моя, то первый агент заберёт с доски, когда будет онлайн» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** none yet (0.3.12, CO-404)
 - **Product:** unobserved

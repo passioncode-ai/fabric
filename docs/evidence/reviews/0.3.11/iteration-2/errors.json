@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "1f7a16acf4033c40f17eb1114501133f1bcbed52",
+  "report": "docs/evidence/reviews/0.3.11/iteration-2/2026-10-23-errors.md",
+  "reportSha256": "934be56ae2babd8a94f2bd7599dbf27f53968e8db2c9c99f9060f058ca63bd44",
+  "reviewerRun": "release-0311-i2-errors-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one read at a time, a poll during a read waits for the next tick (`launch/CommsFeed.tsx`); `CommsFeed.test.tsx` «never starts a read while one runs»"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the window lies between the widest too-few and the narrowest too-many and converges (`launch/commsNewest.ts`); `commsNewest.test.ts` «a quiet newest stretch over a busy one» (watched failing on the candidate)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an `unreadable` settings read names no language (`main/index.ts`, `readSettingsState`)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a task in the queue is not in «В работе» (`shared/homeLive.ts`)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: its count reads «?» (`KanbanBoard.tsx`, `HomeWork.tsx`)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V2-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-405, 0.3.12"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V2-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-405, 0.3.12"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: such a filter is dropped (`CommsFeed.tsx`)"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an action that switches the tab opens, never closes; the kanban has its own kicker, heading and lede (`BoardScreen.tsx`, i18n)"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V2-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-405, 0.3.12"
+      ]
+    }
+  ]
+}

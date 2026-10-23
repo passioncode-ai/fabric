@@ -61,7 +61,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
             const cards = scope ? c.cards.filter((x) => x.projectId === scope) : c.cards
             return (
               <section key={c.stage} className="lk-col" aria-label={t(HEAD[c.stage])}>
-                <h3>{t(HEAD[c.stage])} <span className="lp-count">{cards.length}{c.capped ? '+' : ''}</span></h3>
+                <h3>{t(HEAD[c.stage])} <span className="lp-count">{c.unread ? '?' : `${cards.length}${c.capped ? '+' : ''}`}</span></h3>
                 {c.unread && <FailureNote said={t('launch.kanban.unreadable')} detail={c.unread} />}
                 {!c.unread && cards.length === 0 && <p className="lp-meta">{t(c.capped ? 'launch.kanban.beyondCap' : 'launch.kanban.empty')}</p>}
                 {cards.map((x) => (

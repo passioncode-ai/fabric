@@ -88,7 +88,7 @@ const policy = new Policy({ db, journal })
 let surfaceLanguage = 'ru'
 const surface = new AgentSurface({
   db, journal: createDesktopJournal(journal), ptys, policy, estateId: ESTATE,
-  language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage }
+  language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage }
 })
 await surface.start()
 
@@ -153,9 +153,15 @@ me.protocol?.language?.code === 'ru' && /in Russian \(Русский\)/.test(me.
   : fail('no Russian working language in whoami: ' + JSON.stringify({ language: me.protocol?.language, rule: me.rules?.[1] }))
 surfaceLanguage = 'throw'
 const unread = await call('fabric_whoami')
-unread.protocol?.language?.code === 'en' && unread.rules?.length
-  ? ok('a Settings read that throws leaves the rules served, in English')
-  : fail('a throwing Settings read changed whoami: ' + JSON.stringify(unread.protocol?.language))
+// 0.3.11 review (V1-30): unknown is not on, so a Settings read that throws names no language rather than English.
+unread.protocol?.language === null && unread.rules?.length && !/in Russian|in English/.test(unread.rules[1] ?? '')
+  ? ok('a Settings read that throws leaves the rules served and names no working language')
+  : fail('a throwing Settings read changed whoami: ' + JSON.stringify({ language: unread.protocol?.language, rule: unread.rules?.[1] }))
+surfaceLanguage = 'off'
+const off = await call('fabric_whoami')
+off.protocol?.language === null && off.rules?.length
+  ? ok('with the working language switched off, whoami names none (ADR-0174)')
+  : fail('the switch off still named a language: ' + JSON.stringify(off.protocol?.language))
 surfaceLanguage = 'ru'
 
 // M177 — what the session is told, and whether it can be told what it was told.

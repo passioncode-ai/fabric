@@ -31,7 +31,8 @@ export function Feed({
   const t = useT()
   const locale = useLocale()
   const nameOf = (id: string | null): string =>
-    id ? (projects.find((p) => p.id === id)?.name ?? id.slice(0, 8)) : '—'
+    // No dash on screen for an event with no project (0.3.11 review, iteration 2, UX-7): the place says so in words.
+    id ? (projects.find((p) => p.id === id)?.name ?? id.slice(0, 8)) : t('launch.home.agents.noProject')
 
   /**
    * The act for one row, or null and the reason there is none.

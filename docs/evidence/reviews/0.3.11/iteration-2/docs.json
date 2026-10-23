@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "1f7a16acf4033c40f17eb1114501133f1bcbed52",
+  "report": "docs/evidence/reviews/0.3.11/iteration-2/2026-10-23-docs.md",
+  "reportSha256": "79257644bfcd90b382e29bfe9c6723d77c1a7ede84ecb88c385a92268b307872",
+  "reviewerRun": "release-0311-i2-docs-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-163, SCN-168 and SCN-170 implemented in both places with what is not built named; SCN-166, SCN-173 and SCN-174 draft; SCN-174 and OF-21 name the shipped labels"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: dated lines quote the shipped hint"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-401 holds OF-29's half, the board filters, the task history and the swipe; SCN-143 and SCN-162 cite it; SCN-073 says the warning is on the home"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release commit folds them into the one landing with its time (Release close)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `origin/main` is merged into the branch again; the reviewed candidates stay ancestors"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-401 holds OF-29's half, the board filters, the task history and the swipe; SCN-143 and SCN-162 cite it; SCN-073 says the warning is on the home"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: OF-14, OF-19, OF-23, OF-30 and OF-35 rewritten as «partly done … ; not built: … (CO-…)»"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and `operating-surfaces.md` say the protocol is version 2 and why"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Под этот фильтр ничего не подходит» with «Показать всё»; a failed refresh says when the posts were read, with «Попробовать снова»; «просьба» in both places"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-20 keeps CO-291 on its own trigger"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "1f7a16acf4033c40f17eb1114501133f1bcbed52",
+  "report": "docs/evidence/reviews/0.3.11/iteration-2/2026-10-23-plan.md",
+  "reportSha256": "83bd268a90c758a150fec47d18c6ebe6ef3761ed7b7561ad78ef47739d851104",
+  "reviewerRun": "release-0311-i2-plan-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 0 measures the disk and swap and frees space above 3 GB before the quit (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 opens with a triage of every carried row, CO-377 first by 2026-10-31"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-163, SCN-168 and SCN-170 implemented in both places with what is not built named; SCN-166, SCN-173 and SCN-174 draft; SCN-174 and OF-21 name the shipped labels"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `origin/main` is merged into the branch again; the reviewed candidates stay ancestors"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V2-31",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-402, 0.3.12"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Owed list names it"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V2-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the bundle goes in after the person quits (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release commit folds them into the one landing with its time (Release close)"
+      ]
+    }
+  ]
+}

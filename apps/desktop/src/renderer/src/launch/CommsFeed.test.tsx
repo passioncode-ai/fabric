@@ -68,4 +68,31 @@ describe('Comms as a feed', () => {
     const src = readFileSync(`${process.cwd()}/src/renderer/src/launch/CommsScreen.tsx`, 'utf8')
     expect(src).toMatch(/initialMode\s*=\s*'feed'|mode\s*=\s*'feed'/)
   })
+  it('keeps the posts it read when a refresh fails, and never starts a read while one runs (ER-1)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      let calls = 0
+      let hang: (() => void) | null = null
+      const heads = vi.fn(async () => {
+        calls++
+        if (calls === 1) return { ok: true, heads: [{ id: 'th-1', lastSeq: 42 }], truncated: false }
+        if (calls === 2) return { ok: false, error: { code: 'unavailable', message: 'down' } }
+        await new Promise<void>((r) => { hang = r })
+        return { ok: false, error: { code: 'unavailable', message: 'down' } }
+      })
+      vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn(async () => ({ ok: true, messages, lastSeq: 42, more: false })) } } }))
+      show()
+      await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+      await vi.advanceTimersByTimeAsync(15000)
+      await waitFor(() => expect(heads).toHaveBeenCalledTimes(2))
+      expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
+      await vi.advanceTimersByTimeAsync(15000)
+      await waitFor(() => expect(heads).toHaveBeenCalledTimes(3))
+      await vi.advanceTimersByTimeAsync(45000)
+      expect(heads).toHaveBeenCalledTimes(3)
+      ;(hang as unknown as () => void)?.()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

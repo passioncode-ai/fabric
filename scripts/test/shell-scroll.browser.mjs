@@ -136,7 +136,7 @@ try{
     // On a project page an agent is one line (OF-23, 0.3.11 review UX-2).
     const page=await browser.newPage({viewport:{width:1280,height:720}})
     const launch=read(src+'launch/launch.css')
-    await page.setContent(shell({page:`<style>${launch}</style><div class="lp"><ol class="lh-agent-list lh-compact" style="width:600px"><li><button class="lp-button lh-agent" id="row"><span class="lh-agent-head"><b>claude-code</b><small>12 мин</small></span><span class="lh-doing">${'Очень длинное название задачи. '.repeat(10)}</span></button></li></ol>${cards}<p id="last">LAST</p></div>`}))
+    await page.setContent(shell({page:`<style>${launch}</style><div class="lp"><ol class="lh-agent-list lh-compact" style="width:230px"><li><button class="lp-button lh-agent" id="row"><span class="lh-agent-head"><b>claude-code</b><small>12 мин</small></span><span class="lh-doing">${'Очень длинное название задачи. '.repeat(10)}</span></button></li></ol>${cards}<p id="last">LAST</p></div>`}))
     const r=await page.evaluate(()=>{const b=document.getElementById('row').getBoundingClientRect(),d=document.querySelector('#row .lh-doing').getBoundingClientRect();return{h:b.height,w:b.width,dRight:d.right,bRight:b.right}})
     assert.ok(r.h<=40&&r.dRight<=r.bRight+1,`a project's agent is one line inside its card (${JSON.stringify(r)})`);checks++
     await page.close()

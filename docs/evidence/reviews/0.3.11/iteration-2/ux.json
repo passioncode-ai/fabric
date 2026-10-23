@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "1f7a16acf4033c40f17eb1114501133f1bcbed52",
+  "report": "docs/evidence/reviews/0.3.11/iteration-2/2026-10-23-ux.md",
+  "reportSha256": "7d8c6d2e41436c4b9b782812154e57b22dfb24a734803c387c68d838fa14f63e",
+  "reviewerRun": "release-0311-i2-ux-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a pressed `.lp-button` in `.lp-modes` and `.lc-filters` has the `.lp-tabs` look (`launch.css`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an action that switches the tab opens, never closes; the kanban has its own kicker, heading and lede (`BoardScreen.tsx`, i18n)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the one-line heading rule is the home's side column only, the compact row shows the task alone; the browser case runs at 230 px (`launch.css`, `HomeWork.tsx`, `shell-scroll.browser.mjs`)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the arrived row's detail takes focus and comes into view (`BoardScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the one-line heading rule is the home's side column only, the compact row shows the task alone; the browser case runs at 230 px (`launch.css`, `HomeWork.tsx`, `shell-scroll.browser.mjs`)"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Под этот фильтр ничего не подходит» with «Показать всё»; a failed refresh says when the posts were read, with «Попробовать снова»; «просьба» in both places"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «без проекта» (`Feed.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-163, SCN-168 and SCN-170 implemented in both places with what is not built named; SCN-166, SCN-173 and SCN-174 draft; SCN-174 and OF-21 name the shipped labels"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the hint sits outside the label as the select's description (`SettingsScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an h2 «Агенты» (`HomeWork.tsx#AgentsAtWork`)"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Кроме заголовка, здесь ничего нет»; «Needs you»"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says a project's own board shows all of its tasks"
+      ]
+    }
+  ]
+}

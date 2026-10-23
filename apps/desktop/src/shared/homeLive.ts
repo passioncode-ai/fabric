@@ -179,7 +179,7 @@ export function composeHome(input: {
 
   // A claim outlives its task's move to review or done (moving does not release it), so only a task still in work is
   // in «В работе»; otherwise it showed in two columns and was counted twice (0.3.11 review, iteration 1, ER-3).
-  const working = (taskId: string): boolean => { const s = briefById.get(taskId)?.status; return s !== 'review' && s !== 'done' && s !== 'cancelled' }
+  const working = (taskId: string): boolean => { const s = briefById.get(taskId)?.status; return s !== 'review' && s !== 'done' && s !== 'cancelled' && s !== 'backlog' }
   const inWork: WorkItem[] = claims.filter((c) => working(c.taskId)).map((c) => ({
     taskId: c.taskId,
     projectId: c.projectId,

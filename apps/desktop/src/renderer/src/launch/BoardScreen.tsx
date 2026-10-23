@@ -158,6 +158,16 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const grantedHere = keptHere && !answeredHere && granted[selected!] !== undefined
   const settledHere = answeredHere || grantedHere
   const chosen = found ?? (settledHere ? lastChosen.current : null)
+  // Arriving with a row (the home's «Открыть на доске»): its detail takes focus and comes into view once, even where the
+  // detail sits under the whole list in one column (0.3.11 review, iteration 2, UX-4).
+  const arrived = useRef(false)
+  useEffect(() => {
+    if (arrived.current || !initialItem || chosen?.entry.ref !== initialItem) return
+    arrived.current = true
+    const h = document.getElementById('topic-title')
+    h?.focus({ preventScroll: true })
+    h?.scrollIntoView?.({ block: 'start' })
+  })
   const observed = open?.asOf ? new Date(open.asOf).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : null
   /** A board row's kind in words. Set-aside and resolved rows are authored questions, whatever
    *  the question's own kind (decision, access…): the board names them as questions. */
@@ -173,16 +183,17 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.board.kicker')}</p>
-          <h2 tabIndex={-1}>{t('launch.board.title')}</h2>
-          <p>{t('launch.board.lede')}</p>
+          {/* The kanban has its own heading; the queue's is «Нужны вы»'s (0.3.11 review, iteration 2, UX-2). */}
+          <p className="lp-kicker">{t(mode === 'kanban' ? 'launch.kanban.kicker' : 'launch.board.kicker')}</p>
+          <h2 tabIndex={-1}>{t(mode === 'kanban' ? 'launch.kanban.title' : 'launch.board.title')}</h2>
+          <p>{t(mode === 'kanban' ? 'launch.kanban.lede' : 'launch.board.lede')}</p>
         </div>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" aria-pressed={review} onClick={() => { setMode('needs'); setReview(!review) }}>
+          <button type="button" className="lp-button primary" aria-pressed={review} onClick={() => { if (mode !== 'needs') { setMode('needs'); setReview(true) } else setReview(!review) }}>
             {review ? t('launch.board.reviewEnd') : t('launch.board.reviewStart')}
           </button>
           <button type="button" className="lp-button" aria-expanded={topic !== null}
-            onClick={() => { setMode('needs'); setTopic(topic ? null : { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' }) }}>
+            onClick={() => { const opening = mode !== 'needs'; setMode('needs'); setTopic(topic && !opening ? null : topic ?? { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' }) }}>
             {t('launch.board.addTopic')}
           </button>
         </div>

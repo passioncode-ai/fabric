@@ -232,9 +232,10 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
                 <option value="en">{t('settings.localeEn')}</option>
                 <option value="ru">{t('settings.localeRuUntranslated')}</option>
               </select>
-              {/* P-24: the interface's language is the agents' working language; the field says so. */}
-              <small id="settings-language-hint">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
             </label>
+            {/* P-24: the interface's language is the agents' working language; the field says so. Outside the label, so a
+                screen reader hears it once, as the select's description (0.3.11 review, iteration 2, UX-9). */}
+            <small id="settings-language-hint" className="lp-meta">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
             {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
             <label className="lp-check">
               <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void onChange({ agentLanguage: e.target.checked })} />

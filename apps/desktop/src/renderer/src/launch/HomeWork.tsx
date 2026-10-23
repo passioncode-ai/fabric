@@ -68,11 +68,12 @@ export function HomeStats({ reading, waiting, onAgents, onBoard, onWaiting }: { 
   )
 }
 
-function Doing({ item }: { item: Pick<LiveAgent, 'doing'> & { summary?: string | null } }): React.JSX.Element {
+function Doing({ item, bare = false }: { item: Pick<LiveAgent, 'doing'> & { summary?: string | null }; bare?: boolean }): React.JSX.Element {
   const t = useT()
   // D-4 (the operator's walk, 2026-10-22): the task an agent holds is what it is doing; its latest action changes every
   // second and says little. The action is shown only for an agent that holds no task.
-  if (item.summary) return <span className="lh-doing">{t('launch.home.agents.workingOn', { task: item.summary })}</span>
+  // In a project's narrow column the list already says what it lists: the task alone (0.3.11 review, iteration 2, UX-3).
+  if (item.summary) return <span className="lh-doing" title={item.summary}>{bare ? item.summary : t('launch.home.agents.workingOn', { task: item.summary })}</span>
   if (item.doing) {
     return (
       <span className="lh-doing">
@@ -150,7 +151,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
             {hasMore(inWorkCount) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: inWorkCount - LANE_ROWS })}</button>}
           </div>
           <div className="lh-lane">
-            <h4>{t('launch.home.work.done')} <span className="lp-count">{done.length}{v.doneCapped ? '+' : ''}</span></h4>
+            <h4>{t('launch.home.work.done')} <span className="lp-count">{v.doneUnread ? '?' : `${done.length}${v.doneCapped ? '+' : ''}`}</span></h4>
             {v.doneUnread && <FailureNote said={t('launch.home.work.unreadable')} detail={v.doneUnread} />}
             {!v.doneUnread && done.length > 0 && <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol>}
             {!v.doneUnread && done.length === 0 && <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
@@ -207,7 +208,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
                   {!projectId && <span className="lp-meta">{a.projectName ?? t('launch.home.agents.noProject')}</span>}
                   {a.stale ? <span className="lp-pill">{t('launch.home.agents.stale')}</span> : <small>{since(a.lastSignAt ?? a.startedAt, t)}</small>}
                 </span>
-                <Doing item={{ doing: a.doing, summary: a.task?.summary ?? null }} />
+                <Doing item={{ doing: a.doing, summary: a.task?.summary ?? null }} bare={!!projectId} />
               </>
             )
             // An agent with no console here and no project has nowhere to open: it is a row, not a dead button (ER-5).
@@ -242,6 +243,8 @@ export function AgentsAtWork({ mark, onOpen }: { mark: number; onOpen(projectId:
   }
   return (
     <>
+      {/* The place's own name, so a screen reader and the rail's focus move land on it (0.3.11 review, iteration 2, UX-10). */}
+      <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {problem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={problem} />}
       <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} />
     </>

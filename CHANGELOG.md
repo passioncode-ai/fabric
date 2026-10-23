@@ -18,7 +18,7 @@ is the 0.3.10 bundle alone.
   date, asks every agent to write what a person reads in Fabric in it: task titles and briefs, stages, notes, questions,
   board messages and reports. Documents in a project's repository keep the language that project uses, and code,
   commands and paths stay as they are ([ADR-0174](docs/adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)).
-  The first run asks the language first and says this. Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by
+  `fabric_whoami`'s protocol is version 2, which adds `language`. The first run asks the language first and says this. Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by
   default; off, Fabric names no language and agents write in their own. Rows already on the board keep the language
   they were written in.
 - A start that meets a database too busy to finish a query in time (PostgreSQL's statement timeout) waits and tries
@@ -57,6 +57,10 @@ is the 0.3.10 bundle alone.
   walk, decisions D-6 and D-7): История's filters and detail pane, the first run redrawn in the new frame, enrollment on
   the contract's resolver (CO-339), the project page's goal, team, plan and analytics, the project graph, people from
   Git and notifications. CO-377, the view of announcements with who has not answered, keeps its date, 2026-10-31.
+  0.3.12 also starts with two of the operator's decisions ([ADR-0176](docs/adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)):
+  an agent starts a task only once its spec is gathered by questions, and work another project's agent should do
+  crosses by the machine's trust (on your own machine the asking agent may do it when that agent is away; on an
+  organization's machine it waits on the board).
 
 ## 0.3.10
 
