@@ -1524,7 +1524,7 @@ export class AgentSurface {
         description:
           'Tell Fabric where you are in the work, so the operator can see it without reading your transcript. Recorded as your own claim, shown beside what Fabric observes about this session. Call it whenever the stage changes.',
         inputSchema: {
-          stage: z.string().min(1).max(120).describe('What you are doing now, as one plain sentence the project\'s owner understands without context, in the working language fabric_whoami names (or the person's own, when it names none) — the work and its aim, not a file, command or internal id ("Making a version where the computer stays awake while an agent works, then releasing it")'),
+          stage: z.string().min(1).max(120).describe('What you are doing now, as one plain sentence the project\'s owner understands without context, in the working language fabric_whoami names (or the person\'s own, when it names none) — the work and its aim, not a file, command or internal id ("Making a version where the computer stays awake while an agent works, then releasing it")'),
           step: z.number().int().positive().optional().describe('Which step you are on'),
           ofSteps: z.number().int().positive().optional().describe('How many steps you expect'),
           note: z.string().max(400).optional().describe('One line of detail, optional')
@@ -1883,7 +1883,7 @@ export class AgentSurface {
         description:
           'Put work on the board — something you found that should happen, or a piece you are splitting off. It lands in backlog for the operator to see. You must say where it came from: a card with no evidence behind it is noise on someone else’s board.',
         inputSchema: {
-          title: z.string().min(3).max(200).describe('What should happen, in a line the project\'s owner understands without context, in the working language fabric_whoami names (or the person's own, when it names none) ("Keep the computer awake while an agent works"); an id goes in source, not here'),
+          title: z.string().min(3).max(200).describe('What should happen, in a line the project\'s owner understands without context, in the working language fabric_whoami names (or the person\'s own, when it names none) ("Keep the computer awake while an agent works"); an id goes in source, not here'),
           origin: z
             .object({
               // M124 — `document` and `memory` join the list. Before them an
@@ -2473,7 +2473,7 @@ export class AgentSurface {
       {
         title: 'Draft what a task is for',
         description:
-          'Write the brief of a task you are working on: what should happen, why, and what will be true when it is done. The "what" section is the task\'s summary on the home screen and the project page: write it first, as one or two plain sentences the owner understands without context, in the working language fabric_whoami names (or the person's own, when it names none). Yours is a DRAFT — the operator can replace any section, and both versions stay readable. Keep it to the task; anything worth knowing past this task belongs in fabric_memory_remember.',
+          'Write the brief of a task you are working on: what should happen, why, and what will be true when it is done. The "what" section is the task\'s summary on the home screen and the project page: write it first, as one or two plain sentences the owner understands without context, in the working language fabric_whoami names (or the person\'s own, when it names none). Yours is a DRAFT — the operator can replace any section, and both versions stay readable. Keep it to the task; anything worth knowing past this task belongs in fabric_memory_remember.',
         inputSchema: {
           taskId: z.string().uuid(),
           section: z.enum(['what', 'why', 'expected']),

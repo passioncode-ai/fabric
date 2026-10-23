@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T12:00:00Z · `—` · agent/rel-0311-i1 → main · fast-forward
+- run: r-8642aee374a2
+- files: wave 4 (agent/w4-home to agent/w4-carry) and iteration 1 of the 0.3.11 review: commsNewest.ts, workRead.ts, homeLive.ts, taskBoard.ts, KanbanBoard, BoardScreen, HomeParts, HomeWork, HistoryScreen, CommsFeed, SettingsScreen, rail.css, launch.css, i18n, tests; the ledger, the reviews, the register (D-7, CO-391 to CO-401), P-25, AGENTS.md, release-mac, the handoff
+- conflicts: none
+- summary: 0.3.11's candidate after iteration 1; landed with the release.
+
 ### 2026-10-23T10:00:00Z · `—` · agent/w4-comms → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/CommsFeed.tsx (new), CommsScreen.tsx (the two tabs), launch.css, i18n, tests; OF-29; D-6 (OF-27, OF-31, OF-32, OF-39, OF-40 to 0.3.12); SCN-143; CHANGELOG; the map

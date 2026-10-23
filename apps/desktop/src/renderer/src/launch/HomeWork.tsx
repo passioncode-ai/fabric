@@ -151,7 +151,9 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
           </div>
           <div className="lh-lane">
             <h4>{t('launch.home.work.done')} <span className="lp-count">{done.length}{v.doneCapped ? '+' : ''}</span></h4>
-            {v.doneUnread ? <FailureNote said={t('launch.home.work.unreadable')} detail={v.doneUnread} /> : done.length ? <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol> : <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
+            {v.doneUnread && <FailureNote said={t('launch.home.work.unreadable')} detail={v.doneUnread} />}
+            {!v.doneUnread && done.length > 0 && <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol>}
+            {!v.doneUnread && done.length === 0 && <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
             {hasMore(done.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: done.length - LANE_ROWS })}</button>}
           </div>
         </div>
