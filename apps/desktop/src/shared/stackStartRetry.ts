@@ -92,16 +92,20 @@ export interface RetryPlan {
   attempts: number
   /** Waited between tries, so a starting container has time to become healthy. */
   waitMs: number
+  /** The whole start's own deadline, every try and wait included, Docker's wait not (CO-311): each try gets what is left
+   *  of it as its limit, and none begins once it has passed. Absent, only the tries count. */
+  totalMs?: number
 }
 
-export const STACK_START_RETRY: RetryPlan = { attempts: 4, waitMs: 10_000 }
+export const STACK_START_RETRY: RetryPlan = { attempts: 4, waitMs: 10_000, totalMs: 300_000 }
 
 /**
  * Runs `start` until it succeeds, retrying only a transient refusal, at most `plan.attempts` times. The last failure
  * is thrown as it was, so the startup sheet still shows the stack's own words.
  */
 export async function startWithRetry(
-  start: () => Promise<void>,
+  /** One try; `limitMs` is what is left of the plan's deadline, or null when the plan has none. */
+  start: (limitMs: number | null) => Promise<void>,
   opts: {
     plan?: RetryPlan
     sleep?: (ms: number) => Promise<void>
@@ -120,18 +124,29 @@ export async function startWithRetry(
 ): Promise<void> {
   const plan = opts.plan ?? STACK_START_RETRY
   const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)))
+  const now = opts.now ?? Date.now
+  const begun = now()
+  let dockerSpent = 0
+  const left = (): number | null => (plan.totalMs === undefined ? null : plan.totalMs - (now() - begun - dockerSpent))
+  const overdue = (message: string): Error =>
+    new Error(`The local stack did not become ready within ${Math.round((plan.totalMs ?? 0) / 60_000)} minutes, so Fabric stopped trying.\n${message}`)
   let dockerWaited = false
   for (let attempt = 1; ; attempt++) {
     try {
-      await start()
+      const limit = left()
+      if (limit !== null && limit <= 0) throw overdue('')
+      await start(limit)
       return
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
+      if (message.startsWith('The local stack did not become ready within')) throw e
       // Docker away: one wait for it, not counted against the tries; then the start runs again.
       if (opts.pingDocker && !dockerWaited && dockerIsUnreachable(message) && !opts.stopped?.()) {
         dockerWaited = true
         const socket = dockerSocketFrom(message)
+        const waitBegun = now()
         const waited = await waitForDocker(() => opts.pingDocker!(socket), { plan: opts.dockerWait, sleep, now: opts.now, stopped: opts.stopped, onWait: opts.onDockerWait })
+        dockerSpent += now() - waitBegun
         if (waited === 'stopped') throw e
         if (waited === 'timeout') {
           const total = Math.round((opts.dockerWait ?? DOCKER_WAIT).totalMs / 1000)
@@ -141,6 +156,9 @@ export async function startWithRetry(
         continue
       }
       if (attempt >= plan.attempts || !stackStartIsTransient(message) || opts.stopped?.()) throw e
+      // No wait and no try that the deadline would cut short: past it, the refusal says the deadline (CO-311).
+      const before = left()
+      if (before !== null && before <= plan.waitMs) throw overdue(message)
       await sleep(plan.waitMs)
       if (opts.stopped?.()) throw e
       opts.onRetry?.(attempt + 1, plan.attempts, message)

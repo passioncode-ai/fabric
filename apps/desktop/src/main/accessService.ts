@@ -293,6 +293,11 @@ export class AccessService {
           }
           entry = resolved.entry
         }
+        // CO-347: «Отключить» keeps the agent off the board too; its ask is refused before it reaches the person.
+        if (this.deps.keptOut?.(entry.key)) {
+          receipt('kept-out', entry.key)
+          return { ok: false, refused: `the person disconnected ${entry.name} in Fabric; it gets no access until they let it back in from Agents. Nothing was shown to the operator.` }
+        }
         const projectId = boardResourceOf(asked.value.resources[0])?.project as string
         const project = this.deps.enrollment ? await this.deps.enrollment.project(projectId) : null
         if (!project) {

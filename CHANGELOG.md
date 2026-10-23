@@ -44,6 +44,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   secret shapes are redacted from logs and records (CO-386); revoking an agent's access names the agent in История
   (CO-353); «Вернуть мой текст» goes away once you edit the loaded text (CO-352); Comms' read marks always fit the
   settings file, so «Mark all read» works on a large estate (CO-312).
+- More hardening: the stack start has one 5-minute deadline instead of up to 16 minutes on the splash (CO-311); a
+  disconnected agent cannot put a board question in front of you (CO-347); the wiki sync clears a lock a killed git
+  left and tells you on this Mac when it keeps failing (CO-390); the home says when a read stopped at its limit
+  instead of showing a working agent as silent (CO-310).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

@@ -523,6 +523,8 @@ export interface WhereWorkView {
   /** Why the review counts could not be read, when they could not. */
   reviewUnread: string | null
   readAt: string
+  /** The reads that stopped at their limit (CO-310); absent when none did. */
+  capped?: Array<'claims' | 'leases' | 'projects'>
 }
 
 /** SCR-78's rows: a project is in flight when it has a live session, a live claim, or tasks in review. */

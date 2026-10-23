@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import {homedir} from 'node:os'
 import {createHash,randomUUID} from 'node:crypto'
-import {readFileSync,writeFileSync,existsSync} from 'node:fs'
+import {readFileSync,writeFileSync,existsSync,rmSync,statSync} from 'node:fs'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor,checkArgs,pendingNotice} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,dropChildLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,checkDeployCredentials,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
-import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
+import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin,tellPerson} from './lib/bounded-run.mjs'
 import {hostedCiVerdict} from './lib/hosted-verdict.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
@@ -34,6 +34,18 @@ const holdPublication=()=>{
  return lock
 }
 // #endregion workspace-bounded
+/** The git locks of a checkout (its index and HEAD, through `git rev-parse --git-path`, so a linked worktree's own
+ *  are found) older than `olderThanMs`; a git that cannot answer gives none. */
+function staleGitLocks(dir,olderThanMs){
+ const found=[]
+ for(const name of ['index.lock','HEAD.lock']){
+  try{
+   const p=path.resolve(dir,git(dir,'rev-parse','--git-path',name).toString().trim())
+   if(existsSync(p)&&Date.now()-statSync(p).mtimeMs>olderThanMs)found.push(p)
+  }catch{/* not a checkout yet, or git did not answer: nothing to remove */}
+ }
+ return found
+}
 const clean=dir=>{if(git(dir,'status','--porcelain').toString().trim())throw Error('Commit or preserve your changes first: '+dir)}
 const cmd=process.argv[2]||'status'
 // Every command but `sync` (which records its own outcome) ends through exitWithin on an error: Node 26.8.2
@@ -164,9 +176,14 @@ if(cmd==='status'){
  await superviseJob({
   name:'sync',statusFile,log:process.env.FABRIC_WORKSPACE_SYNC_LOG,
   watchdogMs:Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||110*MIN,
-  guard:()=>{if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')}
+  guard:()=>{if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')},
+  // CO-390: from the second failure in a row the person is told on this Mac, not only in the log.
+  onFailure:(count,reason)=>{if(count>=2)tellPerson(`The wiki sync failed ${count} times in a row: ${reason}`)}
  },async({remainingMs})=>{
  holdPublication()
+ // CO-390: a git lock older than the watchdog belongs to no live run, since the publication lock above is held; it
+ // is the leftover of a killed git and would refuse every checkout from now on (13 runs in a row, 2026-10-21).
+ for(const dir of [root,child])for(const lock of staleGitLocks(dir,110*MIN)){rmSync(lock,{force:true});console.log('Removed a stale git lock no run holds: '+path.relative(dir,lock))}
  const left=syncLeftovers(git(root,'status','--porcelain','--untracked-files=no').toString())
  if(left.refuse.length)throw Error('sync runs on a clean checkout of main; this one has changes: '+left.refuse.slice(0,5).join(', '))
  // A previous run's unfinished publication (receipt + gitlink) is this checkout's own leftover.

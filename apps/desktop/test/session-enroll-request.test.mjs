@@ -230,7 +230,7 @@ test('the access overview names each enrollment grant\'s own project — an incr
 // 1–8 capabilities of one existing Project; anything else is refused before any prompt.
 const respondAsk = (agentId = 'claude-code', resources = [`board:${PROJECT}/analytics.retention`]) =>
   ({ agentId, callee: 'fabric', capabilities: ['board.respond'], resources, reason: 'I answer the analytics requests of this project' })
-function respondHarness() {
+function respondHarness({ keptOut = undefined } = {}) {
   const rows = new Map(), appended = [], presented = []
   const store = {
     requests: async () => [], countRequests: async () => 0,
@@ -242,10 +242,22 @@ function respondHarness() {
     registry: { refresh() {}, resolve: (id) => (id === 'example-agent' ? { ok: true, entry: { key: 'example-agent', kind: 'service', name: 'Example agent', installedBy: 'example-installer', repository: null, summary: null } } : { ok: false, reason: `${id} is not registered` }) },
     present: (r) => presented.push(r),
     connected: async () => { throw Error('Fabric itself is not a product to connect') },
-    enrollment: { runner: (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: null } : null), project: async (id) => (id === PROJECT ? { id, name: 'site' } : null), available: async () => true, resolve: resolveFolder }
+    enrollment: { runner: (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: null } : null), project: async (id) => (id === PROJECT ? { id, name: 'site' } : null), available: async () => true, resolve: resolveFolder },
+    ...(keptOut ? { keptOut } : {})
   })
   return { service, appended, presented }
 }
+
+test('board.respond: an agent the person disconnected is refused before any prompt, a coding agent and a service alike (CO-347)', async () => {
+  for (const agentId of ['claude-code', 'example-agent']) {
+    const h = respondHarness({ keptOut: (key) => key === agentId })
+    const r = await h.service.request({ kind: 'door' }, respondAsk(agentId))
+    assert.equal(r.ok, false)
+    assert.match(r.refused, /disconnected/)
+    assert.equal(h.presented.length, 0, 'nothing reached the person')
+    assert.equal(h.appended.some((e) => e.type === 'access.requested@1'), false)
+  }
+})
 
 test('board.respond: a coding agent or a registered service asks once, with the project named in the snapshot', async () => {
   for (const [agentId, kind] of [['claude-code', 'runner'], ['example-agent', 'service']]) {

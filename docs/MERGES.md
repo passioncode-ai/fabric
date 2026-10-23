@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-w3b → main · fast-forward
+- run: r-8642aee374a2
+- files: shared/stackStartRetry.ts and its test, main/env.ts (CO-311); main/accessService.ts and test/session-enroll-request.test.mjs (CO-347); scripts/workspace.mjs, scripts/lib/bounded-run.mjs and scripts/test/bounded-run.test.mjs (CO-390); main/workRead.ts, shared/workClaims.ts, shared/homeLive.ts, launch/HomeWork.tsx and its test, test/work-read-views.test.mjs (CO-310); AGENTS.md; CO-411 filed; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 W3b: four hardening rows (CO-310, CO-311, CO-347, CO-390) and CO-411 filed.
+
 ### __LANDED__ · `—` · agent/0312-w3a → main · fast-forward
 - run: r-8642aee374a2
 - files: main/fabricMcp.ts, main/fabricMcpClient.ts and test/fabric-mcp.test.mjs (CO-314); shared/redact.ts and its tests (CO-386); main/index.ts hubRevokeAgent and actWords.test.ts (CO-353); Tasks.tsx and its test (CO-352); shared/commsMarks.ts and its test (new), shared/appSettings.ts, App.tsx (CO-312); the backlog; CHANGELOG; the map
