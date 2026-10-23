@@ -11,8 +11,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** This version moves the local database to schema 96 (one migration: a project's profile, its goal,
 summary, business, plan and relations). Take a backup first; 0.3.11 cannot open a schema-96 database, so going back
-is the backup with the 0.3.11 bundle. The upgrade is `supabase migration up --local` with Fabric quit, then the new
-bundle.
+is the backup with the 0.3.11 bundle. The order is the runbook's
+([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): quit Fabric, put the new
+bundle's migration in the stack folder (its first start copies it there, and refuses the old database until the
+upgrade), back up, rehearse the upgrade on a disposable stack, run `supabase migration up --local` in the stack
+folder, then open the new bundle.
 
 - Comms has a third tab, «Объявления»: every announcement on the project board with how many of the projects it
   touches have answered, who has not yet, and how the others answered (adapted, filed a row, not affected); «Ждут
@@ -49,7 +52,7 @@ bundle.
   secret shapes are redacted from logs and records (CO-386); revoking an agent's access names the agent in История
   (CO-353); «Вернуть мой текст» goes away once you edit the loaded text (CO-352); Comms' read marks always fit the
   settings file, so «Mark all read» works on a large estate (CO-312).
-- More hardening: the stack start has one 5-minute deadline instead of up to 16 minutes on the splash (CO-311); a
+- More hardening: the stack start's tries share one 5-minute deadline instead of up to 16 minutes on the splash, after Docker's own wait of up to 90 seconds (CO-311); a
   disconnected agent cannot put a board question in front of you (CO-347); the wiki sync clears a lock a killed git
   left and tells you on this Mac when it keeps failing (CO-390); the home says when a read stopped at its limit
   instead of showing a working agent as silent (CO-310).
@@ -58,7 +61,7 @@ bundle.
   may hold (CO-405). The board rule for agents adds: reply to a request only with the answer itself, since a reply
   closes it.
 - The hub bounds what agents can pile up: the folder-attribution lane keeps at most three credentials per agent and
-  sweeps uncollected ones (CO-363), and a credential cannot raise its call budget by inventing session ids (CO-346).
+  sweeps uncollected ones (CO-363), and a credential that invents session ids gets at most 16 session budgets beside its shared one instead of one per id (CO-346).
   Two tests that failed only on a loaded machine are steady, and the gate says when the machine is loaded (CO-379,
   CO-332).
 - Settings can let Claude Code sessions on this computer message each other (off unless you turn it on), and «Fabric
@@ -90,10 +93,9 @@ bundle.
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).
 - A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
-  project only); a field it names replaces what was there. Schema 96 (migration 123, `project.profiled@1`,
-  `project_relations`): a database at 95 takes `supabase migration up` (0.3.12 wave 2, slice S1).
+  project only); a field it names replaces what was there. This is the schema step to 96 described under Upgrading.
 - The board rule agents read now says that a reply from the project a request was sent to answers it (DEC-0098,
-  DEC-0102), instead of telling them the request stays queued (CO-397); and a session served different rules later in
+  DEC-0102), instead of telling them the request stays queued (CO-397; the database's own refusal text for `com.enroll` still says it and changes with 0.3.13's schema step); and a session served different rules later in
   its life (the working language or this computer's trust changed) is journalled again with the earlier rules' hash
   (CO-399).
 

@@ -69,3 +69,17 @@ open to the operator's review).**
 4. The rule is advice, by its label: Fabric cannot see an agent write into another checkout. What Fabric records is the
    request on the board and the reply that says what was done.
 
+
+**2026-10-24, a request between agents is a task too (the operator, on the spec of tasks agents give agents on the
+board; decided by the agent on the operator's instruction to choose, open to the operator's review).**
+
+5. Decision 1 holds for a request another project's agent files on the board, not only for a task the person files:
+   the request carries the whole spec (what, why, expected with out of scope and the constraints) and its sources (a
+   commit, a file, the source task). The receiving agent asks on the request's thread until it is whole, then works.
+   Built in 0.3.13 with the contract's repin (CO-415).
+6. The receiving agent rebuilds the context itself: the request links its source task, and the receiver may read that
+   task's brief, notes and the memory facts it cites, read-only and only within the request's thread (CO-416, 0.3.13).
+   One memory search across the operator's stores is 0.4.0's (CO-417).
+7. Amendment 2's "never assumed" is about a machine Fabric cannot tell apart: an install where the person has not said
+   reads `unknown`. It does not overrule Decision 3 for the operator's own Mac: 0.3.12's rollout there sets «Этот
+   компьютер: мой», recorded in its ledger, so `protocol.machine.trust` reads `mine` on the machine Decision 3 names.

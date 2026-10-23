@@ -307,7 +307,7 @@ reservation). The procedure is the same with 94 in place of 89.
 
 **0.3.11 admits schema 95**, as 0.3.9 and 0.3.10 do: it adds no migration (no file under `supabase/` changed since v0.3.10), so the upgrade is the bundle alone and going back to 0.3.10 is the 0.3.10 bundle alone. One setting is new, `agentLanguage` in `settings.json`; 0.3.10 does not know it, so going back and then changing a setting drops a switched-off working language, and the next 0.3.11 starts with it on again (the 0.3.11 review, DA-5).
 
-**0.3.12 (not yet released) admits schema 96** (migration `20261023000123_project_profile.sql`, a project's profile: `project.profiled@1`, columns on `projects`, `project_relations`): a database at 95 takes the upgrade below, `FROM` 95. Going back to 0.3.11 after it refuses the database (0.3.11 admits only 95), so a rollback is the 0.3.11 bundle with the backup taken before the upgrade. Two settings are new, `machineTrust` and, as in 0.3.11, `agentLanguage`; 0.3.11 does not know `machineTrust`, so going back and changing a setting drops it and the next 0.3.12 reads the computer as not said (not trusted).
+**0.3.12 admits schema 96** (migration `20261023000123_project_profile.sql`, a project's profile: `project.profiled@1`, columns on `projects`, `project_relations`): a database at 95 takes the upgrade below, `FROM` 95. Going back to 0.3.11 after it refuses the database (0.3.11 admits only 95), so a rollback is the 0.3.11 bundle with the backup taken before the upgrade. Two settings are new, `machineTrust` and `boardFilters` (and, from 0.3.11, `agentLanguage`); 0.3.11 does not know the first two, so going back and changing a setting drops them: the next 0.3.12 reads the computer as not said (not trusted) and the Board's remembered filters as none. Step 1's first start may be replaced by copying `20261023000123_project_profile.sql` from the verified bundle (`Fabric.app/Contents/Resources/stack/supabase/migrations/`) into the stack folder's `supabase/migrations/`, as the 0.3.12 rollout does; never run `supabase` inside the bundle.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -329,7 +329,7 @@ reservation). The procedure is the same with 94 in place of 89.
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8 — read it, do not assume it
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'

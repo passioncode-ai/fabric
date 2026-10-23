@@ -25,6 +25,8 @@ move.
 | W2 | Project onboarding and the project page (D-6), with the places the walk named and their docs; a project's business on its page, which the board's wall between businesses is built on | CO-368, CO-369, CO-401, CO-391, CO-392, CO-393, CO-394, CO-395, CO-388, CO-307, CO-367, CO-329, CO-306, CO-313, CO-400 |
 | W3 | The reads say when they stop, the waits have deadlines, and the gate can be trusted | CO-310, CO-405, CO-311, CO-312, CO-314, CO-370, CO-373, CO-374, CO-375, CO-386, CO-390, CO-284, CO-379, CO-332, CO-346, CO-347, CO-352, CO-353, CO-363 |
 
+The table keeps the first ruling of each row; a row moved since names its new release in "Moved again" and "Each row" below.
+
 ## 0.3.13: the contract's repin and one schema step
 
 Two batches that each touch many files of one kind and are safest done once, after 0.3.12's surface has landed:
@@ -65,6 +67,9 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-329 | 0.3.12 W2 | 0.3.13, with the tracking of turns | Its first rule needs an owner list a Project carries (the profile of W2-1 has a business, not owners) and its second the same activity read as CO-367 |
 | CO-375 | 0.3.12 W3 | 0.3.13, with the tracking of turns | «Idle in the agent» is the hooks' turns, read with CO-367; the eight finished tasks sit in other projects' boards and are moved by their own agents or the operator, not by Fabric's code; dropping the heartbeat rows of ended sessions goes with that read |
 | CO-374 (its rest) | 0.3.12 W3 | 0.3.13 | The countdown and the notice in detached windows shipped in 0.3.12 (W3e); restarting PostgREST or Kong alone, while the database runs, is the stack watch restarting one container on its own, a decision taken with its next change |
+| CO-348 | (never ruled: in D-7's list, missed by the first triage; the 0.3.12 review, PL-3) | 0.3.13, Settings' section pass | A Settings row for folder trust beside «Разрешения агентов» and a one-time note after an upgrade belong with Settings' section names, «Сохранено» and OF-33's section review (CO-392's rest): one pass over Settings instead of three |
+| CO-392 (its rest) | 0.3.12 W2 | 0.3.13, Settings' section pass | The quota is gone from the window (S6); Settings' section names, «Сохранено» after a change and OF-33's review are one pass with CO-348 |
+| CO-284 | 0.3.12 W3 | 0.3.13 | Its checks need a disposable stack and a disposable built app (about 15 GB); the machine has had under 10 GB free through 0.3.12 (measured 2026-10-24: 0.1 to 9 GB). The two scripts last ran green on 0.3.11's final candidate |
 
 ## Retired
 
@@ -77,10 +82,10 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | Row | Ruling | Note |
 |---|---|---|
 | CO-277 | 0.4.0 | with CO-364 |
-| CO-284 | 0.3.12 W3 | `agent-surface.test.mjs` and `probe-fresh-vs-upgraded.mjs` ran green on disposable stacks for 0.3.11's final candidate; COM03-14's real-client smoke remains |
+| CO-284 | 0.3.13 | moved 2026-10-24 (above): the disk |
 | CO-293 | retired | not reproduced |
 | CO-306 | 0.3.12 W2 | the splash in the working language, with OF-37's display pass |
-| CO-307 | 0.3.12 W2 | a project's last activity from its own events, with the project page |
+| CO-307 | 0.3.13 | moved 2026-10-23 (below): the schema step |
 | CO-308 | 0.4.0 | board scale, COM-02 |
 | CO-310 | 0.3.12 W3 | each capped read says it stopped |
 | CO-311 | 0.3.12 W3 | the stack start's own deadline |
@@ -101,6 +106,7 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-345 | 0.3.13 | the console catalogue from the contract |
 | CO-346 | 0.3.12 W3 | one budget per binding |
 | CO-347 | 0.3.12 W3 | «Отключить» keeps a disconnected agent off the board too |
+| CO-348 | 0.3.13 | ruled 2026-10-24 (above): Settings' section pass |
 | CO-352 | 0.3.12 W3 | «Вернуть мой текст» clears on the next edit |
 | CO-353 | 0.3.12 W3 | the revoked agent's name in the act |
 | CO-354 | 0.3.13 | resolve's pending, at the repin |
@@ -131,7 +137,7 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-388 | 0.3.12 W2 | with the project page and the task page's «Назад» |
 | CO-390 | 0.3.12 W3 | the sync says when it stops |
 | CO-391 | 0.3.12 W2 | «Нужны вы» lists only the person's part, naming the asker |
-| CO-392 | 0.3.12 W2 | Fabric stops reading quotas |
+| CO-392 | 0.3.12 W2, in part; its rest 0.3.13 | the window reads no quota; Settings' section pass moved (above) |
 | CO-393 | 0.3.12 W2 | the agent page |
 | CO-394 | 0.3.12 W2 | one place a task opens |
 | CO-395 | 0.3.12 W2 | «Что делали агенты» as History |
@@ -143,11 +149,12 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-401 | 0.3.12 W2 | the walk's items |
 | CO-402 | 0.3.13 | at the repin |
 | CO-403 | 0.3.12 W1 | ADR-0176 §1 |
-| CO-404 | 0.3.12 W1 | ADR-0176 §2, §3 |
+| CO-404 | 0.3.12 W1 | ADR-0176 §2, §3; resolved 2026-10-24 when the organization's side answered |
 | CO-405 | 0.3.12 W3 | the reads' edges |
 
-Counts, recomputed from this table (2026-10-23, after the moves above): 0.3.12 W1 6, W2 13, W3 17 (36 in 0.3.12, CO-374
-in part, its rest in 0.3.13); 0.3.13 22; 0.4.0 13; its owners 1; retired 1; done 1; 74 in all.
+Counts, recomputed from this table (2026-10-24, after every move above): 0.3.12 W1 6, W2 12 (CO-392 in part), W3 15
+(CO-374 in part): 33 in 0.3.12, the two rests in 0.3.13; 0.3.13 24; 0.4.0 10; its owners 1; retired 1; done 1; 70 in
+all (the first triage's 69 and CO-348, which it missed). The rows added below are counted in their own tables.
 
 ## Added on 2026-10-23: the board's asks
 
@@ -162,7 +169,7 @@ became rows, ruled here with the same rules:
 | CO-409 | 0.4.0 | the wake when nobody answers |
 | CO-410 | 0.4.0 | a marketplace agent connected to a project |
 
-CO-360 and CO-383 are resolved; the counts above keep the 69 rows the triage started with.
+CO-360 and CO-383 are resolved. With these five, 0.3.12 W3 holds 1, 0.3.13 1 and 0.4.0 3.
 
 ## Wave 2's spec (2026-10-23)
 
@@ -175,3 +182,18 @@ carries, people read from Git and never stored. It narrows CO-401: OF-40 and OF-
 
 CO-307 moves from 0.3.12 W2 to 0.3.13's schema step: a project's last activity needs a journal read grouped by project,
 an SQL function, and 0.3.12 keeps its one schema step for the project profile (migration 123).
+
+## Added on 2026-10-24: the release review's homeless items and the operator's rows
+
+The 0.3.12 review, iteration 1, found work with no open row (PL-5, DO-6), and the operator asked that a task one agent
+gives another carry its whole spec and its context (2026-10-24). Each is a row, ruled here:
+
+| Row | Ruling | Note |
+|---|---|---|
+| CO-413 | 0.4.0 | OF-40 and OF-37's display pass with a model, agents first |
+| CO-414 | 0.3.13 | История's filters and detail pane |
+| CO-415 | 0.3.13 | a request between agents carries the whole spec (ADR-0176 amendment 5), with the contract's repin |
+| CO-416 | 0.3.13 | a request's context pack, with CO-415 |
+| CO-417 | 0.4.0 | one memory search across the operator's stores, agents first |
+
+With these five, 0.3.13 holds 3 more and 0.4.0 2 more.
