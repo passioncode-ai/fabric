@@ -121,7 +121,7 @@ type Heads = { heads: { id: string; lastSeq: number }[]; truncated: boolean } | 
 const show = (seen: Record<string, number> = {}, onRead: (marks: Record<string, number>) => void = () => {}, heads?: Heads) =>
   render(
     <I18nProvider locale="en">
-      <CommsScreen projects={PROJECTS} seen={seen} onRead={onRead} heads={heads} />
+      <CommsScreen mode="threads" projects={PROJECTS} seen={seen} onRead={onRead} heads={heads} />
     </I18nProvider>
   )
 
@@ -475,7 +475,7 @@ describe('the activity filter asks the board for a window measured from now', ()
   const showAt = (now: number = NOW, seen: Record<string, number> = {}, onRead: (marks: Record<string, number>) => void = () => {}) =>
     render(
       <I18nProvider locale="en">
-        <CommsScreen projects={PROJECTS} seen={seen} onRead={onRead} now={() => now} />
+        <CommsScreen mode="threads" projects={PROJECTS} seen={seen} onRead={onRead} now={() => now} />
       </I18nProvider>
     )
 

@@ -44,7 +44,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 | OF-24 | The goal shows text taken from the README; the plan and backlog are not on the page | The goal, the team and the plan are written by the agent that onboards the project (OF-31) in the working language; the page shows **Цель, Команда, План** (the project's backlog as its plan: done and next) and an analytics strip in the right column (OF-39) | open |
 | OF-25 | «Откуда идём, где мы, куда» is good, but must be current and tied to who works on what | The page's head keeps it, and each line names the agents and tasks behind it, read live | open |
 | OF-26 | «Что получается в этом проекте» is unclear | Replaced by the analytics strip (OF-24) and the done column of the project's kanban | open |
-| OF-27 | Several people work on some projects; Fabric sees only agents | Fabric tracks a project's **people** too: the Git authors of its repositories (by name and email, last commit), shown in Команда beside the agents, and used to route a question to the person who owns that part (D-5) | open |
+| OF-27 | Several people work on some projects; Fabric sees only agents | Fabric tracks a project's **people** too: the Git authors of its repositories (by name and email, last commit), shown in Команда beside the agents, and used to route a question to the person who owns that part (D-5) | moved to 0.3.12 (D-6) |
 
 ### Questions to the person
 
@@ -56,7 +56,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-29 | Comms is unreadable: nothing says what the projects are talking about | A feed, newest first, like a timeline: each post shows the project, its kind (просьба, ответ, находка, объявление), a short summary and its thread; a focus filter (one project, requests only, waiting for an answer) | open |
+| OF-29 | Comms is unreadable: nothing says what the projects are talking about | A feed, newest first, like a timeline: each post shows the project, its kind (просьба, ответ, находка, объявление), a short summary and its thread; a focus filter (one project, requests only, waiting for an answer) | done 2026-10-23 on `agent/w4-comms`: Comms opens on «Лента», the newest 100 posts of every thread first, each with its project, kind, time and text, filtered by «Только просьбы» and by project; a post opens its thread in «Ветки» (`launch/CommsFeed.tsx`, `CommsScreen.tsx`); test `CommsFeed.test.tsx` |
 
 ### Agents and История
 
@@ -69,8 +69,8 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-31 | A project added to Fabric is not processed | Adding a project starts an onboarding task for an agent: what the project is and is for, its repositories and remotes, its goal, its relations to other projects (by remote, organization, shared dependencies and board threads); the result fills the project page (OF-24) and the graph (OF-32) | open |
-| OF-32 | No map of how projects relate | A graph of all projects: nodes are projects with a one-line summary, edges are relations (organization, dependency, board threads, cross-project requests); a repository of the same GitHub organization that is not cloned here is a node of its own kind; the organization is the level above its projects. Opened as a whole, and from each row of the rail's projects list (a graph icon opens the graph centred on that project) | open |
+| OF-31 | A project added to Fabric is not processed | Adding a project starts an onboarding task for an agent: what the project is and is for, its repositories and remotes, its goal, its relations to other projects (by remote, organization, shared dependencies and board threads); the result fills the project page (OF-24) and the graph (OF-32) | moved to 0.3.12 (D-6) |
+| OF-32 | No map of how projects relate | A graph of all projects: nodes are projects with a one-line summary, edges are relations (organization, dependency, board threads, cross-project requests); a repository of the same GitHub organization that is not cloned here is a node of its own kind; the organization is the level above its projects. Opened as a whole, and from each row of the rail's projects list (a graph icon opens the graph centred on that project) | moved to 0.3.12 (D-6) |
 
 ### Settings and the machine
 
@@ -91,8 +91,8 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What is missing | What it must be | Status |
 |---|---|---|---|
-| OF-39 | Product management and analytics | Per project: tasks done per week, lead time (created to done), time in review, questions waiting and their age, the share of tasks reopened; per estate the same summed. Read from the journal; no new tracking | open |
-| OF-40 | Notifications | A question or a review waiting for the person reaches them outside Fabric too (the operator's private Telegram chat through the communicator, per the 2026-10-21 rule), once, with a link back | open |
+| OF-39 | Product management and analytics | Per project: tasks done per week, lead time (created to done), time in review, questions waiting and their age, the share of tasks reopened; per estate the same summed. Read from the journal; no new tracking | moved to 0.3.12 (D-6) |
+| OF-40 | Notifications | A question or a review waiting for the person reaches them outside Fabric too (the operator's private Telegram chat through the communicator, per the 2026-10-21 rule), once, with a link back | moved to 0.3.12 (D-6) |
 
 ## 2. Decisions (2026-10-23, on the operator's instruction to decide)
 
@@ -115,6 +115,13 @@ The operator asked for the open choices to be decided, not asked back («тут 
 - **D-5. People are read from Git, not asked.** A project's people are the authors of its repositories' commits
   (local `git log`, deduplicated by email; the GitHub organization's members when a door to it exists), so a team of
   several people shows up without setup. Nobody's address is shown outside the project page.
+
+- **D-6. What waits for 0.3.12 (2026-10-23, the operator: «давай доделывай все сам автономно и выбирай лучшие решения ... и новая версия»).**
+  Project onboarding by an agent (OF-31), people from Git (OF-27), the project graph (OF-32), analytics (OF-39),
+  notifications (OF-40) and the display pass that localizes with a model (OF-37's second half) each bring a model of data
+  or a spend of their own, and together they cannot pass the release's three review iterations in this release. 0.3.11
+  ships the home, the board, the task, Agents, История, Comms, Settings and the project page's order; the rest is the
+  next release's first wave.
 
 ## 3. Order of work (wave 4, 0.3.11)
 

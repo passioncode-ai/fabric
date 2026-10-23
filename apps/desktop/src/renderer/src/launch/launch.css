@@ -590,3 +590,12 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 /* OF-22: the way back at the top left, above a page's title. */
 .lp-back{display:inline-flex;align-items:center;gap:var(--space-1);margin:0 0 var(--space-2);padding:0;border:0;background:none;color:var(--app-muted);font:inherit;font-size:13px;cursor:pointer}
 .lp-back:hover{color:var(--app-ink)}
+/* Comms as a feed (the operator's walk OF-29): newest first, one post per row, a focus filter on top. */
+.lc-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-2);margin-bottom:var(--space-3)}
+.lc-project{min-width:220px;margin:0}
+.lc-posts{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-2);max-width:760px}
+.lc-post{display:grid;gap:var(--space-1);width:100%;text-align:left;padding:var(--space-3);border:1px solid var(--app-line);border-radius:var(--app-radius-panel,12px);background:var(--app-panel);color:var(--app-ink);font:inherit;cursor:pointer}
+.lc-post:hover{border-color:var(--app-line-strong,var(--app-line))}
+.lc-head{display:flex;align-items:center;gap:var(--space-2);font-size:13px}
+.lc-head time{margin-left:auto;color:var(--app-muted);font-size:12px}
+.lc-text{font-size:14px;line-height:1.5;white-space:pre-line}

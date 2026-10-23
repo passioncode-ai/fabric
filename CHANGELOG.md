@@ -39,6 +39,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by default; off, Fabric names no working language to
   agents. Documents in a project's repository keep the language that project uses ([ADR-0174](docs/adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)).
 
+- Comms opens on «Лента»: the newest posts of every thread first, each with its project, kind, time and text, with
+  «Только просьбы» and a project filter; a post opens its thread, and «Ветки» is the second tab (OF-29).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

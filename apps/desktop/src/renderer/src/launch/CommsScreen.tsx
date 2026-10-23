@@ -39,6 +39,7 @@ import type { ProjectRow } from '../../../shared/types'
 import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { FabricStrip } from './FabricStrip'
+import { CommsFeed } from './CommsFeed'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { runnerLabel } from '../runnerLabel'
 import { ALL_THREADS, MAX_HELD, PAGE as LIST_PAGE, appendOlder, boardFilterOf, cursorOf, mergeFirstPage, type Held, type ThreadFilters } from './commsList'
@@ -93,7 +94,9 @@ const sameFilters = (a: ThreadFilters, b: ThreadFilters): boolean =>
 /** A thread the operator opened: from the list, or from a search hit or a related thread the list may not hold. */
 type Opened = { thread: CommsThread; from: 'list' | 'search' | 'related'; focusSeq?: number }
 
-export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, heads }: {
+export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, heads, mode: initialMode = 'feed' }: {
+  /** OF-29 (the operator's walk, 2026-10-22): the feed opens first; the threads are the second tab. */
+  mode?: 'feed' | 'threads'
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
   projects: ProjectRow[] | null
@@ -111,6 +114,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
+  const [mode, setMode] = useState<'feed' | 'threads'>(initialMode)
   const nameOf = (id: string): string => (projects ?? []).find((p) => p.id === id)?.name ?? shortId(id)
 
   const [held, setHeld] = useState<Held | null>(null)
@@ -290,6 +294,12 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
     openThread(known ?? { id: hit.thread, subject: hit.subject ?? null, participants: hit.participants ?? [], createdBy: hit.sender, createdSeq: hit.createdSeq ?? 1,
       messageCount: 0, lastSeq: hit.seq, lastAt: hit.at, kinds: [], openRequests: 0 }, 'search', hit.seq)
   }
+  const openPost = (post: CommsMessage): void => {
+    const known = threads?.find((th) => th.id === post.thread)
+    openThread(known ?? { id: post.thread, subject: null, participants: [post.sender.project], createdBy: post.sender.project, createdSeq: 1,
+      messageCount: 0, lastSeq: 0, lastAt: post.at, kinds: [], openRequests: 0 }, 'search')
+    setMode('threads')
+  }
   const openRelated = (r: CommsRelatedThread): void => {
     const known = threads?.find((th) => th.id === r.id)
     openThread(known ?? { id: r.id, subject: r.subject, participants: r.participants ?? [], createdBy: '', createdSeq: r.createdSeq ?? 1,
@@ -306,6 +316,12 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
           <p>{t('launch.comms.lede')}</p>
         </div>
       </header>
+      <div className="lp-modes" role="group" aria-label={t('launch.comms.title')}>
+        <button type="button" className="lp-button" aria-pressed={mode === 'feed'} onClick={() => setMode('feed')}>{t('launch.comms.mode.feed')}</button>
+        <button type="button" className="lp-button" aria-pressed={mode === 'threads'} onClick={() => setMode('threads')}>{t('launch.comms.mode.threads')}</button>
+      </div>
+      {mode === 'feed' && <CommsFeed mark={attempt} nameOf={nameOf} onOpen={openPost} />}
+      {mode === 'threads' && (<>
       {threadsError && threads === null ? (
         // UNAVAILABLE, never an empty list: the board did not answer at all.
         <div className="lp-callout" role="alert">
@@ -434,6 +450,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
           )}
         </div>
       )}
+      </>)}
     </div>
   )
 }

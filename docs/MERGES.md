@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T10:00:00Z · `—` · agent/w4-comms → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/CommsFeed.tsx (new), CommsScreen.tsx (the two tabs), launch.css, i18n, tests; OF-29; D-6 (OF-27, OF-31, OF-32, OF-39, OF-40 to 0.3.12); SCN-143; CHANGELOG; the map
+- conflicts: none
+- summary: Comms reads as a feed (wave 4).
+
 ### 2026-10-23T08:30:00Z · `—` · agent/w4-agents → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/HomeWork.tsx (`AgentsAtWork`, `HomeAgents` optional «Все агенты»), App.tsx, EstateAgents.tsx, launch/HistoryScreen.tsx (the agents' feed), launch/SettingsScreen.tsx (no quotas; the language switch), shared/protocol.ts and protocolObligations.ts (the language rule optional, D-2), shared/appSettings.ts and types.ts (`agentLanguage`), main/index.ts and agentSurface.ts, rail.css, i18n, tests; ADR-0174 and the pipeline reservation moved to ADR-0175; OF-30, OF-34, OF-35, OF-37 (part), OF-38; SCN-166, SCN-168, SCN-170; CHANGELOG; the map
