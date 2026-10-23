@@ -155,6 +155,9 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   settingsWrite: MAIN_ONLY,
   settingsAgentCatalog: MAIN_ONLY,
   settingsLoginItem: MAIN_ONLY,
+  settingsClaudeInbound: MAIN_ONLY,
+  settingsSetClaudeInbound: MAIN_ONLY,
+  settingsReadiness: MAIN_ONLY,
   terminalMemoryBackends: MAIN_ONLY,
   feedReplay: MAIN_ONLY,
   commsThreads: MAIN_ONLY,
@@ -231,8 +234,9 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   metaInfo: EVERY_WINDOW,
   opsRendererError: EVERY_WINDOW,
   stackExposure: MAIN_ONLY,
-  stackHealth: MAIN_ONLY,
-  stackHealthChanged: MAIN_ONLY
+  // CO-374: the stack's health is said in the detached console and editor windows too; a read, nothing more.
+  stackHealth: EVERY_WINDOW,
+  stackHealthChanged: EVERY_WINDOW
 }
 
 /** Channel value (`feed:replay`) → its key, so a rule is found from what Electron hands the wrapper. */

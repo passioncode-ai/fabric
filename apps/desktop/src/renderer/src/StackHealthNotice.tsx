@@ -16,19 +16,34 @@ export function StackHealthNotice(): React.JSX.Element | null {
   const t = useT()
   const locale = useLocale()
   const [view, setView] = useState<StackHealthView | null>(null)
+  // CO-374: the next try's moment, counted down here each second; a view only says how many seconds were left when read.
+  const [nextAt, setNextAt] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+  const take = (v: StackHealthView): void => {
+    const at = Date.now()
+    setView(v)
+    setNow(at)
+    setNextAt(v.nextTryInS === null ? null : at + v.nextTryInS * 1000)
+  }
 
   useEffect(() => {
     let alive = true
     const stack = window.fabric?.stack
-    // A bridge without the watch (an older preload, a detached window) shows nothing rather than a broken screen.
+    // A bridge without the watch (an older preload) shows nothing rather than a broken screen.
     if (typeof stack?.health !== 'function') return
-    void stack.health().then((v) => alive && v && setView(v), () => {})
-    const off = typeof stack.onHealth === 'function' ? stack.onHealth((v) => alive && setView(v)) : () => {}
+    void stack.health().then((v) => alive && v && take(v), () => {})
+    const off = typeof stack.onHealth === 'function' ? stack.onHealth((v) => alive && take(v)) : () => {}
     return () => {
       alive = false
       off()
     }
   }, [])
+  useEffect(() => {
+    if (view?.stack !== 'down' || nextAt === null) return
+    const tick = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(tick)
+  }, [view?.stack, nextAt])
+  const nextTryInS = nextAt === null ? null : Math.max(0, Math.ceil((nextAt - now) / 1000))
 
   if (!view) return null
   const free = view.freeDiskBytes === null ? null : freeDiskGb(view.freeDiskBytes, locale)
@@ -47,7 +62,7 @@ export function StackHealthNotice(): React.JSX.Element | null {
         {view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
         <p>{t(cause)}</p>
         {view.trying && view.attempt !== null ? <p>{t('startup.wait.trying', { attempt: view.attempt })}</p>
-          : view.nextTryInS !== null && <p>{t('stack.health.nextTry', { seconds: view.nextTryInS })}</p>}
+          : nextTryInS !== null && <p>{t('stack.health.nextTry', { seconds: nextTryInS })}</p>}
       </Banner>
     )
   }

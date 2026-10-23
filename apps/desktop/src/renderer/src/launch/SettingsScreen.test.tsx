@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
-import { AgentCatalogPanel, SettingsScreen } from './SettingsScreen'
+import { AgentCatalogPanel, AgentLinksSetting, ReadinessPanel, SettingsScreen } from './SettingsScreen'
 import type { AppSettings } from '../../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -289,5 +289,39 @@ describe('a refused settings write is said on the screen itself (CO-313)', () =>
     await screen.findByText(said('read-only'))
     fireEvent.click(screen.getByRole('button', { name: en['settings.notSavedClose'] }))
     expect(screen.queryByText(said('read-only'))).toBeNull()
+  })
+})
+
+
+describe('messages between agent sessions and Fabric readiness (CO-407)', () => {
+  it('the switch shows what Claude Code\'s settings hold and sets it only when the person flips it', async () => {
+    const setClaudeInbound = vi.fn(async (on: boolean) => ({ accepting: on, value: on ? 'accept' : null }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: false, value: null })), setClaudeInbound } } }))
+    show(<AgentLinksSetting />)
+    const box = await screen.findByLabelText(en['settings.agentLinks.label']) as HTMLInputElement
+    expect(box.checked).toBe(false)
+    expect(setClaudeInbound).not.toHaveBeenCalled()
+    fireEvent.click(box)
+    await waitFor(() => expect((screen.getByLabelText(en['settings.agentLinks.label']) as HTMLInputElement).checked).toBe(true))
+    expect(setClaudeInbound).toHaveBeenCalledWith(true)
+  })
+  it('an unreadable settings file is said, and no switch is offered', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ unreadable: true })), setClaudeInbound: vi.fn() } } }))
+    show(<AgentLinksSetting />)
+    expect(await screen.findByText(en['settings.agentLinks.unreadable'])).toBeTruthy()
+    expect(screen.queryByLabelText(en['settings.agentLinks.label'])).toBeNull()
+  })
+  it('readiness runs only on «Check», lists Fabric\'s checks with their fix, and says a failed run', async () => {
+    const readiness = vi.fn(async () => ({ ok: true, version: '0.2.33', at: null, summary: { ok: 1, warn: 1, fail: 0, info: 0 },
+      checks: [{ id: 'prereq.docker', state: 'ok', detail: 'Docker answers', fix: null }, { id: 'app.fabric', state: 'warn', detail: 'Fabric 0.3.10; 0.3.11 is out', fix: 'quit Fabric, then run setup' }] }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { readiness } } }))
+    show(<ReadinessPanel />)
+    expect(readiness).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en['settings.readiness.check'] }))
+    expect(await screen.findByText('Fabric 0.3.10; 0.3.11 is out')).toBeTruthy()
+    expect(screen.getByText('quit Fabric, then run setup')).toBeTruthy()
+    readiness.mockResolvedValueOnce({ ok: false, reason: 'timeout', detail: null } as never)
+    fireEvent.click(screen.getByRole('button', { name: en['settings.readiness.check'] }))
+    expect(await screen.findByText(en['settings.readiness.failed.timeout'])).toBeTruthy()
   })
 })

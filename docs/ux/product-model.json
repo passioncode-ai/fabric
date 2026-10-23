@@ -35476,7 +35476,7 @@
       "screen_refs": [
         "SCR-89"
       ],
-      "coverage": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (0.3.11; before it, none: wave 4 redrew SCN-160's screen); 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174) Since 0.3.11: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (the language and its switch), `apps/desktop/src/shared/appSettings.ts#workingLanguageOf` and `appSettings.test.ts`.",
+      "coverage": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (0.3.11; before it, none: wave 4 redrew SCN-160's screen); 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174) Since 0.3.11: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (the language and its switch), `apps/desktop/src/shared/appSettings.ts#workingLanguageOf` and `appSettings.test.ts`.; 0.3.12 W3e (CO-407): «Сообщения между сессиями агентов», Claude Code's `crossSessionInbound` by the person's switch (`apps/desktop/src/main/claudeInbound.ts`), and «Готовность Fabric», the launcher doctor's Fabric checks on «Проверить» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx#ReadinessPanel`, `apps/desktop/src/main/fabricReadinessRead.ts`)",
       "registry_status": "implemented (0.3.11, 2026-10-23); not built yet: CO-392 (the quota still read for the project page), 0.3.12; the section names and «Сохранено» after a change are not built either (CO-392)",
       "product_observation": "unobserved",
       "expected_result": "how Fabric behaves is set in one place, each change saved at once and reversible.",
