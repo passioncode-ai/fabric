@@ -8,7 +8,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: r-8642aee374a2
 - files: scripts/product/simple.mjs and simple.css (the home's new order, the board and task views, back at the top left), calm.mjs, the product model (views simple-board, simple-task), the report, previews and coverage, the map
 - conflicts: none
-- summary: wave 4's prototype for the home, the board and a task (OF-14 to OF-19, OF-21, OF-22, OF-28).
+- summary: wave 4's prototype for the home, the board and a task (OF-14 to OF-19, OF-21, OF-22, OF-28). Also: plants P3 and P5 follow the workspace's current text (16/16 caught).
 
 ### 2026-10-23T01:00:00Z · `—` · agent/of-walk-1023 → main · fast-forward
 - run: r-8642aee374a2
