@@ -272,3 +272,26 @@ Written as each step lands, after the release commit (which carries the version,
    CO-371's update; the knowledge base pull request (`products.md`, `roadmap.md`, `plans.md`).
 6. After the tag: P-20 and P-24 marked released, the Now line, lane 2; the workspace publication; the leases `release-0311`
    released.
+
+### State on 2026-10-23
+
+- **Release commit and landing.** The release commit `8e098dbc`, with `origin/main`'s workspace pin merged in as
+  `abf6183b`, landed on `main` by fast-forward at 12:52 UTC (PR #47); hosted `ci` on the pull request: `fast — no
+  database` success; `source-and-snapshot` failed on the first push of the branch and passed on the next, as on every
+  source branch. `node scripts/release-mac.mjs --check-only --tag v0.3.11`: "is on origin/main and its release gate is
+  clear".
+- **Publication.** Tag `v0.3.11` on `abf6183b`; release run 39956992569 success (preflight, guard, macOS, Windows x64 and
+  arm64, Linux x64 and arm64, publish); published 2026-10-23 13:23:26 UTC as a pre-release with 14 assets (`gh release
+  view v0.3.11`).
+- **The bundle.** `Fabric-0.3.11-universal.dmg` matches `SHA256SUMS`; `codesign --verify --deep --strict` passes and
+  `spctl` reads "accepted, source=Notarized Developer ID"; `CFBundleShortVersionString` 0.3.11.
+- **Step 0.** 18 GB free on the disk, swap 11 773 of 13 312 MB used (13:24 UTC); nothing needed freeing.
+- **The board.** The publication post on the four release threads (`0f5d0589`, `617c8cbe`, `8448237d`, `bb87af23`; messages
+  `2014a143`, `87f18896`, `ac826afc`, `a750ecf0`) with what shipped and what is 0.3.12; CO-377's date on `27750925`
+  (`595b0af6`); CO-383's relinks on `02bf19c5` (`ba903b5d`) and `a5969ac5` (`6ba8440a`), the latter naming CO-396,
+  CO-397 and CO-371's half.
+- **The knowledge base.** products, roadmap and plans name v0.3.11 and 0.3.12 (fabric-workspace PR #396, `46aeccc7`).
+- **The plan.** P-20 and P-24 released, the Now line on P-25, lane 2 without them (this change).
+- **The install.** The live consoles were listed first: none. Waiting for the person's quit of Fabric; the agent places
+  the bundle as soon as the process ends, then the person opens Fabric.
+
