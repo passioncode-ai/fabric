@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/release-0312 → main · fast-forward
+- run: r-8642aee374a2
+- files: docs/evidence/plans/2026-10-24-release-0312-verification.md (new), CHANGELOG (Upgrading: schema 96), the review reports and their fixes, the map
+- conflicts: none
+- summary: Fabric 0.3.12's release review: the ledger, three iterations and their fixes.
+
 ### __LANDED__ · `—` · agent/0312-w3e → main · fast-forward
 - run: r-8642aee374a2
 - files: main/claudeInbound.ts and test/claude-inbound.test.mjs (new), main/fabricReadinessRead.ts and shared/fabricReadiness.ts with its test (new), main/index.ts, preload/api.ts, shared/types.ts, shared/ipcWindowPolicy.ts, launch/SettingsScreen.tsx and its test, package.json, i18n; StackHealthNotice.tsx and its test, App.tsx (CO-374, in part); SCN-170; AGENTS.md; CO-407 resolved; the backlog; CHANGELOG; the map

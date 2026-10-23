@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+**Upgrading.** This version moves the local database to schema 96 (one migration: a project's profile, its goal,
+summary, business, plan and relations). Take a backup first; 0.3.11 cannot open a schema-96 database, so going back
+is the backup with the 0.3.11 bundle. The upgrade is `supabase migration up --local` with Fabric quit, then the new
+bundle.
+
 - Comms has a third tab, «Объявления»: every announcement on the project board with how many of the projects it
   touches have answered, who has not yet, and how the others answered (adapted, filed a row, not affected); «Ждут
   ответа» shows only those still owed an answer, and an announcement opens its thread (CO-377, SCN-178; asked by
