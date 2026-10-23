@@ -104,3 +104,11 @@ describe('a day of the rhythm, read closer (SCR-42)', () => {
     expect(eventsOfDay(null, '2026-09-29')).toEqual([])
   })
 })
+
+describe('dayPart (SCN-163 greeting)', () => {
+  it('names the part of the day by the local hour, edges included', async () => {
+    const { dayPart } = await import('./homeView')
+    const at = (h: number) => new Date(2026, 9, 23, h, 30)
+    expect([4, 5, 11, 12, 16, 17, 22, 23].map((h) => dayPart(at(h)))).toEqual(['night', 'morning', 'morning', 'day', 'day', 'evening', 'evening', 'night'])
+  })
+})

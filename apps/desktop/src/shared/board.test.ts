@@ -192,3 +192,15 @@ describe('what the surface must be able to say', () => {
     expect(c.total).toBe(2)
   })
 })
+
+describe('the person\'s part of the board (CO-391)', () => {
+  it('names the kinds only a person resolves, and a question carries who asked', async () => {
+    const { PERSON_KINDS, boardEntries } = await import('./board')
+    expect([...PERSON_KINDS].sort()).toEqual(['access', 'question', 'refused'])
+    const [e] = boardEntries({
+      questions: [{ id: 'q', projectId: null, projectName: null, text: 'which?', kind: 'decision', askedAt: '2026-10-22T00:00:00Z', blocks: 0, servesActiveGoal: false, revision: 1, options: [], askedBy: { kind: 'agent', agent: 'codex' } }],
+      attention: [], projectWeightOf: () => 1, now: new Date('2026-10-23T00:00:00Z')
+    })
+    expect(e.askedBy).toEqual({ kind: 'agent', agent: 'codex' })
+  })
+})

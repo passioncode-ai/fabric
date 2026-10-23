@@ -2,10 +2,12 @@
 // rhythm of work, the top of the board and what the agents did. Each reads what the window
 // already holds and says which of its three states it is in — unread, read and empty, read.
 
+import { runnerLabel } from '../runnerLabel'
 import { useEffect, useState } from 'react'
 import type { BoardCut, BoardEntry } from '../../../shared/board'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
-import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
+import type { AnswerReceipt, FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
+import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { liveIsFresh, liveRows, rhythmDays, rhythmTotals, RHYTHM_DAYS, type LiveRow } from '../../../shared/homeView.ts'
 import { describeEvent, useLocale, useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
@@ -56,22 +58,46 @@ export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; n
   )
 }
 
+/** CO-391 (OF-14): who asks, in words: the agent by its name when Fabric knows it, else «агент», or «человек». */
+function askerOf(item: BoardEntry, t: ReturnType<typeof useT>): string | null {
+  if (!item.askedBy) return null
+  if (item.askedBy.kind === 'person') return t('needsYou.askedByPerson')
+  return item.askedBy.agent ? t('needsYou.askedByAgent', { agent: runnerLabel(item.askedBy.agent, t) }) : t('needsYou.askedByAnAgent')
+}
+
 /** The top three of the SAME query the board runs, so the count here and the board never disagree (M151). */
-export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number; onBoard(item?: string): void; onAddTopic?(): void }): React.JSX.Element {
+export function HomeBoard({ feedMark, onBoard, onAddTopic, onTotal }: { feedMark: number; onBoard(item?: string): void; onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element {
   const t = useT()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
+  const [draft, setDraft] = useState<Record<string, string>>({})
+  const [receipt, setReceipt] = useState<Record<string, AnswerReceipt>>({})
+  const [sending, setSending] = useState<string | null>(null)
+  const answer = async (item: BoardEntry, option?: string): Promise<void> => {
+    setSending(item.ref)
+    try {
+      const r = await submitAnswer(item, draft[item.ref] ?? '', option)
+      setReceipt((m) => ({ ...m, [item.ref]: r }))
+      if (r.committed) setDraft((d) => ({ ...d, [item.ref]: '' }))
+    } catch (e) {
+      setProblem(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSending(null)
+    }
+  }
   useEffect(() => {
     let alive = true
     try {
-      void window.fabric.board.query({ projectId: null, limit: 3 }).then(
-        (v) => { if (alive) { setView(v); setProblem(null) } },
-        (e: unknown) => alive && setProblem(e instanceof Error ? e.message : String(e))
+      // CO-391 (OF-14): only what the person can resolve; what an agent can settle lives on the Board.
+      void window.fabric.board.query({ projectId: null, limit: 3, personOnly: true }).then(
+        (v) => { if (alive) { setView(v); setProblem(null); onTotal?.(v.data?.total ?? null) } },
+        (e: unknown) => { if (alive) { setProblem(e instanceof Error ? e.message : String(e)); onTotal?.(null) } }
       )
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e))
     }
     return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onTotal is a setter from the parent; the reading follows the feed only
   }, [feedMark])
   const cut = view?.data ?? null
   const unread = (view?.sources ?? []).filter((s) => s.status !== 'ok')
@@ -97,7 +123,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
             <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
             <span>
               <span className="lp-topic-title">{titleOf(item, t)}</span>
-              {item.projectName && <span className="lp-meta">{item.projectName}</span>}
+              {(item.projectName || item.askedBy) && <span className="lp-meta">{[item.projectName, askerOf(item, t)].filter(Boolean).join(' · ')}</span>}
             </span>
             <span className="lp-topic-end">
               <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')}</span>
@@ -106,6 +132,11 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
           </summary>
           <div className="lh-need-body">
             {item.detail ? <p>{item.detail}</p> : <p className="lp-meta">{t('launch.home.board.noDetail')}</p>}
+            {/* SCN-163 step 2 (CO-391): a question is answered where it is read, the options as buttons. */}
+            {item.question && (
+              <AnswerForm look="launch" item={item} draft={draft[item.ref] ?? ''} onDraft={(v) => setDraft((d) => ({ ...d, [item.ref]: v }))}
+                receipt={receipt[item.ref]} sending={sending === item.ref} onSubmit={(option) => void answer(item, option)} />
+            )}
             <button type="button" className="lp-button" onClick={() => onBoard(item.ref)}>{t('launch.home.board.openOne')}</button>
           </div>
         </details>

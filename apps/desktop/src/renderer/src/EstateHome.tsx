@@ -6,7 +6,7 @@ import { Banner, Button, EmptyState, Panel, Row, StateChip, Toolbar } from './co
 import { Feed } from './Feed'
 import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
-import { resumePoint } from '../../shared/homeView.ts'
+import { dayPart, resumePoint } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
 import { HomeBoard, HomeLive, HomeRhythm } from './launch/HomeParts'
 import { HomeAgents, HomeStats, HomeWorkLanes, useHome } from './launch/HomeWork'
@@ -105,6 +105,7 @@ export function EstateHome({
   const showConsole = useOpenConsole()
   const [now] = useState(() => new Date())
   const [moreOpen, setMoreOpen] = useState(false)
+  const [personWaiting, setPersonWaiting] = useState<number | null>(null)
   /** Computed from the DECLARED coverage, so a table that stops being carried
    *  changes this sentence without anyone remembering to. */
   const mirror = restorability(declaredCoverage())
@@ -483,6 +484,11 @@ export function EstateHome({
             <div>
               <p className="lp-kicker">{t('launch.home.kicker')}</p>
               <h2 tabIndex={-1}>{t('launch.brand.product')}</h2>
+              {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
+              <p className="lh-greeting" data-testid="home-greeting">
+                {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
+                  personWaiting === null ? null : personWaiting > 0 ? t('launch.home.greet.waiting', { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
+              </p>
               {onPersona && <button type="button" className="lp-button lh-text-link" onClick={onPersona}>{t('launch.home.persona')}</button>}
             </div>
           </div>
@@ -495,7 +501,7 @@ export function EstateHome({
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
-          <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+          <HomeBoard onTotal={setPersonWaiting} feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
           {/* OF-15 (the operator's walk, 2026-10-22): «Где остановились» right under «Нужны вы», both on top. */}
           <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
             <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>

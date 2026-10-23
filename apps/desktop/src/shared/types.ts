@@ -1229,7 +1229,7 @@ export interface FabricApi {
     /** One ranked list of authored questions and derived obligations, cut to a
      *  scale (M151). A ReadEnvelope, so a source that failed can never render
      *  as a quiet board. */
-    query(q?: { projectId?: string | null; limit?: number }): Promise<ReadEnvelope<BoardCut>>
+    query(q?: { projectId?: string | null; limit?: number; personOnly?: boolean }): Promise<ReadEnvelope<BoardCut>>
     /** What stopped waiting because it was answered, newest first (SCR-41 «Разобрано»).
      *  A ReadEnvelope for the same reason as `query`: an unread source is not "nothing resolved". */
     resolved(q?: { projectId?: string | null; limit?: number }): Promise<ReadEnvelope<ResolvedEntry[]>>
