@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T19:00:00Z · `—` · agent/0312-s6-quota → main · fast-forward
+- run: r-8642aee374a2
+- files: docs/handoffs/2026-10-23-0312-w1-done.md; the map
+- conflicts: none
+- summary: The handoff after slice S5, with the next task (CO-392) and where its code is.
+
 ### 2026-10-23T18:58:00Z · `—` · agent/0312-w2-s5 → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/projectGraph.ts (new) and its test; launch/GraphScreen.tsx (new) and its test; launch/LaunchShell.tsx (the rail's graph entries), App.tsx; shared/appRoute.ts (graph); main/index.ts (projects.graph); shared/types.ts, ipcWindowPolicy.ts, preload/api.ts; i18n; CSS; SCN-175; AGENTS.md; CHANGELOG; the backlog; the handoff; the map
