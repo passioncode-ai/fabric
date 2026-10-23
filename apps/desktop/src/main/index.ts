@@ -1042,6 +1042,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
     // (0.3.11 review, iteration 2, ER-3: the person may have switched it off).
     language: () => workingLanguageOfRead(readSettingsState()),
+    // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
+    machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,

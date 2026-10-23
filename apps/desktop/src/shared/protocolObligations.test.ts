@@ -60,12 +60,23 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/not_available[\s\S]*not empty/)
   })
 
-  it('says how a request is answered: com.enroll then com.claim under the operator\'s board.respond grant (Settings → Agent access); without it, reply and say it stays queued (wave-2 fix 16)', () => {
+  it('says how a request is answered: a reply from this project answers it (DEC-0098, DEC-0102, CO-397); carrying it out is com.enroll then com.claim under the operator\'s board.respond grant (Settings → Agent access)', () => {
     const o = byId('board.read-at-start')
+    expect(o.text).toMatch(/com\.reply\) answers that request: its state becomes answered/)
     expect(o.text).toMatch(/com\.enroll[\s\S]*com\.claim/)
     expect(o.text).toMatch(/board\.respond/)
     expect(o.text).toMatch(/Settings → Agent access/)
-    expect(o.text).toMatch(/reply[\s\S]*stays queued/)
+    expect(o.text).not.toMatch(/stays queued/)
+  })
+
+  it('asks for the whole spec before a task starts, one question at a time, and says how the person sees a short brief (ADR-0176 §1)', () => {
+    const o = byId('intake.spec-first')
+    expect(o.mode).toBe('ADVICE')
+    expect(o.text).toMatch(/what should happen, why, what will be true when it is done/)
+    expect(o.text).toMatch(/one question at a time: the person with fabric_question_ask/)
+    expect(o.text).toMatch(/another project's agent filed the task on the board, that agent with com\.reply on its request/)
+    expect(o.text).toMatch(/Build nothing, file no sub-task and hand nothing on while a question is open/)
+    expect(o.text).toMatch(/fabric_task_brief \(what, why, expected\)/)
   })
 
   it('sends a cross-project ask only through com.submit to a Project, never a session, a process or a folder', () => {

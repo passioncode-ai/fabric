@@ -211,3 +211,23 @@ describe('a claimed task back in the queue (0.3.11 review, iteration 2, ER-4)', 
     expect(home.inWork).toHaveLength(0)
   })
 })
+
+describe('composeHome: a task in work whose spec is not gathered (ADR-0176 §1)', () => {
+  it('flags a claimed or running task whose brief lacks a part, and says nothing for a brief read without its parts', () => {
+    const v = composeHome({
+      where: where([session('s1', P1)], [claim('t1', P1, 's1'), claim('t2', P1, 's1')]),
+      projects, stages: [],
+      briefs: [
+        { id: 't1', project_id: P1, title: 'Short', brief_what: 'Do it', brief_why: '', brief_expected: null, status: 'running' },
+        { id: 't2', project_id: P1, title: 'Old read', brief_what: 'Do it', status: 'running' }
+      ],
+      reviewTasks: [],
+      runningTasks: [{ id: 't3', project_id: P1, title: 'Whole', brief_what: 'a', brief_why: 'b', brief_expected: 'c', status: 'running', updated_at: '2026-10-14T08:00:00Z' }],
+      activity: new Map(), now: '2026-10-14T09:00:00Z'
+    })
+    const byId = new Map(v.inWork.map((w) => [w.taskId, w.specMissing]))
+    expect(byId.get('t1')).toBe(true)
+    expect(byId.get('t2')).toBeUndefined()
+    expect(byId.get('t3')).toBe(false)
+  })
+})

@@ -21,8 +21,8 @@ move.
 
 | Wave | What | Rows |
 |---|---|---|
-| W1 | The operator's ADR-0176 and the protocol text it changes; the board's wall between businesses (an operator rule broken today) and the asks waiting for an answer | CO-403, CO-404, CO-397, CO-399, CO-368, CO-369, CO-360, CO-383 |
-| W2 | Project onboarding and the project page (D-6), with the places the walk named and their docs | CO-401, CO-391, CO-392, CO-393, CO-394, CO-395, CO-388, CO-307, CO-367, CO-329, CO-306, CO-313, CO-400 |
+| W1 | The operator's ADR-0176 and the protocol text it changes, and the asks waiting for an answer | CO-403, CO-404, CO-397, CO-399, CO-360, CO-383 |
+| W2 | Project onboarding and the project page (D-6), with the places the walk named and their docs; a project's business on its page, which the board's wall between businesses is built on | CO-368, CO-369, CO-401, CO-391, CO-392, CO-393, CO-394, CO-395, CO-388, CO-307, CO-367, CO-329, CO-306, CO-313, CO-400 |
 | W3 | The reads say when they stop, the waits have deadlines, and the gate can be trusted | CO-310, CO-405, CO-311, CO-312, CO-314, CO-370, CO-373, CO-374, CO-375, CO-386, CO-390, CO-284, CO-379, CO-332, CO-346, CO-347, CO-352, CO-353, CO-363 |
 
 ## 0.3.13: the contract's repin and one schema step
@@ -104,8 +104,8 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-365 | 0.4.0 | measured at the first reboot after 0.3.12 |
 | CO-366 | 0.4.0 | with P-13 |
 | CO-367 | 0.3.12 W2 | repositories without a project are offered to onboarding |
-| CO-368 | 0.3.12 W1 | an operator rule broken today |
-| CO-369 | 0.3.12 W1 | with CO-368 |
+| CO-368 | 0.3.12 W2 | an operator rule broken today; moved from W1 on 2026-10-23: Fabric has no notion of a project's business, so the wall needs the business field the project page (W2) adds |
+| CO-369 | 0.3.12 W2 | with CO-368: the directory names a project by its repository when names collide |
 | CO-370 | 0.3.12 W3 | the epochs age out together around 2026-11-15, before 0.3.13 |
 | CO-371 | its owners | asked on `a5969ac5` |
 | CO-372 | 0.4.0 | sharing |
@@ -135,5 +135,5 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-404 | 0.3.12 W1 | ADR-0176 §2, §3 |
 | CO-405 | 0.3.12 W3 | the reads' edges |
 
-Counts, recomputed from this table: 0.3.12 W1 8, W2 13, W3 19 (40 in 0.3.12); 0.3.13 16; 0.4.0 10; its owners 1;
+Counts, recomputed from this table: 0.3.12 W1 6, W2 15, W3 19 (40 in 0.3.12); 0.3.13 16; 0.4.0 10; its owners 1;
 retired 1; done 1; 69 in all.

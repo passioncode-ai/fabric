@@ -4,7 +4,13 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-23T16:30:00Z · `—` · agent/0312-triage → main · fast-forward
+### 2026-10-23T__LANDED__ · `—` · agent/0312-w1 → main · fast-forward
+- run: r-8642aee374a2
+- files: shared/protocol.ts (machine, the cross-project rule, version 3), shared/protocolObligations.ts (intake.spec-first, the board rule), shared/taskSpec.ts (new), shared/appSettings.ts and types.ts (machineTrust), shared/homeLive.ts, shared/taskBoard.ts, main/workRead.ts, main/agentSurface.ts (trust read, CO-399), main/boardTools.ts, main/index.ts; TaskPage, KanbanBoard, SettingsScreen; i18n; tests; SCN-176, SCN-177; ADR-0176 amendments; CO-397, CO-399, CO-403 resolved, CO-404 partially; CHANGELOG; operating-surfaces.md; the map
+- conflicts: none
+- summary: 0.3.12 wave 1, ADR-0176: a task starts only once its spec is gathered, and work in another project crosses by this computer's trust, set in Settings and named at fabric_whoami.
+
+### 2026-10-23T15:29:00Z · `—` · agent/0312-triage → main · fast-forward
 - run: r-8642aee374a2
 - files: docs/evidence/plans/2026-10-23-release-0312-triage.md (new); the carry-over register (the triage note, CO-293 closed, CO-371 recorded); the backlog (P-25, the Now line, the open count); the map
 - conflicts: none

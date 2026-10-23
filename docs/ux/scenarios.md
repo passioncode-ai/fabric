@@ -179,8 +179,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
 | SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
 | SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | draft | unobserved |
-| SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
-| SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
+| SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | implemented | unobserved |
+| SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | implemented | unobserved |
 | SCN-178 | See which projects have not answered an announcement | Project communications | P-01 | FLW-83, SCR-81 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
@@ -4304,7 +4304,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-10-22: «если провалюсь в задачу, ничего не понятно, о чём эта задача ... сделать нормальную структуру задачи, шаблонный вид» (OF-21, OF-22).
 - **Telemetry:** planned only.
 - **Status:** draft: 0.3.11 ships the template order and the way back; the move history and blockers are CO-401, 0.3.12
-- **Coverage:** partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project
+- **Coverage:** partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project
 - **Product:** unobserved
 
 ### SCN-175: See how a project is connected to the others on a graph
@@ -4341,13 +4341,13 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   3. Spec whole -> the agent writes the brief (what, why, expected) and starts; the task page shows it (SCN-174).
 - **Expected result:** no task is built from a one-line instruction; the person sees what was agreed before work starts.
 - **Alt paths:** the person is away -> the task waits as «Спецификация не собрана» with the open question on «Нужны вы»; a task filed by another agent -> the questions go to that agent's project on the board.
-- **UI elements:** «Спецификация не собрана» on the task page and its card; the open question on «Нужны вы».
+- **UI elements:** «Спецификация не собрана» on the task page, naming the missing parts, and on its card in Очередь and В работе (`shared/taskSpec.ts#specMissing`); the open question on «Нужны вы».
 - **States covered:** asking, waiting for an answer, whole, started.
 - **Errors & recovery:** a question that cannot be posted keeps the task in the queue and says why.
 - **Design rationale:** the operator, 2026-10-23: «при начале и постановке задачи всегда нужно убедиться, что вся спецификация собрана, и не отпускать, пока не собрана грилингом» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
 - **Telemetry:** planned only.
-- **Status:** draft
-- **Coverage:** none yet (0.3.12, CO-403)
+- **Status:** implemented (0.3.12, CO-403): the hub's rule `intake.spec-first` at `fabric_whoami`; the spec is whole when the brief's what, why and expected are written (out of scope and constraints belong to expected)
+- **Coverage:** `apps/desktop/src/shared/taskSpec.test.ts`, `apps/desktop/src/shared/protocolObligations.test.ts`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`, `apps/desktop/src/renderer/src/launch/KanbanBoard.test.tsx`, `apps/desktop/src/shared/taskBoard.test.ts`, `apps/desktop/src/shared/homeLive.test.ts`
 - **Product:** unobserved
 
 ### SCN-177: Work another project's agent should do crosses by the machine's trust
@@ -4363,13 +4363,13 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   4. Person reads the board -> sees who asked whom, what for, and who did it.
 - **Expected result:** a team's agents pass work between each other through the board, and an organization's machine never writes into a project it does not own.
 - **Alt paths:** trust unknown -> treated as not trusted; the owning project has no agent at all -> the request reaches «Нужны вы».
-- **UI elements:** «Этот компьютер мой» in Settings; the request and its outcome on the board.
+- **UI elements:** «Этот компьютер» in Settings → Компьютер («Не указано», «Мой (личный или мой удалённый)», «Организации, не под моим управлением»), each with what an agent here may do; the request and its outcome on the board.
 - **States covered:** filed, taken by the owner, done by the asker (trusted), waiting (untrusted), done.
 - **Errors & recovery:** a request the board refuses stays with the asking agent, which says so on its task.
 - **Design rationale:** the operator, 2026-10-23: «если проект личный или машина моя ... если агент есть, он подхватит, если нет, второй агент может сам; а если машина не моя, то первый агент заберёт с доски, когда будет онлайн» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
 - **Telemetry:** planned only.
-- **Status:** draft
-- **Coverage:** none yet (0.3.12, CO-404)
+- **Status:** implemented (0.3.12, CO-404): `fabric_whoami` names `protocol.machine` and serves the rule for it; «online» is the owning project's responder shown live by `com.directory`
+- **Coverage:** `apps/desktop/src/shared/protocol.test.ts`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`, `apps/desktop/test/agent-surface.test.mjs`
 - **Product:** unobserved
 
 ### SCN-178: See which projects have not answered an announcement

@@ -131,3 +131,40 @@ describe('the working language can be switched off (the operator\'s walk OF-38)'
     expect(p.rules[1]).toMatch(/^A task is in one of/)
   })
 })
+
+describe('this computer\'s trust decides the cross-project rule (ADR-0176 §2, §3)', () => {
+  const rule = (p: ReturnType<typeof buildProtocol>) => p.rules.find((r) => r.includes("project's board first")) ?? ''
+
+  it('is not trusted until the person says the computer is theirs, and then says so', () => {
+    expect(buildProtocol({ now: at, timeZone: 'UTC' }).machine).toEqual({ trust: 'unknown', trusted: false })
+    expect(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: null }).machine).toEqual({ trust: 'unknown', trusted: false })
+    expect(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'organization' }).machine).toEqual({ trust: 'organization', trusted: false })
+    expect(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'mine' }).machine).toEqual({ trust: 'mine', trusted: true })
+    expect(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'yes' }).machine.trusted).toBe(false)
+  })
+
+  it('on the operator\'s computer: the owner\'s agent takes it when online, else the asker may make the change itself', () => {
+    const r = rule(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'mine' }))
+    expect(r).toMatch(/com\.submit, kind request, addressed to that Project/)
+    expect(r).toMatch(/com\.directory shows its responder live\), leave the request to it/)
+    expect(r).toMatch(/If none is online, you may make the change yourself/)
+    expect(r).not.toMatch(/Never edit another project/)
+  })
+
+  it('on a computer that is not the operator\'s, or not said, the asker never edits and the request waits', () => {
+    for (const trust of ['organization', null] as const) {
+      const r = rule(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: trust }))
+      expect(r).toMatch(/com\.submit, kind request/)
+      expect(r).toMatch(/Never edit another project's repository from here/)
+      expect(r).toMatch(/waits on the board until that project's own agent is online/)
+      expect(r).not.toMatch(/you may make the change yourself/)
+    }
+  })
+
+  it('is a different protocol on a trusted computer, so a session can tell which rule it had', () => {
+    const mine = buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'mine' })
+    const org = buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'organization' })
+    expect(protocolHash(mine)).not.toBe(protocolHash(org))
+    expect(PROTOCOL_VERSION).toBe('3')
+  })
+})

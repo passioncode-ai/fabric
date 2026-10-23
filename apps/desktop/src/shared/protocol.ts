@@ -32,7 +32,8 @@ import { OBLIGATIONS, labelled } from './protocolObligations.ts'
 /** Bumped by hand when the SHAPE changes, so a reader can name a change the hash
  *  can only detect. The hash says two protocols differ; the version says how. */
 // '2' (0.3.11, P-24): `language` joined the shape (the working language, or null).
-export const PROTOCOL_VERSION = '2'
+// '3' (0.3.12, ADR-0176): `machine` joined the shape (this computer's trust), and its rule with it.
+export const PROTOCOL_VERSION = '3'
 
 export interface ProtocolVocabulary {
   taskStates: TaskState[]
@@ -61,11 +62,57 @@ export function workingLanguage(locale: string | undefined): WorkingLanguage {
   return locale === 'ru' ? WORKING_LANGUAGES.ru : WORKING_LANGUAGES.en
 }
 
+/**
+ * Whether this computer is the operator's (ADR-0176 §3), as the person said it in Settings. `unknown` is the
+ * person not having said it, and is not trusted: the stricter rule holds until somebody decides otherwise.
+ */
+export interface MachineStanding {
+  trust: 'mine' | 'organization' | 'unknown'
+  trusted: boolean
+}
+
+/** The settings' answer as the hub names it; anything but `mine` is not trusted. */
+export function machineStanding(trust: string | null | undefined): MachineStanding {
+  if (trust === 'mine') return { trust: 'mine', trusted: true }
+  if (trust === 'organization') return { trust: 'organization', trusted: false }
+  return { trust: 'unknown', trusted: false }
+}
+
+/**
+ * The rule for work another project's agent should do (ADR-0176 §2), as it reads on THIS computer. ADVICE: Fabric
+ * cannot see an agent writing into another checkout, so the rule is the agent's to keep; the board request it starts
+ * with is the part Fabric records.
+ */
+function crossProjectRule(machine: MachineStanding): string {
+  const first =
+    '[ADVICE] When your work needs a change in another project that its own agent should make, file it on that ' +
+    "project's board first: com.submit, kind request, addressed to that Project, saying what is needed and why, and " +
+    'linked to your task. '
+  if (machine.trusted)
+    return (
+      first +
+      "This computer is the operator's own, as the person set in Fabric's Settings. If that project has an agent online " +
+      '(com.directory shows its responder live), leave the request to it. If none is online, you may make the change ' +
+      "yourself in that project's repository, under that project's own rules, and record what you did with com.reply " +
+      'on the request.'
+    )
+  return (
+    first +
+    (machine.trust === 'organization'
+      ? "This computer is an organization's machine that is not the operator's, as the person set in Fabric's Settings. "
+      : "Nobody has said in Fabric's Settings whether this computer is the operator's, so it is treated as not theirs. ") +
+    "Never edit another project's repository from here: the request waits on the board until that project's own " +
+    'agent is online and takes it. Say on your task that you are waiting for it.'
+  )
+}
+
 export interface Protocol {
   version: string
   now: { utc: string; timeZone: string }
   /** Null when the person switched the working language off (OF-38): agents keep their own language. */
   language: WorkingLanguage | null
+  /** This computer's trust (ADR-0176 §3), which decides the cross-project rule an agent reads. */
+  machine: MachineStanding
   vocabulary: ProtocolVocabulary
   rules: string[]
   /** This protocol was handed over. Whether it was read is a different fact and
@@ -97,8 +144,11 @@ export function buildProtocol(input: {
   extraRules?: string[]
   /** The interface's locale (`settings.locale`); English when absent; null when the person switched it off (OF-38). */
   language?: string | null
+  /** The settings' `machineTrust` (ADR-0176 §3); absent or null is not chosen, and is not trusted. */
+  machineTrust?: string | null
 }): Protocol {
   const language = input.language === null ? null : workingLanguage(input.language)
+  const machine = machineStanding(input.machineTrust)
   const ladder = input.ladder ?? LADDER
   const taskStates = Object.keys(ladder) as TaskState[]
 
@@ -132,10 +182,11 @@ export function buildProtocol(input: {
         .join('; ') +
       `. You cannot move a task to ${taskStates.filter((s) => !taskStates.some((f) => agentMoves[f].includes(s))).join(' or ')} — that is the operator's move.`,
     ...JUDGEMENT_RULES,
+    crossProjectRule(machine),
     ...(input.extraRules ?? [])
   ]
 
-  return { version: PROTOCOL_VERSION, now: { utc: input.now.toISOString(), timeZone: input.timeZone }, language, vocabulary, rules, served: true }
+  return { version: PROTOCOL_VERSION, now: { utc: input.now.toISOString(), timeZone: input.timeZone }, language, machine, vocabulary, rules, served: true }
 }
 
 /**
@@ -148,6 +199,7 @@ export function buildProtocol(input: {
 export function protocolHash(p: Protocol): string {
   const material = JSON.stringify({
     version: p.version,
+    machine: p.machine,
     vocabulary: p.vocabulary,
     // The date sentence is regenerated per session and is not part of the rules'
     // identity; every other rule is.

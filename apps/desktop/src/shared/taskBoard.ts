@@ -2,7 +2,7 @@
 // The Board screen's kanban (the operator's walk of 2026-10-22, OF-19; decision D-1): the ladder Fabric enforces
 // (`ladder.ts`) laid out as four columns, Очередь, В работе, На проверке, Готово. Built from the home's own reading
 // (who works on what, review, finished) plus the queue, so the home and the board never disagree about a task.
-import { taskSummary, type HomeView, type TaskBrief } from './homeLive.ts'
+import { specFlag, taskSummary, type HomeView, type TaskBrief } from './homeLive.ts'
 
 export type BoardStage = 'backlog' | 'running' | 'review' | 'done'
 
@@ -15,6 +15,8 @@ export interface BoardCard {
   agent: string | null
   /** When it entered its column, when known. */
   since: string | null
+  /** ADR-0176 §1: a queued or running task whose brief lacks a part; absent when the brief was not read. */
+  specMissing?: boolean
 }
 
 export interface BoardColumn {
@@ -41,12 +43,12 @@ export function composeTaskBoard(input: {
   const names = new Map(input.projects.map((p) => [p.id, p.name]))
   const queue: BoardCard[] = input.queued
     .filter((t) => t.status === 'backlog' && names.has(t.project_id))
-    .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), agent: null, since: t.updated_at ?? null }))
+    .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), agent: null, since: t.updated_at ?? null, ...specFlag(t) }))
   const h = input.home
   return {
     columns: [
       { stage: 'backlog', cards: queue, capped: input.queued.length >= input.queuedLimit },
-      { stage: 'running', cards: h.inWork.map((w) => ({ taskId: w.taskId, projectId: w.projectId, projectName: w.projectName, summary: w.summary, agent: w.agent, since: w.since })), capped: !!h.inWorkCapped },
+      { stage: 'running', cards: h.inWork.map((w) => ({ taskId: w.taskId, projectId: w.projectId, projectName: w.projectName, summary: w.summary, agent: w.agent, since: w.since, ...(w.specMissing !== undefined ? { specMissing: w.specMissing } : {}) })), capped: !!h.inWorkCapped },
       { stage: 'review', cards: h.review.map((r) => ({ ...r, agent: null })), capped: !!h.reviewCapped },
       { stage: 'done', cards: h.done.map((r) => ({ ...r, agent: null })), capped: !!h.doneCapped, ...(h.doneUnread ? { unread: h.doneUnread } : {}) }
     ],

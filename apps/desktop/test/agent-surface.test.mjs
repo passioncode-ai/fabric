@@ -88,7 +88,9 @@ const policy = new Policy({ db, journal })
 let surfaceLanguage = 'ru'
 const surface = new AgentSurface({
   db, journal: createDesktopJournal(journal), ptys, policy, estateId: ESTATE,
-  language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage }
+  language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage },
+  // ADR-0176 §3: this computer marked as the operator's in Settings.
+  machineTrust: () => 'mine'
 })
 await surface.start()
 
@@ -166,6 +168,12 @@ off.protocol?.language === null && off.rules?.length
   : fail('the switch off still named a language: ' + JSON.stringify(off.protocol?.language))
 surfaceLanguage = 'ru'
 
+// ADR-0176 §3: the computer's trust from Settings is named, and the cross-project rule follows it.
+me.protocol?.machine?.trust === 'mine' && me.protocol.machine.trusted === true &&
+me.rules.some((r) => r.includes('you may make the change yourself'))
+  ? ok('fabric_whoami names this computer as the operator own, and the cross-project rule lets the asker act when no owner is online')
+  : fail('no trusted machine in whoami: ' + JSON.stringify(me.protocol?.machine))
+
 // M177 — what the session is told, and whether it can be told what it was told.
 const today = new Date().toISOString().slice(0, 10)
 me.rules.some((r) => r.includes(today))
@@ -197,18 +205,24 @@ me.protocol?.hash && me.protocol?.version
     .from('journal').select('seq,payload')
     .eq('type', 'session.oriented@1')
     .eq('payload->>session_id', sessionId)
-  if (rows?.length === 1) ok('reading the rules is journalled, so a session that never read them is visible')
+    .order('seq')
+  // The session was served Russian, then no language (a Settings read that threw, then switched off: the same
+  // rules twice): two orientations, the second naming the first (CO-399).
+  if (rows?.length === 2 && rows[1].payload?.previous_protocol_hash === rows[0].payload?.protocol_hash)
+    ok('reading the rules is journalled, and rules served differently later are recorded again with the earlier hash')
   else fail('session.oriented@1 rows for this session: ' + JSON.stringify(rows))
 
-  // Twice asked, once recorded. An agent re-reading its rules mid-run is good
+  // Back to Russian: other rules again, so a third record.
+  await call('fabric_whoami')
+  // Twice asked, once recorded. An agent re-reading the SAME rules mid-run is good
   // practice, and it must not turn the journal into a counter of curiosity.
   await call('fabric_whoami')
   const { data: again } = await db
     .from('journal').select('seq')
     .eq('type', 'session.oriented@1')
     .eq('payload->>session_id', sessionId)
-  if (again?.length === 1) ok('and asking a second time does not record a second orientation')
-  else fail('a second whoami produced ' + (again?.length ?? 0) + ' rows')
+  if (again?.length === 3) ok('and asking again for the same rules does not record another orientation')
+  else fail('after the language came back and a repeat, ' + (again?.length ?? 0) + ' rows')
 }
 
 // 3 — a stage report is recorded as a claim and kept apart from observation

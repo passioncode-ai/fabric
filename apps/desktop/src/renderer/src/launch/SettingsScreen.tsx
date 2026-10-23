@@ -215,6 +215,23 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
                 and macOS ignores it with the lid closed on battery. */}
             <p className="settings-note">{t('power.note')}</p>
             <LaunchAtLoginSetting value={settings.launchAtLogin !== false} onChange={onChange} />
+            {/* ADR-0176 §3: whose computer this is decides whether an agent here may make another project's change
+                itself when that project's agent is offline. Never assumed: not said reads as not the operator's. */}
+            <label className="lp-field">
+              {t('settings.machineTrust')}
+              <select
+                value={settings.machineTrust ?? ''}
+                aria-describedby="settings-machine-trust-hint"
+                onChange={(e) => void onChange({ machineTrust: e.target.value === 'mine' || e.target.value === 'organization' ? e.target.value : null })}
+              >
+                <option value="">{t('settings.machineTrust.unset')}</option>
+                <option value="mine">{t('settings.machineTrust.mine')}</option>
+                <option value="organization">{t('settings.machineTrust.organization')}</option>
+              </select>
+            </label>
+            <small id="settings-machine-trust-hint" className="lp-meta">
+              {t(settings.machineTrust === 'mine' ? 'settings.machineTrust.hintMine' : settings.machineTrust === 'organization' ? 'settings.machineTrust.hintOrganization' : 'settings.machineTrust.hintUnset')}
+            </small>
           </section>
           <section className="lp-panel" aria-labelledby="settings-look-title">
             <h3 id="settings-look-title">{t('settings.look.title')}</h3>

@@ -18,7 +18,8 @@ describe('validateSettings', () => {
       runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] },
       agentPermissions: 'manual',
       launchAtLogin: false,
-      agentLanguage: true
+      agentLanguage: true,
+      machineTrust: 'mine'
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -188,6 +189,17 @@ describe('settingsPatch', () => {
     expect(validateSettings({ agentLanguage: 'no' })?.agentLanguage).toBe(true)
     expect(settingsPatch({ agentLanguage: false })).toEqual({ ok: true, patch: { agentLanguage: false } })
     expect(settingsPatch({ agentLanguage: 'no' }).ok).toBe(false)
+  })
+
+  it('treats this computer as not the operator\'s until the person says it is (ADR-0176 §3)', () => {
+    expect(APP_SETTINGS_DEFAULTS.machineTrust).toBeNull()
+    expect(validateSettings({})?.machineTrust).toBeNull()
+    expect(validateSettings({ machineTrust: 'mine' })?.machineTrust).toBe('mine')
+    expect(validateSettings({ machineTrust: 'organization' })?.machineTrust).toBe('organization')
+    expect(validateSettings({ machineTrust: 'yes' })?.machineTrust).toBeNull()
+    expect(validateSettings({ machineTrust: true })?.machineTrust).toBeNull()
+    expect(settingsPatch({ machineTrust: 'organization' })).toEqual({ ok: true, patch: { machineTrust: 'organization' } })
+    expect(settingsPatch({ machineTrust: 'trusted' }).ok).toBe(false)
   })
 
   it('starts Fabric at login unless the person turned it off (CO-322)', () => {

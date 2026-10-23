@@ -35,3 +35,18 @@ describe('composeTaskBoard', () => {
     expect(b.columns[1].capped).toBe(false)
   })
 })
+
+describe('the spec flag reaches the cards that can still start (ADR-0176 §1)', () => {
+  it('flags a queued task whose brief lacks a part, and carries the home\'s flag for work in progress', () => {
+    const queued = [
+      { id: 'q1', project_id: 'p1', title: 'Short', brief_what: 'Do it', brief_why: null, brief_expected: null, status: 'backlog', updated_at: null },
+      { id: 'q2', project_id: 'p1', title: 'Whole', brief_what: 'a', brief_why: 'b', brief_expected: 'c', status: 'backlog', updated_at: null },
+      { id: 'q3', project_id: 'p1', title: 'Unread', brief_what: null, status: 'backlog', updated_at: null }
+    ]
+    const flagged = { ...home, inWork: [{ ...home.inWork[0], specMissing: true }] }
+    const b = composeTaskBoard({ home: flagged, queued, projects, queuedLimit: 100 })
+    expect(b.columns[0].cards.map((c) => c.specMissing)).toEqual([true, false, undefined])
+    expect(b.columns[1].cards[0].specMissing).toBe(true)
+    expect(b.columns[2].cards[0].specMissing).toBeUndefined()
+  })
+})

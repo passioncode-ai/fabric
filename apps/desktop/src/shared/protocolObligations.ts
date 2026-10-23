@@ -98,6 +98,23 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     scope: 'fabric_mediated',
     enforcementPoint: 'supabase/migrations/20260927000060_continuation_dispatch.sql#acknowledge_delivery'
   },
+  // #region intake-spec-first — docs: docs/adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md#decision
+  // ADR-0176 §1 (the operator, 2026-10-23: «не отпускать, пока не собрана грилингом»). ADVICE: nothing refuses a
+  // claim on a task whose brief is short; the task page and its card say the spec is not gathered («Спецификация не собрана») until the brief's
+  // three parts are written (shared/taskSpec.ts#specGaps), so a person sees it either way.
+  {
+    id: 'intake.spec-first',
+    text:
+      'Before you start a task, make sure its spec is whole: what should happen, why, what will be true when it is ' +
+      'done (with what is out of scope and what must not change). Ask for each missing part, one question at a time: ' +
+      'the person with fabric_question_ask, or, when another project\'s agent filed the task on ' +
+      'the board, that agent with com.reply on its request. Build nothing, file no sub-task and hand nothing on while a ' +
+      'question is open. Then write the brief with fabric_task_brief (what, why, expected) and ' +
+      'start. Until all three are written the person sees on the task that its spec is not gathered.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  // #endregion intake-spec-first
   {
     id: 'claim.before-working',
     text:
@@ -157,9 +174,11 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'At the start of the session, and each time you look for work, read the project board: com.status (whether it ' +
       'can be read, and your unread count), then com.list. A request addressed to this project is work addressed to ' +
       'you. Acknowledge with com.read_ack only what you actually read; reading marks nothing. A board that answers ' +
-      'not_available is unreachable, not empty: say so. Answering a request means com.enroll, then com.claim, under a ' +
-      'responder grant (board.respond) the operator gives in Fabric, Settings → Agent access; without it com.enroll is ' +
-      'not_authorized: reply on the request\'s thread and say the request stays queued until a responder takes it.',
+      'not_available is unreachable, not empty: say so. A reply from this project on a request addressed to it ' +
+      '(com.reply) answers that request: its state becomes answered and the asker sees it (DEC-0098, DEC-0102). Carrying ' +
+      'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond) the ' +
+      'operator gives in Fabric, Settings → Agent access; without that grant com.enroll is not_authorized, and the reply ' +
+      'is still your answer.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },

@@ -156,7 +156,7 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
     title: 'Hold your Project\'s responder slot for a capability',
     description:
       'fabric-project-comms/0.1 com.enroll (comms-enroll). Arguments: idempotency {epoch: the one com.status names, key}; capability. ' +
-      'Takes the slot of your Project for that capability, if the operator let this agent answer it (else not_authorized: the operator grants board.respond for this project and capability in Fabric, Settings → Agent access; until then reply to the request and say it stays queued). ' +
+      'Takes the slot of your Project for that capability, if the operator let this agent answer it (else not_authorized: the operator grants board.respond for this project and capability in Fabric, Settings → Agent access; until then a com.reply on the request is still your answer: a reply from the request\'s target answers it, DEC-0098 and DEC-0102). ' +
       'The receipt\'s slot carries the generation your fences name and the lease expiry (database time). A live holder answers fenced; a lapsed one is replaced. ' +
       'Leaving or ending this session releases the slot.',
     inputSchema: typed('com.enroll')

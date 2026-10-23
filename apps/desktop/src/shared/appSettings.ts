@@ -33,7 +33,7 @@ export { APP_SETTINGS_DEFAULTS }
 /** How many per-thread read marks the settings file holds (SCN-143, the unread slice). */
 const COMMS_READ_THROUGH_MAX = 4096
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -150,6 +150,8 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     agentPermissions: raw.agentPermissions === 'manual' ? 'manual' : 'fewer-prompts',
     launchAtLogin: raw.launchAtLogin !== false,
     agentLanguage: raw.agentLanguage !== false,
+    // Anything but the two words is not chosen: unknown trust is no trust (ADR-0176 §3).
+    machineTrust: raw.machineTrust === 'mine' || raw.machineTrust === 'organization' ? raw.machineTrust : null,
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

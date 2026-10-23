@@ -310,6 +310,8 @@ export interface AgentSurfaceDeps {
   /** The agents' working language (P-24): the interface's locale, or null when the person switched it off or the settings
    *  could not be read (ADR-0174). Absent: English; throwing: none named. */
   language?: () => string | null | undefined
+  /** This computer's trust from Settings (ADR-0176 §3), read at each fabric_whoami; null or absent is not trusted. */
+  machineTrust?: () => string | null | undefined
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -392,11 +394,13 @@ export class AgentSurface {
    * only read as "Fabric restarted". Bounded (ENDED_REMEMBERED, oldest first out); never the bearer itself.
    */
   private endedWhy = new Map<string, string>()
-  /** Sessions that have already been recorded as oriented. In memory on
-   *  purpose: the question the journal is asked is "did this session EVER read
-   *  its rules", so a restart appending a second row costs nothing, while a
-   *  table to prevent it would be state kept for tidiness. */
-  private oriented = new Set<string>()
+  /** Sessions already recorded as oriented, with the protocol hash they were last served. In memory on
+   *  purpose: the question the journal is asked is "did this session EVER read its rules", so a restart
+   *  appending a second row costs nothing, while a table to prevent it would be state kept for tidiness.
+   *  A later fabric_whoami that serves DIFFERENT rules (the working language or this computer's trust changed
+   *  in Settings) is recorded again with the new hash (CO-399), so the journal says what each session was
+   *  oriented to, not only what it was first told. */
+  private oriented = new Map<string, string>()
   /**
    * Calls per external principal per window. The door token is shared by every agent on this Mac, so its
    * calls are budgeted per request (a status poll) or per agent (an ask), never in one bucket that one
@@ -446,6 +450,14 @@ export class AgentSurface {
     this.pidAlive = deps.pidAlive ?? pidAlive
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
     this.board = createBoard({ rpc: (fn, args) => deps.db.rpc(fn, args) })
+  }
+
+  /** This computer's trust (ADR-0176 §3). A settings read that throws reads as not trusted: the stricter rule. */
+  private readMachineTrust(): string | null {
+    try { return this.deps.machineTrust?.() ?? null } catch (e) {
+      ops.failed('agentSurface.machine-trust-read', e, { note: 'the settings could not be read; this computer is treated as not trusted' })
+      return null
+    }
   }
 
   /** The working language's locale (P-24). A settings read that throws must not cost an agent its rules. */
@@ -1433,11 +1445,15 @@ export class AgentSurface {
           now: new Date(),
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           // P-24: read per call, so a language changed in Settings reaches the next session that asks.
-          language: this.readLanguage()
+          language: this.readLanguage(),
+          // ADR-0176 §3: read per call too, so a trust the person set reaches the next fabric_whoami.
+          machineTrust: this.readMachineTrust()
         })
 
-        if (!this.oriented.has(scope.sessionId)) {
-          this.oriented.add(scope.sessionId)
+        const servedHash = protocolHash(protocol)
+        const previousHash = this.oriented.get(scope.sessionId)
+        if (previousHash !== servedHash) {
+          this.oriented.set(scope.sessionId, servedHash)
           try {
             await this.appendRedacted({
               estateId: scope.estateId,
@@ -1451,11 +1467,14 @@ export class AgentSurface {
                 // this cannot answer what it was oriented TO, and a protocol
                 // that changed between two sessions is invisible without it.
                 protocol_version: protocol.version,
-                protocol_hash: protocolHash(protocol)
+                protocol_hash: servedHash,
+                // CO-399: present when this session was served other rules before, so a change is visible.
+                ...(previousHash ? { previous_protocol_hash: previousHash } : {})
               }
             })
           } catch (e) {
-            this.oriented.delete(scope.sessionId)
+            if (previousHash) this.oriented.set(scope.sessionId, previousHash)
+            else this.oriented.delete(scope.sessionId)
             ops.failed('agentSurface.could-not-record-that-a-session-read-its', e, { note: 'could not record that a session read its rules:' })
           }
         }
@@ -1508,9 +1527,10 @@ export class AgentSurface {
           // currency question from memory and sounds certain doing it.
           protocol: {
             version: protocol.version,
-            hash: protocolHash(protocol),
+            hash: servedHash,
             now: protocol.now,
             language: protocol.language,
+            machine: protocol.machine,
             vocabulary: protocol.vocabulary
           },
           rules: protocol.rules

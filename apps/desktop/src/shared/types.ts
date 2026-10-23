@@ -432,7 +432,16 @@ export interface AppSettings {
   launchAtLogin: boolean
   /** OF-38: the hub names the interface's language to agents as their working language; off keeps their own. */
   agentLanguage: boolean
+  /**
+   * ADR-0176 §3: whether this computer is the operator's (their own, or a remote one that is theirs) or an
+   * organization's machine under someone else's control. Null is not chosen yet, and reads as not trusted: an
+   * agent here never edits another project's repository, it files the work on that project's board.
+   */
+  machineTrust: MachineTrust
 }
+
+/** ADR-0176 §3: `mine` is trusted; `organization` and not chosen (null) are not. */
+export type MachineTrust = 'mine' | 'organization' | null
 
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
 /**
@@ -442,7 +451,7 @@ export interface AppSettings {
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust'>>
 // #endregion settings-patch
 
 /**
@@ -467,7 +476,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   // The operator's choice (2026-10-19, as in Orca): agents start with fewer prompts unless the person picks manual.
   agentPermissions: 'fewer-prompts',
   launchAtLogin: true,
-  agentLanguage: true
+  agentLanguage: true,
+  // ADR-0176 §3: never assumed; the person says it in Settings, and until then the stricter rule holds.
+  machineTrust: null
 }
 
 export interface FeedEvent {

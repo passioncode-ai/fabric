@@ -29,6 +29,7 @@ import { Banner, Button, EmptyState, Field, Panel, Row, StateChip, Toolbar } fro
 import { Feed } from './Feed'
 import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
+import { specGaps, specMissing } from '../../shared/taskSpec.ts'
 import { since } from './duration'
 import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
@@ -260,6 +261,17 @@ export function TaskPage({
               <RunCallout sessionId={task.session_id} status={run} />
               {/* OF-21: the task reads as a template first (what, why, what will be ready), the instruction after it. */}
               <h3>{t('task.brief')}</h3>
+              {/* ADR-0176 §1 (SCN-176): a task still to do or in work says when its spec is not gathered, and which
+                  parts are missing; it clears the moment the brief's three parts are written. */}
+              {specMissing(task) && (
+                <Banner tone="warn">
+                  {t('task.specMissing', {
+                    parts: specGaps(task)
+                      .map((part) => t('task.specPart', { label: sections.find((s) => s.key === part)?.label ?? part }))
+                      .join(', ')
+                  })}
+                </Banner>
+              )}
         {sections.map((section) => (
           <Field
             key={section.key}

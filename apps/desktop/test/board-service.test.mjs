@@ -528,7 +528,9 @@ test('com.enroll\'s description names only routes a session has: no fabric.acces
   registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => responder)
   assert.doesNotMatch(described.get('com.enroll'), /fabric\.access\.request/, 'a tool no project or board session has')
   assert.match(described.get('com.enroll'), /Settings → Agent access/)
-  assert.match(described.get('com.enroll'), /stays queued/)
+  // CO-397 (DEC-0098, DEC-0102): a reply from the request's target answers it; it no longer "stays queued".
+  assert.match(described.get('com.enroll'), /com\.reply on the request is still your answer/)
+  assert.doesNotMatch(described.get('com.enroll'), /stays queued/)
 })
 test('DEC-0078: a replace receipt carrying `transferred` reaches the agent, each request once with its revision and attempt; a duplicate or a holder never does', async () => {
   const att = (n) => ({ id: `79000000-0000-4000-8000-0000000000f${n}`, generation: 3, digest: 'sha256:' + 'b'.repeat(64), leaseExpiresAt: '2026-10-13T10:02:00.000Z' })

@@ -35545,7 +35545,7 @@
       "screen_refs": [
         "SCR-32"
       ],
-      "coverage": "partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project",
+      "coverage": "partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project",
       "registry_status": "draft: 0.3.11 ships the template order and the way back; the move history and blockers are CO-401, 0.3.12",
       "product_observation": "unobserved",
       "expected_result": "the person understands the task without asking its agent.",
@@ -35579,8 +35579,8 @@
       "screen_refs": [
         "SCR-32"
       ],
-      "coverage": "none yet (0.3.12, CO-403)",
-      "registry_status": "draft",
+      "coverage": "`apps/desktop/src/shared/taskSpec.test.ts`, `apps/desktop/src/shared/protocolObligations.test.ts`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`, `apps/desktop/src/renderer/src/launch/KanbanBoard.test.tsx`, `apps/desktop/src/shared/taskBoard.test.ts`, `apps/desktop/src/shared/homeLive.test.ts`",
+      "registry_status": "implemented (0.3.12, CO-403): the hub's rule `intake.spec-first` at `fabric_whoami`; the spec is whole when the brief's what, why and expected are written (out of scope and constraints belong to expected)",
       "product_observation": "unobserved",
       "expected_result": "no task is built from a one-line instruction; the person sees what was agreed before work starts.",
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
@@ -35596,8 +35596,8 @@
       "screen_refs": [
         "SCR-41"
       ],
-      "coverage": "none yet (0.3.12, CO-404)",
-      "registry_status": "draft",
+      "coverage": "`apps/desktop/src/shared/protocol.test.ts`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`, `apps/desktop/test/agent-surface.test.mjs`",
+      "registry_status": "implemented (0.3.12, CO-404): `fabric_whoami` names `protocol.machine` and serves the rule for it; «online» is the owning project's responder shown live by `com.directory`",
       "product_observation": "unobserved",
       "expected_result": "a team's agents pass work between each other through the board, and an organization's machine never writes into a project it does not own.",
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",

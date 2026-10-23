@@ -99,3 +99,22 @@ describe('the kanban, after the 0.3.11 review', () => {
     expect(screen.getByText('Dark theme')).toBeTruthy()
   })
 })
+
+describe('a task whose spec is not gathered says so on its card (ADR-0176 §1, SCN-176)', () => {
+  it('marks only the cards the read flagged', async () => {
+    const flagged: TaskBoardView = {
+      ...board,
+      columns: [
+        { stage: 'backlog', capped: false, cards: [{ taskId: 'q1', projectId: 'p2', projectName: 'Site', summary: 'Dark theme', agent: null, since: null, specMissing: true }] },
+        { stage: 'running', capped: false, cards: [{ taskId: 'r1', projectId: 'p1', projectName: 'Fabric', summary: 'New home', agent: 'claude-code', since: null, specMissing: false }] },
+        { stage: 'review', capped: false, cards: [] },
+        { stage: 'done', capped: false, cards: [] }
+      ]
+    }
+    install(async () => flagged)
+    show()
+    const queued = await waitFor(() => screen.getByText('Dark theme').closest('button') as HTMLElement)
+    expect(queued.textContent).toContain(en['launch.kanban.specMissing'])
+    expect((screen.getByText('New home').closest('button') as HTMLElement).textContent).not.toContain(en['launch.kanban.specMissing'])
+  })
+})

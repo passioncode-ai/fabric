@@ -6,6 +6,7 @@
  * `fabric_stage_report` (its `stage`, then `note`), and a task's `brief_what`; a task's `instruction` is the prompt and
  * is never shown as its summary.
  */
+import { specMissing } from './taskSpec.ts'
 import type { WhereWorkView, WorkClaimView, WorkSessionView } from './workClaims.ts'
 
 export interface StageRow {
@@ -24,6 +25,9 @@ export interface TaskBrief {
   project_id: string
   title: string | null
   brief_what: string | null
+  /** The brief's other two parts, where the read asked for them (ADR-0176 §1); absent is not read, never empty. */
+  brief_why?: string | null
+  brief_expected?: string | null
   status: string
   updated_at?: string | null
   /** The session a Fabric-launched task runs in, when it has one. */
@@ -65,6 +69,8 @@ export interface WorkItem {
   /** Someone is working on it now: a live claim, or a running session Fabric holds. A silent or lapsed claim is
    *  still listed — it is the record — but never as current work (0.3.6 review UX-2). */
   live: boolean
+  /** ADR-0176 §1: the task's brief lacks a part (what, why, expected). Absent when the brief was not read. */
+  specMissing?: boolean
 }
 
 export interface ReviewItem {
@@ -106,6 +112,12 @@ export interface HomeView {
 const clean = (s: string | null | undefined): string | null => {
   const t = (s ?? '').replace(/\s+/g, ' ').trim()
   return t.length ? t : null
+}
+
+/** ADR-0176 §1: `specMissing` for a task whose brief was read with all three parts' columns; nothing otherwise. */
+export function specFlag(t: TaskBrief | undefined): { specMissing?: boolean } {
+  if (!t || !('brief_why' in t) || !('brief_expected' in t)) return {}
+  return { specMissing: specMissing(t) }
 }
 
 /** A task's summary: what the agent wrote it is for, else its title. Never the instruction (the prompt). */
@@ -191,7 +203,8 @@ export function composeHome(input: {
     console: c.console,
     since: c.since,
     doing: c.life === 'live' ? doingOf(stageBySession.get(c.sessionId)) : null,
-    live: c.life === 'live'
+    live: c.life === 'live',
+    ...specFlag(briefById.get(c.taskId))
   }))
   const claimed = new Set(inWork.map((w) => w.taskId))
   const held = new Map(sessions.map((s) => [s.sessionId, s]))
@@ -209,7 +222,8 @@ export function composeHome(input: {
       console: s?.console ?? false,
       since: t.updated_at ?? input.now,
       doing: s && !s.stale ? doingOf(stageBySession.get(s.sessionId) ?? stageByTask.get(t.id)) : doingOf(stageByTask.get(t.id)),
-      live: (!!s && !s.stale) || stageByTask.has(t.id)
+      live: (!!s && !s.stale) || stageByTask.has(t.id),
+      ...specFlag(t)
     })
   }
   // Current work first, then the record of claims nobody is signing for.

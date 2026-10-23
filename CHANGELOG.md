@@ -13,6 +13,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   touches have answered, who has not yet, and how the others answered (adapted, filed a row, not affected); «Ждут
   ответа» shows only those still owed an answer, and an announcement opens its thread (CO-377, SCN-178; asked by
   fabric-workspace on threads `c430513b` and `27750925`).
+- A task starts only once its spec is gathered (ADR-0176): every agent is told at `fabric_whoami` to ask, one
+  question at a time, for what should happen, why and what will be true when it is done, and to build nothing until the
+  brief holds all three; until then the task page names the missing parts and its card in Очередь and В работе says
+  «Спецификация не собрана» (CO-403, SCN-176).
+- Settings → Компьютер has «Этот компьютер»: mine, or an organization's machine not under my control. Agents read it
+  at `fabric_whoami` (`protocol.machine`, protocol version 3) with the rule it brings: work another project's agent
+  should do is filed on that project's board first; on your own computer the asker may make the change itself when that
+  project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
+  and the request waits (CO-404, SCN-177).
+- The board rule agents read now says that a reply from the project a request was sent to answers it (DEC-0098,
+  DEC-0102), instead of telling them the request stays queued (CO-397); and a session served different rules later in
+  its life (the working language or this computer's trust changed) is journalled again with the earlier rules' hash
+  (CO-399).
 
 ## 0.3.11
 

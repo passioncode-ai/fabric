@@ -87,6 +87,27 @@ describe('the task page says who assigned it', () => {
   })
 })
 
+describe('a task says when its spec is not gathered (ADR-0176 §1, SCN-176)', () => {
+  it('names the missing parts of the brief on a task in work', async () => {
+    mount({ brief_what: 'Make it', brief_why: null, brief_expected: '' })
+    await waitFor(() => expect(screen.getByText(/Spec not gathered/)).toBeTruthy())
+    const said = screen.getByText(/Spec not gathered/).textContent ?? ''
+    expect(said).toContain('“Why”')
+    expect(said).toContain('“True when it is done”')
+    expect(said).not.toContain('“What should happen”')
+  })
+
+  it('says nothing once the three parts are written, or on a finished task', async () => {
+    mount({ brief_what: 'a', brief_why: 'b', brief_expected: 'c' })
+    await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
+    expect(screen.queryByText(/Spec not gathered/)).toBeNull()
+    cleanup()
+    mount({ status: 'done' })
+    await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
+    expect(screen.queryByText(/Spec not gathered/)).toBeNull()
+  })
+})
+
 describe('the tasks a document produced (M124)', () => {
   it('names the DOCUMENT, not "related" — which document is what makes the list trustworthy', async () => {
     mount(

@@ -51,3 +51,21 @@ with no rule for which; and a task can start with a one-line instruction and no 
 - The board becomes the way work moves between people's agents in a team; an organization's machine never writes into a
   project it does not own.
 - Scenarios: SCN-176 (a task is grilled to a full spec), SCN-177 (work crosses to another project by trust).
+
+## Amendments
+
+**2026-10-23, how 0.3.12 builds it (the triage's wave 1; decided by the agent on the operator's instruction to choose,
+open to the operator's review).**
+
+1. *The whole spec* is the brief's three parts, what, why and expected, each written; out of scope and the
+   constraints are written into expected, which the rule says. No new column in 0.3.12 (`shared/taskSpec.ts#specGaps`).
+   The person's questions go through `fabric_question_ask` (they reach «Нужны вы»); when another project's agent filed
+   the task on the board, the questions go to it with `com.reply` on its request.
+2. *Trust* is one setting, «Этот компьютер» in Settings → Компьютер: mine (my own, or a remote one of mine), an
+   organization's, or not said. It is never assumed: not said, and settings that cannot be read, are not trusted.
+   `fabric_whoami` names it as `protocol.machine` (protocol version 3).
+3. *The owner's agent is online* when `com.directory` shows the owning project's responder live; that is what an agent
+   can read, and the rule names it.
+4. The rule is advice, by its label: Fabric cannot see an agent write into another checkout. What Fabric records is the
+   request on the board and the reply that says what was done.
+

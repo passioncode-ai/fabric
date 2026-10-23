@@ -152,7 +152,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -175,12 +175,48 @@ describe('the agents\' working language can be switched off (the operator\'s wal
     }))
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
     fireEvent.click(box)
     expect(onChange).toHaveBeenCalledWith({ agentLanguage: false })
+  })
+})
+
+describe('this computer\'s trust, said by the person (ADR-0176 §3)', () => {
+  const open = (machineTrust: AppSettings['machineTrust'], onChange = vi.fn()) => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: {
+        start: { executors: async () => executors },
+        settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }), loginItem: async () => ({ state: 'unsupported' }) },
+        analytics: { status: async () => ({ enabled: false, answered: true }) }
+      }
+    }))
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust } as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    return { onChange, select: screen.getByRole('combobox', { name: en['settings.machineTrust'] }) as HTMLSelectElement }
+  }
+
+  it('starts not said, and says what that means for agents here', () => {
+    const { select } = open(null)
+    expect(select.value).toBe('')
+    expect(screen.getByText(en['settings.machineTrust.hintUnset'])).toBeTruthy()
+  })
+
+  it('writes the person\'s answer, and each answer says what an agent here may do', () => {
+    const { onChange, select } = open(null)
+    fireEvent.change(select, { target: { value: 'mine' } })
+    expect(onChange).toHaveBeenCalledWith({ machineTrust: 'mine' })
+    fireEvent.change(select, { target: { value: 'organization' } })
+    expect(onChange).toHaveBeenCalledWith({ machineTrust: 'organization' })
+    cleanup()
+    open('mine')
+    expect(screen.getByText(en['settings.machineTrust.hintMine'])).toBeTruthy()
+    cleanup()
+    open('organization')
+    expect(screen.getByText(en['settings.machineTrust.hintOrganization'])).toBeTruthy()
   })
 })
 

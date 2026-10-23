@@ -70,6 +70,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
                   <button key={x.taskId} type="button" className="lk-card" onClick={() => onOpen(x.projectId, x.taskId)}>
                     <b>{x.summary || t('launch.home.work.untitled')}</b>
                     <small>{[x.agent ? runnerLabel(x.agent, t) : null, x.projectName, x.since ? since(x.since, t) : null].filter(Boolean).join(' · ')}</small>
+                    {/* ADR-0176 §1 (SCN-176): a queued or running task whose brief lacks a part says so on its card. */}
+                    {x.specMissing && <span className="lp-pill attention">{t('launch.kanban.specMissing')}</span>}
                   </button>
                 ))}
               </section>

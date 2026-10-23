@@ -278,7 +278,7 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
     store.select('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at').order('reported_at', { ascending: false }).limit(500),
     // `moved_at` is when the task last changed column — for a task in review, when it was put there.
     tasks('review', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
-    tasks('running', 'id,project_id,title,brief_what,status,moved_at,started_at,session_id').limit(200),
+    tasks('running', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at,session_id').limit(200),
     store.select('journal', 'project_id,occurred_at').not('project_id', 'is', null).order('seq', { ascending: false }).limit(3000),
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
     tasks('review', 'project_id').limit(5000),
@@ -296,7 +296,8 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   const activity = new Map<string, string | null>()
   for (const e of must(journal as never, 'the journal') as Array<{ project_id: string; occurred_at: string }>) if (!activity.has(e.project_id)) activity.set(e.project_id, e.occurred_at)
   const claimIds = [...new Set(where.rows.flatMap((r) => r.claims.map((c) => c.taskId)))]
-  const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', claimIds)
+  // The brief's three parts, so «В работе» can say a task's spec is not gathered (ADR-0176 §1).
+  const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,brief_why,brief_expected,status', 'id', claimIds)
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
   const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: 20 }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
   return finishedError ? { ...home, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : home
@@ -305,7 +306,7 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */
 export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<TaskBoardView> {
   const QUEUE = 100
-  const queue = store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at,started_at').eq('status', 'backlog')
+  const queue = store.select('project_tasks', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at').eq('status', 'backlog')
   const [home, projects, queued] = await Promise.all([
     readHome(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),

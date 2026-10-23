@@ -166,6 +166,17 @@ Since P-24 ([ADR-0172](../adr/0172-the-interface-language-is-the-agents-working-
 working language (since 0.3.11 the protocol's `version` is 2, which adds this field), `protocol.language` (the interface's `settings.locale`, read at each call; null, with no rule, while the person has switched «Агенты пишут на языке интерфейса» off or the settings cannot be read, [ADR-0174](../adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)), and the rule right after
 the date says what to write in it (`shared/protocol.ts#buildProtocol`).
 
+Since 0.3.12 ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md), `version` 3)
+it also names this computer's trust, `protocol.machine` (`{trust: 'mine' | 'organization' | 'unknown', trusted}`, from
+Settings' «Этот компьютер», read at each call; not chosen, or settings that cannot be read, is `unknown` and not trusted,
+`shared/protocol.ts#machineStanding`), and the rules carry the cross-project rule for that trust: file the work on the
+owning project's board first; on a trusted computer the owner's agent takes it when online, else the asker may make the
+change itself and records it on the request; elsewhere the asker never edits and the request waits
+(`shared/protocol.ts#crossProjectRule`). Every task starts only once its brief's three parts are written, asked for
+with `fabric_question_ask` (`intake.spec-first` in `shared/protocolObligations.ts`); the task page and its card say
+«Спецификация не собрана» until then (`shared/taskSpec.ts#specMissing`). A session served different rules later (the
+language or the trust changed) is journalled again, `session.oriented@1` with `previous_protocol_hash` (CO-399).
+
 ### 5.1 An agent does not close its own task
 
 The ladder lives in `apps/desktop/src/shared/ladder.ts` and it knows who is
