@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import test from 'node:test'
 
-const { onboardingTask, onboardingTaskId } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
+const { onboardingTask, onboardingTaskId, agentProfilePayload } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
 const { specGaps } = await import(path.resolve(import.meta.dirname, '../src/shared/taskSpec.ts'))
 const P = '00000000-0000-4000-8000-000000000011'
 
@@ -33,5 +33,30 @@ test('the instruction records through the hub and changes nothing in the reposit
   assert.match(instruction, /Change nothing in the repository/)
   assert.match(instruction, /business/)
   assert.match(instruction, /leave that field out rather than guess/)
+  assert.match(instruction, /The business is the person's: record it only while the project has none/)
+})
+
+test('DA-2: an agent cannot clear or change the business the person set; the person\'s correction stands after an agent run', () => {
+  const person = { business: 'Appvillis' }
+  const cleared = agentProfilePayload({ business: '  ' }, person)
+  assert.equal(cleared.ok, false)
+  assert.match(cleared.reason, /cannot clear/)
+  const changed = agentProfilePayload({ goal: 'g', business: 'PassionCode' }, person)
+  assert.equal(changed.ok, false, 'a different business is refused, and the rest of the call with it, so nothing is half written')
+  assert.match(changed.reason, /only the person changes it: the person sets the business on the project page/)
+  // The person corrected an agent's guess; the next agent run, naming its guess again, leaves the correction standing.
+  const corrected = { business: 'PassionCode' }
+  assert.equal(agentProfilePayload({ business: 'Appvillis', summary: 's' }, corrected).ok, false)
+  // The same business (any case) is dropped, so the person's spelling stays; the rest is written.
+  assert.deepEqual(agentProfilePayload({ summary: 's', business: ' passioncode ' }, corrected), { ok: true, payload: { summary: 's' } })
+  // Nobody set one yet: the agent may record it.
+  assert.deepEqual(agentProfilePayload({ business: ' Appvillis ' }, { business: null }), { ok: true, payload: { business: 'Appvillis' } })
+  // An empty business is refused even when none is set: an agent never writes an empty one.
+  assert.equal(agentProfilePayload({ business: '' }, { business: null }).ok, false)
+  // A business that could not be read is not written over.
+  assert.equal(agentProfilePayload({ business: 'X' }, null).ok, false)
+  // A call without a business is not judged by it, and a call naming nothing writes nothing.
+  assert.deepEqual(agentProfilePayload({ goal: 'g' }, person), { ok: true, payload: { goal: 'g' } })
+  assert.equal(agentProfilePayload({}, person).ok, false)
 })
 // #endregion project-onboarding

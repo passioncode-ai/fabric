@@ -78,6 +78,7 @@ import type { Policy } from './policy'
 import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
 import { ops } from './opsSink.ts'
+import { agentProfilePayload } from './projectOnboarding.ts'
 import { untilAnsweredOrGone } from './hangUp.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
@@ -2558,11 +2559,11 @@ export class AgentSurface {
       {
         title: 'Record what this project is',
         description:
-          'Record what this project is, for the project page and the project graph: its goal, a one-line summary, the business it belongs to, its plan (done and next) and its relations to other projects. Write each in the working language fabric_whoami names (or the person\'s own, when it names none), as plain sentences the project\'s owner understands without context. Every field is optional: name only what you learned; a field you name replaces what was there, an empty string clears it, and relations, when given, replace the whole list. Read the repository, its README, its remotes and the board before you write; never put a secret, a token or a private path here.',
+          'Record what this project is, for the project page and the project graph: its goal, a one-line summary, the business it belongs to, its plan (done and next) and its relations to other projects. Write each in the working language fabric_whoami names (or the person\'s own, when it names none), as plain sentences the project\'s owner understands without context. Every field is optional: name only what you learned; a field you name replaces what was there, an empty string clears it, and relations, when given, replace the whole list. The business is the person\'s: you may record it only while the project has none; an empty business, or a different one once it is set, is refused (the person sets it on the project page). Read the repository, its README, its remotes and the board before you write; never put a secret, a token or a private path here.',
         inputSchema: {
           goal: z.string().max(600).optional().describe('What the project is for and what it aims at now, one or two sentences'),
           summary: z.string().max(160).optional().describe('One line: what the project is'),
-          business: z.string().max(80).optional().describe('The business or organization it belongs to, a short name; the board never joins projects of two different businesses'),
+          business: z.string().max(80).optional().describe('The business or organization it belongs to, a short name, only while the project has none; the board never joins projects of two different businesses, and the person decides it'),
           plan: z
             .object({
               done: z.array(z.string().min(1).max(200)).max(20).describe('What is done, newest first'),
@@ -2582,18 +2583,24 @@ export class AgentSurface {
         }
       },
       async (args) => {
-        const payload: Record<string, unknown> = {}
-        for (const key of ['goal', 'summary', 'business', 'plan', 'relations'] as const)
-          if (args[key] !== undefined) payload[key] = args[key]
-        if (Object.keys(payload).length === 0) return json({ written: false, reason: 'name at least one field' })
+        // DA-2 / ER-2: the business is the person's. Read only when the call names one; a read that fails refuses the
+        // business (never writes over a value it could not see).
+        let current: { business: string | null } | null = { business: null }
+        if (args.business !== undefined) {
+          const { data, error } = await this.deps.db.from('projects').select('business').eq('id', scope.projectId).eq('estate_id', scope.estateId).maybeSingle()
+          if (error) { ops.failed('agentSurface.project-business-read', new Error(error.message), { projectId: scope.projectId }); current = null }
+          else current = { business: (data as { business: string | null } | null)?.business ?? null }
+        }
+        const verdict = agentProfilePayload(args as Record<string, unknown>, current)
+        if (!verdict.ok) return json({ written: false, reason: verdict.reason })
         const event = await this.appendRedacted({
           estateId: scope.estateId,
           type: 'project.profiled@1',
           actor: { kind: 'agent', id: scope.sessionId },
           projectId: scope.projectId,
-          payload
+          payload: verdict.payload
         })
-        return json({ written: true, fields: Object.keys(payload), seq: event.seq })
+        return json({ written: true, fields: Object.keys(verdict.payload), seq: event.seq })
       }
     )
     // #endregion project-profile-tool

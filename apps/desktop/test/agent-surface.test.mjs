@@ -238,6 +238,14 @@ me.protocol?.hash && me.protocol?.version
   proj?.profiled_by === sessionId && rels?.length === 1 && rels[0].target === 'fabric-agent-contract'
     ? ok('fabric_project_profile records the goal, the business and the relations of this project, as this session')
     : fail('the profile did not land: ' + JSON.stringify({ wrote, proj, rels }))
+  // DA-2 / ER-2: once a business is set, an agent can neither clear it nor change it; the person decides it.
+  const cleared = await call('fabric_project_profile', { business: '' })
+  const changed = await call('fabric_project_profile', { goal: 'Another goal', business: 'Appvillis' })
+  const { data: after } = await db.from('projects').select('goal,business').eq('id', projectId).maybeSingle()
+  cleared.written === false && /cannot clear/.test(cleared.reason) && changed.written === false && /project page/.test(changed.reason) &&
+  after?.business === 'PassionCode' && after?.goal === 'Steer every project from one place'
+    ? ok('an agent cannot clear or change the business already set, and a refused call writes nothing')
+    : fail('an agent moved the business: ' + JSON.stringify({ cleared, changed, after }))
 }
 
 // 3 — a stage report is recorded as a claim and kept apart from observation

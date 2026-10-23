@@ -33,7 +33,9 @@ export function onboardingTask(projectName: string, locale: string | null | unde
     'has one, and the project board (com.list) for threads that name it. Then record: the goal (what it is for and what it ' +
     'aims at now), a one-line summary, the business it belongs to (the GitHub owner or organization, or the company the ' +
     'README names), the plan (what is done, what comes next, from its backlog), and its relations to other projects ' +
-    '(what it depends on, what uses it, who it talks to on the board). Write in the working language fabric_whoami names. ' +
+    '(what it depends on, what uses it, who it talks to on the board). The business is the person\'s: record it only while ' +
+    'the project has none; if one is already set, leave business out, and if yours differs, say so in a note on this task ' +
+    'rather than change it (the person sets it on the project page). Write in the working language fabric_whoami names. ' +
     'Change nothing in the repository: this task only reads and records. If something cannot be found, leave that field ' +
     'out rather than guess, and say so in a note on this task.'
   if (locale === 'ru')
@@ -55,5 +57,36 @@ export function onboardingTask(projectName: string, locale: string | null | unde
       expected: 'The profile is recorded and shown on the project page; nothing in the repository changed; whatever could not be found is named in a note on the task.'
     }
   }
+}
+
+/**
+ * DA-2 / ER-2 (decided 2026-10-24): a project's business is the person's, because the board's wall between businesses
+ * reads it and the party it walls must not be able to take it down. An agent's profile may set `business` only while
+ * the project has none recorded; an empty one is refused (an agent never clears it); a different one while one is set
+ * is refused with the person's route; the same one (without case and surrounding spaces) is dropped so the person's
+ * spelling stays. The person's write from the project page is not judged here: it always applies.
+ */
+export type AgentProfileVerdict =
+  | { ok: true; payload: Record<string, unknown> }
+  | { ok: false; reason: string }
+
+export function agentProfilePayload(args: Record<string, unknown>, current: { business: string | null } | null): AgentProfileVerdict {
+  const payload: Record<string, unknown> = {}
+  for (const key of ['goal', 'summary', 'business', 'plan', 'relations'] as const)
+    if (args[key] !== undefined) payload[key] = args[key]
+  if (Object.keys(payload).length === 0) return { ok: false, reason: 'name at least one field' }
+  if (payload.business === undefined) return { ok: true, payload }
+  const asked = String(payload.business).trim()
+  if (asked === '')
+    return { ok: false, reason: 'an agent cannot clear a project\'s business: the person sets the business on the project page. Call again without business.' }
+  if (current === null)
+    return { ok: false, reason: 'the project\'s business could not be read, so it was not changed. Call again without business, or later.' }
+  const set = current.business?.trim() ?? ''
+  if (set === '') return { ok: true, payload: { ...payload, business: asked } }
+  if (set.toLowerCase() === asked.toLowerCase()) {
+    const { business: _same, ...rest } = payload
+    return Object.keys(rest).length ? { ok: true, payload: rest } : { ok: false, reason: `the project's business is already "${set}"; nothing else was named` }
+  }
+  return { ok: false, reason: `this project's business is already recorded as "${set}", and only the person changes it: the person sets the business on the project page. Call again without business, and say in a note on your task why you think it is "${asked}".` }
 }
 // #endregion project-onboarding
