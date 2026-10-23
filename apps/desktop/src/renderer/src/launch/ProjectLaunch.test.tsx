@@ -49,6 +49,15 @@ function mount({ closedCapped = false as boolean | 'unknown', board = boardWith(
 }
 
 describe('the top of a project (SCR-31/SCR-03)', () => {
+  // 0.3.12 review UX-11: the keyboard's way to a project's graph, now that the rail's mark is not a tab stop.
+  it('offers the graph around the project from its heading', async () => {
+    mount()
+    cleanup()
+    const onGraph = vi.fn()
+    render(<I18nProvider locale="en"><ProjectLaunch project={project} tasks={[]} sessions={[]} feedMark={0} lastEventAt={null} onBoard={vi.fn()} onPlan={vi.fn()} onOpenTask={vi.fn()} onNewTask={vi.fn()} onSection={vi.fn()} onGraph={onGraph} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: en['launch.project.graph'] }))
+    expect(onGraph).toHaveBeenCalled()
+  })
   it('reads THIS project\'s board, and the next step is its first question, opened on the Board', async () => {
     const { query, onBoard } = mount()
     await waitFor(() => expect(screen.getByText(en['launch.project.questions'])).toBeTruthy())

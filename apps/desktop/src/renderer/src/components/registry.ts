@@ -166,6 +166,7 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'widget-list': 'a list inside a panel',
   'terminal-host': 'the xterm mount point',
   'editor-host': 'the monaco mount point',
+  'detached-window': 'a detached console or editor window: the stack notice above, the window below (0.3.12 review UX-4)',
   'editor-window': 'the editor window shell',
   'session-window': 'the session window shell',
   'session-head': 'the session window title band',

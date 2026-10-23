@@ -60,3 +60,15 @@ describe('the project graph (SCN-175)', () => {
     await waitFor(() => expect(screen.getByText(en['graph.empty'])).toBeTruthy())
   })
 })
+
+// 0.3.12 review UX-10: «Колонки это бизнесы; …» dropped the dash's grammar, and «… : сообщений на доске: 4» had two colons.
+describe('the graph speaks Russian grammatically (0.3.12 review UX-10)', () => {
+  it('counts a board line with its plural form, after one colon, and its lede reads whole', async () => {
+    install(async () => ({ ...graph, edges: [...graph.edges, { from: 'a', to: 'c', kind: 'board', weight: 1 }, { from: 'b', to: 'a', kind: 'board', weight: 5 }] }))
+    render(<I18nProvider locale="ru"><GraphScreen projectId={null} feedMark={0} onProject={vi.fn()} onWhole={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('contract и site: 4 сообщения на доске')).toBeTruthy())
+    expect(screen.getByText('fabric и site: 1 сообщение на доске')).toBeTruthy()
+    expect(screen.getByText('contract и fabric: 5 сообщений на доске')).toBeTruthy()
+    expect(document.body.textContent).not.toMatch(/Колонки это|сообщений на доске: \d/)
+  })
+})

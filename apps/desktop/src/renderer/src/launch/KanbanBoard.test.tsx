@@ -128,10 +128,15 @@ describe('the Board\'s agent filter, «Отменено» and remembered filters
     await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
     expect(screen.queryByText('Old idea')).toBeNull()
     fireEvent.change(screen.getByLabelText(en['launch.kanban.agent']), { target: { value: 'claude-code' } })
-    expect(screen.queryByText('Dark theme')).toBeNull()
+    // 0.3.12 review ER-9: only «In work» records an agent, so only it is filtered; the queue and review stay whole and the
+    // filter says why, rather than reading as «Empty».
+    expect(screen.getByText('Dark theme')).toBeTruthy()
+    expect(screen.getByText('Landing copy')).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.agentOnlyRunning'])).toBeTruthy()
     expect(screen.getByText('New home')).toBeTruthy()
     expect(onRemember).toHaveBeenLastCalledWith({ project: null, agent: 'claude-code', cancelled: false })
     fireEvent.change(screen.getByLabelText(en['launch.kanban.agent']), { target: { value: '' } })
+    expect(screen.queryByText(en['launch.kanban.agentOnlyRunning'])).toBeNull()
     fireEvent.click(screen.getByLabelText(en['launch.kanban.showCancelled']))
     expect(screen.getByRole('region', { name: en['launch.kanban.cancelled'] }).textContent).toContain('Old idea')
     expect(onRemember).toHaveBeenLastCalledWith({ project: null, agent: null, cancelled: true })

@@ -20,7 +20,7 @@ import { useOpenConsole } from '../consoles'
 import { ProjectProfile } from './ProjectProfile'
 import { ProjectAnalytics } from './ProjectAnalytics'
 
-export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
+export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onGraph, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
   onPulse?: () => void
   project: ProjectRow
@@ -37,6 +37,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   onBoard: (item?: string) => void
   /** Planning, opened at this project's goals (SCR-40). */
   onPlan: () => void
+  /** The graph around this project (SCN-175): the keyboard's way to it, as the rail's mark is the pointer's (0.3.12 review UX-11). */
+  onGraph?: () => void
   onOpenTask: (taskId: string) => void
   onNewTask: () => void
   /** Scroll to one of the detailed sections below (`sec-…`). */
@@ -99,6 +101,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
         <div className="lp-actions">
           <button type="button" className="lp-button primary" onClick={() => onBoard()}>{t('launch.project.board')}</button>
           <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.plan')}</button>
+          {onGraph && <button type="button" className="lp-button" onClick={onGraph}>{t('launch.project.graph')}</button>}
         </div>
       </header>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}

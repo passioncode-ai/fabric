@@ -59,7 +59,7 @@ export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; n
 }
 
 /** CO-391 (OF-14): who asks, in words: the agent by its name when Fabric knows it, else «агент», or «человек». */
-function askerOf(item: BoardEntry, t: ReturnType<typeof useT>): string | null {
+export function askerOf(item: BoardEntry, t: ReturnType<typeof useT>): string | null {
   if (!item.askedBy) return null
   if (item.askedBy.kind === 'person') return t('needsYou.askedByPerson')
   return item.askedBy.agent ? t('needsYou.askedByAgent', { agent: runnerLabel(item.askedBy.agent, t) }) : t('needsYou.askedByAnAgent')

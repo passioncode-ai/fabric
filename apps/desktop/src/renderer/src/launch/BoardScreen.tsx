@@ -11,7 +11,7 @@
 // that is stable per attempt, so a retry after a lost answer is the same act.
 
 import { useEffect, useRef, useState } from 'react'
-import type { BoardCut, BoardEntry } from '../../../shared/board'
+import { PERSON_KINDS, type BoardCut, type BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
 import type { EntityRef } from '../../../shared/entityRef'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
@@ -24,18 +24,23 @@ import { FabricStrip } from './FabricStrip'
 import { MachineDetail } from '../OperatorError'
 import { KanbanBoard } from './KanbanBoard'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
+import { askerOf } from './HomeParts'
 
-type Filter = 'open' | 'later' | 'done' | 'all'
+/** «Актуальное» is the person's part, the same reading as the home's «Нужны вы»; «Решат агенты» is the rest that is open
+ *  (reviews, proposals, abandoned work), which an agent can settle (0.3.12 review UX-2, CO-391). */
+type Filter = 'open' | 'agents' | 'later' | 'done' | 'all'
 type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEntry } | { at: 'done'; entry: ResolvedEntry }
 /** What the last Board command said, for the row (or the form) it was about. */
 type Said = { of: string; result: BoardCommandResult }
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
   /** The kanban's filters kept from the last visit, and where to keep the next ones (CO-401). */
   boardFilters?: BoardFilters
   onRememberBoard?(filters: BoardFilters): void
   /** Which view opens (OF-19): the kanban by stage, unless the person came for a row or a topic. */
   mode?: 'kanban' | 'needs'
+  /** The view the person switched to, so the way back from a task returns to it (0.3.12 review UX-19). */
+  onMode?(mode: 'kanban' | 'needs'): void
   /** «Пульс» in the strip (SCR-42). */
   onPulse?: () => void
   /** One project's board, or the estate's when null (SCR-41 from SCR-31 «Доска проекта»). */
@@ -52,8 +57,17 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   onError: (message: string) => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
-  const [mode, setMode] = useState<'kanban' | 'needs'>(initialMode ?? (initialItem || startTopic ? 'needs' : 'kanban'))
+  const [mode, setModeHere] = useState<'kanban' | 'needs'>(initialMode ?? (initialItem || startTopic ? 'needs' : 'kanban'))
+  const setMode = (next: 'kanban' | 'needs'): void => { setModeHere(next); if (next !== mode) onMode?.(next) }
+  // The route names the view; a route that changes it while the screen stays (the rail's «Доска» from «Нужны вы») shows it.
+  const routeMode = useRef(initialMode)
+  useEffect(() => {
+    if (initialMode === routeMode.current) return
+    routeMode.current = initialMode
+    if (initialMode) setModeHere(initialMode)
+  }, [initialMode])
   const [open, setOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
+  const [agentsOpen, setAgentsOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [done, setDone] = useState<ReadEnvelope<ResolvedEntry[]> | null>(null)
   const [later, setLater] = useState<ReadEnvelope<DeferredEntry[]> | null>(null)
   /** The reason being written for one question, keyed by it; kept across a refusal. */
@@ -103,12 +117,14 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
     let alive = true
     const load = async (): Promise<void> => {
       try {
-        const [o, d, l] = await Promise.all([
+        const [o, a, d, l] = await Promise.all([
+          // The person's part, the read the home's «Нужны вы» counts (CO-391), then the whole open board for the rest.
+          window.fabric.board.query({ projectId, limit: 100, personOnly: true }),
           window.fabric.board.query({ projectId, limit: 100 }),
           window.fabric.board.resolved({ projectId, limit: 50 }),
           window.fabric.board.deferred({ projectId, limit: 50 })
         ])
-        if (alive) { setOpen(o); setDone(d); setLater(l); setProblem(null) }
+        if (alive) { setOpen(o); setAgentsOpen(a); setDone(d); setLater(l); setProblem(null) }
       } catch (e) {
         if (alive) setProblem(e instanceof Error ? e.message : String(e))
       }
@@ -120,9 +136,19 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const decisions = useProposalDecisions(() => reload.current(), onError)
 
   const unread = [...(open?.sources ?? []), ...(later?.sources ?? []), ...(done?.sources ?? [])].filter((s) => s.status !== 'ok')
-  const shows = (at: Row['at']) => filter === 'all' || filter === at
-  const rows: Row[] | null = open === null || done === null || later === null ? null : [
-    ...(shows('open') ? (open.data?.items ?? []).map((entry) => ({ at: 'open' as const, entry })) : []),
+  const shows = (at: Filter) => filter === 'all' || filter === at
+  const mine = (open?.data?.items ?? []).filter((e) => PERSON_KINDS.has(e.kind))
+  const agents = (agentsOpen?.data?.items ?? []).filter((e) => !PERSON_KINDS.has(e.kind))
+  // Arriving for a row an agent can settle (a project's «Разобрать» on a review) opens the tab that lists it.
+  const arrivedTab = useRef(false)
+  useEffect(() => {
+    if (arrivedTab.current || !initialItem || open === null || agentsOpen === null) return
+    arrivedTab.current = true
+    if (!mine.some((e) => e.ref === initialItem) && agents.some((e) => e.ref === initialItem)) setFilter('agents')
+  })
+  const rows: Row[] | null = open === null || agentsOpen === null || done === null || later === null ? null : [
+    ...(shows('open') ? mine.map((entry) => ({ at: 'open' as const, entry })) : []),
+    ...(shows('agents') ? agents.map((entry) => ({ at: 'open' as const, entry })) : []),
     ...(shows('later') ? (later.data ?? []).map((entry) => ({ at: 'later' as const, entry })) : []),
     ...(shows('done') ? (done.data ?? []).map((entry) => ({ at: 'done' as const, entry })) : [])
   ]
@@ -266,7 +292,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       <div className="lp-board-layout">
         <section className="lp-panel" aria-label={t('launch.board.list')}>
           <div className="lp-tabs" role="group" aria-label={t('launch.board.filter')}>
-            {(['open', 'later', 'done', 'all'] as Filter[]).map((f) => (
+            {(['open', 'agents', 'later', 'done', 'all'] as Filter[]).map((f) => (
               <button key={f} type="button" className="lp-button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
                 {t(`launch.board.tab.${f}` as 'launch.board.tab.open')}
               </button>
@@ -277,8 +303,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
             // "Clear" is a measurement, so it is said only of a read that was whole.
             unread.length === 0 ? (
               <div className="lp-empty">
-                <h3>{filter === 'open' ? t('launch.home.board.clear') : t('launch.board.emptyTab')}</h3>
-                <p>{t('launch.home.board.clearBody')}</p>
+                <h3>{filter === 'open' ? t('launch.home.board.clear') : filter === 'agents' ? t('launch.board.agentsEmpty') : t('launch.board.emptyTab')}</h3>
+                {filter !== 'agents' && <p>{t('launch.home.board.clearBody')}</p>}
               </div>
             ) : <p className="lp-meta">{t('launch.board.emptyPartial')}</p>
           )}
@@ -289,7 +315,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               <span>
                 <span className="lp-topic-title">{titleOf(r.entry, t)}</span>
                 <span className="lp-meta">
-                  {[r.entry.projectName, kindOfRow(r), r.at === 'open' ? r.entry.detail : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
+                  {[r.entry.projectName, r.at === 'open' ? askerOf(r.entry, t) : null, kindOfRow(r), r.at === 'open' ? r.entry.detail : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="lp-topic-end">

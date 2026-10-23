@@ -56,9 +56,13 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, remembered, on
   const scope = projectId ?? (known ? (project || null) : null)
   // The agents on the cards, and the remembered one even while it holds none, so the choice stays visible (CO-401).
   const agents = [...new Set([...(view?.columns ?? []).flatMap((c) => c.cards.map((x) => x.agent)), agent || null].filter((a): a is string => !!a))].sort()
-  const shown = (cards: readonly BoardCard[]): BoardCard[] => cards.filter((x) => (!scope || x.projectId === scope) && (!agent || x.agent === agent))
+  // The agent filter applies to «В работе» only: a card in any other column records no agent (shared/taskBoard.ts), so
+  // filtering them by agent emptied them, and a remembered filter read as the agent having nothing in review or done
+  // (0.3.12 review ER-9). The other columns are shown whole, and the filter says so.
+  const shown = (cards: readonly BoardCard[], byAgent = false): BoardCard[] =>
+    cards.filter((x) => (!scope || x.projectId === scope) && (!byAgent || !agent || x.agent === agent))
   const columns = [
-    ...(view?.columns ?? []).map((c) => ({ key: c.stage as string, head: t(HEAD[c.stage]), cards: shown(c.cards), capped: c.capped, unread: c.unread })),
+    ...(view?.columns ?? []).map((c) => ({ key: c.stage as string, head: t(HEAD[c.stage]), cards: shown(c.cards, c.stage === 'running'), capped: c.capped, unread: c.unread })),
     ...(showCancelled && view
       ? [view.cancelled
         ? { key: 'cancelled', head: t('launch.kanban.cancelled'), cards: shown(view.cancelled.cards), capped: view.cancelled.capped, unread: view.cancelled.unread }
@@ -92,6 +96,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, remembered, on
           </label>
         </div>
       )}
+      {view && agent && <p className="lp-meta" role="status">{t('launch.kanban.agentOnlyRunning')}</p>}
       {problem && <FailureNote said={t('launch.kanban.unreadable')} detail={problem} />}
       {!view && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {view && (

@@ -151,5 +151,6 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 /* SCN-175: the graph around a project, beside its row. */
 .rail-projects li{ display: flex; align-items: center; }
 .rail-projects li > a{ flex: 1 1 auto; min-width: 0; }
-.rail-graph{ flex: 0 0 auto; border: 0; background: none; color: var(--app-muted); cursor: pointer; padding: 0 var(--space-1); }
+/* At least 24 px to aim at (0.3.12 review UX-11). */
+.rail-graph{ flex: 0 0 auto; border: 0; background: none; color: var(--app-muted); cursor: pointer; padding: 0; min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; }
 @media(hover:hover) {.rail-graph:hover{ color: var(--app-accent); }}

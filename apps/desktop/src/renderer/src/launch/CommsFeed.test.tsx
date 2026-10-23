@@ -106,6 +106,17 @@ describe('Comms as a feed', () => {
     fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.showAll'] }))
     expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
   })
+  // 0.3.12 review ER-8: «Waiting for an answer» looked at the newest posts only and said «No post matches» while an older
+  // request could still wait.
+  it('«Waiting for an answer» with nothing waiting says it looked at the newest posts, and where older ones are', async () => {
+    install()
+    show()
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.waiting'] }))
+    const said = screen.getByText(/Among the newest \d+ posts no request is waiting/)
+    expect(said.textContent).toContain(en['launch.comms.feed.noWaiting'].replace('{count}', String(messages.length)))
+    expect(screen.queryByText(new RegExp(en['launch.comms.feed.noMatch']))).toBeNull()
+  })
   it('a failed refresh keeps the posts and says when they were read, with Try again (V2-16)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {

@@ -632,7 +632,8 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lg-line{ stroke: var(--app-line); stroke-width: 1.5; }
 .lg-line.board{ stroke-dasharray: 4 4; }
 .lg-column{ position: absolute; top: var(--space-2); margin: 0; font-size: var(--app-fs-caption); }
-.lg-node{ position: absolute; display: flex; flex-direction: column; justify-content: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); text-align: left; border: var(--report-line) solid var(--app-line); background: var(--app-panel-quiet); overflow: hidden; }
+/* 0.3.12 review UX-1: a node is a <button>, which takes the gold button's dark ink; on the quiet panel it needs the page's. */
+.lg-node{ position: absolute; display: flex; flex-direction: column; justify-content: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); text-align: left; border: var(--report-line) solid var(--app-line); background: var(--app-panel-quiet); overflow: hidden; color: var(--app-ink); font: inherit; font-weight: normal; }
 .lg-node b, .lg-node small{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lg-node.centre{ border-color: var(--app-accent); }
 .lg-node.outside{ border-style: dashed; }

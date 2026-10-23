@@ -61,8 +61,16 @@ export function StackHealthNotice(): React.JSX.Element | null {
         <b>{t('stack.health.title')}</b>
         {view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
         <p>{t(cause)}</p>
+        {/* The countdown ticks every second; inside the alert it would be announced again with every tick (0.3.12 review
+            UX-5). The ticking line is shown and kept out of the live region; a screen reader hears the next try once, as
+            the reading that brought it said it, beside it. */}
         {view.trying && view.attempt !== null ? <p>{t('startup.wait.trying', { attempt: view.attempt })}</p>
-          : nextTryInS !== null && <p>{t('stack.health.nextTry', { seconds: nextTryInS })}</p>}
+          : nextTryInS !== null && (
+            <>
+              <p aria-hidden="true" data-testid="stack-next-try">{t('stack.health.nextTry', { seconds: nextTryInS })}</p>
+              {view.nextTryInS !== null && <span className="visually-hidden">{t('stack.health.nextTry', { seconds: view.nextTryInS })}</span>}
+            </>
+          )}
       </Banner>
     )
   }

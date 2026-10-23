@@ -4,7 +4,7 @@
 // the numbers in the strip and the rows below them never disagree. Plain language is the agents' own: a session's last
 // stage report, a task's brief — never the prompt.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReviewItem, HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
 import { useLocale, useT } from '../i18n'
 import { since } from '../duration'
@@ -12,8 +12,9 @@ import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
 
-/** `readAt`: when `view` was read. After a failed read the view kept is said to be that moment's (CO-313). */
-export type HomeReading = { view: HomeView | null; problem: string | null; readAt?: string | null }
+/** `readAt`: when `view` was read. After a failed read the view kept is said to be that moment's (CO-313). `retry` reads
+ *  again now, for a place that offers «Попробовать снова». */
+export type HomeReading = { view: HomeView | null; problem: string | null; readAt?: string | null; retry?: () => void }
 
 /** After a failed read, what still shows is the last reading: said with its time, never passed off as now (CO-313). */
 function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
@@ -56,7 +57,7 @@ export function useHome(mark: number): HomeReading {
       alive = false
     }
   }, [mark, tick])
-  return reading
+  return { ...reading, retry: () => setTick((n) => n + 1) }
 }
 
 /** The counts above the board: agents working now, tasks in work, waiting for you, in review. */
@@ -276,6 +277,18 @@ export function AgentsAtWork({ mark, onOpen, page }: {
   const showConsole = useOpenConsole()
   const [problem, setProblem] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  // A press on a row brings the agent's page into view and focus (0.3.12 review UX-7): below 850 px the page sits under
+  // the whole list, and nothing said it had opened. As the Board does for a picked row (CO-400).
+  const picked = useRef(false)
+  const select = (sessionId: string): void => { picked.current = true; setSelected(sessionId) }
+  useEffect(() => {
+    if (!picked.current) return
+    const h = document.getElementById('agent-page-title')
+    if (!h) return
+    picked.current = false
+    h.focus({ preventScroll: true })
+    h.scrollIntoView?.({ block: 'nearest' })
+  })
   const openConsole = (sessionId: string): void => {
     setProblem(null)
     showConsole(sessionId).catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
@@ -289,8 +302,18 @@ export function AgentsAtWork({ mark, onOpen, page }: {
       {problem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={problem} />}
       {page ? (
         <div className="lh-agents-place">
-          <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} selected={chosen?.sessionId ?? null} onSelect={setSelected} />
-          {chosen ? page(chosen, openConsole) : <p className="lp-meta lh-agent-pick">{t('agentPage.pick')}</p>}
+          <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} selected={chosen?.sessionId ?? null} onSelect={select} />
+          {/* 0.3.12 review UX-3 (OF-30): «choose an agent» only when there is one to choose; a list that could not be read
+              and a list with nobody in it are each said as what they are. */}
+          {chosen ? page(chosen, openConsole)
+            : !reading.view ? (reading.problem && (
+              <div className="lp-meta lh-agent-pick" role="status">
+                <p>{t('agentPage.unread')}</p>
+                {reading.retry && <button type="button" className="lp-button" onClick={reading.retry}>{t('common.retry')}</button>}
+              </div>
+            ))
+            : reading.view.live.length === 0 ? <p className="lp-meta lh-agent-pick">{t('agentPage.none')}</p>
+            : <p className="lp-meta lh-agent-pick">{t('agentPage.pick')}</p>}
         </div>
       ) : <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} />}
     </>

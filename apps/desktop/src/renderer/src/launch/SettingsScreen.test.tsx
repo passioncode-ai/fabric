@@ -311,6 +311,30 @@ describe('messages between agent sessions and Fabric readiness (CO-407)', () => 
     expect(await screen.findByText(en['settings.agentLinks.unreadable'])).toBeTruthy()
     expect(screen.queryByLabelText(en['settings.agentLinks.label'])).toBeNull()
   })
+  // 0.3.12 review UX-8: a write Claude Code's settings refused read as an unreadable file, and the switch went away.
+  it('a refused write is said as not saved, apart from an unreadable file, and the switch stays at what the file holds', async () => {
+    const setClaudeInbound = vi.fn(async () => { throw new Error('EACCES: permission denied, open settings.json') })
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: false, value: null })), setClaudeInbound } } }))
+    show(<AgentLinksSetting />)
+    fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
+    expect(await screen.findByText(en['settings.agentLinks.notSaved'])).toBeTruthy()
+    expect(screen.getByText(/EACCES: permission denied/).textContent).toContain('crossSessionInbound')
+    expect(screen.queryByText(en['settings.agentLinks.unreadable'])).toBeNull()
+    const box = await screen.findByLabelText(en['settings.agentLinks.label']) as HTMLInputElement
+    expect(box.checked).toBe(false)
+    expect(box.disabled).toBe(false)
+  })
+  // 0.3.12 review UX-18: the machine's words ran into our sentence on one line.
+  it('a failed readiness check says our sentence, then the machine\'s words on their own line', async () => {
+    const readiness = vi.fn(async () => ({ ok: false, reason: 'failed', detail: 'npm ERR! code E404' }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { readiness } } }))
+    show(<ReadinessPanel />)
+    fireEvent.click(screen.getByRole('button', { name: en['settings.readiness.check'] }))
+    const ours = await screen.findByText(en['settings.readiness.failed.failed'])
+    const machine = screen.getByText('npm ERR! code E404')
+    expect(ours.textContent).toBe(en['settings.readiness.failed.failed'])
+    expect(machine).not.toBe(ours)
+  })
   it('readiness runs only on «Check», lists Fabric\'s checks with their fix, and says a failed run', async () => {
     const readiness = vi.fn(async () => ({ ok: true, version: '0.2.33', at: null, summary: { ok: 1, warn: 1, fail: 0, info: 0 },
       checks: [{ id: 'prereq.docker', state: 'ok', detail: 'Docker answers', fix: null }, { id: 'app.fabric', state: 'warn', detail: 'Fabric 0.3.10; 0.3.11 is out', fix: 'quit Fabric, then run setup' }] }))

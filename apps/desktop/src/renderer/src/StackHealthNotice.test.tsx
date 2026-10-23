@@ -37,7 +37,7 @@ describe('the stack health notice', () => {
     push({ ...up, stack: 'down', why: 'docker', nextTryInS: 20 })
     expect(screen.getByRole('alert').textContent).toContain(en['stack.health.title'])
     expect(screen.getByText(en['stack.health.docker'])).toBeTruthy()
-    expect(screen.getByText('Next try in 20 s.')).toBeTruthy()
+    expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 20 s.')
     push(up)
     expect(screen.queryByRole('alert')).toBeNull()
   })
@@ -110,9 +110,28 @@ describe('the countdown runs on its own (CO-374)', () => {
       const { push } = mount(up)
       await act(async () => { await vi.advanceTimersByTimeAsync(10) })
       push({ ...up, stack: 'down', why: 'docker', nextTryInS: 20 })
-      expect(screen.getByText('Next try in 20 s.')).toBeTruthy()
+      expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 20 s.')
       await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
-      expect(screen.getByText('Next try in 17 s.')).toBeTruthy()
+      expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 17 s.')
+    } finally { vi.useRealTimers() }
+  })
+  // 0.3.12 review UX-5: the countdown changed the alert's text every second, so a screen reader announced the whole
+  // notice again each second. What the alert says (everything not hidden from assistive technology) stays as the reading
+  // said it; only the shown countdown ticks.
+  it('ticks on screen without changing what the alert announces', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      const { push } = mount(up)
+      await act(async () => { await vi.advanceTimersByTimeAsync(10) })
+      push({ ...up, stack: 'down', why: 'docker', nextTryInS: 20 })
+      const alert = screen.getByRole('alert')
+      const walk = (n: Node): string => n.nodeType === 3 ? (n.textContent ?? '')
+        : (n as Element).getAttribute('aria-hidden') === 'true' ? '' : [...n.childNodes].map(walk).join('')
+      const before = walk(alert)
+      expect(before).toContain('Next try in 20 s.')
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+      expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 17 s.')
+      expect(walk(alert), 'the alert said something new on a tick').toBe(before)
     } finally { vi.useRealTimers() }
   })
 })

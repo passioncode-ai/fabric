@@ -18,6 +18,37 @@ const ev = (seq: number, type: string, payload: Record<string, unknown> = {}) =>
 const show = (ui: React.ReactNode) => render(<I18nProvider locale="en">{ui}</I18nProvider>)
 
 describe('the agent page beside the list on Агенты (CO-393)', () => {
+  // 0.3.12 review UX-3 (OF-30): «choose an agent» with nobody to choose, or with the list unread, sent the person looking.
+  it('says there is no agent, or that the list was not read with a retry, instead of «choose an agent»', async () => {
+    const home = vi.fn(async (): Promise<HomeView> => ({ ...view, live: [] }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
+    await screen.findByText(en['agentPage.none'])
+    expect(screen.queryByText(en['agentPage.pick'])).toBeNull()
+    cleanup()
+    const failing = vi.fn(async (): Promise<HomeView> => { throw new Error('stack refused') })
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: failing }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
+    await screen.findByText(en['agentPage.unread'])
+    expect(screen.queryByText(en['agentPage.pick'])).toBeNull()
+    failing.mockImplementation(async () => view)
+    fireEvent.click(screen.getByRole('button', { name: en['common.retry'] }))
+    await screen.findByText(en['agentPage.pick'])
+  })
+
+  // 0.3.12 review UX-7: focus stayed on the row and nothing scrolled, so below 850 px the page opened out of sight.
+  it("a chosen agent's page takes focus and comes into view", async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view) }, terminal: { history: vi.fn(async () => []) } } }))
+    const into = vi.fn()
+    Element.prototype.scrollIntoView = into
+    show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
+    await screen.findByText(en['agentPage.pick'])
+    fireEvent.click(screen.getAllByRole('button', { pressed: false })[0])
+    await screen.findByTestId('agent-page')
+    await waitFor(() => expect(document.activeElement?.id).toBe('agent-page-title'))
+    expect(into).toHaveBeenCalled()
+  })
+
   it('a row selects its agent and opens its page instead of leaving the place; nothing is chosen at first', async () => {
     const history = vi.fn(async (_id: string) => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' })])
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view) }, terminal: { history } } }))

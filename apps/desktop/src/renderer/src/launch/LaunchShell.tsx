@@ -252,7 +252,9 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
                     </a>
                     {props.onGraph && (
-                      <button type="button" className="rail-graph" aria-label={t('rail.graphOf', { name: p.name })} title={t('rail.graphOf', { name: p.name })}
+                      // The pointer's way to a project's graph; the keyboard's is the project page's «Связи», so a row keeps one
+                      // tab stop (0.3.12 review UX-11).
+                      <button type="button" className="rail-graph" tabIndex={-1} aria-label={t('rail.graphOf', { name: p.name })} title={t('rail.graphOf', { name: p.name })}
                         onClick={() => props.onGraph?.(p.id)}>
                         <span aria-hidden="true">{t('glyph.graph')}</span>
                       </button>

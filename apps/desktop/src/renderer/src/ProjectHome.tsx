@@ -108,7 +108,8 @@ export function ProjectHome({
   onError,
   onBoard,
   onPlan,
-  onPulse
+  onPulse,
+  onGraph
 }: {
   project: ProjectRow
   /** Null until read (M108). Filtering a list you have NOT read leaves it
@@ -144,6 +145,8 @@ export function ProjectHome({
   onPlan?: (projectId: string) => void
   /** This project's pulse (SCR-42). */
   onPulse?: (projectId: string) => void
+  /** The graph around this project (SCN-175). */
+  onGraph?: (projectId: string) => void
 }): React.JSX.Element {
   const t = useT()
   /**
@@ -362,6 +365,7 @@ export function ProjectHome({
           onBoard={(item) => onBoard?.(project.id, item)}
           onPlan={() => onPlan?.(project.id)}
           onPulse={onPulse ? () => onPulse(project.id) : undefined}
+          onGraph={onGraph ? () => onGraph(project.id) : undefined}
           onOpenTask={setOpenTask}
           onNewTask={() => toSection('sec-tasks')}
           onSection={toSection}

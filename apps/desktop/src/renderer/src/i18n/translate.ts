@@ -20,3 +20,11 @@ export function translator(locale: Locale): Translate {
     return raw.replace(/\{(\w+)\}/g, (m, name: string) => (name in vars ? String(vars[name]) : m))
   }
 }
+
+/** A count's grammatical form, for keys written as `<base>.one`, `<base>.few` and `<base>.many` in both registries
+ *  (Russian: 1 вопрос, 3 вопроса, 5 вопросов; English: one, then the rest). Integers only; anything else reads as many. */
+export type PluralForm = 'one' | 'few' | 'many'
+export function pluralForm(locale: Locale, n: number): PluralForm {
+  const c = new Intl.PluralRules(locale).select(n)
+  return c === 'one' ? 'one' : c === 'few' ? 'few' : 'many'
+}

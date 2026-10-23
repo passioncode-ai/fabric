@@ -26,7 +26,7 @@ import {
 } from '../../shared/workspaceAct.ts'
 import { ProfileSection } from './ProfileSection'
 import { FailureNote, MachineDetail } from './OperatorError'
-import { describeEvent, useLocale, useT } from './i18n'
+import { describeEvent, pluralForm, useLocale, useT } from './i18n'
 import { en, type StringKey } from './i18n/en'
 import { declaredCoverage, restorability } from '../../shared/storageContract.ts'
 import { cursorFor } from '../../shared/inbox.ts'
@@ -487,7 +487,7 @@ export function EstateHome({
               {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
               <p className="lh-greeting" data-testid="home-greeting">
                 {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
-                  personWaiting === null ? null : personWaiting > 0 ? t('launch.home.greet.waiting', { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
+                  personWaiting === null ? null : personWaiting > 0 ? t(`launch.home.greet.waiting.${pluralForm(locale, personWaiting)}`, { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
               </p>
               {onPersona && <button type="button" className="lp-button lh-text-link" onClick={onPersona}>{t('launch.home.persona')}</button>}
             </div>

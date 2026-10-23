@@ -21,4 +21,16 @@ describe('swipe as the way back (SCN-162, CO-401)', () => {
     expect(run([[-100, 0, 0], [-100, 0, 10]], (towardRight) => !towardRight)).toEqual([])
     expect(run([[100, 0, 0], [100, 0, 10]], (towardRight) => !towardRight)).toEqual(['forward'])
   })
+  // 0.3.12 review ER-12: scrolling the Board's columns to their left edge with momentum turned the page a few events
+  // after the edge. Only a gesture that starts at the edge turns it.
+  it('a gesture that scrolled something to its edge does not turn the page; the next one, from the edge, does', () => {
+    // The columns take the first two events and reach their left edge; momentum goes on for five more.
+    let s = swipeStart(); const out: Array<string | null> = []
+    for (const at of [0, 10, 20, 30, 40, 50, 60]) {
+      const r = swipeStep(s, { deltaX: -60, deltaY: 0, at }, (towardRight) => !towardRight && at < 20)
+      s = r.state; out.push(r.travel)
+    }
+    expect(out.filter(Boolean)).toEqual([])
+    expect(run([[-60, 0, 0], [-60, 0, 10], [-60, 0, 20]], () => false)).toEqual(['back'])
+  })
 })

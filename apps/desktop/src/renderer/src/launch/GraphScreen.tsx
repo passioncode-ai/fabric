@@ -5,7 +5,7 @@
 // relations are listed as text beneath, so nothing on the drawing is only on the drawing.
 import { useEffect, useMemo, useState } from 'react'
 import { aroundProject, type GraphEdge, type GraphNode, type ProjectGraph } from '../../../shared/projectGraph'
-import { useT } from '../i18n'
+import { pluralForm, useLocale, useT } from '../i18n'
 import { FailureNote } from '../OperatorError'
 
 const COLUMN = 240
@@ -21,7 +21,7 @@ export function GraphScreen({ projectId, feedMark, onProject, onWhole }: {
   onProject(projectId: string): void
   onWhole(): void
 }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   const [graph, setGraph] = useState<ProjectGraph | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   useEffect(() => {
@@ -55,7 +55,7 @@ export function GraphScreen({ projectId, feedMark, onProject, onWhole }: {
   const nameOf = (id: string): string => shown?.nodes.find((n) => n.id === id)?.name ?? id
   const said = (e: GraphEdge): string =>
     e.kind === 'board'
-      ? t('graph.boardEdge', { from: nameOf(e.from), to: nameOf(e.to), n: e.weight ?? 0 })
+      ? t(`graph.boardEdge.${pluralForm(locale, e.weight ?? 0)}`, { from: nameOf(e.from), to: nameOf(e.to), n: e.weight ?? 0 })
       : t('graph.edge', { from: nameOf(e.from), relation: t(`launch.profile.relation.${e.kind}` as 'launch.profile.relation.other', { target: nameOf(e.to) }) })
 
   return (

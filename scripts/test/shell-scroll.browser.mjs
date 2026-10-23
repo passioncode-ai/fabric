@@ -156,5 +156,30 @@ try{
     assert.ok(term.term.w>=term.content.w*0.9&&term.term.h>=term.content.h*0.8&&term.term.h>300,`a console fills the page${notice?' under a notice':''} (${JSON.stringify(term)})`);checks++
     await page.close()
   }
+  for(const kind of ['session','editor']){
+    // A detached console or editor window under the lost-stack notice keeps its foot (the prompt line) in the window
+    // and fills the rest (0.3.12 review UX-4): watched failing when the notice sat above a window 100 % high.
+    const page=await browser.newPage({viewport:{width:900,height:600}})
+    const body=kind==='session'
+      ?`<div class="session-window"><div class="session-head">console</div><div class="terminal-host" id="host"><div class="xterm">x</div></div></div>`
+      :`<div class="editor-window"><div class="editor-head">file</div><div class="editor-host" id="host">x</div></div>`
+    await page.setContent(`<!doctype html><html><head><style>${css}</style></head><body><div id="root"><div class="detached-window"><div class="banner banner-error" role="alert"><span><b>The database is down.</b><p>${'Fabric is bringing it back. '.repeat(4)}</p><p>Next try in 20 s.</p></span></div>${body}</div></div></body></html>`)
+    const d=await page.evaluate(()=>{const h=document.getElementById('host').getBoundingClientRect();return{bottom:h.bottom,height:h.height,doc:document.documentElement.scrollHeight}})
+    assert.ok(d.bottom<=601&&d.bottom>=590&&d.height>300&&d.doc<=600,`a detached ${kind} window under the notice ends at the window's foot and fills it (${JSON.stringify(d)})`);checks++
+    await page.close()
+  }
+  for(const theme of ['dark','light']){
+    // The graph's project nodes are buttons: their names read on the node in both themes (0.3.12 review UX-1; measured
+    // 1.03:1 in the dark theme before the fix).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(`<!doctype html><html${theme==='light'?' data-theme="light"':''}><head><style>${css}</style></head><body><div class="lg-graph" style="position:relative;height:200px"><button type="button" class="lg-node" id="node" style="left:0;top:0;width:200px;height:60px"><b id="name">project-observatory</b><small>Not described yet</small></button></div></body></html>`)
+    const c=await page.evaluate(()=>{
+      const rgb=(v)=>v.match(/[\d.]+/g).slice(0,3).map(Number)
+      const lum=([r,g,b])=>{const f=(x)=>{x/=255;return x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4};return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b)}
+      const ink=rgb(getComputedStyle(document.getElementById('name')).color),bg=rgb(getComputedStyle(document.getElementById('node')).backgroundColor)
+      const [a,b]=[lum(ink),lum(bg)].sort((x,y)=>y-x);return{ink,bg,ratio:(a+0.05)/(b+0.05)}})
+    assert.ok(c.ratio>=4.5,`a graph node's name reads on its node in the ${theme} theme (${JSON.stringify(c)})`);checks++
+    await page.close()
+  }
   console.log(`Shell scroll browser: ${checks} checks pass.`)
 }finally{await browser.close()}

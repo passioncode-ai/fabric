@@ -398,7 +398,7 @@ describe('a task reads as a template, with the way back at the top left (the ope
 
 describe('the brief says how it is written, an empty one what fills it, and the way back names where (CO-394)', () => {
   it('shows the lede above the brief and the empty sentence only while all three parts are empty', async () => {
-    mount({ brief_what: null, brief_why: null, brief_expected: '' })
+    mount({ status: 'done', brief_what: null, brief_why: null, brief_expected: '' })
     await waitFor(() => expect(screen.getByText(en['task.briefEmpty'])).toBeTruthy())
     const lede = screen.getByText(en['task.briefLede'])
     const original = screen.getByText(en['launch.agent.original'])
@@ -407,6 +407,15 @@ describe('the brief says how it is written, an empty one what fills it, and the 
     mount({ brief_what: 'Make it', brief_why: null, brief_expected: '' })
     await waitFor(() => expect(screen.getByText(en['task.briefLede'])).toBeTruthy())
     expect(screen.queryByText(en['task.briefEmpty'])).toBeNull()
+  })
+
+  // 0.3.12 review UX-13: an empty brief on a task to do carried three statements that disagreed on who writes it. One
+  // sentence now, ADR-0176's: the spec is not gathered, the agent asks you before it starts, or you write it.
+  it("says an empty brief once on a task still to do, in ADR-0176's words", async () => {
+    mount({ status: 'running', brief_what: null, brief_why: null, brief_expected: '' })
+    await waitFor(() => expect(screen.getByText(en['task.specEmpty'])).toBeTruthy())
+    expect(screen.queryByText(en['task.briefEmpty'])).toBeNull()
+    expect(screen.queryAllByText(/Spec not gathered/), 'the spec was said twice').toHaveLength(1)
   })
 
   it('the way back carries the place it was opened from, else the project', async () => {
@@ -436,7 +445,7 @@ describe('what holds a task and how it moved (SCN-174 step 2, CO-401)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Schema step' }))
     expect(onOpenTask).toHaveBeenCalledWith('t9')
     const moves = screen.getByRole('list', { name: en['task.moves'] })
-    expect(moves.querySelectorAll('li')[0].textContent).toContain(en['task.moveFromTo'].replace('{from}', en['board.running']).replace('{to}', en['launch.kanban.cancelled']))
+    expect(moves.querySelectorAll('li')[0].textContent).toContain(en['task.moveFromTo'].replace('{from}', en['launch.kanban.running']).replace('{to}', en['launch.kanban.cancelled']))
     expect(moves.querySelectorAll('li')[1].textContent).toContain(en['task.movedBy.agent'])
   })
   it('says nothing holds it when the read found none, and nothing at all when blockers were not read', async () => {

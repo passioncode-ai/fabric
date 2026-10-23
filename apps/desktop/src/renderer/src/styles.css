@@ -221,6 +221,10 @@ button:disabled { opacity: .4; cursor: default; }
 .feed.compact { max-height: 240px; }
 
 /* ── session window ─────────────────────────────────────────── */
+/* A detached console or editor window: the stack notice above, the window below in the rest (0.3.12 review UX-4). */
+.detached-window { display: flex; flex-direction: column; height: 100%; }
+.detached-window > .banner { flex: 0 1 auto; max-height: 33%; overflow-y: auto; margin: 0; }
+.detached-window > .session-window, .detached-window > .editor-window { flex: 1 1 auto; min-height: 0; height: auto; }
 .session-window { display: flex; flex-direction: column; height: 100%; }
 .session-head {
   display: flex; align-items: center; gap: var(--space-3);

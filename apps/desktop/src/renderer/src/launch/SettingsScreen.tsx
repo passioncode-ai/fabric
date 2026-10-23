@@ -178,6 +178,9 @@ export function AgentLinksSetting(): React.JSX.Element {
   const t = useT()
   const [state, setState] = useState<{ accepting: boolean } | { unreadable: true } | null>(null)
   const [busy, setBusy] = useState(false)
+  /** A write Claude Code's settings refused (the call itself failed), said apart from a file that does not read: the switch
+   *  stays, at what the file holds, so the person can try again (0.3.12 review UX-8). */
+  const [notSaved, setNotSaved] = useState<string | null>(null)
   useEffect(() => {
     let alive = true
     Promise.resolve().then(() => window.fabric.settings.claudeInbound()).then((r) => alive && setState(r), () => alive && setState({ unreadable: true }))
@@ -185,13 +188,20 @@ export function AgentLinksSetting(): React.JSX.Element {
   }, [])
   const flip = async (on: boolean): Promise<void> => {
     setBusy(true)
-    try { setState(await window.fabric.settings.setClaudeInbound(on)) } catch { setState({ unreadable: true }) } finally { setBusy(false) }
+    setNotSaved(null)
+    try { setState(await window.fabric.settings.setClaudeInbound(on)) }
+    catch (e) {
+      setNotSaved(e instanceof Error ? e.message : String(e))
+      // What the file holds now, read again; a read that fails too is said as the file being unreadable.
+      await Promise.resolve().then(() => window.fabric.settings.claudeInbound()).then((r) => setState(r), () => setState({ unreadable: true }))
+    } finally { setBusy(false) }
   }
   return (
     <section className="lp-panel" aria-labelledby="settings-agent-links-title">
       <h3 id="settings-agent-links-title">{t('settings.agentLinks.title')}</h3>
       {state === null && <p className="lp-meta">{t('settings.agentLinks.reading')}</p>}
       {state && 'unreadable' in state && <p className="lp-meta" role="status">{t('settings.agentLinks.unreadable')}</p>}
+      {notSaved !== null && <FailureNote said={t('settings.agentLinks.notSaved')} detail={`${t('settings.agentLinks.notSavedDetail')} ${notSaved}`} />}
       {state && 'accepting' in state && (
         <label className="lp-check">
           <input type="checkbox" checked={state.accepting} disabled={busy} onChange={(e) => void flip(e.target.checked)} aria-describedby="settings-agent-links-hint" />
@@ -222,7 +232,8 @@ export function ReadinessPanel(): React.JSX.Element {
         </button>
       </div>
       <p className="lp-meta">{t('settings.readiness.lede')}</p>
-      {answer && !answer.ok && <p className="lp-meta" role="status">{t(`settings.readiness.failed.${answer.reason}` as 'settings.readiness.failed.failed')}{answer.detail ? ` ${answer.detail}` : ''}</p>}
+      {/* Our sentence, then the machine's words beneath it, apart (0.3.12 review UX-18). */}
+      {answer && !answer.ok && <FailureNote role="status" said={t(`settings.readiness.failed.${answer.reason}` as 'settings.readiness.failed.failed')} detail={answer.detail} />}
       {answer && answer.ok && (
         <>
           <p className="lp-meta" role="status">{t('settings.readiness.summary', { ok: answer.summary.ok, warn: answer.summary.warn, fail: answer.summary.fail })}</p>

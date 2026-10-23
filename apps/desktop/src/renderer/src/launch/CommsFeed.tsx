@@ -123,7 +123,8 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
       {shown.length === 0 && read.posts.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
       {shown.length === 0 && read.posts.length > 0 && (
         <p className="lp-meta">
-          {t('launch.comms.feed.noMatch')}{' '}
+          {/* «Ждут ответа» looks at the newest posts only, and says so: an older request may still wait (0.3.12 review ER-8). */}
+          {focus === 'waiting' ? t('launch.comms.feed.noWaiting', { count: read.posts.length }) : t('launch.comms.feed.noMatch')}{' '}
           <button type="button" className="lp-button lh-text-link" onClick={() => { setFocus('all'); setProject('') }}>{t('launch.comms.feed.showAll')}</button>
         </p>
       )}

@@ -907,9 +907,11 @@ function Shell({
   // cannot reach the thing is inconclusive about the harness).
   if (sessionWindowId === undefined)
     return error ? <BootFailure raw={error} onRetry={() => window.location.reload()} /> : <div className="booting" />
-  // CO-374: a detached window says a lost stack too, above its own content.
-  if (fileWindowPath) return <><StackHealthNotice /><EditorWindow filePath={fileWindowPath} /></>
-  if (sessionWindowId) return <><StackHealthNotice /><SessionWindow sessionId={sessionWindowId} /></>
+  // CO-374: a detached window says a lost stack too, above its own content. The window is a column, so the notice takes
+  // its height from the console or the editor rather than pushing its foot (the prompt line) out of the window
+  // (0.3.12 review UX-4).
+  if (fileWindowPath) return <div className="detached-window"><StackHealthNotice /><EditorWindow filePath={fileWindowPath} /></div>
+  if (sessionWindowId) return <div className="detached-window"><StackHealthNotice /><SessionWindow sessionId={sessionWindowId} /></div>
 
   // Where the rail marks the person and what the top bar says (SCN-162). A start path and a project draft are
   // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.
@@ -1042,8 +1044,15 @@ function Shell({
         )}
         {active.kind === 'board' && (
           <BoardScreen
-            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}:${active.needs ? 'needs' : ''}`}
-            mode={active.needs ? 'needs' : undefined}
+            // The view («По этапам» or «Нужны вы») is part of the route but not of the screen's identity: switching it keeps
+            // the screen, and the way back from a task opened there returns to it (0.3.12 review UX-19).
+            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
+            mode={active.needs === true ? 'needs' : active.needs === false ? 'kanban' : undefined}
+            onMode={(mode) => {
+              // Replaces this place in the way back rather than adding a step: a tab is not a place of its own.
+              travelling.current = true
+              setActive({ ...active, needs: mode === 'needs' })
+            }}
             projectId={active.projectId ?? null}
             initialItem={active.item ?? null}
             startTopic={active.topic === true}
@@ -1303,6 +1312,7 @@ function Shell({
             onPlan={(projectId) => setActive({ kind: 'plan', projectId })}
             onPulse={(projectId) => setActive({ kind: 'pulse', projectId })}
             onBoard={(projectId, item) => setActive({ kind: 'board', projectId, item: item ?? null })}
+            onGraph={(projectId) => setActive({ kind: 'graph', projectId })}
             onError={setError}
           />
         )}

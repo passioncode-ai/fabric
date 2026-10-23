@@ -44,6 +44,15 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en',
 const rail = () => screen.getByRole('navigation', { name: en['rail.label'] })
 
 describe('the rail', () => {
+  // 0.3.12 review UX-11: the graph mark beside each project was a 20 x 17 px target and a second tab stop on every row.
+  it('a project row is one tab stop; its graph mark is the pointer\'s, reached by keyboard from the project page', () => {
+    const onGraph = vi.fn()
+    shell({ onGraph })
+    const mark = screen.getByRole('button', { name: en['rail.graphOf'].replace('{name}', 'Atlas') })
+    expect(mark.tabIndex).toBe(-1)
+    fireEvent.click(mark)
+    expect(onGraph).toHaveBeenCalledWith('p1')
+  })
   it('holds «Создать» and the five places, Проект being opened from the list rather than a sixth entry', () => {
     const props = shell()
     const nav = rail()

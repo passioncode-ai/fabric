@@ -203,10 +203,11 @@ export function TaskPage({
 
   const agentLabel = task.option_id ? runnerLabel(task.option_id, t) : t('launch.home.live.agent')
   const moves = taskMoves(detail.events)
-  // A state in words; «cancelled» has no reason here, so it is the kanban's column word, and an unknown one stays as written.
+  // A state in the Board's own column words («Очередь», «В работе», «На проверке», «Готово», «Отменено»), so a move reads
+  // as the kanban shows it (0.3.12 review UX-12); an unknown one stays as written.
   const stateWord = (state: string): string =>
-    state === 'cancelled' ? t('launch.kanban.cancelled')
-      : ['backlog', 'running', 'review', 'done'].includes(state) ? t(`board.${state}` as 'board.backlog') : state
+    ['backlog', 'running', 'review', 'done', 'cancelled'].includes(state) ? t(`launch.kanban.${state}` as 'launch.kanban.backlog') : state
+  const briefEmpty = !task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim()
   return (
     <div className="lp" data-launch-view="launch-agent">
       <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
@@ -273,10 +274,11 @@ export function TaskPage({
               {/* CO-394 (0.3.11 review, iteration 3, UX-7): how the brief is written is said above it, and an empty brief says
                   what fills it, rather than three blank boxes. */}
               <p className="lp-meta">{t('task.briefLede')}</p>
-              {!task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim() && <p>{t('task.briefEmpty')}</p>}
               {/* ADR-0176 §1 (SCN-176): a task still to do or in work says when its spec is not gathered, and which
-                  parts are missing; it clears the moment the brief's three parts are written. */}
-              {specMissing(task) && (
+                  parts are missing; it clears the moment the brief's three parts are written. An empty brief is said once,
+                  as ADR-0176 has it: the agent asks you before it starts, or you write it (0.3.12 review UX-13). */}
+              {briefEmpty && (specMissing(task) ? <Banner tone="warn">{t('task.specEmpty')}</Banner> : <p>{t('task.briefEmpty')}</p>)}
+              {!briefEmpty && specMissing(task) && (
                 <Banner tone="warn">
                   {t('task.specMissing', {
                     parts: specGaps(task)

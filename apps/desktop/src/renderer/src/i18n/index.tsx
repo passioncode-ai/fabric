@@ -6,7 +6,8 @@ import { createContext, useContext, useMemo } from 'react'
 import { en, type StringKey } from './en'
 import { translator, type Locale, type Translate } from './translate.ts'
 
-export type { Locale, Translate } from './translate.ts'
+export type { Locale, Translate, PluralForm } from './translate.ts'
+export { pluralForm } from './translate.ts'
 
 /** Locale registries live in `translate.ts` (bilingual from 2026-09-06, M197): a NEW key lands in both
  *  in the same change — the ratchet gate in check-design.mjs enforces it — and the legacy debt lives in
