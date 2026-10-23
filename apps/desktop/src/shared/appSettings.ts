@@ -15,6 +15,7 @@
 import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsPatch } from './types'
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
+import { COMMS_THREAD_HEADS_LIMIT } from './commsRead.ts'
 
 /** The working language from a settings read: an unreadable file names none, since unknown is not on (ER-3). */
 export function workingLanguageOfRead(read: { status: string; value: { locale: string; agentLanguage?: boolean } }): string | null {
@@ -30,8 +31,9 @@ export { APP_SETTINGS_DEFAULTS }
 
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
 /** The keys `settings.write` takes from a window (`types.ts#SettingsPatch`); main keeps the rest. */
-/** How many per-thread read marks the settings file holds (SCN-143, the unread slice). */
-export const COMMS_READ_THROUGH_MAX = 4096
+/** How many per-thread read marks the settings file holds (SCN-143, the unread slice): every thread the board lists can
+ *  be marked at once (0.3.12 review DA-12: at 4096 a fifth of a full listing read as unread again), and still bounded. */
+export const COMMS_READ_THROUGH_MAX = COMMS_THREAD_HEADS_LIMIT
 
 const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters']
 

@@ -50,7 +50,8 @@ import {
   type CommsThreadsReply,
   type CommsTimelineReply,
   type CommsWaitingReply,
-  type CommsTimelineStep
+  type CommsTimelineStep,
+  COMMS_THREAD_HEADS_LIMIT
 } from '../shared/commsRead.ts'
 import { ops } from './opsSink.ts'
 
@@ -399,7 +400,7 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
 
     /** Each thread's id and last seq, newest first, capped by the board (the rail's count, "mark all read"). */
     async heads(estateId: string): Promise<CommsHeadsReply> {
-      return answer('board_thread_heads_operator', { p_estate: estateId, p_limit: 5000 }, 'the thread heads', (d) => {
+      return answer('board_thread_heads_operator', { p_estate: estateId, p_limit: COMMS_THREAD_HEADS_LIMIT }, 'the thread heads', (d) => {
         const heads = every(d.heads, (h): CommsHead | null => (isObj(h) && isUuid(h.id) && isInt(h.lastSeq) ? { id: h.id, lastSeq: h.lastSeq } : null))
         return heads && typeof d.truncated === 'boolean' ? { ok: true as const, heads, truncated: d.truncated } : null
       })

@@ -11,6 +11,10 @@
  * problem field beside it.
  */
 
+/** How many thread heads the board lists to Comms (`board_thread_heads_operator`'s p_limit): the badge's count and
+ *  «Mark all read» see at most these, and the settings file holds a read mark for each (0.3.12 review DA-12). */
+export const COMMS_THREAD_HEADS_LIMIT = 5000
+
 /** One thread as `board_threads_operator` returns it. Project names are resolved by the
  *  caller — the board keeps its own ids (the migration's header says so). */
 export interface CommsThread {
