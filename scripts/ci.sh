@@ -348,7 +348,7 @@ node apps/desktop/test/session-bundle.test.mjs
 # Run fixture processes sequentially; no native agent, provider call or live database.
 node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs
 node --experimental-strip-types --test apps/desktop/test/session-enroll-request.test.mjs
-node --experimental-strip-types --test apps/desktop/test/project-admission.test.mjs apps/desktop/test/project-onboarding.test.mjs
+node --experimental-strip-types --test apps/desktop/test/project-admission.test.mjs apps/desktop/test/project-onboarding.test.mjs apps/desktop/test/git-people.test.mjs
 node --experimental-strip-types --test apps/desktop/test/automatic-registration-scenario.test.mjs
 node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/acp-shell.test.mjs

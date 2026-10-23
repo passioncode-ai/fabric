@@ -35,6 +35,7 @@ import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { onboardingTask, onboardingTaskId } from './projectOnboarding.ts'
+import { readGitPeople } from './gitPeople.ts'
 import { folderProjectId, gitTopLevel } from './folderResolver.ts'
 import { readGitFacts } from './gitFacts.ts'
 import { promises as fsPromises } from 'node:fs'
@@ -94,6 +95,7 @@ import {
   type MemoryBackendOption,
   type MemoryFact,
   type ProjectRow,
+  type ProjectRelation,
   type AgentClaim,
   type ProjectStats,
   type Quota,
@@ -422,6 +424,8 @@ let ACTIVE_ESTATE: string = DEFAULT_ESTATE
  */
 let OPERATOR_ACTOR: { kind: 'person'; id: string }
 let admission: ReturnType<typeof createProjectAdmission>
+/** W2 S3/S4: files a project's onboarding task; set where the journal and store exist (below), read by the IPC handler. */
+let fileOnboardingTask: ((projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }>) | null = null
 
 let db: SupabaseClient
 /** The same client, narrowed to this estate (S02.a). `db` stays for bootstrap —
@@ -957,6 +961,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     }
     return { taskId, filed: true }
   }
+  fileOnboardingTask = fileOnboarding
   // #endregion project-onboarding
   admission = createProjectAdmission({
     estateId: ACTIVE_ESTATE,
@@ -1854,6 +1859,32 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const repos = await listRepos(projectId)
     return Promise.all(repos.map((r) => repoStates.read(r.path)))
   })
+
+  // #region project-profile-ipc — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#slices-in-order
+  // W2 S4: the project page's profile, the business the person sets, the onboarding task and the people from Git.
+  handle(IPC.projectsRelations, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['relations']>> => {
+    const { data, error } = await store.select('project_relations', 'kind,target,note').eq('project_id', projectId).order('kind').order('target')
+    if (error) throw new Error(`the project's relations could not be read: ${error.message}`)
+    return (data ?? []) as ProjectRelation[]
+  })
+  handle(IPC.projectsSetBusiness, async (_e, projectId: string, business: string): Promise<Returns<FabricApi['projects']['setBusiness']>> => {
+    if (typeof business !== 'string' || business.length > 80) throw new Error('a business is a short name, at most 80 characters')
+    await journal.append({ estateId: ACTIVE_ESTATE, type: 'project.profiled@1', actor: OPERATOR_ACTOR, projectId, payload: { business: business.trim() } })
+    const { data, error } = await store.select('projects', '*').eq('id', projectId).single()
+    if (error || !data) throw new Error(`the project could not be read back: ${error?.message ?? 'no row'}`)
+    return data as ProjectRow
+  })
+  handle(IPC.projectsOnboard, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['onboard']>> => {
+    const { data, error } = await store.select('projects', 'id,name').eq('id', projectId).single()
+    if (error || !data) throw new Error(`the project could not be read: ${error?.message ?? 'no row'}`)
+    if (!fileOnboardingTask) throw new Error('the onboarding task cannot be filed before the journal is open')
+    return fileOnboardingTask(projectId, (data as { name: string }).name)
+  })
+  handle(IPC.projectsPeople, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['people']>> => {
+    const repos = await listRepos(projectId)
+    return readGitPeople(projectId, repos.map((r) => r.path))
+  })
+  // #endregion project-profile-ipc
 
   handle(IPC.quotaRead, (): Promise<Returns<FabricApi['quota']['read']>> => quota.read())
 

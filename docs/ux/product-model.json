@@ -35401,7 +35401,7 @@
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4113
+        "line": 4114
       }
     },
     {
@@ -35421,7 +35421,7 @@
       "errors_recovery": "a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4136
+        "line": 4137
       }
     },
     {
@@ -35440,7 +35440,7 @@
       "errors_recovery": "a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4157
+        "line": 4158
       }
     },
     {
@@ -35459,7 +35459,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4178
+        "line": 4179
       }
     },
     {
@@ -35478,7 +35478,7 @@
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4198
+        "line": 4199
       }
     },
     {
@@ -35497,7 +35497,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4222
+        "line": 4223
       }
     },
     {
@@ -35518,7 +35518,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4245
+        "line": 4246
       }
     },
     {
@@ -35535,7 +35535,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4267
+        "line": 4268
       }
     },
     {
@@ -35552,7 +35552,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4290
+        "line": 4291
       }
     },
     {
@@ -35569,7 +35569,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4311
+        "line": 4312
       }
     },
     {
@@ -35586,7 +35586,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4333
+        "line": 4334
       }
     },
     {
@@ -35603,7 +35603,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4354
+        "line": 4355
       }
     },
     {
@@ -35622,7 +35622,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4376
+        "line": 4377
       }
     }
   ],

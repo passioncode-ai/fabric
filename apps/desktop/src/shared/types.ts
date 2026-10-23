@@ -107,6 +107,19 @@ export interface ProjectRow {
   profiled_by?: string | null
 }
 
+/** One relation a project's profile names (migration 123). */
+export interface ProjectRelation {
+  kind: 'depends-on' | 'used-by' | 'same-business' | 'talks-to' | 'other'
+  target: string
+  note: string | null
+}
+
+/** A project's people read from Git (W2-6); `unread` names the repositories whose history could not be read. */
+export interface GitPeopleView {
+  people: Array<{ name: string; email: string; commits: number; lastAt: string }>
+  unread: Array<{ path: string; reason: string }>
+}
+
 export type MemoryBackend = 'local' | 'cloud'
 
 export interface RepoRow {
@@ -947,6 +960,14 @@ export interface FabricApi {
     stats(projectId: string): Promise<ProjectStats>
     /** M56 — the state of every repository attached to this project. */
     repoStates(projectId: string): Promise<RepoState[]>
+    /** W2 S4: the relations the project's profile names (`project_relations`, migration 123). */
+    relations(projectId: string): Promise<ProjectRelation[]>
+    /** W2 S4: the person sets the project's business (an empty string clears it), as a `project.profiled@1` of theirs. */
+    setBusiness(projectId: string, business: string): Promise<ProjectRow>
+    /** W2 S4 / S3: file the project's onboarding task if it has none; the task's id either way. */
+    onboard(projectId: string): Promise<{ taskId: string; filed: boolean }>
+    /** W2 S4 (D-5, OF-27): the authors of the project's repositories, from Git, live. */
+    people(projectId: string): Promise<GitPeopleView>
     /**
      * M107 — a repository this estate watches has moved; the argument is its
      * path and the caller decides whether it cares (`shared/repoWatch.ts`).
@@ -1707,6 +1728,10 @@ export const IPC = {
   transcriptsGet: 'transcripts:get',
   contextPast: 'context:past',
   projectsRepoStates: 'projects:repo-states',
+  projectsRelations: 'projects:relations',
+  projectsSetBusiness: 'projects:set-business',
+  projectsOnboard: 'projects:onboard',
+  projectsPeople: 'projects:people',
   /**
    * M107 — main→renderer, and a SEPARATE NAME on purpose. The watcher used to
    * broadcast on `projects:repo-states`, the same name `ipcMain.handle` answers
