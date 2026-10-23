@@ -577,3 +577,13 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 /* OF-15: «Где остановились» moved into the main column under «Нужны вы», so the top holds the overview alone. */
 .lh-top{grid-template-columns:minmax(0,1fr)}
 .lh-main-column>.lh-resume{grid-area:auto;margin:0 0 var(--space-4)}
+/* The Board screen's kanban (the operator's walk OF-19, SCN-173): the ladder as four columns that scroll sideways,
+   each column scrolling down on its own. */
+.lk-filter{max-width:280px;margin-bottom:var(--space-3)}
+.lk-board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:var(--space-3);overflow-x:auto;padding-bottom:var(--space-2);align-items:start}
+.lk-col{border:1px solid var(--app-line);border-radius:var(--app-radius-panel,12px);background:var(--app-panel-quiet);padding:var(--space-3);max-height:70vh;overflow-y:auto;overscroll-behavior:contain;min-width:0}
+.lk-col h3{margin:0 0 var(--space-2);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted);font-weight:600}
+.lk-card{display:grid;gap:var(--space-1);width:100%;text-align:left;margin-top:var(--space-2);padding:var(--space-2) var(--space-3);border:1px solid var(--app-line);border-radius:8px;background:var(--app-panel);color:var(--app-ink);font:inherit;font-size:13px;line-height:1.35;cursor:pointer}
+.lk-card:hover{border-color:var(--app-line-strong,var(--app-line))}
+.lk-card small{color:var(--app-muted);font-size:11.5px}
+.lp-modes{display:flex;gap:var(--space-1);margin:0 0 var(--space-4)}

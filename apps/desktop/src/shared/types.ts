@@ -24,6 +24,7 @@ import type { Lineage } from './decisions.ts'
 import type { SurfaceTool } from './surfaceTools.ts'
 import type { ProjectWorkView, WhereWorkView } from './workClaims.ts'
 import type { HomeView } from './homeLive.ts'
+import type { TaskBoardView } from './taskBoard.ts'
 
 /** What an operator's release of a claim answered. */
 export type OperatorRelease =
@@ -1583,6 +1584,8 @@ export interface FabricApi {
     estate(): Promise<WhereWorkView>
     /** The home's reading: live agents in their own words, work and review across projects, project headlines. */
     home(): Promise<HomeView>
+    /** The Board screen's kanban across projects (OF-19, SCN-173). */
+    board(): Promise<TaskBoardView>
     /** The operator ends one claim; the agent is told on its next call. */
     release(claimId: string): Promise<OperatorRelease>
   }
@@ -1820,6 +1823,7 @@ export const IPC = {
   workProject: 'work:project',
   workEstate: 'work:estate',
   workHome: 'work:home',
+  workBoard: 'work:board',
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',

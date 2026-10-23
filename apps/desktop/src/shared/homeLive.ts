@@ -89,6 +89,10 @@ export interface HomeView {
   live: LiveAgent[]
   inWork: WorkItem[]
   review: ReviewItem[]
+  /** Finished tasks, newest first (the operator's walk OF-18: «В работе» and «Закончили»). */
+  done: ReviewItem[]
+  /** The finished read stopped at its limit. */
+  doneCapped?: boolean
   /** The review read stopped at its limit: the count is a floor, said as «50+» (0.3.6 review UX-4, ER-5). */
   reviewCapped?: boolean
   /** The read of Fabric-launched running tasks stopped at its limit. */
@@ -121,8 +125,10 @@ export function composeHome(input: {
   reviewTasks: readonly TaskBrief[]
   /** Tasks in work that no agent has claimed — those Fabric launched itself; claimed ones come from `where`. */
   runningTasks?: readonly TaskBrief[]
+  /** Finished tasks, newest first; absent reads as none. */
+  doneTasks?: readonly TaskBrief[]
   /** The limits the reads above were asked with; reaching one makes the count a floor. */
-  limits?: { review?: number; running?: number }
+  limits?: { review?: number; running?: number; done?: number }
   /** Every task in review, by project — the list above holds only the newest `limits.review`, and a project's own count
    *  must not depend on whether its tasks are among them (0.3.6 review i2 ER-2). Absent: counted from the list. */
   reviewProjectIds?: readonly string[]
@@ -208,6 +214,11 @@ export function composeHome(input: {
     .filter((t) => t.status === 'review' && names.has(t.project_id))
     .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), since: t.updated_at ?? null }))
 
+  const done: ReviewItem[] = (input.doneTasks ?? [])
+    .filter((t) => t.status === 'done' && names.has(t.project_id))
+    .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), since: t.updated_at ?? null }))
+    .sort((a, b) => (b.since ?? '').localeCompare(a.since ?? ''))
+
   const projects: ProjectPulse[] = input.projects.map((p) => {
     const mine = live.filter((l) => l.projectId === p.id && !l.stale)
     const withDoing = mine.find((l) => l.doing)
@@ -229,7 +240,8 @@ export function composeHome(input: {
   })
   const reviewCapped = !!input.limits?.review && input.reviewTasks.length >= input.limits.review
   const inWorkCapped = !!input.limits?.running && (input.runningTasks?.length ?? 0) >= input.limits.running
-  return { live, inWork, review, projects, readAt: input.now, ...(reviewCapped ? { reviewCapped } : {}), ...(inWorkCapped ? { inWorkCapped } : {}) }
+  const doneCapped = !!input.limits?.done && (input.doneTasks?.length ?? 0) >= input.limits.done
+  return { live, inWork, review, done, projects, readAt: input.now, ...(reviewCapped ? { reviewCapped } : {}), ...(inWorkCapped ? { inWorkCapped } : {}), ...(doneCapped ? { doneCapped } : {}) }
 }
 
 /** Home order: favourites first in the operator's own order, then the rest by latest activity, newest first. */

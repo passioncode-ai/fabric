@@ -127,7 +127,7 @@ const render_ = (onError = vi.fn()) => {
   const onOpen = vi.fn()
   render(
     <I18nProvider locale="en">
-      <BoardScreen projects={PROJECTS} feedMark={0} onOpen={onOpen} onError={onError} />
+      <BoardScreen projects={PROJECTS} feedMark={0} mode="needs" onOpen={onOpen} onError={onError} />
     </I18nProvider>
   )
   return { onError, onOpen }

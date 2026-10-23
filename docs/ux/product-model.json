@@ -35522,7 +35522,7 @@
       "screen_refs": [
         "SCR-41"
       ],
-      "coverage": "none yet",
+      "coverage": "partial (2026-10-23): the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the person sees where every task is in the pipeline and opens any one in a press.",

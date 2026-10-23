@@ -22,6 +22,7 @@ import { useLocale, useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
 import { FabricStrip } from './FabricStrip'
 import { MachineDetail } from '../OperatorError'
+import { KanbanBoard } from './KanbanBoard'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
 
 type Filter = 'open' | 'later' | 'done' | 'all'
@@ -29,7 +30,9 @@ type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEnt
 /** What the last Board command said, for the row (or the form) it was about. */
 type Said = { of: string; result: BoardCommandResult }
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, onOpen, onError, onPulse }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onOpen, onError, onPulse }: {
+  /** Which view opens (OF-19): the kanban by stage, unless the person came for a row or a topic. */
+  mode?: 'kanban' | 'needs'
   /** «Пульс» in the strip (SCR-42). */
   onPulse?: () => void
   /** One project's board, or the estate's when null (SCR-41 from SCR-31 «Доска проекта»). */
@@ -46,6 +49,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   onError: (message: string) => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
+  const [mode, setMode] = useState<'kanban' | 'needs'>(initialMode ?? (initialItem || startTopic ? 'needs' : 'kanban'))
   const [open, setOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [done, setDone] = useState<ReadEnvelope<ResolvedEntry[]> | null>(null)
   const [later, setLater] = useState<ReadEnvelope<DeferredEntry[]> | null>(null)
@@ -183,6 +187,14 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           </button>
         </div>
       </header>
+      {/* OF-19 (the operator's walk, 2026-10-22): the kanban of every task by stage, and the queue of what needs the person. */}
+      <div className="lp-modes" role="group" aria-label={t('launch.board.title')}>
+        <button type="button" className="lp-button" aria-pressed={mode === 'kanban'} onClick={() => setMode('kanban')}>{t('launch.board.mode.kanban')}</button>
+        <button type="button" className="lp-button" aria-pressed={mode === 'needs'} onClick={() => setMode('needs')}>{t('launch.board.mode.needs')}</button>
+      </div>
+      {mode === 'kanban' && <KanbanBoard feedMark={feedMark} projectId={projectId} onOpen={(project, task) => onOpen(project, { kind: 'task', id: task })} />}
+      {mode === 'needs' && (
+        <>
       {topic && (
         <section className="lp-detail" aria-labelledby="new-topic-title">
           <h3 id="new-topic-title" tabIndex={-1}>{t('launch.board.topic.title')}</h3>
@@ -381,6 +393,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           </aside>
         )}
       </div>
+        </>
+      )}
     </div>
   )
 }

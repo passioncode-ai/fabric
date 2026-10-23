@@ -43,7 +43,7 @@ import { resolveProject } from '../shared/projectResolve.ts'
 import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
-import { readHome, readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
+import { readHome, readProjectWork, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -4902,6 +4902,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> =>
     readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  handle(IPC.workBoard, async (): Promise<Returns<FabricApi['work']['board']>> =>
+    readTaskBoard(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
     // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.

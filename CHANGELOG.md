@@ -24,6 +24,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   it. «Агенты в работе» names the task each agent holds rather than its latest action, lists active agents first, scrolls
   inside itself and carries the one «Открыть переписку».
 
+- The Board screen opens on a kanban of every task by stage: «Очередь», «В работе», «На проверке», «Готово», the
+  columns scrolling sideways and each one down, with a project filter; a card opens its task in its project, and
+  «Нужны вы» is the second tab (OF-19). On the home «Кто что делает» is two columns, «В работе» and «Закончили», with
+  «Открыть доску» (OF-18).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

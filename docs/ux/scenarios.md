@@ -4274,7 +4274,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-10-22: «хотелось бы видеть её канбаном ... в работе, на проверке»; the columns are Fabric's ladder (`apps/desktop/src/shared/ladder.ts`), not customizable in 0.3.11 (D-1).
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** partial (2026-10-23): the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters
 - **Product:** unobserved
 
 ### SCN-174: Open a task and read what it is, why, and what will be ready

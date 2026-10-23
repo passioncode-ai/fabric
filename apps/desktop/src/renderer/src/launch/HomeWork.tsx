@@ -5,7 +5,7 @@
 // stage report, a task's brief — never the prompt.
 
 import { useEffect, useState } from 'react'
-import type { HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
+import type { ReviewItem, HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
 import { useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
@@ -99,6 +99,28 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
       </button>
     </li>
   )
+  // OF-18 (the operator's walk, 2026-10-22): two columns, «В работе» (review marked inside it) and «Закончили»;
+  // the whole board, every stage, is one press away.
+  const reviewRow = (r: ReviewItem) => (
+    <li key={r.taskId} className="lh-work-row">
+      <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
+        <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
+        <span className="lp-meta">{[r.projectName, r.since ? since(r.since, t) : null].filter(Boolean).join(' · ')}</span>
+        <span className="lp-pill">{t('launch.home.work.review')}</span>
+      </button>
+    </li>
+  )
+  const doneRow = (r: ReviewItem) => (
+    <li key={r.taskId} className="lh-work-row">
+      <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
+        <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
+        <span className="lp-meta">{[r.projectName, r.since ? since(r.since, t) : null].filter(Boolean).join(' · ')}</span>
+      </button>
+    </li>
+  )
+  const inWorkCount = v ? v.inWork.length + v.review.length : 0
+  // A reading without the finished list (an older main process) shows none rather than failing the home.
+  const done = v?.done ?? []
   return (
     <section className="lp-panel lh-work" aria-labelledby="home-work-title">
       <div className="lp-panel-head">
@@ -106,34 +128,30 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
           <p className="lp-kicker">{t('launch.home.work.kicker')}</p>
           <h3 id="home-work-title">{t('launch.home.work.title')}</h3>
         </div>
+        {onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.board.open')}</button>}
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && (
         <div className="lh-lanes">
           <div className="lh-lane">
-            <h4>{t('launch.home.work.inWork')} <span className="lp-count">{v.inWork.length}{v.inWorkCapped ? '+' : ''}</span></h4>
-            {v.inWork.length ? <ol>{v.inWork.slice(0, LANE_ROWS).map(work)}</ol> : <p className="lp-meta">{t('launch.home.work.noneInWork')}</p>}
-            {hasMore(v.inWork.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: v.inWork.length - LANE_ROWS })}</button>}
+            {/* The in-work count is the strip's own number (release review i2 DO-3); review is counted beside it. */}
+            <h4>
+              {t('launch.home.work.inWork')} <span className="lp-count">{v.inWork.length}{v.inWorkCapped ? '+' : ''}</span>
+              {v.review.length > 0 && <span className="lp-meta"> · {t('launch.home.work.review')} {v.review.length}{v.reviewCapped ? '+' : ''}</span>}
+            </h4>
+            {inWorkCount ? (
+              <ol>
+                {v.inWork.slice(0, LANE_ROWS).map(work)}
+                {v.review.slice(0, Math.max(0, LANE_ROWS - Math.min(LANE_ROWS, v.inWork.length))).map(reviewRow)}
+              </ol>
+            ) : <p className="lp-meta">{t('launch.home.work.noneInWork')}</p>}
+            {hasMore(inWorkCount) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: inWorkCount - LANE_ROWS })}</button>}
           </div>
           <div className="lh-lane">
-            <h4>{t('launch.home.work.review')} <span className="lp-count">{v.review.length}{v.reviewCapped ? '+' : ''}</span></h4>
-            {v.review.length ? (
-              <ol>
-                {v.review.slice(0, LANE_ROWS).map((r) => (
-                  <li key={r.taskId} className="lh-work-row">
-                    <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
-                      <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
-                      <span className="lp-meta">{[r.projectName, r.since ? since(r.since, t) : null].filter(Boolean).join(' · ')}</span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            ) : null}
-            {hasMore(v.review.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: v.review.length - LANE_ROWS })}</button>}
-            {v.review.length ? null : (
-              <p className="lp-meta">{t('launch.home.work.noneInReview')}</p>
-            )}
+            <h4>{t('launch.home.work.done')} <span className="lp-count">{done.length}{v.doneCapped ? '+' : ''}</span></h4>
+            {done.length ? <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol> : <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
+            {hasMore(done.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: done.length - LANE_ROWS })}</button>}
           </div>
         </div>
       )}

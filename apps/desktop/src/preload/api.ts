@@ -271,6 +271,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       project: (projectId) => ipc.invoke(IPC.workProject, projectId),
       estate: () => ipc.invoke(IPC.workEstate),
       home: () => ipc.invoke(IPC.workHome),
+      board: () => ipc.invoke(IPC.workBoard),
       release: (claimId) => ipc.invoke(IPC.workRelease, claimId)
     },
     terminal: {

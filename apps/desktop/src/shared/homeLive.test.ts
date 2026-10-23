@@ -80,6 +80,24 @@ describe('composeHome', () => {
   })
 })
 
+describe('composeHome — finished work (the operator\'s walk OF-18)', () => {
+  it('lists the finished tasks of active projects, newest first, and says when the read stopped at its limit', () => {
+    const done = [
+      { id: 'd1', project_id: P1, title: 'Email sign-in', brief_what: null, status: 'done', updated_at: '2026-10-20T00:00:00Z' },
+      { id: 'd2', project_id: P2, title: 'Team invites', brief_what: 'Invite people by link', status: 'done', updated_at: '2026-10-21T00:00:00Z' },
+      { id: 'd3', project_id: 'gone', title: 'A removed project', brief_what: null, status: 'done', updated_at: '2026-10-22T00:00:00Z' }
+    ]
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: [], doneTasks: done, limits: { done: 3 }, activity: new Map(), now: 'x' })
+    expect(v.done.map((d) => d.taskId)).toEqual(['d2', 'd1'])
+    expect(v.done[0]).toMatchObject({ projectName: 'Site', summary: 'Invite people by link', since: '2026-10-21T00:00:00Z' })
+    expect(v.doneCapped).toBe(true)
+  })
+  it('is empty, not absent, when nothing is finished', () => {
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: [], activity: new Map(), now: 'x' })
+    expect(v.done).toEqual([])
+  })
+})
+
 describe('orderProjects', () => {
   it('favourites first in their own order, then the rest by latest activity', () => {
     const act = new Map([[P1, '2026-10-01'], [P2, '2026-10-14'], [P3, null]])

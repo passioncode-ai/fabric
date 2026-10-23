@@ -17,6 +17,7 @@ const view: HomeView = {
   ],
   inWork: [{ taskId: 't2', projectId: 'p2', projectName: 'Site', summary: 'New landing page', agent: 'codex', sessionId: 's2', console: false, since: now, doing: null, live: true }],
   review: [{ taskId: 't3', projectId: 'p1', projectName: 'Fabric', summary: 'Keep-awake setting', since: now }],
+  done: [{ taskId: 't4', projectId: 'p1', projectName: 'Fabric', summary: 'Email sign-in', since: now }],
   projects: [],
   readAt: now
 }
@@ -52,6 +53,21 @@ describe('home: agents at work, by their planned task (the operator\'s walk OF-1
     show(<HomeAgents reading={read} onOpen={() => {}} onSession={() => {}} onAll={() => {}} onComms={onComms} />)
     fireEvent.click(screen.getByRole('button', { name: 'Open the comms' }))
     expect(onComms).toHaveBeenCalled()
+  })
+})
+
+describe('home: who does what, in two columns (the operator\'s walk OF-18)', () => {
+  it('shows «В работе» (review marked inside it) and «Закончили», and its heading opens the board', () => {
+    const onBoard = vi.fn()
+    const { container } = show(<HomeWorkLanes reading={read} onOpen={() => {}} onSession={() => {}} onBoard={onBoard} />)
+    const lanes = [...container.querySelectorAll('.lh-lane h4')].map((h) => h.textContent ?? '')
+    expect(lanes).toHaveLength(2)
+    expect(lanes[0]).toMatch(/In work/)
+    expect(lanes[1]).toMatch(/Finished/)
+    expect(screen.getByText('Keep-awake setting').closest('.lh-lane')!.textContent).toMatch(/In work/)
+    expect(screen.getByText('Email sign-in')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Open the board' }))
+    expect(onBoard).toHaveBeenCalled()
   })
 })
 
