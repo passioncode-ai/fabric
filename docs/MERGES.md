@@ -4,13 +4,13 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-23T__LANDED2__ · `—` · agent/0312-asks → main · fast-forward
+### 2026-10-23T16:02:00Z · `—` · agent/0312-asks → main · fast-forward
 - run: r-8642aee374a2
 - files: the carry-over register (CO-406 to CO-410 new, CO-360 and CO-383 resolved); the backlog (lanes, the open count); the triage's addendum; the map
 - conflicts: none
 - summary: Fabric answered every ask of other projects that waited on the board (14 threads) and filed five rows for what it takes on (CO-406 to CO-410).
 
-### 2026-10-23T__LANDED__ · `—` · agent/0312-w1 → main · fast-forward
+### 2026-10-23T16:02:00Z · `—` · agent/0312-w1 → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/protocol.ts (machine, the cross-project rule, version 3), shared/protocolObligations.ts (intake.spec-first, the board rule), shared/taskSpec.ts (new), shared/appSettings.ts and types.ts (machineTrust), shared/homeLive.ts, shared/taskBoard.ts, main/workRead.ts, main/agentSurface.ts (trust read, CO-399), main/boardTools.ts, main/index.ts; TaskPage, KanbanBoard, SettingsScreen; i18n; tests; SCN-176, SCN-177; ADR-0176 amendments; CO-397, CO-399, CO-403 resolved, CO-404 partially; CHANGELOG; operating-surfaces.md; the map
 - conflicts: none
