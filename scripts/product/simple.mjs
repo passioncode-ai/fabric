@@ -70,11 +70,13 @@ export function renderSimple(view,state={}){
  }
  // ---------- Доска (SCN-173, OF-19, D-1): the ladder Fabric enforces, as a kanban ----------
  function board(){
-  if(st==='error')return failed(L('Доску не удалось прочитать.','The board could not be read.'),'tasks.board: connect ECONNREFUSED 127.0.0.1:54322','simple-board')
-  if(st==='loading')return reading()
+  // Every state names the page (the product report's browser suite: a view without an h2 is unreadable to a screen reader).
+  const hello=`<div class="sx-hello"><div><h2 tabindex="-1">${sh(L('Все задачи по этапам','Every task by stage'))}</h2><p>${sh(L('Очередь, работа, проверка и готовое, по всем проектам.','Queue, work, review and done, across every project.'))}</p></div></div>`
+  if(st==='error')return hello+failed(L('Доску не удалось прочитать.','The board could not be read.'),'tasks.board: connect ECONNREFUSED 127.0.0.1:54322','simple-board')
+  if(st==='loading')return hello+reading()
   const one=st==='filtered'
   const filters=`<div class="sx-filters"><span>${sh(L('Проект','Project'))}:</span><a class="sx-pill ${one?'':'on'}" href="${go('simple-board','ready')}">${sh(L('все','all'))}</a><a class="sx-pill ${one?'on':''}" href="${go('simple-board','filtered')}">Fabric</a><span>${sh(L('Агент','Agent'))}:</span><span class="sx-pill on">${sh(L('все','all'))}</span><a class="sx-pill" href="${go('simple-board','ready')}">${sh(L('Отменено','Cancelled'))}</a></div>`
-  if(st==='empty')return filters+`<p class="sx-emptyline">${sh(L('Задач пока нет. Задачу ставят на странице проекта.','No tasks yet. Tasks are added on a project’s page.'))}</p>`
+  if(st==='empty')return hello+filters+`<p class="sx-emptyline">${sh(L('Задач пока нет. Задачу ставят на странице проекта.','No tasks yet. Tasks are added on a project’s page.'))}</p>`
   const T=(x,k,p,age)=>[x,k,p,age]
   const cols=[
    [L('Очередь','Queue'),[T(L('История с отменой','History with undo'),'','Fabric',L('2 дня','2 days')),T(L('Агенты в один клик','Agents in one press'),'','Fabric',L('2 дня','2 days')),T(L('Тёмная тема лендинга','The landing’s dark theme'),'','PassionCode site',L('5 дней','5 days'))]],
@@ -83,13 +85,14 @@ export function renderSimple(view,state={}){
    [L('Готово','Done'),[T(L('Вход по почте','Email sign-in'),'cc','Fabric',L('вчера','yesterday')),T(L('Приглашения в команду','Team invitations'),'cx','Fabric',L('2 дня','2 days'))]]]
   const shown=one?cols.map(([h,xs])=>[h,xs.filter(x=>x[2]==='Fabric')]):cols
   const partial=st==='partial'?failed(L('Один проект не прочитан: Nicegram. Его задач здесь нет.','One project could not be read: Nicegram. Its tasks are missing here.'),'tasks.board(nicegram): canceling statement due to statement timeout','simple-board'):''
-  return filters+partial+`<div class="sx-kanban">${shown.map(([h,xs])=>`<section class="sx-kcol" aria-label="${sh(h)}"><h3>${sh(h)} · ${xs.length}</h3>${xs.map(([x,k,p,age])=>`<a class="sx-kcard" href="${go('simple-task',h===L('Готово','Done')?'done':'ready')}"><b>${sh(x)}</b><small>${k?sign(k,'xs')+sh(name(k))+' · ':''}${sh(p)} · ${sh(age)}</small></a>`).join('')||`<p class="sx-muted">${sh(L('Пусто','Empty'))}</p>`}</section>`).join('')}</div>`
+  return hello+filters+partial+`<div class="sx-kanban">${shown.map(([h,xs])=>`<section class="sx-kcol" aria-label="${sh(h)}"><h3>${sh(h)} · ${xs.length}</h3>${xs.map(([x,k,p,age])=>`<a class="sx-kcard" href="${go('simple-task',h===L('Готово','Done')?'done':'ready')}"><b>${sh(x)}</b><small>${k?sign(k,'xs')+sh(name(k))+' · ':''}${sh(p)} · ${sh(age)}</small></a>`).join('')||`<p class="sx-muted">${sh(L('Пусто','Empty'))}</p>`}</section>`).join('')}</div>`
  }
  // ---------- Задача (SCN-174, OF-21, OF-22): what, why, what will be ready ----------
  function task(){
   const head=back(L('Доска','Board'),'simple-board')
-  if(st==='error')return head+failed(L('Задачу не удалось прочитать.','The task could not be read.'),'tasks.get: canceling statement due to statement timeout','simple-task')
-  if(st==='loading')return head+reading()
+  const named=`<div class="sx-hello"><div><h2 tabindex="-1">${sh(L('Задача','Task'))}</h2></div></div>`
+  if(st==='error')return head+named+failed(L('Задачу не удалось прочитать.','The task could not be read.'),'tasks.get: canceling statement due to statement timeout','simple-task')
+  if(st==='loading')return head+named+reading()
   const done=st==='done'
   const title=done?L('Вход по почте','Email sign-in'):L('Новая главная в новом стиле','The new home in the new style')
   const brief=st==='empty'?`<p class="sx-emptyline">${sh(L('Агент ещё не описал задачу. Ниже её название и история.','The agent has not described the task yet. Its title and history are below.'))}</p>`:`<dl class="sx-brief"><dt>${sh(L('Что сделать','What to do'))}</dt><dd>${sh(L('Перестроить главную по макету: «Нужны вы» и «Где остановились» сверху, агенты в работе в своей прокрутке.','Rebuild the home to the prototype: “You are needed” and “Where you stopped” on top, agents at work in their own scroll.'))}</dd><dt>${sh(L('Зачем','Why'))}</dt><dd>${sh(L('Человек за секунды видит, что нужно от него и что идёт без него.','In seconds the person sees what is needed from them and what goes on without them.'))}</dd><dt>${sh(L('Что будет готово','What will be ready'))}</dt><dd>${sh(L('Главная в обоих языках, тесты экранов, скриншоты по макету.','The home in both languages, screen tests, screenshots against the prototype.'))}</dd></dl>`
