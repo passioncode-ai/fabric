@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "f08ad90982789b3ef35f9babf547e12767a4ea84",
+  "report": "docs/evidence/reviews/0.3.11/iteration-3/2026-10-23-plan.md",
+  "reportSha256": "7bce6340a3f373176d17f0789db04a24c931db4af65032d7285fd20e80df9aa6",
+  "reviewerRun": "release-0311-i3-plan-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both join PJ-42 (`docs/ux/product-model.json`, `afff7495`); the final candidate carries it and a fresh verifier reads its difference from the reviewed candidate"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the path is `apps/desktop/src/renderer/src/TaskPage.tsx`; P-25 names CO-386, CO-388, CO-402 and CO-405"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close names them (P-20 and P-24 released, the Now line, lane 2)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V3-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-19 and P-21 to P-23 leave lane 2"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 0 names the caches that may go; step 3 says what to do if the broker started Fabric or the first start fails (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 0 names the caches that may go; step 3 says what to do if the broker started Fabric or the first start fails (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 does CO-377 first; if 0.3.12 cannot ship by 2026-10-31, CO-377 ships alone as 0.3.12's first patch (Owed)"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ADR leases are released; `rel-0311` is released at the Release close"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V3-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the walk from zero is the Release close's walk of every place on the installed app, in ru and en; OF-33's section review is CO-392's"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-404 carries it to the contract and the knowledge base"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V3-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff names it"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "source": "V3-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it links 0.3.11's"
+      ]
+    }
+  ]
+}

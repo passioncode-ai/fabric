@@ -4,35 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-23T12:00:00Z · `—` · agent/rel-0311-i1 → main · fast-forward
+### 2026-10-23T__LANDED__ · `—` · agent/release-0311 → main · fast-forward
 - run: r-8642aee374a2
-- files: wave 4 (agent/w4-home to agent/w4-carry) and iteration 1 of the 0.3.11 review: commsNewest.ts, workRead.ts, homeLive.ts, taskBoard.ts, KanbanBoard, BoardScreen, HomeParts, HomeWork, HistoryScreen, CommsFeed, SettingsScreen, rail.css, launch.css, i18n, tests; the ledger, the reviews, the register (D-7, CO-391 to CO-401), P-25, AGENTS.md, release-mac, the handoff
+- files: Fabric 0.3.11: wave 4 as the operator's walk set it (agent/w4-home, w4-board, w4-agents, w4-comms, w4-carry, merged into agent/rel-0311-i1 and agent/rel-0311-i3 rather than landed one by one), three review iterations' fixes, ADR-0176, the ledger and its 15 reviews, the release commit
 - conflicts: none
-- summary: 0.3.11's candidate after iteration 1; landed with the release.
-
-### 2026-10-23T10:00:00Z · `—` · agent/w4-comms → main · fast-forward
-- run: r-8642aee374a2
-- files: launch/CommsFeed.tsx (new), CommsScreen.tsx (the two tabs), launch.css, i18n, tests; OF-29; D-6 (OF-27, OF-31, OF-32, OF-39, OF-40 to 0.3.12); SCN-143; CHANGELOG; the map
-- conflicts: none
-- summary: Comms reads as a feed (wave 4). Also: a project's agents one line each (OF-23); OF-28 found done on the board; OF-20, OF-24 to OF-26 with onboarding in 0.3.12. Also: 0.3.10's carry-overs for 0.3.11 (CO-380, CO-384, CO-385, CO-387 resolved; CO-386 and CO-388 to 0.3.12).
-
-### 2026-10-23T08:30:00Z · `—` · agent/w4-agents → main · fast-forward
-- run: r-8642aee374a2
-- files: launch/HomeWork.tsx (`AgentsAtWork`, `HomeAgents` optional «Все агенты»), App.tsx, EstateAgents.tsx, launch/HistoryScreen.tsx (the agents' feed), launch/SettingsScreen.tsx (no quotas; the language switch), shared/protocol.ts and protocolObligations.ts (the language rule optional, D-2), shared/appSettings.ts and types.ts (`agentLanguage`), main/index.ts and agentSurface.ts, rail.css, i18n, tests; ADR-0174 and the pipeline reservation moved to ADR-0175; OF-30, OF-34, OF-35, OF-37 (part), OF-38; SCN-166, SCN-168, SCN-170; CHANGELOG; the map
-- conflicts: none
-- summary: Agents and История repaired, quotas left to Switchboard, the working language switchable (wave 4).
-
-### 2026-10-23T06:30:00Z · `—` · agent/w4-board → main · fast-forward
-- run: r-8642aee374a2
-- files: shared/taskBoard.ts (new), shared/homeLive.ts (`done`), main/workRead.ts (`readTaskBoard`, the finished read), IPC `work:board` (types, preload, window policy, main), launch/KanbanBoard.tsx (new), BoardScreen.tsx (the two tabs), HomeWork.tsx (`HomeWorkLanes` in two columns), launch.css, i18n, tests; OF-18 and OF-19; SCN-173 coverage; CHANGELOG; the map
-- conflicts: none
-- summary: the Board screen is a kanban by stage, and the home's work is «В работе» and «Закончили» (wave 4). Also: a task opens on its template, back at the top left (OF-21, OF-22; TaskPage.tsx).
-
-### 2026-10-23T05:00:00Z · `—` · agent/w4-home → main · fast-forward
-- run: r-8642aee374a2
-- files: EstateHome.tsx, launch/HomeParts.tsx (`HomeBoard`), launch/HomeWork.tsx (`HomeAgents`, `Doing`), launch.css, i18n en/ru, tests HomeParts.test.tsx and HomeWork.test.tsx; the walk's OF-14 to OF-17 done; SCN-163 coverage; CHANGELOG Unreleased; the map
-- conflicts: none
-- summary: the home says what is needed from the person first, and agents by the task they hold (wave 4).
+- summary: Fabric 0.3.11 released: the home, the Board, the task page, Агенты, История, Comms and Settings rebuilt to the operator's walk, the agents' working language, and 0.3.10's carry-overs. The wave branches were merged on the release branch, not on `main`; this entry replaces the five that said otherwise (0.3.11 review DO-4, PL-8).
 
 ### 2026-10-23T02:30:00Z · `—` · agent/w4-proto-home-board → main · fast-forward
 - run: r-8642aee374a2

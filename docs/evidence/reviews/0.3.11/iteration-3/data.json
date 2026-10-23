@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "f08ad90982789b3ef35f9babf547e12767a4ea84",
+  "report": "docs/evidence/reviews/0.3.11/iteration-3/2026-10-23-data.md",
+  "reportSha256": "665fca9f031b34b41bd0f1e5b726dc9140486fc90979c4bb5fb67876c977834f",
+  "reviewerRun": "release-0311-i3-data-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 14 windows, one read at a time, given up after 60 s, and a row for the thread list (`AGENTS.md`); V2-5 holds on the new bound"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the mounted flag is set again on mount (`CommsFeed.tsx`); `CommsFeed.test.tsx` «reads under StrictMode»"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: under «Лента» the strip says the feed reads every 15 seconds (`CommsScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the comment names none on a failure (`main/agentSurface.ts`); V2-4's test is «finds the newest 100 when the newest stretch is quiet and an older one busy (DA-2)»"
+      ]
+    }
+  ]
+}

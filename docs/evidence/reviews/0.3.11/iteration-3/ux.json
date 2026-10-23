@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "f08ad90982789b3ef35f9babf547e12767a4ea84",
+  "report": "docs/evidence/reviews/0.3.11/iteration-3/2026-10-23-ux.md",
+  "reportSha256": "a9e873038170dcfbc769a1fad51763b2db56d962462cb59479b689c79ca0703a",
+  "reviewerRun": "release-0311-i3-ux-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: under «Лента» the strip says the feed reads every 15 seconds (`CommsScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V3-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Задачи этого проекта, от очереди до готовых» (`BoardScreen.tsx`, i18n)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a read is given up after 60 s and said as failed; a press or tick during a read is kept and read right after"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: on the kanban the button reads «Начать разбор» and is not pressed; `aria-expanded` only with the form on screen (`BoardScreen.tsx`); the mode switch's group name and the twice-read heading are ruled CO-400"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V3-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both say Comms"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V3-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-400 and CO-394, 0.3.12 with the project page; the back button's label while a task loads now matches (`TaskPage.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V3-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-400 and CO-394, 0.3.12 with the project page; the back button's label while a task loads now matches (`TaskPage.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V3-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-400 and CO-394, 0.3.12 with the project page; the back button's label while a task loads now matches (`TaskPage.tsx`)"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V3-16",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the case guards the outcome, one line in the home's column, which the heading rule and the wrapping buttons give together; it failed on the candidate of iteration 1"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: implemented in both; SCN-038's older mismatch is CO-400's"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "f08ad90982789b3ef35f9babf547e12767a4ea84",
+  "report": "docs/evidence/reviews/0.3.11/iteration-3/2026-10-23-errors.md",
+  "reportSha256": "c01240e8ecd256e39902db9286254e620ca16d4bd7db6cdfa7a64eb1f1de60c8",
+  "reviewerRun": "release-0311-i3-errors-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the mounted flag is set again on mount (`CommsFeed.tsx`); `CommsFeed.test.tsx` «reads under StrictMode»"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a read is given up after 60 s and said as failed; a press or tick during a read is kept and read right after"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V3-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-405, 0.3.12; on the operator's board it returns the newest 100 in 2 calls (iteration 3, DA)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a filter whose project left is cleared (`CommsFeed.tsx`, `KanbanBoard.tsx`); `KanbanBoard.test.tsx` «drops a filter … does not come back by itself»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: on the kanban the button reads «Начать разбор» and is not pressed; `aria-expanded` only with the form on screen (`BoardScreen.tsx`); the mode switch's group name and the twice-read heading are ruled CO-400"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: under «Лента» the strip says the feed reads every 15 seconds (`CommsScreen.tsx`)"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V3-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: tests for each, watched failing on their plants: `appSettings.test.ts` (unreadable settings), `homeLive.test.ts` (a task back in the queue), `KanbanBoard.test.tsx` (unknown count, filter dropped), `BoardScreen.test.tsx` (the kanban's heading and review, arrival focus), `CommsFeed.test.tsx` (no match with Show everything, stale line, StrictMode), `Feed.test.tsx` (no project)"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 14 windows, one read at a time, given up after 60 s, and a row for the thread list (`AGENTS.md`); V2-5 holds on the new bound"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: date and time (`CommsFeed.tsx`)"
+      ]
+    }
+  ]
+}

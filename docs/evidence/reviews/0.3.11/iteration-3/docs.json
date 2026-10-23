@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "f08ad90982789b3ef35f9babf547e12767a4ea84",
+  "report": "docs/evidence/reviews/0.3.11/iteration-3/2026-10-23-docs.md",
+  "reportSha256": "346260be84295b41416c494d01219ad469af315e131cb82471e3ff616e9173dd",
+  "reviewerRun": "release-0311-i3-docs-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 14 windows, one read at a time, given up after 60 s, and a row for the thread list (`AGENTS.md`); V2-5 holds on the new bound"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both cells say partly done and cite CO-401"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V3-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release commit folds them into the one landing (Release close)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: implemented in both; SCN-038's older mismatch is CO-400's"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V3-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: their Status names the other unbuilt steps (CO-391, CO-392)"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 14 windows, one read at a time, given up after 60 s, and a row for the thread list (`AGENTS.md`); V2-5 holds on the new bound"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the path is `apps/desktop/src/renderer/src/TaskPage.tsx`; P-25 names CO-386, CO-388, CO-402 and CO-405"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the comment names none on a failure (`main/agentSurface.ts`); V2-4's test is «finds the newest 100 when the newest stretch is quiet and an older one busy (DA-2)»"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «← К проекту» in every state (`TaskPage.tsx`)"
+      ]
+    }
+  ]
+}

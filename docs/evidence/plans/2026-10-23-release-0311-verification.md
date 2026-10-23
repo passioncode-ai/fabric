@@ -180,7 +180,10 @@ Exit for iteration 2: every finding is fixed, ruled to a register row or not a d
 
 ## Iteration 3
 
-Five fresh reviewers, 2026-10-23, against `6481e524` (`6481e524ec8d537b766f3fe99958f06ab852f0ba`), read-only in a detached checkout. Reports:
+Five fresh reviewers, 2026-10-23, against `6481e524` (`6481e524ec8d537b766f3fe99958f06ab852f0ba`), read-only in a detached checkout.
+The final candidate is `f08ad909` (`f08ad90982789b3ef35f9babf547e12767a4ea84`): the receipts and the release gate name it, as
+0.3.10's named its final candidate. It is `995ba847`, which the third verifier passed, plus the test fix of V3-44,
+whose file was run on a disposable stack (107 checks, exit 0). Reports:
 [UX](../reviews/0.3.11/iteration-3/2026-10-23-ux.md), [errors](../reviews/0.3.11/iteration-3/2026-10-23-errors.md),
 [documents](../reviews/0.3.11/iteration-3/2026-10-23-docs.md), [data](../reviews/0.3.11/iteration-3/2026-10-23-data.md),
 [plan](../reviews/0.3.11/iteration-3/2026-10-23-plan.md).
@@ -192,7 +195,11 @@ one by one in a scratch copy and found eight that no test held (ER-7). As 0.3.8 
 final candidate; the reviewers read `6481e524`, and a fresh verifier reads the final candidate's difference from it.
 The first verifier read `20ea082f` (the fixes and the ADR-0177 reservation the full gate asked for) and failed it on the
 uncommitted reports and on tests that did not hold their fixes (V3-31 to V3-39); a second verifier read `e569bb5b` and
-found two more tests missing and a ruling's row silent (V3-40 to V3-43), all fixed in the final candidate; the first report is
+found two more tests missing and a ruling's row silent (V3-40 to V3-43), all fixed in the final candidate ([its report](../reviews/0.3.11/iteration-3/2026-10-23-final-candidate-verification-2.md)); a third
+verifier read `995ba847` and passed it, with three minor notes: the Release close below now lists its acts and the
+shell-scroll browser case (it ran in the full gate of `e569bb5b`, whose CSS the final candidate keeps: `ok shell-scroll.browser.mjs`), this paragraph links
+the second report, and CO-405's title («Three edges») understates its five items, which its text lists (the register
+cannot change after the verified commit; 0.3.12's triage renames it). The first report is
 [the final-candidate verification](../reviews/0.3.11/iteration-3/2026-10-23-final-candidate-verification.md).
 
 | ID | Source | Finding (short) | Disposition |
@@ -246,4 +253,22 @@ Exit for iteration 3: every finding is fixed, ruled to a register row or not a d
 
 ## Release close
 
-_Not started._
+Local gates before the release commit, 2026-10-23: `bash scripts/ci.sh full` on `e569bb5b` ran 162 of 163 suites
+green, the one red being the template-literal regex of V3-44; on the final candidate that file passes 107 checks on a
+disposable stack, and the tier's last two steps pass there (`probe-fresh-vs-upgraded.mjs`: "fresh and upgraded are one
+schema"; the residue report). Earlier runs met two load-sensitive suites, `resource-reconciliation.test.mjs` and the
+owned backend's channel end, each green when run again alone (5 of 5), neither touched by 0.3.11.
+
+Written as each step lands, after the release commit (which carries the version, `## 0.3.11`, the release gate, iteration
+3's receipts, the merge log folded into the one landing, the map and the handoff):
+
+1. The gate's library on the release commit; the landing on `main` by fast-forward (after merging `origin/main` if its
+   workspace pins moved); hosted `ci` on it.
+2. The tag `v0.3.11`, the release run, the assets and their signatures.
+3. The rollout above (step 0's disk measurement, the person's quit, the bundle, the open), with step 3's checks and the
+   walk of every place on the installed app in ru and en (the wave's walk from zero, V3-27), and the OF-36 check.
+4. The measurements of 0.3.9's "How we will know it holds" and the broker's idle stops, for the operator's CO-382 decision.
+5. The publication post on the release threads and `27750925` with what shipped and what is 0.3.12, CO-383's relinks and
+   CO-371's update; the knowledge base pull request (`products.md`, `roadmap.md`, `plans.md`).
+6. After the tag: P-20 and P-24 marked released, the Now line, lane 2; the workspace publication; the leases `release-0311`
+   released.

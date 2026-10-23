@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.11
 
 Fabric 0.3.11: the places the operator walked through on 0.3.10, rebuilt in the order they asked for, and agents that
 write in Fabric's language. Schema 95, unchanged: installing 0.3.11 over 0.3.10 replaces the bundle only, and going back
