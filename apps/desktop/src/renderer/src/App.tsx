@@ -57,7 +57,7 @@ import { EstateAgents } from './EstateAgents'
 import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
 import { StackHealthNotice } from './StackHealthNotice'
-import { I18nProvider, useT, type Locale } from './i18n'
+import { I18nProvider, useT, type Locale, type Translate } from './i18n'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
@@ -115,6 +115,15 @@ const draftIsDirty = (d: Draft): boolean =>
 
 /** The default estate's name as `supabase/seed.sql` writes it. */
 const SEED_ESTATE_NAME = 'org #1'
+
+/** The way back's words for the place a task was opened from (CO-394); any other place is plain «Назад». */
+function backLabel(from: AppRoute['kind'], t: Translate): string {
+  return from === 'board' ? t('task.backTo.board')
+    : from === 'home' ? t('task.backTo.home')
+    : from === 'agents' ? t('task.backTo.agents')
+    : from === 'history' ? t('task.backTo.history')
+    : t('task.backTo.back')
+}
 
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
@@ -615,12 +624,17 @@ function Shell({
 
 
   /** Open the exact thing, not the project it happens to live in. */
+  const [taskOrigin, setTaskOrigin] = useState<{ taskId: string; from: AppRoute['kind'] } | null>(null)
+  // Leaving the project page forgets where its task came from, so a later visit's way back is the project's own.
+  useEffect(() => { if (active.kind !== 'project') setTaskOrigin(null) }, [active.kind])
   const openEntity = (projectId: string, ref: EntityRef): void => {
     // BUILT THROUGH THE RESOLVER. `routeToEntity` refuses an address no surface
     // can focus and hands back where to go instead, so a fact or a transcript
     // opens its project rather than putting a location on screen that nothing
     // can reach.
     const addressed = routeToEntity({ ref, projectId })
+    // A task opened from another place names that place on its way back (CO-394); from its own project it does not.
+    setTaskOrigin(ref.kind === 'task' && !(active.kind === 'project' && active.projectId === projectId) ? { taskId: ref.id, from: active.kind } : null)
     openProject(projectId)
     goTo(addressed.addressed ? addressed.route : addressed.fallback)
     // The way back is ⌘[ (the shell's history below), not a Back of Fabric's own (SCN-162 step 3).
@@ -1242,6 +1256,7 @@ function Shell({
             // screen that exists: the resolver already refused everything else,
             // and `taskOf` refuses again rather than trusting it.
             requestedTask={taskOf(focusFor(focus, current.id) ?? { kind: 'work', id: '' })}
+            backTo={taskOrigin ? { taskId: taskOrigin.taskId, label: backLabel(taskOrigin.from, t), go: () => travelRef.current('back') } : null}
             taskDraft={taskDrafts[current.id] ?? null}
             onTaskDraftChange={(patch) =>
               // Functional, and merged onto whatever is there NOW: three

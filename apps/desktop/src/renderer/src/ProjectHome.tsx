@@ -100,6 +100,7 @@ export function ProjectHome({
   onSessionsChanged,
   onOpenWorkspace,
   requestedTask,
+  backTo = null,
   onTaskOpened,
   onOpenEntity,
   taskDraft,
@@ -126,6 +127,8 @@ export function ProjectHome({
   /** A task the CEO panel asked for. Cleared once shown, so navigating away
    *  and back does not re-open it against the operator's wishes. */
   requestedTask?: string | null
+  /** The place a requested task was opened from (CO-394): its page's way back goes there, by that place's name. */
+  backTo?: { taskId: string; label: string; go(): void } | null
   onTaskOpened?: () => void
   /** Where a retro source goes (M154). Through the shell, because a source may
    *  name a thing in another project and this component owns one. */
@@ -334,7 +337,8 @@ export function ProjectHome({
         <TaskPage
           project={project}
           taskId={openTask}
-          onBack={() => setOpenTask(null)}
+          onBack={backTo && backTo.taskId === openTask ? backTo.go : () => setOpenTask(null)}
+          backLabel={backTo && backTo.taskId === openTask ? backTo.label : undefined}
           onChanged={loadTasks}
           onError={onError}
           // The sibling list is navigable or it is a printout. TaskPage reloads on `taskId`.
@@ -390,7 +394,8 @@ export function ProjectHome({
             <TaskPage
               project={project}
               taskId={openTask}
-              onBack={() => setOpenTask(null)}
+              onBack={backTo && backTo.taskId === openTask ? backTo.go : () => setOpenTask(null)}
+          backLabel={backTo && backTo.taskId === openTask ? backTo.label : undefined}
               onChanged={loadTasks}
               onError={onError}
               // The sibling list is navigable or it is a printout. TaskPage

@@ -41,6 +41,7 @@ export function TaskPage({
   project,
   taskId,
   onBack,
+  backLabel,
   onChanged,
   onError,
   onOpenTask,
@@ -53,6 +54,8 @@ export function TaskPage({
   lastEventAt?: string | null
   onPulse?: () => void
   onBack: () => void
+  /** Where the way back goes when it is not the project (CO-394), e.g. «← К доске». */
+  backLabel?: string
   onChanged: () => Promise<void>
   onError: (message: string) => void
   /** Open another task — the sibling list is navigable or it is a printout. */
@@ -177,7 +180,7 @@ export function TaskPage({
         actions={
           <Toolbar align="end">
             <Button tone="ghost" onClick={onBack}>
-              {t('launch.agent.back')}
+              {backLabel ?? t('launch.agent.back')}
             </Button>
           </Toolbar>
         }
@@ -202,7 +205,7 @@ export function TaskPage({
     <div className="lp" data-launch-view="launch-agent">
       <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
       {/* OF-22 (the operator's walk, 2026-10-22): the way back sits at the top left, above the title, as on any page. */}
-      <button type="button" className="lp-back" onClick={onBack}>{t('launch.agent.back')}</button>
+      <button type="button" className="lp-back" onClick={onBack}>{backLabel ?? t('launch.agent.back')}</button>
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{[project.name, t('launch.project.team'), agentLabel].join(' / ')}</p>
@@ -261,6 +264,10 @@ export function TaskPage({
               <RunCallout sessionId={task.session_id} status={run} />
               {/* OF-21: the task reads as a template first (what, why, what will be ready), the instruction after it. */}
               <h3>{t('task.brief')}</h3>
+              {/* CO-394 (0.3.11 review, iteration 3, UX-7): how the brief is written is said above it, and an empty brief says
+                  what fills it, rather than three blank boxes. */}
+              <p className="lp-meta">{t('task.briefLede')}</p>
+              {!task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim() && <p>{t('task.briefEmpty')}</p>}
               {/* ADR-0176 §1 (SCN-176): a task still to do or in work says when its spec is not gathered, and which
                   parts are missing; it clears the moment the brief's three parts are written. */}
               {specMissing(task) && (
@@ -298,7 +305,7 @@ export function TaskPage({
               <h3>{t('launch.agent.original')}</h3>
               <blockquote>{task.instruction}</blockquote>
               <p className="lp-meta">
-                {task.origin_kind ? t('task.origin', { kind: task.origin_kind, ref: task.origin_ref ?? '—' }) : t('task.briefLede')}
+                {task.origin_kind ? t('task.origin', { kind: task.origin_kind, ref: task.origin_ref ?? t('task.originNoRef') }) : null}
               </p>
               <button type="button" className="lp-button" onClick={() => setTab('context')}>{t('launch.agent.whatWasGiven')}</button>
             </>

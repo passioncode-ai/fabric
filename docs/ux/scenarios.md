@@ -4307,7 +4307,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a task that cannot be read says so and keeps the way back.
 - **Design rationale:** the operator, 2026-10-22: «если провалюсь в задачу, ничего не понятно, о чём эта задача ... сделать нормальную структуру задачи, шаблонный вид» (OF-21, OF-22).
 - **Telemetry:** planned only.
-- **Status:** draft: 0.3.11 ships the template order and the way back; the move history and blockers are CO-401, 0.3.12
+- **Status:** draft: 0.3.11 ships the template order and the way back; 0.3.12 S6 names the way back for the place the task was opened from and says what fills an empty brief (CO-394, `apps/desktop/src/renderer/src/TaskPage.tsx`); the move history and blockers are CO-401, 0.3.12
 - **Coverage:** partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project
 - **Product:** unobserved
 
