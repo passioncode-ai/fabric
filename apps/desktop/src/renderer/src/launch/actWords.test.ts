@@ -21,3 +21,15 @@ describe('whyWords', () => {
     expect(whyWords(translator('ru'), 'already_attested')).toBe(ru['act.why.already_attested'])
   })
 })
+
+describe('a revoked credential names its agent in История (CO-353)', () => {
+  it('says which agent, and «an agent» only when the record carries none', async () => {
+    const { actSentence } = await import('./actWords')
+    const t = translator('en')
+    const rec = (agent: string | null) => ({ v: 1 as const, kind: 'agent.disconnect' as never, category: 'agents' as never, subject: { type: 'agent', id: 'b1', label: agent },
+      said: { key: 'act.agent.disconnect', params: { agent } }, inverse: null, why_not: 'credential_gone' as never, undoes: null, ref_seq: null })
+    expect(actSentence(t, rec('codex'))).toBe(en['act.agent.disconnect'].replace('{agent}', 'Codex'))
+    expect(actSentence(t, rec('Kilo'))).toBe(en['act.agent.disconnect'].replace('{agent}', 'Kilo'))
+    expect(actSentence(t, rec(null))).toBe(en['act.agent.disconnect'].replace('{agent}', en['acts.actor.agent']))
+  })
+})

@@ -254,9 +254,12 @@ export function classifyFailure(e: unknown): CallFailure {
 /** Server cooldowns are process-local, bounded and never contain a credential or URL. */
 export const RATE_LIMIT_FALLBACK_MS = 60_000
 export const RATE_LIMIT_MAX_MS = 300_000
+/** The hub's wait, honoured up to the cap and clamped to it; a date already past waits only the one-second floor that
+ *  keeps a client from spinning; only an answer that is not a number falls back to a minute (CO-314: a 600 s ask used
+ *  to become 60 s, and a past date a minute). */
 export function boundedRetryMs(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= RATE_LIMIT_MAX_MS
-    ? Math.max(1000, Math.ceil(value)) : RATE_LIMIT_FALLBACK_MS
+  if (typeof value !== 'number' || Number.isNaN(value)) return RATE_LIMIT_FALLBACK_MS
+  return Math.min(RATE_LIMIT_MAX_MS, Math.max(1000, Math.ceil(value)))
 }
 /** What the hub said when it refused with a wait: its machine code and its reason for the agent (review UX-3). */
 export interface HubRefusal {

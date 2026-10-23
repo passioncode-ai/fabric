@@ -77,7 +77,15 @@ const RULES: Rule[] = [
     // `FABRIC_BRIDGE_AUTHORIZATION=Bearer …` kept the token after the space (audit 2026-10-06 DA-4).
     // The name may close a quote (`"GITHUB_TOKEN": "…"` in a JSON-printed environment), and the value
     // may be quoted with escaped quotes (`\"…\"` in JSON printed inside JSON).
-    re: /\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTHORIZATION)[A-Z0-9_]*)((?:\\*["'])?\s*[=:]\s*)((?:(?:[Bb]earer|[Bb]asic)\s+)?(?:\[redacted: assignment\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|\\+"[^"\\\n]*\\+"|[^\s\n]+))/g,
+    // The name may be the keyword alone (`PASSWORD=…`, CO-386), not only a longer name ending in it.
+    re: /\b((?:[A-Z][A-Z0-9_]*)?(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTHORIZATION)[A-Z0-9_]*)((?:\\*["'])?\s*[=:]\s*)((?:(?:[Bb]earer|[Bb]asic)\s+)?(?:\[redacted: assignment\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|\\+"[^"\\\n]*\\+"|[^\s\n]+))/g,
+    keep: (m) => `${m[1]}${m[2]}[redacted: assignment]`
+  },
+  {
+    name: 'assignment-lower',
+    // The same in lower case with `=` (CO-386): `password=hunter2` in a log line or a query string, `db_password=…`.
+    // `=` only, so a type annotation in source (`password: string`) is left alone; the value stops at `&`.
+    re: /\b((?:[a-z][a-z0-9_]*_)?(?:password|passwd|secret|token|api_?key|apikey))(\s*=\s*)(\[redacted: assignment\](?=$|[\s"',;&)}\]\\]|[.!?](?=\s|$))|"[^"\n]*"|'[^'\n]*'|[^\s&"',;)}\]]+)/g,
     keep: (m) => `${m[1]}${m[2]}[redacted: assignment]`
   },
   {
@@ -105,6 +113,13 @@ const RULES: Rule[] = [
     // field (`apiKey: string`, `config.apiKey`) is left alone.
     re: /(\\*["']api_?key\\*["']\s*:\s*\\*["'])(\[redacted: api-key-field\](?=\\*["'])|[^"'\\\n]+)/gi,
     keep: (m) => `${m[1]}[redacted: api-key-field]`
+  },
+  {
+    name: 'bearer',
+    // A bare `Bearer <token>` with no `Authorization:` before it (CO-386), as a client prints it. The token must look
+    // like one (16 or more token characters), so prose such as «a Bearer token» stays.
+    re: /\b([Bb]earer\s+)(\[redacted: bearer\]|[A-Za-z0-9._~+/-]{16,}=*)/g,
+    keep: (m) => `${m[1]}[redacted: bearer]`
   },
   { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{16,}/g },
   { name: 'openai-key', re: /\bsk-(?!ant-)[A-Za-z0-9_-]{20,}/g },
@@ -183,6 +198,14 @@ export function redactPayload(payload: Record<string, unknown>): {
 } {
   const totals = new Map<string, number>()
 
+  /** A field or header name that carries a credential: the words below at its end, an `x-…-key` / `-token` / `-secret`
+   *  header such as `x-agw-key`, or `apikey` (CO-386). Not a bare "key": idempotency_key and public_key are data. */
+  const sensitiveName = (raw: string): boolean => {
+    const name = raw.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase().replace(/-/g, '_')
+    return /(?:^|_)(?:api_key|apikey|private_key|password|passwd|secret|token|credentials?|authorization|cookie)$/.test(name)
+      || /^x_[a-z0-9_]*(?:key|token|secret)$/.test(name)
+      || name === 'set_cookie'
+  }
   const walk = (value: unknown): unknown => {
     // A post-sanitization toJSON callback could create fresh, unsanitized data.
     // Produce inert JSON values only; never preserve executable serialization.
@@ -196,13 +219,14 @@ export function redactPayload(payload: Record<string, unknown>): {
     if (Array.isArray(value)) return value.map(walk)
     if (value !== null && typeof value === 'object') {
       const out: Record<string, unknown> = Object.create(null)
-      for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      const obj = value as Record<string, unknown>
+      // A header written as a pair, `{ name: 'Authorization', value: 'Bearer …' }` (CO-386): the value goes, the name stays.
+      const pairSecret = typeof obj.name === 'string' && 'value' in obj && sensitiveName(obj.name)
+      for (const [k, v] of Object.entries(obj)) {
         // Credential-bearing fields carry meaning even when their value has no
         // recognizable prefix. Match words, not arbitrary "key" substrings:
         // idempotency_key, public_key, digest and token_count are protocol data.
-        const name = k.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase().replace(/-/g, '_')
-        const sensitive = /(?:^|_)(?:api_key|private_key|password|passwd|secret|token|credentials?|authorization|cookie)$/.test(name)
-          || name === 'set_cookie'
+        const sensitive = sensitiveName(k) || (pairSecret && k === 'value')
         if (sensitive && v !== null && v !== undefined && v !== '') {
           out[k] = '[redacted: credential-field]'
           if (v !== out[k]) totals.set('credential-field', (totals.get('credential-field') ?? 0) + 1)

@@ -593,8 +593,11 @@ test('HTTP 429 parses seconds and dates with bounded invalid-header fallback', a
   assert.equal(retryAfterMs('Tue, 13 Oct 2026 00:00:45 GMT', now), 45_000)
   assert.equal(retryAfterMs('0', now), 1000)
   assert.equal(retryAfterMs('300', now), 300_000)
-  for (const value of [null, '', '-1', 'NaN', 'Infinity', '99999999999999999999999999', '301',
-    'Tue, 13 Oct 2026 00:00:00 GMT garbage', 'Mon, 12 Oct 2026 23:59:00 GMT']) {
+  // CO-314: a longer ask is honoured up to the cap and clamped to it; a date already past waits only the floor.
+  assert.equal(retryAfterMs('600', now), 300_000)
+  assert.equal(retryAfterMs('99999999999999999999999999', now), 300_000)
+  assert.equal(retryAfterMs('Mon, 12 Oct 2026 23:59:00 GMT', now), 1000)
+  for (const value of [null, '', '-1', 'NaN', 'Infinity', 'Tue, 13 Oct 2026 00:00:00 GMT garbage', 'soon']) {
     assert.equal(retryAfterMs(value, now), 60_000, String(value))
   }
 })

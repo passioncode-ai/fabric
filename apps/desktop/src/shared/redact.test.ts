@@ -230,3 +230,20 @@ describe('repeatable sanitization at layered sinks', () => {
     expect(input.instruction).toContain(canary)
   })
 })
+
+describe('the edges CO-386 named', () => {
+  it('a bare PASSWORD=, a lowercase password= and a bare Bearer token are redacted; prose is not', () => {
+    expect(redact('PASSWORD=hunter2 next').text).toBe('PASSWORD=[redacted: assignment] next')
+    expect(redact('mysql -u root password=hunter2&db=x').text).toBe('mysql -u root password=[redacted: assignment]&db=x')
+    expect(redact('db_password = "s3cret value"').text).toBe('db_password = [redacted: assignment]')
+    expect(redact('curl -H Bearer abcdefghijklmnop1234.xyz').text).toBe('curl -H Bearer [redacted: bearer]')
+    expect(redact('send a Bearer token in the header').text).toBe('send a Bearer token in the header')
+    expect(redact('const password: string = read()').text).toBe('const password: string = read()')
+  })
+  it('a redacted line stays the same when redacted again', () => {
+    for (const line of ['PASSWORD=hunter2', 'password=hunter2', 'Bearer abcdefghijklmnop1234']) {
+      const once = redact(line).text
+      expect(redact(once).text).toBe(once)
+    }
+  })
+})

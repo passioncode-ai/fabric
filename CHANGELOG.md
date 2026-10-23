@@ -40,6 +40,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - The Board filters by agent, can show the cancelled tasks as a fifth column, and remembers its filters for the next
   visit. Comms' feed narrows to the requests still waiting for an answer and names each post's thread. A task's page
   says what holds it and how it moved. The trackpad's two-finger swipe goes back and forward (CO-401).
+- Hardening: fabric-mcp honours a hub's long wait up to its cap instead of cutting it to a minute (CO-314); more
+  secret shapes are redacted from logs and records (CO-386); revoking an agent's access names the agent in История
+  (CO-353); «Вернуть мой текст» goes away once you edit the loaded text (CO-352); Comms' read marks always fit the
+  settings file, so «Mark all read» works on a large estate (CO-312).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

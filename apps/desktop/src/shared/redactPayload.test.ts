@@ -87,3 +87,12 @@ it('returns inert JSON even when callers supply serialization hooks and prototyp
   expect(Object.getPrototypeOf(payload.value)).toBeNull()
   expect(Object.hasOwn(payload.value as object, '__proto__')).toBe(true)
 })
+
+describe('a record\'s detail: the fields CO-386 named', () => {
+  it('redacts apikey, an x-…-key header and the value of a {name, value} header pair; leaves data keys', () => {
+    const { payload } = redactPayload({ apikey: 'k1', 'x-agw-key': 'k2', headers: [{ name: 'Authorization', value: 'Basic abc' }, { name: 'Accept', value: 'json' }], idempotency_key: 'i1', public_key: 'p1' })
+    expect(payload).toMatchObject({ apikey: '[redacted: credential-field]', 'x-agw-key': '[redacted: credential-field]', idempotency_key: 'i1', public_key: 'p1' })
+    expect((payload.headers as Array<Record<string, unknown>>)[0]).toEqual({ name: 'Authorization', value: '[redacted: credential-field]' })
+    expect((payload.headers as Array<Record<string, unknown>>)[1]).toEqual({ name: 'Accept', value: 'json' })
+  })
+})
