@@ -587,3 +587,6 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lk-card:hover{border-color:var(--app-line-strong,var(--app-line))}
 .lk-card small{color:var(--app-muted);font-size:11.5px}
 .lp-modes{display:flex;gap:var(--space-1);margin:0 0 var(--space-4)}
+/* OF-22: the way back at the top left, above a page's title. */
+.lp-back{display:inline-flex;align-items:center;gap:var(--space-1);margin:0 0 var(--space-2);padding:0;border:0;background:none;color:var(--app-muted);font:inherit;font-size:13px;cursor:pointer}
+.lp-back:hover{color:var(--app-ink)}

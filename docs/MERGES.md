@@ -8,7 +8,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: r-8642aee374a2
 - files: shared/taskBoard.ts (new), shared/homeLive.ts (`done`), main/workRead.ts (`readTaskBoard`, the finished read), IPC `work:board` (types, preload, window policy, main), launch/KanbanBoard.tsx (new), BoardScreen.tsx (the two tabs), HomeWork.tsx (`HomeWorkLanes` in two columns), launch.css, i18n, tests; OF-18 and OF-19; SCN-173 coverage; CHANGELOG; the map
 - conflicts: none
-- summary: the Board screen is a kanban by stage, and the home's work is «В работе» and «Закончили» (wave 4).
+- summary: the Board screen is a kanban by stage, and the home's work is «В работе» and «Закончили» (wave 4). Also: a task opens on its template, back at the top left (OF-21, OF-22; TaskPage.tsx).
 
 ### 2026-10-23T05:00:00Z · `—` · agent/w4-home → main · fast-forward
 - run: r-8642aee374a2

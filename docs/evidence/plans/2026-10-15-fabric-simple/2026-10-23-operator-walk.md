@@ -33,8 +33,8 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-21 | Opening a task, nothing says what the task is about | One task template: **Что сделать · Зачем · Что будет готово** (the brief, `fabric_task_brief`), the state and its history, who works on it, what blocks it, the project's tasks linked to it (follows, blocks, spawned), its result | open |
-| OF-22 | «Назад к проекту» sits elsewhere | Back sits at the top left, above the title, as on any page; the same on a task, an agent and a project | open |
+| OF-21 | Opening a task, nothing says what the task is about | One task template: **Что сделать · Зачем · Что будет готово** (the brief, `fabric_task_brief`), the state and its history, who works on it, what blocks it, the project's tasks linked to it (follows, blocks, spawned), its result | done 2026-10-23 on `agent/w4-board`: the task page (`TaskPage.tsx`) opens on its template, «Что должно произойти · Зачем · Что будет готово» (the brief, editable), and the instruction the agent was given comes after it; its state, agent and claim stay in the left rail, related tasks of the same document below; test `TaskPage.test.tsx` (OF-21, OF-22) |
+| OF-22 | «Назад к проекту» sits elsewhere | Back sits at the top left, above the title, as on any page; the same on a task, an agent and a project | done 2026-10-23 on `agent/w4-board`: «← К проекту» sits at the top left above the task's title (`.lp-back`), no longer among the actions on the right |
 
 ### The project page
 

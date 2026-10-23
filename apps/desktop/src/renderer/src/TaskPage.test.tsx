@@ -14,6 +14,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { TaskPage } from './TaskPage'
+import { en } from './i18n/en'
 import type { ProjectRow, TaskDetail, TaskRow } from '../../shared/types'
 
 /** SCR-39: the workspace keeps its parts in tabs; a part is read after its tab is opened. */
@@ -351,5 +352,25 @@ describe('the run rail says how the run stands, in words (A5-018)', () => {
   it('a status that could not be read says so instead of "reading"', async () => {
     mountRun(async () => { throw new Error('timeout') })
     await waitFor(() => expect(screen.getByText('unreadable')).toBeTruthy())
+  })
+})
+
+describe('a task reads as a template, with the way back at the top left (the operator\'s walk OF-21, OF-22)', () => {
+  it('puts back above the title, and «what, why, what will be ready» before the instruction the agent was given', async () => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { detail: vi.fn().mockResolvedValue(detail({ session_id: null })) },
+      runs: { status: vi.fn(async () => ({ data: null })) },
+      transcripts: { context: vi.fn(async () => ({ held: false, why: 'no_packet', says: '' })) },
+      memory: { preview: vi.fn(async () => null) }
+    }
+    const { container } = render(<TaskPage project={project} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
+    const heading = await screen.findByRole('heading', { level: 2 })
+    const back = screen.getAllByRole('button', { name: en['launch.agent.back'] })[0]
+    expect(back.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING, 'back comes before the title').toBeTruthy()
+    expect(back.closest('.lp-actions'), 'back is not among the actions on the right').toBeNull()
+    const what = screen.getByLabelText(en['task.what'])
+    const original = screen.getByText(en['launch.agent.original'])
+    expect(what.compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING, 'the brief comes before the instruction').toBeTruthy()
   })
 })

@@ -200,6 +200,8 @@ export function TaskPage({
   return (
     <div className="lp" data-launch-view="launch-agent">
       <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
+      {/* OF-22 (the operator's walk, 2026-10-22): the way back sits at the top left, above the title, as on any page. */}
+      <button type="button" className="lp-back" onClick={onBack}>{t('launch.agent.back')}</button>
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{[project.name, t('launch.project.team'), agentLabel].join(' / ')}</p>
@@ -228,7 +230,6 @@ export function TaskPage({
           {task.session_id && (
             <button type="button" className="lp-button" onClick={() => void showConsole(task.session_id!)}>{t('task.openSession')}</button>
           )}
-          <button type="button" className="lp-button" onClick={onBack}>{t('launch.agent.back')}</button>
         </div>
       </header>
       <div className="lp-ide">
@@ -257,11 +258,7 @@ export function TaskPage({
           {tab === 'now' && (
             <>
               <RunCallout sessionId={task.session_id} status={run} />
-              <h3>{t('launch.agent.original')}</h3>
-              <blockquote>{task.instruction}</blockquote>
-              <p className="lp-meta">
-                {task.origin_kind ? t('task.origin', { kind: task.origin_kind, ref: task.origin_ref ?? '—' }) : t('task.briefLede')}
-              </p>
+              {/* OF-21: the task reads as a template first (what, why, what will be ready), the instruction after it. */}
               <h3>{t('task.brief')}</h3>
         {sections.map((section) => (
           <Field
@@ -286,6 +283,11 @@ export function TaskPage({
             )}
           </Field>
         ))}
+              <h3>{t('launch.agent.original')}</h3>
+              <blockquote>{task.instruction}</blockquote>
+              <p className="lp-meta">
+                {task.origin_kind ? t('task.origin', { kind: task.origin_kind, ref: task.origin_ref ?? '—' }) : t('task.briefLede')}
+              </p>
               <button type="button" className="lp-button" onClick={() => setTab('context')}>{t('launch.agent.whatWasGiven')}</button>
             </>
           )}

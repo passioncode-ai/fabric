@@ -29,6 +29,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   «Нужны вы» is the second tab (OF-19). On the home «Кто что делает» is two columns, «В работе» and «Закончили», with
   «Открыть доску» (OF-18).
 
+- A task opens on what it is for: «Что должно произойти», «Зачем», «Что будет готово», then the instruction the agent
+  was given; «← К проекту» sits at the top left above its title (OF-21, OF-22).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

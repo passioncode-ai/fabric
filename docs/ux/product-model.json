@@ -35539,7 +35539,7 @@
       "screen_refs": [
         "SCR-32"
       ],
-      "coverage": "none yet",
+      "coverage": "partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the person understands the task without asking its agent.",

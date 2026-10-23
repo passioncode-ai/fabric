@@ -4295,7 +4295,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-10-22: «если провалюсь в задачу, ничего не понятно, о чём эта задача ... сделать нормальную структуру задачи, шаблонный вид» (OF-21, OF-22).
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project
 - **Product:** unobserved
 
 ### SCN-175: See how a project is connected to the others on a graph
