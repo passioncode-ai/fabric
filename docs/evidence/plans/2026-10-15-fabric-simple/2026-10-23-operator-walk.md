@@ -99,7 +99,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 - **D-1. The pipeline is fixed, not customizable, in 0.3.11.** The board shows the ladder Fabric enforces
   (`apps/desktop/src/shared/ladder.ts`): Очередь (backlog), В работе (running), На проверке (review), Готово (done),
   with Отменено as a filter. A customizable pipeline needs a stored, versioned pipeline definition, which is the
-  task-pipeline persistence contract (reserved as ADR-0173, since 2026-10-23 ADR-0175; migrations 117 and 118); customization waits for it.
+  task-pipeline persistence contract (reserved as ADR-0173, since 2026-10-23 ADR-0175, then ADR-0177; migrations 117 and 118); customization waits for it.
   Reason: a column a person can add but the ladder does not know would show a state nothing enforces.
 - **D-2. Localize the interface, never the repository.** Agents write Fabric's data (titles, briefs, stages, board
   messages, questions) in the working language (ADR-0172); documents in a project's repository keep the language the
