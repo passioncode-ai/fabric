@@ -59,6 +59,12 @@ export interface ProjectAdmissionDeps {
   listRemovals(): Promise<DetachedFolder[]>
   refresh(): Promise<void>
   mirror?(): void
+  /**
+   * W2-7 (0.3.12, OF-31): file the new project's onboarding task. Called once, after a project is CREATED (never for one
+   * that existed); its failure is the onboarding's, never the project's: the project stays created and the failure is
+   * logged by the host, which can file the task again from the project page.
+   */
+  onboard?(projectId: string, name: string): Promise<void>
   inspect?(folder: string): Promise<FolderFacts>
   home?: string
 }
@@ -136,6 +142,7 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
     deps.mirror?.()
     const current = await deps.readProject(id)
     if (!current) throw new Error('the new project could not be read after admission')
+    if (deps.onboard) await deps.onboard(id, name).catch(() => undefined)
     return current
   }
 

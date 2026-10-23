@@ -39,7 +39,7 @@ function repository(name, remote = null) {
   return folder
 }
 
-function harness(home = root) {
+function harness(home = root, onboard = undefined) {
   const projects = new Map(), repos = [], removals = [], events = []
   let refreshes = 0, mirrors = 0
   const apply = (e) => {
@@ -81,7 +81,8 @@ function harness(home = root) {
     listRemovals: async () => removals,
     refresh: async () => { refreshes++ },
     mirror: () => { mirrors++ },
-    home
+    home,
+    ...(onboard ? { onboard } : {})
   })
   const reach = { granted: (p) => p, candidates: new ScanCandidates({ home }), home }
   const deps = {
@@ -239,4 +240,18 @@ test('ADR-0166: a detach keeps automation off that folder only, not off every cl
   assert.deepEqual([proposed.ok, proposed.candidate, proposed.projectId], [true, 'attach', project.id], JSON.stringify(proposed))
   await h.service.enroll(proposed, 'claude-code')
   assert.ok(h.repos.some((r) => r.path === realpathSync.native(third)))
+})
+
+// W2-7 (0.3.12, OF-31): a CREATED project files its onboarding task once; a project that existed does not; an onboarding
+// that fails leaves the project created.
+test('a new project asks for its onboarding once, an existing one never, and a failed onboarding keeps the project', async () => {
+  const asked = []
+  const h = harness(root, async (projectId, name) => { asked.push([projectId, name]) })
+  const id = uuid()
+  await h.service.create({ id, name: 'onboarded', repoPaths: [] }, OPERATOR, h.reach)
+  await h.service.create({ id, name: 'onboarded', repoPaths: [] }, OPERATOR, h.reach)
+  assert.deepEqual(asked, [[id, 'onboarded']])
+  const failing = harness(root, async () => { throw new Error('the journal refused the task') })
+  const kept = await failing.service.create({ id: uuid(), name: 'kept', repoPaths: [] }, OPERATOR, failing.reach)
+  assert.equal(kept.name, 'kept')
 })

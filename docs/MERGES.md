@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T17:40:00Z · `—` · agent/0312-w2-s3 → main · fast-forward
+- run: r-8642aee374a2
+- files: main/projectOnboarding.ts (new), main/projectAdmission.ts (onboard), main/index.ts (fileOnboarding); test/project-onboarding.test.mjs (new), project-admission.test.mjs; scripts/ci.sh; SCN-171; CHANGELOG; the backlog; the map
+- conflicts: none
+- summary: 0.3.12 wave 2, slice S3: a new project files its onboarding task once, with a whole brief. CO-367 and CO-329 (attribution) stay in wave 2.
+
 ### 2026-10-23T17:21:00Z · `—` · agent/0312-w2-s2 → main · fast-forward
 - run: r-8642aee374a2
 - files: main/boardService.ts (businessesJoined, directoryName, projectFacts), main/agentSurface.ts; test/board-service.test.mjs; CO-368 and CO-369 resolved; the backlog; CHANGELOG; the map

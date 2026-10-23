@@ -34,6 +34,7 @@ import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
+import { onboardingTask, onboardingTaskId } from './projectOnboarding.ts'
 import { folderProjectId, gitTopLevel } from './folderResolver.ts'
 import { readGitFacts } from './gitFacts.ts'
 import { promises as fsPromises } from 'node:fs'
@@ -934,6 +935,29 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
   // How Fabric reads a folder an agent names — once, for the enrollment and for the ask, so the prompt shows the
   // same fact the enrollment acts on (ADR-0134 amendment 2). The worktree probe is the resolver's own, asynchronous.
+  // #region project-onboarding — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+  /** Files a project's onboarding task once (its id is derived from the project's), recorded as Fabric's own act. */
+  const fileOnboarding = async (projectId: string, name: string): Promise<{ taskId: string; filed: boolean }> => {
+    const taskId = onboardingTaskId(projectId)
+    const existing = await store.select('project_tasks', 'id').eq('id', taskId).maybeSingle()
+    if (existing.error) throw new Error(`the onboarding task could not be read: ${existing.error.message}`)
+    if (existing.data) return { taskId, filed: false }
+    const settings = readSettingsState()
+    const task = onboardingTask(name, settings.status === 'unreadable' ? null : settings.value.locale)
+    const actor = { kind: 'system' as const, id: 'fabric-onboarding' }
+    try {
+      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.created@1', actor, projectId,
+        payload: { id: taskId, title: task.title, instruction: task.instruction, origin: { kind: 'observation', ref: `project:${projectId}` }, section: null, task_type: 'development' } })
+      for (const section of ['what', 'why', 'expected'] as const)
+        await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.brief.edited@1', actor, projectId,
+          payload: { task_id: taskId, section, body_md: task.brief[section] } })
+    } catch (e) {
+      ops.failed('onboarding.file', e, { projectId, taskId })
+      throw e
+    }
+    return { taskId, filed: true }
+  }
+  // #endregion project-onboarding
   admission = createProjectAdmission({
     estateId: ACTIVE_ESTATE,
     append: (event) => journal.append({ ...event, estateId: ACTIVE_ESTATE }),
@@ -943,7 +967,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     listRemovals: readRepoRemovals,
     refresh: refreshFileRoots,
     mirror: mirrorWorkspaceNow,
-    home: homedir()
+    home: homedir(),
+    // W2-7 (0.3.12, OF-31): a new project's onboarding task, in the queue, with its brief written; never filed twice.
+    onboard: async (projectId, name) => { await fileOnboarding(projectId, name) }
   })
   const enrollFolders: FolderDeps = {
     admittedFolders: async () => {

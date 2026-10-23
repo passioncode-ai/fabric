@@ -22,6 +22,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- A new project gets «Познакомиться с проектом» in its queue: an onboarding task whose brief is already written, for an
+  agent to read the project and record its profile without changing the repository. It is filed once per project and
+  never for projects that existed before (OF-31, SCN-171).
 - The board never starts a thread that joins projects of two different businesses: the agent is told which businesses
   and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).

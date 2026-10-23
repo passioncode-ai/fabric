@@ -35518,7 +35518,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4244
+        "line": 4245
       }
     },
     {
@@ -35535,7 +35535,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4266
+        "line": 4267
       }
     },
     {
@@ -35552,7 +35552,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4289
+        "line": 4290
       }
     },
     {
@@ -35569,7 +35569,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4310
+        "line": 4311
       }
     },
     {
@@ -35586,7 +35586,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4332
+        "line": 4333
       }
     },
     {
@@ -35603,7 +35603,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4353
+        "line": 4354
       }
     },
     {
@@ -35622,7 +35622,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4375
+        "line": 4376
       }
     }
   ],
