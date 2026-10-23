@@ -249,4 +249,28 @@ describe('the place scroller', () => {
       HTMLElement.prototype.scrollTo = original
     }
   })
+
+  it('moves focus from the rail to the new page, so the keyboard scrolls it (CO-384)', () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: false })) } } }))
+    const props = (at: LaunchShellProps['at'], heading: string): LaunchShellProps => ({
+      projects: [project('p1', 'Atlas')], projectsProblem: null, projectsReadAt: null, onRetryProjects: vi.fn(), at, title: 'T',
+      pins: [], lastActivity: {}, live: new Set<string>(), waiting: null, machine: 'ok', onPlace: vi.fn(), onCreateProject: vi.fn(),
+      onProject: vi.fn(), onSearch: vi.fn(),
+      children: <div className="shell"><main className="content"><h2>{heading}</h2><p>body</p></main></div>
+    })
+    const { rerender, container } = render(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'home' }, 'Home')} /></I18nProvider>)
+    const link = container.querySelector<HTMLElement>('.rail a')!
+    link.focus()
+    expect(document.activeElement).toBe(link)
+    rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'history' }, 'History')} /></I18nProvider>)
+    expect(document.activeElement?.textContent).toBe('History')
+    expect(document.activeElement?.getAttribute('tabindex')).toBe('-1')
+    // Focus elsewhere (⌘K, a field) is left where it is.
+    const field = document.createElement('input')
+    document.body.appendChild(field)
+    field.focus()
+    rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'settings' }, 'Settings')} /></I18nProvider>)
+    expect(document.activeElement).toBe(field)
+    field.remove()
+  })
 })

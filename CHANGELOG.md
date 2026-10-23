@@ -44,6 +44,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - On a project's page each agent takes one line: its task and since when, without repeating the project (OF-23).
 
+- Diagnostics leaves the project page, as ADR-0160 decided: the operations log and the version line fold at the foot of
+  История, «Журнал Fabric и версия», read only when opened (CO-387). The dead layout rules of the old shell are gone
+  (CO-380).
+- Moving by the rail puts focus on the new page's heading, so PageDown, Space and the arrows scroll it at once
+  (CO-384). Text that does not wrap no longer moves a page sideways: a long word breaks, preformatted text and a wide
+  table scroll inside themselves. A long notice keeps its own buttons at its foot while its text scrolls (CO-385).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

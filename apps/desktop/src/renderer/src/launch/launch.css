@@ -480,15 +480,9 @@
 .lp-access-facts p{margin:0;overflow-wrap:anywhere}
 .lp-facts-asks{margin:0;padding-left:var(--space-3);font-size:12px}
 .lp-facts-asks li{overflow-wrap:anywhere}
-/* The prototype draws the product inside a report frame; here it IS the window. */
-.launch-root .workbench { flex: 1; min-height: 0; }
-.launch-root .app-sidebar { position: relative; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
-.launch-root .app-main { min-height: 0; overflow-y: auto; }
-/* Dead since the 0.3.7 rail (CO-380: no markup carries `.workbench` or `.app-main`; the shell's scroller is
-   `main.content` in `.fab-place > .shell`, rail.css). Kept until wave 4 rebuilds the places. Then: ONE scroller: `.app-main`. `.content` inside it is not a second one, so a sticky footer sticks to the
-   window's visible bottom (iteration 3: `.content` was an overflow box that never scrolled, and the scan's
-   "Add N as projects" sat 4 600 px down). The window itself never scrolls past the tab bar. */
-.launch-root .app-main .content { overflow: visible; min-height: auto; }
+/* The prototype draws the product inside a report frame; here it IS the window. The shell's one scroller is
+   `main.content` in `.fab-place > .shell` (rail.css); the ported `.workbench` and `.app-main` rules above match no
+   markup since the 0.3.7 rail and stay only because the port copies them (CO-380). */
 .app.launch-root { overflow: hidden; }
 /* The app's global headings are the report's label style (uppercase, muted); the design's are not. */
 .lp h2, .lp h3 { text-transform: none; color: var(--app-ink); font-family: inherit; }
@@ -500,17 +494,6 @@
 .launch-root .tab-btn.active, .launch-root .tab-btn.home[aria-current="page"] { background: var(--app-bg); box-shadow: none; }
 .launch-root .tab-btn.active .tab-label, .launch-root .tab-btn.active > span[aria-hidden] { font-weight: 600; }
 .launch-root .tabbar-estate { color: var(--app-muted); font-size: var(--app-fs-caption); }
-/* Fabric's own way in: the prototype's `.ceo-launcher`, as it renders in the launch series. */
-.fabric-launcher {
-  position: fixed; left: 1rem; bottom: 1rem; z-index: 30; display: flex; align-items: center; gap: .65rem;
-  min-height: 3.8rem; padding: .6rem .8rem; border: 1px solid var(--app-line); border-radius: 1rem;
-  background: var(--app-panel); color: var(--app-ink); box-shadow: var(--shadow-modal); cursor: pointer; text-align: left; font: inherit;
-}
-.fabric-launcher:hover, .fabric-launcher[aria-expanded="true"] { border-color: var(--app-line-strong); }
-.fabric-launcher > span:nth-child(2) { display: flex; flex-direction: column; min-width: 0; white-space: nowrap; }
-.fabric-launcher strong { font-size: 14px; }
-.fabric-launcher small { display: block; color: var(--app-muted); font-size: .75rem; }
-.fabric-launcher .fp-face { width: 36px; height: 36px; min-width: 36px; }
 /* The avatar component (FabricAvatar.tsx). */
 .fp-face { display: inline-block; flex: none; }
 .fp-face svg { width: 100%; height: 100%; }
@@ -529,7 +512,6 @@
 .lp-pill.danger { color: var(--state-danger); border-color: currentColor; }
 .lp-project-tools .lp-button[aria-pressed="true"] { color: var(--app-ink); border-color: var(--app-line-strong); }
 #sec-estate-more > summary { color: var(--app-muted); font-size: 12px; }
-@media (max-width: 768px) { .fabric-launcher { position: static; margin: var(--space-3); } }
 /* SCR-41: "Discuss with Fabric" sits right-aligned above the observation strip, as in the design. */
 /* SCR-31: a task row opens its task, so it is a button drawn as the design's row. */
 button.lp-agent-row { font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--app-line); width: 100%; text-align: left; cursor: pointer; }

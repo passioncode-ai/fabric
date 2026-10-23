@@ -2700,6 +2700,7 @@ export const en = {
   'act.run.unattest': "«{task}» is held again until its run is settled",
   // 0.3.7 wave 3: История, the list of acts (SCN-168, SCN-169); wave 4 adds its filters and detail.
   'acts.agentsTitle': "What the agents did",
+  'acts.opsLog': "Fabric's own log and version",
   'acts.title': "History",
   'acts.lede': "Every act of yours, newest first. Undo is one press where an act can be taken back. The agents\u2019 own acts arrive here in a later version.",
   'acts.reading': "Reading the history…",

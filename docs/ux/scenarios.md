@@ -2018,6 +2018,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 ### SCN-073: Диагностика
 
 *2026-10-22: Diagnostics still renders in the project page's side column and, from 0.3.10, shows the operations log's new wording; whether it goes is CO-387 (0.3.11).*
+*2026-10-23 (0.3.11, CO-387): Diagnostics is off the project page; the operations log and the build line close История, folded as «Журнал Fabric и версия» (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx#OpsLog`).*
 - **Persona:** P-01
 - **Feature:** Диагностика
 - **Traces:** FLW-42; SCR-54
@@ -2034,7 +2035,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — S05 added. Its gap as the audit read it: No export selection/preview/redacted export surface. Successful refresh does not clear prior problem; metadata failure swallowed. Diagnostic log is rotating evidence, not archived agent trajectory.
 - **Status:** retired
 - **Retired 2026-10-17 (0.3.7 wave 1, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** Diagnostics is cut (0.3.7 plan §5); every failure is an act in История (SCN-168) with our sentence and the machine's words beneath it.
-- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.
+- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
 
 

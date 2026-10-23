@@ -29,6 +29,8 @@ const pages={
   settings:{page:`<p>the page under Settings</p>`,settings:`<main class="lp lp-settings">${cards}<p id="last">LAST</p></main>`},
   // Three notices at once (stack health, a link notice, an error): the page keeps 40 % of the place (ER-3).
   notices:{notice:[1,2,3].map(i=>`<div class="banner" id="${i===1?'notice':'n'+i}">${'Уведомление. '.repeat(120)}</div>`).join(''),page:`${cards}<p id="last">LAST</p>`},
+  // Content that does not wrap (a long token, a table cell, preformatted text): the page still never scrolls sideways (CO-384, V3-48).
+  nowrap:{page:`<div class="lp">${cards}<p>${'x'.repeat(3000)}</p><table><tr><td style="white-space:nowrap">${'Ячейка '.repeat(300)}</td></tr></table><pre>${'y'.repeat(3000)}</pre><p id="last">LAST</p></div>`},
   scan:{page:`<div class="st">${cards}<p id="last">LAST</p><div class="st-foot" id="foot"><button>Add 12 as projects</button></div></div>`},
 }
 const rect=sel=>{const e=document.querySelector(sel);if(!e)return null;const r=e.getBoundingClientRect();return{top:r.top,bottom:r.bottom,width:r.width,height:r.height}}
@@ -121,6 +123,14 @@ try{
     assert.ok(a3.bottom<=h+1&&a3.top>=0&&undo.top>=0&&undo.bottom<=h+1,`three notices at ${w}x${h} leave the act line and «Вернуть» in the window (${JSON.stringify({a3,undo})})`);checks++
     await page.close()
     }
+  }
+  for(const [w,h] of [[1280,720],[1280,480],[800,600]]){
+    // A long notice keeps its own buttons in view while its text scrolls inside it (CO-385).
+    const page=await browser.newPage({viewport:{width:w,height:h}})
+    await page.setContent(shell({notice:`<div class="banner" id="notice"><span>${'Уведомление. '.repeat(200)}</span><span class="banner-actions"><button id="dismiss">Скрыть</button></span></div>`,page:`${cards}<p id="last">LAST</p>`}))
+    const r=await page.evaluate(()=>{const n=document.getElementById('notice').getBoundingClientRect(),b=document.getElementById('dismiss').getBoundingClientRect();return{n:{top:n.top,bottom:n.bottom},b:{top:b.top,bottom:b.bottom}}})
+    assert.ok(r.b.top>=r.n.top-1&&r.b.bottom<=r.n.bottom+1,`a long notice at ${w}x${h} shows its own button (${JSON.stringify(r)})`);checks++
+    await page.close()
   }
   for(const notice of ['',`<div class="banner">Нет связи с базой.</div>`]){
     const page=await browser.newPage({viewport:{width:1280,height:720}})

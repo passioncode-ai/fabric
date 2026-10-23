@@ -76,7 +76,6 @@ import { DecisionsSection } from './DecisionsSection'
 import { HarnessSection } from './HarnessSection'
 import { BoardPanel } from './BoardPanel'
 import { RetroSection } from './RetroSection'
-import { DiagnosticsSection } from './DiagnosticsSection'
 import { MemoryOverviewSection } from './MemoryOverviewSection'
 import { DigestSection } from './DigestSection'
 import { since, since as ago, until as ahead } from './duration'
@@ -480,7 +479,6 @@ export function ProjectHome({
         </div>
         <div className="col-side">
           <HarnessSection project={project} feedMark={markOf(marks, ['grant', 'policy', 'effect'])} onError={onError} />
-          <DiagnosticsSection />
           <ReposSection
             project={project}
             read={forSubject(reposRead, project.id)}

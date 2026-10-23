@@ -152,6 +152,15 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     if (!box) return
     box.scrollTo?.({ top: 0 })
     for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > main')) page.scrollTo?.({ top: 0 })
+    // CO-384: a move made from the rail left focus on the rail's link, so PageDown, Space and the arrows scrolled
+    // nothing until the person clicked in the page. Focus goes to the new page's first heading (the usual way a page
+    // change is announced), only when it was on the rail, so ⌘K and a field the person typed in keep theirs.
+    if (!document.activeElement?.closest('.rail')) return
+    const page = box.querySelector<HTMLElement>(':scope > .shell > main:not([hidden])')
+    const heading = page?.querySelector<HTMLElement>('h1, h2') ?? page
+    if (!heading) return
+    if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1')
+    heading.focus({ preventScroll: true })
   }, [where])
   return (
     <div className="fab-shell">

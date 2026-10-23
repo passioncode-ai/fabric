@@ -12,6 +12,7 @@ import type { ActHistoryPage, ActView } from '../../../shared/acts.ts'
 import { useLocale, useT } from '../i18n'
 import { actSentence, whyWords } from './actWords'
 import { Feed } from '../Feed'
+import { DiagnosticsSection } from '../DiagnosticsSection'
 import type { EntityRef } from '../../../shared/entityRef'
 import type { FeedEvent, ProjectRow } from '../../../shared/types'
 
@@ -118,7 +119,24 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, onOpen }: {
           <Feed events={feedProjects ? feed : null} projects={feedProjects || NO_PROJECTS} onOpen={onOpen} />
         </section>
       )}
+      <OpsLog />
     </div>
+  )
+}
+
+/**
+ * The operations log and the build line (CO-387): ADR-0160 took Diagnostics off the project page and made every
+ * failure an act here, but the log and «which build is this» had no other place, so they close История, folded and
+ * read only when opened.
+ */
+function OpsLog(): React.JSX.Element {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  return (
+    <details className="hx-ops" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>{t('acts.opsLog')}</summary>
+      {open && <DiagnosticsSection />}
+    </details>
   )
 }
 

@@ -77,6 +77,13 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 /* A notice above the page never takes it over: past a third of the place it scrolls inside itself. */
 .fab-place>:not(.shell):not(.act-line){flex:0 1 auto;min-height:0;max-height:33%;overflow-y:auto;margin:0;padding-block:var(--space-1)}
 .fab-place>:not(.shell):not(.act-line)+:not(.shell){margin-top:var(--space-1)}
+/* Content that does not wrap never moves the page sideways (CO-384, from the 0.3.10 ledger's V3-48): a long token breaks,
+   preformatted text and a wide table scroll inside themselves. */
+.fab-place>.shell>main{overflow-wrap:anywhere}
+.fab-place>.shell>main pre{max-width:100%;overflow-x:auto}
+.fab-place>.shell>main table{display:block;max-width:100%;overflow-x:auto}
+/* CO-385: a notice that scrolls inside itself keeps its own buttons (Dismiss, Retry) at its foot, over its text. */
+.fab-place>:not(.shell):not(.act-line) .banner-actions{position:sticky;bottom:0;background:var(--app-bg);padding-block:2px}
 /* A short window: the act line comes before the notices, so they lose their outer spacing and take a smaller share; the
    page still keeps a third (0.3.10 review, iteration 3, UX-1, ER-3). */
 @media(max-height:640px){.fab-place>:not(.shell):not(.act-line){max-height:15%;padding-block:2px}.fab-place>.shell{min-height:min(35%,calc(100% - 6rem))}.fab-place>.act-line{max-height:30%}}
@@ -137,3 +144,5 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 /* OF-34: what the agents did, below the acts. */
 .hx-agents{margin-top:var(--space-6,32px)}
 .hx-agents h3{font-size:15px;margin:0 0 var(--space-2)}
+.hx-ops{margin-top:var(--space-6,32px)}
+.hx-ops>summary{cursor:pointer;color:var(--app-muted);font-size:13px}

@@ -8,7 +8,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: r-8642aee374a2
 - files: launch/CommsFeed.tsx (new), CommsScreen.tsx (the two tabs), launch.css, i18n, tests; OF-29; D-6 (OF-27, OF-31, OF-32, OF-39, OF-40 to 0.3.12); SCN-143; CHANGELOG; the map
 - conflicts: none
-- summary: Comms reads as a feed (wave 4). Also: a project's agents one line each (OF-23); OF-28 found done on the board; OF-20, OF-24 to OF-26 with onboarding in 0.3.12.
+- summary: Comms reads as a feed (wave 4). Also: a project's agents one line each (OF-23); OF-28 found done on the board; OF-20, OF-24 to OF-26 with onboarding in 0.3.12. Also: 0.3.10's carry-overs for 0.3.11 (CO-380, CO-384, CO-385, CO-387 resolved; CO-386 and CO-388 to 0.3.12).
 
 ### 2026-10-23T08:30:00Z · `—` · agent/w4-agents → main · fast-forward
 - run: r-8642aee374a2
