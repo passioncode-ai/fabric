@@ -30,6 +30,7 @@ import { Feed } from './Feed'
 import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
 import { specGaps, specMissing } from '../../shared/taskSpec.ts'
+import { taskMoves } from '../../shared/taskMoves.ts'
 import { since } from './duration'
 import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
@@ -201,6 +202,11 @@ export function TaskPage({
   ]
 
   const agentLabel = task.option_id ? runnerLabel(task.option_id, t) : t('launch.home.live.agent')
+  const moves = taskMoves(detail.events)
+  // A state in words; «cancelled» has no reason here, so it is the kanban's column word, and an unknown one stays as written.
+  const stateWord = (state: string): string =>
+    state === 'cancelled' ? t('launch.kanban.cancelled')
+      : ['backlog', 'running', 'review', 'done'].includes(state) ? t(`board.${state}` as 'board.backlog') : state
   return (
     <div className="lp" data-launch-view="launch-agent">
       <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
@@ -307,6 +313,34 @@ export function TaskPage({
               <p className="lp-meta">
                 {task.origin_kind ? t('task.origin', { kind: task.origin_kind, ref: task.origin_ref ?? t('task.originNoRef') }) : null}
               </p>
+              {/* SCN-174 step 2 (CO-401): what holds the task, then how it moved along the ladder. */}
+              {detail.blockedBy && (
+                <>
+                  <h3>{t('task.blockedBy')}</h3>
+                  {detail.blockedBy.length === 0 ? <p className="lp-meta">{t('task.blockedByNone')}</p> : (
+                    <ul className="lp-list">
+                      {detail.blockedBy.map((b) => (
+                        <li key={b.id}>
+                          <button type="button" className="lp-button lh-text-link" onClick={() => onOpenTask?.(b.id)}>{b.title}</button>
+                          <span className="lp-pill">{stateWord(b.status)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+              <h3>{t('task.moves')}</h3>
+              {moves.length === 0 ? <p className="lp-meta">{t('task.movesNone')}</p> : (
+                <ol className="lp-list" aria-label={t('task.moves')}>
+                  {moves.map((m) => (
+                    <li key={m.seq}>
+                      <time dateTime={m.at}>{new Date(m.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}</time>{' '}
+                      {m.from ? t('task.moveFromTo', { from: stateWord(m.from), to: stateWord(m.to) }) : t('task.moveTo', { to: stateWord(m.to) })}{' '}
+                      <span className="lp-meta">{t(`task.movedBy.${m.by}` as 'task.movedBy.person')}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
               <button type="button" className="lp-button" onClick={() => setTab('context')}>{t('launch.agent.whatWasGiven')}</button>
             </>
           )}

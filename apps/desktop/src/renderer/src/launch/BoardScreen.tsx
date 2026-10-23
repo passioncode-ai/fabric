@@ -15,7 +15,7 @@ import type { BoardCut, BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
 import type { EntityRef } from '../../../shared/entityRef'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
-import type { AnswerReceipt, ProjectRow } from '../../../shared/types'
+import type { AnswerReceipt, BoardFilters, ProjectRow } from '../../../shared/types'
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
@@ -30,7 +30,10 @@ type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEnt
 /** What the last Board command said, for the row (or the form) it was about. */
 type Said = { of: string; result: BoardCommandResult }
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onOpen, onError, onPulse }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
+  /** The kanban's filters kept from the last visit, and where to keep the next ones (CO-401). */
+  boardFilters?: BoardFilters
+  onRememberBoard?(filters: BoardFilters): void
   /** Which view opens (OF-19): the kanban by stage, unless the person came for a row or a topic. */
   mode?: 'kanban' | 'needs'
   /** «Пульс» in the strip (SCR-42). */
@@ -214,7 +217,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         <button type="button" className="lp-button" aria-pressed={mode === 'kanban'} onClick={() => setMode('kanban')}>{t('launch.board.mode.kanban')}</button>
         <button type="button" className="lp-button" aria-pressed={mode === 'needs'} onClick={() => setMode('needs')}>{t('launch.board.mode.needs')}</button>
       </div>
-      {mode === 'kanban' && <KanbanBoard feedMark={feedMark} projectId={projectId} onOpen={(project, task) => onOpen(project, { kind: 'task', id: task })} />}
+      {mode === 'kanban' && <KanbanBoard feedMark={feedMark} projectId={projectId} remembered={boardFilters} onRemember={onRememberBoard} onOpen={(project, task) => onOpen(project, { kind: 'task', id: task })} />}
       {mode === 'needs' && (
         <>
       {topic && (

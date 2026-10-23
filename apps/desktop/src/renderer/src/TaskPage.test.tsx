@@ -422,3 +422,30 @@ describe('the brief says how it is written, an empty one what fills it, and the 
     expect(await screen.findByRole('button', { name: en['launch.agent.back'] })).toBeTruthy()
   })
 })
+
+describe('what holds a task and how it moved (SCN-174 step 2, CO-401)', () => {
+  const page = (extra: Partial<TaskDetail>, onOpenTask = vi.fn()) => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = { tasks: { detail: vi.fn().mockResolvedValue({ ...detail({}), ...extra }) } }
+    render(<TaskPage project={project} taskId="t1" onBack={() => {}} onOpenTask={onOpenTask} onChanged={async () => {}} onError={() => {}} />)
+    return onOpenTask
+  }
+  it('lists its blockers with their state and opens one; lists its moves newest first in words', async () => {
+    const ev = (seq: number, payload: Record<string, unknown>, kind: string) => ({ estate_id: 'e', seq, type: 'task.moved@1', actor: { kind, id: 'x' }, project_id: 'p1', occurred_at: '2026-10-22T10:00:00Z', payload })
+    const onOpenTask = page({ blockedBy: [{ id: 't9', title: 'Schema step', status: 'review' }], events: [ev(1, { task_id: 't1', from: 'backlog', to: 'running' }, 'agent'), ev(2, { task_id: 't1', from: 'running', to: 'cancelled' }, 'person')] })
+    fireEvent.click(await screen.findByRole('button', { name: 'Schema step' }))
+    expect(onOpenTask).toHaveBeenCalledWith('t9')
+    const moves = screen.getByRole('list', { name: en['task.moves'] })
+    expect(moves.querySelectorAll('li')[0].textContent).toContain(en['task.moveFromTo'].replace('{from}', en['board.running']).replace('{to}', en['launch.kanban.cancelled']))
+    expect(moves.querySelectorAll('li')[1].textContent).toContain(en['task.movedBy.agent'])
+  })
+  it('says nothing holds it when the read found none, and nothing at all when blockers were not read', async () => {
+    page({ blockedBy: [] })
+    expect(await screen.findByText(en['task.blockedByNone'])).toBeTruthy()
+    expect(screen.getByText(en['task.movesNone'])).toBeTruthy()
+    cleanup()
+    page({})
+    await screen.findByText(en['task.movesNone'])
+    expect(screen.queryByText(en['task.blockedBy'])).toBeNull()
+  })
+})

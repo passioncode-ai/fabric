@@ -152,7 +152,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -175,7 +175,7 @@ describe('the agents\' working language can be switched off (the operator\'s wal
     }))
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
@@ -194,7 +194,7 @@ describe('this computer\'s trust, said by the person (ADR-0176 §3)', () => {
       }
     }))
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     return { onChange, select: screen.getByRole('combobox', { name: en['settings.machineTrust'] }) as HTMLSelectElement }
   }

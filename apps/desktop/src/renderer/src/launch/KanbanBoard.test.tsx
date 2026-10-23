@@ -118,3 +118,36 @@ describe('a task whose spec is not gathered says so on its card (ADR-0176 §1, S
     expect((screen.getByText('New home').closest('button') as HTMLElement).textContent).not.toContain(en['launch.kanban.specMissing'])
   })
 })
+
+describe('the Board\'s agent filter, «Отменено» and remembered filters (CO-401)', () => {
+  const withCancelled: TaskBoardView = { ...board, cancelled: { capped: false, cards: [{ taskId: 'c1', projectId: 'p1', projectName: 'Fabric', summary: 'Old idea', agent: null, since: null }] } }
+  it('filters by agent, shows cancelled tasks as a fifth column only when asked, and keeps every choice', async () => {
+    install(async () => withCancelled)
+    const onRemember = vi.fn()
+    show({ onRemember })
+    await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
+    expect(screen.queryByText('Old idea')).toBeNull()
+    fireEvent.change(screen.getByLabelText(en['launch.kanban.agent']), { target: { value: 'claude-code' } })
+    expect(screen.queryByText('Dark theme')).toBeNull()
+    expect(screen.getByText('New home')).toBeTruthy()
+    expect(onRemember).toHaveBeenLastCalledWith({ project: null, agent: 'claude-code', cancelled: false })
+    fireEvent.change(screen.getByLabelText(en['launch.kanban.agent']), { target: { value: '' } })
+    fireEvent.click(screen.getByLabelText(en['launch.kanban.showCancelled']))
+    expect(screen.getByRole('region', { name: en['launch.kanban.cancelled'] }).textContent).toContain('Old idea')
+    expect(onRemember).toHaveBeenLastCalledWith({ project: null, agent: null, cancelled: true })
+  })
+  it('opens with the remembered filters; a project\'s own board never writes its project into them', async () => {
+    install(async () => withCancelled)
+    const onRemember = vi.fn()
+    show({ remembered: { project: 'p2', agent: null, cancelled: true }, projectId: 'p1', onRemember })
+    await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
+    expect(screen.getByRole('region', { name: en['launch.kanban.cancelled'] })).toBeTruthy()
+    fireEvent.click(screen.getByLabelText(en['launch.kanban.showCancelled']))
+    expect(onRemember).toHaveBeenLastCalledWith({ project: 'p2', agent: null, cancelled: false })
+  })
+  it('a reading without the cancelled tasks says so in their column, never an empty one', async () => {
+    install(async () => board)
+    show({ remembered: { project: null, agent: null, cancelled: true } })
+    expect((await screen.findByRole('region', { name: en['launch.kanban.cancelled'] })).textContent).toContain(en['launch.kanban.cancelledUnread'])
+  })
+})

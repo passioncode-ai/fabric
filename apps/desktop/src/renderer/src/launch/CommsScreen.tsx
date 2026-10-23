@@ -328,7 +328,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
         {/* CO-377: which projects have not answered an announcement. */}
         <button type="button" className="lp-button" aria-pressed={mode === 'announcements'} onClick={() => setMode('announcements')}>{t('launch.comms.mode.announcements')}</button>
       </div>
-      {mode === 'feed' && <CommsFeed mark={attempt} nameOf={nameOf} onOpen={openPost} />}
+      {mode === 'feed' && <CommsFeed mark={attempt} nameOf={nameOf} onOpen={openPost}
+        threadOf={(id) => { const held = threads?.find((x) => x.id === id); return held ? titleOf(held) : null }} />}
       {mode === 'announcements' && <CommsAnnouncements mark={attempt} nameOf={nameOf} onOpen={(th) => { openThread(th, 'search'); setMode('threads') }} />}
       {mode === 'threads' && (<>
       {threadsError && threads === null ? (

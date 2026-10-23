@@ -19,7 +19,8 @@ describe('validateSettings', () => {
       agentPermissions: 'manual',
       launchAtLogin: false,
       agentLanguage: true,
-      machineTrust: 'mine'
+      machineTrust: 'mine',
+      boardFilters: { project: '79000000-0000-4000-8000-0000000000a1', agent: 'claude-code', cancelled: true }
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -227,5 +228,15 @@ describe('the working language from a settings read (0.3.11 review, iteration 2,
     expect(workingLanguageOfRead({ status: 'unreadable', value: { locale: 'ru' } })).toBeNull()
     expect(workingLanguageOfRead({ status: 'ready', value: { locale: 'ru' } })).toBe('ru')
     expect(workingLanguageOfRead({ status: 'recovered', value: { locale: 'ru', agentLanguage: false } })).toBeNull()
+  })
+})
+
+describe('the Board\'s remembered filters (CO-401)', () => {
+  it('keeps a project id, an agent id and the cancelled switch; anything else reads as no filter', () => {
+    const base = validateSettings({})!
+    expect(base.boardFilters).toEqual({ project: null, agent: null, cancelled: false })
+    expect(validateSettings({ boardFilters: { project: 'not an id', agent: 'two words', cancelled: 'yes' } })!.boardFilters).toEqual({ project: null, agent: null, cancelled: false })
+    expect(settingsPatch({ boardFilters: { project: null, agent: 'codex', cancelled: true } })).toEqual({ ok: true, patch: { boardFilters: { project: null, agent: 'codex', cancelled: true } } })
+    expect(settingsPatch({ boardFilters: { project: 'x', agent: null, cancelled: false } }).ok).toBe(false)
   })
 })

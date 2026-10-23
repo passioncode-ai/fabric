@@ -30,6 +30,9 @@ export interface BoardColumn {
 
 export interface TaskBoardView {
   columns: BoardColumn[]
+  /** «Отменено» (SCN-173 step 1, CO-401): cancelled tasks, newest first, shown only when the person turns them on.
+   *  Absent from a reader that did not ask; a failed read is `unread`, never an empty list. */
+  cancelled?: { cards: BoardCard[]; capped: boolean; unread?: string }
   projects: Array<{ id: string; name: string }>
   readAt: string
 }
@@ -39,6 +42,8 @@ export function composeTaskBoard(input: {
   queued: readonly TaskBrief[]
   projects: ReadonlyArray<{ id: string; name: string }>
   queuedLimit: number
+  /** Cancelled tasks, newest first; with the limit they were read under. */
+  cancelled?: { rows: readonly (TaskBrief & { updated_at?: string | null })[]; limit: number } | { unread: string }
 }): TaskBoardView {
   const names = new Map(input.projects.map((p) => [p.id, p.name]))
   const queue: BoardCard[] = input.queued
@@ -53,7 +58,19 @@ export function composeTaskBoard(input: {
       { stage: 'done', cards: h.done.map((r) => ({ ...r, agent: null })), capped: !!h.doneCapped, ...(h.doneUnread ? { unread: h.doneUnread } : {}) }
     ],
     projects: input.projects.map((p) => ({ id: p.id, name: p.name })),
-    readAt: h.readAt
+    readAt: h.readAt,
+    ...(input.cancelled
+      ? {
+          cancelled: 'unread' in input.cancelled
+            ? { cards: [], capped: false, unread: input.cancelled.unread }
+            : {
+                cards: input.cancelled.rows
+                  .filter((t) => names.has(t.project_id))
+                  .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), agent: null, since: t.updated_at ?? null })),
+                capped: input.cancelled.rows.length >= input.cancelled.limit
+              }
+        }
+      : {})
   }
 }
 // #endregion task-board
