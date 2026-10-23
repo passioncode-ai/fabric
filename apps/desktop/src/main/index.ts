@@ -648,6 +648,14 @@ function readLoginItem(): LoginItemState {
 // window is painted before any stylesheet exists, which is why the palette gate
 // scopes itself to the renderer. They are the only hand-copied colours in the
 // app, and moving the pack means updating this line.
+/** CO-306: the splash speaks the interface's language; a settings file that cannot be read is English. */
+function splashLocale(): string | null {
+  try { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.locale } catch (e) {
+    ops.failed('splash.locale-read', e, { note: 'the splash speaks English' })
+    return null
+  }
+}
+
 function splashWindow(text: string): BrowserWindow {
   // M63 said "all three windows" and there are FOUR. This one was missed, and it
   // is the FIRST window a person ever sees on a cold start — so the white flash
@@ -665,7 +673,7 @@ function splashWindow(text: string): BrowserWindow {
   void w.loadURL(
     'data:text/html,' +
       encodeURIComponent(
-        `<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#0c0e10;color:#e6e9ec;font:14px -apple-system,sans-serif"><p>${text}</p></body>`
+        `<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#0c0e10;color:#e6e9ec;font:14px -apple-system,sans-serif"><p>${text.replace(/[<>&]/g, ' ')}</p></body>`
       )
   )
   return w
@@ -716,7 +724,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
     // its own clock: against a six-second block the splash's script ran 59ms
     // AFTER the block ended, so its text was not late, it was never displayed.
     // A four-minute start showed a person a bare rectangle.
-    const splash = process.env.SMOKE || BACKGROUND_LAUNCH || startupWaitWindow ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
+    const splash = process.env.SMOKE || BACKGROUND_LAUNCH || startupWaitWindow ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null, locale: splashLocale() }))
     if (splash) quitWhenPersonCloses(splash)
     const startedAt = Date.now()
     let lastLine: string | null = null
@@ -728,7 +736,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
     })
     const tick = setInterval(() => {
       if (!painted || !splash || splash.isDestroyed()) return
-      const text = splashProgress({ elapsedMs: Date.now() - startedAt, lastLine })
+      const text = splashProgress({ elapsedMs: Date.now() - startedAt, lastLine, locale: splashLocale() })
       // `executeJavaScript` rather than a reload: a reload would restart the
       // very paint this exists to deliver.
       void splash.webContents

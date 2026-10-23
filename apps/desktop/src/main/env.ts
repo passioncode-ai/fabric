@@ -141,7 +141,7 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
     },
     onRetry: (attempt, attempts, message) => {
       ops.record({ op: 'stack.start.retry', outcome: 'ok', level: 'warn', detail: { attempt, attempts, why: message.split('\n').slice(-2).join(' ').slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
-      onLine?.(`The stack is still starting — try ${attempt} of ${attempts}`)
+      onLine?.(`The stack is still starting, try ${attempt} of ${attempts}`)
     }
   })
 }

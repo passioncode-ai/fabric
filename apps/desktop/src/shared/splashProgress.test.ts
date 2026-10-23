@@ -44,3 +44,24 @@ describe('what the splash says while the stack starts', () => {
     expect(at(20, '<img src=x onerror=alert(1)>')).not.toContain('<')
   })
 })
+
+describe('the splash speaks the interface\'s language (CO-306, SCN-161)', () => {
+  const ru = (seconds: number, last: string | null = null): string => splashProgress({ elapsedMs: seconds * 1000, lastLine: last, locale: 'ru' })
+
+  it('says what is happening, how long and that a first run is slow, in Russian', () => {
+    expect(ru(0)).toBe('Запускаю локальную базу')
+    expect(ru(12)).toBe('Запускаю локальную базу · 12 с')
+    expect(ru(PATIENCE_MS / 1000 + 5)).toMatch(/Первый запуск скачивает образы и идёт долго$/)
+  })
+
+  it('says Fabric\'s own notes in the person\'s language, and passes the stack\'s own words through', () => {
+    expect(ru(6, 'Waiting for Docker to answer (8 s)')).toMatch(/Жду ответа Docker \(8 с\)$/)
+    expect(ru(6, 'The stack is still starting, try 2 of 4')).toMatch(/База ещё запускается, попытка 2 из 4$/)
+    expect(ru(6, 'Pulling supabase/postgres')).toMatch(/Pulling supabase\/postgres$/)
+    expect(at(6, 'The stack is still starting, try 2 of 4')).toMatch(/try 2 of 4$/)
+  })
+
+  it('carries no dash between its parts, in either language', () => {
+    for (const s of [at(PATIENCE_MS / 1000 + 5, 'line'), ru(PATIENCE_MS / 1000 + 5, 'line')]) expect(s).not.toMatch(/—/)
+  })
+})
