@@ -229,6 +229,8 @@ export function Tasks({
         permissionMode: mode
       })
       setInstruction('')
+      // A started task has taken the text; there is nothing left to put back (CO-352).
+      setReplaced(null)
       setPreset(null)
       setPresetText(null)
       await onStarted()
@@ -256,7 +258,11 @@ export function Tasks({
         rows={3}
         value={instruction}
         placeholder={t('tasks.placeholder')}
-        onChange={(e) => setInstruction(e.target.value)}
+        onChange={(e) => {
+          setInstruction(e.target.value)
+          // The person's own edit makes the loaded text theirs: «Вернуть мой текст» would now throw it away (CO-352).
+          if (replaced) setReplaced(null)
+        }}
         onKeyDown={(e) => {
           // The product's primary action deserves a keyboard path.
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {

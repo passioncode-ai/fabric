@@ -3904,10 +3904,24 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> =>
     hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR))
   handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> => {
-    const done = await hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR)
+    const h = hubReady()
+    // The agent's name, read before the revocation, so История can say which agent it was (CO-353): the name its
+    // request was registered under, else the catalogue's, else its id; an unreadable binding leaves the act unnamed.
+    const named = await (async (): Promise<string | null> => {
+      try {
+        const b = await h.accessStore.binding(String(bindingId))
+        if (!b) return null
+        const asked = await h.accessStore.request(b.request_id)
+        return asked?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id
+      } catch (e) {
+        ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: String(bindingId) })
+        return null
+      }
+    })()
+    const done = await h.access.revokeBinding(String(bindingId), OPERATOR_ACTOR)
     // The credential is gone and cannot be revived: the agent asks again and gets a new one (ADR-0160 §2: said, not hidden).
-    if (done.ok) await acts.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: String(bindingId), label: null },
-      said: { key: 'act.agent.disconnect', params: {} }, inverse: null, whyNot: 'credential_gone' })
+    if (done.ok) await acts.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: String(bindingId), label: named },
+      said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' })
     return done
   })
   // #region kept-out-ipc — docs: docs/ux/scenarios.md#scn-167-a-coding-agent-opened-outside-fabric-is-let-in-and-the-person-disconnects-it-with-one-press

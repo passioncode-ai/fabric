@@ -154,4 +154,24 @@ describe('a shortcut over the person’s own words', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Put my words back' }))
     expect(screen.getByDisplayValue('my own careful words')).toBeTruthy()
   })
+
+  it('drops the offer once the person edits the loaded text, so a press cannot throw the edit away (CO-352)', async () => {
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { list: vi.fn().mockResolvedValue({ tasks: [], closed: { truncated: false, says: 'all 0' } }) },
+      agents: { list: vi.fn().mockResolvedValue([]) },
+      terminal: { options: vi.fn().mockResolvedValue([{ id: 'claude-code', label: 'Claude Code', available: true, connectsToSurface: true, permissionModes: [] }]) }
+    }
+    const { useState } = await import('react')
+    function Host(): React.JSX.Element {
+      const [draft, setDraft] = useState<TaskDraft>({ instruction: 'my own careful words', preset: null, presetText: null })
+      return <Tasks project={project} onStarted={() => {}} onError={() => {}} feedMark={0} draft={draft} onDraftChange={(p) => setDraft((d) => ({ ...d, ...p }))} />
+    }
+    const { container } = render(<Host />)
+    await waitFor(() => expect(screen.getByText('Audit this project')).toBeTruthy())
+    fireEvent.click(screen.getByText('Audit this project'))
+    expect(screen.getByRole('button', { name: 'Put my words back' })).toBeTruthy()
+    fireEvent.change(container.querySelector('textarea')!, { target: { value: 'the preset, now edited' } })
+    expect(screen.queryByRole('button', { name: 'Put my words back' })).toBeNull()
+    expect(screen.getByDisplayValue('the preset, now edited')).toBeTruthy()
+  })
 })

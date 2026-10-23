@@ -31,7 +31,7 @@ export { APP_SETTINGS_DEFAULTS }
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
 /** The keys `settings.write` takes from a window (`types.ts#SettingsPatch`); main keeps the rest. */
 /** How many per-thread read marks the settings file holds (SCN-143, the unread slice). */
-const COMMS_READ_THROUGH_MAX = 4096
+export const COMMS_READ_THROUGH_MAX = 4096
 
 const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters']
 

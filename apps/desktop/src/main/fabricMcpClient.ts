@@ -131,7 +131,10 @@ export type TransportFactory = (url: string, bearer: string) => Transport
 export function retryAfterMs(header: string | null, now = Date.now()): number {
   if (header === null || header.trim() === '') return boundedRetryMs(undefined)
   const value = header.trim()
-  const delay = /^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - now
+  // Seconds, or an HTTP-date (RFC 9110 §10.2.3); anything else is not a wait the hub stated, and takes the fallback.
+  const delay = /^\d+$/.test(value) ? Number(value) * 1000
+    : /^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(value) ? Date.parse(value) - now
+    : undefined
   return boundedRetryMs(delay)
 }
 

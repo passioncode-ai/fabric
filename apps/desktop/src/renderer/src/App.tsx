@@ -64,6 +64,7 @@ import { HistoryScreen } from './launch/HistoryScreen'
 import { JoinedAgents } from './launch/JoinedAgents'
 import { AgentPage } from './launch/AgentPage'
 import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
+import { boundedMarks } from '../../shared/commsMarks.ts'
 import { AgentsAtWork } from './launch/HomeWork'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
@@ -492,7 +493,8 @@ function Shell({
    *  a window writes the one field it owns, never a whole-settings copy read at start. */
   const onCommsRead = async (marks: Record<string, number>) => {
     const written = await window.fabric.settings
-      .write({ commsReadThrough: { ...settings.commsReadThrough, ...marks } })
+      // Bounded to what the settings file holds (CO-312): unlisted threads' marks go first, then the oldest.
+      .write({ commsReadThrough: boundedMarks(settings.commsReadThrough, marks, commsHeads ? { ids: commsHeads.heads.map((h) => h.id), whole: !commsHeads.truncated } : null) })
       .catch((e: unknown) => {
         setError(t('settings.notSaved', { reason: explainError(e, t) }))
         return null

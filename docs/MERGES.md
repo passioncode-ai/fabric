@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-w3a → main · fast-forward
+- run: r-8642aee374a2
+- files: main/fabricMcp.ts, main/fabricMcpClient.ts and test/fabric-mcp.test.mjs (CO-314); shared/redact.ts and its tests (CO-386); main/index.ts hubRevokeAgent and actWords.test.ts (CO-353); Tasks.tsx and its test (CO-352); shared/commsMarks.ts and its test (new), shared/appSettings.ts, App.tsx (CO-312); the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 W3a: five hardening rows (CO-312, CO-314, CO-352, CO-353, CO-386).
+
 ### __LANDED__ · `—` · agent/0312-s7-board → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/KanbanBoard.tsx and its test, launch/BoardScreen.tsx, shared/taskBoard.ts and its test, main/workRead.ts (cancelled), shared/appSettings.ts and its test, shared/types.ts (boardFilters, blockedBy), launch/CommsFeed.tsx and its test, launch/CommsScreen.tsx, TaskPage.tsx and its test, shared/taskMoves.ts and its test (new), main/index.ts (tasks.detail blockedBy), shared/swipeTravel.ts and its test (new), App.tsx, launch.css, i18n; SCN-143, SCN-162, SCN-173, SCN-174; CO-401 resolved; the backlog; CHANGELOG; the map
