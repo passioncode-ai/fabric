@@ -9,12 +9,13 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ActHistoryPage, ActView } from '../../../shared/acts.ts'
-import { useLocale, useT } from '../i18n'
+import { describeEvent, useLocale, useT, type Translate } from '../i18n'
 import { actSentence, whyWords } from './actWords'
-import { Feed } from '../Feed'
+import { feedAct } from '../Feed'
+import { runnerLabel } from '../runnerLabel'
 import { DiagnosticsSection } from '../DiagnosticsSection'
 import type { EntityRef } from '../../../shared/entityRef'
-import type { FeedEvent, ProjectRow } from '../../../shared/types'
+import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
 
 const PAGE = 50
 
@@ -23,9 +24,17 @@ type Read =
   | { at: 'ready'; rows: ActView[]; next: number | null; readAt: string }
   | { at: 'failed'; says: string; kept: { rows: ActView[]; next: number | null; readAt: string } | null }
 
-const NO_PROJECTS: ProjectRow[] = []
+/** «Сегодня», «Вчера» or the date: the day a row of История is grouped under. */
+function dayLabel(iso: string, t: Translate, locale: string): string {
+  const d = new Date(iso), now = new Date()
+  const startOf = (x: Date): number => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const days = Math.round((startOf(now) - startOf(d)) / 86_400_000)
+  if (days === 0) return t('acts.today')
+  if (days === 1) return t('acts.yesterday')
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
+}
 
-export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed = false, onOpen }: {
+export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed = false, sessions = null, onOpen }: {
   projects: ReadonlyArray<{ id: string; name: string }> | null
   mark: number
   /** OF-34 (the operator's walk, 2026-10-22): what the agents did, from the journal; null while unread, absent to hide. */
@@ -34,6 +43,8 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   feedProjects?: ProjectRow[] | null
   /** The journal could not be read: said instead of «reading» forever (0.3.11 review ER-9). */
   feedFailed?: boolean
+  /** The sessions Fabric runs, to name the agent of an act by its program (CO-395); an agent not among them is «Агент». */
+  sessions?: TerminalSession[] | null
   onOpen?: (projectId: string, focus: EntityRef) => void
 }): React.JSX.Element {
   const t = useT()
@@ -70,14 +81,7 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   }, [read])
   const shown = read.at === 'ready' ? read : read.at === 'failed' ? read.kept : null
   const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
-  const dayOf = (iso: string): string => {
-    const d = new Date(iso), now = new Date()
-    const startOf = (x: Date): number => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
-    const days = Math.round((startOf(now) - startOf(d)) / 86_400_000)
-    if (days === 0) return t('acts.today')
-    if (days === 1) return t('acts.yesterday')
-    return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
-  }
+  const dayOf = (iso: string): string => dayLabel(iso, t, locale)
   const days: Array<{ day: string; rows: ActView[] }> = []
   for (const r of shown?.rows ?? []) {
     const day = dayOf(r.occurredAt)
@@ -118,11 +122,60 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
-          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <Feed events={feedProjects ? feed : null} projects={feedProjects || NO_PROJECTS} onOpen={onOpen} />}
+          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects ? (feed ?? null) : null} projects={feedProjects ?? []} sessions={sessions} onOpen={onOpen} />}
         </section>
       )}
       <OpsLog />
     </div>
+  )
+}
+
+/**
+ * «Что делали агенты» read as History (CO-395): newest first, grouped by day like the acts above, each row its time, who
+ * did it (the agent by its program, «Вы», Fabric), the act in a sentence and the project, never the journal's `#seq`.
+ * A row opens what it is about when a screen can focus it, the same act the journal feed offers (`feedAct`).
+ */
+function AgentWork({ events, projects, sessions, onOpen }: {
+  events: FeedEvent[] | null
+  projects: ProjectRow[]
+  sessions: TerminalSession[] | null
+  onOpen?: (projectId: string, focus: EntityRef) => void
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  if (events === null) return <p className="hx-muted" role="status">{t('journal.reading')}</p>
+  if (events.length === 0) return <p className="hx-empty">{t('journal.empty')}</p>
+  const nameOf = (id: string | null): string | null => (id ? projects.find((p) => p.id === id)?.name ?? null : null)
+  const who = (e: FeedEvent): string =>
+    e.actor.kind === 'person' ? t('acts.actor.you')
+      : e.actor.kind === 'system' ? t('acts.actor.fabric')
+        : ((program) => (program ? runnerLabel(program, t) : t('acts.actor.agent')))(sessions?.find((s) => s.sessionId === e.actor.id)?.program)
+  const days: Array<{ day: string; rows: FeedEvent[] }> = []
+  for (const e of [...events].sort((a, b) => b.seq - a.seq)) {
+    const day = dayLabel(e.occurred_at, t, locale)
+    if (days.length && days[days.length - 1].day === day) days[days.length - 1].rows.push(e)
+    else days.push({ day, rows: [e] })
+  }
+  return (
+    <ul className="hx-list" aria-label={t('acts.agentsTitle')}>
+      {days.map(({ day, rows }) => rows.map((e, i) => {
+        const act = feedAct(e, t)
+        const project = nameOf(e.project_id)
+        return (
+          <li key={`${e.estate_id}:${e.seq}`} className="hx-row">
+            {i === 0 && <p className="hx-day">{day}</p>}
+            <div className="hx-act">
+              <time className="hx-time" dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
+              <span className="hx-who">{who(e)}</span>
+              <span className="hx-said" title={'why' in act ? act.why : undefined}>{describeEvent(t, e.type)}{project && <small className="hx-project">{project}</small>}</span>
+              <span className="hx-end">
+                {'ref' in act && onOpen && <button type="button" className="hx-undo" onClick={() => onOpen(act.projectId, act.ref)}>{t('journal.open')}</button>}
+              </span>
+            </div>
+          </li>
+        )
+      }))}
+    </ul>
   )
 }
 
