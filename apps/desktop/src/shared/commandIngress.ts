@@ -170,6 +170,12 @@ const EVENT_FIELDS: Record<string, Fields> = {
     default_agent: optional(reference), ...metadata },
   'project.updated@1': { id: required(uuid), name: optional(nullable(text)), purpose: optional(nullable(text)),
     repo_path: optional(nullable(reference)), ...metadata },
+  // A project's profile (0.3.12 wave 2, S1; `main/agentSurface.ts`, fabric_project_profile). Texts are scrubbed like
+  // every other text; an empty string is allowed, because it is how a field is cleared (migration 123).
+  'project.profiled@1': { goal: optional(text), summary: optional(text), business: optional(text),
+    plan: optional(object({ done: required(list(nonemptyText)), next: required(list(nonemptyText)) })),
+    relations: optional(list(object({ kind: required(enumeration(['depends-on', 'used-by', 'same-business', 'talks-to', 'other'])),
+      target: required(nonemptyText), note: optional(text) }))), ...metadata },
   'project.settings.updated@1': { id: required(uuid), memory_backend: optional(enumeration(['local', 'cloud'])),
     default_agent: optional(reference), mcp_servers: optional(list(reference)), ...metadata },
   'project.configured@1': { id: required(uuid), base_revision: required(integer(0)), name: optional(nullable(text)),

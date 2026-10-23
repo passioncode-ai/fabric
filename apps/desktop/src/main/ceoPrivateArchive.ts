@@ -22,7 +22,7 @@ import { ARCHIVE_SCHEMA, digestInput } from '../shared/archive.ts'
 import { archiveFail as fail, decodeArchiveUtf8, parseArchiveJson } from './archiveJson.ts'
 
 export const PRIVATE_ARCHIVE_SCHEMA = 'CeoPrivateArchive@1' as const
-export const PRIVATE_ARCHIVE_LIMITS = Object.freeze({ sourceSchemas: Object.freeze([66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95] as const), privateBytes: 8 * 1024 * 1024,
+export const PRIVATE_ARCHIVE_LIMITS = Object.freeze({ sourceSchemas: Object.freeze([66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96] as const), privateBytes: 8 * 1024 * 1024,
   journalBytes: 32 * 1024 * 1024, journalLineBytes: 1024 * 1024, manifestBytes: 4096, events: 65536,
   conversations: 256, messages: 4096, operations: 8192, depth: 32, nodes: 1_000_000 })
 export type JournalSeq = number | string

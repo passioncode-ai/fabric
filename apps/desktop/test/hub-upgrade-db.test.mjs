@@ -203,6 +203,8 @@ for (const baseline of [75, 77]) {
   // only by a withdrawal); every other value is preserved exactly.
   const after78 = structuredClone(at78)
   for (const row of after78.memory_facts ?? []) row.withdrawn_seq = null
+  // Migration 123 (a project's profile, schema 96) adds empty profile columns to every project; nothing else changes.
+  for (const row of after78.projects ?? []) Object.assign(row, { goal: null, summary: null, business: null, plan: null, profiled_at: null, profiled_by: null })
   assert.deepEqual(snapshot(db, [...coreTables, ...hubTables]), after78, `78→${files.length} must preserve every existing row`)
   assert.equal(sql(db, 'set role service_role;select schema_version()'), String(files.length))
   console.log(`PASS upgrade ${baseline}→78: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS`)

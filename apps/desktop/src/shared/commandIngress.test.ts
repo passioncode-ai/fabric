@@ -22,6 +22,7 @@ const fixtures: Record<string, Record<string, unknown>> = {
     task_type: 'development', section: secret, origin: {kind: 'document', ref: 'docs/adr/0014.md:22'} },
   'task.note.added@1': note,
   'task.brief.edited@1': { task_id: id, section: 'what', body_md: secret },
+  'project.profiled@1': { goal: secret, summary: 'One line', business: 'PassionCode', plan: { done: ['a'], next: ['b'] }, relations: [{ kind: 'depends-on', target: 'x', note: secret }] },
   'routine.defined@1': { id, project_id: other, instruction: secret, option_id: 'claude-code', every_minutes: 5, kind: 'backlog' },
   'agent.registered@1': { id, project_id: other, name: secret, instructions: secret,
     runner_id: 'claude-code', mcp_servers: ['fabric', 'github'], permission_mode: 'ask' },
@@ -42,7 +43,8 @@ const fixtures: Record<string, Record<string, unknown>> = {
     head: 'a'.repeat(40), files_changed: 3, lines_added: 10, lines_removed: 2, idempotency_key: 'turn-0001' }
 }
 /** Types whose subject is not an `id` or a `task_id` key (`work` names the task in the contract's claim shape). */
-const SUBJECT_ELSEWHERE = new Set(['cycle.ran@1', 'work.renewed@1', 'work.handover.requested@1', 'session.turn.observed@1'])
+// project.profiled@1 names its project in the journal row's project_id, never in the payload (migration 123).
+const SUBJECT_ELSEWHERE = new Set(['cycle.ran@1', 'work.renewed@1', 'work.handover.requested@1', 'session.turn.observed@1', 'project.profiled@1'])
 
 describe('explicit event privacy policy', () => {
   it('covers exactly the audited versions and scrubs free text without input mutation', () => {

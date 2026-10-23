@@ -381,6 +381,10 @@
     {
       "file": "20261021000120_board_core_holds.sql",
       "sha256": "14cec00636badd142114ccac47bf05eaa6b6fabdef86838f7c701725a3256ae2"
+    },
+    {
+      "file": "20261023000123_project_profile.sql",
+      "sha256": "57b7d2e4be0239af402d8344e01a4e630b9b895e33f92cc682487708b1c968a4"
     }
   ]
 }

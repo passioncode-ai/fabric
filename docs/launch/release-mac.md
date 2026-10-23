@@ -307,6 +307,8 @@ reservation). The procedure is the same with 94 in place of 89.
 
 **0.3.11 admits schema 95**, as 0.3.9 and 0.3.10 do: it adds no migration (no file under `supabase/` changed since v0.3.10), so the upgrade is the bundle alone and going back to 0.3.10 is the 0.3.10 bundle alone. One setting is new, `agentLanguage` in `settings.json`; 0.3.10 does not know it, so going back and then changing a setting drops a switched-off working language, and the next 0.3.11 starts with it on again (the 0.3.11 review, DA-5).
 
+**0.3.12 (not yet released) admits schema 96** (migration `20261023000123_project_profile.sql`, a project's profile: `project.profiled@1`, columns on `projects`, `project_relations`): a database at 95 takes the upgrade below, `FROM` 95. Going back to 0.3.11 after it refuses the database (0.3.11 admits only 95), so a rollback is the 0.3.11 bundle with the backup taken before the upgrade. Two settings are new, `machineTrust` and, as in 0.3.11, `agentLanguage`; 0.3.11 does not know `machineTrust`, so going back and changing a setting drops it and the next 0.3.12 reads the computer as not said (not trusted).
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
@@ -374,7 +376,7 @@ reservation). The procedure is the same with 94 in place of 89.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

@@ -60,6 +60,7 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_task_note', purpose: 'Working notes on one task, append-only', records: true },
   { name: 'fabric_task_handoff', purpose: 'Hand a NAMED result on to whatever task follows this one', records: true },
   { name: 'fabric_task_brief', purpose: 'Draft what a task is for; the operator can replace any part', records: true },
+  { name: 'fabric_project_profile', purpose: 'Record what this project is: goal, summary, business, plan and relations', records: true },
   {
     name: 'fabric_question_ask',
     purpose: 'Ask the owner a decision this session is not entitled to make',

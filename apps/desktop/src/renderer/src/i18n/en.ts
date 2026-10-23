@@ -664,6 +664,7 @@ export const en = {
   'harness.tool.fabric_task_note': "Working notes on one task, append-only",
   'harness.tool.fabric_task_handoff': "Hand a named result on to whatever task follows this one",
   'harness.tool.fabric_task_brief': "Draft what a task is for; the operator can replace any part",
+  'harness.tool.fabric_project_profile': "Record what this project is: goal, summary, business, plan and relations",
   'harness.tool.fabric_question_ask': "Ask the owner a decision this session is not entitled to make",
   'harness.tool.fabric_question_check': "Read the current state of a question this session asked",
   'harness.tool.fabric_task_link': "Say one task blocks, follows or spawned another",
@@ -1346,6 +1347,7 @@ export const en = {
 
   'event.agent.registered@1': 'an agent was registered',
   'event.agent.stage.reported@1': 'an agent reported its stage: its own claim',
+  'event.project.profiled@1': "a project's profile was recorded: its goal, summary, business, plan or relations",
   'event.session.oriented@1': 'a session read the rules it works under',
   'event.terminal.opened@1': 'a session was opened',
   'event.session.enrolled@1': 'a coding agent opened outside Fabric joined the project',

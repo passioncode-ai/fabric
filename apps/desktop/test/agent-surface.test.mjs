@@ -123,7 +123,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
+const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))
@@ -223,6 +223,21 @@ me.protocol?.hash && me.protocol?.version
     .eq('payload->>session_id', sessionId)
   if (again?.length === 3) ok('and asking again for the same rules does not record another orientation')
   else fail('after the language came back and a repeat, ' + (again?.length ?? 0) + ' rows')
+}
+
+// W2-3 (0.3.12 wave 2, S1): the agent onboarding a project records its profile, for its own project only.
+{
+  const none = await call('fabric_project_profile', {})
+  none.written === false
+    ? ok('a profile that names no field writes nothing')
+    : fail('an empty profile was written: ' + JSON.stringify(none))
+  const wrote = await call('fabric_project_profile', { goal: 'Steer every project from one place', business: 'PassionCode', relations: [{ kind: 'depends-on', target: 'fabric-agent-contract' }] })
+  const { data: proj } = await db.from('projects').select('goal,business,profiled_by').eq('id', projectId).maybeSingle()
+  const { data: rels } = await db.from('project_relations').select('kind,target').eq('project_id', projectId)
+  wrote.written === true && proj?.goal === 'Steer every project from one place' && proj?.business === 'PassionCode' &&
+  proj?.profiled_by === sessionId && rels?.length === 1 && rels[0].target === 'fabric-agent-contract'
+    ? ok('fabric_project_profile records the goal, the business and the relations of this project, as this session')
+    : fail('the profile did not land: ' + JSON.stringify({ wrote, proj, rels }))
 }
 
 // 3 — a stage report is recorded as a claim and kept apart from observation

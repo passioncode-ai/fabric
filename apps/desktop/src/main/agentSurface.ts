@@ -2515,6 +2515,54 @@ export class AgentSurface {
       }
     )
 
+    // #region project-profile-tool — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+    // W2-3: the agent onboarding a project records what it is, for THIS project only (the scope wall). Every field is
+    // optional and each call is one `project.profiled@1`; a field named replaces the page's value, an empty one clears it.
+    server.registerTool(
+      'fabric_project_profile',
+      {
+        title: 'Record what this project is',
+        description:
+          'Record what this project is, for the project page and the project graph: its goal, a one-line summary, the business it belongs to, its plan (done and next) and its relations to other projects. Write each in the working language fabric_whoami names (or the person\'s own, when it names none), as plain sentences the project\'s owner understands without context. Every field is optional: name only what you learned; a field you name replaces what was there, an empty string clears it, and relations, when given, replace the whole list. Read the repository, its README, its remotes and the board before you write; never put a secret, a token or a private path here.',
+        inputSchema: {
+          goal: z.string().max(600).optional().describe('What the project is for and what it aims at now, one or two sentences'),
+          summary: z.string().max(160).optional().describe('One line: what the project is'),
+          business: z.string().max(80).optional().describe('The business or organization it belongs to, a short name; the board never joins projects of two different businesses'),
+          plan: z
+            .object({
+              done: z.array(z.string().min(1).max(200)).max(20).describe('What is done, newest first'),
+              next: z.array(z.string().min(1).max(200)).max(20).describe('What comes next, in order')
+            })
+            .optional(),
+          relations: z
+            .array(
+              z.object({
+                kind: z.enum(['depends-on', 'used-by', 'same-business', 'talks-to', 'other']),
+                target: z.string().min(1).max(200).describe('The other project by its name, or a repository it uses'),
+                note: z.string().max(500).optional()
+              })
+            )
+            .max(50)
+            .optional()
+        }
+      },
+      async (args) => {
+        const payload: Record<string, unknown> = {}
+        for (const key of ['goal', 'summary', 'business', 'plan', 'relations'] as const)
+          if (args[key] !== undefined) payload[key] = args[key]
+        if (Object.keys(payload).length === 0) return json({ written: false, reason: 'name at least one field' })
+        const event = await this.appendRedacted({
+          estateId: scope.estateId,
+          type: 'project.profiled@1',
+          actor: { kind: 'agent', id: scope.sessionId },
+          projectId: scope.projectId,
+          payload
+        })
+        return json({ written: true, fields: Object.keys(payload), seq: event.seq })
+      }
+    )
+    // #endregion project-profile-tool
+
     server.registerTool(
       'fabric_task_accept',
       {

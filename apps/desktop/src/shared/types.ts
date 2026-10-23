@@ -98,6 +98,13 @@ export interface ProjectRow {
   /** Server names this project's sessions may reach through the machine gateway
    *  (M127). Names only — Fabric stores no credential, here or anywhere. */
   mcp_servers: string[]
+  /** What the agent onboarding the project recorded (`project.profiled@1`, migration 123); null until then. */
+  goal?: string | null
+  summary?: string | null
+  business?: string | null
+  plan?: { done: string[]; next: string[] } | null
+  profiled_at?: string | null
+  profiled_by?: string | null
 }
 
 export type MemoryBackend = 'local' | 'cloud'

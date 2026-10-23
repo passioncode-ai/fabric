@@ -177,6 +177,11 @@ with `fabric_question_ask` (`intake.spec-first` in `shared/protocolObligations.t
 «Спецификация не собрана» until then (`shared/taskSpec.ts#specMissing`). A session served different rules later (the
 language or the trust changed) is journalled again, `session.oriented@1` with `previous_protocol_hash` (CO-399).
 
+Since 0.3.12 (wave 2, slice S1, schema 96) an agent records what its project is with `fabric_project_profile`: goal,
+summary, business, plan and relations, each optional, as `project.profiled@1`; `apply_project_profile` projects it into
+`projects` and `project_relations` (`supabase/migrations/20261023000123_project_profile.sql`). The scope wall holds: a
+session writes only its own project's profile.
+
 ### 5.1 An agent does not close its own task
 
 The ladder lives in `apps/desktop/src/shared/ladder.ts` and it knows who is

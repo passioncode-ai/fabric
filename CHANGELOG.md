@@ -22,6 +22,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
+  to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
+  project only); a field it names replaces what was there. Schema 96 (migration 123, `project.profiled@1`,
+  `project_relations`): a database at 95 takes `supabase migration up` (0.3.12 wave 2, slice S1).
 - The board rule agents read now says that a reply from the project a request was sent to answers it (DEC-0098,
   DEC-0102), instead of telling them the request stays queued (CO-397); and a session served different rules later in
   its life (the working language or this computer's trust changed) is journalled again with the earlier rules' hash
