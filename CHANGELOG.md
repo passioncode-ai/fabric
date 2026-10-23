@@ -42,6 +42,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - Comms opens on «Лента»: the newest posts of every thread first, each with its project, kind, time and text, with
   «Только просьбы» and a project filter; a post opens its thread, and «Ветки» is the second tab (OF-29).
 
+- On a project's page each agent takes one line: its task and since when, without repeating the project (OF-23).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

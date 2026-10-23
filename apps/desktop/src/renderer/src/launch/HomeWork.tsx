@@ -194,15 +194,16 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && live.length === 0 && <p className="lp-meta">{t('launch.home.agents.none')}</p>}
+      {/* OF-23: on a project page the project goes without saying, and a row takes one line. */}
       {live.length > 0 && (
-        <ol className="lh-agent-list lh-scrollbox">
+        <ol className={`lh-agent-list lh-scrollbox ${projectId ? 'lh-compact' : ''}`}>
           {live.map((a) => (
             <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
               <button type="button" className="lp-button lh-agent" onClick={() => (a.console ? onSession(a.sessionId) : a.projectId ? onOpen(a.projectId) : onAll?.())}
                 title={a.console ? t('launch.home.agents.openConsole') : t('launch.home.agents.openProject')}>
                 <span className="lh-agent-head">
                   <b>{runnerLabel(a.agent, t)}</b>
-                  <span className="lp-meta">{a.projectName ?? t('launch.home.agents.noProject')}</span>
+                  {!projectId && <span className="lp-meta">{a.projectName ?? t('launch.home.agents.noProject')}</span>}
                   {a.stale ? <span className="lp-pill">{t('launch.home.agents.stale')}</span> : <small>{since(a.lastSignAt ?? a.startedAt, t)}</small>}
                 </span>
                 <Doing item={{ doing: a.doing, summary: a.task?.summary ?? null }} />

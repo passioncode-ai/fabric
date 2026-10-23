@@ -599,3 +599,8 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lc-head{display:flex;align-items:center;gap:var(--space-2);font-size:13px}
 .lc-head time{margin-left:auto;color:var(--app-muted);font-size:12px}
 .lc-text{font-size:14px;line-height:1.5;white-space:pre-line}
+/* OF-23: a project's agents, one line each: who, what task, since when. */
+.lh-agent-list.lh-compact .lh-agent{display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0}
+.lh-agent-list.lh-compact .lh-agent-head{display:contents}
+.lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
+.lh-agent-list.lh-compact small{order:2;flex:none}

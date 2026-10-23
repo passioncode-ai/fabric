@@ -156,3 +156,13 @@ describe('the Agents place lists every agent at work, not only Fabric\'s console
     expect(screen.getByRole('heading', { name: /Agents at work/ })).toBeTruthy()
   })
 })
+
+describe('agents on a project page take one line each (the operator\'s walk OF-23)', () => {
+  it('does not repeat the project name and marks the rows compact', () => {
+    const { container } = show(<HomeAgents reading={read} projectId="p1" title="Agents here" onOpen={() => {}} onSession={() => {}} />)
+    const rows = [...container.querySelectorAll('.lh-agent-list > li')]
+    expect(rows).toHaveLength(1)
+    expect(rows[0].textContent).not.toMatch(/Fabric/)
+    expect(container.querySelector('.lh-agent-list')!.classList.contains('lh-compact')).toBe(true)
+  })
+})

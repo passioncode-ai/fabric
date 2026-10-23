@@ -27,7 +27,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
 | OF-19 | The board is unusable as it stands («вся доска ... пользоваться невозможно»); the operator expected a kanban (в работе, на проверке, and what comes after) and could not find or scroll it | A separate Board screen: a kanban of the fixed pipeline (D-1), **Очередь · В работе · На проверке · Готово**; the columns scroll sideways and each column scrolls down; a card is a task in plain words with its project, agent and age; filters by project and agent | done 2026-10-23 on `agent/w4-board`: the Board screen opens on the kanban «По этапам» (`launch/KanbanBoard.tsx`, `shared/taskBoard.ts#composeTaskBoard`, IPC `work:board` read by `main/workRead.ts#readTaskBoard`), Очередь · В работе · На проверке · Готово, sideways and per-column scroll, a project filter; a card opens its task in its project; «Нужны вы» is the second tab. Filtering by agent waits for the task page (OF-21) |
-| OF-20 | The project's board mixes ideas, files and automation and «looks awful» | On the project page the board is that project's kanban strip (the same columns, its tasks only) and its plan (OF-24); ideas and files move under «Идеи и материалы», collapsed; automation moves to the project's settings | open |
+| OF-20 | The project's board mixes ideas, files and automation and «looks awful» | On the project page the board is that project's kanban strip (the same columns, its tasks only) and its plan (OF-24); ideas and files move under «Идеи и материалы», collapsed; automation moves to the project's settings | moved to 0.3.12 with project onboarding (D-6): the project's plan and kanban strip are written from what the onboarding agent records |
 
 ### A task
 
@@ -40,17 +40,17 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-23 | «Агенты на проекте» spends three lines per agent | One line per agent: name, the task it works on, since when | open |
-| OF-24 | The goal shows text taken from the README; the plan and backlog are not on the page | The goal, the team and the plan are written by the agent that onboards the project (OF-31) in the working language; the page shows **Цель, Команда, План** (the project's backlog as its plan: done and next) and an analytics strip in the right column (OF-39) | open |
-| OF-25 | «Откуда идём, где мы, куда» is good, but must be current and tied to who works on what | The page's head keeps it, and each line names the agents and tasks behind it, read live | open |
-| OF-26 | «Что получается в этом проекте» is unclear | Replaced by the analytics strip (OF-24) and the done column of the project's kanban | open |
+| OF-23 | «Агенты на проекте» spends three lines per agent | One line per agent: name, the task it works on, since when | done 2026-10-23 on `agent/w4-comms`: on a project page each agent is one line, its task and since when, without the project's name (`launch/HomeWork.tsx#HomeAgents`, `.lh-compact`); test `HomeWork.test.tsx` |
+| OF-24 | The goal shows text taken from the README; the plan and backlog are not on the page | The goal, the team and the plan are written by the agent that onboards the project (OF-31) in the working language; the page shows **Цель, Команда, План** (the project's backlog as its plan: done and next) and an analytics strip in the right column (OF-39) | moved to 0.3.12 with project onboarding (D-6) |
+| OF-25 | «Откуда идём, где мы, куда» is good, but must be current and tied to who works on what | The page's head keeps it, and each line names the agents and tasks behind it, read live | moved to 0.3.12 with project onboarding (D-6) |
+| OF-26 | «Что получается в этом проекте» is unclear | Replaced by the analytics strip (OF-24) and the done column of the project's kanban | moved to 0.3.12 with project onboarding (D-6) |
 | OF-27 | Several people work on some projects; Fabric sees only agents | Fabric tracks a project's **people** too: the Git authors of its repositories (by name and email, last commit), shown in Команда beside the agents, and used to route a question to the person who owns that part (D-5) | moved to 0.3.12 (D-6) |
 
 ### Questions to the person
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-28 | Questions are unclear and cannot be answered in words | A question is a sentence with its context (project, agent, what it blocks) and options when there are options; the person can always answer in their own text; once answered it is marked answered, the answer goes back to the asking agent through the board, and the agent picks it up at its next call (`fabric_question_check` returns it) | open |
+| OF-28 | Questions are unclear and cannot be answered in words | A question is a sentence with its context (project, agent, what it blocks) and options when there are options; the person can always answer in their own text; once answered it is marked answered, the answer goes back to the asking agent through the board, and the agent picks it up at its next call (`fabric_question_check` returns it) | done 2026-10-23: a question already takes the person's own text on the board (`BoardPanel.tsx#AnswerForm`, «Записать»), the answer closes it and the agent reads it with `fabric_question_check`; «Нужны вы» now opens each question in place with «Открыть на доске» (OF-14) |
 
 ### Comms (Переписка)
 
@@ -76,9 +76,9 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-33 | Settings: the limits and the project-to-project comms need a design and logic review | Settings reviewed section by section against SCN-170: each setting says what it changes, and nothing in Settings belongs elsewhere | open |
+| OF-33 | Settings: the limits and the project-to-project comms need a design and logic review | Settings reviewed section by section against SCN-170: each setting says what it changes, and nothing in Settings belongs elsewhere | partly done 2026-10-23: quotas gone (OF-35) and the language switch added (OF-38); the section-by-section review is one of 0.3.11's release review rounds |
 | OF-35 | Account quotas exist in Fabric although Switchboard owns accounts and quotas | D-3: Fabric's quota panel is retired; Fabric reads Switchboard where a choice depends on it | done 2026-10-23 on `agent/w4-agents`: «Квоты аккаунта» is gone from Settings (D-3); quotas are Switchboard's |
-| OF-36 | Does «не давать компьютеру засыпать» work? | Measured 2026-10-23: the operator's setting is `keepAwake: 'never'` (`settings.json`), so Fabric holds no assertion; the two `PreventUserIdleSystemSleep` holders on this Mac were Claude Code sessions' own `caffeinate -i -t 300` (`pmset -g assertions`). To verify: switch the setting on, start a console, read Fabric's assertion in `pmset -g assertions`, stop the console, read it gone | open |
+| OF-36 | Does «не давать компьютеру засыпать» work? | Measured 2026-10-23: the operator's setting is `keepAwake: 'never'` (`settings.json`), so Fabric holds no assertion; the two `PreventUserIdleSystemSleep` holders on this Mac were Claude Code sessions' own `caffeinate -i -t 300` (`pmset -g assertions`). To verify: switch the setting on, start a console, read Fabric's assertion in `pmset -g assertions`, stop the console, read it gone | measured 2026-10-23 (the setting was off); the live check with the setting on is a step of 0.3.11's Release close |
 
 ### The working language (P-24, amended)
 
@@ -120,8 +120,9 @@ The operator asked for the open choices to be decided, not asked back («тут 
   Project onboarding by an agent (OF-31), people from Git (OF-27), the project graph (OF-32), analytics (OF-39),
   notifications (OF-40) and the display pass that localizes with a model (OF-37's second half) each bring a model of data
   or a spend of their own, and together they cannot pass the release's three review iterations in this release. 0.3.11
-  ships the home, the board, the task, Agents, История, Comms, Settings and the project page's order; the rest is the
-  next release's first wave.
+  ships the home, the board, the task, Agents, История, Comms and Settings, and on the project page the compact agents;
+  the project page's goal, team, plan and analytics (OF-20, OF-24 to OF-26) come with project onboarding, the next
+  release's first wave.
 
 ## 3. Order of work (wave 4, 0.3.11)
 
