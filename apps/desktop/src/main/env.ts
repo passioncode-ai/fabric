@@ -14,7 +14,7 @@ import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES, databaseContainer, removeExcludedContainers } from './stackServices.ts'
 import type { StackContainers } from '../shared/stackWatch.ts'
-import { recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
+import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
@@ -169,11 +169,13 @@ export async function stackDatabaseContainer(): Promise<StackContainers> {
 
 async function startStackOnce(onLine?: (line: string) => void, limitMs: number | null = null): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
+  // Its own 240 s, or less when the whole start's deadline leaves less (CO-311); `startWithRetry` begins no try with
+  // under `STACK_START_RETRY.minTryMs` left (0.3.12 review ER-5).
+  const timeout = limitMs === null ? 240_000 : Math.max(1000, Math.min(240_000, limitMs))
   const child = run('supabase', ['start', '-x', STACK_EXCLUDED_SERVICES.join(',')], {
     cwd: repoRoot(),
     encoding: 'utf8',
-    // Its own 240 s, or less when the whole start's deadline leaves less (CO-311).
-    timeout: limitMs === null ? 240_000 : Math.max(1000, Math.min(240_000, limitMs)),
+    timeout,
     // A first-ever start pulls container images and prints a great deal.
     // `execFile` KILLS the child when its buffer overflows, so the default
     // 1 MB would have turned a slow-but-working start into a failure — and
@@ -194,6 +196,9 @@ async function startStackOnce(onLine?: (line: string) => void, limitMs: number |
   starting = child.child
   try {
     await child
+  } catch (e) {
+    // A try killed by its limit says the limit, not the four minutes the failure window once assumed (ER-5).
+    throw stopRequested ? e : nameTheLimit(e, timeout) // a quit's SIGTERM is not the limit
   } finally {
     starting = null
   }

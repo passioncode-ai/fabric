@@ -46,6 +46,16 @@ describe('why the app would not start', () => {
     expect(classifyStartupFailure(asyncTimeout).cause).toBe('stack-start-timed-out')
   })
 
+  it('a timeout\'s title names no fixed duration: a try may have had less than four minutes (0.3.12 review ER-5)', () => {
+    const shortened = { message: 'supabase start was stopped after 150 s, the time it was given.\nCommand failed: supabase start\n', code: null, killed: true, signal: 'SIGTERM' }
+    const f = classifyStartupFailure(shortened)
+    expect(f.cause).toBe('stack-start-timed-out')
+    expect(f.title).not.toMatch(/four minutes/)
+    expect(f.detail).toContain('after 150 s')
+    expect(translator('en')('startup.stack-start-timed-out.title' as StringKey)).not.toMatch(/four minutes/)
+    expect(translator('ru')('startup.stack-start-timed-out.title' as StringKey)).not.toMatch(/четыре минуты/)
+  })
+
   it('a child killed by a signal is not confused with one that exited badly', () => {
     // `killed` is what separates them: a non-zero exit carries the status, a
     // kill carries none.

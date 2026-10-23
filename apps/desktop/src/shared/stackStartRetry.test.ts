@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dockerIsUnreachable, dockerSocketFrom, recoveryStart, stackStartIsTransient, startWithRetry, waitForDocker } from './stackStartRetry'
+import { STACK_START_RETRY, dockerIsUnreachable, dockerSocketFrom, nameTheLimit, recoveryStart, stackStartIsTransient, startWithRetry, waitForDocker } from './stackStartRetry'
 
 // The words measured on the operator's Mac, 2026-10-14.
 const STARTING = 'Command failed: supabase start -x realtime\nsupabase start is already running.\n\u001b[31msupabase_db_fabric container is not ready: starting\u001b[39m'
@@ -176,5 +176,26 @@ describe('one deadline for the whole start (CO-311)', () => {
     const sleep = async (ms: number) => { clock += ms }
     await startWithRetry(async (limit) => { n++; expect(limit).toBeNull(); if (n < 3) throw new Error(STARTING_) }, { plan: { attempts: 4, waitMs: 10 }, sleep, now: () => clock })
     expect(n).toBe(3)
+  })
+  it('starts no try with less than a useful minimum left: the deadline is said instead (0.3.12 review ER-5)', async () => {
+    // Probe B of the review: tries of 140 s, 130 s and 9 s left 11 s, and the fourth try ran with a 1 s limit.
+    let clock = 0
+    const limits: Array<number | null> = []
+    const spend = [140_000, 130_000, 9_000]
+    const plan = STACK_START_RETRY
+    const sleep = async (ms: number) => { clock += ms }
+    await expect(startWithRetry(async (limit) => { limits.push(limit); clock += spend[limits.length - 1] ?? 0; throw new Error(STARTING_) }, { plan, sleep, now: () => clock }))
+      .rejects.toThrow(/did not become ready within 5 minutes/)
+    expect(limits).toEqual([300_000, 150_000])
+    expect(Math.min(...(limits as number[]))).toBeGreaterThanOrEqual(STACK_START_RETRY.minTryMs ?? 0)
+  })
+  it('a try stopped by its limit names that limit, so the window never says four minutes of a shorter one', () => {
+    const killed = Object.assign(new Error('Command failed: supabase start -x realtime'), { killed: true, signal: 'SIGTERM' })
+    const named = nameTheLimit(killed, 150_000)
+    expect(named).toBe(killed)
+    expect(named.message).toBe('supabase start was stopped after 150 s, the time it was given.\nCommand failed: supabase start -x realtime')
+    expect((named as { killed?: boolean }).killed).toBe(true)
+    const refused = new Error('Command failed: supabase start\nport is already allocated')
+    expect(nameTheLimit(refused, 150_000).message).toBe(refused.message)
   })
 })

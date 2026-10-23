@@ -95,9 +95,25 @@ export interface RetryPlan {
   /** The whole start's own deadline, every try and wait included, Docker's wait not (CO-311): each try gets what is left
    *  of it as its limit, and none begins once it has passed. Absent, only the tries count. */
   totalMs?: number
+  /** The least a try is worth starting with (0.3.12 review ER-5): a `supabase start` given a second is killed at once,
+   *  so with less than this left of `totalMs` after the wait the deadline is said instead. Absent, any time left. */
+  minTryMs?: number
 }
 
-export const STACK_START_RETRY: RetryPlan = { attempts: 4, waitMs: 10_000, totalMs: 300_000 }
+export const STACK_START_RETRY: RetryPlan = { attempts: 4, waitMs: 10_000, totalMs: 300_000, minTryMs: 30_000 }
+
+/**
+ * A try killed by its own limit says that limit (0.3.12 review ER-5): the limit is what is left of the deadline, often
+ * less than `supabase start`'s 240 s, so the failure window's words may not assume four minutes. The error itself is
+ * returned, `killed` and `signal` kept, so `startupFailure.ts` still reads it as a timeout; any other error is unchanged.
+ */
+export function nameTheLimit<E>(e: E, limitMs: number): E {
+  if (!(e instanceof Error)) return e
+  const killed = (e as { killed?: unknown }).killed === true || typeof (e as { signal?: unknown }).signal === 'string'
+  if (!killed) return e
+  e.message = `supabase start was stopped after ${Math.round(limitMs / 1000)} s, the time it was given.\n${e.message}`
+  return e
+}
 
 /**
  * Runs `start` until it succeeds, retrying only a transient refusal, at most `plan.attempts` times. The last failure
@@ -156,9 +172,10 @@ export async function startWithRetry(
         continue
       }
       if (attempt >= plan.attempts || !stackStartIsTransient(message) || opts.stopped?.()) throw e
-      // No wait and no try that the deadline would cut short: past it, the refusal says the deadline (CO-311).
+      // No wait and no try that the deadline would cut short: past it, the refusal says the deadline (CO-311), and so
+      // does a try that would begin with less than `minTryMs` left (0.3.12 review ER-5).
       const before = left()
-      if (before !== null && before <= plan.waitMs) throw overdue(message)
+      if (before !== null && before < plan.waitMs + Math.max(1, plan.minTryMs ?? 0)) throw overdue(message)
       await sleep(plan.waitMs)
       if (opts.stopped?.()) throw e
       opts.onRetry?.(attempt + 1, plan.attempts, message)

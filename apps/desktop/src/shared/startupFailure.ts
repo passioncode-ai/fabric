@@ -180,7 +180,7 @@ function classifyCause(e: unknown): StartupFailure {
   if (code === 'ETIMEDOUT' || /spawnSync \S+ ETIMEDOUT/.test(detail) || wasKilled(e))
     return {
       cause: 'stack-start-timed-out',
-      title: 'The local stack did not finish starting within four minutes.',
+      title: 'The local stack did not finish starting in the time it was given.',
       remedy:
         'This is almost always Docker: check that Docker (Docker Desktop or OrbStack) is running and has finished starting, then retry. A first-ever start also has images to download, and that can genuinely take longer.',
       detail
