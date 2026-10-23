@@ -11,6 +11,8 @@ import { newestPosts } from './commsNewest'
 const FEED = 100
 /** How often the open feed reads again (ER-4: it read once per open and never refreshed). */
 export const FEED_POLL_MS = 15000
+/** The longest one read may take before it is said as failed. */
+export const FEED_DEADLINE_MS = 60000
 /** How much of a post the feed shows before «открыть ветку». */
 const PREVIEW = 280
 
@@ -36,15 +38,22 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
   // starts reads on top of each other or leaves the feed reading forever (0.3.11 review, iteration 2, ER-1).
   const mounted = useRef(true)
   const busy = useRef(false)
-  useEffect(() => () => { mounted.current = false }, [])
+  // Set again on mount: StrictMode's extra cleanup in a development build must not leave the feed deaf (iteration 3, ER-1).
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
+  // A press or a tick while a read runs is kept and read right after it, never dropped (iteration 3, ER-2).
+  const again = useRef(false)
   useEffect(() => {
-    if (busy.current) return
+    if (busy.current) { again.current = true; return }
     busy.current = true
     void (async () => {
       try {
-        const heads = await window.fabric.comms.heads()
-        const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
-        const posts = last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
+        // A read that never settles is given up after FEED_DEADLINE_MS and said as a failed one (iteration 3, ER-2).
+        const read = (async () => {
+          const heads = await window.fabric.comms.heads()
+          const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
+          return last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
+        })()
+        const posts = await Promise.race([read, new Promise<null>((r) => setTimeout(() => r(null), FEED_DEADLINE_MS))])
         if (!mounted.current) return
         // A refresh that fails keeps what was read and says it is old, rather than emptying the feed.
         setRead((was) => posts ? { at: 'ready', posts, stale: false, readAt: new Date().toISOString() } : was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
@@ -52,9 +61,14 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
         if (mounted.current) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
       } finally {
         busy.current = false
+        if (again.current && mounted.current) { again.current = false; setTick((n) => n + 1) }
       }
     })()
   }, [mark, tick])
+  // Dropped, not suspended: a filter whose project left the read does not come back by itself (iteration 3, ER-4).
+  useEffect(() => {
+    if (read.at === 'ready' && project && !read.posts.some((p) => p.sender.project === project)) setProject('')
+  }, [read, project])
   if (read.at === 'reading') return <p className="lp-meta">{t('launch.comms.reading')}</p>
   if (read.at === 'failed') return (
     <div className="lc" role="status">
@@ -87,7 +101,7 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
       </div>
       {read.stale && (
         <p className="lp-meta" role="status">
-          {t('launch.comms.feed.stale', { time: new Date(read.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}{' '}
+          {t('launch.comms.feed.stale', { time: new Date(read.readAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }) })}{' '}
           <button type="button" className="lp-button lh-text-link" onClick={() => setTick((n) => n + 1)}>{t('launch.comms.tryAgain')}</button>
         </p>
       )}

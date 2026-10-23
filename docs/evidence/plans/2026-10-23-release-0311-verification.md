@@ -24,7 +24,9 @@ candidate; their reports are committed under `docs/evidence/reviews/0.3.11/itera
 ([its rollout](2026-10-22-release-0310-verification.md#rollout-on-the-operators-mac)):
 
 0. The agent measures the disk and swap (`df -h`, `sysctl vm.swapusage`) and frees space until more than 3 GB is free
-   (Fabric's own warning), so the first start does not meet the statement timeout 0.3.10's did (CO-389 waits it out,
+   (Fabric's own warning) from what regenerates by itself: the npm and uv caches, app update downloads
+   (`~/Library/Caches/com.openai.codex`, the ShipIt folders), older cached browsers of Puppeteer, this release's own
+   staging; never another project's data, a Docker volume or a simulator runtime, so the first start does not meet the statement timeout 0.3.10's did (CO-389 waits it out,
    but the start is slower); the measurement goes in the Release close.
 1. The agent downloads and verifies the signed 0.3.11 bundle (`SHA256SUMS`, `codesign`, `spctl`); a rollback takes
    `Fabric-0.3.10-universal.dmg` from the v0.3.10 release.
@@ -32,7 +34,10 @@ candidate; their reports are committed under `docs/evidence/reviews/0.3.11/itera
    bundle in `/Applications`, and **the person opens Fabric**. The running 0.3.10 is the person's (`lifecycle.status`,
    `startedBy: person`), and the agent never starts or restarts Fabric through the broker while CO-382 is open: a
    broker-started Fabric is stopped after 15 idle minutes.
-3. The agent checks that the broker did not start Fabric between the quit and the open (`startedBy: person`; no
+3. The agent checks that the broker did not start Fabric between the quit and the open (if it did, the person quits and
+   opens Fabric again, and the agent does not stop it through the broker; if the first start stops on a failure, the agent
+   reads `startup-failure.log`, frees what it names, and the person opens Fabric again; the way back is the 0.3.10
+   bundle) (`startedBy: person`; no
    `ensure` for `fabric.desktop` in `~/Library/Logs/local-lifecycle/broker.log` in that window), then verifies the version
    (0.3.11), the schema (95), the hub (`hub.json` and a `fabric_whoami` naming the working language), and on the real
    app the places the walk named: Главная, Доска, a task, Агенты, История, Comms, Настройки. For OF-36 the agent sets
@@ -52,6 +57,8 @@ candidate; their reports are committed under `docs/evidence/reviews/0.3.11/itera
   install; CO-382 is decided on what they show.
 - From 0.3.10's V3-48: SCN-162's swipe step and the stack exposure warning, read in this release's documents review;
   CO-384's two items are done (non-wrapping content, «at most 640 px»).
+- CO-377 (a view of announcements with who has not answered) is promised to fabric-workspace for 2026-10-31: P-25 does it
+  first, and if 0.3.12 cannot ship by then, CO-377 ships alone as 0.3.12's first patch.
 - New asks since: CO-396 (CT-81, `board_tick` step a0) and CO-397 (`fabric_whoami`'s board rule against DEC-0102), both
   0.3.12. CO-390, the workspace sync's stale lock, is 0.3.12 by D-7.
 
@@ -138,8 +145,8 @@ trust; both are 0.3.12's first work (CO-403, CO-404, SCN-176, SCN-177).
 | V2-1 | DA-1 | The database test still expects English when the settings read throws | fixed: `apps/desktop/test/agent-surface.test.mjs` expects no language on a failed read and on the switch off (ADR-0174) |
 | V2-2 | UX-1 | The new toggle buttons never look pressed | fixed: a pressed `.lp-button` in `.lp-modes` and `.lc-filters` has the `.lp-tabs` look (`launch.css`) |
 | V2-3 | ER-1 | The feed starts reads on top of each other under a slow board | fixed: one read at a time, a poll during a read waits for the next tick (`launch/CommsFeed.tsx`); `CommsFeed.test.tsx` «never starts a read while one runs» |
-| V2-4 | DA-2, ER-2 | The newest-posts search swings between two windows and returns fewer than 100 | fixed: the window lies between the widest too-few and the narrowest too-many and converges (`launch/commsNewest.ts`); `commsNewest.test.ts` «a quiet newest stretch over a busy one» (watched failing on the candidate) |
-| V2-5 | DA-3 | A read on a post-dense board fetches five times what it keeps | not a defect: within the documented bound of the AGENTS.md row (at most 10 windows of 5 pages); on the operator's board 2 calls |
+| V2-4 | DA-2, ER-2 | The newest-posts search swings between two windows and returns fewer than 100 | fixed: the window lies between the widest too-few and the narrowest too-many and converges (`launch/commsNewest.ts`); `commsNewest.test.ts` «finds the newest 100 when the newest stretch is quiet and an older one busy (DA-2)» (watched failing on the candidate) |
+| V2-5 | DA-3 | A read on a post-dense board fetches five times what it keeps | not a defect: within the bound of the AGENTS.md row (at most 14 windows of 5 pages since iteration 3, V3-3); on the operator's board 2 calls |
 | V2-6 | DA-4 | The hidden thread list reads the board every 2.5 s under the feed | fixed: the thread list and its responders read once and poll only in «Ветки» (`launch/CommsScreen.tsx`) |
 | V2-7 | DA-5, ER-6, ER-7, ER-10 | A project's board takes claims from an estate-wide capped read; main-process reads untested; История's feed waits on a failed projects read | ruled: CO-405, 0.3.12 |
 | V2-8 | DA-6, DO-8 | Protocol version 2 is not told to its readers | fixed: CHANGELOG and `operating-surfaces.md` say the protocol is version 2 and why |
@@ -173,7 +180,51 @@ Exit for iteration 2: every finding is fixed, ruled to a register row or not a d
 
 ## Iteration 3
 
-_Not started._
+Five fresh reviewers, 2026-10-23, against `6481e524` (`6481e524ec8d537b766f3fe99958f06ab852f0ba`), read-only in a detached checkout. Reports:
+[UX](../reviews/0.3.11/iteration-3/2026-10-23-ux.md), [errors](../reviews/0.3.11/iteration-3/2026-10-23-errors.md),
+[documents](../reviews/0.3.11/iteration-3/2026-10-23-docs.md), [data](../reviews/0.3.11/iteration-3/2026-10-23-data.md),
+[plan](../reviews/0.3.11/iteration-3/2026-10-23-plan.md).
+
+44 findings, none blocking. The plan reviewer ran the documents gate the release guard waits for and found the candidate
+failing it: SCN-176 and SCN-177, written for ADR-0176 during iteration 2, belonged to no journey (PL-1); the full local
+gate had found the same and its fix `afff7495` followed the candidate. The errors reviewer reverted iteration 2's fixes
+one by one in a scratch copy and found eight that no test held (ER-7). As 0.3.8 and 0.3.10 did, the fixes make the
+final candidate; the reviewers read `6481e524`, and a fresh verifier reads the final candidate's difference from it.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | PL-1 | The candidate fails its own documents gate: SCN-176 and SCN-177 belong to no journey | fixed: both join PJ-42 (`docs/ux/product-model.json`, `afff7495`); the final candidate carries it and a fresh verifier reads its difference from the reviewed candidate |
+| V3-2 | ER-7 | Eight iteration-2 fixes had no test that fails without them | fixed: tests for each, watched failing on their plants: `appSettings.test.ts` (unreadable settings), `homeLive.test.ts` (a task back in the queue), `KanbanBoard.test.tsx` (unknown count, filter dropped), `BoardScreen.test.tsx` (the kanban's heading and review, arrival focus), `CommsFeed.test.tsx` (no match with Show everything, stale line, StrictMode), `Feed.test.tsx` (no project) |
+| V3-3 | DO-1, DA-1, ER-8, DO-6 | AGENTS.md says 10 windows; the thread list's 2.5 s poll has no row | fixed: 14 windows, one read at a time, given up after 60 s, and a row for the thread list (`AGENTS.md`); V2-5 holds on the new bound |
+| V3-4 | DO-2 | OF-21 and OF-29 marked done with unbuilt halves | fixed: both cells say partly done and cite CO-401 |
+| V3-5 | ER-1, DA-2 | Under StrictMode the feed never leaves «Reading» | fixed: the mounted flag is set again on mount (`CommsFeed.tsx`); `CommsFeed.test.tsx` «reads under StrictMode» |
+| V3-6 | ER-2, UX-3 | A read that never settles stops the feed; a press during a read is dropped | fixed: a read is given up after 60 s and said as failed; a press or tick during a read is kept and read right after |
+| V3-7 | ER-3 | The newest-posts search can still come back short on a sparse-over-dense journal | ruled: CO-405, 0.3.12; on the operator's board it returns the newest 100 in 2 calls (iteration 3, DA) |
+| V3-8 | ER-4 | Project filters are suspended, not dropped | fixed: a filter whose project left is cleared (`CommsFeed.tsx`, `KanbanBoard.tsx`); `KanbanBoard.test.tsx` «drops a filter … does not come back by itself» |
+| V3-9 | ER-5, UX-4 | The review button lies on the kanban; «Добавить тему» says a form is open | fixed: on the kanban the button reads «Начать разбор» and is not pressed; `aria-expanded` only with the form on screen (`BoardScreen.tsx`); the mode switch's group name and the twice-read heading are ruled CO-400 |
+| V3-10 | ER-6, UX-1, DA-3 | Under «Лента» the strip shows a frozen time or «loading» | fixed: under «Лента» the strip says the feed reads every 15 seconds (`CommsScreen.tsx`) |
+| V3-11 | ER-9 | The stale line gives a time with no date | fixed: date and time (`CommsFeed.tsx`) |
+| V3-12 | DA-4, DO-8 | The `language` comment says English; V2-4 quotes a test name that does not exist | fixed: the comment names none on a failure (`main/agentSurface.ts`); V2-4's test is «finds the newest 100 when the newest stretch is quiet and an older one busy (DA-2)» |
+| V3-13 | UX-2 | A project's board says «across your projects» | fixed: «Задачи этого проекта, от очереди до готовых» (`BoardScreen.tsx`, i18n) |
+| V3-14 | UX-5 | The English stale line names the board, the failed line Comms | fixed: both say Comms |
+| V3-15 | UX-6, UX-7, UX-8 | A hand-picked row's detail sits below the list; the task page's way back and empty brief; the compact task truncated | ruled: CO-400 and CO-394, 0.3.12 with the project page; the back button's label while a task loads now matches (`TaskPage.tsx`) |
+| V3-16 | UX-9 | The heading case no longer reaches its rule | not a defect: the case guards the outcome, one line in the home's column, which the heading rule and the wrapping buttons give together; it failed on the candidate of iteration 1 |
+| V3-17 | UX-10, DO-4 | SCN-162's index says draft, its body implemented | fixed: implemented in both; SCN-038's older mismatch is CO-400's |
+| V3-18 | DO-3 | The merge log still records landings that have not happened | fixed: the release commit folds them into the one landing (Release close) |
+| V3-19 | DO-5 | SCN-163 and SCN-170 claim more than shipped | fixed: their Status names the other unbuilt steps (CO-391, CO-392) |
+| V3-20 | DO-7, PL-2 | CO-403 cites a wrong path; P-25 misses four rows | fixed: the path is `apps/desktop/src/renderer/src/TaskPage.tsx`; P-25 names CO-386, CO-388, CO-402 and CO-405 |
+| V3-21 | DO-9 | While a task loads, its back button says «Назад к доске» and goes to the project | fixed: «← К проекту» in every state (`TaskPage.tsx`) |
+| V3-22 | PL-3 | The Release close lists no post-tag edits | fixed: the Release close names them (P-20 and P-24 released, the Now line, lane 2) |
+| V3-23 | PL-4 | Lane 2 still lists released rows | fixed: P-19 and P-21 to P-23 leave lane 2 |
+| V3-24 | PL-5, PL-6 | The rollout lost its failure branches and does not say where space may be freed | fixed: step 0 names the caches that may go; step 3 says what to do if the broker started Fabric or the first start fails (Rollout) |
+| V3-25 | PL-7 | CO-377's delivery by 2026-10-31 has no release | fixed: P-25 does CO-377 first; if 0.3.12 cannot ship by 2026-10-31, CO-377 ships alone as 0.3.12's first patch (Owed) |
+| V3-26 | PL-8 | Two expired leases from this run | fixed: the ADR leases are released; `rel-0311` is released at the Release close |
+| V3-27 | PL-9 | Two exit checks have no disposition | fixed: the walk from zero is the Release close's walk of every place on the installed app, in ru and en; OF-33's section review is CO-392's |
+| V3-28 | PL-10 | ADR-0176's rule has no home outside Fabric | fixed: CO-404 carries it to the contract and the knowledge base |
+| V3-29 | PL-11 | CO-382's decision is the operator's and not listed as a person step | fixed: the handoff names it |
+| V3-30 | PL-12 | P-24 links 0.3.10's ledger | fixed: it links 0.3.11's |
+
+Exit for iteration 3: every finding is fixed, ruled to a register row or not a defect. Blocking findings open: none.
 
 ## Release close
 

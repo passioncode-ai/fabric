@@ -45,6 +45,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { obligationRef } from '../../../shared/entityRef'
 import { BoardScreen } from './BoardScreen'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
@@ -346,6 +347,13 @@ describe('the board screen itself (SCR-41)', () => {
     render_()
     return { answer, query, api }
   }
+
+  it('arriving with a row focuses its detail (0.3.11 review, iteration 2, UX-4)', async () => {
+    mount()
+    cleanup()
+    render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" initialItem={obligationRef('question', { kind: 'question', id: question.id })} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(document.activeElement?.id).toBe('topic-title'))
+  })
 
   it('answers an authored question from its details, through the one answer writer, against the revision shown', async () => {
     const { answer } = mount()
@@ -685,5 +693,23 @@ describe('the board header on the kanban (0.3.11 review UX-3)', () => {
     expect(screen.getByRole('button', { name: en['launch.board.mode.kanban'], pressed: true })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['launch.board.addTopic'] }))
     expect(screen.getByRole('button', { name: en['launch.board.mode.needs'], pressed: true })).toBeTruthy()
+  })
+})
+
+describe('the board header after iteration 2 (V2-13)', () => {
+  const stub = () => vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+    fabric: {
+      board: { query: vi.fn(async () => ({ data: { items: [], total: 0, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })), resolved: vi.fn(async () => ({ data: { items: [] } })), deferred: vi.fn(async () => ({ data: { items: [] } })) },
+      work: { board: vi.fn(async () => ({ columns: [], projects: [], readAt: 'x' })) },
+      questions: { answer: vi.fn() }, proposals: { decide: vi.fn() }, attention: { grant: vi.fn() }
+    }
+  }))
+  it('the kanban has its own heading, and «Start a review» from it opens the review rather than closing one', () => {
+    stub()
+    render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    expect(screen.getByRole('heading', { level: 2, name: en['launch.kanban.title'] })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.reviewStart'] }))
+    expect(screen.getByRole('button', { name: en['launch.board.mode.needs'], pressed: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['launch.board.reviewEnd'] })).toBeTruthy()
   })
 })

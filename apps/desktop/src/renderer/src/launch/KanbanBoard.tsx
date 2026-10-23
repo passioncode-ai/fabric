@@ -40,6 +40,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
   }, [feedMark, projectId])
   // A project that left the list (archived between reads) no longer filters: its id would empty every column (ER-10).
   const known = !project || !view || view.projects.some((p) => p.id === project)
+  // Dropped, not suspended (iteration 3, ER-4).
+  useEffect(() => { if (!known) setProject('') }, [known])
   const scope = projectId ?? (known ? (project || null) : null)
   return (
     <section className="lk" aria-labelledby="kanban-title">

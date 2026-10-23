@@ -376,7 +376,7 @@ import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
-import { settingsPatch, workingLanguageOf } from '../shared/appSettings.ts'
+import { settingsPatch, workingLanguageOfRead } from '../shared/appSettings.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
@@ -1041,7 +1041,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
     // (0.3.11 review, iteration 2, ER-3: the person may have switched it off).
-    language: () => { const s = readSettingsState(); return s.status === 'unreadable' ? null : workingLanguageOf(s.value) },
+    language: () => workingLanguageOfRead(readSettingsState()),
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,

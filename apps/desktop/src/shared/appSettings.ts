@@ -16,6 +16,11 @@ import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsP
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 
+/** The working language from a settings read: an unreadable file names none, since unknown is not on (ER-3). */
+export function workingLanguageOfRead(read: { status: string; value: { locale: string; agentLanguage?: boolean } }): string | null {
+  return read.status === 'unreadable' ? null : workingLanguageOf(read.value)
+}
+
 /** The working language the hub names to agents (ADR-0172), or null when the person switched it off (ADR-0174). */
 export function workingLanguageOf(s: { locale: string; agentLanguage?: boolean }): string | null {
   return s.agentLanguage === false ? null : s.locale

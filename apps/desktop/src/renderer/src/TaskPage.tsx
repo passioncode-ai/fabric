@@ -176,7 +176,7 @@ export function TaskPage({
         actions={
           <Toolbar align="end">
             <Button tone="ghost" onClick={onBack}>
-              {t('task.back')}
+              {t('launch.agent.back')}
             </Button>
           </Toolbar>
         }

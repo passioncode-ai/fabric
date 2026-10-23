@@ -97,3 +97,12 @@ describe('a journal row opens the thing it happened to', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 })
+
+describe('an event with no project (0.3.11 review, iteration 2, UX-7)', () => {
+  it('says «no project» in words, never a dash', () => {
+    const e = { estate_id: 'e1', seq: 9, type: 'task.moved@1', actor: { kind: 'agent', id: 's1' }, project_id: null, occurred_at: '2026-10-22T10:00:00Z', payload: { to: 'review' } } as unknown as FeedEvent
+    const { container } = render(<I18nProvider locale="en"><Feed events={[e]} projects={[project()]} /></I18nProvider>)
+    expect(container.textContent).toMatch(/no project/)
+    expect(container.textContent).not.toContain('\u2014')
+  })
+})

@@ -186,13 +186,14 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           {/* The kanban has its own heading; the queue's is «Нужны вы»'s (0.3.11 review, iteration 2, UX-2). */}
           <p className="lp-kicker">{t(mode === 'kanban' ? 'launch.kanban.kicker' : 'launch.board.kicker')}</p>
           <h2 tabIndex={-1}>{t(mode === 'kanban' ? 'launch.kanban.title' : 'launch.board.title')}</h2>
-          <p>{t(mode === 'kanban' ? 'launch.kanban.lede' : 'launch.board.lede')}</p>
+          <p>{t(mode === 'kanban' ? (projectId ? 'launch.kanban.ledeProject' : 'launch.kanban.lede') : 'launch.board.lede')}</p>
         </div>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" aria-pressed={review} onClick={() => { if (mode !== 'needs') { setMode('needs'); setReview(true) } else setReview(!review) }}>
-            {review ? t('launch.board.reviewEnd') : t('launch.board.reviewStart')}
+          <button type="button" className="lp-button primary" aria-pressed={mode === 'needs' && review} onClick={() => { if (mode !== 'needs') { setMode('needs'); setReview(true) } else setReview(!review) }}>
+            {/* On the kanban a press opens «Нужны вы» and its review, so it says so (iteration 3, ER-5). */}
+            {mode === 'needs' && review ? t('launch.board.reviewEnd') : t('launch.board.reviewStart')}
           </button>
-          <button type="button" className="lp-button" aria-expanded={topic !== null}
+          <button type="button" className="lp-button" aria-expanded={mode === 'needs' && topic !== null}
             onClick={() => { const opening = mode !== 'needs'; setMode('needs'); setTopic(topic && !opening ? null : topic ?? { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' }) }}>
             {t('launch.board.addTopic')}
           </button>

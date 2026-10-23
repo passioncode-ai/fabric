@@ -76,9 +76,26 @@ describe('the kanban, after the 0.3.11 review', () => {
     rerender(<I18nProvider locale="en"><KanbanBoard feedMark={1} onOpen={vi.fn()} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('Dark theme')).toBeTruthy())
   })
-  it('says a column it could not read, never «Empty»', async () => {
+  it('says a column it could not read, never «Empty», and its count is unknown (ER-5)', async () => {
     install(async () => ({ ...board, columns: board.columns.map((c) => (c.stage === 'done' ? { ...c, unread: 'timeout' } : c)) }))
-    show()
+    const { container } = show()
     await waitFor(() => expect(screen.getByText(/timeout/)).toBeTruthy())
+    const done = [...container.querySelectorAll('.lk-col h3')].at(-1)!
+    expect(done.textContent).toMatch(/\?/)
+    expect(done.textContent).not.toMatch(/\b0\b/)
+  })
+  it('drops a filter whose project left, so it does not come back by itself (iteration 3, ER-4)', async () => {
+    let view = board
+    install(async () => view)
+    const { rerender } = show()
+    await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
+    fireEvent.change(screen.getByLabelText(en['launch.kanban.project']), { target: { value: 'p1' } })
+    view = { ...board, projects: [{ id: 'p2', name: 'Site' }] }
+    rerender(<I18nProvider locale="en"><KanbanBoard feedMark={1} onOpen={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Dark theme')).toBeTruthy())
+    view = board
+    rerender(<I18nProvider locale="en"><KanbanBoard feedMark={2} onOpen={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
+    expect(screen.getByText('Dark theme')).toBeTruthy()
   })
 })

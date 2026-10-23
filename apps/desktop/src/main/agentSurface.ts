@@ -307,7 +307,8 @@ export interface AgentSurfaceDeps {
    * (REQ-38: a session's claims end with it). Awaited, bounded, by `stop()`; never throws into the caller.
    */
   onSessionEnded?: (sessionId: string, why: 'ended' | 'app-quit') => Promise<void>
-  /** The interface's locale (`settings.locale`), the agents' working language (P-24). Absent or throwing: English. */
+  /** The agents' working language (P-24): the interface's locale, or null when the person switched it off or the settings
+   *  could not be read (ADR-0174). Absent: English; throwing: none named. */
   language?: () => string | null | undefined
 }
 

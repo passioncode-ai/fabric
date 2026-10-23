@@ -203,3 +203,11 @@ describe('«Закончили» lists finished tasks only (0.3.11 review ER-8)'
     expect(v.done.map((d) => d.taskId)).toEqual(['d1'])
   })
 })
+
+describe('a claimed task back in the queue (0.3.11 review, iteration 2, ER-4)', () => {
+  it('is not in «В работе»', () => {
+    const briefs = [{ id: 'b1', project_id: P1, title: 'Back in the queue', brief_what: null, status: 'backlog' }]
+    const home = composeHome({ where: where([session('s1', P1)], [claim('b1', P1, 's1')]), projects, stages: [], briefs, reviewTasks: [], activity: new Map(), now: 'x' })
+    expect(home.inWork).toHaveLength(0)
+  })
+})

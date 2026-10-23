@@ -312,7 +312,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
 
   return (
     <div className="lp" data-launch-view="comms">
-      <FabricStrip text={observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
+      {/* Under «Лента» the strip says how the feed reads; the thread list's own time is «Ветки»' (iteration 3, ER-6, DA-3). */}
+      <FabricStrip text={mode === 'feed' ? t('launch.comms.feed.strip') : observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.comms.kicker')}</p>

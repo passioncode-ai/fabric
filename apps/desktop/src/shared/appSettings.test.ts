@@ -208,3 +208,12 @@ describe('the working language the hub names (ADR-0172, ADR-0174; 0.3.11 review 
     expect(workingLanguageOf({ locale: 'ru', agentLanguage: false })).toBeNull()
   })
 })
+
+describe('the working language from a settings read (0.3.11 review, iteration 2, ER-3)', () => {
+  it('names none when the file could not be read, and the locale otherwise', async () => {
+    const { workingLanguageOfRead } = await import('./appSettings')
+    expect(workingLanguageOfRead({ status: 'unreadable', value: { locale: 'ru' } })).toBeNull()
+    expect(workingLanguageOfRead({ status: 'ready', value: { locale: 'ru' } })).toBe('ru')
+    expect(workingLanguageOfRead({ status: 'recovered', value: { locale: 'ru', agentLanguage: false } })).toBeNull()
+  })
+})

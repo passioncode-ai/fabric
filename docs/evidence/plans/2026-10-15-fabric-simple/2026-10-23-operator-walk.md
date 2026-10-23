@@ -33,7 +33,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-21 | Opening a task, nothing says what the task is about | One task template: **Что сделать · Зачем · Что будет готово** (shipped as «Что должно произойти · Почему · Что будет верно, когда задача выполнена», 2026-10-23) (the brief, `fabric_task_brief`), the state and its history, who works on it, what blocks it, the project's tasks linked to it (follows, blocks, spawned), its result | done 2026-10-23 on `agent/w4-board`: the task page (`TaskPage.tsx`) opens on its template, «Что должно произойти · Зачем · Что будет готово» (the brief, editable), and the instruction the agent was given comes after it; its state, agent and claim stay in the left rail, related tasks of the same document below; test `TaskPage.test.tsx` (OF-21, OF-22) |
+| OF-21 | Opening a task, nothing says what the task is about | One task template: **Что сделать · Зачем · Что будет готово** (shipped as «Что должно произойти · Почему · Что будет верно, когда задача выполнена», 2026-10-23) (the brief, `fabric_task_brief`), the state and its history, who works on it, what blocks it, the project's tasks linked to it (follows, blocks, spawned), its result | partly done 2026-10-23 (0.3.11): the task page (`apps/desktop/src/renderer/src/TaskPage.tsx`) opens on «Для чего эта задача» with «Что должно произойти · Почему · Что будет верно, когда задача выполнена», then the original instruction; not built: the history of its moves and what blocks it (CO-401, 0.3.12) |
 | OF-22 | «Назад к проекту» sits elsewhere | Back sits at the top left, above the title, as on any page; the same on a task, an agent and a project | done 2026-10-23 on `agent/w4-board`: «← К проекту» sits at the top left above the task's title (`.lp-back`), no longer among the actions on the right |
 
 ### The project page
@@ -56,7 +56,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-29 | Comms is unreadable: nothing says what the projects are talking about | A feed, newest first, like a timeline: each post shows the project, its kind (просьба, ответ, находка, объявление), a short summary and its thread; a focus filter (one project, requests only, waiting for an answer) | done 2026-10-23 on `agent/w4-comms`: Comms opens on «Лента», the newest 100 posts of every thread first, each with its project, kind, time and text, filtered by «Только просьбы» and by project; a post opens its thread in «Ветки» (`launch/CommsFeed.tsx`, `CommsScreen.tsx`); test `CommsFeed.test.tsx` |
+| OF-29 | Comms is unreadable: nothing says what the projects are talking about | A feed, newest first, like a timeline: each post shows the project, its kind (просьба, ответ, находка, объявление), a short summary and its thread; a focus filter (one project, requests only, waiting for an answer) | partly done 2026-10-23 (0.3.11): Comms opens on «Лента», the newest 100 posts first with project, kind, time and text, «Только просьбы» and a project filter (`launch/CommsFeed.tsx`, `launch/commsNewest.ts`); not built: the «waiting for an answer» filter and the thread named under each post (CO-401, 0.3.12) |
 
 ### Agents and История
 

@@ -95,4 +95,35 @@ describe('Comms as a feed', () => {
       vi.useRealTimers()
     }
   })
+  it('a filter with no match says so with «Show everything», which clears it (V2-16)', async () => {
+    install()
+    show()
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+    fireEvent.change(screen.getByLabelText(en['launch.comms.feed.project']), { target: { value: 'p2' } })
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.requests'] }))
+    fireEvent.change(screen.getByLabelText(en['launch.comms.feed.project']), { target: { value: 'p1' } })
+    expect(screen.getByText(new RegExp(en['launch.comms.feed.noMatch']))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.showAll'] }))
+    expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
+  })
+  it('a failed refresh keeps the posts and says when they were read, with Try again (V2-16)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      let n = 0
+      const heads = vi.fn(async () => (++n === 1 ? { ok: true, heads: [{ id: 'th-1', lastSeq: 42 }], truncated: false } : { ok: false, error: { code: 'unavailable', message: 'down' } }))
+      vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn(async () => ({ ok: true, messages, lastSeq: 42, more: false })) } } }))
+      show()
+      await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+      await vi.advanceTimersByTimeAsync(15000)
+      await waitFor(() => expect(screen.getByText(/these posts were read at/)).toBeTruthy())
+      expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
+      expect(screen.getByRole('button', { name: en['launch.comms.tryAgain'] })).toBeTruthy()
+    } finally { vi.useRealTimers() }
+  })
+  it('reads under StrictMode, as a development build does (iteration 3, ER-1)', async () => {
+    install()
+    const { StrictMode } = await import('react')
+    render(<StrictMode><I18nProvider locale="en"><CommsFeed mark={0} nameOf={(id) => names[id] ?? id} onOpen={vi.fn()} /></I18nProvider></StrictMode>)
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+  })
 })
