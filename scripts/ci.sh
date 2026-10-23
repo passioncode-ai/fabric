@@ -358,6 +358,9 @@ node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs
 node --experimental-strip-types --test apps/desktop/test/session-enroll-request.test.mjs
 node --experimental-strip-types --test apps/desktop/test/project-admission.test.mjs apps/desktop/test/project-onboarding.test.mjs apps/desktop/test/git-people.test.mjs
 node --experimental-strip-types --test apps/desktop/test/automatic-registration-scenario.test.mjs
+# The window policy is pure, and a channel given to every window with its test left behind passed fast on main
+# (0.3.12 W3e, stackHealth): it runs here, not only in the full tier.
+node --experimental-strip-types --test apps/desktop/test/ipc-window-policy.test.mjs
 node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/acp-shell.test.mjs
 node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs

@@ -30,7 +30,9 @@ const HERE = path.dirname(new URL(import.meta.url).pathname)
 /** What a session window and an editor window call TODAY, measured 2026-10-11 by reading
  *  `SessionWindow.tsx`, `SessionStop.tsx`, `TerminalView.tsx`, `EditorWindow.tsx` and the
  *  boot of `App.tsx` / `launch/persona.tsx` / `CrashBoundary.tsx` that every window runs. */
-const EVERY_WINDOW = ['settingsRead', 'personaRead', 'metaInfo', 'opsRendererError']
+const EVERY_WINDOW = ['settingsRead', 'personaRead', 'metaInfo', 'opsRendererError',
+  // 0.3.12 (CO-374): the lost-stack notice shows in every window (`StackHealthNotice.tsx`).
+  'stackHealth', 'stackHealthChanged']
 const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalEnd', 'terminalAttestOver', 'terminalDismiss', 'terminalData', 'terminalExit']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
