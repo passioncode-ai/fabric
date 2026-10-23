@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "c26411e4f1fcfc25be9b8a6b68e1d53772d140fcaf0773e2200565dfbfaf07e1",
-    "docs/ux/product-model.json": "5a1fba64d3a5f6bb0a9674f56059d3fdb4d80dca2cb25d5b2cb687aea3ff38b8"
+    "docs/reports/product.html": "faf6cd3d0eb546e0a7bd81a16d862154b5782b17419a1ab223c86bc472e02981",
+    "docs/ux/product-model.json": "7bb8e9ec7c344547642e70325e244e3d425fb4e5de9d83563608e8f8423884e5"
   },
   "views": [
     {
@@ -492,6 +492,14 @@
     {
       "id": "simple-create",
       "file": "simple-create.jpg"
+    },
+    {
+      "id": "simple-board",
+      "file": "simple-board.jpg"
+    },
+    {
+      "id": "simple-task",
+      "file": "simple-task.jpg"
     }
   ]
 }

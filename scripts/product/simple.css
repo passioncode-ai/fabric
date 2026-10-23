@@ -119,3 +119,23 @@
 @media (max-width:900px){.sx-app{grid-template-columns:64px 1fr}.sx-rail .sx-brand div,.sx-rail .sx-sect,.sx-proj{display:none}.sx-nav a{font-size:0;justify-content:center}.sx-nav a .sx-n{font-size:10px}.sx-new{font-size:0}.sx-new::first-letter{font-size:16px}.sx-cols,.sx-hist-grid,.sx-choices{grid-template-columns:1fr}.sx-way,.sx-board{grid-template-columns:1fr 1fr}}
 .sx-s .sx-btn,.sx-s .sx-nope,.sx-s .sx-done{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",sans-serif;letter-spacing:0}
 .sx-stack{display:grid;gap:24px}.sx-padline{padding:14px 18px}
+/* Wave 4, the operator's walk of 2026-10-22/23 (OF-14 to OF-22): the home's order, the board, a task. */
+.sx-back{display:inline-block;margin:0 0 10px;color:var(--sx-muted);font-size:13px}
+.sx-back:hover{color:var(--sx-text)}
+.sx-way.sx-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sx-nowbox>.sx-card{max-height:340px;overflow-y:auto}
+.sx-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;color:var(--sx-muted);font-size:12.5px}
+.sx-filters .sx-pill.on{border-color:var(--sx-text);color:var(--sx-text)}
+.sx-kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.sx-kcol{border:1px solid var(--sx-line);border-radius:12px;background:var(--sx-bg2);padding:10px;max-height:520px;overflow-y:auto;min-width:0}
+.sx-kcol h3{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sx-muted);font-weight:500}
+.sx-kcard{display:block;margin-top:8px;border:1px solid var(--sx-line);border-radius:8px;padding:9px 10px;background:var(--sx-bg);font-size:13px;line-height:1.35}
+.sx-kcard small{display:flex;align-items:center;gap:5px;margin-top:5px;color:var(--sx-muted);font-size:11.5px}
+.sx-brief{margin:0;padding:14px 18px}
+.sx-brief dt{color:var(--sx-muted);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+.sx-brief dt:first-child{margin-top:0}
+.sx-brief dd{margin:3px 0 0;font-size:13.5px;line-height:1.45}
+.sx-facts,.sx-hist,.sx-related{margin:0;padding:12px 18px 12px 34px;font-size:13px;line-height:1.6}
+.sx-facts{list-style:none;padding-left:18px}
+.sx-facts b,.sx-hist b{font-weight:500;margin-right:6px}
+.sx-row.sx-plain{grid-template-columns:1fr}

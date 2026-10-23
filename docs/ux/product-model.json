@@ -15527,6 +15527,55 @@
         "created",
         "error"
       ]
+    },
+    {
+      "id": "simple-board",
+      "title": "0.3.11 · Доска",
+      "screen_id": "SCR-41",
+      "screen_ids": [
+        "SCR-41",
+        "SCR-84"
+      ],
+      "horizon": "near",
+      "purpose": "Вся работа канбаном по ступеням, которые проверяет Fabric: Очередь, В работе, На проверке, Готово; колонки листаются вбок и вниз; фильтры по проекту и агенту (SCN-173, OF-19, D-1).",
+      "task_ids": [],
+      "states": [
+        "ready",
+        "empty",
+        "loading",
+        "error",
+        "partial",
+        "filtered"
+      ],
+      "empty_action": {
+        "label": "Открыть проект",
+        "view": "simple-project",
+        "description": "Задач пока нет. Задачу ставят на странице проекта."
+      }
+    },
+    {
+      "id": "simple-task",
+      "title": "0.3.11 · Задача",
+      "screen_id": "SCR-32",
+      "screen_ids": [
+        "SCR-32",
+        "SCR-84"
+      ],
+      "horizon": "near",
+      "purpose": "Задача по шаблону: что сделать, зачем, что будет готово; состояние и история, кто работает, что мешает, связанные задачи, результат; «назад» слева сверху (SCN-174, OF-21, OF-22).",
+      "task_ids": [],
+      "states": [
+        "ready",
+        "empty",
+        "loading",
+        "error",
+        "done"
+      ],
+      "empty_action": {
+        "label": "Открыть доску",
+        "view": "simple-board",
+        "description": "Агент ещё не описал задачу."
+      }
     }
   ],
   "journeys": [
