@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import test from 'node:test'
 
-const { onboardingTask, onboardingTaskId, agentProfilePayload, createOnboardingFiler } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
+const { onboardingTask, onboardingTaskId, agentProfilePayload, createOnboardingFiler, writePersonBusiness } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
 const { specGaps } = await import(path.resolve(import.meta.dirname, '../src/shared/taskSpec.ts'))
 const P = '00000000-0000-4000-8000-000000000011'
 
@@ -116,5 +116,22 @@ test('ER-6: a refused read is recorded before it is thrown, never swallowed sile
   await assert.rejects(createOnboardingFiler(h.deps)(P, 'fabric'), /could not be read/)
   assert.deepEqual(h.failures, [['the onboarding task could not be read: stack lost', P]])
   assert.equal(h.journal.length, 0)
+})
+
+test('DA-9: the person\'s business for a project this estate does not hold is refused in plain words, and nothing is journaled', async () => {
+  const appended = []
+  const rows = new Map([[P, { id: P, business: null }]])
+  const deps = {
+    readProject: async (id) => ({ row: rows.get(id) ?? null, error: null }),
+    append: async (payload) => { appended.push(payload); rows.get(P).business = payload.business || null }
+  }
+  await assert.rejects(writePersonBusiness(deps, '00000000-0000-4000-8000-0000000000ff', 'Appvillis'), /not in this estate/)
+  assert.equal(appended.length, 0)
+  // The person's write always applies, whatever an agent recorded before (DA-2).
+  rows.get(P).business = 'AgentGuess'
+  assert.equal((await writePersonBusiness(deps, P, ' Appvillis ')).business, 'Appvillis')
+  assert.deepEqual(appended, [{ business: 'Appvillis' }])
+  await assert.rejects(writePersonBusiness({ ...deps, readProject: async () => ({ row: null, error: 'stack lost' }) }, P, 'X'), /could not be read: stack lost/)
+  await assert.rejects(writePersonBusiness(deps, P, 'x'.repeat(81)), /at most 80/)
 })
 // #endregion project-onboarding

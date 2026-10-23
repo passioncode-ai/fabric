@@ -108,6 +108,25 @@ export function createOnboardingFiler(deps: OnboardingFilerDeps): (projectId: st
 }
 
 /**
+ * DA-9: the person's business, from the project page. Always applies (DA-2), but only to a project this estate holds:
+ * the project is read first, so a stale id from a window is refused in plain words and nothing is journaled (a profile
+ * for a project nobody holds would be a no-op in the journal, or a raw foreign-key refusal when it names relations).
+ */
+export async function writePersonBusiness<Row>(deps: {
+  readProject(projectId: string): Promise<{ row: Row | null; error: string | null }>
+  append(payload: { business: string }): Promise<unknown>
+}, projectId: string, business: unknown): Promise<Row> {
+  if (typeof business !== 'string' || business.length > 80) throw new Error('a business is a short name, at most 80 characters')
+  const before = await deps.readProject(projectId)
+  if (before.error) throw new Error(`the project could not be read: ${before.error}`)
+  if (!before.row) throw new Error('this project is not in this estate (it may have been removed); the business was not recorded')
+  await deps.append({ business: business.trim() })
+  const after = await deps.readProject(projectId)
+  if (after.error || !after.row) throw new Error(`the project could not be read back: ${after.error ?? 'no row'}`)
+  return after.row
+}
+
+/**
  * DA-2 / ER-2 (decided 2026-10-24): a project's business is the person's, because the board's wall between businesses
  * reads it and the party it walls must not be able to take it down. An agent's profile may set `business` only while
  * the project has none recorded; an empty one is refused (an agent never clears it); a different one while one is set

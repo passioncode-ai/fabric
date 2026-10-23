@@ -34,7 +34,7 @@ import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { createOnboardingFiler } from './projectOnboarding.ts'
+import { createOnboardingFiler, writePersonBusiness } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
 import { composeGraph } from '../shared/projectGraph.ts'
@@ -1872,11 +1872,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return (data ?? []) as ProjectRelation[]
   })
   handle(IPC.projectsSetBusiness, async (_e, projectId: string, business: string): Promise<Returns<FabricApi['projects']['setBusiness']>> => {
-    if (typeof business !== 'string' || business.length > 80) throw new Error('a business is a short name, at most 80 characters')
-    await journal.append({ estateId: ACTIVE_ESTATE, type: 'project.profiled@1', actor: OPERATOR_ACTOR, projectId, payload: { business: business.trim() } })
-    const { data, error } = await store.select('projects', '*').eq('id', projectId).single()
-    if (error || !data) throw new Error(`the project could not be read back: ${error?.message ?? 'no row'}`)
-    return data as ProjectRow
+    // DA-2: the person's business always applies; DA-9: only to a project this estate holds, read before the append.
+    return writePersonBusiness<ProjectRow>({
+      readProject: async (id) => {
+        const { data, error } = await store.select('projects', '*').eq('id', id).maybeSingle()
+        return { row: (data as ProjectRow | null) ?? null, error: error?.message ?? null }
+      },
+      append: (payload) => journal.append({ estateId: ACTIVE_ESTATE, type: 'project.profiled@1', actor: OPERATOR_ACTOR, projectId, payload })
+    }, projectId, business)
   })
   handle(IPC.projectsOnboard, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['onboard']>> => {
     const { data, error } = await store.select('projects', 'id,name').eq('id', projectId).single()

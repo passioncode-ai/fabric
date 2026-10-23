@@ -2607,14 +2607,14 @@ export class AgentSurface {
         }
       },
       async (args) => {
-        // DA-2 / ER-2: the business is the person's. Read only when the call names one; a read that fails refuses the
-        // business (never writes over a value it could not see).
-        let current: { business: string | null } | null = { business: null }
-        if (args.business !== undefined) {
-          const { data, error } = await this.deps.db.from('projects').select('business').eq('id', scope.projectId).eq('estate_id', scope.estateId).maybeSingle()
-          if (error) { ops.failed('agentSurface.project-business-read', new Error(error.message), { projectId: scope.projectId }); current = null }
-          else current = { business: (data as { business: string | null } | null)?.business ?? null }
-        }
+        // DA-2 / ER-2: the business is the person's; a read that fails refuses a business the call names (never writes
+        // over a value it could not see) and lets the other fields through.
+        // DA-9: a project this estate no longer holds is refused in plain words, before anything is journaled.
+        let current: { business: string | null } | null
+        const { data, error } = await this.deps.db.from('projects').select('business').eq('id', scope.projectId).eq('estate_id', scope.estateId).maybeSingle()
+        if (error) { ops.failed('agentSurface.project-business-read', new Error(error.message), { projectId: scope.projectId }); current = null }
+        else if (!data) return json({ written: false, reason: 'this project is not in this estate any more (it may have been removed); nothing was recorded' })
+        else current = { business: (data as { business: string | null }).business ?? null }
         const verdict = agentProfilePayload(args as Record<string, unknown>, current)
         if (!verdict.ok) return json({ written: false, reason: verdict.reason })
         const event = await this.appendRedacted({
