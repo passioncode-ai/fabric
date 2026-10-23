@@ -1966,6 +1966,7 @@ export const en = {
   'launch.analytics.percent': "{n}%",
   'launch.analytics.questions': "Questions waiting",
   'launch.analytics.questionsOldest': "{n}, the oldest {since}",
+  'launch.analytics.capped': "Only the newest task moves of these weeks were read; the earliest weeks may be counted short.",
   'graph.title': "How the projects relate",
   'graph.centred': "{name} and its neighbours",
   'graph.lede': "Columns are businesses; lines are the relations the onboarding agents recorded and the board's threads between projects.",

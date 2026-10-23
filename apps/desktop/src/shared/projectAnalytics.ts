@@ -1,8 +1,12 @@
 // #region project-analytics — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
-// W2-8 (OF-39): how work goes in one project, read from what Fabric already records (the journal's `task.moved@1`, the
-// tasks' creation time, the open questions); no new tracking. Pure, so it is tested rather than reasoned about.
+// W2-8 (OF-39): how work goes in one project, read from what Fabric already records (the journal's `task.moved@1` and
+// `task.closed@1`, the tasks' creation time, the open questions); no new tracking. Pure, so it is tested rather than
+// reasoned about. A task reaches done by the person's close (`task.closed@1`, outcome done): an agent never moves a
+// task to a terminal state (`shared/ladder.ts#mayMove`), so a reading of moves alone never sees a task done (DA-1).
 
 export interface TaskMove { taskId: string; from: string | null; to: string; at: string }
+/** A task closed by the person (`task.closed@1`): its outcome is where it went. */
+export interface TaskClose { taskId: string; outcome: string; at: string }
 
 export interface ProjectAnalytics {
   /** Tasks moved to done in each of the last `weeks` weeks, oldest first (a week is seven days ending now). */
@@ -18,6 +22,8 @@ export interface ProjectAnalytics {
   oldestQuestionAt: string | null
   /** The window, in weeks. */
   weeks: number
+  /** The journal read stopped at its bound before the window's start: the oldest weeks may be missing (DA-4). */
+  capped: boolean
 }
 
 const HOUR = 3_600_000
@@ -28,18 +34,44 @@ const median = (xs: number[]): number | null => {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
+/**
+ * Moves and closes as one ordered list of moves: a close becomes a move from the task's last known state (the latest
+ * earlier move's `to`, or null when none was read) to its outcome. Ordered by time, a close after a move at the same
+ * instant last.
+ */
+export function withCloses(moves: readonly TaskMove[], closes: readonly TaskClose[]): TaskMove[] {
+  const events = [
+    ...moves.map((m) => ({ at: m.at, order: 0, move: m as TaskMove | null, close: null as TaskClose | null })),
+    ...closes.map((c) => ({ at: c.at, order: 1, move: null as TaskMove | null, close: c as TaskClose | null }))
+  ].sort((a, b) => a.at.localeCompare(b.at) || a.order - b.order)
+  const last = new Map<string, string>()
+  const out: TaskMove[] = []
+  for (const e of events) {
+    const m = e.move ?? { taskId: e.close!.taskId, from: last.get(e.close!.taskId) ?? null, to: e.close!.outcome, at: e.close!.at }
+    last.set(m.taskId, m.to)
+    out.push(m)
+  }
+  return out
+}
+
 export function projectAnalytics(input: {
   moves: readonly TaskMove[]
+  /** The person's closes; a close whose outcome is done is a task reaching done. */
+  closes?: readonly TaskClose[]
   /** Each task's creation time, by id. */
   createdAt: ReadonlyMap<string, string>
+  /** The open questions read (the oldest first, at most the read's bound). */
   openQuestions: readonly { askedAt: string }[]
+  /** How many questions are open, when the read counted them past its bound; else the length of `openQuestions`. */
+  questionCount?: number
+  /** The journal read stopped at its bound before the window's start. */
+  capped?: boolean
   now: number
   weeks?: number
 }): ProjectAnalytics {
   const weeks = input.weeks ?? 8
   const start = input.now - weeks * 7 * 24 * HOUR
-  const moves = [...input.moves].filter((m) => Date.parse(m.at) >= start && Date.parse(m.at) <= input.now)
-    .sort((a, b) => a.at.localeCompare(b.at))
+  const moves = withCloses(input.moves, input.closes ?? []).filter((m) => Date.parse(m.at) >= start && Date.parse(m.at) <= input.now)
   const donePerWeek = Array.from({ length: weeks }, () => 0)
   const lead: number[] = []
   const review: number[] = []
@@ -65,9 +97,35 @@ export function projectAnalytics(input: {
     leadHours: median(lead),
     reviewHours: median(review),
     reopenedShare: reachedReview.size ? [...reopened].filter((t) => reachedReview.has(t)).length / reachedReview.size : null,
-    questionsWaiting: input.openQuestions.length,
+    questionsWaiting: Math.max(input.questionCount ?? 0, input.openQuestions.length),
     oldestQuestionAt: asked[0] ?? null,
-    weeks
+    weeks,
+    capped: input.capped ?? false
   }
+}
+
+/**
+ * Pages a read newest first until it is exhausted or holds `maxRows` (DA-4): the gateway answers at most 1000 rows a
+ * request (`supabase/config.toml` max_rows) and says nothing of the rest, so a single larger `limit` is silently cut.
+ * A page shorter than asked is not taken as the end (a gateway's cap may be lower than `pageSize`); an empty one is.
+ * `capped` is true when rows past the bound exist, which one extra row's read decides. A refused page is `failed`.
+ */
+export async function readNewestPaged<Row>(
+  page: (from: number, to: number) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }>,
+  bound: { pageSize?: number; maxRows: number }
+): Promise<{ rows: Row[]; capped: boolean; failed: string | null }> {
+  const pageSize = bound.pageSize ?? 1000
+  const rows: Row[] = []
+  while (rows.length < bound.maxRows) {
+    const want = Math.min(pageSize, bound.maxRows - rows.length)
+    const { data, error } = await page(rows.length, rows.length + want - 1)
+    if (error) return { rows: [], capped: false, failed: error.message }
+    const got = data ?? []
+    if (got.length === 0) return { rows, capped: false, failed: null }
+    rows.push(...got.slice(0, want))
+  }
+  const beyond = await page(rows.length, rows.length)
+  if (beyond.error) return { rows: [], capped: false, failed: beyond.error.message }
+  return { rows, capped: (beyond.data ?? []).length > 0, failed: null }
 }
 // #endregion project-analytics

@@ -32,4 +32,16 @@ describe('how the work goes (OF-39)', () => {
     show()
     await waitFor(() => expect(screen.getByText(en['launch.analytics.unreadable'])).toBeTruthy())
   })
+
+  it('says when the journal read stopped at its bound, and only then (DA-4)', async () => {
+    const reading = { donePerWeek: [0, 0, 0, 0, 0, 0, 0, 4], leadHours: 5, reviewHours: 2, reopenedShare: 0, questionsWaiting: 0, oldestQuestionAt: null, weeks: 8 }
+    install(async () => ({ ...reading, capped: true }))
+    show()
+    await waitFor(() => expect(screen.getByText(en['launch.analytics.capped'])).toBeTruthy())
+    cleanup()
+    install(async () => ({ ...reading, capped: false }))
+    show()
+    await waitFor(() => expect(screen.getByText(en['launch.analytics.lead'])).toBeTruthy())
+    expect(screen.queryByText(en['launch.analytics.capped'])).toBeNull()
+  })
 })

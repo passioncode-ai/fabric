@@ -49,6 +49,7 @@ export function ProjectAnalytics({ projectId, feedMark }: { projectId: string; f
           <dd>{reading.oldestQuestionAt ? t('launch.analytics.questionsOldest', { n: reading.questionsWaiting, since: since(reading.oldestQuestionAt, t) }) : reading.questionsWaiting}</dd>
         </dl>
       )}
+      {reading?.capped && <p className="lp-meta">{t('launch.analytics.capped')}</p>}
     </section>
   )
 }

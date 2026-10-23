@@ -1291,6 +1291,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.analytics.percent': "{n}%",
   'launch.analytics.questions': "Вопросов ждут",
   'launch.analytics.questionsOldest': "{n}, самый старый {since}",
+  'launch.analytics.capped': "Прочитаны только последние перемещения задач за эти недели; самые ранние недели могут быть посчитаны не полностью.",
   'graph.title': "Как связаны проекты",
   'graph.centred': "{name} и его соседи",
   'graph.lede': "Колонки это бизнесы; линии это связи, которые записали агенты при знакомстве с проектами, и треды доски между проектами.",
