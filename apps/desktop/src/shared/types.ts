@@ -345,7 +345,6 @@ export interface QuotaWindow {
 export interface Quota {
   fiveHour: QuotaWindow | null
   sevenDay: QuotaWindow | null
-  byModel: Record<string, QuotaWindow>
   readAt: string
   ageSeconds: number
   problem: 'no-credential' | 'credential-refused' | 'unreachable' | 'rejected' | 'empty' | 'throttled' | null

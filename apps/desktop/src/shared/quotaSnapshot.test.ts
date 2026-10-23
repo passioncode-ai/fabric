@@ -5,7 +5,6 @@ import type { Quota } from './types'
 const quota = (over: Partial<Quota> = {}): Quota => ({
   fiveHour: { utilization: 10, resetsAt: '2026-09-05T20:00:00Z' },
   sevenDay: { utilization: 20, resetsAt: '2026-09-09T00:00:00Z' },
-  byModel: {},
   readAt: '2026-09-05T17:00:00Z',
   ageSeconds: 5,
   problem: null,

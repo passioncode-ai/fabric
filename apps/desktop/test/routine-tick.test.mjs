@@ -67,8 +67,7 @@ await journal.append({ estateId: ESTATE, type: 'project.created@1', actor: ACTOR
 
 const freeQuota = async () => ({
   fiveHour: { utilization: 5, resetsAt: null },
-  sevenDay: { utilization: 5, resetsAt: null },
-  byModel: {}, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
+  sevenDay: { utilization: 5, resetsAt: null }, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
   account: 'probe-account'
 })
 
@@ -85,8 +84,7 @@ const distinctFreeQuota = () => {
   let n = 0
   return async () => ({
     fiveHour: { utilization: 5, resetsAt: null },
-    sevenDay: { utilization: 5, resetsAt: null },
-    byModel: {}, readAt: new Date(Date.now() + n++).toISOString(), ageSeconds: 1,
+    sevenDay: { utilization: 5, resetsAt: null }, readAt: new Date(Date.now() + n++).toISOString(), ageSeconds: 1,
     problem: null, account: 'probe-account'
   })
 }
@@ -94,8 +92,7 @@ const distinctFreeQuota = () => {
 const cachedFreeQuota = () => {
   const reading = {
     fiveHour: { utilization: 5, resetsAt: null },
-    sevenDay: { utilization: 5, resetsAt: null },
-    byModel: {}, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
+    sevenDay: { utilization: 5, resetsAt: null }, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
     account: 'probe-account'
   }
   return async () => reading
@@ -177,7 +174,7 @@ const pausesFor = async (id) => {
   const { id, project } = await defineRoutine('fixed')
   const full = async () => ({
     fiveHour: { utilization: 99, resetsAt: '2026-09-06T00:00:00Z' },
-    sevenDay: null, byModel: {}, readAt: new Date().toISOString(), ageSeconds: 1, problem: null
+    sevenDay: null, readAt: new Date().toISOString(), ageSeconds: 1, problem: null
   })
   const tick = createRoutineTick({ store, journal, quota: full, admission: createUnattendedAdmission(), startTask, estateId: ESTATE })
   await tick()

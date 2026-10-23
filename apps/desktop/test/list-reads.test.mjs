@@ -153,7 +153,7 @@ const eq = (got, want, m) =>
     admitExisting: async () => ({ ok: true }),
     bindRun: async () => {},
     endRun: async () => {},
-    quota: async () => ({ fiveHour: { utilization: 10, resetsAt: null }, sevenDay: null, byModel: {}, readAt: '', ageSeconds: 0, problem: null, account: 'acct' }),
+    quota: async () => ({ fiveHour: { utilization: 10, resetsAt: null }, sevenDay: null, readAt: '', ageSeconds: 0, problem: null, account: 'acct' }),
     estateId: 'e1'
   })
 

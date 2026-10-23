@@ -87,8 +87,6 @@ export type AppRoute =
   | { kind: 'persona' }
   /** SCR-44. How to work with Fabric. */
   | { kind: 'help' }
-  /** The account's quota, under «Управление». */
-  | { kind: 'quota' }
   /** The first useful result on one project (the launch guide). */
   | { kind: 'guide'; projectId: string }
   /** ADR-0100 · SCR-70. The first run: name and look, coding agents, where to start. */

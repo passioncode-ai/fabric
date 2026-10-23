@@ -22,6 +22,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
+  screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
+  chain step on its own, and holds the start when the quota is spent (CO-392).
 - A graph of the projects: businesses are columns, lines are the relations the onboarding agents recorded and the
   board's threads between projects, a target outside Fabric is drawn apart. «Граф проектов» on the rail opens it whole,
   the mark beside a project opens it centred on that project and its neighbours, and a project opens its page (OF-32,

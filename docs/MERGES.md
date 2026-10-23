@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T19:21:00Z · `—` · agent/0312-s6-quota → main · fast-forward
+- run: r-8642aee374a2
+- files: App.tsx, ProjectHome.tsx (ProjectStatusBar), SettingsScreen.tsx, shared/appRoute.ts; launch/QuotaPanel.tsx, shared/quotaReading.ts and their tests removed; Quota.byModel removed with its writer in main/quota.ts and the test fixtures; halfShipped.test.tsx, unreadSessions.test.tsx; i18n; SCN-070; AGENTS.md; CO-392 partially; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: account quotas leave Fabric's interface (CO-392, D-3); the unattended-start hold keeps its read.
+
 ### 2026-10-23T19:00:00Z · `—` · agent/0312-s6-quota → main · fast-forward
 - run: r-8642aee374a2
 - files: docs/handoffs/2026-10-23-0312-w1-done.md; the map

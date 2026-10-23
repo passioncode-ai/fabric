@@ -322,7 +322,6 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   const noReading = (problem: NonNullable<Quota['problem']>, account: string | null): Quota => ({
     fiveHour: null,
     sevenDay: null,
-    byModel: {},
     readAt: new Date(now()).toISOString(),
     ageSeconds: 0,
     problem,
@@ -377,16 +376,6 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       }
 
       const body = result.body as Record<string, unknown>
-      const byModel: Record<string, QuotaWindow> = {}
-      for (const key of Object.keys(body)) {
-        // Only the windows this product understands. The response also carries
-        // internal buckets under codenames; showing a number whose meaning is
-        // unknown is worse than showing none.
-        if (!/^seven_day_(opus|sonnet|haiku)$/.test(key)) continue
-        const w = windowOf(body[key])
-        if (w) byModel[key.replace('seven_day_', '')] = w
-      }
-
       const at = now()
       const fiveHour = windowOf(body.five_hour)
       const sevenDay = windowOf(body.seven_day)
@@ -404,7 +393,6 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       const quota: Quota = {
         fiveHour,
         sevenDay,
-        byModel,
         readAt: new Date(at).toISOString(),
         ageSeconds: 0,
         problem: null,

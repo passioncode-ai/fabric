@@ -88,8 +88,7 @@ const store = createScopedStore(db, { kind: 'estate', estateId: ESTATE })
 // confusingly similar name.
 const roomyQuota = () => async () => ({
   fiveHour: { utilization: 5, resetsAt: null },
-  sevenDay: { utilization: 5, resetsAt: null },
-  byModel: {}, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
+  sevenDay: { utilization: 5, resetsAt: null }, readAt: new Date().toISOString(), ageSeconds: 1, problem: null,
   account: 'chain-probe'
 })
 // Fresh per advance, because each case here drives its own chain and a door
@@ -218,7 +217,7 @@ const spawnsIn = (p) => spawns.filter((s) => s.projectId === p)
   await handoff(projectId, a, 'report', 'ready')
   await close(projectId, a, 'done')
   const empty = async () => ({
-    fiveHour: null, sevenDay: null, byModel: {},
+    fiveHour: null, sevenDay: null,
     readAt: new Date().toISOString(), ageSeconds: 1, problem: null, account: 'chain-probe'
   })
   await advanceWith(empty)()

@@ -169,11 +169,9 @@ const USAGE = {
   else ok('the five-hour window and its reset are read')
   if (r.sevenDay?.utilization !== 17) fail('the seven-day window was not read')
   else ok('the seven-day window is read')
-  if (r.byModel.opus?.utilization !== 61) fail(`per-model ${JSON.stringify(r.byModel)}`)
-  else ok('per-model windows are read')
-  if ('iguana_necktie' in r.byModel || Object.keys(r.byModel).length !== 1)
-    fail(`unknown buckets leaked into the reading: ${Object.keys(r.byModel)}`)
-  else ok('codenamed internal buckets are NOT shown — a number whose meaning is unknown is worse than none')
+  // CO-392: the per-model windows were read for the quota panel alone, which left with it; no bucket reaches the reading.
+  if ('byModel' in r) fail('a per-model reading is still produced, and nothing reads it')
+  else ok('no per-model or codenamed bucket reaches the reading (CO-392)')
   if (r.problem !== null || r.ageSeconds !== 0) fail('a fresh reading claimed a problem')
   else ok('a fresh reading has no problem and no age')
 }

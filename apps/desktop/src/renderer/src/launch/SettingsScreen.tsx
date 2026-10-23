@@ -173,7 +173,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   onOpenAccess: () => void
   /** The places that left the rail in 0.3.7 wave 3 (plan §2, "off the rail") and are reached from here until wave 4
    *  gives each its home: the account limits, Help (and the first run), Fabric's name and look, the projects' messages. */
-  onOpen?: (to: 'quota' | 'help' | 'persona' | 'comms') => void
+  onOpen?: (to: 'help' | 'persona' | 'comms') => void
   /** Comms threads with new messages, on the button that opens Comms (0.3.7 review UX-4); null while unknown. */
   commsUnread?: { count: number; atLeast: boolean } | null
 }): React.JSX.Element {

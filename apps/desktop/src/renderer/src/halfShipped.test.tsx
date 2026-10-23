@@ -16,9 +16,8 @@ import { en } from './i18n/en'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from './i18n'
 import { EstateHome } from './EstateHome'
-import { QuotaPanel } from './launch/QuotaPanel'
 import { ProjectStatusBar } from './ProjectHome'
-import type { ProjectRow, ProjectStats, Quota, RepoState } from '../../shared/types'
+import type { ProjectRow, ProjectStats, RepoState } from '../../shared/types'
 import { whole } from '../../../test/envelopes'
 
 afterEach(cleanup)
@@ -36,47 +35,7 @@ const wrap = (ui: React.ReactNode): void => {
   render(<I18nProvider locale="en">{ui}</I18nProvider>)
 }
 
-const quota: Quota = {
-  fiveHour: { utilization: 42, resetsAt: new Date(Date.now() + 3600_000).toISOString() },
-  sevenDay: { utilization: 91, resetsAt: new Date(Date.now() + 86_400_000).toISOString() },
-  byModel: {
-    opus: { utilization: 77, resetsAt: new Date(Date.now() + 86_400_000).toISOString() }
-  },
-  problem: null,
-  readAt: new Date().toISOString(),
-  ageSeconds: 0,
-  account: 'acct-a'
-}
 
-describe('M83 — the quota on the HOME, not only on a project', () => {
-  it('shows both windows', () => {
-    wrap(<QuotaPanel quota={{ read: true, quota }} />)
-    expect(screen.getByText('42%')).toBeTruthy()
-    expect(screen.getByText('91%')).toBeTruthy()
-  })
-
-  it('shows the PER-MODEL breakdown, which nothing rendered at all', () => {
-    // `byModel` was computed by the reader from the first day and read by no
-    // component in the product. It is the part that answers WHICH model to
-    // reach for, which is what "can I start a big job now" is really asking.
-    wrap(<QuotaPanel quota={{ read: true, quota }} />)
-    expect(screen.getByText('opus')).toBeTruthy()
-    expect(screen.getByText('77%')).toBeTruthy()
-  })
-
-  it('a spent window is not shown in the same tone as an empty one', () => {
-    wrap(<QuotaPanel quota={{ read: true, quota }} />)
-    expect(screen.getByText('91%').className).toContain('danger')
-    expect(screen.getByText('42%').className).not.toContain('danger')
-  })
-
-  it('no quota is a state with a sentence, not an empty panel', () => {
-    // Claude Code not signed in on this machine is an ANSWER — the reader's
-    // `no-credential`, not a null (release review 2026-10-03).
-    wrap(<QuotaPanel quota={{ read: true, quota: { ...quota, fiveHour: null, sevenDay: null, byModel: {}, problem: 'no-credential', account: null } }} />)
-    expect(screen.getByText(/not signed in/i)).toBeTruthy()
-  })
-})
 
 const repo = (over: Partial<RepoState> = {}): RepoState => ({
   path: '/w/a',
@@ -117,7 +76,7 @@ const stats = (over: Partial<ProjectStats> = {}): ProjectStats => ({
 
 describe('M56 — the last commit, measured since 2026-09-01 and rendered nowhere', () => {
   const bar = (r: RepoState[] | null, s = stats()): void =>
-    wrap(<ProjectStatusBar stats={s} repos={r} quota={{ read: false }} running={0} />)
+    wrap(<ProjectStatusBar stats={s} repos={r} running={0} />)
 
   it('shows its age', () => {
     bar([repo()])
@@ -142,7 +101,7 @@ describe('M56 — the last commit, measured since 2026-09-01 and rendered nowher
 
 describe('M57 — numbers about the code, not about our own storage', () => {
   const bar = (s: ProjectStats): void =>
-    wrap(<ProjectStatusBar stats={s} repos={[repo()]} quota={{ read: false }} running={0} />)
+    wrap(<ProjectStatusBar stats={s} repos={[repo()]} running={0} />)
 
   it('shows commits WITH the window they were counted over', () => {
     // "162 commits" is not a fact without the window.
@@ -300,39 +259,3 @@ describe('the favourites threshold, the limit, and what the operator is asked (U
   })
 })
 
-// Audit A4-020: the project status bar turned a FAILED quota read into null and hid the cell, so a read that
-// could not even ask looked like "no quota / not signed in" — the exact defect `quotaReading.ts` records.
-describe('A4-020 — the project status bar keeps a failed quota read apart from no quota', () => {
-  const bar = (quota: React.ComponentProps<typeof ProjectStatusBar>['quota']): void =>
-    wrap(<ProjectStatusBar stats={null} repos={null} quota={quota} running={0} />)
-
-  it('a failed read says the quota could not be read, in words, and keeps why behind the cell (UX-10)', () => {
-    bar({ read: true, failed: 'the main process did not answer' })
-    const cell = screen.getByText(en['status.quotaUnreadable'])
-    expect(cell.closest('[title]')?.getAttribute('title')).toBe('the main process did not answer')
-    expect(screen.queryByText(/the main process did not answer/), 'the machine words are not the cell text').toBeNull()
-  })
-
-  it('no reading yet and an account with no quota both show no cell', () => {
-    bar({ read: false })
-    expect(screen.queryByText(/quota unreadable/)).toBeNull()
-    cleanup()
-    bar({ read: true, quota: null })
-    expect(screen.queryByText(/quota unreadable/)).toBeNull()
-    expect(screen.queryByText(/^5h /)).toBeNull()
-  })
-
-  it('a reading still shows its windows', () => {
-    const quota: Quota = {
-      fiveHour: { utilization: 41.6, resetsAt: new Date(Date.now() + 3_600_000).toISOString() },
-      sevenDay: null,
-      byModel: {},
-      readAt: new Date().toISOString(),
-      ageSeconds: 3,
-      problem: null,
-      account: null
-    }
-    bar({ read: true, quota })
-    expect(screen.getByText('5h 42%')).toBeTruthy()
-  })
-})

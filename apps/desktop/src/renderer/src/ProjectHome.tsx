@@ -26,7 +26,6 @@ import type {
   TerminalSession
 } from '../../shared/types'
 import { affects, POLL_MS } from '../../shared/repoWatch'
-import { quotaOf, readQuotaReading, type QuotaReading } from '../../shared/quotaReading.ts'
 import { failed, forSubject, pending, settled, type KeyedRead } from '../../shared/keyedRead'
 import { factsSubject, type FactsQuery } from '../../shared/factsQuery'
 import { isTrustworthy, type RunStatusView } from '../../shared/runStatus'
@@ -156,8 +155,6 @@ export function ProjectHome({
   const [claims, setClaims] = useState<AgentClaim[]>([])
   const [transcripts, setTranscripts] = useState<SessionTranscript[] | null>(null)
   const [repoStates, setRepoStates] = useState<RepoState[] | null>(null)
-  // A failed read is held as one, never as "no quota" (audit A4-020, `shared/quotaReading.ts`).
-  const [quota, setQuota] = useState<QuotaReading>({ read: false })
   /** Null until read, so the board can tell "nothing here" from "not read yet"
    *  — the distinction EmptyState exists to keep (M108). */
   const [tasks, setTasks] = useState<TaskRow[] | null>(null)
@@ -220,12 +217,6 @@ export function ProjectHome({
     }
   }
 
-  const loadQuota = async (): Promise<void> => {
-    // Never fails the page: a quota we cannot read is a muted cell that says so, not an error and not
-    // "no quota" (audit A4-020).
-    setQuota(await readQuotaReading(() => window.fabric.quota.read()))
-  }
-
   const loadClaims = async (): Promise<void> => {
     try {
       setClaims(await window.fabric.terminal.claims(project.id))
@@ -263,11 +254,8 @@ export function ProjectHome({
   const claimMark = markOf(marks, ['agent'])
   const transcriptMark = markOf(marks, ['transcript'])
   const taskMark = markOf(marks, ['task', 'work', 'question', 'goal'])
-  // Statistics count across many tables, and the quota is not a projection of
-  // this journal at all — it is a vendor's answer about an account, and it
-  // follows the journal only because nothing else was offering it a clock.
-  // Narrowing either would be naming a set I cannot check, so both stay on
-  // everything; the quota's own clock is CO-135.
+  // Statistics count across many tables; narrowing them would be naming a set I cannot check, so they stay on
+  // everything. The account quota left this page with CO-392 (D-3: quotas are Switchboard's).
   const wideMark = marks.all
 
   useEffect(() => {
@@ -284,7 +272,6 @@ export function ProjectHome({
   }, [project.id, taskMark])
   useEffect(() => {
     void loadStats()
-    void loadQuota()
   }, [project.id, project.config_revision, sessions?.length, wideMark])
 
   /** What this page currently shows, for the watcher to compare against.
@@ -395,7 +382,6 @@ export function ProjectHome({
       <ProjectStatusBar
         stats={stats}
         repos={repoStates}
-        quota={quota}
         running={sessions === null ? null : sessions.filter((s) => s.state === 'running').length}
       />
       <div className="project-columns">
@@ -864,13 +850,11 @@ export function BoardSection({
 export function ProjectStatusBar({
   stats,
   repos,
-  quota,
   running,
   blocked
 }: {
   stats: ProjectStats | null
   repos: RepoState[] | null
-  quota: QuotaReading
   /**
    * Null until the session list has been read (M108, UXA-C05).
    *
@@ -896,11 +880,6 @@ export function ProjectStatusBar({
   // `evidence.ts` now, reports a miss, and takes only anchors that exist —
   // M142's rule needs one implementation, not one per screen.
 
-  // #region project-quota-failed — docs: docs/ux/scenarios.md#scn-070-квоты-и-использование
-  // A reading's windows, or why the read failed — a failure is a muted cell, never a hidden one (audit A4-020).
-  const shown = quotaOf(quota)
-  const quotaFailed = quota.read && 'failed' in quota ? quota.failed : null
-  // #endregion project-quota-failed
   const primary = repos?.[0] ?? null
   const others = Math.max(0, (repos?.length ?? 0) - 1)
 
@@ -971,35 +950,6 @@ export function ProjectStatusBar({
               <Tick muted>{t('status.noCommits')}</Tick>
             ))}
           {others > 0 && <Tick muted>{t('status.moreRepos', { n: others })}</Tick>}
-        </StatusCell>
-      )}
-
-      {/* Absent, not zero, when there is no source: CO-096 established that no
-          per-project cost exists, and an account not signed in has no quota.
-          A read that FAILED is neither, and says so (audit A4-020). */}
-      {/* Our words in the cell; the machine's words behind it, on hover — never the cell's text (0.3.5 review UX-10). */}
-      {quotaFailed !== null && (
-        <StatusCell quiet title={quotaFailed}>
-          <Tick muted>{t('status.quotaUnreadable')}</Tick>
-        </StatusCell>
-      )}
-      {shown?.fiveHour && (
-        <StatusCell
-          onClick={go('sec-journal')}
-          title={
-            shown.problem
-              ? t('status.quotaStale', { age: `${shown.ageSeconds}s` })
-              : t('status.quotaResets', { time: until(shown.fiveHour.resetsAt) })
-          }
-        >
-          <Tick muted={shown.problem !== null}>
-            {t('status.quota5h', { pct: Math.round(shown.fiveHour.utilization) })}
-          </Tick>
-          {shown.sevenDay && (
-            <Tick muted={shown.problem !== null}>
-              {t('status.quota7d', { pct: Math.round(shown.sevenDay.utilization) })}
-            </Tick>
-          )}
         </StatusCell>
       )}
 

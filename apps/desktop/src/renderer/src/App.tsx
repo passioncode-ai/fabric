@@ -46,7 +46,6 @@ import { PulseScreen } from './launch/PulseScreen'
 import { ReleasesScreen } from './launch/ReleasesScreen'
 import { PersonaScreen } from './launch/PersonaScreen'
 import { GuideScreen, HelpScreen } from './launch/HelpScreens'
-import { QuotaPanel } from './launch/QuotaPanel'
 import { markOf } from '../../shared/feedMarks.ts'
 import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
@@ -90,7 +89,6 @@ import { Workspace } from './Workspace'
 
 const FEED_POLL_MS = 2000 // ADR-0027: the table is the record; polling replay is the v1 wake-up
 const SESSION_POLL_MS = 3000
-const QUOTA_POLL_MS = 60_000
 /** The rail badge's own clock (SCN-143, the unread slice): slower than the screen's poll —
  *  the badge says "something new is there", the screen itself reads live once open. */
 const COMMS_BADGE_POLL_MS = 5000
@@ -104,7 +102,6 @@ const COMMS_BADGE_POLL_MS = 5000
 // a shape both processes need lives in `shared`. Re-exported here because this
 // is where every consumer already imports it from.
 import { EMPTY_DRAFT, mayPersist, type Draft } from '../../shared/onboardingDraft.ts'
-import type { QuotaReading } from '../../shared/quotaReading.ts'
 
 // Re-exported because this is where every consumer already imports them from.
 // A bare `export … from` does not bring the name into THIS module's scope, and
@@ -225,7 +222,6 @@ function Shell({
    * the first sentence for both, diagnosing the operator's machine on its very
    * first paint. A failed read joined them through the catch below.
    */
-  const [quota, setQuota] = useState<QuotaReading>({ read: false })
   const [error, setError] = useState<string | null>(null)
   /** The journal on this computer's stack did not answer: the rail's foot line, apart from other errors (UX-10). */
   const [journalFailed, setJournalFailed] = useState(false)
@@ -500,22 +496,10 @@ function Shell({
     if (sessionWindowId !== null || fileWindowPath) return
     void refreshProjects()
     void refreshSessions()
-    // Never fails the screen: a quota we cannot read is a missing panel, not an
-    // error — the same rule the project page already follows.
-    const readQuota = (): void => {
-      void window.fabric.quota
-        .read()
-        .then((q) => setQuota({ read: true, quota: q }))
-        // NOT null. "We could not ask" is a fact about this app, and reporting
-        // it as the account's state is a diagnosis nobody made.
-        .catch((e: unknown) => setQuota({ read: true, failed: String(e) }))
-    }
-    readQuota()
+    // CO-392 (D-3): the window reads no account quota; quotas are Switchboard's, and the main process reads its own only
+    // before an unattended start (main/routineTick.ts, main/chainAdvance.ts).
     const h = setInterval(() => void refreshSessions(), SESSION_POLL_MS)
-    // The quota is a two-minute reading (the reader's TTL); asking every 3 s only re-served
-    // the cache at best and, before every outcome was held, re-read the Keychain at worst.
-    const q = setInterval(readQuota, QUOTA_POLL_MS)
-    return () => { clearInterval(h); clearInterval(q) }
+    return () => { clearInterval(h) }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
   useEffect(() => {
@@ -908,7 +892,6 @@ function Shell({
     : active.kind === 'comms' ? t('launch.nav.comms')
     : active.kind === 'graph' ? t('graph.title')
     : active.kind === 'plan' ? t('launch.nav.plan')
-    : active.kind === 'quota' ? t('launch.nav.quota')
     : active.kind === 'help' ? t('launch.nav.help')
     : active.kind === 'where' ? t('launch.nav.where')
     : active.kind === 'persona' ? t('settings.more.persona')
@@ -1043,18 +1026,6 @@ function Shell({
             onRead={(marks) => void onCommsRead(marks)}
             heads={commsHeads}
           />
-        )}
-        {active.kind === 'quota' && (
-          <div className="lp" data-launch-view="quotas">
-            <header className="lp-heading">
-              <div>
-                <p className="lp-kicker">{t('launch.nav.manage')}</p>
-                <h2 tabIndex={-1}>{t('launch.nav.quota')}</h2>
-                <p>{t('launch.quota.lede')}</p>
-              </div>
-            </header>
-            <QuotaPanel quota={quota} />
-          </div>
         )}
         {active.kind === 'help' && (
           <HelpScreen
@@ -1316,7 +1287,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

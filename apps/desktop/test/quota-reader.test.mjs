@@ -76,7 +76,7 @@ const reader = (body, status = 200) =>
 const failedFirst = async (name, make, problem) => {
   const q = await make().read()
   q !== null && q.problem === problem && q.fiveHour === null && q.sevenDay === null &&
-  Object.keys(q.byModel).length === 0 && typeof q.account === 'string' && q.account.length > 0
+  typeof q.account === 'string' && q.account.length > 0
     ? ok(`${name} with no previous reading answers '${problem}', no number, and the account it asked about`)
     : fail(`${name} produced: ` + JSON.stringify(q))
   mayStart(q, 'unattended').ok === false

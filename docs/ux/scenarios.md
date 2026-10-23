@@ -1977,7 +1977,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-usage).
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M171 added. Its gap as the audit read it: No unified usage/capacity/cost/source detail; unreadable quota can disappear instead of explain. Manager cost is unmeasured, subscription terms remain open.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/shared/quotaReading.ts#readQuotaReading`, `apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectStatusBar` (a failed quota read is a muted «quota unreadable: …» cell, never hidden as «no quota»; audit A4-020), `apps/desktop/src/shared/quotaReading.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. The unified usage/capacity/cost view is not built.
+- **Amended 2026-10-23 (0.3.12, CO-392; the operator's walk D-3):** account quotas are Switchboard's, so Fabric shows none: the project page's quota cells, the quota screen and the window's 60-second read are gone. The main process still reads the quota, only before an unattended start (a routine or a chain step is held on an exhausted quota; `apps/desktop/src/main/quota.ts`, `apps/desktop/src/main/routineTick.ts`).
+- **Coverage:** none in the interface since 0.3.12 (CO-392); the unattended hold is `apps/desktop/src/main/routineTick.ts`'s
 - **Product:** unobserved
 
 
