@@ -320,7 +320,9 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */
 export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<TaskBoardView> {
   const QUEUE = 100
-  // «Отменено» (CO-401): the newest cancelled tasks; fewer than the queue, since they are read only to look back.
+  // «Отменено» (CO-401): the most recently cancelled tasks; fewer than the queue, since they are read only to look back.
+  // By when they were cancelled, `moved_at` (task.closed@1 and the move set it), not by filing order: a task filed long
+  // ago and cancelled today is the newest here, and the order agrees with the date each card shows (0.3.12 review DA-6).
   const CANCELLED = 50
   const columns = 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at'
   const queue = store.select('project_tasks', columns).eq('status', 'backlog')
@@ -330,7 +332,7 @@ export async function readTaskBoard(store: Store, opts: { now: number; session: 
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
     // Newest filed first: a task never moved has no `moved_at`, and ordering by it dropped the newest at the cap (DA-7).
     (opts.projectId ? queue.eq('project_id', opts.projectId) : queue).order('seq', { ascending: false }).limit(QUEUE),
-    (opts.projectId ? cancelled.eq('project_id', opts.projectId) : cancelled).order('seq', { ascending: false }).limit(CANCELLED)
+    (opts.projectId ? cancelled.eq('project_id', opts.projectId) : cancelled).order('moved_at', { ascending: false, nullsFirst: false }).order('seq', { ascending: false }).limit(CANCELLED)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
   const withWhen = (rows: Array<TaskBrief & { moved_at: string | null; started_at: string | null }>) => rows.map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))

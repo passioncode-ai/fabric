@@ -49,12 +49,12 @@ test('the board\'s reads in main: one project filters in every query, the queue 
   const calls = []
   const fake = (fail = {}) => ({
     select: (table, columns) => {
-      const call = { table, columns, eq: [], order: null }
+      const call = { table, columns, eq: [], order: null, orders: [] }
       calls.push(call)
       const chain = {
         is: () => chain, in: () => chain, not: () => chain, limit: () => chain,
         eq: (k, v) => { call.eq.push([k, v]); return chain },
-        order: (k, o) => { call.order = [k, o?.ascending]; return chain },
+        order: (k, o) => { call.order ??= [k, o?.ascending]; call.orders.push([k, o?.ascending, o?.nullsFirst]); return chain },
         then: (ok) => ok(fail[table] && call.eq.some(([k, v]) => k === 'status' && v === fail[table]) ? { data: null, error: { message: 'database away' } } : { data: [], error: null })
       }
       return chain
@@ -68,6 +68,9 @@ test('the board\'s reads in main: one project filters in every query, the queue 
   for (const t of ['work_claims', 'leases']) assert.ok(calls.filter((c) => c.table === t).every((c) => c.eq.some(([k, v]) => k === 'project_id' && v === 'p1')), `${t} is read for the project only`)
   const queue = calls.find((c) => c.table === 'project_tasks' && c.eq.some(([k, v]) => k === 'status' && v === 'backlog'))
   assert.deepEqual(queue.order, ['seq', false], 'the queue is the newest filed first')
+  // 0.3.12 review DA-6: «Отменено» is the newest CANCELLED, by `moved_at` (task.closed@1 sets it), filing order only breaking ties.
+  const cancelledCall = calls.find((c) => c.table === 'project_tasks' && c.eq.some(([k, v]) => k === 'status' && v === 'cancelled'))
+  assert.deepEqual(cancelledCall.orders, [['moved_at', false, false], ['seq', false, undefined]], 'the cancelled column is the most recently cancelled first')
   calls.length = 0
   const board = await readTaskBoard(fake({ project_tasks: 'done' }), at)
   assert.match(board.columns.find((c) => c.stage === 'done').unread ?? '', /database away/)
