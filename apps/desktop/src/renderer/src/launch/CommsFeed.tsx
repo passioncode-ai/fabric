@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
 import { useLocale, useT } from '../i18n'
-import { newestPosts } from './commsNewest'
+import { newestPostsRead } from './commsNewest'
 
 /** How many of the newest posts the feed reads. */
 const FEED = 100
@@ -16,7 +16,7 @@ export const FEED_DEADLINE_MS = 60000
 /** How much of a post the feed shows before «открыть ветку». */
 const PREVIEW = 280
 
-type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean; readAt: string } | { at: 'failed' }
+type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean; readAt: string; short?: boolean } | { at: 'failed' }
 
 /** A request still waiting for its answer: outside the contract's terminal set (the board's own rule for an open request,
  *  `project_board_thread_aggregates`) and not answered by its target's reply (CO-401, OF-29). */
@@ -61,10 +61,11 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
       try {
         const heads = await window.fabric.comms.heads()
         const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
-        const posts = last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
+        const found = last === null ? null : await newestPostsRead(window.fabric.comms.list, last, FEED)
+        const posts = found?.posts ?? null
         if (!mounted.current) return
         // A refresh that fails keeps what was read and says it is old, rather than emptying the feed.
-        if (posts) setRead({ at: 'ready', posts, stale: false, readAt: new Date().toISOString() })
+        if (posts) setRead({ at: 'ready', posts, stale: false, readAt: new Date().toISOString(), short: found?.short === true })
         else failed()
       } catch {
         failed()
@@ -117,6 +118,8 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
           <button type="button" className="lp-button lh-text-link" onClick={() => setTick((n) => n + 1)}>{t('launch.comms.tryAgain')}</button>
         </p>
       )}
+      {/* CO-405: fewer than the feed's hundred while older posts may exist that the search did not reach. */}
+      {read.short && read.posts.length > 0 && <p className="lp-meta" role="status">{t('launch.comms.feed.short', { count: read.posts.length })}</p>}
       {shown.length === 0 && read.posts.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
       {shown.length === 0 && read.posts.length > 0 && (
         <p className="lp-meta">

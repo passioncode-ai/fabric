@@ -94,11 +94,14 @@ export async function readRunHolds(store: Store, taskIds: readonly string[]): Pr
 const CLAIM_COLUMNS =
   'id,project_id,work_id,owner_session,agent,came_in,touches,claimed_at,expires_at,renewed_at,handover_requested_by,handover_requested_at,handover_note'
 
-export async function readWork(store: Store, opts: { now: number; session: SessionSign; limit?: number }): Promise<WorkSnapshot> {
+export async function readWork(store: Store, opts: { now: number; session: SessionSign; limit?: number; projectId?: string | null }): Promise<WorkSnapshot> {
   const limit = opts.limit ?? 200
+  // One project's reading filters in the query, so its claims are never lost behind the estate's 200 oldest (CO-405).
+  const claimsQuery = store.select('work_claims', CLAIM_COLUMNS).is('released_at', null)
+  const leasesQuery = store.select('leases', 'work_id,project_id,owner_session,expires_at,write_scopes')
   const [claims, leases] = await Promise.all([
-    store.select('work_claims', CLAIM_COLUMNS).is('released_at', null).order('claimed_at', { ascending: true }).limit(limit),
-    store.select('leases', 'work_id,project_id,owner_session,expires_at,write_scopes').limit(limit)
+    (opts.projectId ? claimsQuery.eq('project_id', opts.projectId) : claimsQuery).order('claimed_at', { ascending: true }).limit(limit),
+    (opts.projectId ? leasesQuery.eq('project_id', opts.projectId) : leasesQuery).limit(limit)
   ])
   const claimRows = must(claims, 'the claims') as unknown as Array<ClaimRow & { project_id: string }>
   const leaseRows = must(leases, 'the leases') as unknown as Array<{ work_id: string; project_id: string; owner_session: string; expires_at: string; write_scopes: string[] | null }>
@@ -248,11 +251,12 @@ export function leasesView(refs: LeaseRefsRead & { repository: string }): WorkLe
 }
 
 /** SCR-78 «Where work is»: every project's sessions, claims and review queue, from one estate-scoped reading. */
-export async function readWhereWork(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[] }): Promise<WhereWorkView> {
+export async function readWhereWork(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<WhereWorkView> {
   const [snap, projects, review] = await Promise.all([
     readWork(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
-    store.select('project_tasks', 'project_id').eq('status', 'review').limit(5000)
+    // A project's reading counts its own review only (CO-405), like its claims above.
+    (opts.projectId ? store.select('project_tasks', 'project_id').eq('status', 'review').eq('project_id', opts.projectId) : store.select('project_tasks', 'project_id').eq('status', 'review')).limit(5000)
   ])
   if (projects.error) throw new Error(`the projects could not be read: ${projects.error.message}`)
   const counts = review.error ? null : new Map<string, number>()

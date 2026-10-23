@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-w3c → main · fast-forward
+- run: r-8642aee374a2
+- files: main/workRead.ts and test/work-read-views.test.mjs; launch/HistoryScreen.tsx and its test, App.tsx; launch/commsNewest.ts, launch/CommsFeed.tsx and their tests; CommsScreen.test.tsx, TaskPage.test.tsx; shared/protocolObligations.ts and main/boardTools.ts (reply only with the answer); i18n; CO-405 resolved; CO-412 filed; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 W3c: the reads' edges (CO-405), the board's reply rule, CO-412 filed.
+
 ### __LANDED__ · `—` · agent/0312-w3b → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/stackStartRetry.ts and its test, main/env.ts (CO-311); main/accessService.ts and test/session-enroll-request.test.mjs (CO-347); scripts/workspace.mjs, scripts/lib/bounded-run.mjs and scripts/test/bounded-run.test.mjs (CO-390); main/workRead.ts, shared/workClaims.ts, shared/homeLive.ts, launch/HomeWork.tsx and its test, test/work-read-views.test.mjs (CO-310); AGENTS.md; CO-411 filed; the backlog; CHANGELOG; the map

@@ -892,3 +892,13 @@ describe('what waits for a project (SCN-157)', () => {
     expect(screen.getByText('Cutover plan')).toBeTruthy()
   })
 })
+
+describe('the strip under «Лента» (CO-405, V3-35)', () => {
+  it('says how the feed reads, and the threads tab says when the board answered instead', async () => {
+    stub({ ok: true, threads: [THREAD] })
+    render(<I18nProvider locale="en"><CommsScreen mode="feed" projects={PROJECTS} seen={{}} onRead={() => {}} /></I18nProvider>)
+    expect(await screen.findByText(en['launch.comms.feed.strip'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.mode.threads'] }))
+    await waitFor(() => expect(screen.queryByText(en['launch.comms.feed.strip'])).toBeNull())
+  })
+})

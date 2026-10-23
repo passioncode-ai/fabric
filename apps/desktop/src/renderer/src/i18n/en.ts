@@ -2097,6 +2097,7 @@ export const en = {
   'launch.comms.provenance.asserted': "asserted",
   'launch.comms.feed.title': "What the projects are saying",
   'launch.comms.feed.all': "Everything",
+  'launch.comms.feed.short': "Showing the newest {count} posts the search reached; older ones may exist. They are in the threads.",
   'launch.comms.feed.waiting': "Waiting for an answer",
   'launch.comms.feed.inThread': "In the thread: {thread}",
   'launch.comms.feed.requests': "Requests only",

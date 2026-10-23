@@ -116,6 +116,8 @@ describe('Comms as a feed', () => {
       await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
       await vi.advanceTimersByTimeAsync(15000)
       await waitFor(() => expect(screen.getByText(/these posts were read at/)).toBeTruthy())
+      // The date, not only the time: a feed kept overnight says which day it is from (CO-405, V3-35).
+      expect(screen.getByText(/these posts were read at/).textContent).toContain(new Date().toLocaleDateString('en', { dateStyle: 'medium' }))
       expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
       expect(screen.getByRole('button', { name: en['launch.comms.tryAgain'] })).toBeTruthy()
     } finally { vi.useRealTimers() }
