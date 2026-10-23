@@ -78,7 +78,8 @@ bundle; it costs no extra person step. Two person steps in all: quit, then open.
   told why not.
 - The organization's knowledge base before the tag (release step 11): `knowledge/plans.md` row 2 names 0.3.12 as built
   and CO-336, CO-372 in 0.4.0, CO-396 and CO-402 in 0.3.13; after publication, `products.md` and the roadmap's
-  released column name v0.3.12. The fabric-workspace pull request is recorded here.
+  released column name v0.3.12. Row 2 and row 13 updated before the tag: fabric-workspace PR #409, merged 2026-10-23 as
+  `c5558dce`.
 - CO-365: the first reboot after 0.3.12 is installed is the measurement its ruling waits for (does the login item start
   Fabric?); recorded in its row when it happens.
 - `node scripts/workspace.mjs publish` and `check --require-child` after the tag (release step 10).
