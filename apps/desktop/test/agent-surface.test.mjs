@@ -148,7 +148,9 @@ if (me.project?.id === projectId && me.session_id === sessionId && me.rules?.len
 else fail('whoami returned ' + JSON.stringify(me))
 
 // P-24 — the session is told the working language, and the rule right after the date says what to write in it.
-me.protocol?.language?.code === 'ru' && /in Russian \(Русский\)/.test(me.rules[1] ?? '')
+// A string, not a regular expression: this body is a template literal (const script, line 24), where a backslash
+// before a parenthesis is eaten, so the regex became a group and failed on a correct rule (0.3.11 full gate).
+me.protocol?.language?.code === 'ru' && (me.rules[1] ?? '').includes('in Russian (Русский)')
   ? ok('fabric_whoami names the working language from Settings (Russian) and the rule after the date says so')
   : fail('no Russian working language in whoami: ' + JSON.stringify({ language: me.protocol?.language, rule: me.rules?.[1] }))
 surfaceLanguage = 'throw'

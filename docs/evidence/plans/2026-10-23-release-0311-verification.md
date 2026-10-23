@@ -240,6 +240,7 @@ found two more tests missing and a ruling's row silent (V3-40 to V3-43), all fix
 | V3-41 | second final-candidate verifier | CO-405 did not name the three texts V3-35 handed it | fixed: CO-405 names the strip, the stale date and the way back |
 | V3-42 | second final-candidate verifier | No test held the deadline timer being cleared; the deadline test had a 1 s margin | fixed: `CommsFeed.test.tsx` «a healthy board is never said stale by an earlier read's deadline» (watched failing without `clearTimeout`); the deadline test checks at 50 s and 61 s |
 | V3-43 | second final-candidate verifier | The ADR-0176 lease was still on origin; iteration 3's receipts and the Release close's acts are owed | fixed: the lease is released (`agent_sync.py release`); the receipts are written in the release commit, as 0.3.10's were, and the Release close lists its acts |
+| V3-44 | the full gate on `e569bb5b` (`agent-surface.test.mjs`) | The full tier's whoami check failed on a correct Russian rule: the test body is a template literal, which ate the backslashes of `\(` in the regex | fixed: the check compares a string (`apps/desktop/test/agent-surface.test.mjs`); on a disposable stack the file now passes 107 checks, and 162 of the tier's other 163 suites had passed in the same run |
 
 Exit for iteration 3: every finding is fixed, ruled to a register row or not a defect. Blocking findings open: none.
 
