@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s6-history → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/HistoryScreen.tsx (AgentWork, dayLabel) and its test, Feed.tsx (feedAct), App.tsx (sessions to История); SCN-168; CO-395 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: «Что делали агенты» in История read as History (CO-395).
+
 ### __LANDED__ · `—` · agent/0312-s6-needs → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/board.ts (PERSON_KINDS, askedBy) and its test, shared/homeView.ts (dayPart) and its test, shared/types.ts, main/index.ts (readBoard personOnly, the asker), launch/HomeParts.tsx (HomeBoard) and its test, EstateHome.tsx (the greeting), launch.css, i18n; SCN-163; CO-391 resolved; the backlog; CHANGELOG; the map

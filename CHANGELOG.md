@@ -26,6 +26,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - «Нужны вы» on Главная lists only what the person resolves (questions, access requests, refusals), each row naming who
   asks; a question is answered there with its options as buttons, and the greeting says the part of the day and how many
   questions wait (CO-391, SCN-163).
+- История's «Что делали агенты» reads as History: by day, newest first, each row naming who did it, with no journal
+  number (CO-395, SCN-168).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

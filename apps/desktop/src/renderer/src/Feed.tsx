@@ -3,7 +3,7 @@ import type { EntityRef } from '../../shared/entityRef'
 import { destinationOf } from '../../shared/entityRef.ts'
 import { subjectOfEvent } from '../../shared/eventSubject.ts'
 import { Button, EmptyState, Row } from './components'
-import { describeEvent, useLocale, useT } from './i18n'
+import { describeEvent, useLocale, useT, type Translate } from './i18n'
 
 export function Feed({
   events,
@@ -34,23 +34,7 @@ export function Feed({
     // No dash on screen for an event with no project (0.3.11 review, iteration 2, UX-7): the place says so in words.
     id ? (projects.find((p) => p.id === id)?.name ?? id.slice(0, 8)) : t('launch.home.agents.noProject')
 
-  /**
-   * The act for one row, or null and the reason there is none.
-   *
-   * TWO REFUSALS, and they are different questions. `subjectOfEvent` says what
-   * the row is about — declared per event type from the code that writes it,
-   * never guessed from a prefix. `destinationOf` then says whether any screen
-   * can focus that ref, and it has four answers of which one is an address. A
-   * row passes both or it is not a link.
-   */
-  const actFor = (e: FeedEvent): { ref: EntityRef; projectId: string } | { why: string } => {
-    const subject = subjectOfEvent(e)
-    if (!subject.known) return { why: subject.why }
-    const to = destinationOf({ ref: subject.ref, projectId: e.project_id })
-    return to.at === 'exact'
-      ? { ref: to.focus, projectId: to.projectId }
-      : { why: to.at === 'here' ? t('journal.subjectHere') : to.why }
-  }
+  const actFor = (e: FeedEvent) => feedAct(e, t)
 
   return (
     <div className={`feed ${compact ? 'compact' : ''}`}>
@@ -91,4 +75,21 @@ export function Feed({
       })}
     </div>
   )
+}
+
+/**
+ * The act for one feed row, or the reason there is none. Shared by the journal feed and История's «Что делали агенты»
+ * (CO-395), so a row opens the same place wherever it is read.
+ *
+ * TWO REFUSALS, and they are different questions. `subjectOfEvent` says what the row is about — declared per event
+ * type from the code that writes it, never guessed from a prefix. `destinationOf` then says whether any screen can
+ * focus that ref, and it has four answers of which one is an address. A row passes both or it is not a link.
+ */
+export function feedAct(e: FeedEvent, t: Translate): { ref: EntityRef; projectId: string } | { why: string } {
+  const subject = subjectOfEvent(e)
+  if (!subject.known) return { why: subject.why }
+  const to = destinationOf({ ref: subject.ref, projectId: e.project_id })
+  return to.at === 'exact'
+    ? { ref: to.focus, projectId: to.projectId }
+    : { why: to.at === 'here' ? t('journal.subjectHere') : to.why }
 }

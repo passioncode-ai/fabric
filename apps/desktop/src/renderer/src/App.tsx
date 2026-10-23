@@ -998,7 +998,7 @@ function Shell({
             onDetach={() => window.fabric.windows.openSession(active.sessionId)} />
         )}
         {active.kind === 'history' && (
-          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} onOpen={openEntity} />
+          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} sessions={sessions} onOpen={openEntity} />
         )}
         {active.kind === 'board' && (
           <BoardScreen
