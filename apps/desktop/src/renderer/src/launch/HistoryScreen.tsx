@@ -122,7 +122,7 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
-          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects ? (feed ?? null) : null} projects={feedProjects ?? []} sessions={sessions} onOpen={onOpen} />}
+          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects ? (feed ?? null) : null} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
         </section>
       )}
       <OpsLog />
@@ -137,7 +137,8 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
  */
 function AgentWork({ events, projects, sessions, onOpen }: {
   events: FeedEvent[] | null
-  projects: ProjectRow[]
+  /** Null while unread; the events are null then too, so the list says it is reading. */
+  projects: ProjectRow[] | null
   sessions: TerminalSession[] | null
   onOpen?: (projectId: string, focus: EntityRef) => void
 }): React.JSX.Element {
@@ -145,7 +146,7 @@ function AgentWork({ events, projects, sessions, onOpen }: {
   const locale = useLocale()
   if (events === null) return <p className="hx-muted" role="status">{t('journal.reading')}</p>
   if (events.length === 0) return <p className="hx-empty">{t('journal.empty')}</p>
-  const nameOf = (id: string | null): string | null => (id ? projects.find((p) => p.id === id)?.name ?? null : null)
+  const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
   const who = (e: FeedEvent): string =>
     e.actor.kind === 'person' ? t('acts.actor.you')
       : e.actor.kind === 'system' ? t('acts.actor.fabric')

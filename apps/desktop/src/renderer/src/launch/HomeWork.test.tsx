@@ -200,3 +200,16 @@ describe('a lane opens the task, as the kanban\'s card does (CO-394)', () => {
     expect(onOpen).toHaveBeenCalledWith('p1')
   })
 })
+
+describe('after a failed read the lanes say the view is the last one (CO-313)', () => {
+  it('names the time of the kept reading under the failure, and nothing when the read is current', () => {
+    const at = '2026-10-23T09:05:00Z'
+    const time = new Date(at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+    const { container, rerender } = show(<HomeWorkLanes reading={{ ...read, problem: 'database away', readAt: at }} onOpen={() => {}} onSession={() => {}} />)
+    expect(container.textContent).toContain(`as it was at ${time}`)
+    rerender(<I18nProvider locale="en"><HomeAgents reading={{ ...read, problem: 'database away', readAt: at }} onOpen={() => {}} onSession={() => {}} onAll={() => {}} /></I18nProvider>)
+    expect(container.textContent).toContain(`as it was at ${time}`)
+    rerender(<I18nProvider locale="en"><HomeWorkLanes reading={{ ...read, readAt: at }} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
+    expect(container.textContent).not.toContain("as it was at")
+  })
+})

@@ -60,3 +60,19 @@ describe('readSwitchboardCatalog', () => {
     expect(r.source).toBe('switchboard')
   })
 })
+
+describe('readSwitchboardCatalog names a refusal and a missed deadline (CO-313)', () => {
+  it('{ ok: false } is Switchboard refusing, in its own words, on exit 0 or not', async () => {
+    for (const code of [0, 1]) {
+      const r = await readSwitchboardCatalog({ find: async () => '/bin/sb', run: async () => ({ code, stdout: JSON.stringify({ ok: false, error: { code: 'locked', message: 'state is locked by another run' } }), stderr: '' }) })
+      expect(r).toEqual({ source: 'absent', reason: 'refused', detail: 'state is locked by another run' })
+    }
+    const s = await readSwitchboardCatalog({ find: async () => '/bin/sb', run: async () => ({ code: 1, stdout: JSON.stringify({ ok: false, error: 'busy' }), stderr: '' }) })
+    expect(s).toEqual({ source: 'absent', reason: 'refused', detail: 'busy' })
+  })
+  it('a run the deadline killed is a timeout, any other run failure stays failed', async () => {
+    const killed = Object.assign(new Error('Command failed'), { killed: true, signal: 'SIGTERM' })
+    expect(await readSwitchboardCatalog({ find: async () => '/bin/sb', run: async () => { throw killed } })).toEqual({ source: 'absent', reason: 'timeout', detail: null })
+    expect(await readSwitchboardCatalog({ find: async () => '/bin/sb', run: async () => { throw new Error('spawn EACCES') } })).toEqual({ source: 'absent', reason: 'failed', detail: 'spawn EACCES' })
+  })
+})

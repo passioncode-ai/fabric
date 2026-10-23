@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s6-wording → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/HomeWork.tsx (KeptNote) and its test, shared/agentCatalog.ts (refused, timeout) and its test, launch/SettingsScreen.tsx (the pinned refusal) and its test, App.tsx, launch.css, i18n; CO-313 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: failure wording at three edges (CO-313).
+
 ### __LANDED__ · `—` · agent/0312-s6-history → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/HistoryScreen.tsx (AgentWork, dayLabel) and its test, Feed.tsx (feedAct), App.tsx (sessions to История); SCN-168; CO-395 resolved; the backlog; CHANGELOG; the map

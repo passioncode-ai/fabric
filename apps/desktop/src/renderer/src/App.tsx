@@ -978,16 +978,18 @@ function Shell({
           commsUnread={commsUnread}
           onChange={async (next) => {
             // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
+            // A refusal is answered to the screen, which says it at its own foot (CO-313), not in the banner above it.
+            let unanswered: string | null = null
             const written = await window.fabric.settings.write(next).catch((e: unknown) => {
-              setError(t('settings.notSaved', { reason: explainError(e, t) }))
+              unanswered = explainError(e, t)
               return null
             })
-            if (!written) return
+            if (!written) return unanswered
             // The settings the DISK holds, not the ones that were asked for: a
             // refused write used to leave the screen showing the new value
             // while the file still held the old one (S14).
             onSettings(written.settings)
-            if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+            return written.saved ? null : (written.reason ?? '')
           }}
         />
       )}

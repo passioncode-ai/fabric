@@ -273,3 +273,21 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
   })
 })
 
+
+describe('a refused settings write is said on the screen itself (CO-313)', () => {
+  it('pins the refusal to the screen, clears it on the next saved write, and hides it on demand', async () => {
+    stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
+    const onChange = vi.fn(async () => 'the disk is full' as string | null).mockResolvedValueOnce('the disk is full').mockResolvedValueOnce(null).mockResolvedValueOnce('read-only')
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    const said = (reason: string) => en['settings.notSaved'].replace('{reason}', reason)
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
+    expect((await screen.findByRole('alert')).textContent).toContain(said('the disk is full'))
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'never' } })
+    await waitFor(() => expect(screen.queryByText(said('the disk is full'))).toBeNull())
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
+    await screen.findByText(said('read-only'))
+    fireEvent.click(screen.getByRole('button', { name: en['settings.notSavedClose'] }))
+    expect(screen.queryByText(said('read-only'))).toBeNull()
+  })
+})
