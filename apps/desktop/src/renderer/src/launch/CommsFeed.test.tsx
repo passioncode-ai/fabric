@@ -202,3 +202,18 @@ describe('Comms as a feed', () => {
     } finally { vi.useRealTimers() }
   })
 })
+
+describe('the feed names each post\'s thread and narrows to what waits for an answer (CO-401, OF-29)', () => {
+  it('«Waiting for an answer» keeps only open requests; each post names its thread when the screen holds it', async () => {
+    const waiting = { ...msg('4', 'p2', 'request', 'Who owns the resolver?', '2026-10-22T23:00:00Z'), request: { id: 'r4', target: 'p1', capability: 'x', state: 'queued', effect: 'none', revision: 1 } }
+    const answered = { ...msg('5', 'p2', 'request', 'Is 0.3.11 out?', '2026-10-22T23:30:00Z'), request: { id: 'r5', target: 'p1', capability: 'x', state: 'answered', effect: 'none', revision: 2 } }
+    install(undefined, vi.fn(async () => ({ ok: true, messages: [...messages, waiting, answered], lastSeq: 44, more: false })))
+    render(<I18nProvider locale="en"><CommsFeed mark={0} nameOf={(id) => names[id] ?? id} threadOf={(id) => (id === 'th-4' ? 'The resolver' : null)} onOpen={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Who owns the resolver?')).toBeTruthy())
+    expect(screen.getByText(en['launch.comms.feed.inThread'].replace('{thread}', 'The resolver'))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.waiting'] }))
+    expect(screen.getByText('Who owns the resolver?')).toBeTruthy()
+    expect(screen.queryByText('Is 0.3.11 out?')).toBeNull()
+    expect(screen.queryByText('Please add project.resolve to the hub.')).toBeNull()
+  })
+})

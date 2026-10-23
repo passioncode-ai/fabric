@@ -471,6 +471,16 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* A short list on a page: a task's blockers and its moves (CO-401). */
+.lp-list{list-style:none;padding:0;margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-1)}
+.lp-list li{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-2)}
+/* The thread a Comms post belongs to, under its text (CO-401, OF-29). */
+.lc-post .lc-thread{display:block;color:var(--app-muted);font-size:12px;margin-top:var(--space-1)}
+/* The Board's filters in one row, and «Отменено» as a quieter fifth column (CO-401). */
+.lk-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-3);margin-bottom:var(--space-3)}
+.lk-filters .lk-filter{margin-bottom:0}
+.lk-toggle{display:flex;align-items:center;gap:var(--space-2);padding-bottom:var(--space-2)}
+.lk-col.lk-cancelled{opacity:.8}
 /* Агенты: the list and the chosen agent's page beside it (CO-393); one column in a narrow window. */
 .lh-agents-place{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:var(--space-4);align-items:start}
 .lh-agents-place .lh-agent.is-selected{border-color:var(--app-accent);background:var(--app-panel)}
@@ -605,8 +615,9 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lh-side-column .lh-agents .lp-panel-head h3{flex:none;white-space:nowrap}
 .lh-agent-list.lh-compact .lh-agent{display:flex;flex-direction:row;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0;max-width:100%}
 .lh-agent-list.lh-compact .lh-agent-head{display:contents}
-/* The task in full, wrapping, never cut with an ellipsis (CO-394, 0.3.11 review UX-8). */
-.lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;order:1}
+/* One line on a project page (OF-23, the operator's walk); the whole task is in the row's tooltip and on the agent's
+   page on Агенты (CO-393), so the review's ask for the full text (UX-8, CO-394) is met there, not by wrapping here. */
+.lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
 .lh-agent-list.lh-compact small{order:2;flex:none}
 /* W2 S4b (OF-39): how the work goes, a term and its value per row; the weeks as small bars. */
 .lp-analytics{ display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-1) var(--space-3); margin: 0; }

@@ -35,8 +35,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   its results and what it did by day, with its console, project and task one press away (CO-393, SCN-166).
 - On the Board, a row you pick brings its detail into view, and a screen reader hears the switch and the list by their
   own names. The screen and flow pages say what ships today (CO-400).
-- A task opened from the Board, Главная, Агенты or История goes back there by name; an empty brief says what fills
-  it, and a project's agent row shows its whole task (CO-394).
+- A task opened from the Board, Главная, Агенты or История goes back there by name, and an empty brief says what
+  fills it (CO-394).
+- The Board filters by agent, can show the cancelled tasks as a fifth column, and remembers its filters for the next
+  visit. Comms' feed narrows to the requests still waiting for an answer and names each post's thread. A task's page
+  says what holds it and how it moved. The trackpad's two-finger swipe goes back and forward (CO-401).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

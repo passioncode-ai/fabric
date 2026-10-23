@@ -50,3 +50,17 @@ describe('the spec flag reaches the cards that can still start (ADR-0176 §1)', 
     expect(b.columns[2].cards[0].specMissing).toBeUndefined()
   })
 })
+
+describe('«Отменено» on the board (CO-401)', () => {
+  it('carries cancelled tasks of known projects, says when the read stopped at its limit, and says a failed read', () => {
+    const rows = [
+      { id: 'c1', project_id: 'p1', title: 'Old idea', brief_what: null, status: 'cancelled', updated_at: '2026-10-20T00:00:00Z' },
+      { id: 'c2', project_id: 'gone', title: 'Orphan', brief_what: null, status: 'cancelled', updated_at: null }
+    ]
+    const b = composeTaskBoard({ home, queued: [], projects, queuedLimit: 100, cancelled: { rows, limit: 2 } })
+    expect(b.cancelled).toEqual({ cards: [{ taskId: 'c1', projectId: 'p1', projectName: 'Fabric', summary: 'Old idea', agent: null, since: '2026-10-20T00:00:00Z' }], capped: true })
+    expect(composeTaskBoard({ home, queued: [], projects, queuedLimit: 100, cancelled: { unread: 'database away' } }).cancelled).toEqual({ cards: [], capped: false, unread: 'database away' })
+    expect(composeTaskBoard({ home, queued: [], projects, queuedLimit: 100 }).cancelled).toBeUndefined()
+    expect(b.columns.map((c) => c.stage)).toEqual(['backlog', 'running', 'review', 'done'])
+  })
+})

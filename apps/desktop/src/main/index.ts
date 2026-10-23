@@ -2937,7 +2937,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       .eq('id', taskId)
       .single()
     if (error) throw new Error(`task read failed: ${error.message}`)
-    const [notes, links, lease, events] = await Promise.all([
+    const [notes, links, lease, events, blockers] = await Promise.all([
       store.select('task_notes', '*').eq('task_id', taskId).order('created_at'),
       store.select('task_links', '*').eq('task_id', taskId),
       store.select('leases', 'owner_session,expires_at,write_scopes').eq('work_id', taskId).maybeSingle(),
@@ -2945,7 +2945,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         .select('journal', '*')
         .eq('project_id', (task as TaskRow).project_id)
         .or(`payload->>id.eq.${taskId},payload->>task_id.eq.${taskId},payload->>work.eq.${taskId}`)
-        .order('seq')
+        .order('seq'),
+      // What blocks THIS task: another task's `blocks` link pointing at it (SCN-174 step 2, CO-401).
+      store.select('task_links', 'task_id').eq('target_id', taskId).eq('rel', 'blocks')
     ])
     // M124, the direction nothing could walk. Narrowed in the database by a
     // PREFIX and made exact here: `like 'a.md%'` also catches `a.md.bak`, and
@@ -2966,12 +2968,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           ).data ?? []).filter((r) => sameDocument(String(r.origin_ref ?? ''), doc))
         : []
 
+    const blockerIds = ((blockers as { data: Array<{ task_id: string }> | null }).data ?? []).map((l) => l.task_id)
+    const blockerRead = await store.selectIn('project_tasks', 'id,title,instruction,status', 'id', blockerIds)
+    // A blocker list that could not be read is left out, and the page says nothing rather than «nothing blocks it».
+    if (blockerRead.failed) ops.failed('tasks.detail-blockers-unreadable', new Error(blockerRead.failed))
     const targets = (links.data ?? []).map((l) => l.target_id as string)
     const titleRead = await store.selectIn('project_tasks', 'id,title,instruction', 'id', targets)
     if (titleRead.failed) ops.failed('tasks.detail-titles-unreadable', new Error(titleRead.failed))
     const titles = titleRead.rows
     return {
       task: task as TaskRow,
+      ...(blockerRead.failed || (blockers as { error: unknown }).error ? {} : {
+        blockedBy: blockerRead.rows.map((r) => ({ id: r.id as string, title: ((r.title as string | null) ?? (r.instruction as string)) || (r.id as string), status: r.status as TaskState }))
+      }),
       notes: (notes.data ?? []) as TaskNote[],
       links: (links.data ?? []).map((l) => {
         const found = titles.find((x) => x.id === l.target_id)

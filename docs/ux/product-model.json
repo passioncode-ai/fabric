@@ -35321,7 +35321,7 @@
       "screen_refs": [
         "SCR-84"
       ],
-      "coverage": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe",
+      "coverage": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe; 0.3.12 S7 (CO-401): the trackpad's two-finger swipe goes back and forward, never while what is under the pointer can still scroll sideways (`apps/desktop/src/shared/swipeTravel.ts`, wired in `apps/desktop/src/renderer/src/App.tsx`; test `swipeTravel.test.ts`)",
       "registry_status": "implemented",
       "product_observation": "unobserved",
       "expected_result": "every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.",
@@ -35535,8 +35535,8 @@
       "screen_refs": [
         "SCR-41"
       ],
-      "coverage": "partial (2026-10-23): the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters",
-      "registry_status": "draft: 0.3.11 ships the kanban with the project filter; the agent filter, «Отменено» and remembered filters are CO-401, 0.3.12",
+      "coverage": "the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters; 0.3.12 S7 (CO-401): `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` (agent, cancelled, remembered), `apps/desktop/src/main/workRead.ts#readTaskBoard` (the cancelled tasks), `apps/desktop/src/shared/appSettings.ts` (`boardFilters`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`, `appSettings.test.ts`",
+      "registry_status": "implemented (0.3.11 the kanban and the project filter; 0.3.12 S7, CO-401: the agent filter, «Показывать отменённые» as a fifth column, and the filters remembered for the next visit in Settings' file)",
       "product_observation": "unobserved",
       "expected_result": "the person sees where every task is in the pipeline and opens any one in a press.",
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
@@ -35554,8 +35554,8 @@
       "screen_refs": [
         "SCR-32"
       ],
-      "coverage": "partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project",
-      "registry_status": "draft: 0.3.11 ships the template order and the way back; 0.3.12 S6 names the way back for the place the task was opened from and says what fills an empty brief (CO-394, `apps/desktop/src/renderer/src/TaskPage.tsx`); the move history and blockers are CO-401, 0.3.12",
+      "coverage": "`apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project; 0.3.12 S7 (CO-401): what holds the task (`apps/desktop/src/main/index.ts`, `tasks.detail`'s `blockedBy`) and how it moved (`apps/desktop/src/shared/taskMoves.ts`), on `apps/desktop/src/renderer/src/TaskPage.tsx`; tests `TaskPage.test.tsx`, `taskMoves.test.ts`",
+      "registry_status": "implemented (0.3.11 the template order and the way back; 0.3.12 S6 the way back named for its place and the empty brief's words, CO-394; 0.3.12 S7 «Что её держит» and «Как двигалась», CO-401)",
       "product_observation": "unobserved",
       "expected_result": "the person understands the task without asking its agent.",
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",

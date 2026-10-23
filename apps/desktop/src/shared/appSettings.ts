@@ -33,7 +33,7 @@ export { APP_SETTINGS_DEFAULTS }
 /** How many per-thread read marks the settings file holds (SCN-143, the unread slice). */
 const COMMS_READ_THROUGH_MAX = 4096
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -53,6 +53,13 @@ export function settingsPatch(raw: unknown): { ok: true; patch: SettingsPatch } 
   return { ok: true, patch: given as SettingsPatch }
 }
 // #endregion settings-patch
+
+/** The Board's remembered filters (CO-401): a value the file cannot hold reads as no filter, never a guess. */
+function boardFilters(raw: unknown): AppSettings['boardFilters'] {
+  const r = raw !== null && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
+  const id = (v: unknown, shape: RegExp): string | null => (typeof v === 'string' && shape.test(v) ? v : null)
+  return { project: id(r.project, /^[0-9a-f-]{36}$/), agent: id(r.agent, /^[A-Za-z0-9._-]{1,64}$/), cancelled: r.cancelled === true }
+}
 
 export function validateSettings(parsed: unknown): AppSettings | null {
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null
@@ -152,6 +159,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     agentLanguage: raw.agentLanguage !== false,
     // Anything but the two words is not chosen: unknown trust is no trust (ADR-0176 §3).
     machineTrust: raw.machineTrust === 'mine' || raw.machineTrust === 'organization' ? raw.machineTrust : null,
+    boardFilters: boardFilters(raw.boardFilters),
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

@@ -4,11 +4,17 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s7-board → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/KanbanBoard.tsx and its test, launch/BoardScreen.tsx, shared/taskBoard.ts and its test, main/workRead.ts (cancelled), shared/appSettings.ts and its test, shared/types.ts (boardFilters, blockedBy), launch/CommsFeed.tsx and its test, launch/CommsScreen.tsx, TaskPage.tsx and its test, shared/taskMoves.ts and its test (new), main/index.ts (tasks.detail blockedBy), shared/swipeTravel.ts and its test (new), App.tsx, launch.css, i18n; SCN-143, SCN-162, SCN-173, SCN-174; CO-401 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S7: the walk's remaining items: Board filters, Comms waiting and threads, a task's blockers and moves, the swipe back (CO-401).
+
 ### __LANDED__ · `—` · agent/0312-s6-task → main · fast-forward
 - run: r-8642aee374a2
-- files: App.tsx (taskOrigin, backLabel), ProjectHome.tsx (backTo), TaskPage.tsx (backLabel, the brief's lede and empty sentence) and its test, launch.css (the compact agent row), i18n; SCN-174; CO-394 resolved; the backlog; CHANGELOG; the map
+- files: App.tsx (taskOrigin, backLabel), ProjectHome.tsx (backTo), TaskPage.tsx (backLabel, the brief's lede and empty sentence) and its test, i18n; SCN-174; CO-394 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
-- summary: 0.3.12 S6: the task page's way back by name, the brief's words, the full task in the compact row (CO-394).
+- summary: 0.3.12 S6: the task page's way back by name, the brief's words (CO-394).
 
 ### __LANDED__ · `—` · agent/0312-s6-screens → main · fast-forward
 - run: r-8642aee374a2

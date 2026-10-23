@@ -63,6 +63,7 @@ import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
 import { JoinedAgents } from './launch/JoinedAgents'
 import { AgentPage } from './launch/AgentPage'
+import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { AgentsAtWork } from './launch/HomeWork'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
@@ -821,7 +822,26 @@ function Shell({
       travelRef.current(e.key === '[' ? 'back' : 'forward')
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // The trackpad's two-finger swipe travels as ⌘[ and ⌘] do (SCN-162 step 3, CO-401; `swipeTravel.ts`).
+    let swipe = swipeStart()
+    const canScroll = (from: EventTarget | null, towardRight: boolean): boolean => {
+      for (let el = from instanceof Element ? from : null; el; el = el.parentElement) {
+        const overflow = getComputedStyle(el).overflowX
+        if ((overflow === 'auto' || overflow === 'scroll') && el.scrollWidth > el.clientWidth + 1)
+          if (towardRight ? el.scrollLeft + el.clientWidth < el.scrollWidth - 1 : el.scrollLeft > 0) return true
+      }
+      return false
+    }
+    const onWheel = (e: WheelEvent): void => {
+      const el = e.target instanceof HTMLElement ? e.target : null
+      // An editor or a console keeps its own sideways scroll, as it keeps ⌘[.
+      if (e.ctrlKey || (el && el.closest('.monaco-editor, .xterm'))) return
+      const r = swipeStep(swipe, { deltaX: e.deltaX, deltaY: e.deltaY, at: e.timeStamp }, (towardRight) => canScroll(e.target, towardRight))
+      swipe = r.state
+      if (r.travel) travelRef.current(r.travel)
+    }
+    window.addEventListener('wheel', onWheel, { passive: true })
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('wheel', onWheel) }
   }, [isMainWindow])
   // #endregion rail-wiring
 
@@ -1029,6 +1049,12 @@ function Shell({
             onOpen={openEntity}
             onError={setError}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
+            boardFilters={settings?.boardFilters}
+            onRememberBoard={(boardFilters) => {
+              // Kept for the next visit (CO-401). A refused write is not worth a banner over the board the person is
+              // using: the filters still apply now, and the next change writes them again.
+              void window.fabric.settings.write({ boardFilters }).then((w) => { if (w?.saved) onSettings(w.settings) }, () => undefined)
+            }}
           />
         )}
         {active.kind === 'graph' && (

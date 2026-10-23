@@ -306,15 +306,26 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */
 export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<TaskBoardView> {
   const QUEUE = 100
-  const queue = store.select('project_tasks', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at').eq('status', 'backlog')
-  const [home, projects, queued] = await Promise.all([
+  // «Отменено» (CO-401): the newest cancelled tasks; fewer than the queue, since they are read only to look back.
+  const CANCELLED = 50
+  const columns = 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at'
+  const queue = store.select('project_tasks', columns).eq('status', 'backlog')
+  const cancelled = store.select('project_tasks', columns).eq('status', 'cancelled')
+  const [home, projects, queued, cancelledRead] = await Promise.all([
     readHome(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
     // Newest filed first: a task never moved has no `moved_at`, and ordering by it dropped the newest at the cap (DA-7).
-    (opts.projectId ? queue.eq('project_id', opts.projectId) : queue).order('seq', { ascending: false }).limit(QUEUE)
+    (opts.projectId ? queue.eq('project_id', opts.projectId) : queue).order('seq', { ascending: false }).limit(QUEUE),
+    (opts.projectId ? cancelled.eq('project_id', opts.projectId) : cancelled).order('seq', { ascending: false }).limit(CANCELLED)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
-  const queuedRows = (must(queued as never, 'the queue') as Array<TaskBrief & { moved_at: string | null; started_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
-  return composeTaskBoard({ home, queued: queuedRows, projects: projectRows, queuedLimit: QUEUE })
+  const withWhen = (rows: Array<TaskBrief & { moved_at: string | null; started_at: string | null }>) => rows.map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
+  const queuedRows = withWhen(must(queued as never, 'the queue') as Array<TaskBrief & { moved_at: string | null; started_at: string | null }>)
+  // A failed read of the cancelled tasks is said in their column; the four columns still stand.
+  const { data: cancelledRows, error: cancelledError } = cancelledRead as { data: Array<TaskBrief & { moved_at: string | null; started_at: string | null }> | null; error: { message: string } | null }
+  return composeTaskBoard({
+    home, queued: queuedRows, projects: projectRows, queuedLimit: QUEUE,
+    cancelled: cancelledError ? { unread: cancelledError.message } : { rows: withWhen(cancelledRows ?? []), limit: CANCELLED }
+  })
 }
 // #endregion work-read

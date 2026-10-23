@@ -18,17 +18,25 @@ const PREVIEW = 280
 
 type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean; readAt: string } | { at: 'failed' }
 
-export function CommsFeed({ mark, nameOf, onOpen }: {
+/** A request still waiting for its answer: outside the contract's terminal set (the board's own rule for an open request,
+ *  `project_board_thread_aggregates`) and not answered by its target's reply (CO-401, OF-29). */
+const SETTLED = new Set(['completed', 'failed_known', 'cancelled', 'expired', 'answered'])
+export const waitsForAnswer = (post: Pick<CommsMessage, 'kind' | 'request'>): boolean =>
+  post.kind === 'request' && !!post.request && !SETTLED.has(post.request.state)
+
+export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
   /** Read again when this changes (the screen's «Попробовать снова»); the feed also reads every FEED_POLL_MS. */
   mark: number
   nameOf(projectId: string): string
+  /** The thread a post belongs to, by the name the threads tab gives it; null when the screen does not hold it. */
+  threadOf?(threadId: string): string | null
   onOpen(post: CommsMessage): void
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [read, setRead] = useState<Read>({ at: 'reading' })
   const [project, setProject] = useState('')
-  const [requests, setRequests] = useState(false)
+  const [focus, setFocus] = useState<'all' | 'requests' | 'waiting'>('all')
   const [tick, setTick] = useState(0)
   useEffect(() => {
     const timer = setInterval(() => setTick((n) => n + 1), FEED_POLL_MS)
@@ -81,7 +89,8 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
   const projects = [...new Set(read.posts.map((p) => p.sender.project))]
   // A project whose posts left the newest read no longer filters (0.3.11 review, iteration 2, ER-8).
   const scope = projects.includes(project) ? project : ''
-  const shown = read.posts.filter((p) => (!scope || p.sender.project === scope) && (!requests || p.kind === 'request'))
+  const shown = read.posts.filter((p) => (!scope || p.sender.project === scope) &&
+    (focus === 'all' || (focus === 'requests' ? p.kind === 'request' : waitsForAnswer(p))))
   const kindOf = (kind: string): string => {
     const key = `launch.comms.kind.${kind}` as 'launch.comms.kind.message'
     const said = t(key)
@@ -91,8 +100,9 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
     <section className="lc" aria-labelledby="comms-feed-title">
       <h3 id="comms-feed-title" className="visually-hidden">{t('launch.comms.feed.title')}</h3>
       <div className="lc-filters">
-        <button type="button" className="lp-button" aria-pressed={!requests} onClick={() => setRequests(false)}>{t('launch.comms.feed.all')}</button>
-        <button type="button" className="lp-button" aria-pressed={requests} onClick={() => setRequests(true)}>{t('launch.comms.feed.requests')}</button>
+        <button type="button" className="lp-button" aria-pressed={focus === 'all'} onClick={() => setFocus('all')}>{t('launch.comms.feed.all')}</button>
+        <button type="button" className="lp-button" aria-pressed={focus === 'requests'} onClick={() => setFocus('requests')}>{t('launch.comms.feed.requests')}</button>
+        <button type="button" className="lp-button" aria-pressed={focus === 'waiting'} onClick={() => setFocus('waiting')}>{t('launch.comms.feed.waiting')}</button>
         <label className="lp-field lc-project">
           {t('launch.comms.feed.project')}
           <select value={scope} onChange={(e) => setProject(e.target.value)}>
@@ -111,7 +121,7 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
       {shown.length === 0 && read.posts.length > 0 && (
         <p className="lp-meta">
           {t('launch.comms.feed.noMatch')}{' '}
-          <button type="button" className="lp-button lh-text-link" onClick={() => { setRequests(false); setProject('') }}>{t('launch.comms.feed.showAll')}</button>
+          <button type="button" className="lp-button lh-text-link" onClick={() => { setFocus('all'); setProject('') }}>{t('launch.comms.feed.showAll')}</button>
         </p>
       )}
       <ol className="lc-posts">
@@ -126,6 +136,8 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
                   <time dateTime={p.at}>{new Date(p.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}</time>
                 </span>
                 <span className="lc-text">{text.length > PREVIEW ? text.slice(0, PREVIEW).trimEnd() + '…' : text}</span>
+                {/* OF-29 (CO-401): the thread the post belongs to, named under it. */}
+                {threadOf?.(p.thread) && <small className="lc-thread">{t('launch.comms.feed.inThread', { thread: threadOf(p.thread)! })}</small>}
               </button>
             </li>
           )
