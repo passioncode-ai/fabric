@@ -86,12 +86,20 @@ function Doing({ item, bare = false }: { item: Pick<LiveAgent, 'doing'> & { summ
 }
 
 /** In work and in review, across projects: what is being done, by whom, where — the board's other two lanes. */
-export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading: HomeReading; onOpen(projectId: string): void; onSession(sessionId: string): void; onBoard?: () => void }): React.JSX.Element {
+export function HomeWorkLanes({ reading, onOpen, onOpenTask, onSession, onBoard }: {
+  reading: HomeReading
+  onOpen(projectId: string): void
+  /** CO-394: a lane's task opens its own page, as the kanban's card does; without it a lane opens the project. */
+  onOpenTask?(projectId: string, taskId: string): void
+  onSession(sessionId: string): void
+  onBoard?: () => void
+}): React.JSX.Element {
+  const openTask = (projectId: string, taskId: string): void => (onOpenTask ? onOpenTask(projectId, taskId) : onOpen(projectId))
   const t = useT()
   const v = reading.view
   const work = (w: WorkItem) => (
     <li key={w.taskId} className="lh-work-row">
-      <button type="button" className="lp-button lh-work-open" onClick={() => (w.console && w.sessionId ? onSession(w.sessionId) : onOpen(w.projectId))}>
+      <button type="button" className="lp-button lh-work-open" onClick={() => (w.console && w.sessionId ? onSession(w.sessionId) : openTask(w.projectId, w.taskId))}>
         <span className="lh-work-title">{w.summary || t('launch.home.work.untitled')}</span>
         <span className="lp-meta">
           {[w.projectName, w.agent ? runnerLabel(w.agent, t) : null, since(w.since, t)].filter(Boolean).join(' · ')}
@@ -105,7 +113,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
   // the whole board, every stage, is one press away.
   const reviewRow = (r: ReviewItem) => (
     <li key={r.taskId} className="lh-work-row">
-      <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
+      <button type="button" className="lp-button lh-work-open" onClick={() => openTask(r.projectId, r.taskId)}>
         <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
         <span className="lp-meta">{[r.projectName, r.since ? since(r.since, t) : null].filter(Boolean).join(' · ')}</span>
         <span className="lp-pill">{t('launch.home.work.review')}</span>
@@ -114,7 +122,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
   )
   const doneRow = (r: ReviewItem) => (
     <li key={r.taskId} className="lh-work-row">
-      <button type="button" className="lp-button lh-work-open" onClick={() => onOpen(r.projectId)}>
+      <button type="button" className="lp-button lh-work-open" onClick={() => openTask(r.projectId, r.taskId)}>
         <span className="lh-work-title">{r.summary || t('launch.home.work.untitled')}</span>
         <span className="lp-meta">{[r.projectName, r.since ? since(r.since, t) : null].filter(Boolean).join(' · ')}</span>
       </button>

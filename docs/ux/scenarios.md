@@ -1697,6 +1697,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **States covered:** collapsed,expanded,target-loading,targeted,missing,denied,live-update,error
 - **Errors & recovery:** No nested buttons, unresolved aria references or color-only meaning; reduced motion retains content; narrow/200% zoom retains the main action and readable inspector.
 - **Telemetry:** no new product telemetry implied; command and source receipts are the record.
+- **Amended 2026-10-23 (0.3.12, CO-388):** going back with ⌘[ (or forward with ⌘]) opens the page at the scroll position it was left at; any other move opens a page at its top (`apps/desktop/src/renderer/src/launch/LaunchShell.tsx`, `apps/desktop/src/renderer/src/launch/Rail.test.tsx`).
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved

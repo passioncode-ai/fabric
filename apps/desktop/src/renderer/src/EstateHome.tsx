@@ -530,7 +530,7 @@ export function EstateHome({
           </section>
           {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
           <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
-          <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} onBoard={onBoard} />
+          <HomeWorkLanes reading={home} onOpen={onOpen} onOpenTask={onOpenEntity ? (projectId, taskId) => onOpenEntity(projectId, { kind: 'task', id: taskId }) : undefined} onSession={openConsole} onBoard={onBoard} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
             <div className="lp-panel-head">

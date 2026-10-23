@@ -105,6 +105,8 @@ export interface LaunchShellProps {
   /** Which page the place shows, finer than `at` (the board and the plan both mark nothing on the rail): a new key
    *  starts the page at its top. */
   placeKey?: string
+  /** CO-388: this place was reached by going back or forward (⌘[, ⌘]); it opens where it was left, not at its top. */
+  restoreScroll?: boolean
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
   consoles?: React.ReactNode
   children: React.ReactNode
@@ -147,11 +149,28 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   // plan and Help all mark nothing), so App names the place it shows.
   const place = useRef<HTMLDivElement>(null)
   const where = props.placeKey ?? (at.kind === 'project' ? `project:${at.projectId}` : at.kind)
+  // CO-388 (SCN-058): the last position of each place, so going back opens a page where the person left it. Kept as
+  // they scroll; in memory only, for this window.
+  const positions = useRef(new Map<string, number>())
+  const whereRef = useRef(where)
+  whereRef.current = where
   useEffect(() => {
     const box = place.current
     if (!box) return
-    box.scrollTo?.({ top: 0 })
-    for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > main')) page.scrollTo?.({ top: 0 })
+    const remember = (e: Event): void => {
+      const el = e.target instanceof HTMLElement ? e.target : null
+      const page = el?.tagName === 'MAIN' && el.parentElement?.classList.contains('shell') && el.parentElement.parentElement === box
+      if (el && (el === box || page)) positions.current.set(whereRef.current, el.scrollTop)
+    }
+    box.addEventListener('scroll', remember, { capture: true, passive: true })
+    return () => box.removeEventListener('scroll', remember, { capture: true })
+  }, [])
+  useEffect(() => {
+    const box = place.current
+    if (!box) return
+    const top = props.restoreScroll ? positions.current.get(where) ?? 0 : 0
+    box.scrollTo?.({ top })
+    for (const page of box.querySelectorAll<HTMLElement>(':scope > .shell > main')) page.scrollTo?.({ top })
     // CO-384: a move made from the rail left focus on the rail's link, so PageDown, Space and the arrows scrolled
     // nothing until the person clicked in the page. Focus goes to the new page's first heading (the usual way a page
     // change is announced), only when it was on the rail, so ⌘K and a field the person typed in keep theirs.

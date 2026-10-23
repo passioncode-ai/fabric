@@ -22,6 +22,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- On Главная a task in «В работе», on review or finished opens its own page, as a card on the Board does (a task whose
+  agent has a console still opens the console) (CO-394). Going back with ⌘[ (or forward with ⌘]) opens the page where
+  you left it; any other move opens a page at its top (CO-388, SCN-058).
 - The project page shows how the work goes over eight weeks: tasks done (a bar per week), the median time from task to
   done and in review, the share sent back from review, and the questions waiting with the oldest; read from the journal,
   with nothing new tracked (OF-39).

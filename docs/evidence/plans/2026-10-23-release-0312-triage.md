@@ -159,3 +159,8 @@ CO-360 and CO-383 are resolved; the counts above keep the 69 rows the triage sta
 questions: one schema step in 0.3.12 (migration 123, a project's profile), the business wall on a name the profile
 carries, people read from Git and never stored. It narrows CO-401: OF-40 and OF-37's display pass with a model move to
 0.4.0.
+
+## Moved on 2026-10-23, during wave 2
+
+CO-307 moves from 0.3.12 W2 to 0.3.13's schema step: a project's last activity needs a journal read grouped by project,
+an SQL function, and 0.3.12 keeps its one schema step for the project profile (migration 123).

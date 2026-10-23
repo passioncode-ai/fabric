@@ -181,3 +181,22 @@ describe('0.3.11 review, iteration 1', () => {
     expect([...document.querySelectorAll('.lh-lane h4')].at(-1)!.textContent).toMatch(/\?/)
   })
 })
+
+describe('a lane opens the task, as the kanban\'s card does (CO-394)', () => {
+  it('opens the task of a row in work, in review or finished; a row whose agent has a console opens the console', () => {
+    const onOpenTask = vi.fn(), onOpen = vi.fn(), onSession = vi.fn()
+    show(<HomeWorkLanes reading={read} onOpen={onOpen} onOpenTask={onOpenTask} onSession={onSession} />)
+    fireEvent.click(screen.getByText('New landing page'))
+    fireEvent.click(screen.getByText('Keep-awake setting'))
+    fireEvent.click(screen.getByText('Email sign-in'))
+    expect(onOpenTask.mock.calls).toEqual([['p2', 't2'], ['p1', 't3'], ['p1', 't4']])
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  it('without a task opener (an older host) a lane still opens the project', () => {
+    const onOpen = vi.fn()
+    show(<HomeWorkLanes reading={read} onOpen={onOpen} onSession={() => {}} />)
+    fireEvent.click(screen.getByText('Email sign-in'))
+    expect(onOpen).toHaveBeenCalledWith('p1')
+  })
+})

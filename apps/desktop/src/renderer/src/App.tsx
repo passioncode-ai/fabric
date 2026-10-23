@@ -928,6 +928,9 @@ function Shell({
         // The page starts at its top on a new page of the place (shared/appRoute.ts#scrollKeyOf, SCR-84); App's own
         // placeKey also times «new since» and includes Settings, so the scroll key is its own.
         placeKey={scrollKeyOf(active, workspaceFor)}
+        // CO-388: set by ⌘[ / ⌘] before the route changes and cleared by the effect above, which runs after the shell's own
+        // (a child's effects run first), so the shell reads it true exactly on the render a travel caused.
+        restoreScroll={travelling.current}
         title={placeTitle}
         pins={pins}
         lastActivity={lastActivity}

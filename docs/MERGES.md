@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T18:38:00Z · `—` · agent/0312-w2-s4c → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/HomeWork.tsx (lanes open the task), EstateHome.tsx; launch/LaunchShell.tsx (restoreScroll), App.tsx; their tests; CO-388 resolved, CO-394 partially, CO-307 to 0.3.13; SCN-058; CHANGELOG; the backlog; the triage; the map
+- conflicts: none
+- summary: 0.3.12 wave 2, slice S4c: the home's lanes open the task; going back keeps the scroll.
+
 ### 2026-10-23T18:18:00Z · `—` · agent/0312-w2-s4b → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/projectAnalytics.ts (new) and its test; launch/ProjectAnalytics.tsx (new) and its test, launch/ProjectLaunch.tsx, launch.css; main/index.ts (projects.analytics); shared/types.ts, ipcWindowPolicy.ts, preload/api.ts; i18n; SCN-165; AGENTS.md; CHANGELOG; the backlog; the map

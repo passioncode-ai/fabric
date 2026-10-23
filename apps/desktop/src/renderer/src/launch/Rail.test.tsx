@@ -216,6 +216,32 @@ describe('the rail', () => {
 })
 
 describe('the place scroller', () => {
+  it('opens a page reached by going back where the person left it, and a page reached otherwise at its top (CO-388)', () => {
+    const tops: number[] = []
+    const scrollTo = vi.fn(function (this: HTMLElement, o?: ScrollToOptions) { if (this.matches('.shell > main')) tops.push(o?.top ?? -1); return this })
+    const original = HTMLElement.prototype.scrollTo
+    HTMLElement.prototype.scrollTo = scrollTo as unknown as typeof original
+    try {
+      vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: false })) } } }))
+      const props = (at: LaunchShellProps['at'], restoreScroll = false): LaunchShellProps => ({
+        projects: [project('p1', 'Atlas')], projectsProblem: null, projectsReadAt: null, onRetryProjects: vi.fn(), at, title: 'T',
+        pins: [], lastActivity: {}, live: new Set<string>(), waiting: null, machine: 'ok', onPlace: vi.fn(), onCreateProject: vi.fn(),
+        onProject: vi.fn(), onSearch: vi.fn(), restoreScroll, children: <div className="shell"><main className="content"><p>body</p></main></div>
+      })
+      const { container, rerender } = render(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'home' })} /></I18nProvider>)
+      const main = container.querySelector('.shell > main') as HTMLElement
+      Object.defineProperty(main, 'scrollTop', { configurable: true, value: 640 })
+      main.dispatchEvent(new Event('scroll'))
+      rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'history' })} /></I18nProvider>)
+      rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'home' }, true)} /></I18nProvider>)
+      expect(tops.at(-1)).toBe(640)
+      rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'history' })} /></I18nProvider>)
+      rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'home' })} /></I18nProvider>)
+      expect(tops.at(-1)).toBe(0)
+    } finally {
+      HTMLElement.prototype.scrollTo = original
+    }
+  })
   // The page scrolls inside the place (rail.css; scripts/test/shell-scroll.browser.mjs proves the wheel reaches the
   // foot of a long page). Moving to another place, or another project, starts it at its top.
   it('starts a new place, or another project, at its top; the same place keeps its position', () => {
