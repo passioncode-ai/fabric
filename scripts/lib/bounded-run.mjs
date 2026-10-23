@@ -49,6 +49,19 @@ export function killAll(signal = 'SIGKILL') {
  * finding 4). A detached reaper ends this pid a few seconds later if the exit has not completed; the
  * outcome was already written by the caller, so nothing is lost when it fires.
  */
+/**
+ * A notice on this Mac (CO-390) that survives the job's own exit: detached like the reaper below, and ended after
+ * `seconds` if it has not finished. Elsewhere, or when it cannot start, the job's log stays the record.
+ */
+export function tellPerson(text, { seconds = 5 } = {}) {
+  if (process.platform !== 'darwin') return false
+  try {
+    const script = `display notification ${JSON.stringify(String(text).slice(0, 200))} with title "Fabric"`
+    spawn('/bin/sh', ['-c', `osascript -e "$1" & p=$!; (sleep ${seconds}; kill -9 $p 2>/dev/null) & wait $p`, 'sh', script], { detached: true, stdio: 'ignore' }).unref()
+    return true
+  } catch { return false } // no notice: the log and the status record still say it
+}
+
 export function exitWithin(code, { graceSeconds = 5 } = {}) {
   try {
     spawn('/bin/sh', ['-c', `sleep ${graceSeconds}; kill -9 ${process.pid} 2>/dev/null`], { detached: true, stdio: 'ignore' }).unref()
@@ -231,17 +244,32 @@ export function rotateLog(file, { maxBytes = 5 * 1024 * 1024, keep = 5, copyTrun
  * signal "stopped" (exit 143). `guard` runs before the first status write, so a run that refuses to start
  * (a wrong checkout) never overwrites the record of the job that owns it (review m6).
  */
-export async function superviseJob({ name, statusFile, watchdogMs, log, guard = () => {} }, body) {
+/** How many runs in a row before this one ended failed or timed out, from the last record (CO-390); 0 when unknown. */
+export function failuresBefore(statusFile) {
+  try {
+    const prev = JSON.parse(readFileSync(statusFile, 'utf8'))
+    const count = Number.isInteger(prev?.consecutive_failures) ? prev.consecutive_failures : 0
+    return prev?.outcome === 'failed' || prev?.outcome === 'timeout' ? Math.max(count, 1) : prev?.outcome === 'running' ? count : 0
+  } catch { return 0 } // no record yet, or one this version cannot read: counted from zero, said by the status itself
+}
+
+export async function superviseJob({ name, statusFile, watchdogMs, log, guard = () => {}, onFailure = () => {} }, body) {
   const startedAt = new Date().toISOString()
   const say = (m) => console.log(`== ${name} ${m} · ${new Date().toISOString()}`)
   try { guard() } catch (e) { console.error(String(e?.message || e)); exitWithin(1); return }
   if (log) rotateLog(log, { copyTruncate: true })
-  const status = (outcome, reason) => writeStatus(statusFile, { schema: 'JobRun@1', job: name, pid: process.pid, started_at: startedAt, ended_at: outcome === 'running' ? null : new Date().toISOString(), outcome, reason: reason ?? null })
+  // A run that keeps failing is counted, so the person can be told instead of the log alone (CO-390).
+  const before = failuresBefore(statusFile)
+  const failures = (outcome) => (outcome === 'failed' || outcome === 'timeout' ? before + 1 : outcome === 'running' ? before : 0)
+  const status = (outcome, reason) => writeStatus(statusFile, { schema: 'JobRun@1', job: name, pid: process.pid, started_at: startedAt, ended_at: outcome === 'running' ? null : new Date().toISOString(), outcome, reason: reason ?? null, consecutive_failures: failures(outcome) })
   let ended = false
   const finish = (outcome, reason, code) => {
     if (ended) return
     ended = true
     try { status(outcome, reason) } catch (e) { console.error('status not written: ' + (e?.message || e)) }
+    if (outcome === 'failed' || outcome === 'timeout') {
+      try { onFailure(failures(outcome), reason ?? outcome) } catch (e) { console.error('the failure was not told: ' + (e?.message || e)) }
+    }
     say(outcome + (reason ? ': ' + reason : ''))
     exitWithin(code)
   }

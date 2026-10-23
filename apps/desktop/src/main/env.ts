@@ -128,7 +128,7 @@ export function stopStartingStack(): void {
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
   if (stopRequested) throw new Error('Fabric is quitting, so the local stack is not started.')
   let dockerWaitLogged = false
-  await startWithRetry(() => startStackOnce(onLine), {
+  await startWithRetry((limitMs) => startStackOnce(onLine, limitMs), {
     stopped: () => stopRequested,
     // ER-4: Docker away at start (a login before OrbStack or Docker Desktop has its socket) is waited for, not shown.
     pingDocker: (socket) => pingDocker(socket),
@@ -167,12 +167,13 @@ export async function stackDatabaseContainer(): Promise<StackContainers> {
 }
 // #endregion stack-recover-once
 
-async function startStackOnce(onLine?: (line: string) => void): Promise<void> {
+async function startStackOnce(onLine?: (line: string) => void, limitMs: number | null = null): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
   const child = run('supabase', ['start', '-x', STACK_EXCLUDED_SERVICES.join(',')], {
     cwd: repoRoot(),
     encoding: 'utf8',
-    timeout: 240_000,
+    // Its own 240 s, or less when the whole start's deadline leaves less (CO-311).
+    timeout: limitMs === null ? 240_000 : Math.max(1000, Math.min(240_000, limitMs)),
     // A first-ever start pulls container images and prints a great deal.
     // `execFile` KILLS the child when its buffer overflows, so the default
     // 1 MB would have turned a slow-but-working start into a failure — and

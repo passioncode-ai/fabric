@@ -22,6 +22,14 @@ function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Element | nu
   return <p className="lp-meta" role="status">{t('acts.stale', { time: new Date(reading.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>
 }
 
+/** A read behind this place that stopped at its limit (CO-310): said, so a missing agent is never read as «nobody». */
+function CappedNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
+  const t = useT()
+  const capped = reading.view?.capped ?? []
+  if (!capped.length) return null
+  return <p className="lp-meta" role="status">{t('launch.home.work.capped', { what: capped.map((c) => t(`launch.home.work.cappedWhat.${c}` as 'launch.home.work.cappedWhat.claims')).join(', ') })}</p>
+}
+
 const REFRESH_MS = 15_000
 /** Rows a lane shows before «Ещё N» leads to the Board. */
 const LANE_ROWS = 6
@@ -150,6 +158,7 @@ export function HomeWorkLanes({ reading, onOpen, onOpenTask, onSession, onBoard 
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       <KeptNote reading={reading} />
+      <CappedNote reading={reading} />
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && (
         <div className="lh-lanes">
@@ -216,6 +225,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       <KeptNote reading={reading} />
+      <CappedNote reading={reading} />
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && live.length === 0 && <p className="lp-meta">{t('launch.home.agents.none')}</p>}
       {/* OF-23: on a project page the project goes without saying, and a row takes one line. */}

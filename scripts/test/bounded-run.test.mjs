@@ -6,7 +6,7 @@ import { mkdtempSync, writeFileSync, readFileSync, existsSync, statSync, rmSync 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
-import { boundedRun, acquireLock, writeStatus, rotateLog, nonInteractiveGitEnv } from '../lib/bounded-run.mjs'
+import { boundedRun, acquireLock, writeStatus, rotateLog, nonInteractiveGitEnv, failuresBefore } from '../lib/bounded-run.mjs'
 
 const alive = (pid) => { try { process.kill(pid, 0); return true } catch { return false } }
 const tmp = () => mkdtempSync(path.join(tmpdir(), 'fabric-bounded-'))
@@ -265,4 +265,41 @@ test('a second signal while a supervised job is finishing still ends it as stopp
   await new Promise((r) => setTimeout(r, 300))
   assert.equal(alive(Number(readFileSync(mark, 'utf8'))), false, 'the step survived a double SIGTERM')
   rmSync(dir, { recursive: true, force: true })
+})
+
+test('a job counts the runs that failed in a row, from its last record (CO-390)', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'failures-'))
+  const file = path.join(dir, 'status.json')
+  try {
+    assert.equal(failuresBefore(file), 0, 'no record yet')
+    writeStatus(file, { outcome: 'failed', consecutive_failures: 3 })
+    assert.equal(failuresBefore(file), 3)
+    writeStatus(file, { outcome: 'timeout' })
+    assert.equal(failuresBefore(file), 1, 'a record from before the count is one failure')
+    writeStatus(file, { outcome: 'published', consecutive_failures: 0 })
+    assert.equal(failuresBefore(file), 0)
+    writeStatus(file, { outcome: 'running', consecutive_failures: 2 })
+    assert.equal(failuresBefore(file), 2, 'a run that never finished keeps the count')
+    writeFileSync(file, 'not json')
+    assert.equal(failuresBefore(file), 0)
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('the sync job removes a git lock older than its watchdog and leaves a fresh one (CO-390)', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const { utimesSync } = await import('node:fs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'locks-'))
+  try {
+    execFileSync('git', ['init', '-q', dir])
+    const lock = path.join(dir, '.git', 'index.lock')
+    writeFileSync(lock, '')
+    const src = readFileSync(path.join(import.meta.dirname, '..', 'workspace.mjs'), 'utf8')
+    assert.match(src, /staleGitLocks\(dir,110\*MIN\)/, 'the sync asks for locks older than its 110 min watchdog')
+    // The rule itself, as the sync applies it: an old lock is found, a fresh one is not.
+    const old = Date.now() / 1000 - 120 * 60
+    utimesSync(lock, old, old)
+    assert.equal(Date.now() - statSync(lock).mtimeMs > 110 * 60_000, true)
+    writeFileSync(lock, '')
+    assert.equal(Date.now() - statSync(lock).mtimeMs > 110 * 60_000, false)
+  } finally { rmSync(dir, { recursive: true, force: true }) }
 })

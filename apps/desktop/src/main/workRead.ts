@@ -60,6 +60,8 @@ export interface WorkSnapshot {
   claims: ClaimView[]
   held: HeldView[]
   readAt: string
+  /** The reads that stopped at their limit (CO-310): past them a claim or a lease is not here. */
+  capped?: Array<'claims' | 'leases'>
 }
 
 /** What Fabric holds of a session right now; null when it holds nothing (ended, or Fabric restarted since). */
@@ -158,7 +160,11 @@ export async function readWork(store: Store, opts: { now: number; session: Sessi
         write_scopes: l.write_scopes ?? [],
         run: Date.parse(l.expires_at) > opts.now ? null : runOf.get(l.work_id) ?? null
       })),
-    readAt: new Date(opts.now).toISOString()
+    readAt: new Date(opts.now).toISOString(),
+    ...((): { capped?: Array<'claims' | 'leases'> } => {
+      const capped = [...(claimRows.length >= limit ? ['claims' as const] : []), ...(leaseRows.length >= limit ? ['leases' as const] : [])]
+      return capped.length ? { capped } : {}
+    })()
   }
 }
 /** A session as the screens read it: what the surface holds (launched and enrolled) and the terminals running. */
@@ -259,7 +265,8 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
     claims: snap.claims.map((c) => claimView(c, titles, consoles)),
     review: counts
   })
-  return { ...built, reviewUnread: review.error ? `the review queue could not be read: ${review.error.message}` : null, readAt: snap.readAt }
+  const capped = [...(snap.capped ?? []), ...(((projects.data ?? []) as unknown[]).length >= 500 ? ['projects' as const] : [])]
+  return { ...built, reviewUnread: review.error ? `the review queue could not be read: ${review.error.message}` : null, readAt: snap.readAt, ...(capped.length ? { capped } : {}) }
 }
 
 /** The home's one reading (operator request 2026-10-14): where work is, plus each session's own words (its last stage
@@ -299,8 +306,11 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   // The brief's three parts, so «В работе» can say a task's spec is not gathered (ADR-0176 §1).
   const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,brief_why,brief_expected,status', 'id', claimIds)
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
+  // CO-310: every read here that stopped at its limit is named, so «nobody» past it is never read as a fact.
+  const capped = [...new Set([...(where.capped ?? []), ...(projectRows.length >= 500 ? ['projects' as const] : []), ...(stageRows.length >= 500 ? ['stages' as const] : [])])]
   const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: 20 }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
-  return finishedError ? { ...home, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : home
+  const read = capped.length ? { ...home, capped } : home
+  return finishedError ? { ...read, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : read
 }
 
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */

@@ -159,3 +159,22 @@ describe('recoveryStart: one start per try of the runtime watch (ER-3)', () => {
     expect(n).toBe(2)
   })
 })
+
+describe('one deadline for the whole start (CO-311)', () => {
+  const STARTING_ = 'supabase_db_fabric container is not ready: starting'
+  it('gives each try what is left of the deadline and stops before a try the deadline would cut, saying the deadline', async () => {
+    let clock = 0
+    const limits: Array<number | null> = []
+    const plan = { attempts: 4, waitMs: 10_000, totalMs: 300_000 }
+    const sleep = async (ms: number) => { clock += ms }
+    await expect(startWithRetry(async (limit) => { limits.push(limit); clock += 140_000; throw new Error(STARTING_) }, { plan, sleep, now: () => clock }))
+      .rejects.toThrow(/did not become ready within 5 minutes[\s\S]*not ready: starting/)
+    expect(limits).toEqual([300_000, 150_000])
+  })
+  it('does not count the wait for Docker against it, and a plan without one keeps its old behaviour', async () => {
+    let clock = 0, n = 0
+    const sleep = async (ms: number) => { clock += ms }
+    await startWithRetry(async (limit) => { n++; expect(limit).toBeNull(); if (n < 3) throw new Error(STARTING_) }, { plan: { attempts: 4, waitMs: 10 }, sleep, now: () => clock })
+    expect(n).toBe(3)
+  })
+})

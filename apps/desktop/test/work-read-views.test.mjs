@@ -25,3 +25,21 @@ test("a claim's console is its session's: an enrolled agent's claim offers no «
   assert.equal(claimView(claimRow({ owner_session: 's2' }), new Map(), consoles).console, false)
   assert.equal(claimView(claimRow({ owner_session: 's9' }), new Map(), consoles).console, false, 'a session Fabric does not hold has no console')
 })
+
+test('readWork names the reads that stopped at their limit (CO-310)', async () => {
+  const { readWork } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const claim = (i) => ({ id: 'c' + i, project_id: 'p1', work_id: 't' + i, owner_session: 's' + i, agent: 'claude-code', came_in: 'launched', touches: [], claimed_at: '2026-10-23T00:00:00Z', expires_at: '2099-01-01T00:00:00Z', renewed_at: null })
+  const fake = (tables) => ({
+    select: (table) => {
+      const chain = { is: () => chain, eq: () => chain, in: () => chain, order: () => chain, limit: () => chain, not: () => chain,
+        then: (ok) => ok({ data: tables[table] ?? [], error: null }) }
+      return chain
+    },
+    selectIn: async () => ({ rows: [], failed: null })
+  })
+  const at = { now: Date.parse('2026-10-23T12:00:00Z'), session: () => null }
+  const full = await readWork(fake({ work_claims: [claim(1), claim(2)], leases: [] }), { ...at, limit: 2 })
+  assert.deepEqual(full.capped, ['claims'])
+  const whole = await readWork(fake({ work_claims: [claim(1)], leases: [] }), { ...at, limit: 2 })
+  assert.equal(whole.capped, undefined)
+})

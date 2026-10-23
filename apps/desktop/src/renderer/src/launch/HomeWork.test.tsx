@@ -3,6 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
+import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
 import { AgentsAtWork, HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './HomeWork'
 import type { HomeView } from '../../../shared/homeLive'
@@ -211,5 +212,17 @@ describe('after a failed read the lanes say the view is the last one (CO-313)', 
     expect(container.textContent).toContain(`as it was at ${time}`)
     rerender(<I18nProvider locale="en"><HomeWorkLanes reading={{ ...read, readAt: at }} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
     expect(container.textContent).not.toContain("as it was at")
+  })
+})
+
+describe('a read that stopped at its limit is said (CO-310)', () => {
+  it('names what was cut under the lanes and the agents; nothing when every read was whole', () => {
+    const { container, rerender } = show(<HomeWorkLanes reading={{ view: { ...view, capped: ['claims', 'stages'] }, problem: null }} onOpen={() => {}} onSession={() => {}} />)
+    const said = en['launch.home.work.capped'].replace('{what}', [en['launch.home.work.cappedWhat.claims'], en['launch.home.work.cappedWhat.stages']].join(', '))
+    expect(container.textContent).toContain(said)
+    rerender(<I18nProvider locale="en"><HomeAgents reading={{ view: { ...view, capped: ['claims', 'stages'] }, problem: null }} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
+    expect(container.textContent).toContain(said)
+    rerender(<I18nProvider locale="en"><HomeAgents reading={read} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
+    expect(container.textContent).not.toContain(en['launch.home.work.capped'].slice(0, 20))
   })
 })
