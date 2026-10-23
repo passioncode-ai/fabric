@@ -22,6 +22,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   should do is filed on that project's board first; on your own computer the asker may make the change itself when that
   project has no agent online; on an organization's machine, or while nobody has said, it never edits another project
   and the request waits (CO-404, SCN-177).
+- The project page shows how the work goes over eight weeks: tasks done (a bar per week), the median time from task to
+  done and in review, the share sent back from review, and the questions waiting with the oldest; read from the journal,
+  with nothing new tracked (OF-39).
 - The project page says what the project is: the goal, the plan (done and next) and the related projects the onboarding
   agent recorded, the business (editable), and the people who committed to its repositories in the last year, read from
   Git. A project with no profile yet offers «Познакомиться с проектом», which files the onboarding task and opens it

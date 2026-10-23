@@ -36,7 +36,7 @@ function mount({ closedCapped = false as boolean | 'unknown', board = boardWith(
   const query = vi.fn(boardQuery ?? (async () => board))
   const openSession = vi.fn(async () => {})
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
-    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, projects: { relations: vi.fn(async () => []), people: vi.fn(async () => ({ people: [], unread: [] })), setBusiness: vi.fn(), onboard: vi.fn() }, agents: { list: vi.fn(agentsList ?? (async () => agents)) }, work: { home: vi.fn(async () => homeView) },
+    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, projects: { analytics: vi.fn(async () => ({ donePerWeek: [0,0,0,0,0,0,0,0], leadHours: null, reviewHours: null, reopenedShare: null, questionsWaiting: 0, oldestQuestionAt: null, weeks: 8 })), relations: vi.fn(async () => []), people: vi.fn(async () => ({ people: [], unread: [] })), setBusiness: vi.fn(), onboard: vi.fn() }, agents: { list: vi.fn(agentsList ?? (async () => agents)) }, work: { home: vi.fn(async () => homeView) },
       windows: { openSession } }
   }))
   const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }

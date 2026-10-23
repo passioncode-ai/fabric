@@ -18,6 +18,7 @@ import { projectPath } from '../../../shared/projectPath'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
 import { ProjectProfile } from './ProjectProfile'
+import { ProjectAnalytics } from './ProjectAnalytics'
 
 export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -158,6 +159,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
           )}
           {/* W2 S4 (OF-24, OF-27): what the onboarding agent recorded, the business, the people from Git. */}
           <ProjectProfile project={project} feedMark={feedMark} onOpenTask={onOpenTask} />
+          {/* W2 S4b (OF-39, OF-26): how the work goes, from the journal. */}
+          <ProjectAnalytics projectId={project.id} feedMark={feedMark} />
           <section className="lp-panel" aria-labelledby="project-team-title">
             <div className="lp-panel-head">
               <h3 id="project-team-title">{t('launch.project.team')}</h3>

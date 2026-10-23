@@ -968,6 +968,8 @@ export interface FabricApi {
     onboard(projectId: string): Promise<{ taskId: string; filed: boolean }>
     /** W2 S4 (D-5, OF-27): the authors of the project's repositories, from Git, live. */
     people(projectId: string): Promise<GitPeopleView>
+    /** W2 S4b (OF-39): how work goes in this project over the last eight weeks, from the journal. */
+    analytics(projectId: string): Promise<import('./projectAnalytics').ProjectAnalytics>
     /**
      * M107 — a repository this estate watches has moved; the argument is its
      * path and the caller decides whether it cares (`shared/repoWatch.ts`).
@@ -1732,6 +1734,7 @@ export const IPC = {
   projectsSetBusiness: 'projects:set-business',
   projectsOnboard: 'projects:onboard',
   projectsPeople: 'projects:people',
+  projectsAnalytics: 'projects:analytics',
   /**
    * M107 — main→renderer, and a SEPARATE NAME on purpose. The watcher used to
    * broadcast on `projects:repo-states`, the same name `ipcMain.handle` answers

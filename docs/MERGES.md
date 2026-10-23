@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T18:18:00Z · `—` · agent/0312-w2-s4b → main · fast-forward
+- run: r-8642aee374a2
+- files: shared/projectAnalytics.ts (new) and its test; launch/ProjectAnalytics.tsx (new) and its test, launch/ProjectLaunch.tsx, launch.css; main/index.ts (projects.analytics); shared/types.ts, ipcWindowPolicy.ts, preload/api.ts; i18n; SCN-165; AGENTS.md; CHANGELOG; the backlog; the map
+- conflicts: none
+- summary: 0.3.12 wave 2, slice S4b: the project page shows how the work goes over eight weeks, from the journal (OF-39).
+
 ### 2026-10-23T18:00:00Z · `—` · agent/0312-w2-s4 → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/ProjectProfile.tsx (new) and its test, launch/ProjectLaunch.tsx; main/gitPeople.ts (new) and its test; main/index.ts (projects.relations, setBusiness, onboard, people); shared/types.ts, ipcWindowPolicy.ts, preload/api.ts; i18n; scripts/ci.sh; SCN-165; AGENTS.md; CHANGELOG; the backlog; the handoff; the map

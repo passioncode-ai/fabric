@@ -36,6 +36,7 @@ import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, 
 import { createProjectAdmission } from './projectAdmission.ts'
 import { onboardingTask, onboardingTaskId } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
+import { projectAnalytics } from '../shared/projectAnalytics.ts'
 import { folderProjectId, gitTopLevel } from './folderResolver.ts'
 import { readGitFacts } from './gitFacts.ts'
 import { promises as fsPromises } from 'node:fs'
@@ -1883,6 +1884,27 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.projectsPeople, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['people']>> => {
     const repos = await listRepos(projectId)
     return readGitPeople(projectId, repos.map((r) => r.path))
+  })
+  handle(IPC.projectsAnalytics, async (_e, projectId: string): Promise<Returns<FabricApi['projects']['analytics']>> => {
+    const now = Date.now()
+    const since = new Date(now - 8 * 7 * 86_400_000).toISOString()
+    const moves = await store.select('journal', 'payload,occurred_at').eq('type', 'task.moved@1').eq('project_id', projectId)
+      .gte('occurred_at', since).order('seq', { ascending: true }).limit(5000)
+    if (moves.error) throw new Error(`the task moves could not be read: ${moves.error.message}`)
+    const rows = (moves.data ?? []) as Array<{ payload: { task_id?: string; from?: string | null; to?: string }; occurred_at: string }>
+    const taskMoves = rows.filter((r) => typeof r.payload?.task_id === 'string' && typeof r.payload?.to === 'string')
+      .map((r) => ({ taskId: r.payload.task_id as string, from: r.payload.from ?? null, to: r.payload.to as string, at: r.occurred_at }))
+    const ids = [...new Set(taskMoves.map((m) => m.taskId))]
+    const tasks = await store.selectIn('project_tasks', 'id,started_at', 'id', ids)
+    if (tasks.failed) throw new Error(`the tasks could not be read: ${tasks.failed}`)
+    const questions = await store.select('questions', 'asked_at').eq('project_id', projectId).eq('status', 'open').limit(1000)
+    if (questions.error) throw new Error(`the questions could not be read: ${questions.error.message}`)
+    return projectAnalytics({
+      moves: taskMoves,
+      createdAt: new Map((tasks.rows as Array<{ id: string; started_at: string }>).map((r) => [r.id, r.started_at])),
+      openQuestions: ((questions.data ?? []) as Array<{ asked_at: string }>).map((q) => ({ askedAt: q.asked_at })),
+      now
+    })
   })
   // #endregion project-profile-ipc
 
