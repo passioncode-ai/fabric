@@ -152,3 +152,10 @@ became rows, ruled here with the same rules:
 | CO-410 | 0.4.0 | a marketplace agent connected to a project |
 
 CO-360 and CO-383 are resolved; the counts above keep the 69 rows the triage started with.
+
+## Wave 2's spec (2026-10-23)
+
+[The spec](../specs/2026-10-23-0312-w2-project-onboarding.md) orders wave 2 in six slices and decides its open
+questions: one schema step in 0.3.12 (migration 123, a project's profile), the business wall on a name the profile
+carries, people read from Git and never stored. It narrows CO-401: OF-40 and OF-37's display pass with a model move to
+0.4.0.

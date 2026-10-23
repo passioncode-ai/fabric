@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T16:06:00Z · `—` · agent/0312-w2-spec → main · fast-forward
+- run: r-8642aee374a2
+- files: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md (new); CO-401 narrowed; the triage's note; the backlog's Now line; the map
+- conflicts: none
+- summary: Wave 2 of 0.3.12 gathered as a spec: six slices, nine decisions; OF-40 and OF-37's model display pass move to 0.4.0.
+
 ### 2026-10-23T16:02:00Z · `—` · agent/0312-asks → main · fast-forward
 - run: r-8642aee374a2
 - files: the carry-over register (CO-406 to CO-410 new, CO-360 and CO-383 resolved); the backlog (lanes, the open count); the triage's addendum; the map
