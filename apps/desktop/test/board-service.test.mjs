@@ -676,7 +676,7 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
     assert.deepEqual(joined.find((g) => g.business === 'PhoneCo').projects, ['phone-bot', 'phone-site'])
   })
 
-  test('a new thread joining two businesses is refused before the door; one business, an unknown one or an existing thread goes through', async () => {
+  test('a new thread joining two businesses is refused before the door; one business or an unknown one goes through', async () => {
     const { rpc, calls } = fake({ board_submit: stored })
     const board = createBoard({ rpc, projectFacts: async () => facts })
     const refused = await board.submit(caller, thread([P(21), P(22)]))
@@ -685,8 +685,48 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
     assert.match(refused.error.message, /Appvillis \(messenger\)/)
     assert.equal(calls.length, 0, 'nothing reached the board')
     assert.equal((await board.submit(caller, thread([P(21), P(23)]))).ok, true)
-    assert.equal((await board.submit(caller, { ...thread([]), idempotency: { epoch: 1, key: 'wall-000002' }, thread: { id: P(92) }, kind: 'message' })).ok, true)
+    assert.equal(calls.filter((c) => c.fn === 'board_submit').length, 1)
+  })
+
+  // DO-9 (W2-5): a thread opened before the wall (CO-368's own case) already joins two businesses; nothing more is
+  // posted to it, whatever the kind, and a participant's reply into it is refused the same way.
+  const existing = { [P(92)]: [caller.projectId, P(21), P(22)], [P(93)]: [caller.projectId, P(21), P(23)] }
+  const post = (threadId, kind, key) => ({ idempotency: { epoch: 1, key }, thread: { id: threadId }, kind, body: { text: 'hello' } })
+  const threadParticipants = async (_estate, reader, threadId) => { assert.equal(reader, caller.projectId); return existing[threadId] ?? null }
+
+  test('a message or an announcement into an existing thread joining two businesses is refused before the door', async () => {
+    const { rpc, calls } = fake({ board_submit: stored })
+    const board = createBoard({ rpc, projectFacts: async () => facts, threadParticipants })
+    for (const [kind, key] of [['message', 'wall-000011'], ['announcement', 'wall-000012']]) {
+      const refused = await board.submit(caller, post(P(92), kind, key))
+      assert.equal(refused.error?.code, 'not_authorized', kind)
+      assert.match(refused.error.message, /This thread joins Projects of different businesses/)
+      assert.match(refused.error.message, /Appvillis \(messenger\)/)
+    }
+    assert.equal(calls.length, 0, 'nothing reached the board')
+  })
+
+  test('a post into an existing thread of one business goes through, and so does one whose participants cannot be read', async () => {
+    const { rpc, calls } = fake({ board_submit: stored })
+    const board = createBoard({ rpc, projectFacts: async () => facts, threadParticipants })
+    assert.equal((await board.submit(caller, post(P(93), 'announcement', 'wall-000013'))).ok, true)
+    const unreadable = createBoard({ rpc, projectFacts: async () => facts, threadParticipants: async () => { throw new Error('board unreadable') } })
+    assert.equal((await unreadable.submit(caller, post(P(92), 'message', 'wall-000014'))).ok, true)
     assert.equal(calls.filter((c) => c.fn === 'board_submit').length, 2)
+  })
+
+  test('a participant\'s reply into a thread joining two businesses is refused; into one business it goes through', async () => {
+    const message = (thread) => ({ data: { ok: true, message: { id: P(95), thread, kind: 'message' } }, error: null })
+    const replied = { data: { ok: true, repeated: false, message: P(96), thread: P(93), at: '2026-10-23T00:00:00.000Z' }, error: null }
+    const reply = (replyTo, key) => ({ idempotency: { epoch: 1, key }, replyTo, body: { text: 'hello' } })
+    const walled = fake({ board_get: message(P(92)), board_reply: replied })
+    const refused = await createBoard({ rpc: walled.rpc, projectFacts: async () => facts, threadParticipants }).reply(caller, reply(P(95), 'wall-000015'))
+    assert.equal(refused.error?.code, 'not_authorized')
+    assert.match(refused.error.message, /different businesses/)
+    assert.equal(walled.calls.filter((c) => c.fn === 'board_reply').length, 0)
+    const open = fake({ board_get: message(P(93)), board_reply: replied })
+    assert.equal((await createBoard({ rpc: open.rpc, projectFacts: async () => facts, threadParticipants }).reply(caller, reply(P(95), 'wall-000016'))).ok, true)
+    assert.equal(open.calls.filter((c) => c.fn === 'board_reply').length, 1)
   })
 
   test('a Project read that fails walls nothing and the message goes through', async () => {

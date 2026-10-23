@@ -260,6 +260,12 @@ export interface BoardDeps {
    * no wall and no renaming, never a refusal, so the board keeps working when the projects cannot be read.
    */
   projectFacts?: (estateId: string) => Promise<ProjectFact[] | null>
+  /**
+   * DO-9 (W2-5): the participants of an existing thread `reader` takes part in, for the wall on a post into it (a message,
+   * a request, a finding or an announcement, or a participant's reply). Null when it cannot be read or the reader is not
+   * in it: no wall (the board itself refuses a thread the reader is not in), and the miss is logged.
+   */
+  threadParticipants?: (estateId: string, reader: string, threadId: string) => Promise<string[] | null>
 }
 
 /** One Project as the board's wall and directory need it. */
@@ -389,6 +395,47 @@ export function createBoard(deps: BoardDeps) {
     return res.data as Record<string, unknown>
   }
 
+  // #region business-wall-check — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+  /** The participants of an existing thread, for the wall; null (no wall) when there is no reader for them or it fails. */
+  const participantsOf = async (caller: BoardCaller, threadId: string): Promise<string[] | null> => {
+    if (!deps.projectFacts || !deps.threadParticipants) return null
+    try {
+      const found = await deps.threadParticipants(caller.estateId, caller.projectId, threadId)
+      if (found === null) ops.failed('board.thread-participants-read', new Error('no participants read'), { note: 'the wall between businesses is not checked for this post' })
+      return found
+    } catch (e) {
+      ops.failed('board.thread-participants-read', e, { note: 'the wall between businesses is not checked for this post' })
+      return null
+    }
+  }
+  /** The thread a message is in, read as this caller (a reply's), for the wall; null when it cannot be read. */
+  const threadOfMessage = async (caller: BoardCaller, message: string): Promise<string | null> => {
+    if (!deps.projectFacts || !deps.threadParticipants) return null
+    try {
+      const { data, error } = await deps.rpc('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message })
+      const m = (data as { ok?: unknown; message?: { thread?: unknown } } | null)
+      if (!error && m?.ok === true && typeof m.message?.thread === 'string') return m.message.thread
+      // Silence is right: a message this caller cannot read is refused by board_reply itself, which says so.
+      return null
+    } catch (e) {
+      ops.failed('board.thread-participants-read', e, { note: 'the thread of the message replied to could not be read; the wall is not checked for this reply' })
+      return null
+    }
+  }
+  /** The refusal when `participants` join two businesses, else null. */
+  const businessWall = async (caller: BoardCaller, participants: string[] | null, thread: 'new' | 'existing'): Promise<Refusal | null> => {
+    if (!participants || !deps.projectFacts) return null
+    let facts: ProjectFact[] | null = null
+    try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'the wall between businesses is not checked for this submit' }) }
+    const joined = facts ? businessesJoined([caller.projectId, ...participants], facts) : []
+    if (joined.length === 0) return null
+    const named = joined.map((g) => `${g.business} (${g.projects.join(', ')})`).join('; ')
+    return thread === 'new'
+      ? refusal('not_authorized', `This thread would join Projects of different businesses, which the operator keeps apart: ${named}. Write to each business in its own thread.`)
+      : refusal('not_authorized', `This thread joins Projects of different businesses, which the operator keeps apart: ${named}. Nothing more is posted to it; write to each business in its own thread.`)
+  }
+  // #endregion business-wall-check
+
   /** A write's answer, passed on only as the contract's receipt (or the board's own refusal). */
   const receipt = (fn: string, data: Record<string, unknown> | Refusal, kind: Kind = 'write'): Record<string, unknown> | Refusal => {
     if (isRefusal(data)) return data
@@ -489,15 +536,13 @@ export function createBoard(deps: BoardDeps) {
       // is no board id is passed as given — the board refuses it by its shape, without a cast — and a board id of
       // any case is sent lower-cased.
       if (parsed.data.replyTo !== undefined) parsed.data.replyTo = boardId(parsed.data.replyTo) ?? parsed.data.replyTo
-      // CO-368: a new thread never joins Projects of two businesses the operator keeps apart. Checked before the door, so
-      // nothing is stored; a read of the Projects that fails walls nothing (the board keeps working) and is logged.
-      if ('new' in parsed.data.thread && deps.projectFacts) {
-        let facts: ProjectFact[] | null = null
-        try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'the wall between businesses is not checked for this submit' }) }
-        const joined = facts ? businessesJoined([caller.projectId, ...parsed.data.thread.new.participants], facts) : []
-        if (joined.length > 0)
-          return refusal('not_authorized', `This thread would join Projects of different businesses, which the operator keeps apart: ${joined.map((g) => `${g.business} (${g.projects.join(', ')})`).join('; ')}. Write to each business in its own thread.`)
-      }
+      // CO-368, W2-5 (DO-9): no post joins Projects of two businesses the operator keeps apart: a new thread, and a post
+      // into an existing thread (an announcement included) whose participants already carry two. Checked before the door,
+      // so nothing is stored; a read that fails walls nothing (the board keeps working) and is logged.
+      const walled = 'new' in parsed.data.thread
+        ? await businessWall(caller, [caller.projectId, ...parsed.data.thread.new.participants], 'new')
+        : await businessWall(caller, await participantsOf(caller, parsed.data.thread.id), 'existing')
+      if (walled) return walled
       const digest = idempotencyDigest('com.submit', parsed.data)
       if (typeof digest !== 'string') return digest
       const stored = receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
@@ -540,6 +585,12 @@ export function createBoard(deps: BoardDeps) {
       const replyTo = boardId(parsed.data.replyTo)
       if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
       parsed.data.replyTo = replyTo
+      // DO-9 (W2-5): a reply posts into the thread of the message it answers; the same wall as any post there.
+      const replyThread = await threadOfMessage(caller, replyTo)
+      if (replyThread) {
+        const walled = await businessWall(caller, await participantsOf(caller, replyThread), 'existing')
+        if (walled) return walled
+      }
       const digest = idempotencyDigest('com.reply', parsed.data)
       if (typeof digest !== 'string') return digest
       return receipt('board_reply', await call('board_reply', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_reply: parsed.data, p_digest: digest }, 'write'))
