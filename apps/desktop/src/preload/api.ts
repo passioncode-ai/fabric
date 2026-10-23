@@ -191,9 +191,6 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       waiting: () => ipc.invoke(IPC.commsWaiting),
       openArtifact: (url) => ipc.invoke(IPC.commsOpenArtifact, url)
     },
-    quota: {
-      read: () => ipc.invoke(IPC.quotaRead)
-    },
     transcripts: {
       list: (projectId) => ipc.invoke(IPC.transcriptsList, projectId),
       get: (sessionId) => ipc.invoke(IPC.transcriptsGet, sessionId),

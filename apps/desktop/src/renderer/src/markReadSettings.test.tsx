@@ -42,7 +42,6 @@ function stub(loaded: AppSettings) {
     memory: { backends: async () => [], overview: async () => null },
     estate: { summary: async () => null, profile: async () => null },
     attention: { list: async () => whole([]) },
-    quota: { read: async () => null },
     favourites: { list: async () => [] },
     board: { query: async () => ({ rows: [], total: 0 }) },
     workspace: { state: async () => ({ path: '/mirror', git: 'yes' }) },

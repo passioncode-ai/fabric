@@ -146,7 +146,7 @@ if (arg('--prepare')) {
   add(IPC.settingsRead, () => settings.read().value)
   add(IPC.metaInfo, () => ({ estateName: 'AD02 isolated fixture', filePath: null, sessionId: null }))
   for (const key of ['projectsList', 'terminalList', 'terminalOptions', 'terminalMemoryBackends', 'feedReplay', 'favouritesList']) add(IPC[key], () => [])
-  for (const key of ['estateSummary', 'memoryOverview', 'quotaRead']) add(IPC[key], () => null)
+  for (const key of ['estateSummary', 'memoryOverview']) add(IPC[key], () => null)
   add(IPC.gatewayOffer, () => ({ reachable: false, servers: [] }))
   add(IPC.workspaceState, () => ({ path: null, git: 'declined' }))
   add(IPC.boardQuery, () => ({ rows: [], total: 0 }))

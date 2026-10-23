@@ -338,7 +338,7 @@ export function createFixtureHost(candidate, { alive = () => true } = {}) {
   }, config.createDelayMs)
   add('projectsList', args => { noArgs(args); return [...records.values()] })
   for (const key of ['terminalList', 'feedReplay', 'favouritesList']) add(key, () => [])
-  for (const key of ['estateSummary', 'memoryOverview', 'quotaRead']) add(key, () => null)
+  for (const key of ['estateSummary', 'memoryOverview']) add(key, () => null)
   add('personaRead', args => { noArgs(args); return { persona: { seed: 731, style: 'orbit' }, chosen: false } })
   add('favouritesOrder', args => { noArgs(args); return [] })
   add('ceoStatus', args => { noArgs(args); return { active: false, reason: 'private_recovery_unavailable' } })

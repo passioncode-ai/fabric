@@ -993,11 +993,6 @@ export interface FabricApi {
      */
     onRepoChanged(cb: (repoPath: string) => void): () => void
   }
-  /** M83 — account quota. Never null: a read that produced nothing is a
-   *  reading whose `problem` says why (release review 2026-10-03). */
-  quota: {
-    read(): Promise<Quota>
-  }
   transcripts: {
     list(projectId: string): Promise<SessionTranscript[]>
     get(sessionId: string): Promise<SessionTranscript | null>
@@ -1769,7 +1764,6 @@ export const IPC = {
   linksOpen: 'links:open',
   /** The page is listening: what opened before it did (SCN-142, a cold start). */
   linksPending: 'links:pending',
-  quotaRead: 'quota:read',
   runsStatus: 'runs:status',
   memoryPreview: 'memory:preview',
   memoryRetro: 'memory:retro',

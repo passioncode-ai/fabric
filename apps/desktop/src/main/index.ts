@@ -1943,8 +1943,6 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   // #endregion project-profile-ipc
 
-  handle(IPC.quotaRead, (): Promise<Returns<FabricApi['quota']['read']>> => quota.read())
-
   handle(IPC.transcriptsList, async (_e, projectId: string): Promise<Returns<FabricApi['transcripts']['list']>> => {
     const { data, error } = await store
       .select('session_transcripts', 'session_id,option_id,annotation,excerpt,bytes,lines,truncated,started_at,ended_at,exit_code,captured_at,ending_provenance')

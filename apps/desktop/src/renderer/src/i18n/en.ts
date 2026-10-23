@@ -205,20 +205,6 @@ export const en = {
   'transcripts.truncated': 'truncated — the beginning was kept',
   'transcripts.loading': 'Reading…',
   'journal.markRead': 'Mark {count} as read',
-  // Six reasons a reading is partial, said as themselves rather than as age
-  // (AX-14). And the absence of a look, which is not a reading at all.
-  'estate.quotaUnread': 'Reading the account’s windows…',
-  'estate.quotaUnavailable': 'The quota could not be read. This says nothing about the account itself.',
-  'estate.quotaNoCredential': 'No credential to read it with — Claude Code is not signed in on this machine.',
-  'estate.quotaCredentialRefused': 'The Keychain did not hand over Claude Code\'s credential — it is locked or access was refused. Fabric asks again once the screen is unlocked or Fabric restarts.',
-  'estate.quotaUnreachable': 'The service could not be reached, so these numbers are the last ones read {age} ago.',
-  'estate.quotaRejected': 'The service refused the request, so these numbers are the last ones read {age} ago.',
-  'estate.quotaEmpty': 'The service answered with nothing, so these numbers are the last ones read {age} ago.',
-  'estate.quotaThrottled': 'Rate-limited for asking — these numbers are the last ones read {age} ago.',
-  'estate.quotaUnreachableUnread': 'The service could not be reached, and no reading has come back yet. This says nothing about whether Claude Code is signed in.',
-  'estate.quotaRejectedUnread': 'The service refused the request, and no reading has come back yet. This says nothing about whether Claude Code is signed in.',
-  'estate.quotaEmptyUnread': 'The service answered with nothing, so there are no numbers to show yet.',
-  'estate.quotaThrottledUnread': 'Rate-limited before the first reading came back, so there are no numbers yet.',
   // Four evidence answers, four acts — and `null` is one of them (AX-11).
   'retro.locateSource': 'Where is it?',
   'retro.retrySource': 'Try again',
@@ -273,16 +259,6 @@ export const en = {
   // M56 via M113 — measured since 2026-09-01 and rendered nowhere until now.
   'status.lastCommit': 'last commit {age} ago',
   'status.noCommits': 'no commits yet',
-  // M83 via M113 — the quota was on the PROJECT page and the home showed none,
-  // though "can I start a big job now" is an estate question, not a project one.
-  'estate.quotaTitle': 'Account quota',
-  'estate.quotaLede': 'How much of the subscription’s windows is spent, and when each resets. This is the one usage number that exists — there is no per-project cost (CO-096).',
-  'estate.quota5h': '5-hour window',
-  'estate.quota7d': '7-day window',
-  'estate.quotaByModel': 'Per model, 7-day',
-  'estate.quotaResets': 'resets in {time}',
-  'estate.quotaStale': 'last read {age} ago',
-  'estate.quotaNone': 'No reading came back, so there is nothing to show. This says nothing about the account itself.',
   // M106 — what a failure is CALLED, in our words, with the machine's own
   // words kept beside it rather than instead of it.
   'error.title': 'Something did not work',
