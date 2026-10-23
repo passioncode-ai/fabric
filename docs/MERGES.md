@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s6-screens → main · fast-forward
+- run: r-8642aee374a2
+- files: docs/ux/screens.md (SCR-85, SCR-41, SCR-32, SCR-81, SCR-87, SCR-89), docs/ux/flows.md (FLW-99, FLW-100), docs/ux/unmeasured-flows.txt, docs/ux/scenarios.md (SCN-038's index, SCN-166, SCN-173, SCN-174 traces), launch/BoardScreen.tsx and its test, i18n; CO-400 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: screens and flows say what ships; the Board's names and picked-row focus (CO-400).
+
 ### __LANDED__ · `—` · agent/0312-s6-agent → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/AgentPage.tsx and its test (new), launch/HomeWork.tsx (AgentsAtWork selects, HomeAgents onSelect, Doing exported), launch/HistoryScreen.tsx (dayLabel exported), App.tsx, launch.css, i18n; the W2 spec (W2-10); SCN-166; CO-393 resolved; the backlog; CHANGELOG; the map

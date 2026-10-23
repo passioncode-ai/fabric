@@ -3037,3 +3037,57 @@ flowchart TD
   | SCR-87 Агенты | success |
 - **Scenarios:** SCN-171, SCN-127, SCN-128, SCN-129, SCN-136
 - **Implementation tasks:** 0.3.7 wave 4, absorbing the onboarding plan's waves 2–3
+
+### FLW-99: Follow the work on the Board, from a card to its task
+- **Traces:** SCN-173 (ST-037; JTBD-02)
+- **Goal:** the person sees every task in its stage and opens the one they want.
+- **Entry points:** «Доска» from Главная («Кто что делает» or «Открыть доску»); a project page's kanban strip; «Нужны вы» for the person's part.
+- **Success exit:** the task's page is open (FLW-100), with the way back to the Board.
+- **Task analysis:** 1. Read the four columns. 2. Narrow to a project. 3. Press a card.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  B[Screen: SCR-41 Доска] --> R{Board read?}
+  R -->|no| R_err[Доска не прочитана · Повторить]
+  R_err -->|Повторить| R
+  R -->|yes| K[Очередь · В работе · На проверке · Готово]
+  K -->|project filter| K
+  K -->|a card| T[Screen: SCR-32 the task's page]
+  T -->|Назад| K
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-41 Ranked Board and question detail | loading, empty, success, partial or stale |
+  | SCR-32 Task page | success |
+- **Scenarios:** SCN-173
+- **Implementation tasks:** 0.3.11 (the kanban, the project filter); the agent filter, «Отменено» and remembered filters are CO-401
+
+### FLW-100: Open a task and read what it is for
+- **Traces:** SCN-174 (ST-037; JTBD-02)
+- **Goal:** the person reads what the task is, why it exists and what will be true when it is done, then goes back where they were.
+- **Entry points:** a card on the Board; a lane row on Главная; a project page's strip; an agent's page («Открыть его задачу»).
+- **Success exit:** the person knows the task's purpose and state, and is back where they came from with the scroll kept.
+- **Task analysis:** 1. Read the brief. 2. Read its state and who works on it. 3. Go back.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  F[A card, a lane row or an agent's page] --> T[Screen: SCR-32 Task page]
+  T --> R{Task read?}
+  R -->|no| R_err[Задача не прочитана · Повторить]
+  R -->|yes| BR{Brief written?}
+  BR -->|no| E[Brief empty: what to write, with the agent's draft if any]
+  BR -->|yes| D[Для чего эта задача: что, почему, что будет верно]
+  D --> S[State, who works on it, since when]
+  S -->|Назад| F
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-32 Task page | success, brief with two writers |
+- **Scenarios:** SCN-174
+- **Implementation tasks:** 0.3.11 (the template and the way back), 0.3.12 S4c (the scroll kept on return); the move history and blockers are CO-401

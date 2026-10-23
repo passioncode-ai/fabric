@@ -47,7 +47,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-035 | Read what an agent says it is doing | Agents | P-01 | ST-026 | draft | 2026-09-09 BLOCKED |
 | SCN-036 | Read what a finished session actually did | Agents | P-01 | ST-026 | draft | 2026-09-09 PARTIAL |
 | SCN-037 | See who remembered something, and what memory could not answer | Memory | P-01 | ST-007 | draft | 2026-09-09 PARTIAL |
-| SCN-038 | Evaluate the shift from vibe coding to passion coding | Public website | P-05 | ST-027, FLW-20 | implemented | 2026-09-09 BLOCKED |
+| SCN-038 | Evaluate the shift from vibe coding to passion coding | Public website | P-05 | ST-027, FLW-20 | draft | 2026-09-09 BLOCKED |
 | SCN-039 | See what this project remembers, and what it could not answer | Memory | P-01 | ST-028, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-040 | Rejoin a project by reading its decisions | Memory | P-01 | ST-029, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-041 | Work a board the agents keep current | Tasks | P-01 | ST-030, FLW-22 | draft | 2026-10-08 PARTIAL |
@@ -176,8 +176,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-170 | Set how Fabric behaves in Настройки | Settings | P-01 | FLW-40, SCR-89 | implemented | unobserved |
 | SCN-171 | Start something new from «Создать» — a project, an agent, or a projects folder | Start paths | P-01 | ST-001, ST-050, FLW-98, SCR-90 | draft | unobserved |
 | SCN-172 | Keep several consoles open as tabs along the top and switch between them | Shell | P-01 | ST-032, ST-037, FLW-93, FLW-96, SCR-84, SCR-87 | implemented | unobserved |
-| SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, SCR-41 | draft | unobserved |
-| SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, SCR-32 | draft | unobserved |
+| SCN-173 | See all the work as a board and follow a task through its stages | Board | P-01 | ST-037, FLW-99, SCR-41 | draft | unobserved |
+| SCN-174 | Open a task and read what it is, why, and what will be ready | Task | P-01 | ST-037, FLW-100, SCR-32 | draft | unobserved |
 | SCN-175 | See how a project is connected to the others on a graph | Projects | P-01 | ST-037, SCR-40 | implemented | unobserved |
 | SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | implemented | unobserved |
 | SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | implemented | unobserved |
@@ -4133,7 +4133,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Amended 2026-10-23 ([the walk of 2026-10-22/23](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)):** the list must load or say why it did not (OF-30: the operator saw «выберите агента слева» with nothing to choose); choosing an agent opens its page beside the list, the page being its flow: the task it holds, what it did, results, then its history.
 - **Status:** implemented in part (0.3.12 S6, CO-393): every agent at work with its page beside the list (the task it holds, what it is doing, its results, what it did by day) and its console, project and task one press away. Not built: the two groups of step 1 with each coding agent's readiness (SCN-160 lists them in Settings), «Что получает агент» (step 3) and «Создать агента» at the top
 - **Amended 2026-10-20 (OF-09):** until SCR-87 is built, the agent picked in Агенты shows its flow newest first: each act in words (a task it moved, a decision it recorded, its stage, its session opened) with who wrote it, read also by the agent as the event's actor; «Открыть сессию» opens its console beside it.
-- **Coverage:** none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)
+- **Coverage:** `apps/desktop/src/renderer/src/launch/AgentPage.tsx` and `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork` (0.3.12, see the end of this line); before: waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)
 - **Product:** unobserved
 
 ### SCN-167: A coding agent opened outside Fabric is let in, and the person disconnects it with one press
@@ -4270,7 +4270,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 ### SCN-173: See all the work as a board and follow a task through its stages
 - **Persona:** P-01
 - **Feature:** Board
-- **Traces:** ST-037, SCR-41 (JTBD-02)
+- **Traces:** ST-037, FLW-99, SCR-41 (JTBD-02)
 - **Entry point:** «Кто что делает» on Главная; «Доска» on a project's page
 - **Preconditions:** none; there may be no task
 - **Steps:**
@@ -4293,7 +4293,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 ### SCN-174: Open a task and read what it is, why, and what will be ready
 - **Persona:** P-01
 - **Feature:** Task
-- **Traces:** ST-037, SCR-32 (JTBD-02)
+- **Traces:** ST-037, FLW-100, SCR-32 (JTBD-02)
 - **Entry point:** a card on the Board screen; a task on a project's page; a question that names a task
 - **Preconditions:** the task exists in a project the person can see
 - **Steps:**

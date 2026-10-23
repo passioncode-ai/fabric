@@ -355,6 +355,15 @@ describe('the board screen itself (SCR-41)', () => {
     await waitFor(() => expect(document.activeElement?.id).toBe('topic-title'))
   })
 
+  it('a row the person picks brings its detail into focus too; the switch and the list carry their own names (CO-400)', async () => {
+    mount()
+    await openRow('Which context goes to the next agent?')
+    await waitFor(() => expect(document.activeElement?.id).toBe('topic-title'))
+    expect(screen.getByRole('group', { name: en['launch.board.modes'] })).toBeTruthy()
+    expect(screen.getByRole('region', { name: en['launch.board.list'] })).toBeTruthy()
+    expect(screen.queryAllByRole('region', { name: en['launch.board.title'] })).toHaveLength(0)
+  })
+
   it('answers an authored question from its details, through the one answer writer, against the revision shown', async () => {
     const { answer } = mount()
     await openRow('Which context goes to the next agent?')

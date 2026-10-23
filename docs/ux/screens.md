@@ -45,7 +45,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-29 | Public landing page | FLW-20 | none — repository-first | designed | static site |
 | SCR-30 | Estate home | FLW-21, FLW-32, FLW-33 | none — text-only | built | `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` |
 | SCR-31 | Project page | FLW-21, FLW-22, FLW-23, FLW-24, FLW-32, FLW-33 | none — text-only | built | `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` |
-| SCR-32 | Task page | FLW-22, FLW-23, FLW-32, FLW-33, FLW-95 | none — text-only | built | `apps/desktop/src/renderer/src/TaskPage.tsx` |
+| SCR-32 | Task page | FLW-22, FLW-23, FLW-32, FLW-33, FLW-95, FLW-100 | none — text-only | built | `apps/desktop/src/renderer/src/TaskPage.tsx` |
 | SCR-33 | Decision history (target; legacy preview remains) | FLW-21, FLW-26, FLW-28 | none — text-only | designed | none yet |
 | SCR-34 | Project memory | FLW-21, FLW-22, FLW-31, FLW-34, FLW-35, FLW-36 | none — text-only | built | `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx` |
 | SCR-35 | Project harness | FLW-24 | none — text-only | built | `apps/desktop/src/renderer/src/HarnessSection.tsx` |
@@ -54,7 +54,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-38 | Harness tool | FLW-24 | none — text-only | designed | none yet |
 | SCR-39 | Estate agents | FLW-21, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/EstateAgents.tsx` |
 | SCR-40 | Graph explorer family | FLW-23, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/launch/PlanScreen.tsx` |
-| SCR-41 | Ranked Board and question detail | FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75 | none — text-only | built | `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` |
+| SCR-41 | Ranked Board and question detail | FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75, FLW-99 | none — text-only | built | `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` |
 | SCR-42 | Inbox | FLW-21, FLW-29 | none — text-only | retired | none yet |
 | SCR-43 | Cycles | FLW-30 | none — text-only | designed | none yet |
 | SCR-44 | Manager lifecycle | FLW-34 | none — text-only | designed | none yet |
@@ -98,11 +98,11 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-82 | Pause sheet | FLW-91 | none — text spec | designed | none yet |
 | SCR-83 | Project directory | FLW-92 | none — text spec | designed | none yet |
 | SCR-84 | Rail | FLW-93 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` |
-| SCR-85 | Главная | FLW-93, FLW-94 | none — interactive HTML | designed | none yet |
+| SCR-85 | Главная | FLW-93, FLW-94 | none — interactive HTML | built | apps/desktop/src/renderer/src/EstateHome.tsx |
 | SCR-86 | Проект | FLW-93, FLW-94, FLW-95, FLW-98 | none — interactive HTML | designed | none yet |
-| SCR-87 | Агенты | FLW-93, FLW-95, FLW-96, FLW-98 | none — interactive HTML | designed | none yet |
+| SCR-87 | Агенты | FLW-93, FLW-95, FLW-96, FLW-98 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/HomeWork.tsx |
 | SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` |
-| SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | designed | none yet |
+| SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/SettingsScreen.tsx |
 | SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | built | `apps/desktop/src/renderer/src/start/StartPaths.tsx` |
 
 ## Design system
@@ -735,7 +735,8 @@ different destination under the same name.
 - **Addressable subviews (target only):** SCR-03 overview is an intent of this same project surface. Deep links carry exact authorised project/entity/return context; a missing or denied source never falls back to another project.
 
 ### SCR-32: Task page
-- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81; FLW-95 (0.3.7 target)
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the page follows the task template (SCN-174): back to the place it was opened from at the top left above the title; «Для чего эта задача» with «Что должно произойти», «Почему», «Что будет верно, когда задача выполнена»; its state, who works on it and since when. The move history and blockers are not built (CO-401). Flow: FLW-100.
+- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81; FLW-95 (0.3.7 target); FLW-100 (0.3.12)
 - **Purpose:** one task's own page — the working context of that task, filled in by the agents working it and editable by the operator. Not a second documentation: knowledge lives in `docs/` and in project memory, and this page links to it.
 - **Elements:** title with type, section and lease; brief (what / why / expected result) with its authorship line; append-only notes with a promote-to-memory action; fields panel; related tasks; resources as links only; transition history; receipts for external effects; the manager chat scoped to this task.
 - **States:**
@@ -750,7 +751,7 @@ different destination under the same name.
   | edited | the operator overrides an agent's text | none | the operator's version stands; the agent's stays readable |
   | promoted | a note becomes a project fact | none | the note is marked promoted and the page keeps a link, never a copy |
   | closing | the operator ends the task from its own page | none | close, return to backlog and cancel are here; CANCEL REQUIRES A REASON, because a task that vanished without one is a lost decision |
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12)
 - **Scenarios:** SCN-045, SCN-060, SCN-067
 - **Resources:** `project_tasks`, `memory_facts`, `effect_intents`, `session_transcripts`
 - **Status:** designed
@@ -926,8 +927,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Status:** designed
 
 ### SCR-41: Ranked Board and question detail
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the Board screen is a kanban (SCN-173): four columns in the enforced order, «Очередь», «В работе», «На проверке», «Готово», with the project filter; a card opens the task's page (SCR-32). The ranked list of what waits for the person is the same screen's second mode, reached from «Нужны вы» on Главная, and lists only the person's part (CO-391). Code: `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`. Flow: FLW-99.
 - **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by «Ждёт вас» on Главная SCR-85 and «Вопросы» and «Доска» on Проект SCR-86 — the Board is no longer a place of its own, and its review ritual and access-request items go (plan §1, §5; ADR-0160 §3). It stays built until wave 3.
-- **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75
+- **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75; FLW-99 (0.3.12)
 - **Purpose:** One scoped union of unresolved authored questions and derived obligations, separate from task Kanban; one source for home top5/project top10/full/counters.
 - **Elements:** Scope/filter/grouping, stable rank with component disclosure, canonical selected item, owner/age/source/blockers, options with consequences, answer draft, commit receipt and continuation receipt separately, full-list cursor. Grants route to SCR-24 authority detail where needed.
 - **States:**
@@ -946,7 +948,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   | conflict | Another answer or revision won | none | Show current receipt and preserve unsent draft for copying; no overwrite. |
   | partial or stale | Union source failed or aged | none | Retain known rows and coverage; do not silently re-rank while interacting. |
   | resolved history | Resolved item reached by link | none | Open immutable receipt with return, not fake missing/open item. |
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`
 - **Scenarios:** SCN-050, SCN-051, SCN-053, SCN-055, SCN-058
 - **Resources:** QuestionService, BoardService, AnswerService, ContinuationService target contracts; questions/question_blocks, current obligations, command and decision receipts.
 - **Status:** designed
@@ -2059,6 +2061,7 @@ frames; the visual layer is the recorded style pack's tokens.
 - **Implementation tasks:** 0.4.0 REQ-42, REQ-16 (wave 5)
 
 ### SCR-81: Project comms
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** Comms reads as a feed, newest first (OF-29): each post with its project, its kind (просьба, ответ, находка, объявление), a short summary and its thread, with a focus filter (one project, requests only, waiting for an answer); it opens from Настройки → Ещё. Code: `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`. Scenario: SCN-143.
 - **0.3.9 (2026-10-21, [the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#board)):** a request's state may be «получен ответ» / "answered", caused by a reply from the asked project («ответом проекта, которого спросили»).
 - **Used by:** FLW-83
 - **Purpose:** The project board's threads and messages, read by the operator — what projects tell each other, with each request's state and effect as two separate facts ([ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3: the local operator's read is sanctioned; COM-06/COM-07).
@@ -2200,6 +2203,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Implementation tasks:** 0.3.7 wave 3
 
 ### SCR-85: Главная
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** «Ждёт вас» and «Сейчас» are retired as named here. In order: the greeting (the part of the day and how many questions wait for the person) with the numbers strip; «Нужны вы», only what the person resolves (questions, access requests, refusals), each row naming who asks and opening in place, a question answered there with its options as buttons; «Где остановились»; «Кто что делает» in two lanes, «В работе» and «Закончили», a row opening its task; «Агенты в работе», a box that scrolls on its own, active agents first, each by the task it holds, with «Открыть переписку»; the projects. Code: `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`. Scenario: SCN-163.
 - **Used by:** FLW-93, FLW-94
 - **Purpose:** What needs the person, what is being done now, and their projects — the place Fabric opens on (plan §2). Replaces the home, the Board screen, Where work is, Pulse and the live feed.
 - **Elements:** the top bar with the place's name, the date and the search field (⌘K); the greeting heading («Добрый вечер. Вас ждут 3 вопроса.») and its one-line summary; the numbers strip («агентов работают», «задач в работе», «на проверке»); «Ждёт вас» — question cards (agent sign and name, project, time; the question; why; options as buttons, the recommended one gold; «Обсудить»); «Сейчас» — one row per agent at work (sign, its own sentence, project, how long) with «Открыть консоль ↗»; «Проекты» — a table (name with star, «Что сейчас», the way bar, agents, updated); the act line at the foot.
@@ -2217,10 +2221,10 @@ place (ADR-0160). The screens they replace carry a dated note.
   | cannot-undo | the agent already acted on the answer | none | «Агент уже начал — отменить ответ нельзя» with «Попросить остановиться» |
   | boundary | a money, publishing, deletion or other-machine question | none | the same card, its why naming the boundary («Лимит проекта — $40, потрачено $9.») |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx` (0.3.11 and 0.3.12, see the amendment above)
 - **Scenarios:** SCN-163, SCN-164
 - **Resources:** SCN-158 (the home built today); ADR-0160 §4–§5
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 waves 2 and 4
 
 ### SCR-86: Проект
@@ -2246,6 +2250,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Implementation tasks:** 0.3.7 waves 2 and 4
 
 ### SCR-87: Агенты
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the place lists every agent at work, a console Fabric holds or an agent that joined from a terminal, each by the task it holds; a row selects its agent and the agent's page opens beside the list: the task, what it is doing, its results, what it did by day, with its console, project and task one press away (CO-393). Below: «Подключились сами» and the consoles Fabric holds. Not built: the two groups with each coding agent's readiness (Settings lists them, SCR-89), «Что получает агент», «Создать агента». Code: `apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/launch/JoinedAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.tsx`. Scenario: SCN-166.
 - **Used by:** FLW-93, FLW-95, FLW-96, FLW-98
 - **Purpose:** Every agent — coding agents on this computer and agents built in Fabric — with what each is doing, its console one press away, and «Создать агента» (plan §2). Replaces Agents, Settings' catalogue, Agent access's list and created agents.
 - **Elements:** «Создать агента» (gold); «Агенты для кода на этом компьютере» and «Агенты, созданные в Fabric», each row: sign, name, state sentence, project, «Консоль»; «подключился сам», «Отключить», «Пустить снова» and the proof line for an agent that joined from a terminal; the agent's view with «Что получает агент»; the act line.
@@ -2261,10 +2266,10 @@ place (ADR-0160). The screens they replace carry a dated note.
   | joined | a coding agent joined from a terminal | none | its row «подключился сам» with «Отключить» |
   | disconnected | «Отключить» pressed | none | «Отключён» with «Пустить снова»; act line «Codex отключён · Отменить» |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet as this screen; 0.3.7 wave 3 built its «Подключились сами» block above today's agents list: apps/desktop/src/renderer/src/launch/JoinedAgents.tsx («подключился сам», the proof line, «Отключить», «Отключён» and «Пустить снова»)
+- **Coverage:** `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, `apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/JoinedAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.tsx` (0.3.11 and 0.3.12, see the amendment above)
 - **Scenarios:** SCN-166, SCN-167
 - **Resources:** ADR-0160 §3; SCR-39, SCR-76 (built today)
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 waves 3 and 4
 
 ### SCR-88: История
@@ -2292,6 +2297,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Implementation tasks:** 0.3.7 wave 2
 
 ### SCR-89: Настройки
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the account quotas are gone from Fabric (they are Switchboard's, D-3, CO-392); the coding agents' catalogue from Switchboard sits here with what Fabric found on this computer, naming a refusal and a missed deadline apart from a failure; «Этот компьютер» sets whether this machine is the person's own (ADR-0176); a setting that is not saved is said at the screen's foot, pinned in view (CO-313). Code: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`. Scenario: SCN-170, SCN-160.
 - **Used by:** FLW-40, FLW-93
 - **Purpose:** How Fabric behaves, on one page of sections; every change saved at once and reversible (plan §2). Replaces Settings, Quotas and Private history as a section.
 - **Elements:** sections with small uppercase labels — «Язык и вид» (язык, тема), «Компьютер» (не давать засыпать; «Запускать Fabric при входе в систему», only on macOS and Windows in an installed build, amended 2026-10-20), «Запуск агентов» (порядок), «Данные» (счётчики использования; личная история — экспорт и импорт), «Доступ агентов» (who may reach which product, «Отозвать»); «Сохранено» beside a saved control.
@@ -2304,10 +2310,10 @@ place (ADR-0160). The screens they replace carry a dated note.
   | success | read | none | the sections |
   | unavailable | this build or computer cannot change a setting | none | the control disabled with why; a control that does nothing here (launch at login on Linux or in a development build) is not drawn |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (see the amendment above)
 - **Scenarios:** SCN-170
 - **Resources:** SCR-52 (built today), SCN-134, SCN-135
-- **Status:** designed
+- **Status:** built
 - **Implementation tasks:** 0.3.7 wave 4
 
 ### SCR-90: Создать
