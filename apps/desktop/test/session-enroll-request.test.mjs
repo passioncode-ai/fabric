@@ -17,7 +17,8 @@ const resolveFolder = async (folder) =>
   : folder.startsWith('/Users/me/DATA/other') ? { ok: true, projectId: OTHER, root: '/Users/me/DATA/other', how: 'exact' }
   : { ok: false, message: 'This folder is not a project in Fabric yet.' }
 
-function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined } = {}) {
+function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined, clock = { offset: 0 } } = {}) {
+  const stamp = () => new Date(Date.now() + clock.offset).toISOString()
   const rows = new Map(), bindings = new Map(), grants = new Map()
   const appended = []
   const presented = []
@@ -40,7 +41,7 @@ function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ?
       else if (type === 'access.decided@1') {
         const row = rows.get(payload.request_id)
         row.status = payload.decision
-        row.decided_at = new Date().toISOString()
+        row.decided_at = stamp()
         if (payload.decision === 'allowed') {
           row.granted_binding_id = payload.binding_id
           if (payload.new_binding) bindings.set(payload.binding_id, { id: payload.binding_id, agent_id: row.agent_id, request_id: row.id, verifier: null, created_at: row.decided_at, claimed_at: null, revoked_at: null })
@@ -49,10 +50,10 @@ function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ?
       } else if (type === 'access.credential.claimed@1') {
         const binding = bindings.get(payload.binding_id)
         binding.verifier = payload.verifier
-        binding.claimed_at = new Date().toISOString()
-      } else if (type === 'access.grant.revoked@1') grants.get(payload.grant_id).revoked_at = new Date().toISOString()
-      else if (type === 'access.binding.revoked@1') bindings.get(payload.binding_id).revoked_at = new Date().toISOString()
-      else if (type === 'access.denial.cleared@1') rows.get(payload.request_id).denial_cleared_at = new Date().toISOString()
+        binding.claimed_at = stamp()
+      } else if (type === 'access.grant.revoked@1') grants.get(payload.grant_id).revoked_at = stamp()
+      else if (type === 'access.binding.revoked@1') bindings.get(payload.binding_id).revoked_at = stamp()
+      else if (type === 'access.denial.cleared@1') rows.get(payload.request_id).denial_cleared_at = stamp()
       return appended.length
     },
     request: async (id) => rows.get(id) ?? null
@@ -63,6 +64,7 @@ function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ?
     present: (r) => presented.push(r),
     connected: async () => { throw Error('Fabric itself is not a product to connect') },
     enrollment: { runner, project, available, resolve, admit },
+    now: () => Date.now() + clock.offset,
     ...(keptOut ? { keptOut } : {})
   })
   return { service, appended, presented, rows }
@@ -296,7 +298,7 @@ test('0.3.8 review i3 ER-4: a coding agent that is not installed records no proj
   assert.equal(ok.status, 'allowed')
 })
 
-test('CO-363: the project.resolve lane keeps at most three of an agent\'s credentials, the newest; other grants are never swept', async () => {
+test('CO-363: the project.resolve lane keeps at most three of an agent\'s credentials not in use, the newest', async () => {
   const h = harness()
   const ask = { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' }
   for (let i = 0; i < 5; i++) assert.equal((await h.service.request({ kind: 'door' }, ask)).status, 'allowed')
@@ -304,4 +306,54 @@ test('CO-363: the project.resolve lane keeps at most three of an agent\'s creden
   const live = h.appended.filter((e) => e.type === 'access.decided@1' && e.payload.new_binding).length - revoked
   assert.equal(live, 3, 'five asks leave three live credentials')
   assert.equal(h.appended.filter((e) => e.type === 'access.binding.revoked@1').every((e) => e.actor.kind === 'system'), true, 'swept by the hub, not said to be the person')
+})
+
+// 0.3.12 review ER-11 / DO-19: the sweep's other rules, each with the credential it speaks of in the harness.
+const resolveAsk = { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' }
+const MIN = 60_000
+const revokedIds = (h) => h.appended.filter((e) => e.type === 'access.binding.revoked@1').map((e) => e.payload.binding_id)
+
+test('CO-363 / ER-11: a credential another process used in the last minutes is never swept, whatever its age', async () => {
+  const clock = { offset: 0 }
+  const h = harness({ clock })
+  const creds = []
+  for (let i = 0; i < 3; i++) {
+    clock.offset = i * 1000 // one second apart, so their ages order them
+    const r = await h.service.request({ kind: 'door' }, resolveAsk)
+    const claimed = await h.service.status({ kind: 'door' }, r.requestId, r.pollSecret)
+    creds.push({ id: h.rows.get(r.requestId).granted_binding_id, credential: claimed.credential })
+  }
+  clock.offset = 6 * MIN // past the sweep's window for use, and past the service's own start
+  const oldest = creds[0]
+  assert.ok(await h.service.authenticate(oldest.credential), 'a process uses the oldest credential now')
+  await h.service.request({ kind: 'door' }, resolveAsk) // a fourth process asks
+  assert.deepEqual(revokedIds(h), [], 'the oldest is surplus by age but in use, so it stays')
+  assert.ok(await h.service.authenticate(oldest.credential), 'and still authenticates')
+  clock.offset = 12 * MIN // six minutes without a use: no longer known to be in use
+  await h.service.request({ kind: 'door' }, resolveAsk)
+  assert.deepEqual(revokedIds(h).sort(), [creds[0].id, creds[1].id].sort(), 'past the bound, the two unused oldest go')
+})
+
+test('CO-363 / DO-19: a credential holding another grant is never swept, however old and uncollected', async () => {
+  const clock = { offset: 0 }
+  const h = harness({ clock })
+  const enroll = await h.service.request({ kind: 'door' }, ask)
+  const enrollBinding = h.rows.get(enroll.requestId).granted_binding_id
+  clock.offset = 30 * MIN
+  for (let i = 0; i < 5; i++) await h.service.request({ kind: 'door' }, resolveAsk)
+  assert.equal(revokedIds(h).includes(enrollBinding), false, 'the session.enroll credential stands')
+  assert.equal(revokedIds(h).length, 2, 'the resolve lane alone is bounded to three')
+})
+
+test('CO-363 / DO-19: a resolve credential never collected past the request\'s 10 minutes is revoked, even among the newest three', async () => {
+  const clock = { offset: 0 }
+  const h = harness({ clock })
+  const first = await h.service.request({ kind: 'door' }, resolveAsk)
+  const stale = h.rows.get(first.requestId).granted_binding_id
+  clock.offset = 9 * MIN
+  await h.service.request({ kind: 'door' }, resolveAsk)
+  assert.deepEqual(revokedIds(h), [], 'within the 10 minutes it may still be collected')
+  clock.offset = 11 * MIN
+  await h.service.request({ kind: 'door' }, resolveAsk)
+  assert.deepEqual(revokedIds(h), [stale], 'past them, the uncollected one goes; two live remain')
 })

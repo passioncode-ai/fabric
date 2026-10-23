@@ -143,6 +143,8 @@ const POLL_SECRET = CREDENTIAL
 
 /** CO-363: the `project.resolve` credentials one agent may hold at once; older ones are revoked as new ones are given. */
 export const RESOLVE_BINDINGS_PER_AGENT = 3
+/** CO-363 / 0.3.12 review ER-11: a credential presented within this long is in use by some process and is never swept. */
+export const RESOLVE_IN_USE_MS = 5 * 60_000
 const refuse = (code: AccessActRefusal, reason: string): AccessActAnswer => ({ ok: false, code, reason })
 
 export function verifierOf(credential: string): string {
@@ -164,6 +166,9 @@ export class AccessService {
   private credentialVerifiers = new Set<string>()
   /** Bindings revoked by this process: a claim answered after its revocation must not add its verifier back. */
   private revokedBindings = new Set<string>()
+  /** When each binding last authenticated in this process (ER-11). Memory only: the journal records no use. */
+  private lastUsed = new Map<string, number>()
+  private startedAt: number
   private revokedListeners = new Set<(bindingId: string) => void>()
   private grantRevokedListeners = new Set<(grantId: string, bindingId: string) => void>()
 
@@ -172,6 +177,7 @@ export class AccessService {
     this.deps = deps
     this.now = deps.now ?? Date.now
     this.random = deps.random ?? randomBytes
+    this.startedAt = this.now()
   }
 
   /** Told once a binding is revoked: whatever is kept in memory for it can go (DA-3, the agent.call memory). */
@@ -222,6 +228,7 @@ export class AccessService {
     const binding = await this.deps.store.bindingByVerifier(verifierOf(credential))
     if (binding && binding.revoked_at === null) {
       this.credentialVerifiers.add(verifierOf(credential))
+      this.lastUsed.set(binding.id, this.now())
       return binding
     }
     this.credentialVerifiers.delete(verifierOf(credential))
@@ -600,6 +607,14 @@ export class AccessService {
    * each one, this agent's credentials that hold nothing but `project.resolve` are bounded: one never collected after
    * the request's 10 minutes is revoked, and of the rest only the newest RESOLVE_BINDINGS_PER_AGENT stay. A credential
    * with any other grant is never touched; a failed sweep is recorded and the new credential stands.
+   *
+   * IN USE IS NEVER SWEPT (0.3.12 review ER-11). The bound counts per agent id, not per process: every process asking
+   * under one id shares it, so a fourth process's ask used to revoke a credential a third was using, which then asked
+   * again and revoked the next. A collected credential presented within RESOLVE_IN_USE_MS is kept past the bound. Use
+   * is known only to this process (`authenticate` notes it; the journal records none), so for RESOLVE_IN_USE_MS after
+   * the service starts every collected credential counts as in use: a process may be using one it has not presented
+   * since the restart. A process that presents its credential less often than that can still lose it to a newer ask
+   * and has to ask again; one credential shared by the processes of one client avoids that.
    */
   private async boundResolveBindings(agentId: string, keep: string | null): Promise<void> {
     try {
@@ -613,7 +628,10 @@ export class AccessService {
       }
       const uncollected = resolveOnly.filter((b) => b.claimed_at === null && now - Date.parse(b.created_at) > ACCESS_REQUEST_TTL_MS)
       const kept = resolveOnly.filter((b) => !uncollected.includes(b)).sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
-      const surplus = kept.slice(Math.max(0, RESOLVE_BINDINGS_PER_AGENT - (keep ? 1 : 0)))
+      const inUse = (b: BindingRow): boolean =>
+        b.claimed_at !== null &&
+        (now - this.startedAt < RESOLVE_IN_USE_MS || now - Math.max(this.lastUsed.get(b.id) ?? 0, Date.parse(b.claimed_at)) < RESOLVE_IN_USE_MS)
+      const surplus = kept.slice(Math.max(0, RESOLVE_BINDINGS_PER_AGENT - (keep ? 1 : 0))).filter((b) => !inUse(b))
       for (const b of [...uncollected, ...surplus]) await this.revokeBinding(b.id, HUB_ACTOR)
     } catch (e) {
       ops.failed('hub.access.resolve-sweep', e, { agent_id: agentId })
@@ -626,6 +644,7 @@ export class AccessService {
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
       this.revokedBindings.add(bindingId)
+      this.lastUsed.delete(bindingId)
       if (b.verifier) this.credentialVerifiers.delete(b.verifier)
       for (const listener of this.revokedListeners) {
         try {
