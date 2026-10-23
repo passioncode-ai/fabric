@@ -2,7 +2,7 @@
   "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
   "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
   "counts": {
-    "views": 122,
+    "views": 124,
     "families": 22,
     "each_view_exactly_once": true
   },
@@ -5467,6 +5467,60 @@
               "line": 3427,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-board",
+          "route": "docs/reports/product.html#view-simple-board",
+          "title": "0.3.11 · Доска",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-41",
+              "source": "docs/ux/screens.md:928",
+              "explicit_scenarios": [
+                "SCN-173"
+              ],
+              "runtime_description": "Fabric 0.3.11 wave 4 (2026-10-23, the operator's walk): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-173",
+              "line": 4257,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "simple-task",
+          "route": "docs/reports/product.html#view-simple-task",
+          "title": "0.3.11 · Задача",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-32",
+              "source": "docs/ux/screens.md:737",
+              "explicit_scenarios": [
+                "SCN-174"
+              ],
+              "runtime_description": "Fabric 0.3.11 wave 4 (2026-10-23, the operator's walk): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-174",
+              "line": 4280,
+              "status": "draft",
+              "coverage": "none yet",
               "product": "unobserved"
             }
           ]
