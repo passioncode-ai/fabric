@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { CommsMessage, CommsPageReply } from '../../../shared/commsRead.ts'
-import { newestPosts } from './commsNewest'
+import { newestPosts, newestPostsRead } from './commsNewest'
 
 /** A board whose posts sit at the given journal numbers among other events; its page reads forward, 100 at most. */
 function board(seqs: number[]) {
@@ -47,5 +47,19 @@ describe('newestPosts (DA-1)', () => {
     expect(got).toHaveLength(100)
     expect(got?.[0].id).toBe(`m${last}`)
     expect(list.mock.calls.length).toBeLessThanOrEqual(14 * 5)
+  })
+})
+
+describe('a short feed says so (CO-405)', () => {
+  it('a few newest posts over an older dense burst the search could not reach is short; a board read to its start is not', async () => {
+    const dense = Array.from({ length: 10_000 }, (_, i) => i + 1)
+    const { list, last } = board([...dense, 3_000_000_000, 4_000_000_000])
+    const sparse = await newestPostsRead(list, last)
+    expect(sparse?.posts.length).toBeLessThan(100)
+    expect(sparse?.short).toBe(true)
+    const small = board([5, 90000, 180000])
+    expect((await newestPostsRead(small.list, small.last))?.short).toBe(false)
+    const many = board(Array.from({ length: 5000 }, (_, i) => i + 1))
+    expect((await newestPostsRead(many.list, many.last))?.short).toBe(false)
   })
 })

@@ -43,3 +43,33 @@ test('readWork names the reads that stopped at their limit (CO-310)', async () =
   const whole = await readWork(fake({ work_claims: [claim(1)], leases: [] }), { ...at, limit: 2 })
   assert.equal(whole.capped, undefined)
 })
+
+test('the board\'s reads in main: one project filters in every query, the queue is newest first, a failed «Закончили» is said (CO-405)', async () => {
+  const { readTaskBoard } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const calls = []
+  const fake = (fail = {}) => ({
+    select: (table, columns) => {
+      const call = { table, columns, eq: [], order: null }
+      calls.push(call)
+      const chain = {
+        is: () => chain, in: () => chain, not: () => chain, limit: () => chain,
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
+        order: (k, o) => { call.order = [k, o?.ascending]; return chain },
+        then: (ok) => ok(fail[table] && call.eq.some(([k, v]) => k === 'status' && v === fail[table]) ? { data: null, error: { message: 'database away' } } : { data: [], error: null })
+      }
+      return chain
+    },
+    selectIn: async () => ({ rows: [], failed: null })
+  })
+  const at = { now: Date.parse('2026-10-23T12:00:00Z'), session: () => null, sessions: [] }
+  await readTaskBoard(fake(), { ...at, projectId: 'p1' })
+  const tasks = calls.filter((c) => c.table === 'project_tasks' && c.eq.some(([k]) => k === 'status'))
+  for (const c of tasks) assert.ok(c.eq.some(([k, v]) => k === 'project_id' && v === 'p1'), `${c.eq.find(([k]) => k === 'status')[1]} is read for the project only`)
+  for (const t of ['work_claims', 'leases']) assert.ok(calls.filter((c) => c.table === t).every((c) => c.eq.some(([k, v]) => k === 'project_id' && v === 'p1')), `${t} is read for the project only`)
+  const queue = calls.find((c) => c.table === 'project_tasks' && c.eq.some(([k, v]) => k === 'status' && v === 'backlog'))
+  assert.deepEqual(queue.order, ['seq', false], 'the queue is the newest filed first')
+  calls.length = 0
+  const board = await readTaskBoard(fake({ project_tasks: 'done' }), at)
+  assert.match(board.columns.find((c) => c.stage === 'done').unread ?? '', /database away/)
+  assert.ok(calls.filter((c) => c.table === 'work_claims').every((c) => !c.eq.some(([k]) => k === 'project_id')), 'the estate board reads every project')
+})

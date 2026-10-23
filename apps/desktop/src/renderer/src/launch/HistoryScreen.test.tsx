@@ -124,3 +124,15 @@ describe('«Что делали агенты» reads as History (CO-395)', () =>
     expect(list.textContent).toContain('Atlas')
   })
 })
+
+describe('История while only the projects fail (CO-405)', () => {
+  it('shows the journal\'s rows without project names instead of «reading» for as long as the projects keep failing', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 7, type: 'task.moved@1', actor: { kind: 'person', id: 'op' }, project_id: 'p1', occurred_at: new Date().toISOString(), payload: { to: 'review' } }]
+    render(<I18nProvider locale="en"><HistoryScreen projects={null} mark={0} feed={feed} feedProjects={null} projectsFailed /></I18nProvider>)
+    await screen.findByRole('heading', { name: en['acts.agentsTitle'] })
+    const list = document.querySelector('.hx-agents')!
+    expect(list.querySelectorAll('.hx-act')).toHaveLength(1)
+    expect(list.textContent).not.toContain(en['journal.reading'])
+  })
+})

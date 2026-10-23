@@ -48,6 +48,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   disconnected agent cannot put a board question in front of you (CO-347); the wiki sync clears a lock a killed git
   left and tells you on this Mac when it keeps failing (CO-390); the home says when a read stopped at its limit
   instead of showing a working agent as silent (CO-310).
+- A project's board reads its own claims, so they are never lost behind the estate's oldest 200; История shows what the
+  agents did even while the projects list cannot be read; Comms' feed says when it shows fewer posts than the board
+  may hold (CO-405). The board rule for agents adds: reply to a request only with the answer itself, since a reply
+  closes it.
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

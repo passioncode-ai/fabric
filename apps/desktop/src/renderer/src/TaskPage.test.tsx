@@ -449,3 +449,17 @@ describe('what holds a task and how it moved (SCN-174 step 2, CO-401)', () => {
     expect(screen.queryByText(en['task.blockedBy'])).toBeNull()
   })
 })
+
+describe('the way back while the task loads (CO-405, V3-35)', () => {
+  it('is there before the task is read, with the same label it has after', async () => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = { tasks: { detail: vi.fn(() => new Promise(() => {})) } }
+    const onBack = vi.fn()
+    render(<TaskPage project={project} taskId="t1" onBack={onBack} backLabel={en['task.backTo.home']} onChanged={async () => {}} onError={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: en['task.backTo.home'] }))
+    expect(onBack).toHaveBeenCalled()
+    cleanup()
+    render(<TaskPage project={project} taskId="t1" onBack={onBack} onChanged={async () => {}} onError={() => {}} />)
+    expect(screen.getByRole('button', { name: en['launch.agent.back'] })).toBeTruthy()
+  })
+})

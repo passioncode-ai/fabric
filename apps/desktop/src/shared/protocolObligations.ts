@@ -178,7 +178,8 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       '(com.reply) answers that request: its state becomes answered and the asker sees it (DEC-0098, DEC-0102). Carrying ' +
       'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond) the ' +
       'operator gives in Fabric, Settings → Agent access; without that grant com.enroll is not_authorized, and the reply ' +
-      'is still your answer.',
+      'is still your answer. Reply only with the answer itself: a reply that only says the request waits closes it too, ' +
+      'so when you cannot answer, leave the request and tell the person a responder grant is needed.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },

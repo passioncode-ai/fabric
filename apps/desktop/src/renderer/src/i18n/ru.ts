@@ -1422,6 +1422,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.comms.provenance.asserted': "заявленный",
   'launch.comms.feed.title': "О чём говорят проекты",
   'launch.comms.feed.all': "Всё",
+  'launch.comms.feed.short': "Показаны последние найденные посты: {count}. Более ранние могут быть, они есть в тредах.",
   'launch.comms.feed.waiting': "Ждут ответа",
   'launch.comms.feed.inThread': "В треде: {thread}",
   'launch.comms.feed.requests': "Только просьбы",
