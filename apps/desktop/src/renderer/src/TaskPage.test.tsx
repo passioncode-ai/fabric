@@ -395,3 +395,30 @@ describe('a task reads as a template, with the way back at the top left (the ope
     expect(what.compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING, 'the brief comes before the instruction').toBeTruthy()
   })
 })
+
+describe('the brief says how it is written, an empty one what fills it, and the way back names where (CO-394)', () => {
+  it('shows the lede above the brief and the empty sentence only while all three parts are empty', async () => {
+    mount({ brief_what: null, brief_why: null, brief_expected: '' })
+    await waitFor(() => expect(screen.getByText(en['task.briefEmpty'])).toBeTruthy())
+    const lede = screen.getByText(en['task.briefLede'])
+    const original = screen.getByText(en['launch.agent.original'])
+    expect(lede.compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    cleanup()
+    mount({ brief_what: 'Make it', brief_why: null, brief_expected: '' })
+    await waitFor(() => expect(screen.getByText(en['task.briefLede'])).toBeTruthy())
+    expect(screen.queryByText(en['task.briefEmpty'])).toBeNull()
+  })
+
+  it('the way back carries the place it was opened from, else the project', async () => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = { tasks: { detail: vi.fn().mockResolvedValue(detail({})) } }
+    const onBack = vi.fn()
+    render(<TaskPage project={project} taskId="t1" onBack={onBack} backLabel={en['task.backTo.board']} onChanged={async () => {}} onError={() => {}} />)
+    await screen.findByText('Ship the thing')
+    fireEvent.click(screen.getByRole('button', { name: en['task.backTo.board'] }))
+    expect(onBack).toHaveBeenCalled()
+    cleanup()
+    mount({})
+    expect(await screen.findByRole('button', { name: en['launch.agent.back'] })).toBeTruthy()
+  })
+})

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### __LANDED__ · `—` · agent/0312-s6-task → main · fast-forward
+- run: r-8642aee374a2
+- files: App.tsx (taskOrigin, backLabel), ProjectHome.tsx (backTo), TaskPage.tsx (backLabel, the brief's lede and empty sentence) and its test, launch.css (the compact agent row), i18n; SCN-174; CO-394 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 S6: the task page's way back by name, the brief's words, the full task in the compact row (CO-394).
+
 ### __LANDED__ · `—` · agent/0312-s6-screens → main · fast-forward
 - run: r-8642aee374a2
 - files: docs/ux/screens.md (SCR-85, SCR-41, SCR-32, SCR-81, SCR-87, SCR-89), docs/ux/flows.md (FLW-99, FLW-100), docs/ux/unmeasured-flows.txt, docs/ux/scenarios.md (SCN-038's index, SCN-166, SCN-173, SCN-174 traces), launch/BoardScreen.tsx and its test, i18n; CO-400 resolved; the backlog; CHANGELOG; the map

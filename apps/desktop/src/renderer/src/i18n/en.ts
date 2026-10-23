@@ -312,6 +312,12 @@ export const en = {
   // are bounded working context, and what matters leaves for project memory.
   'task.brief': 'What this is for',
   'task.briefLede': 'The agent drafts it, you can replace any part, and both stay readable.',
+  'task.briefEmpty': "The brief is not written yet: the agent drafts it when it takes the task, or write it yourself below.",
+  'task.backTo.board': "← To the board",
+  'task.backTo.home': "← To the home",
+  'task.backTo.agents': "← To the agents",
+  'task.backTo.history': "← To History",
+  'task.backTo.back': "← Back",
   'task.what': 'What should happen',
   'task.why': 'Why',
   'task.expected': 'True when it is done',
@@ -473,7 +479,8 @@ export const en = {
   'task.free': 'Nobody is holding this task.',
   'task.receipts': 'What happened',
   'task.openSession': 'Open its session',
-  'task.origin': 'Filed from {kind}: {ref}',
+  'task.origin': "Filed from {kind}: {ref}",
+  'task.originNoRef': "no reference",
 
   // Permission modes (M146 step 6). Chosen per launch and recorded in the
   // journal, so what a session was allowed to do stays answerable later.

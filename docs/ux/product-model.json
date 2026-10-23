@@ -28175,7 +28175,9 @@
         "FLW-95",
         "FLW-96",
         "FLW-97",
-        "FLW-98"
+        "FLW-98",
+        "FLW-99",
+        "FLW-100"
       ],
       "coverage_screen_ids": [
         "SCR-84",
@@ -35553,7 +35555,7 @@
         "SCR-32"
       ],
       "coverage": "partial (2026-10-23): `apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project",
-      "registry_status": "draft: 0.3.11 ships the template order and the way back; the move history and blockers are CO-401, 0.3.12",
+      "registry_status": "draft: 0.3.11 ships the template order and the way back; 0.3.12 S6 names the way back for the place the task was opened from and says what fills an empty brief (CO-394, `apps/desktop/src/renderer/src/TaskPage.tsx`); the move history and blockers are CO-401, 0.3.12",
       "product_observation": "unobserved",
       "expected_result": "the person understands the task without asking its agent.",
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",

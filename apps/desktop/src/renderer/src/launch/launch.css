@@ -605,7 +605,8 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lh-side-column .lh-agents .lp-panel-head h3{flex:none;white-space:nowrap}
 .lh-agent-list.lh-compact .lh-agent{display:flex;flex-direction:row;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0;max-width:100%}
 .lh-agent-list.lh-compact .lh-agent-head{display:contents}
-.lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
+/* The task in full, wrapping, never cut with an ellipsis (CO-394, 0.3.11 review UX-8). */
+.lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;order:1}
 .lh-agent-list.lh-compact small{order:2;flex:none}
 /* W2 S4b (OF-39): how the work goes, a term and its value per row; the weeks as small bars. */
 .lp-analytics{ display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-1) var(--space-3); margin: 0; }
