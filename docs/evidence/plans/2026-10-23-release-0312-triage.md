@@ -137,3 +137,18 @@ Two batches that each touch many files of one kind and are safest done once, aft
 
 Counts, recomputed from this table: 0.3.12 W1 6, W2 15, W3 19 (40 in 0.3.12); 0.3.13 16; 0.4.0 10; its owners 1;
 retired 1; done 1; 69 in all.
+
+## Added on 2026-10-23: the board's asks
+
+Wave 1 answered every ask CO-360 and CO-383 named, on its thread (the rows' statuses list each answer). Five asks
+became rows, ruled here with the same rules:
+
+| Row | Ruling | Note |
+|---|---|---|
+| CO-406 | 0.4.0 | agent templates, with agent creation |
+| CO-407 | 0.3.12 W3 | `crossSessionInbound` behind a Settings switch |
+| CO-408 | 0.3.13 | the stale contract pins, with the repin |
+| CO-409 | 0.4.0 | the wake when nobody answers |
+| CO-410 | 0.4.0 | a marketplace agent connected to a project |
+
+CO-360 and CO-383 are resolved; the counts above keep the 69 rows the triage started with.
