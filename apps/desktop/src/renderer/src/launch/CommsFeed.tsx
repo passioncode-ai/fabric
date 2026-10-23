@@ -45,21 +45,23 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
   useEffect(() => {
     if (busy.current) { again.current = true; return }
     busy.current = true
+    const failed = (): void => { if (mounted.current) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' }) }
+    // A read that has not settled after FEED_DEADLINE_MS is said as failed, but it still holds the one slot until it
+    // settles, so a board that never answers gets one read at a time, never a pile of them (final verification, VF-5).
+    const deadline = setTimeout(failed, FEED_DEADLINE_MS)
     void (async () => {
       try {
-        // A read that never settles is given up after FEED_DEADLINE_MS and said as a failed one (iteration 3, ER-2).
-        const read = (async () => {
-          const heads = await window.fabric.comms.heads()
-          const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
-          return last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
-        })()
-        const posts = await Promise.race([read, new Promise<null>((r) => setTimeout(() => r(null), FEED_DEADLINE_MS))])
+        const heads = await window.fabric.comms.heads()
+        const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
+        const posts = last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
         if (!mounted.current) return
         // A refresh that fails keeps what was read and says it is old, rather than emptying the feed.
-        setRead((was) => posts ? { at: 'ready', posts, stale: false, readAt: new Date().toISOString() } : was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
+        if (posts) setRead({ at: 'ready', posts, stale: false, readAt: new Date().toISOString() })
+        else failed()
       } catch {
-        if (mounted.current) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
+        failed()
       } finally {
+        clearTimeout(deadline)
         busy.current = false
         if (again.current && mounted.current) { again.current = false; setTick((n) => n + 1) }
       }

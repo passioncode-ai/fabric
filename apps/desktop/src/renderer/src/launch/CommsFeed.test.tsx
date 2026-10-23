@@ -1,7 +1,7 @@
 // Comms as a feed (the operator's walk OF-29, 2026-10-22): the newest posts of every thread first, each saying which
 // project wrote it, of what kind, and what it says, with a focus filter.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { CommsFeed } from './CommsFeed'
@@ -125,5 +125,68 @@ describe('Comms as a feed', () => {
     const { StrictMode } = await import('react')
     render(<StrictMode><I18nProvider locale="en"><CommsFeed mark={0} nameOf={(id) => names[id] ?? id} onOpen={vi.fn()} /></I18nProvider></StrictMode>)
     await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+  })
+  it('a first read that never settles is said as failed after 60 s, and a hung board gets one read at a time (VF-3, VF-5)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const heads = vi.fn(() => new Promise<never>(() => {}))
+      vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn() } } }))
+      show()
+      await act(async () => { await vi.advanceTimersByTimeAsync(59000) })
+      expect(screen.queryByText(en['launch.comms.unavailable'])).toBeNull()
+      await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
+      expect(screen.getByText(en['launch.comms.unavailable'])).toBeTruthy()
+      for (let k = 0; k < 30; k++) await act(async () => { await vi.advanceTimersByTimeAsync(10000) })
+      expect(heads).toHaveBeenCalledTimes(1)
+    } finally { vi.useRealTimers() }
+  })
+  it('«Try again» pressed while a read runs is read right after it (VF-3)', async () => {
+    let n = 0
+    let release: (() => void) | null = null
+    const heads = vi.fn(async () => {
+      n++
+      if (n === 1) return { ok: false, error: { code: 'x', message: 'x' } }
+      if (n === 2) { await new Promise<void>((r) => { release = r }); return { ok: false, error: { code: 'x', message: 'x' } } }
+      return { ok: true, heads: [{ id: 'th-1', lastSeq: 42 }], truncated: false }
+    })
+    vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn(async () => ({ ok: true, messages, lastSeq: 42, more: false })) } } }))
+    show()
+    await waitFor(() => screen.getByRole('button', { name: en['launch.comms.tryAgain'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.tryAgain'] }))
+    await waitFor(() => expect(heads).toHaveBeenCalledTimes(2))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.tryAgain'] }))
+    await act(async () => { (release as unknown as () => void)() })
+    await waitFor(() => expect(heads).toHaveBeenCalledTimes(3))
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+  })
+  it('a project filter whose posts left the read is cleared, not suspended (V2-12, V3-8)', async () => {
+    let list = messages
+    const heads = vi.fn(async () => ({ ok: true, heads: [{ id: 'th-1', lastSeq: 42 }], truncated: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn(async () => ({ ok: true, messages: list, lastSeq: 42, more: false })) } } }))
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      show()
+      await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+      fireEvent.change(screen.getByLabelText(en['launch.comms.feed.project']), { target: { value: 'p2' } })
+      expect(screen.queryByText('Done in 0.3.11.')).toBeNull()
+      list = messages.filter((m) => m.sender.project === 'p1')
+      await act(async () => { await vi.advanceTimersByTimeAsync(15000) })
+      await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+      list = messages
+      await act(async () => { await vi.advanceTimersByTimeAsync(15000) })
+      await waitFor(() => expect(screen.getByText('Please add project.resolve to the hub.')).toBeTruthy())
+      expect(screen.getByText('Done in 0.3.11.')).toBeTruthy()
+      expect((screen.getByLabelText(en['launch.comms.feed.project']) as HTMLSelectElement).value).toBe('')
+    } finally { vi.useRealTimers() }
+  })
+  it('«Show everything» clears the project filter as well as «Requests only» (V2-16)', async () => {
+    install()
+    show()
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.requests'] }))
+    fireEvent.change(screen.getByLabelText(en['launch.comms.feed.project']), { target: { value: 'p1' } })
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.showAll'] }))
+    expect((screen.getByLabelText(en['launch.comms.feed.project']) as HTMLSelectElement).value).toBe('')
+    expect(screen.getByRole('button', { name: en['launch.comms.feed.all'], pressed: true })).toBeTruthy()
   })
 })

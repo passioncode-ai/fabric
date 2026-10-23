@@ -178,5 +178,6 @@ describe('0.3.11 review, iteration 1', () => {
     show(<HomeWorkLanes reading={{ view: { ...view, done: [], doneUnread: 'the finished tasks could not be read: timeout' }, problem: null }} onOpen={() => {}} onSession={() => {}} />)
     expect(screen.getByText(/timeout/)).toBeTruthy()
     expect(screen.queryByText(/Nothing finished/i)).toBeNull()
+    expect([...document.querySelectorAll('.lh-lane h4')].at(-1)!.textContent).toMatch(/\?/)
   })
 })

@@ -190,6 +190,9 @@ failing it: SCN-176 and SCN-177, written for ADR-0176 during iteration 2, belong
 gate had found the same and its fix `afff7495` followed the candidate. The errors reviewer reverted iteration 2's fixes
 one by one in a scratch copy and found eight that no test held (ER-7). As 0.3.8 and 0.3.10 did, the fixes make the
 final candidate; the reviewers read `6481e524`, and a fresh verifier reads the final candidate's difference from it.
+The first verifier read `20ea082f` (the fixes and the ADR-0177 reservation the full gate asked for) and failed it on the
+uncommitted reports and on tests that did not hold their fixes (V3-31 to V3-39); its report is
+[the final-candidate verification](../reviews/0.3.11/iteration-3/2026-10-23-final-candidate-verification.md).
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -208,21 +211,30 @@ final candidate; the reviewers read `6481e524`, and a fresh verifier reads the f
 | V3-13 | UX-2 | A project's board says «across your projects» | fixed: «Задачи этого проекта, от очереди до готовых» (`BoardScreen.tsx`, i18n) |
 | V3-14 | UX-5 | The English stale line names the board, the failed line Comms | fixed: both say Comms |
 | V3-15 | UX-6, UX-7, UX-8 | A hand-picked row's detail sits below the list; the task page's way back and empty brief; the compact task truncated | ruled: CO-400 and CO-394, 0.3.12 with the project page; the back button's label while a task loads now matches (`TaskPage.tsx`) |
-| V3-16 | UX-9 | The heading case no longer reaches its rule | not a defect: the case guards the outcome, one line in the home's column, which the heading rule and the wrapping buttons give together; it failed on the candidate of iteration 1 |
+| V3-16 | UX-9 | The heading case no longer reaches its rule | not a defect: the case guards the outcome, one line in the home's column, which the heading rule and the wrapping buttons give together, and it failed on the candidate of iteration 1; the final candidate also renders it inside the home's side column |
 | V3-17 | UX-10, DO-4 | SCN-162's index says draft, its body implemented | fixed: implemented in both; SCN-038's older mismatch is CO-400's |
-| V3-18 | DO-3 | The merge log still records landings that have not happened | fixed: the release commit folds them into the one landing (Release close) |
+| V3-18 | DO-3 | The merge log still records landings that have not happened | fixed in the release commit: the five entries are folded into the one landing (`docs/MERGES.md`) |
 | V3-19 | DO-5 | SCN-163 and SCN-170 claim more than shipped | fixed: their Status names the other unbuilt steps (CO-391, CO-392) |
 | V3-20 | DO-7, PL-2 | CO-403 cites a wrong path; P-25 misses four rows | fixed: the path is `apps/desktop/src/renderer/src/TaskPage.tsx`; P-25 names CO-386, CO-388, CO-402 and CO-405 |
 | V3-21 | DO-9 | While a task loads, its back button says «Назад к доске» and goes to the project | fixed: «← К проекту» in every state (`TaskPage.tsx`) |
-| V3-22 | PL-3 | The Release close lists no post-tag edits | fixed: the Release close names them (P-20 and P-24 released, the Now line, lane 2) |
+| V3-22 | PL-3 | The Release close lists no post-tag edits | fixed in the release commit: the Release close names them (P-20 and P-24 released, the Now line, lane 2) |
 | V3-23 | PL-4 | Lane 2 still lists released rows | fixed: P-19 and P-21 to P-23 leave lane 2 |
 | V3-24 | PL-5, PL-6 | The rollout lost its failure branches and does not say where space may be freed | fixed: step 0 names the caches that may go; step 3 says what to do if the broker started Fabric or the first start fails (Rollout) |
 | V3-25 | PL-7 | CO-377's delivery by 2026-10-31 has no release | fixed: P-25 does CO-377 first; if 0.3.12 cannot ship by 2026-10-31, CO-377 ships alone as 0.3.12's first patch (Owed) |
-| V3-26 | PL-8 | Two expired leases from this run | fixed: the ADR leases are released; `rel-0311` is released at the Release close |
-| V3-27 | PL-9 | Two exit checks have no disposition | fixed: the walk from zero is the Release close's walk of every place on the installed app, in ru and en; OF-33's section review is CO-392's |
+| V3-26 | PL-8 | Two expired leases from this run | fixed in the release commit: the ADR leases are released and the Release close releases `rel-0311` and `release-0311` |
+| V3-27 | PL-9 | Two exit checks have no disposition | fixed in the release commit: the walk from zero is the Release close's walk of every place on the installed app, in ru and en; OF-33's section review is CO-392's (its row says so) |
 | V3-28 | PL-10 | ADR-0176's rule has no home outside Fabric | fixed: CO-404 carries it to the contract and the knowledge base |
 | V3-29 | PL-11 | CO-382's decision is the operator's and not listed as a person step | fixed: the handoff names it |
 | V3-30 | PL-12 | P-24 links 0.3.10's ledger | fixed: it links 0.3.11's |
+| V3-31 | final-candidate verifier (on `20ea082f`, blocking) | The five iteration-3 reports were not committed, so the ledger's links and the map's stamp failed in a clean checkout | fixed: committed with the final candidate |
+| V3-32 | final-candidate verifier | V3-2 held only in part: the feed's project filter, the board header's two buttons, the home's «Закончили» count and «Show everything» had no test that fails without them | fixed: `CommsFeed.test.tsx` «a project filter whose posts left the read is cleared», «Show everything clears the project filter»; `BoardScreen.test.tsx` «from the kanban with a review on …»; `HomeWork.test.tsx` (the count reads «?»); each watched failing on its plant |
+| V3-33 | final-candidate verifier | The 60 s deadline, the kept press and the kanban button's state had no test | fixed: `CommsFeed.test.tsx` «a first read that never settles …» and «Try again pressed while a read runs …», `BoardScreen.test.tsx` as V3-32; each watched failing on its plant |
+| V3-34 | final-candidate verifier | Rulings pointed to rows that did not hold their items | fixed: CO-391, CO-392, CO-394 and CO-400 name what V3-9, V3-15, V3-17, V3-19 and V3-27 handed them |
+| V3-35 | final-candidate verifier | The strip, the stale date, the project lede and the back label had no tests | fixed in part: `BoardScreen.test.tsx` «a project's own board says …»; the strip, the date and the label are text, ruled CO-405 for their tests |
+| V3-36 | final-candidate verifier | After the deadline the abandoned read kept running and a new one started; the timer was never cleared | fixed: the deadline says the read failed but the read holds the one slot until it settles, and the timer is cleared (`CommsFeed.tsx`); the deadline test checks one read in five minutes on a hung board |
+| V3-37 | final-candidate verifier | Rows read «fixed» for work the release commit does | fixed: V3-18, V3-22, V3-26 and V3-27 say «fixed in the release commit» |
+| V3-38 | final-candidate verifier | V3-16 is «not a defect» while the case was changed | not a defect: the row now says the case also renders inside the home's side column |
+| V3-39 | final-candidate verifier | The Russian stale line, an unused key, the open thread's poll | fixed: «посты ниже прочитаны …», `task.back` removed, the AGENTS.md row names the open thread's poll |
 
 Exit for iteration 3: every finding is fixed, ruled to a register row or not a defect. Blocking findings open: none.
 

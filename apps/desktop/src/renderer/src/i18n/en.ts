@@ -310,7 +310,6 @@ export const en = {
 
   // The task page (M146 step 5). It is NOT a second set of documentation: notes
   // are bounded working context, and what matters leaves for project memory.
-  'task.back': 'Back to the board',
   'task.brief': 'What this is for',
   'task.briefLede': 'The agent drafts it, you can replace any part, and both stay readable.',
   'task.what': 'What should happen',
