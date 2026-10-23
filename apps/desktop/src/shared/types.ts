@@ -1358,7 +1358,12 @@ export interface FabricApi {
     loginItem(): Promise<import('./loginItem.ts').LoginItemState>
     /** CO-407: Claude Code's `crossSessionInbound` in its user settings, read and set by the person's switch. */
     claudeInbound(): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
-    setClaudeInbound(on: boolean): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
+    /** `notSaved` (0.3.12 review ER-7): the change was not written, because Claude Code held its lock (`locked`) or the
+     *  write failed (`write-failed`, with the system's code); `accepting` and `value` are what the file still holds. */
+    setClaudeInbound(on: boolean): Promise<
+      | { accepting: boolean; value: string | null; notSaved?: { reason: 'locked' } | { reason: 'write-failed'; code: string } }
+      | { unreadable: true }
+    >
     /** CO-407: the launcher doctor's Fabric checks, run read-only when the person asks. */
     readiness(): Promise<import('./fabricReadiness.ts').FabricReadiness>
   }

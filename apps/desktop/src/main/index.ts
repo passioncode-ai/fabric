@@ -4809,11 +4809,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.settingsAgentCatalog, (): Promise<Returns<FabricApi['settings']['agentCatalog']>> =>
     readMachineAgentCatalog(sessionEnvironment(process.env)))
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
-  const inboundAnswer = (r: ReturnType<typeof readInbound>) => ('unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value })
+  const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
+    'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
   handle(IPC.settingsClaudeInbound, async (): Promise<Returns<FabricApi['settings']['claudeInbound']>> => inboundAnswer(readInbound()))
   handle(IPC.settingsSetClaudeInbound, async (_e, on: unknown): Promise<Returns<FabricApi['settings']['setClaudeInbound']>> => {
-    const r = setInbound(on === true)
-    ops.record({ op: 'settings.claude-inbound', outcome: 'unreadable' in r ? 'failed' : 'ok', detail: { on: on === true }, ctx: { correlationId: ops.correlate() } })
+    const r = await setInbound(on === true)
+    const notSaved = 'unreadable' in r ? undefined : r.notSaved
+    ops.record({ op: 'settings.claude-inbound', outcome: 'unreadable' in r || notSaved ? 'failed' : 'ok', detail: { on: on === true, ...('unreadable' in r ? { why: 'unreadable' } : notSaved ? { why: notSaved.reason, ...('code' in notSaved ? { code: notSaved.code } : {}) } : {}) }, ctx: { correlationId: ops.correlate() } })
     return inboundAnswer(r)
   })
   handle(IPC.settingsReadiness, (): Promise<Returns<FabricApi['settings']['readiness']>> => readFabricReadiness(sessionEnvironment(process.env)))

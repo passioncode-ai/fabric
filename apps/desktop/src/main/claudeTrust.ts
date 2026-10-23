@@ -69,7 +69,9 @@ function withTrust(state: Record<string, unknown>, keys: string[]): Record<strin
   return { ...state, projects }
 }
 
-async function lock(file: string, waitMs: number): Promise<(() => void) | null> {
+/** Claude's own lock on one of its files (`<file>.lock`, a directory, proper-lockfile's convention): a release function,
+ *  or null when it could not be taken within `waitMs`. Also `claudeInbound.ts`'s, for Claude Code's settings file. */
+export async function lockClaudeFile(file: string, waitMs: number): Promise<(() => void) | null> {
   const dir = `${file}.lock`
   const until = Date.now() + waitMs
   for (;;) {
@@ -99,7 +101,7 @@ export async function trustFolderForClaude(folder: string, opts: TrustOptions = 
   const planned = withTrust(first, keys)
   if (planned === 'unreadable') return 'unreadable'
   if (planned === null) return 'unchanged'
-  const release = await lock(file, opts.lockWaitMs ?? 2000)
+  const release = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
   if (!release) return 'locked'
   try {
     // Read again under the lock: Claude may have written it between the first read and now.
