@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T23:28:00Z · `—` · agent/0312-w3e → main · fast-forward
+- run: r-8642aee374a2
+- files: main/claudeInbound.ts and test/claude-inbound.test.mjs (new), main/fabricReadinessRead.ts and shared/fabricReadiness.ts with its test (new), main/index.ts, preload/api.ts, shared/types.ts, shared/ipcWindowPolicy.ts, launch/SettingsScreen.tsx and its test, package.json, i18n; StackHealthNotice.tsx and its test, App.tsx (CO-374, in part); SCN-170; AGENTS.md; CO-407 resolved; the backlog; CHANGELOG; the map
+- conflicts: docs/MERGES.md and the map's changelog, beside the W3d entry, resolved by keeping both
+- summary: 0.3.12 W3e: messages between agent sessions by the person's switch, and Fabric readiness in Settings (CO-407); the stack notice counts down and shows in detached windows (CO-374, in part); the triage moves CO-329, CO-367, CO-375 and CO-374's rest to 0.3.13 with their reasons.
+
 ### 2026-10-23T21:19:00Z · `—` · agent/0312-w3d → main · fast-forward
 - run: r-8642aee374a2
 - files: main/accessService.ts and test/session-enroll-request.test.mjs (CO-363); main/agentSurface.ts and test/hub-surface.test.mjs (CO-346); test/login-shell-path.test.mjs and scripts/ci.sh (CO-379); test/backend-launch.test.mjs (CO-332); the triage (CO-370 and CO-373 moved to 0.3.13); the backlog; CHANGELOG; the map

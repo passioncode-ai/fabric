@@ -61,6 +61,10 @@ Two batches that each touch many files of one kind and are safest done once, aft
 |---|---|---|---|
 | CO-370 | 0.3.12 W3 | 0.3.13, the one schema step | Its three halves are SQL: staggering the epochs' age rotation (`board_epoch_gate`), `board_list` using the participants index, and replies addressed to the sender by default; 0.3.12 keeps its one schema step for the project profile (W2-2). BD-9 is low: a session that holds a closed epoch reads `com.status` and resends |
 | CO-373 | 0.3.12 W3 | 0.3.13, the one schema step | The lease's expiry in the three waiting checks is a migration of `board_waiting_operator` by the row's own words, and a claim that lapses without a release moving its task back needs the projector; both belong with the 0.3.13 integrity step |
+| CO-367 | 0.3.12 W2 | 0.3.13, with the tracking of turns | Attributing a commit or a turn in another repository to that repository's project needs the hooks' turn facts read per repository, which Fabric does not keep yet; it is one read with CO-375's «idle in the agent» and CO-329's activity rule |
+| CO-329 | 0.3.12 W2 | 0.3.13, with the tracking of turns | Its first rule needs an owner list a Project carries (the profile of W2-1 has a business, not owners) and its second the same activity read as CO-367 |
+| CO-375 | 0.3.12 W3 | 0.3.13, with the tracking of turns | «Idle in the agent» is the hooks' turns, read with CO-367; the eight finished tasks sit in other projects' boards and are moved by their own agents or the operator, not by Fabric's code; dropping the heartbeat rows of ended sessions goes with that read |
+| CO-374 (its rest) | 0.3.12 W3 | 0.3.13 | The countdown and the notice in detached windows shipped in 0.3.12 (W3e); restarting PostgREST or Kong alone, while the database runs, is the stack watch restarting one container on its own, a decision taken with its next change |
 
 ## Retired
 
@@ -85,7 +89,7 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-314 | 0.3.12 W3 | Retry-After honoured up to a stated ceiling |
 | CO-315 | 0.4.0 | rare; kept |
 | CO-326 | 0.4.0 | with P-06.1 |
-| CO-329 | 0.3.12 W2 | Switchboard's two attribution rules, with project onboarding |
+| CO-329 | 0.3.13 | moved 2026-10-23 (above): with the tracking of turns |
 | CO-331 | 0.3.13 | the aliases, at the contract's repin |
 | CO-332 | 0.3.12 W3 | the launch test under load, with CO-379 |
 | CO-336 | 0.4.0 | agents first |
@@ -110,15 +114,15 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-364 | 0.4.0 | with P-12 |
 | CO-365 | 0.4.0 | measured at the first reboot after 0.3.12 |
 | CO-366 | 0.4.0 | with P-13 |
-| CO-367 | 0.3.12 W2 | repositories without a project are offered to onboarding |
+| CO-367 | 0.3.13 | moved 2026-10-23 (above): with the tracking of turns |
 | CO-368 | 0.3.12 W2 | an operator rule broken today; moved from W1 on 2026-10-23: Fabric has no notion of a project's business, so the wall needs the business field the project page (W2) adds |
 | CO-369 | 0.3.12 W2 | with CO-368: the directory names a project by its repository when names collide |
 | CO-370 | 0.3.13 | moved 2026-10-23 (above): SQL, the one schema step |
 | CO-371 | its owners | asked on `a5969ac5` |
 | CO-372 | 0.4.0 | sharing |
 | CO-373 | 0.3.13 | moved 2026-10-23 (above): SQL, the one schema step |
-| CO-374 | 0.3.12 W3 | the stack watch's gaps |
-| CO-375 | 0.3.12 W3 | tracking's leftovers |
+| CO-374 | 0.3.12 W3, in part; its rest 0.3.13 | the countdown and detached windows shipped; one container's restart moved (above) |
+| CO-375 | 0.3.13 | moved 2026-10-23 (above): with the tracking of turns |
 | CO-377 | done | `4f0e1d40` |
 | CO-378 | 0.4.0 | Windows runners |
 | CO-379 | 0.3.12 W3 | the gate under load |
@@ -142,8 +146,8 @@ Two batches that each touch many files of one kind and are safest done once, aft
 | CO-404 | 0.3.12 W1 | ADR-0176 §2, §3 |
 | CO-405 | 0.3.12 W3 | the reads' edges |
 
-Counts, recomputed from this table (2026-10-23, after the moves above): 0.3.12 W1 6, W2 15, W3 18 (39 in 0.3.12); 0.3.13 19;
-0.4.0 13; its owners 1; retired 1; done 1; 74 in all.
+Counts, recomputed from this table (2026-10-23, after the moves above): 0.3.12 W1 6, W2 13, W3 17 (36 in 0.3.12, CO-374
+in part, its rest in 0.3.13); 0.3.13 22; 0.4.0 13; its owners 1; retired 1; done 1; 74 in all.
 
 ## Added on 2026-10-23: the board's asks
 

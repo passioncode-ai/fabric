@@ -170,6 +170,77 @@ export function AgentPermissionsSetting({ value, onChange }: {
   )
 }
 
+/**
+ * CO-407: whether Claude Code sessions on this computer may message each other (`crossSessionInbound`). It widens what
+ * every Claude Code session here accepts, so it is the person's switch, never set by Fabric on its own.
+ */
+export function AgentLinksSetting(): React.JSX.Element {
+  const t = useT()
+  const [state, setState] = useState<{ accepting: boolean } | { unreadable: true } | null>(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    let alive = true
+    Promise.resolve().then(() => window.fabric.settings.claudeInbound()).then((r) => alive && setState(r), () => alive && setState({ unreadable: true }))
+    return () => { alive = false }
+  }, [])
+  const flip = async (on: boolean): Promise<void> => {
+    setBusy(true)
+    try { setState(await window.fabric.settings.setClaudeInbound(on)) } catch { setState({ unreadable: true }) } finally { setBusy(false) }
+  }
+  return (
+    <section className="lp-panel" aria-labelledby="settings-agent-links-title">
+      <h3 id="settings-agent-links-title">{t('settings.agentLinks.title')}</h3>
+      {state === null && <p className="lp-meta">{t('settings.agentLinks.reading')}</p>}
+      {state && 'unreadable' in state && <p className="lp-meta" role="status">{t('settings.agentLinks.unreadable')}</p>}
+      {state && 'accepting' in state && (
+        <label className="lp-check">
+          <input type="checkbox" checked={state.accepting} disabled={busy} onChange={(e) => void flip(e.target.checked)} aria-describedby="settings-agent-links-hint" />
+          {t('settings.agentLinks.label')}
+        </label>
+      )}
+      <small id="settings-agent-links-hint" className="lp-meta">{t('settings.agentLinks.hint')}</small>
+    </section>
+  )
+}
+
+/** CO-407: the launcher doctor's checks that concern Fabric, read only when the person presses «Проверить». */
+export function ReadinessPanel(): React.JSX.Element {
+  const t = useT()
+  const [read, setRead] = useState<{ at: 'idle' } | { at: 'checking' } | { at: 'done'; answer: import('../../../shared/fabricReadiness').FabricReadiness }>({ at: 'idle' })
+  const check = async (): Promise<void> => {
+    setRead({ at: 'checking' })
+    try { setRead({ at: 'done', answer: await window.fabric.settings.readiness() }) }
+    catch (e) { setRead({ at: 'done', answer: { ok: false, reason: 'failed', detail: e instanceof Error ? e.message : String(e) } }) }
+  }
+  const answer = read.at === 'done' ? read.answer : null
+  return (
+    <section className="lp-panel" aria-labelledby="settings-readiness-title">
+      <div className="lp-panel-head">
+        <h3 id="settings-readiness-title">{t('settings.readiness.title')}</h3>
+        <button type="button" className="lp-button" disabled={read.at === 'checking'} onClick={() => void check()}>
+          {read.at === 'checking' ? t('settings.readiness.checking') : t('settings.readiness.check')}
+        </button>
+      </div>
+      <p className="lp-meta">{t('settings.readiness.lede')}</p>
+      {answer && !answer.ok && <p className="lp-meta" role="status">{t(`settings.readiness.failed.${answer.reason}` as 'settings.readiness.failed.failed')}{answer.detail ? ` ${answer.detail}` : ''}</p>}
+      {answer && answer.ok && (
+        <>
+          <p className="lp-meta" role="status">{t('settings.readiness.summary', { ok: answer.summary.ok, warn: answer.summary.warn, fail: answer.summary.fail })}</p>
+          <ul className="lp-list" aria-label={t('settings.readiness.title')}>
+            {answer.checks.map((c) => (
+              <li key={c.id}>
+                <span className={`lp-pill ${c.state === 'fail' ? 'attention' : ''}`}>{t(`settings.readiness.state.${c.state}` as 'settings.readiness.state.ok')}</span>
+                <span>{c.detail}</span>
+                {c.fix && <small className="lp-meta">{c.fix}</small>}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  )
+}
+
 export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread }: {
   settings: AppSettings
   /** Writes the patch; answers why it was not saved (said on this screen, CO-313), or nothing when it was. */
@@ -210,6 +281,8 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <h3 id="settings-launch-title">{t('settings.launch.title')}</h3>
             <FallbackOrderSetting value={settings.runnerFallback} onChange={change} />
           </section>
+          <AgentLinksSetting />
+          <ReadinessPanel />
         </div>
         <aside className="lp-side">
           <section className="lp-panel" aria-labelledby="settings-computer-title">

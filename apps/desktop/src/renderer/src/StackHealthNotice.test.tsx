@@ -102,3 +102,17 @@ describe('the stack health notice', () => {
   })
 })
 // #endregion stack-health-notice
+
+describe('the countdown runs on its own (CO-374)', () => {
+  it('counts the next try down each second between the watch\'s reads', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      const { push } = mount(up)
+      await act(async () => { await vi.advanceTimersByTimeAsync(10) })
+      push({ ...up, stack: 'down', why: 'docker', nextTryInS: 20 })
+      expect(screen.getByText('Next try in 20 s.')).toBeTruthy()
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+      expect(screen.getByText('Next try in 17 s.')).toBeTruthy()
+    } finally { vi.useRealTimers() }
+  })
+})

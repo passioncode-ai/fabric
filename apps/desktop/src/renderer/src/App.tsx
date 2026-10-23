@@ -907,8 +907,9 @@ function Shell({
   // cannot reach the thing is inconclusive about the harness).
   if (sessionWindowId === undefined)
     return error ? <BootFailure raw={error} onRetry={() => window.location.reload()} /> : <div className="booting" />
-  if (fileWindowPath) return <EditorWindow filePath={fileWindowPath} />
-  if (sessionWindowId) return <SessionWindow sessionId={sessionWindowId} />
+  // CO-374: a detached window says a lost stack too, above its own content.
+  if (fileWindowPath) return <><StackHealthNotice /><EditorWindow filePath={fileWindowPath} /></>
+  if (sessionWindowId) return <><StackHealthNotice /><SessionWindow sessionId={sessionWindowId} /></>
 
   // Where the rail marks the person and what the top bar says (SCN-162). A start path and a project draft are
   // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.

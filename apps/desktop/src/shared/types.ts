@@ -1354,6 +1354,11 @@ export interface FabricApi {
     agentCatalog(): Promise<import('./agentCatalog.ts').SwitchboardCatalog>
     /** Whether launch at login is offered here and what the system itself reports (0.3.7 review UX-3, ER-3). */
     loginItem(): Promise<import('./loginItem.ts').LoginItemState>
+    /** CO-407: Claude Code's `crossSessionInbound` in its user settings, read and set by the person's switch. */
+    claudeInbound(): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
+    setClaudeInbound(on: boolean): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
+    /** CO-407: the launcher doctor's Fabric checks, run read-only when the person asks. */
+    readiness(): Promise<import('./fabricReadiness.ts').FabricReadiness>
   }
   feed: {
     replay(fromSeq: number): Promise<FeedEvent[]>
@@ -1823,6 +1828,9 @@ export const IPC = {
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
   settingsLoginItem: 'settings:loginItem',
+  settingsClaudeInbound: 'settings:claudeInbound',
+  settingsSetClaudeInbound: 'settings:setClaudeInbound',
+  settingsReadiness: 'settings:readiness',
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
   commsThreads: 'comms:threads',

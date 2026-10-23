@@ -56,6 +56,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   sweeps uncollected ones (CO-363), and a credential cannot raise its call budget by inventing session ids (CO-346).
   Two tests that failed only on a loaded machine are steady, and the gate says when the machine is loaded (CO-379,
   CO-332).
+- Settings can let Claude Code sessions on this computer message each other (off unless you turn it on), and «Fabric
+  readiness» runs the PassionCode launcher's read-only check on request and shows what concerns Fabric (CO-407).
+- When the local database is lost, its notice counts down to the next try on its own and shows in the detached console
+  and editor windows too (CO-374, in part).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).
