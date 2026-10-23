@@ -8,9 +8,9 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: r-8642aee374a2
 - files: docs/evidence/plans/2026-10-23-release-0312-triage.md (new); the carry-over register (the triage note, CO-293 closed, CO-371 recorded); the backlog (P-25, the Now line, the open count); the map
 - conflicts: none
-- summary: 0.3.12's triage decides every carried row: 40 in three waves of 0.3.12, 16 in 0.3.13 (the contract's repin, one schema step), 10 in 0.4.0, one to its owners, one closed. Also gives the 0.3.11 landing entry its time.
+- summary: 0.3.12's triage decides every carried row: 40 in three waves of 0.3.12, 16 in 0.3.13 (the contract's repin, one schema step), 10 in 0.4.0, one to its owners, one closed. Also gives the 0.3.11 and CO-377 landing entries their times.
 
-### 2026-10-23T16:00:00Z · `—` · agent/co-377 → main · fast-forward
+### 2026-10-23T15:27:00Z · `—` · agent/co-377 → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/announcements.ts (new), launch/CommsAnnouncements.tsx (new), CommsScreen.tsx (the third tab), launch.css, i18n, tests; SCN-178; CO-377; CHANGELOG; AGENTS.md; the map
 - conflicts: none
