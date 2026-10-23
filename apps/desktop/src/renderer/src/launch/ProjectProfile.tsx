@@ -59,7 +59,9 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
     )
   }
   const plan = project.plan ?? null
-  const profiled = !!project.profiled_at
+  // DA-3 / ER-1: onboarded is what an agent recorded (a goal or a summary), not `profiled_at`: the person setting only the
+  // business stamps `profiled_at` too, and must not lose «Познакомиться с проектом» or read that an agent recorded no goal.
+  const profiled = !!(project.goal?.trim() || project.summary?.trim())
 
   return (
     <section className="lp-panel" aria-labelledby="project-profile-title">

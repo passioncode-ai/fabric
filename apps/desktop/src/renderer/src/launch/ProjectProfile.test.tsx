@@ -53,6 +53,16 @@ describe('the project page says what the project is (W2 S4)', () => {
     await waitFor(() => expect(screen.getByText(/Ada, 12 commits/)).toBeTruthy())
   })
 
+  it('keeps the offer when only the person\'s business was recorded, and never says an agent recorded no goal (DA-3)', async () => {
+    install()
+    // Setting the business journals project.profiled@1 too, which stamps profiled_at; no agent has run.
+    show({ ...base, business: 'PassionCode', profiled_at: '2026-10-23T00:00:00Z', profiled_by: 'operator', goal: null, summary: null })
+    expect(screen.getByRole('button', { name: en['launch.profile.onboard'] })).toBeTruthy()
+    expect(screen.getByText(en['launch.profile.none'])).toBeTruthy()
+    expect(screen.queryByText(en['launch.profile.noGoal'])).toBeNull()
+    expect((screen.getByLabelText(en['launch.profile.business']) as HTMLInputElement).value).toBe('PassionCode')
+  })
+
   it('saves the business the person types, once, and says when it was not saved', async () => {
     const api = install()
     show({ ...base, business: 'PassionCode' })
