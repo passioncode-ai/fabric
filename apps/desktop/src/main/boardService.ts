@@ -254,7 +254,53 @@ export interface BoardDeps {
   now?: () => Date
   /** Whether com.status carries `idempotency.epoch`; the pin decides (`STATUS_CARRIES_EPOCH`), a test may say otherwise. */
   statusCarriesEpoch?: boolean
+  /**
+   * The estate's active Projects with their name, business and primary repository (0.3.12 W2 S2, CO-368, CO-369), for
+   * the wall between businesses and the directory's names. Absent (tests, an older host) or null (the read failed):
+   * no wall and no renaming, never a refusal, so the board keeps working when the projects cannot be read.
+   */
+  projectFacts?: (estateId: string) => Promise<ProjectFact[] | null>
 }
+
+/** One Project as the board's wall and directory need it. */
+export interface ProjectFact {
+  id: string
+  name: string
+  business: string | null
+  /** The primary repository's folder, when the Project has one. */
+  repo: string | null
+}
+
+// #region business-wall — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+/**
+ * W2-5 (CO-368, the operator's rule of 2026-10-18 that unrelated businesses are never linked): the businesses a new
+ * thread would join, when they are more than one. A Project whose business nobody recorded walls nothing. Compared
+ * without case and surrounding spaces, so "Appvillis" and "appvillis " are one business.
+ */
+export function businessesJoined(projects: readonly string[], facts: readonly ProjectFact[]): Array<{ business: string; projects: string[] }> {
+  const byId = new Map(facts.map((f) => [f.id, f]))
+  const groups = new Map<string, { business: string; projects: string[] }>()
+  for (const id of new Set(projects)) {
+    const f = byId.get(id)
+    const b = f?.business?.trim()
+    if (!f || !b) continue
+    const key = b.toLowerCase()
+    const g = groups.get(key) ?? { business: b, projects: [] }
+    g.projects.push(f.name)
+    groups.set(key, g)
+  }
+  return groups.size > 1 ? [...groups.values()] : []
+}
+
+/** CO-369: a directory name shared by two Projects carries its repository's folder, so an agent can tell them apart. */
+export function directoryName(id: string, name: string, facts: readonly ProjectFact[]): string {
+  const same = facts.filter((f) => f.name.trim().toLowerCase() === name.trim().toLowerCase())
+  if (same.length < 2) return name
+  const own = facts.find((f) => f.id === id)
+  const folder = own?.repo ? own.repo.replace(/[\\/]+$/, '').split(/[\\/]/).pop() : null
+  return `${name} (${folder || id.slice(0, 8)})`
+}
+// #endregion business-wall
 
 const UNAVAILABLE = refusal('not_available', 'The board cannot be read right now; nothing was changed.', true)
 /** A write whose answer was lost may have committed (A7-035): the same key, sent again, tells which. */
@@ -443,6 +489,15 @@ export function createBoard(deps: BoardDeps) {
       // is no board id is passed as given — the board refuses it by its shape, without a cast — and a board id of
       // any case is sent lower-cased.
       if (parsed.data.replyTo !== undefined) parsed.data.replyTo = boardId(parsed.data.replyTo) ?? parsed.data.replyTo
+      // CO-368: a new thread never joins Projects of two businesses the operator keeps apart. Checked before the door, so
+      // nothing is stored; a read of the Projects that fails walls nothing (the board keeps working) and is logged.
+      if ('new' in parsed.data.thread && deps.projectFacts) {
+        let facts: ProjectFact[] | null = null
+        try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'the wall between businesses is not checked for this submit' }) }
+        const joined = facts ? businessesJoined([caller.projectId, ...parsed.data.thread.new.participants], facts) : []
+        if (joined.length > 0)
+          return refusal('not_authorized', `This thread would join Projects of different businesses, which the operator keeps apart: ${joined.map((g) => `${g.business} (${g.projects.join(', ')})`).join('; ')}. Write to each business in its own thread.`)
+      }
       const digest = idempotencyDigest('com.submit', parsed.data)
       if (typeof digest !== 'string') return digest
       const stored = receipt('board_submit', await call('board_submit', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_submit: parsed.data, p_digest: digest }, 'write'))
@@ -538,10 +593,16 @@ export function createBoard(deps: BoardDeps) {
       const data = await call('board_directory', { p_estate: caller.estateId, p_reader: caller.projectId, p_capability: capability, p_after: after, p_limit: parsed.data.limit ?? 50 }, 'read')
       if (isRefusal(data)) return data
       const last = typeof data.last === 'string' && BOARD_ID.test(data.last) ? data.last : null
+      // CO-369: two Projects of one name are told apart by their repository's folder. A read that fails leaves the names.
+      let facts: ProjectFact[] | null = null
+      if (deps.projectFacts) { try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'directory names are not disambiguated' }) } }
+      const projects = facts && Array.isArray(data.projects)
+        ? (data.projects as Array<Record<string, unknown>>).map((p) => typeof p.id === 'string' && typeof p.name === 'string' ? { ...p, name: directoryName(p.id, p.name, facts!) } : p)
+        : data.projects
       const out = {
         protocol: COMMS_PROTOCOL,
         snapshot: { readAt: now().toISOString() },
-        projects: data.projects,
+        projects,
         cursor: data.more === true && last ? `d${last.replace(/-/g, '')}_${dirMac(caller, capability, last)}` : null
       }
       const checked = commsDirectorySchema.safeParse(out)

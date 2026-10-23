@@ -449,7 +449,16 @@ export class AgentSurface {
     this.now = deps.now ?? Date.now
     this.pidAlive = deps.pidAlive ?? pidAlive
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
-    this.board = createBoard({ rpc: (fn, args) => deps.db.rpc(fn, args) })
+    this.board = createBoard({
+      rpc: (fn, args) => deps.db.rpc(fn, args),
+      // CO-368, CO-369 (0.3.12 W2 S2): the estate's active Projects with their business and primary repository, for the
+      // wall between businesses and the directory's names. A refused read answers null: no wall, never a refusal.
+      projectFacts: async (estateId) => {
+        const { data, error } = await deps.db.from('projects').select('id,name,business,repo_path').eq('estate_id', estateId).eq('status', 'active').limit(2000)
+        if (error || !Array.isArray(data)) return null
+        return (data as Array<{ id: string; name: string; business: string | null; repo_path: string | null }>).map((p) => ({ id: p.id, name: p.name, business: p.business ?? null, repo: p.repo_path ?? null }))
+      }
+    })
   }
 
   /** This computer's trust (ADR-0176 §3). A settings read that throws reads as not trusted: the stricter rule. */

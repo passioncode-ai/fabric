@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T17:21:00Z · `—` · agent/0312-w2-s2 → main · fast-forward
+- run: r-8642aee374a2
+- files: main/boardService.ts (businessesJoined, directoryName, projectFacts), main/agentSurface.ts; test/board-service.test.mjs; CO-368 and CO-369 resolved; the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 wave 2, slice S2: the board refuses a new thread that joins two businesses; the directory tells same-named projects apart.
+
 ### 2026-10-23T17:02:00Z · `—` · agent/0312-w2-s1 → main · fast-forward
 - run: r-8642aee374a2
 - files: supabase/migrations/20261023000123_project_profile.sql (new, schema 96), supabase/migration-ledger.json; shared/schemaContract.json, scope.ts, storageContract.ts, surfaceTools.ts, types.ts; main/agentSurface.ts (fabric_project_profile), main/ceoPrivateArchive.ts; i18n; test/project-profile-db.test.mjs and its runner (new), agent-surface.test.mjs, ceo-private-archive-codec.test.mjs; scripts/ci.sh; CHANGELOG, release-mac.md, operating-surfaces.md; the backlog; the map

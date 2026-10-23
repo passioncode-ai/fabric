@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import test from 'node:test'
-import { createBoard, commsCanonical, commsDigest, commsSubmitSchema, CommsCanonicalError } from '../src/main/boardService.ts'
+import { createBoard, commsCanonical, commsDigest, commsSubmitSchema, CommsCanonicalError, businessesJoined, directoryName } from '../src/main/boardService.ts'
 import { compileCommsValidators, loadPinnedFixtures } from './contract-consumer-fixtures.mjs'
 
 const fixtures = loadPinnedFixtures()
@@ -655,4 +655,57 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
   assert.match(described.get('com.get'), /answered/); assert.match(described.get('com.get'), /outside the pinned contract/)
   for (const op of ['com.list', 'com.read_ack', 'com.reply', 'com.submit', 'com.get']) assert.doesNotMatch(described.get(op), /\u2014/, `${op}'s description carries an em dash`)
 })
+// #region business-wall-tests — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+// CO-368, CO-369 (0.3.12 W2 S2): a new thread never joins two businesses; two Projects of one name are told apart.
+{
+  const P = (n) => `79000000-0000-4000-8000-0000000000${n}`
+  const facts = [
+    { id: caller.projectId, name: 'phone-bot', business: 'PhoneCo', repo: '/w/phone-bot' },
+    { id: P(21), name: 'phone-site', business: 'phoneco ', repo: '/w/phone-site' },
+    { id: P(22), name: 'messenger', business: 'Appvillis', repo: '/w/messenger' },
+    { id: P(23), name: 'research-agent', business: null, repo: '/w/research-agent' },
+    { id: P(24), name: 'research-agent', business: null, repo: '/w/research-agent-2/' }
+  ]
+  const thread = (participants) => ({ idempotency: { epoch: 1, key: 'wall-000001' }, thread: { new: { participants } }, kind: 'announcement', body: { text: 'hello' } })
+  const stored = { data: { ok: true, repeated: false, message: P(91), thread: P(92), at: '2026-10-23T00:00:00.000Z' }, error: null }
+
+  test('the wall: businesses are compared without case, and a Project without one walls nothing', () => {
+    assert.deepEqual(businessesJoined([caller.projectId, P(21), P(23)], facts), [])
+    const joined = businessesJoined([caller.projectId, P(21), P(22)], facts)
+    assert.deepEqual(joined.map((g) => g.business).sort(), ['Appvillis', 'PhoneCo'])
+    assert.deepEqual(joined.find((g) => g.business === 'PhoneCo').projects, ['phone-bot', 'phone-site'])
+  })
+
+  test('a new thread joining two businesses is refused before the door; one business, an unknown one or an existing thread goes through', async () => {
+    const { rpc, calls } = fake({ board_submit: stored })
+    const board = createBoard({ rpc, projectFacts: async () => facts })
+    const refused = await board.submit(caller, thread([P(21), P(22)]))
+    assert.equal(refused.error.code, 'not_authorized')
+    assert.match(refused.error.message, /different businesses/)
+    assert.match(refused.error.message, /Appvillis \(messenger\)/)
+    assert.equal(calls.length, 0, 'nothing reached the board')
+    assert.equal((await board.submit(caller, thread([P(21), P(23)]))).ok, true)
+    assert.equal((await board.submit(caller, { ...thread([]), idempotency: { epoch: 1, key: 'wall-000002' }, thread: { id: P(92) }, kind: 'message' })).ok, true)
+    assert.equal(calls.filter((c) => c.fn === 'board_submit').length, 2)
+  })
+
+  test('a Project read that fails walls nothing and the message goes through', async () => {
+    const { rpc, calls } = fake({ board_submit: stored })
+    const board = createBoard({ rpc, projectFacts: async () => { throw new Error('projects unreadable') } })
+    assert.equal((await board.submit(caller, thread([P(21), P(22)]))).ok, true)
+    assert.equal(calls.length, 1)
+  })
+
+  test('the directory tells two Projects of one name apart by their repository folder, and leaves others as they are', async () => {
+    assert.equal(directoryName(P(23), 'research-agent', facts), 'research-agent (research-agent)')
+    assert.equal(directoryName(P(24), 'research-agent', facts), 'research-agent (research-agent-2)')
+    assert.equal(directoryName(P(22), 'messenger', facts), 'messenger')
+    const page = { ok: true, projects: [{ id: P(23), name: 'research-agent', capabilities: [] }, { id: P(24), name: 'research-agent', capabilities: [] }], more: false, last: null }
+    const r = await createBoard({ rpc: fake({ board_directory: { data: page, error: null } }).rpc, projectFacts: async () => facts }).directory(caller, {})
+    assert.deepEqual(r.projects.map((p) => p.name), ['research-agent (research-agent)', 'research-agent (research-agent-2)'])
+    assert.equal(validators['comms-directory.schema.json'](r), true, JSON.stringify(validators['comms-directory.schema.json'].errors))
+  })
+}
+// #endregion business-wall-tests
+
 // #endregion board-core-holds
