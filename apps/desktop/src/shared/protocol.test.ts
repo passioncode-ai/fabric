@@ -102,12 +102,12 @@ describe('the working language (P-24): agents write in the language of Fabric\'s
     expect(p.language).toEqual({ code: 'ru', name: 'Russian', native: 'Русский' })
     expect(p.rules[1]).toMatch(/^\[ADVICE\] Write everything a person will read in Russian \(Русский\)/)
     expect(p.rules[1]).toMatch(/board messages/)
-    expect(p.rules[1]).toMatch(/Keep code, identifiers, commands, paths and quotations as they are/)
+    expect(p.rules[1]).toMatch(/Documents in a project's repository keep the language that project uses/)
   })
 
   it('is English when the interface is', () => {
     const p = buildProtocol({ now: at, timeZone: 'UTC', language: 'en' })
-    expect(p.language.code).toBe('en')
+    expect(p.language?.code).toBe('en')
     expect(p.rules[1]).toMatch(/in English \(English\)/)
   })
 
@@ -120,5 +120,14 @@ describe('the working language (P-24): agents write in the language of Fabric\'s
   it('no other rule sends the agent to guess the language from how it is spoken to', () => {
     const p = buildProtocol({ now: at, timeZone: 'UTC', language: 'ru' })
     for (const rule of p.rules) expect(rule).not.toMatch(/language they write to you in|in their language/)
+  })
+})
+
+describe('the working language can be switched off (the operator\'s walk OF-38)', () => {
+  it('names no language and adds no language rule when the person turned it off', () => {
+    const p = buildProtocol({ now: at, timeZone: 'UTC', language: null })
+    expect(p.language).toBeNull()
+    expect(p.rules.some((r) => r.includes('the language of Fabric'))).toBe(false)
+    expect(p.rules[1]).toMatch(/^A task is in one of/)
   })
 })

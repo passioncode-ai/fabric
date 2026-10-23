@@ -430,6 +430,8 @@ export interface AppSettings {
   agentPermissions: 'fewer-prompts' | 'manual'
   /** Start Fabric at login, without a window (CO-322: on by default; the person turns it off in Settings). */
   launchAtLogin: boolean
+  /** OF-38: the hub names the interface's language to agents as their working language; off keeps their own. */
+  agentLanguage: boolean
 }
 
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
@@ -440,7 +442,7 @@ export interface AppSettings {
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage'>>
 // #endregion settings-patch
 
 /**
@@ -464,7 +466,8 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   runnerFallback: { order: [] },
   // The operator's choice (2026-10-19, as in Orca): agents start with fewer prompts unless the person picks manual.
   agentPermissions: 'fewer-prompts',
-  launchAtLogin: true
+  launchAtLogin: true,
+  agentLanguage: true
 }
 
 export interface FeedEvent {

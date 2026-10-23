@@ -11,6 +11,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ActHistoryPage, ActView } from '../../../shared/acts.ts'
 import { useLocale, useT } from '../i18n'
 import { actSentence, whyWords } from './actWords'
+import { Feed } from '../Feed'
+import type { EntityRef } from '../../../shared/entityRef'
+import type { FeedEvent, ProjectRow } from '../../../shared/types'
 
 const PAGE = 50
 
@@ -19,7 +22,17 @@ type Read =
   | { at: 'ready'; rows: ActView[]; next: number | null; readAt: string }
   | { at: 'failed'; says: string; kept: { rows: ActView[]; next: number | null; readAt: string } | null }
 
-export function HistoryScreen({ projects, mark }: { projects: ReadonlyArray<{ id: string; name: string }> | null; mark: number }): React.JSX.Element {
+const NO_PROJECTS: ProjectRow[] = []
+
+export function HistoryScreen({ projects, mark, feed, feedProjects, onOpen }: {
+  projects: ReadonlyArray<{ id: string; name: string }> | null
+  mark: number
+  /** OF-34 (the operator's walk, 2026-10-22): what the agents did, from the journal; null while unread, absent to hide. */
+  feed?: FeedEvent[] | null
+  /** Null while unread: the feed then says it is reading instead of naming no project. */
+  feedProjects?: ProjectRow[] | null
+  onOpen?: (projectId: string, focus: EntityRef) => void
+}): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [read, setRead] = useState<Read>({ at: 'reading' })
@@ -96,6 +109,14 @@ export function HistoryScreen({ projects, mark }: { projects: ReadonlyArray<{ id
       )}
       {read.at === 'ready' && read.next !== null && (
         <button type="button" className="hx-button" onClick={() => void more()}>{t('acts.more')}</button>
+      )}
+      {/* OF-34: the acts above are what was done through Fabric's own controls; the agents' work is in the journal. */}
+      {feed !== undefined && (
+        <section className="hx-agents" aria-labelledby="hx-agents-title">
+          <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
+          {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
+          <Feed events={feedProjects ? feed : null} projects={feedProjects || NO_PROJECTS} onOpen={onOpen} />
+        </section>
       )}
     </div>
   )

@@ -10,6 +10,7 @@ import { useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
+import { useOpenConsole } from '../consoles'
 
 export type HomeReading = { view: HomeView | null; problem: string | null }
 
@@ -167,7 +168,8 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
   onComms?(): void
   onOpen(projectId: string): void
   onSession(sessionId: string): void
-  onAll(): void
+  /** «Все агенты»; absent on the Agents place itself. */
+  onAll?(): void
   /** Only this project's agents (the project page); every agent when absent. */
   projectId?: string
   title?: string
@@ -186,7 +188,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
         </h3>
         <span className="lh-agents-actions">
           {onComms && <button type="button" className="lp-button lh-text-link" onClick={onComms}>{t('launch.home.agents.comms')}</button>}
-          <button type="button" className="lp-button lh-text-link" onClick={onAll}>{projectId ? t('launch.project.agents.all') : t('launch.home.agents.all')}</button>
+          {onAll && <button type="button" className="lp-button lh-text-link" onClick={onAll}>{projectId ? t('launch.project.agents.all') : t('launch.home.agents.all')}</button>}
         </span>
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
@@ -196,7 +198,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
         <ol className="lh-agent-list lh-scrollbox">
           {live.map((a) => (
             <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
-              <button type="button" className="lp-button lh-agent" onClick={() => (a.console ? onSession(a.sessionId) : a.projectId ? onOpen(a.projectId) : onAll())}
+              <button type="button" className="lp-button lh-agent" onClick={() => (a.console ? onSession(a.sessionId) : a.projectId ? onOpen(a.projectId) : onAll?.())}
                 title={a.console ? t('launch.home.agents.openConsole') : t('launch.home.agents.openProject')}>
                 <span className="lh-agent-head">
                   <b>{runnerLabel(a.agent, t)}</b>
@@ -210,6 +212,28 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
         </ol>
       )}
     </section>
+  )
+}
+
+/**
+ * The Agents place's list of who works now (the operator's walk OF-30, 2026-10-22): the same reading as the home, so an
+ * agent opened in a terminal and joined through fabric-mcp is listed as well as a console Fabric holds; the console
+ * opens in one press when Fabric holds one, else the agent's project.
+ */
+export function AgentsAtWork({ mark, onOpen }: { mark: number; onOpen(projectId: string): void }): React.JSX.Element {
+  const t = useT()
+  const reading = useHome(mark)
+  const showConsole = useOpenConsole()
+  const [problem, setProblem] = useState<string | null>(null)
+  const openConsole = (sessionId: string): void => {
+    setProblem(null)
+    showConsole(sessionId).catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
+  }
+  return (
+    <>
+      {problem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={problem} />}
+      <HomeAgents reading={reading} onOpen={onOpen} onSession={openConsole} />
+    </>
   )
 }
 // #endregion home-work

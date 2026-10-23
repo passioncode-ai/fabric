@@ -32,6 +32,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - A task opens on what it is for: «Что должно произойти», «Зачем», «Что будет готово», then the instruction the agent
   was given; «← К проекту» sits at the top left above its title (OF-21, OF-22).
 
+- Агенты shows every agent at work, one opened in a terminal included, each by the task it holds; with no console
+  held by Fabric the panel below says so once instead of «Выберите агента слева» over an empty list (OF-30). История adds
+  «Что делали агенты», the journal's events in plain words, below the acts done through Fabric (OF-34). Account quotas
+  leave Settings: Switchboard owns them (OF-35).
+- Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by default; off, Fabric names no working language to
+  agents. Documents in a project's repository keep the language that project uses ([ADR-0174](docs/adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)).
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

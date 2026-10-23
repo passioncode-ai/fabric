@@ -62,8 +62,8 @@ The operator asked for the open choices to be decided, not asked back («тут 
 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
-| OF-30 | The Agents screen says «выберите агента слева» and nothing can be chosen; agents did not load; the layout is glued together | The list loads (or says why not); selecting an agent opens its page beside the list; the page is its flow (OF-09): the task it works on, what it did, results, then history | open |
-| OF-34 | История is empty | История shows what agents and people did, newest first, from the journal; empty only when nothing happened, and then says so | open |
+| OF-30 | The Agents screen says «выберите агента слева» and nothing can be chosen; agents did not load; the layout is glued together | The list loads (or says why not); selecting an agent opens its page beside the list; the page is its flow (OF-09): the task it works on, what it did, results, then history | done 2026-10-23 on `agent/w4-agents`: the Agents place lists every agent at work from the home's reading, a terminal's included, each by the task it holds (`launch/HomeWork.tsx#AgentsAtWork`); the console panel below says once that Fabric holds no console instead of three empty columns (`EstateAgents.tsx`); tests `HomeWork.test.tsx`, `unreadSessions.test.tsx` |
+| OF-34 | История is empty | История shows what agents and people did, newest first, from the journal; empty only when nothing happened, and then says so | done 2026-10-23 on `agent/w4-agents`: История keeps the acts done through Fabric and adds «Что делали агенты», the journal's events in plain words (`launch/HistoryScreen.tsx`, `Feed`); cause: История read only `act.recorded@1`; test `HistoryScreen.test.tsx` |
 
 ### Projects: onboarding and the graph
 
@@ -77,15 +77,15 @@ The operator asked for the open choices to be decided, not asked back («тут 
 | Id | What the operator saw | What it must be | Status |
 |---|---|---|---|
 | OF-33 | Settings: the limits and the project-to-project comms need a design and logic review | Settings reviewed section by section against SCN-170: each setting says what it changes, and nothing in Settings belongs elsewhere | open |
-| OF-35 | Account quotas exist in Fabric although Switchboard owns accounts and quotas | D-3: Fabric's quota panel is retired; Fabric reads Switchboard where a choice depends on it | open |
+| OF-35 | Account quotas exist in Fabric although Switchboard owns accounts and quotas | D-3: Fabric's quota panel is retired; Fabric reads Switchboard where a choice depends on it | done 2026-10-23 on `agent/w4-agents`: «Квоты аккаунта» is gone from Settings (D-3); quotas are Switchboard's |
 | OF-36 | Does «не давать компьютеру засыпать» work? | Measured 2026-10-23: the operator's setting is `keepAwake: 'never'` (`settings.json`), so Fabric holds no assertion; the two `PreventUserIdleSystemSleep` holders on this Mac were Claude Code sessions' own `caffeinate -i -t 300` (`pmset -g assertions`). To verify: switch the setting on, start a console, read Fabric's assertion in `pmset -g assertions`, stop the console, read it gone | open |
 
 ### The working language (P-24, amended)
 
 | Id | What the operator said | What it must be | Status |
 |---|---|---|---|
-| OF-37 | Agents localize what Fabric shows, but the documentation inside projects must not change; data entering Fabric's interface goes through a localization pass with context | D-2: documents in a project's repository keep their own language; only text that reaches Fabric's interface is in the working language. Text an agent wrote in another language is localized for display with its context (a model call with the project's glossary); the original is kept and one press shows it | open |
-| OF-38 | A switch in Settings | «Переводить тексты агентов на язык интерфейса», on by default and following the language; off keeps the agents' own language everywhere (the hub then names no working language) | open |
+| OF-37 | Agents localize what Fabric shows, but the documentation inside projects must not change; data entering Fabric's interface goes through a localization pass with context | D-2: documents in a project's repository keep their own language; only text that reaches Fabric's interface is in the working language. Text an agent wrote in another language is localized for display with its context (a model call with the project's glossary); the original is kept and one press shows it | partly done 2026-10-23 (ADR-0174): a repository's documents keep their language and the rule says so; the display pass with a model moves to 0.3.12 |
+| OF-38 | A switch in Settings | «Переводить тексты агентов на язык интерфейса», on by default and following the language; off keeps the agents' own language everywhere (the hub then names no working language) | done 2026-10-23 on `agent/w4-agents` (ADR-0174): «Агенты пишут на языке интерфейса» under «Язык», on by default (`settings.agentLanguage`); off, the hub names no working language; tests `appSettings.test.ts`, `protocol.test.ts`, `SettingsScreen.test.tsx` |
 
 ### What else (the operator: «подумать, что ещё упустили»)
 
@@ -99,7 +99,7 @@ The operator asked for the open choices to be decided, not asked back («тут 
 - **D-1. The pipeline is fixed, not customizable, in 0.3.11.** The board shows the ladder Fabric enforces
   (`apps/desktop/src/shared/ladder.ts`): Очередь (backlog), В работе (running), На проверке (review), Готово (done),
   with Отменено as a filter. A customizable pipeline needs a stored, versioned pipeline definition, which is the
-  task-pipeline persistence contract (reserved as ADR-0173, migrations 117 and 118); customization waits for it.
+  task-pipeline persistence contract (reserved as ADR-0173, since 2026-10-23 ADR-0175; migrations 117 and 118); customization waits for it.
   Reason: a column a person can add but the ladder does not know would show a state nothing enforces.
 - **D-2. Localize the interface, never the repository.** Agents write Fabric's data (titles, briefs, stages, board
   messages, questions) in the working language (ADR-0172); documents in a project's repository keep the language the

@@ -133,7 +133,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     text:
       'Report your stage with fabric_stage_report as you move through the work. It is how the operator sees ' +
       'progress without reading your whole transcript, on the home screen and the project page. Write the stage as one plain ' +
-      'sentence the project\'s owner understands without context, in the working language named above: what you are doing ' +
+      'sentence the project\'s owner understands without context, in the working language named above (or the person\'s own, when none is named): what you are doing ' +
       'and toward what, never a file, a command or an internal id ("Making a version where the computer stays awake while an ' +
       'agent works, then releasing it").',
     mode: 'ADVICE',

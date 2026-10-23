@@ -557,6 +557,7 @@ export const en = {
   'agents.estateTitle': 'Every agent',
   'agents.estateLede': 'Every session in every project. The centre shows what one printed; working in it opens its own window.',
   'agents.none': 'No agent is running anywhere in this estate.',
+  'agents.noConsoles': "Fabric holds no console right now. Agents working in a terminal are listed above.",
   'agents.pick': 'Choose an agent on the left.',
   'agents.output': 'What it printed',
   'agents.pickOption': 'Launch option',
@@ -940,6 +941,7 @@ export const en = {
   'settings.themeLight': 'Light',
   'settings.themeSystem': 'System',
   'settings.language': 'Language',
+  'settings.agentLanguage': "Agents write in the interface's language",
   'settings.languageHint': 'Your agents write in it too: tasks, reports, board messages and the documentation they write for you. An agent learns a new language the next time it asks Fabric for its rules.',
   // Endonyms: a language picker names each language in that language, so these
   // are registry rows that every locale keeps identical rather than translates.
@@ -2688,6 +2690,7 @@ export const en = {
   'act.run.attest': "Work on «{task}» marked as over; the task is free",
   'act.run.unattest': "«{task}» is held again until its run is settled",
   // 0.3.7 wave 3: История, the list of acts (SCN-168, SCN-169); wave 4 adds its filters and detail.
+  'acts.agentsTitle': "What the agents did",
   'acts.title': "History",
   'acts.lede': "Every act of yours, newest first. Undo is one press where an act can be taken back. The agents\u2019 own acts arrive here in a later version.",
   'acts.reading': "Reading the history…",
@@ -2716,7 +2719,6 @@ export const en = {
   'create.convert': "Bring in an agent built elsewhere",
   // 0.3.7 wave 3: the places off the rail, reached from Settings until wave 4 gives each its home.
   'settings.more.title': "More",
-  'settings.more.quota': "Account limits",
   'settings.more.comms': "What projects tell each other",
   'settings.more.persona': "Fabric\u2019s name and look",
   'settings.more.help': "Help and the first run",

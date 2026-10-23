@@ -152,7 +152,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -162,6 +162,26 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     expect(onChange).toHaveBeenCalledWith({ agentPermissions: 'manual' })
   })
 
+})
+
+describe('the agents\' working language can be switched off (the operator\'s walk OF-38)', () => {
+  it('is on by default under «Язык», and switching it off is written', () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: {
+        start: { executors: async () => executors },
+        settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }), loginItem: async () => ({ state: 'unsupported' }) },
+        analytics: { status: async () => ({ enabled: false, answered: true }) }
+      }
+    }))
+    const onChange = vi.fn()
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true } as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
+    expect(box.checked).toBe(true)
+    fireEvent.click(box)
+    expect(onChange).toHaveBeenCalledWith({ agentLanguage: false })
+  })
 })
 
 describe('launch at login, only where it does something (CO-322; 0.3.7 review UX-3, ER-3, DO-6)', () => {

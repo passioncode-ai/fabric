@@ -235,6 +235,11 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
               {/* P-24: the interface's language is the agents' working language; the field says so. */}
               <small id="settings-language-hint">{t('settings.languageHint')}</small>
             </label>
+            {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
+            <label className="lp-check">
+              <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void onChange({ agentLanguage: e.target.checked })} />
+              {t('settings.agentLanguage')}
+            </label>
           </section>
           <section className="lp-panel" aria-labelledby="settings-data-title">
             <h3 id="settings-data-title">{t('settings.data.title')}</h3>
@@ -248,7 +253,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <section className="lp-panel" aria-labelledby="settings-more-title">
               <h3 id="settings-more-title">{t('settings.more.title')}</h3>
               <div className="lp-actions">
-                <button type="button" className="lp-button" onClick={() => onOpen('quota')}>{t('settings.more.quota')}</button>
+                {/* D-3 (the operator's walk, 2026-10-22): account quotas are Switchboard's; Fabric no longer shows its own. */}
                 <button type="button" className="lp-button" onClick={() => onOpen('comms')}>
                   {t('settings.more.comms')}
                   {commsUnread && commsUnread.count > 0 && (

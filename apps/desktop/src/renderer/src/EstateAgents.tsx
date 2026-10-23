@@ -212,6 +212,8 @@ export function EstateAgents({
     }
   }, [agent?.projectId, agent?.sessionId])
 
+  // OF-30: with no console held by Fabric there is nothing to pick on the left; say so once instead of three empty columns.
+  if (sessions !== null && known.length === 0) return <p className="lp-meta">{t('agents.noConsoles')}</p>
   return (
     <div className="project-columns project-columns-3">
       <div className="col-side">

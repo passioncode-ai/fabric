@@ -85,3 +85,13 @@ describe('История', () => {
     expect(await screen.findByRole('list', { name: en['acts.list'] })).toBeTruthy()
   })
 })
+
+describe('История shows what the agents did too (the operator\'s walk OF-34)', () => {
+  it('lists the journal\'s events under «Что делали агенты», even when no act was recorded', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 7, type: 'task.moved@1', actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: '2026-10-22T10:00:00Z', payload: { to: 'review' } }]
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    expect(await screen.findByRole('heading', { name: en['acts.agentsTitle'] })).toBeTruthy()
+    expect(document.querySelector('.hx-agents .feed, .hx-agents ol, .hx-agents ul')).toBeTruthy()
+  })
+})

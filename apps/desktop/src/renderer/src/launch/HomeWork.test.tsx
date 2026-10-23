@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { ru } from '../i18n/ru'
-import { HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './HomeWork'
+import { AgentsAtWork, HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './HomeWork'
 import type { HomeView } from '../../../shared/homeLive'
 
 const now = new Date().toISOString()
@@ -146,3 +146,13 @@ describe('home: who is doing what', () => {
   })
 })
 
+
+describe('the Agents place lists every agent at work, not only Fabric\'s consoles (the operator\'s walk OF-30)', () => {
+  it('reads work.home and shows each agent with the task it holds, an agent from a terminal included', async () => {
+    const terminal = { ...view.live[1], sessionId: 's9', console: false, stale: false, task: { id: 't9', summary: 'Refund replies' }, doing: null }
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => ({ ...view, live: [terminal] })) } } }))
+    show(<AgentsAtWork mark={0} onOpen={() => {}} />)
+    expect(await screen.findByText(/Refund replies/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Agents at work/ })).toBeTruthy()
+  })
+})

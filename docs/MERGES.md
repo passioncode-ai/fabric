@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T08:30:00Z · `—` · agent/w4-agents → main · fast-forward
+- run: r-8642aee374a2
+- files: launch/HomeWork.tsx (`AgentsAtWork`, `HomeAgents` optional «Все агенты»), App.tsx, EstateAgents.tsx, launch/HistoryScreen.tsx (the agents' feed), launch/SettingsScreen.tsx (no quotas; the language switch), shared/protocol.ts and protocolObligations.ts (the language rule optional, D-2), shared/appSettings.ts and types.ts (`agentLanguage`), main/index.ts and agentSurface.ts, rail.css, i18n, tests; ADR-0174 and the pipeline reservation moved to ADR-0175; OF-30, OF-34, OF-35, OF-37 (part), OF-38; SCN-166, SCN-168, SCN-170; CHANGELOG; the map
+- conflicts: none
+- summary: Agents and История repaired, quotas left to Switchboard, the working language switchable (wave 4).
+
 ### 2026-10-23T06:30:00Z · `—` · agent/w4-board → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/taskBoard.ts (new), shared/homeLive.ts (`done`), main/workRead.ts (`readTaskBoard`, the finished read), IPC `work:board` (types, preload, window policy, main), launch/KanbanBoard.tsx (new), BoardScreen.tsx (the two tabs), HomeWork.tsx (`HomeWorkLanes` in two columns), launch.css, i18n, tests; OF-18 and OF-19; SCN-173 coverage; CHANGELOG; the map

@@ -35388,7 +35388,7 @@
       "screen_refs": [
         "SCR-87"
       ],
-      "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists",
+      "coverage": "none yet — waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "every agent the person has is on one list with what it is doing, and its console is one press away.",
@@ -35427,7 +35427,7 @@
       "screen_refs": [
         "SCR-88"
       ],
-      "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.",
+      "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.; 2026-10-23 (OF-34): «Что делали агенты» under the acts, the journal's events (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.",
@@ -35465,7 +35465,7 @@
       "screen_refs": [
         "SCR-89"
       ],
-      "coverage": "none yet — wave 4 redraws SCN-160's screen",
+      "coverage": "none yet — wave 4 redraws SCN-160's screen; 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "how Fabric behaves is set in one place, each change saved at once and reversible.",

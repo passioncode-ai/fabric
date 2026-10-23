@@ -17,7 +17,8 @@ describe('validateSettings', () => {
       firstRun: { completedAt: '2026-10-03T10:00:00.000Z' },
       runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] },
       agentPermissions: 'manual',
-      launchAtLogin: false
+      launchAtLogin: false,
+      agentLanguage: true
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -178,6 +179,15 @@ describe('settingsPatch', () => {
     expect(validateSettings({ agentPermissions: 'yolo' })?.agentPermissions).toBe('fewer-prompts')
     expect(settingsPatch({ agentPermissions: 'manual' })).toEqual({ ok: true, patch: { agentPermissions: 'manual' } })
     expect(settingsPatch({ agentPermissions: 'yolo' }).ok).toBe(false)
+  })
+
+  it('names the working language to agents unless the person turned it off (OF-38)', () => {
+    expect(APP_SETTINGS_DEFAULTS.agentLanguage).toBe(true)
+    expect(validateSettings({})?.agentLanguage).toBe(true)
+    expect(validateSettings({ agentLanguage: false })?.agentLanguage).toBe(false)
+    expect(validateSettings({ agentLanguage: 'no' })?.agentLanguage).toBe(true)
+    expect(settingsPatch({ agentLanguage: false })).toEqual({ ok: true, patch: { agentLanguage: false } })
+    expect(settingsPatch({ agentLanguage: 'no' }).ok).toBe(false)
   })
 
   it('starts Fabric at login unless the person turned it off (CO-322)', () => {

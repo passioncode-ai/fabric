@@ -140,10 +140,11 @@ describe('the estate agents view says which question it is answering', () => {
       <EstateAgents sessions={sessions} projects={[project()]} onOpen={vi.fn()} onError={vi.fn()} />
     )
 
-  it('states that nothing is running once the read answered', () => {
+  it('states that Fabric holds no console once the read answered', () => {
+    // OF-30 (the operator's walk, 2026-10-22): no console is not "no agent" — agents in a terminal are listed above it.
     stub()
     show([])
-    expect(screen.getByText(en['agents.none'])).toBeTruthy()
+    expect(screen.getByText(en['agents.noConsoles'])).toBeTruthy()
   })
 
   it('but does not state it before the read has happened', () => {

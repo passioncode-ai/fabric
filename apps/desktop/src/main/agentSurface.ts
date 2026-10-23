@@ -308,7 +308,7 @@ export interface AgentSurfaceDeps {
    */
   onSessionEnded?: (sessionId: string, why: 'ended' | 'app-quit') => Promise<void>
   /** The interface's locale (`settings.locale`), the agents' working language (P-24). Absent or throwing: English. */
-  language?: () => string | undefined
+  language?: () => string | null | undefined
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -448,7 +448,7 @@ export class AgentSurface {
   }
 
   /** The working language's locale (P-24). A settings read that throws must not cost an agent its rules. */
-  private readLanguage(): string | undefined {
+  private readLanguage(): string | null | undefined {
     try { return this.deps.language?.() } catch (e) {
       ops.failed('agentSurface.working-language-read', e, { note: 'the settings could not be read; the rules name English' })
       return undefined
