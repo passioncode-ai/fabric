@@ -16,6 +16,11 @@ import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsP
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 
+/** The working language the hub names to agents (ADR-0172), or null when the person switched it off (ADR-0174). */
+export function workingLanguageOf(s: { locale: string; agentLanguage?: boolean }): string | null {
+  return s.agentLanguage === false ? null : s.locale
+}
+
 export { APP_SETTINGS_DEFAULTS }
 
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed

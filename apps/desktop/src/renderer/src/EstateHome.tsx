@@ -44,6 +44,7 @@ export function EstateHome({
   onOpenEntity,
   onNew,
   onBoard = () => {},
+  onNeeds,
   onAddTopic,
   onPulse,
   onPersona,
@@ -87,6 +88,8 @@ export function EstateHome({
   onNew: () => void
   /** Where "Work through the board" and a board row go (SCR-41). */
   onBoard?: () => void
+  /** The board's «Нужны вы», opened on one row when given (0.3.11 review UX-4); the kanban otherwise. */
+  onNeeds?: (item?: string) => void
   /** "+ Add a topic" under the board lane: the board, with its topic form open (launch prototype SCR-30). */
   onAddTopic?: () => void
   /** Where «Вся активность» and the rhythm lead (SCR-42); without it, the folded journal. */
@@ -485,14 +488,14 @@ export function EstateHome({
           </div>
           <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
           <HomeStats reading={home} waiting={counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null}
-            onAgents={onAgents} onBoard={onBoard} />
+            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} />
         </header>
       </div>
 
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
-          <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
+          <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
           {/* OF-15 (the operator's walk, 2026-10-22): «Где остановились» right under «Нужны вы», both on top. */}
           <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
             <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>

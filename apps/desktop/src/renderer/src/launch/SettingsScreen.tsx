@@ -233,7 +233,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
                 <option value="ru">{t('settings.localeRuUntranslated')}</option>
               </select>
               {/* P-24: the interface's language is the agents' working language; the field says so. */}
-              <small id="settings-language-hint">{t('settings.languageHint')}</small>
+              <small id="settings-language-hint">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
             </label>
             {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
             <label className="lp-check">

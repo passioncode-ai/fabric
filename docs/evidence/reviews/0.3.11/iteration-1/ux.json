@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "a9accd06ee880781694339a584d16730f5d64ad8",
+  "report": "docs/evidence/reviews/0.3.11/iteration-1/2026-10-23-ux.md",
+  "reportSha256": "b611554aea20c3712f4c20a65c11a4406546d0ea7e95210fd4751aa797f7ba49",
+  "reviewerRun": "release-0311-i1-ux-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `overflow-wrap:break-word` on the page instead of `anywhere`, and the agents heading keeps one line while its buttons wrap (`rail.css`, `launch.css`); browser case «the agents heading stays on one line» (watched failing on the candidate's CSS)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the compact row is a row (`launch.css`, `flex-direction:row`); browser case «a project's agent is one line inside its card» (watched failing on the candidate's CSS)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Начать разбор» and «Добавить тему» open «Нужны вы», where they act (`launch/BoardScreen.tsx`); `BoardScreen.test.tsx` «Add a topic opens Needs you»"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a row opens the board's «Нужны вы» on itself, the head button and the waiting count open «Нужны вы» (`EstateHome.tsx`, route `needs`); `HomeParts.test.tsx` (called with the row's ref)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-391, 0.3.12; OF-14 says partly"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the lede names both sections and the empty line says nothing was changed through Fabric (`i18n`); the feed's own rows (no agent, no date, `#seq`) are ruled CO-395"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `work.board(projectId)` filters in the query (`main/workRead.ts#readTaskBoard`, `readHome`); a column empty under a cap says «Нет среди последних прочитанных»; `KanbanBoard.test.tsx` «reads one project's tasks»"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads every 15 s while open, keeps what it read when a refresh fails and says so, and offers «Попробовать снова» (`launch/CommsFeed.tsx`, `FEED_POLL_MS`); `CommsFeed.test.tsx` «offers Try again»"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the notes name the shipped labels"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the first-run and Settings hints name tasks, notes, reports and board messages and say a repository keeps its language; with the switch off Settings says agents write in their own; CHANGELOG and SCN-170 follow"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "source": "V1-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-392, 0.3.12 with the project page; OF-35 says partly"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: such an agent is a row, not a button (`HomeWork.test.tsx`); the agent page is ruled CO-393, 0.3.12"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "source": "V1-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the kind once, a chevron that turns (`HomeParts.tsx`, `launch.css`)"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "source": "V1-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-394, 0.3.12"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "source": "V1-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-400, 0.3.12"
+      ]
+    }
+  ]
+}

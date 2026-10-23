@@ -554,6 +554,10 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 /* OF-14: a «Нужны вы» row opens in place. */
 .lh-need>summary{list-style:none;cursor:pointer}
 .lh-need>summary::-webkit-details-marker{display:none}
+/* The row says it opens: a chevron that turns (0.3.11 review UX-13). */
+.lh-need>summary .lp-topic-end::after{content:"›";margin-left:var(--space-2);color:var(--app-muted);display:inline-block;transition:transform .15s}
+.lh-need[open]>summary .lp-topic-end::after{transform:rotate(90deg)}
+@media(prefers-reduced-motion:reduce){.lh-need>summary .lp-topic-end::after{transition:none}}
 .lh-need-body{padding:0 var(--space-3) var(--space-3) calc(var(--space-3) + 28px);display:grid;gap:var(--space-2);justify-items:start}
 .lh-need-body p{margin:0;font-size:13px;line-height:1.5}
 /* OF-15: «Где остановились» moved into the main column under «Нужны вы», so the top holds the overview alone. */
@@ -582,7 +586,9 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lc-head time{margin-left:auto;color:var(--app-muted);font-size:12px}
 .lc-text{font-size:14px;line-height:1.5;white-space:pre-line}
 /* OF-23: a project's agents, one line each: who, what task, since when. */
-.lh-agent-list.lh-compact .lh-agent{display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0}
+.lh-agents .lp-panel-head{flex-wrap:wrap}
+.lh-agents .lp-panel-head h3{flex:none;white-space:nowrap}
+.lh-agent-list.lh-compact .lh-agent{display:flex;flex-direction:row;align-items:baseline;gap:var(--space-2);flex-wrap:nowrap;min-width:0;max-width:100%}
 .lh-agent-list.lh-compact .lh-agent-head{display:contents}
 .lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
 .lh-agent-list.lh-compact small{order:2;flex:none}

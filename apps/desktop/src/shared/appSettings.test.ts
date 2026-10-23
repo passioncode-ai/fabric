@@ -199,3 +199,12 @@ describe('settingsPatch', () => {
     expect(settingsPatch({ launchAtLogin: 'no' }).ok).toBe(false)
   })
 })
+
+describe('the working language the hub names (ADR-0172, ADR-0174; 0.3.11 review ER-8)', () => {
+  it('is the interface language while the switch is on or absent, and none when it is off', async () => {
+    const { workingLanguageOf } = await import('./appSettings')
+    expect(workingLanguageOf({ locale: 'ru' })).toBe('ru')
+    expect(workingLanguageOf({ locale: 'ru', agentLanguage: true })).toBe('ru')
+    expect(workingLanguageOf({ locale: 'ru', agentLanguage: false })).toBeNull()
+  })
+})

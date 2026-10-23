@@ -31,7 +31,8 @@ import { OBLIGATIONS, labelled } from './protocolObligations.ts'
 
 /** Bumped by hand when the SHAPE changes, so a reader can name a change the hash
  *  can only detect. The hash says two protocols differ; the version says how. */
-export const PROTOCOL_VERSION = '1'
+// '2' (0.3.11, P-24): `language` joined the shape (the working language, or null).
+export const PROTOCOL_VERSION = '2'
 
 export interface ProtocolVocabulary {
   taskStates: TaskState[]

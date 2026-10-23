@@ -266,44 +266,54 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
  *  report), each claimed task's summary, the tasks in review and each project's latest journalled activity. A source
  *  that could not be read throws, as every read here does — the home never says "nobody is working" from a read that
  *  did not happen. */
-export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[] }): Promise<HomeView> {
+export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<HomeView> {
   const where = await readWhereWork(store, opts)
+  // One project's board filters in the query, so its tasks are never lost behind the estate's caps (0.3.11 review DA-2).
+  const tasks = (status: string, columns: string) => {
+    const q = store.select('project_tasks', columns).eq('status', status)
+    return opts.projectId ? q.eq('project_id', opts.projectId) : q
+  }
   const [projects, stages, review, running, journal, reviewIds, finished] = await Promise.all([
     store.select('projects', 'id,name').eq('status', 'active').limit(500),
     store.select('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at').order('reported_at', { ascending: false }).limit(500),
     // `moved_at` is when the task last changed column — for a task in review, when it was put there.
-    store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at').eq('status', 'review').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
-    store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at,started_at,session_id').eq('status', 'running').limit(200),
+    tasks('review', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
+    tasks('running', 'id,project_id,title,brief_what,status,moved_at,started_at,session_id').limit(200),
     store.select('journal', 'project_id,occurred_at').not('project_id', 'is', null).order('seq', { ascending: false }).limit(3000),
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
-    store.select('project_tasks', 'project_id').eq('status', 'review').limit(5000),
+    tasks('review', 'project_id').limit(5000),
     // The newest finished tasks for «Закончили» (the operator's walk OF-18).
-    store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at').eq('status', 'done').order('moved_at', { ascending: false, nullsFirst: false }).limit(20)
+    tasks('done', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(20)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
   const stageRows = must(stages as never, 'the stage reports') as StageRow[]
   const reviewRows = (must(review as never, 'the review queue') as Array<TaskBrief & { moved_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at }))
   const runningRows = (must(running as never, 'the tasks in work') as Array<TaskBrief & { moved_at: string | null; started_at: string }>).map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
-  const doneRows = (must(finished as never, 'the finished tasks') as Array<TaskBrief & { moved_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at }))
+  // «Закончили» is one lane: its read failing is said there, and the rest of the home still reads (0.3.11 review ER-7).
+  const finishedError = (finished as { error?: { message?: string } | null }).error
+  const doneRows = finishedError ? [] : ((finished as { data: unknown }).data as Array<TaskBrief & { moved_at: string | null }> ?? []).map((t) => ({ ...t, updated_at: t.moved_at }))
   const reviewProjectIds = (must(reviewIds as never, 'the review counts') as Array<{ project_id: string }>).map((r) => r.project_id)
   const activity = new Map<string, string | null>()
   for (const e of must(journal as never, 'the journal') as Array<{ project_id: string; occurred_at: string }>) if (!activity.has(e.project_id)) activity.set(e.project_id, e.occurred_at)
   const claimIds = [...new Set(where.rows.flatMap((r) => r.claims.map((c) => c.taskId)))]
   const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', claimIds)
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
-  return composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: 20 }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
+  const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: 20 }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
+  return finishedError ? { ...home, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : home
 }
 
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */
-export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[] }): Promise<TaskBoardView> {
+export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<TaskBoardView> {
   const QUEUE = 100
+  const queue = store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at,started_at').eq('status', 'backlog')
   const [home, projects, queued] = await Promise.all([
     readHome(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
-    store.select('project_tasks', 'id,project_id,title,brief_what,status,moved_at').eq('status', 'backlog').order('moved_at', { ascending: false, nullsFirst: false }).limit(QUEUE)
+    // Newest filed first: a task never moved has no `moved_at`, and ordering by it dropped the newest at the cap (DA-7).
+    (opts.projectId ? queue.eq('project_id', opts.projectId) : queue).order('seq', { ascending: false }).limit(QUEUE)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
-  const queuedRows = (must(queued as never, 'the queue') as Array<TaskBrief & { moved_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at }))
+  const queuedRows = (must(queued as never, 'the queue') as Array<TaskBrief & { moved_at: string | null; started_at: string | null }>).map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
   return composeTaskBoard({ home, queued: queuedRows, projects: projectRows, queuedLimit: QUEUE })
 }
 // #endregion work-read

@@ -1588,7 +1588,8 @@ export interface FabricApi {
     /** The home's reading: live agents in their own words, work and review across projects, project headlines. */
     home(): Promise<HomeView>
     /** The Board screen's kanban across projects (OF-19, SCN-173). */
-    board(): Promise<TaskBoardView>
+    /** One project's board when `projectId` is given: filtered in the query, never after the estate's caps. */
+    board(projectId?: string | null): Promise<TaskBoardView>
     /** The operator ends one claim; the agent is told on its next call. */
     release(claimId: string): Promise<OperatorRelease>
   }

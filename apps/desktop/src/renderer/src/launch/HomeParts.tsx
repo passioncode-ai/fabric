@@ -57,7 +57,7 @@ export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; n
 }
 
 /** The top three of the SAME query the board runs, so the count here and the board never disagree (M151). */
-export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number; onBoard(): void; onAddTopic?(): void }): React.JSX.Element {
+export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number; onBoard(item?: string): void; onAddTopic?(): void }): React.JSX.Element {
   const t = useT()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
@@ -82,7 +82,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
           <p className="lp-kicker">{t('launch.home.board.kicker')}</p>
           <h3 id="home-board-title">{t('launch.home.board.title')} {cut && <span className="lp-count">{cut.total}</span>}</h3>
         </div>
-        <button type="button" className="lp-button primary" onClick={onBoard}>{t('launch.home.board.open')}</button>
+        <button type="button" className="lp-button primary" onClick={() => onBoard()}>{t('launch.home.board.open')}</button>
       </div>
       {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
@@ -97,7 +97,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
             <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
             <span>
               <span className="lp-topic-title">{titleOf(item, t)}</span>
-              <span className="lp-meta">{[item.projectName, t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')].filter(Boolean).join(' · ')}</span>
+              {item.projectName && <span className="lp-meta">{item.projectName}</span>}
             </span>
             <span className="lp-topic-end">
               <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')}</span>
@@ -106,7 +106,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
           </summary>
           <div className="lh-need-body">
             {item.detail ? <p>{item.detail}</p> : <p className="lp-meta">{t('launch.home.board.noDetail')}</p>}
-            <button type="button" className="lp-button" onClick={onBoard}>{t('launch.home.board.openOne')}</button>
+            <button type="button" className="lp-button" onClick={() => onBoard(item.ref)}>{t('launch.home.board.openOne')}</button>
           </div>
         </details>
       ))}

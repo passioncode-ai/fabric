@@ -1009,11 +1009,12 @@ function Shell({
             onDetach={() => window.fabric.windows.openSession(active.sessionId)} />
         )}
         {active.kind === 'history' && (
-          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} onOpen={openEntity} />
+          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} onOpen={openEntity} />
         )}
         {active.kind === 'board' && (
           <BoardScreen
-            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
+            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}:${active.needs ? 'needs' : ''}`}
+            mode={active.needs ? 'needs' : undefined}
             projectId={active.projectId ?? null}
             initialItem={active.item ?? null}
             startTopic={active.topic === true}
@@ -1215,6 +1216,7 @@ function Shell({
             onOpen={openProject}
             onNew={() => goTo({ kind: 'start', path: 'menu' })}
             onBoard={() => setActive({ kind: 'board' })}
+            onNeeds={(item) => setActive({ kind: 'board', needs: true, item: item ?? null })}
             onAddTopic={() => setActive({ kind: 'board', topic: true })}
             onPulse={() => setActive({ kind: 'pulse' })}
             onPersona={() => setActive({ kind: 'persona' })}

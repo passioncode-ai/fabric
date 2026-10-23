@@ -178,11 +178,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           <p>{t('launch.board.lede')}</p>
         </div>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" aria-pressed={review} onClick={() => setReview(!review)}>
+          <button type="button" className="lp-button primary" aria-pressed={review} onClick={() => { setMode('needs'); setReview(!review) }}>
             {review ? t('launch.board.reviewEnd') : t('launch.board.reviewStart')}
           </button>
           <button type="button" className="lp-button" aria-expanded={topic !== null}
-            onClick={() => setTopic(topic ? null : { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' })}>
+            onClick={() => { setMode('needs'); setTopic(topic ? null : { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' }) }}>
             {t('launch.board.addTopic')}
           </button>
         </div>

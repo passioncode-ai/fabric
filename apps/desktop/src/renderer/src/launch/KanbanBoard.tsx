@@ -29,7 +29,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
     let alive = true
     // A throw before the promise (a bridge that is not there) is said as a failed read, never a blank board.
     try {
-      void window.fabric.work.board().then(
+      void window.fabric.work.board(projectId).then(
         (v) => { if (alive) { setView(v); setProblem(null) } },
         (e: unknown) => { if (alive) setProblem(e instanceof Error ? e.message : String(e)) }
       )
@@ -37,15 +37,17 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
       setProblem(e instanceof Error ? e.message : String(e))
     }
     return () => { alive = false }
-  }, [feedMark])
-  const scope = projectId ?? (project || null)
+  }, [feedMark, projectId])
+  // A project that left the list (archived between reads) no longer filters: its id would empty every column (ER-10).
+  const known = !project || !view || view.projects.some((p) => p.id === project)
+  const scope = projectId ?? (known ? (project || null) : null)
   return (
     <section className="lk" aria-labelledby="kanban-title">
       <h3 id="kanban-title" className="visually-hidden">{t('launch.kanban.title')}</h3>
       {!projectId && view && (
         <label className="lp-field lk-filter">
           {t('launch.kanban.project')}
-          <select value={project} onChange={(e) => setProject(e.target.value)}>
+          <select value={known ? project : ''} onChange={(e) => setProject(e.target.value)}>
             <option value="">{t('launch.kanban.allProjects')}</option>
             {view.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
@@ -60,7 +62,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen }: {
             return (
               <section key={c.stage} className="lk-col" aria-label={t(HEAD[c.stage])}>
                 <h3>{t(HEAD[c.stage])} <span className="lp-count">{cards.length}{c.capped ? '+' : ''}</span></h3>
-                {cards.length === 0 && <p className="lp-meta">{t('launch.kanban.empty')}</p>}
+                {c.unread ? <FailureNote said={t('launch.kanban.unreadable')} detail={c.unread} /> : cards.length === 0 && <p className="lp-meta">{t(c.capped ? 'launch.kanban.beyondCap' : 'launch.kanban.empty')}</p>}
                 {cards.map((x) => (
                   <button key={x.taskId} type="button" className="lk-card" onClick={() => onOpen(x.projectId, x.taskId)}>
                     <b>{x.summary || t('launch.home.work.untitled')}</b>

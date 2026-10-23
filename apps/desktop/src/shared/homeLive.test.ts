@@ -177,3 +177,29 @@ describe('composeHome — work nobody is doing is not current (0.3.6 review UX-2
     expect(v.projects.find((p) => p.projectId === projects[1].id)!.review).toBe(2)
   })
 })
+
+describe('a claim on a task that left work (ER-3)', () => {
+  it('keeps a task in review out of «В работе», so it is in one column only', async () => {
+    const { composeTaskBoard } = await import('./taskBoard')
+    const briefs = [
+      { id: 'r1', project_id: P1, title: 'Reviewed', brief_what: null, status: 'review' },
+      { id: 'w1', project_id: P1, title: 'Working', brief_what: null, status: 'running' }
+    ]
+    const reviewTasks = [{ id: 'r1', project_id: P1, title: 'Reviewed', brief_what: null, status: 'review', updated_at: '2026-10-23T01:00:00Z' }]
+    const home = composeHome({ where: where([session('s1', P1), session('s2', P1)], [claim('r1', P1, 's1'), claim('w1', P1, 's2')]), projects, stages: [], briefs, reviewTasks, activity: new Map(), now: 'x' })
+    expect(home.inWork.map((w) => w.taskId)).toEqual(['w1'])
+    const board = composeTaskBoard({ home, queued: [], projects, queuedLimit: 100 })
+    expect(board.columns.flatMap((c) => c.cards.map((x) => x.taskId)).filter((id) => id === 'r1')).toHaveLength(1)
+  })
+})
+
+describe('«Закончили» lists finished tasks only (0.3.11 review ER-8)', () => {
+  it('drops a row whose status is not done', () => {
+    const doneTasks = [
+      { id: 'd1', project_id: P1, title: 'Shipped', brief_what: null, status: 'done', updated_at: '2026-10-20T00:00:00Z' },
+      { id: 'r1', project_id: P1, title: 'Still in review', brief_what: null, status: 'review', updated_at: '2026-10-21T00:00:00Z' }
+    ]
+    const v = composeHome({ where: where([], []), projects, stages: [], briefs: [], reviewTasks: [], doneTasks, activity: new Map(), now: 'x' })
+    expect(v.done.map((d) => d.taskId)).toEqual(['d1'])
+  })
+})

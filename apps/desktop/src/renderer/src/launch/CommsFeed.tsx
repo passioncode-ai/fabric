@@ -5,16 +5,19 @@
 import { useEffect, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
 import { useLocale, useT } from '../i18n'
+import { newestPosts } from './commsNewest'
 
 /** How many of the newest posts the feed reads. */
 const FEED = 100
+/** How often the open feed reads again (ER-4: it read once per open and never refreshed). */
+export const FEED_POLL_MS = 15000
 /** How much of a post the feed shows before «открыть ветку». */
 const PREVIEW = 280
 
-type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[] } | { at: 'failed' }
+type Read = { at: 'reading' } | { at: 'ready'; posts: CommsMessage[]; stale: boolean } | { at: 'failed' }
 
 export function CommsFeed({ mark, nameOf, onOpen }: {
-  /** Re-read on the board's clock. */
+  /** Read again when this changes (the screen's «Попробовать снова»); the feed also reads every FEED_POLL_MS. */
   mark: number
   nameOf(projectId: string): string
   onOpen(post: CommsMessage): void
@@ -24,24 +27,34 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
   const [read, setRead] = useState<Read>({ at: 'reading' })
   const [project, setProject] = useState('')
   const [requests, setRequests] = useState(false)
+  const [tick, setTick] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => setTick((n) => n + 1), FEED_POLL_MS)
+    return () => clearInterval(timer)
+  }, [])
   useEffect(() => {
     let alive = true
     void (async () => {
       try {
         const heads = await window.fabric.comms.heads()
-        if (!heads.ok) { if (alive) setRead({ at: 'failed' }); return }
-        const last = heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0)
-        const page = await window.fabric.comms.list(null, Math.max(0, last - FEED), FEED)
+        const last = heads.ok ? heads.heads.reduce((m, h) => Math.max(m, h.lastSeq), 0) : null
+        const posts = last === null ? null : await newestPosts(window.fabric.comms.list, last, FEED)
         if (!alive) return
-        setRead(page.ok ? { at: 'ready', posts: [...page.messages].sort((a, b) => b.at.localeCompare(a.at)) } : { at: 'failed' })
+        // A refresh that fails keeps what was read and says it is old, rather than emptying the feed.
+        setRead((was) => posts ? { at: 'ready', posts, stale: false } : was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
       } catch {
-        if (alive) setRead({ at: 'failed' })
+        if (alive) setRead((was) => was.at === 'ready' ? { ...was, stale: true } : { at: 'failed' })
       }
     })()
     return () => { alive = false }
-  }, [mark])
+  }, [mark, tick])
   if (read.at === 'reading') return <p className="lp-meta">{t('launch.comms.reading')}</p>
-  if (read.at === 'failed') return <p className="lp-meta" role="status">{t('launch.comms.unavailable')}</p>
+  if (read.at === 'failed') return (
+    <div className="lc" role="status">
+      <p className="lp-meta">{t('launch.comms.unavailable')}</p>
+      <button type="button" className="lp-button" onClick={() => setTick((n) => n + 1)}>{t('launch.comms.tryAgain')}</button>
+    </div>
+  )
   const projects = [...new Set(read.posts.map((p) => p.sender.project))]
   const shown = read.posts.filter((p) => (!project || p.sender.project === project) && (!requests || p.kind === 'request'))
   const kindOf = (kind: string): string => {
@@ -63,6 +76,7 @@ export function CommsFeed({ mark, nameOf, onOpen }: {
           </select>
         </label>
       </div>
+      {read.stale && <p className="lp-meta" role="status">{t('launch.comms.unavailable')}</p>}
       {shown.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
       <ol className="lc-posts">
         {shown.map((p) => {

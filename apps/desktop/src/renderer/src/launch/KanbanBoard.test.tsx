@@ -57,3 +57,28 @@ describe('the kanban board', () => {
     await waitFor(() => expect(screen.getByText(en['launch.kanban.unreadable'])).toBeTruthy())
   })
 })
+
+describe('the kanban, after the 0.3.11 review', () => {
+  it('reads one project\'s tasks for a project\'s board, filtered in the query (DA-2)', async () => {
+    install(async () => board)
+    show({ projectId: 'p2' })
+    await waitFor(() => expect(screen.getByText('Dark theme')).toBeTruthy())
+    expect((window as unknown as { fabric: { work: { board: ReturnType<typeof vi.fn> } } }).fabric.work.board).toHaveBeenCalledWith('p2')
+  })
+  it('drops a project filter whose project left the list, rather than emptying every column (ER-10)', async () => {
+    let view = board
+    install(async () => view)
+    const { rerender } = show()
+    await waitFor(() => expect(screen.getByText('New home')).toBeTruthy())
+    fireEvent.change(screen.getByLabelText(en['launch.kanban.project']), { target: { value: 'p1' } })
+    expect(screen.queryByText('Dark theme')).toBeNull()
+    view = { ...board, projects: [{ id: 'p2', name: 'Site' }] }
+    rerender(<I18nProvider locale="en"><KanbanBoard feedMark={1} onOpen={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Dark theme')).toBeTruthy())
+  })
+  it('says a column it could not read, never «Empty»', async () => {
+    install(async () => ({ ...board, columns: board.columns.map((c) => (c.stage === 'done' ? { ...c, unread: 'timeout' } : c)) }))
+    show()
+    await waitFor(() => expect(screen.getByText(/timeout/)).toBeTruthy())
+  })
+})

@@ -53,4 +53,19 @@ describe('Comms as a feed', () => {
     show()
     await waitFor(() => expect(screen.getByText(en['launch.comms.unavailable'])).toBeTruthy())
   })
+  it('offers «Try again» after a failed read and reads again on it (ER-4)', async () => {
+    let up = false
+    const heads = vi.fn(async () => (up ? { ok: true, heads: [{ id: 'th-1', lastSeq: 42 }], truncated: false } : { ok: false, error: { code: 'unavailable', message: 'down' } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { comms: { heads, list: vi.fn(async () => ({ ok: true, messages, lastSeq: 42, more: false })) } } }))
+    show()
+    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.comms.tryAgain'] })).toBeTruthy())
+    up = true
+    fireEvent.click(screen.getByRole('button', { name: en['launch.comms.tryAgain'] }))
+    await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+  })
+  it('is what Comms opens on (OF-29)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const src = readFileSync(`${process.cwd()}/src/renderer/src/launch/CommsScreen.tsx`, 'utf8')
+    expect(src).toMatch(/initialMode\s*=\s*'feed'|mode\s*=\s*'feed'/)
+  })
 })

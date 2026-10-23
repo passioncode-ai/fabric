@@ -1,0 +1,95 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "a9accd06ee880781694339a584d16730f5d64ad8",
+  "report": "docs/evidence/reviews/0.3.11/iteration-1/2026-10-23-errors.md",
+  "reportSha256": "02e61911f287740fc27ddb7fd5eb1339117eded2bd572f38839ef692ad8838b6",
+  "reviewerRun": "release-0311-i1-errors-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads windows back from the newest number until it holds the newest 100 posts (`launch/commsNewest.ts#newestPosts`); `commsNewest.test.ts` with posts one journal number in twenty and with every number a post"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `work.board(projectId)` filters in the query (`main/workRead.ts#readTaskBoard`, `readHome`); a column empty under a cap says «Нет среди последних прочитанных»; `KanbanBoard.test.tsx` «reads one project's tasks»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only a task still in work is in «В работе» (`shared/homeLive.ts#composeHome`); `homeLive.test.ts` «a claim on a task that left work» (watched failing without it)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads every 15 s while open, keeps what it read when a refresh fails and says so, and offers «Попробовать снова» (`launch/CommsFeed.tsx`, `FEED_POLL_MS`); `CommsFeed.test.tsx` «offers Try again»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: such an agent is a row, not a button (`HomeWork.test.tsx`); the agent page is ruled CO-393, 0.3.12"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the first-run and Settings hints name tasks, notes, reports and board messages and say a repository keeps its language; with the switch off Settings says agents write in their own; CHANGELOG and SCN-170 follow"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Закончили» says its own failure and the rest reads (`main/workRead.ts`, `homeLive.ts` `doneUnread`); `HomeWork.test.tsx`, `KanbanBoard.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-30, V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/appSettings.ts#workingLanguageOf` with its test, and a failed read names no language (`main/agentSurface.ts`)",
+        "fixed: `HistoryScreen.test.tsx` (watched failing with the boundary removed), `CommsFeed.test.tsx` «is what Comms opens on», `homeLive.test.ts` «lists finished tasks only»"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: История says the journal could not be read (`feedFailed`); `HistoryScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a filter whose project left the list is dropped (`KanbanBoard.tsx`); `KanbanBoard.test.tsx`"
+      ]
+    }
+  ]
+}

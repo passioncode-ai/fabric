@@ -44,7 +44,7 @@ export function useHome(mark: number): HomeReading {
 }
 
 /** The counts above the board: agents working now, tasks in work, waiting for you, in review. */
-export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: HomeReading; waiting: number | null; onAgents(): void; onBoard(): void }): React.JSX.Element {
+export function HomeStats({ reading, waiting, onAgents, onBoard, onWaiting }: { reading: HomeReading; waiting: number | null; onAgents(): void; onBoard(): void; onWaiting?(): void }): React.JSX.Element {
   const t = useT()
   const v = reading.view
   // After a failed read the last numbers are not current: the strip says it cannot tell (0.3.6 review ER-7).
@@ -62,7 +62,7 @@ export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: Ho
     <div className="lh-stats" role="group" aria-label={t('launch.home.stats.label')}>
       {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '')}
       {cell(inWork === null ? null : `${inWork}${known!.inWorkCapped ? '+' : ''}`, t('launch.home.stats.inWork'), onBoard)}
-      {cell(waiting, t('launch.home.stats.waiting'), onBoard, waiting ? 'attention' : '')}
+      {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '')}
       {cell(known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null, t('launch.home.stats.review'), onBoard)}
     </div>
   )
@@ -151,7 +151,7 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
           </div>
           <div className="lh-lane">
             <h4>{t('launch.home.work.done')} <span className="lp-count">{done.length}{v.doneCapped ? '+' : ''}</span></h4>
-            {done.length ? <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol> : <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
+            {v.doneUnread ? <FailureNote said={t('launch.home.work.unreadable')} detail={v.doneUnread} /> : done.length ? <ol>{done.slice(0, LANE_ROWS).map(doneRow)}</ol> : <p className="lp-meta">{t('launch.home.work.noneDone')}</p>}
             {hasMore(done.length) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: done.length - LANE_ROWS })}</button>}
           </div>
         </div>
@@ -197,19 +197,27 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
       {/* OF-23: on a project page the project goes without saying, and a row takes one line. */}
       {live.length > 0 && (
         <ol className={`lh-agent-list lh-scrollbox ${projectId ? 'lh-compact' : ''}`}>
-          {live.map((a) => (
-            <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
-              <button type="button" className="lp-button lh-agent" onClick={() => (a.console ? onSession(a.sessionId) : a.projectId ? onOpen(a.projectId) : onAll?.())}
-                title={a.console ? t('launch.home.agents.openConsole') : t('launch.home.agents.openProject')}>
+          {live.map((a) => {
+            const inner = (
+              <>
                 <span className="lh-agent-head">
                   <b>{runnerLabel(a.agent, t)}</b>
                   {!projectId && <span className="lp-meta">{a.projectName ?? t('launch.home.agents.noProject')}</span>}
                   {a.stale ? <span className="lp-pill">{t('launch.home.agents.stale')}</span> : <small>{since(a.lastSignAt ?? a.startedAt, t)}</small>}
                 </span>
                 <Doing item={{ doing: a.doing, summary: a.task?.summary ?? null }} />
-              </button>
-            </li>
-          ))}
+              </>
+            )
+            // An agent with no console here and no project has nowhere to open: it is a row, not a dead button (ER-5).
+            const go = a.console ? () => onSession(a.sessionId) : a.projectId ? () => onOpen(a.projectId!) : onAll
+            return (
+              <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
+                {go
+                  ? <button type="button" className="lp-button lh-agent" onClick={go} title={a.console ? t('launch.home.agents.openConsole') : a.projectId ? t('launch.home.agents.openProject') : undefined}>{inner}</button>
+                  : <div className="lh-agent">{inner}</div>}
+              </li>
+            )
+          })}
         </ol>
       )}
     </section>

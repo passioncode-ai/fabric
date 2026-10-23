@@ -79,7 +79,9 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .fab-place>:not(.shell):not(.act-line)+:not(.shell){margin-top:var(--space-1)}
 /* Content that does not wrap never moves the page sideways (CO-384, from the 0.3.10 ledger's V3-48): a long token breaks,
    preformatted text and a wide table scroll inside themselves. */
-.fab-place>.shell>main{overflow-wrap:anywhere}
+/* `break-word`, not `anywhere`: it breaks a word only when the word alone overflows its line, and leaves a narrow
+   heading's own width alone (0.3.11 review UX-1: «Агенты в работе» broke mid-word in a 300 px column). */
+.fab-place>.shell>main{overflow-wrap:break-word}
 .fab-place>.shell>main pre{max-width:100%;overflow-x:auto}
 .fab-place>.shell>main table{display:block;max-width:100%;overflow-x:auto}
 /* CO-385: a notice that scrolls inside itself keeps its own buttons (Dismiss, Retry) at its foot, over its text. */

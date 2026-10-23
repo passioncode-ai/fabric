@@ -25,13 +25,15 @@ type Read =
 
 const NO_PROJECTS: ProjectRow[] = []
 
-export function HistoryScreen({ projects, mark, feed, feedProjects, onOpen }: {
+export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed = false, onOpen }: {
   projects: ReadonlyArray<{ id: string; name: string }> | null
   mark: number
   /** OF-34 (the operator's walk, 2026-10-22): what the agents did, from the journal; null while unread, absent to hide. */
   feed?: FeedEvent[] | null
   /** Null while unread: the feed then says it is reading instead of naming no project. */
   feedProjects?: ProjectRow[] | null
+  /** The journal could not be read: said instead of «reading» forever (0.3.11 review ER-9). */
+  feedFailed?: boolean
   onOpen?: (projectId: string, focus: EntityRef) => void
 }): React.JSX.Element {
   const t = useT()
@@ -116,7 +118,7 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, onOpen }: {
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
-          <Feed events={feedProjects ? feed : null} projects={feedProjects || NO_PROJECTS} onOpen={onOpen} />
+          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <Feed events={feedProjects ? feed : null} projects={feedProjects || NO_PROJECTS} onOpen={onOpen} />}
         </section>
       )}
       <OpsLog />

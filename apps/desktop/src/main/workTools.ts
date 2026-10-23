@@ -404,7 +404,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         taskId: z.string().uuid().optional(),
         source: z.object({ repository: z.string().min(1).max(300), path: z.string().min(1).max(300), id: z.string().min(1).max(64) }).optional()
           .describe('The backlog row this work serves, by its address: the repository (its remote, owner/name, or its folder), the file\'s path in it, and the row\'s id'),
-        title: z.string().min(3).max(200).optional().describe('A new row\'s title, or the title of the task Fabric files for a backlog row. It is what the operator reads on the home screen: one plain line the project\'s owner understands without context, in the working language fabric_whoami names ("Keep the computer awake while an agent works"), never just an id'),
+        title: z.string().min(3).max(200).optional().describe('A new row\'s title, or the title of the task Fabric files for a backlog row. It is what the operator reads on the home screen: one plain line the project\'s owner understands without context, in the working language fabric_whoami names (or the person's own, when it names none) ("Keep the computer awake while an agent works"), never just an id'),
         origin: z.object({ kind: z.enum(ORIGIN_KINDS), ref: z.string().min(1).max(300) }).optional().describe('What a new row came out of; required with a title alone'),
         touches: z.array(z.string().min(1).max(TOUCH_MAX_CHARS)).max(TOUCHES_MAX).optional().describe('The folders, files or patterns you will change, relative to the repository'),
         minutes: z.number().int().min(1).max(CLAIM_MAX_MINUTES).optional().describe(`How long before the claim lapses unless renewed. Default ${CLAIM_DEFAULT_MINUTES}`),

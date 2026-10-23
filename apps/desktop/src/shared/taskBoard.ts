@@ -22,6 +22,8 @@ export interface BoardColumn {
   cards: BoardCard[]
   /** The read stopped at its limit: the count is a floor. */
   capped: boolean
+  /** The column could not be read: said, never shown as empty. */
+  unread?: string
 }
 
 export interface TaskBoardView {
@@ -46,7 +48,7 @@ export function composeTaskBoard(input: {
       { stage: 'backlog', cards: queue, capped: input.queued.length >= input.queuedLimit },
       { stage: 'running', cards: h.inWork.map((w) => ({ taskId: w.taskId, projectId: w.projectId, projectName: w.projectName, summary: w.summary, agent: w.agent, since: w.since })), capped: !!h.inWorkCapped },
       { stage: 'review', cards: h.review.map((r) => ({ ...r, agent: null })), capped: !!h.reviewCapped },
-      { stage: 'done', cards: h.done.map((r) => ({ ...r, agent: null })), capped: !!h.doneCapped }
+      { stage: 'done', cards: h.done.map((r) => ({ ...r, agent: null })), capped: !!h.doneCapped, ...(h.doneUnread ? { unread: h.doneUnread } : {}) }
     ],
     projects: input.projects.map((p) => ({ id: p.id, name: p.name })),
     readAt: h.readAt

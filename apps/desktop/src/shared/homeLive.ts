@@ -93,6 +93,8 @@ export interface HomeView {
   done: ReviewItem[]
   /** The finished read stopped at its limit. */
   doneCapped?: boolean
+  /** The finished tasks could not be read: said in «Закончили», never as none (0.3.11 review ER-7). */
+  doneUnread?: string
   /** The review read stopped at its limit: the count is a floor, said as «50+» (0.3.6 review UX-4, ER-5). */
   reviewCapped?: boolean
   /** The read of Fabric-launched running tasks stopped at its limit. */
@@ -175,7 +177,10 @@ export function composeHome(input: {
   // Working first (fresh before stale), newest sign first: who is doing something now leads.
   live.sort((a, b) => Number(a.stale) - Number(b.stale) || (b.lastSignAt ?? b.startedAt).localeCompare(a.lastSignAt ?? a.startedAt))
 
-  const inWork: WorkItem[] = claims.map((c) => ({
+  // A claim outlives its task's move to review or done (moving does not release it), so only a task still in work is
+  // in «В работе»; otherwise it showed in two columns and was counted twice (0.3.11 review, iteration 1, ER-3).
+  const working = (taskId: string): boolean => { const s = briefById.get(taskId)?.status; return s !== 'review' && s !== 'done' && s !== 'cancelled' }
+  const inWork: WorkItem[] = claims.filter((c) => working(c.taskId)).map((c) => ({
     taskId: c.taskId,
     projectId: c.projectId,
     projectName: names.get(c.projectId) ?? '',

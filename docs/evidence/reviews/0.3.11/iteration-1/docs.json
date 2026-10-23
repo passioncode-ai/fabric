@@ -1,0 +1,126 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "a9accd06ee880781694339a584d16730f5d64ad8",
+  "report": "docs/evidence/reviews/0.3.11/iteration-1/2026-10-23-docs.md",
+  "reportSha256": "abd7125f9637acf8bfd1cae53a24d2d645d2ffe53fa441e00d872263dc7151cd",
+  "reviewerRun": "release-0311-i1-docs-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the first-run and Settings hints name tasks, notes, reports and board messages and say a repository keeps its language; with the switch off Settings says agents write in their own; CHANGELOG and SCN-170 follow"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-392, 0.3.12 with the project page; OF-35 says partly"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-391, 0.3.12; OF-14 says partly"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a row opens the board's «Нужны вы» on itself, the head button and the waiting count open «Нужны вы» (`EstateHome.tsx`, route `needs`); `HomeParts.test.tsx` (called with the row's ref)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the home's work reading names Агенты; rows for the Board's kanban and Comms' feed with their cadence"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 for 0.3.12, CO-401 for the walk's moved items (OF-19's agent filter with them), the simple plan's dated lines, SCN-163, SCN-166, SCN-168, SCN-170, SCN-173 and SCN-174 implemented"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person quits and opens Fabric, the agent checks the broker did not start it, and the keep-awake check puts the setting back (Rollout)"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Owed list is complete; CO-396 (CT-81) and CO-397 (the whoami text) record the new asks; CO-390 and CO-383's triage half are ruled by D-7"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-400, 0.3.12"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-143, SCN-162, SCN-163 and SCN-170 amended"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the lede names both sections and the empty line says nothing was changed through Fabric (`i18n`); the feed's own rows (no agent, no date, `#seq`) are ruled CO-395"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both name ADR-0174's off state"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/handoffs/2026-10-23-release-0311.md` states the review in progress and the next task"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads every 15 s while open, keeps what it read when a refresh fails and says so, and offers «Попробовать снова» (`launch/CommsFeed.tsx`, `FEED_POLL_MS`); `CommsFeed.test.tsx` «offers Try again»"
+      ]
+    }
+  ]
+}

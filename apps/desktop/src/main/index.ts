@@ -376,7 +376,7 @@ import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
-import { settingsPatch } from '../shared/appSettings.ts'
+import { settingsPatch, workingLanguageOf } from '../shared/appSettings.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
@@ -1039,7 +1039,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
-    language: () => { const s = readSettings(); return s.agentLanguage === false ? null : s.locale },
+    language: () => workingLanguageOf(readSettings()),
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,
@@ -4903,8 +4903,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> =>
     readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
-  handle(IPC.workBoard, async (): Promise<Returns<FabricApi['work']['board']>> =>
-    readTaskBoard(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  handle(IPC.workBoard, async (_e, projectId?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
+    readTaskBoard(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null }))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
     // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.

@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "a9accd06ee880781694339a584d16730f5d64ad8",
+  "report": "docs/evidence/reviews/0.3.11/iteration-1/2026-10-23-data.md",
+  "reportSha256": "64ceaa3d3c2493ae09ed3f12ee4563beb3ccb33000237dd5217ee0d5390fa2ff",
+  "reviewerRun": "release-0311-i1-data-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads windows back from the newest number until it holds the newest 100 posts (`launch/commsNewest.ts#newestPosts`); `commsNewest.test.ts` with posts one journal number in twenty and with every number a post"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `work.board(projectId)` filters in the query (`main/workRead.ts#readTaskBoard`, `readHome`); a column empty under a cap says «Нет среди последних прочитанных»; `KanbanBoard.test.tsx` «reads one project's tasks»"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «0.3.11 admits schema 95» in `release-mac.md` and the schema line in the notes"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `PROTOCOL_VERSION` 2 (`shared/protocol.ts`)"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-25",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: 0.3.10 does not know the key; the runbook says what going back does (`release-mac.md`, 0.3.11 paragraph)"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-399, 0.3.12"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the queue reads newest filed first by `seq`, and a card's age falls back to `started_at` (`main/workRead.ts#readTaskBoard`)"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the feed reads every 15 s while open, keeps what it read when a refresh fails and says so, and offers «Попробовать снова» (`launch/CommsFeed.tsx`, `FEED_POLL_MS`); `CommsFeed.test.tsx` «offers Try again»"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «or the person's own, when it names none» in the four descriptions"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the first-run and Settings hints name tasks, notes, reports and board messages and say a repository keeps its language; with the switch off Settings says agents write in their own; CHANGELOG and SCN-170 follow"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "source": "V1-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-398, 0.3.12"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "source": "V1-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/appSettings.ts#workingLanguageOf` with its test, and a failed read names no language (`main/agentSurface.ts`)"
+      ]
+    }
+  ]
+}

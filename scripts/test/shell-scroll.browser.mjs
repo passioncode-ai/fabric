@@ -124,6 +124,23 @@ try{
     await page.close()
     }
   }
+  {
+    // A heading in a narrow column beside two buttons never breaks inside a word (0.3.11 review UX-1).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    await page.setContent(shell({page:`<style>${read(src+'launch/launch.css')}</style><div class="lp"><div style="width:300px"><section class="lp-panel lh-agents"><div class="lp-panel-head"><h3><span class="lh-live-indicator" aria-hidden="true"></span><span id="word">Агенты</span> в работе <span class="lp-count">10</span></h3><span class="lh-agents-actions"><button class="lp-button lh-text-link">Открыть переписку</button><button class="lp-button lh-text-link">Все агенты</button></span></div></section></div>${cards}<p id="last">LAST</p></div>`}))
+    const hd=await page.evaluate(()=>{const h=document.querySelector('.lh-agents h3'),lh=parseFloat(getComputedStyle(h).lineHeight)||16;return{h:h.getBoundingClientRect().height,lh,word:document.getElementById('word').getClientRects().length}})
+    assert.ok(hd.h<=hd.lh*1.5&&hd.word===1,`the agents heading stays on one line in a 300 px column; its buttons wrap instead (${JSON.stringify(hd)})`);checks++
+    await page.close()
+  }
+  {
+    // On a project page an agent is one line (OF-23, 0.3.11 review UX-2).
+    const page=await browser.newPage({viewport:{width:1280,height:720}})
+    const launch=read(src+'launch/launch.css')
+    await page.setContent(shell({page:`<style>${launch}</style><div class="lp"><ol class="lh-agent-list lh-compact" style="width:600px"><li><button class="lp-button lh-agent" id="row"><span class="lh-agent-head"><b>claude-code</b><small>12 мин</small></span><span class="lh-doing">${'Очень длинное название задачи. '.repeat(10)}</span></button></li></ol>${cards}<p id="last">LAST</p></div>`}))
+    const r=await page.evaluate(()=>{const b=document.getElementById('row').getBoundingClientRect(),d=document.querySelector('#row .lh-doing').getBoundingClientRect();return{h:b.height,w:b.width,dRight:d.right,bRight:b.right}})
+    assert.ok(r.h<=40&&r.dRight<=r.bRight+1,`a project's agent is one line inside its card (${JSON.stringify(r)})`);checks++
+    await page.close()
+  }
   for(const [w,h] of [[1280,720],[1280,480],[800,600]]){
     // A long notice keeps its own buttons in view while its text scrolls inside it (CO-385).
     const page=await browser.newPage({viewport:{width:w,height:h}})

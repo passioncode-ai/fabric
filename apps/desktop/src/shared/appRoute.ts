@@ -72,7 +72,7 @@ export type AppRoute =
   | { kind: 'where' }
   /** SCR-41. Estate-wide by default; `projectId` scopes it to one project, `item` opens one row. */
   /** `topic`: arrive with the add-a-topic form open (Home's "+ Add a topic", the launch prototype's SCR-30). */
-  | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean }
+  | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean }
   /** SCR-81. What projects tell each other, read by the operator. A single place, like the agents view. */
   | { kind: 'comms' }
   /** SCR-40. Every project by default; `projectId` opens one project's goals. */

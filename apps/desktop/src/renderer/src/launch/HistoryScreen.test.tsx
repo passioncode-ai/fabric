@@ -95,3 +95,15 @@ describe('История shows what the agents did too (the operator\'s walk OF-
     expect(document.querySelector('.hx-agents .feed, .hx-agents ol, .hx-agents ul')).toBeTruthy()
   })
 })
+
+describe('История while the journal is unread (0.3.11 review ER-8, ER-9)', () => {
+  it('says «reading» while the projects are unread, never an empty feed, and says a failed journal', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 7, type: 'task.moved@1', actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: '2026-10-22T10:00:00Z', payload: { to: 'review' } }]
+    const { rerender } = render(<I18nProvider locale="en"><HistoryScreen projects={null} mark={0} feed={feed} feedProjects={null} /></I18nProvider>)
+    await screen.findByRole('heading', { name: en['acts.agentsTitle'] })
+    expect(document.querySelector('.hx-agents')!.textContent).not.toMatch(/task|moved|Atlas/i)
+    rerender(<I18nProvider locale="en"><HistoryScreen projects={null} mark={0} feed={null} feedProjects={null} feedFailed /></I18nProvider>)
+    expect(screen.getByText(en['acts.agentsUnread'])).toBeTruthy()
+  })
+})

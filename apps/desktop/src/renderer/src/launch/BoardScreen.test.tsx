@@ -671,3 +671,19 @@ describe('arriving to add a topic', () => {
     expect((screen.getByRole('button', { name: en['launch.board.topic.add'] }) as HTMLButtonElement).disabled).toBe(false)
   })
 })
+
+describe('the board header on the kanban (0.3.11 review UX-3)', () => {
+  it('«Add a topic» opens «Needs you», where its form is', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: {
+        board: { query: vi.fn(async () => ({ data: { items: [], total: 0, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })), resolved: vi.fn(async () => ({ data: { items: [] } })), deferred: vi.fn(async () => ({ data: { items: [] } })) },
+        work: { board: vi.fn(async () => ({ columns: [], projects: [], readAt: 'x' })) },
+        questions: { answer: vi.fn() }, proposals: { decide: vi.fn() }, attention: { grant: vi.fn() }
+      }
+    }))
+    render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    expect(screen.getByRole('button', { name: en['launch.board.mode.kanban'], pressed: true })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.addTopic'] }))
+    expect(screen.getByRole('button', { name: en['launch.board.mode.needs'], pressed: true })).toBeTruthy()
+  })
+})

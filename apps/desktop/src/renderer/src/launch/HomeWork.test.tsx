@@ -166,3 +166,17 @@ describe('agents on a project page take one line each (the operator\'s walk OF-2
     expect(container.querySelector('.lh-agent-list')!.classList.contains('lh-compact')).toBe(true)
   })
 })
+
+describe('0.3.11 review, iteration 1', () => {
+  it('an agent with no console here and no project is a row, not a button that does nothing (ER-5)', () => {
+    const lost = { ...view, live: [{ ...view.live[1], sessionId: 's9', projectId: null, projectName: null, console: false }] }
+    const { container } = show(<HomeAgents reading={{ view: lost, problem: null }} onSession={() => {}} onOpen={() => {}} />)
+    expect(container.querySelector('.lh-agent-list button')).toBeNull()
+    expect(container.querySelector('.lh-agent-list .lh-agent')).toBeTruthy()
+  })
+  it('«Закончили» that could not be read says so, never «nothing finished» (ER-7)', () => {
+    show(<HomeWorkLanes reading={{ view: { ...view, done: [], doneUnread: 'the finished tasks could not be read: timeout' }, problem: null }} onOpen={() => {}} onSession={() => {}} />)
+    expect(screen.getByText(/timeout/)).toBeTruthy()
+    expect(screen.queryByText(/Nothing finished/i)).toBeNull()
+  })
+})

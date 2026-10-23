@@ -26,6 +26,7 @@ describe('the home says what is needed from the person (OF-14)', () => {
     fireEvent.click(row.querySelector('summary')!)
     expect(row.textContent).toContain('asks you to check the recovery path')
     fireEvent.click(screen.getByRole('button', { name: en['launch.home.board.openOne'] }))
-    expect(onBoard).toHaveBeenCalled()
+    // The row's own ref, so the board opens on it (0.3.11 review UX-4).
+    expect(onBoard).toHaveBeenCalledWith(entry.ref)
   })
 })

@@ -9,47 +9,54 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+Fabric 0.3.11: the places the operator walked through on 0.3.10, rebuilt in the order they asked for, and agents that
+write in Fabric's language. Schema 95, unchanged: installing 0.3.11 over 0.3.10 replaces the bundle only, and going back
+is the 0.3.10 bundle alone.
+
 - Agents write in Fabric's language (P-24, [ADR-0172](docs/adr/0172-the-interface-language-is-the-agents-working-language.md);
   the operator, 2026-10-22: «доска не на русском»). `fabric_whoami` names the interface's language and, right after the
-  date, asks every agent to write what a person reads in it: task titles and briefs, stages, notes, board messages,
-  reports and the documentation it writes for the person; code, commands and paths stay as they are, and a project's
-  own rule for its documents wins. The first run asks the language first and says this; Settings says it under
-  «Язык». Rows already on the board keep the language they were written in.
+  date, asks every agent to write what a person reads in Fabric in it: task titles and briefs, stages, notes, questions,
+  board messages and reports. Documents in a project's repository keep the language that project uses, and code,
+  commands and paths stay as they are ([ADR-0174](docs/adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)).
+  The first run asks the language first and says this. Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by
+  default; off, Fabric names no language and agents write in their own. Rows already on the board keep the language
+  they were written in.
 - A start that meets a database too busy to finish a query in time (PostgreSQL's statement timeout) waits and tries
   again, as it does when the database does not answer, instead of stopping on «could not work out why» (CO-389; seen on
   the 0.3.10 install with the disk nearly full).
-
 - The home says what is needed from you, first (the operator's walk of 0.3.10, OF-14 to OF-17): «Нужны вы» heads the
-  page and each row opens in place to read what the agent wrote, with «Открыть на доске»; «Где остановились» follows
-  it. «Агенты в работе» names the task each agent holds rather than its latest action, lists active agents first, scrolls
-  inside itself and carries the one «Открыть переписку».
-
+  page, each row opens in place to read what the agent wrote, and its «Открыть на доске» opens the board's «Нужны вы» on
+  that row; «Где остановились» follows it. «Агенты в работе» names the task each agent holds rather than its latest
+  action, lists active agents first, scrolls inside itself and carries the one «Открыть переписку». Choosing only what
+  the person can resolve, and naming the agent that asks, come in 0.3.12 (CO-391).
 - The Board screen opens on a kanban of every task by stage: «Очередь», «В работе», «На проверке», «Готово», the
-  columns scrolling sideways and each one down, with a project filter; a card opens its task in its project, and
-  «Нужны вы» is the second tab (OF-19). On the home «Кто что делает» is two columns, «В работе» and «Закончили», with
-  «Открыть доску» (OF-18).
-
-- A task opens on what it is for: «Что должно произойти», «Зачем», «Что будет готово», then the instruction the agent
-  was given; «← К проекту» sits at the top left above its title (OF-21, OF-22).
-
-- Агенты shows every agent at work, one opened in a terminal included, each by the task it holds; with no console
-  held by Fabric the panel below says so once instead of «Выберите агента слева» over an empty list (OF-30). История adds
-  «Что делали агенты», the journal's events in plain words, below the acts done through Fabric (OF-34). Account quotas
-  leave Settings: Switchboard owns them (OF-35).
-- Settings, under «Язык»: «Агенты пишут на языке интерфейса», on by default; off, Fabric names no working language to
-  agents. Documents in a project's repository keep the language that project uses ([ADR-0174](docs/adr/0174-a-repositorys-documents-keep-their-language-and-the-working-language-can-be-switched-off.md)).
-
-- Comms opens on «Лента»: the newest posts of every thread first, each with its project, kind, time and text, with
-  «Только просьбы» and a project filter; a post opens its thread, and «Ветки» is the second tab (OF-29).
-
+  columns scrolling sideways and each one down, with a project filter; a project's own board reads that project's tasks,
+  a card opens its task, and «Нужны вы» is the second tab, where «Начать разбор» and «Добавить тему» take you (OF-19).
+  On the home «Кто что делает» is two columns, «В работе» and «Закончили», with «Открыть доску» (OF-18). A task moved to
+  review while its agent still holds it shows in one column only.
+- A task opens on what it is for: «Для чего эта задача» with «Что должно произойти», «Почему» and «Что будет верно,
+  когда задача выполнена», then the instruction the agent was given; «← К проекту» sits at the top left above its title
+  (OF-21, OF-22).
+- Агенты shows every agent at work, one opened in a terminal included, each by the task it holds; with no console held
+  by Fabric the panel below says so once instead of «Выберите агента слева» over an empty list (OF-30). The agent's own
+  page comes in 0.3.12 (CO-393).
+- История adds «Что делали агенты», the journal's events in plain words, below the acts done through Fabric (OF-34), and
+  says when the journal could not be read. Diagnostics leaves the project page, as ADR-0160 decided: the operations log
+  and the version line fold at the foot of История, «Журнал Fabric и версия», read only when opened (CO-387).
+- Comms opens on «Лента»: the newest posts of every thread first, each with its project, kind, time and text, read
+  again every 15 seconds, with «Только просьбы», a project filter and «Попробовать снова» when the board does not
+  answer; a post opens its thread, and «Ветки» is the second tab (OF-29).
 - On a project's page each agent takes one line: its task and since when, without repeating the project (OF-23).
-
-- Diagnostics leaves the project page, as ADR-0160 decided: the operations log and the version line fold at the foot of
-  История, «Журнал Fabric и версия», read only when opened (CO-387). The dead layout rules of the old shell are gone
-  (CO-380).
+- Settings no longer opens account quotas: Switchboard owns them (OF-35, D-3). Fabric still reads the quota for the
+  project page's status bar until that page is rebuilt in 0.3.12 (CO-392).
 - Moving by the rail puts focus on the new page's heading, so PageDown, Space and the arrows scroll it at once
   (CO-384). Text that does not wrap no longer moves a page sideways: a long word breaks, preformatted text and a wide
-  table scroll inside themselves. A long notice keeps its own buttons at its foot while its text scrolls (CO-385).
+  table scroll inside themselves. A long notice keeps its own buttons at its foot while its text scrolls (CO-385). The
+  old shell's dead layout rules are gone (CO-380).
+- What 0.3.10's notes promised for 0.3.11 and is not here moves to 0.3.12, with project onboarding (the operator's
+  walk, decisions D-6 and D-7): История's filters and detail pane, the first run redrawn in the new frame, enrollment on
+  the contract's resolver (CO-339), the project page's goal, team, plan and analytics, the project graph, people from
+  Git and notifications. CO-377, the view of announcements with who has not answered, keeps its date, 2026-10-31.
 
 ## 0.3.10
 

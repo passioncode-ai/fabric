@@ -305,6 +305,8 @@ reservation). The procedure is the same with 94 in place of 89.
 **0.3.9 admits schema 95** (migration `20261021000120_board_core_holds.sql`, the board's answered requests and cursor key): a database at 94 takes the upgrade below, `FROM` 94. In the first minute after it, the board answers the queued requests their target already replied to and expires the others that have no deadline of their own once their message is 7 days old, at the tick, without writing a deadline into the row (`deadline` stays null; `board_tick` reads the message's time, migration 120 §7a). On the operator's database 9 of the 10 queued requests read `answered` two minutes after the 2026-10-22 upgrade; the tenth expires at the first tick after 2026-10-28 23:19 UTC unless answered (CO-381). With 0.3.8 installed the step-4 stack folder holds 0.3.8's migrations: copy `20261021000120_board_core_holds.sql` into it from the installed 0.3.9 bundle's stack before `supabase migration up --local`, with Fabric quit; never run `supabase` inside the signed bundle.
 **0.3.10 admits schema 95**, as 0.3.9 does: it adds no migration, so a database at 95 needs no upgrade step and the upgrade is the bundle alone; going back to 0.3.9 is the 0.3.9 bundle alone. A 0.3.8 install (schema 94) going straight to 0.3.10 takes the 94 to 95 step above, with migration 120 from the installed 0.3.10 bundle (the bundle's first start copies it into the stack folder, step 1), with Fabric quit.
 
+**0.3.11 admits schema 95**, as 0.3.9 and 0.3.10 do: it adds no migration (no file under `supabase/` changed since v0.3.10), so the upgrade is the bundle alone and going back to 0.3.10 is the 0.3.10 bundle alone. One setting is new, `agentLanguage` in `settings.json`; 0.3.10 does not know it, so going back and then changing a setting drops a switched-off working language, and the next 0.3.11 starts with it on again (the 0.3.11 review, DA-5).
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
@@ -372,7 +374,7 @@ reservation). The procedure is the same with 94 in place of 89.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 and 0.3.10).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

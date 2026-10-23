@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.11",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "a9accd06ee880781694339a584d16730f5d64ad8",
+  "report": "docs/evidence/reviews/0.3.11/iteration-1/2026-10-23-plan.md",
+  "reportSha256": "3f2aec89f82e661c2c814d43530c5b22acabe2d773e1255b536d0c626f187e32",
+  "reviewerRun": "release-0311-i1-plan-20261023",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: decision D-7 re-rules them to 0.3.12 in the carry-over register's dated note, by id, with CO-377's date kept; P-20 says its scope and P-25 names 0.3.12"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the notes say what moved to 0.3.12 and why; the publication post and the knowledge base pull request carry the correction (Release close)"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 for 0.3.12, CO-401 for the walk's moved items (OF-19's agent filter with them), the simple plan's dated lines, SCN-163, SCN-166, SCN-168, SCN-170, SCN-173 and SCN-174 implemented"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person quits and opens Fabric, the agent checks the broker did not start it, and the keep-awake check puts the setting back (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Owed list is complete; CO-396 (CT-81) and CO-397 (the whoami text) record the new asks; CO-390 and CO-383's triage half are ruled by D-7"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the branch is pushed and `origin/main` is merged into it, so every reviewed candidate stays an ancestor; landing is a fast-forward"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/handoffs/2026-10-23-release-0311.md` states the review in progress and the next task"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «0.3.11 admits schema 95» in `release-mac.md` and the schema line in the notes"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: released"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a dated correction line under D-1"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 for 0.3.12, CO-401 for the walk's moved items (OF-19's agent filter with them), the simple plan's dated lines, SCN-163, SCN-166, SCN-168, SCN-170, SCN-173 and SCN-174 implemented"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person quits and opens Fabric, the agent checks the broker did not start it, and the keep-awake check puts the setting back (Rollout)"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «0.3.11 admits schema 95» in `release-mac.md` and the schema line in the notes"
+      ]
+    }
+  ]
+}
