@@ -566,3 +566,14 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 /* Launch at login (Settings, CO-322): one checkbox with its label. */
 .lp-check{display:flex;align-items:center;gap:var(--space-2);font-size:13px;margin:var(--space-3) 0 0;cursor:pointer}
 .lp-check input{accent-color:var(--app-accent)}
+/* The operator's walk OF-16, OF-17 (2026-10-22): «Агенты в работе» scrolls inside itself and carries «Открыть переписку». */
+.lh-scrollbox{max-height:360px;overflow-y:auto;overscroll-behavior:contain;padding-right:var(--space-1)}
+.lh-agents-actions{display:flex;gap:var(--space-3);align-items:center}
+/* OF-14: a «Нужны вы» row opens in place. */
+.lh-need>summary{list-style:none;cursor:pointer}
+.lh-need>summary::-webkit-details-marker{display:none}
+.lh-need-body{padding:0 var(--space-3) var(--space-3) calc(var(--space-3) + 28px);display:grid;gap:var(--space-2);justify-items:start}
+.lh-need-body p{margin:0;font-size:13px;line-height:1.5}
+/* OF-15: «Где остановились» moved into the main column under «Нужны вы», so the top holds the overview alone. */
+.lh-top{grid-template-columns:minmax(0,1fr)}
+.lh-main-column>.lh-resume{grid-area:auto;margin:0 0 var(--space-4)}

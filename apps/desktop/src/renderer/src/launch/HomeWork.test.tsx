@@ -25,6 +25,36 @@ const show = (ui: React.ReactNode) => render(<I18nProvider locale="en">{ui}</I18
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+describe('home: agents at work, by their planned task (the operator\'s walk OF-16, OF-17, D-4)', () => {
+  const task = (id: string) => ({ id, summary: 'Planned task ' + id })
+  const agent = (sessionId: string, stale: boolean, withTask: boolean) => ({
+    sessionId, projectId: 'p1', projectName: 'Fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale,
+    doing: { text: 'Reading a file ' + sessionId, note: null, step: null, ofSteps: null, at: now }, task: withTask ? task(sessionId) : null
+  })
+  it('names the task an agent holds before its latest action, and falls back to the action only without one', () => {
+    const r: HomeReading = { view: { ...view, live: [agent('a', false, true), agent('b', false, false)] }, problem: null }
+    show(<HomeAgents reading={r} onOpen={() => {}} onSession={() => {}} onAll={() => {}} />)
+    expect(screen.getByText(/Planned task a/)).toBeTruthy()
+    expect(screen.queryByText(/Reading a file a/)).toBeNull()
+    expect(screen.getByText(/Reading a file b/)).toBeTruthy()
+  })
+  it('lists active agents before quiet ones, every one of them, in a box that scrolls', () => {
+    const live = [agent('q1', true, true), agent('a1', false, true), ...Array.from({ length: 9 }, (_, i) => agent('a' + (i + 2), false, true))]
+    const r: HomeReading = { view: { ...view, live }, problem: null }
+    const { container } = show(<HomeAgents reading={r} onOpen={() => {}} onSession={() => {}} onAll={() => {}} />)
+    const items = [...container.querySelectorAll('.lh-agent-list > li')]
+    expect(items).toHaveLength(11)
+    expect(items.at(-1)!.className).toContain('is-stale')
+    expect(container.querySelector('.lh-agent-list')!.classList.contains('lh-scrollbox')).toBe(true)
+  })
+  it('carries the one «Открыть переписку»', () => {
+    const onComms = vi.fn()
+    show(<HomeAgents reading={read} onOpen={() => {}} onSession={() => {}} onAll={() => {}} onComms={onComms} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open the comms' }))
+    expect(onComms).toHaveBeenCalled()
+  })
+})
+
 describe('home: who is doing what', () => {
   it('shows each agent in its own words, with its step, and marks a silent one', () => {
     show(<HomeAgents reading={read} onOpen={() => {}} onSession={() => {}} onAll={() => {}} />)

@@ -90,20 +90,25 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number;
       {cut && cut.total === 0 && unread.length === 0 && (
         <div className="lp-empty"><h3>{t('launch.home.board.clear')}</h3><p>{t('launch.home.board.clearBody')}</p></div>
       )}
+      {/* OF-14 (the operator's walk, 2026-10-22): each row says who asks and why, and opens in place to read all of it. */}
       {cut?.items.map((item: BoardEntry, i) => (
-        <button key={item.ref} type="button" className="lp-topic" onClick={onBoard}>
-          <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
-          <span>
-            <span className="lp-topic-title">{titleOf(item, t)}</span>
-            <span className="lp-meta">
-              {[item.projectName, t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question'), item.detail].filter(Boolean).join(' · ')}
+        <details key={item.ref} className="lh-need">
+          <summary className="lp-topic">
+            <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <span className="lp-topic-title">{titleOf(item, t)}</span>
+              <span className="lp-meta">{[item.projectName, t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')].filter(Boolean).join(' · ')}</span>
             </span>
-          </span>
-          <span className="lp-topic-end">
-            <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')}</span>
-            <small>{since(item.waitingSince, t)}</small>
-          </span>
-        </button>
+            <span className="lp-topic-end">
+              <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question')}</span>
+              <small>{since(item.waitingSince, t)}</small>
+            </span>
+          </summary>
+          <div className="lh-need-body">
+            {item.detail ? <p>{item.detail}</p> : <p className="lp-meta">{t('launch.home.board.noDetail')}</p>}
+            <button type="button" className="lp-button" onClick={onBoard}>{t('launch.home.board.openOne')}</button>
+          </div>
+        </details>
       ))}
       <div className="lp-panel-foot">
         <span>{t('launch.home.board.foot')}</span>

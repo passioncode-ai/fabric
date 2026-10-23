@@ -487,45 +487,46 @@ export function EstateHome({
           <HomeStats reading={home} waiting={counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null}
             onAgents={onAgents} onBoard={onBoard} />
         </header>
-        <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
-          <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>
-          {resume && resumeProject ? (
-            <>
-              <h3 id="home-resume-title">{resumeProject.name}</h3>
-              <p>{describeEvent(t, resume.type)}</p>
-              <div className="lp-panel-head">
-                <span className="lp-meta">
-                  {resume.unread > 0 ? t('launch.home.resume.unread', { count: resume.unread }) : t('launch.home.resume.read')}
-                </span>
-                <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(resumeProject.id)}>
-                  {t('launch.home.resume.continue')}
-                </button>
-              </div>
-              <details>
-                <summary>{t('launch.home.resume.last')}</summary>
-                <p>{t('launch.home.resume.lastAt', { when: new Date(resume.occurredAt).toLocaleString(locale), project: resumeProject.name })}</p>
-              </details>
-            </>
-          ) : (
-            <>
-              <h3 id="home-resume-title">{rows.length ? rows[0].name : t('launch.home.resume.first')}</h3>
-              <p>{feed === null ? t('journal.reading') : t('launch.home.resume.none')}</p>
-              {rows.length ? (
-                <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(rows[0].id)}>{t('launch.home.resume.continue')}</button>
-              ) : (
-                read && <button type="button" className="lp-button" onClick={onNew}>{t('estate.createFirst')}</button>
-              )}
-            </>
-          )}
-        </section>
       </div>
 
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
+          {/* OF-15 (the operator's walk, 2026-10-22): «Где остановились» right under «Нужны вы», both on top. */}
+          <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
+            <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>
+            {resume && resumeProject ? (
+              <>
+                <h3 id="home-resume-title">{resumeProject.name}</h3>
+                <p>{describeEvent(t, resume.type)}</p>
+                <div className="lp-panel-head">
+                  <span className="lp-meta">
+                    {resume.unread > 0 ? t('launch.home.resume.unread', { count: resume.unread }) : t('launch.home.resume.read')}
+                  </span>
+                  <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(resumeProject.id)}>
+                    {t('launch.home.resume.continue')}
+                  </button>
+                </div>
+                <details>
+                  <summary>{t('launch.home.resume.last')}</summary>
+                  <p>{t('launch.home.resume.lastAt', { when: new Date(resume.occurredAt).toLocaleString(locale), project: resumeProject.name })}</p>
+                </details>
+              </>
+            ) : (
+              <>
+                <h3 id="home-resume-title">{rows.length ? rows[0].name : t('launch.home.resume.first')}</h3>
+                <p>{feed === null ? t('journal.reading') : t('launch.home.resume.none')}</p>
+                {rows.length ? (
+                  <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(rows[0].id)}>{t('launch.home.resume.continue')}</button>
+                ) : (
+                  read && <button type="button" className="lp-button" onClick={onNew}>{t('estate.createFirst')}</button>
+                )}
+              </>
+            )}
+          </section>
           {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
-          <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} />
+          <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
           <HomeWorkLanes reading={home} onOpen={onOpen} onSession={openConsole} onBoard={onBoard} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
@@ -581,7 +582,7 @@ export function EstateHome({
           </details>
         </div>
         <aside className="lh-side-column">
-          <HomeAgents reading={home} onOpen={onOpen} onSession={openConsole} onAll={onAgents} />
+          <HomeAgents reading={home} onOpen={onOpen} onSession={openConsole} onAll={onAgents} onComms={onComms} />
           <HomeLive feed={feed} projects={rows} sessions={sessions} now={now} onOpen={onOpen}
             onAll={() => {
               if (onPulse) return onPulse()

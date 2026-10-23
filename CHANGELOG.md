@@ -19,6 +19,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   again, as it does when the database does not answer, instead of stopping on «could not work out why» (CO-389; seen on
   the 0.3.10 install with the disk nearly full).
 
+- The home says what is needed from you, first (the operator's walk of 0.3.10, OF-14 to OF-17): «Нужны вы» heads the
+  page and each row opens in place to read what the agent wrote, with «Открыть на доске»; «Где остановились» follows
+  it. «Агенты в работе» names the task each agent holds rather than its latest action, lists active agents first, scrolls
+  inside itself and carries the one «Открыть переписку».
+
 ## 0.3.10
 
 Fabric 0.3.10: the scroll patch. Since 0.3.7 no page of Fabric could be scrolled; now every page scrolls and the

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-23T05:00:00Z · `—` · agent/w4-home → main · fast-forward
+- run: r-8642aee374a2
+- files: EstateHome.tsx, launch/HomeParts.tsx (`HomeBoard`), launch/HomeWork.tsx (`HomeAgents`, `Doing`), launch.css, i18n en/ru, tests HomeParts.test.tsx and HomeWork.test.tsx; the walk's OF-14 to OF-17 done; SCN-163 coverage; CHANGELOG Unreleased; the map
+- conflicts: none
+- summary: the home says what is needed from the person first, and agents by the task they hold (wave 4).
+
 ### 2026-10-23T02:30:00Z · `—` · agent/w4-proto-home-board → main · fast-forward
 - run: r-8642aee374a2
 - files: scripts/product/simple.mjs and simple.css (the home's new order, the board and task views, back at the top left), calm.mjs, the product model (views simple-board, simple-task), the report, previews and coverage, the map

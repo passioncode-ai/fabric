@@ -69,6 +69,9 @@ export function HomeStats({ reading, waiting, onAgents, onBoard }: { reading: Ho
 
 function Doing({ item }: { item: Pick<LiveAgent, 'doing'> & { summary?: string | null } }): React.JSX.Element {
   const t = useT()
+  // D-4 (the operator's walk, 2026-10-22): the task an agent holds is what it is doing; its latest action changes every
+  // second and says little. The action is shown only for an agent that holds no task.
+  if (item.summary) return <span className="lh-doing">{t('launch.home.agents.workingOn', { task: item.summary })}</span>
   if (item.doing) {
     return (
       <span className="lh-doing">
@@ -140,8 +143,10 @@ export function HomeWorkLanes({ reading, onOpen, onSession, onBoard }: { reading
 
 /** Every working session, in its own words: who, where, what it is doing now. Opens its console when Fabric holds
  *  one, else its project. */
-export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title }: {
+export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, projectId, title }: {
   reading: HomeReading
+  /** OF-16: the one way to the comms from the home. */
+  onComms?(): void
   onOpen(projectId: string): void
   onSession(sessionId: string): void
   onAll(): void
@@ -151,7 +156,8 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title
 }): React.JSX.Element {
   const t = useT()
   const v = reading.view
-  const live = (v?.live ?? []).filter((l) => !projectId || l.projectId === projectId)
+  // OF-17: active agents first, then the quiet ones; every one is listed, in a box that scrolls on its own.
+  const live = (v?.live ?? []).filter((l) => !projectId || l.projectId === projectId).sort((a, b) => Number(a.stale) - Number(b.stale))
   const working = live.filter((l) => !l.stale).length
   return (
     <section className="lp-panel lh-agents" aria-labelledby="home-agents-title">
@@ -160,14 +166,17 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title
           <span className={`lh-live-indicator ${working ? '' : 'is-quiet'}`} aria-hidden="true" />
           {title ?? t('launch.home.agents.title')} {v && <span className="lp-count">{working}</span>}
         </h3>
-        <button type="button" className="lp-button lh-text-link" onClick={onAll}>{projectId ? t('launch.project.agents.all') : t('launch.home.agents.all')}</button>
+        <span className="lh-agents-actions">
+          {onComms && <button type="button" className="lp-button lh-text-link" onClick={onComms}>{t('launch.home.agents.comms')}</button>}
+          <button type="button" className="lp-button lh-text-link" onClick={onAll}>{projectId ? t('launch.project.agents.all') : t('launch.home.agents.all')}</button>
+        </span>
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && live.length === 0 && <p className="lp-meta">{t('launch.home.agents.none')}</p>}
       {live.length > 0 && (
-        <ol className="lh-agent-list">
-          {live.slice(0, 8).map((a) => (
+        <ol className="lh-agent-list lh-scrollbox">
+          {live.map((a) => (
             <li key={a.sessionId} className={a.stale ? 'is-stale' : ''}>
               <button type="button" className="lp-button lh-agent" onClick={() => (a.console ? onSession(a.sessionId) : a.projectId ? onOpen(a.projectId) : onAll())}
                 title={a.console ? t('launch.home.agents.openConsole') : t('launch.home.agents.openProject')}>
@@ -182,7 +191,6 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, projectId, title
           ))}
         </ol>
       )}
-      {live.length > 8 && <button type="button" className="lp-button lh-text-link" onClick={onAll}>{t('launch.home.agents.more', { count: live.length - 8 })}</button>}
     </section>
   )
 }
