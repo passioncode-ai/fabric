@@ -22,7 +22,7 @@ export interface CatalogAgent {
 
 export type SwitchboardCatalog =
   | { source: 'switchboard'; revision: string | null; defaultId: string | null; agents: CatalogAgent[] }
-  | { source: 'absent'; reason: 'not-installed' | 'too-old' | 'unknown-schema' | 'failed'; detail: string | null }
+  | { source: 'absent'; reason: 'not-installed' | 'too-old' | 'unknown-schema' | 'refused' | 'timeout' | 'failed'; detail: string | null }
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const bool = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null)
@@ -79,6 +79,19 @@ function schemaOf(stdout: string): number | string | null {
   }
 }
 
+/** Switchboard's own refusal in its `--json` wrapper, `{ ok: false, error }`, as its words; null for anything else. */
+function refusalOf(stdout: string): string | null {
+  try {
+    const doc = JSON.parse(stdout) as Record<string, unknown>
+    if (!doc || typeof doc !== 'object' || doc.ok !== false) return null
+    const err = doc.error
+    const said = typeof err === 'string' ? err : err && typeof err === 'object' ? str((err as Record<string, unknown>).message) ?? str((err as Record<string, unknown>).code) : null
+    return (said ?? '').trim().slice(0, 200)
+  } catch {
+    return null
+  }
+}
+
 /** One bounded read; every way it can fail is a named reason, never an empty list. */
 export async function readSwitchboardCatalog(deps: CatalogDeps): Promise<SwitchboardCatalog> {
   const file = await deps.find()
@@ -87,6 +100,8 @@ export async function readSwitchboardCatalog(deps: CatalogDeps): Promise<Switchb
   try {
     r = await deps.run(file, ['--json', 'agents', 'status'])
   } catch (e) {
+    // The deadline killed it (execFile's `killed`): no answer in time is its own reason, not a generic failure (CO-313).
+    if ((e as { killed?: unknown } | null)?.killed === true) return { source: 'absent', reason: 'timeout', detail: null }
     return { source: 'absent', reason: 'failed', detail: e instanceof Error ? e.message : String(e) }
   }
   const parsed = r.code === 0 ? parseSwitchboardAgents(r.stdout) : null
@@ -95,6 +110,9 @@ export async function readSwitchboardCatalog(deps: CatalogDeps): Promise<Switchb
   if (r.code === 0 && schemaOf(r.stdout) !== null) return { source: 'absent', reason: 'unknown-schema', detail: `schema ${schemaOf(r.stdout)}` }
   // Before 0.6.31 the command does not exist and Switchboard answers "Invalid arguments" (measured on 0.6.30).
   if (/invalid arguments/i.test(r.stdout + r.stderr)) return { source: 'absent', reason: 'too-old', detail: null }
+  // Switchboard answered and said no ({ ok: false, error }): its own words, never a generic failure (CO-313); after the version check, whose own answer is a refusal too.
+  const refusal = refusalOf(r.stdout)
+  if (refusal !== null) return { source: 'absent', reason: 'refused', detail: refusal }
   return { source: 'absent', reason: 'failed', detail: (r.stderr || r.stdout).trim().slice(0, 200) || `exit ${r.code}` }
 }
 // #endregion agent-catalog

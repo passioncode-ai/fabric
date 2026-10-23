@@ -259,10 +259,12 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.agents.title': "Агенты для кода на этом компьютере",
   'settings.agents.sourceReading': "Читаю каталог агентов…",
   'settings.agents.sourceSwitchboard': "Из каталога Switchboard вместе с тем, что Fabric нашёл на этом компьютере.",
-  'settings.agents.sourceTooOld': "Switchboard старше 0.6.31 и не публикует каталог — показано то, что Fabric нашёл на этом компьютере.",
-  'settings.agents.sourceUnknownSchema': "Switchboard публикует каталог в формате, который этот Fabric не читает — показано то, что Fabric нашёл на этом компьютере. Более новый Fabric его прочтёт.",
-  'settings.agents.sourceNone': "Switchboard не установлен — показано то, что Fabric нашёл на этом компьютере.",
-  'settings.agents.sourceFailed': "Каталог Switchboard не прочитан — показано то, что Fabric нашёл на этом компьютере.",
+  'settings.agents.sourceTooOld': "Switchboard старше 0.6.31 и не публикует каталог: показано то, что Fabric нашёл на этом компьютере.",
+  'settings.agents.sourceUnknownSchema': "Switchboard публикует каталог в формате, который этот Fabric не читает: показано то, что Fabric нашёл на этом компьютере. Более новый Fabric его прочтёт.",
+  'settings.agents.sourceRefused': "Switchboard отказался отдать каталог: показано то, что Fabric нашёл на этом компьютере. Его слова ниже.",
+  'settings.agents.sourceTimeout': "Switchboard не ответил за 5 секунд: показано то, что Fabric нашёл на этом компьютере. Настройки спросят снова при открытии.",
+  'settings.agents.sourceNone': "Switchboard не установлен: показано то, что Fabric нашёл на этом компьютере.",
+  'settings.agents.sourceFailed': "Каталог Switchboard не прочитан: показано то, что Fabric нашёл на этом компьютере.",
   'settings.agents.looking': "Ищу агентов для кода на этом компьютере…",
   'settings.agents.unreadable': "Не удалось поискать агентов.",
   'settings.agents.found': "установлен {version}",
@@ -302,7 +304,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.languageHintOff': 'Агенты пишут на своём языке: Fabric не называет им язык.',
   // Эндонимы: селектор языков называет каждый язык на нём самом — эти строки
   // одинаковы во всех локалях, а не переводятся.
-  'settings.notSaved': "Настройки не сохранены: {reason}. На экране — то, что записано на диске.",
+  'settings.notSaved': "Настройки не сохранены: {reason}. На экране то, что записано на диске.",
+  'settings.notSavedClose': "Скрыть",
   'settings.recovered':
     "Файл настроек не удалось прочитать, поэтому используется предыдущая исправная копия. Оригинал сохранён рядом.",
   'settings.localeEn': 'English',

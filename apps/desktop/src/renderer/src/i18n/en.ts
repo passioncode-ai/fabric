@@ -897,7 +897,8 @@ export const en = {
   'session.runOverFailed': "Fabric did not mark the work as over: {why}.",
   'session.runOverHelp': "The agent's process has ended, and Fabric cannot prove its provider stopped too. If you know the work is over, say so: the task becomes free, and you can undo it.",
 
-  'settings.notSaved': 'Settings were not saved: {reason}. The screen shows what is on disk.',
+  'settings.notSaved': "Settings were not saved: {reason}. The screen shows what is on disk.",
+  'settings.notSavedClose': "Hide",
   'settings.recovered':
     'Your settings file could not be read, so a previous good copy is in use. The original is kept beside it.',
   'settings.title': 'Settings',
@@ -910,6 +911,8 @@ export const en = {
   'settings.agents.sourceSwitchboard': "From Switchboard's catalogue, joined with what Fabric found on this computer.",
   'settings.agents.sourceTooOld': "Switchboard is older than 0.6.31 and publishes no catalogue: showing what Fabric found on this computer.",
   'settings.agents.sourceUnknownSchema': "Switchboard publishes its catalogue in a format this Fabric does not read: showing what Fabric found on this computer. A newer Fabric reads it.",
+  'settings.agents.sourceRefused': "Switchboard refused to give its catalogue: showing what Fabric found on this computer. Its words are below.",
+  'settings.agents.sourceTimeout': "Switchboard did not answer within 5 seconds: showing what Fabric found on this computer. Settings asks again when opened.",
   'settings.agents.sourceNone': "Switchboard is not installed: showing what Fabric found on this computer.",
   'settings.agents.sourceFailed': "Switchboard's catalogue could not be read: showing what Fabric found on this computer.",
   'settings.agents.looking': "Looking for coding agents on this computer…",

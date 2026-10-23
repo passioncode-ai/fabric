@@ -471,6 +471,8 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* A refused settings write, pinned to the screen's foot so it is in view on the long page (CO-313). */
+.lp-settings-refused{position:sticky;bottom:var(--space-3);margin-top:var(--space-4);display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);z-index:2}
 /* Главная's greeting line under the product name (SCN-163 step 1, CO-391); the prototype has none. */
 .lh-identity .lh-greeting{margin:var(--space-1) 0 0;font-size:13px;color:var(--app-muted);white-space:normal}
 /* An access request's facts sit as a block above its two buttons (SCR-41, verification iteration 1 for

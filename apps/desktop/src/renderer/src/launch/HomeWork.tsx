@@ -6,13 +6,21 @@
 
 import { useEffect, useState } from 'react'
 import type { ReviewItem, HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
 
-export type HomeReading = { view: HomeView | null; problem: string | null }
+/** `readAt`: when `view` was read. After a failed read the view kept is said to be that moment's (CO-313). */
+export type HomeReading = { view: HomeView | null; problem: string | null; readAt?: string | null }
+
+/** After a failed read, what still shows is the last reading: said with its time, never passed off as now (CO-313). */
+function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
+  const t = useT(), locale = useLocale()
+  if (!reading.problem || !reading.view || !reading.readAt) return null
+  return <p className="lp-meta" role="status">{t('acts.stale', { time: new Date(reading.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>
+}
 
 const REFRESH_MS = 15_000
 /** Rows a lane shows before «Ещё N» leads to the Board. */
@@ -33,8 +41,8 @@ export function useHome(mark: number): HomeReading {
     // Through a promise, so a build without the reading (an older preload, a test double) is said as a problem
     // rather than thrown out of the effect.
     Promise.resolve().then(() => window.fabric.work.home()).then(
-      (view) => alive && setReading({ view, problem: null }),
-      (e: unknown) => alive && setReading((r) => ({ view: r.view, problem: e instanceof Error ? e.message : String(e) }))
+      (view) => alive && setReading({ view, problem: null, readAt: new Date().toISOString() }),
+      (e: unknown) => alive && setReading((r) => ({ view: r.view, readAt: r.readAt ?? null, problem: e instanceof Error ? e.message : String(e) }))
     )
     return () => {
       alive = false
@@ -141,6 +149,7 @@ export function HomeWorkLanes({ reading, onOpen, onOpenTask, onSession, onBoard 
         {onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.board.open')}</button>}
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
+      <KeptNote reading={reading} />
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && (
         <div className="lh-lanes">
@@ -203,6 +212,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
         </span>
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
+      <KeptNote reading={reading} />
       {!v && !reading.problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {v && live.length === 0 && <p className="lp-meta">{t('launch.home.agents.none')}</p>}
       {/* OF-23: on a project page the project goes without saying, and a row takes one line. */}

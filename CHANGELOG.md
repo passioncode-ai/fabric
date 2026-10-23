@@ -28,6 +28,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   questions wait (CO-391, SCN-163).
 - История's «Что делали агенты» reads as History: by day, newest first, each row naming who did it, with no journal
   number (CO-395, SCN-168).
+- Failures are said where they are seen: after a failed read the home's lanes say the time of the view they keep;
+  Settings tells Switchboard refusing its catalogue, and not answering in 5 seconds, apart from a failure; a refused
+  settings write is said at the foot of the Settings screen, in view (CO-313).
 - Fabric no longer shows account quotas, which are Switchboard's (D-3): the project page's quota cells, the quota
   screen and the window's read every minute are gone. Fabric still reads the quota before it starts a routine or a
   chain step on its own, and holds the start when the quota is spent (CO-392).

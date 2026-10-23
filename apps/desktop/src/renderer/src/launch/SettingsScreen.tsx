@@ -4,7 +4,7 @@
 // leaves this machine. Every control here is one that already existed; what is new is the agents' catalogue — read
 // from Switchboard when it publishes one (0.6.31+), else from Fabric's own detection, with the source said.
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRead } from './useRead'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
 import type { LoginItemState } from '../../../shared/loginItem'
@@ -47,6 +47,10 @@ export function AgentCatalogPanel({ permissions }: { permissions?: AppSettings['
             ? t('settings.agents.sourceTooOld')
             : catalog.value.source === 'absent' && catalog.value.reason === 'unknown-schema'
               ? t('settings.agents.sourceUnknownSchema')
+            : catalog.value.source === 'absent' && catalog.value.reason === 'refused'
+              ? t('settings.agents.sourceRefused')
+            : catalog.value.source === 'absent' && catalog.value.reason === 'timeout'
+              ? t('settings.agents.sourceTimeout')
             : catalog.value.source === 'absent' && catalog.value.reason === 'not-installed'
               ? t('settings.agents.sourceNone')
               : t('settings.agents.sourceFailed')
@@ -168,7 +172,8 @@ export function AgentPermissionsSetting({ value, onChange }: {
 
 export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread }: {
   settings: AppSettings
-  onChange: (next: SettingsPatch) => Promise<void> | void
+  /** Writes the patch; answers why it was not saved (said on this screen, CO-313), or nothing when it was. */
+  onChange: (next: SettingsPatch) => Promise<string | null | void> | string | null | void
   onOpenHistory: () => void
   onOpenAccess: () => void
   /** The places that left the rail in 0.3.7 wave 3 (plan §2, "off the rail") and are reached from here until wave 4
@@ -181,6 +186,12 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   // The screen is the page's main region while it is open, and its heading takes focus, as the other screens' do (i2 UX-2).
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => heading.current?.focus(), [])
+  // A refused write is said here, pinned to the screen's foot, never only in the shell's banner above a long page (CO-313).
+  const [refused, setRefused] = useState<string | null>(null)
+  const change = async (next: SettingsPatch): Promise<void> => {
+    const said = await onChange(next)
+    setRefused(typeof said === 'string' ? said : null)
+  }
   return (
     <main className="lp lp-settings" data-launch-view="settings">
       <header className="lp-heading">
@@ -192,12 +203,12 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
       </header>
       <div className="lp-project-grid">
         <div>
-          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={onChange} />
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           <section className="lp-panel" aria-labelledby="settings-launch-title">
             <p className="lp-kicker">{t('settings.launch.kicker')}</p>
             <h3 id="settings-launch-title">{t('settings.launch.title')}</h3>
-            <FallbackOrderSetting value={settings.runnerFallback} onChange={onChange} />
+            <FallbackOrderSetting value={settings.runnerFallback} onChange={change} />
           </section>
         </div>
         <aside className="lp-side">
@@ -205,7 +216,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <h3 id="settings-computer-title">{t('settings.computer.title')}</h3>
             <label className="lp-field">
               {t('power.label')}
-              <select value={settings.keepAwake} onChange={(e) => void onChange({ keepAwake: e.target.value as AppSettings['keepAwake'] })}>
+              <select value={settings.keepAwake} onChange={(e) => void change({ keepAwake: e.target.value as AppSettings['keepAwake'] })}>
                 <option value="always">{t('power.always')}</option>
                 <option value="while-working">{t('power.while-working')}</option>
                 <option value="never">{t('power.never')}</option>
@@ -214,7 +225,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             {/* Said here rather than discovered: the blocker stops the MACHINE suspending and lets the screen sleep,
                 and macOS ignores it with the lid closed on battery. */}
             <p className="settings-note">{t('power.note')}</p>
-            <LaunchAtLoginSetting value={settings.launchAtLogin !== false} onChange={onChange} />
+            <LaunchAtLoginSetting value={settings.launchAtLogin !== false} onChange={change} />
             {/* ADR-0176 §3: whose computer this is decides whether an agent here may make another project's change
                 itself when that project's agent is offline. Never assumed: not said reads as not the operator's. */}
             <label className="lp-field">
@@ -222,7 +233,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
               <select
                 value={settings.machineTrust ?? ''}
                 aria-describedby="settings-machine-trust-hint"
-                onChange={(e) => void onChange({ machineTrust: e.target.value === 'mine' || e.target.value === 'organization' ? e.target.value : null })}
+                onChange={(e) => void change({ machineTrust: e.target.value === 'mine' || e.target.value === 'organization' ? e.target.value : null })}
               >
                 <option value="">{t('settings.machineTrust.unset')}</option>
                 <option value="mine">{t('settings.machineTrust.mine')}</option>
@@ -237,7 +248,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <h3 id="settings-look-title">{t('settings.look.title')}</h3>
             <label className="lp-field">
               {t('settings.theme')}
-              <select value={settings.theme} onChange={(e) => void onChange({ theme: e.target.value as AppSettings['theme'] })}>
+              <select value={settings.theme} onChange={(e) => void change({ theme: e.target.value as AppSettings['theme'] })}>
                 <option value="dark">{t('settings.themeDark')}</option>
                 <option value="light">{t('settings.themeLight')}</option>
                 <option value="system">{t('settings.themeSystem')}</option>
@@ -245,7 +256,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             </label>
             <label className="lp-field">
               {t('settings.language')}
-              <select value={settings.locale} aria-describedby="settings-language-hint" onChange={(e) => void onChange({ locale: e.target.value as AppSettings['locale'] })}>
+              <select value={settings.locale} aria-describedby="settings-language-hint" onChange={(e) => void change({ locale: e.target.value as AppSettings['locale'] })}>
                 <option value="en">{t('settings.localeEn')}</option>
                 <option value="ru">{t('settings.localeRuUntranslated')}</option>
               </select>
@@ -255,7 +266,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <small id="settings-language-hint" className="lp-meta">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
             {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
             <label className="lp-check">
-              <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void onChange({ agentLanguage: e.target.checked })} />
+              <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void change({ agentLanguage: e.target.checked })} />
               {t('settings.agentLanguage')}
             </label>
           </section>
@@ -290,6 +301,12 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
           )}
         </aside>
       </div>
+      {refused !== null && (
+        <div className="lp-callout lp-settings-refused" role="alert">
+          <p>{t('settings.notSaved', { reason: refused })}</p>
+          <button type="button" className="lp-button" onClick={() => setRefused(null)}>{t('settings.notSavedClose')}</button>
+        </div>
+      )}
     </main>
   )
 }
