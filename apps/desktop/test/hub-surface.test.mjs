@@ -242,6 +242,24 @@ test('a binding\'s protocol traffic is not charged as calls, and one session in 
   assert.equal((await enroll('rt-other')).status, 200, 'another session of the same agent was refused for the loop of the first')
 })
 
+// CO-346: varying runtimeSessionId cannot raise a binding's budget: past 16 session windows, calls share one.
+test('CO-346: past its session windows a binding\'s new session ids share one budget', async (t) => {
+  const { SESSION_WINDOWS_PER_BINDING } = await import(path.resolve(import.meta.dirname, '../src/main/agentSurface.ts'))
+  const store = memStore(), credential = 'v'.repeat(43)
+  const binding = { id: 'varying-agent', agent_id: 'example-agent', verifier: createHash('sha256').update(credential).digest('hex'), revoked_at: null }
+  store.maps.bindings.set(binding.id, binding)
+  // 3 calls a window: the binding's ingress guard (ten times that) stays out of the way of 16 + 6 + 1 calls.
+  const { surface } = await hub({ budgetCalls: 3, budgetWindowMs: 60_000 }, store)
+  t.after(() => surface.stop())
+  const enroll = (rt) => rpc(surface, credential, 'tools/call', { name: 'fabric.session.enroll', arguments: { cwd: '/Users/me/DATA/site', runtimeSessionId: rt, rejoinOnly: true } })
+  for (let i = 0; i < SESSION_WINDOWS_PER_BINDING; i++) assert.equal((await enroll('rt-' + i)).status, 200, 'each session within the cap has its own window')
+  const beyond = []
+  for (let i = 0; i < 6; i++) beyond.push((await enroll('rt-new-' + i)).status)
+  assert.deepEqual(beyond.slice(0, 3), [200, 200, 200], 'the shared window gives its budget once')
+  assert.ok(beyond.slice(3).every((s) => s === 429), `new ids past the cap are not fresh budget: ${beyond.join(',')}`)
+  assert.equal((await enroll('rt-0')).status, 200, 'a session within the cap keeps its own window')
+})
+
 // TR-1 (0.3.9): fabric.session.enroll takes the agent's process id, at enrollment and on a rejoin, so a session whose
 // runtime id changed (/clear) is still found. Before, the strict schema refused the field as invalid input.
 test('TR-1: fabric.session.enroll accepts agentPid and refuses one that names no process', async (t) => {

@@ -4,61 +4,67 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### __LANDED__ · `—` · agent/0312-w3c → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-w3d → main · fast-forward
+- run: r-8642aee374a2
+- files: main/accessService.ts and test/session-enroll-request.test.mjs (CO-363); main/agentSurface.ts and test/hub-surface.test.mjs (CO-346); test/login-shell-path.test.mjs and scripts/ci.sh (CO-379); test/backend-launch.test.mjs (CO-332); the triage (CO-370 and CO-373 moved to 0.3.13); the backlog; CHANGELOG; the map
+- conflicts: none
+- summary: 0.3.12 W3d: the hub's bounds (CO-346, CO-363), steady tests under load (CO-332, CO-379); CO-370 and CO-373 moved to 0.3.13.
+
+### 2026-10-23T21:19:00Z · `—` · agent/0312-w3c → main · fast-forward
 - run: r-8642aee374a2
 - files: main/workRead.ts and test/work-read-views.test.mjs; launch/HistoryScreen.tsx and its test, App.tsx; launch/commsNewest.ts, launch/CommsFeed.tsx and their tests; CommsScreen.test.tsx, TaskPage.test.tsx; shared/protocolObligations.ts and main/boardTools.ts (reply only with the answer); i18n; CO-405 resolved; CO-412 filed; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 W3c: the reads' edges (CO-405), the board's reply rule, CO-412 filed.
 
-### __LANDED__ · `—` · agent/0312-w3b → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-w3b → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/stackStartRetry.ts and its test, main/env.ts (CO-311); main/accessService.ts and test/session-enroll-request.test.mjs (CO-347); scripts/workspace.mjs, scripts/lib/bounded-run.mjs and scripts/test/bounded-run.test.mjs (CO-390); main/workRead.ts, shared/workClaims.ts, shared/homeLive.ts, launch/HomeWork.tsx and its test, test/work-read-views.test.mjs (CO-310); AGENTS.md; CO-411 filed; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 W3b: four hardening rows (CO-310, CO-311, CO-347, CO-390) and CO-411 filed.
 
-### __LANDED__ · `—` · agent/0312-w3a → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-w3a → main · fast-forward
 - run: r-8642aee374a2
 - files: main/fabricMcp.ts, main/fabricMcpClient.ts and test/fabric-mcp.test.mjs (CO-314); shared/redact.ts and its tests (CO-386); main/index.ts hubRevokeAgent and actWords.test.ts (CO-353); Tasks.tsx and its test (CO-352); shared/commsMarks.ts and its test (new), shared/appSettings.ts, App.tsx (CO-312); the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 W3a: five hardening rows (CO-312, CO-314, CO-352, CO-353, CO-386).
 
-### __LANDED__ · `—` · agent/0312-s7-board → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s7-board → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/KanbanBoard.tsx and its test, launch/BoardScreen.tsx, shared/taskBoard.ts and its test, main/workRead.ts (cancelled), shared/appSettings.ts and its test, shared/types.ts (boardFilters, blockedBy), launch/CommsFeed.tsx and its test, launch/CommsScreen.tsx, TaskPage.tsx and its test, shared/taskMoves.ts and its test (new), main/index.ts (tasks.detail blockedBy), shared/swipeTravel.ts and its test (new), App.tsx, launch.css, i18n; SCN-143, SCN-162, SCN-173, SCN-174; CO-401 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S7: the walk's remaining items: Board filters, Comms waiting and threads, a task's blockers and moves, the swipe back (CO-401).
 
-### __LANDED__ · `—` · agent/0312-s6-task → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-task → main · fast-forward
 - run: r-8642aee374a2
 - files: App.tsx (taskOrigin, backLabel), ProjectHome.tsx (backTo), TaskPage.tsx (backLabel, the brief's lede and empty sentence) and its test, i18n; SCN-174; CO-394 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S6: the task page's way back by name, the brief's words (CO-394).
 
-### __LANDED__ · `—` · agent/0312-s6-screens → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-screens → main · fast-forward
 - run: r-8642aee374a2
 - files: docs/ux/screens.md (SCR-85, SCR-41, SCR-32, SCR-81, SCR-87, SCR-89), docs/ux/flows.md (FLW-99, FLW-100), docs/ux/unmeasured-flows.txt, docs/ux/scenarios.md (SCN-038's index, SCN-166, SCN-173, SCN-174 traces), launch/BoardScreen.tsx and its test, i18n; CO-400 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S6: screens and flows say what ships; the Board's names and picked-row focus (CO-400).
 
-### __LANDED__ · `—` · agent/0312-s6-agent → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-agent → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/AgentPage.tsx and its test (new), launch/HomeWork.tsx (AgentsAtWork selects, HomeAgents onSelect, Doing exported), launch/HistoryScreen.tsx (dayLabel exported), App.tsx, launch.css, i18n; the W2 spec (W2-10); SCN-166; CO-393 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S6: the agent page beside the list on Агенты (CO-393).
 
-### __LANDED__ · `—` · agent/0312-s6-wording → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-wording → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/HomeWork.tsx (KeptNote) and its test, shared/agentCatalog.ts (refused, timeout) and its test, launch/SettingsScreen.tsx (the pinned refusal) and its test, App.tsx, launch.css, i18n; CO-313 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S6: failure wording at three edges (CO-313).
 
-### __LANDED__ · `—` · agent/0312-s6-history → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-history → main · fast-forward
 - run: r-8642aee374a2
 - files: launch/HistoryScreen.tsx (AgentWork, dayLabel) and its test, Feed.tsx (feedAct), App.tsx (sessions to История); SCN-168; CO-395 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
 - summary: 0.3.12 S6: «Что делали агенты» in История read as History (CO-395).
 
-### __LANDED__ · `—` · agent/0312-s6-needs → main · fast-forward
+### 2026-10-23T21:19:00Z · `—` · agent/0312-s6-needs → main · fast-forward
 - run: r-8642aee374a2
 - files: shared/board.ts (PERSON_KINDS, askedBy) and its test, shared/homeView.ts (dayPart) and its test, shared/types.ts, main/index.ts (readBoard personOnly, the asker), launch/HomeParts.tsx (HomeBoard) and its test, EstateHome.tsx (the greeting), launch.css, i18n; SCN-163; CO-391 resolved; the backlog; CHANGELOG; the map
 - conflicts: none
