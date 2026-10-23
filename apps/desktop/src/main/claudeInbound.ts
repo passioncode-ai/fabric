@@ -66,6 +66,7 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
   try {
     mkdirSync(path.dirname(file), { recursive: true })
   } catch (e) {
+    // Not silent: the answer says the change was not saved and why (the caller records it); nothing was written.
     return withNotSaved(file, { reason: 'write-failed', code: errCode(e) })
   }
   const release = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
