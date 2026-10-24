@@ -99,7 +99,8 @@ folder, then open the new bundle.
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
   project only); a field it names replaces what was there, except the business, which is yours: an agent records it
   only while none is set and can neither clear nor change it, and you set it on the project page. A project offers
-  «Познакомиться с проектом» until an agent records its goal, summary, plan or relations. This is the schema step to 96 described
+  «Познакомиться с проектом» until an agent records its goal, summary, plan or relations (it waits for the relations to be
+  read before it offers). This is the schema step to 96 described
   under Upgrading.
 - After the release review: the Board's «Нужны вы» lists only what waits for you, naming who asked, and reviews,
   proposals and abandoned work moved to its own tab «На проверке», which says when its read failed or was cut; Агенты says when its list could not be read or nobody works, and a chosen agent's
@@ -115,7 +116,9 @@ folder, then open the new bundle.
   when you pick it; the stack notice announces the moment of the next try; an agent that did another project's work itself on your own
   computer posts it on the request's thread and cancels its request, so it does not wait unanswered; a failed read of
   the business refuses only the business, and the agent's other fields are kept; a dangling link to Claude Code's
-  settings is refused, not replaced; the Board's cancelled column is ordered by when tasks were cancelled; the
+  settings is refused, not replaced; the project page's «Вопросы ко мне» counts what the rail counts, and «на проверке»
+  on Главная, on each project and on the Board's tab counts reviews, proposals and abandoned work, so nothing the
+  notifier announced goes unseen; a count that could not be read is said instead of a silent empty card; the Board's cancelled column is ordered by when tasks were cancelled; the
   agent filter applies to «В работе» and says so; a sideways scroll no longer turns the page back; the redaction
   leaves comparisons, calls, counts and words like `KEYBOARD` alone; the stack start begins no try with under 30
   seconds left, and its timeout states its real limit; Comms keeps up to 5000 read marks; and the folder-attribution
