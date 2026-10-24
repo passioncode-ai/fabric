@@ -255,17 +255,22 @@ export interface BoardDeps {
   /** Whether com.status carries `idempotency.epoch`; the pin decides (`STATUS_CARRIES_EPOCH`), a test may say otherwise. */
   statusCarriesEpoch?: boolean
   /**
-   * The estate's active Projects with their name, business and primary repository (0.3.12 W2 S2, CO-368, CO-369), for
-   * the wall between businesses and the directory's names. Absent (tests, an older host) or null (the read failed):
-   * no wall and no renaming, never a refusal, so the board keeps working when the projects cannot be read.
+   * The estate's Projects, archived ones included, with their name, business and primary repository (0.3.12 W2 S2,
+   * CO-368, CO-369; i2 DA-4), for the wall between businesses and the directory's names. Absent (tests, an older host):
+   * no wall and no renaming. A read that throws (with its reason) or answers null: no wall and no renaming, never a
+   * refusal, so the board keeps working when the projects cannot be read (W2-5), and the miss is logged with its reason
+   * (i2 ER-3). The signal is the wall's deadline.
    */
-  projectFacts?: (estateId: string) => Promise<ProjectFact[] | null>
+  projectFacts?: (estateId: string, signal?: AbortSignal) => Promise<ProjectFact[] | null>
   /**
    * DO-9 (W2-5): the participants of an existing thread `reader` takes part in, for the wall on a post into it (a message,
-   * a request, a finding or an announcement, or a participant's reply). Null when it cannot be read or the reader is not
-   * in it: no wall (the board itself refuses a thread the reader is not in), and the miss is logged.
+   * a request, a finding or an announcement, or a participant's reply). A throw (with its reason) or null when it cannot
+   * be read or the reader is not in it: no wall (the board itself refuses a thread the reader is not in), and the miss is
+   * logged. The signal is the wall's deadline (i2 ER-4).
    */
-  threadParticipants?: (estateId: string, reader: string, threadId: string) => Promise<string[] | null>
+  threadParticipants?: (estateId: string, reader: string, threadId: string, signal?: AbortSignal) => Promise<string[] | null>
+  /** The whole wall check's deadline for one post, both reads included (i2 ER-4); 5 s unless a test says otherwise. */
+  wallDeadlineMs?: number
 }
 
 /** One Project as the board's wall and directory need it. */
@@ -275,6 +280,8 @@ export interface ProjectFact {
   business: string | null
   /** The primary repository's folder, when the Project has one. */
   repo: string | null
+  /** Archived: its business still walls a thread it takes part in (i2 DA-4); its name tells no directory entry apart. */
+  archived?: boolean
 }
 
 // #region business-wall — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
@@ -300,7 +307,7 @@ export function businessesJoined(projects: readonly string[], facts: readonly Pr
 
 /** CO-369: a directory name shared by two Projects carries its repository's folder, so an agent can tell them apart. */
 export function directoryName(id: string, name: string, facts: readonly ProjectFact[]): string {
-  const same = facts.filter((f) => f.name.trim().toLowerCase() === name.trim().toLowerCase())
+  const same = facts.filter((f) => !f.archived && f.name.trim().toLowerCase() === name.trim().toLowerCase())
   if (same.length < 2) return name
   const own = facts.find((f) => f.id === id)
   const folder = own?.repo ? own.repo.replace(/[\\/]+$/, '').split(/[\\/]/).pop() : null
@@ -396,11 +403,12 @@ export function createBoard(deps: BoardDeps) {
   }
 
   // #region business-wall-check — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
-  /** The participants of an existing thread, for the wall; null (no wall) when there is no reader for them or it fails. */
-  const participantsOf = async (caller: BoardCaller, threadId: string): Promise<string[] | null> => {
+  /** The participants of an existing thread, for the wall; null (no wall) when there is no reader for them or it fails,
+   *  the miss logged with its reason. */
+  const participantsOf = async (caller: BoardCaller, threadId: string, signal?: AbortSignal): Promise<string[] | null> => {
     if (!deps.projectFacts || !deps.threadParticipants) return null
     try {
-      const found = await deps.threadParticipants(caller.estateId, caller.projectId, threadId)
+      const found = await deps.threadParticipants(caller.estateId, caller.projectId, threadId, signal)
       if (found === null) ops.failed('board.thread-participants-read', new Error('no participants read'), { note: 'the wall between businesses is not checked for this post' })
       return found
     } catch (e) {
@@ -422,17 +430,48 @@ export function createBoard(deps: BoardDeps) {
       return null
     }
   }
+  /** The estate's Projects, or null with the miss logged (a throw, or a reader that answered null; i2 ER-3). */
+  const factsOf = async (caller: BoardCaller, note: string, signal?: AbortSignal): Promise<ProjectFact[] | null> => {
+    if (!deps.projectFacts) return null
+    try {
+      const facts = await deps.projectFacts(caller.estateId, signal)
+      if (facts === null) ops.failed('board.project-facts-read', new Error('no projects read'), { note })
+      return facts
+    } catch (e) {
+      ops.failed('board.project-facts-read', e, { note })
+      return null
+    }
+  }
   /** The refusal when `participants` join two businesses, else null. */
-  const businessWall = async (caller: BoardCaller, participants: string[] | null, thread: 'new' | 'existing'): Promise<Refusal | null> => {
+  const businessWall = async (caller: BoardCaller, participants: string[] | null, thread: 'new' | 'existing', signal?: AbortSignal): Promise<Refusal | null> => {
     if (!participants || !deps.projectFacts) return null
-    let facts: ProjectFact[] | null = null
-    try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'the wall between businesses is not checked for this submit' }) }
+    const facts = await factsOf(caller, 'the wall between businesses is not checked for this post', signal)
     const joined = facts ? businessesJoined([caller.projectId, ...participants], facts) : []
     if (joined.length === 0) return null
     const named = joined.map((g) => `${g.business} (${g.projects.join(', ')})`).join('; ')
     return thread === 'new'
       ? refusal('not_authorized', `This thread would join Projects of different businesses, which the operator keeps apart: ${named}. Write to each business in its own thread.`)
       : refusal('not_authorized', `This thread joins Projects of different businesses, which the operator keeps apart: ${named}. Nothing more is posted to it; write to each business in its own thread.`)
+  }
+  /**
+   * One wall check for one post, its reads (the thread's participants and the Projects) under one deadline (i2 ER-4):
+   * past it the reads are stopped, the miss is logged and the post goes through, as W2-5 decides for a read that fails
+   * (refusing on an unknown would block the board).
+   */
+  const wallFor = async (caller: BoardCaller, thread: 'new' | 'existing', participants: (signal: AbortSignal) => Promise<string[] | null>): Promise<Refusal | null> => {
+    if (!deps.projectFacts) return null
+    const ms = deps.wallDeadlineMs ?? 5000
+    const stop = new AbortController()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const deadline = new Promise<'deadline'>((resolve) => { timer = setTimeout(() => { stop.abort(); resolve('deadline') }, ms) })
+    try {
+      const out = await Promise.race([(async () => businessWall(caller, await participants(stop.signal), thread, stop.signal))(), deadline])
+      if (out !== 'deadline') return out
+      ops.failed('board.wall-deadline', new Error(`the wall's reads did not finish within ${ms} ms`), { note: 'the wall between businesses is not checked for this post; it goes through' })
+      return null
+    } finally {
+      clearTimeout(timer)
+    }
   }
   // #endregion business-wall-check
 
@@ -538,10 +577,12 @@ export function createBoard(deps: BoardDeps) {
       if (parsed.data.replyTo !== undefined) parsed.data.replyTo = boardId(parsed.data.replyTo) ?? parsed.data.replyTo
       // CO-368, W2-5 (DO-9): no post joins Projects of two businesses the operator keeps apart: a new thread, and a post
       // into an existing thread (an announcement included) whose participants already carry two. Checked before the door,
-      // so nothing is stored; a read that fails walls nothing (the board keeps working) and is logged.
-      const walled = 'new' in parsed.data.thread
-        ? await businessWall(caller, [caller.projectId, ...parsed.data.thread.new.participants], 'new')
-        : await businessWall(caller, await participantsOf(caller, parsed.data.thread.id), 'existing')
+      // so nothing is stored; a read that fails, or that passes the wall's deadline, walls nothing (the board keeps
+      // working) and is logged with its reason (0.3.12 review i2 ER-3, ER-4).
+      const target = parsed.data.thread
+      const walled = 'new' in target
+        ? await wallFor(caller, 'new', async () => [caller.projectId, ...target.new.participants])
+        : await wallFor(caller, 'existing', (signal) => participantsOf(caller, target.id, signal))
       if (walled) return walled
       const digest = idempotencyDigest('com.submit', parsed.data)
       if (typeof digest !== 'string') return digest
@@ -588,7 +629,7 @@ export function createBoard(deps: BoardDeps) {
       // DO-9 (W2-5): a reply posts into the thread of the message it answers; the same wall as any post there.
       const replyThread = await threadOfMessage(caller, replyTo)
       if (replyThread) {
-        const walled = await businessWall(caller, await participantsOf(caller, replyThread), 'existing')
+        const walled = await wallFor(caller, 'existing', (signal) => participantsOf(caller, replyThread, signal))
         if (walled) return walled
       }
       const digest = idempotencyDigest('com.reply', parsed.data)
@@ -646,7 +687,7 @@ export function createBoard(deps: BoardDeps) {
       const last = typeof data.last === 'string' && BOARD_ID.test(data.last) ? data.last : null
       // CO-369: two Projects of one name are told apart by their repository's folder. A read that fails leaves the names.
       let facts: ProjectFact[] | null = null
-      if (deps.projectFacts) { try { facts = await deps.projectFacts(caller.estateId) } catch (e) { ops.failed('board.project-facts-read', e, { note: 'directory names are not disambiguated' }) } }
+      if (deps.projectFacts) facts = await factsOf(caller, 'directory names are not disambiguated')
       const projects = facts && Array.isArray(data.projects)
         ? (data.projects as Array<Record<string, unknown>>).map((p) => typeof p.id === 'string' && typeof p.name === 'string' ? { ...p, name: directoryName(p.id, p.name, facts!) } : p)
         : data.projects

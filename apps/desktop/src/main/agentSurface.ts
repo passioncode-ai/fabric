@@ -79,6 +79,7 @@ import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
 import { ops } from './opsSink.ts'
 import { writeAgentProfile } from './projectOnboarding.ts'
+import { readProjectFacts, readThreadParticipants } from './boardWallReads.ts'
 import { untilAnsweredOrGone } from './hangUp.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
@@ -457,37 +458,12 @@ export class AgentSurface {
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
     this.board = createBoard({
       rpc: (fn, args) => deps.db.rpc(fn, args),
-      // CO-368, CO-369 (0.3.12 W2 S2): the estate's active Projects with their business and primary repository, for the
-      // wall between businesses and the directory's names. A refused read answers null: no wall, never a refusal.
-      // DA-4: paged past the gateway's 1000 rows, so a participant past the first thousand is not read as unknown (which
-      // walls nothing).
-      projectFacts: async (estateId) => {
-        const rows: Array<{ id: string; name: string; business: string | null; repo_path: string | null }> = []
-        for (let from = 0; ; ) {
-          const { data, error } = await deps.db.from('projects').select('id,name,business,repo_path').eq('estate_id', estateId).eq('status', 'active').order('id').range(from, from + 999)
-          if (error || !Array.isArray(data)) return null
-          if (data.length === 0) break
-          rows.push(...(data as typeof rows))
-          from += data.length
-          if (rows.length > 20_000) return null
-        }
-        return rows.map((p) => ({ id: p.id, name: p.name, business: p.business ?? null, repo: p.repo_path ?? null }))
-      },
-      // DO-9: an existing thread's participants, through the operator's thread page filtered to this reader's threads
-      // (the participant commands return messages, not participants), newest first, at most 50 pages of 100.
-      threadParticipants: async (estateId, reader, threadId) => {
-        let before: unknown = null
-        for (let page = 0; page < 50; page++) {
-          const { data, error } = await deps.db.rpc('board_thread_page_operator', { p_estate: estateId, p_filter: { project: reader }, p_before: before, p_limit: 100 })
-          const answer = data as { ok?: unknown; threads?: Array<{ id?: unknown; participants?: unknown }>; more?: unknown; before?: unknown } | null
-          if (error || !answer || answer.ok !== true || !Array.isArray(answer.threads)) return null
-          const hit = answer.threads.find((t) => t.id === threadId)
-          if (hit) return Array.isArray(hit.participants) ? (hit.participants as string[]) : null
-          if (answer.more !== true) return null
-          before = answer.before
-        }
-        return null
-      }
+      // CO-368, CO-369 (0.3.12 W2 S2): the estate's Projects with their business and primary repository, for the wall
+      // between businesses and the directory's names; DO-9: an existing thread's participants, for the wall on a post
+      // into it. Both throw with their reason, which the board logs before it lets the post through (0.3.12 review i2
+      // ER-3, ER-4, DA-3, DA-4; `boardWallReads.ts`).
+      projectFacts: (estateId, signal) => readProjectFacts(deps.db, estateId, signal),
+      threadParticipants: (estateId, reader, threadId, signal) => readThreadParticipants(deps.db, estateId, reader, threadId, signal)
     })
   }
 
