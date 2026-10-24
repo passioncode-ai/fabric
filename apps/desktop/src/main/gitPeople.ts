@@ -141,18 +141,22 @@ export const FAILED_TTL_MS = 60_000
 
 /**
  * The people of a project's repositories. A complete reading is cached ten minutes per project and set of folders (a
- * folder attached since is read at once); a reading with a repository unread is held 60 s. Concurrent reads of one
- * project and set of folders share one reading.
+ * folder attached since is read at once); a reading with a repository unread is held 60 s. Both holds count from when
+ * the reading ENDED (0.3.12 review i3 ER-7: a reading of many folders can outlast the 60 s hold, and counted from its
+ * start it was stale the moment it was cached). `clock` measures the reading's length; `now` is when it was asked.
+ * Concurrent reads of one project and set of folders share one reading.
  */
-export async function readGitPeople(projectId: string, folders: readonly string[], now = Date.now(), reader: GitReader = systemGit): Promise<GitPeopleReading> {
+export async function readGitPeople(projectId: string, folders: readonly string[], now = Date.now(), reader: GitReader = systemGit,
+  clock: () => number = Date.now): Promise<GitPeopleReading> {
   const key = `${projectId}\u0000${[...new Set(folders)].sort().join('\u0000')}`
   const hit = cache.get(key)
   if (hit && now - hit.at < (hit.reading.unread.length === 0 ? TTL_MS : FAILED_TTL_MS)) return hit.reading
   const running = inFlight.get(key)
   if (running) return running
+  const started = clock()
   const reading = readPeople([...new Set(folders)], reader).then((r) => {
     for (const k of cache.keys()) if (k.startsWith(`${projectId}\u0000`)) cache.delete(k)
-    cache.set(key, { at: now, reading: r })
+    cache.set(key, { at: now + Math.max(0, clock() - started), reading: r })
     return r
   }).finally(() => inFlight.delete(key))
   inFlight.set(key, reading)

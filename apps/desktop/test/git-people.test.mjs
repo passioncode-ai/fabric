@@ -60,6 +60,22 @@ test('ER-3: a failed reading is not cached; a complete one is, ten minutes, per 
   assert.equal(calls.log.length, 4, 'and read again after ten minutes')
 })
 
+test('i3 ER-7: a partial reading is held 60 s from when it ended, not from when it began', async () => {
+  const repos = { '/ok': { commonDir: '/ok/.git', head: 'h' } }
+  const { reader, calls } = fakeGit(repos, { h: [line('c1', 'Ada', 'ada@example.invalid', '2026-10-20T00:00:00Z')] })
+  // A fake clock: the reading begins at 0 and ends 100 s later (41 folders, four git calls at a time, 5 s each).
+  let t = 0
+  const clock = () => t
+  const slow = { identify: async (f) => { t = 100_000; return reader.identify(f) }, log: reader.log }
+  await readGitPeople('p-ended', ['/ok', '/broken'], 0, slow, clock)
+  assert.equal(calls.log.length, 1)
+  // 30 s after it ended (130 s after it began): still held.
+  await readGitPeople('p-ended', ['/ok', '/broken'], 130_000, slow, clock)
+  assert.equal(calls.log.length, 1, 'held 60 s from the end of the reading')
+  await readGitPeople('p-ended', ['/ok', '/broken'], 160_000, slow, clock)
+  assert.equal(calls.log.length, 2, 'and read again 60 s after it ended')
+})
+
 test('ER-6: at most four folders are identified at once, however many the project holds', async () => {
   let running = 0, peak = 0
   const reader = {
