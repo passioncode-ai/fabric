@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "4958b24ee7aa09f85e1834204f2a1b965a506699",
+  "report": "docs/evidence/reviews/0.3.12/iteration-3/2026-10-24-docs.md",
+  "reportSha256": "5876a81af669551ea16dbc4b44ca2545603745cac4e7520019b9d1020895d668",
+  "reviewerRun": "release-0312-i3-docs-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace PR #421 (`6af4f7ee`): reply only with the answer, ask with a plain message, the asker posts and cancels"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the asker posts on the thread and cancels its own request (`shared/protocol.ts#crossProjectRule`, `f7290b1a`); a case in `protocol.test.ts`; SCN-177 amended"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only the business is refused and the answer says `refused.business` (`main/projectOnboarding.ts#writeAgentProfile`, `650787bd`); `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, SCR-86 and the W2 spec say goal, summary, plan or relations"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both rows say the current behaviour"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-418 carries V2-30's board entry and W2-4's projector rule"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says a read that cannot answer within 5 seconds lets the post through and is logged"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release handoff names the three iterations and the final candidate's next steps"
+      ]
+    }
+  ]
+}

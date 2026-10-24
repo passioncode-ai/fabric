@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "4958b24ee7aa09f85e1834204f2a1b965a506699",
+  "report": "docs/evidence/reviews/0.3.12/iteration-3/2026-10-24-data.md",
+  "reportSha256": "10ab5253ad9b8593a548fc118bb70d7867d4cc809b9d278d906775754482257a",
+  "reviewerRun": "release-0312-i3-data-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only the business is refused and the answer says `refused.business` (`main/projectOnboarding.ts#writeAgentProfile`, `650787bd`); `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V3-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, the 0.3.13 schema step"
+      ]
+    }
+  ]
+}

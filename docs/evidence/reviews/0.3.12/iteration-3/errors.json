@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "4958b24ee7aa09f85e1834204f2a1b965a506699",
+  "report": "docs/evidence/reviews/0.3.12/iteration-3/2026-10-24-errors.md",
+  "reportSha256": "b78407ecc87220e385c4469890dd17278129bb3457f84275cc7b8bf39652ac44",
+  "reviewerRun": "release-0312-i3-errors-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V3-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the read is inside the 5-second deadline and every skip is logged (`main/boardService.ts#wallFor`, `be437155`); «i3 ER-1» in `board-service.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V3-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: failures are kept per read (`launch/BoardScreen.tsx#unread`, `6c6aafef`); `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V3-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the earlier rows stay, said as the earlier reading's with its time, and arriving from «Разобрать» opens the tab with the failure (`6c6aafef`); two cases in `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only the business is refused and the answer says `refused.business` (`main/projectOnboarding.ts#writeAgentProfile`, `650787bd`); `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Ждут вас: неизвестно» and a banner; «без активности» only when every reading answered (`EstateHome.tsx`, `6c6aafef`); `waitingForYou.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the offer waits for the read («Читаю…», no offer on failure) (`launch/ProjectProfile.tsx`, `6c6aafef`); `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V3-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: from its end (`main/gitPeople.ts#readGitPeople`, `2a6b7b10`); «i3 ER-7» in `git-people.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V3-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: refused with `notSaved` and the link kept (`main/claudeInbound.ts#setInbound`, `1da8e2aa`); `claude-inbound.test.mjs`"
+      ]
+    }
+  ]
+}

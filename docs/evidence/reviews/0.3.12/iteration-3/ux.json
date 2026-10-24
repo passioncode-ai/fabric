@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "4958b24ee7aa09f85e1834204f2a1b965a506699",
+  "report": "docs/evidence/reviews/0.3.12/iteration-3/2026-10-24-ux.md",
+  "reportSha256": "2fe0e98ee7d8efa4be4f6ca03825fa6154c7ee45e701f48c6aea9187c2d4f1c6",
+  "reviewerRun": "release-0312-i3-ux-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page reads `personOnly`, and «На проверке: N» opens the Board's tab for the project (`launch/ProjectLaunch.tsx`, `BoardPanel.tsx`, `6c6aafef`); `waitingForYou.test.tsx`, `ProjectLaunch.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «на проверке» on Главная, on each project and on the tab counts reviews, proposals and abandoned work (`shared/board.ts#reviewCounts`, `6c6aafef`); `waitingForYou.test.tsx`, `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it follows `NEEDS_YOU_FAMILIES` (`App.tsx`, `6c6aafef`); `waitingForYou.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V3-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: its own sentence, «через минуту» / \"in a minute\" (`AgentLinksSetting`, `6c6aafef`); `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the offer waits for the read («Читаю…», no offer on failure) (`launch/ProjectProfile.tsx`, `6c6aafef`); `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Ждут вас: неизвестно» and a banner; «без активности» only when every reading answered (`EstateHome.tsx`, `6c6aafef`); `waitingForYou.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rewritten with plural forms (`i18n/ru.ts`, `6c6aafef`); `i18n/plural.test.ts`"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: FLW-96's amendment names them"
+      ]
+    }
+  ]
+}

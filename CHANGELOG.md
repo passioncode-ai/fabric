@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.12
 
 **Upgrading.** This version moves the local database to schema 96 (one migration: a project's profile, its goal,
 summary, business, plan and relations). Take a backup first; 0.3.11 cannot open a schema-96 database, so going back

@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "4958b24ee7aa09f85e1834204f2a1b965a506699",
+  "report": "docs/evidence/reviews/0.3.12/iteration-3/2026-10-24-plan.md",
+  "reportSha256": "a6dd710ecd8f7edba94d231149d93aab6eeb2f693576eb27ec82e180395dce4d",
+  "reviewerRun": "release-0312-i3-plan-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every reviewed candidate must be an ancestor of the verified commit and none may come before an earlier one (`scripts/lib/release-mac.mjs#verifiedCandidateProblem`, `7fc5eb73`); `release-gate.test.mjs` I3 P-1, the new cases watched failing on the old rule; the Protocol and `release-mac.md` say the rule"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V3-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `node scripts/test-stack.mjs run -- bash scripts/ci.sh full` on iteration 3's candidate `b314a37c`: «full tier green», exit 0, with `agent-surface.test.mjs` on a disposable stack and `probe-fresh-vs-upgraded` («all green»); the final candidate's fast tier and its database-backed changed test are recorded below"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release handoff names the three iterations and the final candidate's next steps"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Release close lists 0.3.13's date for threads `147a5538`, `0d82422a` and `12bd8b4c`"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V2-9 is \"not a defect\", the setting following the operator's recorded decision (ADR-0176 Decision 3, amendment 7); iteration 2's receipt regenerated"
+      ]
+    }
+  ]
+}

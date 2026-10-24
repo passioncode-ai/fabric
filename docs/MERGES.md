@@ -4,7 +4,7 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### __LANDED__ · `—` · agent/release-0312 → main · fast-forward of a merge
+### 2026-10-24T10:13:00Z · `—` · agent/release-0312 → main · fast-forward of a merge
 - run: r-8642aee374a2
 - conflicts: none
 - files: the ledger, the iteration reports and receipts, `scripts/lib/release-mac.mjs` (the ancestry rule) and its tests, the fixes of three branches (project page and profile, renderer, hardening), docs/ux and the wave 2 spec, the register, triage and plan, ADR-0176 amendments 5 to 7, the knowledge base row (fabric-workspace #409)

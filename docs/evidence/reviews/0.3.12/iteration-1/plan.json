@@ -79,7 +79,7 @@
       "source": "V1-22",
       "status": "fixed",
       "evidence": [
-        "fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`, named in the gate's metadata"
+        "fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`; the release commit names it in the gate's `releaseMetadata`"
       ]
     },
     {

@@ -47,7 +47,7 @@
       "source": "V2-1",
       "status": "fixed",
       "evidence": [
-        "fixed: a merge with `-s ours` keeps it an ancestor and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge"
+        "fixed: a merge with `-s ours` brings it back into the history of everything after it and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge. It could not make `7b042631` an ancestor of `69db245a`; iteration 3 found that the gate still refused, and the gate's rule changed (V3-1)"
       ]
     },
     {

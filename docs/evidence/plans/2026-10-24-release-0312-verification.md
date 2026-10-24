@@ -225,3 +225,65 @@ projection. Iteration 1's fixes held, apart from the halves named above.
 | V2-42 | DO-15 | No lifecycle row for the agent page's read | fixed: AGENTS.md names it (the session's newest 200 events) |
 
 Exit for iteration 2: every finding above is fixed or ruled with its row. Blocking findings open: none.
+
+## Iteration 3
+
+Five fresh reviewers, 2026-10-24, against `b314a37c` (`b314a37cc7d97539dd5cacda2eb7547bb57243c2`), read-only in a
+detached checkout. The final candidate is `4958b24e` (`4958b24ee7aa09f85e1834204f2a1b965a506699`): the receipts and the release gate name it, as 0.3.11's
+named its final candidate. Reports: [UX](../reviews/0.3.12/iteration-3/2026-10-24-ux.md), [errors](../reviews/0.3.12/iteration-3/2026-10-24-errors.md),
+[documents](../reviews/0.3.12/iteration-3/2026-10-24-docs.md), [data](../reviews/0.3.12/iteration-3/2026-10-24-data.md), [plan](../reviews/0.3.12/iteration-3/2026-10-24-plan.md).
+
+32 findings, 1 blocking. The plan reviewer simulated the release gate on this history and found it would refuse the
+tag: iteration 1's candidate was not an ancestor of iteration 2's, which the merge recorded as V2-1 could not change
+(PL-1). The gate's rule changed to what it was for: every reviewed candidate is in the history of what ships, in order.
+The documents reviewer found that the organization's page for the board rule, and Fabric's own rule for an asker that
+did the work itself, still closed or stranded requests (DO-1, DO-2). The data reviewer took a copy of the live database
+through migration 123 again and rebuilt it from the journal to the same projection.
+
+The fixes make the final candidate. A first verifier read `020e9019` and failed it on the missing full-tier receipt and
+a hosted fast run red on a 5 ms test deadline ([its report](../../reports/2026-10-24-release-0312/2026-10-24-final-candidate-verification.md)); a second
+verifier read `e1419aeb` and passed it, measuring the deadline fix under load
+([its report](../../reports/2026-10-24-release-0312/2026-10-24-final-candidate-verification-2.md)). The full tier ran green on `e1419aeb`
+(`node scripts/test-stack.mjs run -- bash scripts/ci.sh full`, exit 0) and on `b314a37c`. The final candidate is
+`e1419aeb` plus two test changes and one Russian sentence (V3-29, V3-31, V3-33): their files ran alone (git-people 8,
+prepared-launch-input 22, SettingsScreen 25, exit 0), and the hosted fast run of `4958b24e` passed (`ci` run
+40084392697, success; `workspace publication` 40084392707, success).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | PL-1 (blocking) | The gate refuses: iteration 1's candidate is not an ancestor of iteration 2's, and no later commit can change that | fixed: every reviewed candidate must be an ancestor of the verified commit and none may come before an earlier one (`scripts/lib/release-mac.mjs#verifiedCandidateProblem`, `7fc5eb73`); `release-gate.test.mjs` I3 P-1, the new cases watched failing on the old rule; the Protocol and `release-mac.md` say the rule |
+| V3-2 | PL-2 | No full-tier run is green on any 0.3.12 commit | fixed: `node scripts/test-stack.mjs run -- bash scripts/ci.sh full` on iteration 3's candidate `b314a37c`: «full tier green», exit 0, with `agent-surface.test.mjs` on a disposable stack and `probe-fresh-vs-upgraded` («all green»); the final candidate's fast tier and its database-backed changed test are recorded below |
+| V3-3 | PL-3, DO-8 | The handoff is stale by one iteration | fixed: the release handoff names the three iterations and the final candidate's next steps |
+| V3-4 | PL-4 | Two board promises missing from the owed list | fixed: the Release close lists 0.3.13's date for threads `147a5538`, `0d82422a` and `12bd8b4c` |
+| V3-5 | PL-5 | V2-9 is "ruled" without a register id | fixed: V2-9 is "not a defect", the setting following the operator's recorded decision (ADR-0176 Decision 3, amendment 7); iteration 2's receipt regenerated |
+| V3-6 | DO-1 | The board rule's home in the knowledge base still closes requests | fixed: fabric-workspace PR #421 (`6af4f7ee`): reply only with the answer, ask with a plain message, the asker posts and cancels |
+| V3-7 | DO-2 | The cross-project rule tells the asker to record with `com.reply`, which leaves the request queued | fixed: the asker posts on the thread and cancels its own request (`shared/protocol.ts#crossProjectRule`, `f7290b1a`); a case in `protocol.test.ts`; SCN-177 amended |
+| V3-8 | DO-3, ER-4, DA-1 | A failed business read refuses the whole profile call | fixed: only the business is refused and the answer says `refused.business` (`main/projectOnboarding.ts#writeAgentProfile`, `650787bd`); `project-onboarding.test.mjs` |
+| V3-9 | DO-4 | Documents say a project is onboarded only by a goal or summary | fixed: CHANGELOG, SCR-86 and the W2 spec say goal, summary, plan or relations |
+| V3-10 | DO-5 | CO-368 and CO-391 say what no longer ships | fixed: both rows say the current behaviour |
+| V3-11 | DO-6 | Two deferrals said to be CO-418's are not in it | fixed: CO-418 carries V2-30's board entry and W2-4's projector rule |
+| V3-12 | DO-7 | The CHANGELOG states the wall as absolute | fixed: it says a read that cannot answer within 5 seconds lets the post through and is logged |
+| V3-13 | ER-1 | A participant's reply skips the wall silently when its thread read fails, outside the deadline | fixed: the read is inside the 5-second deadline and every skip is logged (`main/boardService.ts#wallFor`, `be437155`); «i3 ER-1» in `board-service.test.mjs` |
+| V3-14 | ER-2 | «Все» drops a failed source answered by the person's read | fixed: failures are kept per read (`launch/BoardScreen.tsx#unread`, `6c6aafef`); `BoardScreen.test.tsx` |
+| V3-15 | ER-3 | «На проверке» hides a later failed read | fixed: the earlier rows stay, said as the earlier reading's with its time, and arriving from «Разобрать» opens the tab with the failure (`6c6aafef`); two cases in `BoardScreen.test.tsx` |
+| V3-16 | ER-5, UX-7 | A failed or pending count drops the card's chip and says «без активности» | fixed: «Ждут вас: неизвестно» and a banner; «без активности» only when every reading answered (`EstateHome.tsx`, `6c6aafef`); `waitingForYou.test.tsx` |
+| V3-17 | ER-6, UX-6 | The onboarding offer shows while the relations read is pending or failed | fixed: the offer waits for the read («Читаю…», no offer on failure) (`launch/ProjectProfile.tsx`, `6c6aafef`); `ProjectProfile.test.tsx` |
+| V3-18 | ER-7 | The 60-second hold counts from the start of the reading | fixed: from its end (`main/gitPeople.ts#readGitPeople`, `2a6b7b10`); «i3 ER-7» in `git-people.test.mjs` |
+| V3-19 | ER-8 | A dangling settings link is replaced with a file | fixed: refused with `notSaved` and the link kept (`main/claudeInbound.ts#setInbound`, `1da8e2aa`); `claude-inbound.test.mjs` |
+| V3-20 | UX-1 (major) | The project page counts the whole board while the rail counts the person's part | fixed: the page reads `personOnly`, and «На проверке: N» opens the Board's tab for the project (`launch/ProjectLaunch.tsx`, `BoardPanel.tsx`, `6c6aafef`); `waitingForYou.test.tsx`, `ProjectLaunch.test.tsx` |
+| V3-21 | UX-2 (major) | Proposals and abandoned work leave no mark outside the Board's tab | fixed: «на проверке» on Главная, on each project and on the tab counts reviews, proposals and abandoned work (`shared/board.ts#reviewCounts`, `6c6aafef`); `waitingForYou.test.tsx`, `BoardScreen.test.tsx` |
+| V3-22 | UX-3 | The Board's list does not re-read on an access request | fixed: it follows `NEEDS_YOU_FAMILIES` (`App.tsx`, `6c6aafef`); `waitingForYou.test.tsx` |
+| V3-23 | UX-4 | «На проверке» names one of the three things the tab holds | ruled: CO-418, 0.3.13 |
+| V3-24 | UX-5 | A locked settings file gets the wrong cause and a different wait in ru and en | fixed: its own sentence, «через минуту» / "in a minute" (`AgentLinksSetting`, `6c6aafef`); `SettingsScreen.test.tsx` |
+| V3-25 | UX-8 | Three Russian strings read badly | fixed: rewritten with plural forms (`i18n/ru.ts`, `6c6aafef`); `i18n/plural.test.ts` |
+| V3-26 | UX-9 | FLW-96 omits Агенты's three states | fixed: FLW-96's amendment names them |
+| V3-27 | DA-2 | Four projections stamp `now()`, so a rebuild changes their times (older than 0.3.12) | ruled: CO-418, the 0.3.13 schema step |
+| V3-28 | FV-1 (blocking, the first verifier) | No full-tier run recorded on any 0.3.12 commit | fixed: the full tier on the final candidate's parent `e1419aeb`: `node scripts/test-stack.mjs run -- bash scripts/ci.sh full`, «full tier green», exit 0 (with `agent-surface.test.mjs` on a disposable stack and `probe-fresh-vs-upgraded`); the same on iteration 3's candidate `b314a37c` |
+| V3-29 | FV-2, FV2-1 | `prepared-launch-input.test.mjs` misses 5 ms, and 50 ms under load | fixed: 1000 ms (50 ms failed 3 of 520 runs at load 60, 1000 ms none of 100); the test still catches more than one unsettled read |
+| V3-30 | FV-3 | The handoff says everything is fixed before the ledger has iteration 3; the workspace pin holds the old board rule | fixed: this section and the release handoff; the pin moves at the publication after the tag (release step 10), the fix being fabric-workspace #421 |
+| V3-31 | FV-4, FV2-3 | A dangling settings link is said as a refusal | fixed: its own sentence (`settings.agentLinks.danglingLink`), a test watched failing on the old screen |
+| V3-32 | FV-5, FV2-2 | The gate's order check cannot tell a swap of two unrelated candidates | ruled: CO-418 (the receipts bind each candidate to its iteration) |
+| V3-33 | the hosted fast run of `e1419aeb` (40082478531) | git-people ER-3 mixed a fake request time with the real clock at an exact 60 s boundary | fixed: the case passes a frozen clock; Fabric keeps both from one clock |
+| V3-34 | the local fast run of `020e9019` | hub-surface ER-8 met its random port held on 127.0.0.1 by another program | fixed: the test takes a port free on 127.0.0.1; it still fails if [::1] is not refused |
+
+Exit for iteration 3: every finding above is fixed or ruled with its row. Blocking findings open: none.
