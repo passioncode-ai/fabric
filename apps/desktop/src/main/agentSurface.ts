@@ -78,7 +78,7 @@ import type { Policy } from './policy'
 import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
 import { ops } from './opsSink.ts'
-import { agentProfilePayload } from './projectOnboarding.ts'
+import { writeAgentProfile } from './projectOnboarding.ts'
 import { untilAnsweredOrGone } from './hangUp.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
@@ -2608,23 +2608,24 @@ export class AgentSurface {
       },
       async (args) => {
         // DA-2 / ER-2: the business is the person's; a read that fails refuses a business the call names (never writes
-        // over a value it could not see) and lets the other fields through.
-        // DA-9: a project this estate no longer holds is refused in plain words, before anything is journaled.
-        let current: { business: string | null } | null
-        const { data, error } = await this.deps.db.from('projects').select('business').eq('id', scope.projectId).eq('estate_id', scope.estateId).maybeSingle()
-        if (error) { ops.failed('agentSurface.project-business-read', new Error(error.message), { projectId: scope.projectId }); current = null }
-        else if (!data) return json({ written: false, reason: 'this project is not in this estate any more (it may have been removed); nothing was recorded' })
-        else current = { business: (data as { business: string | null }).business ?? null }
-        const verdict = agentProfilePayload(args as Record<string, unknown>, current)
-        if (!verdict.ok) return json({ written: false, reason: verdict.reason })
-        const event = await this.appendRedacted({
-          estateId: scope.estateId,
-          type: 'project.profiled@1',
-          actor: { kind: 'agent', id: scope.sessionId },
-          projectId: scope.projectId,
-          payload: verdict.payload
-        })
-        return json({ written: true, fields: Object.keys(verdict.payload), seq: event.seq })
+        // over a value it could not see) and lets the other fields through. 0.3.12 review i2 ER-2, DA-1, DA-2: the read,
+        // the decision and the append run under the project's chain, which the person's write takes too; a business the
+        // person ever wrote (or cleared) is never set by an agent. DA-9: a project this estate no longer holds is refused.
+        const db = this.deps.db
+        const answer = await writeAgentProfile({
+          readProject: async () => {
+            const { data, error } = await db.from('projects').select('business').eq('id', scope.projectId).eq('estate_id', scope.estateId).maybeSingle()
+            return { row: error || !data ? null : { business: (data as { business: string | null }).business ?? null }, error: error?.message ?? null }
+          },
+          readPersonSet: async () => {
+            const { data, error } = await db.from('journal').select('seq').eq('estate_id', scope.estateId).eq('project_id', scope.projectId)
+              .eq('type', 'project.profiled@1').eq('actor->>kind', 'person').not('payload->business', 'is', null).limit(1)
+            return { set: Array.isArray(data) && data.length > 0, error: error?.message ?? (error || Array.isArray(data) ? null : 'no list answered') }
+          },
+          append: (payload) => this.appendRedacted({ estateId: scope.estateId, type: 'project.profiled@1', actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, payload }),
+          failed: (what, error) => ops.failed(`agentSurface.${what}`, new Error(error), { projectId: scope.projectId })
+        }, scope.projectId, args as Record<string, unknown>)
+        return json(answer)
       }
     )
     // #endregion project-profile-tool

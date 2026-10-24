@@ -107,6 +107,30 @@ export function createOnboardingFiler(deps: OnboardingFilerDeps): (projectId: st
   }
 }
 
+// #region project-profile-lock — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
+/**
+ * 0.3.12 review i2 ER-2 / DA-1: the person's precedence over a project's business is a read, a decision and an append;
+ * an agent's write landing between another writer's read and append would replace the person's business. Every
+ * business-touching profile write runs in this process (the person's from the project page, an agent's through the
+ * hub's `fabric_project_profile`), so one chain per project serializes them: each one reads, decides and appends while
+ * no other business-touching write of that project runs. A failed write does not hold the chain.
+ */
+export function createProjectProfileLock(): <T>(projectId: string, work: () => Promise<T>) => Promise<T> {
+  const chains = new Map<string, Promise<unknown>>()
+  return <T>(projectId: string, work: () => Promise<T>): Promise<T> => {
+    const key = projectId.toLowerCase()
+    const run = (chains.get(key) ?? Promise.resolve()).then(work, work)
+    const settled = run.then(() => undefined, () => undefined)
+    chains.set(key, settled)
+    void settled.then(() => { if (chains.get(key) === settled) chains.delete(key) })
+    return run
+  }
+}
+
+/** The one chain of this process: `writePersonBusiness` and `writeAgentProfile` both take it. */
+export const projectProfileLock = createProjectProfileLock()
+// #endregion project-profile-lock
+
 /**
  * DA-9: the person's business, from the project page. Always applies (DA-2), but only to a project this estate holds:
  * the project is read first, so a stale id from a window is refused in plain words and nothing is journaled (a profile
@@ -115,8 +139,17 @@ export function createOnboardingFiler(deps: OnboardingFilerDeps): (projectId: st
 export async function writePersonBusiness<Row>(deps: {
   readProject(projectId: string): Promise<{ row: Row | null; error: string | null }>
   append(payload: { business: string }): Promise<unknown>
+  /** The per-project chain (ER-2); `projectProfileLock` unless a test gives its own. */
+  lock?: <T>(projectId: string, work: () => Promise<T>) => Promise<T>
 }, projectId: string, business: unknown): Promise<Row> {
   if (typeof business !== 'string' || business.length > 80) throw new Error('a business is a short name, at most 80 characters')
+  return (deps.lock ?? projectProfileLock)(projectId, () => personBusinessUnlocked(deps, projectId, business))
+}
+
+async function personBusinessUnlocked<Row>(deps: {
+  readProject(projectId: string): Promise<{ row: Row | null; error: string | null }>
+  append(payload: { business: string }): Promise<unknown>
+}, projectId: string, business: string): Promise<Row> {
   const before = await deps.readProject(projectId)
   if (before.error) throw new Error(`the project could not be read: ${before.error}`)
   if (!before.row) throw new Error('this project is not in this estate (it may have been removed); the business was not recorded')
@@ -137,7 +170,7 @@ export type AgentProfileVerdict =
   | { ok: true; payload: Record<string, unknown> }
   | { ok: false; reason: string }
 
-export function agentProfilePayload(args: Record<string, unknown>, current: { business: string | null } | null): AgentProfileVerdict {
+export function agentProfilePayload(args: Record<string, unknown>, current: { business: string | null; personSet?: boolean } | null): AgentProfileVerdict {
   const payload: Record<string, unknown> = {}
   for (const key of ['goal', 'summary', 'business', 'plan', 'relations'] as const)
     if (args[key] !== undefined) payload[key] = args[key]
@@ -149,11 +182,53 @@ export function agentProfilePayload(args: Record<string, unknown>, current: { bu
   if (current === null)
     return { ok: false, reason: 'the project\'s business could not be read, so it was not changed. Call again without business, or later.' }
   const set = current.business?.trim() ?? ''
+  // 0.3.12 review i2 DA-2: once the person wrote the business (a value, or cleared it), an agent never sets one: a
+  // project the person left without a business stays without one.
+  if (set === '' && current.personSet)
+    return { ok: false, reason: 'the person left this project without a business on purpose, and only the person sets it: the person sets the business on the project page. Call again without business.' }
   if (set === '') return { ok: true, payload: { ...payload, business: asked } }
   if (set.toLowerCase() === asked.toLowerCase()) {
     const { business: _same, ...rest } = payload
     return Object.keys(rest).length ? { ok: true, payload: rest } : { ok: false, reason: `the project's business is already "${set}"; nothing else was named` }
   }
   return { ok: false, reason: `this project's business is already recorded as "${set}", and only the person changes it: the person sets the business on the project page. Call again without business, and say in a note on your task why you think it is "${asked}".` }
+}
+/** What an agent's profile write needs from the hub (`fabric_project_profile` in `main/agentSurface.ts`). */
+export interface AgentProfileDeps {
+  /** The project's business as the projection holds it; `row` null when the estate does not hold the project. */
+  readProject(): Promise<{ row: { business: string | null } | null; error: string | null }>
+  /** Whether a person ever wrote this project's business (a `project.profiled@1` naming `business`, by a person). */
+  readPersonSet(): Promise<{ set: boolean; error: string | null }>
+  append(payload: Record<string, unknown>): Promise<{ seq: number | string }>
+  /** Records a read that failed; the call then refuses a business it names and lets the other fields through. */
+  failed(what: 'project-business-read' | 'project-business-owner-read', error: string): void
+  lock?: <T>(projectId: string, work: () => Promise<T>) => Promise<T>
+}
+
+/**
+ * The agent's half of W2-4 (DA-2 / ER-2): reads the project's business and whether a person ever wrote it, decides with
+ * `agentProfilePayload` and appends, all under the project's chain when the call names a business, so the person's
+ * write can land only before the read or after the append (0.3.12 review i2 ER-2, DA-1). DA-9: a project this estate no
+ * longer holds is refused in plain words, before anything is journaled.
+ */
+export async function writeAgentProfile(deps: AgentProfileDeps, projectId: string, args: Record<string, unknown>):
+  Promise<{ written: true; fields: string[]; seq: number | string } | { written: false; reason: string }> {
+  const work = async (): Promise<{ written: true; fields: string[]; seq: number | string } | { written: false; reason: string }> => {
+    let current: { business: string | null; personSet?: boolean } | null
+    const project = await deps.readProject()
+    if (project.error) { deps.failed('project-business-read', project.error); current = null }
+    else if (!project.row) return { written: false, reason: 'this project is not in this estate any more (it may have been removed); nothing was recorded' }
+    else current = { business: project.row.business ?? null }
+    if (current && args.business !== undefined) {
+      const owner = await deps.readPersonSet()
+      if (owner.error) { deps.failed('project-business-owner-read', owner.error); current = null }
+      else current = { ...current, personSet: owner.set }
+    }
+    const verdict = agentProfilePayload(args, current)
+    if (!verdict.ok) return { written: false, reason: verdict.reason }
+    const event = await deps.append(verdict.payload)
+    return { written: true, fields: Object.keys(verdict.payload), seq: event.seq }
+  }
+  return args.business === undefined ? work() : (deps.lock ?? projectProfileLock)(projectId, work)
 }
 // #endregion project-onboarding

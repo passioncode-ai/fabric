@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import test from 'node:test'
 
-const { onboardingTask, onboardingTaskId, agentProfilePayload, createOnboardingFiler, writePersonBusiness } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
+const { onboardingTask, onboardingTaskId, agentProfilePayload, createOnboardingFiler, writePersonBusiness, writeAgentProfile, createProjectProfileLock } = await import(path.resolve(import.meta.dirname, '../src/main/projectOnboarding.ts'))
 const { specGaps } = await import(path.resolve(import.meta.dirname, '../src/shared/taskSpec.ts'))
 const P = '00000000-0000-4000-8000-000000000011'
 
@@ -134,4 +134,89 @@ test('DA-9: the person\'s business for a project this estate does not hold is re
   await assert.rejects(writePersonBusiness({ ...deps, readProject: async () => ({ row: null, error: 'stack lost' }) }, P, 'X'), /could not be read: stack lost/)
   await assert.rejects(writePersonBusiness(deps, P, 'x'.repeat(81)), /at most 80/)
 })
+// 0.3.12 review i2 ER-2 / DA-1 and DA-2: the person's write and an agent's are serialized per project, and a business
+// the person ever wrote or cleared is never set by an agent.
+{
+  const tick = (ms = 5) => new Promise((r) => setTimeout(r, ms))
+  // One project's projection and journal, shared by both writers; every read and append yields, so writes interleave.
+  // `slow` lengthens one writer's append, which is where the race lives: a read decided on, then a late append.
+  const world = (slow = {}) => {
+    const w = { business: null, journal: [] }
+    w.person = {
+      readProject: async () => { await tick(); return { row: { id: P, business: w.business }, error: null } },
+      append: async (payload) => { await tick(slow.person); w.journal.push({ actor: 'person', payload }); w.business = payload.business || null }
+    }
+    w.agent = {
+      readProject: async () => { await tick(); return { row: { business: w.business }, error: null } },
+      readPersonSet: async () => { await tick(); return { set: w.journal.some((e) => e.actor === 'person' && 'business' in e.payload), error: null } },
+      append: async (payload) => { await tick(slow.agent); w.journal.push({ actor: 'agent', payload }); if ('business' in payload) w.business = payload.business || null; return { seq: w.journal.length } },
+      failed: () => {}
+    }
+    return w
+  }
+
+  test('ER-2: an agent\'s write started before the person\'s cannot land after it and replace the person\'s business', async () => {
+    const w = world({ agent: 40 })
+    const lock = createProjectProfileLock()
+    // The agent reads "none" first; the person's write is pressed while the agent is between its read and its append.
+    const agent = writeAgentProfile({ ...w.agent, lock }, P, { business: 'AgentGuess', goal: 'g' })
+    await tick(12)
+    const person = writePersonBusiness({ ...w.person, lock }, P, 'Appvillis')
+    const [a, p] = await Promise.all([agent, person])
+    assert.equal(a.written, true, 'the agent read none and wrote first')
+    assert.equal(p.business, 'Appvillis')
+    assert.equal(w.business, 'Appvillis', 'the person\'s business is the last one written')
+    assert.deepEqual(w.journal.map((e) => e.actor), ['agent', 'person'])
+  })
+
+  test('ER-2: an agent\'s write pressed while the person\'s is in flight reads the person\'s business and is refused', async () => {
+    const w = world({ person: 40 })
+    const lock = createProjectProfileLock()
+    const person = writePersonBusiness({ ...w.person, lock }, P, 'Appvillis')
+    await tick(8)
+    const agent = writeAgentProfile({ ...w.agent, lock }, P, { business: 'AgentGuess' })
+    const [p, a] = await Promise.all([person, agent])
+    assert.equal(p.business, 'Appvillis')
+    assert.equal(a.written, false)
+    assert.equal(w.business, 'Appvillis')
+    assert.deepEqual(w.journal.map((e) => e.actor), ['person'])
+  })
+
+  test('ER-2: a write that fails does not hold the chain, and other projects are not held by it', async () => {
+    const lock = createProjectProfileLock()
+    await assert.rejects(lock(P, async () => { throw new Error('refused') }), /refused/)
+    assert.equal(await lock(P, async () => 'next'), 'next')
+    let release
+    const held = lock(P, () => new Promise((r) => { release = r }))
+    assert.equal(await lock('00000000-0000-4000-8000-0000000000aa', async () => 'other'), 'other')
+    release('done')
+    assert.equal(await held, 'done')
+  })
+
+  test('DA-2: a business the person cleared stays cleared: an agent may not set one; one nobody wrote, it may', async () => {
+    const w = world()
+    await writePersonBusiness(w.person, P, 'Appvillis')
+    await writePersonBusiness(w.person, P, '')
+    assert.equal(w.business, null)
+    const refused = await writeAgentProfile(w.agent, P, { business: 'AgentGuess', summary: 's' })
+    assert.equal(refused.written, false)
+    assert.match(refused.reason, /left this project without a business/)
+    assert.equal(w.business, null)
+    // Fields other than the business still go through.
+    assert.equal((await writeAgentProfile(w.agent, P, { summary: 's' })).written, true)
+    const fresh = world()
+    assert.deepEqual(await writeAgentProfile(fresh.agent, P, { business: ' PassionCode ' }), { written: true, fields: ['business'], seq: 1 })
+    assert.equal(fresh.business, 'PassionCode')
+  })
+
+  test('DA-2: an owner read that fails refuses the business and lets the other fields through, and is recorded', async () => {
+    const w = world()
+    const failed = []
+    const agent = { ...w.agent, readPersonSet: async () => ({ set: false, error: 'stack lost' }), failed: (what, e) => failed.push([what, e]) }
+    assert.equal((await writeAgentProfile(agent, P, { business: 'X' })).written, false)
+    assert.deepEqual(failed, [['project-business-owner-read', 'stack lost']])
+    assert.equal((await writeAgentProfile(agent, P, { goal: 'g' })).written, true)
+    assert.equal(w.business, null)
+  })
+}
 // #endregion project-onboarding
