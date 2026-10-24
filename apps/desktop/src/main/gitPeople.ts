@@ -5,9 +5,10 @@
 //
 // One `git log` per REPOSITORY, not per attached folder (DO-10): a project's folders include a repository's checkouts
 // and worktrees, so folders are grouped by Git's common directory and one log reads every folder's HEAD of a group at
-// once; a commit seen in two groups (two clones of one remote) is counted once, by its hash. Only a reading where every
-// repository was read is cached, so a failure is read again on the next open (ER-3); concurrent first reads of one
-// project share one reading.
+// once; a commit seen in two groups (two clones of one remote) is counted once, by its hash. A complete reading is cached
+// ten minutes; one with a repository unread is held 60 s, so a failure is read again soon (ER-3) but not on every journal
+// move while the page is open (0.3.12 review i2 ER-6); concurrent first reads of one project share one reading. At most
+// four `git` processes run at once, whatever the number of folders (ER-6).
 import { execFile } from 'node:child_process'
 import path from 'node:path'
 
@@ -60,11 +61,34 @@ export interface GitReader {
   log(folder: string, revs: readonly string[]): Promise<string>
 }
 
+/** At most this many `git` processes at once, and at most this many folders identified at once (0.3.12 review i2 ER-6). */
+export const GIT_CONCURRENCY = 4
+
+/** A slot limiter: `run` waits until fewer than `max` of its calls are running. */
+export function limiter(max: number): <T>(work: () => Promise<T>) => Promise<T> {
+  let running = 0
+  const waiting: Array<() => void> = []
+  return async <T>(work: () => Promise<T>): Promise<T> => {
+    if (running >= max) await new Promise<void>((r) => waiting.push(r))
+    else running++
+    try {
+      return await work()
+    } finally {
+      // The slot passes straight to the next waiter, so `running` never drops below what is actually running.
+      const next = waiting.shift()
+      if (next) next()
+      else running--
+    }
+  }
+}
+
+const gitSlot = limiter(GIT_CONCURRENCY)
+
 const git = (folder: string, args: readonly string[]): Promise<string> =>
-  new Promise((resolve, reject) => {
+  gitSlot(() => new Promise((resolve, reject) => {
     execFile('git', ['-C', folder, ...args], { timeout: 5000, maxBuffer: 4 * 1024 * 1024, encoding: 'utf8' },
       (error, stdout) => (error ? reject(error) : resolve(stdout)))
-  })
+  }))
 
 const systemGit: GitReader = {
   async identify(folder) {
@@ -85,9 +109,10 @@ const reason = (e: unknown): string => (e instanceof Error ? e.message.split('\n
 export async function readPeople(folders: readonly string[], reader: GitReader = systemGit): Promise<GitPeopleReading> {
   const groups = new Map<string, { folders: string[]; heads: Set<string> }>()
   const unread: GitPeopleReading['unread'] = []
-  const identified = await Promise.all(folders.map(async (folder) => {
+  const slot = limiter(GIT_CONCURRENCY)
+  const identified = await Promise.all(folders.map((folder) => slot(async () => {
     try { return { folder, id: await reader.identify(folder) } } catch (e) { return { folder, problem: reason(e) } }
-  }))
+  })))
   for (const r of identified) {
     if ('problem' in r) { unread.push({ path: r.folder, reason: r.problem as string }); continue }
     const g = groups.get(r.id.commonDir) ?? { folders: [], heads: new Set<string>() }
@@ -111,21 +136,23 @@ export async function readPeople(folders: readonly string[], reader: GitReader =
 const cache = new Map<string, { at: number; reading: GitPeopleReading }>()
 const inFlight = new Map<string, Promise<GitPeopleReading>>()
 const TTL_MS = 10 * 60_000
+/** How long a reading with a repository unread is held before Git is asked again (0.3.12 review i2 ER-6). */
+export const FAILED_TTL_MS = 60_000
 
 /**
  * The people of a project's repositories. A complete reading is cached ten minutes per project and set of folders (a
- * folder attached since is read at once); a reading with a repository unread is not cached. Concurrent reads of one
+ * folder attached since is read at once); a reading with a repository unread is held 60 s. Concurrent reads of one
  * project and set of folders share one reading.
  */
 export async function readGitPeople(projectId: string, folders: readonly string[], now = Date.now(), reader: GitReader = systemGit): Promise<GitPeopleReading> {
   const key = `${projectId}\u0000${[...new Set(folders)].sort().join('\u0000')}`
   const hit = cache.get(key)
-  if (hit && now - hit.at < TTL_MS) return hit.reading
+  if (hit && now - hit.at < (hit.reading.unread.length === 0 ? TTL_MS : FAILED_TTL_MS)) return hit.reading
   const running = inFlight.get(key)
   if (running) return running
   const reading = readPeople([...new Set(folders)], reader).then((r) => {
     for (const k of cache.keys()) if (k.startsWith(`${projectId}\u0000`)) cache.delete(k)
-    if (r.unread.length === 0) cache.set(key, { at: now, reading: r })
+    cache.set(key, { at: now, reading: r })
     return r
   }).finally(() => inFlight.delete(key))
   inFlight.set(key, reading)

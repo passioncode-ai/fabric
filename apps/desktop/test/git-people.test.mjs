@@ -48,13 +48,43 @@ test('ER-3: a failed reading is not cached; a complete one is, ten minutes, per 
   const failed = await readGitPeople('p-cache', ['/ok', '/broken'], 1_000, reader)
   assert.equal(failed.people.length, 1)
   assert.deepEqual(failed.unread, [{ path: '/broken', reason: 'fatal: not a git repository: /broken' }])
+  // 0.3.12 review i2 ER-6: held 60 s, so a journal move within that does not read every repository again.
+  await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 30_000, reader)
+  assert.equal(calls.log.length, 1, 'a reading with a repository unread is held for 60 s')
   await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 60_000, reader)
-  assert.equal(calls.log.length, 2, 'a reading with a repository unread is read again on the next open')
+  assert.equal(calls.log.length, 2, 'and read again after 60 s')
   await readGitPeople('p-cache', ['/ok'], 1_000, reader)
   await readGitPeople('p-cache', ['/ok'], 1_000 + 60_000, reader)
   assert.equal(calls.log.length, 3, 'a complete reading is served from the cache within ten minutes')
   await readGitPeople('p-cache', ['/ok'], 1_000 + 11 * 60_000, reader)
   assert.equal(calls.log.length, 4, 'and read again after ten minutes')
+})
+
+test('ER-6: at most four folders are identified at once, however many the project holds', async () => {
+  let running = 0, peak = 0
+  const reader = {
+    async identify(folder) { running++; peak = Math.max(peak, running); await new Promise((r) => setTimeout(r, 5)); running--; return { commonDir: '/one/.git', head: 'h' } },
+    async log() { return line('c1', 'Ada', 'ada@example.invalid', '2026-10-20T00:00:00Z') },
+  }
+  const folders = Array.from({ length: 41 }, (_, i) => `/w/${i}`)
+  const r = await readGitPeople('p-peak', folders, 3_000, reader)
+  assert.equal(peak, 4)
+  assert.deepEqual([r.read, r.unread.length, r.people.length], [1, 0, 1])
+})
+
+test('ER-6: the limiter never runs more than its slots and runs every call', async () => {
+  const { limiter } = await import(path.resolve(import.meta.dirname, '../src/main/gitPeople.ts'))
+  const slot = limiter(4)
+  let running = 0, peak = 0
+  const out = await Promise.all(Array.from({ length: 20 }, (_, i) => slot(async () => {
+    running++; peak = Math.max(peak, running); await new Promise((r) => setTimeout(r, i % 3)); running--
+    if (i === 7) throw new Error('refused')
+    return i
+  }).catch((e) => e.message)))
+  assert.equal(peak, 4)
+  assert.equal(out.length, 20)
+  assert.equal(out[7], 'refused')
+  assert.equal(out[19], 19)
 })
 
 test('ER-3: concurrent first reads of one project share one reading', async () => {
