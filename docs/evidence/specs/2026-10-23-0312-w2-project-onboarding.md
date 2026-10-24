@@ -174,3 +174,11 @@ Each note is dated and sits under the decision it amends; the decision's own tex
 - **W2-8 (iteration 2, ER-5, DA-3):** the analytics read pages by `seq` below the last row read, so a growing journal is
   neither counted twice nor skipped.
 
+## Amendments, 2026-10-24, the release review's iteration 3
+
+- **W2-4 (iteration 3, ER-4, DA-1, DO-3):** a failed owner read refuses only the business; the call's other fields are
+  journaled and the answer says `refused.business` with the read that failed (`main/projectOnboarding.ts#writeAgentProfile`).
+- **W2-5 (iteration 3, ER-1):** a participant's reply reads its thread inside the same 5-second deadline, and every skip
+  of the wall is logged with its reason.
+- **W2-6 (iteration 3, ER-7):** a reading's 10-minute or 60-second hold counts from when it ended.
+

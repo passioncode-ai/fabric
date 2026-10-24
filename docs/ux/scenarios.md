@@ -4389,6 +4389,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-10-23: «если проект личный или машина моя ... если агент есть, он подхватит, если нет, второй агент может сам; а если машина не моя, то первый агент заберёт с доски, когда будет онлайн» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
 - **Telemetry:** planned only.
 - **Status:** implemented (0.3.12, CO-404): `fabric_whoami` names `protocol.machine` and serves the rule for it; «online» is the owning project's responder shown live by `com.directory`
+- **Amended 2026-10-24 (0.3.12 release review, iteration 3, DO-2):** «done by the asker (trusted)» is the asker posting what it did on the request's thread (`com.submit`, kind message, no `replyTo`) and cancelling its own request (`com.cancel`, the reason "done by the asker"): the request reads `cancelled`, leaves Главная's waiting list, and the thread says who did the work. The asker's own reply would not answer its request (only the target's does), so it is not the route (`apps/desktop/src/shared/protocol.ts#crossProjectRule`).
 - **Coverage:** `apps/desktop/src/shared/protocol.test.ts`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/src/renderer/src/launch/SettingsScreen.test.tsx`, `apps/desktop/test/agent-surface.test.mjs`
 - **Product:** unobserved
 

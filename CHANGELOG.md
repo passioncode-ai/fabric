@@ -92,8 +92,8 @@ folder, then open the new bundle.
   never for projects that existed before (OF-31, SCN-171).
 - The board never starts a thread that joins projects of two different businesses, and refuses a post or a participant's
   reply into an existing thread that does (a responder's fenced reply is not yet checked: 0.3.13): the agent is told
-  which businesses and projects, and nothing is stored. When the businesses cannot be read within 5 seconds the post
-  goes through and the refusal that did not happen is logged. A project's business is the one its profile records; a project without one walls
+  which businesses and projects, and nothing is stored. When the businesses cannot be read within 5 seconds (the reply's
+  own thread read included) the post goes through and the refusal that did not happen is logged. A project's business is the one its profile records; a project without one walls
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).
 - A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
@@ -112,7 +112,10 @@ folder, then open the new bundle.
   run one at a time, and a business the person ever wrote, or cleared, is never set by an agent; the wall between
   businesses reads archived projects too, gives up after 5 seconds and logs why; a question's detail is said in the
   interface's language; a plan or relations an agent recorded count as a profile; focus moves to an agent's page only
-  when you pick it; the stack notice announces the moment of the next try; the Board's cancelled column is ordered by when tasks were cancelled; the
+  when you pick it; the stack notice announces the moment of the next try; an agent that did another project's work itself on your own
+  computer posts it on the request's thread and cancels its request, so it does not wait unanswered; a failed read of
+  the business refuses only the business, and the agent's other fields are kept; a dangling link to Claude Code's
+  settings is refused, not replaced; the Board's cancelled column is ordered by when tasks were cancelled; the
   agent filter applies to «В работе» and says so; a sideways scroll no longer turns the page back; the redaction
   leaves comparisons, calls, counts and words like `KEYBOARD` alone; the stack start begins no try with under 30
   seconds left, and its timeout states its real limit; Comms keeps up to 5000 read marks; and the folder-attribution
