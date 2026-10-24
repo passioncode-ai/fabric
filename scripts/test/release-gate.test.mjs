@@ -55,7 +55,7 @@ test('I3 P-1: each ledger iteration names its exact candidate commit', () => {
 test('I3 P-1: a ledger title naming another version refuses', () => {
   refuses(f => { f.ledgerText = f.ledgerText.replace('# Ledger — Fabric 0.3.1', '# Ledger — Fabric 0.3.0 (not 0.3.1)') }, /names another version/)
 })
-test('I3 P-1: iteration commits must exist and follow one another in history', () => {
+test('I3 P-1: iteration commits must exist, reach the verified commit and keep their order in history', () => {
   const f = fixture(), missing = '1'.repeat(40)
   const verify = git => verifiedCandidateProblem({ version: '0.3.1', gateText: JSON.stringify(f.gate), readCommitted: p => f.artifacts.get(p) }, git)
   const base = { exists: () => true, ancestor: () => true }
@@ -67,7 +67,15 @@ test('I3 P-1: iteration commits must exist and follow one another in history', (
   }
   assert.equal(verify(fake(base)), null)
   assert.match(verify(fake({ ...base, exists: sha => sha !== missing })), /iteration 1 candidate .* does not exist/)
-  assert.match(verify(fake({ ...base, ancestor: (a, b) => !(a === missing && b === '2'.repeat(40)) })), /iteration 1 candidate is not an ancestor of iteration 2/)
+  // 0.3.12 (iteration 3, PL-1): iteration 1's candidate reached by a merge after iteration 2's is reviewed and ships.
+  const verified = f.gate.verifiedCommit, one = '1'.repeat(40), two = '2'.repeat(40)
+  assert.equal(verify(fake({ ...base, ancestor: (a, b) => !(a === one && b === two) && !(b === one && a !== one) })), null)
+  // A reviewed commit that what ships does not contain is refused.
+  assert.match(verify(fake({ ...base, ancestor: (a, b) => !(a === missing && b === verified) && !(b === missing && a !== missing) })), /iteration 1 candidate is not an ancestor of the verified commit/)
+  // A later iteration's candidate that comes before an earlier one's is refused.
+  assert.match(verify(fake({ ...base, ancestor: (a, b) => a === b || b === verified || b === 'HEAD' || (a === two && b === one) })), /iteration 2 candidate comes before iteration 1's in history/)
+  // The old rule's refusal is gone: iteration 1's candidate need not be an ancestor of iteration 2's.
+  assert.doesNotMatch(String(verify(fake({ ...base, ancestor: (a, b) => !(a === one && b === two) }))), /not an ancestor of iteration 2/)
 })
 test('I3 P-10: release-only documents are declared in the gate, not exempt for every release', () => {
   const f = fixture(), doc = 'docs/handoffs/2026-10-04-claude-recovery.md'

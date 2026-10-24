@@ -174,17 +174,28 @@ export function verifiedCandidateProblem({ version, gateText, readCommitted }, g
       if (JSON.stringify(before) !== JSON.stringify(after)) return 'the desktop package changed beyond version after verification'
     } catch { return 'the verified desktop package comparison failed' }
   }
-  // The three review iterations are three successive candidates in this history: each exists, and each is an
-  // ancestor of the next (I3 P-1). The gate's pure check only sees that they are distinct hex strings.
+  // The three review iterations are three candidates in this history, in their order: each exists, each is an ancestor
+  // of the verified commit, so what ships contains every reviewed commit, and no later one comes before an earlier one
+  // (I3 P-1). The 0.3.12 review (iteration 3, PL-1) found the stricter rule, each an ancestor of the next, refusing a
+  // branch that took `main` by a rebase after iteration 1: its candidate reached the verified commit only by a merge
+  // made after iteration 2's candidate, and no later change can make it an ancestor of that candidate.
+  // The gate's pure check only sees that they are distinct hex strings.
   const chain = (gate.reviewReceipts?.iterations ?? []).slice().sort((a, b) => a.iteration - b.iteration)
   for (const it of chain) {
     let kind = ''
     try { kind = String(git(['cat-file', '-t', it.candidateCommit])).trim() } catch { kind = '' }
     if (kind !== 'commit') return `review iteration ${it.iteration} candidate ${it.candidateCommit} does not exist in this repository`
   }
+  const isAncestor = (a, b) => { try { git(['merge-base', '--is-ancestor', a, b]); return true } catch { return false } }
+  for (const it of chain) {
+    if (!isAncestor(it.candidateCommit, gate.verifiedCommit))
+      return `review iteration ${it.iteration} candidate is not an ancestor of the verified commit`
+  }
   for (let i = 1; i < chain.length; i++) {
-    try { git(['merge-base', '--is-ancestor', chain[i - 1].candidateCommit, chain[i].candidateCommit]) } catch {
-      return `review iteration ${chain[i - 1].iteration} candidate is not an ancestor of iteration ${chain[i].iteration}'s`
+    for (let j = 0; j < i; j++) {
+      // Two distinct commits are never each other's ancestor in Git; both answers true is no order, not a reversal.
+      if (isAncestor(chain[i].candidateCommit, chain[j].candidateCommit) && !isAncestor(chain[j].candidateCommit, chain[i].candidateCommit))
+        return `review iteration ${chain[i].iteration} candidate comes before iteration ${chain[j].iteration}'s in history`
     }
   }
   return null
