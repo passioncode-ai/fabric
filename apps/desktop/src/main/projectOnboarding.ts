@@ -34,7 +34,7 @@ export function onboardingTask(projectName: string, locale: string | null | unde
     'aims at now), a one-line summary, the business it belongs to (the GitHub owner or organization, or the company the ' +
     'README names), the plan (what is done, what comes next, from its backlog), and its relations to other projects ' +
     '(what it depends on, what uses it, who it talks to on the board). The business is the person\'s: record it only while ' +
-    'the project has none; if one is already set, leave business out, and if yours differs, say so in a note on this task ' +
+    'the project has none and the person never set or cleared one; if one is already set, or the person left it empty, leave business out, and if yours differs, say so in a note on this task ' +
     'rather than change it (the person sets it on the project page). Write in the working language fabric_whoami names. ' +
     'Change nothing in the repository: this task only reads and records. If something cannot be found, leave that field ' +
     'out rather than guess, and say so in a note on this task.'
