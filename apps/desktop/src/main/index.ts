@@ -1896,10 +1896,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const since = new Date(now - 8 * 7 * 86_400_000).toISOString()
     // DA-1: a task reaches done by the person's close (task.closed@1), so the moves and the closes are read together.
     // DA-4: newest first, paged past the gateway's 1000 rows and bounded; a bound reached is said on the page.
-    const work = await readNewestPaged<{ type: string; payload: { task_id?: string; from?: string | null; to?: string; outcome?: string }; occurred_at: string }>(
-      (from, to) => store.select('journal', 'type,payload,occurred_at').in('type', ['task.moved@1', 'task.closed@1']).eq('project_id', projectId)
-        .gte('occurred_at', since).order('seq', { ascending: false }).range(from, to),
-      { maxRows: 5000 })
+    // 0.3.12 review i2 ER-5, DA-3: paged by `seq` below the last one read, so a move journaled mid-read is not counted twice.
+    const work = await readNewestPaged<{ seq: number; type: string; payload: { task_id?: string; from?: string | null; to?: string; outcome?: string }; occurred_at: string }>(
+      (before, limit) => {
+        const q = store.select('journal', 'seq,type,payload,occurred_at').in('type', ['task.moved@1', 'task.closed@1']).eq('project_id', projectId)
+          .gte('occurred_at', since)
+        return (before === null ? q : q.lt('seq', before)).order('seq', { ascending: false }).limit(limit)
+      },
+      { maxRows: 5000, key: (r) => Number(r.seq) })
     if (work.failed) throw new Error(`the task moves could not be read: ${work.failed}`)
     const taskMoves = work.rows.filter((r) => r.type === 'task.moved@1' && typeof r.payload?.task_id === 'string' && typeof r.payload?.to === 'string')
       .map((r) => ({ taskId: r.payload.task_id as string, from: r.payload.from ?? null, to: r.payload.to as string, at: r.occurred_at }))

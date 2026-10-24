@@ -77,31 +77,53 @@ describe('how work goes in a project, from the journal (OF-39)', () => {
   })
 })
 
-describe('a read paged newest first past the gateway\'s 1000 rows (DA-4)', () => {
-  const source = (n: number, cap = 1000) => {
-    const calls: Array<[number, number]> = []
-    const page = async (from: number, to: number) => {
-      calls.push([from, to])
-      const end = Math.min(to + 1, n, from + cap)
-      return { data: Array.from({ length: Math.max(0, end - from) }, (_, i) => from + i), error: null }
+describe('a read paged newest first past the gateway\'s 1000 rows (DA-4), by keyset (0.3.12 review i2 ER-5, DA-3)', () => {
+  // A journal of `n` rows numbered 1..n by seq, read newest first; `grow` appends rows after a page is answered.
+  const source = (n: number, cap = 1000, grow: (call: number) => number = () => 0) => {
+    let top = n
+    const calls: Array<[number | null, number]> = []
+    const page = async (before: number | null, limit: number) => {
+      calls.push([before, limit])
+      const below = before === null ? top : Math.min(before - 1, top)
+      const take = Math.min(limit, cap, below)
+      const data = Array.from({ length: Math.max(0, take) }, (_, i) => ({ seq: below - i }))
+      top += grow(calls.length)
+      return { data, error: null }
     }
     return { page, calls }
   }
+  const key = (r: { seq: number }) => r.seq
   it('reads every row when they fit the bound, even when the gateway answers fewer than a page', async () => {
     const { page } = source(2500, 400)
-    const r = await readNewestPaged(page, { maxRows: 5000 })
+    const r = await readNewestPaged(page, { maxRows: 5000, key })
     expect(r.rows).toHaveLength(2500)
     expect(r.capped).toBe(false)
   })
   it('stops at the bound and says the read was capped only when more rows exist', async () => {
-    const capped = await readNewestPaged(source(7000).page, { maxRows: 5000 })
+    const capped = await readNewestPaged(source(7000).page, { maxRows: 5000, key })
     expect([capped.rows.length, capped.capped]).toEqual([5000, true])
-    const exact = await readNewestPaged(source(5000).page, { maxRows: 5000 })
+    const exact = await readNewestPaged(source(5000).page, { maxRows: 5000, key })
     expect([exact.rows.length, exact.capped]).toEqual([5000, false])
   })
   it('says a refused page, never a shorter list', async () => {
-    const r = await readNewestPaged(async (from: number) => (from === 0 ? { data: [1], error: null } : { data: null, error: { message: 'refused' } }), { maxRows: 5000 })
+    const r = await readNewestPaged(async (before: number | null) => (before === null ? { data: [{ seq: 9 }], error: null } : { data: null, error: { message: 'refused' } }), { maxRows: 5000, key })
     expect(r.failed).toBe('refused')
     expect(r.rows).toEqual([])
+  })
+  it('a row appended between two pages is neither read twice nor pushes another out (probe 3 of the review)', async () => {
+    // 1 500 closes; one new journal row lands at the top after the first page is answered.
+    const { page, calls } = source(1500, 1000, (call) => (call === 1 ? 1 : 0))
+    const r = await readNewestPaged(page, { maxRows: 5000, key })
+    const seqs = r.rows.map((x) => x.seq)
+    expect(new Set(seqs).size).toBe(seqs.length)
+    expect(seqs).toHaveLength(1500)
+    expect(Math.min(...seqs)).toBe(1)
+    expect(calls[1][0]).toBe(501)
+    const done = projectAnalytics({ moves: [], closes: r.rows.map((x) => ({ taskId: `t${x.seq}`, outcome: 'done', at: '2026-10-20T00:00:00Z' })), createdAt: new Map(), openQuestions: [], now: Date.parse('2026-10-24T00:00:00Z') })
+    expect(done.donePerWeek.reduce((a, b) => a + b, 0)).toBe(1500)
+  })
+  it('a source that ignores the cursor is a failure, never a loop or a double count', async () => {
+    const r = await readNewestPaged(async () => ({ data: [{ seq: 3 }, { seq: 2 }], error: null }), { maxRows: 5000, key })
+    expect(r.failed).toMatch(/did not move past 2/)
   })
 })

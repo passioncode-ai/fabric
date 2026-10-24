@@ -107,24 +107,37 @@ export function projectAnalytics(input: {
 /**
  * Pages a read newest first until it is exhausted or holds `maxRows` (DA-4): the gateway answers at most 1000 rows a
  * request (`supabase/config.toml` max_rows) and says nothing of the rest, so a single larger `limit` is silently cut.
- * A page shorter than asked is not taken as the end (a gateway's cap may be lower than `pageSize`); an empty one is.
- * `capped` is true when rows past the bound exist, which one extra row's read decides. A refused page is `failed`.
+ * Paged by keyset, not offset (0.3.12 review i2 ER-5, DA-3): each page asks for rows whose `key` (the journal's `seq`)
+ * is below the last one read, so a row appended while the pages are read lands above the cursor and is neither read
+ * twice nor pushes another out; `backup.ts` pages the journal the same way. A page shorter than asked is not taken as
+ * the end (a gateway's cap may be lower than `pageSize`); an empty one is. `capped` is true when rows past the bound
+ * exist, which one extra row's read decides. A refused page, or one that does not move below the cursor, is `failed`.
  */
 export async function readNewestPaged<Row>(
-  page: (from: number, to: number) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }>,
-  bound: { pageSize?: number; maxRows: number }
+  page: (before: number | null, limit: number) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }>,
+  bound: { pageSize?: number; maxRows: number; key: (row: Row) => number }
 ): Promise<{ rows: Row[]; capped: boolean; failed: string | null }> {
   const pageSize = bound.pageSize ?? 1000
   const rows: Row[] = []
+  let before: number | null = null
   while (rows.length < bound.maxRows) {
     const want = Math.min(pageSize, bound.maxRows - rows.length)
-    const { data, error } = await page(rows.length, rows.length + want - 1)
+    const { data, error } = await page(before, want)
     if (error) return { rows: [], capped: false, failed: error.message }
     const got = data ?? []
     if (got.length === 0) return { rows, capped: false, failed: null }
-    rows.push(...got.slice(0, want))
+    const cursor: number | null = before
+    for (const row of got.slice(0, want)) {
+      const k = bound.key(row)
+      // A row at or above the cursor was read already (a source that ignored the keyset): it is not counted twice.
+      if (cursor !== null && !(k < cursor)) continue
+      rows.push(row)
+      if (before === null || k < before) before = k
+    }
+    // Not silent: a page that gave nothing below the cursor would be asked again forever; the read says so instead.
+    if (before === cursor) return { rows: [], capped: false, failed: `the read did not move past ${String(cursor)}` }
   }
-  const beyond = await page(rows.length, rows.length)
+  const beyond = await page(before, 1)
   if (beyond.error) return { rows: [], capped: false, failed: beyond.error.message }
   return { rows, capped: (beyond.data ?? []).length > 0, failed: null }
 }
