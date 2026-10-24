@@ -93,8 +93,10 @@ function crossProjectRule(machine: MachineStanding): string {
       first +
       "This computer is the operator's own, as the person set in Fabric's Settings. If that project has an agent online " +
       '(com.directory shows its responder live), leave the request to it. If none is online, you may make the change ' +
-      "yourself in that project's repository, under that project's own rules, and record what you did with com.reply " +
-      'on the request.'
+      "yourself in that project's repository, under that project's own rules. Then say what you did on the request's " +
+      "thread with com.submit, kind message, the thread's id and no replyTo, then cancel your request with com.cancel " +
+      'and a reason saying you made the change yourself: a reply of yours does not answer your own request, which ' +
+      'would otherwise stay waiting on the board until it expires.'
     )
   return (
     first +

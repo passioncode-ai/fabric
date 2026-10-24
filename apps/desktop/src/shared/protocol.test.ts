@@ -151,6 +151,15 @@ describe('this computer\'s trust decides the cross-project rule (ADR-0176 §2, �
     expect(r).not.toMatch(/Never edit another project/)
   })
 
+  it('after making the change itself, the asker posts it on the thread and cancels its own request (0.3.12 review, iteration 3, DO-2)', () => {
+    // The asker's com.reply does not answer its own request (only the target's does, migration 120): the request
+    // would stay queued, show on Главная as unanswerable and expire. Cancelling moves it to cancelled, which is settled.
+    const r = rule(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: 'mine' }))
+    expect(r).toMatch(/on the request's thread with com\.submit, kind message, the thread's id and no replyTo/)
+    expect(r).toMatch(/then cancel your request with com\.cancel and a reason saying you made the change yourself/)
+    expect(r).not.toMatch(/com\.reply/)
+  })
+
   it('on a computer that is not the operator\'s, or not said, the asker never edits and the request waits', () => {
     for (const trust of ['organization', null] as const) {
       const r = rule(buildProtocol({ now: at, timeZone: 'UTC', machineTrust: trust }))
