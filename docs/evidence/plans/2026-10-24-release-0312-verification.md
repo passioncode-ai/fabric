@@ -17,7 +17,10 @@ The protocol is 0.3.5's, unchanged ([0.3.5 ledger, Protocol](2026-10-12-release-
 reviewers per iteration, one per level (UX-n, ER-n, DO-n, DA-n, PL-n), a finding `V<iteration>-<n>` with a
 disposition (**fixed** with its watched test, **ruled** with a register id, or **not a defect** with the measurement),
 and iteration 3 ends with zero open blocking findings. Reviewers work read-only in a detached checkout of the
-candidate; their reports are committed under `docs/evidence/reviews/0.3.12/iteration-N/`.
+candidate; their reports are committed under `docs/evidence/reviews/0.3.12/iteration-N/`, as the reviewer wrote them (a
+link is made relative to its new place and the ledger says so). **A reviewed candidate is never rebased**: the release
+branch takes `main` by a merge and lands on `main` by a fast-forward of that merge, so every iteration's candidate stays
+an ancestor of the next and of the tag (the gate checks it; the 0.3.12 review, iteration 2, PL-1).
 
 ## Rollout on the operator's Mac
 
@@ -48,7 +51,8 @@ bundle; it costs no extra person step. Two person steps in all: quit, then open.
 5. **Rehearsal.** `FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node scripts/rehearse-upgrade.mjs --from 95
    --ref v0.3.12 --dump <the dump>` on a separate disposable stack; it must exit 0 with PASS in
    `<dump>.rehearsal.json` (schema 96, the journal count and every table's row count unchanged). If the disk does not
-   allow it, the step stops here and the database stays at 95 with 0.3.10 installed: migrating without a rehearsal is
+   allow it, the step stops here, the database stays at 95, and the person opens the installed 0.3.11 again (a third person
+   step); migrating without a rehearsal is
    the operator's decision, asked once with the measurement.
 6. **Migrate.** `supabase migration up --local` in the stack folder; `schema_version()` = 96 and the journal count
    unchanged.
@@ -57,15 +61,17 @@ bundle; it costs no extra person step. Two person steps in all: quit, then open.
    opens Fabric again; the way back is the 0.3.11 bundle with the backup restored into a clean stack (0.3.11 admits only
    95).
 8. **Verify.** The version (0.3.12), the schema (96), the hub (`hub.json` with a live `pid`, and a `fabric_whoami` with
-   protocol version 3 naming `machine`), the broker (`startedBy: person`, no `ensure` since step 2), and on the real app,
+   protocol version 3 naming `machine`), the broker (no `ensure` or `restart` for `fabric.desktop` in `broker.log` since step 2; `lifecycle.status` reads
+   `startedBy: other` for a Fabric the person opened, as it did for 0.3.11's pid 39806, so it is not the measure), and on the real app,
    in Russian and then in English (CO-306: the splash speaks the interface's language): Главная («Нужны вы», the
    greeting), a project page (Цель, Команда, План, the analytics strip, «Познакомиться с проектом» on a project with no
    profile), the graph, Агенты with an agent page, История, Comms, the Board's filters, Настройки («Этот компьютер»,
    «Сообщения между сессиями агентов», «Готовность Fabric»). For OF-36 the agent sets «Не давать компьютеру засыпать» to
    «while agents work», reads `pmset -g assertions` while a console runs and after it ends, and puts the setting back.
    CO-382's idle stop is read after 15 minutes with no use: a person-opened Fabric is not stopped. On this Mac the agent
-   sets «Этот компьютер» to «мой» (ADR-0176 Decision 3, amendment 7) and reads `protocol.machine.trust` = `mine` in
-   `fabric_whoami`; fabric-workspace is told on `6c7a5404` that its interim line can go. Then the first
+   sets «Этот компьютер» to «мой» on the operator's own recorded decision (ADR-0176 Decision 3: "a machine is trusted
+   when Fabric runs on it as the operator's own"; amendment 7), records `protocol.machine` before and after in the
+   Release close, and tells the person in the rollout's report that Settings → Компьютер turns it back; fabric-workspace is told on `6c7a5404` that its interim line can go. Then the first
    measurements of 0.3.9's ["How we will know it holds"](2026-10-21-release-039-verification.md).
 
 ## Owed in 0.3.12's Release close
@@ -120,7 +126,7 @@ the next candidate; what 0.3.12 does not fix is CO-418 (0.3.13), CO-413 (0.4.0) 
 | V1-19 | UX-5 | The countdown is re-announced every second | fixed: the ticking line is `aria-hidden`, the alert announces once (`StackHealthNotice.tsx`); «ticks on screen without changing what the alert announces» |
 | V1-20 | DO-4, DO-5, DO-7, DO-8, DO-20, DO-21, UX-20, PL-10 | Scenarios, screens, flows and the wave 2 spec say what does not ship | fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418 |
 | V1-21 | PL-8 | Board obligations missing from the owed list | fixed: Vesta answered on `0d82422a` (`9d9e6a4f`: CO-319 to CO-321 in 0.4.0, the Studio needs no hub move), fabric-workspace on `6c7a5404` (`e36fe15e`); the Release close lists the moved rows' threads and CO-377's date |
-| V1-22 | PL-9, DO-16 | The newest handoff names a finished task as next | fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`, named in the gate's metadata |
+| V1-22 | PL-9, DO-16 | The newest handoff names a finished task as next | fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`; the release commit names it in the gate's `releaseMetadata` |
 | V1-23 | PL-11 | 0.3.11's install-time measurements carried by name only | fixed: Rollout steps 2, 7 and 8 carry the broker check, `startup-failure.log`, OF-36, CO-382, the walk in ru and en and 0.3.9's measurements; CO-365 in the Release close |
 | V1-24 | PL-12, DO-17, DA-10 | Release-only wording in `release-mac.md` | fixed: "(not yet released)" dropped, 95 in the `FROM` list, `boardFilters` named beside `machineTrust` |
 | V1-25 | DO-15 | CO-396, CO-398 and CO-402 still read 0.3.12 | fixed: each row notes its 0.3.13 ruling |

@@ -83,6 +83,7 @@ or on one project with only its direct neighbours. 6 is the release review's (it
 | S4 | The project page: Цель, Команда (agents and Git people), План and the kanban strip, analytics, «Идеи и материалы», the way back and its scroll, last activity | OF-20, OF-24 to OF-27, OF-39, CO-388, CO-394; CO-307 moved to 0.3.13 (2026-10-23, below) | S1 |
 | S5 | The graph | OF-32, SCN-175 | S1 |
 | S6 | The places the walk named and their words: «Нужны вы» (CO-391), quotas gone (CO-392), the agent page (CO-393), История (CO-395), the splash's language (CO-306), failure wording (CO-313), screens and flows (CO-400) | the rows named | S4 for CO-394 |
+| S7 | The walk's remaining items, added by the triage on 2026-10-23: the Board's agent filter, cancelled tasks and remembered filters, Comms' «Ждут ответа» and the thread under a post, the task page's blockers and moves, the trackpad swipe back (CO-401) | CO-401 | S6 |
 
 Each slice lands on its own with its gate, its scenarios and the map, and never leaves `main` broken.
 

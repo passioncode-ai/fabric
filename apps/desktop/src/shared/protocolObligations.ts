@@ -108,7 +108,8 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'Before you start a task, make sure its spec is whole: what should happen, why, what will be true when it is ' +
       'done (with what is out of scope and what must not change). Ask for each missing part, one question at a time: ' +
       'the person with fabric_question_ask, or, when another project\'s agent filed the task on ' +
-      'the board, that agent with com.reply on its request. Build nothing, file no sub-task and hand nothing on while a ' +
+      'the board, that agent on the request\'s thread with com.submit, kind message, the thread\'s id and no replyTo: a ' +
+      'com.reply, or a replyTo naming the request, answers the request and closes it. Build nothing, file no sub-task and hand nothing on while a ' +
       'question is open. Then write the brief with fabric_task_brief (what, why, expected) and ' +
       'start. Until all three are written the person sees on the task that its spec is not gathered.',
     mode: 'ADVICE',

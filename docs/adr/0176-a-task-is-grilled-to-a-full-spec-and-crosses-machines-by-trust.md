@@ -83,3 +83,7 @@ board; decided by the agent on the operator's instruction to choose, open to the
 7. Amendment 2's "never assumed" is about a machine Fabric cannot tell apart: an install where the person has not said
    reads `unknown`. It does not overrule Decision 3 for the operator's own Mac: 0.3.12's rollout there sets «Этот
    компьютер: мой», recorded in its ledger, so `protocol.machine.trust` reads `mine` on the machine Decision 3 names.
+8. Amendment 1's route for a question to another project's agent was `com.reply` on its request; a reply from the
+   request's target answers the request and closes it (migration 120, BD-1). The question goes on the request's thread
+   as a plain message (`com.submit`, kind message, the thread's id, no `replyTo`), and the request stays open
+   (`intake.spec-first`; the 0.3.12 review, iteration 2, DO-1).

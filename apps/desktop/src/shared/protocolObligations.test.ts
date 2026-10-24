@@ -74,7 +74,9 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.mode).toBe('ADVICE')
     expect(o.text).toMatch(/what should happen, why, what will be true when it is done/)
     expect(o.text).toMatch(/one question at a time: the person with fabric_question_ask/)
-    expect(o.text).toMatch(/another project's agent filed the task on the board, that agent with com\.reply on its request/)
+    expect(o.text).toMatch(/another project's agent filed the task on the board, that agent on the request's thread with com\.submit, kind message, the thread's id and no replyTo/)
+    // A question as com.reply would answer the request and close it (migration 120, BD-1): the 0.3.12 review, iteration 2, DO-1.
+    expect(o.text).not.toMatch(/that agent with com\.reply/)
     expect(o.text).toMatch(/Build nothing, file no sub-task and hand nothing on while a question is open/)
     expect(o.text).toMatch(/fabric_task_brief \(what, why, expected\)/)
   })

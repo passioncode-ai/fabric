@@ -4377,7 +4377,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   3. On a machine that is not the operator's -> the asking agent never edits the other project; the request waits on the board until that project's agent is online and takes it.
   4. Person reads the board -> sees who asked whom, what for, and who did it.
 - **Expected result:** a team's agents pass work between each other through the board, and an organization's machine never writes into a project it does not own.
-- **Alt paths:** trust unknown -> treated as not trusted; the owning project has no agent at all -> the request reaches «Нужны вы».
+- **Alt paths:** trust unknown -> treated as not trusted; the owning project has no agent at all -> the request shows on Главная in the block of requests between projects that no agent can answer (`launch/HomeBoardWaiting.tsx`), not in «Нужны вы».
 - **UI elements:** «Этот компьютер» in Settings → Компьютер («Не указано», «Мой (личный или мой удалённый)», «Организации, не под моим управлением»), each with what an agent here may do; the request and its outcome on the board.
 - **States covered:** filed, taken by the owner, done by the asker (trusted), waiting (untrusted), done.
 - **Errors & recovery:** a request the board refuses stays with the asking agent, which says so on its task.

@@ -13,8 +13,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 summary, business, plan and relations). Take a backup first; 0.3.11 cannot open a schema-96 database, so going back
 is the backup with the 0.3.11 bundle. The order is the runbook's
 ([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): quit Fabric, put the new
-bundle's migration in the stack folder (its first start copies it there, and refuses the old database until the
-upgrade), back up, rehearse the upgrade on a disposable stack, run `supabase migration up --local` in the stack
+bundle's migration in the stack folder (its first start copies it there and refuses the old database until the
+upgrade; quit it again), back up, rehearse the upgrade on a disposable stack, run `supabase migration up --local` in the stack
 folder, then open the new bundle.
 
 - Comms has a third tab, «Объявления»: every announcement on the project board with how many of the projects it
@@ -89,8 +89,9 @@ folder, then open the new bundle.
 - A new project gets «Познакомиться с проектом» in its queue: an onboarding task whose brief is already written, for an
   agent to read the project and record its profile without changing the repository. It is filed once per project and
   never for projects that existed before (OF-31, SCN-171).
-- The board never starts a thread that joins projects of two different businesses, and refuses a post or a reply into
-  an existing thread that does: the agent is told which businesses and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
+- The board never starts a thread that joins projects of two different businesses, and refuses a post or a participant's
+  reply into an existing thread that does (a responder's fenced reply is not yet checked: 0.3.13): the agent is told
+  which businesses and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).
 - A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
