@@ -24,7 +24,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('the project page says what the project is (W2 S4)', () => {
   it('without a profile, offers to get to know the project, and opens the task it files', async () => {
-    const api = install()
+    const api = install({ relations: vi.fn(async () => []) })
     const onOpenTask = vi.fn()
     show(base, onOpenTask)
     expect(screen.getByText(en['launch.profile.none'])).toBeTruthy()
@@ -34,7 +34,8 @@ describe('the project page says what the project is (W2 S4)', () => {
   })
 
   it('says when the onboarding task could not be filed, and the button works again', async () => {
-    install({ onboard: vi.fn(async () => { throw new Error('journal refused') }) })
+    // A project with no profile has no relations either: an agent records them with the rest (iteration 2, ER-9).
+    install({ relations: vi.fn(async () => []), onboard: vi.fn(async () => { throw new Error('journal refused') }) })
     show(base)
     fireEvent.click(screen.getByRole('button', { name: en['launch.profile.onboard'] }))
     await waitFor(() => expect(screen.getByText(en['launch.profile.onboardFailed'])).toBeTruthy())
@@ -51,6 +52,32 @@ describe('the project page says what the project is (W2 S4)', () => {
     expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
     await waitFor(() => expect(screen.getByText(/Depends on fabric-agent-contract/)).toBeTruthy())
     await waitFor(() => expect(screen.getByText(/Ada, 12 commits/)).toBeTruthy())
+  })
+
+  // 0.3.12 review, iteration 2, ER-9: an agent told to leave out what it cannot find recorded a plan and no goal, and the
+  // page offered «Get to know the project» again and hid the plan.
+  it('a recorded plan with no goal or summary counts as onboarded, and the plan shows', async () => {
+    install({ relations: vi.fn(async () => []) })
+    show({ ...base, profiled_at: '2026-10-23T00:00:00Z', profiled_by: 'agent', goal: null, summary: null, plan: { done: [], next: ['Ship 0.3.12'] } } as ProjectRow)
+    expect(screen.getByText('Ship 0.3.12')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
+    expect(screen.queryByText(en['launch.profile.none'])).toBeNull()
+  })
+  it('recorded relations alone count as onboarded too, once they are read', async () => {
+    install()
+    show({ ...base, goal: null, summary: null, plan: null } as ProjectRow)
+    await waitFor(() => expect(screen.getByText(/Depends on fabric-agent-contract/)).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
+  })
+  // 0.3.12 review, iteration 2, UX-7: "Ann, 1 commits".
+  it('counts one commit in the singular, and a few in Russian\'s own form', async () => {
+    install({ people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 1, lastAt: '2026-10-20T10:00:00Z' }], unread: [], read: 1 })) })
+    show(base)
+    await waitFor(() => expect(screen.getByText(/Ada, 1 commit,/)).toBeTruthy())
+    cleanup()
+    install({ people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 2, lastAt: '2026-10-20T10:00:00Z' }], unread: [], read: 1 })) })
+    render(<I18nProvider locale="ru"><ProjectProfile project={base} feedMark={0} onOpenTask={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(/Ada: 2 коммита,/)).toBeTruthy())
   })
 
   it('keeps the offer when only the person\'s business was recorded, and never says an agent recorded no goal (DA-3)', async () => {
@@ -96,14 +123,14 @@ describe('the project page says what the project is (W2 S4)', () => {
     await waitFor(() => expect(screen.getByText(en['launch.profile.peopleUnread'])).toBeTruthy())
     expect(screen.getByText('/w/plain: fatal: not a git repository')).toBeTruthy()
     expect(screen.queryByText(en['launch.profile.noPeople'])).toBeNull()
-    expect(screen.queryByText(/the people above/)).toBeNull()
+    expect(screen.queryByText(/people above/i)).toBeNull()
   })
 
   it('with part of the history unread, never says «the people above» when none is shown, and counts one repository in the singular', async () => {
     install({ people: vi.fn(async () => ({ people: [], unread: [{ path: '/w/b', reason: 'fatal: bad object' }], read: 1 })) })
     show(base)
     await waitFor(() => expect(screen.getByText(en['launch.profile.noPeopleSome'])).toBeTruthy())
-    expect(screen.queryByText(/the people above/)).toBeNull()
+    expect(screen.queryByText(/people above/i)).toBeNull()
     expect(screen.queryByText(en['launch.profile.noPeople'])).toBeNull()
     cleanup()
     install({ people: vi.fn(async () => ({ people: [{ name: 'Ada', email: 'ada@example.invalid', commits: 2, lastAt: '2026-10-20T10:00:00Z' }], unread: [{ path: '/w/b', reason: 'fatal: bad object' }], read: 1 })) })

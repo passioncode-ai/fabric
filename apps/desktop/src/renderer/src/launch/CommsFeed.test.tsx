@@ -114,8 +114,23 @@ describe('Comms as a feed', () => {
     await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
     fireEvent.click(screen.getByRole('button', { name: en['launch.comms.feed.waiting'] }))
     const said = screen.getByText(/Among the newest \d+ posts no request is waiting/)
-    expect(said.textContent).toContain(en['launch.comms.feed.noWaiting'].replace('{count}', String(messages.length)))
+    expect(said.textContent).toContain(en['launch.comms.feed.noWaiting.many'].replace('{count}', String(messages.length)))
     expect(screen.queryByText(new RegExp(en['launch.comms.feed.noMatch']))).toBeNull()
+  })
+  // 0.3.12 review, iteration 2, UX-7: «Среди 1 самых новых постов», "Among the newest 1 posts".
+  it('says one post in the singular, in both languages', async () => {
+    for (const locale of ['ru', 'en'] as const) {
+      install(undefined, vi.fn(async () => ({ ok: true, messages: [messages[2]], lastSeq: 42, more: false })))
+      const label = locale === 'ru' ? 'Ждут ответа' : en['launch.comms.feed.waiting']
+      render(<I18nProvider locale={locale}><CommsFeed mark={0} nameOf={(id) => names[id] ?? id} onOpen={vi.fn()} /></I18nProvider>)
+      await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
+      fireEvent.click(screen.getByRole('button', { name: label }))
+      const text = document.body.textContent ?? ''
+      if (locale === 'ru') expect(text).toContain('Среди 1 самого нового поста нет просьб')
+      else expect(text).toContain('The newest post is not a request waiting for an answer.')
+      expect(text).not.toMatch(/1 самых|newest 1 posts/)
+      cleanup()
+    }
   })
   it('a failed refresh keeps the posts and says when they were read, with Try again (V2-16)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })

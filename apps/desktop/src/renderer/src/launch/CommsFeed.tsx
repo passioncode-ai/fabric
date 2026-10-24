@@ -4,7 +4,7 @@
 // its thread. Read as the threads are: a board that does not answer is said, never shown as an empty feed.
 import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
-import { useLocale, useT } from '../i18n'
+import { pluralForm, useLocale, useT } from '../i18n'
 import { newestPostsRead } from './commsNewest'
 
 /** How many of the newest posts the feed reads. */
@@ -119,12 +119,12 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
         </p>
       )}
       {/* CO-405: fewer than the feed's hundred while older posts may exist that the search did not reach. */}
-      {read.short && read.posts.length > 0 && <p className="lp-meta" role="status">{t('launch.comms.feed.short', { count: read.posts.length })}</p>}
+      {read.short && read.posts.length > 0 && <p className="lp-meta" role="status">{t(`launch.comms.feed.short.${pluralForm(locale, read.posts.length)}`, { count: read.posts.length })}</p>}
       {shown.length === 0 && read.posts.length === 0 && <p className="lp-meta">{t('launch.comms.feed.empty')}</p>}
       {shown.length === 0 && read.posts.length > 0 && (
         <p className="lp-meta">
           {/* «Ждут ответа» looks at the newest posts only, and says so: an older request may still wait (0.3.12 review ER-8). */}
-          {focus === 'waiting' ? t('launch.comms.feed.noWaiting', { count: read.posts.length }) : t('launch.comms.feed.noMatch')}{' '}
+          {focus === 'waiting' ? t(`launch.comms.feed.noWaiting.${pluralForm(locale, read.posts.length)}`, { count: read.posts.length }) : t('launch.comms.feed.noMatch')}{' '}
           <button type="button" className="lp-button lh-text-link" onClick={() => { setFocus('all'); setProject('') }}>{t('launch.comms.feed.showAll')}</button>
         </p>
       )}

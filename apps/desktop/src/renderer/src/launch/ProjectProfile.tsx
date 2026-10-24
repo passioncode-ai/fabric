@@ -4,7 +4,7 @@
 // with no profile yet. Each part reads and fails on its own; nothing here hides a failure as an empty list.
 import { useEffect, useState } from 'react'
 import type { GitPeopleView, ProjectRelation, ProjectRow } from '../../../shared/types'
-import { useLocale, useT } from '../i18n'
+import { pluralForm, useLocale, useT } from '../i18n'
 import { FailureNote } from '../OperatorError'
 
 const message = (e: unknown): string => (e instanceof Error ? e.message : String(e))
@@ -59,9 +59,11 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
     )
   }
   const plan = project.plan ?? null
-  // DA-3 / ER-1: onboarded is what an agent recorded (a goal or a summary), not `profiled_at`: the person setting only the
-  // business stamps `profiled_at` too, and must not lose «Познакомиться с проектом» or read that an agent recorded no goal.
-  const profiled = !!(project.goal?.trim() || project.summary?.trim())
+  const planned = !!plan && (plan.done.length > 0 || plan.next.length > 0)
+  // DA-3 / ER-1: onboarded is what an agent recorded, not `profiled_at`: the person setting only the business stamps
+  // `profiled_at` too, and must not lose «Познакомиться с проектом» or read that an agent recorded no goal. An agent told
+  // to leave out what it cannot find may record a plan or relations and no goal: that is a profile too (iteration 2, ER-9).
+  const profiled = !!(project.goal?.trim() || project.summary?.trim()) || planned || (relations?.length ?? 0) > 0
 
   return (
     <section className="lp-panel" aria-labelledby="project-profile-title">
@@ -78,7 +80,7 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
           {project.summary && <p className="lp-meta">{project.summary}</p>}
           <p className="lp-kicker">{t('launch.profile.goal')}</p>
           <p>{project.goal || t('launch.profile.noGoal')}</p>
-          {plan && (plan.done.length > 0 || plan.next.length > 0) && (
+          {plan && planned && (
             <>
               <p className="lp-kicker">{t('launch.profile.plan')}</p>
               {plan.done.length > 0 && (
@@ -127,7 +129,7 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
         <ul>
           {people.people.slice(0, 12).map((p) => (
             <li key={p.email} title={p.email}>
-              {t('launch.profile.person', { name: p.name, commits: p.commits, date: new Date(p.lastAt).toLocaleDateString(locale) })}
+              {t(`launch.profile.person.${pluralForm(locale, p.commits)}`, { name: p.name, commits: p.commits, date: new Date(p.lastAt).toLocaleDateString(locale) })}
             </li>
           ))}
         </ul>

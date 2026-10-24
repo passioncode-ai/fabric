@@ -66,7 +66,7 @@ import {
 } from './components'
 import { sessionTone } from './sessionTone'
 import { SessionStop, StopStatus } from './SessionStop'
-import { useT } from './i18n'
+import { pluralForm, useLocale, useT } from './i18n'
 import { Tasks } from './Tasks'
 import type { TaskDraft } from '../../shared/taskDraft.ts'
 import { TaskPage } from './TaskPage'
@@ -884,7 +884,7 @@ export function ProjectStatusBar({
    */
   blocked?: number
 }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   // `go` was local here and swallowed a missing target with `?.`. It lives in
   // `evidence.ts` now, reports a miss, and takes only anchors that exist —
   // M142's rule needs one implementation, not one per screen.
@@ -973,7 +973,7 @@ export function ProjectStatusBar({
         ) : (
           <StatusCell onClick={go('sec-files')}>
             <Tick>
-              {t('stats.commits', {
+              {t(`stats.commits.${pluralForm(locale, stats.code.commits ?? 0)}`, {
                 n: stats.code.commits ?? 0,
                 days: stats.code.windowDays
               })}
