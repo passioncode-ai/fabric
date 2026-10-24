@@ -77,9 +77,9 @@
     {
       "id": "PL-9",
       "source": "V2-9",
-      "status": "ruled",
+      "status": "not-a-defect",
       "evidence": [
-        "ruled: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back"
+        "not a defect: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back"
       ]
     }
   ]

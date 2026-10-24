@@ -20,7 +20,9 @@ and iteration 3 ends with zero open blocking findings. Reviewers work read-only 
 candidate; their reports are committed under `docs/evidence/reviews/0.3.12/iteration-N/`, as the reviewer wrote them (a
 link is made relative to its new place and the ledger says so). **A reviewed candidate is never rebased**: the release
 branch takes `main` by a merge and lands on `main` by a fast-forward of that merge, so every iteration's candidate stays
-an ancestor of the next and of the tag (the gate checks it; the 0.3.12 review, iteration 2, PL-1).
+an ancestor of the tag (the gate checks it, and that no later candidate comes before an earlier one; the 0.3.12
+review, iteration 2, PL-1, and iteration 3, PL-1: the rebase after iteration 1 left `7b042631` out of `69db245a`'s
+history, which no later merge can change, so the gate's rule changed from "each an ancestor of the next").
 
 ## Rollout on the operator's Mac
 
@@ -90,6 +92,8 @@ bundle; it costs no extra person step. Two person steps in all: quit, then open.
 - CO-365: the first reboot after 0.3.12 is installed is the measurement its ruling waits for (does the login item start
   Fabric?); recorded in its row when it happens.
 - `node scripts/workspace.mjs publish` and `check --require-child` after the tag (release step 10).
+- 0.3.13's date, promised when 0.3.12 ships: on threads `147a5538` (`0ab444ca`), `0d82422a` (`9d9e6a4f`, with 0.4.0's
+  plan) and `12bd8b4c` (`c0a9a575`).
 
 ## Iteration 1
 
@@ -177,7 +181,7 @@ projection. Iteration 1's fixes held, apart from the halves named above.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
-| V2-1 | PL-1 (blocking), DO-5 | Iteration 1's candidate `7b042631` left the history when the branch was rebased | fixed: a merge with `-s ours` keeps it an ancestor and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge |
+| V2-1 | PL-1 (blocking), DO-5 | Iteration 1's candidate `7b042631` left the history when the branch was rebased | fixed: a merge with `-s ours` brings it back into the history of everything after it and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge. It could not make `7b042631` an ancestor of `69db245a`; iteration 3 found that the gate still refused, and the gate's rule changed (V3-1) |
 | V2-2 | PL-2 | The candidate `69db245a` is on no branch; landing by rebase would lose it again | fixed: the branch points at `69db245a`'s descendants (the message-only amend was dropped); it takes `main` by merge |
 | V2-3 | PL-3 | None of the release work is on GitHub | fixed: `agent/release-0312` pushed (`f5c527d8` and after) |
 | V2-4 | PL-4, ER-11 | `scripts/ci-tail.tmp.sh` committed in `69db245a` | fixed: removed, and `.gitignore` names it |
@@ -185,7 +189,7 @@ projection. Iteration 1's fixes held, apart from the halves named above.
 | V2-6 | PL-6, DO-4 | Rollout step 5 says 0.3.10 installed and omits the third person step | fixed: step 5 says the person opens the installed 0.3.11 again if it stops there |
 | V2-7 | PL-7 | Step 8 expects `startedBy: person`, which the broker reports as `other` for a person-opened Fabric | fixed: step 8 reads `broker.log` for no `ensure` or `restart` since step 2 |
 | V2-8 | PL-8 | Two board asks unanswered: fabric-workspace on `12bd8b4c`, the contract's `v0.1.0+2026-10-24` | fixed: answered (`c0a9a575`: A-4 to A-6 and CX-FAB-10 are CO-337, CO-319 to CO-321, CO-412, CO-279 in 0.4.0; `0ab444ca`: the re-pin in 0.3.13) |
-| V2-9 | PL-9 | An agent sets «Этот компьютер: мой» with no evidence beyond its own act | ruled: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back |
+| V2-9 | PL-9 | An agent sets «Этот компьютер: мой» with no evidence beyond its own act | not a defect: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back |
 | V2-10 | DO-1 | The intake rule asks with `com.reply`, which answers the request and closes it | fixed: the question goes on the request's thread with `com.submit`, kind message, no `replyTo` (`shared/protocolObligations.ts`, `intake.spec-first`); ADR-0176 amendment 8; `protocolObligations.test.ts` |
 | V2-11 | ER-1 | A failed Claude Code settings write never reached the person; `locked` named a permission error | fixed: the main process tells `locked` from `write-failed` with its code, and a temp-name failure no longer throws (`main/claudeTrust.ts#lockClaudeFile`, `main/claudeInbound.ts#setInbound`); Settings reads `notSaved` (`AgentLinksSetting`); tests in `claude-inbound.test.mjs`, `claude-trust.test.mjs`, `SettingsScreen.test.tsx` |
 | V2-12 | ER-2, DA-1 | An agent's business write can land after the person's | fixed: one per-project lock around read, check and append for both writers (`main/projectOnboarding.ts#projectProfileLock`, `writeAgentProfile`); two interleaving tests in `project-onboarding.test.mjs` |

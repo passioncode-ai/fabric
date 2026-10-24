@@ -131,8 +131,8 @@ Each note is dated and sits under the decision it amends; the decision's own tex
   unwritten writes the missing parts; two presses for one project run one after the other, so the creation and the
   brief are journaled once; every failure, a refused read of the existing task included, is logged (`onboarding.file`)
   before it is thrown (`apps/desktop/src/main/projectOnboarding.ts#createOnboardingFiler`). «Найти связи» was not built:
-  the one offer on a project is «Познакомиться с проектом», shown until an agent records a goal or a summary (setting
-  only the business keeps it, DA-3).
+  the one offer on a project is «Познакомиться с проектом», shown until an agent records a goal, a summary, a plan
+  with items or relations (iteration 2, ER-9; setting only the business keeps it, DA-3).
 - **W2-8 (2026-10-24, DA-1, DA-4):** a task reaches done by the person's close (`task.closed@1`), since an agent never
   moves a task to a terminal state; the closes are read with the moves, each as a move to its outcome, so a close as done
   counts as done (`apps/desktop/src/shared/projectAnalytics.ts#withCloses`). The journal is read newest

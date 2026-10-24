@@ -92,13 +92,14 @@ folder, then open the new bundle.
   never for projects that existed before (OF-31, SCN-171).
 - The board never starts a thread that joins projects of two different businesses, and refuses a post or a participant's
   reply into an existing thread that does (a responder's fenced reply is not yet checked: 0.3.13): the agent is told
-  which businesses and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
+  which businesses and projects, and nothing is stored. When the businesses cannot be read within 5 seconds the post
+  goes through and the refusal that did not happen is logged. A project's business is the one its profile records; a project without one walls
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).
 - A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
   project only); a field it names replaces what was there, except the business, which is yours: an agent records it
   only while none is set and can neither clear nor change it, and you set it on the project page. A project offers
-  «Познакомиться с проектом» until an agent records its goal or summary. This is the schema step to 96 described
+  «Познакомиться с проектом» until an agent records its goal, summary, plan or relations. This is the schema step to 96 described
   under Upgrading.
 - After the release review: the Board's «Нужны вы» lists only what waits for you, naming who asked, and reviews,
   proposals and abandoned work moved to its own tab «На проверке», which says when its read failed or was cut; Агенты says when its list could not be read or nobody works, and a chosen agent's

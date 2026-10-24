@@ -81,7 +81,8 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `docs/evidence/reviews/`. A receipt names the schema, version, iteration,
    level, report path and candidate, the report's SHA-256, a `reviewerRun` used nowhere else, `status: closed`, an
    empty `blockingFindingsOpen` and every finding with a disposition and evidence. The three candidates are distinct
-   commits that exist in this repository, each an ancestor of the next; iteration 3's equals `verifiedCommit`; and
+   commits that exist in this repository, each an ancestor of `verifiedCommit` and none before an earlier one in
+   history (from 0.3.12; before it each had to be an ancestor of the next); iteration 3's equals `verifiedCommit`; and
    each ledger section names its candidate in full (`scripts/lib/release-gate.mjs`, the history checks in
    `scripts/lib/release-mac.mjs#verifiedCandidateProblem`). Reports written for iterations 1 and 2 before this
    packet existed are committed as their reports and receipts for their own candidates. Reviewer independence is
