@@ -457,7 +457,8 @@ export class AgentSurface {
     this.pidAlive = deps.pidAlive ?? pidAlive
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
     this.board = createBoard({
-      rpc: (fn, args) => deps.db.rpc(fn, args),
+      // i3 ER-1: the wall's reads pass its deadline as `signal`, so a slow read is stopped there.
+      rpc: (fn, args, signal) => (signal ? deps.db.rpc(fn, args).abortSignal(signal) : deps.db.rpc(fn, args)),
       // CO-368, CO-369 (0.3.12 W2 S2): the estate's Projects with their business and primary repository, for the wall
       // between businesses and the directory's names; DO-9: an existing thread's participants, for the wall on a post
       // into it. Both throw with their reason, which the board logs before it lets the post through (0.3.12 review i2

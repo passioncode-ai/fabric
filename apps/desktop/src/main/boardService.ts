@@ -244,7 +244,9 @@ export interface BoardCaller {
   responder?: { sessionId: string; cameIn: 'launched' | 'enrolled' | 'handed-off' | 'hub'; agent: string | null; bindingId: string | null }
 }
 /** The SQL door: `db.rpc` in the app, a fake in tests. */
-export type BoardRpc = (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>
+/** The board's SQL door. `signal` is passed only by the wall's reads (its deadline); a door that ignores it is still
+ *  bounded by the wall's own race. */
+export type BoardRpc = (fn: string, args: Record<string, unknown>, signal?: AbortSignal) => PromiseLike<{ data: unknown; error: unknown }>
 
 export interface BoardDeps {
   rpc: BoardRpc
@@ -416,14 +418,23 @@ export function createBoard(deps: BoardDeps) {
       return null
     }
   }
-  /** The thread a message is in, read as this caller (a reply's), for the wall; null when it cannot be read. */
-  const threadOfMessage = async (caller: BoardCaller, message: string): Promise<string | null> => {
+  /** The thread a message is in, read as this caller (a reply's), for the wall; null when it cannot be read. The read
+   *  runs inside the wall's deadline (`signal`), and a read that fails is logged with its reason (0.3.12 review i3 ER-1). */
+  const threadOfMessage = async (caller: BoardCaller, message: string, signal?: AbortSignal): Promise<string | null> => {
     if (!deps.projectFacts || !deps.threadParticipants) return null
+    const note = 'the thread of the message replied to could not be read; the wall is not checked for this reply'
     try {
-      const { data, error } = await deps.rpc('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message })
+      const { data, error } = await deps.rpc('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message }, signal)
+      if (error) {
+        const reason = (error as { message?: unknown }).message
+        ops.failed('board.thread-participants-read', new Error(typeof reason === 'string' && reason ? reason : 'the board refused the read'), { note })
+        return null
+      }
       const m = (data as { ok?: unknown; message?: { thread?: unknown } } | null)
-      if (!error && m?.ok === true && typeof m.message?.thread === 'string') return m.message.thread
-      // Silence is right: a message this caller cannot read is refused by board_reply itself, which says so.
+      if (m?.ok === true && typeof m.message?.thread === 'string') return m.message.thread
+      // Silence is right: a message this caller cannot read (ok: false) is refused by board_reply itself, which says so.
+      if (m !== null && typeof m === 'object' && m.ok === false) return null
+      ops.failed('board.thread-participants-read', new Error('no thread in the answer'), { note })
       return null
     } catch (e) {
       ops.failed('board.thread-participants-read', e, { note: 'the thread of the message replied to could not be read; the wall is not checked for this reply' })
@@ -627,11 +638,12 @@ export function createBoard(deps: BoardDeps) {
       if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
       parsed.data.replyTo = replyTo
       // DO-9 (W2-5): a reply posts into the thread of the message it answers; the same wall as any post there.
-      const replyThread = await threadOfMessage(caller, replyTo)
-      if (replyThread) {
-        const walled = await wallFor(caller, 'existing', (signal) => participantsOf(caller, replyThread, signal))
-        if (walled) return walled
-      }
+      // i3 ER-1: the thread's read is the first of the wall's reads, under its one deadline.
+      const walled = await wallFor(caller, 'existing', async (signal) => {
+        const replyThread = await threadOfMessage(caller, replyTo, signal)
+        return replyThread ? participantsOf(caller, replyThread, signal) : null
+      })
+      if (walled) return walled
       const digest = idempotencyDigest('com.reply', parsed.data)
       if (typeof digest !== 'string') return digest
       return receipt('board_reply', await call('board_reply', { p_estate_id: caller.estateId, p_sender: caller.projectId, p_principal: caller.principal, p_reply: parsed.data, p_digest: digest }, 'write'))

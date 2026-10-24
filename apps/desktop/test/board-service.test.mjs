@@ -729,6 +729,37 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
     assert.equal(open.calls.filter((c) => c.fn === 'board_reply').length, 1)
   })
 
+  test('i3 ER-1: a reply whose thread cannot be read is logged with its reason, and that read is inside the wall\'s deadline', async () => {
+    const replied = { data: { ok: true, repeated: false, message: P(96), thread: P(93), at: '2026-10-23T00:00:00.000Z' }, error: null }
+    const reply = (key) => ({ idempotency: { epoch: 1, key }, replyTo: P(95), body: { text: 'hello' } })
+    // A database refusal (supabase-js reports it as an error answer, not a throw) skips the wall, said once.
+    logged.length = 0
+    const refused = fake({ board_get: { data: null, error: { message: 'canceling statement due to statement timeout' } }, board_reply: replied })
+    assert.equal((await createBoard({ rpc: refused.rpc, projectFacts: async () => facts, threadParticipants }).reply(caller, reply('wall-000021'))).ok, true)
+    const skipped = logged.filter((x) => x.op === 'board.thread-participants-read')
+    assert.equal(skipped.length, 1, JSON.stringify(logged))
+    assert.match(String(skipped[0].detail?.note), /the wall is not checked for this reply/)
+    assert.match(String(skipped[0].error?.message), /statement timeout/, 'the database\'s own reason')
+    // A message this caller may not read (ok: false) is board_reply's own refusal to say: no line here.
+    logged.length = 0
+    const unreadable = fake({ board_get: { data: { ok: false, error: { code: 'not_authorized', message: 'no' } }, error: null }, board_reply: replied })
+    await createBoard({ rpc: unreadable.rpc, projectFacts: async () => facts, threadParticipants }).reply(caller, reply('wall-000022'))
+    assert.equal(logged.filter((x) => x.op === 'board.thread-participants-read').length, 0)
+    // A board_get that never answers is stopped at the wall's deadline, told to stop, and the reply goes through.
+    logged.length = 0
+    let stopped = false
+    const slow = fake({ board_reply: replied })
+    const rpc = (fn, args, signal) => fn === 'board_get'
+      ? new Promise(() => { signal?.addEventListener('abort', () => { stopped = true }) })
+      : slow.rpc(fn, args)
+    const started = Date.now()
+    const out = await createBoard({ rpc, projectFacts: async () => facts, threadParticipants, wallDeadlineMs: 50 }).reply(caller, reply('wall-000023'))
+    assert.equal(out.ok, true)
+    assert.ok(Date.now() - started < 1000, 'held by the wall\'s deadline, not the request deadline')
+    assert.equal(stopped, true, 'the thread read was told to stop')
+    assert.equal(logged.filter((x) => x.op === 'board.wall-deadline').length, 1)
+  })
+
   test('a Project read that fails walls nothing and the message goes through', async () => {
     const { rpc, calls } = fake({ board_submit: stored })
     const board = createBoard({ rpc, projectFacts: async () => { throw new Error('projects unreadable') } })
