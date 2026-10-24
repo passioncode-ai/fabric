@@ -4,7 +4,7 @@
 // detailed sections the navigation's project groups point at stay below, unchanged.
 
 import { useEffect, useState } from 'react'
-import type { BoardCut } from '../../../shared/board'
+import { reviewCounts, type BoardCut } from '../../../shared/board'
 import type { GoalRow } from '../../../shared/plan'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../../shared/types'
@@ -20,7 +20,7 @@ import { useOpenConsole } from '../consoles'
 import { ProjectProfile } from './ProjectProfile'
 import { ProjectAnalytics } from './ProjectAnalytics'
 
-export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onGraph, onOpenTask, onNewTask, onSection }: {
+export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onReview, onPlan, onPulse, onGraph, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
   onPulse?: () => void
   project: ProjectRow
@@ -35,6 +35,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   /** When the journal last said anything about this project; null when it has said nothing. */
   lastEventAt: string | null
   onBoard: (item?: string) => void
+  /** The Board's «На проверке», for this project: where its reviews, proposals and abandoned work are (iteration 3, UX-1). */
+  onReview?: () => void
   /** Planning, opened at this project's goals (SCR-40). */
   onPlan: () => void
   /** The graph around this project (SCN-175): the keyboard's way to it, as the rail's mark is the pointer's (0.3.12 review UX-11). */
@@ -48,6 +50,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   const showConsole = useOpenConsole()
   const [board, setBoard] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [boardProblem, setBoardProblem] = useState<string | null>(null)
+  /** This project's «На проверке» count; null while unknown or unreadable (it is then not said). */
+  const [toReview, setToReview] = useState<number | null>(null)
   const [goals, setGoals] = useState<GoalRow[] | null>(null)
   const [team, setTeam] = useState<CreatedAgent[] | null>(null)
   const [teamProblem, setTeamProblem] = useState<string | null>(null)
@@ -55,9 +59,16 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
 
   useEffect(() => {
     let alive = true
-    window.fabric.board.query({ projectId: project.id, limit: 10 }).then(
+    // «Вопросы ко мне» is the person's part (`personOnly`), the set the rail beside this project and Главная count; the
+    // project's reviews, proposals and abandoned work are counted apart, on the Board's «На проверке» (iteration 3, UX-1).
+    const mine = window.fabric.board.query({ projectId: project.id, limit: 10, personOnly: true })
+    mine.then(
       (b) => { if (alive) { setBoard(b); setBoardProblem(null) } },
       (e: unknown) => alive && setBoardProblem(e instanceof Error ? e.message : String(e))
+    )
+    Promise.all([mine, window.fabric.board.query({ projectId: project.id, limit: 1 })]).then(
+      ([m, w]) => { if (alive) setToReview(m.data && w.data ? reviewCounts(w.data, m.data).total : null) },
+      () => { if (alive) setToReview(null) }
     )
     window.fabric.goals.list(project.id).then(
       (g) => { if (alive) { setGoals(g); setGoalsProblem(null) } },
@@ -144,6 +155,9 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
               </button>
             ))}
             {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
+            {onReview && toReview !== null && toReview > 0 && (
+              <button type="button" className="lp-button lh-text-link" onClick={onReview}>{t('launch.project.toReview', { count: toReview })}</button>
+            )}
           </section>
 
           <ProjectBoardGlance path={path} problem={tasksProblem} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />

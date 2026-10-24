@@ -11,7 +11,7 @@
 // that is stable per attempt, so a retry after a lost answer is the same act.
 
 import { useEffect, useRef, useState } from 'react'
-import { PERSON_KINDS, type BoardCut, type BoardEntry } from '../../../shared/board'
+import { PERSON_KINDS, reviewCounts, type BoardCut, type BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
 import type { BoardTab } from '../../../shared/appRoute'
 import type { EntityRef } from '../../../shared/entityRef'
@@ -77,6 +77,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   /** The whole open board, for «На проверке»; its own failure is said on its tab (iteration 2, ER-8). */
   const [wholeOpen, setWholeOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [wholeProblem, setWholeProblem] = useState<string | null>(null)
+  /** When the kept whole board was read: said beside its rows after a later read fails (iteration 3, ER-3). */
+  const [wholeAt, setWholeAt] = useState<string | null>(null)
   const [done, setDone] = useState<ReadEnvelope<ResolvedEntry[]> | null>(null)
   const [later, setLater] = useState<ReadEnvelope<DeferredEntry[]> | null>(null)
   /** The reason being written for one question, keyed by it; kept across a refusal. */
@@ -140,7 +142,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         // The person's part, the read the home's «Нужны вы» counts (CO-391).
         const mineRead = window.fabric.board.query({ projectId, limit: BOARD_LIMIT, personOnly: true })
         rest = window.fabric.board.query({ projectId, limit: BOARD_LIMIT }).then(
-          (a) => { if (alive) { setWholeOpen(a); setWholeProblem(null) } },
+          (a) => { if (alive) { setWholeOpen(a); setWholeAt(a.asOf ?? new Date().toISOString()); setWholeProblem(null) } },
           (e: unknown) => { if (alive) setWholeProblem(e instanceof Error ? e.message : String(e)) })
         const [o, d, l] = await Promise.all([
           mineRead,
@@ -163,21 +165,28 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   // What the tab on screen was read from and did not answer; «На проверке» is read from the whole board (iteration 2, ER-8).
   const consulted = [...(shows('open') ? open?.sources ?? [] : []), ...(shows('review') ? wholeOpen?.sources ?? [] : []),
     ...(shows('later') ? later?.sources ?? [] : []), ...(shows('done') ? done?.sources ?? [] : [])]
-  const unread = consulted.filter((s, i) => s.status !== 'ok' && consulted.findIndex((x) => x.name === s.name) === i)
+  // Named once among the FAILED sources: the person's read and the whole board's report the same names, and a source one
+  // answered must not hide the other's failure of it (iteration 3, ER-2).
+  const unread = consulted.filter((s) => s.status !== 'ok').filter((s, i, failed) => failed.findIndex((x) => x.name === s.name) === i)
   const mine = (open?.data?.items ?? []).filter((e) => PERSON_KINDS.has(e.kind))
   const toReview = (wholeOpen?.data?.items ?? []).filter((e) => !PERSON_KINDS.has(e.kind))
   /** The person's part cut at its first rows (exact: `personOnly` counts the whole part), and the whole board's cut, from
    *  which «На проверке» is filtered: past it, rows to review may be missing (iteration 2, ER-8, UX-5). */
   const mineCut = open?.data && open.data.hidden > 0 ? open.data : null
   const reviewCut = wholeOpen?.data ? wholeOpen.data.hidden > 0 : false
-  /** «На проверке» could not be read: said in its place, never as nothing to review. */
+  /** «На проверке» has never been read: said in its place, never as nothing to review. */
   const reviewFailed = wholeProblem !== null && wholeOpen === null
-  // Arriving for a row to review (a project's «Разобрать» on a review) opens the tab that lists it.
+  /** A later read of it failed while rows from an earlier one are kept: they stay, said as that reading's (ER-3). */
+  const reviewStale = wholeProblem !== null && wholeOpen !== null
+  /** How many rows «На проверке» holds, for its tab: from the same two readings (iteration 3, UX-2). */
+  const reviewTotal = open?.data && wholeOpen?.data ? reviewCounts(wholeOpen.data, open.data).total : null
+  // Arriving for a row to review (a project's «Разобрать» on a review) opens the tab that lists it; when that tab's read
+  // failed, a row the person's part does not hold is one to review, and the tab says its failure (iteration 3, ER-3).
   const arrivedTab = useRef(false)
   useEffect(() => {
-    if (arrivedTab.current || !initialItem || open === null || wholeOpen === null) return
+    if (arrivedTab.current || !initialItem || open === null || (wholeOpen === null && wholeProblem === null)) return
     arrivedTab.current = true
-    if (!mine.some((e) => e.ref === initialItem) && toReview.some((e) => e.ref === initialItem)) setFilter('review')
+    if (!mine.some((e) => e.ref === initialItem) && (wholeOpen === null || toReview.some((e) => e.ref === initialItem))) setFilter('review')
   })
   const rows: Row[] | null = open === null || (wholeOpen === null && !reviewFailed) || done === null || later === null ? null : [
     ...(shows('open') ? mine.map((entry) => ({ at: 'open' as const, entry })) : []),
@@ -327,12 +336,15 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
           <div className="lp-tabs" role="group" aria-label={t('launch.board.filter')}>
             {(['open', 'review', 'later', 'done', 'all'] as Filter[]).map((f) => (
               <button key={f} type="button" className="lp-button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
-                {t(`launch.board.tab.${f}` as 'launch.board.tab.open')}
+                {f === 'review' && reviewTotal !== null ? t('launch.board.tab.reviewCount', { count: reviewTotal }) : t(`launch.board.tab.${f}` as 'launch.board.tab.open')}
               </button>
             ))}
           </div>
           {rows === null && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
           {shows('review') && reviewFailed && <FailureNote said={t('launch.board.reviewUnreadable')} detail={wholeProblem} />}
+          {shows('review') && reviewStale && (
+            <FailureNote said={t('launch.board.reviewStale', { time: new Date(wholeAt ?? Date.now()).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })} detail={wholeProblem} />
+          )}
           {rows !== null && rows.length === 0 && !(filter === 'review' && reviewFailed) && (
             // "Clear" is a measurement, so it is said only of a read that was whole.
             unread.length === 0 && !(filter === 'all' && reviewFailed) ? (

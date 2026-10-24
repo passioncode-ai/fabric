@@ -27,7 +27,8 @@ describe('the project page says what the project is (W2 S4)', () => {
     const api = install({ relations: vi.fn(async () => []) })
     const onOpenTask = vi.fn()
     show(base, onOpenTask)
-    expect(screen.getByText(en['launch.profile.none'])).toBeTruthy()
+    // Offered once the relations have answered: before that the panel cannot tell (iteration 3, UX-6).
+    expect(await screen.findByText(en['launch.profile.none'])).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['launch.profile.onboard'] }))
     await waitFor(() => expect(onOpenTask).toHaveBeenCalledWith('t-onboard'))
     expect(api.onboard).toHaveBeenCalledWith('p1')
@@ -37,7 +38,7 @@ describe('the project page says what the project is (W2 S4)', () => {
     // A project with no profile has no relations either: an agent records them with the rest (iteration 2, ER-9).
     install({ relations: vi.fn(async () => []), onboard: vi.fn(async () => { throw new Error('journal refused') }) })
     show(base)
-    fireEvent.click(screen.getByRole('button', { name: en['launch.profile.onboard'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['launch.profile.onboard'] }))
     await waitFor(() => expect(screen.getByText(en['launch.profile.onboardFailed'])).toBeTruthy())
     expect((screen.getByRole('button', { name: en['launch.profile.onboard'] }) as HTMLButtonElement).disabled).toBe(false)
   })
@@ -63,6 +64,25 @@ describe('the project page says what the project is (W2 S4)', () => {
     expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
     expect(screen.queryByText(en['launch.profile.none'])).toBeNull()
   })
+  // 0.3.12 review, iteration 3, UX-6 / ER-6: a project whose profile is relations alone was offered «Get to know the project»
+  // while the relations were being read, and for good when that read failed.
+  it('while the relations are unread or unreadable, the offer is not made: the panel says it is reading, or cannot tell', async () => {
+    let answer: ((r: unknown[]) => void) | null = null
+    const api = install({ relations: vi.fn(() => new Promise((ok) => { answer = ok })) })
+    show({ ...base, goal: null, summary: null, plan: null } as ProjectRow)
+    await waitFor(() => expect(api.relations).toHaveBeenCalled())
+    expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
+    expect(screen.queryByText(en['launch.profile.none'])).toBeNull()
+    answer!([{ kind: 'depends-on', target: 'fabric-agent-contract', note: null }])
+    await waitFor(() => expect(screen.getByText(/Depends on fabric-agent-contract/)).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
+    cleanup()
+    install({ relations: vi.fn(async () => { throw new Error('no table') }) })
+    show({ ...base, goal: null, summary: null, plan: null } as ProjectRow)
+    await waitFor(() => expect(screen.getByText(en['launch.profile.undecided'])).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
+    expect(screen.queryByText(en['launch.profile.none'])).toBeNull()
+  })
   it('recorded relations alone count as onboarded too, once they are read', async () => {
     install()
     show({ ...base, goal: null, summary: null, plan: null } as ProjectRow)
@@ -81,10 +101,10 @@ describe('the project page says what the project is (W2 S4)', () => {
   })
 
   it('keeps the offer when only the person\'s business was recorded, and never says an agent recorded no goal (DA-3)', async () => {
-    install()
+    install({ relations: vi.fn(async () => []) })
     // Setting the business journals project.profiled@1 too, which stamps profiled_at; no agent has run.
     show({ ...base, business: 'PassionCode', profiled_at: '2026-10-23T00:00:00Z', profiled_by: 'operator', goal: null, summary: null })
-    expect(screen.getByRole('button', { name: en['launch.profile.onboard'] })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: en['launch.profile.onboard'] })).toBeTruthy()
     expect(screen.getByText(en['launch.profile.none'])).toBeTruthy()
     expect(screen.queryByText(en['launch.profile.noGoal'])).toBeNull()
     expect((screen.getByLabelText(en['launch.profile.business']) as HTMLInputElement).value).toBe('PassionCode')

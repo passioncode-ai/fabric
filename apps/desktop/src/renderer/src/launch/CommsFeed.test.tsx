@@ -126,9 +126,10 @@ describe('Comms as a feed', () => {
       await waitFor(() => expect(screen.getByText('Done in 0.3.11.')).toBeTruthy())
       fireEvent.click(screen.getByRole('button', { name: label }))
       const text = document.body.textContent ?? ''
-      if (locale === 'ru') expect(text).toContain('Среди 1 самого нового поста нет просьб')
+      // «Среди 1 самого нового поста» read as a translation (iteration 3, UX-8); the `one` form also serves 21, 31…
+      if (locale === 'ru') expect(text).toContain('Прочитан 1 самый новый пост: просьб, которые ждут ответа, нет.')
       else expect(text).toContain('The newest post is not a request waiting for an answer.')
-      expect(text).not.toMatch(/1 самых|newest 1 posts/)
+      expect(text).not.toMatch(/1 самых|1 самого|newest 1 posts/)
       cleanup()
     }
   })

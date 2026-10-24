@@ -15,7 +15,7 @@ import { orderProjects } from '../../shared/homeLive.ts'
 import { since } from './duration'
 import {
   waitingCounts,
-  waitingProblem,
+  waitingProblem as waitingProblemOf,
   type WaitingReading
 } from '../../shared/attention.ts'
 import {
@@ -50,7 +50,10 @@ export function EstateHome({
   onPersona,
   onAgents = () => {},
   onComms,
-  waitingForYou
+  waitingForYou,
+  waitingProblem = null,
+  toReview,
+  onReview
 }: {
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
    *  estate holds no projects" — and saying it before looking is the one lie a
@@ -103,6 +106,15 @@ export function EstateHome({
    *  whole estate and per project; null while unread or unreadable. The greeting, the strip's «ждут вас» and each
    *  project's «Ждут вас» count it. Absent, the home counts its own «Нужны вы» reading and the projects' obligations. */
   waitingForYou?: { total: number; byProject: Record<string, number> } | null
+  /** Why the shell's reading above is null after it failed: said in the banner, and every card says it cannot tell
+   *  (0.3.12 review, iteration 3, ER-5). */
+  waitingProblem?: string | null
+  /** What the Board's «На проверке» lists (reviews, proposals, abandoned work), over the estate and per project, from the
+   *  shell's same readings; null while unknown. The strip's «на проверке» and each project's pill count it (iteration 3,
+   *  UX-2). Absent, they count the tasks in review from `work.home`. */
+  toReview?: { total: number; byProject: Record<string, number> } | null
+  /** The Board on «На проверке». */
+  onReview?: () => void
   /** Comms (SCR-81), from what waits on the project board (0.3.9 BD-2). */
   onComms?: () => void
 }): React.JSX.Element {
@@ -216,7 +228,10 @@ export function EstateHome({
    *  count from — a read that did not answer has no number in it. */
   const counts = waitingCounts(waiting)
   /** Why the counts are not totals, or null because they are (UXA-C02). */
-  const waitProblem = waitingProblem(waiting)
+  // The shell's reading feeds the cards when it is wired: its failure is the one the banner says (iteration 3, ER-5).
+  const waitProblem = waitingForYou !== undefined && waitingForYou === null && waitingProblem !== null
+    ? { kind: 'unreadable' as const, why: waitingProblem }
+    : waitingProblemOf(waiting)
   // PARTITION, not overlay: a pinned project shown here AND in the list below
   // is the same card twice, and the operator can act on the wrong one.
   const { pinned, rest, missing } = partitionByFavourite(rows, pins)
@@ -249,10 +264,14 @@ export function EstateHome({
     // colours it, and a review is said by its own «на проверке» pill.
     const youHere = waitingForYou === undefined ? null : (waitingForYou?.byProject[p.id] ?? 0)
     const waits = waitingForYou === undefined ? obligations : youHere ? { total: youHere, refused: obligations?.refused ?? 0 } : null
+    /** The shell's count is wired and not known (not answered yet, or failed): the card says so, never nothing (ER-5, UX-7). */
+    const waitsUnknown = waitingForYou === null
     const isPinned = pins.includes(p.id)
     // Only favourites move by hand; the rest are ordered by activity.
     const at = pinned.findIndex((g) => g.id === p.id)
     const pp = pulse.get(p.id)
+    /** «На проверке» here: the Board's count when the shell gives it (UX-2), else the tasks in review; null while unknown. */
+    const reviewHere = toReview === undefined ? (pp?.review ?? 0) : toReview === null ? null : (toReview.byProject[p.id] ?? 0)
     return (
       <article key={p.id} className="lp-project-row">
         <span className="lp-project-icon" aria-hidden="true">{(p.name.trim()[0] ?? '·').toUpperCase()}</span>
@@ -270,10 +289,12 @@ export function EstateHome({
         </div>
         <div className="lp-project-tools">
           {waits && <span className={`lp-pill ${waits.refused > 0 ? 'danger' : 'attention'}`}>{t('estate.waiting', { count: waits.total })}</span>}
+          {waitsUnknown && <span className="lp-pill" title={waitingProblem ?? undefined}>{t('estate.waitingUnknown')}</span>}
           {(pp?.live ?? live) > 0 && <span className="lp-pill live">{t('launch.home.projects.live', { count: pp?.live ?? live })}</span>}
-          {(pp?.review ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: pp!.review })}</span>}
-          {/* «idle» only from a home reading that happened: before it, or after it failed, nothing is known (i2 ER-2). */}
-          {home.view && !home.problem && !waits && !obligations && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
+          {(reviewHere ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: reviewHere! })}</span>}
+          {/* «idle» only from readings that happened: the home's, and the person's count and «На проверке» when wired;
+              before them, or after one failed, nothing is known (i2 ER-2, i3 UX-7). */}
+          {home.view && !home.problem && !waitsUnknown && reviewHere !== null && !waits && !obligations && !(pp?.live ?? live) && !reviewHere && <span className="lp-pill">{t('estate.idle')}</span>}
           {pinning && (
             <>
               <button type="button" className="lp-button" aria-pressed={isPinned}
@@ -505,7 +526,8 @@ export function EstateHome({
           </div>
           <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
-            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} />
+            toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
+            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview} />
         </header>
       </div>
 

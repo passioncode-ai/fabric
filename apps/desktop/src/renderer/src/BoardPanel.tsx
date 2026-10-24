@@ -25,10 +25,14 @@ import { MachineDetail } from './OperatorError'
 export function BoardPanel({
   projectId = null,
   limit = 5,
-  feedMark
+  feedMark,
+  personOnly = false
 }: {
   projectId?: string | null
   limit?: number
+  /** Only what the person alone resolves (`PERSON_KINDS`), the part the rail and Главная count (0.3.12 review, iteration 3,
+   *  UX-1). */
+  personOnly?: boolean
   /** Re-read on the journal's clock, so the board does not disagree with the
    *  feed beside it. */
   feedMark: number
@@ -50,7 +54,7 @@ export function BoardPanel({
     // that cannot read what it is for says so, where before the diagnosis sat
     // in state one branch above the banner that would have shown it.
     try {
-      void window.fabric.board.query({ projectId, limit }).then(
+      void window.fabric.board.query({ projectId, limit, ...(personOnly ? { personOnly: true } : {}) }).then(
         (v) => alive && setView(v),
         (e: unknown) => alive && setProblem(e instanceof Error ? e.message : String(e))
       )
@@ -60,7 +64,7 @@ export function BoardPanel({
     return () => {
       alive = false
     }
-  }, [projectId, limit, feedMark])
+  }, [projectId, limit, feedMark, personOnly])
 
   const cut = view?.data ?? null
   const unread = (view?.sources ?? []).filter((s) => s.status !== 'ok')

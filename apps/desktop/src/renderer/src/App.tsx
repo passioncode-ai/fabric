@@ -47,6 +47,7 @@ import { ReleasesScreen } from './launch/ReleasesScreen'
 import { PersonaScreen } from './launch/PersonaScreen'
 import { GuideScreen, HelpScreen } from './launch/HelpScreens'
 import { markOf } from '../../shared/feedMarks.ts'
+import { reviewCounts } from '../../shared/board.ts'
 import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
@@ -200,6 +201,11 @@ function Shell({
   const [pins, setPins] = useState<string[]>([])
   /** What waits for the person, over the whole board and by project; null while unknown (SCN-162: a count is a claim). */
   const [waiting, setWaiting] = useState<{ total: number; byProject: Record<string, number> } | null>(null)
+  /** Why `waiting` is null after a read that failed, so a card says it cannot tell rather than nothing (iteration 3, ER-5). */
+  const [waitingProblem, setWaitingProblem] = useState<string | null>(null)
+  /** What the Board's «На проверке» lists (reviews, proposals, abandoned work), counted from the same two readings; null
+   *  while unknown (iteration 3, UX-2). */
+  const [toReview, setToReview] = useState<{ total: number; byProject: Record<string, number> } | null>(null)
   /** The journal's high-water mark when the person came to the place on screen: the act line shows acts after it. */
   const [placeSince, setPlaceSince] = useState(0)
   const [tabs, setTabs] = useState<Tab[]>([])
@@ -763,13 +769,22 @@ function Shell({
     let alive = true
     // «Нужны вы», cut to one row: its total and per-project counts are over the person's whole part (CO-391), the reading
     // the home's greeting, its «ждут вас» and each project's «Ждут вас» show too (0.3.12 review, iteration 2, UX-1).
+    // The whole board beside it gives «На проверке»'s count, the one the Board's tab shows (iteration 3, UX-2).
     try {
-      window.fabric.board.query({ projectId: null, limit: 1, personOnly: true }).then(
-        (v) => { if (alive) setWaiting(v.data ? { total: v.data.total, byProject: v.data.countsByProject } : null) },
-        () => { if (alive) setWaiting(null) }
+      const mine = window.fabric.board.query({ projectId: null, limit: 1, personOnly: true })
+      const whole = window.fabric.board.query({ projectId: null, limit: 1 })
+      mine.then(
+        (v) => { if (alive) { setWaiting(v.data ? { total: v.data.total, byProject: v.data.countsByProject } : null); setWaitingProblem(null) } },
+        (e: unknown) => { if (alive) { setWaiting(null); setWaitingProblem(e instanceof Error ? e.message : String(e)) } }
       )
-    } catch {
+      Promise.all([mine, whole]).then(
+        ([m, w]) => { if (alive) setToReview(m.data && w.data ? reviewCounts(w.data, m.data) : null) },
+        () => { if (alive) setToReview(null) }
+      )
+    } catch (e) {
       setWaiting(null) // no count rather than a wrong one
+      setWaitingProblem(e instanceof Error ? e.message : String(e))
+      setToReview(null)
     }
     return () => { alive = false }
   }, [boardMark, isMainWindow])
@@ -1065,7 +1080,8 @@ function Shell({
             initialItem={active.item ?? null}
             startTopic={active.topic === true}
             projects={projects}
-            feedMark={markOf(marks, ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect'])}
+            // The families «Нужны вы» follows everywhere, so an access request re-reads this list too (iteration 3, UX-3).
+            feedMark={markOf(marks, NEEDS_YOU_FAMILIES)}
             onOpen={openEntity}
             onError={setError}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
@@ -1238,6 +1254,9 @@ function Shell({
         {active.kind === 'home' && (
           <EstateHome
             waitingForYou={waiting}
+            waitingProblem={waitingProblem}
+            toReview={toReview}
+            onReview={() => setActive({ kind: 'board', needs: true, tab: 'review' })}
             onOpenEntity={openEntity}
             projects={projects}
             sessions={sessions}
@@ -1321,6 +1340,7 @@ function Shell({
             onPlan={(projectId) => setActive({ kind: 'plan', projectId })}
             onPulse={(projectId) => setActive({ kind: 'pulse', projectId })}
             onBoard={(projectId, item) => setActive({ kind: 'board', projectId, item: item ?? null })}
+            onReview={(projectId) => setActive({ kind: 'board', projectId, needs: true, tab: 'review' })}
             onGraph={(projectId) => setActive({ kind: 'graph', projectId })}
             onError={setError}
           />

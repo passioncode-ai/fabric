@@ -36,4 +36,14 @@ describe('the words a person reads, not the records behind them (0.3.12 review U
     expect(ru['needsYou.askedByPerson']).toBe('вы спросили')
     expect(en['needsYou.askedByPerson']).toBe('you asked')
   })
+  // 0.3.12 review, iteration 3, UX-8: «Среди 1 самого нового поста…», «посты: 1» and «Не прочитан этот:».
+  it('the Comms feed\'s one form reads for 1 and for 21, and one unread repository is «один»', () => {
+    const ru = translator('ru')
+    const said = (key: 'short' | 'noWaiting', n: number) => ru(`launch.comms.feed.${key}.${pluralForm('ru', n)}`, { count: n })
+    expect(said('short', 1)).toMatch(/^Показан 1 последний найденный пост\./)
+    expect(said('short', 21)).toMatch(/^Показан 21 последний найденный пост\./)
+    expect(said('noWaiting', 1)).toMatch(/^Прочитан 1 самый новый пост: просьб, которые ждут ответа, нет\./)
+    expect(said('noWaiting', 21)).toMatch(/^Прочитан 21 самый новый пост:/)
+    expect(ru('launch.profile.peopleSomeOne')).toMatch(/Не прочитан один:$/)
+  })
 })

@@ -3,7 +3,7 @@
 // requests, refusals). Reviews and proposals are the person's to look at, not what blocks an agent: they are not counted
 // here. Rendered through the real shell, because the defect was three readers wired to three different reads.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
 import { en } from './i18n/en'
 import { whole } from '../../../test/envelopes'
@@ -17,8 +17,8 @@ afterEach(() => {
 
 const STAMP = '2026-10-24T10:00:00Z'
 
-function stub(board: (q?: { personOnly?: boolean }) => unknown, attention: unknown) {
-  const feed: unknown[] = []
+function stub(board: (q?: { personOnly?: boolean; limit?: number }) => unknown, attention: unknown) {
+  const feed: Array<{ seq: number; type: string; occurred_at: string; payload: unknown; project_id: string | null }> = []
   const undo = vi.fn()
   const groups: unknown[] = []
   const savedTabs: unknown = undefined
@@ -76,7 +76,7 @@ function stub(board: (q?: { personOnly?: boolean }) => unknown, attention: unkno
     estate: { summary: async () => null, profile: async () => null },
     attention: { list: async () => attention },
     favourites: { list: async () => [] },
-    board: { query: vi.fn(async (q?: { personOnly?: boolean }) => board(q)), resolved: async () => whole([]), deferred: async () => whole([]) },
+    board: { query: vi.fn(async (q?: { personOnly?: boolean; limit?: number }) => board(q)), resolved: async () => whole([]), deferred: async () => whole([]) },
     workspace: { state: async () => ({ path: null, git: 'declined' }) },
     windows: { openSession: async () => {} },
     search: { run: vi.fn(async () => groups) },
@@ -108,18 +108,21 @@ function stub(board: (q?: { personOnly?: boolean }) => unknown, attention: unkno
     }
   }
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: api }))
-  return { api, write }
+  return { api, write, feed }
 }
 
 
+const q = (id: string): BoardQuestion => ({ id, projectId: 'p1', projectName: 'Atlas', text: 'Question ' + id, kind: 'decision', askedAt: STAMP, blocks: 0, servesActiveGoal: false, revision: 1, options: [] })
+const att = (kind: 'review' | 'proposal', id: string): AttentionItem => ({ kind, ref: kind === 'review' ? { kind: 'task', id } : { kind: 'proposal', id }, projectId: 'p1', projectName: 'Atlas', title: kind + ' ' + id, detail: null, since: STAMP,
+  ...(kind === 'proposal' ? { proposal: { id, depth: 1, bound: 3 } } : {}) } as AttentionItem)
+const items = [att('review', 'r1'), att('review', 'r2'), att('proposal', 'pr1')]
+const entries = boardEntries({ questions: [q('q1'), q('q2')], attention: items, projectWeightOf: () => 1, now: new Date(STAMP) })
+/** Read as main reads it: the person's part or the whole board, cut at the limit asked for. */
+const board = (query?: { personOnly?: boolean; limit?: number }) => whole(cutBoard(query?.personOnly ? entries.filter((e) => PERSON_KINDS.has(e.kind)) : entries, query?.limit ?? 100))
+const strip = () => screen.getByRole('group', { name: en['launch.home.stats.label'] })
+
 describe('what waits for you, counted once', () => {
   it('two questions, two reviews and a proposal: the greeting, the strip and the rail all say 2', async () => {
-    const q = (id: string): BoardQuestion => ({ id, projectId: 'p1', projectName: 'Atlas', text: 'Question ' + id, kind: 'decision', askedAt: STAMP, blocks: 0, servesActiveGoal: false, revision: 1, options: [] })
-    const att = (kind: 'review' | 'proposal', id: string): AttentionItem => ({ kind, ref: kind === 'review' ? { kind: 'task', id } : { kind: 'proposal', id }, projectId: 'p1', projectName: 'Atlas', title: kind + ' ' + id, detail: null, since: STAMP,
-      ...(kind === 'proposal' ? { proposal: { id, depth: 1, bound: 3 } } : {}) } as AttentionItem)
-    const items = [att('review', 'r1'), att('review', 'r2'), att('proposal', 'pr1')]
-    const entries = boardEntries({ questions: [q('q1'), q('q2')], attention: items, projectWeightOf: () => 1, now: new Date(STAMP) })
-    const board = (query?: { personOnly?: boolean }) => whole(cutBoard(query?.personOnly ? entries.filter((e) => PERSON_KINDS.has(e.kind)) : entries, 100))
     stub(board, whole(items))
     render(<App />)
     await waitFor(() => expect(screen.getByTestId('home-greeting').textContent).toContain(en['launch.home.greet.waiting.few'].replace('{count}', '2')))
@@ -128,5 +131,60 @@ describe('what waits for you, counted once', () => {
     expect(cell.querySelector('b')?.textContent).toBe('2')
     await waitFor(() => expect(screen.getByLabelText(en['rail.waiting'].replace('{count}', '2'))).toBeTruthy())
     expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy()
+  })
+
+  // 0.3.12 review, iteration 3, UX-1: the rail beside the project said 2 while the project page's «Questions for you» said 5
+  // and its «Needs you» listed the proposal and the reviews as the person's.
+  it('the project page says the 2 the rail beside it says, and counts the 3 to review apart', async () => {
+    stub(board, whole(items))
+    render(<App />)
+    await waitFor(() => expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy())
+    fireEvent.click(await waitFor(() => document.querySelector('.lp-project-name') as HTMLElement))
+    const panel = (await screen.findByText(en['launch.project.questions'])).closest('section')!
+    await waitFor(() => expect(within(panel).getByText('Question q2')).toBeTruthy())
+    expect(within(panel).getByText('2', { selector: '.lp-pill' })).toBeTruthy()
+    expect(within(panel).queryByText(/^(review r1|proposal pr1)$/)).toBeNull()
+    await waitFor(() => expect(within(panel).getByRole('button', { name: en['launch.project.toReview'].replace('{count}', '3') })).toBeTruthy())
+    const needs = document.getElementById('sec-needs-you')!
+    await waitFor(() => expect(within(needs).getByText('Question q1')).toBeTruthy())
+    expect(within(needs).queryByText(/review r1|proposal pr1/)).toBeNull()
+    expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy()
+  })
+
+  // 0.3.12 review, iteration 3, UX-2: proposals and abandoned work left no mark in the window but the Board's second tab.
+  it('the strip\'s «to review» counts the reviews and the proposal, 3, and opens the Board on «To review»', async () => {
+    stub(board, whole(items))
+    render(<App />)
+    const cell = await waitFor(() => {
+      const c = within(strip()).getByRole('button', { name: new RegExp(en['launch.home.stats.review']) })
+      expect(c.querySelector('b')?.textContent).toBe('3')
+      return c
+    })
+    fireEvent.click(cell)
+    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.board.tab.reviewCount'].replace('{count}', '3') }).getAttribute('aria-pressed')).toBe('true'))
+  })
+
+  // 0.3.12 review, iteration 3, ER-5 and UX-7: when the person's count failed, each card's «waiting on you» vanished and a
+  // project row could say «idle».
+  it('a count that could not be read is said on every card, never as nothing waiting or idle', async () => {
+    stub((query) => { if (query?.personOnly) throw new Error('statement timeout'); return board(query) }, whole(items))
+    render(<App />)
+    await waitFor(() => expect(screen.getByText(/What needs you could not be read: statement timeout/)).toBeTruthy())
+    const row = document.querySelector('.lp-project-row') as HTMLElement
+    expect(within(row).getByText(en['estate.waitingUnknown'])).toBeTruthy()
+    expect(within(row).queryByText(en['estate.idle'])).toBeNull()
+  })
+
+  // 0.3.12 review, iteration 3, UX-3: the Board did not follow `access`, so a new access request moved the rail and not
+  // the list the rail leads to.
+  it('an access request re-reads the Board\'s list, as it moves the rail', async () => {
+    const { api, feed } = stub(board, whole(items))
+    render(<App />)
+    fireEvent.click(await waitFor(() => within(strip()).getByRole('button', { name: new RegExp(en['launch.home.stats.waiting']) })))
+    const boardReads = () => api.board.query.mock.calls.filter(([qq]) => qq?.limit === 100 && qq.personOnly === true).length
+    await waitFor(() => expect(boardReads()).toBeGreaterThan(0))
+    const before = boardReads()
+    feed.push({ seq: 7, type: 'access.requested@1', occurred_at: STAMP, payload: {}, project_id: 'p1' })
+    await waitFor(() => expect(boardReads()).toBeGreaterThan(before), { timeout: 5000 })
   })
 })

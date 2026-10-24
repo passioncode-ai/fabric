@@ -63,12 +63,18 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
   // DA-3 / ER-1: onboarded is what an agent recorded, not `profiled_at`: the person setting only the business stamps
   // `profiled_at` too, and must not lose «Познакомиться с проектом» or read that an agent recorded no goal. An agent told
   // to leave out what it cannot find may record a plan or relations and no goal: that is a profile too (iteration 2, ER-9).
-  const profiled = !!(project.goal?.trim() || project.summary?.trim()) || planned || (relations?.length ?? 0) > 0
+  const recorded = !!(project.goal?.trim() || project.summary?.trim()) || planned
+  const profiled = recorded || (relations?.length ?? 0) > 0
+  /** Whether the profile is known: what the row carries, or relations from a read that answered. While that read has not
+   *  answered (pending, or failed) a project with no goal, summary or plan is not offered «Познакомиться с проектом»: it may
+   *  hold relations only (iteration 3, UX-6, ER-6). */
+  const undecided = !recorded && relations === null
 
   return (
     <section className="lp-panel" aria-labelledby="project-profile-title">
       <h3 id="project-profile-title">{t('launch.profile.title')}</h3>
-      {!profiled && (
+      {undecided && <p className="lp-meta" role="status">{relationsProblem ? t('launch.profile.undecided') : t('estate.reading')}</p>}
+      {!profiled && !undecided && (
         <>
           <p>{t('launch.profile.none')}</p>
           <button type="button" className="lp-button primary" disabled={onboarding} onClick={onboard}>{t('launch.profile.onboard')}</button>

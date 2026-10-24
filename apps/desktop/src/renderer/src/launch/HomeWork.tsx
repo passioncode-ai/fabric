@@ -60,8 +60,10 @@ export function useHome(mark: number): HomeReading {
   return { ...reading, retry: () => setTick((n) => n + 1) }
 }
 
-/** The counts above the board: agents working now, tasks in work, waiting for you, in review. */
-export function HomeStats({ reading, waiting, onAgents, onBoard, onWaiting }: { reading: HomeReading; waiting: number | null; onAgents(): void; onBoard(): void; onWaiting?(): void }): React.JSX.Element {
+/** The counts above the board: agents working now, tasks in work, waiting for you, in review. `toReview`, when given, is
+ *  what the Board's «На проверке» lists (reviews, proposals, abandoned work; null while unknown) and the cell opens that
+ *  tab (0.3.12 review, iteration 3, UX-2); absent, the cell counts the tasks in review from this reading. */
+export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWaiting, onReview }: { reading: HomeReading; waiting: number | null; toReview?: number | null; onAgents(): void; onBoard(): void; onWaiting?(): void; onReview?(): void }): React.JSX.Element {
   const t = useT()
   const v = reading.view
   // After a failed read the last numbers are not current: the strip says it cannot tell (0.3.6 review ER-7).
@@ -80,7 +82,9 @@ export function HomeStats({ reading, waiting, onAgents, onBoard, onWaiting }: { 
       {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '')}
       {cell(inWork === null ? null : `${inWork}${known!.inWorkCapped ? '+' : ''}`, t('launch.home.stats.inWork'), onBoard)}
       {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '')}
-      {cell(known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null, t('launch.home.stats.review'), onBoard)}
+      {toReview !== undefined
+        ? cell(toReview, t('launch.home.stats.review'), onReview ?? onBoard)
+        : cell(known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null, t('launch.home.stats.review'), onBoard)}
     </div>
   )
 }

@@ -62,10 +62,32 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     const { query, onBoard } = mount()
     await waitFor(() => expect(screen.getByText(en['launch.project.questions'])).toBeTruthy())
     await waitFor(() => expect(screen.getByText(question.text)).toBeTruthy())
-    expect(query).toHaveBeenCalledWith({ projectId: 'p1', limit: 10 })
+    expect(query).toHaveBeenCalledWith({ projectId: 'p1', limit: 10, personOnly: true })
     fireEvent.click(screen.getByRole('button', { name: en['launch.project.review'] }))
     // The row's own address, as the producer composes it — the Board opens exactly this row.
     expect(onBoard).toHaveBeenCalledWith(boardWith([question]).data!.items[0].ref)
+  })
+
+  // 0.3.12 review, iteration 3, UX-1: «Вопросы ко мне» counted the whole board (5) while the rail beside it counted the
+  // person's part (2), and listed a proposal and two reviews as questions.
+  it('«Questions for you» is the person\'s part; the project\'s reviews and proposals are a count that opens «To review»', async () => {
+    const att = (kind: 'review' | 'proposal', id: string) => ({ kind, ref: kind === 'review' ? { kind: 'task', id } : { kind: 'proposal', id }, projectId: 'p1', projectName: 'Atlas',
+      title: kind + ' ' + id, detail: null, since: STAMP, ...(kind === 'proposal' ? { proposal: { id, depth: 1, bound: 3 } } : {}) })
+    const entries = boardEntries({ questions: [question, { ...question, id: 'q-2', text: 'Second question' }], attention: [att('review', 'r1'), att('review', 'r2'), att('proposal', 'pr1')] as never,
+      projectWeightOf: () => 1, now: new Date(STAMP) })
+    const { PERSON_KINDS } = await import('../../../shared/board')
+    const boardQuery = async (q?: unknown) => envelope({ data: cutBoard((q as { personOnly?: boolean }).personOnly ? entries.filter((e) => PERSON_KINDS.has(e.kind)) : entries, (q as { limit: number }).limit),
+      sources: [{ name: 'questions', status: 'ok' as const, asOf: STAMP }], asOf: STAMP, freshness: 'fresh' as const })
+    const onReview = vi.fn()
+    mount({ boardQuery: boardQuery as () => Promise<unknown> })
+    cleanup()
+    render(<I18nProvider locale="en"><ProjectLaunch project={project} tasks={[]} sessions={[]} feedMark={0} lastEventAt={null} onBoard={vi.fn()} onReview={onReview} onPlan={vi.fn()} onOpenTask={vi.fn()} onNewTask={vi.fn()} onSection={vi.fn()} /></I18nProvider>)
+    const panel = (await screen.findByText(en['launch.project.questions'])).closest('section')!
+    await waitFor(() => expect(within(panel).getByText('Second question')).toBeTruthy())
+    expect(within(panel).getByText('2', { selector: '.lp-pill' })).toBeTruthy()
+    expect(within(panel).queryByText(/review r1|proposal pr1/)).toBeNull()
+    fireEvent.click(await within(panel).findByRole('button', { name: en['launch.project.toReview'].replace('{count}', '3') }))
+    expect(onReview).toHaveBeenCalled()
   })
 
   it('with nothing waiting and no tasks, the next step is the first result — not a calm claim', async () => {

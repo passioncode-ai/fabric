@@ -56,6 +56,9 @@ import { envelope, type ReadEnvelope } from '../../../shared/readEnvelope'
 import { attentionOf } from '../../../shared/attention'
 import { pendingFacts } from '../../../shared/access'
 
+/** «На проверке» carries its count once it is known (iteration 3, UX-2): its name starts with the tab's word. */
+const REVIEW_TAB = new RegExp(`^${en['launch.board.tab.review']}`)
+
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
@@ -138,7 +141,7 @@ const render_ = (onError = vi.fn()) => {
 const openRow = async (title = 'Atlas should adopt the ledger'): Promise<void> => {
   // A proposal is the person's to review, not what blocks an agent: it is listed under «To review» (0.3.12 review UX-2, iteration 2).
   await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
-  if (!screen.queryByText(title)) fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+  if (!screen.queryByText(title)) fireEvent.click(screen.getByRole('button', { name: REVIEW_TAB }))
   fireEvent.click(await waitFor(() => screen.getByText(title)))
 }
 const show = async (onError = vi.fn()) => {
@@ -314,7 +317,7 @@ describe('the board never calls a partial queue clear (UXA-C02)', () => {
 
   it('and still lists what DID answer, naming what did not', async () => {
     showWith(partial([item()]))
-    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.tab.review'] })))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: REVIEW_TAB })))
     await waitFor(() => expect(screen.getByText(/Atlas should adopt the ledger/)).toBeTruthy())
     expect(screen.getByText(/permission denied|refusals/i)).toBeTruthy()
   })
@@ -771,7 +774,7 @@ describe('the Board\'s «Нужны вы» is the home\'s list (0.3.12 review UX
     expect(query).toHaveBeenCalledWith({ projectId: null, limit: 100, personOnly: true })
     expect(row.textContent).toContain(en['needsYou.askedByAgent'].replace('{agent}', 'Codex'))
     expect(screen.queryByText('Atlas should adopt the ledger'), 'an agent\'s proposal is listed as the person\'s').toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+    fireEvent.click(screen.getByRole('button', { name: REVIEW_TAB }))
     expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy()
     expect(screen.queryByText('Which context goes to the next agent?')).toBeNull()
   })
@@ -780,7 +783,7 @@ describe('the Board\'s «Нужны вы» is the home\'s list (0.3.12 review UX
     const ref = mixed.data!.items.find((e) => e.kind === 'proposal')!.ref
     render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} initialItem={ref} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Atlas should adopt the ledger' })).toBeTruthy())
-    expect(screen.getByRole('button', { name: en['launch.board.tab.review'] }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: REVIEW_TAB }).getAttribute('aria-pressed')).toBe('true')
   })
 })
 
@@ -820,7 +823,7 @@ describe('«To review» (0.3.12 review, iteration 2)', () => {
   it('is named for what it holds, and says there is nothing to review in the person\'s words', async () => {
     install(vi.fn(async () => empty))
     render(<I18nProvider locale="ru"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
-    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: 'На проверке' })))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: /^На проверке/ })))
     await waitFor(() => expect(screen.getByText('Нечего проверять.')).toBeTruthy())
     expect(document.querySelector('.lp-board-layout .lp-panel')?.textContent, 'nothing on this tab says agents settle it').not.toMatch(/агент/i)
   })
@@ -833,7 +836,7 @@ describe('«To review» (0.3.12 review, iteration 2)', () => {
     install(query as unknown as () => Promise<unknown>)
     render_()
     await waitFor(() => expect(screen.getByText('Question q1')).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+    fireEvent.click(screen.getByRole('button', { name: REVIEW_TAB }))
     await waitFor(() => expect(screen.getByText(en['launch.board.reviewUnreadable'])).toBeTruthy())
     expect(screen.getByText(/statement timeout/)).toBeTruthy()
     expect(screen.queryByText(en['launch.board.reviewEmpty']), 'a failed read is not an empty list').toBeNull()
@@ -845,8 +848,61 @@ describe('«To review» (0.3.12 review, iteration 2)', () => {
     install(query as unknown as () => Promise<unknown>)
     render_()
     await waitFor(() => expect(screen.getByText(en['launch.board.cut.many'].replace('{shown}', '2').replace('{total}', '3'))).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+    fireEvent.click(screen.getByRole('button', { name: REVIEW_TAB }))
     await waitFor(() => expect(screen.getByText(en['launch.board.reviewCut'].replace('{limit}', '100'))).toBeTruthy())
+  })
+
+  // 0.3.12 review, iteration 3, UX-2: proposals and abandoned work left no mark but this tab, and the tab had no count.
+  it('carries its count: reviews, proposals and abandoned work together', async () => {
+    const review = (id: string) => item({ kind: 'review', ref: { kind: 'task', id }, title: 'Review ' + id, proposal: undefined } as Partial<AttentionItem>)
+    const all = boardWith([question('q1'), question('q2')], [review('r1'), review('r2'), item()])
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => (q?.personOnly ? boardWith([question('q1'), question('q2')], []) : all))
+    install(query as unknown as () => Promise<unknown>)
+    render_()
+    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.board.tab.reviewCount'].replace('{count}', '3') })).toBeTruthy())
+  })
+
+  // 0.3.12 review, iteration 3, ER-2: on «All» a source the whole board's read failed was dropped because the person's read
+  // answered a source of the same name, and the tab said «Nothing in this section» as a measurement.
+  it('on «All», a source the whole board\'s read did not answer is said, even when the person\'s read answered it', async () => {
+    const sources = (status: 'ok' | 'error') => [{ name: 'questions', status: 'ok' as const, asOf: STAMP }, { name: 'obligations/refusals', status, asOf: status === 'ok' ? STAMP : null }]
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => envelope({ data: cutBoard([], 100), sources: sources(q?.personOnly ? 'ok' : 'error'), asOf: STAMP, freshness: 'fresh' }))
+    install(query as unknown as () => Promise<unknown>)
+    render_()
+    await waitFor(() => expect(query).toHaveBeenCalledTimes(2))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.all'] }))
+    await waitFor(() => expect(screen.getByText(en['needsYou.partial'].replace('{sources}', 'obligations/refusals'))).toBeTruthy())
+    expect(screen.queryByText(en['launch.board.emptyTab']), 'a partial read is not a measured empty tab').toBeNull()
+  })
+
+  // 0.3.12 review, iteration 3, ER-3: after one answer, a later failed read of the whole board said nothing, and the rows
+  // kept read as current; arriving for a review while that read failed left the person on «Current».
+  it('a later failed read keeps the rows and says they are the earlier reading\'s', async () => {
+    let n = 0
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => {
+      if (q?.personOnly) return boardWith([question('q1')], [])
+      if (++n > 1) throw new Error('statement timeout')
+      return boardWith([question('q1')], [item()])
+    })
+    install(query as unknown as () => Promise<unknown>)
+    const view = (feedMark: number) => <I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={feedMark} mode="needs" tab="review" onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>
+    const { rerender } = render(view(0))
+    await waitFor(() => expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy())
+    rerender(view(1))
+    await waitFor(() => expect(screen.getByText(/could not be read again/)).toBeTruthy())
+    expect(screen.getByText(/statement timeout/)).toBeTruthy()
+    expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy()
+  })
+  it('arriving for a row to review while the whole board\'s read fails opens «To review» and says the failure', async () => {
+    const ref = boardWith([], [item()]).data!.items[0].ref
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => {
+      if (q?.personOnly) return boardWith([question('q1')], [])
+      throw new Error('statement timeout')
+    })
+    install(query as unknown as () => Promise<unknown>)
+    render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} initialItem={ref} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByRole('button', { name: REVIEW_TAB }).getAttribute('aria-pressed')).toBe('true'))
+    expect(screen.getByText(en['launch.board.reviewUnreadable'])).toBeTruthy()
   })
 
   it('says the tab the person switches to, and shows the tab the route names (the way back, UX-4)', async () => {
@@ -854,12 +910,12 @@ describe('«To review» (0.3.12 review, iteration 2)', () => {
     const onTab = vi.fn()
     const view = (tab?: 'open' | 'review') => <I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" tab={tab} onTab={onTab} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>
     const { rerender, unmount } = render(view())
-    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.tab.review'] })))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: REVIEW_TAB })))
     expect(onTab).toHaveBeenLastCalledWith('review')
     unmount()
     // Coming back from a task mounts the Board again with the route the way back kept.
     render(view('review'))
-    expect(screen.getByRole('button', { name: en['launch.board.tab.review'] }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: REVIEW_TAB }).getAttribute('aria-pressed')).toBe('true')
     await waitFor(() => expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy())
     expect(screen.queryByText('Question q1')).toBeNull()
     void rerender

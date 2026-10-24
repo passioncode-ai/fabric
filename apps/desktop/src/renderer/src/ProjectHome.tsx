@@ -107,6 +107,7 @@ export function ProjectHome({
   onTaskDraftChange,
   onError,
   onBoard,
+  onReview,
   onPlan,
   onPulse,
   onGraph
@@ -141,6 +142,8 @@ export function ProjectHome({
   onError: (e: string) => void
   /** The Board scoped to this project, optionally opened at one item (SCR-41). */
   onBoard?: (projectId: string, item?: string) => void
+  /** The Board's «На проверке» for this project (0.3.12 review, iteration 3, UX-1). */
+  onReview?: (projectId: string) => void
   /** Planning scoped to this project (SCR-40). */
   onPlan?: (projectId: string) => void
   /** This project's pulse (SCR-42). */
@@ -363,6 +366,7 @@ export function ProjectHome({
           feedMark={taskMark}
           lastEventAt={lastEventAt}
           onBoard={(item) => onBoard?.(project.id, item)}
+          onReview={onReview ? () => onReview(project.id) : undefined}
           onPlan={() => onPlan?.(project.id)}
           onPulse={onPulse ? () => onPulse(project.id) : undefined}
           onGraph={onGraph ? () => onGraph(project.id) : undefined}
@@ -422,7 +426,8 @@ export function ProjectHome({
                 feedMark={markOf(marks, ['task', 'work', 'question', 'goal', 'agent'])}
               />
               <DigestSection project={project} feedMark={wideMark} onError={onError} />
-              <BoardPanel projectId={project.id} limit={10} feedMark={taskMark} />
+              {/* «Нужны вы» here is the person's part, as on the rail and Главная (iteration 3, UX-1). */}
+              <BoardPanel projectId={project.id} limit={10} feedMark={taskMark} personOnly />
               <MemoryOverviewSection project={project} feedMark={markOf(marks, ['memory'])} />
               <DecisionsSection project={project} feedMark={markOf(marks, ['memory'])} onError={onError} />
               {/* M154 — the reading half. Findings and traps have been written

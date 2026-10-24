@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
+import { ru } from '../i18n/ru'
 import { AgentCatalogPanel, AgentLinksSetting, ReadinessPanel, SettingsScreen } from './SettingsScreen'
 import type { AppSettings } from '../../../shared/types'
 
@@ -333,9 +334,15 @@ describe('messages between agent sessions and Fabric readiness (CO-407)', () => 
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: true, value: 'true' })), setClaudeInbound } } }))
     show(<AgentLinksSetting />)
     fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
-    expect(await screen.findByText(en['settings.agentLinks.notSaved'])).toBeTruthy()
-    expect(screen.getByText(new RegExp(en['settings.agentLinks.locked'].slice(0, 30))).textContent).toContain('crossSessionInbound')
+    // A held file is not a refusal (iteration 3, UX-5): its own sentence in ours, the setting's name alone beneath it.
+    const said = await screen.findByText(en['settings.agentLinks.locked'])
+    expect(said.classList.contains('mono')).toBe(false)
+    expect(screen.queryByText(en['settings.agentLinks.notSaved'])).toBeNull()
+    expect(screen.getByText(en['settings.agentLinks.notSavedDetail']).classList.contains('mono')).toBe(true)
     expect((screen.getByLabelText(en['settings.agentLinks.label']) as HTMLInputElement).checked).toBe(true)
+    // Both languages name the same wait and the same cause.
+    expect(en['settings.agentLinks.locked']).toMatch(/busy[^.]*\. Try again in a minute\./)
+    expect(ru['settings.agentLinks.locked']).toMatch(/занят[^.]*\. Попробуйте ещё раз через минуту\./)
   })
   it('a call that itself fails is said as not saved too, with the file read again', async () => {
     const setClaudeInbound = vi.fn(async () => { throw new Error('Error invoking remote method') })

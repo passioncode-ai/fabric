@@ -196,3 +196,24 @@ export function cutBoard(items: readonly BoardEntry[], limit: number): BoardCut 
 export function scopeBoard(items: readonly BoardEntry[], projectId: string): BoardEntry[] {
   return items.filter((i) => i.projectId === projectId)
 }
+
+/**
+ * What the Board's «На проверке» lists (reviews, proposals and abandoned work: the open board less `PERSON_KINDS`), counted
+ * from the two readings the renderer already makes: the whole board and the person's part (`personOnly`). While the whole
+ * cut shows every row the count is its rows'; past the cut it is the two totals' difference, never less than the rows
+ * listed (0.3.12 review, iteration 3, UX-1, UX-2). Per project the same, from `countsByProject`.
+ */
+export function reviewCounts(whole: BoardCut, mine: BoardCut): { total: number; byProject: Record<string, number> } {
+  const rows = whole.items.filter((e) => !PERSON_KINDS.has(e.kind))
+  if (whole.hidden === 0) {
+    const byProject: Record<string, number> = {}
+    for (const e of rows) if (e.projectId) byProject[e.projectId] = (byProject[e.projectId] ?? 0) + 1
+    return { total: rows.length, byProject }
+  }
+  const byProject: Record<string, number> = {}
+  for (const [p, n] of Object.entries(whole.countsByProject)) {
+    const rest = n - (mine.countsByProject[p] ?? 0)
+    if (rest > 0) byProject[p] = rest
+  }
+  return { total: Math.max(rows.length, whole.total - mine.total), byProject }
+}
