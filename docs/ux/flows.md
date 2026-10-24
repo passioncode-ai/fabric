@@ -2914,7 +2914,7 @@ flowchart TD
 - **Implementation tasks:** 0.3.7 waves 2 and 4
 
 ### FLW-96: See every agent, open a console, disconnect one that joined by itself
-- **Amended 2026-10-24 (0.3.12 release review, iteration 2, UX-9), what ships:** Агенты is one list of the agents at work (no two groups, no readiness per coding agent, no «Создать агента»: CO-418); a row picks the agent and its page opens beside the list with its console, project and task one press away (`launch/HomeWork.tsx#AgentsAtWork`, `launch/AgentPage.tsx`); below it, the coding agents that joined on their own with «Отключить» and «Пустить снова» (`launch/JoinedAgents.tsx`, SCN-167), then the estate's agents (`App.tsx`, the `agents` place). The flow below is the 0.3.7 target.
+- **Amended 2026-10-24 (0.3.12 release review, iteration 2, UX-9), what ships:** Агенты is one list of the agents at work (no two groups, no readiness per coding agent, no «Создать агента»: CO-418); a row picks the agent and its page opens beside the list with its console, project and task one press away (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, `launch/AgentPage.tsx`); below it, the coding agents that joined on their own with «Отключить» and «Пустить снова» (`launch/JoinedAgents.tsx`, SCN-167), then the estate's agents (`App.tsx`, the `agents` place). The flow below is the 0.3.7 target.
 - **Traces:** SCN-166, SCN-167 (ST-037, ST-041, ST-045; JTBD-02, JTBD-08)
 - **Goal:** the person sees every agent with what it does, opens any console in one press, and disconnects a coding agent that joined from a terminal.
 - **Entry points:** Агенты on the rail; an agent line on Главная; an act in История.
