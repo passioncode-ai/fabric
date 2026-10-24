@@ -43,13 +43,6 @@ export function killAll(signal = 'SIGKILL') {
 }
 
 /**
- * Exit, and make sure the process really ends. Node 26.8.2 was measured deadlocking INSIDE its own exit
- * after an uncaught error (main thread and a V8 worker each waiting on the other, 2026-10-03) — so a
- * watchdog that ended with `process.exit` could hang exactly where the job it guards had hung (review
- * finding 4). A detached reaper ends this pid a few seconds later if the exit has not completed; the
- * outcome was already written by the caller, so nothing is lost when it fires.
- */
-/**
  * A notice on this Mac (CO-390) that survives the job's own exit: detached like the reaper below, and ended after
  * `seconds` if it has not finished. Elsewhere, or when it cannot start, the job's log stays the record.
  */
@@ -62,6 +55,13 @@ export function tellPerson(text, { seconds = 5 } = {}) {
   } catch { return false } // no notice: the log and the status record still say it
 }
 
+/**
+ * Exit, and make sure the process really ends. Node 26.8.2 was measured deadlocking INSIDE its own exit
+ * after an uncaught error (main thread and a V8 worker each waiting on the other, 2026-10-03) — so a
+ * watchdog that ended with `process.exit` could hang exactly where the job it guards had hung (review
+ * finding 4). A detached reaper ends this pid a few seconds later if the exit has not completed; the
+ * outcome was already written by the caller, so nothing is lost when it fires.
+ */
 export function exitWithin(code, { graceSeconds = 5 } = {}) {
   try {
     spawn('/bin/sh', ['-c', `sleep ${graceSeconds}; kill -9 ${process.pid} 2>/dev/null`], { detached: true, stdio: 'ignore' }).unref()

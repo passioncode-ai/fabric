@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "7b0426318b79f6d4cc44ab1223bceaccd58de414",
+  "report": "docs/evidence/reviews/0.3.12/iteration-1/2026-10-24-errors.md",
+  "reportSha256": "344aa5a039c90b3c286b372f62d657656b01ef4199b8d0cbe21fc628a7771c8a",
+  "reviewerRun": "release-0312-i1-errors-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page reads a project as onboarded from a goal or summary (`launch/ProjectProfile.tsx`); `ProjectProfile.test.tsx` «keeps the offer when only the person's business was recorded» (watched failing)"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an agent sets a business only while none is recorded and can neither clear nor change it (`main/projectOnboarding.ts#agentProfilePayload`, `fabric_project_profile`); `project-onboarding.test.mjs` «DA-2» (watched failing)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one `git log` per repository grouped by Git's common directory, commits once by hash, only complete readings cached, concurrent reads shared, an unread history said with its folders (`main/gitPeople.ts#readGitPeople`, `ProjectProfile.tsx`); `git-people.test.mjs`, `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rules narrowed (`shared/redact.ts`), a 26-line ordinary corpus in `redact.test.ts` (watched failing); the probe ran read-only over the operator's journal (20 744 events, 79 206 lines): no line changed by 0.3.12's rules that v0.3.11 left alone; CO-386's status says so"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: no try under 30 s left (`STACK_START_RETRY.minTryMs`), a cut try names its limit; `stackStartRetry.test.ts`, `startupFailure.test.ts`"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a press completes a part-written brief, presses serialized per project, failures logged (`main/projectOnboarding.ts#createOnboardingFiler`); three cases in `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lock, second read, temp file and rename, symlink kept (`main/claudeInbound.ts#setInbound`); Settings says «Не сохранилось» (`AgentLinksSetting`); four cases in `claude-inbound.test.mjs`, one in `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says it looked at the newest posts (`launch/CommsFeed.tsx`); `CommsFeed.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the filter applies to «В работе» and says so (`launch/KanbanBoard.tsx`); `KanbanBoard.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: analytics newest first, paged to 5 000, capped said; open questions oldest first, counted; the graph pages; ruled: the journal index, CO-418"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a credential used in the last 5 minutes is never revoked (`RESOLVE_IN_USE_MS`); tests for another grant and an old uncollected one in `session-enroll-request.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a sideways event something can still scroll uses up the gesture (`shared/swipeTravel.ts#swipeStep`); `swipeTravel.test.ts`"
+      ]
+    }
+  ]
+}

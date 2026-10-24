@@ -99,7 +99,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-83 | Project directory | FLW-92 | none — text spec | designed | none yet |
 | SCR-84 | Rail | FLW-93 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` |
 | SCR-85 | Главная | FLW-93, FLW-94 | none — interactive HTML | built | apps/desktop/src/renderer/src/EstateHome.tsx |
-| SCR-86 | Проект | FLW-93, FLW-94, FLW-95, FLW-98 | none — interactive HTML | designed | none yet |
+| SCR-86 | Проект | FLW-93, FLW-94, FLW-95, FLW-98 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` |
 | SCR-87 | Агенты | FLW-93, FLW-95, FLW-96, FLW-98 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/HomeWork.tsx |
 | SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` |
 | SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/SettingsScreen.tsx |
@@ -735,7 +735,8 @@ different destination under the same name.
 - **Addressable subviews (target only):** SCR-03 overview is an intent of this same project surface. Deep links carry exact authorised project/entity/return context; a missing or denied source never falls back to another project.
 
 ### SCR-32: Task page
-- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the page follows the task template (SCN-174): back to the place it was opened from at the top left above the title; «Для чего эта задача» with «Что должно произойти», «Почему», «Что будет верно, когда задача выполнена»; its state, who works on it and since when. The move history and blockers are not built (CO-401). Flow: FLW-100.
+- **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the page follows the task template (SCN-174): back to the place it was opened from at the top left above the title; «Для чего эта задача» with «Что должно произойти», «Почему», «Что будет верно, когда задача выполнена»; its state, who works on it and since when. Flow: FLW-100.
+- **Amended 2026-10-24 (0.3.12 S7, CO-401; 0.3.12 release review, iteration 1, DO-5, UX-12, UX-13):** «Что её держит» (what blocks the task, or «Её ничего не держит.») and «Как двигалась» (each move in the kanban's column words, «Очередь», «В работе», «На проверке», «Готово», «Отменено», with who moved it, «(вы)», «(агент)» or «(Fabric)») are built. An empty brief is one sentence: on a task still to do «Спецификация не собрана: бриф ещё не написан. Агент спросит вас о нём, прежде чем начать, или напишите его сами ниже.», on a finished or cancelled one «Бриф не написан. Его можно написать ниже.». A task that cannot be read says so in a banner with the way back; there is no «Повторить». Code: `apps/desktop/src/renderer/src/TaskPage.tsx`, `apps/desktop/src/shared/taskMoves.ts`, `tasks.detail`'s `blockedBy` in `apps/desktop/src/main/index.ts`.
 - **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81; FLW-95 (0.3.7 target); FLW-100 (0.3.12)
 - **Purpose:** one task's own page — the working context of that task, filled in by the agents working it and editable by the operator. Not a second documentation: knowledge lives in `docs/` and in project memory, and this page links to it.
 - **Elements:** title with type, section and lease; brief (what / why / expected result) with its authorship line; append-only notes with a promote-to-memory action; fields panel; related tasks; resources as links only; transition history; receipts for external effects; the manager chat scoped to this task.
@@ -751,10 +752,10 @@ different destination under the same name.
   | edited | the operator overrides an agent's text | none | the operator's version stands; the agent's stays readable |
   | promoted | a note becomes a project fact | none | the note is marked promoted and the page keeps a link, never a copy |
   | closing | the operator ends the task from its own page | none | close, return to backlog and cancel are here; CANCEL REQUIRES A REASON, because a task that vanished without one is a lost decision |
-- **Coverage:** `apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12)
+- **Coverage:** `apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12; what holds it and how it moved, 0.3.12 S7), test `apps/desktop/src/renderer/src/TaskPage.test.tsx`
 - **Scenarios:** SCN-045, SCN-060, SCN-067
 - **Resources:** `project_tasks`, `memory_facts`, `effect_intents`, `session_transcripts`
-- **Status:** designed
+- **Status:** built
 - **Planned extension (not current coverage):** TaskRun and plan revision widget; answer commit/continuation and blockers are distinct; exact graph/source backlinks; task-bound drafts survive navigation. FLW-25/27/28/31; SCN-050/052/058. See [engineering contract](../architecture/system-contract.md).
 - **Addressable subviews (target only):** Create/edit task and admission are addressable subviews of this Task surface. Task creation, pre-admission refusal, admitted TaskRun/spawn, delivery and provider acknowledgement remain distinct; a new page or store is not required.
 
@@ -906,6 +907,7 @@ different destination under the same name.
 Target design only; [shared contract](../architecture/system-contract.md) and proposed ADR-0045–0047 govern the new semantics. These records do not assert shipped screens.
 
 ### SCR-40: Graph explorer family
+- **Amended 2026-10-24 (0.3.12 W2 S5, SCN-175; 0.3.12 release review, iteration 1, UX-1, UX-9):** a fourth view of the family ships: the project graph (`apps/desktop/src/renderer/src/launch/GraphScreen.tsx`). Businesses are columns; lines are the relations the onboarding agents recorded, and a dashed line joins two projects that share board threads; whole from «Граф проектов», or one project with only its direct neighbours from the rail's graph mark or «Связи». Of the states below it has loading, empty («Связи ещё не найдены. Они появятся, когда агенты познакомятся с проектами.») and error («Не удалось прочитать граф.» with the machine's words beneath, read again when the journal moves); the relation legend and «Повторить» are not built (CO-418, 0.3.13). The three recorded-history and plan views keep this record.
 - **Used by:** FLW-23, FLW-27
 - **Purpose:** Three addressable semantic views: agent recorded history, project recorded history, target plan. SCR-33 remains decision history. S10 must explicitly reconcile ADR-0042 screen wording before implementation.
 - **Elements:** Route title and scope; as-of/plan revision; selected entity; graph/outline/list presentation of identical semantics; relation legend; source inspector; coverage, cursor and hidden counts; backlinks. Local routes `/graphs/agent-history`, `/graphs/project-history`, `/graphs/target-plan`; these are separate destinations, not one DID/SHOULD toggle.
@@ -928,6 +930,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 ### SCR-41: Ranked Board and question detail
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the Board screen is a kanban (SCN-173): four columns in the enforced order, «Очередь», «В работе», «На проверке», «Готово», with the project filter; a card opens the task's page (SCR-32). The ranked list of what waits for the person is the same screen's second mode, reached from «Нужны вы» on Главная, and lists only the person's part (CO-391). Code: `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`. Flow: FLW-99.
+- **Amended 2026-10-24 (0.3.12 S7, CO-401; 0.3.12 release review, iteration 1, DO-5, UX-2, UX-19, ER-9, DA-6):** the kanban's agent filter, «Показывать отменённые» (a fifth column «Отменено», the most recently cancelled first) and the filters remembered for the next visit are built. The agent filter applies to «В работе» only and says so. Each empty column says «Пусто»; a board that cannot be read says «Доску не удалось прочитать.» with the machine's words beneath and no «Повторить», keeping its last reading on screen; a column that could not be read says so in its place. «Нужны вы» lists only the person's part, each row naming who asks, with the tabs «Актуальное», «Решат агенты» (reviews, proposals and abandoned work an agent can settle), «На следующий раз», «Разобрано», «Все темы»; empty, it says «Ничего не ждёт вашего решения». Which of the two views is open is part of the way back from a task.
 - **0.3.7 target (2026-10-17, [ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** superseded by «Ждёт вас» on Главная SCR-85 and «Вопросы» and «Доска» on Проект SCR-86 — the Board is no longer a place of its own, and its review ritual and access-request items go (plan §1, §5; ADR-0160 §3). It stays built until wave 3.
 - **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75; FLW-99 (0.3.12)
 - **Purpose:** One scoped union of unresolved authored questions and derived obligations, separate from task Kanban; one source for home top5/project top10/full/counters.
@@ -948,10 +951,10 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   | conflict | Another answer or revision won | none | Show current receipt and preserve unsent draft for copying; no overwrite. |
   | partial or stale | Union source failed or aged | none | Retain known rows and coverage; do not silently re-rank while interacting. |
   | resolved history | Resolved item reached by link | none | Open immutable receipt with return, not fake missing/open item. |
-- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`
+- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, `apps/desktop/src/main/workRead.ts#readTaskBoard`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`
 - **Scenarios:** SCN-050, SCN-051, SCN-053, SCN-055, SCN-058
 - **Resources:** QuestionService, BoardService, AnswerService, ContinuationService target contracts; questions/question_blocks, current obligations, command and decision receipts.
-- **Status:** designed
+- **Status:** built
 
 ### SCR-42: Inbox
 - **Superseded 2026-10-17 by the 0.3.7 target ([ADR-0160](../adr/0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)):** the Inbox and Pulse are cut (0.3.7 plan §2, §5; SCN-055, SCN-094 retired): what needs the person is Главная, SCR-85; what happened is История, SCR-88. Kept as the record of the design.
@@ -2062,6 +2065,7 @@ frames; the visual layer is the recorded style pack's tokens.
 
 ### SCR-81: Project comms
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** Comms reads as a feed, newest first (OF-29): each post with its project, its kind (просьба, ответ, находка, объявление), a short summary and its thread, with a focus filter (one project, requests only, waiting for an answer); it opens from Настройки → Ещё. Code: `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`. Scenario: SCN-143.
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, DO-20, UX-17, ER-8):** three tabs: «Лента», «Ветки» and «Объявления» (which announcements a project still owes an answer, SCN-178, CO-377). In Russian the screen says «ветка», never «тред». «Ждут ответа» in the feed that finds nothing says it looked at the newest posts and that earlier requests are in the threads. Code: `apps/desktop/src/renderer/src/launch/CommsFeed.tsx`, `apps/desktop/src/renderer/src/launch/CommsAnnouncements.tsx`.
 - **0.3.9 (2026-10-21, [the core holds](../evidence/plans/2026-10-21-core-reliability/README.md#board)):** a request's state may be «получен ответ» / "answered", caused by a reply from the asked project («ответом проекта, которого спросили»).
 - **Used by:** FLW-83
 - **Purpose:** The project board's threads and messages, read by the operator — what projects tell each other, with each request's state and effect as two separate facts ([ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3: the local operator's read is sanctioned; COM-06/COM-07).
@@ -2196,7 +2200,8 @@ place (ADR-0160). The screens they replace carry a dated note.
   | folded | the window narrower than 900 px | none | icons with their counts, names in tooltips |
 - **Scroll (2026-10-22):** the window never scrolls; the shell has the window's height and each page under the top bar scrolls by itself (`main.content`, and Settings beside it); a notice above the page scrolls inside itself past a third of the place (15 % in a window at most 640 px high), and the page keeps 40 % of the place (a third in a short window), while the act line comes first and scrolls inside itself past 40 % (30 % in a window at most 640 px high); the rail, the top bar, a side panel and the act line stay put; another place, project or the workspace starts at the top, and Settings does not reset the page under it; an absolutely placed element is placed against its page, so the window itself never scrolls; content that does not wrap never moves the page sideways (a long token breaks, `pre` and a table scroll inside themselves); a notice's own buttons stay at its foot while its text scrolls (CO-385); a move made from the rail puts focus on the new page's first heading, so the keyboard scrolls it (CO-384) (`LaunchShell.tsx#LaunchShell`, `placeKey`; `rail.css`; `scripts/test/shell-scroll.browser.mjs`).
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)
+- **Coverage:** apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, ⌘K for search with no search field since 2026-10-19), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`; the trackpad swipe in `apps/desktop/src/shared/swipeTravel.ts#swipeStep` (0.3.12 S7). The foot names the person «Вы»: Fabric holds no person's name
+- **Amended 2026-10-24 (0.3.12; 0.3.12 release review, iteration 1, UX-11, ER-12):** each project row carries a graph mark (24 px, for the pointer, out of the tab order, so a row is one tab stop) that opens the project's graph; «Граф проектов» under the list opens the whole graph once there is more than one project (SCN-175). The trackpad swipe goes back and forward, and a gesture that scrolled anything under the pointer does not turn the page.
 - **Scenarios:** SCN-162
 - **Resources:** the plan §2; the sketch `docs/evidence/plans/2026-10-15-fabric-simple/style-2026-10-16/fabric-style.html`
 - **Status:** built
@@ -2204,6 +2209,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 
 ### SCR-85: Главная
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** «Ждёт вас» and «Сейчас» are retired as named here. In order: the greeting (the part of the day and how many questions wait for the person) with the numbers strip; «Нужны вы», only what the person resolves (questions, access requests, refusals), each row naming who asks and opening in place, a question answered there with its options as buttons; «Где остановились»; «Кто что делает» in two lanes, «В работе» and «Закончили», a row opening its task; «Агенты в работе», a box that scrolls on its own, active agents first, each by the task it holds, with «Открыть переписку»; the projects. Code: `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`. Scenario: SCN-163.
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, UX-2, UX-10, UX-14, DO-7, DO-20):** the greeting counts decisions in Russian plural forms («Добрый вечер. Вас ждут 3 решения.», «Вас ждёт 1 решение.», «Вас ничего не ждёт.»); «Нужны вы» with nothing for the person says «Ничего не ждёт вашего решения». Of the Elements below, the top bar carries no search field and no date (search is ⌘K), the greeting has no second summary line, and the projects list has no way bar; the empty states «Вопросов нет. Агенты работают сами.» and «Начните с проекта» are not built (with no project, the projects section says «Пока пусто…» with «Создать первый проект»). A section that fails says so in its place with the machine's words beneath, and one that keeps its last reading marks it «как было в {время}»; «Повторить» is not offered there.
 - **Used by:** FLW-93, FLW-94
 - **Purpose:** What needs the person, what is being done now, and their projects — the place Fabric opens on (plan §2). Replaces the home, the Board screen, Where work is, Pulse and the live feed.
 - **Elements:** the top bar with the place's name, the date and the search field (⌘K); the greeting heading («Добрый вечер. Вас ждут 3 вопроса.») and its one-line summary; the numbers strip («агентов работают», «задач в работе», «на проверке»); «Ждёт вас» — question cards (agent sign and name, project, time; the question; why; options as buttons, the recommended one gold; «Обсудить»); «Сейчас» — one row per agent at work (sign, its own sentence, project, how long) with «Открыть консоль ↗»; «Проекты» — a table (name with star, «Что сейчас», the way bar, agents, updated); the act line at the foot.
@@ -2211,7 +2217,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | loading | first read | none | each section «Читаю…» on its own; numbers «—» |
-  | empty | no question, no agent at work, or no project | none | «Вопросов нет. Агенты работают сами.» / «Сейчас ни один агент не работает.» / «Начните с проекта» with «Создать проект» and «Открыть папку с проектами» |
+  | empty | no question, no agent at work, or no project | none | «Ничего не ждёт вашего решения» / «Сейчас ни один агент не работает.» / «Начните с проекта» with «Создать проект» and «Открыть папку с проектами» (the 0.3.7 target, not built: the amendment above) |
   | partial | one section could not be read | none | that section says so with «Повторить»; the others stand |
   | error | nothing could be read | none | «Fabric не смог прочитать, что происходит.» with the machine's words beneath and «Повторить» |
   | success | read | none | the greeting, the numbers, the three sections |
@@ -2228,6 +2234,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Implementation tasks:** 0.3.7 waves 2 and 4
 
 ### SCR-86: Проект
+- **Amended 2026-10-24 (0.3.12 W2 S4a to S4c; 0.3.12 release review, iteration 1, DO-8, DA-1 to DA-5), what ships today:** the way back; the head (name, purpose, «Сейчас») with «Доска проекта», «План» and «Связи» (the project's graph, SCN-175); in the main column the way («Где мы», or «Начните с первого результата» for a project with no task), «Вопросы ко мне» and the kanban strip of four columns; beside it «Агенты на проекте», «Что это за проект» (the summary, «Цель», «План», «Бизнес» the person sets, «Связанные проекты», «Люди (из Git)»; «Познакомиться с проектом» until an agent records a goal or a summary), «Как идёт работа» (tasks done in eight weeks, the median times, the share sent back from review, the questions waiting), «Команда», «Ритм работы» and «Ресурсы и настройки», folded. Each panel that cannot be read says so on its own. Not built in 0.3.12: «Идеи и материалы» and the project's last activity (CO-307, 0.3.13). Scenario: SCN-165.
 - **Used by:** FLW-93, FLW-94, FLW-95, FLW-98
 - **Purpose:** One page per project — where it came from and where it goes, its questions, its board, a console and a new task (plan §2). Replaces the project page's twenty sections and its six rail links.
 - **Elements:** heading with the name, a star and the purpose; «Сейчас: …»; «Открыть консоль» and «Поставить задачу» (gold, the page's one primary action); «Откуда пришли и куда идём» in three columns «Сделано», «Сейчас», «Дальше»; «Вопросы»; «Доска» glance (four columns, counts, first cards) with «Вся доска»; «Папки проекта» with «Добавить папку» and «Убрать»; «Переписка с другими проектами»; the act line.
@@ -2243,14 +2250,15 @@ place (ADR-0160). The screens they replace carry a dated note.
   | task-added | «Поставить» recorded | none | the task in «Очередь»; «Задача поставлена · Отменить» |
   | moved | a card moved | none | «Задача перенесена в «Проверить» · Отменить» |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectProfile.tsx`, `apps/desktop/src/renderer/src/launch/ProjectAnalytics.tsx` (0.3.12 W2 S4, see the amendment above)
 - **Scenarios:** SCN-165, SCN-164
-- **Resources:** SCN-159 (the page built today); the plan §5's cut list
-- **Status:** designed
+- **Resources:** SCN-159 (the page before 0.3.12); the plan §5's cut list
+- **Status:** built
 - **Implementation tasks:** 0.3.7 waves 2 and 4
 
 ### SCR-87: Агенты
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the place lists every agent at work, a console Fabric holds or an agent that joined from a terminal, each by the task it holds; a row selects its agent and the agent's page opens beside the list: the task, what it is doing, its results, what it did by day, with its console, project and task one press away (CO-393). Below: «Подключились сами» and the consoles Fabric holds. Not built: the two groups with each coding agent's readiness (Settings lists them, SCR-89), «Что получает агент», «Создать агента». Code: `apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/launch/JoinedAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.tsx`. Scenario: SCN-166.
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, UX-3, UX-7):** until an agent is chosen the place says one of three things beside the list: «Список агентов не прочитан, поэтому открыть агента нельзя.» with «Повторить», «Сейчас ни один агент не работает, открыть некого. Агент появится здесь, когда начнёт работу в проекте.», or «Выберите агента в списке: здесь будут его задача, что он делал и результаты.»; a chosen agent's page takes focus and scrolls into view.
 - **Used by:** FLW-93, FLW-95, FLW-96, FLW-98
 - **Purpose:** Every agent — coding agents on this computer and agents built in Fabric — with what each is doing, its console one press away, and «Создать агента» (plan §2). Replaces Agents, Settings' catalogue, Agent access's list and created agents.
 - **Elements:** «Создать агента» (gold); «Агенты для кода на этом компьютере» and «Агенты, созданные в Fabric», each row: sign, name, state sentence, project, «Консоль»; «подключился сам», «Отключить», «Пустить снова» and the proof line for an agent that joined from a terminal; the agent's view with «Что получает агент»; the act line.
@@ -2290,7 +2298,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | cannot-undo | no inverse | none | «Нельзя отменить» with why |
   | changed-since | the object changed after the act | none | the button says what it will do now |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
-- **Coverage:** apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's
+- **Coverage:** apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts); «Что делали агенты» by day with who did each (0.3.12 S6, CO-395, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`). The filters and the detail pane are not built in 0.3.12: moved to 0.3.13, CO-414
 - **Scenarios:** SCN-168, SCN-169, SCN-164, SCN-167
 - **Resources:** ADR-0014 (the journal), ADR-0160
 - **Status:** built
@@ -2298,6 +2306,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 
 ### SCR-89: Настройки
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** the account quotas are gone from Fabric (they are Switchboard's, D-3, CO-392); the coding agents' catalogue from Switchboard sits here with what Fabric found on this computer, naming a refusal and a missed deadline apart from a failure; «Этот компьютер» sets whether this machine is the person's own (ADR-0176); a setting that is not saved is said at the screen's foot, pinned in view (CO-313). Code: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`. Scenario: SCN-170, SCN-160.
+- **Amended 2026-10-24 (0.3.12 W3e, CO-407; 0.3.12 release review, iteration 1, DO-4, UX-8, UX-18, UX-20):** the sections as shipped, in order: «Разрешения агентов», «Агенты для кода на этом компьютере», «Когда у агента кончился лимит», «Сообщения между сессиями агентов», «Готовность Fabric»; beside them «Компьютер», «Вид», «Данные и доступ», «Ещё». The Elements' section names below («Язык и вид», «Запуск агентов», «Данные», «Доступ агентов») and «Сохранено» are the 0.3.7 target, moved to 0.3.13 with CO-348 (Settings' section pass). A refused settings write is said once at the screen's foot, «Настройки не сохранены: {причина}. На экране то, что записано на диске.», never beside the control. «Сообщения между сессиями агентов» switches Claude Code's own setting for all its sessions here; a refused write says «Не сохранилось: настройки Claude Code не приняли изменение. Переключатель показывает то, что записано в файле.» with the machine's words beneath and keeps the switch at what the file holds; an unreadable file is said apart. «Готовность Fabric» runs the launcher's read-only check on «Проверить»; a failed check shows our sentence with the machine's words beneath.
 - **Used by:** FLW-40, FLW-93
 - **Purpose:** How Fabric behaves, on one page of sections; every change saved at once and reversible (plan §2). Replaces Settings, Quotas and Private history as a section.
 - **Elements:** sections with small uppercase labels — «Язык и вид» (язык, тема), «Компьютер» (не давать засыпать; «Запускать Fabric при входе в систему», only on macOS and Windows in an installed build, amended 2026-10-20), «Запуск агентов» (порядок), «Данные» (счётчики использования; личная история — экспорт и импорт), «Доступ агентов» (who may reach which product, «Отозвать»); «Сохранено» beside a saved control.
@@ -2306,7 +2315,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   |---|---|---|---|
   | loading | first read | none | each section «Читаю…» |
   | empty | no agent has access to any product | none | «Доступ агентов» says «Ни одному агенту не открыт доступ к продуктам» |
-  | error | a setting did not save | none | «Не сохранилось.» beside it; the old value back |
+  | error | a setting did not save | none | «Настройки не сохранены: {причина}. На экране то, что записано на диске.» pinned at the screen's foot; the controls show what is on disk |
   | success | read | none | the sections |
   | unavailable | this build or computer cannot change a setting | none | the control disabled with why; a control that does nothing here (launch at login on Linux or in a development build) is not drawn |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en

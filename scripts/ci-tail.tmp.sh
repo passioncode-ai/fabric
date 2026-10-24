@@ -1,0 +1,576 @@
+#!/usr/bin/env bash
+# What CI runs — as a script in the repository, not as YAML (REL-01).
+#
+# WHY THIS FILE EXISTS AND THE WORKFLOW IS THIN. A check that can only be
+# exercised by pushing is a check nobody debugs, and one nobody can watch fail
+# is not proven — which is the standard this repository holds every other gate
+# to. Everything CI does is here, so it can be run, broken on purpose, and
+# watched refusing, on a laptop, before a runner ever sees it.
+#
+# TWO TIERS, and the split is not cosmetic. The fast tier needs no live database:
+# types, the design and documentation gates, register arithmetic, module tests,
+# and owned disposable PostgreSQL fixtures when their prerequisites are present.
+# Missing fixture prerequisites are explicitly NOT_RUN, never SQL acceptance.
+# Run it locally before the source commit; hosted execution
+# follows the repository nightly policy, not a new push/PR dispatch. The full
+# tier adds the remaining owned-cluster suites, then starts a DISPOSABLE Supabase
+# stack (its own project id, ports and volumes — scripts/test-stack.mjs), runs
+# every probe that talks to a database against it, and removes it on exit. It
+# never starts, migrates, reads or writes the operator's live stack (project
+# `fabric`, API 54321, DB 54322) and refuses to run if it would (2026-10-03).
+#
+# Usage: scripts/ci.sh [fast|full]   (default: fast)
+#   full needs Docker, the Supabase CLI and PostgreSQL 17 binaries (FABRIC_PG_BIN);
+#   FABRIC_TEST_STACK_BASE pins the disposable stack's block of ten ports.
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# A Mac outside hosted CI keeps its display awake for the run: quit.test.mjs's real-Electron dialog case does not
+# finish within its bound while the display sleeps (measured 2026-10-12: fails asleep, passes awake; CO-210). Once,
+# never in a loop: FABRIC_CI_AWAKE marks the re-executed run.
+if [ "$(uname -s)" = Darwin ] && [ -z "${CI:-}${GITHUB_ACTIONS:-}${FABRIC_CI_AWAKE:-}" ] && command -v caffeinate >/dev/null 2>&1; then
+  FABRIC_CI_AWAKE=1 exec caffeinate -d -i bash "$0" "$@"
+fi
+
+TIER="${1:-fast}"
+step() { printf '\n\033[1m── %s\033[0m\n' "$1"; }
+
+# 2026-10-05 (lifecycle LC-15). Most suites make git fixtures, stores and stacks with mkdtemp and
+# never remove them: 2 926 fabric-* folders (532 MB) sat in the user temp directory, 1 669 of
+# them over two hours old. Every run now gets one temporary root, exported as TMPDIR (which
+# os.tmpdir() and mktemp read), and removes it on every exit path. The root is short on purpose:
+# owned PostgreSQL clusters put a unix socket under it, and macOS caps that path at 104 bytes.
+ci_tmp="$(mktemp -d /tmp/fabric-ci.XXXXXX)"
+export TMPDIR="$ci_tmp"
+stack_kept=0
+cleanup_tmp() {
+  if [ "$stack_kept" = 1 ]; then echo "WARN: kept $ci_tmp because the disposable stack inside it was not torn down"; else rm -rf "$ci_tmp"; fi
+}
+trap cleanup_tmp EXIT
+
+step "pure tests — no database"
+# Named one by one rather than by a wildcard: a test that quietly starts needing
+# the stack must FAIL here rather than be silently promoted to the full tier.
+pnpm --filter @fabric/desktop exec vitest run
+node apps/desktop/test/app-icon.test.mjs
+# ADR-0100 D5: the icon PNG is the render of fabric-icon.svg, never a hand edit.
+node scripts/build-app-icon.mjs --check
+# Reads the SHIPPED bundle produced by the step above, so it is never reading a
+# stale artefact. It launches nothing, so it belongs with the pure tests.
+node apps/desktop/test/preload-sandbox.test.mjs
+node --experimental-strip-types apps/desktop/test/session-env.test.mjs
+# FA-03. Pure: it injects its fetch and its clock, reads no credential and
+# reaches no network. An HTTP 200 whose body said nothing used to become a clean
+# reading, and a clean reading is permission for work nobody is watching.
+node --experimental-strip-types apps/desktop/test/quota-reader.test.mjs
+# ADR-0106 §1: quitting ends the process (CO-191) — the coordinator against a model of Electron's
+# non-reentrant quit, and a real Electron main process that must exit gracefully on SIGTERM.
+node --experimental-strip-types apps/desktop/test/quit.test.mjs
+# Windows and Linux (0.3.5, CO-238): what runs per OS where a POSIX tool used to be assumed.
+node --experimental-strip-types apps/desktop/test/platform.test.mjs
+# ADR-0106 §4: the app's stack excludes exactly what the disposable stack excludes.
+node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
+# ADR-0106 amendment: unsaved editor work is kept in a bounded, owner-only recovery store.
+node --experimental-strip-types apps/desktop/test/editor-recovery.test.mjs
+# CO-192: --background opens no window and takes no focus until the person activates the app.
+node --test apps/desktop/test/background-launch.test.mjs
+# 0.3.7 review ER-1: the login shell's PATH probe ends at its 3 s deadline, against real shells that sleep or read stdin.
+node --experimental-strip-types --test apps/desktop/test/login-shell-path.test.mjs
+# 0.3.7 review ER-10: the folder trust Fabric writes into Claude Code's own state (OF-12).
+node --experimental-strip-types --test apps/desktop/test/claude-trust.test.mjs
+# 0.3.7 review PL-4 (DEC-0092): fabric.project.resolve tells "not in Git" from "Git could not be read", against real git.
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/git-facts.test.mjs
+# 0.3.7 review ER-4: at start Docker is asked over its own socket before the stack's failure is shown.
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/docker-ping.test.mjs
+node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
+node apps/desktop/test/file-roots.test.mjs
+# ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
+node --experimental-strip-types apps/desktop/test/git-run.test.mjs
+node --experimental-strip-types apps/desktop/test/project-discovery.test.mjs
+# 0.3.3 onboarding REQ-04: are the Fabric Agent Adapter skills where the chosen coding agent reads skills.
+node --experimental-strip-types apps/desktop/test/adapter-skills.test.mjs
+node --experimental-strip-types apps/desktop/test/task-retry.test.mjs
+# ADR-0127: nothing leaves before the person has answered the switch; pure (fetch, clock and files injected) — 0.3.3 verification DA-5.
+node --experimental-strip-types --test apps/desktop/test/analytics.test.mjs
+# The app menu (0.3.3 localized it): pure, so it runs before every commit (0.3.3 verification, iteration 3, DA-6).
+node --experimental-strip-types apps/desktop/test/menu.test.mjs
+# CO-241 (0.3.4): a database only the old seed touched is given to the local operator, and nothing else is (ADR-0131); pure.
+node --experimental-strip-types apps/desktop/test/seed-repair.test.mjs
+# The stack folder the startup remedies name is the one an install uses (0.3.4 verification, iteration 2, UX-1).
+node --experimental-strip-types apps/desktop/test/stack-folder.test.mjs
+node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
+node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
+node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
+node --experimental-strip-types apps/desktop/test/delivery.test.mjs
+node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs
+node --experimental-strip-types apps/desktop/test/runner-fallback.test.mjs
+node --experimental-strip-types apps/desktop/test/chain-launch-failure.test.mjs
+node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs
+node --experimental-strip-types apps/desktop/test/managed-stop.test.mjs
+node --experimental-strip-types apps/desktop/test/native-stop-runtime.test.mjs
+node --experimental-strip-types apps/desktop/test/native-view-lifecycle.test.mjs
+node --experimental-strip-types apps/desktop/test/provider-execution.test.mjs
+node --experimental-strip-types apps/desktop/test/provider-jsonl-transport.test.mjs
+node --experimental-strip-types apps/desktop/test/codex-provider-events.test.mjs
+node --experimental-strip-types apps/desktop/test/codex-provider-control.test.mjs
+# Pure protocol policy only; native/WebSocket probes remain explicit manual checks.
+node apps/desktop/test/codex-tui-read-probe-gate.test.mjs
+node --experimental-strip-types apps/desktop/test/provider-control-stdio.test.mjs
+node --experimental-strip-types apps/desktop/test/claude-control-transport.test.mjs
+node --experimental-strip-types apps/desktop/test/claude-provider-events.test.mjs
+node --experimental-strip-types apps/desktop/test/claude-provider-control.test.mjs
+node --experimental-strip-types apps/desktop/test/transcript-recovery.test.mjs
+node --experimental-strip-types apps/desktop/test/schema-readiness.test.mjs
+node --experimental-strip-types apps/desktop/test/context-privacy.test.mjs
+node --experimental-strip-types apps/desktop/test/command-ingress-adapters.test.mjs
+node --experimental-strip-types apps/desktop/test/desktop-ingress.test.mjs
+node --experimental-strip-types apps/desktop/test/agent-http-ingress.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-conversation.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-conversation-draft.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-conversation-service.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-conversation-host.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-private-archive-codec.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-chat-binding.test.mjs
+node --experimental-strip-types apps/desktop/test/ceo-conversation-inventory.test.mjs
+node --experimental-strip-types apps/desktop/test/active-estate.test.mjs
+node --experimental-strip-types apps/desktop/test/provider-loopback.test.mjs
+node --experimental-strip-types apps/desktop/test/loopback-ws-client.test.mjs
+node --experimental-strip-types apps/desktop/test/codex-loopback.test.mjs
+node --experimental-strip-types apps/desktop/test/transcript-finalization.test.mjs
+node --experimental-strip-types apps/desktop/test/transcript-receipt.test.mjs
+node --experimental-strip-types apps/desktop/test/close-http-server.test.mjs
+node --experimental-strip-types apps/desktop/test/stop-host-identity.test.mjs
+node --experimental-strip-types apps/desktop/test/process-boundary.test.mjs
+node --experimental-strip-types apps/desktop/test/reconcile.test.mjs
+node --experimental-strip-types apps/desktop/test/continuation-exactly-once.test.mjs
+node --experimental-strip-types apps/desktop/test/past-context.test.mjs
+# ADR-0160 §2 (0.3.7 wave 2): every operator act with its inverse — the record, do → undo → redo, the refusals, the read; pure.
+node --experimental-strip-types --test apps/desktop/test/acts.test.mjs
+node --experimental-strip-types apps/desktop/test/mirror-manifest.test.mjs
+node apps/desktop/test/files.test.mjs
+# S14. Real filesystem, real permission removal, real leftover temp file: a fake
+# fs would prove the code calls rename, and the question is what survives when
+# it does not.
+node apps/desktop/test/local-state.test.mjs
+# M81 — real filesystem: the property that matters is that it never throws.
+node apps/desktop/test/ops.test.mjs
+# Pure: it injects its git reader, and its watch cases run against a temp .git.
+node apps/desktop/test/repo-quota.test.mjs
+# Pure: the repository-root decision lives outside `env.ts` precisely so
+# this can load it without Electron.
+node apps/desktop/test/startup.test.mjs
+node --experimental-strip-types apps/desktop/test/bundled-stack.test.mjs
+node apps/desktop/test/app-brand.test.mjs
+# Pure: injects its git, and its live case reads THIS repository.
+node apps/desktop/test/code-stats.test.mjs
+# Pure prototype contracts; they never launch Fabric, a browser, an agent or a DB.
+# FA-01. Pure: temp directories and one spawn of the producer; it touches no
+# database, launches nothing and writes nothing into the checkout.
+node --test scripts/test/build-identity.test.mjs scripts/test/toolchain.test.mjs
+# FA-05. One reading of a Markdown table row and one derivation of an id's
+# aliases — the register held 101 open rows while every number quoted about it
+# said 99, and a report named a task by an anchor nobody could search for.
+node --test scripts/test/markdown-table.test.mjs scripts/test/canonical-id.test.mjs
+# Release review 2026-10-03. Each fix lands with the probe that watched it fail,
+# and these are pure — fakes under the REAL scoped store, or source files read —
+# so the tier that runs before every commit runs them, not only `pnpm -r test`.
+node --experimental-strip-types apps/desktop/test/chain-advance-reads.test.mjs
+node --experimental-strip-types apps/desktop/test/list-reads.test.mjs
+node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs
+node apps/desktop/test/session-bundle.test.mjs
+# #region harness-regressions — docs: docs/evidence/plans/2026-10-13-harness-waves.md#n-007-fast-gate-retention
+# Retain the pure harness regressions in fast, not only the full package chains.
+# Run fixture processes sequentially; no native agent, provider call or live database.
+node --experimental-strip-types --test apps/desktop/test/session-enroll.test.mjs
+node --experimental-strip-types --test apps/desktop/test/session-enroll-request.test.mjs
+node --experimental-strip-types --test apps/desktop/test/project-admission.test.mjs apps/desktop/test/project-onboarding.test.mjs apps/desktop/test/git-people.test.mjs
+node --experimental-strip-types --test apps/desktop/test/automatic-registration-scenario.test.mjs
+# The window policy is pure, and a channel given to every window with its test left behind passed fast on main
+# (0.3.12 W3e, stackHealth): it runs here, not only in the full tier.
+node --experimental-strip-types --test apps/desktop/test/ipc-window-policy.test.mjs
+node --experimental-strip-types --test apps/desktop/test/fabric-mcp.test.mjs
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/acp-shell.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-admission.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-launch-adapter.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-reconciliation.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-wait-queue.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-attempt-observation.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-host-sampler.test.mjs
+node --experimental-strip-types --test apps/desktop/test/git-lease-snapshot.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-pool-publisher.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-input-snapshot.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-pool-accounting.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-run-assignment.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-worker-inventory.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-worker-launch.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-pool-registry.test.mjs
+node --experimental-strip-types --test apps/desktop/test/resource-controlled-pool.test.mjs
+node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.test.mjs apps/desktop/test/prepared-managed-launch.test.mjs apps/desktop/test/prepared-resource-adapter.test.mjs
+# #endregion harness-regressions
+# fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
+# facts included — a real MCP client and server over the real registerWorkTools.
+node --experimental-strip-types --test apps/desktop/test/session-observe-wire.test.mjs
+node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
+node --experimental-strip-types apps/desktop/test/search-read.test.mjs
+node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
+# Release review iteration 2: the file roots read every page or keep what they had.
+node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
+# ADR-0115 (the hub): the registry reader over real directories, then the hub's door, consent and
+# product connection — fakes under the real surface, a real MCP client and server on loopback.
+node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-files.test.mjs
+# CO-193: compiled immutable contract fixtures and real SDK argument parity; no live product call.
+node --experimental-strip-types apps/desktop/test/contract-consumer.test.mjs
+node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs
+node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs
+# Verification iteration 1 for 0.3.1: the consent rules without a database (poll secret, caps, act codes),
+# agent.call past its happy path (replay after revoke, a throw, a hang-up), the door's budgets and ports.
+node --experimental-strip-types apps/desktop/test/hub-access-service.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-call.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
+node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
+
+step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
+# A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
+# whole migration chain; it never touches the stack the desktop uses. The other
+# `run-*-db.mjs` runners run in the full tier (review finding 3).
+#
+# EVERY RUNNER RUNS, and the step fails once at the end naming each one that failed
+# (release review iteration 3, coordinator): this loop used to `exit` on the first
+# failure, so the second runner's verdict was never seen.
+#
+# run-hub-access-db (migrations 76 and 77, ADR-0115) is here for the same reason: it holds the hub's standing
+# access — who may call a cloud product through Fabric — to its refusals and its privileges.
+#
+# run-function-privileges-db (migration 75) joins them here, not in the full tier: it is
+# the sweep that no projector and no host-only SECURITY DEFINER command is executable by
+# an API role, run with Supabase's default privileges in force — a security gate belongs
+# in the tier that runs before every commit.
+#
+# WITHOUT POSTGRESQL THE FAST TIER PASSES, AND SAYS SO. A runner with no PostgreSQL
+# 17 binaries exits 2 (NOT_RUN). This is the tier that runs before every commit,
+# including on the hosted fast runner, which has no PostgreSQL; failing it there
+# would make the gate unusable rather than stricter. So NOT_RUN does not fail the
+# fast tier — it is printed here AND on the tier's last line, so a green fast tier
+# without the owned step cannot be read as one that ran it. The full tier fails on
+# NOT_RUN. Set FABRIC_PG_BIN to run it.
+owned_fast_failed=()
+owned_fast_not_run=()
+# The pending resource proposal is fixture-applied by its own runner only; this does not activate its schema.
+# run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
+# installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
+# run-reopen-answer-db (0.3.7 wave 2, migration 90): an answered question taken back, and the act record's registration.
+# grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
+# append, one writer, the presented grant reserved, the rebuild under the estate lock.
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db; do
+  set +e
+  node "apps/desktop/test/$runner.mjs"
+  code=$?
+  set -e
+  if [ "$code" = "2" ] && [ "$TIER" = "full" ]; then
+    # The full tier passes through this step too, and its own owned-cluster loop does not repeat
+    # these five: NOT_RUN fails there, as it does for every other runner in that tier.
+    owned_fast_failed+=("$runner (NOT_RUN: owned-cluster prerequisites unavailable; see runner output)")
+  elif [ "$code" = "2" ]; then
+    printf 'NOT_RUN %s: owned-cluster prerequisites unavailable; see runner output\n' "$runner"
+    owned_fast_not_run+=("$runner")
+  elif [ "$code" != "0" ]; then
+    owned_fast_failed+=("$runner (exit $code)")
+  fi
+done
+if [ "${#owned_fast_failed[@]}" -gt 0 ]; then
+  printf 'FAIL: %s owned-cluster runner(s) did not pass: %s\n' "${#owned_fast_failed[@]}" "${owned_fast_failed[*]}"
+  exit 1
+fi
+# 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
+# off the operator's live stack, and the residue report's read-only property. Pure: they start
+# nothing and connect to nothing; the full tier below is where the guard is used.
+node --test scripts/test/test-stack.test.mjs scripts/test/rehearse-upgrade.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs scripts/test/walk-cleanup.test.mjs scripts/test/release-gate.test.mjs
+# ADR-0111: the inputs the release takes from CI — the identity, the tag, a commit on main (ancestry, so
+# a tag on main checks out), the signer read back — and electron-builder's own reading of the release config.
+node --test scripts/test/release-mac.test.mjs
+# 0.4.0 wave 1 (fused build): the packaged-app check of bin/fabric-mcp (spawns fake launchers only, no app), and how
+# the native probes start Fabric — the DevTools port, never --inspect, which a fused binary ignores.
+node --test scripts/test/smoke-platform.test.mjs apps/desktop/test/app-launch.test.mjs
+# Lifecycle contract (ADR-0106): a scheduled job can never wedge — deadlines, process groups, the
+# publication lock, status and rotation.
+node --test scripts/test/bounded-run.test.mjs
+
+step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
+# The registry and the native view host read a private Node pipe field and rely on libuv's
+# short-write and EAGAIN answers. They run only on a runtime tuple that was measured
+# (apps/desktop/src/main/runtimeAdmission.ts), and this step is the measurement: every suite
+# under Node, then again inside a real Electron main process (process.type 'browser').
+# backend-launch (B1) runs the actual managed launch over that registry: a launch is classified
+# by the registry's RESULT — a refusal with no child is "not started", a marker hit is unknown.
+# claude-owned-stdio (B2a) joins the Claude control transport to those pipes: each request's fence
+# is checked again at the registry's synchronous write edge, after every other callback.
+# backend-listener (B2b-1): a loopback backend's port comes only from its own stderr receipt, and
+# per-launch arguments (a token digest) reach that process without being persisted.
+# backend-view (B4): native views owned by that backend in node-pty; backend loss, a reconnect and
+# Stop fence every view at once, and detaching a view never stops the backend.
+if [ "$(uname)" = Darwin ]; then
+  backend_node="$(node -p 'require("fs").realpathSync(process.execPath)')"
+  for suite in runtime-admission owned-backend-process-registry backend-launch claude-owned-stdio backend-listener backend-view native-view-host; do
+    node --experimental-strip-types "apps/desktop/test/$suite.test.mjs"
+    FABRIC_BACKEND_NODE="$backend_node" apps/desktop/node_modules/.bin/electron apps/desktop/test/electron-main-runner.mjs "apps/desktop/test/$suite.test.mjs"
+  done
+else
+  echo "NOT_RUN: the private pipe adapters are measured on Darwin only; this host is $(uname)"
+fi
+
+step "workspace publication: what an uncommitted parent change can actually reach"
+# 2026-09-10. The rail refused to publish while ANY unrelated file was dirty, and
+# the operator hit it mid-iteration. The snapshot is exported from a commit and the
+# pin commit stages two paths by name — but `git commit` writes the whole index, so
+# STAGED is the hazard and unstaged is work in flight. The last case is proven
+# against a real repository, not a hand-written porcelain string (R-007).
+node --test scripts/test/workspace-publication-guard.test.mjs
+
+step "workspace sources: every tool repository, pinned to its own commit"
+# 2026-09-29, agent-registry AR-0.5. The wiki carries the organization's other repositories
+# under repos/<id>/. Fixture repositories only — no network, no private access.
+node --test scripts/test/workspace-sources.test.mjs scripts/test/workspace-release.test.mjs
+
+step "workspace snapshot: this commit can be exported as it stands"
+# 2026-10-05. Dated report folders brought raw/.gitkeep and raw/.gitignore to main, and the
+# next `workspace.mjs publish` threw on a path the host cannot serve — at publication, hours
+# after the merge, with the scheduled sync failing the same way. The snapshot test (run by
+# `pnpm gates:docs` above) builds only fixture repositories, so nothing exported HEAD itself
+# before publication. Now HEAD's snapshot is built in memory (no network, nothing written), so
+# an unexportable path fails here instead.
+node --input-type=module -e "import {snapshot} from './scripts/workspace-snapshot.mjs'; const s=snapshot('.'); console.log('PASS workspace snapshot of HEAD: '+s.manifest.files.length+' files')"
+
+step "mockups: the prototype draws every state it offers"
+# 2026-09-12. `#state-select` listed «Пусто» for all 72 views and 66 of them returned the
+# POPULATED screen: only `denied` and `loading` routed to the generic body, and each module
+# renderer carries its own list of honoured states, none of which listed `empty`. Drives the
+# real renderer with the real model and fixtures, not a copy of the rule (R-007).
+node --test scripts/test/product-empty-state.test.mjs
+node --test scripts/test/chat-workspace.test.mjs scripts/test/operator-workspace.test.mjs scripts/test/adoption-creation.test.mjs scripts/test/memory-workspace.test.mjs scripts/test/first-release.test.mjs scripts/test/folder-picker.test.mjs scripts/test/launch-design.test.mjs scripts/test/pulse-design.test.mjs scripts/test/r0-ui-design.test.mjs scripts/test/ceo-onboarding.test.mjs scripts/test/first-slice-states.test.mjs scripts/test/calm-*.test.mjs
+
+step "mockups in a real browser: every browser suite, or NOT_RUN said out loud"
+# 2026-09-28 (CO-171). Fifteen browser suites existed and none was run here; ten had
+# rotted against the product for weeks. They need an installed Playwright package and
+# Chrome (FABRIC_PLAYWRIGHT_MODULE, FABRIC_CHROME); without them this step prints NOT_RUN
+# and passes, because a check that cannot run is not a failure — and not a pass either.
+bash scripts/test/run-browser-suites.sh
+
+step "wiki projections: previews pinned to the prototype, plan pinned to the board"
+# 2026-09-12. The /mockups gallery shows real renders and the /plan page renders a
+# projection; both rot silently the moment their source moves, so the pins are checked
+# here WITHOUT a browser: previews.json carries the sha256 of product.html and the model,
+# plan.json is byte-parity with its own generator. Rebuild commands are in each error.
+node scripts/build-mockup-previews.mjs --check
+node scripts/build-plan-projection.mjs --check
+
+step "plants: every rule this iteration added, watched going red"
+# R-006. Ten mechanism-removing variants, each valid code that behaves like the
+# defect it replaced. Host plants need workspace/node_modules and say so when they
+# are skipped rather than reporting a smaller denominator as success.
+node scripts/test/plants-workspace-navigation.mjs
+
+step "queue: a row that says shipped names what proves it"
+# FA-05. 74 of 90 shipped rows carry no receipt today; those are CO-132 and this
+# does not fail on them. What it refuses is a row that becomes shipped in THIS
+# change with nothing behind the word — the same shape check-actor.mjs used when
+# it was turned on: hold the line from before there is anything to untangle.
+node scripts/check-shipped-receipt.mjs
+
+step "containment: a mode that removes the runner's gate says so"
+# FA-09. The effects floor is voluntary — every runner has native tools Fabric
+# cannot see — so a floored effect is refused for a mode nothing stands between
+# and the world. The declaration is checked against the flags beside it: a mode
+# carrying a bypass flag and claiming a gate would be believed otherwise.
+node scripts/check-containment.mjs
+
+step "output cost: what may happen per byte, and what may travel per listing"
+# FA-08. The data handler read the whole 400 000-character buffer on every chunk
+# to learn its last line, and every listing carried that buffer across the IPC
+# boundary for a reader that needs it once. The shape is checked here; the cost
+# is MEASURED by scripts/bench/pty-output.mjs and recorded under
+# docs/evidence/plans/2026-09-10-output-cost/. No gate reads those numbers — a
+# threshold here would be a budget nobody agreed.
+node scripts/check-output-cost.mjs
+
+step "handoff: the generated coordination document is current and reachable"
+# FA-10. docs/AGENT_SYNC.md opens by saying the tool is right when they disagree,
+# and nothing detected the disagreement. `agent_sync.py check` verifies this and
+# more, but it reaches the Notion record plane — a gate that fails when a third
+# party is slow teaches everyone to ignore it. These two properties are local.
+node scripts/check-handoff.mjs
+node --test scripts/test/registers.test.mjs
+
+step "provider capability: what the installed CLIs actually support, per build"
+# M199.probe. The nine M199 children design account switching and conversation
+# continuity on top of two programs Fabric does not ship, and the card forbids
+# reporting `supported` from reading somebody else's README. The matrix is pinned
+# to a CLI BUILD, so an upgrade returns its rows to unverified rather than
+# carrying yesterday's answer forward. Runs `--version` and nothing else; it
+# reads no credential and performs no login.
+node --experimental-strip-types scripts/check-provider-capability.mjs
+# REQ-19 (2026-10-03): the mechanical re-pin of version-only rows, and its refusal to carry a verdict.
+node --test scripts/test/repin-provider-builds.test.mjs
+
+step "acceptance: a capability is supported only after a run nobody can fake"
+# M199.acceptance. Two sentences from the card, made mechanical: "without test
+# accounts or capability evidence the status stays not executed, not passed",
+# and "fixture tests alone cannot pass acceptance". `native-resume-ack` is the
+# one capability answered only by switching an account and finding the
+# conversation still there — so it needs a receipt, and CO-112 closes only by a
+# measured boundary rather than by an implementation.
+node scripts/check-acceptance.mjs
+
+step "the dated provider-account probe, which now asserts its own fix"
+# M199.usage. This probe recorded two defects on 2026-09-09 and NOTHING RAN IT —
+# a check that exists and nobody executes, the FA-10 class in a different file.
+# Both were fixed on 2026-09-10 and it asserts the fix now; the third case it
+# records is one that cannot be fixed here (one keychain item per OS user) and it
+# says so with the measurement. Pure: no home, keychain, login, CLI or network.
+node --experimental-strip-types docs/audit/2026-09-09-provider-accounts.probe.mjs
+
+step "list reads: no filter as long as the data"
+# Found by the full tier on 2026-09-10 with nothing committed behind it: the
+# chain advancer asked for followers with `.in('id', followerIds)`, at 294 ids
+# the URL is 10 879 characters, and the gateway answers 414 — which `.data ?? []`
+# read as "no followers are waiting". Unattended chains stopped advancing in
+# silence, and the id list grows with the data, so the failure has no author.
+# Fourth appearance of one shape (FA-04, FA-03, FA-02) and the first where SIZE
+# is the trigger.
+node scripts/check-list-reads.mjs
+
+# A counter that stops counting is a change signal that stops signalling. The
+# renderer caps the display feed at 500 events, so `feed.length` never moves
+# again afterwards and every reader keyed to it freezes for the rest of the
+# session — panels keep rendering, the numbers just stop. M42 moved ProjectHome
+# off it; UX28-02 found the same line still in EstateHome, freezing the estate
+# Board and the attention count. Twice is where a script replaces a ledger row.
+node scripts/check-feed-marks.mjs
+
+# The tool contract the harness panel shows is the one the surface registers.
+# Two lists in two files, kept in step by hand: measured 2026-09-10 they agreed
+# (22 and 22, same names), so this closes the reason they agreed rather than a
+# live divergence. The prose beside them had already drifted — the panel's own
+# string said "Sixteen tools exist and eleven write to the journal" while the
+# figures were 22, 17 and 5, and the panel now renders them from the list.
+# The prose rule reads counts in words and numerals, the architecture documents included (audit A7-040).
+node --test scripts/test/tool-counts.test.mjs
+node scripts/check-surface-tools.mjs
+
+# "Nobody counted" is not "nothing was cut". `coverageOfList` answers a capped
+# read with THREE values, and `boolean | 'unknown'` compared against `true` is
+# legal TypeScript and wrong: 'unknown' then reads as "nothing was cut". Found
+# 2026-09-10 in PlanSection, where a goal reported a real fraction of a closed
+# list nobody had counted — while two other surfaces read the same value
+# honestly, in two different idioms, six files away.
+node scripts/check-coverage-reads.mjs
+node --test scripts/test/product-graphs.test.mjs scripts/test/product-graph-scopes.test.mjs scripts/test/product-graph-plan.test.mjs scripts/test/product-graph-provenance.test.mjs scripts/test/product-integrations.test.mjs scripts/test/product-integration-sources.test.mjs scripts/test/product-integration-final.test.mjs
+
+step "audit regressions — the findings a merge must not quietly undo"
+# Arrived with `sherlock/impl-20260907`, which sat unmerged for two days with
+# NOTHING running these twelve files. Two of them were already red on their own
+# branch when it was picked up: FIX-PF-07.01 still asserted the single-predecessor
+# idempotency key that FIX-PF-08.01 had widened to the complete predecessor set,
+# and FIX-PF-06.03 held a reservation the main line had since claimed. A suite no
+# runner names is not a suite; it is a directory that agrees with whatever the
+# code says. Named one by one for the same reason as the pure tests above — and
+# because a wildcard matching zero files is exactly how these went unseen.
+# Standard library only: they read source, launch nothing and touch no database.
+python3 test/audit_regressions/fix-pf-04.02.py
+python3 test/audit_regressions/fix-pf-05.02.py
+python3 test/audit_regressions/fix-pf-06.02.py
+python3 test/audit_regressions/fix-pf-06.03.py
+python3 test/audit_regressions/fix-ux-14.py
+python3 test/audit_regressions/fix-pf-07.01.py
+python3 test/audit_regressions/fix-pf-07.02.py
+python3 test/audit_regressions/fix-pf-08.01.py
+python3 test/audit_regressions/fix-pf-08.02.py
+python3 test/audit_regressions/fix-pf-09.01.py
+python3 test/audit_regressions/fix-pf-09.02.py
+python3 test/audit_regressions/fix-pf-10.01.py
+python3 test/audit_regressions/fix-pf-10.02.py
+
+if [ "$TIER" = "fast" ]; then
+  printf '\n\033[1mfast tier green.\033[0m The stack-backed probes did not run — use `scripts/ci.sh full`.\n'
+  if [ "${#owned_fast_not_run[@]}" -gt 0 ]; then
+    printf 'NOT_RUN: the owned-database step did not run (%s) — this green does not cover it; see the runner prerequisite reason above.\n' "${owned_fast_not_run[*]}"
+  fi
+  exit 0
+fi
+
+step "owned-cluster suites: each starts its own PostgreSQL and touches no other database"
+# 2026-10-03 (release review iteration 1, finding 3). The runners apply the migration
+# chain to a temporary cluster of their own (initdb, unix socket only, listen_addresses='') and
+# run their suite there; NO tier ran them. They are here, not in the fast tier, for two measured
+# reasons: they need PostgreSQL 17 binaries (FABRIC_PG_BIN, default Homebrew's postgresql@17),
+# which the hosted fast runner does not have, and together they take ~94 s on this Mac
+# (2026-10-03 measured baseline: 3–32 s each, 11 of 11 exit 0). The hub upgrade rehearsal
+# additionally starts from ledger counts 75 and 77, preserves seeded rows, upgrades to count 78
+# (suffix 80) and dump/restores only its owned cluster. The write-rules suite (migration 82, CO-199/CO-201) plants events
+# a count-76/77 database accepted, upgrades it, rebuilds, and compares its schema with a fresh one. In this tier a runner that cannot run (exit 2,
+# NOT_RUN) fails it: the full tier is the one whose job is the database.
+# Every runner runs even when one fails (release review iteration 2): the step fails once, at the end,
+# naming each runner that did not pass.
+owned_failed=()
+for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
+  run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
+  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db run-project-board-db run-project-board-responders-db run-project-board-operator-db run-project-board-core-holds-db run-project-profile-db run-write-rules-db; do
+  if ! node "apps/desktop/test/$suite.mjs"; then
+    echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
+    owned_failed+=("$suite")
+  fi
+done
+if [ "${#owned_failed[@]}" -gt 0 ]; then
+  echo "FAIL: ${#owned_failed[@]} owned-cluster runner(s) did not pass: ${owned_failed[*]}"
+  exit 1
+fi
+
+step "a disposable stack — never the operator's"
+# 2026-10-03 (release review iteration 1, finding 2). This step used to be `supabase start` and
+# `supabase migration up --local` at the repository root: the operator's LIVE stack (project
+# `fabric`, API 54321, DB 54322), the database the desktop app keeps their real estates in. The
+# probes then wrote into it. Two different numbers, not to be confused: the live database held
+# 768 estates, 3 541 projects and 996 persons IN TOTAL (the operator's own rows included), and
+# `node scripts/residue-report.mjs` (read-only) classes 716 estates, 3 475 projects and 994 persons
+# of them as probe RESIDUE it would remove (both counted 2026-10-03, release review iteration 3).
+#
+# Now: a copy of the root `supabase/` project with its own `fabric_test_<hex>` id and its own block
+# of ports, started fresh (so the whole migration chain and the seed are applied, as on a new
+# install), used, then stopped with its volumes deleted. The teardown is a trap, so it runs on
+# every exit path — success, a failing probe, Ctrl-C. `up` refuses a plan that would use a live
+# port before any container exists, and `guard` refuses again on the addresses the probes will
+# actually be handed; every probe checks them a third time itself (scripts/lib/test-stack.mjs).
+stack_dir="$(mktemp -d "${TMPDIR:-/tmp}/fabric-test-stack.XXXXXX")"
+cleanup_stack() { node scripts/test-stack.mjs down "$stack_dir" || { stack_kept=1; echo "WARN: the disposable stack in $stack_dir was not removed; run: node scripts/test-stack.mjs down $stack_dir"; }; }
+trap 'cleanup_stack; cleanup_tmp' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+node scripts/test-stack.mjs up "$stack_dir"
+# The probes take their connection from these four variables and from nowhere else; an
+# operator's own SUPABASE_URL or DATABASE_URL is overwritten here, never inherited.
+set -a
+# shellcheck disable=SC1091
+. "$stack_dir/stack.env"
+set +a
+node scripts/test-stack.mjs guard
+
+step "every probe, including the ones that need the database"
+# A wall-clock limit (FABRIC_FULL_TIMEOUT_S, default 45 min): a probe that hangs — planted P14 waited
+# on a lock with no limit on 2026-10-03 — fails the tier with its command named instead of never ending.
+# EVERY suite runs (release review iteration 2): `pnpm -r test` ran each package's `a && b && …` chain and
+# stopped it at the first failure, so three failures that day hid ~50 desktop suites. The runner splits
+# the chains, runs every link, and fails at the end listing each failure (scripts/run-test-chains.mjs).
+node scripts/with-timeout.mjs "${FABRIC_FULL_TIMEOUT_S:-2700}" -- node scripts/run-test-chains.mjs
+
+step "fresh and upgraded are one schema (CO-199, CO-201)"
+# A second disposable stack at migration count 76, given an event that door accepted, upgraded with the runbook's
+# `supabase migration up --local`, rebuilt from its journal and compared with this tier's fresh stack.
+node scripts/probe-fresh-vs-upgraded.mjs
+
+step "residue the probes left — in the disposable stack, read-only"
+# Informational: the same report the operator can run against the live database, here showing
+# what one full run writes and does not clean up. It is deleted with the stack a moment later.
+node scripts/residue-report.mjs --db-url "$DATABASE_URL" | sed -n '1,9p'
+
+printf '\n\033[1mfull tier green.\033[0m The live stack was not addressed; the disposable one is removed on exit.\n'

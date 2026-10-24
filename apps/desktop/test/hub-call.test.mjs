@@ -98,14 +98,16 @@ test('ER-13: an agent that has already hung up reads no key and sends nothing; t
 })
 
 test('ER-13: the caller\'s signal reaches the forward, so hanging up mid-call aborts it', async () => {
-  const w = world({ forwardMs: 800 })
+  // A forward of 8 s against a hang-up at 100 ms: the margin holds under a loaded gate (it failed once at 881 ms
+  // with an 800 ms forward, 2026-10-24), and a forward that ran to its end still takes the whole 8 s.
+  const w = world({ forwardMs: 8000 })
   const ac = new AbortController()
   setTimeout(() => ac.abort(), 100)
   const started = Date.now()
   await w.call(A, args(), undefined, ac.signal)
   assert.ok(w.seen.forwardSignals[0], 'the forward was given no signal')
   assert.equal(w.seen.forwardSignals[0].aborted, true)
-  assert.ok(Date.now() - started < 700, 'the forward ran to its end after the caller hung up')
+  assert.ok(Date.now() - started < 6000, 'the forward ran to its end after the caller hung up')
   assert.equal(w.spans.at(-1).payload.outcome, 'cancelled')
 })
 

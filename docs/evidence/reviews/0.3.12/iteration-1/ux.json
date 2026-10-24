@@ -1,0 +1,174 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "7b0426318b79f6d4cc44ab1223bceaccd58de414",
+  "report": "docs/evidence/reviews/0.3.12/iteration-1/2026-10-24-ux.md",
+  "reportSha256": "780024439384b1a8c85030f4d1f4148a6392cbe9c5cb159d55600054bad426bd",
+  "reviewerRun": "release-0312-i1-ux-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `.lg-node` takes the app ink (`launch/launch.css`); measured 17.18:1 dark and 17.30:1 light; browser case in `scripts/test/shell-scroll.browser.mjs` (watched failing on the old CSS)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab reads `personOnly` naming the asker; agents' items moved to «Решат агенты» (`launch/BoardScreen.tsx`); two cases in `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: three states, the failure with «Повторить» (`launch/HomeWork.tsx#AgentsAtWork`); `AgentPage.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: detached windows are a column the notice shrinks (`.detached-window`, `App.tsx`); browser case at 900 x 600"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ticking line is `aria-hidden`, the alert announces once (`StackHealthNotice.tsx`); «ticks on screen without changing what the alert announces»"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one `git log` per repository grouped by Git's common directory, commits once by hash, only complete readings cached, concurrent reads shared, an unread history said with its folders (`main/gitPeople.ts#readGitPeople`, `ProjectProfile.tsx`); `git-people.test.mjs`, `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page heading takes focus and scrolls into view; ruled: «только что» and the task and day in results, CO-418"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lock, second read, temp file and rename, symlink kept (`main/claudeInbound.ts#setInbound`); Settings says «Не сохранилось» (`AgentLinksSetting`); four cases in `claude-inbound.test.mjs`, one in `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-45",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13; SCN-175 says not built"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rewritten strings, `pluralForm` (`i18n/translate.ts`), «Вас ждут 3 решения», \"Good evening.\"; `i18n/plural.test.ts`, `GraphScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "source": "V1-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a 24 px target out of the tab order, and «Связи» on the project page for the keyboard (`LaunchShell.tsx`, `ProjectLaunch.tsx`); `Rail.test.tsx`, `ProjectLaunch.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V1-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the kanban's column words (`TaskPage.tsx` `stateWord`); `TaskPage.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "source": "V1-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one sentence, «Спецификация не собрана: ...» (`task.specEmpty`); `TaskPage.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "source": "V1-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rewritten strings, `pluralForm` (`i18n/translate.ts`), «Вас ждут 3 решения», \"Good evening.\"; `i18n/plural.test.ts`, `GraphScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "source": "V1-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it says which tasks agents took and which tasks Fabric's sessions run; `plural.test.ts`"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "source": "V1-51",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "source": "V1-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «ветка» in every `launch.comms.*` string; `plural.test.ts`"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "source": "V1-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `FailureNote`, our sentence then the machine's words (`ReadinessPanel`); `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-19",
+      "source": "V1-54",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab is part of the route the way back restores (`BoardScreen.tsx`, `App.tsx`); `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    }
+  ]
+}

@@ -195,5 +195,6 @@ gives another carry its whole spec and its context (2026-10-24). Each is a row, 
 | CO-415 | 0.3.13 | a request between agents carries the whole spec (ADR-0176 amendment 5), with the contract's repin |
 | CO-416 | 0.3.13 | a request's context pack, with CO-415 |
 | CO-417 | 0.4.0 | one memory search across the operator's stores, agents first |
+| CO-418 | 0.3.13 | the review's findings 0.3.12 does not fix, three of them SQL for the schema step |
 
-With these five, 0.3.13 holds 3 more and 0.4.0 2 more.
+With these six, 0.3.13 holds 4 more and 0.4.0 2 more.

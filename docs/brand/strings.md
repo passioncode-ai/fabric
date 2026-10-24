@@ -381,11 +381,6 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `onboarding.newFolder.made` | new folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `onboarding.newFolder.leftOnDisk` | The folder {path} stays on disk; Fabric does not delete folders. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `onboarding.defaultAgent` | Default coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
-| `estate.quotaUnreachableUnread` | The service could not be reached, and no reading has come back yet. This says nothing about whether Claude Code is signed in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
-| `estate.quotaRejectedUnread` | The service refused the request, and no reading has come back yet. This says nothing about whether Claude Code is signed in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
-| `estate.quotaEmptyUnread` | The service answered with nothing, so there are no numbers to show yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
-| `estate.quotaThrottledUnread` | Rate-limited before the first reading came back, so there are no numbers yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
-| `estate.quotaNone` | No reading came back, so there is nothing to show. This says nothing about the account itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
 | `agents.runnersReading` | Reading the coding agents on this computer… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.unknownRunner` | no coding agent recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.createdAgent` | Created agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
@@ -914,8 +909,6 @@ cell, on hover), never inside the sentence (UX-10). A count is "label: {count}",
 | `launch.comms.replyTo` | answers {sender}: “{words}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToFrom` | answers a message from {sender} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToEarlier` | answers an earlier message | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
-| `estate.quotaUnavailable` | The quota could not be read. This says nothing about the account itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-070 | proposed |
-| `status.quotaUnreadable` | quota could not be read | apps/desktop/src/renderer/src/i18n/en.ts | SCN-070 | proposed |
 | `history.pending.unread` | Fabric could not read which restores are waiting for a result. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-065 | proposed |
 | `history.restoredList.unread` | Fabric could not read which estates this computer restored for you. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-065 | proposed |
 

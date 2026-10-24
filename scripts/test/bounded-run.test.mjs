@@ -99,7 +99,7 @@ test('a supervised job whose step hangs ends at its watchdog with a timeout reco
   const step = `require('fs').writeFileSync(${JSON.stringify(mark)}, String(process.pid)); process.on('SIGTERM',()=>{}); setInterval(()=>{},1000)`
   const job = `import { superviseJob, boundedRun } from ${JSON.stringify(lib)}; await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 1500, log: ${JSON.stringify(log)} }, async () => { await boundedRun(process.execPath, ['-e', ${JSON.stringify(step)}], { timeoutMs: 600000, stdio: 'ignore' }); return { outcome: 'done' } })`
   const started = Date.now()
-  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)) })
+  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)); c.on('error', (e) => resolve(e)) })
   assert.ok(Date.now() - started < 10_000, 'the watchdog did not end the job')
   assert.equal(code, 124)
   const record = JSON.parse(readFileSync(statusFile, 'utf8'))
@@ -116,7 +116,7 @@ test('a supervised job that refuses to start leaves the existing status record a
   const statusFile = path.join(dir, 'status.json')
   writeFileSync(statusFile, JSON.stringify({ outcome: 'published', job: 'sync' }))
   const job = `import { superviseJob } from ${JSON.stringify(lib)}; await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 60000, guard: () => { throw new Error('wrong checkout') } }, async () => ({ outcome: 'done' }))`
-  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)) })
+  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)); c.on('error', (e) => resolve(e)) })
   assert.equal(code, 1)
   assert.equal(JSON.parse(readFileSync(statusFile, 'utf8')).outcome, 'published', 'a refused run overwrote the job\'s record')
   rmSync(dir, { recursive: true, force: true })

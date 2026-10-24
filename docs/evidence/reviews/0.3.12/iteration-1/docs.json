@@ -1,0 +1,198 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "7b0426318b79f6d4cc44ab1223bceaccd58de414",
+  "report": "docs/evidence/reviews/0.3.12/iteration-1/2026-10-24-docs.md",
+  "reportSha256": "a2750dfb00d8013e65ff5f04cc8cedbddc474e2c0bd30537148a6af5dbd8ee49",
+  "reviewerRun": "release-0312-i1-docs-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rollout copies migration 123 from the verified bundle, backs up, rehearses and migrates before the open (Rollout steps 3 to 6); CHANGELOG's Upgrading note follows the runbook's order and links it; `release-mac.md` names the copy as an alternative to step 1's first start"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rollout copies migration 123 from the verified bundle, backs up, rehearses and migrates before the open (Rollout steps 3 to 6); CHANGELOG's Upgrading note follows the runbook's order and links it; `release-mac.md` names the copy as an alternative to step 1's first start"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rules narrowed (`shared/redact.ts`), a 26-line ordinary corpus in `redact.test.ts` (watched failing); the probe ran read-only over the operator's journal (20 744 events, 79 206 lines): no line changed by 0.3.12's rules that v0.3.11 left alone; CO-386's status says so"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-413 (0.4.0) and CO-414 (0.3.13), in the triage and lane 12"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a post of any kind and a participant's reply into an existing thread joining two businesses are refused (`main/boardService.ts#businessWall`); three cases in `board-service.test.mjs`; the responder's fenced reply ruled CO-418"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one `git log` per repository grouped by Git's common directory, commits once by hash, only complete readings cached, concurrent reads shared, an unread history said with its folders (`main/gitPeople.ts#readGitPeople`, `ProjectProfile.tsx`); `git-people.test.mjs`, `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the window's `quota.read`, its IPC and 20 strings removed; ruled: Settings' section pass moved to 0.3.13 with CO-348 (the triage, \"Moved again\")"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V1-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 8 checks «Познакомиться с проектом»; CO-284 is ruled, not counted"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line and P-25 say built and in release verification; one recount from the table (70 rows: 33 in 0.3.12, 24 in 0.3.13, 10 in 0.4.0), stated in the triage, the register's note and P-25"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line and P-25 say built and in release verification; one recount from the table (70 rows: 33 in 0.3.12, 24 in 0.3.13, 10 in 0.4.0), stated in the triage, the register's note and P-25"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "source": "V1-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each row notes its 0.3.13 ruling"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`, named in the gate's metadata"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"(not yet released)\" dropped, 95 in the `FROM` list, `boardFilters` named beside `machineTrust`"
+      ]
+    },
+    {
+      "id": "DO-18",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-311 names Docker's wait, CO-346 says at most 16 session budgets, CO-397 says the database's refusal text still differs; ruled: that text, CO-418 (0.3.13)"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a credential used in the last 5 minutes is never revoked (`RESOLVE_IN_USE_MS`); tests for another grant and an old uncollected one in `session-enroll-request.test.mjs`"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-21",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "source": "V1-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment 7 (2026-10-24): Decision 3 holds for the operator's own Mac, where the rollout sets «мой»"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "source": "V1-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the two new cells say \"nothing\""
+      ]
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "7b0426318b79f6d4cc44ab1223bceaccd58de414",
+  "report": "docs/evidence/reviews/0.3.12/iteration-1/2026-10-24-plan.md",
+  "reportSha256": "245e4ca0101f6ad5b6ce3389c6888d248001ee372f6d69628d16693cf1b83732",
+  "reviewerRun": "release-0312-i1-plan-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rollout copies migration 123 from the verified bundle, backs up, rehearses and migrates before the open (Rollout steps 3 to 6); CHANGELOG's Upgrading note follows the runbook's order and links it; `release-mac.md` names the copy as an alternative to step 1's first start"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Rollout step 0 (more than 8 GB free, measured and recorded) and step 5 (`rehearse-upgrade.mjs`, PASS required; without it the database stays at 95 and the operator decides)"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: 0.3.13, Settings' section pass (the triage, \"Moved again\" and \"Each row\"); recounted"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the window's `quota.read`, its IPC and 20 strings removed; ruled: Settings' section pass moved to 0.3.13 with CO-348 (the triage, \"Moved again\")"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-413 (0.4.0) and CO-414 (0.3.13), in the triage and lane 12"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line and P-25 say built and in release verification; one recount from the table (70 rows: 33 in 0.3.12, 24 in 0.3.13, 10 in 0.4.0), stated in the triage, the register's note and P-25"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace PR #409 (`c5558dce`), before the tag"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Vesta answered on `0d82422a` (`9d9e6a4f`: CO-319 to CO-321 in 0.4.0, the Studio needs no hub move), fabric-workspace on `6c7a5404` (`e36fe15e`); the Release close lists the moved rows' threads and CO-377's date"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a release handoff `docs/handoffs/2026-10-24-release-0312.md`, named in the gate's metadata"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md`, `screens.md`, `flows.md` and the wave 2 spec rewritten against the code; what is not built is named with its row; «Найти связи» gone from the ledger and the spec; what the scenarios promise and 0.3.12 does not ship is CO-418"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Rollout steps 2, 7 and 8 carry the broker check, `startup-failure.log`, OF-36, CO-382, the walk in ru and en and 0.3.9's measurements; CO-365 in the Release close"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"(not yet released)\" dropped, 95 in the `FROM` list, `boardFilters` named beside `machineTrust`"
+      ]
+    }
+  ]
+}

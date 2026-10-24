@@ -287,7 +287,9 @@ test('CO-206: the hub store answers within its deadline against a database that 
       assert.match(e.message, /did not answer within 60 ms/)
       return true
     })
-    assert.ok(Date.now() - started < 500, `store.${name} took ${Date.now() - started} ms`)
+    // 60 ms deadline, 900 ms bound: a loaded gate (load 38, 2026-10-24) took 655 ms; a store that never answers
+    // still fails `within`'s 1 s guard above.
+    assert.ok(Date.now() - started < 900, `store.${name} took ${Date.now() - started} ms`)
     const given = db.signals.slice(before)
     assert.ok(given.length >= 1, `store.${name} handed the client no signal`)
     assert.ok(given.every((s) => s.aborted), `store.${name} left its request open`)

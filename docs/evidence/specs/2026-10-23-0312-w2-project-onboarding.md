@@ -1,7 +1,9 @@
 # Fabric 0.3.12, wave 2: project onboarding, the project page and the business wall
 
 **Date:** 2026-10-23. **Owner:** P-25 ([backlog](../backlog.md)), wave 2 of
-[the triage](../plans/2026-10-23-release-0312-triage.md#the-waves-of-0312). **Status:** spec gathered, not built.
+[the triage](../plans/2026-10-23-release-0312-triage.md#the-waves-of-0312). **Status:** built in 0.3.12 (slices S1 to S6 on 2026-10-23, S7 and the release review's fixes on 2026-10-24),
+narrowed where [the amendments below](#amendments-2026-10-24-what-was-built) say so. Gathered as a spec on 2026-10-23;
+the text above the amendments is that spec as it was decided, kept readable.
 
 **Why this page.** The operator, 2026-10-23 (ADR-0176 §1): a task starts only once its spec is whole. Wave 2's spec is
 already the operator's words: the walk of 2026-10-22/23 (OF-20, OF-24 to OF-27, OF-31, OF-32, OF-39, OF-40, OF-37's
@@ -37,6 +39,14 @@ broadcast joined unrelated businesses against the operator's rule of 2026-10-18 
 6. Every place it touches still works: the home, the kanban, Comms, the hub's other tools (the operator's rule of
    2026-10-23, «не ломать то, что работает»).
 
+**2026-10-24, as built** (each point is detailed in [the amendments](#amendments-2026-10-24-what-was-built)): 1 holds
+for a project added to Fabric and for «Познакомиться с проектом» on its page; «Найти связи» was not built and is
+narrowed to that one offer. 2 and 3 are narrowed: the page shipped in its own order, «Вопросы ко мне» stands for
+«Нужны вы», the people from Git are in «Что это за проект» (Команда lists the project's agents), and «Идеи и
+материалы» was not built. 4 holds, widened to every post into a walled thread. 5 is narrowed: the graph opens whole,
+or on one project with only its direct neighbours. 6 is the release review's (its ledger,
+`docs/evidence/plans/2026-10-24-release-0312-verification.md`).
+
 ## Out of scope, and what must not change
 
 - **Notifications outside Fabric (OF-40)** go to 0.4.0: Fabric has no Telegram bot (it told the board so on
@@ -69,9 +79,78 @@ broadcast joined unrelated businesses against the operator's rule of 2026-10-18 
 |---|---|---|---|
 | S1 | The profile: migration 123, `project.profiled@1`, `fabric_project_profile`, the read | OF-24 (data), OF-31 (data) | nothing |
 | S2 | The business wall and the directory's names | CO-368, CO-369 | S1 |
-| S3 | The onboarding task when a project is added, and «Найти связи» | OF-31, CO-367, CO-329 | S1 |
-| S4 | The project page: Цель, Команда (agents and Git people), План and the kanban strip, analytics, «Идеи и материалы», the way back and its scroll, last activity | OF-20, OF-24 to OF-27, OF-39, CO-388, CO-307, CO-394 | S1 |
+| S3 | The onboarding task when a project is added, and «Найти связи» | OF-31; CO-367 and CO-329 moved to 0.3.13 (2026-10-23, below) | S1 |
+| S4 | The project page: Цель, Команда (agents and Git people), План and the kanban strip, analytics, «Идеи и материалы», the way back and its scroll, last activity | OF-20, OF-24 to OF-27, OF-39, CO-388, CO-394; CO-307 moved to 0.3.13 (2026-10-23, below) | S1 |
 | S5 | The graph | OF-32, SCN-175 | S1 |
 | S6 | The places the walk named and their words: «Нужны вы» (CO-391), quotas gone (CO-392), the agent page (CO-393), История (CO-395), the splash's language (CO-306), failure wording (CO-313), screens and flows (CO-400) | the rows named | S4 for CO-394 |
 
 Each slice lands on its own with its gate, its scenarios and the map, and never leaves `main` broken.
+
+**2026-10-24, the slices as they landed:** S1 `18962127`, S2 `98e708a3`, S3 `819a60c6`, S4 in three parts (S4a
+`b9abae41`, S4b `a6ca87e6`, S4c `8670aa13`), S5 `d03e970c`, S6 `e4995f30` (CO-392), `e3719e38` (CO-306), `2f49d8f3`
+(CO-391), `9e90de50` (CO-395), `1b93606c` (CO-313), `70da6627` (CO-393), `9a50002f` (CO-400), `e8d5a4aa` (CO-394), and
+a seventh slice the triage added for the walk's remaining items, S7 `86ae2b39` (CO-401). The release review's fixes to
+this wave: `7e5185b3`, `33daef36`, `5a47a91d`, `8d555271`, `fa9729cf`, `33f6795e`, `441af121` and `1dee1c0a`. Moved out
+of the wave on 2026-10-23 ([the triage](../plans/2026-10-23-release-0312-triage.md)): CO-367 and CO-329 to 0.3.13 with
+the tracking of turns (attributing work to a project needs the hooks' turn facts read per repository, and CO-329's
+first rule an owner list the profile does not carry), and CO-307 to 0.3.13's schema step (a project's last activity
+needs a journal read grouped by project, an SQL function, and 0.3.12 kept its one schema step for migration 123).
+
+## Amendments, 2026-10-24: what was built
+
+Each note is dated and sits under the decision it amends; the decision's own text in the table above is unchanged.
+
+- **W2-1 (2026-10-24):** built as decided, with one more column: `projects.plan jsonb` holds the plan (done and next)
+  beside `goal`, `summary`, `business`, `profiled_at` and `profiled_by`
+  (`supabase/migrations/20261023000123_project_profile.sql`).
+- **W2-3 (2026-10-24):** a call that names no field is refused («name at least one field»); an empty `goal` or
+  `summary` clears it; `plan` must be an object of `done` and `next` and is replaced whole, and `relations`, when given,
+  replace the whole list (`apps/desktop/src/main/projectOnboarding.ts#agentProfilePayload`, the tool
+  `fabric_project_profile` in `apps/desktop/src/main/agentSurface.ts`). A profile for a project this estate no longer
+  holds is refused in plain words before anything is journaled (DA-9).
+- **W2-4 (2026-10-24, the release review DA-2, ER-2):** the business is the person's, because the wall reads it and the
+  party it walls must not be able to take it down. The onboarding agent may set it only while none is recorded; an
+  empty business from an agent is refused (an agent never clears it), a different one while one is set is refused with
+  the person's route (the project page), and the same one in another case is dropped so the person's spelling stays; a
+  read of the current business that fails refuses a business the call names and lets the other fields through. The
+  person's value from the project page always applies (`apps/desktop/src/main/projectOnboarding.ts#agentProfilePayload`).
+- **W2-5 (2026-10-24, DO-9):** the wall refuses a new thread whose participants carry two different non-empty
+  businesses, a post of any kind (a message, a request, a finding, an announcement) into an existing thread whose
+  participants already carry two, and a participant's reply into such a thread
+  (`apps/desktop/src/main/boardService.ts#businessesJoined`, region `business-wall-check`). A read that fails walls
+  nothing and is logged. **A gap:** a responder's fenced `com.reply` and its `com.complete` are not walled; carried in
+  CO-418 (0.3.13).
+- **W2-6 (2026-10-24, DO-10, UX-6, ER-3):** one `git log` per repository, not per folder: a project's folders are
+  grouped by Git's common directory, so a repository's checkouts and worktrees are read once; a commit seen in two
+  groups (two clones of one remote) is counted once, by its hash. A reading where every repository was read is cached
+  for 10 minutes; a partial one is not cached, so a failure is read again on the next open, and the page says which
+  folders were not read and why; concurrent first reads of one project share one reading
+  (`apps/desktop/src/main/gitPeople.ts#readGitPeople`).
+- **W2-7 (2026-10-24, DA-5, ER-6):** filing is one act: a press that finds the onboarding task with part of its brief
+  unwritten writes the missing parts; two presses for one project run one after the other, so the creation and the
+  brief are journaled once; every failure, a refused read of the existing task included, is logged (`onboarding.file`)
+  before it is thrown (`apps/desktop/src/main/projectOnboarding.ts#createOnboardingFiler`). «Найти связи» was not built:
+  the one offer on a project is «Познакомиться с проектом», shown until an agent records a goal or a summary (setting
+  only the business keeps it, DA-3).
+- **W2-8 (2026-10-24, DA-1, DA-4):** a task reaches done by the person's close (`task.closed@1`), since an agent never
+  moves a task to a terminal state; the closes are read with the moves, each as a move to its outcome, so a close as done
+  counts as done (`apps/desktop/src/shared/projectAnalytics.ts#withCloses`). The journal is read newest
+  first, paged past the gateway's 1 000 rows up to 5 000, and a read that reaches that bound is said on the page («самые
+  ранние недели могут быть посчитаны не полностью»); the open questions are read oldest first and counted exactly
+  (`apps/desktop/src/shared/projectAnalytics.ts#projectAnalytics`, the `projects:analytics` handler in
+  `apps/desktop/src/main/index.ts`). An index for that read is CO-418 (0.3.13).
+- **W2-9 (2026-10-24, DO-21):** what the graph draws: businesses as columns (the projects without one, and the targets
+  outside Fabric, as columns of their own); lines for the relations the profile names (a target matching no project is
+  drawn as a node outside Fabric) and one dashed line per pair of projects that share board threads, with how many
+  messages they hold. No «same business» or «request» edge is drawn, and no not-cloned repository: that still waits for a
+  GitHub read. It opens whole from «Граф проектов» under the rail's list; from a project's graph mark on the rail or
+  «Связи» on its page it shows that project and only its direct neighbours, with «Весь граф» back to the whole
+  (`apps/desktop/src/shared/projectGraph.ts#aroundProject`, `apps/desktop/src/renderer/src/launch/GraphScreen.tsx`).
+  Not built in 0.3.12: «Повторить» on a failed read and a legend for the dashed lines (CO-418, 0.3.13).
+- **The project page (S4, 2026-10-24):** it shipped in this order, not the order of point 2: the way back; the head
+  (name, purpose, «Сейчас») with «Доска проекта», «План» and «Связи»; then, in the main column, the way («Где мы»), or
+  «Начните с первого результата» for a project with no task, «Вопросы ко мне» (this project's part of «Нужны вы») and
+  the kanban strip; beside it, «Агенты на проекте», the goal while none is recorded, «Что это за проект» (the summary,
+  «Цель», «План», «Бизнес», «Связанные проекты», «Люди (из Git)»), «Как идёт работа», «Команда» (the project's agents),
+  «Ритм работы» and «Ресурсы и настройки», folded (`apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`). «Идеи и
+  материалы» was not built in 0.3.12.

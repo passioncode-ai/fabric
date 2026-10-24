@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "7b0426318b79f6d4cc44ab1223bceaccd58de414",
+  "report": "docs/evidence/reviews/0.3.12/iteration-1/2026-10-24-data.md",
+  "reportSha256": "d15874b042000ad79bacdfd0c4386b0c9fc86a311573fdaab45f327423f366ae",
+  "reviewerRun": "release-0312-i1-data-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a `task.closed@1` counts as a move to its outcome (`shared/projectAnalytics.ts#withCloses`); `projectAnalytics.test.ts` «counts a task the person closed as done» (watched failing)"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an agent sets a business only while none is recorded and can neither clear nor change it (`main/projectOnboarding.ts#agentProfilePayload`, `fabric_project_profile`); `project-onboarding.test.mjs` «DA-2» (watched failing)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the page reads a project as onboarded from a goal or summary (`launch/ProjectProfile.tsx`); `ProjectProfile.test.tsx` «keeps the offer when only the person's business was recorded» (watched failing)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: analytics newest first, paged to 5 000, capped said; open questions oldest first, counted; the graph pages; ruled: the journal index, CO-418"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a press completes a part-written brief, presses serialized per project, failures logged (`main/projectOnboarding.ts#createOnboardingFiler`); three cases in `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: by when cancelled (`main/workRead.ts#readTaskBoard`); `work-read-views.test.mjs` (watched failing)"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13: migration 123 is on `main`'s ledger and `check-migration-order.mjs` refuses an edit, so the revoke is a new migration"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "source": "V1-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "source": "V1-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: refused before the append in plain words (`writePersonBusiness`, `fabric_project_profile`); `project-onboarding.test.mjs` «DA-9»"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"(not yet released)\" dropped, 95 in the `FROM` list, `boardFilters` named beside `machineTrust`"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "source": "V1-37",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "source": "V1-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one bound, `COMMS_THREAD_HEADS_LIMIT` = 5 000 (`shared/commsRead.ts`); `commsMarks.test.ts` at 4 097 and 5 000"
+      ]
+    }
+  ]
+}

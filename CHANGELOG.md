@@ -80,7 +80,8 @@ folder, then open the new bundle.
   you left it; any other move opens a page at its top (CO-388, SCN-058).
 - The project page shows how the work goes over eight weeks: tasks done (a bar per week), the median time from task to
   done and in review, the share sent back from review, and the questions waiting with the oldest; read from the journal,
-  with nothing new tracked (OF-39).
+  with nothing new tracked (OF-39). A task you close as done counts, and the page says when the read stopped at its
+  limit.
 - The project page says what the project is: the goal, the plan (done and next) and the related projects the onboarding
   agent recorded, the business (editable), and the people who committed to its repositories in the last year, read from
   Git. A project with no profile yet offers «Познакомиться с проектом», which files the onboarding task and opens it
@@ -88,12 +89,26 @@ folder, then open the new bundle.
 - A new project gets «Познакомиться с проектом» in its queue: an onboarding task whose brief is already written, for an
   agent to read the project and record its profile without changing the repository. It is filed once per project and
   never for projects that existed before (OF-31, SCN-171).
-- The board never starts a thread that joins projects of two different businesses: the agent is told which businesses
-  and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
+- The board never starts a thread that joins projects of two different businesses, and refuses a post or a reply into
+  an existing thread that does: the agent is told which businesses and projects, and nothing is stored. A project's business is the one its profile records; a project without one walls
   nothing. `com.directory` tells two projects of the same name apart by their repository's folder (CO-368, CO-369).
 - A project has a profile: what it is for, a one-line summary, its business, its plan (done and next) and its relations
   to other projects. The agent onboarding a project records it through the hub (`fabric_project_profile`, its own
-  project only); a field it names replaces what was there. This is the schema step to 96 described under Upgrading.
+  project only); a field it names replaces what was there, except the business, which is yours: an agent records it
+  only while none is set and can neither clear nor change it, and you set it on the project page. A project offers
+  «Познакомиться с проектом» until an agent records its goal or summary. This is the schema step to 96 described
+  under Upgrading.
+- After the release review: the Board's «Нужны вы» lists only what waits for you, naming who asked, and what agents
+  resolve moved to «Решат агенты»; Агенты says when its list could not be read or nobody works, and a chosen agent's
+  page takes focus; project names on the graph read in the dark theme; a project page's «Связи» opens the graph from
+  the keyboard; the people of a project are counted once per repository, and a history that could not be read is said
+  as such, with its folders; the lost-stack notice no longer pushes a detached console's prompt off the window, and its
+  countdown is not read aloud every second; the greeting counts in Russian plural forms; a refused write of Claude
+  Code's settings says «Не сохранилось»; the Board's cancelled column is ordered by when tasks were cancelled; the
+  agent filter applies to «В работе» and says so; a sideways scroll no longer turns the page back; the redaction
+  leaves comparisons, calls, counts and words like `KEYBOARD` alone; the stack start begins no try with under 30
+  seconds left, and its timeout states its real limit; Comms keeps up to 5000 read marks; and the folder-attribution
+  lane never revokes a credential in use.
 - The board rule agents read now says that a reply from the project a request was sent to answers it (DEC-0098,
   DEC-0102), instead of telling them the request stays queued (CO-397; the database's own refusal text for `com.enroll` still says it and changes with 0.3.13's schema step); and a session served different rules later in
   its life (the working language or this computer's trust changed) is journalled again with the earlier rules' hash

@@ -2837,7 +2837,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   H[Screen: SCR-85 Главная] --> W{Anything waiting?}
-  W -->|no| N[Вопросов нет. Агенты работают сами.]
+  W -->|no| N[Ничего не ждёт вашего решения]
   W -->|yes| Q[Question card: who, why, options as buttons]
   Q -->|press an option| B{Answer recorded?}
   B -->|yes| D[Card leaves · act line «Ответ … отправлен · Отменить»]
@@ -2865,6 +2865,7 @@ flowchart TD
   | SCR-86 Проект | success |
 - **Scenarios:** SCN-163, SCN-164
 - **Implementation tasks:** 0.3.7 waves 2 (reopen) and 4 (Главная)
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, UX-2, DO-7):** the empty node reads as shipped, «Ничего не ждёт вашего решения» (it said «Вопросов нет. Агенты работают сами.», the 0.3.7 target). The greeting counts decisions («Вас ждут 3 решения.»). «Повторить» on a failed section is not built: the section says so with the machine's words beneath and keeps its last reading marked «как было в {время}» (SCN-163).
 
 ### FLW-95: Steer a project from its one page
 - **Traces:** SCN-165, SCN-164 (ST-032, ST-034, ST-030; JTBD-02, JTBD-07)
@@ -3043,16 +3044,20 @@ flowchart TD
 - **Goal:** the person sees every task in its stage and opens the one they want.
 - **Entry points:** «Доска» from Главная («Кто что делает» or «Открыть доску»); a project page's kanban strip; «Нужны вы» for the person's part.
 - **Success exit:** the task's page is open (FLW-100), with the way back to the Board.
-- **Task analysis:** 1. Read the four columns. 2. Narrow to a project. 3. Press a card.
+- **Task analysis:** 1. Read the four columns. 2. Narrow to a project or an agent, or show the cancelled tasks. 3. Press a card.
 - **Flow:**
 
 ```mermaid
 flowchart TD
   B[Screen: SCR-41 Доска] --> R{Board read?}
-  R -->|no| R_err[Доска не прочитана · Повторить]
-  R_err -->|Повторить| R
+  R -->|no| R_err[Доску не удалось прочитать · the machine's words beneath · last reading kept]
+  R_err -->|the journal moves| R
   R -->|yes| K[Очередь · В работе · На проверке · Готово]
   K -->|project filter| K
+  K -->|agent filter| KA[В работе narrowed · the other columns whole, said]
+  KA --> K
+  K -->|Показывать отменённые| KC[Fifth column Отменено, most recently cancelled first]
+  KC --> K
   K -->|a card| T[Screen: SCR-32 the task's page]
   T -->|Назад| K
 ```
@@ -3063,26 +3068,32 @@ flowchart TD
   | SCR-41 Ranked Board and question detail | loading, empty, success, partial or stale |
   | SCR-32 Task page | success |
 - **Scenarios:** SCN-173
-- **Implementation tasks:** 0.3.11 (the kanban, the project filter); the agent filter, «Отменено» and remembered filters are CO-401
+- **Implementation tasks:** 0.3.11 (the kanban, the project filter); 0.3.12 S7, CO-401 (the agent filter, «Показывать отменённые», the filters remembered); the 0.3.12 review (the agent filter on «В работе» only, the view kept on the way back)
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, DO-5):** the failure node is what ships: «Доску не удалось прочитать.» with the machine's words beneath and no «Повторить»; the board reads again when the journal moves. The node «Доска не прочитана · Повторить» it replaced was never built.
 
 ### FLW-100: Open a task and read what it is for
 - **Traces:** SCN-174 (ST-037; JTBD-02)
 - **Goal:** the person reads what the task is, why it exists and what will be true when it is done, then goes back where they were.
 - **Entry points:** a card on the Board; a lane row on Главная; a project page's strip; an agent's page («Открыть его задачу»).
 - **Success exit:** the person knows the task's purpose and state, and is back where they came from with the scroll kept.
-- **Task analysis:** 1. Read the brief. 2. Read its state and who works on it. 3. Go back.
+- **Task analysis:** 1. Read the brief. 2. Read its state, who works on it, what holds it and how it moved. 3. Go back.
 - **Flow:**
 
 ```mermaid
 flowchart TD
   F[A card, a lane row or an agent's page] --> T[Screen: SCR-32 Task page]
   T --> R{Task read?}
-  R -->|no| R_err[Задача не прочитана · Повторить]
+  R -->|no| R_err[Banner: why it was not read · Назад]
+  R_err -->|Назад| F
   R -->|yes| BR{Brief written?}
-  BR -->|no| E[Brief empty: what to write, with the agent's draft if any]
+  BR -->|no, a task to do| E[Спецификация не собрана: бриф ещё не написан]
+  BR -->|no, finished| E2[Бриф не написан. Его можно написать ниже.]
   BR -->|yes| D[Для чего эта задача: что, почему, что будет верно]
+  E --> S
+  E2 --> S
   D --> S[State, who works on it, since when]
-  S -->|Назад| F
+  S --> H[Что её держит · Как двигалась]
+  H -->|Назад| F
 ```
 
 - **Screens traversed:**
@@ -3090,4 +3101,5 @@ flowchart TD
   |---|---|
   | SCR-32 Task page | success, brief with two writers |
 - **Scenarios:** SCN-174
-- **Implementation tasks:** 0.3.11 (the template and the way back), 0.3.12 S4c (the scroll kept on return); the move history and blockers are CO-401
+- **Implementation tasks:** 0.3.11 (the template and the way back), 0.3.12 S4c (the scroll kept on return), 0.3.12 S7, CO-401 (what holds the task and how it moved), the 0.3.12 review (one sentence for an empty brief, the kanban's words for its moves)
+- **Amended 2026-10-24 (0.3.12 release review, iteration 1, DO-5):** the failure node is what ships: a banner saying why the task was not read, with the way back; there is no «Повторить», and the node «Задача не прочитана · Повторить» it replaced was never built.

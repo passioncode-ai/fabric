@@ -4785,8 +4785,8 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 737,
-        "coverage_claim": "`apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12)",
-        "status_claim": "designed"
+        "coverage_claim": "`apps/desktop/src/renderer/src/TaskPage.tsx` (the template and the way back; 0.3.11, 0.3.12; what holds it and how it moved, 0.3.12 S7), test `apps/desktop/src/renderer/src/TaskPage.test.tsx`",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -4972,7 +4972,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 761,
+        "line": 762,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5150,7 +5150,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 779,
+        "line": 780,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5324,7 +5324,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 801,
+        "line": 802,
         "coverage_claim": "`apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs` (UX28-05). The `error` row above was specified from the start and the code answered `0` until this change. The `skills with the mandatory task skill marked` element is NOT built — it is M123's — and no skills row is shown rather than an empty one that would read as \"none installed\"",
         "status_claim": "designed"
       },
@@ -5490,7 +5490,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 822,
+        "line": 823,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5652,7 +5652,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 843,
+        "line": 844,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5801,7 +5801,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 863,
+        "line": 864,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5965,7 +5965,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 878,
+        "line": 879,
         "coverage_claim": "the list order, the attach lifecycle and the ended-session snapshot — `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. NOT covered: the launch control at the head of the list, the task the agent holds, and view-files — all named in Elements and none built",
         "status_claim": "designed"
       },
@@ -6151,11 +6151,11 @@
         "FLW-27"
       ],
       "scenario_ids": [
+        "SCN-175",
         "SCN-046",
         "SCN-052",
         "SCN-053",
-        "SCN-058",
-        "SCN-175"
+        "SCN-058"
       ],
       "states": {
         "loading": "Показывать читаемый scope и загрузку нужного источника; ещё не выводить нули или пустой успех.",
@@ -6167,7 +6167,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 908,
+        "line": 909,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6377,9 +6377,9 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 929,
-        "coverage_claim": "`apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`",
-        "status_claim": "designed"
+        "line": 931,
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/BoardScreen.tsx` (the kanban and the person's part; 0.3.11, 0.3.12), `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx`, `apps/desktop/src/main/workRead.ts#readTaskBoard`, with `BoardScreen.test.tsx` and `KanbanBoard.test.tsx`",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -6580,7 +6580,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 956,
+        "line": 959,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -6756,7 +6756,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 976,
+        "line": 979,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6909,7 +6909,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 998,
+        "line": 1001,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7050,7 +7050,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1022,
+        "line": 1025,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -7193,7 +7193,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1048,
+        "line": 1051,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7340,7 +7340,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1074,
+        "line": 1077,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7481,7 +7481,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1099,
+        "line": 1102,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7593,7 +7593,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1124,
+        "line": 1127,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7677,7 +7677,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1147,
+        "line": 1150,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7762,7 +7762,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1170,
+        "line": 1173,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7860,7 +7860,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1193,
+        "line": 1196,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/SettingsScreen.tsx (2026-10-14: the screen, the agents on this computer from Switchboard's catalogue or Fabric's own detection, the launch fallback order, sleep, look, and data and access — usage counts and the buttons to private history and Agent access), apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx; the estate-scoped half (estate name, default memory, CEO trust, project priority) is designed, not built",
         "status_claim": "designed"
       },
@@ -7955,7 +7955,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1231,
+        "line": 1234,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8038,7 +8038,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1254,
+        "line": 1257,
         "coverage_claim": "none yet",
         "status_claim": "retired"
       },
@@ -8121,7 +8121,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1278,
+        "line": 1281,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8210,7 +8210,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1301,
+        "line": 1304,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8293,7 +8293,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1324,
+        "line": 1327,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8376,7 +8376,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1347,
+        "line": 1350,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8459,7 +8459,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1370,
+        "line": 1373,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8544,7 +8544,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1393,
+        "line": 1396,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8631,7 +8631,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1416,
+        "line": 1419,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8719,7 +8719,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1438,
+        "line": 1441,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8811,7 +8811,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1460,
+        "line": 1463,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8960,7 +8960,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1484,
+        "line": 1487,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -9109,7 +9109,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1514,
+        "line": 1517,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9225,7 +9225,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1677,
+        "line": 1680,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9300,7 +9300,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1695,
+        "line": 1698,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9375,7 +9375,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1712,
+        "line": 1715,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9450,7 +9450,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1729,
+        "line": 1732,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9527,7 +9527,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1758,
+        "line": 1761,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps, with the REQ-40 agent choice in region `first-run-agent-choice` and apps/desktop/src/shared/builderChoice.ts; the 0.4.0 order is designed, not built)",
         "status_claim": "designed"
       },
@@ -9663,7 +9663,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1789,
+        "line": 1792,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9759,7 +9759,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1810,
+        "line": 1813,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9929,7 +9929,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1847,
+        "line": 1850,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -10024,7 +10024,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1868,
+        "line": 1871,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10133,7 +10133,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1892,
+        "line": 1895,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10240,7 +10240,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1914,
+        "line": 1917,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -10340,7 +10340,7 @@
       "view": "setup-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1946,
+        "line": 1949,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10557,7 +10557,7 @@
       "view": "where-work",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1993,
+        "line": 1996,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
@@ -10683,7 +10683,7 @@
       "view": "fabric-button",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2023,
+        "line": 2026,
         "coverage_claim": "none yet",
         "status_claim": "blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)"
       },
@@ -10761,7 +10761,7 @@
       "view": "session-start",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2042,
+        "line": 2045,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -10815,13 +10815,13 @@
       "task_ids": [],
       "scenario_ids": [
         "SCN-143",
+        "SCN-178",
         "SCN-146",
         "SCN-147",
         "SCN-148",
         "SCN-156",
         "SCN-157",
-        "SCN-144",
-        "SCN-178"
+        "SCN-144"
       ],
       "flow_ids": [
         "FLW-83"
@@ -10864,7 +10864,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2063,
+        "line": 2066,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 85 (`supabase/migrations/20261011000100_project_board_thread_aggregates.sql`); the unread slice — the rail badge and badge poll in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `apps/desktop/src/renderer/src/App.tsx`, the operator-local read marks `AppSettings.commsReadThrough` (`apps/desktop/src/shared/types.ts`) and their patch validation (`apps/desktop/src/shared/appSettings.ts`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/src/shared/appSettings.test.ts`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
@@ -11072,7 +11072,7 @@
       "view": "project-comms",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2128,
+        "line": 2132,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11185,7 +11185,7 @@
       "view": "settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2152,
+        "line": 2156,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -11253,6 +11253,7 @@
       "current_status": "Целевой дизайн 0.3.7, волна 1 (2026-10-17): нарисован в прототипе, не построен; строят волны 2–4.",
       "task_ids": [],
       "scenario_ids": [
+        "SCN-175",
         "SCN-162",
         "SCN-172"
       ],
@@ -11287,8 +11288,8 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2185,
-        "coverage_claim": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, the search field with ⌘K), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`. The foot names the person «Вы»: Fabric holds no person's name. The trackpad swipe is not wired yet (wave 4)",
+        "line": 2189,
+        "coverage_claim": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3: «＋ Создать», the four places, the projects list with dot, star and count, its loading, empty and error states, the foot line, ⌘K for search with no search field since 2026-10-19), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity); ⌘[ and ⌘] in apps/desktop/src/renderer/src/App.tsx region `rail-wiring`; the trackpad swipe in `apps/desktop/src/shared/swipeTravel.ts#swipeStep` (0.3.12 S7). The foot names the person «Вы»: Fabric holds no person's name",
         "status_claim": "built"
       },
       "registry_additional_states": [
@@ -11366,7 +11367,7 @@
       "view": "simple-home",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2205,
+        "line": 2210,
         "coverage_claim": "`apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx` (0.3.11 and 0.3.12, see the amendment above)",
         "status_claim": "built"
       },
@@ -11379,7 +11380,7 @@
         {
           "state": "empty",
           "trigger": "no question, no agent at work, or no project",
-          "behavior": "«Вопросов нет. Агенты работают сами.» / «Сейчас ни один агент не работает.» / «Начните с проекта» with «Создать проект» and «Открыть папку с проектами»"
+          "behavior": "«Ничего не ждёт вашего решения» / «Сейчас ни один агент не работает.» / «Начните с проекта» with «Создать проект» and «Открыть папку с проектами» (the 0.3.7 target, not built: the amendment above)"
         },
         {
           "state": "partial",
@@ -11434,6 +11435,7 @@
       "current_status": "Целевой дизайн 0.3.7, волна 1 (2026-10-17): нарисован в прототипе, не построен; строят волны 2–4.",
       "task_ids": [],
       "scenario_ids": [
+        "SCN-175",
         "SCN-165",
         "SCN-164",
         "SCN-159"
@@ -11472,9 +11474,9 @@
       "view": "simple-project",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2230,
-        "coverage_claim": "none yet",
-        "status_claim": "designed"
+        "line": 2236,
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectProfile.tsx`, `apps/desktop/src/renderer/src/launch/ProjectAnalytics.tsx` (0.3.12 W2 S4, see the amendment above)",
+        "status_claim": "built"
       },
       "registry_additional_states": [
         {
@@ -11568,7 +11570,7 @@
       "view": "simple-agents",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2252,
+        "line": 2259,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, `apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/JoinedAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.tsx` (0.3.11 and 0.3.12, see the amendment above)",
         "status_claim": "built"
       },
@@ -11664,8 +11666,8 @@
       "view": "simple-history",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2275,
-        "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts). The filters, the detail pane and the agents' own acts are wave 4's",
+        "line": 2283,
+        "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts); «Что делали агенты» by day with who did each (0.3.12 S6, CO-395, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`). The filters and the detail pane are not built in 0.3.12: moved to 0.3.13, CO-414",
         "status_claim": "built"
       },
       "registry_additional_states": [
@@ -11768,7 +11770,7 @@
       "view": "simple-settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2299,
+        "line": 2307,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (see the amendment above)",
         "status_claim": "built"
       },
@@ -11786,7 +11788,7 @@
         {
           "state": "error",
           "trigger": "a setting did not save",
-          "behavior": "«Не сохранилось.» beside it; the old value back"
+          "behavior": "«Настройки не сохранены: {причина}. На экране то, что записано на диске.» pinned at the screen's foot; the controls show what is on disk"
         },
         {
           "state": "success",
@@ -11849,7 +11851,7 @@
       "view": "simple-create",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2319,
+        "line": 2328,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4",
         "status_claim": "built"
       },
@@ -33643,7 +33645,7 @@
       "screen_refs": [
         "SCR-51"
       ],
-      "coverage": "none in the interface since 0.3.12 (CO-392); the unattended hold is `apps/desktop/src/main/routineTick.ts`'s",
+      "coverage": "none in the interface since 0.3.12 (CO-392); the unattended hold, the quota read before a routine or a chain step starts, is in `apps/desktop/src/main/routineTick.ts` (`createRoutineTick`) over `apps/desktop/src/main/quota.ts`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Различать доступную квоту провайдера, ёмкость автоматизаций, записанные расходы и подписку Estate.",
@@ -35096,7 +35098,7 @@
       "errors_recovery": "a restore whose board step lost its reply is checked again by the same operation, and the database answers a second history as already restored, never as a duplicate.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3670
+        "line": 3671
       }
     },
     {
@@ -35115,7 +35117,7 @@
       "errors_recovery": "a write whose answer was lost says it may have been stored, and the same idempotency key tells which; a renewal that fails leaves a lease that lapses in 60 s and a holder that is replaced, never a request stuck forever.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3698
+        "line": 3699
       }
     },
     {
@@ -35134,7 +35136,7 @@
       "errors_recovery": "the prompt cannot be shown -> the request waits in the queue and Settings, as for any ask (SCN-132).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3729
+        "line": 3730
       }
     },
     {
@@ -35153,7 +35155,7 @@
       "errors_recovery": "each read fails on its own and says so where its answer would be; what was read stays on screen. The settle sheet never resends by itself: a lost answer is resolved by reading the request again, and the same idempotency key makes a second press the same settlement.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3766
+        "line": 3767
       }
     },
     {
@@ -35174,7 +35176,7 @@
       "errors_recovery": "a pause or resume never retries by itself; a lost answer is settled by reading the pauses again. Nothing on screen says \"paused\" until a read or a receipt says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3799
+        "line": 3800
       }
     },
     {
@@ -35195,7 +35197,7 @@
       "errors_recovery": "a save never retries by itself; a lost answer is settled by reading the directory again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3827
+        "line": 3828
       }
     },
     {
@@ -35214,7 +35216,7 @@
       "errors_recovery": "a failed search keeps the thread list as it was; searching again is the retry.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3853
+        "line": 3854
       }
     },
     {
@@ -35233,7 +35235,7 @@
       "errors_recovery": "the panel is read again with the thread list's poll; a failure leaves the last confirmed rows with when they were confirmed.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3878
+        "line": 3879
       }
     },
     {
@@ -35252,7 +35254,7 @@
       "errors_recovery": "a failed reading says «Неизвестно, кто работает: работу не удалось прочитать.», with the machine's reason on its own line beneath, and keeps the last reading on screen; the next event or the 15-second tick reads again. A console that will not open says why and leaves the home as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3904
+        "line": 3905
       }
     },
     {
@@ -35271,7 +35273,7 @@
       "errors_recovery": "the way is read from the tasks the page holds and the agents' words from `work.home`; a failure of either is said in place and the rest of the page stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3930
+        "line": 3931
       }
     },
     {
@@ -35290,7 +35292,7 @@
       "errors_recovery": "enabling, disabling and choosing the default agent are Switchboard's commands; Fabric reads them and never writes them, and says so under the list.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3956
+        "line": 3957
       }
     },
     {
@@ -35309,7 +35311,7 @@
       "errors_recovery": "the last refusal is thrown as it was, so the startup sheet and the copied details carry the stack's own words; Retry on that sheet starts the stack again with a fresh count.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 3980
+        "line": 3981
       }
     },
     {
@@ -35321,14 +35323,14 @@
       "screen_refs": [
         "SCR-84"
       ],
-      "coverage": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx. Not yet: the trackpad swipe; 0.3.12 S7 (CO-401): the trackpad's two-finger swipe goes back and forward, never while what is under the pointer can still scroll sideways (`apps/desktop/src/shared/swipeTravel.ts`, wired in `apps/desktop/src/renderer/src/App.tsx`; test `swipeTravel.test.ts`)",
+      "coverage": "apps/desktop/src/renderer/src/launch/LaunchShell.tsx (0.3.7 wave 3, region `rail`: «＋ Создать», Главная with the count of what waits for the person, Агенты, История, Настройки, the projects list with its dot, star and count and its reading, empty and failed states, ⌘K, the foot line only on trouble; since 2026-10-19 no search field, profile or conversation in the shell, OF-04 and OF-05), apps/desktop/src/shared/railProjects.ts (favourites first, then latest activity), apps/desktop/src/renderer/src/launch/rail.css (the fold under 900 px), apps/desktop/src/renderer/src/App.tsx region `rail-wiring` (⌘[ back, ⌘] forward; no tab strip, no Back button); probed in apps/desktop/src/renderer/src/launch/Rail.test.tsx (including the compact row heights, read from rail.css), apps/desktop/src/shared/railProjects.test.ts and apps/desktop/src/renderer/src/entityAddress.test.tsx; 0.3.12 S7 (CO-401): the trackpad's two-finger swipe goes back and forward (`apps/desktop/src/shared/swipeTravel.ts#swipeStep`, wired in `apps/desktop/src/renderer/src/App.tsx`; test `swipeTravel.test.ts`); 0.3.12 S5 and the review: the graph mark on a project row (`apps/desktop/src/renderer/src/launch/LaunchShell.tsx`, `rail.css`)",
       "registry_status": "implemented",
       "product_observation": "unobserved",
       "expected_result": "every place and every project is one press away from anywhere, and the rail alone says where an agent works and where the person is needed.",
       "errors_recovery": "the projects list fails -> said in the rail in place of the list, the last reading kept beneath it marked «как было в {время}»; «Повторить» reads again; nothing else on the rail depends on it.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4021
+        "line": 4023
       }
     },
     {
@@ -35341,13 +35343,13 @@
         "SCR-85"
       ],
       "coverage": "since 0.3.11 (the walk's order, OF-14 to OF-18): `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/homeLive.ts`, with `HomeParts.test.tsx`, `HomeWork.test.tsx` and `homeLive.test.ts`; before 0.3.11 there was none for the place itself (today's home was SCN-158's). Wave 3 moved two notices onto it as questions, never banners: the local database reachable from the network (`apps/desktop/src/renderer/src/StackExposureNotice.tsx`) and the usage-count question (`apps/desktop/src/renderer/src/UsageCountsNotice.tsx`), both rendered by `EstateHome.tsx`; an agent's ask of a product is the board's question reached from it, no native prompt (`apps/desktop/src/main/index.ts`, the hub's `present`); 2026-10-23 (the walk's OF-14 to OF-17): «Нужны вы» with rows that open in place (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#HomeBoard`, test `HomeParts.test.tsx`), «Где остановились» under it (`EstateHome.tsx`), «Агенты в работе» by planned task, active first, scrolling, with «Открыть переписку» (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#HomeAgents`, `HomeWork.test.tsx`); 0.3.12 S6 (CO-391): the person's part only, the asker named, a question answered in place with its options (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#HomeBoard`, `apps/desktop/src/shared/board.ts#PERSON_KINDS`, `HomeParts.test.tsx`, `board.test.ts`), the greeting (`apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/homeView.ts#dayPart`, `homeView.test.ts`)",
-      "registry_status": "implemented (0.3.11, 2026-10-23; 0.3.12 S6, CO-391: what only the person can resolve, the asker named, the greeting line and the option buttons on a question). Not built: the second line of step 1 («Пять агентов работают…»); the numbers strip carries those counts",
+      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12 S6, CO-391: what only the person can resolve, the asker named, the greeting line and the option buttons on a question; the 0.3.12 review: the greeting counts decisions). What ships is the walk's order and the amendment of 2026-10-24 below. Not built: the second line of step 1 («Пять агентов работают…»; the numbers strip carries those counts), the greeting «Начните с проекта» for no project (the projects section says «Пока пусто…» with «Создать первый проект»), the thin bar of the way done on a project row, and «Повторить» on a section that failed (a failed section says so in its place with the machine's words beneath, and a section that keeps its last reading marks it «как было в {время}»)",
       "product_observation": "unobserved",
       "expected_result": "in a few seconds the person knows whether anything needs them, what is being done, and where to go — without opening a project or an agent's console.",
       "errors_recovery": "a section that fails says so in its own place in our words with «Повторить» and keeps its last reading marked «как было в {время}»; a count after a failed reading shows «—», never the last number as current; a console that will not open says «Консоль не открылась.» on the agent's line and leaves Главная as it was.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4046
+        "line": 4049
       }
     },
     {
@@ -35368,7 +35370,7 @@
       "errors_recovery": "an answer that is not recorded keeps the card with its options and says so; an answer whose outcome is unknown says «Неизвестно, дошёл ли ответ — проверяю» and reads the question again before offering the options, so a second press never answers twice; a question that fails Fabric's check of the board's rules (no options, no why) is shown with «Агент не объяснил, зачем спрашивает» and «Обсудить» only.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4069
+        "line": 4073
       }
     },
     {
@@ -35380,14 +35382,14 @@
       "screen_refs": [
         "SCR-86"
       ],
-      "coverage": "none yet — wave 4 rebuilds the project page to the prototype; today's is SCN-159's",
-      "registry_status": "draft",
+      "coverage": "`apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` (the page and its order, «Связи»), `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (the way and the kanban strip), `apps/desktop/src/renderer/src/launch/ProjectProfile.tsx` («Что это за проект», «Познакомиться с проектом», the business, the people from Git), `apps/desktop/src/renderer/src/launch/ProjectAnalytics.tsx` over `apps/desktop/src/shared/projectAnalytics.ts#projectAnalytics` («Как идёт работа»), `apps/desktop/src/main/gitPeople.ts#readGitPeople`, `apps/desktop/src/main/projectOnboarding.ts#createOnboardingFiler`; tests `ProjectLaunch.test.tsx`, `ProjectProfile.test.tsx`, `projectAnalytics.test.ts`, `apps/desktop/test/git-people.test.mjs`, `apps/desktop/test/project-onboarding.test.mjs`. Before 0.3.12 the page was SCN-159's",
+      "registry_status": "implemented in part (0.3.12 W2 S4a to S4c, with the release review's fixes): the page ships as the amendment of 2026-10-24 below says; the steps above are the 0.3.7 target and the walk's order, and where they differ the amendment is what ships. Not built in 0.3.12: «Идеи и материалы» (the folded panel is «Ресурсы и настройки») and the project's last activity in the analytics (CO-307, 0.3.13)",
       "product_observation": "unobserved",
       "expected_result": "a project left for days is understood and steered from one page: where it came from, where it goes, what it asks, its board, a console and a new task — all one press.",
       "errors_recovery": "a move, a new task, a rename or a removed folder that is not recorded snaps back and says «Не сохранилось.» with the machine's words beneath; a task's text typed into a failed «Поставить» stays in the field; a console that cannot start says why on the button's line (no coding agent ready -> «Нет готового агента — открыть Агенты»).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4091
+        "line": 4095
       }
     },
     {
@@ -35406,7 +35408,7 @@
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4116
+        "line": 4121
       }
     },
     {
@@ -35426,7 +35428,7 @@
       "errors_recovery": "a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4139
+        "line": 4145
       }
     },
     {
@@ -35439,13 +35441,13 @@
         "SCR-88"
       ],
       "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.; 2026-10-23 (OF-34): «Что делали агенты» under the acts, the journal's events (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`); 0.3.12 S6 (CO-395): «Что делали агенты» as History, by day, each row naming who did it, no journal number (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx#AgentWork`, `apps/desktop/src/renderer/src/Feed.tsx#feedAct`, test `HistoryScreen.test.tsx`)",
-      "registry_status": "implemented (0.3.11, 2026-10-23; 0.3.12 S6, CO-395: the agents' rows by day with their names); not built yet: История's filters and detail pane with P-25, 0.3.12",
+      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12 S6, CO-395: «Что делали агенты» by day, each row naming who did it). Not built in 0.3.12: История's filters (step 2) and detail pane (step 3); they moved to 0.3.13, carry-over row CO-414 (the triage of 2026-10-24). «Что делали агенты» also lists the person's own events as «Вы» and Fabric's (UX-16, CO-418, 0.3.13)",
       "product_observation": "unobserved",
       "expected_result": "the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.",
       "errors_recovery": "a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4160
+        "line": 4166
       }
     },
     {
@@ -35464,7 +35466,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4181
+        "line": 4187
       }
     },
     {
@@ -35477,13 +35479,13 @@
         "SCR-89"
       ],
       "coverage": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (0.3.11; before it, none: wave 4 redrew SCN-160's screen); 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174) Since 0.3.11: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (the language and its switch), `apps/desktop/src/shared/appSettings.ts#workingLanguageOf` and `appSettings.test.ts`.; 0.3.12 W3e (CO-407): «Сообщения между сессиями агентов», Claude Code's `crossSessionInbound` by the person's switch (`apps/desktop/src/main/claudeInbound.ts`), and «Готовность Fabric», the launcher doctor's Fabric checks on «Проверить» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx#ReadinessPanel`, `apps/desktop/src/main/fabricReadinessRead.ts`)",
-      "registry_status": "implemented (0.3.11, 2026-10-23); not built yet: CO-392 (the quota still read for the project page), 0.3.12; the section names and «Сохранено» after a change are not built either (CO-392)",
+      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12: CO-392, CO-407, CO-313). What ships is the amendment of 2026-10-24 below; the section names of step 1 and «Сохранено» after a change (step 2) are not built: they moved to 0.3.13 with CO-348, Settings' section pass (the triage, 2026-10-24)",
       "product_observation": "unobserved",
       "expected_result": "how Fabric behaves is set in one place, each change saved at once and reversible.",
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4201
+        "line": 4207
       }
     },
     {
@@ -35495,14 +35497,14 @@
       "screen_refs": [
         "SCR-90"
       ],
-      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: «Создать» in the main area with its three choices, one folder or several, an agent built elsewhere, and the unfinished project drafts to go on with), probed in apps/desktop/src/renderer/src/start/CreateChoices.test.tsx and onboardingDraft.persist.test.tsx; each choice opens today's path (SCN-127…SCN-129, SCN-136), which wave 4 redraws in this frame",
-      "registry_status": "draft",
+      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: «Создать» in the main area with its three choices, one folder or several, an agent built elsewhere, and the unfinished project drafts to go on with), probed in apps/desktop/src/renderer/src/start/CreateChoices.test.tsx and onboardingDraft.persist.test.tsx; each choice opens today's path (SCN-127…SCN-129, SCN-136), which wave 4 redraws in this frame; 0.3.12 S3 (OF-31): the onboarding task filed once per new project (`apps/desktop/src/main/projectOnboarding.ts#createOnboardingFiler`, called from `apps/desktop/src/main/projectAdmission.ts`), test `apps/desktop/test/project-onboarding.test.mjs`",
+      "registry_status": "implemented (0.3.7 wave 3: «Создать» in the main area with its three choices, each opening the start path of SCN-127 to SCN-129 and SCN-136; 0.3.12 S3, OF-31: a project created through admission gets its onboarding task, and «Познакомиться с проектом» on the project page files it for a project that has none, SCN-165). Those paths keep their own screens; their redraw in this frame (wave 4's) is not checked here",
       "product_observation": "unobserved",
       "expected_result": "every start begins in one place, and each path ends in a working project or agent in at most three steps, without a dialog.",
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4225
+        "line": 4232
       }
     },
     {
@@ -35523,7 +35525,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4248
+        "line": 4255
       }
     },
     {
@@ -35535,14 +35537,14 @@
       "screen_refs": [
         "SCR-41"
       ],
-      "coverage": "the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`. Not yet: the agent filter, «Отменено» and remembered filters; 0.3.12 S7 (CO-401): `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` (agent, cancelled, remembered), `apps/desktop/src/main/workRead.ts#readTaskBoard` (the cancelled tasks), `apps/desktop/src/shared/appSettings.ts` (`boardFilters`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`, `appSettings.test.ts`",
-      "registry_status": "implemented (0.3.11 the kanban and the project filter; 0.3.12 S7, CO-401: the agent filter, «Показывать отменённые» as a fifth column, and the filters remembered for the next visit in Settings' file)",
+      "coverage": "the kanban `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` over `apps/desktop/src/shared/taskBoard.ts#composeTaskBoard` (IPC `work:board`), on the Board screen's «По этапам» tab (`apps/desktop/src/renderer/src/launch/BoardScreen.tsx`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`; 0.3.12 S7 (CO-401): `apps/desktop/src/renderer/src/launch/KanbanBoard.tsx` (agent, cancelled, remembered), `apps/desktop/src/main/workRead.ts#readTaskBoard` (the cancelled tasks), `apps/desktop/src/shared/appSettings.ts` (`boardFilters`); tests `KanbanBoard.test.tsx`, `taskBoard.test.ts`, `appSettings.test.ts`",
+      "registry_status": "implemented in part (0.3.11 the kanban and the project filter; 0.3.12 S7, CO-401: the agent filter, «Показывать отменённые» as a fifth column, and the filters remembered for the next visit in Settings' file; the 0.3.12 review: the amendment of 2026-10-24 below). Not built: «Задач пока нет» (each empty column says «Пусто»), «Повторить» on a failed read and «как было в {время}» on the reading kept (a board that cannot be read says «Доску не удалось прочитать.» with the machine's words beneath and keeps its last reading on screen)",
       "product_observation": "unobserved",
       "expected_result": "the person sees where every task is in the pipeline and opens any one in a press.",
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4270
+        "line": 4277
       }
     },
     {
@@ -35555,13 +35557,13 @@
         "SCR-32"
       ],
       "coverage": "`apps/desktop/src/renderer/src/TaskPage.tsx` opens on the brief (what, why, what will be ready) before the instruction, with «← К проекту» at the top left; test `apps/desktop/src/renderer/src/TaskPage.test.tsx` («a task reads as a template»). The prototype's separate task route (`simple-task`) is not built: a task opens inside its project; 0.3.12 S7 (CO-401): what holds the task (`apps/desktop/src/main/index.ts`, `tasks.detail`'s `blockedBy`) and how it moved (`apps/desktop/src/shared/taskMoves.ts`), on `apps/desktop/src/renderer/src/TaskPage.tsx`; tests `TaskPage.test.tsx`, `taskMoves.test.ts`",
-      "registry_status": "implemented (0.3.11 the template order and the way back; 0.3.12 S6 the way back named for its place and the empty brief's words, CO-394; 0.3.12 S7 «Что её держит» and «Как двигалась», CO-401)",
+      "registry_status": "implemented in part (0.3.11 the template order and the way back; 0.3.12 S6 the way back named for its place and the empty brief's words, CO-394; 0.3.12 S7 «Что её держит» and «Как двигалась», CO-401; the 0.3.12 review: the amendment of 2026-10-24 below). Not built: «Агент ещё не описал задачу» (an empty brief is said as the amendment says) and «Повторить» on a failed read (a task that cannot be read says so in a banner and keeps the way back)",
       "product_observation": "unobserved",
       "expected_result": "the person understands the task without asking its agent.",
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4293
+        "line": 4301
       }
     },
     {
@@ -35571,14 +35573,14 @@
       "screen_refs": [
         "SCR-40"
       ],
-      "coverage": "`apps/desktop/src/shared/projectGraph.test.ts`, `apps/desktop/src/renderer/src/launch/GraphScreen.test.tsx`",
-      "registry_status": "implemented (0.3.12 wave 2, slice S5): the `graph` route, its entries on the rail (a graph mark beside each project, «Граф проектов» under the list); edges are the profile's relations and the board's threads; a not-cloned repository of the same GitHub owner waits for a GitHub read Fabric does not have, and an unrelated project shows the empty graph's sentence rather than «Найти связи»",
+      "coverage": "`apps/desktop/src/renderer/src/launch/GraphScreen.tsx` over `apps/desktop/src/shared/projectGraph.ts` (`composeGraph`, `aroundProject`), the rail's mark and «Граф проектов» in `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`, «Связи» in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`, the read in `apps/desktop/src/main/index.ts` (IPC `projects:graph`); tests `apps/desktop/src/shared/projectGraph.test.ts`, `apps/desktop/src/renderer/src/launch/GraphScreen.test.tsx`, `Rail.test.tsx`, `ProjectLaunch.test.tsx`",
+      "registry_status": "implemented in part (0.3.12 wave 2, slice S5, and the release review): what ships is the amendment of 2026-10-24 below. Not built: «Повторить» on a failed read and the legend for the dashed lines (CO-418, 0.3.13); a not-cloned repository of the same GitHub owner (step 3; it waits for a GitHub read Fabric does not have); the organization as a level above its projects (businesses are columns); the full name of a project whose name the node cuts; «Найти связи» (the onboarding offer is «Познакомиться с проектом» on the project page, SCN-165)",
       "product_observation": "unobserved",
       "expected_result": "the person sees a project's ecosystem: what it depends on, who talks to it, and what exists without a local folder.",
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4314
+        "line": 4323
       }
     },
     {
@@ -35595,7 +35597,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4336
+        "line": 4346
       }
     },
     {
@@ -35612,7 +35614,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4357
+        "line": 4368
       }
     },
     {
@@ -35631,7 +35633,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4379
+        "line": 4390
       }
     }
   ],
@@ -37592,7 +37594,7 @@
         "file": "docs/ux/flows.md",
         "line": 2829
       },
-      "mermaid_source": "flowchart TD\n  H[Screen: SCR-85 Главная] --> W{Anything waiting?}\n  W -->|no| N[Вопросов нет. Агенты работают сами.]\n  W -->|yes| Q[Question card: who, why, options as buttons]\n  Q -->|press an option| B{Answer recorded?}\n  B -->|yes| D[Card leaves · act line «Ответ … отправлен · Отменить»]\n  B -->|no| B_err[Ответ не записан · card kept, options enabled]\n  B_err -->|press again| Q\n  B -->|unknown| U[Неизвестно, дошёл ли ответ — проверяю · re-read before options]\n  U --> Q\n  D -->|Отменить| O{Agent already acted?}\n  O -->|no| Q\n  O -->|yes| X[Отменить нельзя: why · Попросить остановиться]\n  Q -->|Обсудить| C[Screen: SCR-25 the asking agent's console, question in front]\n  H -->|an agent line in Сейчас| C2[Screen: SCR-25 that agent's console]\n  C2 -->|console fails| C_err[Консоль не открылась on the line · Главная unchanged]\n  C_err --> H\n  H -->|a project row| P[Screen: SCR-86 Проект]\n  H -->|a section fails| P_err[That section says so · last reading kept · Повторить]\n  P_err --> H",
+      "mermaid_source": "flowchart TD\n  H[Screen: SCR-85 Главная] --> W{Anything waiting?}\n  W -->|no| N[Ничего не ждёт вашего решения]\n  W -->|yes| Q[Question card: who, why, options as buttons]\n  Q -->|press an option| B{Answer recorded?}\n  B -->|yes| D[Card leaves · act line «Ответ … отправлен · Отменить»]\n  B -->|no| B_err[Ответ не записан · card kept, options enabled]\n  B_err -->|press again| Q\n  B -->|unknown| U[Неизвестно, дошёл ли ответ — проверяю · re-read before options]\n  U --> Q\n  D -->|Отменить| O{Agent already acted?}\n  O -->|no| Q\n  O -->|yes| X[Отменить нельзя: why · Попросить остановиться]\n  Q -->|Обсудить| C[Screen: SCR-25 the asking agent's console, question in front]\n  H -->|an agent line in Сейчас| C2[Screen: SCR-25 that agent's console]\n  C2 -->|console fails| C_err[Консоль не открылась on the line · Главная unchanged]\n  C_err --> H\n  H -->|a project row| P[Screen: SCR-86 Проект]\n  H -->|a section fails| P_err[That section says so · last reading kept · Повторить]\n  P_err --> H",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-163",
@@ -37614,7 +37616,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2869
+        "line": 2870
       },
       "mermaid_source": "flowchart TD\n  P[Screen: SCR-86 Проект] --> R{Project read?}\n  R -->|no| R_err[Проект не прочитан · Повторить]\n  R_err -->|Повторить| R\n  R -->|removed| M[Такого проекта больше нет · Открыть История]\n  M --> I[Screen: SCR-88 История]\n  R -->|yes| W[Way · Вопросы · Доска · Папки]\n  W -->|no tasks| F[Начните с первой задачи · field open]\n  W -->|Поставить задачу| T[Field: what should be done]\n  F --> T\n  T -->|Поставить| TA[Task in Очередь · Задача поставлена · Отменить]\n  T -->|Поставить и начать| TS[Screen: SCR-25 console on the task]\n  T -->|not recorded| T_err[Не сохранилось · text kept in the field]\n  T_err --> T\n  W -->|drag a card| MV[Moved at once · Задача перенесена · Отменить]\n  MV -->|not recorded| MV_err[Card snaps back · Не сохранилось]\n  MV_err --> W\n  W -->|a task| TP[Screen: SCR-32 Task page]\n  W -->|Открыть консоль| C{Coding agent ready?}\n  C -->|yes| S[Screen: SCR-25 console in the project's folder]\n  C -->|no| C_err[Нет готового агента — открыть Агенты]\n  C_err --> A[Screen: SCR-87 Агенты]\n  W -->|Убрать a folder| FD[Removed at once · Папка убрана · Отменить]\n  W -->|a question| Q[Answer as FLW-94]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37635,7 +37637,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2915
+        "line": 2916
       },
       "mermaid_source": "flowchart TD\n  A[Screen: SCR-87 Агенты] --> D{Agents found?}\n  D -->|detection failed| D_err[Не удалось поискать агентов · last list kept · Повторить]\n  D_err -->|Повторить| D\n  D -->|none installed| N[Each known agent: Не установлен · how to install]\n  D -->|yes| L[Coding agents on this computer · agents built in Fabric]\n  L -->|Консоль| C{Console opens?}\n  C -->|yes| S[Screen: SCR-25 console in its project]\n  C -->|no| C_err[Консоль не открылась: why, on the row]\n  C_err --> L\n  L -->|a row| V[Agent view: doing, recent acts, Что получает агент]\n  L -->|joined from a terminal| J[подключился сам · Отключить]\n  J -->|Отключить| X{Disconnected?}\n  X -->|yes| XO[Отключён · consoles ended · Пустить снова · act in История]\n  X -->|no| X_err[Не удалось отключить · still connected · Повторить]\n  X_err --> J\n  XO -->|Пустить снова or Отменить| J\n  L -->|Создать агента| CR[Screen: SCR-90 Создать, agent path]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37656,7 +37658,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2953
+        "line": 2954
       },
       "mermaid_source": "flowchart TD\n  I[Screen: SCR-88 История] --> R{History read?}\n  R -->|no| R_err[История не прочитана · earlier reading kept · Повторить]\n  R_err -->|Повторить| R\n  R -->|nothing yet| E[История пуста]\n  R -->|yes| L[Acts by day: time, actor, sentence, project]\n  L -->|filter or search| F{Matches?}\n  F -->|none| FE[Ничего не найдено · Сбросить фильтры]\n  FE --> L\n  F -->|yes| L\n  L -->|an act| DT[Detail: before and after, its source]\n  L -->|Отменить| U{Inverse exists?}\n  U -->|no| NU[Нельзя отменить: why]\n  U -->|object changed since| CH[Button says what it will do now]\n  CH -->|press| DO\n  U -->|yes| DO{Undone?}\n  DO -->|yes| OK[Отменено · new act «Вы отменили: …» with its own Отменить]\n  DO -->|no| U_err[Не удалось отменить · nothing changed]\n  U_err --> L\n  OK -->|Отменить the undo| DO",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37683,7 +37685,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2991
+        "line": 2992
       },
       "mermaid_source": "flowchart TD\n  C[Screen: SCR-90 Создать] -->|Открыть папку с проектами| PK[System folder picker]\n  PK -->|cancel| C\n  PK --> SC{Scan}\n  SC -->|denied| SC_err[Нет доступа к папке · Открыть настройки macOS]\n  SC_err --> PK\n  SC -->|slow| SL[Ищу дольше обычного — можно остановить]\n  SL --> SC\n  SC -->|nothing| NF[В этой папке проектов не нашлось · Выбрать другую папку]\n  NF --> PK\n  SC -->|found| G[Screen: SCR-72 groups by owner · active ticked]\n  G -->|Работать над отмеченными| AD{Added?}\n  AD -->|all| ADD[Listed with Открыть · N проектов добавлено · Отменить]\n  AD -->|some failed| AD_err[Which were added and which not · Повторить for the rest]\n  AD_err --> G\n  C -->|Создать проект| NP[Screen: SCR-73 name, where it lives, first task]\n  NP -->|Создать| PC{Created?}\n  PC -->|yes| PP[Screen: SCR-86 Проект · Проект создан · Отменить]\n  PC -->|no| PC_err[Не получилось · what was typed kept]\n  PC_err --> NP\n  C -->|Создать агента| NA[Screen: SCR-74 what it does, which coding agent, project]\n  NA -->|Создать| CS[Screen: SCR-25 the coding agent's console building it]\n  CS --> AG[Screen: SCR-87 the new agent appears]\n  C -->|Открыть проект из папки| OP[Screen: SCR-71 one or several folders as one project]\n  OP --> PP",
       "status": "target_or_mixed_not_coverage_claim",
@@ -37703,9 +37705,9 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 3041
+        "line": 3042
       },
-      "mermaid_source": "flowchart TD\n  B[Screen: SCR-41 Доска] --> R{Board read?}\n  R -->|no| R_err[Доска не прочитана · Повторить]\n  R_err -->|Повторить| R\n  R -->|yes| K[Очередь · В работе · На проверке · Готово]\n  K -->|project filter| K\n  K -->|a card| T[Screen: SCR-32 the task's page]\n  T -->|Назад| K",
+      "mermaid_source": "flowchart TD\n  B[Screen: SCR-41 Доска] --> R{Board read?}\n  R -->|no| R_err[Доску не удалось прочитать · the machine's words beneath · last reading kept]\n  R_err -->|the journal moves| R\n  R -->|yes| K[Очередь · В работе · На проверке · Готово]\n  K -->|project filter| K\n  K -->|agent filter| KA[В работе narrowed · the other columns whole, said]\n  KA --> K\n  K -->|Показывать отменённые| KC[Fifth column Отменено, most recently cancelled first]\n  KC --> K\n  K -->|a card| T[Screen: SCR-32 the task's page]\n  T -->|Назад| K",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-173"
@@ -37722,9 +37724,9 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 3068
+        "line": 3074
       },
-      "mermaid_source": "flowchart TD\n  F[A card, a lane row or an agent's page] --> T[Screen: SCR-32 Task page]\n  T --> R{Task read?}\n  R -->|no| R_err[Задача не прочитана · Повторить]\n  R -->|yes| BR{Brief written?}\n  BR -->|no| E[Brief empty: what to write, with the agent's draft if any]\n  BR -->|yes| D[Для чего эта задача: что, почему, что будет верно]\n  D --> S[State, who works on it, since when]\n  S -->|Назад| F",
+      "mermaid_source": "flowchart TD\n  F[A card, a lane row or an agent's page] --> T[Screen: SCR-32 Task page]\n  T --> R{Task read?}\n  R -->|no| R_err[Banner: why it was not read · Назад]\n  R_err -->|Назад| F\n  R -->|yes| BR{Brief written?}\n  BR -->|no, a task to do| E[Спецификация не собрана: бриф ещё не написан]\n  BR -->|no, finished| E2[Бриф не написан. Его можно написать ниже.]\n  BR -->|yes| D[Для чего эта задача: что, почему, что будет верно]\n  E --> S\n  E2 --> S\n  D --> S[State, who works on it, since when]\n  S --> H[Что её держит · Как двигалась]\n  H -->|Назад| F",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-174"

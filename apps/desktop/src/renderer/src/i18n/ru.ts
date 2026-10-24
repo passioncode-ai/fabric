@@ -1244,7 +1244,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.profile.next': "Дальше",
   'launch.profile.business': "Бизнес",
   'launch.profile.businessPlaceholder': "Не указан",
-  'launch.profile.businessHint': "Доска не объединяет в одном треде проекты разных бизнесов.",
+  'launch.profile.businessHint': "Доска не объединяет в одной ветке проекты разных бизнесов.",
   'launch.profile.businessFailed': "Бизнес не сохранился.",
   'launch.profile.relations': "Связанные проекты",
   'launch.profile.relationsUnreadable': "Не удалось прочитать связанные проекты.",
