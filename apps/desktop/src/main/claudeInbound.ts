@@ -5,7 +5,7 @@
  * accepts, so Fabric sets it only when the person turns the switch on in Settings, and turning it off removes it.
  *
  * Claude Code's user settings: `$CLAUDE_CONFIG_DIR/settings.json`, else `~/.claude/settings.json`. Every other key is
- * kept. The write follows `claudeTrust.ts` (0.3.12 review ER-7): under Claude's own lock (`<file>.lock`), read again
+ * kept. The write follows `claudeTrust.ts` (0.3.12 review ER-7): under Claude's own lock (`<realpath>.lock`, 0.3.12 review i2 ER-10), read again
  * under it, through a temporary file beside the real file and a rename with the file's mode, so a reader never sees
  * half a file, a symlinked settings file stays a link (its target is written), and a temporary file is removed when the
  * write fails. A file that does not read as a JSON object is never written over: `unreadable` is the answer. A write
@@ -69,8 +69,9 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
     // Not silent: the answer says the change was not saved and why (the caller records it); nothing was written.
     return withNotSaved(file, { reason: 'write-failed', code: errCode(e) })
   }
-  const release = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
-  if (!release) return withNotSaved(file, { reason: 'locked' })
+  // `locked` only when Claude holds its lock; a lock that cannot be made is `write-failed` with the system's code.
+  const lock = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
+  if ('refused' in lock) return withNotSaved(file, lock.refused === 'locked' ? { reason: 'locked' } : { reason: 'write-failed', code: lock.code })
   try {
     // Read again under the lock: Claude Code may have written it between the first read and now.
     const current = readSettings(file)
@@ -87,11 +88,13 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
       // Not silent: the answer says the change was not saved and why; the settings file is as it was.
       return withNotSaved(file, { reason: 'write-failed', code: errCode(e) })
     } finally {
-      rmSync(tmp, { force: true })
+      // A temporary file whose name the system refused (ENAMETOOLONG) cannot be removed either: that is not a second
+      // failure to throw over the first, which the answer already carries.
+      try { rmSync(tmp, { force: true }) } catch { /* nothing was made under that name */ }
     }
     return readInbound(file)
   } finally {
-    release()
+    lock.release()
   }
 }
 

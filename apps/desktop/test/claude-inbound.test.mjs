@@ -72,7 +72,8 @@ test('a write that fails is not-saved with its code, not unreadable, and leaves 
     const r = await setInbound(true, file, { lockWaitMs: 50 })
     assert.equal(r.unreadable, undefined)
     assert.equal(r.accepting, false)
-    assert.ok(r.notSaved, 'the answer says it was not saved')
+    // 0.3.12 review i2 ER-1: a lock folder Fabric cannot make is not Claude holding its lock.
+    assert.deepEqual(r.notSaved, { reason: 'write-failed', code: 'EACCES' }, 'a refused lock is write-failed with its code, never locked')
   } finally {
     chmodSync(dir, 0o700)
   }
@@ -80,20 +81,31 @@ test('a write that fails is not-saved with its code, not unreadable, and leaves 
   assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), { model: 'opus' })
 })
 
-test('a failed write under the lock is write-failed with the system\'s code, the lock released and no temporary file left', { skip: process.getuid?.() === 0 }, async () => {
+test('a failed write under the lock is write-failed with the system\'s code, the lock released and no temporary file left', async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'inbound-'))
-  const real = path.join(dir, 'ro', 'settings.json')
+  // The real file's name leaves room for Claude's lock (`<name>.lock`) but not for the temporary file beside it, so
+  // the lock is taken and the write under it is refused by the system (ENAMETOOLONG).
+  const real = path.join(dir, 'dotfiles', `${'s'.repeat(220)}.json`)
   mkdirSync(path.dirname(real))
   writeFileSync(real, JSON.stringify({ model: 'opus' }))
   const file = path.join(dir, 'settings.json')
   symlinkSync(real, file)
-  // The lock is taken beside the link; the target's folder takes no temporary file.
-  chmodSync(path.dirname(real), 0o500)
-  try {
-    assert.deepEqual(await setInbound(true, file, { lockWaitMs: 50 }), { accepting: false, value: null, file, notSaved: { reason: 'write-failed', code: 'EACCES' } })
-  } finally {
-    chmodSync(path.dirname(real), 0o700)
-  }
-  assert.deepEqual(readdirSync(path.dirname(real)), ['settings.json'])
-  assert.equal(existsSync(`${file}.lock`), false, 'the lock is released')
+  assert.deepEqual(await setInbound(true, file, { lockWaitMs: 50 }), { accepting: false, value: null, file, notSaved: { reason: 'write-failed', code: 'ENAMETOOLONG' } })
+  assert.deepEqual(readdirSync(path.dirname(real)), [path.basename(real)], 'no temporary file and no lock left')
+  assert.deepEqual(JSON.parse(readFileSync(real, 'utf8')), { model: 'opus' })
+})
+
+// 0.3.12 review i2 ER-10: Claude Code locks through proper-lockfile, which resolves the real path first.
+test('a symlinked settings file is locked at its real path, where Claude Code locks it', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'inbound-'))
+  const real = path.join(dir, 'dotfiles', 'claude-settings.json')
+  mkdirSync(path.dirname(real))
+  writeFileSync(real, JSON.stringify({ model: 'opus' }))
+  const file = path.join(dir, 'settings.json')
+  symlinkSync(real, file)
+  // Claude holds its lock on the real path: Fabric waits and answers locked, writing nothing.
+  mkdirSync(`${real}.lock`)
+  assert.deepEqual(await setInbound(true, file, { lockWaitMs: 50 }), { accepting: false, value: null, file, notSaved: { reason: 'locked' } })
+  assert.deepEqual(JSON.parse(readFileSync(real, 'utf8')), { model: 'opus' })
+  assert.equal(existsSync(`${file}.lock`), false, 'no lock is made beside the link')
 })

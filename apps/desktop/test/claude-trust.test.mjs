@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
-import { mkdtempSync, writeFileSync, readFileSync, statSync, mkdirSync, symlinkSync, realpathSync, existsSync } from 'node:fs'
+import { mkdtempSync, writeFileSync, readFileSync, statSync, mkdirSync, symlinkSync, realpathSync, existsSync, chmodSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 
 const { trustFolderForClaude, claudeStateFile } = await import(path.resolve(import.meta.dirname, '../src/main/claudeTrust.ts'))
@@ -63,4 +63,28 @@ test('a missing, unreadable or held state is left alone and said so', async () =
   writeFileSync(path.join(h, '.claude.json'), '{}')
   mkdirSync(path.join(h, '.claude.json.lock'))
   assert.equal(await trustFolderForClaude(folder, { env: {}, home: h, lockWaitMs: 50 }), 'locked')
+})
+
+// 0.3.12 review i2 ER-1 and ER-10: a lock Fabric cannot make is not Claude holding it; a linked state file is locked
+// at its real path, as proper-lockfile (Claude Code's) resolves it.
+test('a state folder Fabric cannot write is write-failed with its code, not locked', { skip: process.getuid?.() === 0 }, async () => {
+  const { h, folder } = home()
+  writeFileSync(path.join(h, '.claude.json'), '{}')
+  chmodSync(h, 0o500)
+  try {
+    assert.equal(await trustFolderForClaude(folder, { env: {}, home: h, lockWaitMs: 50 }), 'write-failed:EACCES')
+  } finally {
+    chmodSync(h, 0o700)
+  }
+})
+
+test('a linked state file is locked at its real path', async () => {
+  const { h, folder } = home()
+  const real = path.join(mkdtempSync(path.join(tmpdir(), 'dotfiles-')), 'claude.json')
+  writeFileSync(real, '{}')
+  symlinkSync(real, path.join(h, '.claude.json'))
+  mkdirSync(`${real}.lock`)
+  assert.equal(await trustFolderForClaude(folder, { env: {}, home: h, lockWaitMs: 50 }), 'locked', 'Claude holds the lock on the real path')
+  assert.equal(existsSync(path.join(h, '.claude.json.lock')), false, 'no lock is made beside the link')
+  assert.equal(readFileSync(real, 'utf8'), '{}')
 })

@@ -5,7 +5,7 @@
  * does what Orca does (measured in its bundle, `claude-profile-paths`): before the start, the folder's
  * `hasTrustDialogAccepted` is set in Claude Code's own state file, for the path as given and for its real path,
  *
- * - under Claude's lock (`<file>.lock`, a directory, the proper-lockfile convention Claude Code itself uses),
+ * - under Claude's lock (`<realpath>.lock`, a directory, the proper-lockfile convention Claude Code itself uses),
  * - through a temporary file beside it with the same mode, then a rename, so a reader never sees half a file,
  * - changing nothing but that flag, and nothing at all when the folder is trusted already,
  * - and never writing over a file it could not read: `unreadable` and `missing-config` are answers, not repairs.
@@ -17,7 +17,9 @@ import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import path from 'node:path'
 
-export type TrustOutcome = 'granted' | 'unchanged' | 'missing-config' | 'unreadable' | 'locked'
+/** `write-failed:<code>`: Claude's lock could not be made or the file not written for a reason other than Claude
+ *  holding its lock (0.3.12 review i2 ER-1), e.g. `write-failed:EACCES` for a folder Fabric cannot write. */
+export type TrustOutcome = 'granted' | 'unchanged' | 'missing-config' | 'unreadable' | 'locked' | `write-failed:${string}`
 
 export interface TrustOptions {
   env?: NodeJS.ProcessEnv
@@ -69,29 +71,54 @@ function withTrust(state: Record<string, unknown>, keys: string[]): Record<strin
   return { ...state, projects }
 }
 
-/** Claude's own lock on one of its files (`<file>.lock`, a directory, proper-lockfile's convention): a release function,
- *  or null when it could not be taken within `waitMs`. Also `claudeInbound.ts`'s, for Claude Code's settings file. */
-export async function lockClaudeFile(file: string, waitMs: number): Promise<(() => void) | null> {
-  const dir = `${file}.lock`
+// #region claude-lock — docs: docs/evidence/plans/2026-10-15-fabric-simple/2026-10-19-operator-feedback.md
+/** What taking Claude's lock gave: the release, Claude holding it past the wait (`locked`), or a lock that could not be
+ *  made at all (`failed` with the system's code, e.g. EACCES on a folder Fabric cannot write; 0.3.12 review i2 ER-1). */
+export type ClaudeLock = { release: () => void } | { refused: 'locked' } | { refused: 'failed'; code: string }
+
+/** The path Claude's lock is named after: the settings file's real path, as proper-lockfile resolves it by default
+ *  (`realpath: true`), so a symlinked file (a dotfiles manager) is locked where Claude Code locks it (0.3.12 review i2
+ *  ER-10). A file not there yet is named by its folder's real path; a folder not there either, by the path given. */
+export function claudeLockTarget(file: string): string {
+  try {
+    return realpathSync.native(file)
+  } catch {
+    // No file yet (or a dangling link): the folder's real path names it, as Claude Code's first write would.
+    try {
+      return path.join(realpathSync.native(path.dirname(file)), path.basename(file))
+    } catch {
+      // No folder either: nothing can lock it beside a real path, so the path given is the name.
+      return file
+    }
+  }
+}
+
+/** Claude's own lock on one of its files (`<realpath>.lock`, a directory, proper-lockfile's convention): the release,
+ *  or why it could not be taken within `waitMs`. Also `claudeInbound.ts`'s, for Claude Code's settings file. */
+export async function lockClaudeFile(file: string, waitMs: number): Promise<ClaudeLock> {
+  const dir = `${claudeLockTarget(file)}.lock`
   const until = Date.now() + waitMs
   for (;;) {
     try {
       mkdirSync(dir)
-      return () => { try { rmdirSync(dir) } catch { /* already gone: nothing to release */ } }
+      return { release: () => { try { rmdirSync(dir) } catch { /* already gone: nothing to release */ } } }
     } catch (e) {
-      // Not silent: EEXIST is Claude holding the lock (wait for it); anything else answers `locked` to the caller.
-      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') return null
+      // Not silent: EEXIST is Claude holding the lock (wait for it); any other code is a lock that cannot be made,
+      // answered as `failed` with that code, never as Claude holding it.
+      const code = (e as NodeJS.ErrnoException).code
+      if (code !== 'EEXIST') return { refused: 'failed', code: typeof code === 'string' ? code : 'unknown' }
       try {
         if (Date.now() - statSync(dir).mtimeMs > STALE_LOCK_MS) { rmdirSync(dir); continue }
       } catch {
         // The lock went away between the two reads: try to take it again.
         continue
       }
-      if (Date.now() >= until) return null
+      if (Date.now() >= until) return { refused: 'locked' }
       await new Promise((r) => setTimeout(r, 25))
     }
   }
 }
+// #endregion claude-lock
 
 export async function trustFolderForClaude(folder: string, opts: TrustOptions = {}): Promise<TrustOutcome> {
   const file = claudeStateFile(opts)
@@ -101,8 +128,8 @@ export async function trustFolderForClaude(folder: string, opts: TrustOptions = 
   const planned = withTrust(first, keys)
   if (planned === 'unreadable') return 'unreadable'
   if (planned === null) return 'unchanged'
-  const release = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
-  if (!release) return 'locked'
+  const lock = await lockClaudeFile(file, opts.lockWaitMs ?? 2000)
+  if ('refused' in lock) return lock.refused === 'locked' ? 'locked' : `write-failed:${lock.code}`
   try {
     // Read again under the lock: Claude may have written it between the first read and now.
     const current = readState(file)
@@ -116,11 +143,13 @@ export async function trustFolderForClaude(folder: string, opts: TrustOptions = 
       writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: statSync(target).mode & 0o777 })
       renameSync(tmp, target)
     } finally {
-      rmSync(tmp, { force: true })
+      // A temporary file whose name the system refused (ENAMETOOLONG) cannot be removed either: that is not a second
+      // failure to throw over the first, which the answer already carries.
+      try { rmSync(tmp, { force: true }) } catch { /* nothing was made under that name */ }
     }
     return 'granted'
   } finally {
-    release()
+    lock.release()
   }
 }
 // #endregion claude-trust
