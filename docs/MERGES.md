@@ -7,8 +7,8 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 ### __LANDED__ · `—` · agent/release-0312 → main · fast-forward of a merge
 - run: r-8642aee374a2
 - conflicts: none
-- files: the ledger, the five iteration-1 reports and receipts, the fixes of three branches (project page and profile, renderer, hardening), docs/ux and the wave 2 spec, the register, triage and plan, ADR-0176 amendments 5 to 7, the knowledge base row (fabric-workspace #409)
-- summary: Fabric 0.3.12's release review: the ledger, iteration 1 (79 findings, 2 blocking) and iteration 2 (50 findings, 1 blocking), all fixed or ruled, and their fixes; the branch takes main by merge so every reviewed candidate stays in the history.
+- files: the ledger, the iteration reports and receipts, `scripts/lib/release-mac.mjs` (the ancestry rule) and its tests, the fixes of three branches (project page and profile, renderer, hardening), docs/ux and the wave 2 spec, the register, triage and plan, ADR-0176 amendments 5 to 7, the knowledge base row (fabric-workspace #409)
+- summary: Fabric 0.3.12's release review: the ledger, iteration 1 (79 findings, 2 blocking) and iteration 2 (50 findings, 1 blocking) and iteration 3 (34 findings, 1 blocking, the gate's ancestry rule), all fixed or ruled, and their fixes; the branch takes main by merge so every reviewed candidate stays in the history.
 
 ### 2026-10-23T23:28:00Z · `—` · agent/0312-w3e → main · fast-forward
 - run: r-8642aee374a2
