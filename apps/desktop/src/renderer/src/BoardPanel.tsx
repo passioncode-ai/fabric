@@ -17,8 +17,8 @@ import type { ReadEnvelope } from '../../shared/readEnvelope'
 import type { AnswerReceipt } from '../../shared/types'
 import { summariseAnswer } from '../../shared/answerReceipt.ts'
 import { Banner, Button, EmptyState, Field, Panel, Row, StateChip, Toolbar } from './components'
-import { useT } from './i18n'
-import { titleOf } from './attentionTitle'
+import { useLocale, useT } from './i18n'
+import { detailOf, titleOf } from './attentionTitle'
 import { since } from './duration'
 import { MachineDetail } from './OperatorError'
 
@@ -33,7 +33,7 @@ export function BoardPanel({
    *  feed beside it. */
   feedMark: number
 }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [open, setOpen] = useState<string | null>(null)
@@ -107,7 +107,7 @@ export function BoardPanel({
           >
             {titleOf(item, t)}
           </Button>
-          {item.detail && <span className="muted"> · {item.detail}</span>}
+          {item.detail && <span className="muted"> · {detailOf(item, t, locale)}</span>}
 
           {open === item.ref && item.question && (
             <AnswerForm

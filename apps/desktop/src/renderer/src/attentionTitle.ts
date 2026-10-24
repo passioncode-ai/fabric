@@ -4,7 +4,19 @@
 
 import { sayQueueTitle, type Say } from '../../shared/accessWords.ts'
 import type { PendingRequestFacts } from '../../shared/access.ts'
+import { pluralForm, type Locale } from './i18n/translate.ts'
 
 export function titleOf(item: { title: string; access?: PendingRequestFacts }, t: Say): string {
   return item.access ? sayQueueTitle(t, item.access) : item.title
+}
+
+/** The board builds a question's detail as fixed English, `blocking N task(s)` (`shared/board.ts#boardEntries`): it is
+ *  said here in the interface's language (0.3.12 review, iteration 2, UX-10). Any other detail is the asker's own words. */
+const BLOCKING = /^blocking (\d+) tasks?$/
+
+export function detailOf(item: { kind: string; detail: string | null }, t: Say, locale: Locale): string | null {
+  const blocks = item.kind === 'question' && item.detail ? BLOCKING.exec(item.detail) : null
+  if (!blocks) return item.detail
+  const count = Number(blocks[1])
+  return t(`board.blocks.${pluralForm(locale, count)}`, { count })
 }

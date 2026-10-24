@@ -136,9 +136,9 @@ const render_ = (onError = vi.fn()) => {
 
 /** The board lists the row; its acts are in the details the row opens. */
 const openRow = async (title = 'Atlas should adopt the ledger'): Promise<void> => {
-  // A proposal is an agent's to settle: it is listed under «Agents settle», not in the person's part (0.3.12 review UX-2).
+  // A proposal is the person's to review, not what blocks an agent: it is listed under «To review» (0.3.12 review UX-2, iteration 2).
   await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
-  if (!screen.queryByText(title)) fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.agents'] }))
+  if (!screen.queryByText(title)) fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
   fireEvent.click(await waitFor(() => screen.getByText(title)))
 }
 const show = async (onError = vi.fn()) => {
@@ -314,7 +314,7 @@ describe('the board never calls a partial queue clear (UXA-C02)', () => {
 
   it('and still lists what DID answer, naming what did not', async () => {
     showWith(partial([item()]))
-    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.tab.agents'] })))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.tab.review'] })))
     await waitFor(() => expect(screen.getByText(/Atlas should adopt the ledger/)).toBeTruthy())
     expect(screen.getByText(/permission denied|refusals/i)).toBeTruthy()
   })
@@ -771,7 +771,7 @@ describe('the Board\'s «Нужны вы» is the home\'s list (0.3.12 review UX
     expect(query).toHaveBeenCalledWith({ projectId: null, limit: 100, personOnly: true })
     expect(row.textContent).toContain(en['needsYou.askedByAgent'].replace('{agent}', 'Codex'))
     expect(screen.queryByText('Atlas should adopt the ledger'), 'an agent\'s proposal is listed as the person\'s').toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.agents'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
     expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy()
     expect(screen.queryByText('Which context goes to the next agent?')).toBeNull()
   })
@@ -780,7 +780,7 @@ describe('the Board\'s «Нужны вы» is the home\'s list (0.3.12 review UX
     const ref = mixed.data!.items.find((e) => e.kind === 'proposal')!.ref
     render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} initialItem={ref} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Atlas should adopt the ledger' })).toBeTruthy())
-    expect(screen.getByRole('button', { name: en['launch.board.tab.agents'] }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: en['launch.board.tab.review'] }).getAttribute('aria-pressed')).toBe('true')
   })
 })
 
@@ -800,5 +800,86 @@ describe('the Board\'s view is part of the way back (0.3.12 review UX-19)', () =
     rerender(view('kanban'))
     expect(screen.getByRole('button', { name: en['launch.board.mode.kanban'] }).getAttribute('aria-pressed')).toBe('true')
     expect(onMode, 'a view the route names is not the person\'s switch').toHaveBeenCalledTimes(1)
+  })
+})
+
+// 0.3.12 review, iteration 2: the second tab holds reviews, proposals and abandoned work, which are the person's to look at
+// (UX-2); its read is its own, and a failed or cut read is said rather than shown as nothing to review (ER-8, UX-5); the
+// tab is part of the way back from a task (UX-4).
+describe('«To review» (0.3.12 review, iteration 2)', () => {
+  const question = (id: string) => ({
+    id, projectId: 'p1', projectName: 'Atlas', text: 'Question ' + id, kind: 'decision' as const,
+    askedAt: '2026-09-10T00:00:00Z', blocks: 0, servesActiveGoal: false, revision: 1, options: []
+  })
+  const boardWith = (questions: ReturnType<typeof question>[], items: AttentionItem[], limit = 100) => envelope({
+    data: cutBoard(boardEntries({ questions, attention: items, projectWeightOf: () => 1, now: new Date(STAMP) }), limit),
+    sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh'
+  })
+  const empty = boardWith([], [])
+
+  it('is named for what it holds, and says there is nothing to review in the person\'s words', async () => {
+    install(vi.fn(async () => empty))
+    render(<I18nProvider locale="ru"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: 'На проверке' })))
+    await waitFor(() => expect(screen.getByText('Нечего проверять.')).toBeTruthy())
+    expect(document.querySelector('.lp-board-layout .lp-panel')?.textContent, 'nothing on this tab says agents settle it').not.toMatch(/агент/i)
+  })
+
+  it('a failed read of the whole board is said on the tab, and the person\'s part still shows', async () => {
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => {
+      if (q?.personOnly) return boardWith([question('q1')], [])
+      throw new Error('statement timeout')
+    })
+    install(query as unknown as () => Promise<unknown>)
+    render_()
+    await waitFor(() => expect(screen.getByText('Question q1')).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+    await waitFor(() => expect(screen.getByText(en['launch.board.reviewUnreadable'])).toBeTruthy())
+    expect(screen.getByText(/statement timeout/)).toBeTruthy()
+    expect(screen.queryByText(en['launch.board.reviewEmpty']), 'a failed read is not an empty list').toBeNull()
+  })
+
+  it('says when a list was cut at the first rows of the board', async () => {
+    const many = Array.from({ length: 3 }, (_, i) => question('q' + i))
+    const query = vi.fn(async (q?: { personOnly?: boolean }) => (q?.personOnly ? boardWith(many, [], 2) : boardWith(many, [item()], 2)))
+    install(query as unknown as () => Promise<unknown>)
+    render_()
+    await waitFor(() => expect(screen.getByText(en['launch.board.cut.many'].replace('{shown}', '2').replace('{total}', '3'))).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.tab.review'] }))
+    await waitFor(() => expect(screen.getByText(en['launch.board.reviewCut'].replace('{limit}', '100'))).toBeTruthy())
+  })
+
+  it('says the tab the person switches to, and shows the tab the route names (the way back, UX-4)', async () => {
+    install(vi.fn(async () => boardWith([question('q1')], [item()])))
+    const onTab = vi.fn()
+    const view = (tab?: 'open' | 'review') => <I18nProvider locale="en"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" tab={tab} onTab={onTab} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>
+    const { rerender, unmount } = render(view())
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.tab.review'] })))
+    expect(onTab).toHaveBeenLastCalledWith('review')
+    unmount()
+    // Coming back from a task mounts the Board again with the route the way back kept.
+    render(view('review'))
+    expect(screen.getByRole('button', { name: en['launch.board.tab.review'] }).getAttribute('aria-pressed')).toBe('true')
+    await waitFor(() => expect(screen.getByText('Atlas should adopt the ledger')).toBeTruthy())
+    expect(screen.queryByText('Question q1')).toBeNull()
+    void rerender
+  })
+})
+
+// 0.3.12 review, iteration 2, UX-10: a question's detail came from the board as fixed English («blocking 1 task») inside
+// the Russian interface.
+describe('a question\'s detail is said in the interface\'s language (UX-10)', () => {
+  it('«Держит 1 задачу» in the row and in the detail, never «blocking»', async () => {
+    const question = { id: 'q-1', projectId: 'p1', projectName: 'Atlas', text: 'Which context?', kind: 'decision' as const,
+      askedAt: '2026-09-10T00:00:00Z', blocks: 1, servesActiveGoal: false, revision: 3, options: [] }
+    const board = envelope({ data: cutBoard(boardEntries({ questions: [question], attention: [], projectWeightOf: () => 1, now: new Date(STAMP) }), 100),
+      sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh' })
+    install(vi.fn(async () => board))
+    render(<I18nProvider locale="ru"><BoardScreen projects={PROJECTS} feedMark={0} mode="needs" onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
+    const row = await waitFor(() => screen.getByText('Which context?').closest('button') as HTMLElement)
+    expect(row.textContent).toContain('Держит 1 задачу')
+    fireEvent.click(row)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Which context?' })).toBeTruthy())
+    expect(document.body.textContent).not.toMatch(/blocking/)
   })
 })

@@ -66,6 +66,7 @@ import { AgentPage } from './launch/AgentPage'
 import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { boundedMarks } from '../../shared/commsMarks.ts'
 import { AgentsAtWork } from './launch/HomeWork'
+import { NEEDS_YOU_FAMILIES } from './launch/HomeParts'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
@@ -756,13 +757,14 @@ function Shell({
     window.fabric.favourites?.list().then((p) => { if (alive) setPins(p) }, () => undefined)
     return () => { alive = false }
   }, [active, isMainWindow])
-  const boardMark = markOf(marks, ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect', 'access'])
+  const boardMark = markOf(marks, NEEDS_YOU_FAMILIES)
   useEffect(() => {
     if (!isMainWindow) return
     let alive = true
-    // The SAME query the board runs (M151), cut to one row: its total and per-project counts are over the whole board.
+    // «Нужны вы», cut to one row: its total and per-project counts are over the person's whole part (CO-391), the reading
+    // the home's greeting, its «ждут вас» and each project's «Ждут вас» show too (0.3.12 review, iteration 2, UX-1).
     try {
-      window.fabric.board.query({ projectId: null, limit: 1 }).then(
+      window.fabric.board.query({ projectId: null, limit: 1, personOnly: true }).then(
         (v) => { if (alive) setWaiting(v.data ? { total: v.data.total, byProject: v.data.countsByProject } : null) },
         () => { if (alive) setWaiting(null) }
       )
@@ -1053,6 +1055,12 @@ function Shell({
               travelling.current = true
               setActive({ ...active, needs: mode === 'needs' })
             }}
+            tab={active.tab}
+            onTab={(tab) => {
+              // The tab of «Нужны вы» is kept the same way: the way back from a task returns to it (iteration 2, UX-4).
+              travelling.current = true
+              setActive({ ...active, tab })
+            }}
             projectId={active.projectId ?? null}
             initialItem={active.item ?? null}
             startTopic={active.topic === true}
@@ -1229,6 +1237,7 @@ function Shell({
         )}
         {active.kind === 'home' && (
           <EstateHome
+            waitingForYou={waiting}
             onOpenEntity={openEntity}
             projects={projects}
             sessions={sessions}

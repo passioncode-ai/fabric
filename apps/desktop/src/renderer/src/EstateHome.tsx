@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
 import { dayPart, resumePoint } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
-import { HomeBoard, HomeLive, HomeRhythm } from './launch/HomeParts'
+import { HomeBoard, HomeLive, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
 import { HomeAgents, HomeStats, HomeWorkLanes, useHome } from './launch/HomeWork'
 import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
 import { orderProjects } from '../../shared/homeLive.ts'
@@ -49,7 +49,8 @@ export function EstateHome({
   onPulse,
   onPersona,
   onAgents = () => {},
-  onComms
+  onComms,
+  waitingForYou
 }: {
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
    *  estate holds no projects" — and saying it before looking is the one lie a
@@ -98,6 +99,10 @@ export function EstateHome({
   onPersona?: () => void
   /** «Все агенты»: the live consoles (SCR-50). */
   onAgents?: () => void
+  /** «Нужны вы» counted once (0.3.12 review, iteration 2, UX-1): the shell's reading, the one its rail shows, over the
+   *  whole estate and per project; null while unread or unreadable. The greeting, the strip's «ждут вас» and each
+   *  project's «Ждут вас» count it. Absent, the home counts its own «Нужны вы» reading and the projects' obligations. */
+  waitingForYou?: { total: number; byProject: Record<string, number> } | null
   /** Comms (SCR-81), from what waits on the project board (0.3.9 BD-2). */
   onComms?: () => void
 }): React.JSX.Element {
@@ -105,7 +110,9 @@ export function EstateHome({
   const showConsole = useOpenConsole()
   const [now] = useState(() => new Date())
   const [moreOpen, setMoreOpen] = useState(false)
-  const [personWaiting, setPersonWaiting] = useState<number | null>(null)
+  const [ownWaiting, setOwnWaiting] = useState<number | null>(null)
+  /** One number for "what waits for you" on this screen and on the rail (UX-1). */
+  const personWaiting = waitingForYou === undefined ? ownWaiting : (waitingForYou?.total ?? null)
   /** Computed from the DECLARED coverage, so a table that stops being carried
    *  changes this sentence without anyone remembering to. */
   const mirror = restorability(declaredCoverage())
@@ -237,7 +244,11 @@ export function EstateHome({
     const live = (sessions ?? []).filter((s) => s.projectId === p.id && s.running).length
     /** Null when nothing waits here AND when the estate cannot say — the two are
      *  told apart by the banner above the list, not by a chip on every row. */
-    const waits = counts?.[p.id] ?? null
+    const obligations = counts?.[p.id] ?? null
+    // «Ждут вас» counts what the rail counts beside the project (UX-1); a refusal among the project's obligations still
+    // colours it, and a review is said by its own «на проверке» pill.
+    const youHere = waitingForYou === undefined ? null : (waitingForYou?.byProject[p.id] ?? 0)
+    const waits = waitingForYou === undefined ? obligations : youHere ? { total: youHere, refused: obligations?.refused ?? 0 } : null
     const isPinned = pins.includes(p.id)
     // Only favourites move by hand; the rest are ordered by activity.
     const at = pinned.findIndex((g) => g.id === p.id)
@@ -262,7 +273,7 @@ export function EstateHome({
           {(pp?.live ?? live) > 0 && <span className="lp-pill live">{t('launch.home.projects.live', { count: pp?.live ?? live })}</span>}
           {(pp?.review ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: pp!.review })}</span>}
           {/* «idle» only from a home reading that happened: before it, or after it failed, nothing is known (i2 ER-2). */}
-          {home.view && !home.problem && !waits && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
+          {home.view && !home.problem && !waits && !obligations && !(pp?.live ?? live) && !(pp?.review ?? 0) && <span className="lp-pill">{t('estate.idle')}</span>}
           {pinning && (
             <>
               <button type="button" className="lp-button" aria-pressed={isPinned}
@@ -493,7 +504,7 @@ export function EstateHome({
             </div>
           </div>
           <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
-          <HomeStats reading={home} waiting={counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null}
+          <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} />
         </header>
       </div>
@@ -501,7 +512,7 @@ export function EstateHome({
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
-          <HomeBoard onTotal={setPersonWaiting} feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+          <HomeBoard onTotal={setOwnWaiting} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
           {/* OF-15 (the operator's walk, 2026-10-22): «Где остановились» right under «Нужны вы», both on top. */}
           <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
             <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>

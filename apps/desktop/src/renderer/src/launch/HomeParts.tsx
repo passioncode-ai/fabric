@@ -10,7 +10,7 @@ import type { AnswerReceipt, FeedEvent, ProjectRow, TerminalSession } from '../.
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { liveIsFresh, liveRows, rhythmDays, rhythmTotals, RHYTHM_DAYS, type LiveRow } from '../../../shared/homeView.ts'
 import { describeEvent, useLocale, useT } from '../i18n'
-import { titleOf } from '../attentionTitle'
+import { detailOf, titleOf } from '../attentionTitle'
 import { since } from '../duration'
 import { FailureNote } from '../OperatorError'
 
@@ -21,6 +21,10 @@ const when = (iso: string, now: Date, locale: string): string =>
   sameDay(iso, now)
     ? new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
     : new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })
+
+/** The journal families «Нужны вы» follows (0.3.12 review, iteration 2, UX-1): the rail's count, the home's list and the
+ *  Board's list move together, so a new access request or refusal is counted everywhere at once. */
+export const NEEDS_YOU_FAMILIES = ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect', 'access'] as const
 
 export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; now: Date; onPulse?: () => void }): React.JSX.Element {
   const t = useT(), locale = useLocale()
@@ -67,7 +71,7 @@ export function askerOf(item: BoardEntry, t: ReturnType<typeof useT>): string | 
 
 /** The top three of the SAME query the board runs, so the count here and the board never disagree (M151). */
 export function HomeBoard({ feedMark, onBoard, onAddTopic, onTotal }: { feedMark: number; onBoard(item?: string): void; onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, string>>({})
@@ -131,7 +135,7 @@ export function HomeBoard({ feedMark, onBoard, onAddTopic, onTotal }: { feedMark
             </span>
           </summary>
           <div className="lh-need-body">
-            {item.detail ? <p>{item.detail}</p> : <p className="lp-meta">{t('launch.home.board.noDetail')}</p>}
+            {item.detail ? <p>{detailOf(item, t, locale)}</p> : <p className="lp-meta">{t('launch.home.board.noDetail')}</p>}
             {/* SCN-163 step 2 (CO-391): a question is answered where it is read, the options as buttons. */}
             {item.question && (
               <AnswerForm look="launch" item={item} draft={draft[item.ref] ?? ''} onDraft={(v) => setDraft((d) => ({ ...d, [item.ref]: v }))}

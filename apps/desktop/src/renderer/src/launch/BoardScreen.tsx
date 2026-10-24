@@ -13,27 +13,31 @@
 import { useEffect, useRef, useState } from 'react'
 import { PERSON_KINDS, type BoardCut, type BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
+import type { BoardTab } from '../../../shared/appRoute'
 import type { EntityRef } from '../../../shared/entityRef'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { AnswerReceipt, BoardFilters, ProjectRow } from '../../../shared/types'
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
-import { useLocale, useT } from '../i18n'
-import { titleOf } from '../attentionTitle'
+import { pluralForm, useLocale, useT } from '../i18n'
+import { detailOf, titleOf } from '../attentionTitle'
 import { FabricStrip } from './FabricStrip'
-import { MachineDetail } from '../OperatorError'
+import { FailureNote, MachineDetail } from '../OperatorError'
 import { KanbanBoard } from './KanbanBoard'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
 import { askerOf } from './HomeParts'
 
-/** «Актуальное» is the person's part, the same reading as the home's «Нужны вы»; «Решат агенты» is the rest that is open
- *  (reviews, proposals, abandoned work), which an agent can settle (0.3.12 review UX-2, CO-391). */
-type Filter = 'open' | 'agents' | 'later' | 'done' | 'all'
+/** «Актуальное» is the person's part, the same reading as the home's «Нужны вы»: what blocks an agent until the person
+ *  answers (CO-391). «На проверке» is the rest that is open (reviews, proposals and abandoned work): the person's to look
+ *  at too, but nothing waits on it the way it waits on an answer (0.3.12 review, iteration 2, UX-2). */
+type Filter = BoardTab
 type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEntry } | { at: 'done'; entry: ResolvedEntry }
 /** What the last Board command said, for the row (or the form) it was about. */
 type Said = { of: string; result: BoardCommandResult }
+/** How many open rows one read of the board carries. */
+const BOARD_LIMIT = 100
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, tab: routeTab, onTab, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
   /** The kanban's filters kept from the last visit, and where to keep the next ones (CO-401). */
   boardFilters?: BoardFilters
   onRememberBoard?(filters: BoardFilters): void
@@ -41,6 +45,9 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   mode?: 'kanban' | 'needs'
   /** The view the person switched to, so the way back from a task returns to it (0.3.12 review UX-19). */
   onMode?(mode: 'kanban' | 'needs'): void
+  /** The tab of «Нужны вы» the route names, and the one the person switched to: the way back keeps it (iteration 2, UX-4). */
+  tab?: BoardTab
+  onTab?(tab: BoardTab): void
   /** «Пульс» in the strip (SCR-42). */
   onPulse?: () => void
   /** One project's board, or the estate's when null (SCR-41 from SCR-31 «Доска проекта»). */
@@ -67,7 +74,9 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
     if (initialMode) setModeHere(initialMode)
   }, [initialMode])
   const [open, setOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
-  const [agentsOpen, setAgentsOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
+  /** The whole open board, for «На проверке»; its own failure is said on its tab (iteration 2, ER-8). */
+  const [wholeOpen, setWholeOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
+  const [wholeProblem, setWholeProblem] = useState<string | null>(null)
   const [done, setDone] = useState<ReadEnvelope<ResolvedEntry[]> | null>(null)
   const [later, setLater] = useState<ReadEnvelope<DeferredEntry[]> | null>(null)
   /** The reason being written for one question, keyed by it; kept across a refusal. */
@@ -94,7 +103,15 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
     return id
   }
   const [problem, setProblem] = useState<string | null>(null)
-  const [filter, setFilter] = useState<Filter>('open')
+  const [filter, setFilterHere] = useState<Filter>(routeTab ?? 'open')
+  const setFilter = (next: Filter): void => { setFilterHere(next); if (next !== filter) onTab?.(next) }
+  // A route that names another tab while the screen stays shows it, as the view does.
+  const routeTabSeen = useRef(routeTab)
+  useEffect(() => {
+    if (routeTab === routeTabSeen.current) return
+    routeTabSeen.current = routeTab
+    if (routeTab) setFilterHere(routeTab)
+  }, [routeTab])
   const [selected, setSelected] = useState<string | null>(initialItem)
   const [review, setReview] = useState(false)
   /** Kept across a refusal, keyed by the question: an answer belongs to its row. */
@@ -116,18 +133,25 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   useEffect(() => {
     let alive = true
     const load = async (): Promise<void> => {
+      // The whole open board, read for «На проверке», is its own read: its failure is said on that tab and leaves the
+      // person's part on screen (iteration 2, ER-8).
+      let rest: Promise<void> = Promise.resolve()
       try {
-        const [o, a, d, l] = await Promise.all([
-          // The person's part, the read the home's «Нужны вы» counts (CO-391), then the whole open board for the rest.
-          window.fabric.board.query({ projectId, limit: 100, personOnly: true }),
-          window.fabric.board.query({ projectId, limit: 100 }),
+        // The person's part, the read the home's «Нужны вы» counts (CO-391).
+        const mineRead = window.fabric.board.query({ projectId, limit: BOARD_LIMIT, personOnly: true })
+        rest = window.fabric.board.query({ projectId, limit: BOARD_LIMIT }).then(
+          (a) => { if (alive) { setWholeOpen(a); setWholeProblem(null) } },
+          (e: unknown) => { if (alive) setWholeProblem(e instanceof Error ? e.message : String(e)) })
+        const [o, d, l] = await Promise.all([
+          mineRead,
           window.fabric.board.resolved({ projectId, limit: 50 }),
           window.fabric.board.deferred({ projectId, limit: 50 })
         ])
-        if (alive) { setOpen(o); setAgentsOpen(a); setDone(d); setLater(l); setProblem(null) }
+        if (alive) { setOpen(o); setDone(d); setLater(l); setProblem(null) }
       } catch (e) {
         if (alive) setProblem(e instanceof Error ? e.message : String(e))
       }
+      await rest
     }
     reload.current = load
     void load()
@@ -135,20 +159,29 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   }, [feedMark, projectId])
   const decisions = useProposalDecisions(() => reload.current(), onError)
 
-  const unread = [...(open?.sources ?? []), ...(later?.sources ?? []), ...(done?.sources ?? [])].filter((s) => s.status !== 'ok')
   const shows = (at: Filter) => filter === 'all' || filter === at
+  // What the tab on screen was read from and did not answer; «На проверке» is read from the whole board (iteration 2, ER-8).
+  const consulted = [...(shows('open') ? open?.sources ?? [] : []), ...(shows('review') ? wholeOpen?.sources ?? [] : []),
+    ...(shows('later') ? later?.sources ?? [] : []), ...(shows('done') ? done?.sources ?? [] : [])]
+  const unread = consulted.filter((s, i) => s.status !== 'ok' && consulted.findIndex((x) => x.name === s.name) === i)
   const mine = (open?.data?.items ?? []).filter((e) => PERSON_KINDS.has(e.kind))
-  const agents = (agentsOpen?.data?.items ?? []).filter((e) => !PERSON_KINDS.has(e.kind))
-  // Arriving for a row an agent can settle (a project's «Разобрать» on a review) opens the tab that lists it.
+  const toReview = (wholeOpen?.data?.items ?? []).filter((e) => !PERSON_KINDS.has(e.kind))
+  /** The person's part cut at its first rows (exact: `personOnly` counts the whole part), and the whole board's cut, from
+   *  which «На проверке» is filtered: past it, rows to review may be missing (iteration 2, ER-8, UX-5). */
+  const mineCut = open?.data && open.data.hidden > 0 ? open.data : null
+  const reviewCut = wholeOpen?.data ? wholeOpen.data.hidden > 0 : false
+  /** «На проверке» could not be read: said in its place, never as nothing to review. */
+  const reviewFailed = wholeProblem !== null && wholeOpen === null
+  // Arriving for a row to review (a project's «Разобрать» on a review) opens the tab that lists it.
   const arrivedTab = useRef(false)
   useEffect(() => {
-    if (arrivedTab.current || !initialItem || open === null || agentsOpen === null) return
+    if (arrivedTab.current || !initialItem || open === null || wholeOpen === null) return
     arrivedTab.current = true
-    if (!mine.some((e) => e.ref === initialItem) && agents.some((e) => e.ref === initialItem)) setFilter('agents')
+    if (!mine.some((e) => e.ref === initialItem) && toReview.some((e) => e.ref === initialItem)) setFilter('review')
   })
-  const rows: Row[] | null = open === null || agentsOpen === null || done === null || later === null ? null : [
+  const rows: Row[] | null = open === null || (wholeOpen === null && !reviewFailed) || done === null || later === null ? null : [
     ...(shows('open') ? mine.map((entry) => ({ at: 'open' as const, entry })) : []),
-    ...(shows('agents') ? agents.map((entry) => ({ at: 'open' as const, entry })) : []),
+    ...(shows('review') ? toReview.map((entry) => ({ at: 'open' as const, entry })) : []),
     ...(shows('later') ? (later.data ?? []).map((entry) => ({ at: 'later' as const, entry })) : []),
     ...(shows('done') ? (done.data ?? []).map((entry) => ({ at: 'done' as const, entry })) : [])
   ]
@@ -292,22 +325,27 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       <div className="lp-board-layout">
         <section className="lp-panel" aria-label={t('launch.board.list')}>
           <div className="lp-tabs" role="group" aria-label={t('launch.board.filter')}>
-            {(['open', 'agents', 'later', 'done', 'all'] as Filter[]).map((f) => (
+            {(['open', 'review', 'later', 'done', 'all'] as Filter[]).map((f) => (
               <button key={f} type="button" className="lp-button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
                 {t(`launch.board.tab.${f}` as 'launch.board.tab.open')}
               </button>
             ))}
           </div>
           {rows === null && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
-          {rows !== null && rows.length === 0 && (
+          {shows('review') && reviewFailed && <FailureNote said={t('launch.board.reviewUnreadable')} detail={wholeProblem} />}
+          {rows !== null && rows.length === 0 && !(filter === 'review' && reviewFailed) && (
             // "Clear" is a measurement, so it is said only of a read that was whole.
-            unread.length === 0 ? (
+            unread.length === 0 && !(filter === 'all' && reviewFailed) ? (
               <div className="lp-empty">
-                <h3>{filter === 'open' ? t('launch.home.board.clear') : filter === 'agents' ? t('launch.board.agentsEmpty') : t('launch.board.emptyTab')}</h3>
-                {filter !== 'agents' && <p>{t('launch.home.board.clearBody')}</p>}
+                <h3>{filter === 'open' ? t('launch.home.board.clear') : filter === 'review' ? t('launch.board.reviewEmpty') : t('launch.board.emptyTab')}</h3>
+                {filter !== 'review' && <p>{t('launch.home.board.clearBody')}</p>}
               </div>
             ) : <p className="lp-meta">{t('launch.board.emptyPartial')}</p>
           )}
+          {shows('open') && mineCut && (
+            <p className="lp-meta" role="status">{t(`launch.board.cut.${pluralForm(locale, mineCut.items.length)}`, { shown: mineCut.items.length, total: mineCut.total })}</p>
+          )}
+          {shows('review') && reviewCut && <p className="lp-meta" role="status">{t('launch.board.reviewCut', { limit: BOARD_LIMIT })}</p>}
           {rows?.map((r, i) => (
             <button key={r.entry.ref} type="button" className="lp-topic" aria-expanded={selected === r.entry.ref}
               onClick={() => { picked.current = selected !== r.entry.ref; setSelected(selected === r.entry.ref ? null : r.entry.ref) }}>
@@ -315,7 +353,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               <span>
                 <span className="lp-topic-title">{titleOf(r.entry, t)}</span>
                 <span className="lp-meta">
-                  {[r.entry.projectName, r.at === 'open' ? askerOf(r.entry, t) : null, kindOfRow(r), r.at === 'open' ? r.entry.detail : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
+                  {[r.entry.projectName, r.at === 'open' ? askerOf(r.entry, t) : null, kindOfRow(r), r.at === 'open' ? detailOf(r.entry, t, locale) : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="lp-topic-end">
@@ -337,7 +375,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
             <h3 id="topic-title" tabIndex={-1}>{titleOf(chosen.entry, t)}</h3>
             {chosen.at === 'open' ? (
               <>
-                {chosen.entry.detail && <p>{chosen.entry.detail}</p>}
+                {chosen.entry.detail && <p>{detailOf(chosen.entry, t, locale)}</p>}
                 <dl className="lp-facts">
                   <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : grantedHere ? 'launch.board.state.allowed' : 'launch.board.state.open')}</dd></div>
                   {/* A settled row waits for nothing (UX-4). */}

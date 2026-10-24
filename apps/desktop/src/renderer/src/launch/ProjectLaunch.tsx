@@ -9,8 +9,8 @@ import type { GoalRow } from '../../../shared/plan'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../../shared/types'
 import { since } from '../duration'
-import { useT } from '../i18n'
-import { titleOf } from '../attentionTitle'
+import { useLocale, useT } from '../i18n'
+import { detailOf, titleOf } from '../attentionTitle'
 import { ProjectStrip } from './FabricStrip'
 import { HomeAgents, useHome } from './HomeWork'
 import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
@@ -44,7 +44,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   /** Scroll to one of the detailed sections below (`sec-…`). */
   onSection: (anchor: string) => void
 }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   const showConsole = useOpenConsole()
   const [board, setBoard] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [boardProblem, setBoardProblem] = useState<string | null>(null)
@@ -135,7 +135,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
                 <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
                 <span>
                   <span className="lp-topic-title">{titleOf(item, t)}</span>
-                  <span className="lp-meta">{[item.projectName, kindOf(item.kind), item.detail].filter(Boolean).join(' · ')}</span>
+                  <span className="lp-meta">{[item.projectName, kindOf(item.kind), detailOf(item, t, locale)].filter(Boolean).join(' · ')}</span>
                 </span>
                 <span className="lp-topic-end">
                   <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{kindOf(item.kind)}</span>

@@ -88,7 +88,7 @@ export interface LaunchShellProps {
   lastActivity: Record<string, string>
   /** Projects where an agent works now. */
   live: ReadonlySet<string>
-  /** What waits for the person, over the whole board and by project; null while unknown (no count is a non-claim). */
+  /** «Нужны вы» (`PERSON_KINDS`), over the whole estate and by project; null while unknown (no count is a non-claim). */
   waiting: { total: number; byProject: Record<string, number> } | null
   /** Comms threads with new messages (SCN-143's unread slice), carried on Настройки because Comms opens from
    *  Настройки → Ещё since 0.3.7 wave 3 (0.3.7 review UX-4). Null or absent while the board has not answered. */

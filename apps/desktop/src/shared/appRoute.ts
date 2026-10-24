@@ -58,6 +58,9 @@ export type Tab =
       asOf?: string
     }
 
+/** The tabs of the Board's «Нужны вы» (SCR-41): the person's part, what is theirs to review, set aside, answered, all. */
+export type BoardTab = 'open' | 'review' | 'later' | 'done' | 'all'
+
 /**
  * Everywhere the shell can be. A superset of `Tab`: the agents view is a place,
  * not a decoration over one, and it is deliberately NOT a tab — it has no close
@@ -72,7 +75,9 @@ export type AppRoute =
   | { kind: 'where' }
   /** SCR-41. Estate-wide by default; `projectId` scopes it to one project, `item` opens one row. */
   /** `topic`: arrive with the add-a-topic form open (Home's "+ Add a topic", the launch prototype's SCR-30). */
-  | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean }
+  /** `tab`: the tab of «Нужны вы» the person was on, so the way back from a task returns to it (0.3.12 review, iteration 2,
+   *  UX-4). The renderer's alone: main never builds or reads a board route. */
+  | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean; tab?: BoardTab }
   /** SCR-81. What projects tell each other, read by the operator. A single place, like the agents view. */
   | { kind: 'comms' }
   /** SCN-175 (W2 S5): how the projects relate; `projectId` centres the graph on one project and its neighbours. */
