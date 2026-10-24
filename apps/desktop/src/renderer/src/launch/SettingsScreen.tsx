@@ -197,7 +197,10 @@ export function AgentLinksSetting(): React.JSX.Element {
       if ('notSaved' in answer && answer.notSaved)
         setNotSaved(answer.notSaved.reason === 'locked'
           ? { said: t('settings.agentLinks.locked'), detail: t('settings.agentLinks.notSavedDetail') }
-          : { said: t('settings.agentLinks.notSaved'), detail: `${t('settings.agentLinks.writeFailed', { code: answer.notSaved.code })} ${t('settings.agentLinks.notSavedDetail')}` })
+          // A link to a settings file that is not there refuses nothing: the file is missing (final candidate, FV-4).
+          : answer.notSaved.code === 'ENOENT-link'
+            ? { said: t('settings.agentLinks.danglingLink'), detail: t('settings.agentLinks.notSavedDetail') }
+            : { said: t('settings.agentLinks.notSaved'), detail: `${t('settings.agentLinks.writeFailed', { code: answer.notSaved.code })} ${t('settings.agentLinks.notSavedDetail')}` })
     } catch (e) {
       setNotSaved({ said: t('settings.agentLinks.notSaved'), detail: `${e instanceof Error ? e.message : String(e)} ${t('settings.agentLinks.notSavedDetail')}` })
       // What the file holds now, read again; a read that fails too is said as the file being unreadable.

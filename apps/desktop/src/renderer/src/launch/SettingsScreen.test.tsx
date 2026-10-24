@@ -329,6 +329,15 @@ describe('messages between agent sessions and Fabric readiness (CO-407)', () => 
     expect(box.checked).toBe(false)
     expect(box.disabled).toBe(false)
   })
+  // Final candidate, FV-4: a link to a missing settings file refuses nothing; the person is told the file is missing.
+  it('a settings link to a missing file is said as such, not as a refusal', async () => {
+    const setClaudeInbound = vi.fn(async () => ({ accepting: false, value: null, notSaved: { reason: 'write-failed' as const, code: 'ENOENT-link' } }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: false, value: null })), setClaudeInbound } } }))
+    show(<AgentLinksSetting />)
+    fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
+    expect(await screen.findByText(en['settings.agentLinks.danglingLink'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.agentLinks.notSaved'])).toBeNull()
+  })
   it('a write Claude Code held its lock over is said as such, and the switch stays at what the file holds', async () => {
     const setClaudeInbound = vi.fn(async () => ({ accepting: true, value: 'true', notSaved: { reason: 'locked' as const } }))
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: true, value: 'true' })), setClaudeInbound } } }))

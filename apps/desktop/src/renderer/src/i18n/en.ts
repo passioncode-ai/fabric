@@ -915,6 +915,7 @@ export const en = {
   'settings.agentLinks.reading': "Reading Claude Code's settings…",
   'settings.agentLinks.unreadable': "Claude Code's settings file could not be read, so Fabric leaves it as it is.",
   'settings.agentLinks.notSaved': "Not saved: Claude Code's settings refused the change. The switch shows what the file holds.",
+  'settings.agentLinks.danglingLink': "Not saved: Claude Code's settings.json is a link to a file that is not there. Fabric does not replace the link with a file; restore the file or the link and turn this on again.",
   'settings.agentLinks.notSavedDetail': "The setting is crossSessionInbound in Claude Code's settings.json.",
   'settings.agentLinks.locked': "Not saved: Claude Code was busy with its settings file at that moment, so the change was not written. Try again in a minute. The switch shows what the file holds.",
   'settings.agentLinks.writeFailed': "The file could not be written ({code}).",

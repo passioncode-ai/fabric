@@ -136,9 +136,18 @@ test('ER-8: the hub holds its port on [::1] as well, so localhost reaches Fabric
 })
 
 test('ER-8: [::1] taken by another program refuses the hub port, as 127.0.0.1 taken does', async () => {
-  const blocker = createServer()
-  await new Promise((r) => blocker.listen(0, '::1', r))
-  const port = blocker.address().port
+  // A port the kernel gave on [::1] may be held on 127.0.0.1 by some other program of this machine (a gate run beside
+  // other sessions met it on 2026-10-24): take one whose 127.0.0.1 is free, so the refusal under test is [::1]'s.
+  let blocker, port
+  for (let tries = 0; ; tries++) {
+    blocker = createServer()
+    await new Promise((r) => blocker.listen(0, '::1', r))
+    port = blocker.address().port
+    const v4 = createServer()
+    const free = await new Promise((resolve) => { v4.once('error', () => resolve(false)); v4.listen(port, '127.0.0.1', () => v4.close(() => resolve(true))) })
+    if (free || tries >= 20) break
+    await new Promise((r) => blocker.close(r))
+  }
   const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
   await assert.rejects(surface.start({ port }), (e) => e instanceof HubPortUnavailable && /\[::1\]|::1/.test(e.message))
   assert.equal(surface.origin, '')
