@@ -147,15 +147,20 @@ export async function startWithRetry(
   const overdue = (message: string): Error =>
     new Error(`The local stack did not become ready within ${Math.round((plan.totalMs ?? 0) / 60_000)} minutes, so Fabric stopped trying.\n${message}`)
   let dockerWaited = false
+  // The last refusal's words, said with the deadline when no further try is worth starting.
+  let lastMessage = ''
   for (let attempt = 1; ; attempt++) {
     try {
       const limit = left()
-      if (limit !== null && limit <= 0) throw overdue('')
+      // Before every try, the first and the one after Docker's wait included (0.3.12 review i2 ER-7): a try that would
+      // begin with less than `minTryMs` of the deadline is not started; the deadline is said with the last refusal.
+      if (limit !== null && (limit <= 0 || (lastMessage !== '' && limit < Math.max(1, plan.minTryMs ?? 0)))) throw overdue(lastMessage)
       await start(limit)
       return
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
       if (message.startsWith('The local stack did not become ready within')) throw e
+      lastMessage = message
       // Docker away: one wait for it, not counted against the tries; then the start runs again.
       if (opts.pingDocker && !dockerWaited && dockerIsUnreachable(message) && !opts.stopped?.()) {
         dockerWaited = true

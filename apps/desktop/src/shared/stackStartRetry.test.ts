@@ -189,6 +189,16 @@ describe('one deadline for the whole start (CO-311)', () => {
     expect(limits).toEqual([300_000, 150_000])
     expect(Math.min(...(limits as number[]))).toBeGreaterThanOrEqual(STACK_START_RETRY.minTryMs ?? 0)
   })
+  it('the minimum holds after the wait for Docker too (0.3.12 review i2 ER-7)', async () => {
+    // Probe 2 of the review: try 1 spent 295 s and met Docker gone; Docker answered at once; the next try ran with 5 s.
+    let clock = 0
+    const limits: Array<number | null> = []
+    const sleep = async (ms: number) => { clock += ms }
+    await expect(startWithRetry(async (limit) => { limits.push(limit); clock += 295_000; throw new Error(NO_DOCKER) }, {
+      plan: STACK_START_RETRY, sleep, now: () => clock, pingDocker: async () => true, dockerWait: { totalMs: 90_000, pollMs: 2_000 },
+    })).rejects.toThrow(/did not become ready within 5 minutes[\s\S]*docker API/)
+    expect(limits).toEqual([300_000])
+  })
   it('a try stopped by its limit names that limit, so the window never says four minutes of a shorter one', () => {
     const killed = Object.assign(new Error('Command failed: supabase start -x realtime'), { killed: true, signal: 'SIGTERM' })
     const named = nameTheLimit(killed, 150_000)
