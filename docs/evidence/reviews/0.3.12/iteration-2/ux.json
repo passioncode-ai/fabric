@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "69db245a927d22ce91ff75fa7f72cf667e39fcdb",
+  "report": "docs/evidence/reviews/0.3.12/iteration-2/2026-10-24-ux.md",
+  "reportSha256": "6f5af498f0ee836927358572c8f32c4d46d1ea1724d71f76fbf0c7d37adac49c",
+  "reviewerRun": "release-0312-i2-ux-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one `personOnly` reading feeds the greeting, the cell, each project and the rail (`App.tsx`, `EstateHome.tsx#waitingForYou`); `waitingForYou.test.tsx` (2 questions, 2 reviews, 1 proposal: 2 everywhere; the old code said 2, 3 and 5)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab is «На проверке», empty «Нечего проверять.»; SCN-173, SCR-41 and CHANGELOG say so"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: focus moves only on the person's pick (`launch/HomeWork.tsx#AgentsAtWork`); `AgentPage.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab is in the board route (`shared/appRoute.ts`); `BoardScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab, now «На проверке», has its own read and says a failure and a cut at 100 rows (`launch/BoardScreen.tsx`); two tests"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the hidden line names the moment of the next try (`StackHealthNotice.tsx`); the existing test checks no seconds count is announced"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: plural forms in the feed and the people counts, «Не прочитаны ({count}):», «Бриф агент собирает…», CHANGELOG says decisions; tests in `CommsFeed.test.tsx`, `ProjectProfile.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V2-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418, 0.3.13"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: FLW-96 says what ships (one list, the agent's page, joined agents below) above the old flow"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Держит 1 задачу» (`attentionTitle.ts#detailOf`); a Russian render test; carrying `blocks` on the board entry instead of matching the English text is CO-418's"
+      ]
+    }
+  ]
+}

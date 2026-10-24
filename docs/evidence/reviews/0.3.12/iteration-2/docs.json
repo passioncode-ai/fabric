@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "69db245a927d22ce91ff75fa7f72cf667e39fcdb",
+  "report": "docs/evidence/reviews/0.3.12/iteration-2/2026-10-24-docs.md",
+  "reportSha256": "72df2bd9a91c275e28c273c905082b96458bfa32ad296fac7eaa3dab61951f52",
+  "reviewerRun": "release-0312-i2-docs-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the question goes on the request's thread with `com.submit`, kind message, no `replyTo` (`shared/protocolObligations.ts`, `intake.spec-first`); ADR-0176 amendment 8; `protocolObligations.test.ts`"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG names it and 0.3.13"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the row notes the one bound of 5 000"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 5 says the person opens the installed 0.3.11 again if it stops there"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a merge with `-s ours` keeps it an ancestor and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V1-22 says the release commit names it"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-418"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it names Главная's block of requests no agent can answer (`launch/HomeBoardWaiting.tsx`)"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V2-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the code now lets the other fields through and logs (V2-13), and the spec's iteration-2 note says so"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V2-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-418's schema step"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V2-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the spec's slice table defines S7; P-25 and the handoff name it"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V2-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «quit it again»"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V2-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `release-mac.md` says so beside the other rollback notes"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V2-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `scripts/probe-redaction.mjs` with its command in its header; CO-386 cites its output on the operator's journal (21 814 events, 0 lines changed only by 0.3.12)"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "source": "V2-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AGENTS.md names it (the session's newest 200 events)"
+      ]
+    }
+  ]
+}

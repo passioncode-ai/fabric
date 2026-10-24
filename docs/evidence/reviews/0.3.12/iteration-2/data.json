@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "69db245a927d22ce91ff75fa7f72cf667e39fcdb",
+  "report": "docs/evidence/reviews/0.3.12/iteration-2/2026-10-24-data.md",
+  "reportSha256": "ab6e9515bc5bdf797a28112f7916f8ef1fdc4633329a9f9e7e7dcd5977acaafe",
+  "reviewerRun": "release-0312-i2-data-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one per-project lock around read, check and append for both writers (`main/projectOnboarding.ts#projectProfileLock`, `writeAgentProfile`); two interleaving tests in `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a business any person ever wrote, cleared included, is never set by an agent; `project-onboarding.test.mjs` «DA-2»; the journal query checked against the live database's columns"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: keyset paging by `seq` (analytics) and by `id` (the wall's projects) (`shared/projectAnalytics.ts#readNewestPaged`); tests with a growing source"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: archived projects read, every failed or empty read logged, fail open as W2-5 decided (`main/boardWallReads.ts`, `boardService.ts#factsOf`); `board-wall-reads.test.mjs`"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V2-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `release-mac.md` says so beside the other rollback notes"
+      ]
+    }
+  ]
+}

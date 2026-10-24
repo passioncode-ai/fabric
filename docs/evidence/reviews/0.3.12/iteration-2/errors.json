@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "69db245a927d22ce91ff75fa7f72cf667e39fcdb",
+  "report": "docs/evidence/reviews/0.3.12/iteration-2/2026-10-24-errors.md",
+  "reportSha256": "2d8eb5691cc62665cc35fa319792caf190bfbcda6178eb5a06c315a4126064fb",
+  "reviewerRun": "release-0312-i2-errors-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the main process tells `locked` from `write-failed` with its code, and a temp-name failure no longer throws (`main/claudeTrust.ts#lockClaudeFile`, `main/claudeInbound.ts#setInbound`); Settings reads `notSaved` (`AgentLinksSetting`); tests in `claude-inbound.test.mjs`, `claude-trust.test.mjs`, `SettingsScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one per-project lock around read, check and append for both writers (`main/projectOnboarding.ts#projectProfileLock`, `writeAgentProfile`); two interleaving tests in `project-onboarding.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: archived projects read, every failed or empty read logged, fail open as W2-5 decided (`main/boardWallReads.ts`, `boardService.ts#factsOf`); `board-wall-reads.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one 5-second deadline per post's check, then logged (`boardService.ts#wallFor`, `wallDeadlineMs`); two tests"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: keyset paging by `seq` (analytics) and by `id` (the wall's projects) (`shared/projectAnalytics.ts#readNewestPaged`); tests with a growing source"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: at most four at once; a partial reading held 60 s (`main/gitPeople.ts`); tests"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: checked before every try (`shared/stackStartRetry.ts#startWithRetry`); «the minimum holds after the wait for Docker too»"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the tab, now «На проверке», has its own read and says a failure and a cut at 100 rows (`launch/BoardScreen.tsx`); two tests"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a goal, summary, plan with items or relations count as a profile, and the plan shows (`launch/ProjectProfile.tsx`); two tests"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `<realpath>.lock` (`main/claudeTrust.ts#claudeLockTarget`); tests with a symlinked file"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: removed, and `.gitignore` names it"
+      ]
+    }
+  ]
+}

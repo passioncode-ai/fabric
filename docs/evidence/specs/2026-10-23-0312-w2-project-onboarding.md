@@ -155,3 +155,22 @@ Each note is dated and sits under the decision it amends; the decision's own tex
   «Цель», «План», «Бизнес», «Связанные проекты», «Люди (из Git)»), «Как идёт работа», «Команда» (the project's agents),
   «Ритм работы» and «Ресурсы и настройки», folded (`apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`). «Идеи и
   материалы» was not built in 0.3.12.
+
+## Amendments, 2026-10-24, the release review's iteration 2
+
+- **W2-4 (iteration 2, DA-1, DA-2, ER-2):** once the person has written a project's business (cleared included), no
+  agent sets it; an agent may record one only where no person ever wrote it (`main/projectOnboarding.ts#writeAgentProfile`,
+  a `project.profiled@1` naming `business` with a person as actor). The person's and an agent's writes run one at a
+  time per project in the main process (`projectProfileLock`). An owner read that fails refuses the business, lets the
+  other fields through, and is logged. A rebuild from the journal still takes the last event; enforcing the rule in
+  the projector is a schema step (CO-418). The W2-4 note above saying other fields go through when the business read
+  fails held only after this change.
+- **W2-5 (iteration 2, ER-3, ER-4, DA-4):** the wall reads archived projects too (an archived namesake does not rename
+  a project in `com.directory`); its reads page by key, not offset; one 5-second deadline covers a post's whole check;
+  a read that fails, answers nothing or runs out of time walls nothing and is logged with its reason (fail open, as
+  W2-5's row decided: refusing on an unknown business would block the board).
+- **W2-6 (iteration 2, ER-6):** at most four `git` runs at once; a reading with a repository unread is held 60 seconds
+  (a complete one 10 minutes).
+- **W2-8 (iteration 2, ER-5, DA-3):** the analytics read pages by `seq` below the last row read, so a growing journal is
+  neither counted twice nor skipped.
+

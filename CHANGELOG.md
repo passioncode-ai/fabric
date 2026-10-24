@@ -33,7 +33,8 @@ folder, then open the new bundle.
 - The start splash speaks the interface's language, the wait for Docker and the retry included (CO-306, SCN-161).
 - «Нужны вы» on Главная lists only what the person resolves (questions, access requests, refusals), each row naming who
   asks; a question is answered there with its options as buttons, and the greeting says the part of the day and how many
-  questions wait (CO-391, SCN-163).
+  decisions wait; the greeting, the «ждут вас» cell, each project's count and the rail's all count this same set
+  (CO-391, SCN-163).
 - История's «Что делали агенты» reads as History: by day, newest first, each row naming who did it, with no journal
   number (CO-395, SCN-168).
 - Failures are said where they are seen: after a failed read the home's lanes say the time of the view they keep;
@@ -99,13 +100,18 @@ folder, then open the new bundle.
   only while none is set and can neither clear nor change it, and you set it on the project page. A project offers
   «Познакомиться с проектом» until an agent records its goal or summary. This is the schema step to 96 described
   under Upgrading.
-- After the release review: the Board's «Нужны вы» lists only what waits for you, naming who asked, and what agents
-  resolve moved to «Решат агенты»; Агенты says when its list could not be read or nobody works, and a chosen agent's
+- After the release review: the Board's «Нужны вы» lists only what waits for you, naming who asked, and reviews,
+  proposals and abandoned work moved to its own tab «На проверке», which says when its read failed or was cut; Агенты says when its list could not be read or nobody works, and a chosen agent's
   page takes focus; project names on the graph read in the dark theme; a project page's «Связи» opens the graph from
   the keyboard; the people of a project are counted once per repository, and a history that could not be read is said
   as such, with its folders; the lost-stack notice no longer pushes a detached console's prompt off the window, and its
   countdown is not read aloud every second; the greeting counts in Russian plural forms; a refused write of Claude
-  Code's settings says «Не сохранилось»; the Board's cancelled column is ordered by when tasks were cancelled; the
+  Code's settings says «Не сохранилось» with its reason (Claude held the file, or the system refused the write), and
+  Fabric locks the file at its real path, as Claude Code does; the person's and an agent's writes of a project's business
+  run one at a time, and a business the person ever wrote, or cleared, is never set by an agent; the wall between
+  businesses reads archived projects too, gives up after 5 seconds and logs why; a question's detail is said in the
+  interface's language; a plan or relations an agent recorded count as a profile; focus moves to an agent's page only
+  when you pick it; the stack notice announces the moment of the next try; the Board's cancelled column is ordered by when tasks were cancelled; the
   agent filter applies to «В работе» and says so; a sideways scroll no longer turns the page back; the redaction
   leaves comparisons, calls, counts and words like `KEYBOARD` alone; the stack start begins no try with under 30
   seconds left, and its timeout states its real limit; Comms keeps up to 5000 read marks; and the folder-attribution

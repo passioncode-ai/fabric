@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.12",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "69db245a927d22ce91ff75fa7f72cf667e39fcdb",
+  "report": "docs/evidence/reviews/0.3.12/iteration-2/2026-10-24-plan.md",
+  "reportSha256": "f7cb38a2c66fe7ebf8cd646ce6803b45f10414a3db7c829a25099edb964da029",
+  "reviewerRun": "release-0312-i2-plan-20261024",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a merge with `-s ours` keeps it an ancestor and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the branch points at `69db245a`'s descendants (the message-only amend was dropped); it takes `main` by merge"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agent/release-0312` pushed (`f5c527d8` and after)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: removed, and `.gitignore` names it"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Protocol says a link is made relative to its new place and the ledger says so (iteration 1's docs report, the link to `release-mac.md`)"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 5 says the person opens the installed 0.3.11 again if it stops there"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 8 reads `broker.log` for no `ensure` or `restart` since step 2"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: answered (`c0a9a575`: A-4 to A-6 and CX-FAB-10 are CO-337, CO-319 to CO-321, CO-412, CO-279 in 0.4.0; `0ab444ca`: the re-pin in 0.3.13)"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V2-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back"
+      ]
+    }
+  ]
+}

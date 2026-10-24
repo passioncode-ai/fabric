@@ -162,3 +162,62 @@ the next candidate; what 0.3.12 does not fix is CO-418 (0.3.13), CO-413 (0.4.0) 
 | V1-55 | found during the fixes | `ipc-window-policy.test.mjs` red on `main` since W3e (stackHealth for every window); it ran only in the full tier | fixed: the test lists the two channels, and the fast tier runs it (`scripts/ci.sh`) |
 
 Exit for iteration 1: every finding above is fixed or ruled with its row. Blocking findings open: none.
+
+## Iteration 2
+
+Five fresh reviewers, 2026-10-24, against `69db245a` (`69db245a927d22ce91ff75fa7f72cf667e39fcdb`), read-only in a
+detached checkout. Reports: [UX](../reviews/0.3.12/iteration-2/2026-10-24-ux.md), [errors](../reviews/0.3.12/iteration-2/2026-10-24-errors.md),
+[documents](../reviews/0.3.12/iteration-2/2026-10-24-docs.md), [data](../reviews/0.3.12/iteration-2/2026-10-24-data.md), [plan](../reviews/0.3.12/iteration-2/2026-10-24-plan.md).
+
+50 findings, 1 blocking. The plan reviewer found that the landing of W3e had rebased the release branch, so iteration
+1's candidate was no longer in its history and the gate would refuse the tag (PL-1). The documents reviewer found that
+the intake rule told an agent to ask its questions with a reply that closes the request it asks about (DO-1). The data
+reviewer took a copy of the live database through migration 123 in 4.9 ms and rebuilt it from the journal to the same
+projection. Iteration 1's fixes held, apart from the halves named above.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | PL-1 (blocking), DO-5 | Iteration 1's candidate `7b042631` left the history when the branch was rebased | fixed: a merge with `-s ours` keeps it an ancestor and changes no file (`f5c527d8`); the Protocol says a reviewed candidate is never rebased and the branch lands by merge |
+| V2-2 | PL-2 | The candidate `69db245a` is on no branch; landing by rebase would lose it again | fixed: the branch points at `69db245a`'s descendants (the message-only amend was dropped); it takes `main` by merge |
+| V2-3 | PL-3 | None of the release work is on GitHub | fixed: `agent/release-0312` pushed (`f5c527d8` and after) |
+| V2-4 | PL-4, ER-11 | `scripts/ci-tail.tmp.sh` committed in `69db245a` | fixed: removed, and `.gitignore` names it |
+| V2-5 | PL-5 | The committed docs report differs from the reviewer's in one link | fixed: the Protocol says a link is made relative to its new place and the ledger says so (iteration 1's docs report, the link to `release-mac.md`) |
+| V2-6 | PL-6, DO-4 | Rollout step 5 says 0.3.10 installed and omits the third person step | fixed: step 5 says the person opens the installed 0.3.11 again if it stops there |
+| V2-7 | PL-7 | Step 8 expects `startedBy: person`, which the broker reports as `other` for a person-opened Fabric | fixed: step 8 reads `broker.log` for no `ensure` or `restart` since step 2 |
+| V2-8 | PL-8 | Two board asks unanswered: fabric-workspace on `12bd8b4c`, the contract's `v0.1.0+2026-10-24` | fixed: answered (`c0a9a575`: A-4 to A-6 and CX-FAB-10 are CO-337, CO-319 to CO-321, CO-412, CO-279 in 0.4.0; `0ab444ca`: the re-pin in 0.3.13) |
+| V2-9 | PL-9 | An agent sets «Этот компьютер: мой» with no evidence beyond its own act | ruled: the agent sets it on the operator's own recorded decision (ADR-0176 Decision 3, quoted in step 8), records `protocol.machine` before and after in the Release close, and tells the person how to turn it back |
+| V2-10 | DO-1 | The intake rule asks with `com.reply`, which answers the request and closes it | fixed: the question goes on the request's thread with `com.submit`, kind message, no `replyTo` (`shared/protocolObligations.ts`, `intake.spec-first`); ADR-0176 amendment 8; `protocolObligations.test.ts` |
+| V2-11 | ER-1 | A failed Claude Code settings write never reached the person; `locked` named a permission error | fixed: the main process tells `locked` from `write-failed` with its code, and a temp-name failure no longer throws (`main/claudeTrust.ts#lockClaudeFile`, `main/claudeInbound.ts#setInbound`); Settings reads `notSaved` (`AgentLinksSetting`); tests in `claude-inbound.test.mjs`, `claude-trust.test.mjs`, `SettingsScreen.test.tsx` |
+| V2-12 | ER-2, DA-1 | An agent's business write can land after the person's | fixed: one per-project lock around read, check and append for both writers (`main/projectOnboarding.ts#projectProfileLock`, `writeAgentProfile`); two interleaving tests in `project-onboarding.test.mjs` |
+| V2-13 | DA-2 | After the person clears the business an agent can set it again | fixed: a business any person ever wrote, cleared included, is never set by an agent; `project-onboarding.test.mjs` «DA-2»; the journal query checked against the live database's columns |
+| V2-14 | ER-3, DA-4 | The wall opens silently on a failed read and ignores archived projects | fixed: archived projects read, every failed or empty read logged, fail open as W2-5 decided (`main/boardWallReads.ts`, `boardService.ts#factsOf`); `board-wall-reads.test.mjs` |
+| V2-15 | ER-4 | The wall's thread read has no overall deadline | fixed: one 5-second deadline per post's check, then logged (`boardService.ts#wallFor`, `wallDeadlineMs`); two tests |
+| V2-16 | ER-5, DA-3 | Offset paging double counts a growing journal | fixed: keyset paging by `seq` (analytics) and by `id` (the wall's projects) (`shared/projectAnalytics.ts#readNewestPaged`); tests with a growing source |
+| V2-17 | ER-6 | People from Git start every Git call at once and re-read after any failure | fixed: at most four at once; a partial reading held 60 s (`main/gitPeople.ts`); tests |
+| V2-18 | ER-7 | The 30-second minimum is skipped after the Docker wait | fixed: checked before every try (`shared/stackStartRetry.ts#startWithRetry`); «the minimum holds after the wait for Docker too» |
+| V2-19 | ER-8, UX-5 | «Решат агенты» says nothing waits on a failed or cut read | fixed: the tab, now «На проверке», has its own read and says a failure and a cut at 100 rows (`launch/BoardScreen.tsx`); two tests |
+| V2-20 | ER-9 | A plan-only profile still offers onboarding and hides the plan | fixed: a goal, summary, plan with items or relations count as a profile, and the plan shows (`launch/ProjectProfile.tsx`); two tests |
+| V2-21 | ER-10 | The lock is taken on the path as given, not the real path | fixed: `<realpath>.lock` (`main/claudeTrust.ts#claudeLockTarget`); tests with a symlinked file |
+| V2-22 | UX-1 | Главная and the rail show three different "waits for you" numbers | fixed: one `personOnly` reading feeds the greeting, the cell, each project and the rail (`App.tsx`, `EstateHome.tsx#waitingForYou`); `waitingForYou.test.tsx` (2 questions, 2 reviews, 1 proposal: 2 everywhere; the old code said 2, 3 and 5) |
+| V2-23 | UX-2 | «Решат агенты» says agents settle what is the person's to decide | fixed: the tab is «На проверке», empty «Нечего проверять.»; SCN-173, SCR-41 and CHANGELOG say so |
+| V2-24 | UX-3 | Re-picking an agent steals focus on a later refresh | fixed: focus moves only on the person's pick (`launch/HomeWork.tsx#AgentsAtWork`); `AgentPage.test.tsx` |
+| V2-25 | UX-4 | The way back restores the Board's view but not its tab | fixed: the tab is in the board route (`shared/appRoute.ts`); `BoardScreen.test.tsx` |
+| V2-26 | UX-6 | The screen reader hears stale seconds | fixed: the hidden line names the moment of the next try (`StackHealthNotice.tsx`); the existing test checks no seconds count is announced |
+| V2-27 | UX-7 | Plurals, a misleading colon, "1 commits", a dangling «его», the CHANGELOG's "questions" | fixed: plural forms in the feed and the people counts, «Не прочитаны ({count}):», «Бриф агент собирает…», CHANGELOG says decisions; tests in `CommsFeed.test.tsx`, `ProjectProfile.test.tsx` |
+| V2-28 | UX-8 | Graph lines behind nodes in one column; five names for one screen | ruled: CO-418, 0.3.13 |
+| V2-29 | UX-9 | FLW-96 describes the 0.3.7 target | fixed: FLW-96 says what ships (one list, the agent's page, joined agents below) above the old flow |
+| V2-30 | UX-10 | «blocking 1 task» in English inside the Russian interface | fixed: «Держит 1 задачу» (`attentionTitle.ts#detailOf`); a Russian render test; carrying `blocks` on the board entry instead of matching the English text is CO-418's |
+| V2-31 | DO-2 | The wall bullet omits the responder gap | fixed: the CHANGELOG names it and 0.3.13 |
+| V2-32 | DO-3 | CO-312 still says 4 096 marks | fixed: the row notes the one bound of 5 000 |
+| V2-33 | DO-6 | V1-22 says the handoff is in the gate's metadata | fixed: V1-22 says the release commit names it |
+| V2-34 | DO-7 | Three SCN-166 items not built have no row | ruled: CO-418 |
+| V2-35 | DO-8 | SCN-177 says an unanswered request reaches «Нужны вы» | fixed: it names Главная's block of requests no agent can answer (`launch/HomeBoardWaiting.tsx`) |
+| V2-36 | DO-9 | The W2-4 note says other fields pass when the business read fails; the code refused the call | fixed: the code now lets the other fields through and logs (V2-13), and the spec's iteration-2 note says so |
+| V2-37 | DO-10 | CO-397 names the wrong 0.3.13 batch | fixed: CO-418's schema step |
+| V2-38 | DO-11 | P-25 and the handoff omit S7 | fixed: the spec's slice table defines S7; P-25 and the handoff name it |
+| V2-39 | DO-12 | The Upgrading note does not say to quit after the first start | fixed: «quit it again» |
+| V2-40 | DO-13, DA-5 | A rollback past 4 096 read marks clears them silently | fixed: `release-mac.md` says so beside the other rollback notes |
+| V2-41 | DO-14 | The redaction probe has no committed command or output | fixed: `scripts/probe-redaction.mjs` with its command in its header; CO-386 cites its output on the operator's journal (21 814 events, 0 lines changed only by 0.3.12) |
+| V2-42 | DO-15 | No lifecycle row for the agent page's read | fixed: AGENTS.md names it (the session's newest 200 events) |
+
+Exit for iteration 2: every finding above is fixed or ruled with its row. Blocking findings open: none.
