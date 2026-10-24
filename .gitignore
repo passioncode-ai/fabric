@@ -46,3 +46,6 @@ __pycache__/
 # and unignored, it entered the design-map fingerprint the same way, so a stamp made
 # while a run held the lock failed in every clean checkout (PR #31, 2026-10-13).
 .graph.lock
+
+# a tail run of the gate (scripts/ci.sh from one step on) is never committed
+scripts/ci-tail.tmp.sh

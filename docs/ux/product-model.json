@@ -15416,7 +15416,7 @@
       "empty_action": {
         "label": "Создать проект",
         "view": "simple-create",
-        "description": "Вопросов нет. Агенты работают сами."
+        "description": "Ничего не ждёт вашего решения"
       }
     },
     {
