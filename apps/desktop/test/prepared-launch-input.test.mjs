@@ -37,9 +37,10 @@ test('before spawn currentness reads actual task/folder, not supplied identity e
  const f=preparedFixture(),r=await f.inputs.prepare(f.request);assert.equal(r.state,'observed');f.project.repo_path='/changed';assert.equal(await f.inputs.current(r.packet),false)
 })
 test('30 timeouts retain one unsettled I/O, late resolution causes no more reads, fresh preparation succeeds',async()=>{
- // 50 ms, not 5: the fresh preparation at the end must finish inside the same deadline, and a loaded CI runner missed
- // 5 ms (hosted run 40081520536, 2026-10-24); 31 hung reads still cost about 1.5 s.
- const f=preparedFixture({deps:{timeoutMs:50}});let resolve;f.readHook=()=>new Promise(r=>{resolve=r})
+ // 1000 ms, not 5: the fresh preparation at the end must finish inside the same deadline. A loaded CI runner missed 5 ms
+ // (hosted run 40081520536, 2026-10-24), and 50 ms failed 3 of 520 runs at load 60; 1000 ms failed none of 100. Only the
+ // first call waits for the deadline (the others find the read still unsettled), so the test takes about a second.
+ const f=preparedFixture({deps:{timeoutMs:1000}});let resolve;f.readHook=()=>new Promise(r=>{resolve=r})
  assert.equal((await f.inputs.prepare(f.request)).state,'unknown');for(let i=0;i<30;i++)assert.equal((await f.inputs.prepare(f.request)).state,'unknown');assert.equal(f.reads.length,1)
  resolve({data:f.task,error:null});await new Promise(r=>setImmediate(r));assert.equal(f.reads.length,1);delete f.readHook
  assert.equal((await f.inputs.prepare(f.request)).state,'observed')

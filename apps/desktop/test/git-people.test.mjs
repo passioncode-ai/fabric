@@ -45,18 +45,21 @@ test('DO-10: one log per repository, its checkout\'s worktree folded in, and a c
 test('ER-3: a failed reading is not cached; a complete one is, ten minutes, per set of folders', async () => {
   const repos = { '/ok': { commonDir: '/ok/.git', head: 'h' } }
   const { reader, calls } = fakeGit(repos, { h: [line('c1', 'Ada', 'ada@example.invalid', '2026-10-20T00:00:00Z')] })
-  const failed = await readGitPeople('p-cache', ['/ok', '/broken'], 1_000, reader)
+  // A frozen clock: the hold counts from the reading's end, and a real clock's milliseconds would move the 60 s
+  // boundary this case reads at (the hosted run 40082478531 failed here on a slower runner).
+  const frozen = () => 0
+  const failed = await readGitPeople('p-cache', ['/ok', '/broken'], 1_000, reader, frozen)
   assert.equal(failed.people.length, 1)
   assert.deepEqual(failed.unread, [{ path: '/broken', reason: 'fatal: not a git repository: /broken' }])
   // 0.3.12 review i2 ER-6: held 60 s, so a journal move within that does not read every repository again.
-  await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 30_000, reader)
+  await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 30_000, reader, frozen)
   assert.equal(calls.log.length, 1, 'a reading with a repository unread is held for 60 s')
-  await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 60_000, reader)
+  await readGitPeople('p-cache', ['/ok', '/broken'], 1_000 + 60_000, reader, frozen)
   assert.equal(calls.log.length, 2, 'and read again after 60 s')
-  await readGitPeople('p-cache', ['/ok'], 1_000, reader)
-  await readGitPeople('p-cache', ['/ok'], 1_000 + 60_000, reader)
+  await readGitPeople('p-cache', ['/ok'], 1_000, reader, frozen)
+  await readGitPeople('p-cache', ['/ok'], 1_000 + 60_000, reader, frozen)
   assert.equal(calls.log.length, 3, 'a complete reading is served from the cache within ten minutes')
-  await readGitPeople('p-cache', ['/ok'], 1_000 + 11 * 60_000, reader)
+  await readGitPeople('p-cache', ['/ok'], 1_000 + 11 * 60_000, reader, frozen)
   assert.equal(calls.log.length, 4, 'and read again after ten minutes')
 })
 
