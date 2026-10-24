@@ -312,17 +312,41 @@ describe('messages between agent sessions and Fabric readiness (CO-407)', () => 
     expect(screen.queryByLabelText(en['settings.agentLinks.label'])).toBeNull()
   })
   // 0.3.12 review UX-8: a write Claude Code's settings refused read as an unreadable file, and the switch went away.
+  // 0.3.12 review, iteration 2, ER-1: main does not throw for a refused write; it answers what the file holds with
+  // `notSaved` beside it. The case is that shape, the one production sends.
   it('a refused write is said as not saved, apart from an unreadable file, and the switch stays at what the file holds', async () => {
-    const setClaudeInbound = vi.fn(async () => { throw new Error('EACCES: permission denied, open settings.json') })
+    const setClaudeInbound = vi.fn(async () => ({ accepting: false, value: null, notSaved: { reason: 'write-failed' as const, code: 'EACCES' } }))
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: false, value: null })), setClaudeInbound } } }))
     show(<AgentLinksSetting />)
     fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
     expect(await screen.findByText(en['settings.agentLinks.notSaved'])).toBeTruthy()
-    expect(screen.getByText(/EACCES: permission denied/).textContent).toContain('crossSessionInbound')
+    const detail = screen.getByText(/EACCES/).textContent ?? ''
+    expect(detail).toContain(en['settings.agentLinks.writeFailed'].replace('{code}', 'EACCES'))
+    expect(detail).toContain('crossSessionInbound')
     expect(screen.queryByText(en['settings.agentLinks.unreadable'])).toBeNull()
     const box = await screen.findByLabelText(en['settings.agentLinks.label']) as HTMLInputElement
     expect(box.checked).toBe(false)
     expect(box.disabled).toBe(false)
+  })
+  it('a write Claude Code held its lock over is said as such, and the switch stays at what the file holds', async () => {
+    const setClaudeInbound = vi.fn(async () => ({ accepting: true, value: 'true', notSaved: { reason: 'locked' as const } }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound: vi.fn(async () => ({ accepting: true, value: 'true' })), setClaudeInbound } } }))
+    show(<AgentLinksSetting />)
+    fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
+    expect(await screen.findByText(en['settings.agentLinks.notSaved'])).toBeTruthy()
+    expect(screen.getByText(new RegExp(en['settings.agentLinks.locked'].slice(0, 30))).textContent).toContain('crossSessionInbound')
+    expect((screen.getByLabelText(en['settings.agentLinks.label']) as HTMLInputElement).checked).toBe(true)
+  })
+  it('a call that itself fails is said as not saved too, with the file read again', async () => {
+    const setClaudeInbound = vi.fn(async () => { throw new Error('Error invoking remote method') })
+    const claudeInbound = vi.fn(async () => ({ accepting: false, value: null }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { claudeInbound, setClaudeInbound } } }))
+    show(<AgentLinksSetting />)
+    fireEvent.click(await screen.findByLabelText(en['settings.agentLinks.label']))
+    expect(await screen.findByText(en['settings.agentLinks.notSaved'])).toBeTruthy()
+    expect(screen.getByText(/Error invoking remote method/)).toBeTruthy()
+    await waitFor(() => expect(claudeInbound).toHaveBeenCalledTimes(2))
+    expect((screen.getByLabelText(en['settings.agentLinks.label']) as HTMLInputElement).checked).toBe(false)
   })
   // 0.3.12 review UX-18: the machine's words ran into our sentence on one line.
   it('a failed readiness check says our sentence, then the machine\'s words on their own line', async () => {

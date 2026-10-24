@@ -178,8 +178,9 @@ export function AgentLinksSetting(): React.JSX.Element {
   const t = useT()
   const [state, setState] = useState<{ accepting: boolean } | { unreadable: true } | null>(null)
   const [busy, setBusy] = useState(false)
-  /** A write Claude Code's settings refused (the call itself failed), said apart from a file that does not read: the switch
-   *  stays, at what the file holds, so the person can try again (0.3.12 review UX-8). */
+  /** A write that did not happen, said apart from a file that does not read: the switch stays, at what the file holds, so
+   *  the person can try again (0.3.12 review UX-8). Main answers a refused write with `notSaved` beside what the file holds
+   *  and does not throw (iteration 2, ER-1); a call that itself fails is said the same way, with its error. */
   const [notSaved, setNotSaved] = useState<string | null>(null)
   useEffect(() => {
     let alive = true
@@ -189,8 +190,12 @@ export function AgentLinksSetting(): React.JSX.Element {
   const flip = async (on: boolean): Promise<void> => {
     setBusy(true)
     setNotSaved(null)
-    try { setState(await window.fabric.settings.setClaudeInbound(on)) }
-    catch (e) {
+    try {
+      const answer = await window.fabric.settings.setClaudeInbound(on)
+      setState(answer)
+      if ('notSaved' in answer && answer.notSaved)
+        setNotSaved(answer.notSaved.reason === 'locked' ? t('settings.agentLinks.locked') : t('settings.agentLinks.writeFailed', { code: answer.notSaved.code }))
+    } catch (e) {
       setNotSaved(e instanceof Error ? e.message : String(e))
       // What the file holds now, read again; a read that fails too is said as the file being unreadable.
       await Promise.resolve().then(() => window.fabric.settings.claudeInbound()).then((r) => setState(r), () => setState({ unreadable: true }))
@@ -201,7 +206,7 @@ export function AgentLinksSetting(): React.JSX.Element {
       <h3 id="settings-agent-links-title">{t('settings.agentLinks.title')}</h3>
       {state === null && <p className="lp-meta">{t('settings.agentLinks.reading')}</p>}
       {state && 'unreadable' in state && <p className="lp-meta" role="status">{t('settings.agentLinks.unreadable')}</p>}
-      {notSaved !== null && <FailureNote said={t('settings.agentLinks.notSaved')} detail={`${t('settings.agentLinks.notSavedDetail')} ${notSaved}`} />}
+      {notSaved !== null && <FailureNote said={t('settings.agentLinks.notSaved')} detail={`${notSaved} ${t('settings.agentLinks.notSavedDetail')}`} />}
       {state && 'accepting' in state && (
         <label className="lp-check">
           <input type="checkbox" checked={state.accepting} disabled={busy} onChange={(e) => void flip(e.target.checked)} aria-describedby="settings-agent-links-hint" />

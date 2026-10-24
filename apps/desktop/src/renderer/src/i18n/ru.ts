@@ -248,6 +248,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.agentLinks.unreadable': "Файл настроек Claude Code не читается, поэтому Fabric его не трогает.",
   'settings.agentLinks.notSaved': "Не сохранилось: настройки Claude Code не приняли изменение. Переключатель показывает то, что записано в файле.",
   'settings.agentLinks.notSavedDetail': "Это настройка crossSessionInbound в settings.json Claude Code.",
+  'settings.agentLinks.locked': "Claude Code держал файл настроек. Попробуйте ещё раз через минуту.",
+  'settings.agentLinks.writeFailed': "Файл не удалось записать ({code}).",
   'settings.readiness.title': "Готовность Fabric",
   'settings.readiness.lede': "Запускает проверку лаунчера PassionCode только на чтение; она скачивает лаунчер, поэтому нужна сеть и может занять минуту.",
   'settings.readiness.check': "Проверить",

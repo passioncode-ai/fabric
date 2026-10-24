@@ -913,6 +913,8 @@ export const en = {
   'settings.agentLinks.unreadable': "Claude Code's settings file could not be read, so Fabric leaves it as it is.",
   'settings.agentLinks.notSaved': "Not saved: Claude Code's settings refused the change. The switch shows what the file holds.",
   'settings.agentLinks.notSavedDetail': "The setting is crossSessionInbound in Claude Code's settings.json.",
+  'settings.agentLinks.locked': "Claude Code was holding its settings file. Try again in a moment.",
+  'settings.agentLinks.writeFailed': "The file could not be written ({code}).",
   'settings.readiness.title': "Fabric readiness",
   'settings.readiness.lede': "Runs the PassionCode launcher's check, read-only; it downloads the launcher, so it needs the network and can take a minute.",
   'settings.readiness.check': "Check",
