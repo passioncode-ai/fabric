@@ -55,6 +55,11 @@ test('DA-2: an agent cannot clear or change the business the person set; the per
   assert.equal(agentProfilePayload({ business: '' }, { business: null }).ok, false)
   // A business that could not be read is not written over.
   assert.equal(agentProfilePayload({ business: 'X' }, null).ok, false)
+  // i3 ER-4: with the business unread, the other fields go through and the business is named as refused.
+  const unread = agentProfilePayload({ business: 'X', goal: 'g' }, null)
+  assert.equal(unread.ok, true)
+  assert.deepEqual(unread.payload, { goal: 'g' })
+  assert.match(unread.refused?.business ?? '', /could not be read/)
   // A call without a business is not judged by it, and a call naming nothing writes nothing.
   assert.deepEqual(agentProfilePayload({ goal: 'g' }, person), { ok: true, payload: { goal: 'g' } })
   assert.equal(agentProfilePayload({}, person).ok, false)
@@ -209,14 +214,30 @@ test('DA-9: the person\'s business for a project this estate does not hold is re
     assert.equal(fresh.business, 'PassionCode')
   })
 
-  test('DA-2: an owner read that fails refuses the business and lets the other fields through, and is recorded', async () => {
+  test('i3 ER-4 / DA-1: a read that fails refuses only the business: the other fields of the same call are written, and the answer says so', async () => {
+    // The owner read fails: the goal of the same call is journaled, the business is not, and the answer names why.
     const w = world()
     const failed = []
     const agent = { ...w.agent, readPersonSet: async () => ({ set: false, error: 'stack lost' }), failed: (what, e) => failed.push([what, e]) }
-    assert.equal((await writeAgentProfile(agent, P, { business: 'X' })).written, false)
+    const owner = await writeAgentProfile(agent, P, { business: 'X', goal: 'g' })
+    assert.equal(owner.written, true, JSON.stringify(owner))
+    assert.deepEqual(owner.fields, ['goal'])
+    assert.match(owner.refused?.business ?? '', /whether the person set this project's business could not be read/)
+    assert.deepEqual(w.journal.map((e) => e.payload), [{ goal: 'g' }])
     assert.deepEqual(failed, [['project-business-owner-read', 'stack lost']])
-    assert.equal((await writeAgentProfile(agent, P, { goal: 'g' })).written, true)
     assert.equal(w.business, null)
+    // A call naming only the business is still refused, with the read that failed named.
+    const only = await writeAgentProfile(agent, P, { business: 'X' })
+    assert.equal(only.written, false)
+    assert.match(only.reason, /whether the person set this project's business could not be read/)
+    // The project read fails: the same, with that read named.
+    const v = world()
+    const lost = { ...v.agent, readProject: async () => ({ row: null, error: 'stack lost' }), failed: () => {} }
+    const project = await writeAgentProfile(lost, P, { business: 'X', summary: 's' })
+    assert.equal(project.written, true)
+    assert.deepEqual(project.fields, ['summary'])
+    assert.match(project.refused?.business ?? '', /the project's business could not be read/)
+    assert.deepEqual(v.journal.map((e) => e.payload), [{ summary: 's' }])
   })
 }
 // #endregion project-onboarding

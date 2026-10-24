@@ -167,10 +167,14 @@ async function personBusinessUnlocked<Row>(deps: {
  * spelling stays. The person's write from the project page is not judged here: it always applies.
  */
 export type AgentProfileVerdict =
-  | { ok: true; payload: Record<string, unknown> }
+  | { ok: true; payload: Record<string, unknown>; refused?: { business: string } }
   | { ok: false; reason: string }
 
-export function agentProfilePayload(args: Record<string, unknown>, current: { business: string | null; personSet?: boolean } | null): AgentProfileVerdict {
+/** Why a business went unwritten because a read failed: `project` the business itself, `owner` whether a person set it. */
+export type BusinessUnread = 'project' | 'owner'
+
+export function agentProfilePayload(args: Record<string, unknown>, current: { business: string | null; personSet?: boolean } | null,
+  unread: BusinessUnread = 'project'): AgentProfileVerdict {
   const payload: Record<string, unknown> = {}
   for (const key of ['goal', 'summary', 'business', 'plan', 'relations'] as const)
     if (args[key] !== undefined) payload[key] = args[key]
@@ -179,8 +183,14 @@ export function agentProfilePayload(args: Record<string, unknown>, current: { bu
   const asked = String(payload.business).trim()
   if (asked === '')
     return { ok: false, reason: 'an agent cannot clear a project\'s business: the person sets the business on the project page. Call again without business.' }
-  if (current === null)
-    return { ok: false, reason: 'the project\'s business could not be read, so it was not changed. Call again without business, or later.' }
+  // 0.3.12 review i3 ER-4 / DA-1: a read that fails refuses the business only; the call's other fields go through.
+  if (current === null) {
+    const reason = (unread === 'owner'
+      ? 'whether the person set this project\'s business could not be read, so the business was not changed.'
+      : 'the project\'s business could not be read, so it was not changed.') + ' Call again with business later.'
+    const { business: _unread, ...rest } = payload
+    return Object.keys(rest).length ? { ok: true, payload: rest, refused: { business: reason } } : { ok: false, reason }
+  }
   const set = current.business?.trim() ?? ''
   // 0.3.12 review i2 DA-2: once the person wrote the business (a value, or cleared it), an agent never sets one: a
   // project the person left without a business stays without one.
@@ -200,10 +210,16 @@ export interface AgentProfileDeps {
   /** Whether a person ever wrote this project's business (a `project.profiled@1` naming `business`, by a person). */
   readPersonSet(): Promise<{ set: boolean; error: string | null }>
   append(payload: Record<string, unknown>): Promise<{ seq: number | string }>
-  /** Records a read that failed; the call then refuses a business it names and lets the other fields through. */
+  /** Records a read that failed; the call then refuses a business it names and writes its other fields, its answer
+   *  naming the refused business (0.3.12 review i3 ER-4). */
   failed(what: 'project-business-read' | 'project-business-owner-read', error: string): void
   lock?: <T>(projectId: string, work: () => Promise<T>) => Promise<T>
 }
+
+/** `fabric_project_profile`'s answer: what was written, and a business refused because its read failed (i3 ER-4). */
+export type AgentProfileAnswer =
+  | { written: true; fields: string[]; seq: number | string; refused?: { business: string } }
+  | { written: false; reason: string }
 
 /**
  * The agent's half of W2-4 (DA-2 / ER-2): reads the project's business and whether a person ever wrote it, decides with
@@ -212,22 +228,25 @@ export interface AgentProfileDeps {
  * longer holds is refused in plain words, before anything is journaled.
  */
 export async function writeAgentProfile(deps: AgentProfileDeps, projectId: string, args: Record<string, unknown>):
-  Promise<{ written: true; fields: string[]; seq: number | string } | { written: false; reason: string }> {
-  const work = async (): Promise<{ written: true; fields: string[]; seq: number | string } | { written: false; reason: string }> => {
+  Promise<AgentProfileAnswer> {
+  const work = async (): Promise<AgentProfileAnswer> => {
     let current: { business: string | null; personSet?: boolean } | null
+    let unread: BusinessUnread = 'project'
     const project = await deps.readProject()
     if (project.error) { deps.failed('project-business-read', project.error); current = null }
     else if (!project.row) return { written: false, reason: 'this project is not in this estate any more (it may have been removed); nothing was recorded' }
     else current = { business: project.row.business ?? null }
     if (current && args.business !== undefined) {
       const owner = await deps.readPersonSet()
-      if (owner.error) { deps.failed('project-business-owner-read', owner.error); current = null }
+      if (owner.error) { deps.failed('project-business-owner-read', owner.error); current = null; unread = 'owner' }
       else current = { ...current, personSet: owner.set }
     }
-    const verdict = agentProfilePayload(args, current)
+    const verdict = agentProfilePayload(args, current, unread)
     if (!verdict.ok) return { written: false, reason: verdict.reason }
     const event = await deps.append(verdict.payload)
-    return { written: true, fields: Object.keys(verdict.payload), seq: event.seq }
+    return verdict.refused
+      ? { written: true, fields: Object.keys(verdict.payload), seq: event.seq, refused: verdict.refused }
+      : { written: true, fields: Object.keys(verdict.payload), seq: event.seq }
   }
   return args.business === undefined ? work() : (deps.lock ?? projectProfileLock)(projectId, work)
 }
