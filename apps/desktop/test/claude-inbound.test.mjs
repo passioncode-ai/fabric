@@ -52,6 +52,19 @@ test('a symlinked settings file stays a link: its target is written', async () =
   assert.deepEqual(readdirSync(path.dirname(real)), ['claude-settings.json'], 'no temporary file left')
 })
 
+// 0.3.12 review i3 ER-8: a link whose target does not exist (a dotfiles checkout not there yet) is never written over.
+test('a dangling symlinked settings file stays a link: nothing is written, and the answer says why', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'inbound-'))
+  const real = path.join(dir, 'dotfiles', 'claude-settings.json')
+  const file = path.join(dir, 'settings.json')
+  symlinkSync(real, file)
+  const answer = await setInbound(true, file)
+  assert.deepEqual(answer, { accepting: false, value: null, file, notSaved: { reason: 'write-failed', code: 'ENOENT-link' } })
+  assert.equal(lstatSync(file).isSymbolicLink(), true, 'the link is kept')
+  assert.equal(existsSync(real), false, 'its target is not created')
+  assert.deepEqual(readdirSync(dir).sort(), ['settings.json'], 'no temporary file and no lock left')
+})
+
 test('Claude holding its lock: nothing is written, and the answer says so beside what the file holds', async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'inbound-'))
   const file = path.join(dir, 'settings.json')

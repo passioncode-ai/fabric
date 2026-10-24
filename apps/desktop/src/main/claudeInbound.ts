@@ -8,16 +8,18 @@
  * kept. The write follows `claudeTrust.ts` (0.3.12 review ER-7): under Claude's own lock (`<realpath>.lock`, 0.3.12 review i2 ER-10), read again
  * under it, through a temporary file beside the real file and a rename with the file's mode, so a reader never sees
  * half a file, a symlinked settings file stays a link (its target is written), and a temporary file is removed when the
- * write fails. A file that does not read as a JSON object is never written over: `unreadable` is the answer. A write
+ * write fails. A link whose target does not exist is never written over: `notSaved` with code `ENOENT-link` (0.3.12
+ * review i3 ER-8). A file that does not read as a JSON object is never written over: `unreadable` is the answer. A write
  * that could not be made is its own answer, `notSaved`, beside what the file still holds, so the switch stays.
  */
-import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import path from 'node:path'
 import { lockClaudeFile } from './claudeTrust.ts'
 
-/** Why a change was not saved: Claude held its lock past the wait, or the write itself failed (`code`, e.g. EACCES). */
+/** Why a change was not saved: Claude held its lock past the wait, or the write itself failed (`code`, e.g. EACCES, or
+ *  `ENOENT-link` for a symlinked settings file whose target does not exist). */
 export type InboundNotSaved = { reason: 'locked' } | { reason: 'write-failed'; code: string }
 
 export type InboundState =
@@ -63,6 +65,7 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
   const first = readSettings(file)
   if (first === 'unreadable') return { unreadable: true, file }
   if (plan(first) === null) return readInbound(file)
+  if (danglingLink(file)) return withNotSaved(file, DANGLING)
   try {
     mkdirSync(path.dirname(file), { recursive: true })
   } catch (e) {
@@ -78,7 +81,12 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
     if (current === 'unreadable') return { unreadable: true, file }
     const next = plan(current)
     if (next === null) return readInbound(file)
-    const target = (() => { try { return realpathSync.native(file) } catch { /* no file yet, or not a link: the path is its own target */ return file } })()
+    let target = file
+    try { target = realpathSync.native(file) } catch {
+      // Not silent: a link whose target went missing since the first look is the DANGLING answer; otherwise there is no
+      // file yet and the path is its own target.
+      if (danglingLink(file)) return withNotSaved(file, DANGLING)
+    }
     const mode = existsSync(target) ? statSync(target).mode & 0o777 : 0o600
     const tmp = `${target}.fabric-inbound-${randomUUID()}.tmp`
     try {
@@ -96,6 +104,19 @@ export async function setInbound(on: boolean, file: string = claudeSettingsFile(
   } finally {
     lock.release()
   }
+}
+
+const DANGLING: InboundNotSaved = { reason: 'write-failed', code: 'ENOENT-link' }
+
+/** A symlink whose target does not exist: writing the path would replace the link with a file (i3 ER-8). */
+function danglingLink(file: string): boolean {
+  try {
+    if (!lstatSync(file).isSymbolicLink()) return false
+  } catch {
+    // Silence is right: no entry at all is not a link; the write creates the file.
+    return false
+  }
+  return !existsSync(file)
 }
 
 const errCode = (e: unknown): string => (typeof (e as NodeJS.ErrnoException)?.code === 'string' ? (e as NodeJS.ErrnoException).code! : 'unknown')
