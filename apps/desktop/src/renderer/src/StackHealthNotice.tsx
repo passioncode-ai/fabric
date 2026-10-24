@@ -62,13 +62,13 @@ export function StackHealthNotice(): React.JSX.Element | null {
         {view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
         <p>{t(cause)}</p>
         {/* The countdown ticks every second; inside the alert it would be announced again with every tick (0.3.12 review
-            UX-5). The ticking line is shown and kept out of the live region; a screen reader hears the next try once, as
-            the reading that brought it said it, beside it. */}
+            UX-5). The ticking line is shown and kept out of the live region; a screen reader hears, once, the moment of the
+            next try, which stays true however late the notice is read (iteration 2, UX-6). */}
         {view.trying && view.attempt !== null ? <p>{t('startup.wait.trying', { attempt: view.attempt })}</p>
           : nextTryInS !== null && (
             <>
               <p aria-hidden="true" data-testid="stack-next-try">{t('stack.health.nextTry', { seconds: nextTryInS })}</p>
-              {view.nextTryInS !== null && <span className="visually-hidden">{t('stack.health.nextTry', { seconds: view.nextTryInS })}</span>}
+              {nextAt !== null && <span className="visually-hidden">{t('stack.health.nextTryAt', { time: new Date(nextAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })}</span>}
             </>
           )}
       </Banner>

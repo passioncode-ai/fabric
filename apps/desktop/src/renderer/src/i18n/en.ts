@@ -1028,6 +1028,7 @@ export const en = {
   'stack.health.stopped': "The local database was stopped: its containers are gone, as after supabase stop. Fabric does not start it again by itself. Start it, or quit and reopen Fabric; agents are asked to wait.",
   'stack.health.waitingContainers': "The local database stopped answering, though its containers are running. Fabric waits for it to answer, and agents are asked to wait.",
   'stack.health.nextTry': "Next try in {seconds} s.",
+  'stack.health.nextTryAt': "Next try at {time}.",
   'stack.health.diskCause': "This disk has {free} GB free. A full disk stops Docker, and the database with it: free some space first.",
   'stack.health.diskTitle': "The disk is almost full",
   'stack.health.diskLow': "This disk has {free} GB free. Docker stops when the disk runs out, and Fabric's database with it: free some space soon.",

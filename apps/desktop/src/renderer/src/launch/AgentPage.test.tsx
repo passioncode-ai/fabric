@@ -49,6 +49,33 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(into).toHaveBeenCalled()
   })
 
+  // 0.3.12 review, iteration 2, UX-3: pressing the agent already chosen left the "picked" flag up, and the next reading of
+  // the place moved focus to the page's heading from wherever the person had gone, a text field included.
+  it('focus moves only on the person\'s pick, never on a later reading', async () => {
+    const home = vi.fn(async () => view)
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home }, terminal: { history: vi.fn(async () => []) } } }))
+    Element.prototype.scrollIntoView = vi.fn()
+    const ui = (mark: number) => (
+      <I18nProvider locale="en">
+        <input aria-label="elsewhere" />
+        <AgentsAtWork mark={mark} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />
+      </I18nProvider>
+    )
+    const { rerender } = render(ui(0))
+    await screen.findByText(en['agentPage.pick'])
+    const row = screen.getAllByRole('button', { pressed: false })[0]
+    fireEvent.click(row)
+    await waitFor(() => expect(document.activeElement?.id).toBe('agent-page-title'))
+    fireEvent.click(screen.getAllByRole('button', { pressed: true })[0])
+    const field = screen.getByLabelText('elsewhere') as HTMLInputElement
+    field.focus()
+    expect(document.activeElement).toBe(field)
+    rerender(ui(1))
+    await waitFor(() => expect(home).toHaveBeenCalledTimes(2))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(document.activeElement, 'a reading of the place does not move focus').toBe(field)
+  })
+
   it('a row selects its agent and opens its page instead of leaving the place; nothing is chosen at first', async () => {
     const history = vi.fn(async (_id: string) => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' })])
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view) }, terminal: { history } } }))

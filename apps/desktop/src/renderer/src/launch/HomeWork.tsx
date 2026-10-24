@@ -279,16 +279,24 @@ export function AgentsAtWork({ mark, onOpen, page }: {
   const [selected, setSelected] = useState<string | null>(null)
   // A press on a row brings the agent's page into view and focus (0.3.12 review UX-7): below 850 px the page sits under
   // the whole list, and nothing said it had opened. As the Board does for a picked row (CO-400).
-  const picked = useRef(false)
-  const select = (sessionId: string): void => { picked.current = true; setSelected(sessionId) }
-  useEffect(() => {
-    if (!picked.current) return
+  // The agent the person just picked, cleared by the first render that shows the pick: a reading of the place never moves
+  // focus, and pressing the agent already chosen focuses its page at once (0.3.12 review, iteration 2, UX-3).
+  const picked = useRef<string | null>(null)
+  const focusPage = (): void => {
     const h = document.getElementById('agent-page-title')
-    if (!h) return
-    picked.current = false
-    h.focus({ preventScroll: true })
-    h.scrollIntoView?.({ block: 'nearest' })
-  })
+    h?.focus({ preventScroll: true })
+    h?.scrollIntoView?.({ block: 'nearest' })
+  }
+  const select = (sessionId: string): void => {
+    if (sessionId === selected) { focusPage(); return }
+    picked.current = sessionId
+    setSelected(sessionId)
+  }
+  useEffect(() => {
+    if (picked.current === null || picked.current !== selected) return
+    picked.current = null
+    focusPage()
+  }, [selected])
   const openConsole = (sessionId: string): void => {
     setProblem(null)
     showConsole(sessionId).catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))

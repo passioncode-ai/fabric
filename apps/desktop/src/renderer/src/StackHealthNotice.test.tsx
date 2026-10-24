@@ -128,7 +128,10 @@ describe('the countdown runs on its own (CO-374)', () => {
       const walk = (n: Node): string => n.nodeType === 3 ? (n.textContent ?? '')
         : (n as Element).getAttribute('aria-hidden') === 'true' ? '' : [...n.childNodes].map(walk).join('')
       const before = walk(alert)
-      expect(before).toContain('Next try in 20 s.')
+      // 0.3.12 review, iteration 2, UX-6: the hidden line carried the seconds of the reading, stale a moment later; it names
+      // the moment of the next try instead, which stays true however late the notice is read.
+      expect(before).toMatch(/Next try at \d{1,2}:\d{2}/)
+      expect(before, 'what a screen reader reads holds no count of seconds that goes stale').not.toMatch(/in \d+ s/)
       await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
       expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 17 s.')
       expect(walk(alert), 'the alert said something new on a tick').toBe(before)
