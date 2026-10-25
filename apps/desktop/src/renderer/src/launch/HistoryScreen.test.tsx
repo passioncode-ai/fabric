@@ -111,7 +111,7 @@ describe('История while the journal is unread (0.3.11 review ER-8, ER-9)'
 describe('«Что делали агенты» reads as History (CO-395)', () => {
   it('groups by day, newest first, names who did it, and shows no journal number', async () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
-    const today = new Date(), yesterday = new Date(Date.now() - 86_400_000)
+    const today = new Date(), yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 12) // noon of the previous calendar day: a day around a clock change is not 24 hours
     const ev = (seq: number, at: Date, actor: { kind: string; id: string }) => ({ estate_id: 'e', seq, type: 'task.moved@1', actor, project_id: 'p1', occurred_at: at.toISOString(), payload: { to: 'review' } })
     const feed = [ev(41, yesterday, { kind: 'agent', id: 'gone' }), ev(42, today, { kind: 'agent', id: 's1' }), ev(43, today, { kind: 'person', id: 'op' })]
     const sessions = [{ sessionId: 's1', program: 'claude-code' } as never]
