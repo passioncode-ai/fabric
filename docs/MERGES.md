@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-25T12:30:00Z · `—` · agent/audit-20261025 → main · fast-forward
+- run: r-182fa592b059
+- files: docs/reports/2026-10-25-audit-and-plan/ (README, four parts, raw: deleted branches, the stopped 0.3.12 rollout logs, the 2026-10-24 UX iteration reports), the carry-over ledger and the backlog (CO-419 carried from the abandoned ux-0313 worktree), the map's changelog
+- conflicts: none
+- summary: the 2026-10-25 audit: 166 of 169 branch refs and four worktrees whose work is in main were removed; what was unfinished is carried or named; one plan by class (urgent, 0.3.13, the first organization, 0.4.0) and the operator's open questions. No code changed.
+
 ### 2026-10-24T10:13:00Z · `—` · agent/release-0312 → main · fast-forward of a merge
 - run: r-8642aee374a2
 - conflicts: none

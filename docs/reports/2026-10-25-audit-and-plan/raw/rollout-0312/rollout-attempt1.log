@@ -1,0 +1,17 @@
+2026-10-24T10:44:16Z waiting for the person to quit Fabric (pid 39806)
+2026-10-24T11:36:38Z quit observed
+2026-10-24T11:36:41Z step 3: migration 123 copied (57b7d2e4be0239af)
+2026-10-24T11:36:42Z step 4: backup 3402102 bytes sha256 8bc5868fb5795320 schema 95 journal 22157
+rehearse-upgrade: starting a disposable stack with no migrations (Supabase's roles, extensions and auth only)
+test-stack: starting fabric_test_67f7fa73 on API 55421, DB 55422 (live stack: API 54321, DB 54322, untouched); log /private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-test-stack.FiwXxc/stack.log
+test-stack: ready in 354 s: fabric_test_67f7fa73, API 55421, DB 55422, migrations 0 + seed
+rehearse-upgrade: restoring the dump's public schema and migration ledger
+rehearse-upgrade: restored: schema 95, journal 22157, 78 tables; applying the candidate (v0.3.12, 96 files, admits 96)
+rehearse-upgrade: PASS: schema 95 → 96 (admits 96), journal 22157 → 22157; receipt /Users/sshlg/Library/Application Support/Fabric/backups/pre-0.3.12.dump.rehearsal.json
+rehearse-upgrade: note table event_types gained rows: 117 → 118 (a migration backfilled it)
+rehearse-upgrade: note table project_relations is new (0 rows)
+test-stack: removed fabric_test_67f7fa73 and /private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-test-stack.FiwXxc
+2026-10-24T11:42:55Z step 5: rehearsal passed (/Users/sshlg/Library/Application Support/Fabric/backups/pre-0.3.12.dump.rehearsal.json)
+Connecting to local database...
+{"applied":[],"message":"Migrations applied"}
+2026-10-24T11:42:57Z STOP: schema is 95 after migration up
