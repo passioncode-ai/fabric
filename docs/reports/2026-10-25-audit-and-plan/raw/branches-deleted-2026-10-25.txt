@@ -33,3 +33,4 @@ SUPERSEDED codex/release-review-receipts-20261004 local=none origin=e13fb147b791
 SUPERSEDED fix/aptabase-build-mode local=none origin=none
 SUPERSEDED keep/release-031-1f5b83f0 local=1f5b83f0d6f83eadbd9cc456784c459085c0cf2a origin=none
 SUPERSEDED agent/0312-w3d local=none origin=00fc543e7a6cdf727e8e365e096f246b415caa64
+DECIDE agent/w2-handoff local=none origin=29c8de91 (operator В-7, 2026-10-25)
