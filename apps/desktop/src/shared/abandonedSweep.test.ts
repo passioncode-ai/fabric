@@ -1,7 +1,7 @@
 // 0.3.13 wave 2, CO-427: the sweep of abandoned work. Spec:
 // docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md (SW-1, SW-2, SW-3, SW-5, SW-8).
 import { describe, expect, it } from 'vitest'
-import { findAbandoned, lapsedTwice, sweepDue, toTell, STILL_MS, TELL_QUIET_MS, type SweepInput } from './abandonedSweep'
+import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, STILL_MS, TELL_QUIET_MS, type SweepInput } from './abandonedSweep'
 
 const NOW = Date.parse('2026-10-26T12:00:00Z')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -80,5 +80,17 @@ describe('lapsedTwice (SW-8)', () => {
     expect(once.release).toEqual([])
     const again = lapsedTwice(once.seen, sweep)
     expect(again.release.map((x) => x.claimId)).toEqual(['c2'])
+  })
+})
+
+describe('nudgeText (SW-3, SW-4)', () => {
+  it('names the item, how long it stood still in whole minutes, and the next step', () => {
+    const [f] = findAbandoned({ ...empty, tasks: [{ taskId: 't3', projectId: 'p1', state: 'running', movedAt: ago(7 * MIN + 20_000), claimed: false }] })
+    const line = nudgeText(f)
+    expect(line).toMatch(/^Fabric: task t3 /)
+    expect(line).toMatch(/still for 7 min/)
+    expect(line).toContain(f.nextStep)
+    const [r] = findAbandoned({ ...empty, requests: [{ requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'queued', movedAt: ago(4 * MIN), answerUnreadSince: null }] })
+    expect(nudgeText(r)).toMatch(/^Fabric: board request r1 .*still for 4 min/)
   })
 })

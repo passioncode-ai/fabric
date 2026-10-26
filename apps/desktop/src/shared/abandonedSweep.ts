@@ -127,6 +127,20 @@ export function toTell(findings: Finding[], told: ReadonlyMap<string, number>, n
   return { tell, told: next }
 }
 
+const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
+  'claim-silent': (f) => `task ${f.taskId ?? f.claimId} you claimed`,
+  'claim-lapsed': (f) => `task ${f.taskId ?? f.claimId} claimed by an ended session`,
+  'task-unclaimed': (f) => `task ${f.taskId}`,
+  'request-unmoved': (f) => `board request ${f.requestId}`,
+  'answer-unread': (f) => `the answer to board request ${f.requestId}`,
+  'terminal-stalled': (f) => `task ${f.taskId} in this session`
+}
+
+/** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */
+export function nudgeText(f: Finding): string {
+  return `Fabric: ${SUBJECT[f.kind](f)} has been still for ${Math.floor(f.stillMs / 60_000)} min. ${f.nextStep}`
+}
+
 /** Lapsed claims seen in two sweeps in a row are released (SW-8); `seen` carries this sweep's lapsed keys forward. */
 export function lapsedTwice(seen: ReadonlySet<string>, findings: Finding[]): { release: Finding[]; seen: Set<string> } {
   const lapsed = findings.filter((f) => f.kind === 'claim-lapsed')
