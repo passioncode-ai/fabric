@@ -1,7 +1,7 @@
 // 0.3.13 wave 2, CO-427: the sweep of abandoned work. Spec:
 // docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md (SW-1, SW-2, SW-3, SW-5, SW-8).
 import { describe, expect, it } from 'vitest'
-import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, ABANDONED_KINDS, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, TURN_WINDOW_MS, type SweepInput } from './abandonedSweep'
+import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, ABANDONED_KINDS, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, TURN_WINDOW_MS, BRIEF_AFTER_MS, type SweepInput } from './abandonedSweep'
 
 const NOW = Date.parse('2026-10-26T12:00:00Z')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -177,5 +177,26 @@ describe('work-unclaimed: a session changing files with no claim', () => {
     const found = findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 1), turn('s1', MIN, 2), turn('s2', MIN, 1, 'p2')] })
     expect(found.map((f) => f.key).sort()).toEqual(['work-unclaimed:s1', 'work-unclaimed:s2'])
     expect(ABANDONED_KINDS).toContain('work-unclaimed')
+  })
+})
+
+// 0.3.14 wave 2: 145 of 149 tasks in the live audit had no brief; a claimed task is reminded of its missing sections.
+describe('brief-missing: a claimed task whose brief is not written', () => {
+  const claim = (over = {}) => ({ claimId: 'c1', taskId: 't1', projectId: 'p1', sessionId: 's1', expiresAt: ago(-20 * MIN), claimedAt: ago(BRIEF_AFTER_MS), renewedAt: null, session: { lastSignAt: NOW }, ...over })
+
+  it('is found ten minutes after the claim, naming the missing sections and fabric_task_brief', () => {
+    const found = findAbandoned({ ...empty, claims: [claim()], briefGaps: { t1: ['why', 'expected'] } })
+    expect(found).toHaveLength(1)
+    expect(found[0]).toMatchObject({ kind: 'brief-missing', key: 'brief-missing:c1', sessionId: 's1', taskId: 't1', claimId: 'c1' })
+    expect(nudgeText(found[0])).toBe('Fabric: task t1 you claimed has been in work for 10 min with its brief incomplete. Its brief is missing why, expected: write each with fabric_task_brief (what: what should happen; why: why it matters; expected: what is true when it is done), so the operator and the next agent can read the task.')
+    expect(nudgeText(found[0])).not.toContain('\u2014')
+  })
+
+  it('is not found for a younger claim, a whole brief, a brief not read, or a claim that lapsed or expired', () => {
+    expect(findAbandoned({ ...empty, claims: [claim({ claimedAt: ago(BRIEF_AFTER_MS - 1000) })], briefGaps: { t1: ['why'] } })).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [claim()], briefGaps: { t1: [] } })).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [claim()] })).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [claim({ session: null })], briefGaps: { t1: ['why'] } }).map((f) => f.kind)).toEqual(['claim-lapsed'])
+    expect(findAbandoned({ ...empty, claims: [claim({ expiresAt: ago(MIN), session: { lastSignAt: NOW } })], briefGaps: { t1: ['why'] } })).toEqual([])
   })
 })

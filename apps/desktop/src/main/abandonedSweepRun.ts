@@ -38,6 +38,7 @@ import {
   type SweepCap,
   type SweepRead
 } from '../shared/abandonedSweep.ts'
+import { specGaps, specMissing, type BriefParts, type SpecPart } from '../shared/taskSpec.ts'
 import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsReply } from '../shared/commsRead.ts'
 import { ops as opsSink } from './opsSink.ts'
 import { readWork, type SessionSign } from './workRead.ts'
@@ -73,6 +74,8 @@ export interface AbandonedSweepDeps {
   readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; heldSessionIds?: string[]; capped?: boolean }>
   /** The turns the session hooks observed in the last fifteen minutes (`readRecentTurns`); absent: none is judged. */
   readTurns?(now: number): Promise<SweepTurn[]>
+  /** The missing brief parts of these claimed tasks (`readBriefGaps`); absent: no brief is judged. */
+  readBriefGaps?(taskIds: string[]): Promise<Record<string, SpecPart[]>>
   /** The tasks in running, with when each last moved. */
   readRunningTasks(): Promise<SweepRunningTask[]>
   readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
@@ -101,7 +104,8 @@ const KINDS_OF: Record<Source, AbandonedKind[]> = {
   tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
-  turns: ['work-unclaimed']
+  turns: ['work-unclaimed'],
+  briefs: ['brief-missing']
 }
 
 /** The payload of `work.swept@1` (SW-7): what one sweep found by kind and what it did about it. */
@@ -203,6 +207,9 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
           ...terminals.map((t) => t.taskId).filter((id): id is string => id !== null)
         ])
       : null
+    // 0.3.14 wave 2: the briefs of the claimed tasks, read after the claims (it needs their tasks), in its own try.
+    const claimedTaskIds = [...new Set((claimRead?.claims ?? []).filter((c) => c.session !== null).map((c) => c.taskId).filter((id): id is string => id !== null))]
+    const briefGaps = deps.readBriefGaps && claimedTaskIds.length ? await attempt('briefs', () => deps.readBriefGaps!(claimedTaskIds), failedReads) : null
     // 0.3.14 wave 2: a done release whose move to review did not land is repaired below, not called unclaimed.
     const doneRepairs = holders && taskRead && deps.moveDoneToReview ? new Set(doneLeftRunning(taskRead, holders)) : new Set<string>()
     const findings = findAbandoned({
@@ -216,7 +223,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {}),
       // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
       // was read whole (the same condition as a running task's holders above).
-      ...(holders && turns ? { turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {})
+      ...(holders && turns ? { turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {}),
+      ...(briefGaps ? { briefGaps } : {})
     })
 
     // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling.
@@ -392,6 +400,18 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
     ...(snap.capped?.length ? { capped: true } : {})
   }
 }
+
+// #region sweep-brief-gaps — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
+/** The missing parts of each claimed task's brief (0.3.14 wave 2, brief-missing), by `taskSpec.ts#specGaps`; a closed
+ *  task has none to write. Bounded by the claims read. A read that fails throws: unread is never "written". */
+export async function readBriefGaps(store: Pick<Store, 'selectIn'>, taskIds: string[]): Promise<Record<string, SpecPart[]>> {
+  const r = await store.selectIn('project_tasks', 'id,status,brief_what,brief_why,brief_expected', 'id', taskIds)
+  if (r.failed) throw new Error(`the claimed tasks' briefs could not be read: ${r.failed}`)
+  const out: Record<string, SpecPart[]> = {}
+  for (const t of r.rows as unknown as Array<BriefParts & { id: string; status: string | null }>) out[t.id] = specMissing(t) ? specGaps(t) : []
+  return out
+}
+// #endregion sweep-brief-gaps
 
 // #region sweep-recent-turns — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
 /** The turns the session hooks observed in the last fifteen minutes (0.3.14 wave 2, work-unclaimed): newest first and

@@ -472,6 +472,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'attention.swept.answer-unread': "Ответ на доске, который никто не прочитал",
   'attention.swept.terminal-stalled': "В терминале нет активности, а задача в работе",
   'attention.swept.work-unclaimed': "Сессия меняет файлы, но не взяла задачу",
+  'attention.swept.brief-missing': "В работе, а бриф задачи не дописан",
   'attention.untitled.request': "Запрос из другого проекта",
   'attention.untitled.answer': "Ответ из другого проекта",
   'attention.untitled.task': "Задача, которую не удалось прочитать",

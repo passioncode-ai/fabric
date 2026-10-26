@@ -42,6 +42,7 @@ import {
 } from '../shared/workClaims.ts'
 import { readRunHolds, readWork, type SessionSign } from './workRead.ts'
 import type { Nudge } from '../shared/abandonedSweep.ts'
+import { briefNext, specGaps, type BriefParts } from '../shared/taskSpec.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
 
@@ -228,10 +229,11 @@ function warningOf(related: Related[]): string | null {
 export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
   const { scope, store } = deps
 
-  const ownTask = async (taskId: string): Promise<{ id: string; status: TaskState; title: string | null; instruction: string } | null> => {
-    const found = await store.select('project_tasks', 'id,status,title,instruction').eq('id', taskId).maybeSingle()
+  type OwnTask = { id: string; status: TaskState; title: string | null; instruction: string } & BriefParts
+  const ownTask = async (taskId: string): Promise<OwnTask | null> => {
+    const found = await store.select('project_tasks', 'id,status,title,instruction,brief_what,brief_why,brief_expected').eq('id', taskId).maybeSingle()
     if (found.error) throw new Error(`the board could not be read: ${found.error.message}`)
-    return (found.data as { id: string; status: TaskState; title: string | null; instruction: string } | null) ?? null
+    return (found.data as OwnTask | null) ?? null
   }
   const leaseOf = async (taskId: string): Promise<{ owner_session: string; expires_at: string } | null> => {
     const r = await store.select('leases', 'owner_session,expires_at').eq('work_id', taskId).maybeSingle()
@@ -358,7 +360,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Claim your task before you start',
       description:
-        'Say which task you are working on now, and what you will touch. Name it by taskId (a task on this project\'s board), by source {repository, path, id} (a backlog row: Fabric links it to its task and files one when none exists), or as a new row: title with its origin. Refused only when another agent already holds the same task: the answer names who and since when; set askHandover to ask the holder for it. Otherwise claimed, with its expiry; related work other agents hold (the same backlog row, a linked task, an overlapping folder or file) comes back as a warning, never a refusal. A claim moves its task from backlog to running (task_moved_to says so; a task in another column stays where it is). Your calls, and your fabric-mcp\'s sign every two minutes, renew the claim while you work. Retrying with the same idempotencyKey is the same claim, never a second.',
+        'Say which task you are working on now, and what you will touch. Name it by taskId (a task on this project\'s board), by source {repository, path, id} (a backlog row: Fabric links it to its task and files one when none exists), or as a new row: title with its origin. Refused only when another agent already holds the same task: the answer names who and since when; set askHandover to ask the holder for it. Otherwise claimed, with its expiry; related work other agents hold (the same backlog row, a linked task, an overlapping folder or file) comes back as a warning, never a refusal. A claim moves its task from backlog to running (task_moved_to says so; a task in another column stays where it is). Your calls, and your fabric-mcp\'s sign every two minutes, renew the claim while you work. Retrying with the same idempotencyKey is the same claim, never a second. When the task\'s brief misses a part, the answer names it (brief_missing) and how to write it (brief_next): write it with fabric_task_brief.',
       inputSchema: {
         taskId: z.string().uuid().optional(),
         source: z.object({ repository: z.string().min(1).max(300), path: z.string().min(1).max(300), id: z.string().min(1).max(64) }).optional()
@@ -485,8 +487,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         sources,
         await edgesOf(store, id)
       )
+      // 0.3.14 wave 2: a brief with a part missing is named, with the tool that writes it. Advisory, never a refusal.
+      const gaps = specGaps(task)
       return reply(claimAnswer(settled, {
         task: { id, title: task.title ?? task.instruction.slice(0, 200), status: moved?.task_status ?? task.status },
+        ...(gaps.length ? { brief_missing: gaps, brief_next: briefNext(gaps) } : {}),
         ...(moved?.task_moved_to ? { task_moved_to: moved.task_moved_to } : {}),
         ...(moved?.failed ? { task_not_moved: `the claim stands, but its task did not move to running (${moved.failed}); read fabric_tasks_list` } : {}),
         filed,

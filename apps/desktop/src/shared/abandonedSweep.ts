@@ -5,6 +5,7 @@
  * board requests and its own terminals, hands them in, and tells what comes back. Nothing here reads or writes.
  */
 import { SESSION_STALE_MS } from './workClaims.ts'
+import { briefNext, type SpecPart } from './taskSpec.ts'
 
 /** The one-minute cycle sweeps on every third pass (SW-1): three minutes, without a timer of its own. */
 export const SWEEP_EVERY_TICKS = 3
@@ -19,16 +20,19 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
-export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed'])
+export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed', 'brief-missing'])
+/** How long a claim lives before its task's missing brief is reminded (0.3.14 wave 2, brief-missing): the claim's own
+ *  answer said it first. */
+export const BRIEF_AFTER_MS = 10 * 60_000
 /** How far back a session's turns are read to see whether it changes files (0.3.14 wave 2, work-unclaimed). */
 export const TURN_WINDOW_MS = 15 * 60_000
 /** The sweep's reads, as a receipt's `unread` names them, and the reads that can stop at their bounds, as its `capped`
  *  does: one list each for the sweep and the receipt's ingress rules (iteration 3, DA-5). */
-export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals', 'turns'] as const
+export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals', 'turns', 'briefs'] as const
 export type SweepRead = (typeof SWEEP_READS)[number]
 export const SWEEP_CAPS = ['claims', 'threads', 'messages'] as const
 export type SweepCap = (typeof SWEEP_CAPS)[number]
@@ -106,6 +110,8 @@ export interface SweepInput {
   turns?: readonly SweepTurn[]
   /** Sessions that hold a task without a claim: the lease of a launch Fabric manages. */
   heldSessions?: readonly string[]
+  /** The missing parts of the brief of each claimed task read (`taskSpec.ts#specGaps`); a task absent was not read. */
+  briefGaps?: Readonly<Record<string, readonly SpecPart[]>>
 }
 
 export interface Finding {
@@ -173,6 +179,15 @@ export function findAbandoned(input: SweepInput): Finding[] {
         sessionId: s.sessionId, stillMs: now - s.lastActivityAt,
         nextStep: 'This session holds a task and has been still: continue it, or say what blocks it (fabric_heartbeat with phase blocked).' })
   }
+  // #region brief-missing — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
+  // 0.3.14 wave 2: a live claim (its session held, not expired) ten minutes old whose task's brief still misses a part.
+  for (const c of input.claims) {
+    const gaps = c.taskId ? input.briefGaps?.[c.taskId] : undefined
+    if (!c.taskId || !gaps?.length || c.session === null || Date.parse(c.expiresAt) <= now || now - Date.parse(c.claimedAt) < BRIEF_AFTER_MS) continue
+    out.push({ ...base, kind: 'brief-missing', key: `brief-missing:${c.claimId}`, projectId: c.projectId, taskId: c.taskId, sessionId: c.sessionId,
+      claimId: c.claimId, stillMs: now - Date.parse(c.claimedAt), nextStep: briefNext(gaps) })
+  }
+  // #endregion brief-missing
   // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
   // 0.3.14 wave 2: a session whose turns changed files in the window and that holds nothing (no open claim of any life,
   // no managed lease, no Fabric terminal on a task) is working on something nobody can see on the board.
@@ -214,12 +229,14 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'request-unmoved': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,
-  'work-unclaimed': () => 'this session'
+  'work-unclaimed': () => 'this session',
+  'brief-missing': (f) => `task ${f.taskId} you claimed`
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */
 const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> = {
-  'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has changed files for ${min} min and holds no claim.`
+  'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has changed files for ${min} min and holds no claim.`,
+  'brief-missing': (f, min) => `${SUBJECT[f.kind](f)} has been in work for ${min} min with its brief incomplete.`
 }
 
 /** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */

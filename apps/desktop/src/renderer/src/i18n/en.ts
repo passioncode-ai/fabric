@@ -1144,6 +1144,7 @@ export const en = {
   'attention.swept.answer-unread': "An answer on the board that nobody has read",
   'attention.swept.terminal-stalled': "Its terminal has gone quiet with the task in work",
   'attention.swept.work-unclaimed': "A session is changing files and holds no task",
+  'attention.swept.brief-missing': "In work with its brief incomplete",
   'attention.untitled.request': "A request from another project",
   'attention.untitled.answer': "An answer from another project",
   'attention.untitled.task': "A task that could not be read",

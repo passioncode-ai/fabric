@@ -885,3 +885,91 @@ test('moveDoneLeftRunningToReview: running to review as the sweep, read back, wi
   assert.deepEqual(move.actor, { kind: 'system', id: 'work-sweep' })
   assert.deepEqual(move.payload, { task_id: 't1', from: 'running', to: 'review', note: DONE_LEFT_RUNNING_NOTE })
 })
+
+// ── 0.3.14 wave 2: briefs filled ─────────────────────────────────────────────────────────────────────────────
+const { readBriefGaps } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+const liveClaim = (over = {}) => ({ claimId: 'c1', taskId: 't1', projectId: 'p1', sessionId: 's-work', claimedAt: iso(T0 - 12 * MIN), renewedAt: null,
+  expiresAt: iso(T0 + 20 * MIN), session: { lastSignAt: T0 }, ...over })
+
+test('brief-missing: a claimed task with an incomplete brief is nudged to its session, from the claims\' own tasks', async () => {
+  const asked = []
+  const w = world({ claims: [liveClaim()] })
+  w.deps.readBriefGaps = async (ids) => { asked.push(ids); return { t1: ['why', 'expected'] } }
+  const sweep = createAbandonedSweep(w.deps)
+  const r = await sweepOnce(sweep)
+  assert.deepEqual(asked, [['t1']])
+  assert.deepEqual(r.findings.map((f) => f.kind), ['brief-missing'])
+  const items = sweep.takeNudgeItems('s-work', 'p1')
+  assert.deepEqual(items.map((n) => [n.kind, n.task_id]), [['brief-missing', 't1']])
+  assert.match(items[0].says, /missing why, expected: write each with fabric_task_brief/)
+  assert.deepEqual(sweep.current().findings, [], 'a reminder to the agent, not the operator\'s queue')
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared')
+})
+
+test('brief-missing: a briefs read that fails is named in the receipt, and judges no brief', async () => {
+  const w = world({ claims: [liveClaim()] })
+  w.deps.readBriefGaps = async () => { throw new Error('refused') }
+  const r = await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(r.failedReads, ['briefs'])
+  assert.deepEqual(r.findings, [])
+  assert.deepEqual(w.receipts[0].unread, ['briefs'])
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared')
+})
+
+test('readBriefGaps: each task\'s missing sections; a closed task none; a read that fails throws', async () => {
+  const asked = []
+  const store = { selectIn: async (table, columns, column, values) => { asked.push([table, column, values]); return { rows: [
+    { id: 't1', status: 'running', brief_what: 'Do it', brief_why: null, brief_expected: ' ' },
+    { id: 't2', status: 'running', brief_what: 'a', brief_why: 'b', brief_expected: 'c' },
+    { id: 't3', status: 'done', brief_what: null, brief_why: null, brief_expected: null }
+  ], failed: null } } }
+  assert.deepEqual(await readBriefGaps(store, ['t1', 't2', 't3']), { t1: ['why', 'expected'], t2: [], t3: [] })
+  assert.deepEqual(asked, [['project_tasks', 'id', ['t1', 't2', 't3']]])
+  await assert.rejects(readBriefGaps({ selectIn: async () => ({ rows: [], failed: 'refused' }) }, ['t1']), /briefs could not be read/)
+})
+
+/** A store a claim can run against: the task, and the claim the projection writes for the append. */
+function claimStore(task) {
+  let claim = null
+  const table = (name) => {
+    const q = new Proxy({}, {
+      get: (_, k) => {
+        if (k === 'then') return (resolve) => resolve({ data: [], error: null })
+        if (k === 'maybeSingle') return async () => ({ data: name === 'project_tasks' ? task : name === 'work_claims' ? claim : null, error: null })
+        return () => q
+      }
+    })
+    return q
+  }
+  return {
+    store: { select: (name) => table(name), selectIn: async () => ({ rows: [], failed: null }) },
+    onAppend: (e) => {
+      if (e.type === 'work.claimed@1') claim = { id: e.payload.claim_id, work_id: e.payload.work, released_at: null, expires_at: e.payload.expires_at, touches: [] }
+      if (e.type === 'task.moved@1') task.status = e.payload.to
+    }
+  }
+}
+
+async function claimWith(task) {
+  const tools = new Map()
+  const server = { registerTool: (name, _def, handler) => tools.set(name, handler) }
+  const c = claimStore(task)
+  registerWorkTools(server, {
+    scope: { estateId: 'e', projectId: 'p1', sessionId: 's1', agent: 'claude-code', cameIn: 'enrolled' },
+    store: c.store, append: async (e) => { c.onAppend(e); return { seq: 1 } }, appendObserved: async () => ({ seq: 1 }), checkReference: () => {},
+    sessions: () => [], session: () => null, resolveSource: async () => ({ ok: false }), leaseRefs: async () => null,
+    onClaimed: () => {}, endSession: () => {}, now: () => T0
+  })
+  return JSON.parse((await tools.get('fabric_work_claim')({ taskId: task.id })).content[0].text)
+}
+
+test('fabric_work_claim names the brief\'s missing sections and fabric_task_brief, and still claims', async () => {
+  const answer = await claimWith({ id: 'b1000000-0000-4000-8000-000000000001', status: 'backlog', title: 'Fix it', instruction: 'Fix it', brief_what: 'Fix it', brief_why: null, brief_expected: '' })
+  assert.equal(answer.claimed, true)
+  assert.deepEqual(answer.brief_missing, ['why', 'expected'])
+  assert.match(answer.brief_next, /^Its brief is missing why, expected: write each with fabric_task_brief/)
+  const whole = await claimWith({ id: 'b1000000-0000-4000-8000-000000000002', status: 'backlog', title: 'Fix it', instruction: 'Fix it', brief_what: 'a', brief_why: 'b', brief_expected: 'c' })
+  assert.equal(whole.claimed, true)
+  assert.equal('brief_missing' in whole, false)
+  assert.equal('brief_next' in whole, false)
+})
