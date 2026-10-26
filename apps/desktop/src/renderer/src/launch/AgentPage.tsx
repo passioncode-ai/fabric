@@ -27,7 +27,7 @@ import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type Session
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
 import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
-import { sessionStatus } from '../../../shared/sessionStatus.ts'
+import { agentStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
 import { describeEvent, pluralForm, useLocale, useT } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { since } from '../duration'
@@ -59,7 +59,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   /** Where the session runs: a console Fabric holds, a terminal outside Fabric, or not known (who joined was not read). */
   where?: 'fabric' | 'terminal' | 'unknown'
   /** Its console as Fabric holds it, for the status word (R-19); absent when it runs elsewhere. */
-  terminal?: { state: 'running' | 'idle' | 'ended'; exitCode: number | null } | null
+  terminal?: StatusTerminal | null
   onOpenProject(projectId: string): void
   onOpenTask?(projectId: string, taskId: string): void
   /** The agent's name when the caller knows it better than its runner id (a joined agent's own name). */
@@ -146,7 +146,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const historyFull = events ? mayHaveEarlier(events) : false
   const heard = agent.lastSignAt ?? agent.startedAt
   // The status from what Fabric observes and the agent's own word (R-19, `sessionStatus.ts`), said in a word.
-  const status = sessionStatus({ stale: agent.stale, phase: phase?.phase ?? null, terminal: terminal ?? null })
+  // ER-18: the same function and inputs as the left column and «В работе»; a phase counts only while fresh.
+  const status = agentStatus(agent, terminal ?? null, { phase: phase ? { phase: phase.phase, at: phase.at } : null })
   const stateChip = state ?? (status === 'working' ? t('agentScreen.state.working') : status === 'idle' ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t(`status.${status}` as 'status.idle'))
   const name = title ?? runnerLabel(agent.agent, t)
   const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')

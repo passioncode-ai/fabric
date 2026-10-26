@@ -40,6 +40,15 @@ describe('railAgents', () => {
     const rows = railAgents([live('s1', 'A'), live('s2', 'B'), live('s3', 'C', { stale: true })], 'en', [
       { sessionId: 's1', state: 'idle', exitCode: null }, { sessionId: 's2', state: 'ended', exitCode: 2 }
     ])
-    expect(rows.map((r) => r.status)).toEqual(['waiting', 'error', 'idle'])
+    // DA-5: a console silent for a minute is idle, never «waiting»; a wait is said only when Fabric observed one.
+    expect(rows.map((r) => r.status)).toEqual(['idle', 'error', 'idle'])
+  })
+
+  it('ER-18: takes the agent\'s fresh heartbeat, as «В работе» and the agent page do; an old one falls back to what is observed', () => {
+    const rows = railAgents([
+      live('s1', 'A', { heartbeat: { phase: 'waiting', at: '2026-10-26T12:00:00Z', waitingOn: 'question' } }),
+      live('s2', 'B', { heartbeat: { phase: 'blocked', at: '2026-10-24T23:00:00Z', waitingOn: null } })
+    ], 'en', [])
+    expect(rows.map((r) => r.status)).toEqual(['waiting', 'working'])
   })
 })

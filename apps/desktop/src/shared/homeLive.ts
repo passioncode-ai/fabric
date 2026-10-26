@@ -63,6 +63,9 @@ export interface LiveAgent {
   /** Its goal (the operator's second review, R-3; `main/agentGoals.ts`): the root of its task's `spawned` links, else
    *  the task itself. Null: it holds no task, so no goal is named. Absent: not read. */
   goal?: { taskId: string; projectId: string; text: string; what: string | null; byPerson: boolean; isTask: boolean } | null
+  /** Its newest heartbeat (`main/agentHeartbeats.ts`): the agent's own word, judged fresh or not by `sessionStatus`.
+   *  Absent: none sent, or not read. */
+  heartbeat?: { phase: string; at: string; waitingOn: string | null }
 }
 
 export interface WorkItem {

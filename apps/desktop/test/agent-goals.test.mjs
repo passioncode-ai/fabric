@@ -80,3 +80,16 @@ test('DA-3: the walk asks only for spawned links, so other kinds never fill the 
   assert.ok(linkReads.length >= 1)
   for (const c of linkReads) assert.deepEqual(c.eq, [['rel', 'spawned']])
 })
+
+// ER-18: every screen judges an agent's status from the same inputs: its newest heartbeat rides on the home's reading.
+test('withHeartbeats puts each live agent\'s newest heartbeat on the reading; a failed read leaves them absent', async () => {
+  const { withHeartbeats } = await import(path.resolve(import.meta.dirname, '../src/main/agentHeartbeats.ts'))
+  const asked = []
+  const store = { selectIn: async (table, columns, key, values) => { asked.push([table, key, values]); return { rows: [{ session_id: 's1', phase: 'waiting', last_received_at: '2026-10-26T12:00:00Z', waiting_kind: 'question' }], failed: null } } }
+  const out = await withHeartbeats(view([live('s1', 't1'), live('s2', null)]), store)
+  assert.deepEqual(asked, [['session_heartbeats', 'session_id', ['s1', 's2']]])
+  assert.deepEqual(out.live[0].heartbeat, { phase: 'waiting', at: '2026-10-26T12:00:00Z', waitingOn: 'question' })
+  assert.equal(out.live[1].heartbeat, undefined)
+  const failed = await withHeartbeats(view([live('s1', 't1')]), { selectIn: async () => ({ rows: [], failed: 'refused' }) })
+  assert.equal(failed.live[0].heartbeat, undefined, 'the status falls back to what Fabric observes')
+})

@@ -75,6 +75,7 @@ import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createBranchReader, withBranches } from './agentBranches.ts'
 import { readHandedInToday, withStrip } from './homeStrip.ts'
+import { withHeartbeats } from './agentHeartbeats.ts'
 import { withGoals } from './agentGoals.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
@@ -5180,7 +5181,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
     const now = Date.now()
     // Each agent's goal (the operator's second review, R-3): the root of its task's spawned links (`agentGoals.ts`).
-    const view = await withGoals(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never)
+    // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
+    const view = await withHeartbeats(await withGoals(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never)
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
     return withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
   })

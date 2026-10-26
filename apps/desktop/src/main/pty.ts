@@ -72,6 +72,9 @@ interface LiveSession {
   lastActivityAt: number
   exitCode: number | null
   exitSignal: number | null
+  /** Fabric itself asked this session to stop (its own SIGTERM or SIGKILL): an exit by that signal is a stop, not a
+   *  crash (the 0.3.14 review, iteration 2, ER-19). */
+  stopRequested: boolean
   inputHalted: boolean
   process: OwnedProcess | null
   closedRecorded: boolean
@@ -612,6 +615,7 @@ export class PtyManager {
       lastActivityAt: now,
       exitCode: null,
       exitSignal: null,
+      stopRequested: false,
       inputHalted: false,
       process: null,
       closedRecorded: false,
@@ -692,6 +696,7 @@ export class PtyManager {
       try { if (bundle) this.bundles?.discard(sessionId) }
       catch (e) { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId, cause: causeOf(e) }) }
       // No signal on Windows: node-pty throws for one there (0.3.5 review ER-4).
+      session.stopRequested = true
       try { if (session.running) killPty(pty, process.platform, 'SIGTERM') }
       catch { ops.failed('pty.launch-stop', new Error('session termination could not be requested'), { sessionId }) }
       throw new PtyLaunchFailure(sessionId)
@@ -866,6 +871,7 @@ export class PtyManager {
   async signalProcess(sessionId: string, signal: 'SIGTERM' | 'SIGKILL', stillAllowed: () => boolean = () => true): Promise<void> {
     const s = this.sessions.get(sessionId)
     if (!s) return
+    s.stopRequested = true
     if (s.process) { await this.processBoundary.signal(s.process, signal, stillAllowed); return }
     // Windows has no process groups (PL-07): the session's tree is stopped from its root, and only while that root's
     // exit has not been observed, so the pid is still the session's own (REQ-11). node-pty refuses every signal there,
@@ -959,6 +965,10 @@ export class PtyManager {
       lastActivityAt: new Date(s.lastActivityAt).toISOString(),
       tail: s.scrollback.tailLine(),
       exitCode: s.exitCode,
+      // ER-19: node-pty reports exit code 0 for a signalled child; the signal and whether Fabric asked for the stop say
+      // whether it crashed.
+      exitSignal: s.exitSignal,
+      stoppedByFabric: s.stopRequested,
       ...(s.termination ? { termination: s.termination } : {})
     }
   }

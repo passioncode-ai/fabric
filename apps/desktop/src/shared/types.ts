@@ -640,6 +640,10 @@ export interface TerminalSession {
   /** Last non-empty line of output — the short status on the agent tile. */
   tail: string
   exitCode: number | null
+  /** The signal that ended it (node-pty reports exit code 0 then); null or absent: none, or an older host. */
+  exitSignal?: number | null
+  /** Fabric itself asked it to stop: an exit by Fabric's own signal is a stop, not a crash. */
+  stoppedByFabric?: boolean
 }
 
 export interface CreateProjectInput {

@@ -12,7 +12,7 @@ import { useState } from 'react'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { ProjectRow } from '../../../shared/types'
 import { groupInWork, type InWorkCard } from '../../../shared/homeProjects.ts'
-import { sessionStatus, type SessionStatus } from '../../../shared/sessionStatus.ts'
+import { agentStatus, type SessionStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
 import { pluralForm, useLocale, useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
@@ -25,7 +25,7 @@ const QUIET_NAMED = 5
 export function HomeInWork({ reading, projects, waitingByProject, onProject, onAgent, onTask, terminals = null }: {
   reading: HomeReading
   /** The consoles Fabric holds, for each agent's status (R-19); null while unread. */
-  terminals?: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null
+  terminals?: ReadonlyArray<StatusTerminal & { sessionId: string }> | null
   projects: ProjectRow[] | null
   /** What waits for the person, by project (the shell's count); null while unknown. */
   waitingByProject: Record<string, number> | null
@@ -74,7 +74,7 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
 
 function Card({ card, waiting, onProject, onAgent, onTask, plural, terminals }: {
   card: InWorkCard
-  terminals: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null
+  terminals: ReadonlyArray<StatusTerminal & { sessionId: string }> | null
   waiting: number
   onProject(projectId: string): void
   onAgent(sessionId: string): void
@@ -106,7 +106,7 @@ function Card({ card, waiting, onProject, onAgent, onTask, plural, terminals }: 
         <ul className="lh-proj-agents" aria-label={t('launch.home.inWork.agentsOf', { name })}>
           {card.agents.map((a) => (
             <AgentRow key={a.sessionId} agent={a} onAgent={onAgent} onTask={onTask}
-              status={sessionStatus({ stale: a.stale, terminal: a.console ? (terminals?.find((x) => x.sessionId === a.sessionId) ?? null) : null })} />
+              status={agentStatus(a, terminals?.find((x) => x.sessionId === a.sessionId) ?? null)} />
           ))}
         </ul>
       )}

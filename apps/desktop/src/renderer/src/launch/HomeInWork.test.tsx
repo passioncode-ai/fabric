@@ -101,10 +101,11 @@ describe('«В работе» grouped by project', () => {
 
   // R-19: the status from the console Fabric holds, in a word beside the dot's colour and shape.
   it('says an agent\'s status in a word when it is not simply working', () => {
-    show({ terminals: [{ sessionId: 's1', state: 'idle', exitCode: null }] })
+    show({ terminals: [{ sessionId: 's1', state: 'ended', exitCode: 0, exitSignal: 9, stoppedByFabric: false }] })
     const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
-    expect(rows[0].textContent).toContain(en['status.waiting'])
-    expect(rows[0].querySelector('.rail-dot')?.className).toContain('s-waiting')
+    // ER-19: a console killed by a signal Fabric did not send reads as an error, not as a clean end.
+    expect(rows[0].textContent).toContain(en['status.error'])
+    expect(rows[0].querySelector('.rail-dot')?.className).toContain('s-error')
     expect(rows[1].textContent).toContain(en['status.idle'])
   })
 

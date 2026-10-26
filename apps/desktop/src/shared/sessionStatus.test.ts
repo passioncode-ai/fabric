@@ -1,19 +1,36 @@
 // A session's status from the signals Fabric already has (the operator's second review, 2026-10-26, v2 §4.5, R-19):
 // observed first, the agent's own word second; the first that holds wins.
 import { describe, expect, it } from 'vitest'
-import { sessionStatus } from './sessionStatus.ts'
+import { sessionStatus, PHASE_FRESH_MS } from './sessionStatus.ts'
+
+const T0 = Date.parse('2026-10-26T12:00:00Z')
+const iso = (ms: number): string => new Date(ms).toISOString()
+const fresh = { phaseAt: iso(T0 - 60_000), heardAt: iso(T0 - 60_000), now: T0 }
 
 describe('sessionStatus', () => {
   it('is an error when a console ended with a failure or the agent says it is stuck', () => {
     expect(sessionStatus({ terminal: { state: 'ended', exitCode: 1 } })).toBe('error')
-    expect(sessionStatus({ stale: false, phase: 'blocked' })).toBe('error')
+    expect(sessionStatus({ stale: false, phase: 'blocked', ...fresh })).toBe('error')
   })
   it('is ended when the console ended cleanly', () => {
     expect(sessionStatus({ terminal: { state: 'ended', exitCode: 0 } })).toBe('ended')
   })
-  it('is waiting when the agent says it waits, or its console stopped for input', () => {
-    expect(sessionStatus({ stale: false, phase: 'waiting' })).toBe('waiting')
-    expect(sessionStatus({ stale: false, terminal: { state: 'idle', exitCode: null } })).toBe('waiting')
+  it('ER-19: a console killed by a signal Fabric did not send is an error; Fabric\'s own stop is ended', () => {
+    expect(sessionStatus({ terminal: { state: 'ended', exitCode: 0, exitSignal: 9, stoppedByFabric: false } })).toBe('error')
+    expect(sessionStatus({ terminal: { state: 'ended', exitCode: 0, exitSignal: 15, stoppedByFabric: true } })).toBe('ended')
+  })
+  it('is waiting only when Fabric observed a wait: the agent\'s fresh heartbeat, or an open question', () => {
+    expect(sessionStatus({ stale: false, phase: 'waiting', ...fresh })).toBe('waiting')
+    expect(sessionStatus({ stale: false, asking: true })).toBe('waiting')
+  })
+  it('DA-5: a Fabric console silent for a minute is idle, never «waiting»', () => {
+    expect(sessionStatus({ stale: false, terminal: { state: 'idle', exitCode: null } })).toBe('idle')
+  })
+  it('ER-18: a heartbeat older than the agent\'s last sign and past the quiet window falls back to what is observed', () => {
+    const old = { phase: 'blocked', phaseAt: iso(T0 - 37 * 3600_000), heardAt: iso(T0 - 60_000), now: T0 }
+    expect(sessionStatus({ stale: false, ...old })).toBe('working')
+    expect(sessionStatus({ stale: false, phase: 'blocked', phaseAt: iso(T0 - PHASE_FRESH_MS + 1000), heardAt: iso(T0), now: T0 })).toBe('error')
+    expect(sessionStatus({ stale: false, phase: 'blocked' }), 'a phase with no time is not trusted').toBe('working')
   })
   it('is working with a recent sign, idle when it has gone quiet', () => {
     expect(sessionStatus({ stale: false, terminal: { state: 'running', exitCode: null } })).toBe('working')

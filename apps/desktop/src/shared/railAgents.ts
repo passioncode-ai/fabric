@@ -3,14 +3,15 @@
  * The left column's «Агенты» view (0.3.14, the simple Fabric, docs/ux/2026-10-26-simple-fabric.md §1 item 4): every
  * agent at work now (`work.home`'s `live`), one row each, with its runner, its project and the git branch it works on.
  * Sorted by project name in the locale's collation, an agent with no project last, then by its newest sign of life.
- * The state is what Fabric observes (a sign within the window, else quiet), never the agent's own claim. The branch is
+ * The state is what Fabric observes (a sign within the window, else quiet); the status word is `agentStatus`, the one
+ * every screen uses (the 0.3.14 review, iteration 2, ER-18). The branch is
  * the one Fabric read from the folder of a console it holds (`main/agentBranches.ts`); any other row carries null and
  * the column says «ветка неизвестна» (open choice 3: a terminal-joined agent's branch is 0.3.15's).
  * An agent only installed, idle or disconnected is not here: Настройки lists those.
  */
 import type { LiveAgent } from './homeLive.ts'
 import { nameCollator } from './railProjects.ts'
-import { sessionStatus, type SessionStatus } from './sessionStatus.ts'
+import { agentStatus, type SessionStatus, type StatusTerminal } from './sessionStatus.ts'
 
 export interface RailAgent {
   sessionId: string
@@ -32,7 +33,7 @@ const time = (iso: string | null | undefined): number => {
   return Number.isFinite(t) ? t : 0
 }
 
-export function railAgents(live: readonly LiveAgent[], locale: string, terminals?: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null): RailAgent[] {
+export function railAgents(live: readonly LiveAgent[], locale: string, terminals?: ReadonlyArray<StatusTerminal & { sessionId: string }> | null): RailAgent[] {
   const termOf = new Map((terminals ?? []).map((x) => [x.sessionId, x]))
   const collator = nameCollator(locale)
   return live
@@ -43,7 +44,8 @@ export function railAgents(live: readonly LiveAgent[], locale: string, terminals
       projectName: a.projectName,
       branch: typeof a.branch === 'string' && a.branch.trim() ? a.branch.trim() : null,
       state: a.stale ? 'quiet' : 'working',
-      status: sessionStatus({ stale: a.stale, terminal: a.console ? (termOf.get(a.sessionId) ?? null) : null }),
+      // ER-18: the same function and inputs as «В работе» and the agent page.
+      status: agentStatus(a, termOf.get(a.sessionId) ?? null),
       heardAt: a.lastSignAt ?? a.startedAt,
       console: a.console
     }))
