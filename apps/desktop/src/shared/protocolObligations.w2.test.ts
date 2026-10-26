@@ -14,6 +14,15 @@ describe('wave 2 rules', () => {
     expect(o?.text).toMatch(/nudges/)
   })
 
+  it('names exactly the tools that carry nudges, says each is given once, and how an unread answer is cleared (review findings 4, 5)', () => {
+    const t = byId('work.check-every-three-minutes')?.text ?? ''
+    expect(t).toMatch(/fabric_work_list and fabric_heartbeat/)
+    expect(t).not.toMatch(/any Fabric tool answer/)
+    expect(t).toMatch(/given once/)
+    expect(t).toContain('com.list {unread: true}')
+    expect(t).toContain('com.read_ack')
+  })
+
   it('a relayed instruction with the operator\'s quote and source is the operator\'s own (TO-1)', () => {
     const o = byId('operator.told-one-is-told-all')
     expect(o?.mode).toBe('ADVICE')

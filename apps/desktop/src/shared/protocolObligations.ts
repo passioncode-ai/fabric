@@ -190,8 +190,10 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     id: 'work.check-every-three-minutes',
     text:
       'Every three minutes while you work, and whenever you are about to wait, check your own open work: call ' +
-      'fabric_work_list (any Fabric tool answer carries the same nudges) and act first on its nudges and ' +
-      'waiting_for_you, then on board requests you sent whose answers you have not read (com.list with unread). Fabric ' +
+      'fabric_work_list and act first on its nudges and waiting_for_you. Nudges ride only on the answers of ' +
+      'fabric_work_list and fabric_heartbeat, and each is given once: the first of those answers that carries it takes ' +
+      'it. Then read the answers to board requests you sent that you have not read (com.list {unread: true}) and mark ' +
+      'each one read (com.read_ack), or it stays unread and you are told again. Fabric ' +
       'sweeps abandoned work on the same cadence and points its agent at the next step; a task you hold and are not ' +
       'moving is either moved, handed over or let go, never left still.',
     mode: 'ADVICE',
