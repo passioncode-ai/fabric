@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T05:40:00Z · `—` · agent/0313-w2 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/shared/protocolObligations.ts and its w2 test, abandonedSweep.ts and its test; the wave 2 spec, the 0.3.13 plan; the carry-over ledger and the backlog (CO-428, CO-429); the map's changelog
+- conflicts: none
+- summary: Fabric 0.3.13, wave 2, part 1: the rules of the three-minute check and «told one is told all», the pure core of the sweep of abandoned work, and two rows found that morning (a half-up stack, the operator's self-heal on update).
+
 ### 2026-10-26T02:00:00Z · `—` · agent/0313-w1 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/pty.ts, runnerFallback.ts, index.ts, launchFolderLock.ts, managedLaunch.ts, dockerPing.ts and their tests; docs/evidence/plans/2026-10-26-release-0313-plan.md; the carry-over ledger and the backlog (CO-229, CO-236 resolved; P-26 in progress); the map's changelog
