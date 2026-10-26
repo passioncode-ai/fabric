@@ -376,3 +376,15 @@ test('ER-1 (i3): a try whose Docker question is in flight when stop comes launch
   assert.equal(watch.view().trying, false, 'the try ended')
 })
 // #endregion stack-watch
+
+// CO-374: the database runs and rest or kong is gone, so the read fails: that is not a database coming up, a try starts.
+test('CO-374: a partial stack (the database up, rest or kong gone) is started, with why', async () => {
+  const run = rig({ containers: 'partial' })
+  run.world.database = false
+  for (let i = 0; i < 6 && run.world.recovers === 0; i++) { await run.tick(15_000); await settle() }
+  assert.equal(run.world.recovers, 1, 'a partial stack was waited for as though the database were coming up')
+  assert.notEqual(run.watch.view().hold, 'running')
+  const tried = run.records('stack.recover')
+  assert.equal(tried[0].detail.containers, 'partial')
+  assert.match(tried[0].detail.because, /rest or kong/)
+})

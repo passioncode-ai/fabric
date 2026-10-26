@@ -201,7 +201,9 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       }
       const begun = now()
       // Why this try was made, with its record (ER-3): what was down, and what Docker said of the containers.
-      const because = containers === 'stopped' ? 'the stack\'s containers exist and are not running' : 'Docker could not say whether the stack\'s containers run'
+      const because = containers === 'stopped' ? 'the stack\'s containers exist and are not running'
+        : containers === 'partial' ? 'the database container runs while rest or kong does not (CO-374)'
+          : 'Docker could not say whether the stack\'s containers run'
       try {
         const result = await deps.recover!()
         ops.record({ op: 'stack.recover', outcome: 'ok', level: 'warn', ms: now() - begun, detail: { attempt, down, containers, because, result: result ?? 'started' }, ctx: { correlationId: ops.correlate() } })

@@ -12,7 +12,7 @@ import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
-import { STACK_EXCLUDED_SERVICES, databaseContainer, removeExcludedContainers } from './stackServices.ts'
+import { STACK_EXCLUDED_SERVICES, removeExcludedContainers, stackContainers } from './stackServices.ts'
 import type { StackContainers } from '../shared/stackWatch.ts'
 import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
@@ -182,9 +182,9 @@ export function halfUpDeps(start: () => Promise<void>): HalfUpDeps<SupabaseEnv> 
   }
 }
 
-/** What Docker says of the stack's database container, for the watch's decision (`stackServices.ts#databaseContainer`). */
+/** What Docker says of the stack's database, rest and kong containers, for the watch's decision (`stackServices.ts#stackContainers`, CO-374). */
 export async function stackDatabaseContainer(): Promise<StackContainers> {
-  return databaseContainer('fabric', async (args) => (await run('docker', args, { encoding: 'utf8', timeout: 10_000 })).stdout)
+  return stackContainers('fabric', async (args) => (await run('docker', args, { encoding: 'utf8', timeout: 10_000 })).stdout)
 }
 // #endregion stack-recover-once
 

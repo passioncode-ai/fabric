@@ -67,4 +67,25 @@ export function containerStateFrom(output: string): import('../shared/stackWatch
 export async function databaseContainer(projectId: string, docker: (args: string[]) => Promise<string>): Promise<import('../shared/stackWatch.ts').StackContainers> {
   return containerStateFrom(await docker(['ps', '-a', '--filter', `name=^supabase_db_${projectId}$`, '--format', '{{.State}}']))
 }
+
+/** The containers whose absence leaves Fabric with no stack: Postgres, and PostgREST behind Kong, the only two ways in. */
+const CALLED = ['db', 'rest', 'kong'] as const
+
+/**
+ * The stack as the watch reads it (CO-374): the database container's state, and `partial` when it runs while rest or kong
+ * is gone or not running, which the watch used to read as «running» and wait for forever. No database container is
+ * `absent` whatever else exists, as `databaseContainer` says. A Docker that does not answer throws.
+ */
+export async function stackContainers(projectId: string, docker: (args: string[]) => Promise<string>): Promise<import('../shared/stackWatch.ts').StackContainers> {
+  const out = await docker(['ps', '-a', '--filter', `name=^supabase_(${CALLED.join('|')})_${projectId}$`, '--format', '{{.Names}} {{.State}}'])
+  const state = new Map<string, string>()
+  for (const line of out.split('\n')) {
+    const [name, st] = line.trim().split(/\s+/)
+    if (name) state.set(name, st ?? '')
+  }
+  const db = containerStateFrom(state.get(`supabase_db_${projectId}`) ?? '')
+  if (db !== 'running') return db
+  const servicesUp = CALLED.filter((c) => c !== 'db').every((c) => containerStateFrom(state.get(`supabase_${c}_${projectId}`) ?? '') === 'running')
+  return servicesUp ? 'running' : 'partial'
+}
 // #endregion stack-database-container

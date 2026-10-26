@@ -68,3 +68,21 @@ test('ER-3: the database container\'s state, as the watch reads it', async () =>
   assert.deepEqual(asked, [['ps', '-a', '--filter', 'name=^supabase_db_fabric$', '--format', '{{.State}}']])
   await assert.rejects(databaseContainer('fabric', async () => { throw new Error('Cannot connect to the Docker daemon') }), /Docker daemon/)
 })
+
+// CO-374: PostgREST or Kong down while the database runs. The watch asked Docker only about the database, read «running»
+// and waited forever; it now reads the three containers Fabric calls, and a database without rest or kong is `partial`,
+// which a try starts (the start then heals a half-up stack, CO-428).
+test('CO-374: the database, rest and kong containers, as the watch reads them', async () => {
+  const { stackContainers } = await import(path.join(SRC, 'stackServices.ts'))
+  const asked = []
+  const docker = (out) => async (args) => { asked.push(args); return out }
+  assert.equal(await stackContainers('fabric', docker('supabase_db_fabric running\nsupabase_rest_fabric running\nsupabase_kong_fabric running\n')), 'running')
+  assert.deepEqual(asked[0], ['ps', '-a', '--filter', 'name=^supabase_(db|rest|kong)_fabric$', '--format', '{{.Names}} {{.State}}'])
+  assert.equal(await stackContainers('fabric', docker('supabase_db_fabric running\nsupabase_kong_fabric running\n')), 'partial', 'rest gone')
+  assert.equal(await stackContainers('fabric', docker('supabase_db_fabric running\nsupabase_rest_fabric exited\nsupabase_kong_fabric running\n')), 'partial', 'rest exited')
+  assert.equal(await stackContainers('fabric', docker('supabase_db_fabric running\nsupabase_rest_fabric running\nsupabase_kong_fabric exited\n')), 'partial', 'kong exited')
+  assert.equal(await stackContainers('fabric', docker('supabase_db_fabric exited\nsupabase_rest_fabric exited\n')), 'stopped')
+  assert.equal(await stackContainers('fabric', docker('')), 'absent')
+  assert.equal(await stackContainers('fabric', docker('supabase_rest_fabric running\n')), 'absent', 'no database container: a stop someone made')
+  await assert.rejects(stackContainers('fabric', async () => { throw new Error('Cannot connect to the Docker daemon') }), /Docker daemon/)
+})

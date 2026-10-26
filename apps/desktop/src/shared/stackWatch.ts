@@ -102,7 +102,9 @@ export type StackHold = 'external' | 'stopped' | 'running'
 
 /** What Docker says of the stack's database container: `stopped` exists and is not running (exited, created, dead),
  *  `absent` does not exist, `unknown` could not be asked (Docker away, no CLI). */
-export type StackContainers = 'running' | 'stopped' | 'absent' | 'unknown'
+/** What Docker says of the stack: `partial` is the database running while rest or kong, which Fabric calls, is not
+ *  (CO-374): a start is the remedy there (it heals a half-up stack, CO-428), not a wait. */
+export type StackContainers = 'running' | 'partial' | 'stopped' | 'absent' | 'unknown'
 
 /** Whether a due try starts the stack, or why it holds (ER-3). Docker away or unasked starts: the launch's start path
  *  waits for Docker first. */
