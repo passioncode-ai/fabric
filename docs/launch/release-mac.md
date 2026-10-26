@@ -323,6 +323,12 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). Step 1's
    Fabric from the Dock 11 seconds after quitting (the system log's `Dock: LAUNCH: Asking CSUI to launch 1
    items`), 0.3.11's start removed the file, and `supabase migration up` applied nothing (schema stayed 95).
    Tell the person before step 1 that the app stays closed until you say so.
+   On a Mac with the lifecycle broker, hold the target before the person quits
+   (`lifecycle.py hold --target-id fabric.desktop`, with the broker service stopped for the edit) and
+   release it after step 4 (`hold --release`): an agent that needs the hub asks the broker to start Fabric
+   (`lifecycle.ensure_running`). Measured 2026-10-26: Fabric quit at 03:57:12Z, an agent's ensure reopened it
+   at 03:58:40Z (the broker's log, caller `local-agents`), and 0.3.11 started the stack again under the
+   rollout.
 2. Make a private backup outside the checkout before any migration. The local stack uses loopback
    database port 54322. The following commands prompt for the existing database password; never
    put it in argv or a tracked file. A prepared private mode-600 PGPASSFILE is also supported by
