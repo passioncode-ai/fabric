@@ -692,3 +692,24 @@ button.lg-node{ cursor: pointer; }
 .hx-detail dt{ color: var(--app-muted); }
 .hx-detail dd{ margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 850px){ .hx-grid.has-detail{ grid-template-columns: 1fr; } }
+/* The 0.3.14 review, iteration 1 (UX-3, UX-4): the agent page's rows have two children, the time and what was done
+   with its task's name, so they take a grid of their own; a task name in a row is a text link, never a filled button. */
+.lh-agent-page .hx-act{grid-template-columns:52px minmax(0,1fr)}
+.lp-link{border:0;background:none;padding:0;min-height:0;color:inherit;font:inherit;font-weight:inherit;text-align:inherit;text-decoration:underline;text-decoration-color:var(--app-line-strong,var(--app-line));text-underline-offset:2px;cursor:pointer}
+.lp-link:hover{background:none;text-decoration-color:currentColor}
+.lp-link:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px;border-radius:2px}
+/* «Задачи» on the agent page: each row opens in place, with the app's chevron that turns, as «Нужны вы» rows do. */
+.ap-tasks>.hx-row>details>summary{list-style:none;cursor:pointer;display:grid;gap:2px;padding:10px 18px;font-size:13px}
+.ap-tasks>.hx-row>details>summary::-webkit-details-marker{display:none}
+.ap-tasks>.hx-row>details>summary>b::after{content:"›";margin-left:var(--space-2);color:var(--app-muted);display:inline-block;transition:transform .15s}
+.ap-tasks>.hx-row>details[open]>summary>b::after{transform:rotate(90deg)}
+.ap-tasks>.hx-row>details>:not(summary){margin:0 18px var(--space-3)}
+.ap-tasks dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--space-1) var(--space-3);font-size:13px}
+.ap-tasks dt{color:var(--app-muted)}
+.ap-tasks dd{margin:0;overflow-wrap:anywhere}
+.ap-history>summary{cursor:pointer;font-size:13px;color:var(--app-muted);margin-bottom:var(--space-2)}
+@media(prefers-reduced-motion:reduce){.ap-tasks>.hx-row>details>summary>b::after{transition:none}}
+/* The Board's cards: the session line under the card, and «Брошено» drawn as the other columns, its note quiet. */
+.lk-card-wrap{display:grid;justify-items:start}
+.lk-session{margin-top:var(--space-1);font-size:11.5px}
+.lk-col.lk-abandoned>.lp-meta{margin:0 0 var(--space-2);font-size:11.5px}

@@ -28,3 +28,19 @@ describe('a project whose tasks could not be read', () => {
     expect(screen.getByText(en['launch.project.way.stale'])).toBeTruthy()
   })
 })
+
+// The 0.3.14 review, iteration 1, UX-9: a project's own glance counts «Брошено» apart, as the home and the Board do.
+describe('a project\'s glance and its abandoned work', () => {
+  it('leaves abandoned work out of «В работе» and says it apart, with the way to the Board', () => {
+    const item = (id: string) => ({ id, summary: `Task ${id}`, at: '2026-10-26T10:00:00Z' })
+    const running = { count: 3, items: [item('r1'), item('r2'), item('gone')] }
+    const p = { ...path, columns: { ...path.columns, running } } as unknown as ProjectPath
+    let boards = 0
+    show(<ProjectBoardGlance path={p} abandoned={[{ taskId: 'gone' }]} onOpenTask={() => {}} onBoard={() => { boards++ }} onNewTask={() => {}} />)
+    const heading = screen.getByRole('heading', { name: new RegExp(`^${en['board.running']}`) })
+    expect(heading.textContent).toContain('2')
+    expect(screen.queryByText('Task gone')).toBeNull()
+    screen.getByRole('button', { name: en['launch.home.work.abandoned'].replace('{count}', '1') }).click()
+    expect(boards).toBe(1)
+  })
+})

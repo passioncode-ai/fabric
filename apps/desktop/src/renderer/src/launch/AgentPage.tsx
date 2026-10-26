@@ -91,9 +91,11 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const when = (iso: string): string => new Date(iso).toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   const statusOf = (s: string): string =>
     s === 'cancelled' ? t('launch.project.cancelled') : BOARD_STATUS.has(s) ? t(`board.${s}` as 'board.done') : s === 'unknown' ? t('agentPage.statusUnknown') : s
+  // The 0.3.14 review, iteration 1, UX-8: each ending in words of its own (an ending the agent did not cause is not
+  // said as its own), and an ending code this build does not know is said as not recorded, never shown raw.
   const endedOf = (x: SessionTask): string =>
     x.releasedAt
-      ? t('agentPage.taskEnded', { time: when(x.releasedAt), how: x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? t(`agentPage.how.${x.releasedHow}` as 'agentPage.how.done') : (x.releasedHow ?? '') })
+      ? t(x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? (`agentPage.ended.${x.releasedHow}` as 'agentPage.ended.done') : 'agentPage.ended.unknown', { time: when(x.releasedAt) })
       : x.via === 'claim' ? t('agentPage.taskHeld') : ''
   /** A history row's task: its name from the tasks read, else the event's own title, else the word «Задача». */
   const historyTask = (e: FeedEvent): React.ReactNode => {
@@ -196,8 +198,10 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
               ))}
             </ul>
           )}
+          {/* UX-4: the heading stands outside the disclosure, which names what it opens. */}
+          <h4 id="agent-page-history">{t('agentPage.did')}</h4>
           <details className="ap-history">
-            <summary><h4>{t('agentPage.did')}</h4></summary>
+            <summary>{t('agentPage.historyOpen')}</summary>
             <p className="lp-meta">{t('agentPage.historyLede')}</p>
             {newest.length === 0 ? <p className="lp-meta">{t('agents.noHistory')}</p> : (
               <ul className="hx-list" aria-label={t('agentPage.did')}>

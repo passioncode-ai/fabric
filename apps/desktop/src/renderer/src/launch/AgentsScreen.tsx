@@ -120,9 +120,14 @@ function asLive(r: RosterRow): LiveAgent | null {
   }
 }
 
-export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null }: {
+export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick }: {
   /** The session to open on arrival (0.3.14: a board card's «Сессия …»), as if the person had picked it. */
   initialSession?: string | null
+  /** The roster row the person picked last, kept in the route so the way back from a task reopens it (the 0.3.14
+   *  review, iteration 1, UX-2). */
+  initialAgent?: string | null
+  /** Tells the shell which row the person picked, so it keeps it in the route. */
+  onPick?(key: string): void
   /** Moves with the journal's work, task, agent and session events. */
   mark: number
   /** Moves with the journal's act and access events: «Отключить» or its undo, anywhere. */
@@ -145,7 +150,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
   const showConsole = useOpenConsole()
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
-  const [selected, setSelected] = useState<string | null>(initialSession ? `session:${initialSession}` : null)
+  const arrivedFor = initialAgent ?? (initialSession ? `session:${initialSession}` : null)
+  const [selected, setSelected] = useState<string | null>(arrivedFor)
   const [tab, setTab] = useState<'work' | 'console'>('work')
 
   const roster = composeRoster({
@@ -172,19 +178,27 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
     picked.current = key
     setSelected(key)
     setTab('work')
+    onPick?.(key)
   }
-  // Arriving for an agent (a board card's «Сессия …») picks it, and the page takes focus as on the person's own pick.
+  // Arriving for an agent (a board card's «Сессия …», or the way back to the one picked last) picks it, and the page
+  // takes focus as on the person's own pick. The 0.3.14 review, iteration 1, UX-7: the mark is kept until the agent's
+  // row is read and its page drawn, so an arrival before the roster is read still moves focus to the page.
   useEffect(() => {
-    if (!initialSession) return
-    picked.current = `session:${initialSession}`
-    setSelected(`session:${initialSession}`)
+    if (!arrivedFor || arrivedFor === selected) {
+      if (arrivedFor && picked.current === null && !chosen) picked.current = arrivedFor
+      return
+    }
+    picked.current = arrivedFor
+    setSelected(arrivedFor)
     setTab('work')
-  }, [initialSession])
+    // `selected` and `chosen` are read, not followed: only a new arrival picks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arrivedFor])
   useEffect(() => {
-    if (picked.current === null || picked.current !== selected) return
+    if (picked.current === null || !chosen || picked.current !== chosen.key) return
     picked.current = null
     focusPage()
-  }, [selected])
+  }, [chosen?.key])
 
   const openAsTab = (sessionId: string): void => {
     setConsoleProblem(null)

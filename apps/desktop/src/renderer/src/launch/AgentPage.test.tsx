@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
+import { ru } from '../i18n/ru'
 import { AgentPage } from './AgentPage'
 import { AgentsAtWork } from './HomeWork'
 import type { HomeView, LiveAgent } from '../../../shared/homeLive'
@@ -142,7 +143,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(rows[0].textContent).toContain('Task t2')
     expect(rows[0].textContent).toContain(en['board.review'])
     expect(rows[1].textContent).toContain(en['launch.home.work.untitled'])
-    expect(rows[1].textContent).toContain(en['agentPage.how.done'])
+    expect(rows[1].textContent).toContain(en['agentPage.ended.done'].replace(' {time}', ''))
     const first = rows[0].querySelector('details')!
     expect(first.open).toBe(false)
     fireEvent.click(first.querySelector('summary')!)
@@ -153,6 +154,32 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const history = (await screen.findByRole('list', { name: en['agentPage.did'] })).closest('details')!
     expect(history.open).toBe(false)
     expect(list.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  // The 0.3.14 review, iteration 1: UX-8, each ending in words of its own and an unknown one said as not recorded, in
+  // Russian too; UX-4, the history's heading stands outside its disclosure.
+  it('UX-8: an ending is said by how it ended, never «Закончил» for one the agent did not cause; an unknown ending is not shown raw', async () => {
+    const ended = (how: string) => task('t' + how.length, { releasedAt: '2026-10-26T11:00:00Z', releasedHow: how })
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [ended('operator'), ended('lapsed'), ended('weird-how'), task('l1', { via: 'launch', claims: 0 })], capped: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
+    render(<I18nProvider locale="ru"><AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} /></I18nProvider>)
+    const list = await screen.findByRole('list', { name: ru['agentPage.tasks'] })
+    const text = list.textContent ?? ''
+    expect(text).toContain(ru['agentPage.ended.operator']!.replace(' {time}', ''))
+    expect(text).toContain(ru['agentPage.ended.lapsed']!.replace(' {time}', ''))
+    expect(text).toContain('как именно, не записано')
+    expect(text).not.toContain('weird-how')
+    expect(text).not.toContain('Закончил ')
+    expect(text).toContain('Запущена через Fabric')
+  })
+
+  it('UX-4: the history\'s heading stands outside its disclosure, which says what it opens', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: vi.fn(async () => ({ tasks: [], capped: false })) }, terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1')]) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    const history = (await screen.findByRole('list', { name: en['agentPage.did'] })).closest('details')!
+    expect(history.querySelector('summary h4')).toBeNull()
+    expect(history.querySelector('summary')!.textContent).toBe(en['agentPage.historyOpen'])
+    expect(screen.getByRole('heading', { name: en['agentPage.did'] }).closest('details')).toBeNull()
   })
 
   it('says its tasks are being read, that it has none, or that they could not be read with a retry', async () => {

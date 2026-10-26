@@ -1232,6 +1232,13 @@ function Shell({
           // until read (M108): the screen says it is reading, never that nobody works.
           <AgentsScreen mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
             initialSession={active.session ?? null}
+            initialAgent={active.agent ?? null}
+            onPick={(agent) => {
+              // Replaces this place in the way back rather than adding a step, as the Board's tabs do: the way back
+              // from a task opened on the agent's page returns to that agent (the 0.3.14 review, iteration 1, UX-2).
+              travelling.current = true
+              setActive({ kind: 'agents', agent })
+            }}
             sessions={sessions} projects={projects} onOpenProject={openProject}
             onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
             onCreate={() => goTo({ kind: 'start', path: 'agent' })} />

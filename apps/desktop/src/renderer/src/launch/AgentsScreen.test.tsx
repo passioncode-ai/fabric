@@ -288,3 +288,32 @@ describe('arriving for one agent (0.3.14)', () => {
     expect(page.textContent).toContain('Keep the computer awake')
   })
 })
+
+// The 0.3.14 review, iteration 1: UX-2, the agent picked is kept in the route, so the way back from its task reopens it;
+// UX-7, an arrival before the roster is read still moves focus to the agent's page once it is drawn.
+describe('the chosen agent across a task and back (review, iteration 1)', () => {
+  it('UX-2: a pick is told to the shell, and arriving with it reopens that agent', async () => {
+    stub()
+    const onPick = vi.fn()
+    render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} onPick={onPick} /></I18nProvider>)
+    const row = await screen.findByRole('button', { name: /Codex/ })
+    fireEvent.click(row)
+    expect(onPick).toHaveBeenCalledWith('session:s2')
+    cleanup()
+    stub()
+    render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} initialAgent="session:s2" /></I18nProvider>)
+    const page = await screen.findByTestId('agent-page')
+    expect(page.textContent).toContain('Writing the copy')
+  })
+
+  it('UX-7: arriving for an agent whose row is read after the screen mounts moves focus to its page', async () => {
+    let answer: (v: HomeView) => void = () => {}
+    const api = stub({ home: () => new Promise<HomeView>((resolve) => { answer = resolve }) })
+    render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} initialSession="s1" /></I18nProvider>)
+    await waitFor(() => expect(api.work.home).toHaveBeenCalled())
+    expect(screen.queryByTestId('agent-page')).toBeNull()
+    answer({ live: [working, joinedLive], inWork: [], review: [], done: [], projects: [], readAt: now } as HomeView)
+    await screen.findByTestId('agent-page')
+    await waitFor(() => expect(document.activeElement?.id).toBe('agent-page-title'))
+  })
+})

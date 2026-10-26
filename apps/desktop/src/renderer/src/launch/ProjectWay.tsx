@@ -73,7 +73,10 @@ export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = n
 }
 
 /** The project's board at a glance: the four columns with their counts and their first cards. */
-export function ProjectBoardGlance({ path, doneFloor = false, problem = null, onOpenTask, onBoard, onNewTask }: {
+export function ProjectBoardGlance({ path, doneFloor = false, problem = null, abandoned = null, onOpenTask, onBoard, onNewTask }: {
+  /** This project's abandoned work (`work.home`'s «Брошено»), counted apart from «В работе» as the home and the Board
+   *  count it (the 0.3.14 review, iteration 1, UX-9); null when not read. */
+  abandoned?: ReadonlyArray<{ taskId: string }> | null
   /** The tasks read failed (i3 UX-1): said, never an endless «Reading…». */
   problem?: string | null
   path: ProjectPath | null
@@ -86,6 +89,12 @@ export function ProjectBoardGlance({ path, doneFloor = false, problem = null, on
 }): React.JSX.Element {
   const t = useT()
   const cols = ['backlog', 'running', 'review', 'done'] as const
+  const dropped = new Set((abandoned ?? []).map((a) => a.taskId))
+  // «В работе» without the abandoned work, which is said apart under it with the way to the Board (UX-9).
+  const columnOf = (c: (typeof cols)[number]): { count: number; items: ProjectPath['columns']['running']['items'] } =>
+    c === 'running' && path && dropped.size
+      ? { count: Math.max(0, path.columns.running.count - dropped.size), items: path.columns.running.items.filter((i) => !dropped.has(i.id)) }
+      : path ? path.columns[c] : { count: 0, items: [] }
   return (
     <section className="lp-panel lp-glance" aria-labelledby="project-board-glance-title">
       <div className="lp-panel-head">
@@ -100,17 +109,23 @@ export function ProjectBoardGlance({ path, doneFloor = false, problem = null, on
         problem ? null : <p className="lp-meta">{t('estate.reading')}</p>
       ) : (
         <div className="lp-glance-columns">
-          {cols.map((c) => (
-            <div key={c} className="lp-glance-column">
-              <h4>{t(`board.${c}` as 'board.done')} <span className="lp-count">{path.columns[c].count}{c === 'done' && doneFloor ? '+' : ''}</span></h4>
-              {path.columns[c].items.map((i) => (
-                <button key={i.id} type="button" className="lp-button lp-glance-card" onClick={() => onOpenTask(i.id)}>{i.summary || t('launch.home.work.untitled')}</button>
-              ))}
-              {(path.columns[c].count > path.columns[c].items.length || (c === 'done' && doneFloor)) && (
-                <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{c === 'done' && doneFloor ? t('launch.project.glance.all') : t('launch.home.agents.more', { count: path.columns[c].count - path.columns[c].items.length })}</button>
-              )}
-            </div>
-          ))}
+          {cols.map((c) => {
+            const col = columnOf(c)
+            return (
+              <div key={c} className="lp-glance-column">
+                <h4>{t(`board.${c}` as 'board.done')} <span className="lp-count">{col.count}{c === 'done' && doneFloor ? '+' : ''}</span></h4>
+                {col.items.map((i) => (
+                  <button key={i.id} type="button" className="lp-button lp-glance-card" onClick={() => onOpenTask(i.id)}>{i.summary || t('launch.home.work.untitled')}</button>
+                ))}
+                {(col.count > col.items.length || (c === 'done' && doneFloor)) && (
+                  <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{c === 'done' && doneFloor ? t('launch.project.glance.all') : t('launch.home.agents.more', { count: col.count - col.items.length })}</button>
+                )}
+                {c === 'running' && dropped.size > 0 && (
+                  <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.work.abandoned', { count: dropped.size })}</button>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </section>

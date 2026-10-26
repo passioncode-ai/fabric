@@ -160,7 +160,7 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
             )}
           </section>
 
-          <ProjectBoardGlance path={path} problem={tasksProblem} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
+          <ProjectBoardGlance path={path} problem={tasksProblem} abandoned={home.view ? (home.view.abandoned ?? []).filter((w) => w.projectId === project.id) : null} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
         </div>
 
         <aside className="lp-side">

@@ -6,6 +6,10 @@
 // 0.3.14 (the operator, 2026-10-26): a card in work names its session and opens its agent; work with no live claim and
 // no live session is «Брошено», a column of its own after «В работе» and not counted there (the home counts the same
 // set, `shared/homeLive.ts`); «Готово» reads 20 more at a time when its page was cut.
+//
+// The 0.3.14 review, iteration 1: a «Брошено» card names its session as text, not a link (UX-1: its session is the one
+// Fabric no longer holds, so Агенты has no page for it; the card itself opens the task); the session link's name starts
+// with the words it shows (UX-6); «Показать ещё» says it reads and stops at the main process's bound of 500 (UX-5).
 import { useEffect, useState } from 'react'
 import type { BoardCard, BoardStage, TaskBoardView } from '../../../shared/taskBoard'
 import type { BoardFilters } from '../../../shared/types'
@@ -20,6 +24,8 @@ const HEAD: Record<BoardStage, 'launch.kanban.backlog' | 'launch.kanban.running'
 
 /** How many finished tasks «Готово» reads at a time. */
 const DONE_PAGE = 20
+/** The most «Готово» reads: the main process's own bound (`main/index.ts`, `work:board`). */
+export const DONE_MAX = 500
 
 export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remembered, onRemember }: {
   /** Re-read on the journal's clock. */
@@ -42,6 +48,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
   const [agent, setAgent] = useState<string>(remembered?.agent ?? '')
   const [showCancelled, setShowCancelled] = useState<boolean>(remembered?.cancelled ?? false)
   const [doneLimit, setDoneLimit] = useState(DONE_PAGE)
+  /** The «Готово» limit the board on screen was read with: while it differs, the next page is being read (UX-5). */
+  const [readLimit, setReadLimit] = useState(DONE_PAGE)
   const remember = (next: { project?: string; agent?: string; cancelled?: boolean }): void => {
     const p = next.project ?? project, a = next.agent ?? agent, c = next.cancelled ?? showCancelled
     onRemember?.({ project: projectId ? (remembered?.project ?? null) : (p || null), agent: a || null, cancelled: c })
@@ -51,8 +59,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
     // A throw before the promise (a bridge that is not there) is said as a failed read, never a blank board.
     try {
       void (doneLimit > DONE_PAGE ? window.fabric.work.board(projectId, doneLimit) : window.fabric.work.board(projectId)).then(
-        (v) => { if (alive) { setView(v); setProblem(null) } },
-        (e: unknown) => { if (alive) setProblem(e instanceof Error ? e.message : String(e)) }
+        (v) => { if (alive) { setView(v); setProblem(null); setReadLimit(doneLimit) } },
+        (e: unknown) => { if (alive) { setProblem(e instanceof Error ? e.message : String(e)); setReadLimit(doneLimit) } }
       )
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e))
@@ -137,15 +145,20 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                         {/* ADR-0176 §1 (SCN-176): a queued or running task whose brief lacks a part says so on its card. */}
                         {x.specMissing && <span className="lp-pill attention">{t('launch.kanban.specMissing')}</span>}
                       </button>
-                      {short && x.sessionId && (onAgent
+                      {short && x.sessionId && (c.key === 'abandoned'
+                        ? <small className="lp-meta lk-session">{t('launch.kanban.sessionGone', { id: short })}</small>
+                        : onAgent
                         ? <button type="button" className="lp-button lh-text-link lk-session" aria-label={t('launch.kanban.openAgent', { id: short })} onClick={() => onAgent(x.sessionId!)}>{t('launch.kanban.session', { id: short })}</button>
                         : <small className="lp-meta lk-session">{t('launch.kanban.session', { id: short })}</small>)}
                     </div>
                   )
                 })}
-                {c.key === 'done' && c.capped && !c.unread && (
-                  <button type="button" className="lp-button lh-text-link" onClick={() => setDoneLimit((n) => n + DONE_PAGE)}>{t('launch.kanban.more', { count: DONE_PAGE })}</button>
+                {c.key === 'done' && c.capped && !c.unread && doneLimit < DONE_MAX && (
+                  <button type="button" className="lp-button lh-text-link" disabled={readLimit !== doneLimit} aria-busy={readLimit !== doneLimit}
+                    onClick={() => setDoneLimit((n) => Math.min(DONE_MAX, n + DONE_PAGE))}>{t('launch.kanban.more', { count: DONE_PAGE })}</button>
                 )}
+                {c.key === 'done' && readLimit !== doneLimit && <p className="lp-meta" role="status">{t('launch.kanban.moreReading')}</p>}
+                {c.key === 'done' && c.capped && !c.unread && doneLimit >= DONE_MAX && readLimit === doneLimit && <p className="lp-meta">{t('launch.kanban.doneBound', { count: DONE_MAX })}</p>}
               </section>
             )
           })}

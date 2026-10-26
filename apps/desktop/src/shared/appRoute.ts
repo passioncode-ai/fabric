@@ -68,8 +68,10 @@ export type BoardTab = 'open' | 'review' | 'later' | 'done' | 'all'
  */
 export type AppRoute =
   | Tab
-  /** `session`: the agent to open on arrival (0.3.14, a board card's «Сессия …»); without it nothing is chosen. */
-  | { kind: 'agents'; session?: string }
+  /** `session`: the agent to open on arrival (0.3.14, a board card's «Сессия …»); without it nothing is chosen.
+   *  `agent`: the roster row the person picked, so the way back from a task reopens it (the 0.3.14 review, iteration 1,
+   *  UX-2). The renderer's alone. */
+  | { kind: 'agents'; session?: string; agent?: string }
   /** SCR-88 История (SCN-168, 0.3.7 wave 3): every act with its undo. A place on the rail, not a tab. */
   | { kind: 'history' }
   /** SCR-78 «Where work is» (SCN-141): the manager's view of every claim, session and review queue. A place, not a tab. */

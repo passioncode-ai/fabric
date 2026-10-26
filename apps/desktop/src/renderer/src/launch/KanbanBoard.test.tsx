@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
+import { ru } from '../i18n/ru'
 import { KanbanBoard } from './KanbanBoard'
 import type { TaskBoardView } from '../../../shared/taskBoard'
 
@@ -191,5 +192,50 @@ describe('the board\'s agents, abandoned work and finished pages (0.3.14)', () =
     fireEvent.click(more)
     const read = (window as unknown as { fabric: { work: { board: ReturnType<typeof vi.fn> } } }).fabric.work.board
     await waitFor(() => expect(read).toHaveBeenLastCalledWith(null, 40))
+  })
+
+  // The 0.3.14 review, iteration 1: UX-1, UX-5, UX-6.
+  it('UX-1: an abandoned card names its session as gone, with no link to an agent page that has no agent', async () => {
+    const gone = { ...withWork, abandoned: [{ ...withWork.abandoned![0], sessionId: '9f8e7d6c-1111-4222-8333-444444444444' }] }
+    install(async () => gone)
+    const onOpen = vi.fn(), onAgent = vi.fn()
+    show({ onOpen, onAgent })
+    const line = await screen.findByText(en['launch.kanban.sessionGone'].replace('{id}', '9f8e7d6c'))
+    expect(line.tagName).not.toBe('BUTTON')
+    expect(screen.queryByRole('button', { name: en['launch.kanban.openAgent'].replace('{id}', '9f8e7d6c') })).toBeNull()
+    fireEvent.click(screen.getByText('Left behind'))
+    expect(onOpen).toHaveBeenCalledWith('p1', 'a1')
+  })
+
+  it('UX-6: the session link\'s accessible name starts with what it shows, in Russian too', async () => {
+    install(async () => withWork)
+    render(<I18nProvider locale="ru"><KanbanBoard feedMark={0} onOpen={vi.fn()} onAgent={vi.fn()} /></I18nProvider>)
+    const visible = ru['launch.kanban.session']!.replace('{id}', '0a1b2c3d')
+    const link = await screen.findByText(visible)
+    expect(link.getAttribute('aria-label')?.startsWith(visible)).toBe(true)
+  })
+
+  it('UX-5: «Show more» says it reads while it reads, and stops at the bound of 500 with a sentence', async () => {
+    let answer: (v: TaskBoardView) => void = () => {}
+    const reads: number[] = []
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { board: vi.fn((_p: unknown, limit?: number) => {
+      reads.push(limit ?? 20)
+      return reads.length === 1 ? Promise.resolve(withWork) : new Promise<TaskBoardView>((resolve) => { answer = resolve })
+    }) } } }))
+    show()
+    const more = await screen.findByRole('button', { name: en['launch.kanban.more'].replace('{count}', '20') })
+    fireEvent.click(more)
+    await screen.findByText(en['launch.kanban.moreReading'])
+    expect((more as HTMLButtonElement).disabled).toBe(true)
+    answer(withWork)
+    await waitFor(() => expect(screen.queryByText(en['launch.kanban.moreReading'])).toBeNull())
+    for (let n = 40; n < 500; n += 20) {
+      fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.more'].replace('{count}', '20') }))
+      answer(withWork)
+      await waitFor(() => expect(screen.queryByText(en['launch.kanban.moreReading'])).toBeNull())
+    }
+    expect(reads.at(-1)).toBe(500)
+    expect(screen.queryByRole('button', { name: en['launch.kanban.more'].replace('{count}', '20') })).toBeNull()
+    expect(screen.getByText(en['launch.kanban.doneBound'].replace('{count}', '500'))).toBeTruthy()
   })
 })
