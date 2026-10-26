@@ -294,7 +294,8 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
     tasks('review', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
     tasks('running', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at,session_id').limit(200),
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
-    tasks('review', 'project_id').limit(5000),
+    // 0.3.14, the simple Fabric: with when each was put there, for the strip's «N дольше 3 дней».
+    tasks('review', 'project_id,moved_at').limit(5000),
     // The newest finished tasks for «Закончили» (the operator's walk OF-18).
     tasks('done', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(DONE)
   ])
@@ -305,7 +306,10 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   // «Закончили» is one lane: its read failing is said there, and the rest of the home still reads (0.3.11 review ER-7).
   const finishedError = (finished as { error?: { message?: string } | null }).error
   const doneRows = finishedError ? [] : ((finished as { data: unknown }).data as Array<TaskBrief & { moved_at: string | null }> ?? []).map((t) => ({ ...t, updated_at: t.moved_at }))
-  const reviewProjectIds = (must(reviewIds as never, 'the review counts') as Array<{ project_id: string }>).map((r) => r.project_id)
+  const reviewAll = must(reviewIds as never, 'the review counts') as Array<{ project_id: string; moved_at?: string | null }>
+  const reviewProjectIds = reviewAll.map((r) => r.project_id)
+  const OLD_REVIEW_MS = 3 * 24 * 3600_000
+  const reviewOld = reviewAll.filter((r) => { const at = r.moved_at ? Date.parse(r.moved_at) : NaN; return Number.isFinite(at) && opts.now - at > OLD_REVIEW_MS }).length
   // CO-307: each project's newest journal event from `project_activity` (migration 124), one index probe per project,
   // instead of the estate's newest 3 000 events, past which a quiet project had no «Тихо уже».
   const lastActive = await store.selectIn('project_activity', 'project_id,last_occurred_at', 'project_id', projectRows.map((p) => p.id))
@@ -319,7 +323,7 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   // CO-310: every read here that stopped at its limit is named, so «nobody» past it is never read as a fact.
   const capped = [...new Set([...(where.capped ?? []), ...(projectRows.length >= 500 ? ['projects' as const] : []), ...(stageRows.length >= 500 ? ['stages' as const] : [])])]
   const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: DONE }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
-  const read = capped.length ? { ...home, capped } : home
+  const read = { ...(capped.length ? { ...home, capped } : home), reviewOld }
   return finishedError ? { ...read, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : read
 }
 

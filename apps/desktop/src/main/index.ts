@@ -74,6 +74,7 @@ import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createBranchReader, withBranches } from './agentBranches.ts'
+import { readHandedInToday, withStrip } from './homeStrip.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
@@ -5176,7 +5177,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
-    return withBranches(await readHome(store, { now: Date.now(), session: sessionSignOf, sessions: held }), held, agentBranchReader)
+    const now = Date.now()
+    const view = await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader)
+    // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
+    return withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
   })
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {

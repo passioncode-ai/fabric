@@ -137,8 +137,6 @@ describe('home: who is doing what', () => {
       <HomeWorkLanes reading={stale} onOpen={() => {}} onSession={() => {}} />
     </>)
     expect(screen.getByText('nobody signing')).toBeTruthy()
-    // One "in work" number on the screen: the strip counts what the lane lists, the silent claim included (release review i2 DO-3).
-    expect(screen.getByText('tasks in work').previousSibling?.textContent).toBe('1')
     expect(screen.getByRole('heading', { name: /In work/ }).textContent).toContain('1')
     expect(screen.getByText('to review').previousSibling?.textContent).toBe('1+')
     cleanup()
@@ -236,5 +234,55 @@ describe('home: abandoned work (0.3.14)', () => {
     expect(screen.queryByText('Left behind')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: en['launch.home.work.abandoned'].replace('{count}', '1') }))
     expect(onBoard).toHaveBeenCalled()
+  })
+})
+
+describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => {
+  const strip = (v: Partial<HomeView>, extra: Partial<React.ComponentProps<typeof HomeStats>> = {}) => {
+    const props = { onAgents: vi.fn(), onBoard: vi.fn(), onWaiting: vi.fn(), onReview: vi.fn(), onAbandoned: vi.fn(), onUnclaimed: vi.fn(), ...extra }
+    show(<HomeStats reading={{ view: { ...view, ...v }, problem: null }} waiting={2} toReview={23} {...props} />)
+    return props
+  }
+  const cell = (label: string) => screen.getByText(label).closest('button') as HTMLButtonElement
+
+  it('shows the six numbers with their sources, the old part of review beside its count', () => {
+    strip({ handedIn: { today: 7, capped: false }, reviewOld: 9, abandoned: [view.inWork[0], view.inWork[0], view.inWork[0]], unclaimed: 1 })
+    expect(cell('agents working').querySelector('b')?.textContent).toBe('1')
+    expect(cell('handed in today').querySelector('b')?.textContent).toBe('7')
+    expect(cell('need you').querySelector('b')?.textContent).toBe('2')
+    expect(cell('to review').querySelector('b')?.textContent).toBe('23')
+    expect(cell('to review').textContent).toContain('9 older than 3 days')
+    expect(cell('abandoned').querySelector('b')?.textContent).toBe('3')
+    expect(cell('working without a task').querySelector('b')?.textContent).toBe('1')
+    expect(screen.queryByText('tasks in work')).toBeNull()
+  })
+
+  it('opens where each number is counted', () => {
+    const p = strip({ handedIn: { today: 7, capped: true }, abandoned: [], unclaimed: 0 })
+    expect(cell('handed in today').querySelector('b')?.textContent).toBe('7+')
+    fireEvent.click(cell('agents working')); expect(p.onAgents).toHaveBeenCalled()
+    fireEvent.click(cell('handed in today')); expect(p.onReview).toHaveBeenCalledTimes(1)
+    fireEvent.click(cell('need you')); expect(p.onWaiting).toHaveBeenCalled()
+    fireEvent.click(cell('to review')); expect(p.onReview).toHaveBeenCalledTimes(2)
+    fireEvent.click(cell('abandoned')); expect(p.onAbandoned).toHaveBeenCalled()
+    fireEvent.click(cell('working without a task')); expect(p.onUnclaimed).toHaveBeenCalled()
+  })
+
+  it('says an unread number as unread with its reason, never as zero', () => {
+    strip({ handedIn: { unread: 'database away' }, unclaimed: null, abandoned: undefined })
+    expect(cell('handed in today').querySelector('b')?.textContent).toBe('—')
+    expect(cell('handed in today').getAttribute('title')).toBe('Not read: database away')
+    expect(cell('working without a task').querySelector('b')?.textContent).toBe('—')
+    expect(cell('working without a task').getAttribute('title')).toBe(en['launch.home.stats.unclaimedUnknown'])
+    expect(cell('abandoned').querySelector('b')?.textContent).toBe('—')
+    cleanup()
+    show(<HomeStats reading={{ view: { ...view, handedIn: { today: 3, capped: false }, unclaimed: 2 }, problem: 'gone' }} waiting={null} onAgents={() => {}} onBoard={() => {}} />)
+    for (const label of ['agents working', 'handed in today', 'need you', 'abandoned', 'working without a task']) expect(cell(label).querySelector('b')?.textContent).toBe('—')
+  })
+
+  it('speaks Russian in Russian', () => {
+    render(<I18nProvider locale="ru"><HomeStats reading={{ view: { ...view, reviewOld: 9 }, problem: null }} waiting={2} toReview={23} onAgents={() => {}} onBoard={() => {}} /></I18nProvider>)
+    for (const label of [ru['launch.home.stats.working'], ru['launch.home.stats.handedIn'], ru['launch.home.stats.waiting'], ru['launch.home.stats.review'], ru['launch.home.stats.abandoned'], ru['launch.home.stats.unclaimed']]) expect(screen.getByText(label!)).toBeTruthy()
+    expect(screen.getByText('9 дольше 3 дней')).toBeTruthy()
   })
 })

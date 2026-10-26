@@ -872,6 +872,20 @@ test('work-unclaimed is the agent\'s reminder, not the operator\'s queue: curren
   assert.deepEqual(sweep.current().findings.map((f) => f.kind), ['task-unclaimed'])
 })
 
+test('0.3.14, the simple Fabric: current() counts the sessions working without a task for the home, and says unknown when it could not see them', async () => {
+  const w = world({ turns: [...changing('s-free'), ...changing('s-free-2')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(sweep.current().unclaimed, 2, 'two sessions change files and hold no claim')
+  assert.deepEqual(sweep.current().findings.filter((f) => f.kind === 'work-unclaimed'), [], 'still not in the operator\'s queue')
+  for (const over of [{ fail: new Set(['turns']) }, { fail: new Set(['claims']) }, { claimsCapped: true }]) {
+    const blindWorld = world({ turns: changing('s-free'), ...over })
+    const blindSweep = createAbandonedSweep(blindWorld.deps)
+    await sweepOnce(blindSweep)
+    assert.equal(blindSweep.current().unclaimed, null, `unknown, never 0, when ${JSON.stringify(Object.keys(over))} kept it from seeing`)
+  }
+})
+
 test('readRecentTurns: the turns of the last 15 minutes, newest first and bounded, by the database\'s time', async () => {
   const calls = []
   const rows = [

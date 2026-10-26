@@ -119,6 +119,13 @@ export interface HomeView {
   capped?: Array<'claims' | 'leases' | 'projects' | 'stages'>
   projects: ProjectPulse[]
   readAt: string
+  /** 0.3.14, the simple Fabric: the tasks in review moved there more than three days ago (all of them, not only the newest
+   *  50 the list holds); absent from an older reader. */
+  reviewOld?: number
+  /** «Сдано сегодня» (`main/homeStrip.ts`): the count, or why it could not be read. Absent from an older reader. */
+  handedIn?: { today: number; capped: boolean } | { unread: string }
+  /** «Работают без задачи»: the latest sweep's sessions changing files with no claim; null while it is not known. */
+  unclaimed?: number | null
 }
 
 const clean = (s: string | null | undefined): string | null => {

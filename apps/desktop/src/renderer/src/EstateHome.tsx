@@ -9,7 +9,7 @@ import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../s
 import { dayPart, resumePoint } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
 import { HomeBoard, HomeLive, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
-import { HomeAgents, HomeStats, HomeWorkLanes, useHome } from './launch/HomeWork'
+import { HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './launch/HomeWork'
 import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
 import { orderProjects } from '../../shared/homeLive.ts'
 import { since } from './duration'
@@ -53,8 +53,11 @@ export function EstateHome({
   waitingForYou,
   waitingProblem = null,
   toReview,
-  onReview
+  onReview,
+  reading
 }: {
+  /** Who works (`work.home`), read once by the shell for the left column and this page (0.3.14); absent, the page reads its own. */
+  reading?: HomeReading
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
    *  estate holds no projects" — and saying it before looking is the one lie a
    *  product built on claim-versus-measurement cannot afford on its first
@@ -195,7 +198,8 @@ export function EstateHome({
   /** Who is doing what (operator request 2026-10-14): one reading for the counts, the board's work lanes, the live
    *  agents and each project's «сейчас». It follows the families that change it — claims, tasks, stage reports and
    *  sessions — and its own 15 s tick for silence. */
-  const home = useHome(markOf(marks, ['work', 'task', 'agent', 'session']))
+  const ownHome = useHome(markOf(marks, ['work', 'task', 'agent', 'session']), reading === undefined)
+  const home = reading ?? ownHome
   const pulse = new Map((home.view?.projects ?? []).map((p) => [p.projectId, p]))
   useEffect(() => {
     // THE SAME call the CEO panel makes, grouped here rather than counted by a
@@ -509,8 +513,9 @@ export function EstateHome({
         </p>
       )}
 
-      <div className="lh-top">
-        <header className="lh-overview">
+      <div className="lh-top lh-top-stack">
+        {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, then the six numbers. */}
+        <header className="lh-overview lh-overview-two">
           <div className="lh-identity">
             <FabricAvatar size="small" label={t('launch.avatar.label')} />
             <div>
@@ -525,10 +530,14 @@ export function EstateHome({
             </div>
           </div>
           <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
+        </header>
+        {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
+        <div className="lh-strip">
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
-            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview} />
-        </header>
+            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
+            onAbandoned={onBoard} onUnclaimed={onAgents} />
+        </div>
       </div>
 
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}

@@ -63,31 +63,51 @@ export function useHome(mark: number, enabled = true): HomeReading {
   return { ...reading, retry: () => setTick((n) => n + 1) }
 }
 
-/** The counts above the board: agents working now, tasks in work, waiting for you, in review. `toReview`, when given, is
- *  what the Board's «На проверке» lists (reviews, proposals, abandoned work; null while unknown) and the cell opens that
- *  tab (0.3.12 review, iteration 3, UX-2); absent, the cell counts the tasks in review from this reading. */
-export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWaiting, onReview }: { reading: HomeReading; waiting: number | null; toReview?: number | null; onAgents(): void; onBoard(): void; onWaiting?(): void; onReview?(): void }): React.JSX.Element {
+/** The home's statistics strip (0.3.14, the simple Fabric, docs/ux/2026-10-26-simple-fabric.md §2a): six numbers, each
+ *  opening where it is counted. Agents working now (`live` without `stale`); tasks handed in today (`handedIn`, read in
+ *  main from the journal since the local midnight); what waits for the person (the shell's count); in review, with how
+ *  many waited longer than three days (`reviewOld`); abandoned work (`abandoned`); sessions working without a task (the
+ *  sweep's `unclaimed`). A number not read shows «—» with its reason on hover, never 0; after a failed read the view's
+ *  numbers are the last reading's and are not shown as current (0.3.6 review ER-7). `toReview`, when given, is what the
+ *  Board's «На проверке» lists (0.3.12 review, iteration 3, UX-2). */
+export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWaiting, onReview, onAbandoned, onUnclaimed }: {
+  reading: HomeReading
+  waiting: number | null
+  toReview?: number | null
+  onAgents(): void
+  onBoard(): void
+  onWaiting?(): void
+  onReview?(): void
+  onAbandoned?(): void
+  onUnclaimed?(): void
+}): React.JSX.Element {
   const t = useT()
   const v = reading.view
-  // After a failed read the last numbers are not current: the strip says it cannot tell (0.3.6 review ER-7).
   const known = v && !reading.problem ? v : null
+  const unreadWhy = reading.problem ? t('launch.home.work.unreadable') : undefined
   const working = known ? known.live.filter((l) => !l.stale).length : null
-  // The same number the «В работе» lane heads with: a claim nobody is signing for is still in work, and says so there.
-  const inWork = known ? known.inWork.length : null
-  const cell = (n: number | string | null, label: string, onClick: () => void, tone = '') => (
-    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={reading.problem ? t('launch.home.work.unreadable') : undefined}>
+  const handed = known?.handedIn
+  const handedN = handed && 'today' in handed ? `${handed.today}${handed.capped ? '+' : ''}` : null
+  const handedWhy = unreadWhy ?? (handed && 'unread' in handed ? t('launch.home.stats.unread', { reason: handed.unread }) : handed ? undefined : t('launch.home.stats.unreadOld'))
+  const reviewN = toReview !== undefined ? toReview : known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null
+  const abandoned = known?.abandoned ? known.abandoned.length : null
+  const unclaimed = known && typeof known.unclaimed === 'number' ? known.unclaimed : null
+  const cell = (n: number | string | null, label: string, onClick: () => void, tone = '', why?: string, sub?: string | null) => (
+    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={n === null ? why : undefined}>
       <b>{n === null ? '—' : n}</b>
       <span>{label}</span>
+      {sub && <small className="lh-stat-sub">{sub}</small>}
     </button>
   )
   return (
-    <div className="lh-stats" role="group" aria-label={t('launch.home.stats.label')}>
-      {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '')}
-      {cell(inWork === null ? null : `${inWork}${known!.inWorkCapped ? '+' : ''}`, t('launch.home.stats.inWork'), onBoard)}
-      {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '')}
-      {toReview !== undefined
-        ? cell(toReview, t('launch.home.stats.review'), onReview ?? onBoard)
-        : cell(known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null, t('launch.home.stats.review'), onBoard)}
+    <div className="lh-stats lh-stats-six" role="group" aria-label={t('launch.home.stats.label')}>
+      {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '', unreadWhy)}
+      {cell(handedN, t('launch.home.stats.handedIn'), onReview ?? onBoard, '', handedWhy)}
+      {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '', unreadWhy)}
+      {cell(reviewN, t('launch.home.stats.review'), onReview ?? onBoard, '', unreadWhy,
+        known && known.reviewOld ? t('launch.home.stats.reviewOld', { count: known.reviewOld }) : null)}
+      {cell(abandoned, t('launch.home.stats.abandoned'), onAbandoned ?? onBoard, abandoned ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unreadOld'))}
+      {cell(unclaimed, t('launch.home.stats.unclaimed'), onUnclaimed ?? onAgents, unclaimed ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unclaimedUnknown'))}
     </div>
   )
 }

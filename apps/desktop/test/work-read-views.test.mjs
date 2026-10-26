@@ -159,3 +159,29 @@ test('the board pages «Готово» (0.3.14): the finished tasks are read up 
   assert.equal(more.columns.find((c) => c.stage === 'done').cards.length, 30)
   assert.equal(more.columns.find((c) => c.stage === 'done').capped, false)
 })
+
+test('the home counts every task in review moved there more than three days ago (0.3.14, the simple Fabric)', async () => {
+  const { readHome } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const now = Date.parse('2026-10-26T12:00:00Z')
+  const day = 24 * 3600_000
+  const reviewAll = [
+    { project_id: 'p1', moved_at: new Date(now - 4 * day).toISOString() },
+    { project_id: 'p1', moved_at: new Date(now - 3 * day - 1000).toISOString() },
+    { project_id: 'p2', moved_at: new Date(now - 2 * day).toISOString() },
+    { project_id: 'p2', moved_at: null }
+  ]
+  const fake = {
+    select: (table, columns) => {
+      const call = { table, columns, eq: [] }
+      const chain = {
+        is: () => chain, in: () => chain, not: () => chain, limit: () => chain, order: () => chain,
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
+        then: (ok) => ok({ data: table === 'project_tasks' && columns === 'project_id,moved_at' ? reviewAll : [], error: null })
+      }
+      return chain
+    },
+    selectIn: async () => ({ rows: [], failed: null })
+  }
+  const home = await readHome(fake, { now, session: () => null, sessions: [] })
+  assert.equal(home.reviewOld, 2, 'two tasks waited longer than three days; one with no move time is not counted as old')
+})

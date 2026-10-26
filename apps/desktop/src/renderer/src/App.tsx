@@ -1249,6 +1249,7 @@ function Shell({
         )}
         {active.kind === 'home' && (
           <EstateHome
+            reading={homeReading}
             waitingForYou={waiting}
             waitingProblem={waitingProblem}
             toReview={toReview}
