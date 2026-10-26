@@ -17,7 +17,7 @@ const iso = (ms) => new Date(ms).toISOString()
 function world(over = {}) {
   let now = T0
   const w = {
-    claims: [], held: [], tasks: [], requests: [], terminals: [], running: new Set(), activity: new Map(),
+    claims: [], held: [], heldSessions: [], tasks: [], requests: [], terminals: [], turns: [], running: new Set(), activity: new Map(),
     claimsCapped: false, requestsCapped: [], unresolved: [], quit: false, started: T0 - 60 * MIN, reads: 0,
     delivered: [], refused: [], released: [], failed: [], records: [], receipts: [], receiptFails: false, fail: new Set(),
     tick(ms) { now += ms },
@@ -27,7 +27,8 @@ function world(over = {}) {
   const read = (name, value) => async () => { if (w.fail.has(name)) throw new Error(`${name} refused`); return value() }
   w.deps = {
     now: () => now,
-    readClaims: read('claims', () => { w.reads++; return { claims: w.claims, heldTaskIds: w.held, ...(w.claimsCapped ? { capped: true } : {}) } }),
+    readClaims: read('claims', () => { w.reads++; return { claims: w.claims, heldTaskIds: w.held, heldSessionIds: w.heldSessions, ...(w.claimsCapped ? { capped: true } : {}) } }),
+    readTurns: read('turns', () => w.turns),
     readRunningTasks: read('tasks', () => w.tasks),
     readRequests: read('requests', () => ({ requests: w.requests, capped: w.requestsCapped })),
     terminals: () => {
@@ -726,4 +727,75 @@ test('takeNudgeItems: each nudge as {kind, says, task_id | request_id}, from the
   assert.deepEqual(sweep.takeNudges('s-enrolled', 'p1'), [], 'and gone from the strings fabric_work_list reads too')
   assert.equal(sweep.takeNudges('s-other', 'p1').length, 1, 'the project nudge still reaches another session')
   assert.deepEqual(sweep.takeNudgeItems('s-other', 'p1'), [], 'once per session, whichever answer took it')
+})
+
+// ── 0.3.14 wave 2: a session changing files with no claim ─────────────────────────────────────────────────────
+const { readRecentTurns } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+const changedTurn = (sessionId, agoMin, filesChanged = 3) => ({ sessionId, projectId: 'p1', at: iso(T0 - agoMin * MIN), filesChanged })
+
+test('work-unclaimed: a session changing files with no claim is nudged once in 30 minutes, in its own queue', async () => {
+  const w = world({ turns: [changedTurn('s-free', 6), changedTurn('s-free', 1)] })
+  const sweep = createAbandonedSweep(w.deps)
+  const r = await sweepOnce(sweep)
+  assert.deepEqual(r.findings.map((f) => f.kind), ['work-unclaimed'])
+  const items = sweep.takeNudgeItems('s-free', 'p1')
+  assert.equal(items.length, 1)
+  assert.equal(items[0].kind, 'work-unclaimed')
+  assert.match(items[0].says, /holds no claim\. Claim the task you are working on \(fabric_work_claim\)/)
+  assert.deepEqual(sweep.takeNudgeItems('s-other', 'p1'), [], 'another session of the project is not told')
+  w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudgeItems('s-free', 'p1'), [], 'not again inside 30 minutes')
+  assert.equal(w.receipts[0].found['work-unclaimed'], 1)
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared', 'the receipt with the new kind passes the ingress')
+})
+
+test('work-unclaimed: a session that holds a claim or a managed launch is not nudged', async () => {
+  const claim = { ...silentClaim('c1', 's-claim'), expiresAt: iso(T0 + 10 * MIN), session: { lastSignAt: T0 } }
+  const w = world({ claims: [claim], heldSessions: ['s-lease'], turns: [changedTurn('s-claim', 2), changedTurn('s-lease', 2)] })
+  const r = await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(r.findings, [])
+})
+
+test('work-unclaimed: no session is judged unclaimed when the claims or terminals read failed or stopped at its cap', async () => {
+  for (const over of [{ fail: new Set(['claims']) }, { fail: new Set(['terminals']) }, { claimsCapped: true }]) {
+    const w = world({ turns: [changedTurn('s-free', 2)], ...over })
+    const r = await sweepOnce(createAbandonedSweep(w.deps))
+    assert.deepEqual(r.findings.filter((f) => f.kind === 'work-unclaimed'), [], JSON.stringify(Object.keys(over)))
+  }
+})
+
+test('work-unclaimed: a failed turns read is named in the receipt, and its receipt passes the ingress', async () => {
+  const w = world({ fail: new Set(['turns']) })
+  const r = await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(r.failedReads, ['turns'])
+  assert.deepEqual(w.receipts[0].unread, ['turns'])
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared')
+})
+
+test('work-unclaimed is the agent\'s reminder, not the operator\'s queue: current() leaves it out', async () => {
+  const w = world({ turns: [changedTurn('s-free', 2)], tasks: [{ taskId: 't9', projectId: 'p1', movedAt: iso(T0 - 10 * MIN) }] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings.map((f) => f.kind), ['task-unclaimed'])
+})
+
+test('readRecentTurns: the turns of the last 15 minutes, newest first and bounded, by the database\'s time', async () => {
+  const calls = []
+  const rows = [
+    { project_id: 'p1', occurred_at: iso(T0 - MIN), payload: { session_id: 's1', files_changed: 2 } },
+    { project_id: 'p2', occurred_at: iso(T0 - 2 * MIN), payload: { session_id: 's2', files_changed: null } },
+    { project_id: 'p2', occurred_at: iso(T0 - 3 * MIN), payload: {} }
+  ]
+  const q = new Proxy({}, { get: (_t, prop) => prop === 'then' ? (res) => res({ data: rows, error: null }) : (...args) => { calls.push([prop, ...args]); return q } })
+  const store = { select: (table, cols) => { calls.push(['select', table, cols]); return q } }
+  const turns = await readRecentTurns(store, T0)
+  assert.deepEqual(turns, [
+    { sessionId: 's1', projectId: 'p1', at: iso(T0 - MIN), filesChanged: 2 },
+    { sessionId: 's2', projectId: 'p2', at: iso(T0 - 2 * MIN), filesChanged: null }
+  ])
+  assert.deepEqual(calls.find((c) => c[0] === 'eq'), ['eq', 'type', 'session.turn.observed@1'])
+  assert.deepEqual(calls.find((c) => c[0] === 'gte'), ['gte', 'occurred_at', iso(T0 - 15 * MIN)])
+  assert.ok(calls.some((c) => c[0] === 'limit'), 'bounded')
+  const failing = { select: () => new Proxy({}, { get: (_t, prop) => prop === 'then' ? (res) => res({ data: null, error: { message: 'refused' } }) : () => failing.select() }) }
+  await assert.rejects(readRecentTurns(failing, T0), /turns could not be read/)
 })

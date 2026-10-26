@@ -14,13 +14,14 @@ export function titleOf(item: { title: string; access?: PendingRequestFacts; swe
   return item.title
 }
 
-const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.task'> = {
+const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.task' | 'attention.untitled.session'> = {
   'request-unmoved': 'attention.untitled.request',
   'answer-unread': 'attention.untitled.answer',
   'claim-silent': 'attention.untitled.task',
   'claim-lapsed': 'attention.untitled.task',
   'task-unclaimed': 'attention.untitled.task',
-  'terminal-stalled': 'attention.untitled.task'
+  'terminal-stalled': 'attention.untitled.task',
+  'work-unclaimed': 'attention.untitled.session'
 }
 
 /** What a notification says about one row: its title, and for what the sweep found, why it was found (UX-7). */

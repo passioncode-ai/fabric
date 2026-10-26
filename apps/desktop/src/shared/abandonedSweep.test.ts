@@ -1,7 +1,7 @@
 // 0.3.13 wave 2, CO-427: the sweep of abandoned work. Spec:
 // docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md (SW-1, SW-2, SW-3, SW-5, SW-8).
 import { describe, expect, it } from 'vitest'
-import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, type SweepInput } from './abandonedSweep'
+import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, ABANDONED_KINDS, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, TURN_WINDOW_MS, type SweepInput } from './abandonedSweep'
 
 const NOW = Date.parse('2026-10-26T12:00:00Z')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -145,5 +145,37 @@ describe('terminal-stalled counts from the terminal\'s own quiet (ER-4)', () => 
     const [f] = findAbandoned({ ...empty, runningTaskIds: ['t9'], terminals: [{ sessionId: 's9', projectId: 'p1', taskId: 't9', liveness: 'stalled', since: ago(MIN), lastActivityAt: NOW - 16 * MIN }] })
     expect(f.stillMs).toBe(16 * MIN)
     expect(nudgeText(f)).toMatch(/still for 16 min/)
+  })
+})
+
+// 0.3.14 wave 2: in the live audit of 2026-10-26, 18 of the 19 sessions that changed files in a day held no claim.
+describe('work-unclaimed: a session changing files with no claim', () => {
+  const turn = (sessionId: string, agoMs: number, filesChanged: number | null, projectId = 'p1') => ({ sessionId, projectId, at: ago(agoMs), filesChanged })
+  const live = (sessionId: string) => ({ claimId: `c-${sessionId}`, taskId: 't1', projectId: 'p1', sessionId, expiresAt: ago(-10 * MIN), claimedAt: ago(5 * MIN), renewedAt: null, session: { lastSignAt: NOW } })
+
+  it('is found for a session whose turns in the last fifteen minutes changed files while it holds no claim', () => {
+    const found = findAbandoned({ ...empty, turns: [turn('s1', 12 * MIN, 3), turn('s1', 2 * MIN, 4)] })
+    expect(found).toHaveLength(1)
+    expect(found[0]).toMatchObject({ kind: 'work-unclaimed', key: 'work-unclaimed:s1', sessionId: 's1', projectId: 'p1', taskId: null })
+    expect(found[0].stillMs).toBe(12 * MIN)
+    expect(nudgeText(found[0])).toBe('Fabric: this session has changed files for 12 min and holds no claim. Claim the task you are working on (fabric_work_claim): its taskId, or a new row with a title and its origin.')
+    expect(nudgeText(found[0])).not.toContain('\u2014')
+  })
+
+  it('is not found for a session that holds a claim, a managed launch or a Fabric terminal with a task', () => {
+    const turns = [turn('s1', 2 * MIN, 3)]
+    expect(findAbandoned({ ...empty, turns, claims: [live('s1')] })).toEqual([])
+    expect(findAbandoned({ ...empty, turns, heldSessions: ['s1'] })).toEqual([])
+    expect(findAbandoned({ ...empty, turns, terminals: [{ sessionId: 's1', projectId: 'p1', taskId: 't1', liveness: 'active', since: ago(MIN), lastActivityAt: NOW }] })).toEqual([])
+  })
+
+  it('is not found for turns that changed nothing, could not say, or are older than the window', () => {
+    expect(findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 0), turn('s2', 2 * MIN, null), turn('s3', TURN_WINDOW_MS + 1000, 5)] })).toEqual([])
+  })
+
+  it('is one finding per session, and every kind is listed for the receipt', () => {
+    const found = findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 1), turn('s1', MIN, 2), turn('s2', MIN, 1, 'p2')] })
+    expect(found.map((f) => f.key).sort()).toEqual(['work-unclaimed:s1', 'work-unclaimed:s2'])
+    expect(ABANDONED_KINDS).toContain('work-unclaimed')
   })
 })

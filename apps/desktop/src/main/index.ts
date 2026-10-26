@@ -48,7 +48,7 @@ import { resolveProject } from '../shared/projectResolve.ts'
 import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
-import { createAbandonedSweep, readBoardRequests, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
+import { createAbandonedSweep, readBoardRequests, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
@@ -2778,6 +2778,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
     readRunningTasks: () => readRunningTasks(store),
     readRequests: (now) => readBoardRequests(sweepBoard, ACTIVE_ESTATE, now),
+    // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
+    readTurns: (now) => readRecentTurns(store, now),
     // A terminal's own last output or typed input (PtyManager `lastActivityAt`); NaN for one Fabric no longer runs,
     // so it is never judged quiet.
     terminals: () => observer.latest().map((o) => {

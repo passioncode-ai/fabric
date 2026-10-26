@@ -18,6 +18,7 @@
  * One sweep at a time, and none once the app is quitting. A queued nudge lives only while its finding does.
  */
 import {
+  AGENT_ONLY_KINDS,
   findAbandoned,
   lapsedTwice,
   nudgeOf,
@@ -30,6 +31,8 @@ import {
   type SweepClaim,
   type SweepRequest,
   type SweepTerminal,
+  type SweepTurn,
+  TURN_WINDOW_MS,
   type SweepCap,
   type SweepRead
 } from '../shared/abandonedSweep.ts'
@@ -63,7 +66,9 @@ export interface AbandonedSweepDeps {
   /** The open claims, each with its session's sign (null when Fabric holds no session for it), and the tasks a lease
    *  holds without a claim (a managed launch). */
   /** `capped`: the claims or leases read stopped at its limit, so a task past it may be held. */
-  readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; capped?: boolean }>
+  readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; heldSessionIds?: string[]; capped?: boolean }>
+  /** The turns the session hooks observed in the last fifteen minutes (`readRecentTurns`); absent: none is judged. */
+  readTurns?(now: number): Promise<SweepTurn[]>
   /** The tasks in running, with when each last moved. */
   readRunningTasks(): Promise<SweepRunningTask[]>
   readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
@@ -85,10 +90,11 @@ export interface AbandonedSweepDeps {
 type Source = SweepRead
 /** Which kinds each read finds, so a failed read keeps what was told about them (SW-5 across a blind sweep). */
 const KINDS_OF: Record<Source, AbandonedKind[]> = {
-  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed'],
+  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed'],
   tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
-  terminals: ['terminal-stalled', 'task-unclaimed']
+  terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
+  turns: ['work-unclaimed']
 }
 
 /** The payload of `work.swept@1` (SW-7): what one sweep found by kind and what it did about it. */
@@ -172,11 +178,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   async function sweep(): Promise<SweepResult> {
     const now = deps.now()
     const failedReads: Source[] = []
-    const [claimRead, taskRead, requestRead, terminals] = await Promise.all([
+    const [claimRead, taskRead, requestRead, terminals, turns] = await Promise.all([
       attempt('claims', () => deps.readClaims(now), failedReads),
       attempt('tasks', () => deps.readRunningTasks(), failedReads),
       attempt('requests', () => deps.readRequests(now), failedReads),
-      attempt('terminals', () => deps.terminals(), failedReads)
+      attempt('terminals', () => deps.terminals(), failedReads),
+      deps.readTurns ? attempt('turns', () => deps.readTurns!(now), failedReads) : Promise.resolve(null)
     ])
     // A running task is unclaimed only when no open claim (any life: a silent or lapsed one is its own finding), no
     // lease of a managed launch and no Fabric terminal stands on it. Without the claims or the terminals read, that
@@ -197,7 +204,10 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         : [],
       requests: requestRead?.requests ?? [],
       terminals: terminals ?? [],
-      ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {})
+      ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {}),
+      // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
+      // was read whole (the same condition as a running task's holders above).
+      ...(holders && turns ? { turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {})
     })
 
     // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling.
@@ -297,11 +307,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     const foundKeys = new Set(findings.map((f) => f.key))
     latest = {
       at: now,
+      // A reminder to the agent at work is not abandoned work for the operator (0.3.14 wave 2, AGENT_ONLY_KINDS).
       findings: [
         ...findings.filter((f) => !(f.kind === 'claim-lapsed' && f.claimId && releasedClaims.has(f.claimId)))
           .map((f) => ({ ...f, stillSince: now - f.stillMs })),
         ...(latest?.findings ?? []).filter((f) => blind.has(f.kind) && !foundKeys.has(f.key))
-      ]
+      ].filter((f) => !AGENT_ONLY_KINDS.has(f.kind))
     }
     return { findings, told: decided.tell.length, queued, released, failedReads }
   }
@@ -349,7 +360,7 @@ export const SWEEP_READ_LIMIT = 500
 
 /** The open claims for the sweep (SW-2), from the same reading `fabric_work_list` and the screens use
  *  (`workRead.ts#readWork`): each with its session's sign, and the tasks a managed launch's lease holds without one. */
-export async function readSweepClaims(store: Store, now: number, session: SessionSign): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; capped?: boolean }> {
+export async function readSweepClaims(store: Store, now: number, session: SessionSign): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; heldSessionIds: string[]; capped?: boolean }> {
   const snap = await readWork(store, { now, session, limit: SWEEP_READ_LIMIT })
   return {
     claims: snap.claims.map((c) => ({
@@ -357,9 +368,27 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
       expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session)
     })),
     heldTaskIds: snap.held.map((h) => h.task.id),
+    heldSessionIds: snap.held.map((h) => h.owner_session),
     ...(snap.capped?.length ? { capped: true } : {})
   }
 }
+
+// #region sweep-recent-turns — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
+/** The turns the session hooks observed in the last fifteen minutes (0.3.14 wave 2, work-unclaimed): newest first and
+ *  bounded like the sweep's other reads, by the database's own time (`occurred_at`), never the agent's clock. A read
+ *  that fails throws: unread turns are never "no session changed anything". */
+export async function readRecentTurns(store: Pick<Store, 'select'>, now: number): Promise<SweepTurn[]> {
+  const r = await store.select('journal', 'project_id,occurred_at,payload').eq('type', 'session.turn.observed@1')
+    .gte('occurred_at', new Date(now - TURN_WINDOW_MS).toISOString()).order('seq', { ascending: false }).limit(SWEEP_READ_LIMIT)
+  if (r.error) throw new Error(`the sessions' turns could not be read: ${r.error.message}`)
+  return ((r.data ?? []) as Array<{ project_id: string | null; occurred_at: string; payload: { session_id?: unknown; files_changed?: unknown } | null }>)
+    .filter((t) => typeof t.payload?.session_id === 'string')
+    .map((t) => ({
+      sessionId: t.payload!.session_id as string, projectId: t.project_id, at: t.occurred_at,
+      filesChanged: typeof t.payload!.files_changed === 'number' ? t.payload!.files_changed : null
+    }))
+}
+// #endregion sweep-recent-turns
 
 /** The tasks in running (SW-2). When a task last moved is read the way the home's «В работе» reads it
  *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. Who moved it is the

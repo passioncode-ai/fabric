@@ -7,10 +7,10 @@ import { en } from './i18n/en'
 import { ru } from './i18n/ru'
 import { translator } from './i18n/translate'
 
-const KINDS: AbandonedKind[] = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled']
+const KINDS: AbandonedKind[] = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed']
 
 describe('the detail of a row the sweep found (SW-9)', () => {
-  it('says each of the six kinds in English and in Russian', () => {
+  it('says each kind in English and in Russian', () => {
     for (const kind of KINDS) {
       const item = { kind: 'abandoned', detail: kind, swept: { kind } }
       expect(detailOf(item, translator('en'), 'en')).toBe(en[`attention.swept.${kind}`])
@@ -33,6 +33,9 @@ describe('the title of a row the sweep found with no title read', () => {
     expect(titleOf(untitled('answer-unread'), translator('ru'))).toBe(ru['attention.untitled.answer'])
     for (const kind of ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'terminal-stalled'] as const)
       expect(titleOf(untitled(kind), translator('ru'))).toBe(ru['attention.untitled.task'])
+    // 0.3.14 wave 2: a session changing files with no claim has no task to name.
+    expect(titleOf(untitled('work-unclaimed'), translator('en'))).toBe(en['attention.untitled.session'])
+    expect(titleOf(untitled('work-unclaimed'), translator('ru'))).toBe(ru['attention.untitled.session'])
   })
   it('a notification says the title and why, in the interface\'s language', () => {
     expect(notifyLineOf(untitled('request-unmoved'), translator('ru'), 'ru')).toBe(`${ru['attention.untitled.request']}: ${ru['attention.swept.request-unmoved']}`)

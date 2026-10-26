@@ -19,11 +19,16 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
+/** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
+ *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
+export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed'])
+/** How far back a session's turns are read to see whether it changes files (0.3.14 wave 2, work-unclaimed). */
+export const TURN_WINDOW_MS = 15 * 60_000
 /** The sweep's reads, as a receipt's `unread` names them, and the reads that can stop at their bounds, as its `capped`
  *  does: one list each for the sweep and the receipt's ingress rules (iteration 3, DA-5). */
-export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals'] as const
+export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals', 'turns'] as const
 export type SweepRead = (typeof SWEEP_READS)[number]
 export const SWEEP_CAPS = ['claims', 'threads', 'messages'] as const
 export type SweepCap = (typeof SWEEP_CAPS)[number]
@@ -79,6 +84,15 @@ export interface SweepTerminal {
   lastActivityAt: number
 }
 
+/** One turn the session hooks observed (`session.turn.observed@1`): when, and how many files differ from HEAD; null
+ *  when git could not say. */
+export interface SweepTurn {
+  sessionId: string
+  projectId: string | null
+  at: string
+  filesChanged: number | null
+}
+
 export interface SweepInput {
   now: number
   claims: SweepClaim[]
@@ -87,6 +101,11 @@ export interface SweepInput {
   terminals: SweepTerminal[]
   /** The tasks read in running this sweep; absent when that read failed, and then no terminal is called stalled. */
   runningTaskIds?: readonly string[]
+  /** The turns of the last fifteen minutes; given only when the claims and terminals were read whole, since a session is
+   *  judged by what it holds (0.3.14 wave 2). */
+  turns?: readonly SweepTurn[]
+  /** Sessions that hold a task without a claim: the lease of a launch Fabric manages. */
+  heldSessions?: readonly string[]
 }
 
 export interface Finding {
@@ -154,6 +173,25 @@ export function findAbandoned(input: SweepInput): Finding[] {
         sessionId: s.sessionId, stillMs: now - s.lastActivityAt,
         nextStep: 'This session holds a task and has been still: continue it, or say what blocks it (fabric_heartbeat with phase blocked).' })
   }
+  // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
+  // 0.3.14 wave 2: a session whose turns changed files in the window and that holds nothing (no open claim of any life,
+  // no managed lease, no Fabric terminal on a task) is working on something nobody can see on the board.
+  const holding = new Set<string>([
+    ...input.claims.map((c) => c.sessionId),
+    ...(input.heldSessions ?? []),
+    ...input.terminals.filter((t) => t.taskId).map((t) => t.sessionId)
+  ])
+  const firstChange = new Map<string, { at: number; projectId: string | null }>()
+  for (const t of input.turns ?? []) {
+    const at = Date.parse(t.at)
+    if (!(t.filesChanged && t.filesChanged > 0) || !Number.isFinite(at) || now - at > TURN_WINDOW_MS || holding.has(t.sessionId)) continue
+    const prior = firstChange.get(t.sessionId)
+    if (!prior || at < prior.at) firstChange.set(t.sessionId, { at, projectId: t.projectId ?? prior?.projectId ?? null })
+  }
+  for (const [sessionId, c] of firstChange)
+    out.push({ ...base, kind: 'work-unclaimed', key: `work-unclaimed:${sessionId}`, projectId: c.projectId, sessionId, stillMs: Math.max(0, now - c.at),
+      nextStep: 'Claim the task you are working on (fabric_work_claim): its taskId, or a new row with a title and its origin.' })
+  // #endregion work-unclaimed
   return out
 }
 
@@ -175,12 +213,20 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'task-unclaimed': (f) => `task ${f.taskId}`,
   'request-unmoved': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
-  'terminal-stalled': (f) => `task ${f.taskId} in this session`
+  'terminal-stalled': (f) => `task ${f.taskId} in this session`,
+  'work-unclaimed': () => 'this session'
+}
+
+/** A kind whose line is not "has been still": what it says, given the whole minutes. */
+const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> = {
+  'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has changed files for ${min} min and holds no claim.`
 }
 
 /** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */
 export function nudgeText(f: Finding): string {
-  return `Fabric: ${SUBJECT[f.kind](f)} has been still for ${Math.floor(f.stillMs / 60_000)} min. ${f.nextStep}`
+  const min = Math.floor(f.stillMs / 60_000)
+  const lead = SAYS[f.kind]?.(f, min) ?? `${SUBJECT[f.kind](f)} has been still for ${min} min.`
+  return `Fabric: ${lead} ${f.nextStep}`
 }
 
 /** One nudge as an agent's answer carries it (0.3.14 wave 2): what kind of finding, the line it is told, and the task
