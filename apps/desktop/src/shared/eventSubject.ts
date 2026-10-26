@@ -54,9 +54,11 @@ const DECLARED: Record<string, Declared> = {
   'task.note.added@1': { kind: 'task', keys: ['task_id'] },
   'question.asked@1': { kind: 'question', keys: ['id'] },
   'proposal.filed@1': { kind: 'proposal', keys: ['id'] },
-  'work.claimed@1': { kind: 'work', keys: ['work'] },
+  // A claim's `work` is a task: `work_claims.work_id` references `project_tasks` (migration
+  // 20261011000095_work_claims.sql), so a claim row is about that task and opens it (0.3.14 wave 2).
+  'work.claimed@1': { kind: 'task', keys: ['work'] },
   // The same key as a claim (main/workTools.ts, main/agentSurface.ts), declared in 0.3.14.
-  'work.released@1': { kind: 'work', keys: ['work'] },
+  'work.released@1': { kind: 'task', keys: ['work'] },
   'transcript.captured@2': { kind: 'transcript', keys: ['session_id'] },
   'transcript.captured@1': { kind: 'transcript', keys: ['session_id'] },
   // A refusal is addressed by the sequence of the row that recorded it, which

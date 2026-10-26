@@ -93,10 +93,23 @@ describe('a journal row opens the thing it happened to', () => {
     // `destinationOf` has four answers and only one is an address. A row whose
     // subject is real but unfocusable must not offer a click that does nothing.
     const onOpen = vi.fn()
-    show([event('work.claimed@1', { work: 'w-1' })], onOpen)
+    show([event('transcript.captured@2', { session_id: 's-1' })], onOpen)
     const acts = screen.queryAllByRole('button')
     for (const act of acts) fireEvent.click(act)
-    expect(onOpen).not.toHaveBeenCalledWith('p1', { kind: 'work', id: 'w-1' })
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  // 0.3.14 wave 2: a claim's `work` is a task (migration 20261011000095_work_claims.sql), so a claim row opens it.
+  it('opens the task a claim row and its release are about', () => {
+    const onOpen = vi.fn()
+    show([event('work.claimed@1', { work: 't-7' })], onOpen)
+    fireEvent.click(screen.getByRole('button'))
+    expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't-7' })
+    cleanup()
+    const onRelease = vi.fn()
+    show([event('work.released@1', { work: 't-8', how: 'done' })], onRelease)
+    fireEvent.click(screen.getByRole('button'))
+    expect(onRelease).toHaveBeenCalledWith('p1', { kind: 'task', id: 't-8' })
   })
 
   it('and offers no act at all when the caller has no navigator to give', () => {
@@ -136,9 +149,11 @@ describe('the reason a row cannot be opened (CO-225 (5))', () => {
 
   it('says a row missing its key, and an unfocusable subject, in the interface language too, without «lease»', () => {
     expect(reasonOf(event('task.created@1', { title: 'no id here' }), 'ru')).not.toMatch(/carry/)
-    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'ru')).toBe(ru['journal.whyWorkNotTask'])
-    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'en')).toBe('An agent took work that is not a task.')
-    expect(reasonOf(event('work.released@1', { work: 'w-1' }), 'en'), 'a released claim is the same subject as a claim').toBe('An agent took work that is not a task.')
+    expect(reasonOf(event('transcript.captured@2', { session_id: 's-1' }), 'ru')).toBe(ru['journal.whyTranscriptFromSession'])
+    expect(reasonOf(event('transcript.captured@2', { session_id: 's-1' }), 'ru')).not.toMatch(/lease|аренд/)
+    // 0.3.14 wave 2: a claim row is about its task and opens it, so it says no reason at all.
+    expect(reasonOf(event('work.claimed@1', { work: 't-1' }), 'en')).toBe('')
+    expect(reasonOf(event('work.released@1', { work: 't-1' }), 'en'), 'a released claim is the same subject as a claim').toBe('')
   })
 
   it('a feed with nowhere to open says no reason, since no row there is a link', () => {

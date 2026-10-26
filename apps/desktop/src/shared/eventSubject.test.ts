@@ -90,9 +90,11 @@ describe('what a journal row is about', () => {
     expect(subjectOfEvent(row('task.moved@1', { id: 't-4' }))).toEqual({ known: true, ref: { kind: 'task', id: 't-4' } })
   })
 
-  it('reads a released claim\'s work from `work`, as a claim\'s', () => {
-    expect(subjectOfEvent(row('work.released@1', { work: 'w-2', how: 'done' }))).toEqual({ known: true, ref: { kind: 'work', id: 'w-2' } })
-    expect(subjectOfEvent(row('work.claimed@1', { work: 'w-1' }))).toEqual({ known: true, ref: { kind: 'work', id: 'w-1' } })
-    expect(subjectOfEvent(row('work.released@1', { task_id: 'w-2' })).known).toBe(false)
+  // 0.3.14 wave 2: a claim's `work` is a task (`work_claims.work_id` references `project_tasks`, migration
+  // 20261011000095_work_claims.sql), so a claim row and its release open that task.
+  it('reads a claim and a released claim as about the task they name in `work`', () => {
+    expect(subjectOfEvent(row('work.released@1', { work: 't-2', how: 'done' }))).toEqual({ known: true, ref: { kind: 'task', id: 't-2' } })
+    expect(subjectOfEvent(row('work.claimed@1', { work: 't-1' }))).toEqual({ known: true, ref: { kind: 'task', id: 't-1' } })
+    expect(subjectOfEvent(row('work.released@1', { task_id: 't-2' })).known).toBe(false)
   })
 })
