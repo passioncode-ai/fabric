@@ -311,6 +311,8 @@ reservation). The procedure is the same with 94 in place of 89.
 **0.3.12 admits schema 96** (migration `20261023000123_project_profile.sql`, a project's profile: `project.profiled@1`, columns on `projects`, `project_relations`): a database at 95 takes the upgrade below, `FROM` 95. Going back to 0.3.11 after it refuses the database (0.3.11 admits only 95), so a rollback is the 0.3.11 bundle with the backup taken before the upgrade. Two settings are new, `machineTrust` and `boardFilters` (and, from 0.3.11, `agentLanguage`); 0.3.11 does not know the first two, so going back and changing a setting drops them: the next 0.3.12 reads the computer as not said (not trusted) and the Board's remembered filters as none. 0.3.11 keeps at most 4 096 Comms read marks and drops a longer list on its first settings write, so after a rollback a
 large estate's threads read as unread again (0.3.12 keeps up to 5 000). Step 1's first start may be replaced by copying `20261023000123_project_profile.sql` from the verified bundle (`Fabric.app/Contents/Resources/stack/supabase/migrations/`) into the stack folder's `supabase/migrations/`, as the 0.3.12 rollout does; never run `supabase` inside the bundle.
 
+**0.3.13 (not yet released) admits schema 97** (migration `20261026000124_one_schema_step.sql`, 0.3.13's one schema step): a database at 96 takes the upgrade below, `FROM` 96. Going back to 0.3.12 after it refuses the database (0.3.12 admits only 96), so a rollback is the 0.3.12 bundle with the backup taken before the upgrade. Besides functions and indexes, the migration changes rows: duplicate `project_repos` rows of one folder keep the first attached (the primary and `projects.repo_path` are recomputed) and the unique `(estate_id, path)` index migration 113 may have skipped is created (CO-341); `project_repos.kind` is set from `is_primary`; decision facts in the chain of a withdrawn answer close (CO-355); `questions.resolution_id` is filled for answered questions that lost it (CO-357); `projects.business` is replayed from the journal under the person's rule and `business_set_by` is new (CO-418); `deliveries.created_at` and `task_runs.created_at` take their event's time (CO-418). After it, `select count(*) from pg_indexes where indexname = 'project_repos_unique_estate_path'` reads 1. A development database that applied migration 115's early bytes (between `cdc841f6` and `c6cf39e0`, CO-342) is rebuilt from a fresh stack, not upgraded; `node scripts/check-migration-order.mjs --history` refuses any later rewrite of a recorded entry.
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
@@ -344,7 +346,7 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). Step 1's
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11 — read it, do not assume it
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1, 79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
@@ -391,7 +393,7 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). Step 1's
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 97 for 0.3.13).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

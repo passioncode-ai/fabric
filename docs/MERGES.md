@@ -10,6 +10,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
 
+### 2026-10-26T16:00:00Z · `—` · agent/0313-schema → main · fast-forward
+- run: r-182fa592b059
+- files: supabase/migrations/20261026000124_one_schema_step.sql, schemaContract.json (97), scripts/check-migration-order.mjs, the projector, board and work reads, abandonedSweepRun.ts, protocolObligations.ts, i18n (work.swept@1), the schema tests; CHANGELOG, release-mac.md, SCN-143, the pipeline reservation, the plan, the carry-over ledger and backlog; the map
+- conflicts: none
+- summary: Fabric 0.3.13's one schema step, schema 96 to 97: ten rows resolved, the sweep's journal receipt, a board reply reaching its sender.
+
 ### 2026-10-26T13:30:00Z · `—` · agent/0313-co434 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/hubAuthority.ts, hubTools.ts, hubCall.ts, productForwarder.ts, test/hub-call-authority.test.mjs, package.json; the plan, the carry-over ledger and backlog (CO-434 partly, CO-435 resolved); the map
