@@ -1740,6 +1740,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.home.inWork.none': "Сейчас ни один агент не работает, и задач в работе нет.",
   'launch.home.inWork.openAgent': "Открыть экран агента",
   'launch.home.inWork.agentsOf': "Агенты в работе в {name}",
+  'launch.home.side': "Что ждёт вас",
   'launch.home.work.kicker': "Доска",
   'launch.home.work.title': "Кто что делает",
   'launch.home.work.inWork': "В работе",

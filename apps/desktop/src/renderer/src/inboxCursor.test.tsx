@@ -16,7 +16,7 @@
 // feed and told they are up to date.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { EstateHome } from './EstateHome'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
@@ -145,5 +145,14 @@ describe('the simple home', () => {
     expect(screen.queryByRole('heading', { name: en['launch.home.work.title'] })).toBeNull()
     expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.agents.title']}`) })).toBeNull()
     expect(document.getElementById('sec-estate-journal')?.closest('details')).toBeTruthy()
+  })
+
+  // §4: the right column holds only what needs the person: «Нужны вы» and the requests no agent answered.
+  it('keeps only «Нужны вы» and the unanswered requests in the right column, no live feed', async () => {
+    stub()
+    show([ev(1)], 0)
+    const side = await screen.findByRole('complementary', { name: en['launch.home.side'] })
+    expect(within(side).getByRole('heading', { name: new RegExp(`^${en['launch.home.board.title']}`) })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.live.title']}`) })).toBeNull()
   })
 })

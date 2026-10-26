@@ -2415,6 +2415,7 @@ export const en = {
   'launch.home.inWork.none': "No agent is working and no task is in work.",
   'launch.home.inWork.openAgent': "Open the agent's screen",
   'launch.home.inWork.agentsOf': "Agents at work in {name}",
+  'launch.home.side': "What needs you",
   'launch.home.work.kicker': "Board",
   'launch.home.work.title': "Who is doing what",
   'launch.home.work.inWork': "In work",

@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
 import { dayPart } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
-import { HomeBoard, HomeLive, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
+import { HomeBoard, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
 import { HomeStats, useHome, type HomeReading } from './launch/HomeWork'
 import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
 import { HomeInWork } from './launch/HomeInWork'
@@ -545,9 +545,6 @@ export function EstateHome({
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       <div className="lh-layout">
         <div className="lh-main-column">
-          <HomeBoard onTotal={setOwnWaiting} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
-          {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
-          <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
           {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
               «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
           <HomeInWork reading={home} projects={projects}
@@ -616,13 +613,12 @@ export function EstateHome({
       </Panel>
           </details>
         </div>
-        <aside className="lh-side-column">
-          <HomeLive feed={feed} projects={rows} sessions={sessions} now={now} onOpen={onOpen}
-            onAll={() => {
-              if (onPulse) return onPulse()
-              setMoreOpen(true)
-              setTimeout(() => document.getElementById('sec-estate-journal')?.scrollIntoView({ block: 'start' }), 0)
-            }} />
+        {/* 0.3.14, the simple Fabric §4: the right column holds only what needs the person: «Нужны вы» and the board's
+            requests no agent has answered. The live feed moved to История («Что делали агенты» shows it). */}
+        <aside className="lh-side-column" aria-label={t('launch.home.side')}>
+          <HomeBoard onTotal={setOwnWaiting} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+          {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
+          <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
         </aside>
       </div>
     </div>
