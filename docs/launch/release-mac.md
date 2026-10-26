@@ -316,6 +316,13 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). Step 1's
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
    build is available. First install that build, attempt startup once so its bundled stack is copied,
    then quit: readiness refuses old data before domain services start.
+   **Nobody opens Fabric again until step 4 is done**, and the migrations come only from the new
+   build's own start, never copied by hand: every start writes its bundle's migrations into the stack
+   folder and removes every other one (`apps/desktop/src/main/bundledStack.ts#materializeStack`). Measured
+   on the 0.3.12 rollout, 2026-10-24: migration 123 was copied by hand under 0.3.11, the person reopened
+   Fabric from the Dock 11 seconds after quitting (the system log's `Dock: LAUNCH: Asking CSUI to launch 1
+   items`), 0.3.11's start removed the file, and `supabase migration up` applied nothing (schema stayed 95).
+   Tell the person before step 1 that the app stays closed until you say so.
 2. Make a private backup outside the checkout before any migration. The local stack uses loopback
    database port 54322. The following commands prompt for the existing database password; never
    put it in argv or a tracked file. A prepared private mode-600 PGPASSFILE is also supported by
