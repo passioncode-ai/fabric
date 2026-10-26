@@ -165,7 +165,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   let seenLive = new Set<string>()
   let inFlight = false
   /** SW-9: what the latest sweep found, for the operator's queue; null before the first sweep. */
-  let latest: { at: number; findings: SweptFinding[]; unclaimed: number | null } | null = null
+  let latest: { at: number; findings: SweptFinding[]; unclaimed: number | null; unclaimedSessions: string[] } | null = null
   /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
   const bySession = new Map<string, Map<string, SessionNudge>>()
   const byProject = new Map<string, ProjectNudge[]>()
@@ -384,6 +384,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       // 0.3.14, the simple Fabric: how many sessions change files with no claim, for the home's strip; unknown (null)
       // when this sweep was blind to them, never 0.
       unclaimed: blind.has('work-unclaimed') ? null : new Set(findings.filter((f) => f.kind === 'work-unclaimed').map((f) => f.sessionId ?? f.key)).size,
+      // Which sessions, so the strip's number opens where it is counted (the 0.3.14 review, iteration 2, UX-16).
+      unclaimedSessions: blind.has('work-unclaimed') ? [] : [...new Set(findings.filter((f) => f.kind === 'work-unclaimed' && f.sessionId).map((f) => f.sessionId as string))],
       // A reminder to the agent at work is not abandoned work for the operator (0.3.14 wave 2, AGENT_ONLY_KINDS).
       findings: [
         ...findings.filter((f) => !(f.kind === 'claim-lapsed' && f.claimId && releasedClaims.has(f.claimId)))
@@ -434,8 +436,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
 
   return {
     /** What the latest sweep found, a copy (SW-9): the operator's attention queue reads it. Null before the first sweep. */
-    current(): { at: number; findings: SweptFinding[]; unclaimed: number | null } | null {
-      return latest ? { at: latest.at, findings: latest.findings.map((f) => ({ ...f })), unclaimed: latest.unclaimed } : null
+    current(): { at: number; findings: SweptFinding[]; unclaimed: number | null; unclaimedSessions: string[] } | null {
+      return latest ? { at: latest.at, findings: latest.findings.map((f) => ({ ...f })), unclaimed: latest.unclaimed, unclaimedSessions: [...latest.unclaimedSessions] } : null
     },
     /** One pass of the cycle: every third one sweeps (SW-1). Null when this pass does not. */
     async onPass(): Promise<SweepResult | null> {

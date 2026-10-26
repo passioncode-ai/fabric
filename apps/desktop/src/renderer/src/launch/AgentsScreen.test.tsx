@@ -209,7 +209,8 @@ describe('the roster in Настройки (CO-419, moved by 0.3.14)', () => {
     stub({ home: async () => { throw new Error('stack refused') }, overview: async () => hub({ agents: [] }), exec: async () => [] })
     show([session({})])
     const row = (await screen.findByText('Claude Code')).closest('button')!
-    expect(row.textContent).toContain(en['agentPage.doingUnread'])
+    // The row shows as soon as the consoles are known; the failed home reading lands after it (asynchronously).
+    await waitFor(() => expect(row.textContent).toContain(en['agentPage.doingUnread']))
     expect(row.textContent).not.toContain(en['launch.home.agents.silent'])
   })
 })
@@ -326,5 +327,15 @@ describe('the chosen agent across a task and back (review, iteration 1)', () => 
     answer({ live: [working, joinedLive], inWork: [], review: [], done: [], projects: [], readAt: now } as HomeView)
     await screen.findByTestId('agent-page')
     await waitFor(() => expect(document.activeElement?.id).toBe('agent-page-title'))
+  })
+})
+
+// The 0.3.14 review, iteration 2, UX-16: arriving for a session that is no longer at work says so.
+describe('arriving for a session that ended (UX-16)', () => {
+  it('names the ended session, not «choose an agent»', async () => {
+    stub()
+    screenFor({ session: 'gone-session-1234', sessions: [] })
+    expect(await screen.findByText(en['agentScreen.sessionGone'].replace('{id}', 'gone-ses'))).toBeTruthy()
+    expect(screen.queryByText(en['agentScreen.pick'])).toBeNull()
   })
 })

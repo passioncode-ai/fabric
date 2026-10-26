@@ -192,6 +192,16 @@ describe('the left column', () => {
     expect(screen.getByText(en['rail.agents.none'])).toBeTruthy()
   })
 
+  it('ER-17, UX-17, UX-18: kept rows after a failed reading are said as possibly old, with a retry; every status has a name', () => {
+    const retry = vi.fn()
+    shell({ agents: { rows: [agent('s1', 'Fabric', { status: 'working' })], problem: 'connect ECONNREFUSED', retry } })
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    expect(screen.getByText(en['rail.agents.stale'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['common.retry'] }))
+    expect(retry).toHaveBeenCalled()
+    expect(screen.getByRole('img', { name: en['status.working'] })).toBeTruthy()
+  })
+
   it('marks the open project in the list', () => {
     shell({ at: { kind: 'project', projectId: 'p1' } })
     const row = within(screen.getByRole('list', { name: en['rail.projects'] })).getAllByRole('link')[2]

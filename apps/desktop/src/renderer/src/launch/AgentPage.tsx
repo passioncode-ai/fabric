@@ -39,6 +39,9 @@ type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'fa
 type TasksRead = { at: 'reading' } | { at: 'ready'; view: SessionTasksView } | { at: 'failed'; says: string; kept: SessionTasksView | null }
 
 const BOARD_STATUS = new Set(['backlog', 'running', 'review', 'done'])
+/** What a heartbeat can wait on (`fabric_heartbeat` waitingOn.kind), said in words; an unknown kind is said not at all
+ *  (the 0.3.14 review, iteration 2, UX-19: the raw code showed in the Russian interface). */
+const WAITING_ON = new Set(['question', 'grant', 'continuation'])
 const RELEASED_HOW = new Set(['done', 'handed-over', 'let-go', 'operator', 'session-ended', 'lapsed'])
 
 /** The task a journal row is about, when `subjectOfEvent` can say so and the row names its project. */
@@ -48,8 +51,10 @@ export function taskOfEvent(e: FeedEvent): { projectId: string; taskId: string }
   return { projectId: e.project_id, taskId: subject.ref.id }
 }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal }: {
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal, goalsUnread }: {
   agent: LiveAgent
+  /** The goals could not be read (`main/agentGoals.ts`): said where the goal would be, never «not named» (ER-20). */
+  goalsUnread?: string | null
   /** Who works was not read: the task and the action are unknown, never said as none (0.3.13 review, iteration 2, UX-3). */
   workUnread?: boolean
   /** Moves when the journal does: the page reads its history again. */
@@ -88,7 +93,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   }, [agent.sessionId, mark, attempt])
   const [tasksRead, setTasksRead] = useState<TasksRead & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [tasksAttempt, setTasksAttempt] = useState(0)
-  const [lane, setLane] = useState<SessionLane | null>(null)
+  const [lane, setLane] = useState<SessionLane | 'all'>('all')
   useEffect(() => {
     let alive = true
     const of = agent.sessionId
@@ -139,9 +144,14 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const phase = events ? lastPhase(events) : null
   const current = agent.task ? (tasksView?.tasks.find((x) => x.taskId === agent.task!.id) ?? null) : null
   const laneCounts = Object.fromEntries(SESSION_LANES.map((l) => [l, (tasksView?.tasks ?? []).filter((x) => laneOf(x) === l).length])) as Record<SessionLane, number>
-  // Until the person picks one, the first lane that has a task is open.
-  const shownLane: SessionLane = lane ?? SESSION_LANES.find((l) => laneCounts[l] > 0) ?? 'inWork'
-  const laneTasks = (tasksView?.tasks ?? []).filter((x) => laneOf(x) === shownLane)
+  // The 0.3.14 review, iteration 2, UX-20: «Все» first and open until the person picks a lane, every task newest first,
+  // as the operator asked («сверху самая последняя»); a lane of tasks not found shows only when it holds one (DA-4).
+  const shownLane: SessionLane | 'all' = lane
+  const laneTasks = (tasksView?.tasks ?? []).filter((x) => shownLane === 'all' || laneOf(x) === shownLane)
+  const tabs: Array<SessionLane | 'all'> = ['all', ...SESSION_LANES.filter((l) => l !== 'missing' || laneCounts.missing > 0)]
+  // UX-13: «Цель» only for a goal the agent split from, or one the person set; a task that is its own root is the task.
+  const goal = agent.goal && (!agent.goal.isTask || agent.goal.byPerson) ? agent.goal : null
+  const goalSaysTask = !!goal && goal.isTask
   const currentTrail = agent.task && trails ? (trails.get(agent.task.id) ?? null) : null
   const historyFull = events ? mayHaveEarlier(events) : false
   const heard = agent.lastSignAt ?? agent.startedAt
@@ -194,24 +204,31 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
       <div className="as-cols">
         <div className="as-main">
           {/* The operator's second review (R-3): the goal, the root of its task's decomposition, above what it does now. */}
-          {agent.goal !== undefined && (
+          {goalsUnread ? (
+            // ER-20: a failed goals read is said where the goal would be.
             <section className="as-goal" aria-labelledby="agent-goal-title">
               <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
-              {agent.goal ? (
-                <>
-                  <p className="as-now-task">{agent.goal.text}</p>
-                  {agent.goal.what && agent.goal.what !== agent.goal.text && <p className="lp-meta">{agent.goal.what}</p>}
-                  <p className="as-meta">
-                    {agent.goal.byPerson && <span>{t('agentScreen.goalByPerson')}</span>}
-                    {onOpenTask && <button type="button" className="lp-link" onClick={() => onOpenTask(agent.goal!.projectId, agent.goal!.taskId)}>{t('agentScreen.openGoal')}</button>}
-                  </p>
-                </>
-              ) : <p className="lp-meta">{t('launch.home.inWork.noGoal')}</p>}
+              <p className="lp-meta" title={goalsUnread}>{t('launch.home.inWork.goalsUnread')}</p>
             </section>
-          )}
+          ) : goal ? (
+            <section className="as-goal" aria-labelledby="agent-goal-title">
+              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
+              <p className="as-now-task">{goal.text}</p>
+              {goal.what && goal.what !== goal.text && <p className="lp-meta">{goal.what}</p>}
+              <p className="as-meta">
+                {goal.byPerson && <span>{t('agentScreen.goalByPerson')}</span>}
+                {onOpenTask && <button type="button" className="lp-link" onClick={() => onOpenTask(goal.projectId, goal.taskId)}>{t('agentScreen.openGoal')}</button>}
+              </p>
+            </section>
+          ) : agent.goal === null && agent.task ? (
+            <section className="as-goal" aria-labelledby="agent-goal-title">
+              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
+              <p className="lp-meta">{t('launch.home.inWork.noGoal')}</p>
+            </section>
+          ) : null}
           <section className="as-now" aria-labelledby="agent-now-title">
             <h4 id="agent-now-title">{t('agentScreen.now')}</h4>
-            {agent.task ? (
+            {agent.task && goalSaysTask ? null : agent.task ? (
               <>
                 <p className="as-now-task">
                   {onOpenTask
@@ -249,9 +266,9 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
           {tasksView && tasksView.tasks.length > 0 && (
             // The operator's second review (R-12): the tasks in lanes, each with its count; the lane opened is the person's.
             <div className="lp-tabs as-lanes" role="group" aria-label={t('agentScreen.lanes')}>
-              {SESSION_LANES.map((l) => (
+              {tabs.map((l) => (
                 <button key={l} type="button" className="lp-tab" aria-pressed={shownLane === l} onClick={() => setLane(l)}>
-                  {t(`agentScreen.lane.${l}` as 'agentScreen.lane.inWork')} <span className="lp-count">{laneCounts[l]}</span>
+                  {t(`agentScreen.lane.${l}` as 'agentScreen.lane.inWork')} <span className="lp-count">{l === 'all' ? tasksView.tasks.length : laneCounts[l]}</span>
                 </button>
               ))}
             </div>
@@ -326,7 +343,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             <div><dt>{t('agentScreen.lastSign')}</dt><dd>{t('launch.home.inWork.heard', { time: since(heard, t) })}</dd></div>
             {phase && (
               <div><dt>{t('agentScreen.claim')}</dt><dd>
-                {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn ? ` (${phase.waitingOn})` : ''}{' '}
+                {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
                 <small className="lp-meta">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>
               </dd></div>
             )}

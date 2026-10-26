@@ -377,6 +377,15 @@ export function EstateHome({
       .finally(() => setWsBusy(null))
   }
 
+  // The 0.3.14 review, iteration 2, UX-16: each number opens where it is counted. «агентов работает» opens the first
+  // agent working now; «работают без задачи» the first of the sessions the sweep counted; with none, Агенты itself.
+  const working = (home.view?.live ?? []).filter((a) => !a.stale).map((a) => a.sessionId)
+  const openFirst = (sessions: readonly string[]): void => {
+    const first = sessions.find((id) => home.view?.live.some((a) => a.sessionId === id))
+    if (first && onAgent) onAgent(first)
+    else onAgents()
+  }
+
   return (
     <div className="estate-home lp" data-launch-view="launch-home">
       {/* A question on Главная (ADR-0160 §5): the local database reachable from the network, with its fix. */}
@@ -537,8 +546,8 @@ export function EstateHome({
         <div className="lh-strip">
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
-            onAgents={onAgents} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
-            onAbandoned={onBoard} onUnclaimed={onAgents} />
+            onAgents={() => openFirst(working)} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
+            onAbandoned={onBoard} onUnclaimed={() => openFirst(home.view?.unclaimedSessions ?? [])} />
         </div>
       </div>
 

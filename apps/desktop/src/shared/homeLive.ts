@@ -134,6 +134,8 @@ export interface HomeView {
   handedIn?: { today: number; capped: boolean } | { unread: string }
   /** «Работают без задачи»: the latest sweep's sessions changing files with no claim; null while it is not known. */
   unclaimed?: number | null
+  /** Those sessions, so the number opens where it is counted (the 0.3.14 review, iteration 2, UX-16). */
+  unclaimedSessions?: string[]
   /** The goals could not be read (`main/agentGoals.ts`): every agent's goal is unknown, never «not named». */
   goalsUnread?: string
 }

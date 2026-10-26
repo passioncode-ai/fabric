@@ -43,6 +43,8 @@ export interface InWorkGroups {
   quiet: Array<{ id: string; name: string }>
   projectsAtWork: number
   agentsAtWork: number
+  /** Of them, the quiet ones (stale): the strip's «агентов работает» counts the others (UX-21). */
+  agentsQuiet: number
 }
 
 const time = (iso: string | null | undefined): number => {
@@ -56,6 +58,8 @@ export function groupInWork(input: {
   inWork: readonly WorkItem[]
   projects: readonly InWorkProjectInput[]
   locale: string
+  /** The goals could not be read: no card takes its aim from the plan as if it were current work (ER-20). */
+  goalsUnread?: boolean
 }): InWorkGroups {
   const active = input.projects.filter((p) => p.status !== 'archived')
   const byId = new Map(active.map((p) => [p.id, p]))
@@ -85,9 +89,11 @@ export function groupInWork(input: {
   }
   for (const c of cards.values()) {
     c.agents.sort((a, b) => time(heard(b)) - time(heard(a)) || (a.sessionId < b.sessionId ? -1 : 1))
-    const goal = c.agents.find((a) => a.goal)?.goal
+    // UX-13: a goal is the card's aim only when an agent split it, or the person set it; a task that is its own root is
+    // the agent's step, not the project's aim. ER-20: with the goals unread, the aim is unknown: the name alone.
+    const goal = c.agents.map((a) => a.goal).find((g) => g && (!g.isTask || g.byPerson))
     const next = c.projectId ? (byId.get(c.projectId)?.plan?.next ?? []).map((n) => n.trim()).find(Boolean) : undefined
-    c.aim = goal ? { text: goal.text, from: 'goal' } : next ? { text: next, from: 'plan' } : null
+    c.aim = input.goalsUnread ? null : goal ? { text: goal.text, from: 'goal' } : next ? { text: next, from: 'plan' } : null
   }
   const list = [...cards.values()].sort((a, b) => {
     if ((a.projectId === null) !== (b.projectId === null)) return a.projectId === null ? 1 : -1
@@ -102,7 +108,9 @@ export function groupInWork(input: {
     cards: list,
     quiet,
     projectsAtWork: list.filter((c) => c.projectId !== null).length,
-    agentsAtWork: input.live.length
+    agentsAtWork: input.live.length,
+    // UX-21: how many of them are quiet, so the head says it beside the strip's «агентов работает», which counts the rest.
+    agentsQuiet: input.live.filter((a) => a.stale).length
   }
 }
 // #endregion home-projects

@@ -61,3 +61,11 @@ test('withStrip puts the strip\'s own reads on the home\'s reading: a failed one
   const failed = await withStrip(view, { handedIn: async () => { throw new Error('database away') }, sweep: () => null })
   assert.deepEqual([failed.handedIn, failed.unclaimed], [{ unread: 'database away' }, null])
 })
+
+test('UX-16: the sweep\'s sessions working without a task ride on the reading, so the number opens one of them', async () => {
+  const view = { live: [], inWork: [], review: [], done: [], projects: [], readAt: 'r' }
+  const out = await withStrip(view, { handedIn: async () => ({ today: 0, capped: false }), sweep: () => ({ unclaimed: 2, unclaimedSessions: ['s1', 's2'] }) })
+  assert.deepEqual(out.unclaimedSessions, ['s1', 's2'])
+  const blind = await withStrip(view, { handedIn: async () => ({ today: 0, capped: false }), sweep: () => ({ unclaimed: null, unclaimedSessions: [] }) })
+  assert.equal(blind.unclaimedSessions, undefined)
+})

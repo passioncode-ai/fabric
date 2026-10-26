@@ -694,7 +694,9 @@ button.lg-node{ cursor: pointer; }
 @media (max-width: 850px){ .hx-grid.has-detail{ grid-template-columns: 1fr; } }
 /* The 0.3.14 review, iteration 1 (UX-3, UX-4): the agent page's rows have two children, the time and what was done
    with its task's name, so they take a grid of their own; a task name in a row is a text link, never a filled button. */
-.lh-agent-page .hx-act{grid-template-columns:52px minmax(0,1fr)}
+/* The 0.3.14 review, iteration 2 (UX-11): tied to the history's own class, which the agent page renders; the page's
+   section class changed in wave 4 and the rule tied to it stopped applying. */
+.lh-agent-page .hx-act,.ap-history .hx-act{grid-template-columns:52px minmax(0,1fr)}
 .lp-link{border:0;background:none;padding:0;min-height:0;color:inherit;font:inherit;font-weight:inherit;text-align:inherit;text-decoration:underline;text-decoration-color:var(--app-line-strong,var(--app-line));text-underline-offset:2px;cursor:pointer}
 .lp-link:hover{background:none;text-decoration-color:currentColor}
 .lp-link:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px;border-radius:2px}

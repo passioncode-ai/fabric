@@ -112,7 +112,7 @@ describe('home: who is doing what', () => {
       <HomeWorkLanes reading={read} onOpen={() => {}} onSession={() => {}} />
     </>)
     // one working (the silent one is not counted as working), one in work, three need you, one to review
-    expect(screen.getByText('agents working').previousSibling?.textContent).toBe('1')
+    expect(screen.getByText(/^agents? working$/).previousSibling?.textContent).toBe('1')
     expect(screen.getByText('need you').previousSibling?.textContent).toBe('3')
     expect(screen.getAllByText('New landing page').length).toBeGreaterThan(0)
     expect(screen.getByText('Keep-awake setting')).toBeTruthy()
@@ -162,7 +162,7 @@ describe('home: who is doing what', () => {
     expect(screen.getByText('to review').previousSibling?.textContent).toBe('1+')
     cleanup()
     show(<HomeStats reading={{ view, problem: 'gone' }} waiting={null} onAgents={() => {}} onBoard={() => {}} />)
-    expect(screen.getByText('agents working').previousSibling?.textContent).toBe('—')
+    expect(screen.getByText(/^agents? working$/).previousSibling?.textContent).toBe('—')
   })
 })
 
@@ -264,11 +264,11 @@ describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => 
     show(<HomeStats reading={{ view: { ...view, ...v }, problem: null }} waiting={2} toReview={23} {...props} />)
     return props
   }
-  const cell = (label: string) => screen.getByText(label).closest('button') as HTMLButtonElement
+  const cell = (label: string | RegExp) => screen.getByText(label).closest('button') as HTMLButtonElement
 
   it('shows the six numbers with their sources, the old part of review beside its count', () => {
     strip({ handedIn: { today: 7, capped: false }, reviewOld: 9, abandoned: [view.inWork[0], view.inWork[0], view.inWork[0]], unclaimed: 1 })
-    expect(cell('agents working').querySelector('b')?.textContent).toBe('1')
+    expect(cell(/^agents? working$/).querySelector('b')?.textContent).toBe('1')
     expect(cell('handed in today').querySelector('b')?.textContent).toBe('7')
     expect(cell('need you').querySelector('b')?.textContent).toBe('2')
     expect(cell('to review').querySelector('b')?.textContent).toBe('23')
@@ -281,7 +281,7 @@ describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => 
   it('opens where each number is counted', () => {
     const p = strip({ handedIn: { today: 7, capped: true }, abandoned: [], unclaimed: 0 })
     expect(cell('handed in today').querySelector('b')?.textContent).toBe('7+')
-    fireEvent.click(cell('agents working')); expect(p.onAgents).toHaveBeenCalled()
+    fireEvent.click(cell(/^agents? working$/)); expect(p.onAgents).toHaveBeenCalled()
     fireEvent.click(cell('handed in today')); expect(p.onReview).toHaveBeenCalledTimes(1)
     fireEvent.click(cell('need you')); expect(p.onWaiting).toHaveBeenCalled()
     fireEvent.click(cell('to review')); expect(p.onReview).toHaveBeenCalledTimes(2)
@@ -298,12 +298,19 @@ describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => 
     expect(cell('abandoned').querySelector('b')?.textContent).toBe('—')
     cleanup()
     show(<HomeStats reading={{ view: { ...view, handedIn: { today: 3, capped: false }, unclaimed: 2 }, problem: 'gone' }} waiting={null} onAgents={() => {}} onBoard={() => {}} />)
-    for (const label of ['agents working', 'handed in today', 'need you', 'abandoned', 'working without a task']) expect(cell(label).querySelector('b')?.textContent).toBe('—')
+    for (const label of [/^agents? working$/, 'handed in today', 'need you', 'abandoned', 'working without a task']) expect(cell(label).querySelector('b')?.textContent).toBe('—')
   })
 
   it('speaks Russian in Russian', () => {
     render(<I18nProvider locale="ru"><HomeStats reading={{ view: { ...view, reviewOld: 9 }, problem: null }} waiting={2} toReview={23} onAgents={() => {}} onBoard={() => {}} /></I18nProvider>)
-    for (const label of [ru['launch.home.stats.working'], ru['launch.home.stats.handedIn'], ru['launch.home.stats.waiting'], ru['launch.home.stats.review'], ru['launch.home.stats.abandoned'], ru['launch.home.stats.unclaimed']]) expect(screen.getByText(label!)).toBeTruthy()
+    for (const label of [ru['launch.home.stats.working.one'], ru['launch.home.stats.handedIn'], ru['launch.home.stats.waiting'], ru['launch.home.stats.review'], ru['launch.home.stats.abandoned'], ru['launch.home.stats.unclaimed.many']]) expect(screen.getByText(label!)).toBeTruthy()
     expect(screen.getByText('9 дольше 3 дней')).toBeTruthy()
+  })
+
+  it('UX-21: the labels agree with their numbers in Russian', () => {
+    const many = { ...view, live: Array.from({ length: 5 }, (_, i) => ({ ...view.live[0], sessionId: `s${i}`, stale: false })), unclaimed: 1 }
+    render(<I18nProvider locale="ru"><HomeStats reading={{ view: many, problem: null }} waiting={0} onAgents={() => {}} onBoard={() => {}} /></I18nProvider>)
+    expect(screen.getByText(ru['launch.home.stats.working.many']!)).toBeTruthy()
+    expect(screen.getByText(ru['launch.home.stats.unclaimed.one']!)).toBeTruthy()
   })
 })

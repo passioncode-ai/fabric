@@ -59,13 +59,14 @@ export async function readHandedInToday(store: { select(table: string, columns: 
 /** The home's reading with the strip's two reads of its own: each failure kept on its number. */
 export async function withStrip(view: HomeView, reads: {
   handedIn(): Promise<{ today: number; capped: boolean }>
-  sweep(): { unclaimed?: number | null } | null
+  sweep(): { unclaimed?: number | null; unclaimedSessions?: string[] } | null
 }): Promise<HomeView> {
   const handedIn = await reads.handedIn().then(
     (v) => v,
     (e: unknown) => ({ unread: e instanceof Error ? e.message : String(e) })
   )
   const swept = reads.sweep()
-  return { ...view, handedIn, unclaimed: swept && typeof swept.unclaimed === 'number' ? swept.unclaimed : null }
+  const unclaimed = swept && typeof swept.unclaimed === 'number' ? swept.unclaimed : null
+  return { ...view, handedIn, unclaimed, ...(unclaimed !== null && swept?.unclaimedSessions?.length ? { unclaimedSessions: [...swept.unclaimedSessions] } : {}) }
 }
 // #endregion home-strip

@@ -36,19 +36,23 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
   const t = useT(), locale = useLocale()
   const [allQuiet, setAllQuiet] = useState(false)
   const v = reading.view
-  const g = v ? groupInWork({ live: v.live, inWork: v.inWork, projects: projects ?? [], locale }) : null
+  const g = v ? groupInWork({ live: v.live, inWork: v.inWork, projects: projects ?? [], locale, goalsUnread: !!v.goalsUnread }) : null
   const plural = (key: 'projects' | 'agents', n: number): string => t(`launch.home.inWork.${key}.${pluralForm(locale, n)}` as 'launch.home.inWork.agents.many', { count: n })
   const quietShown = g ? (allQuiet ? g.quiet : g.quiet.slice(0, QUIET_NAMED)) : []
   return (
     <section className="lp-panel lh-inwork" aria-labelledby="home-inwork-title">
       <div className="lh-inwork-head">
         <h3 id="home-inwork-title">{t('launch.home.inWork.title')}</h3>
-        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}</span>}
+        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}{g.agentsQuiet > 0 ? ` · ${t('launch.home.inWork.agentsQuiet', { count: g.agentsQuiet })}` : ''}</span>}
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
+      {/* UX-18: the reading can be asked again here, as the projects view beside it can. */}
+      {reading.problem && reading.retry && <button type="button" className="lp-button" onClick={reading.retry}>{t('common.retry')}</button>}
       <KeptNote reading={reading} />
       <CappedNote reading={reading} />
       {!v && !reading.problem && <p className="lp-meta" role="status">{t('estate.reading')}</p>}
+      {/* ER-20: a failed goals read is said once, above the rows that would carry them. */}
+      {v?.goalsUnread && <p className="lp-meta" role="status" title={v.goalsUnread}>{t('launch.home.inWork.goalsUnread')}</p>}
       {g && g.cards.length === 0 && <p className="lp-meta">{t('launch.home.inWork.none')}</p>}
       {g?.cards.map((c) => (
         <Card key={c.projectId ?? 'none'} card={c} waiting={c.projectId && waitingByProject ? (waitingByProject[c.projectId] ?? 0) : 0}
@@ -135,12 +139,14 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
       <div className="lh-arow-body">
         {/* The operator's second review (R-3, R-4): the goal leads in the row's main type; what changes, the step, is the
             muted line below it with its progress. An older reading without goals keeps the task as the main line. */}
-        {a.goal !== undefined ? (
+        {/* UX-12: an agent with no task says so, never «no goal»; UX-13: «Цель» only for a goal it split from or one
+            the person set, a task that is its own root is the task line. */}
+        {a.task && a.goal && (!a.goal.isTask || a.goal.byPerson) ? (
           <p className="lh-arow-task">
-            {a.goal
-              ? <button type="button" className="lp-link" onClick={() => onTask(a.goal!.projectId, a.goal!.taskId)}>{t('launch.home.inWork.goal', { goal: a.goal.text })}</button>
-              : <span className="lp-meta">{t('launch.home.inWork.noGoal')}</span>}
+            <button type="button" className="lp-link" onClick={() => onTask(a.goal!.projectId, a.goal!.taskId)}>{t('launch.home.inWork.goal', { goal: a.goal.text })}</button>
           </p>
+        ) : a.task && a.goal === null ? (
+          <p className="lh-arow-task"><span className="lp-meta">{t('launch.home.inWork.noGoal')}</span></p>
         ) : (
           <p className="lh-arow-task">
             {a.task
@@ -161,7 +167,8 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
         </p>
       </div>
       <p className="lh-arow-when">
-        {status !== 'working' && <span className={`lh-status s-${status}`}>{t(`status.${status}` as 'status.idle')}</span>}
+        {/* UX-17: the word is said for every status, «working» too; the colour never stands alone. */}
+        <span className={`lh-status s-${status}`}>{t(`status.${status}` as 'status.idle')}</span>
         {a.stale ? t('launch.home.inWork.quietFor', { time: heard }) : t('launch.home.inWork.heard', { time: heard })}
       </p>
     </li>

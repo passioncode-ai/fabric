@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { ReviewItem, HomeView, LiveAgent, WorkItem } from '../../../shared/homeLive'
-import { useLocale, useT } from '../i18n'
+import { pluralForm, useLocale, useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
@@ -98,7 +98,7 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
   onAbandoned?(): void
   onUnclaimed?(): void
 }): React.JSX.Element {
-  const t = useT()
+  const t = useT(), locale = useLocale()
   const v = reading.view
   const known = v && !reading.problem ? v : null
   const unreadWhy = reading.problem ? t('launch.home.work.unreadable') : undefined
@@ -118,13 +118,14 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
   )
   return (
     <div className="lh-stats lh-stats-six" role="group" aria-label={t('launch.home.stats.label')}>
-      {cell(working, t('launch.home.stats.working'), onAgents, working ? 'live' : '', unreadWhy)}
+      {/* UX-21: a label that agrees with its number («1 агент работает», «5 агентов работают»). */}
+      {cell(working, t(`launch.home.stats.working.${pluralForm(locale, working ?? 5)}` as 'launch.home.stats.working.many'), onAgents, working ? 'live' : '', unreadWhy)}
       {cell(handedN, t('launch.home.stats.handedIn'), onReview ?? onBoard, '', handedWhy)}
       {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '', unreadWhy)}
       {cell(reviewN, t('launch.home.stats.review'), onReview ?? onBoard, '', unreadWhy,
         known && known.reviewOld ? t('launch.home.stats.reviewOld', { count: `${known.reviewOld}${known.reviewOldCapped ? '+' : ''}` }) : null)}
       {cell(abandoned, t('launch.home.stats.abandoned'), onAbandoned ?? onBoard, abandoned ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unreadOld'))}
-      {cell(unclaimed, t('launch.home.stats.unclaimed'), onUnclaimed ?? onAgents, unclaimed ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unclaimedUnknown'))}
+      {cell(unclaimed, t(`launch.home.stats.unclaimed.${pluralForm(locale, unclaimed ?? 5)}` as 'launch.home.stats.unclaimed.many'), onUnclaimed ?? onAgents, unclaimed ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unclaimedUnknown'))}
     </div>
   )
 }

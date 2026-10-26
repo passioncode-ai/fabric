@@ -283,7 +283,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {chosen ? (
-        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
+        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
           terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null} />
       ) : home.view === null && home.problem && rows.length === 0 ? (
         <div className="lp-meta ag-pick" role="status">
@@ -292,6 +292,11 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         </div>
       ) : arrivedFor && r.everyRead === 'reading' ? (
         <p className="lp-meta ag-pick" role="status">{t('agentsPlace.reading')}</p>
+      ) : initialSession && !chosen ? (
+        // UX-16: arriving for a session that is no longer at work says so, not «choose an agent».
+        <div className="ag-pick">
+          <p className="lp-meta" role="status">{t('agentScreen.sessionGone', { id: initialSession.slice(0, 8) })}</p>
+        </div>
       ) : (
         <div className="ag-pick">
           <p className="lp-meta">{t('agentScreen.pick')}</p>
@@ -343,8 +348,10 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab, terminal = null }: {
+function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject, onOpenTask, onAsTab, terminal = null }: {
   row: RosterRow
+  /** The goals could not be read (ER-20). */
+  goalsUnread?: string | null
   /** Its console as Fabric holds it, for the status word (R-19). */
   terminal?: TerminalSession | null
   mark: number
@@ -381,7 +388,7 @@ function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab
   return live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
       where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined} terminal={terminal}
-      workUnread={homeUnread && !row.live} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
+      workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">
       <div className="lp-panel-head">

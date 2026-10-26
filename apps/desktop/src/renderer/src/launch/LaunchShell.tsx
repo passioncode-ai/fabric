@@ -91,7 +91,7 @@ export interface LaunchShellProps {
   /** Project ids the person pinned (favourites, local to this computer): a star beside the name, nothing more. */
   pins: string[]
   /** Every agent at work now, for the toggle's «Агенты» (`shared/railAgents.ts`); rows null while unread. */
-  agents: { rows: RailAgent[] | null; problem: string | null }
+  agents: { rows: RailAgent[] | null; problem: string | null; retry?: () => void }
   /** Opens an agent's screen. */
   onAgent(sessionId: string): void
   /** The console icon beside an agent whose console Fabric holds (the operator's second review, R-6): opens its session
@@ -280,6 +280,10 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         ) : (
         <div className="rail-projects rail-agents">
           {props.agents.problem && !props.agents.rows && <p className="rail-muted" role="alert">{t('rail.agents.failed')}</p>}
+          {/* ER-17: after a failed reading the rows kept are the last reading's, said as such, never as current. */}
+          {props.agents.problem && props.agents.rows && <p className="rail-muted" role="status" title={props.agents.problem}>{t('rail.agents.stale')}</p>}
+          {/* UX-18: the reading can be asked again here. */}
+          {props.agents.problem && props.agents.retry && <button type="button" className="rail-small" onClick={props.agents.retry}>{t('common.retry')}</button>}
           {props.agents.rows === null && !props.agents.problem && <p className="rail-muted" role="status">{t('rail.agents.reading')}</p>}
           {props.agents.rows !== null && props.agents.rows.length === 0 && <p className="rail-muted">{t('rail.agents.none')}</p>}
           {props.agents.rows !== null && props.agents.rows.length > 0 && (
@@ -290,7 +294,9 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                   <li key={a.sessionId}>
                     <a href="#" className="rail-agent" title={name} {...current(agentSession === a.sessionId)}
                       onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      <span className={`rail-dot s-${a.status ?? (a.state === 'working' ? 'working' : 'idle')}`} aria-hidden="true" />
+                      {/* UX-17: the status has a name for every reader, «working» included; the word shows beside it when not working. */}
+                      <span className={`rail-dot s-${a.status ?? (a.state === 'working' ? 'working' : 'idle')}`} role="img"
+                        aria-label={t(`status.${a.status ?? (a.state === 'working' ? 'working' : 'idle')}` as 'status.idle')} />
                       <span className="rail-agent-words">
                         <span className="rail-name">{name}</span>
                         <span className="rail-agent-line">

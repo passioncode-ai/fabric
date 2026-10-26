@@ -985,7 +985,7 @@ function Shell({
         title={placeTitle}
         pins={pins}
         live={liveProjects}
-        agents={{ rows: railAgentRows, problem: homeReading.problem }}
+        agents={{ rows: railAgentRows, problem: homeReading.problem, retry: homeReading.retry }}
         onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
         onAgentConsole={(session) => void openConsole(session)}
         waiting={waiting}

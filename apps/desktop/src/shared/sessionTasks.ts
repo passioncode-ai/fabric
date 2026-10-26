@@ -113,14 +113,21 @@ export function composeSessionTasks(input: {
   return { tasks: out.slice(0, limit), capped: !!input.readCapped || out.length > limit }
 }
 /** The lanes of an agent's tasks (the operator's second review, 2026-10-26, v2 §4.9, R-12): in work, on review, handed
- *  on (released by the session other than done, the task not finished), and done (finished or cancelled). */
-export const SESSION_LANES = ['inWork', 'review', 'handed', 'done'] as const
+ *  on (released by the agent itself, let go or handed over, the task not finished), dropped (its claim lapsed or its
+ *  session ended with the task not finished: what the Board and Главная call «Брошено», the 0.3.14 review, iteration 2,
+ *  UX-14), done (finished or cancelled), and not found (the task's row was not read: deleted or out of reach; never
+ *  filed as done, DA-4). The page shows «Все» first, every task newest first (UX-20), then a tab per lane. */
+export const SESSION_LANES = ['inWork', 'review', 'handed', 'dropped', 'done', 'missing'] as const
 export type SessionLane = typeof SESSION_LANES[number]
 
+/** Releases the agent did not choose: its claim ran out, or its session ended with the task still open. */
+const DROPPED_HOW = new Set(['lapsed', 'session-ended'])
+
 export function laneOf(x: SessionTask): SessionLane {
+  if (x.status === 'unknown') return 'missing'
   if (x.status === 'review') return 'review'
-  if (x.status === 'done' || x.status === 'cancelled' || x.status === 'unknown') return 'done'
-  if (x.releasedAt && x.releasedHow !== 'done') return 'handed'
+  if (x.status === 'done' || x.status === 'cancelled') return 'done'
+  if (x.releasedAt && x.releasedHow !== 'done') return x.releasedHow && DROPPED_HOW.has(x.releasedHow) ? 'dropped' : 'handed'
   return 'inWork'
 }
 // #endregion session-tasks

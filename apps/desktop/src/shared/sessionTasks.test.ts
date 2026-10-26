@@ -91,5 +91,11 @@ describe('laneOf', () => {
     expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'let-go' }))).toBe('handed')
     expect(laneOf(t({ status: 'done', releasedAt: 'b', releasedHow: 'done' }))).toBe('done')
     expect(laneOf(t({ status: 'cancelled' }))).toBe('done')
+    // DA-4: a task whose row was not found is never filed as done.
+    expect(laneOf(t({ status: 'unknown' }))).toBe('missing')
+    // UX-14: work the agent dropped (a lapsed claim, an ended session) is «Брошено», not «Передано».
+    expect(laneOf(t({ status: 'running', releasedAt: 'b', releasedHow: 'lapsed' }))).toBe('dropped')
+    expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'session-ended' }))).toBe('dropped')
+    expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'operator' }))).toBe('handed')
   })
 })

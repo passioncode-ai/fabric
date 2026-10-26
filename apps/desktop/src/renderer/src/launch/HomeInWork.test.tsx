@@ -86,7 +86,36 @@ describe('«В работе» grouped by project', () => {
     expect(p.onTask).toHaveBeenCalledWith('fab', 't1')
     fireEvent.click(within(rows[0]).getByRole('button', { name: en['launch.home.inWork.goal'].replace('{goal}', 'Ship 0.3.14') }))
     expect(p.onTask).toHaveBeenCalledWith('fab', 't0')
-    expect(rows[1].textContent).toContain(en['launch.home.inWork.noGoal'])
+    // UX-12: an agent that took no task says so, never «no goal named».
+    expect(rows[1].textContent).toContain(en['launch.home.inWork.noTask'])
+    expect(rows[1].textContent).not.toContain(en['launch.home.inWork.noGoal'])
+  })
+
+  // The 0.3.14 review, iteration 2.
+  it('UX-13: a task that is its own root is the task line, never «Goal:», and not the card\'s aim', () => {
+    const own: HomeView = { ...view, live: [{ ...view.live[0], goal: { taskId: 't1', projectId: 'fab', text: 'Fixes after the first review', what: null, byPerson: false, isTask: true } }, view.live[1]] }
+    show({ reading: { view: own, problem: null }, projects: [project('fab', 'Fabric', null, { done: [], next: ['Release notes'] }), ...projects.slice(1)] })
+    const card = screen.getByRole('article', { name: 'Fabric' })
+    expect(card.textContent).not.toContain(en['launch.home.inWork.goal'].replace('{goal}', ''))
+    expect(card.querySelector('.lh-proj-aim')?.textContent).toBe(en['launch.home.inWork.next'].replace('{text}', 'Release notes'))
+  })
+
+  it('ER-20: a failed goals read is said, and the plan\'s step is not shown as the aim', () => {
+    show({ reading: { view: { ...view, goalsUnread: 'task_links refused' }, problem: null }, projects: [project('fab', 'Fabric', null, { done: [], next: ['Release notes'] }), ...projects.slice(1)] })
+    expect(screen.getByText(en['launch.home.inWork.goalsUnread'])).toBeTruthy()
+    expect(screen.getByRole('article', { name: 'Fabric' }).querySelector('.lh-proj-aim')).toBeNull()
+  })
+
+  it('UX-17, UX-18, UX-21: «Working» is said in a word; a failed reading offers a retry; the head names the quiet agents', () => {
+    const retry = vi.fn()
+    show({ reading: { view, problem: null } })
+    const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
+    expect(rows[0].textContent).toContain(en['status.working'])
+    expect(document.querySelector('.lh-inwork-head')?.textContent).toContain(en['launch.home.inWork.agentsQuiet'].replace('{count}', '1'))
+    cleanup()
+    show({ reading: { view: null, problem: 'stack refused', retry } })
+    fireEvent.click(screen.getByRole('button', { name: en['common.retry'] }))
+    expect(retry).toHaveBeenCalled()
   })
 
   // The operator's second review (R-1): the card's line is what is being done there now.

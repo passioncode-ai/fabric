@@ -147,7 +147,9 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     // The agent's own word on its phase, labelled as its claim.
     const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
     expect(card.textContent).toContain(en['agentScreen.claim'])
-    expect(card.textContent).toContain(`${en['agentScreen.phase.waiting']} (question)`)
+    // UX-19: what it waits on in words, never the raw code.
+    expect(card.textContent).toContain(`${en['agentScreen.phase.waiting']} (${en['agentScreen.waitingOn.question']})`)
+    expect(card.textContent).not.toContain('(question)')
   })
 
   // The operator's second review, 2026-10-26 (R-3, R-4): the goal above «Сейчас», who set it, and «Открыть цель»; the
@@ -223,11 +225,16 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
     const list = await screen.findByRole('list', { name: en['agentPage.tasks'] })
     expect(session).toHaveBeenCalledWith('s1')
-    // The operator's second review (R-12): in lanes; the first lane with a task is open, the others counted.
+    // The operator's second review (R-12): in lanes, each counted; the 0.3.14 review, iteration 2, UX-20: «All» first
+    // and open, every task newest first.
     const lanes = screen.getByRole('group', { name: en['agentScreen.lanes'] })
-    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.review']}`) }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(lanes).getAllByRole('button')[0].textContent).toContain(en['agentScreen.lane.all'])
+    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.all']}`) }).getAttribute('aria-pressed')).toBe('true')
     expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.done']}`) }).textContent).toContain('1')
-    const rows = list.querySelectorAll(':scope > li')
+    expect(within(lanes).queryByRole('button', { name: new RegExp(`^${en['agentScreen.lane.missing']}`) }), 'no «Not found» tab with nothing in it').toBeNull()
+    expect(list.querySelectorAll(':scope > li')).toHaveLength(2)
+    fireEvent.click(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.review']}`) }))
+    const rows = screen.getByRole('list', { name: en['agentPage.tasks'] }).querySelectorAll(':scope > li')
     expect(rows).toHaveLength(1)
     expect(rows[0].textContent).toContain('Task t2')
     expect(rows[0].textContent).toContain(en['board.review'])
@@ -240,7 +247,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     // The raw history is below, closed until the person opens it.
     const history = (await screen.findByRole('list', { name: en['agentPage.did'] })).closest('details')!
     expect(history.open).toBe(false)
-    expect(list.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('list', { name: en['agentPage.tasks'] }).compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     fireEvent.click(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.done']}`) }))
     const done = screen.getByRole('list', { name: en['agentPage.tasks'] }).querySelectorAll(':scope > li')
     expect(done).toHaveLength(1)
@@ -260,10 +267,13 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const list = screen.getByRole('list', { name: ru['agentPage.tasks'] })
     const text = list.textContent ?? ''
     expect(text).toContain(ru['agentPage.ended.operator']!.replace(' {time}', ''))
-    expect(text).toContain(ru['agentPage.ended.lapsed']!.replace(' {time}', ''))
     expect(text).toContain('как именно, не записано')
     expect(text).not.toContain('weird-how')
     expect(text).not.toContain('Закончил ')
+    // UX-14: a lapsed claim is not «Передано»: it is in «Брошено», as the Board names it.
+    expect(text).not.toContain(ru['agentPage.ended.lapsed']!.replace(' {time}', ''))
+    fireEvent.click(within(screen.getByRole('group', { name: ru['agentScreen.lanes'] })).getByRole('button', { name: new RegExp(`^${ru['agentScreen.lane.dropped']}`) }))
+    expect(screen.getByRole('list', { name: ru['agentPage.tasks'] }).textContent).toContain(ru['agentPage.ended.lapsed']!.replace(' {time}', ''))
   })
 
   it('UX-4: the history\'s heading stands outside its disclosure, which says what it opens', async () => {
@@ -311,5 +321,51 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
     const did = await screen.findByRole('list', { name: en['agentPage.did'] })
     await waitFor(() => expect(within(did).getAllByRole('button', { name: 'Fix the board' })).toHaveLength(2))
+  })
+})
+
+// The 0.3.14 review, iteration 2.
+describe('the agent page, review iteration 2 (UX-11, UX-13, ER-20, DA-4)', () => {
+  it('UX-11: the history rows take the two-column grid; the rule names a class the page renders', async () => {
+    const { readFileSync } = await import('node:fs')
+    const path = await import('node:path')
+    const css = readFileSync(path.join(process.cwd(), 'src/renderer/src/launch/launch.css'), 'utf8')
+    const rule = css.match(/([^{}]*)\{grid-template-columns:52px minmax\(0,1fr\)\}/)
+    expect(rule?.[1]).toMatch(/\.ap-history \.hx-act/)
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1')]) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    await screen.findByRole('list', { name: en['agentPage.did'] })
+    expect(document.querySelector('.ap-history .hx-act')).toBeTruthy()
+  })
+
+  it('UX-13: a task that is its own root is not called «Goal»; it shows once, under «Now»', () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={{ ...agentA, goal: { taskId: 't1', projectId: 'p1', text: 'Keep the computer awake', what: null, byPerson: false, isTask: true } }} mark={0} onOpenProject={vi.fn()} />)
+    expect(screen.queryByRole('region', { name: en['agentScreen.goal'] })).toBeNull()
+    expect(screen.getAllByText('Keep the computer awake')).toHaveLength(1)
+    cleanup()
+    // The person set it: the goal says so, and «Now» does not repeat the same task.
+    show(<AgentPage agent={{ ...agentA, goal: { taskId: 't1', projectId: 'p1', text: 'Keep the computer awake', what: null, byPerson: true, isTask: true } }} mark={0} onOpenProject={vi.fn()} />)
+    expect(screen.getByRole('region', { name: en['agentScreen.goal'] }).textContent).toContain('Keep the computer awake')
+    expect(screen.getAllByText('Keep the computer awake')).toHaveLength(1)
+  })
+
+  it('ER-20: a failed goals read is said where the goal would be', () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentA} goalsUnread="task_links refused" mark={0} onOpenProject={vi.fn()} />)
+    expect(screen.getByRole('region', { name: en['agentScreen.goal'] }).textContent).toContain(en['launch.home.inWork.goalsUnread'])
+  })
+
+  it('DA-4: a task whose row was not found is in «Not found», never in «Done»', async () => {
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
+      { taskId: 'gone', projectId: 'p1', projectName: 'Fabric', summary: 'Gone', brief: { what: null, why: null, expected: null }, status: 'unknown',
+        claimedAt: now, releasedAt: null, releasedHow: null, claims: 1, via: 'claim' }
+    ], capped: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    await screen.findByRole('list', { name: en['agentPage.tasks'] })
+    const lanes = screen.getByRole('group', { name: en['agentScreen.lanes'] })
+    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.missing']}`) }).textContent).toContain('1')
+    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.done']}`) }).textContent).toContain('0')
   })
 })
