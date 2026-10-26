@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T13:30:00Z · `—` · agent/0313-co430 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/renderer/src/launch/HistoryScreen.tsx and its test, i18n en and ru; SCN-168, the ledger (CO-430 resolved), backlog; the map
+- conflicts: none
+- summary: Fabric 0.3.13: History says the operator released a task themselves, without an agent (CO-430's rest).
+
 ### 2026-10-26T13:00:00Z · `—` · agent/0313-triage → main · fast-forward
 - run: r-182fa592b059
 - files: scripts/nightly-gate.mjs, scripts/test/nightly-gate.test.mjs, release-mac.test.mjs, ci.sh, .github/workflows/ci.yml and platforms.yml; apps/desktop/src/shared/eventSubject.ts, entityRef.ts, redact.ts, renderer Feed.tsx, i18n en and ru, their tests; docs/launch/release-mac.md step 9; the ledger (ten rows decided), backlog, the plan; the map

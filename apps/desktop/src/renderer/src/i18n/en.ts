@@ -2893,6 +2893,7 @@ export const en = {
   'acts.agentsTitle': "What the agents did",
   'acts.agentsUnread': "The journal could not be read, so what the agents did is not shown. Fabric tries again by itself.",
   'acts.releasedByFabric': "released a task because its session ended",
+  'acts.releasedByYou': "released a task",
   'acts.opsLog': "Fabric's own log and version",
   'acts.title': "History",
   'acts.lede': "Every act you took through Fabric, newest first; undo is one press where an act can be taken back. Below it, what the agents did.",

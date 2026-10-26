@@ -153,6 +153,18 @@ describe('a task Fabric released names no agent (CO-430)', () => {
     expect(rows[1].querySelector('.hx-said')!.textContent).toContain(en['event.work.released@1'])
   })
 
+  it('says the operator released it themselves, without an agent (CO-430\'s rest)', async () => {
+    const { ru } = await import('../i18n/ru')
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 52, type: 'work.released@1', actor: { kind: 'person', id: 'operator' }, project_id: 'p1', occurred_at: new Date().toISOString(), payload: {} }]
+    render(<I18nProvider locale="ru"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    await screen.findByRole('heading', { name: ru['acts.agentsTitle'] })
+    const row = document.querySelector('.hx-agents .hx-act')!
+    expect(row.querySelector('.hx-who')!.textContent).toBe(ru['acts.actor.you'])
+    expect(row.querySelector('.hx-said')!.textContent).toContain(ru['acts.releasedByYou'])
+    expect(row.textContent).not.toContain(ru['event.work.released@1'])
+  })
+
   it('says it in Russian without an agent too', async () => {
     const { ru } = await import('../i18n/ru')
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))

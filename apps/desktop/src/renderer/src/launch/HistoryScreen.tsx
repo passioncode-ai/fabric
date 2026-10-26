@@ -186,10 +186,12 @@ function AgentWork({ events, projects, sessions, onOpen }: {
 /**
  * The act in a sentence. A task Fabric released (CO-430: the sweep's lapsed release, a session's end, the app's quit) is
  * said without an agent: the journal's sentence for `work.released@1` names one, and «Fabric» beside «агент освободил
- * задачу» told the operator an agent did what Fabric did.
+ * задачу» told the operator an agent did what Fabric did. A task the operator released is said the same way: «Вы ·
+ * освободили задачу», never «Вы · агент освободил задачу».
  */
 function saidOf(t: Translate, e: FeedEvent): string {
   if (e.type === 'work.released@1' && e.actor.kind === 'system') return t('acts.releasedByFabric')
+  if (e.type === 'work.released@1' && e.actor.kind === 'person') return t('acts.releasedByYou')
   return describeEvent(t, e.type)
 }
 

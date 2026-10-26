@@ -2761,6 +2761,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'acts.agentsTitle': "Что делали агенты",
   'acts.agentsUnread': "Журнал не прочитан, поэтому действия агентов не показаны. Fabric пробует снова сам.",
   'acts.releasedByFabric': "освободил задачу, потому что её сессия завершилась",
+  'acts.releasedByYou': "освободили задачу",
   'acts.opsLog': 'Журнал Fabric и версия',
   'acts.title': "История",
   'acts.lede': "Каждое ваше действие через Fabric, новые сверху; отменить можно в одно нажатие там, где действие обратимо. Ниже: что делали агенты.",
