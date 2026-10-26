@@ -75,6 +75,28 @@ machine's rule); the hold is the broker owner's `lifecycle.py hold --target-id f
    (schema 95) as the [runbook's step 5](../../launch/release-mac.md#upgrading-an-existing-database) says, its
    `migration up` reaching 95 only, the failed database kept privately; the hold lifted and 0.3.11 started.
 
+## Rollout, as done on 2026-10-26
+
+On OrbStack, by the steps above (fabric-workspace asked the operator for the quit and watched the process):
+
+- Step 1: `Fabric-0.3.13-universal.dmg` from the release, `SHA256SUMS` OK, `codesign --verify --deep --strict` OK,
+  `spctl`: accepted, Notarized Developer ID, version 0.3.13. No live console in Fabric 0.3.11 (pid 8446 had only its
+  helpers).
+- Step 2: the hold on `fabric.desktop` (policy revision 15, set with the broker service stopped for the edit and started
+  again); the person quit 0.3.11 at 17:45:47Z.
+- Step 3: 0.3.11 moved aside as the way back, 0.3.13 put in `/Applications`; the hold lifted (revision 16), one start
+  through the broker; its window refused schema 95 as expected; migrations 123, 124 and 125 in the stack folder match the
+  tag by sha256; stopped through the broker, held again (revision 17).
+- Step 4: `pre-0.3.13.dump` (sha256 `dac7f627…`, 4.5 MB): schema 95, journal 29 771, the estate-path index present, no
+  duplicate folder.
+- Step 5: `rehearse-upgrade --from 95 --ref v0.3.13`: PASS, schema 95 → 98, journal 29 771 → 29 771, no table lost a
+  row (`event_types` gained two rows, `project_relations` is new).
+- Step 6: `supabase migration up --local` applied 123, 124 and 125; schema 98, journal 29 771.
+- Step 7: hold lifted (revision 18); `ensure_running` ready at 17:57:28Z (pid 91048).
+- Step 8, first readings: version 0.3.13, schema 98, `hub.json` with the live pid, `fabric_whoami` naming
+  `work.check-every-three-minutes` and `operator.told-one-is-told-all`, and the first `work.swept@1` in the journal.
+  The person's look and the rest of step 8 are the Release close's.
+
 ## Owed in 0.3.13's Release close
 
 The Release close comes after the rollout: the measurements below need its step 8 (iteration 3's PL-3). The tag and its

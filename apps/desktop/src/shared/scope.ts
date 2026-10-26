@@ -79,7 +79,7 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   board_read_marks: { private: 'project board read marks, a projection; board_read_ack and board_status only' },
   board_epochs: { private: 'project board idempotency epochs per Project; the board commands and board_tick only' },
   board_outcomes: { private: 'what ended a board request (a cancel reason, an outcome), redactable; read only inside the board commands' },
-  board_deliveries: { private: 'who each board message is delivered to, a projection; board_status counts unread from it' },
+  board_deliveries: { private: 'who each board message is delivered to, a projection; the operator surfaces and the mirror read it (board_status counts unread from the messages since migration 125, DEC-0135 DR-4)' },
   board_outbox: { private: 'the board\'s transactional outbox (ids only); board_outbox_read and the tick only' },
   board_consumer_cursors: { private: 'how far each outbox consumer has read; board_outbox_advance only' },
   board_write_authorizations: { private: 'transaction-only authorization of the board commands; no generic reader or writer' },
