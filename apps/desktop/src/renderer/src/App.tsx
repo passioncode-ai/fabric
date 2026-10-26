@@ -1250,6 +1250,7 @@ function Shell({
         {active.kind === 'home' && (
           <EstateHome
             reading={homeReading}
+            onAgent={(session) => goTo({ kind: 'agents', session })}
             waitingForYou={waiting}
             waitingProblem={waitingProblem}
             toReview={toReview}

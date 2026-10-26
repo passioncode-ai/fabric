@@ -1,0 +1,65 @@
+// «В работе» grouped by project (0.3.14, the simple Fabric, docs/ux/2026-10-26-simple-fabric.md §2b): one card per project
+// with an agent at work or a task in work, ordered by its newest sign of life; each card names its agents and the tasks
+// in work no agent row holds; projects with nothing at work fold into one quiet line, alphabetically.
+import { describe, expect, it } from 'vitest'
+import type { LiveAgent, WorkItem } from './homeLive.ts'
+import { groupInWork } from './homeProjects.ts'
+
+const live = (sessionId: string, projectId: string | null, at: string, over: Partial<LiveAgent> = {}): LiveAgent => ({
+  sessionId, projectId, projectName: projectId ? projectId.toUpperCase() : null, agent: 'claude-code', console: true,
+  startedAt: '2026-10-26T08:00:00Z', lastSignAt: at, stale: false, doing: null, task: null, ...over
+})
+const work = (taskId: string, projectId: string, sessionId: string | null, since: string, liveNow = true): WorkItem => ({
+  taskId, projectId, projectName: projectId.toUpperCase(), summary: taskId, agent: 'claude-code', sessionId, console: false, since, doing: null, live: liveNow
+})
+const projects = [
+  { id: 'fab', name: 'Fabric', status: 'active' as const, summary: 'Agents at work, on this computer.' },
+  { id: 'cop', name: 'Copylot', status: 'active' as const, summary: null },
+  { id: 'obs', name: 'Observatory', status: 'active' as const, summary: null },
+  { id: 'res', name: 'research agent', status: 'active' as const, summary: null },
+  { id: 'old', name: 'Old', status: 'archived' as const, summary: null }
+]
+
+describe('groupInWork', () => {
+  it('makes one card per project at work, the newest sign of life first, its agents newest first', () => {
+    const g = groupInWork({
+      live: [live('a1', 'fab', '2026-10-26T11:00:00Z'), live('a2', 'cop', '2026-10-26T12:00:00Z'), live('a3', 'fab', '2026-10-26T11:30:00Z')],
+      inWork: [], projects, locale: 'en'
+    })
+    expect(g.cards.map((c) => c.projectId)).toEqual(['cop', 'fab'])
+    expect(g.cards[1].agents.map((a) => a.sessionId)).toEqual(['a3', 'a1'])
+    expect(g.cards[1].name).toBe('Fabric')
+    expect(g.cards[1].summary).toBe('Agents at work, on this computer.')
+    expect(g.cards[0].summary).toBeNull()
+  })
+
+  it('lists a task in work no agent row of its project holds as a line of its own, and counts every task in work', () => {
+    const g = groupInWork({
+      live: [live('a1', 'fab', '2026-10-26T11:00:00Z', { task: { id: 't1', projectId: 'fab', summary: 't1' } })],
+      inWork: [work('t1', 'fab', 'a1', '2026-10-26T10:00:00Z'), work('t2', 'fab', 'gone', '2026-10-26T09:00:00Z', false), work('t3', 'obs', null, '2026-10-26T12:30:00Z', false)],
+      projects, locale: 'en'
+    })
+    const fab = g.cards.find((c) => c.projectId === 'fab')!
+    expect(fab.orphans.map((w) => w.taskId)).toEqual(['t2'])
+    expect(fab.inWork).toBe(2)
+    // A project with only a task in work, no agent, is a card too: its newest sign is the task's.
+    expect(g.cards[0].projectId).toBe('obs')
+    expect(g.cards[0].agents).toEqual([])
+  })
+
+  it('folds the active projects with nothing at work into one line, alphabetically, the archived never', () => {
+    const g = groupInWork({ live: [live('a1', 'fab', '2026-10-26T11:00:00Z')], inWork: [], projects, locale: 'en' })
+    expect(g.quiet.map((p) => p.name)).toEqual(['Copylot', 'Observatory', 'research agent'])
+  })
+
+  it('keeps an agent with no project, in a card of its own at the end', () => {
+    const g = groupInWork({ live: [live('a1', null, '2026-10-26T13:00:00Z'), live('a2', 'fab', '2026-10-26T11:00:00Z')], inWork: [], projects, locale: 'en' })
+    expect(g.cards.map((c) => c.projectId)).toEqual(['fab', null])
+    expect(g.cards[1].agents[0].sessionId).toBe('a1')
+  })
+
+  it('counts the projects and the agents at work, a quiet agent among them', () => {
+    const g = groupInWork({ live: [live('a1', 'fab', '2026-10-26T11:00:00Z'), live('a2', 'cop', '2026-10-26T11:00:00Z', { stale: true })], inWork: [], projects, locale: 'en' })
+    expect([g.projectsAtWork, g.agentsAtWork]).toEqual([2, 2])
+  })
+})

@@ -19,6 +19,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { EstateHome } from './EstateHome'
 import { I18nProvider } from './i18n'
+import { en } from './i18n/en'
 import { NO_MARKS } from '../../shared/feedMarks'
 import type { FeedEvent } from '../../shared/types'
 import { whole } from '../../../test/envelopes'
@@ -129,5 +130,20 @@ describe('a position from another generation does not hide the estate', () => {
     show([ev(1), ev(2)], 2)
     await waitFor(() => expect(screen.getByText(/Journal|History|What happened/i)).toBeTruthy())
     expect(screen.queryByText(/past everything this estate holds/i)).toBeNull()
+  })
+})
+
+// 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §2b, §4): the home's main path is the strip and «В работе»
+// by project; «Где остановились», the two lanes, «Агенты в работе» and the live feed leave it. The journal (and its read
+// position) stays only under the folded «Ещё».
+describe('the simple home', () => {
+  it('shows «В работе» by project and none of the blocks it replaces', async () => {
+    stub()
+    show([ev(1)], 0)
+    expect(await screen.findByRole('region', { name: en['launch.home.inWork.title'] })).toBeTruthy()
+    expect(screen.queryByText(en['launch.home.resume.kicker'])).toBeNull()
+    expect(screen.queryByRole('heading', { name: en['launch.home.work.title'] })).toBeNull()
+    expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.agents.title']}`) })).toBeNull()
+    expect(document.getElementById('sec-estate-journal')?.closest('details')).toBeTruthy()
   })
 })

@@ -6,11 +6,12 @@ import { Banner, Button, EmptyState, Panel, Row, StateChip, Toolbar } from './co
 import { Feed } from './Feed'
 import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
-import { dayPart, resumePoint } from '../../shared/homeView.ts'
+import { dayPart } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
 import { HomeBoard, HomeLive, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
-import { HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './launch/HomeWork'
+import { HomeStats, useHome, type HomeReading } from './launch/HomeWork'
 import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
+import { HomeInWork } from './launch/HomeInWork'
 import { orderProjects } from '../../shared/homeLive.ts'
 import { since } from './duration'
 import {
@@ -26,7 +27,7 @@ import {
 } from '../../shared/workspaceAct.ts'
 import { ProfileSection } from './ProfileSection'
 import { FailureNote, MachineDetail } from './OperatorError'
-import { describeEvent, pluralForm, useLocale, useT } from './i18n'
+import { pluralForm, useLocale, useT } from './i18n'
 import { en, type StringKey } from './i18n/en'
 import { declaredCoverage, restorability } from '../../shared/storageContract.ts'
 import { cursorFor } from '../../shared/inbox.ts'
@@ -54,8 +55,11 @@ export function EstateHome({
   waitingProblem = null,
   toReview,
   onReview,
-  reading
+  reading,
+  onAgent
 }: {
+  /** Opens an agent's screen (0.3.14): a row of «В работе». Absent, a row opens the agent's console or project. */
+  onAgent?: (sessionId: string) => void
   /** Who works (`work.home`), read once by the shell for the left column and this page (0.3.14); absent, the page reads its own. */
   reading?: HomeReading
   /** Null until it has been read. The empty array is a MEASUREMENT — "this
@@ -243,8 +247,6 @@ export function EstateHome({
    *  five of six saves nobody a scroll, and a control that appears before it is
    *  useful teaches an operator to ignore it. */
   const pinning = offersFavourites(rows.length)
-  const resume = resumePoint(feed, cursor.throughSeq)
-  const resumeProject = resume ? (rows.find((p) => p.id === resume.projectId) ?? null) : null
 
   /** Favourites first in the operator's own order (↑ ↓ move them); then the rest by their latest activity, newest
    *  first (operator request 2026-10-14) — the project worked on last is the one looked for first. */
@@ -544,68 +546,50 @@ export function EstateHome({
       <div className="lh-layout">
         <div className="lh-main-column">
           <HomeBoard onTotal={setOwnWaiting} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
-          {/* OF-15 (the operator's walk, 2026-10-22): «Где остановились» right under «Нужны вы», both on top. */}
-          <section className="lp-panel lh-resume" aria-labelledby="home-resume-title">
-            <p className="lp-kicker">{t('launch.home.resume.kicker')}</p>
-            {resume && resumeProject ? (
-              <>
-                <h3 id="home-resume-title">{resumeProject.name}</h3>
-                <p>{describeEvent(t, resume.type)}</p>
-                <div className="lp-panel-head">
-                  <span className="lp-meta">
-                    {resume.unread > 0 ? t('launch.home.resume.unread', { count: resume.unread }) : t('launch.home.resume.read')}
-                  </span>
-                  <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(resumeProject.id)}>
-                    {t('launch.home.resume.continue')}
-                  </button>
-                </div>
-                <details>
-                  <summary>{t('launch.home.resume.last')}</summary>
-                  <p>{t('launch.home.resume.lastAt', { when: new Date(resume.occurredAt).toLocaleString(locale), project: resumeProject.name })}</p>
-                </details>
-              </>
-            ) : (
-              <>
-                <h3 id="home-resume-title">{rows.length ? rows[0].name : t('launch.home.resume.first')}</h3>
-                <p>{feed === null ? t('journal.reading') : t('launch.home.resume.none')}</p>
-                {rows.length ? (
-                  <button type="button" className="lp-button lh-text-link" onClick={() => onOpen(rows[0].id)}>{t('launch.home.resume.continue')}</button>
-                ) : (
-                  read && <button type="button" className="lp-button" onClick={onNew}>{t('estate.createFirst')}</button>
-                )}
-              </>
-            )}
-          </section>
           {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
           <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
-          <HomeWorkLanes reading={home} onOpen={onOpen} onOpenTask={onOpenEntity ? (projectId, taskId) => onOpenEntity(projectId, { kind: 'task', id: taskId }) : undefined} onSession={openConsole} onBoard={onBoard} />
-
-          <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
-            <div className="lp-panel-head">
-              <div>
-                <p className="lp-kicker">{t('launch.home.projects.kicker')}</p>
-                <h3 id="home-projects-title">{t('launch.home.projects.title')}</h3>
-              </div>
-              <button type="button" className="lp-button" onClick={onNew}>{t('launch.home.projects.new')}</button>
-            </div>
-            {/* ONE element, not a branch: `read` is what the component exists to decide. */}
-            {empty || !read ? (
-              <EmptyState read={read} loud waiting={t('estate.reading')}>
-                {t('estate.empty')} <Button onClick={onNew}>{t('estate.createFirst')}</Button>
-              </EmptyState>
-            ) : (
-              <>
-                {shown.map(row)}
-                {pinning && <p className="lp-meta">{t('launch.home.projects.note')}</p>}
-              </>
-            )}
-          </section>
+          {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
+              «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
+          <HomeInWork reading={home} projects={projects}
+            waitingByProject={waitingForYou === undefined ? (counts ? Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c.total])) : null) : (waitingForYou?.byProject ?? null)}
+            onProject={onOpen}
+            onAgent={(sessionId) => {
+              if (onAgent) return onAgent(sessionId)
+              const a = home.view?.live.find((l) => l.sessionId === sessionId)
+              if (a?.console) openConsole(sessionId)
+              else if (a?.projectId) onOpen(a.projectId)
+            }}
+            onTask={(projectId, taskId) => (onOpenEntity ? onOpenEntity(projectId, { kind: 'task', id: taskId }) : onOpen(projectId))} />
 
           {/* Not on the launch home of the design: quotas live under Manage, the
               journal under Pulse and the profile behind Profile. Until those
               screens exist they stay here, folded, rather than disappear. */}
           <details className="lp-panel" id="sec-estate-more" open={moreOpen} onToggle={(e) => setMoreOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>{t('launch.home.more')}</summary>
+            {/* 0.3.14: the projects table, the profile and the journal leave the main path (the simple Fabric §2b, §4). The
+                left column lists the projects alphabetically; the pins and their order (SCN-043) and the read position of
+                the journal (AX-07) have no other home yet, so they stay here, folded, until 0.3.15 gives them one. */}
+          <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
+              <div className="lp-panel-head">
+                <div>
+                  <p className="lp-kicker">{t('launch.home.projects.kicker')}</p>
+                  <h3 id="home-projects-title">{t('launch.home.projects.title')}</h3>
+                </div>
+                <button type="button" className="lp-button" onClick={onNew}>{t('launch.home.projects.new')}</button>
+              </div>
+              {/* ONE element, not a branch: `read` is what the component exists to decide. */}
+              {empty || !read ? (
+                <EmptyState read={read} loud waiting={t('estate.reading')}>
+                  {t('estate.empty')} <Button onClick={onNew}>{t('estate.createFirst')}</Button>
+                </EmptyState>
+              ) : (
+                <>
+                  {shown.map(row)}
+                  {pinning && <p className="lp-meta">{t('launch.home.projects.note')}</p>}
+                </>
+              )}
+            </section>
+
             <ProfileSection onError={() => {}} />
 
       <Panel
@@ -633,7 +617,6 @@ export function EstateHome({
           </details>
         </div>
         <aside className="lh-side-column">
-          <HomeAgents reading={home} onOpen={onOpen} onSession={openConsole} onAll={onAgents} onComms={onComms} />
           <HomeLive feed={feed} projects={rows} sessions={sessions} now={now} onOpen={onOpen}
             onAll={() => {
               if (onPulse) return onPulse()
