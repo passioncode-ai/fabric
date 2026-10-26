@@ -713,3 +713,30 @@ button.lg-node{ cursor: pointer; }
 .lk-card-wrap{display:grid;justify-items:start}
 .lk-session{margin-top:var(--space-1);font-size:11.5px}
 .lk-col.lk-abandoned>.lp-meta{margin:0 0 var(--space-2);font-size:11.5px}
+/* ── 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §1): the left column ── */
+/* The brand is Главная: a button that looks as the brand did, the count of what waits beside it. */
+.rail-home{border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:8px;width:100%}
+.rail-home .rail-home-words{display:block;min-width:0}
+.rail-home .rail-n{margin-left:auto}
+.rail-home.on{background:color-mix(in srgb,var(--app-ink) 5%,transparent)}
+.rail-home:focus-visible,.rail-view button:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+/* «Проекты | Агенты»: a two-way segmented control. */
+.rail-view{display:grid;grid-template-columns:1fr 1fr;margin:0 4px 8px;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.rail-view button{border:0;background:none;border-radius:6px;height:26px;font:inherit;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.rail-view button[aria-pressed="true"]{background:var(--app-panel-quiet);color:var(--app-ink);font-weight:600}
+/* An agent at work: runner · project, and under it the branch in monospace (or «ветка неизвестна» in words). */
+.rail-agents a.rail-agent{align-items:flex-start;min-height:26px;padding-top:4px;padding-bottom:4px}
+.rail-agents .rail-dot{margin-top:6px}
+.rail-dot.quiet{background:var(--state-idle)}
+.rail-agent-words{display:grid;min-width:0;gap:1px}
+.rail-agent-line{display:flex;gap:4px;min-width:0;font-size:11px;color:var(--app-muted);white-space:nowrap;overflow:hidden}
+.rail-branch{font-family:var(--font-mono);font-size:11px;color:var(--state-running);overflow:hidden;text-overflow:ellipsis}
+.rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
+/* История and Настройки at the column's foot. */
+.rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
+@media(max-width:900px){
+  .rail-home .rail-home-words,.rail-agent-words{display:none}
+  .rail-view{grid-template-columns:1fr;margin:0 0 8px}
+  .rail-view button{font-size:10px;height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rail-agents a.rail-agent{justify-content:center}
+}

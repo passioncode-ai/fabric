@@ -2727,6 +2727,13 @@ export const ru: Partial<Record<StringKey, string>> = {
   'rail.projects.retry': "Повторить",
   'rail.projects.stale': "как было в {time}",
   'rail.machine.trouble': "этот компьютер · есть что проверить",
+  'rail.view.label': "Что показать в колонке",
+  'rail.agents.list': "Агенты в работе",
+  'rail.agents.reading': "Читаю, кто работает…",
+  'rail.agents.failed': "Не удалось прочитать, кто работает.",
+  'rail.agents.none': "Сейчас никто не работает.",
+  'rail.agents.branchUnknown': "ветка неизвестна",
+  'rail.agents.branchUnknownWhy': "Агент подключился из своего терминала, или git не ответил для его папки",
   // 0.3.7, волна 3: действие словами (ADR-0160 §2, SCN-169), для строки действия и Истории.
   'act.undo': "Отменить",
   'act.undoing': "Отменяю…",

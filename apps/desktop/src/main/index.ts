@@ -73,6 +73,7 @@ import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
+import { createBranchReader, withBranches } from './agentBranches.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
@@ -1549,6 +1550,8 @@ function toTranscript(row: Record<string, unknown>): SessionTranscript {
 
 /** M56 — git state, cached and watched; never read from a render (CO-098). */
 const repoStates = createRepoStateReader()
+/** The branch of each console Fabric holds, for the home's reading (0.3.14, the simple Fabric). */
+const agentBranchReader = createBranchReader()
 /**
  * M57, reopened by M113 — what the code is doing, as opposed to what our own
  * storage holds. Its own reader with its own longer TTL: it is heavier than the
@@ -5170,8 +5173,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> =>
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
-  handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> =>
-    readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {
+    const held = heldSessions()
+    // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
+    return withBranches(await readHome(store, { now: Date.now(), session: sessionSignOf, sessions: held }), held, agentBranchReader)
+  })
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {
       now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null,

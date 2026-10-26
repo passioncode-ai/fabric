@@ -1,11 +1,10 @@
 // #region rail-projects — docs: docs/ux/scenarios.md#scn-162-move-between-the-five-places-and-the-projects-from-the-rail
 /**
- * The projects list on the rail (SCN-162 step 2, 0.3.7 wave 3): favourites first, in the order the person pinned
- * them, then the rest by latest activity. An archived project is not on the rail. Pure: the caller hands in the
- * projects as read, the pins as read and the latest activity per project.
- *
- * LATEST ACTIVITY is the newest journal event of the project the shell has read (`lastActivityOf`), else when the
- * project was created: a project nobody has touched since it was made sorts by its birth, never above one that moved.
+ * The projects list on the rail (SCN-162 step 2, amended 0.3.14 by the simple Fabric,
+ * docs/ux/2026-10-26-simple-fabric.md §1 and its open choice 1): every active project ALPHABETICALLY in the locale's
+ * collation (`Intl.Collator`, numeric, case and accent folded), Russian and Latin names together; a favourite keeps its
+ * star as a mark and moves nowhere. An archived project is not on the rail. Two projects of one name keep a stable
+ * order by id. Pure: the caller hands in the projects as read, the pins as read and the window's locale.
  */
 
 export interface RailProjectInput {
@@ -26,23 +25,26 @@ const time = (iso: string | undefined): number => {
   return Number.isFinite(t) ? t : 0
 }
 
+/** The locale's collation for names, folding case and accents and reading digits as numbers. */
+export function nameCollator(locale: string): Intl.Collator {
+  try {
+    return new Intl.Collator(locale, { sensitivity: 'base', numeric: true })
+  } catch {
+    return new Intl.Collator('en', { sensitivity: 'base', numeric: true })
+  }
+}
+
 export function railProjects(
   projects: readonly RailProjectInput[],
   pins: readonly string[],
-  lastActivity: Readonly<Record<string, string>>
+  locale: string
 ): RailProject[] {
-  const live = projects.filter((p) => p.status !== 'archived')
-  const byId = new Map(live.map((p) => [p.id, p] as const))
-  const pinned = pins.filter((id, i) => byId.has(id) && pins.indexOf(id) === i)
-  const pinnedSet = new Set(pinned)
-  const when = (p: RailProjectInput): number => time(lastActivity[p.id]) || time(p.created_at)
-  const rest = live
-    .filter((p) => !pinnedSet.has(p.id))
-    .sort((a, b) => when(b) - when(a) || a.name.localeCompare(b.name))
-  return [
-    ...pinned.map((id) => ({ id, name: byId.get(id)!.name, favourite: true })),
-    ...rest.map((p) => ({ id: p.id, name: p.name, favourite: false }))
-  ]
+  const collator = nameCollator(locale)
+  const pinned = new Set(pins)
+  return projects
+    .filter((p) => p.status !== 'archived')
+    .sort((a, b) => collator.compare(a.name, b.name) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .map((p) => ({ id: p.id, name: p.name, favourite: pinned.has(p.id) }))
 }
 
 /** The newest event time per project, from the events the shell has read; an estate-wide event belongs to none. */

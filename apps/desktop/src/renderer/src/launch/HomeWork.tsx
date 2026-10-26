@@ -38,14 +38,17 @@ const hasMore = (n: number): boolean => n > LANE_ROWS
 
 /** Reads `work.home` when the journal moves (claims, stages, tasks) and every 15 s for silence (a session that stops
  *  signing turns stale without an event). A failed read is said, never shown as "nobody is working". */
-export function useHome(mark: number): HomeReading {
+export function useHome(mark: number, enabled = true): HomeReading {
   const [reading, setReading] = useState<HomeReading>({ view: null, problem: null })
   const [tick, setTick] = useState(0)
   useEffect(() => {
+    if (!enabled) return
     const timer = setInterval(() => setTick((n) => n + 1), REFRESH_MS)
     return () => clearInterval(timer)
-  }, [])
+  }, [enabled])
   useEffect(() => {
+    // A detached console or editor window shows no home: it reads nothing (0.3.14: the shell reads once for the rail).
+    if (!enabled) return
     let alive = true
     // Through a promise, so a build without the reading (an older preload, a test double) is said as a problem
     // rather than thrown out of the effect.
@@ -56,7 +59,7 @@ export function useHome(mark: number): HomeReading {
     return () => {
       alive = false
     }
-  }, [mark, tick])
+  }, [mark, tick, enabled])
   return { ...reading, retry: () => setTick((n) => n + 1) }
 }
 

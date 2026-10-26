@@ -2858,6 +2858,13 @@ export const en = {
   'rail.projects.retry': "Try again",
   'rail.projects.stale': "as it was at {time}",
   'rail.machine.trouble': "this computer · something needs a look",
+  'rail.view.label': "What the column shows",
+  'rail.agents.list': "Agents at work",
+  'rail.agents.reading': "Reading who works…",
+  'rail.agents.failed': "Could not read who works.",
+  'rail.agents.none': "Nobody is working now.",
+  'rail.agents.branchUnknown': "branch unknown",
+  'rail.agents.branchUnknownWhy': "The agent joined from its own terminal, or git did not answer for its folder",
   // 0.3.7 wave 3: an act in words (ADR-0160 §2, SCN-169), for the act line and История. Impersonal: the act line is
   // the person's own act; История names the actor beside it.
   'act.undo': "Undo",

@@ -99,6 +99,15 @@ function stub(sessions: unknown[]) {
     goals: { list: async () => [], define: async () => ({ ok: true }) },
     harness: { read: async () => null },
     tasks: { list: async () => ({ tasks: [], closed: { truncated: false, says: 'all of them' } }) },
+    // Who works (0.3.14: the left column's «Агенты» and the agent screen read it).
+    work: {
+      home: async () => ({
+        live: [{ sessionId: 's1', projectId: 'p1', projectName: 'fabric-dashboards', agent: 'claude-code', console: true, startedAt: '2026-10-19T10:00:00Z',
+          lastSignAt: '2026-10-19T10:00:00Z', stale: false, doing: null, task: null, branch: 'main' }],
+        inWork: [], review: [], done: [], projects: [], readAt: '2026-10-19T10:00:00Z'
+      }),
+      session: async () => ({ tasks: [], capped: false })
+    },
     repos: { list: async () => [] },
     routines: { list: async () => [] },
     transcripts: { list: async () => [], get: async () => null },
@@ -111,16 +120,16 @@ function stub(sessions: unknown[]) {
 }
 
 const rail = () => screen.getByRole('navigation', { name: en['rail.label'] })
-const agentsLink = () => within(rail()).getByRole('link', { name: new RegExp(`^${en['rail.agents']}`) })
+/** The agent's row in the left column's «Агенты» (0.3.14, the simple Fabric). */
+const agentRow = () => within(screen.getByRole('list', { name: en['rail.agents.list'] })).getByRole('link', { name: /fabric-dashboards/ })
 const tabsStrip = () => screen.queryByRole('navigation', { name: en['consoles.label'] })
 const content = () => document.querySelector('main.content') as HTMLElement
 
 async function openFromAgents(): Promise<void> {
   await screen.findByRole('navigation', { name: en['rail.label'] })
-  fireEvent.click(agentsLink())
-  // The agent's row in Агенты (CO-419), its «Консоль» tab, then «Открыть вкладкой»: the console moves to a tab along the top.
-  const row = await waitFor(() => within(content()).getByText('fabric-dashboards'))
-  fireEvent.click(row)
+  // The toggle «Агенты» in the left column, the agent's row there, then its screen's way to the console.
+  fireEvent.click(within(screen.getByRole('group', { name: en['rail.view.label'] })).getByRole('button', { name: en['rail.agents'] }))
+  fireEvent.click(await waitFor(() => agentRow()))
   fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.tab.console'] }))
   fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.console.asTab'] }))
 }
@@ -152,7 +161,7 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     await openFromAgents()
     await waitFor(() => expect(tabsStrip()).toBeTruthy())
     await openFromAgents()
-    await waitFor(() => expect(agentsLink().getAttribute('aria-current')).toBeNull())
+    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBeNull())
     expect(within(tabsStrip()!).getAllByRole('listitem')).toHaveLength(1)
     expect(within(tabsStrip()!).getByRole('button', { name: /^fabric-dashboards/ }).getAttribute('aria-current')).toBe('page')
   })
@@ -166,7 +175,7 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     await waitFor(() => expect(tabsStrip()).toBeNull())
     expect(api.terminal.end).not.toHaveBeenCalled()
     expect(api.terminal.dismiss).not.toHaveBeenCalled()
-    // Back where the person was before the console: Агенты.
-    expect(agentsLink().getAttribute('aria-current')).toBe('page')
+    // Back where the person was before the console: the agent's screen, its row marked in the left column.
+    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))
   })
 })

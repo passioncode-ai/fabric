@@ -57,6 +57,9 @@ export interface LiveAgent {
    *  launched in its session, else the task its newest stage report names. `summary` is empty for a task with no
    *  title or brief: the screens say «untitled», the task is never dropped. `projectId` is the task's own project. */
   task: { id: string; projectId: string; summary: string } | null
+  /** The git branch of the folder a console Fabric holds works in (0.3.14, the simple Fabric; `main/agentBranches.ts`).
+   *  Absent or null: not known (a terminal-joined agent shares no folder, or git did not answer). */
+  branch?: string | null
 }
 
 export interface WorkItem {

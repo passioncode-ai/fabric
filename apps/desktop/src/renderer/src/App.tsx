@@ -65,7 +65,8 @@ import { AgentsScreen } from './launch/AgentsScreen'
 import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { boundedMarks } from '../../shared/commsMarks.ts'
 import { NEEDS_YOU_FAMILIES } from './launch/HomeParts'
-import { lastActivityOf } from '../../shared/railProjects.ts'
+import { railAgents } from '../../shared/railAgents.ts'
+import { useHome } from './launch/HomeWork'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
@@ -786,7 +787,9 @@ function Shell({
     return () => { alive = false }
   }, [boardMark, isMainWindow])
   const liveProjects = new Set((sessions ?? []).filter((x) => x.running).map((x) => x.projectId))
-  const lastActivity = lastActivityOf(feed)
+  // 0.3.14, the simple Fabric: ONE reading of who works, for the left column's «Агенты» and the home (`useHome`).
+  const homeReading = useHome(markOf(marks, ['work', 'task', 'agent', 'session']), isMainWindow)
+  const railAgentRows = homeReading.view ? railAgents(homeReading.view.live, settings.locale) : null
 
   // The act line: the person's acts since they came to the place on screen (ADR-0160 §1, `ActLine.tsx`).
   const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind === 'console' ? `console:${active.sessionId}` : active.kind
@@ -931,7 +934,8 @@ function Shell({
   // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.
   const railAt: React.ComponentProps<typeof LaunchShell>['at'] = showSettings
     ? { kind: 'settings' }
-    : active.kind === 'home' || active.kind === 'agents' || active.kind === 'history' ? { kind: active.kind }
+    : active.kind === 'home' || active.kind === 'history' ? { kind: active.kind }
+    : active.kind === 'agents' ? { kind: 'agents', session: active.session ?? (active.agent?.startsWith('session:') ? active.agent.slice('session:'.length) : null) }
     : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
     : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId }
@@ -970,11 +974,11 @@ function Shell({
         // CO-388: set by ⌘[ / ⌘] before the route changes and cleared by the effect above, which runs after the shell's own
         // (a child's effects run first), so the shell reads it true exactly on the render a travel caused.
         restoreScroll={travelling.current}
-        onGraph={(projectId) => setActive(projectId ? { kind: 'graph', projectId } : { kind: 'graph' })}
         title={placeTitle}
         pins={pins}
-        lastActivity={lastActivity}
         live={liveProjects}
+        agents={{ rows: railAgentRows, problem: homeReading.problem }}
+        onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
         waiting={waiting}
         commsUnread={commsUnread}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}

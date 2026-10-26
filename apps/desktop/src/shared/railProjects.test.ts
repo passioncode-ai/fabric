@@ -1,5 +1,5 @@
-// The rail's projects list (SCN-162 step 2): favourites first in the order they were pinned, then by latest
-// activity, archived projects never; and the latest activity read from the journal's own events.
+// The rail's projects list (SCN-162 step 2, amended 0.3.14): alphabetical in the locale's collation, a favourite marked
+// in place, archived projects never; and the latest activity read from the journal's own events.
 import { describe, expect, it } from 'vitest'
 import { lastActivityOf, railProjects } from './railProjects.ts'
 
@@ -7,32 +7,31 @@ const p = (id: string, name: string, over: Partial<{ status: 'active' | 'archive
   ({ id, name, status: over.status ?? 'active', created_at: over.created_at ?? '2026-10-01T00:00:00Z' })
 
 describe('railProjects', () => {
-  it('puts favourites first, in the order they were pinned, then the rest by latest activity', () => {
-    const rows = railProjects(
-      [p('a', 'Alpha'), p('b', 'Beta'), p('c', 'Gamma'), p('d', 'Delta')],
-      ['c', 'a'],
-      { b: '2026-10-17T10:00:00Z', d: '2026-10-18T10:00:00Z' }
-    )
-    expect(rows.map((r) => r.id)).toEqual(['c', 'a', 'd', 'b'])
-    expect(rows.map((r) => r.favourite)).toEqual([true, true, false, false])
+  // 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §1, open choice 1): strictly alphabetical in the
+  // locale's collation, Russian and Latin names together; a favourite keeps its star as a mark and moves nowhere.
+  it('lists every project alphabetically in the locale\'s collation, Russian and Latin names together', () => {
+    const projects = [p('z', 'Zulu'), p('a', 'alpha'), p('e', 'Ёлка'), p('r', 'Арбуз'), p('y', 'Яндекс'), p('b', 'Beta'), p('t', 'project 10'), p('n', 'project 9'), p('g', 'Жук')]
+    expect(railProjects(projects, [], 'en').map((r) => r.name)).toEqual(['alpha', 'Beta', 'project 9', 'project 10', 'Zulu', 'Арбуз', 'Ёлка', 'Жук', 'Яндекс'])
+    expect(railProjects(projects, [], 'ru').map((r) => r.name)).toEqual(['Арбуз', 'Ёлка', 'Жук', 'Яндекс', 'alpha', 'Beta', 'project 9', 'project 10', 'Zulu'])
+  })
+
+  it('keeps a favourite in its alphabetical place, marked, never first', () => {
+    const rows = railProjects([p('a', 'Alpha'), p('b', 'Beta'), p('c', 'Gamma'), p('d', 'Delta')], ['c', 'a'], 'en')
+    expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'd', 'c'])
+    expect(rows.map((r) => r.favourite)).toEqual([true, false, false, true])
   })
 
   it('never lists an archived project, even a pinned one', () => {
-    const rows = railProjects([p('a', 'Alpha', { status: 'archived' }), p('b', 'Beta')], ['a'], {})
+    const rows = railProjects([p('a', 'Alpha', { status: 'archived' }), p('b', 'Beta')], ['a'], 'en')
     expect(rows.map((r) => r.id)).toEqual(['b'])
   })
 
-  it('falls back to when a project was created, then to its name, when nothing has happened in it', () => {
-    const rows = railProjects(
-      [p('a', 'Zulu', { created_at: '2026-10-01T00:00:00Z' }), p('b', 'Alpha', { created_at: '2026-10-01T00:00:00Z' }), p('c', 'Mid', { created_at: '2026-10-05T00:00:00Z' })],
-      [],
-      {}
-    )
-    expect(rows.map((r) => r.id)).toEqual(['c', 'b', 'a'])
+  it('orders two projects of the same name by id, so the list never reshuffles between reads', () => {
+    expect(railProjects([p('b2', 'Same'), p('a1', 'same')], [], 'en').map((r) => r.id)).toEqual(['a1', 'b2'])
   })
 
   it('ignores a pin whose project no longer exists', () => {
-    expect(railProjects([p('a', 'Alpha')], ['gone', 'a'], {}).map((r) => r.id)).toEqual(['a'])
+    expect(railProjects([p('a', 'Alpha')], ['gone', 'a'], 'en').map((r) => r.id)).toEqual(['a'])
   })
 })
 
