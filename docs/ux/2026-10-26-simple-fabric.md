@@ -127,7 +127,16 @@ journal feed; in the side column «Агенты в работе» (`HomeWork.tsx
 
 ### 2a. «Ритм работы», the statistics strip
 
-One line of six numbers and the rhythm sparkline beside them. Each number opens where it is counted.
+**Amended 2026-10-26, the operator's review of the mockup** (verbatim, in this repository's session): «мокап топчик, но
+фотку агента сео и вот того персонажа и статистику активности график нужно вренуть ввер а так идея топ, еще давай
+прорабоатем получе но мне нраивтся направление». So the top of the home keeps, in this order: the CEO's face and
+character with the greeting and «Мой облик» (`apps/desktop/src/renderer/src/launch/FabricAvatar.tsx#FabricAvatar`,
+the greeting in `EstateHome.tsx#EstateHome`); the activity chart as it is today, the journal's events a day over 28
+days (`HomeParts.tsx#HomeRhythm`), not replaced by tasks handed in a day; then the six numbers below. The paragraph
+about the sparkline's new meaning further down is withdrawn by this note; the six numbers stand.
+
+
+One line of six numbers under the face, the greeting and the activity chart. Each number opens where it is counted.
 
 | Number | Label | Source in Fabric | Exists today |
 |---|---|---|---|

@@ -94,12 +94,27 @@ a{color:inherit}
 .pill.idle{color:var(--state-idle);border-color:color-mix(in srgb,var(--state-idle) 35%,transparent);background:var(--pc-warning-soft)}
 .pill.att{color:var(--app-accent);border-color:color-mix(in srgb,var(--app-accent) 40%,transparent);background:var(--pc-accent-soft)}
 
+/* the top of the home: the CEO's face and greeting, the activity chart (the operator's review, 2026-10-26) */
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(260px,360px);gap:var(--s5);align-items:center;padding:var(--s4) var(--s5);border:1px solid var(--app-line);border-radius:var(--r-panel);background:linear-gradient(135deg,color-mix(in srgb,var(--app-accent) 7%,var(--app-panel)),var(--app-panel) 55%);margin-bottom:var(--s3)}
+@media(max-width:1100px){.hero{grid-template-columns:auto minmax(0,1fr)}.activity{grid-column:1/-1}}
+.face{width:72px;height:72px;display:block;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px color-mix(in srgb,var(--app-ink) 12%,transparent)}
+.face svg{width:100%;height:100%;display:block}
+.hero-words .kicker{margin:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.hero-words h2{margin:2px 0 4px;font-size:24px;letter-spacing:-.025em;line-height:1.15}
+.hero-words .greet{margin:0 0 4px;font-size:14px}
+.link.small{font-size:12px;padding:0}
+.activity{border-left:1px solid var(--app-line);padding-left:var(--s5)}
+.activity .t{font-size:12px;font-weight:600;display:flex;justify-content:space-between;gap:var(--s3)}
+.activity .t .muted{font-weight:400}
+.activity .spark{height:40px;margin-top:8px}
+.pulse{margin:8px 0 0;font-size:12px;display:flex;align-items:center;gap:6px}
 /* the statistics strip */
-.rhythm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) 180px;border:1px solid var(--app-line);border-radius:var(--r-panel);background:var(--app-panel);margin-bottom:var(--s5);overflow:hidden}
-@media(max-width:1250px){.rhythm{grid-template-columns:repeat(3,minmax(0,1fr))}.spark-box{grid-column:1/-1}}
-.stat{border:0;border-right:1px solid var(--app-line);background:none;text-align:left;padding:12px 14px;cursor:pointer;min-width:0}
+.rhythm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--app-line);border-radius:var(--r-panel);background:var(--app-panel);margin-bottom:var(--s5);overflow:hidden}
+@media(max-width:1250px){.rhythm{grid-template-columns:repeat(3,minmax(0,1fr))}.rhythm .stat:nth-child(3n){border-right:0}.rhythm .stat:nth-child(-n+3){border-bottom:1px solid var(--app-line)}}
+.rhythm .stat:last-child{border-right:0}
+.stat{border:0;border-right:1px solid var(--app-line);background:none;text-align:left;padding:14px 16px;cursor:pointer;min-width:0}
 .stat:hover{background:var(--app-panel-quiet)}
-.stat b{display:block;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.stat b{display:block;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
 .stat span{display:block;font-size:11.5px;color:var(--app-muted)}
 .stat small{display:block;font-size:10.5px;color:var(--state-idle);margin-top:2px}
 .stat.live b{color:var(--state-good)}.stat.att b{color:var(--app-accent)}.stat.warn b{color:var(--state-idle)}
@@ -111,14 +126,14 @@ a{color:inherit}
 .spark i.unknown{height:100%!important;background:repeating-linear-gradient(135deg,transparent,transparent 3px,var(--app-line-strong) 3px,var(--app-line-strong) 4px)}
 
 /* «В работе» */
-.sec-head{display:flex;align-items:baseline;gap:var(--s3);margin:0 0 var(--s3)}
+.sec-head{display:flex;align-items:baseline;gap:var(--s3);margin:var(--s2) 0 var(--s3)}
 .sec-head h2{font-size:18px;margin:0;letter-spacing:-.015em}
 .proj{border:1px solid var(--app-line);background:var(--app-panel);border-radius:var(--r-panel);margin-bottom:var(--s3);overflow:hidden}
-.proj-head{display:flex;gap:var(--s3);align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--app-line)}
+.proj-head{display:flex;gap:var(--s3);align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--app-line)}
 .proj-head h3{margin:0;font-size:15px}
 .proj-head p{margin:2px 0 0;font-size:12.5px;color:var(--app-muted)}
 .proj-head .counts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.arow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:var(--s3);padding:10px 16px;border-top:1px solid var(--app-line);cursor:pointer;align-items:start}
+.arow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:var(--s4);padding:12px 18px;border-top:1px solid var(--app-line);cursor:pointer;align-items:start}
 .arow:first-of-type{border-top:0}
 .arow:hover{background:var(--app-panel-quiet)}
 .who{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -232,20 +247,37 @@ details[open] .chev{transform:rotate(90deg)}
       <!-- ===== Главная ===== -->
       <div id="home" class="cols">
         <div>
-          <div class="rhythm" role="group" aria-label="Ритм работы">
+          <!-- The operator's review, 2026-10-26: the CEO's face and character with the greeting stay on top, then the
+               activity chart as today (events a day), then the six numbers. -->
+          <header class="hero">
+            <span class="face" role="img" aria-label="Облик Fabric">
+              <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" rx="36" fill="#7260DB"/><circle cx="33" cy="30" r="22" fill="#FFE283"/><circle cx="96" cy="99" r="36" fill="#A8EFDC" opacity=".2"/><path d="M27 43Q31 24 60 27Q89 24 93 43L98 79Q95 100 60 103Q25 100 22 79Z" fill="#A8EFDC"/><path d="M34 43Q60 37 86 43M31 50Q60 39 89 50" fill="none" stroke="#FFE283" stroke-width="3" stroke-linecap="round"/><rect x="30" y="55" width="60" height="29" rx="14" fill="#EE8868"/><rect x="41" y="62" width="6" height="11" rx="3" fill="#FFE283"/><rect x="73" y="62" width="6" height="11" rx="3" fill="#FFE283"/><path d="M50 91q10 6 20 0" fill="none" stroke="#7260DB" stroke-width="3" stroke-linecap="round"/><path d="M59 28v-8" stroke="#EE8868" stroke-width="3"/><circle cx="59" cy="17" r="5" fill="#FFE283"/></svg>
+            </span>
+            <div class="hero-words">
+              <p class="kicker">Ваш Fabric · CEO</p>
+              <h2>Fabric</h2>
+              <p class="greet">Добрый вечер. Вас ждут 2 решения.</p>
+              <button type="button" class="link small">Мой облик</button>
+            </div>
+            <div class="activity" aria-label="Ритм работы">
+              <div class="t"><span>Ритм работы <span class="muted">· 28 дн.</span></span><span class="muted">решений: 9 · результатов: 31</span></div>
+              <div class="spark" role="list" aria-label="Активность за 28 дн.">
+                <i style="height:18%"></i><i style="height:26%"></i><i style="height:12%"></i><i style="height:40%"></i><i style="height:33%"></i><i style="height:8%"></i><i style="height:6%"></i>
+                <i style="height:30%"></i><i style="height:45%"></i><i class="unknown"></i><i style="height:20%"></i><i style="height:55%"></i><i style="height:14%"></i><i style="height:9%"></i>
+                <i style="height:35%"></i><i style="height:48%"></i><i style="height:62%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:16%"></i><i style="height:11%"></i>
+                <i style="height:60%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:65%"></i><i style="height:100%"></i><i style="height:74%"></i><i class="today" style="height:62%"></i>
+              </div>
+              <p class="pulse"><span class="dot live" aria-hidden="true"></span><b>Есть движение</b> <span class="muted">· последнее событие 19:42</span></p>
+            </div>
+          </header>
+
+          <div class="rhythm" role="group" aria-label="Прямо сейчас">
             <button type="button" class="stat live"><b>5</b><span>агентов работает</span></button>
             <button type="button" class="stat"><b>7</b><span>сдано сегодня</span></button>
             <button type="button" class="stat att"><b>2</b><span>ждут вас</span></button>
             <button type="button" class="stat"><b>23</b><span>на проверке</span><small>9 дольше 3 дней</small></button>
             <button type="button" class="stat warn"><b>3</b><span>брошено</span></button>
             <button type="button" class="stat warn"><b>1</b><span>работают без задачи</span></button>
-            <div class="spark-box">
-              <div class="t"><span>Сдано за 14 дней</span><span class="muted">61</span></div>
-              <div class="spark" aria-label="Задачи, сданные на проверку, по дням">
-                <i style="height:30%"></i><i style="height:45%"></i><i class="unknown"></i><i style="height:20%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:35%"></i>
-                <i style="height:10%"></i><i style="height:60%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:65%"></i><i style="height:100%"></i><i class="today" style="height:62%"></i>
-              </div>
-            </div>
           </div>
 
           <div class="sec-head"><h2>В работе</h2><span class="muted">4 проекта · 5 агентов</span></div>
