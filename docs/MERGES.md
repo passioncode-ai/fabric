@@ -10,6 +10,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
 
+### 2026-10-26T17:30:00Z · `—` · agent/0313-sw9 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/main/abandonedSweepRun.ts, index.ts, shared/attention.ts, shared/board.ts, renderer attentionTitle.ts, HistoryScreen.tsx, i18n en and ru, their tests; SCN-173, SCN-168, the strings registry, the spec, the plan, the ledger (CO-427 resolved, CO-430 partly); the map
+- conflicts: none
+- summary: Fabric 0.3.13: the sweep's findings show in the operator's «На проверке»; History says Fabric released a task when Fabric did.
+
 ### 2026-10-26T16:00:00Z · `—` · agent/0313-schema → main · fast-forward
 - run: r-182fa592b059
 - files: supabase/migrations/20261026000124_one_schema_step.sql, schemaContract.json (97), scripts/check-migration-order.mjs, the projector, board and work reads, abandonedSweepRun.ts, protocolObligations.ts, i18n (work.swept@1), the schema tests; CHANGELOG, release-mac.md, SCN-143, the pipeline reservation, the plan, the carry-over ledger and backlog; the map
