@@ -8,7 +8,9 @@ const byId = (id: string) => OBLIGATIONS.find((o) => o.id === id)
 describe('wave 2 rules', () => {
   it('every agent checks its own open work every three minutes and acts on nudges first (SW-6)', () => {
     const o = byId('work.check-every-three-minutes')
-    expect(o?.mode).toBe('ADVICE')
+    // OBSERVED since migration 124 (SW-7): the sweep's work.swept@1 is its evidence.
+    expect(o?.mode).toBe('OBSERVED')
+    expect(o?.evidence).toMatch(/work\.swept@1/)
     expect(o?.text).toMatch(/every three minutes/i)
     expect(o?.text).toMatch(/fabric_work_list/)
     expect(o?.text).toMatch(/nudges/)

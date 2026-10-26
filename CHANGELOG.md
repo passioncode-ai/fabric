@@ -9,6 +9,17 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.13 (unreleased)
 
+**Upgrading.** This version moves the local database to schema 97 (one migration, `20261026000124_one_schema_step.sql`:
+0.3.13's one schema step). Take a backup first; 0.3.12 cannot open a schema-97 database, so going back is the backup
+with the 0.3.12 bundle. The order is the runbook's
+([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): quit Fabric, put the new
+bundle's migration in the stack folder, back up, rehearse the upgrade on a disposable stack, run
+`supabase migration up --local` in the stack folder, then open the new bundle. The migration also corrects rows an
+older build left: a folder held by two projects stays with the project that attached it first, each folder's kind
+follows whether it is the project's main one, a correction of an answer taken back stops counting as current, and a
+delivery and a run take their event's time. A development database that applied an early version of migration 115
+(between `cdc841f6` and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
+
 - **Abandoned work finds its agent.** Every three minutes Fabric looks for work nobody moves: a claim that went silent
   or whose session ended, a running task nobody holds, a board request nobody has taken, an answer nobody marked read,
   a terminal stuck on a running task. The agent is told once per 30 minutes: in its next `fabric_work_list` or
@@ -24,6 +35,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   stops the stack keeping its data and starts it again once, instead of stopping at the startup window.
 - **Docker through its current context.** Fabric finds the container engine the way the docker CLI does, so it also
   waits for Colima.
+- **A reply reaches the one it answers.** On the board, a reply goes to the sender of the message it answers instead of
+  to every participant, so a thread of sixteen projects no longer gives fifteen of them an unread message for each
+  thank-you; it stays in the thread for anyone who reads it.
+- **What waits counts only someone who can answer.** A responder whose lease ran out no longer counts as able to answer:
+  the receipt's `noResponder`, the home's waiting count and the per-project waiting list now say the same thing.
+- **A decision taken back stays taken back.** Taking an answer back now also closes a correction of its decision made
+  in Memory before, and the agents' memory read says `withdrawn` for it instead of "corrected since".
+- **A project's business stays the person's.** The rule the onboarding tool keeps (an agent never replaces or clears a
+  business the person set) now also holds when the projects are rebuilt from the journal.
+- **Every project shows when it last moved.** «Тихо уже …» is read for each project from its own newest event, so a
+  project quiet for longer than the estate's newest 3 000 events still says how long.
+- **The sweep of abandoned work leaves a receipt.** Each sweep that found something is recorded in the journal
+  (`work.swept@1`), so the every-three-minutes rule is observed rather than only advised.
 
 ## 0.3.12
 

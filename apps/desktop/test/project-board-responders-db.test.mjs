@@ -92,7 +92,7 @@ await test('no grant: an agent the operator did not let answer is refused before
   const r = cmd('board_enroll', HC, { idempotency: idem(), capability: CAP })
   assert.equal(r.error?.code, 'not_authorized', JSON.stringify(r))
   // The refusal names a route the agent has (wave-2 product finding 16): the operator's Settings → Agent access.
-  assert.equal(r.error.message, `The operator has not let this agent answer ${CAP} requests for this project: the operator grants it in Fabric, Settings → Agent access. Until then, reply on the request's thread and say it stays queued.`)
+  assert.equal(r.error.message, `The operator has not let this agent answer ${CAP} requests for this project: the operator grants it in Fabric, Settings → Agent access. Until then a com.reply on the request is still your answer: a reply from the request's target answers it, so reply with the answer itself.`)
   assert.equal(journalCount(E), before, 'a refused enroll wrote an event')
   assert.equal(sql(`select count(*) from board_idempotency where estate_id='${E}' and operation='enroll'`), '0', 'a refused enroll stored a receipt')
 })

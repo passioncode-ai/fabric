@@ -39,7 +39,10 @@ await test('a field the event does not name is left as it was; an empty one clea
   profile({ summary: 'The CEO agent and its desktop app' })
   assert.equal(row().goal, 'Help the operator steer projects')
   assert.equal(row().summary, 'The CEO agent and its desktop app')
+  // 0.3.13 (CO-418, W2-4): only a person clears a business; an agent's empty one leaves it (schema-0313-db covers the rule).
   profile({ business: '  ' })
+  assert.equal(row().business, 'PassionCode', 'an agent cannot clear the business')
+  append('project.profiled@1', { business: '  ' }, P, { kind: 'person', id: id(91) })
   assert.equal(row().business, null)
   assert.equal(row().goal, 'Help the operator steer projects')
 })
@@ -66,7 +69,7 @@ await test('the event type is declared, the projector is no door, and the relati
   assert.equal(sql(`select relrowsecurity from pg_class where relname = 'project_relations'`), 't', 'rls')
   assert.equal(sql(`select has_table_privilege('authenticated', 'project_relations', 'select')`), 't')
   assert.equal(sql(`select has_table_privilege('authenticated', 'project_relations', 'insert')`), 'f', 'insert')
-  assert.equal(sql(`select schema_version()`), '96', 'schema')
+  assert.ok(Number(sql(`select schema_version()`)) >= 96, 'schema')
 })
 
 console.log(`${count} passed, ${failed.length} failed`)

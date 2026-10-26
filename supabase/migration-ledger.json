@@ -385,6 +385,10 @@
     {
       "file": "20261023000123_project_profile.sql",
       "sha256": "57b7d2e4be0239af402d8344e01a4e630b9b895e33f92cc682487708b1c968a4"
+    },
+    {
+      "file": "20261026000124_one_schema_step.sql",
+      "sha256": "6799c5689692e25d3e3e4f057b35570a2fd5290e95d1dcedad0f9445bda004d8"
     }
   ]
 }

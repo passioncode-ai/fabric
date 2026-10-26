@@ -18,7 +18,7 @@ function world(over = {}) {
   const w = {
     claims: [], held: [], tasks: [], requests: [], terminals: [], running: new Set(), activity: new Map(),
     claimsCapped: false, requestsCapped: [], unresolved: [], quit: false, started: T0 - 60 * MIN, reads: 0,
-    delivered: [], refused: [], released: [], failed: [], records: [], fail: new Set(),
+    delivered: [], refused: [], released: [], failed: [], records: [], receipts: [], receiptFails: false, fail: new Set(),
     tick(ms) { now += ms },
     deps: null
   }
@@ -42,6 +42,7 @@ function world(over = {}) {
     },
     releaseLapsed: async (claimId, reason) => { w.released.push({ claimId, reason }); return { released: true } },
     unresolvedRuns: async (taskIds) => taskIds.filter((id) => w.unresolved.includes(id)),
+    recordSwept: async (receipt) => { if (w.receiptFails) throw new Error('journal refused'); w.receipts.push(receipt) },
     quitting: () => w.quit,
     processStartedAt: w.started,
     ops: {
@@ -205,20 +206,30 @@ test('(e) a failed claims read neither calls running tasks unclaimed nor forgets
   assert.deepEqual(sweep.takeNudges('s-enrolled', 'p1'), [], 'the unread sweep did not make Fabric forget it had told')
 })
 
-test('(f) an idle sweep writes no ops record; a sweep that found something writes one', async () => {
+test('(f) SW-7: an idle sweep writes no receipt; a sweep that found something appends one work.swept@1', async () => {
   const w = world()
   const sweep = createAbandonedSweep(w.deps)
   await sweepOnce(sweep)
-  assert.deepEqual(w.records, [], 'idle: nothing written')
+  assert.deepEqual(w.receipts, [], 'idle: nothing written')
+  assert.deepEqual(w.records, [], 'and no ops line either')
   w.claims = [lapsedClaim('c1')]
   await sweepOnce(sweep)
-  assert.equal(w.records.length, 1)
-  assert.equal(w.records[0].op, 'work.swept')
-  assert.equal(w.records[0].outcome, 'ok')
-  assert.deepEqual(w.records[0].detail.found, { 'claim-lapsed': 1 })
-  assert.equal('capped' in w.records[0].detail, false, 'nothing capped, no field')
-  assert.equal(w.records[0].detail.told, 1)
-  assert.equal(w.records[0].detail.released, 0)
+  assert.equal(w.receipts.length, 1)
+  assert.deepEqual(w.receipts[0].found, { 'claim-lapsed': 1 })
+  assert.equal('capped' in w.receipts[0], false, 'nothing capped, no field')
+  assert.equal(w.receipts[0].told, 1)
+  assert.equal(w.receipts[0].released, 0)
+  assert.equal(w.receipts[0].delivered, 0)
+  assert.equal(w.receipts[0].queued, 1)
+  assert.deepEqual(w.records, [], 'the journal holds the receipt, not the ops log')
+})
+
+test('(f) SW-7: a receipt the journal refused is said in the ops log, and the sweep still answers', async () => {
+  const w = world({ claims: [lapsedClaim('c1')], receiptFails: true })
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  assert.equal(out.findings.length, 1)
+  assert.equal(w.failed.filter((f) => f.op === 'work.sweep-receipt').length, 1)
 })
 
 // ── SW-2's board reading, through the operator's read door (commsOperatorRead's shapes) ───────────────────────
@@ -529,7 +540,7 @@ test('finding 10: the board read says when it stopped at its thread cap, and the
   const w = world({ requests: [{ requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'queued', movedAt: iso(T0 - 5 * MIN), answerUnreadSince: null }], requestsCapped: ['threads'], claimsCapped: true })
   const sweep = createAbandonedSweep(w.deps)
   await sweepOnce(sweep)
-  assert.deepEqual(w.records.at(-1).detail.capped, ['claims', 'threads'])
+  assert.deepEqual(w.receipts.at(-1).capped, ['claims', 'threads'])
 })
 
 // ── Review round 2 (B1, B2, R3) ─────────────────────────────────────────────────────────────────────────────

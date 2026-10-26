@@ -111,6 +111,8 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   project_repos: ESTATE_AND_PROJECT,
   project_repo_removals: ESTATE_AND_PROJECT,
   project_relations: ESTATE_AND_PROJECT,
+  // A view (migration 124, CO-307): each project's newest journal event, read with the caller's rights.
+  project_activity: ESTATE_AND_PROJECT,
   project_tasks: ESTATE_AND_PROJECT,
   proposals: ESTATE_AND_PROJECT,
   question_blocks: ESTATE_AND_PROJECT,

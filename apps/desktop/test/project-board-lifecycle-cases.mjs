@@ -207,7 +207,8 @@ export async function run(h) {
 
   await test('rotation by age and at 90 % capacity happens in the tick, as an event', () => {
     submit(A, PF, { idempotency: idem(1), thread: { new: { participants: [PA2] } }, kind: 'message', body: { text: 'aging' } }, digest(1300))
-    sql(`update board_epochs set opened_at = clock_timestamp() - interval '31 days' where estate_id='${A}' and project_id='${PF}' and state='open'`)
+    // 41 days: past any Project's own age limit (30 days plus up to 10 since migration 124, CO-370).
+    sql(`update board_epochs set opened_at = clock_timestamp() - interval '41 days' where estate_id='${A}' and project_id='${PF}' and state='open'`)
     const t = tick(A)
     assert.ok(t.rotated >= 1, JSON.stringify(t))
     assert.equal(status(A, PF).epoch, 2)

@@ -49,6 +49,7 @@ import { refuseForStack, type AdoptedListeners } from './hubStandby.ts'
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { cleanOriginalText, prepareAgentPayload, prepareRetrievalText } from './desktopIngress.ts'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
+import { factClosure } from '../shared/decisions.ts'
 import { CommandIngressError } from './commandIngressAdapters.ts'
 import { linkOutcome, linkRefusal, type LinkVerdict } from '../shared/taskLinks.ts'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -1715,7 +1716,7 @@ export class AgentSurface {
       async ({ query, includeSuperseded }) => {
         query = query?.trim() ? cleanOriginalText(query).trim() : ''
         let q = store
-          .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,valid_to')
+          .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,valid_to,withdrawn_seq')
           .eq('project_id', scope.projectId)
         // What is true NOW, unless asked otherwise. A corrected fact is kept and
         // readable; it simply stops answering as though nothing had changed.
@@ -1736,7 +1737,8 @@ export class AgentSurface {
             // Who said it is part of what it is worth. A note the operator wrote
             // and an agent's report about its own work are different evidence,
             // and an agent reading this must be able to tell them apart (M44).
-            superseded: f.valid_to !== null,
+            // CO-356: a decision whose answer was taken back is `withdrawn`, not corrected (`superseded`).
+            ...factClosure(f),
             recorded_by:
               f.actor_kind === 'person'
                 ? 'the operator'

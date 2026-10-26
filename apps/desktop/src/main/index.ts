@@ -2783,6 +2783,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     deliver: (sessionId, text, options) => ptys.deliverWhenReady(sessionId, text, options),
     releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason),
     unresolvedRuns: async (taskIds) => (await readRunHolds(store, taskIds)).map((h) => h.taskId),
+    // SW-7: the sweep's receipt, estate-level (no project), as the system that swept.
+    recordSwept: async (receipt) => { await journal.append({ estateId: ACTIVE_ESTATE, type: 'work.swept@1', actor: { kind: 'system', id: 'abandoned-sweep' }, payload: { ...receipt } }) },
     quitting: () => quit.quitting,
     processStartedAt: PROCESS_STARTED_AT
   })

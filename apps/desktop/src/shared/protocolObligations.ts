@@ -185,7 +185,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     scope: 'fabric_mediated'
   },
   // 0.3.13 wave 2, CO-427 SW-6 (the operator, 2026-10-26: «Раз в три минуты обязательный чек для всех агентов»):
-  // spec docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md. ADVICE until the sweep's receipt exists.
+  // spec docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md. OBSERVED: the sweep's receipt is work.swept@1.
   {
     id: 'work.check-every-three-minutes',
     text:
@@ -196,8 +196,10 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'each one read (com.read_ack), or it stays unread and you are told again. Fabric ' +
       'sweeps abandoned work on the same cadence and points its agent at the next step; a task you hold and are not ' +
       'moving is either moved, handed over or let go, never left still.',
-    mode: 'ADVICE',
-    scope: 'fabric_mediated'
+    // OBSERVED since 0.3.13's schema step (migration 124): the sweep that checks it journals what it found.
+    mode: 'OBSERVED',
+    scope: 'fabric_mediated',
+    evidence: 'work.swept@1 records each sweep of abandoned work that found something (main/abandonedSweepRun.ts, SW-7); an idle sweep records nothing'
   },
   // CO-426 TO-1 (the operator, 2026-10-26: «Когда я говорю одному агенту, это равно я сказал всем … другой агент уже
   // не спрашивает»).

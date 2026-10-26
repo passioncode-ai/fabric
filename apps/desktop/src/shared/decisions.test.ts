@@ -201,3 +201,19 @@ describe('a decision whose answer was taken back (0.3.7 review DA-1, migration 1
     expect(got.map((l) => l.current.id)).toEqual(['two'])
   })
 })
+
+// CO-356 (0.3.7 review i2 DA-2): a fact closed by a withdrawn answer was taken back, not corrected; the agents' memory
+// read says which (`main/agentSurface.ts`, fabric_memory_search).
+import { factClosure } from './decisions'
+describe('factClosure', () => {
+  it('a current fact is neither', () => {
+    expect(factClosure({ valid_to: null, withdrawn_seq: null })).toEqual({ superseded: false, withdrawn: false })
+  })
+  it('a fact a later one replaced is superseded', () => {
+    expect(factClosure({ valid_to: '2026-10-26T10:00:00Z', withdrawn_seq: null })).toEqual({ superseded: true, withdrawn: false })
+  })
+  it('a fact whose answer was taken back is withdrawn, not superseded', () => {
+    expect(factClosure({ valid_to: '2026-10-26T10:00:00Z', withdrawn_seq: 42 })).toEqual({ superseded: false, withdrawn: true })
+    expect(factClosure({ valid_to: '2026-10-26T10:00:00Z', withdrawn_seq: '42' })).toEqual({ superseded: false, withdrawn: true })
+  })
+})

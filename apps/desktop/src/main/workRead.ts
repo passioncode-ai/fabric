@@ -284,13 +284,12 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
     const q = store.select('project_tasks', columns).eq('status', status)
     return opts.projectId ? q.eq('project_id', opts.projectId) : q
   }
-  const [projects, stages, review, running, journal, reviewIds, finished] = await Promise.all([
+  const [projects, stages, review, running, reviewIds, finished] = await Promise.all([
     store.select('projects', 'id,name').eq('status', 'active').limit(500),
     store.select('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at').order('reported_at', { ascending: false }).limit(500),
     // `moved_at` is when the task last changed column — for a task in review, when it was put there.
     tasks('review', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(50),
     tasks('running', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at,session_id').limit(200),
-    store.select('journal', 'project_id,occurred_at').not('project_id', 'is', null).order('seq', { ascending: false }).limit(3000),
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
     tasks('review', 'project_id').limit(5000),
     // The newest finished tasks for «Закончили» (the operator's walk OF-18).
@@ -304,8 +303,12 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   const finishedError = (finished as { error?: { message?: string } | null }).error
   const doneRows = finishedError ? [] : ((finished as { data: unknown }).data as Array<TaskBrief & { moved_at: string | null }> ?? []).map((t) => ({ ...t, updated_at: t.moved_at }))
   const reviewProjectIds = (must(reviewIds as never, 'the review counts') as Array<{ project_id: string }>).map((r) => r.project_id)
+  // CO-307: each project's newest journal event from `project_activity` (migration 124), one index probe per project,
+  // instead of the estate's newest 3 000 events, past which a quiet project had no «Тихо уже».
+  const lastActive = await store.selectIn('project_activity', 'project_id,last_occurred_at', 'project_id', projectRows.map((p) => p.id))
+  if (lastActive.failed) throw new Error(`the projects' last activity could not be read: ${lastActive.failed}`)
   const activity = new Map<string, string | null>()
-  for (const e of must(journal as never, 'the journal') as Array<{ project_id: string; occurred_at: string }>) if (!activity.has(e.project_id)) activity.set(e.project_id, e.occurred_at)
+  for (const row of lastActive.rows as Array<{ project_id: string; last_occurred_at: string | null }>) activity.set(row.project_id, row.last_occurred_at)
   const claimIds = [...new Set(where.rows.flatMap((r) => r.claims.map((c) => c.taskId)))]
   // The brief's three parts, so «В работе» can say a task's spec is not gathered (ADR-0176 §1).
   const briefs = await store.selectIn('project_tasks', 'id,project_id,title,brief_what,brief_why,brief_expected,status', 'id', claimIds)

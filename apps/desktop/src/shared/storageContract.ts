@@ -137,6 +137,7 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   routines: 'NOT REBUILDABLE from the mirror; a schedule the operator set is lost with it',
   project_repos: 'paths on one machine. They are evidence, not content, and they rebind per machine',
   project_relations: 'what the agent onboarding a project said it relates to; rebuilt from the journal (project.profiled@1), a file copy would be a second profile that drifts',
+  project_activity: 'a view (migration 124): each project\'s newest journal event, computed from the journal on read; it stores nothing',
   project_repo_removals: 'rebuilt from the journal (project.repo.detached@1); machine-local repository identity and detach history, not editable workspace content',
   memory_facts: 'rebuilt from the journal; a file copy would be a second memory that drifts',
   memory_retrievals: 'the record of what was asked; volume, and rebuilt',

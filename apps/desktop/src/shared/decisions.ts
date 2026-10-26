@@ -167,3 +167,15 @@ export function lineagesOf(facts: readonly DecisionFact[]): Lineage[] {
     }
   })
 }
+
+/**
+ * How a fact stopped being true, as the agents' memory read says it (CO-356, 0.3.7 review i2 DA-2): `superseded` when a
+ * later fact replaced it, `withdrawn` when a person took back the answer that recorded it (`withdrawn_seq`, migration
+ * 116; its whole correction chain since migration 124). Never both: the schema admits one closer
+ * (`memory_facts_supersession_shape`).
+ */
+export function factClosure(f: { valid_to?: string | null; withdrawn_seq?: number | string | null }): { superseded: boolean; withdrawn: boolean } {
+  const closed = f.valid_to !== null && f.valid_to !== undefined
+  const withdrawn = closed && f.withdrawn_seq !== null && f.withdrawn_seq !== undefined
+  return { superseded: closed && !withdrawn, withdrawn }
+}

@@ -9,7 +9,7 @@
  *   SW-4  a stalled Fabric terminal gets one gated line written into it; every other finding waits as a nudge its
  *         session reads in its next fabric_work_list or fabric_heartbeat answer
  *   SW-5  a finding is told once, then not again for 30 minutes while it stays (`toTell`)
- *   SW-7  interim: one ops line per sweep that found something (the journal receipt needs 0.3.13's schema step)
+ *   SW-7  one `work.swept@1` journal receipt per sweep that found something (migration 124); an idle sweep writes none
  *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew it or it has
  *         expired, and its task has no unresolved run
  *
@@ -74,6 +74,8 @@ export interface AbandonedSweepDeps {
   releaseLapsed(claimId: string, reason: string): Promise<{ released: boolean; reason?: string; failed?: string }>
   /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
   unresolvedRuns(taskIds: string[]): Promise<string[]>
+  /** Appends the sweep's receipt, `work.swept@1` (SW-7): counts only, never a title or a body. */
+  recordSwept(receipt: SweptReceipt): Promise<void>
   /** True once the app has begun to quit (`quit.ts`, `quitting`). */
   quitting(): boolean
   /** When this process started: a claim older than that, whose session it never saw, is not its to release. */
@@ -88,6 +90,19 @@ const KINDS_OF: Record<Source, AbandonedKind[]> = {
   tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed']
+}
+
+/** The payload of `work.swept@1` (SW-7): what one sweep found by kind and what it did about it. */
+export interface SweptReceipt {
+  found: Partial<Record<AbandonedKind, number>>
+  told: number
+  delivered: number
+  queued: number
+  released: number
+  /** The reads that failed, so what they find was judged blind this sweep. */
+  unread?: string[]
+  /** The reads that stopped at their bounds. */
+  capped?: string[]
 }
 
 export interface SweepResult {
@@ -274,13 +289,18 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       }
     }
 
-    // SW-7, interim: one line naming what this sweep found, and which reads stopped at their bounds; an idle sweep
-    // with nothing capped writes nothing.
+    // SW-7: one journal receipt naming what this sweep found, and which reads stopped at their bounds; an idle sweep
+    // with nothing capped writes nothing. A receipt the journal refused is said in the ops log; the sweep stands.
     const capped = [...(claimRead?.capped ? ['claims'] : []), ...(requestRead?.capped ?? [])]
     if (findings.length || capped.length) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
-      ops.record({ op: 'work.swept', outcome: 'ok', detail: { found, told: decided.tell.length, delivered, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }, ctx: { correlationId: ops.correlate() } })
+      const receipt: SweptReceipt = { found, told: decided.tell.length, delivered, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
+      try {
+        await deps.recordSwept(receipt)
+      } catch (e) {
+        ops.failed('work.sweep-receipt', e, { note: 'the sweep ran; its work.swept@1 receipt was not journalled', found: findings.length })
+      }
     }
     return { findings, told: decided.tell.length, delivered, queued, released, failedReads }
   }

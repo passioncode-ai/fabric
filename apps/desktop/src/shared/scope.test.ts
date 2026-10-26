@@ -48,6 +48,12 @@ function schemaColumns(): Map<string, Set<string>> {
     set.add(m[2])
     columns.set(m[1], set)
   }
+  // A view is read like a table (migration 124's `project_activity`): its columns are its select list's names, one
+  // select line, each the item's alias or its last word.
+  const view = /create (?:or replace )?view (\w+)[^\n]* as\n\s+select ([^\n]+)/g
+  for (let m = view.exec(sql); m; m = view.exec(sql)) {
+    columns.set(m[1], new Set(m[2].split(',').map((item) => /(\w+)\s*$/.exec(item.trim())?.[1] ?? '').filter(Boolean)))
+  }
   const dropped = /drop table(?: if exists)?\s+(\w+)/g
   for (let m = dropped.exec(sql); m; m = dropped.exec(sql)) columns.delete(m[1])
   return columns
