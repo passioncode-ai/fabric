@@ -122,3 +122,34 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
   await assert.rejects(readSessionTasks(fake(tables), 'not-a-session'), /Invalid session identity/)
   assert.deepEqual(await readSessionTasks(fake({}), S), { tasks: [], capped: false }, 'a session with no task reads as an empty list')
 })
+
+test('the board pages «Готово» (0.3.14): the finished tasks are read up to the limit asked, 20 by default, and capped there', async () => {
+  const { readTaskBoard } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const calls = []
+  const done = (n) => Array.from({ length: n }, (_, i) => ({ id: 'd' + i, project_id: 'p1', title: 'D', brief_what: null, status: 'done', moved_at: `2026-10-${String(10 + (i % 15)).padStart(2, '0')}T00:00:00Z` }))
+  const fake = (doneRows) => ({
+    select: (table) => {
+      const call = { table, eq: [], limit: null }
+      calls.push(call)
+      const chain = {
+        is: () => chain, in: () => chain, not: () => chain, order: () => chain,
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
+        limit: (n) => { call.limit = n; return chain },
+        then: (ok) => ok({ data: table === 'projects' ? [{ id: 'p1', name: 'Fabric' }] : table === 'project_tasks' && call.eq.some(([k, v]) => k === 'status' && v === 'done') ? doneRows.slice(0, call.limit ?? undefined) : [], error: null })
+      }
+      return chain
+    },
+    selectIn: async () => ({ rows: [], failed: null })
+  })
+  const at = { now: Date.parse('2026-10-26T12:00:00Z'), session: () => null, sessions: [] }
+  const doneCall = () => calls.find((c) => c.table === 'project_tasks' && c.eq.some(([k, v]) => k === 'status' && v === 'done'))
+  const first = await readTaskBoard(fake(done(30)), at)
+  assert.equal(doneCall().limit, 20)
+  assert.equal(first.columns.find((c) => c.stage === 'done').cards.length, 20)
+  assert.equal(first.columns.find((c) => c.stage === 'done').capped, true)
+  calls.length = 0
+  const more = await readTaskBoard(fake(done(30)), { ...at, doneLimit: 40 })
+  assert.equal(doneCall().limit, 40)
+  assert.equal(more.columns.find((c) => c.stage === 'done').cards.length, 30)
+  assert.equal(more.columns.find((c) => c.stage === 'done').capped, false)
+})

@@ -13,6 +13,8 @@ export interface BoardCard {
   summary: string
   /** The coding agent that holds it, when one does. */
   agent: string | null
+  /** 0.3.14: the session working on it, for «В работе» and «Брошено»; the card links to that agent. */
+  sessionId?: string | null
   /** When it entered its column, when known. */
   since: string | null
   /** ADR-0176 §1: a queued or running task whose brief lacks a part; absent when the brief was not read. */
@@ -33,6 +35,9 @@ export interface TaskBoardView {
   /** «Отменено» (SCN-173 step 1, CO-401): cancelled tasks, newest first, shown only when the person turns them on.
    *  Absent from a reader that did not ask; a failed read is `unread`, never an empty list. */
   cancelled?: { cards: BoardCard[]; capped: boolean; unread?: string }
+  /** 0.3.14 «Брошено»: tasks in work with no live claim and no live session, not counted in «В работе». Absent from an
+   *  older reader. */
+  abandoned?: BoardCard[]
   projects: Array<{ id: string; name: string }>
   readAt: string
 }
@@ -50,13 +55,15 @@ export function composeTaskBoard(input: {
     .filter((t) => t.status === 'backlog' && names.has(t.project_id))
     .map((t) => ({ taskId: t.id, projectId: t.project_id, projectName: names.get(t.project_id) ?? '', summary: taskSummary(t), agent: null, since: t.updated_at ?? null, ...specFlag(t) }))
   const h = input.home
+  const workCard = (w: HomeView['inWork'][number]): BoardCard => ({ taskId: w.taskId, projectId: w.projectId, projectName: w.projectName, summary: w.summary, agent: w.agent, sessionId: w.sessionId, since: w.since, ...(w.specMissing !== undefined ? { specMissing: w.specMissing } : {}) })
   return {
     columns: [
       { stage: 'backlog', cards: queue, capped: input.queued.length >= input.queuedLimit },
-      { stage: 'running', cards: h.inWork.map((w) => ({ taskId: w.taskId, projectId: w.projectId, projectName: w.projectName, summary: w.summary, agent: w.agent, since: w.since, ...(w.specMissing !== undefined ? { specMissing: w.specMissing } : {}) })), capped: !!h.inWorkCapped },
+      { stage: 'running', cards: h.inWork.map(workCard), capped: !!h.inWorkCapped },
       { stage: 'review', cards: h.review.map((r) => ({ ...r, agent: null })), capped: !!h.reviewCapped },
       { stage: 'done', cards: h.done.map((r) => ({ ...r, agent: null })), capped: !!h.doneCapped, ...(h.doneUnread ? { unread: h.doneUnread } : {}) }
     ],
+    abandoned: (h.abandoned ?? []).map(workCard),
     projects: input.projects.map((p) => ({ id: p.id, name: p.name })),
     readAt: h.readAt,
     ...(input.cancelled

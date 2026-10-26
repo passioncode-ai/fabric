@@ -37,7 +37,9 @@ type Said = { of: string; result: BoardCommandResult }
 /** How many open rows one read of the board carries. */
 const BOARD_LIMIT = 100
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, tab: routeTab, onTab, onOpen, onError, onPulse, boardFilters, onRememberBoard }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, tab: routeTab, onTab, onOpen, onAgent, onError, onPulse, boardFilters, onRememberBoard }: {
+  /** Opens the agent of a session a card in work names (0.3.14). */
+  onAgent?(sessionId: string): void
   /** The kanban's filters kept from the last visit, and where to keep the next ones (CO-401). */
   boardFilters?: BoardFilters
   onRememberBoard?(filters: BoardFilters): void
@@ -285,7 +287,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         <button type="button" className="lp-button" aria-pressed={mode === 'kanban'} onClick={() => setMode('kanban')}>{t('launch.board.mode.kanban')}</button>
         <button type="button" className="lp-button" aria-pressed={mode === 'needs'} onClick={() => setMode('needs')}>{t('launch.board.mode.needs')}</button>
       </div>
-      {mode === 'kanban' && <KanbanBoard feedMark={feedMark} projectId={projectId} remembered={boardFilters} onRemember={onRememberBoard} onOpen={(project, task) => onOpen(project, { kind: 'task', id: task })} />}
+      {mode === 'kanban' && <KanbanBoard feedMark={feedMark} projectId={projectId} remembered={boardFilters} onRemember={onRememberBoard} onOpen={(project, task) => onOpen(project, { kind: 'task', id: task })} onAgent={onAgent} />}
       {mode === 'needs' && (
         <>
       {topic && (

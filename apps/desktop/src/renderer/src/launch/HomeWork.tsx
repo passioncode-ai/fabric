@@ -180,6 +180,8 @@ export function HomeWorkLanes({ reading, onOpen, onOpenTask, onSession, onBoard 
               </ol>
             ) : <p className="lp-meta">{t('launch.home.work.noneInWork')}</p>}
             {hasMore(inWorkCount) && onBoard && <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.agents.more', { count: inWorkCount - LANE_ROWS })}</button>}
+            {/* 0.3.14: work no agent holds and no session works on is not in «В работе»; the board lists it as «Брошено». */}
+            {v.abandoned?.length && onBoard ? <button type="button" className="lp-button lh-text-link" onClick={onBoard}>{t('launch.home.work.abandoned', { count: v.abandoned.length })}</button> : null}
           </div>
           <div className="lh-lane">
             <h4>{t('launch.home.work.done')} <span className="lp-count">{v.doneUnread ? '?' : `${done.length}${v.doneCapped ? '+' : ''}`}</span></h4>

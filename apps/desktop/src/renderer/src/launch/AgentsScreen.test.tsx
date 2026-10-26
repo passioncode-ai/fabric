@@ -46,7 +46,7 @@ const projects = [{ id: 'p1', name: 'Fabric' }, { id: 'p2', name: 'Site' }]
 
 function stub(o: { home?: () => Promise<HomeView>; overview?: () => Promise<HubOverview>; exec?: () => Promise<ExecutorRow[]> } = {}) {
   const api = {
-    work: { home: vi.fn(o.home ?? (async (): Promise<HomeView> => ({ live: [working, joinedLive], inWork: [], review: [], done: [], projects: [], readAt: now }))) },
+    work: { home: vi.fn(o.home ?? (async (): Promise<HomeView> => ({ live: [working, joinedLive], inWork: [], review: [], done: [], projects: [], readAt: now }))), session: vi.fn(async () => ({ tasks: [], capped: false })) },
     hub: {
       overview: vi.fn(o.overview ?? (async () => hub())),
       disconnectAgent: vi.fn(async () => ({ ok: true as const, seq: 7 })),
@@ -276,5 +276,15 @@ describe('Агенты (CO-419)', () => {
     const { onCreate } = show()
     fireEvent.click(screen.getByRole('button', { name: en['agentsPlace.create'] }))
     expect(onCreate).toHaveBeenCalled()
+  })
+})
+
+// 0.3.14: a board card's «Session …» opens Agents on that agent's page.
+describe('arriving for one agent (0.3.14)', () => {
+  it('opens that agent\'s page as if it had been picked', async () => {
+    stub()
+    render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} initialSession="s1" /></I18nProvider>)
+    const page = await screen.findByTestId('agent-page')
+    expect(page.textContent).toContain('Keep the computer awake')
   })
 })

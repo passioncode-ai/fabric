@@ -97,6 +97,9 @@ export interface ProjectPulse {
 export interface HomeView {
   live: LiveAgent[]
   inWork: WorkItem[]
+  /** 0.3.14: tasks in work with no live claim and no live session, newest first; not in `inWork` and not counted
+   *  there. Absent from an older reader. */
+  abandoned?: WorkItem[]
   review: ReviewItem[]
   /** Finished tasks, newest first (the operator's walk OF-18: «В работе» and «Закончили»). */
   done: ReviewItem[]
@@ -263,6 +266,12 @@ export function composeHome(input: {
   }
   // Current work first, then the record of claims nobody is signing for.
   inWork.sort((a, b) => Number(b.live) - Number(a.live) || b.since.localeCompare(a.since))
+  // 0.3.14: work with no live claim and no live session is abandoned. It leaves «В работе» for its own list, so the home
+  // and the board count the same «В работе» (SCN-158) and neither counts dead work in it. A claim nobody signs for while
+  // its session still signs stays: the agent is there.
+  const sessionLive = (id: string | null): boolean => { const s = id ? held.get(id) : undefined; return !!s && !s.stale }
+  const abandoned = inWork.filter((w) => !w.live && !sessionLive(w.sessionId))
+  const current = inWork.filter((w) => w.live || sessionLive(w.sessionId))
 
   const review: ReviewItem[] = input.reviewTasks
     .filter((t) => t.status === 'review' && names.has(t.project_id))
@@ -295,7 +304,7 @@ export function composeHome(input: {
   const reviewCapped = !!input.limits?.review && input.reviewTasks.length >= input.limits.review
   const inWorkCapped = !!input.limits?.running && (input.runningTasks?.length ?? 0) >= input.limits.running
   const doneCapped = !!input.limits?.done && (input.doneTasks?.length ?? 0) >= input.limits.done
-  return { live, inWork, review, done, projects, readAt: input.now, ...(reviewCapped ? { reviewCapped } : {}), ...(inWorkCapped ? { inWorkCapped } : {}), ...(doneCapped ? { doneCapped } : {}) }
+  return { live, inWork: current, abandoned, review, done, projects, readAt: input.now, ...(reviewCapped ? { reviewCapped } : {}), ...(inWorkCapped ? { inWorkCapped } : {}), ...(doneCapped ? { doneCapped } : {}) }
 }
 
 /** Home order: favourites first in the operator's own order, then the rest by latest activity, newest first. */

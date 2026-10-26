@@ -226,3 +226,15 @@ describe('a read that stopped at its limit is said (CO-310)', () => {
     expect(container.textContent).not.toContain(en['launch.home.work.capped'].slice(0, 20))
   })
 })
+
+// 0.3.14: dead work leaves «In work» on the home as on the board; the lane says how much and opens the board.
+describe('home: abandoned work (0.3.14)', () => {
+  it('is not in «In work» and is named with a way to the board', () => {
+    const onBoard = vi.fn()
+    const r: HomeReading = { view: { ...view, abandoned: [{ ...view.inWork[0], taskId: 'a1', summary: 'Left behind', live: false, sessionId: null }] }, problem: null }
+    show(<HomeWorkLanes reading={r} onOpen={() => {}} onSession={() => {}} onBoard={onBoard} />)
+    expect(screen.queryByText('Left behind')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.home.work.abandoned'].replace('{count}', '1') }))
+    expect(onBoard).toHaveBeenCalled()
+  })
+})

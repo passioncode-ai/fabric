@@ -5157,8 +5157,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> =>
     readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
-  handle(IPC.workBoard, async (_e, projectId?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
-    readTaskBoard(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null }))
+  handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
+    readTaskBoard(store, {
+      now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null,
+      // «Готово» pages by 20 up to 500 (0.3.14); anything else reads the first page.
+      doneLimit: typeof doneLimit === 'number' && Number.isInteger(doneLimit) ? Math.min(500, Math.max(20, doneLimit)) : 20
+    }))
   // 0.3.14: one agent's tasks for its page, newest first; a failed read rejects (`workRead.ts#readSessionTasks`).
   handle(IPC.workSession, async (_e, sessionId: unknown): Promise<Returns<FabricApi['work']['session']>> => readSessionTasks(store, sessionId))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {

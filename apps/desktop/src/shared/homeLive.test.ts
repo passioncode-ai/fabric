@@ -136,7 +136,9 @@ describe('composeHome — a stage that names its task', () => {
   })
   it("an ended session's last stage is not what anyone is doing (0.3.6 review DA-9)", () => {
     const v = run([])
-    expect(v.inWork[0].doing).toBeNull()
+    // 0.3.14: with no session and no live claim the task is abandoned, apart from «В работе».
+    expect(v.inWork).toEqual([])
+    expect(v.abandoned?.[0].doing).toBeNull()
     expect(v.projects.find((p) => p.projectId === P1)!.now).toBeNull()
   })
 })
@@ -225,7 +227,8 @@ describe('composeHome: a task in work whose spec is not gathered (ADR-0176 §1)'
       runningTasks: [{ id: 't3', project_id: P1, title: 'Whole', brief_what: 'a', brief_why: 'b', brief_expected: 'c', status: 'running', updated_at: '2026-10-14T08:00:00Z' }],
       activity: new Map(), now: '2026-10-14T09:00:00Z'
     })
-    const byId = new Map(v.inWork.map((w) => [w.taskId, w.specMissing]))
+    // t3 has no session: it is abandoned since 0.3.14, and keeps its flag there.
+    const byId = new Map([...v.inWork, ...(v.abandoned ?? [])].map((w) => [w.taskId, w.specMissing]))
     expect(byId.get('t1')).toBe(true)
     expect(byId.get('t2')).toBeUndefined()
     expect(byId.get('t3')).toBe(false)
@@ -282,5 +285,34 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
   it('keeps an untitled claimed task, with an empty summary the screens say as untitled', () => {
     const v = composeHome({ ...base, where: where([session('s1', P1)], [claim('u1', P1, 's1', { title: '' })]), stages: [], briefs: [{ id: 'u1', project_id: P1, title: null, brief_what: null, status: 'running' }] })
     expect(v.live[0].task).toEqual({ id: 'u1', projectId: P1, summary: '' })
+  })
+})
+
+// 0.3.14: «В работе» kept dead work (claims nobody signs, running tasks whose session is gone). Work with no live claim
+// and no live session is «Брошено», apart, and counted in neither the home's «В работе» nor the board's.
+describe('composeHome: abandoned work is apart from «В работе» (0.3.14)', () => {
+  const base = { projects, stages: [], reviewTasks: [], activity: new Map<string, string | null>(), now: '2026-10-26T12:00:00Z' }
+  const brief = (id: string) => ({ id, project_id: P1, title: 'T ' + id, brief_what: null, status: 'running' })
+  it('a claim whose session ended, or a running task with no live session, is abandoned; a silent claim of a live session stays', () => {
+    const v = composeHome({
+      ...base,
+      where: where([session('s1', P1), session('s2', P1, { stale: true })], [
+        claim('gone', P1, 's9', { life: 'lapsed' as never }),
+        claim('quiet', P1, 's1', { life: 'silent' as never }),
+        claim('working', P1, 's1')
+      ]),
+      briefs: [brief('gone'), brief('quiet'), brief('working')],
+      runningTasks: [
+        { ...brief('orphan'), updated_at: '2026-10-26T09:00:00Z' },
+        { ...brief('staleRun'), session_id: 's2', updated_at: '2026-10-26T09:00:00Z' },
+        { ...brief('liveRun'), session_id: 's1', updated_at: '2026-10-26T09:00:00Z' }
+      ]
+    })
+    expect(v.inWork.map((w) => w.taskId).sort()).toEqual(['liveRun', 'quiet', 'working'])
+    expect(v.abandoned?.map((w) => w.taskId).sort()).toEqual(['gone', 'orphan', 'staleRun'])
+    expect(v.projects.find((p) => p.projectId === P1)!.inWork).toBe(2)
+  })
+  it('says no abandoned work as an empty list', () => {
+    expect(composeHome({ ...base, where: where([], []), briefs: [] }).abandoned).toEqual([])
   })
 })

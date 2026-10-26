@@ -64,3 +64,16 @@ describe('«Отменено» on the board (CO-401)', () => {
     expect(b.columns.map((c) => c.stage)).toEqual(['backlog', 'running', 'review', 'done'])
   })
 })
+
+// 0.3.14: a running card names its session so the board links to its agent, and abandoned work (no live claim, no live
+// session) is its own group, not counted in «В работе», the same set the home counts.
+describe('the board\'s sessions and abandoned work (0.3.14)', () => {
+  it('a running card carries its session; abandoned work is apart from «В работе»', () => {
+    const dead = { ...home.inWork[0], taskId: 'a1', sessionId: null, agent: null, live: false }
+    const b = composeTaskBoard({ home: { ...home, abandoned: [dead] }, queued: [], projects, queuedLimit: 100 })
+    expect(b.columns[1].cards).toHaveLength(1)
+    expect(b.columns[1].cards[0]).toMatchObject({ taskId: 'r1', sessionId: 's1' })
+    expect(b.abandoned).toEqual([{ taskId: 'a1', projectId: 'p1', projectName: 'Fabric', summary: 'New home', agent: null, sessionId: null, since: '2026-10-22T10:00:00Z' }])
+    expect(composeTaskBoard({ home, queued: [], projects, queuedLimit: 100 }).abandoned).toEqual([])
+  })
+})

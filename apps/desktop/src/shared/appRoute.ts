@@ -68,7 +68,8 @@ export type BoardTab = 'open' | 'review' | 'later' | 'done' | 'all'
  */
 export type AppRoute =
   | Tab
-  | { kind: 'agents' }
+  /** `session`: the agent to open on arrival (0.3.14, a board card's «Сессия …»); without it nothing is chosen. */
+  | { kind: 'agents'; session?: string }
   /** SCR-88 История (SCN-168, 0.3.7 wave 3): every act with its undo. A place on the rail, not a tab. */
   | { kind: 'history' }
   /** SCR-78 «Where work is» (SCN-141): the manager's view of every claim, session and review queue. A place, not a tab. */

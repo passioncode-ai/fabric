@@ -1082,6 +1082,7 @@ function Shell({
             onOpen={openEntity}
             onError={setError}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
+            onAgent={(session) => goTo({ kind: 'agents', session })}
             boardFilters={settings?.boardFilters}
             onRememberBoard={(boardFilters) => {
               // Kept for the next visit (CO-401). A refused write is not worth a banner over the board the person is
@@ -1230,6 +1231,7 @@ function Shell({
           // «Работа» and «Консоль» in the centre; it replaces the three stacked lists (SX-3). `sessions` stays null
           // until read (M108): the screen says it is reading, never that nobody works.
           <AgentsScreen mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
+            initialSession={active.session ?? null}
             sessions={sessions} projects={projects} onOpenProject={openProject}
             onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
             onCreate={() => goTo({ kind: 'start', path: 'agent' })} />

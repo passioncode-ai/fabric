@@ -278,7 +278,9 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
  *  report), each claimed task's summary, the tasks in review and each project's latest journalled activity. A source
  *  that could not be read throws, as every read here does — the home never says "nobody is working" from a read that
  *  did not happen. */
-export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<HomeView> {
+export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null; doneLimit?: number }): Promise<HomeView> {
+  // «Закончили» shows the newest 20; the board pages beyond them (0.3.14), asking for more by this limit.
+  const DONE = opts.doneLimit ?? 20
   const where = await readWhereWork(store, opts)
   // One project's board filters in the query, so its tasks are never lost behind the estate's caps (0.3.11 review DA-2).
   const tasks = (status: string, columns: string) => {
@@ -294,7 +296,7 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
     tasks('review', 'project_id').limit(5000),
     // The newest finished tasks for «Закончили» (the operator's walk OF-18).
-    tasks('done', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(20)
+    tasks('done', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(DONE)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
   const stageRows = must(stages as never, 'the stage reports') as StageRow[]
@@ -316,13 +318,13 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   if (briefs.failed) throw new Error(`the claimed tasks could not be read: ${briefs.failed}`)
   // CO-310: every read here that stopped at its limit is named, so «nobody» past it is never read as a fact.
   const capped = [...new Set([...(where.capped ?? []), ...(projectRows.length >= 500 ? ['projects' as const] : []), ...(stageRows.length >= 500 ? ['stages' as const] : [])])]
-  const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: 20 }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
+  const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: DONE }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
   const read = capped.length ? { ...home, capped } : home
   return finishedError ? { ...read, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : read
 }
 
 /** The Board screen's kanban (OF-19, SCN-173): the home's own reading plus the queue, one read, so the two agree. */
-export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null }): Promise<TaskBoardView> {
+export async function readTaskBoard(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null; doneLimit?: number }): Promise<TaskBoardView> {
   const QUEUE = 100
   // «Отменено» (CO-401): the most recently cancelled tasks; fewer than the queue, since they are read only to look back.
   // By when they were cancelled, `moved_at` (task.closed@1 and the move set it), not by filing order: a task filed long

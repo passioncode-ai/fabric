@@ -120,7 +120,9 @@ function asLive(r: RosterRow): LiveAgent | null {
   }
 }
 
-export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate }: {
+export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null }: {
+  /** The session to open on arrival (0.3.14: a board card's «Сессия …»), as if the person had picked it. */
+  initialSession?: string | null
   /** Moves with the journal's work, task, agent and session events. */
   mark: number
   /** Moves with the journal's act and access events: «Отключить» or its undo, anywhere. */
@@ -143,7 +145,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
   const showConsole = useOpenConsole()
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(initialSession ? `session:${initialSession}` : null)
   const [tab, setTab] = useState<'work' | 'console'>('work')
 
   const roster = composeRoster({
@@ -171,6 +173,13 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
     setSelected(key)
     setTab('work')
   }
+  // Arriving for an agent (a board card's «Сессия …») picks it, and the page takes focus as on the person's own pick.
+  useEffect(() => {
+    if (!initialSession) return
+    picked.current = `session:${initialSession}`
+    setSelected(`session:${initialSession}`)
+    setTab('work')
+  }, [initialSession])
   useEffect(() => {
     if (picked.current === null || picked.current !== selected) return
     picked.current = null

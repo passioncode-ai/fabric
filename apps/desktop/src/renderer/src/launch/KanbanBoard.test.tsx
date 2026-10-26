@@ -156,3 +156,40 @@ describe('the Board\'s agent filter, «Отменено» and remembered filters
     expect((await screen.findByRole('region', { name: en['launch.kanban.cancelled'] })).textContent).toContain(en['launch.kanban.cancelledUnread'])
   })
 })
+
+// 0.3.14 (the operator, 2026-10-26): a card in work names its session and opens its agent; dead work is «Abandoned», apart
+// and not counted in «In work»; «Done» pages beyond its first 20.
+describe('the board\'s agents, abandoned work and finished pages (0.3.14)', () => {
+  const withWork: TaskBoardView = {
+    ...board,
+    columns: board.columns.map((c) => c.stage === 'running' ? { ...c, cards: c.cards.map((x) => ({ ...x, sessionId: '0a1b2c3d-1111-4222-8333-444444444444' })) } : c.stage === 'done' ? { ...c, capped: true, cards: [{ taskId: 'd1', projectId: 'p1', projectName: 'Fabric', summary: 'Shipped', agent: null, since: null }] } : c),
+    abandoned: [{ taskId: 'a1', projectId: 'p1', projectName: 'Fabric', summary: 'Left behind', agent: 'codex', sessionId: null, since: null }]
+  }
+  it('a running card names its session and opens its agent, apart from opening the task', async () => {
+    install(async () => withWork)
+    const onOpen = vi.fn(), onAgent = vi.fn()
+    show({ onOpen, onAgent })
+    const agent = await screen.findByRole('button', { name: en['launch.kanban.openAgent'].replace('{id}', '0a1b2c3d') })
+    expect(agent.textContent).toContain(en['launch.kanban.session'].replace('{id}', '0a1b2c3d'))
+    fireEvent.click(agent)
+    expect(onAgent).toHaveBeenCalledWith('0a1b2c3d-1111-4222-8333-444444444444')
+    expect(onOpen).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByText('New home'))
+    expect(onOpen).toHaveBeenCalledWith('p1', 'r1')
+  })
+  it('abandoned work is its own column after «In work», not counted there', async () => {
+    install(async () => withWork)
+    const { container } = show()
+    await waitFor(() => expect(screen.getByText('Left behind')).toBeTruthy())
+    const heads = [...container.querySelectorAll('.lk-col h3')].map((h) => h.textContent)
+    expect(heads.slice(0, 3)).toEqual([`${en['launch.kanban.backlog']} 1`, `${en['launch.kanban.running']} 1`, `${en['launch.kanban.abandoned']} 1`])
+  })
+  it('«Done» reads 20 more when its first page was cut', async () => {
+    install(async () => withWork)
+    show()
+    const more = await screen.findByRole('button', { name: en['launch.kanban.more'].replace('{count}', '20') })
+    fireEvent.click(more)
+    const read = (window as unknown as { fabric: { work: { board: ReturnType<typeof vi.fn> } } }).fabric.work.board
+    await waitFor(() => expect(read).toHaveBeenLastCalledWith(null, 40))
+  })
+})

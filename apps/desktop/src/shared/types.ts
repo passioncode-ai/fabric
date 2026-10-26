@@ -1658,7 +1658,8 @@ export interface FabricApi {
     home(): Promise<HomeView>
     /** The Board screen's kanban across projects (OF-19, SCN-173). */
     /** One project's board when `projectId` is given: filtered in the query, never after the estate's caps. */
-    board(projectId?: string | null): Promise<TaskBoardView>
+    /** `doneLimit`: how many finished tasks «Готово» reads, 20 by default; the board pages by asking for more (0.3.14). */
+    board(projectId?: string | null, doneLimit?: number): Promise<TaskBoardView>
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     session(sessionId: string): Promise<import('./sessionTasks.ts').SessionTasksView>
