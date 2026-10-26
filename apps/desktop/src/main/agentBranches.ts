@@ -41,18 +41,19 @@ export function createBranchReader(deps: {
     }
   }
   return {
-    read(folder) {
+    // The folder is a console's own working directory (the operator's repository), never Fabric's own provenance.
+    read(repoPath) {
       const at = now()
-      const kept = cache.get(folder)
+      const kept = cache.get(repoPath)
       if (kept && at - kept.at <= ttl) return kept.branch
-      const branch = slot(() => git(folder, ['rev-parse', '--abbrev-ref', 'HEAD'])).then(
+      const branch = slot(() => git(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'])).then(
         (out) => {
           const name = out.trim()
           return name && name !== 'HEAD' ? name : null
         },
         () => null
       )
-      cache.set(folder, { at, branch })
+      cache.set(repoPath, { at, branch })
       // A folder no longer asked about leaves the cache once its window has passed.
       for (const [k, v] of cache) if (at - v.at > ttl * 4) cache.delete(k)
       return branch

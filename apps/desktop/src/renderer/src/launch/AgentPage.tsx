@@ -163,7 +163,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
           </ul>
         ) : <p className="lp-meta">{t('agentScreen.noEnding')}</p>}
         <h5>{t('agentScreen.milestones')}</h5>
-        <Milestones list={tr?.milestones ?? []} empty={t('agentScreen.noTaskMilestones')} />
+        <Milestones list={tr ? tr.milestones : null} empty={t('agentScreen.noTaskMilestones')} />
       </>
     )
   }
@@ -233,7 +233,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             {agent.task && events && (
               <>
                 <h5>{t('agentScreen.nowMilestones')}</h5>
-                <Milestones list={currentTrail?.milestones ?? []} empty={t('agentScreen.noTaskMilestones')} />
+                <Milestones list={currentTrail ? currentTrail.milestones : null} empty={t('agentScreen.noTaskMilestones')} />
               </>
             )}
           </section>
@@ -345,10 +345,11 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   )
 }
 
-/** A task's milestones, newest first: «Шаг N.» and the agent's words, with when it said them. */
-function Milestones({ list, empty }: { list: TaskTrail['milestones']; empty: string }): React.JSX.Element {
+/** A task's milestones, newest first: «Шаг N.» and the agent's words, with when it said them. `list` is null when the
+ *  history (already read) holds no trail for the task: said as none, the same as an empty trail. */
+function Milestones({ list, empty }: { list: TaskTrail['milestones'] | null; empty: string }): React.JSX.Element {
   const t = useT(), locale = useLocale()
-  if (!list.length) return <p className="lp-meta">{empty}</p>
+  if (!list || !list.length) return <p className="lp-meta">{empty}</p>
   return (
     <ol className="as-miles">
       {list.map((m) => (

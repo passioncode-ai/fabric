@@ -10,6 +10,7 @@
  * `goalsUnread`: the home never says «Цель не названа» from a read that did not happen.
  */
 import type { HomeView } from '../shared/homeLive.ts'
+import { ops } from './opsSink.ts'
 
 type Rows = { rows: Array<Record<string, unknown>>; failed: string | null }
 export interface GoalStore { selectIn(table: string, columns: string, key: string, values: string[]): Promise<Rows> }
@@ -90,6 +91,8 @@ export async function withGoals(view: HomeView, store: GoalStore): Promise<HomeV
       })
     }
   } catch (e) {
+    // Recorded, and said on the reading: the goals stay unknown, never «not named».
+    ops.failed('work.goals-unread', e)
     return { ...view, goalsUnread: e instanceof Error ? e.message : String(e) }
   }
 }
