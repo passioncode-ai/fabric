@@ -127,15 +127,15 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
         <span className="lh-agents-actions">
           {agent.console && onConsole && <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('launch.home.agents.openConsole')}</button>}
           {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('launch.home.agents.openProject')}</button>}
-          {agent.task && agent.projectId && onOpenTask && (
-            <button type="button" className="lp-button" onClick={() => onOpenTask(agent.projectId!, agent.task!.id)}>{t('agentPage.openTask')}</button>
+          {agent.task && onOpenTask && (
+            <button type="button" className="lp-button" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{t('agentPage.openTask')}</button>
           )}
           {actions}
         </span>
       </div>
       {note}
       <h4>{t('agentPage.task')}</h4>
-      <p>{agent.task ? agent.task.summary : workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>
+      <p>{agent.task ? (agent.task.summary || t('launch.home.work.untitled')) : workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>
       <h4>{t('agentPage.doing')}</h4>
       {/* The task has its own line above, so this says the action itself (D-4 keeps the task first in the list). */}
       {workUnread && !agent.doing ? <p>{t('agentPage.doingUnread')}</p> : <Doing item={{ doing: agent.doing, summary: null }} />}

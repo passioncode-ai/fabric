@@ -48,7 +48,7 @@ describe('composeHome', () => {
     const a = view.live.find((l) => l.sessionId === 's1')!
     expect(a.projectName).toBe('Fabric')
     expect(a.doing).toEqual({ text: 'Выкатываем версию, в которой компьютер не засыпает', note: 'жду CI', step: 3, ofSteps: 5, at: '2026-10-14T08:55:00Z' })
-    expect(a.task).toEqual({ id: 't1', summary: 'Компьютер не засыпает, пока работает агент' })
+    expect(a.task).toEqual({ id: 't1', projectId: P1, summary: 'Компьютер не засыпает, пока работает агент' })
     expect(view.live.find((l) => l.sessionId === 's3')!.projectId).toBeNull()
   })
 
@@ -229,5 +229,58 @@ describe('composeHome: a task in work whose spec is not gathered (ADR-0176 §1)'
     expect(byId.get('t1')).toBe(true)
     expect(byId.get('t2')).toBeUndefined()
     expect(byId.get('t3')).toBe(false)
+  })
+})
+
+// 0.3.14 (the operator, 2026-10-26: «какие сейчас в работе агенты и какая у него конкретно задача»): an agent's current
+// task was its OLDEST live claim, missed a task Fabric launched in its session, dropped an untitled task and ignored
+// the task its stage report names.
+describe("composeHome: an agent's current task (0.3.14)", () => {
+  const base = { projects, reviewTasks: [], activity: new Map<string, string | null>(), now: '2026-10-26T12:00:00Z' }
+  it('is its newest live claim whose task is still running', () => {
+    const v = composeHome({
+      ...base,
+      where: where([session('s1', P1)], [
+        claim('old', P1, 's1', { since: '2026-10-26T08:00:00Z' }),
+        claim('new', P1, 's1', { since: '2026-10-26T10:00:00Z' }),
+        claim('moved', P1, 's1', { since: '2026-10-26T11:00:00Z' }),
+        claim('silent', P1, 's1', { since: '2026-10-26T11:30:00Z', life: 'silent' as never })
+      ]),
+      stages: [],
+      briefs: [
+        { id: 'old', project_id: P1, title: 'Old', brief_what: null, status: 'running' },
+        { id: 'new', project_id: P1, title: 'New', brief_what: null, status: 'running' },
+        { id: 'moved', project_id: P1, title: 'Moved', brief_what: null, status: 'review' },
+        { id: 'silent', project_id: P1, title: 'Silent', brief_what: null, status: 'running' }
+      ]
+    })
+    expect(v.live[0].task).toEqual({ id: 'new', projectId: P1, summary: 'New' })
+  })
+
+  it('else the running task Fabric launched in its session', () => {
+    const v = composeHome({
+      ...base, where: where([session('s1', P1)], []), stages: [], briefs: [],
+      runningTasks: [{ id: 'l1', project_id: P1, title: 'Launched', brief_what: null, status: 'running', session_id: 's1', updated_at: '2026-10-26T09:00:00Z' }]
+    })
+    expect(v.live[0].task).toEqual({ id: 'l1', projectId: P1, summary: 'Launched' })
+    expect(v.inWork.map((w) => [w.taskId, w.sessionId])).toEqual([['l1', 's1']])
+    expect(v.projects.find((p) => p.projectId === P1)).toMatchObject({ live: 1, inWork: 1 })
+  })
+
+  it('else the task its newest stage report names, in that report\'s project', () => {
+    const v = composeHome({
+      ...base, where: where([session('s1', P1)], []), briefs: [],
+      stages: [
+        stage('s1', P2, 'Older step', '2026-10-26T09:00:00Z', { task_id: 'x-old' }),
+        stage('s1', P2, 'Building the board', '2026-10-26T10:00:00Z', { task_id: 'x1' }),
+        stage('s1', P1, 'Reading', '2026-10-26T11:00:00Z')
+      ]
+    })
+    expect(v.live[0].task).toEqual({ id: 'x1', projectId: P2, summary: '' })
+  })
+
+  it('keeps an untitled claimed task, with an empty summary the screens say as untitled', () => {
+    const v = composeHome({ ...base, where: where([session('s1', P1)], [claim('u1', P1, 's1', { title: '' })]), stages: [], briefs: [{ id: 'u1', project_id: P1, title: null, brief_what: null, status: 'running' }] })
+    expect(v.live[0].task).toEqual({ id: 'u1', projectId: P1, summary: '' })
   })
 })

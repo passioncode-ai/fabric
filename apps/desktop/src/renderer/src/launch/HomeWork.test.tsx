@@ -14,7 +14,7 @@ const view: HomeView = {
     { sessionId: 's1', projectId: 'p1', projectName: 'Fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale: false,
       doing: { text: 'Making a version where the computer stays awake', note: null, step: 2, ofSteps: 4, at: now }, task: null },
     { sessionId: 's2', projectId: 'p2', projectName: 'Site', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: true,
-      doing: null, task: { id: 't2', summary: 'New landing page' } }
+      doing: null, task: { id: 't2', projectId: 'p2', summary: 'New landing page' } }
   ],
   inWork: [{ taskId: 't2', projectId: 'p2', projectName: 'Site', summary: 'New landing page', agent: 'codex', sessionId: 's2', console: false, since: now, doing: null, live: true }],
   review: [{ taskId: 't3', projectId: 'p1', projectName: 'Fabric', summary: 'Keep-awake setting', since: now }],
@@ -28,7 +28,7 @@ const show = (ui: React.ReactNode) => render(<I18nProvider locale="en">{ui}</I18
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('home: agents at work, by their planned task (the operator\'s walk OF-16, OF-17, D-4)', () => {
-  const task = (id: string) => ({ id, summary: 'Planned task ' + id })
+  const task = (id: string) => ({ id, projectId: 'p1', summary: 'Planned task ' + id })
   const agent = (sessionId: string, stale: boolean, withTask: boolean) => ({
     sessionId, projectId: 'p1', projectName: 'Fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale,
     doing: { text: 'Reading a file ' + sessionId, note: null, step: null, ofSteps: null, at: now }, task: withTask ? task(sessionId) : null

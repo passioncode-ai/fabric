@@ -244,7 +244,7 @@ export function HomeAgents({ reading, onOpen, onSession, onAll, onComms, project
                   {!projectId && <span className="lp-meta">{a.projectName ?? t('launch.home.agents.noProject')}</span>}
                   {a.stale ? <span className="lp-pill">{t('launch.home.agents.stale')}</span> : <small>{since(a.lastSignAt ?? a.startedAt, t)}</small>}
                 </span>
-                <Doing item={{ doing: a.doing, summary: a.task?.summary ?? null }} bare={!!projectId} />
+                <Doing item={{ doing: a.doing, summary: a.task ? (a.task.summary || t('launch.home.work.untitled')) : null }} bare={!!projectId} />
               </>
             )
             // An agent with no console here and no project has nowhere to open: it is a row, not a dead button (ER-5).

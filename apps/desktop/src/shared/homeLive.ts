@@ -53,7 +53,10 @@ export interface LiveAgent {
   lastSignAt: string | null
   stale: boolean
   doing: Doing | null
-  task: { id: string; summary: string } | null
+  /** What it works on now (0.3.14): its newest live claim whose task is still running, else the running task Fabric
+   *  launched in its session, else the task its newest stage report names. `summary` is empty for a task with no
+   *  title or brief: the screens say «untitled», the task is never dropped. `projectId` is the task's own project. */
+  task: { id: string; projectId: string; summary: string } | null
 }
 
 export interface WorkItem {
@@ -170,12 +173,41 @@ export function composeHome(input: {
   const briefById = new Map(input.briefs.map((b) => [b.id, b]))
   const sessions: WorkSessionView[] = [...input.where.rows.flatMap((r) => r.sessions), ...input.where.unowned]
   const claims: WorkClaimView[] = input.where.rows.flatMap((r) => r.claims)
+  // 0.3.14: the NEWEST live claim whose task still runs. `readWork` orders claims oldest first, so taking the first
+  // per session named the oldest; a lapsed or silent claim, or one whose task moved on, is not what it works on now.
   const claimBySession = new Map<string, WorkClaimView>()
-  for (const c of claims) if (!claimBySession.has(c.sessionId)) claimBySession.set(c.sessionId, c)
+  for (const c of claims) {
+    if (c.life !== 'live' || (briefById.get(c.taskId)?.status ?? c.status) !== 'running') continue
+    const prev = claimBySession.get(c.sessionId)
+    if (!prev || prev.since < c.since) claimBySession.set(c.sessionId, c)
+  }
+  /** The running task Fabric launched in a session (`project_tasks.session_id`), newest first. */
+  const launchedBySession = new Map<string, TaskBrief>()
+  for (const t of input.runningTasks ?? []) {
+    if (t.status !== 'running' || !t.session_id) continue
+    const prev = launchedBySession.get(t.session_id)
+    if (!prev || (prev.updated_at ?? '') < (t.updated_at ?? '')) launchedBySession.set(t.session_id, t)
+  }
+  /** The newest stage report of a session that names its task. */
+  const namedStageBySession = new Map<string, StageRow>()
+  for (const st of input.stages) {
+    if (!st.task_id) continue
+    const prev = namedStageBySession.get(st.session_id)
+    if (!prev || prev.reported_at < st.reported_at) namedStageBySession.set(st.session_id, st)
+  }
+  const anyTask = new Map<string, TaskBrief>()
+  for (const t of [...(input.doneTasks ?? []), ...input.reviewTasks, ...(input.runningTasks ?? []), ...input.briefs]) anyTask.set(t.id, t)
+  const currentTask = (sessionId: string): LiveAgent['task'] => {
+    const claim = claimBySession.get(sessionId)
+    if (claim) return { id: claim.taskId, projectId: claim.projectId, summary: taskSummary(briefById.get(claim.taskId), claim.title) }
+    const launched = launchedBySession.get(sessionId)
+    if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched) }
+    const named = namedStageBySession.get(sessionId)
+    if (named?.task_id) return { id: named.task_id, projectId: named.project_id, summary: taskSummary(anyTask.get(named.task_id)) }
+    return null
+  }
 
   const live: LiveAgent[] = sessions.map((s) => {
-    const claim = claimBySession.get(s.sessionId)
-    const summary = claim ? taskSummary(briefById.get(claim.taskId), claim.title) : ''
     return {
       sessionId: s.sessionId,
       projectId: s.projectId,
@@ -186,7 +218,7 @@ export function composeHome(input: {
       lastSignAt: s.lastSignAt,
       stale: s.stale,
       doing: doingOf(stageBySession.get(s.sessionId)),
-      task: claim && summary ? { id: claim.taskId, summary } : null
+      task: currentTask(s.sessionId)
     }
   })
   // Working first (fresh before stale), newest sign first: who is doing something now leads.

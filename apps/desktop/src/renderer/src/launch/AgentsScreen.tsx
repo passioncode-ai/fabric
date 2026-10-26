@@ -94,7 +94,7 @@ function silentLine(r: RosterRow, t: Translate): string {
 /** One line of what it does: its task, else what it said it is doing, else what the state means for it. When who
  *  works was not read, a working console's line says so instead of «has not said» (0.3.13 review, iteration 3, UX-2). */
 function lineOf(r: RosterRow, t: Translate, locale: string, workUnread = false): string {
-  if (r.task) return t('launch.home.agents.workingOn', { task: r.task.summary })
+  if (r.task) return t('launch.home.agents.workingOn', { task: r.task.summary || t('launch.home.work.untitled') })
   if (r.doing) return r.doing.text
   if (workUnread && !r.live && (r.state === 'working' || r.state === 'quiet')) return t('agentPage.doingUnread')
   switch (r.state) {

@@ -12,7 +12,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 const now = new Date().toISOString()
 const agentA: LiveAgent = { sessionId: 's1', projectId: 'p1', projectName: 'Fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale: false,
-  doing: { text: 'Making the keep-awake setting', note: null, step: 1, ofSteps: 2, at: now }, task: { id: 't1', summary: 'Keep the computer awake' } }
+  doing: { text: 'Making the keep-awake setting', note: null, step: 1, ofSteps: 2, at: now }, task: { id: 't1', projectId: 'p1', summary: 'Keep the computer awake' } }
 const agentB: LiveAgent = { sessionId: 's2', projectId: 'p2', projectName: 'Site', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: true, doing: null, task: null }
 const view: HomeView = { live: [agentA, agentB], inWork: [], review: [], done: [], projects: [], readAt: now }
 const ev = (seq: number, type: string, payload: Record<string, unknown> = {}) => ({ estate_id: 'e', seq, type, actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: now, payload })

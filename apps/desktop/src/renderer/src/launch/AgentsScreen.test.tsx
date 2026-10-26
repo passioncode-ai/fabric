@@ -23,7 +23,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const now = new Date().toISOString()
 const earlier = new Date(Date.now() - 3_600_000).toISOString()
 const working: LiveAgent = { sessionId: 's1', projectId: 'p1', projectName: 'Fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale: false,
-  doing: null, task: { id: 't1', summary: 'Keep the computer awake' } }
+  doing: null, task: { id: 't1', projectId: 'p1', summary: 'Keep the computer awake' } }
 const joinedLive: LiveAgent = { sessionId: 's2', projectId: 'p2', projectName: 'Site', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: false, doing: { text: 'Writing the copy', note: null, step: null, ofSteps: null, at: now }, task: null }
 const session = (over: Partial<TerminalSession>): TerminalSession => ({
   sessionId: 's1', projectId: 'p1', cwd: '/x', program: 'claude', optionId: 'claude-code', permissionMode: null, excerpt: '', written: 0,
