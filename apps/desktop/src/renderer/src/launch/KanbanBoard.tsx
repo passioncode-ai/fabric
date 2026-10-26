@@ -72,6 +72,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
   // Dropped, not suspended (iteration 3, ER-4).
   useEffect(() => { if (!known) setProject('') }, [known])
   const scope = projectId ?? (known ? (project || null) : null)
+  /** «Готово» was read at the main process's bound: «Показать ещё» gives way to a sentence (UX-5). */
+  const atBound = doneLimit >= DONE_MAX && readLimit === doneLimit
   // The agents on the cards, and the remembered one even while it holds none, so the choice stays visible (CO-401).
   const agents = [...new Set([...(view?.columns ?? []).flatMap((c) => c.cards.map((x) => x.agent)), ...(view?.abandoned ?? []).map((x) => x.agent), agent || null].filter((a): a is string => !!a))].sort()
   // The agent filter applies to «В работе» only: a card in any other column records no agent (shared/taskBoard.ts), so
@@ -158,7 +160,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                     onClick={() => setDoneLimit((n) => Math.min(DONE_MAX, n + DONE_PAGE))}>{t('launch.kanban.more', { count: DONE_PAGE })}</button>
                 )}
                 {c.key === 'done' && readLimit !== doneLimit && <p className="lp-meta" role="status">{t('launch.kanban.moreReading')}</p>}
-                {c.key === 'done' && c.capped && !c.unread && doneLimit >= DONE_MAX && readLimit === doneLimit && <p className="lp-meta">{t('launch.kanban.doneBound', { count: DONE_MAX })}</p>}
+                {c.key === 'done' && c.capped && !c.unread && atBound && <p className="lp-meta">{t('launch.kanban.doneBound', { count: DONE_MAX })}</p>}
               </section>
             )
           })}
