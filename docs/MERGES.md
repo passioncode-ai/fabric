@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T15:26:56Z · `—` · main → release/0.3.13 · merge
+- run: r-182fa592b059
+- files: docs/workspace-receipt.json, workspace (the published workspace pin `10cc8cdf`)
+- conflicts: none
+- summary: Fabric 0.3.13's final candidate takes `main`'s workspace pin, so the release lands on `main` by a fast-forward.
+
 ### 2026-10-26T13:49:58Z · `—` · agent/0313-v1-ux → release/0.3.13 · merge
 - run: r-182fa592b059
 - files: the UX fixes of the 0.3.13 release review, iteration 1 (Агенты, История, Settings, attention titles, the startup window, the feed), screens.md, six scenario amendments, the product model

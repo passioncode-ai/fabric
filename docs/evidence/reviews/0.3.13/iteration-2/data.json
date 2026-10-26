@@ -31,7 +31,7 @@
       "source": "V2-28",
       "status": "fixed",
       "evidence": [
-        "as V2-10; the db test's receipt drops `delivered`"
+        "fixed: as V2-10; the db test's receipt drops `delivered` "
       ]
     },
     {
@@ -55,7 +55,7 @@
       "source": "V2-31",
       "status": "fixed",
       "evidence": [
-        "as V2-14"
+        "fixed: as V2-14 "
       ]
     }
   ]

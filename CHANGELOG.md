@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.13 (unreleased)
+## 0.3.13
 
 **Upgrading.** This version moves the local database to schema 97 (one migration since 0.3.12,
 `20261026000124_one_schema_step.sql`). A 0.3.12 database (96) takes that one; a 0.3.11 database (95) takes 0.3.12's
@@ -74,7 +74,8 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   records whose words it was.
 - **The stack comes back when rest or kong is gone.** The stack watch reads the database, PostgREST and Kong, and a
   database running without rest or without kong is started again and, when Docker still shows it so, stopped keeping its
-  data and started once, instead of waited for.
+  data and started again, instead of waited for. While rest cannot come back at all, that restart is tried at every
+  watch try.
 - **Why a feed row does not open is said in your language.** The reason under a row that cannot be opened is in the
   interface's language.
 - **Four more credential shapes are kept out of the journal.** An authorization field with no scheme word, a credential
