@@ -2212,6 +2212,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Resources:** the plan §2; the sketch `docs/evidence/plans/2026-10-15-fabric-simple/style-2026-10-16/fabric-style.html`
 - **Status:** built
 - **Implementation tasks:** 0.3.7 wave 3
+- **Amended 2026-10-26 (0.3.14, the simple Fabric; [spec](2026-10-26-simple-fabric.md), [v2](2026-10-26-simple-fabric-v2.md)), what ships now (SCN-162):** the brand is Главная; «＋ Создать»; the toggle «Проекты | Агенты»; the projects alphabetically (star as a mark, no graph mark); the agents at work with project, branch («ветка неизвестна» otherwise), status word and the console icon; История and Настройки at the foot; «Назад», «Вперёд», «Главная» at the left of the top bar. States: the agents view says reading («Читаю, кто работает…»), failed («Не удалось прочитать, кто работает.») and nobody («Сейчас никто не работает.») apart. `apps/desktop/src/renderer/src/launch/LaunchShell.tsx#LaunchShell`; tests `apps/desktop/src/renderer/src/launch/Rail.test.tsx`.
 
 ### SCR-85: Главная
 - **Amended 2026-10-23 (0.3.12, CO-400; [the walk](../evidence/plans/2026-10-15-fabric-simple/2026-10-23-operator-walk.md)), what ships today:** «Ждёт вас» and «Сейчас» are retired as named here. In order: the greeting (the part of the day and how many questions wait for the person) with the numbers strip; «Нужны вы», only what the person resolves (questions, access requests, refusals), each row naming who asks and opening in place, a question answered there with its options as buttons; «Где остановились»; «Кто что делает» in two lanes, «В работе» and «Закончили», a row opening its task; «Агенты в работе», a box that scrolls on its own, active agents first, each by the task it holds, with «Открыть переписку»; the projects. Code: `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx`. Scenario: SCN-163.
@@ -2239,6 +2240,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Resources:** SCN-158 (the home built today); ADR-0160 §4–§5
 - **Status:** built
 - **Implementation tasks:** 0.3.7 waves 2 and 4
+- **Amended 2026-10-26 (0.3.14, the simple Fabric; [spec](2026-10-26-simple-fabric.md), [v2](2026-10-26-simple-fabric-v2.md)), what ships now (SCN-158, SCN-163):** the face, the greeting and the activity chart; the six numbers; «В работе» by project; the right column «Что ждёт вас» with «Нужны вы» and the board's unanswered requests only; «Ещё», folded, keeps the projects table, the profile and the journal (CO-460). `apps/desktop/src/renderer/src/EstateHome.tsx#EstateHome`, `apps/desktop/src/renderer/src/launch/HomeInWork.tsx#HomeInWork`; tests `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `inboxCursor.test.tsx`.
 
 ### SCR-86: Проект
 - **Amended 2026-10-24 (0.3.12 W2 S4a to S4c; 0.3.12 release review, iteration 1, DO-8, DA-1 to DA-5), what ships today:** the way back; the head (name, purpose, «Сейчас») with «Доска проекта», «План» and «Связи» (the project's graph, SCN-175); in the main column the way («Где мы», or «Начните с первого результата» for a project with no task), «Вопросы ко мне» and the kanban strip of four columns; beside it «Агенты на проекте», «Что это за проект» (the summary, «Цель», «План», «Бизнес» the person sets, «Связанные проекты», «Люди (из Git)»; «Познакомиться с проектом» until an agent records a goal, a summary, a plan with items or relations), «Как идёт работа» (tasks done in eight weeks, the median times, the share sent back from review, the questions waiting), «Команда», «Ритм работы» and «Ресурсы и настройки», folded. Each panel that cannot be read says so on its own. Not built in 0.3.12: «Идеи и материалы» and the project's last activity (CO-307, 0.3.13). Scenario: SCN-165.
@@ -2293,6 +2295,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Resources:** ADR-0160 §3; SCR-39, SCR-76 (built today)
 - **Status:** built
 - **Implementation tasks:** 0.3.7 waves 3 and 4
+- **Amended 2026-10-26 (0.3.14, the simple Fabric; [spec](2026-10-26-simple-fabric.md), [v2](2026-10-26-simple-fabric-v2.md)), what ships now (SCN-166):** the agent's screen in two columns, no tabs and no roster: header with status chip; «Цель»; «Сейчас»; «Задачи» in four lanes with «Чем закончил» and «Вехи»; the history closed; the session card with «Открыть сессию» (a tab, only on press). With no agent chosen: «Выберите агента в левой колонке…» and «Создать агента». `apps/desktop/src/renderer/src/launch/AgentsScreen.tsx#AgentsScreen`, `apps/desktop/src/renderer/src/launch/AgentPage.tsx#AgentPage`; tests `AgentsScreen.test.tsx`, `AgentPage.test.tsx`.
 
 ### SCR-88: История
 - **Amended 2026-10-26 (0.3.13, CO-414), what ships now:** the filters «Кто», «Проект», «Что» and «Поиск» above the acts, kept while the window is open, with «Ничего не найдено.» and «Сбросить фильтры» when they match nothing; the act's sentence opens the detail pane beside the list (SCN-168's amendment of 2026-10-26). Coverage: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx#HistoryScreen`; test `apps/desktop/src/renderer/src/launch/HistoryScreen.test.tsx`.
@@ -2342,6 +2345,7 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Resources:** SCR-52 (built today), SCN-134, SCN-135
 - **Status:** built
 - **Implementation tasks:** 0.3.7 wave 4
+- **Amended 2026-10-26 (0.3.14, the simple Fabric; [spec](2026-10-26-simple-fabric.md), [v2](2026-10-26-simple-fabric-v2.md)), what ships now (SCN-170):** «Запуск агентов» gains «Агенты, которые сейчас не работают», the roster's idle and off groups (`apps/desktop/src/renderer/src/launch/AgentsScreen.tsx#AgentRoster`), a row opening the agent's screen.
 
 ### SCR-90: Создать
 - **Used by:** FLW-93, FLW-96, FLW-98

@@ -1,6 +1,6 @@
 # Simple Fabric: the main screen and an agent's screen
 
-**Status:** design, not built · 2026-10-26 · after 0.3.14 (plan row P-28) · mockup:
+**Status:** built in 0.3.14, wave 4 ([plan](../evidence/plans/2026-10-26-release-0314-plan.md#built-the-simple-fabric-wave-4)), with the lead's defaults for the open choices · 2026-10-26 · plan row P-28 · mockup:
 [docs/reports/2026-10-26-simple-fabric/mockup.html](../reports/2026-10-26-simple-fabric/mockup.html)
 
 This is a proposal for the operator to accept or correct. It changes no scenario yet: once the open choices at the

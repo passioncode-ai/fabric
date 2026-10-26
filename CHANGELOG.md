@@ -45,6 +45,30 @@ with an older adapter they still come in `fabric_work_list` and `fabric_heartbea
 - **An agent knows what waits for its project.** `fabric_whoami` names the board requests of the last 7 days addressed
   to the project that nobody took, newest first, counts the answers to its own requests it has not read, and names its
   open questions; a part it could not read, or not within 3 seconds, says so rather than reporting none.
+- **A simpler Fabric: the left column.** The brand is Главная. Under «Создать» a switch «Проекты | Агенты»: your
+  projects in alphabetical order (a favourite keeps its star but stays in its place), or every agent at work with its
+  project, the git branch of its folder («ветка неизвестна» for an agent opened in its own terminal), its status in a
+  word and a colour, and a console icon that opens its session at once. История and Настройки sit at the foot.
+- **Back, forward and home in the top bar.** «Назад», «Вперёд» and «Главная» sit at the left of the top bar, the same
+  way back as ⌘[ and ⌘]; a button with nowhere to go is greyed, never hidden.
+- **Главная says what is being done, by project.** Under Fabric's face, the greeting and the activity chart, six
+  numbers: agents working, tasks handed in today, what waits for you, what waits for review (and how much of it for
+  over 3 days), abandoned work, and agents working without a task. A number Fabric could not read is shown as unread, with
+  the reason, never as 0. «В работе» then has one card per project at work: what is being done there now, and each agent with
+  its branch, its goal and its current step with a progress bar; a card's row opens the agent. The right column holds
+  only «Нужны вы» and the board's requests nobody answered. «Где остановились», the two lanes and the live feed left
+  the home; the projects table, the profile and the journal stay folded under «Ещё» for now.
+- **An agent's screen shows its goal, what it does now and what it did.** «Цель» is the task the person set and the
+  agent split, «Сейчас» its current step with progress and the milestones it reported, then its tasks in «В работе»,
+  «На проверке», «Передано» and «Готово», each opening to its brief, how it ended in the agent's words and its
+  milestones. On the right, the session card says what Fabric sees and where the session runs; «Открыть сессию» opens
+  the console as a tab, only when you press it. Idle and installed agents are listed in Настройки.
+- **A change needed in another project opens a console there.** A task page offers «Нужна правка в другом проекте»:
+  pick the project, say in one sentence what is needed, and «Открыть консоль в …» starts that project's coding agent
+  with your sentence and the way back to the task, and notes it in the task.
+- **Agents are asked to name the goal.** `fabric_whoami` gains the advice `claim.persons-request-as-goal`: claim the
+  person's request as one task and file each piece split off from it while it is claimed, so Fabric links them and
+  shows the goal above the step.
 
 ## 0.3.13
 
