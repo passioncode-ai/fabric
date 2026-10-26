@@ -19,6 +19,10 @@
           "description": "The message answered, in a thread the caller's Project takes part in; the reply joins that thread.",
           "$ref": "comms-common.schema.json#/$defs/opaqueId"
         },
+        "reaction": {
+          "description": "Only when replyTo is an announcement (DEC-0098).",
+          "$ref": "comms-common.schema.json#/$defs/reaction"
+        },
         "body": {
           "$ref": "comms-common.schema.json#/$defs/body"
         },

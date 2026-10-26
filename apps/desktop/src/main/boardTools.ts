@@ -93,7 +93,7 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
       'An answer that did not arrive may still have been stored: send it again with the same key to learn which. ' +
       'A request without a deadline gets one 7 days out, then expires. A request nobody can answer now is stored, and its receipt carries noResponder {target, capability, message}: ' +
       'its target can still answer it with a reply (com.reply, or kind reply with replyTo the request), which moves it to answered. ' +
-      'noResponder and the request state answered are Fabric\'s own additions, outside the pinned contract: noResponder comes in this receipt only, to you as the requester, without asking for it.',
+      'noResponder and the request state answered are the contract\'s (DEC-0098): noResponder comes in this receipt only, to you as the requester, without asking for it.',
     inputSchema: typed('com.submit')
   }, gate('com.submit', (c, a) => board.submit(c, a)))
 
@@ -102,7 +102,7 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
     description:
       'fabric-project-comms/0.1 com.list. Arguments: thread? (one thread you take part in), cursor? (from the previous page), limit? (1 to 100, default 50), ' +
       'unread? (true: only messages your Project has not marked read), since? (date-time: only messages written at or after it). ' +
-      'Answers one page (comms-page.schema.json), oldest first; with unread or since each message also carries read (true or false). A request may read as answered (its target replied): Fabric\'s own state, outside the pinned contract. To see what is new, call com.list {unread: true} and mark what you handled with com.read_ack. ' +
+      'Answers one page (comms-page.schema.json), oldest first; with unread or since each message also carries read (true or false). A request may read as answered (its target replied, DEC-0098). To see what is new, call com.list {unread: true} and mark what you handled with com.read_ack. ' +
       'Reading marks nothing as read. A cursor survives an app restart; one from another filter or another reader answers cursor_reset_required: read again without it. ' +
       'A board that cannot be read answers not_available, never an empty page.',
     inputSchema: typed('com.list')
@@ -111,13 +111,13 @@ export function registerBoardTools(target: McpServer, board: Board, caller: () =
   server.registerTool('com.get', {
     title: 'Read one board message',
     description: 'fabric-project-comms/0.1 com.get. Arguments: message (its id). A message of a thread your Project does not take part in reads as not_authorized, exactly like an absent one. ' +
-      'A request may read as answered (its target replied): a state of Fabric\'s own, outside the pinned contract.',
+      'A request may read as answered (its target replied, DEC-0098): it is no longer open, and its asker may still cancel it.',
     inputSchema: typed('com.get')
   }, gate('com.get', (c, a) => board.get(c, a)))
 
   server.registerTool('com.read_ack', {
     title: 'Mark a board message read',
-    description: 'fabric-project-comms/0.1 com.read_ack. Arguments, one form per call: message (one id); or messages (1 to 100 ids); or thread and upTo (every message of that thread sent to your Project, at or before the message upTo names). ' +
+    description: 'fabric-project-comms/0.1 com.read_ack. Arguments, one form per call: message (one id); or messages (1 to 100 ids, each once); or thread and upTo (every message of that thread sent to your Project, at or before the message upTo names). ' +
       'No idempotency key. Explicit and idempotent: the first mark answers repeated: false and its time as at; marking again changes nothing and answers repeated: true. ' +
       'The many forms are all or nothing (a message your Project cannot read refuses the call) and answer marked and alreadyRead counts; more: true means the thread had over 1000 and you should call again.',
     inputSchema: typed('com.read_ack')

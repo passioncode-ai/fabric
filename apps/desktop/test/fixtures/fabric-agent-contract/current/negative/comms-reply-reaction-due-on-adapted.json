@@ -1,0 +1,15 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-12-0001"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "body": {
+    "text": "row CT-81, merged by 2026-10-24."
+  },
+  "reaction": {
+    "type": "adapted",
+    "ref": "bfa9a67",
+    "due": "2026-10-24"
+  }
+}

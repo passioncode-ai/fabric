@@ -22,6 +22,14 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 256
+    },
+    "decision": {
+      "$ref": "decision.schema.json",
+      "description": "The operator's decision on a relayed action (DEC-0121 AP-2): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's; over the relay it rides here, inside the sealed call."
+    },
+    "mandate": {
+      "$ref": "mandate.schema.json",
+      "description": "The operator's mandate for the task this call serves (DEC-0125 MD-3): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's, as it does a decision; over the relay it rides here, inside the sealed call."
     }
   },
   "additionalProperties": false

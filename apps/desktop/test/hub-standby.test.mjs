@@ -215,4 +215,25 @@ test('ER-5: a takeover that throws closes the adopted sockets, and the hub opens
     await surface.stop()
   }
 })
+
+// DEC-0098 item 6 (pinned at 39c8977): a host's wait is the contract's `comms-host-wait` shape. Both codes Fabric answers
+// before the stack is ready, or while it is lost, are held to the pinned schema, compiled the contract's strict way.
+test('DEC-0098: the standby\'s 503 body is the contract\'s comms-host-wait, for stack-starting and stack-unavailable', async () => {
+  const { compileCommsValidators, loadPinnedFixtures } = await import('./contract-consumer-fixtures.mjs')
+  const hostWait = compileCommsValidators(loadPinnedFixtures())['comms-host-wait.schema.json']
+  const port = await freePort()
+  let refusal = starting()
+  const standby = new HubStandby({ refusal: () => refusal })
+  await standby.listen(port)
+  try {
+    for (const next of [starting(), { code: 'stack-unavailable', reason: 'Fabric lost its database.', retryAfterS: 30 }]) {
+      refusal = next
+      const r = await post(standby.origin)
+      assert.equal(r.status, 503)
+      assert.equal(hostWait(r.body), true, `${next.code}: ${JSON.stringify(hostWait.errors)}`)
+    }
+  } finally {
+    await standby.stop()
+  }
+})
 // #endregion hub-standby

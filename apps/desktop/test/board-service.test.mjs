@@ -50,13 +50,17 @@ test('Fabric\'s commsDigest reproduces every digest vector the contract publishe
   for (const r of vectors.refuses) assert.throws(() => commsDigest(r.operation, JSON.parse(r.argsJson)), CommsCanonicalError, r.name)
 })
 
-// What the pin (a59d04b) grades valid and Fabric does not serve yet, each named with the node that serves it and the
-// contract decision behind it. Fabric refuses these today on purpose; the list is exact both ways — a new disagreement
+// What the pin (39c8977, v0.1.0+2026-10-26.3) grades valid and Fabric does not serve yet, each named with the node or row
+// that serves it and the contract decision behind it. Fabric refuses these today on purpose; the list is exact both ways — a new disagreement
 // fails the mirror tests, and so does a member Fabric starts serving without leaving this list.
 const OWED = new Map([
   ['comms-submit-finding', 'W4-12: the structured finding on com.submit (DEC-0080)'],
   ['comms-directory-held', 'W4-7: a paused capability in the directory (DEC-0079)'],
-  ['comms-receipt-reconcile-owner', 'W4-13: the owner\'s settlement receipt, settledBy "owner" (DEC-0081)']
+  ['comms-receipt-reconcile-owner', 'W4-13: the owner\'s settlement receipt, settledBy "owner" (DEC-0081)'],
+  // DEC-0098 item 7 (the typed reaction on a reply to an announcement) is new to Fabric: the board stores no reaction, so
+  // it refuses one as an unknown member, as DEC-0098's compatibility note allows; serving it needs a migration.
+  ['comms-submit-reply-reaction', 'CO-396: a typed reaction on com.submit kind reply to an announcement (DEC-0098 item 7)'],
+  ['comms-reply-reaction-row', 'CO-396: a typed reaction on com.reply to an announcement (DEC-0098 item 7)']
 ])
 const verdict = (e, accepted, mirror) => {
   if (OWED.has(e.name)) assert.equal(accepted, false, `${e.name}: Fabric now serves it — take it out of OWED (${OWED.get(e.name)})`)
@@ -65,8 +69,9 @@ const verdict = (e, accepted, mirror) => {
 
 test('the input schema reaches the contract\'s verdict on every comms-submit fixture it grades', () => {
   const graded = catalogue.filter(e => e.schema === 'comms-submit.schema.json')
-  // DEC-0022's eight, and DEC-0080's structured finding (one positive, thirty-three negatives) at a59d04b.
-  assert.equal(graded.length, 42)
+  // DEC-0022's eight, DEC-0080's structured finding (one positive, thirty-three negatives) at a59d04b, and DEC-0098's
+  // reaction (one positive reply carrying it, one negative on a plain message) at 39c8977.
+  assert.equal(graded.length, 44)
   for (const e of graded) {
     const doc = fixtures.document('current/' + e.path)
     verdict(e, commsSubmitSchema.safeParse(doc).success, 'schema')
@@ -383,7 +388,8 @@ test('the cycle\'s board upkeep never throws: a pass that fails is logged and an
 
 // ── COM-03: the responder tools and the directory (migration 87, contract DEC-0073 pinned at edc88a6) ──────
 const { commsEnrollSchema, commsClaimSchema, commsFencedSchema, commsProgressSchema, commsEffectBeginSchema, commsCompleteSchema, commsReconcileSchema,
-  commsResponderReplaceSchema, commsDirectoryArgsSchema, commsDirectorySchema, commsReplyAnySchema, commsFenceSchema, commsListSchema, commsMessageRefSchema, commsStatusArgsSchema } = await import('../src/main/boardService.ts')
+  commsResponderReplaceSchema, commsDirectoryArgsSchema, commsDirectorySchema, commsReplyAnySchema, commsFenceSchema, commsListSchema, commsMessageRefSchema, commsStatusArgsSchema,
+  commsReadAckSchema } = await import('../src/main/boardService.ts')
 const responder = { ...caller, responder: { sessionId: 'session-1', cameIn: 'enrolled', agent: 'codex', bindingId: '79000000-0000-4000-8000-0000000000b1' } }
 const ATT = '79000000-0000-4000-8000-0000000000e1'
 const fenceArgs = (extra = {}) => ({ request: M1, generation: 2, attempt: ATT, digest: 'sha256:' + 'a'.repeat(64), idempotency: { epoch: 1, key: 'fence-000001' }, ...extra })
@@ -394,7 +400,7 @@ test('every zod mirror reaches the contract\'s verdict on every fixture the pin 
     'comms-reconcile.schema.json': commsReconcileSchema, 'comms-responder-replace.schema.json': commsResponderReplaceSchema, 'comms-directory-args.schema.json': commsDirectoryArgsSchema,
     'comms-directory.schema.json': commsDirectorySchema, 'comms-reply.schema.json': commsReplyAnySchema, 'comms-fence.schema.json': commsFenceSchema,
     'comms-list.schema.json': commsListSchema, 'comms-message-ref.schema.json': commsMessageRefSchema, 'comms-status-args.schema.json': commsStatusArgsSchema,
-    'comms-receipt.schema.json': commsReceiptSchema, 'comms-cancel.schema.json': commsCancelSchema }
+    'comms-receipt.schema.json': commsReceiptSchema, 'comms-cancel.schema.json': commsCancelSchema, 'comms-read-ack.schema.json': commsReadAckSchema }
   let n = 0
   for (const [schema, mirror] of Object.entries(mirrors)) {
     const graded = catalogue.filter(e => e.schema === schema)
@@ -649,10 +655,12 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
   assert.match(described.get('com.read_ack'), /messages/); assert.match(described.get('com.read_ack'), /upTo/)
   assert.match(described.get('com.reply'), /answered/); assert.doesNotMatch(described.get('com.reply'), /no request changes state/)
   assert.match(described.get('com.submit'), /noResponder/); assert.match(described.get('com.submit'), /7 days/)
-  // Review i1 DA-4: noResponder and answered reach a caller that never asked for them; the descriptions say they are
-  // Fabric's own additions outside the pinned contract, and who receives each.
-  assert.match(described.get('com.submit'), /outside the pinned contract/); assert.match(described.get('com.submit'), /without asking/)
-  assert.match(described.get('com.get'), /answered/); assert.match(described.get('com.get'), /outside the pinned contract/)
+  // Review i1 DA-4: noResponder and answered reach a caller that never asked for them; the descriptions say who receives
+  // each. Since the repin to 39c8977 both are the pinned contract's (DEC-0098, DEC-0102), so no description calls them
+  // Fabric's own any more (CO-396: the hub's tool texts follow the repin).
+  assert.match(described.get('com.submit'), /without asking/); assert.match(described.get('com.submit'), /DEC-0098/)
+  assert.match(described.get('com.get'), /answered/); assert.match(described.get('com.get'), /DEC-0098/)
+  for (const op of ['com.list', 'com.submit', 'com.get']) assert.doesNotMatch(described.get(op), /outside the pinned contract|Fabric's own/, `${op} still calls a pinned member Fabric's own`)
   for (const op of ['com.list', 'com.read_ack', 'com.reply', 'com.submit', 'com.get']) assert.doesNotMatch(described.get(op), /\u2014/, `${op}'s description carries an em dash`)
 })
 // #region business-wall-tests — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open

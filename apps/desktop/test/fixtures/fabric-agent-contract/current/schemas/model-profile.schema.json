@@ -22,6 +22,10 @@
     }
   ],
   "$defs": {
+    "reads": {
+      "description": "The closed vocabulary of what a lane reads (DEC-0083): `user-content`, what a member, a client or the public sends; `operator`, only what the estate's own operator or its agents write; `web`, pages fetched from the open web. Only `user-content` carries a model rule (FAC-SEM-112), also beside another value; `operator` and `web` let a lane declare that it does not read user content. A new value takes a decision; a reader refuses an unknown one.",
+      "enum": ["user-content", "operator", "web"]
+    },
     "profileId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]{0,62}$"
@@ -44,6 +48,13 @@
         "fallback": {
           "enum": ["none", "between-turns"],
           "description": "none: only the first model the policy admits; between-turns: the next one after a failed turn, never within one."
+        },
+        "reads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/reads" },
+          "description": "What the lane this profile serves reads (DEC-0083); absent: not declared, which stays valid. A profile listing `user-content` — what a member, a client or the public sends: messages, questions, images, reviews, screenshots, voice — has an open-vendor route (FAC-SEM-112), whatever else it lists, and its runner treats a content refusal or an empty answer as a failed turn. `operator` and `web` carry no model rule in this revision."
         },
         "agent": {
           "$ref": "common.schema.json#/$defs/uri",

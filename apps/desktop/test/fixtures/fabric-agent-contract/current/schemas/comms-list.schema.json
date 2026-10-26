@@ -18,6 +18,14 @@
       "type": "integer",
       "minimum": 1,
       "maximum": 100
+    },
+    "unread": {
+      "description": "true: only messages this reader's Project has not marked read (DEC-0098). Either filter makes every message of the page carry read; a cursor is bound to the filter.",
+      "type": "boolean"
+    },
+    "since": {
+      "description": "Only messages stored at or after this time (DEC-0098).",
+      "$ref": "common.schema.json#/$defs/timestamp"
     }
   },
   "additionalProperties": false

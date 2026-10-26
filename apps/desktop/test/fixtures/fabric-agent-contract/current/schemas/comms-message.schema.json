@@ -54,6 +54,10 @@
     "replyTo": {
       "$ref": "comms-common.schema.json#/$defs/opaqueId"
     },
+    "reaction": {
+      "description": "Only on a reply to an announcement (DEC-0098).",
+      "$ref": "comms-common.schema.json#/$defs/reaction"
+    },
     "request": {
       "type": "object",
       "required": [
@@ -117,6 +121,10 @@
     "finding": {
       "description": "Only with kind finding (DEC-0080). An affects item outside the reader's grants is {redacted: true}, in its place.",
       "$ref": "comms-common.schema.json#/$defs/finding"
+    },
+    "read": {
+      "description": "Whether the reader's Project has marked this message read. Present exactly when the page was asked with unread or since (DEC-0098); a page asked with neither carries none, as before.",
+      "type": "boolean"
     }
   },
   "additionalProperties": false,
@@ -164,6 +172,23 @@
       "else": {
         "properties": {
           "finding": false
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "reply"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "else": {
+        "properties": {
+          "reaction": false
         }
       }
     }

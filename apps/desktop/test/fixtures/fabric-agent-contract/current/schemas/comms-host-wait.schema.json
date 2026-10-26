@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-host-wait.schema.json",
+  "title": "A board host that cannot serve yet: the HTTP 503 body (fabric-project-comms/0.1, DEC-0098)",
+  "description": "Answered with HTTP 503 and a Retry-After header, before the host reads the call: while the host's store starts (stack-starting) or after it was lost (stack-unavailable). The caller waits Retry-After seconds and calls again with the same arguments; nothing was stored. It is not a refusal of the call (comms-refusal), and the same for every caller.",
+  "type": "object",
+  "required": [
+    "error",
+    "code",
+    "retryable"
+  ],
+  "properties": {
+    "error": {
+      "description": "One sentence on what the host waits for; never a path, a secret or a Project.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "code": {
+      "enum": [
+        "stack-starting",
+        "stack-unavailable"
+      ]
+    },
+    "retryable": {
+      "const": true
+    }
+  },
+  "additionalProperties": false
+}

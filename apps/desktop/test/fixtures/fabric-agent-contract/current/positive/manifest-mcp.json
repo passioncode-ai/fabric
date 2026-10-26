@@ -13,7 +13,7 @@
   "capabilities": [
     {
       "id": "https://agents.example/capabilities/keyword-analysis",
-      "name": "seo.keyword-analysis",
+      "name": "analyze_keywords",
       "inputSchema": "https://agents.example/schemas/keyword-input.json",
       "outputSchema": "https://agents.example/schemas/keyword-output.json",
       "effect": "none",

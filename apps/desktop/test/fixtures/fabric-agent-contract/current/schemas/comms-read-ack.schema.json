@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-read-ack.schema.json",
+  "title": "com.read_ack arguments (fabric-project-comms/0.1, DEC-0098)",
+  "description": "Exactly one of three forms: one message (DEC-0073's), up to 100 named messages, or one thread up to a named message of it. A bulk call is all or nothing: a message the reader cannot read refuses the whole call (not_authorized), and marking again changes nothing. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here.",
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "One message",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "description": "A message of a thread the caller's Project takes part in; an absent and a foreign message answer the same not_authorized.",
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "title": "Named messages",
+      "required": [
+        "messages"
+      ],
+      "properties": {
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "comms-common.schema.json#/$defs/opaqueId"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "title": "A thread up to a message",
+      "required": [
+        "thread",
+        "upTo"
+      ],
+      "properties": {
+        "thread": {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        "upTo": {
+          "description": "A message of that thread: every message of the thread delivered to the reader at or before it is marked, the oldest 1000 at most (the receipt says more).",
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

@@ -140,11 +140,11 @@ export const commsListSchema = z.strictObject({
   unread: z.boolean().optional(), since: z.iso.datetime({ offset: true }).optional()
 })
 export const commsMessageRefSchema = z.strictObject({ message: opaqueId })
-/** `com.read_ack` (comms-message-ref) and Fabric's bulk forms (0.3.9 BD-4): up to 100 named messages, or one thread up
- *  to a named message of it. Exactly one form per call. */
+/** `com.read_ack` (`comms-read-ack`, DEC-0098 item 5, first served as 0.3.9 BD-4): one message, up to 100 named messages,
+ *  each named once (the schema's uniqueItems), or one thread up to a named message of it. Exactly one form per call. */
 export const commsReadAckSchema = z.union([
   commsMessageRefSchema,
-  z.strictObject({ messages: z.array(opaqueId).min(1).max(100) }),
+  z.strictObject({ messages: z.array(opaqueId).min(1).max(100).refine((m) => new Set(m).size === m.length, 'each message once') }),
   z.strictObject({ thread: opaqueId, upTo: opaqueId })
 ])
 // #endregion board-core-holds-inputs
@@ -159,8 +159,8 @@ export const commsCancelSchema = z.strictObject({
   idempotency, request: opaqueId, expectedRevision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER).optional(), reason: z.string().min(1).max(300).optional()
 })
 const timestamp = z.iso.datetime({ offset: true })
-/** The contract's request states and Fabric's `answered` (0.3.9 BD-1): the target Project replied to a queued request.
- *  `answered` is outside the pinned contract's enum and is NOT opt-in (review i1 DA-4): the request object of any
+/** The contract's request states, `answered` included (DEC-0098 item 1, DEC-0102; first served as 0.3.9 BD-1): the
+ *  target Project replied to a queued request. `answered` is NOT opt-in (review i1 DA-4): the request object of any
  *  participant's com.get or com.list page (`board_message_json`), and the receipt of a later com.cancel by the requester,
  *  may carry it once the target replied, including after the first board tick past the upgrade, which answers the
  *  legacy queued requests a target already replied to. com.status carries no request state. */
@@ -181,12 +181,13 @@ export const commsReceiptSchema = z.strictObject({
   attempt: receiptAttempt.optional(),
   transferred: z.array(z.strictObject({ request: opaqueId, revision: z.number().int().min(1), attempt: receiptAttempt })).min(1).max(64)
     .refine((t) => new Set(t.map((x) => x.request)).size === t.length, 'each transferred request once').optional(),
-  // Fabric's optional members (0.3.9), outside the pinned contract: a bulk read mark's counts (BD-4), present only in
-  // the answer to a bulk com.read_ack the caller chose; and a request nobody can answer now (BD-1), sent to the
-  // requester's com.submit without an opt-in (review i1 DA-4).
+  // DEC-0098's optional members (first served as 0.3.9's BD-4 and BD-1): a bulk read mark's counts, present only in the
+  // answer to a bulk com.read_ack the caller chose, with `more` only as true (the schema's const; `board_read_ack_many`
+  // strips it otherwise); and a request nobody can answer now, sent to the requester's com.submit without an opt-in
+  // (review i1 DA-4).
   marked: z.number().int().min(0).optional(),
   alreadyRead: z.number().int().min(0).optional(),
-  more: z.boolean().optional(),
+  more: z.literal(true).optional(),
   noResponder: z.strictObject({ target: projectId, capability: capabilityName, message: z.string().min(1).max(300) }).optional()
 })
 

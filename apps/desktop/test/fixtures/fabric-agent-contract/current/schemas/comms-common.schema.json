@@ -54,8 +54,10 @@
         "failed_known",
         "cancelled",
         "expired",
-        "outcome_unknown"
-      ]
+        "outcome_unknown",
+        "answered"
+      ],
+      "description": "answered (DEC-0098, DEC-0102): the target Project's participant message of any kind but request (never a responder's fenced reply or progress note) whose replyTo is the request moved it from queued, at once or on the board's pass for one that came while it was claimed. It is not open: no responder claims it and its deadline no longer expires it; the requester may still cancel it. A reply is not a completion: answered says the target answered, never that the asked work was done."
     },
     "effectState": {
       "enum": [
@@ -312,6 +314,85 @@
         "cursor_reset_required",
         "immutable_participants",
         "held"
+      ]
+    },
+    "reaction": {
+      "description": "The type of a reply to an announcement (DEC-0098), as a field rather than the body's first word: adapted (the change is taken; ref names the commit or release), row (the replier filed a row; ref names it and due is the day it expects to close it) or not-affected (the body says why). Only on a reply whose replyTo is an announcement; a board refuses it on any other reply (invalid_arguments).",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "adapted",
+            "row",
+            "not-affected"
+          ]
+        },
+        "ref": {
+          "description": "A commit, a release, a pull request or a row id: what the reader follows.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[^\\u0000-\\u001f\\u2028\\u2029]+$"
+        },
+        "due": {
+          "description": "With row only: the UTC calendar day the row is expected to close.",
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "adapted",
+                  "row"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref": true
+            },
+            "required": [
+              "ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "row"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "due": true
+            },
+            "required": [
+              "due"
+            ]
+          },
+          "else": {
+            "properties": {
+              "due": false
+            }
+          }
+        }
       ]
     }
   }

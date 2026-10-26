@@ -11,8 +11,7 @@
   ],
   "properties": {
     "id": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-]{1,62}$"
+      "$ref": "common.schema.json#/$defs/slug"
     },
     "version": {
       "type": "integer",

@@ -1,6 +1,6 @@
 // #region project-board-settled-by — docs: docs/adr/0156-the-estates-owner-may-pause-the-project-board-and-list-or-unlist-projects.md#7-the-owner-settles-a-request-nobody-can-settle-contract-dec-0081
 /**
- * A request's transition as the contract reads it (fabric-agent-contract a59d04b, `comms-transition`): the record
+ * A request's transition as the contract reads it (fabric-agent-contract 39c8977, `comms-transition`): the record
  * `{op, from, to, observed?, settledBy?, summary?, principal?}`, and the two rules a host's journal must hold over it —
  * FAC-SEM-027 (the lifecycle table) and FAC-SEM-109 (who settled a request, DEC-0081).
  *
@@ -10,7 +10,7 @@
  * (`settled_by`, `effect_from`); `transitionRecordOf` is the one place that reads it as the contract's record.
  */
 
-/** The request lifecycle (DEC-0022, DEC-0081): op → the (from, to) pairs it may make. No op leaves outcome_unknown but
+/** The request lifecycle (DEC-0022, DEC-0081, DEC-0098): op → the (from, to) pairs it may make. No op leaves outcome_unknown but
  *  reconcile, and none moves it to cancelled. */
 export const COMMS_TRANSITIONS: Readonly<Record<string, readonly (readonly [string, string])[]>> = Object.freeze({
   claim: [['queued', 'claimed'], ['claimed', 'claimed']],
@@ -22,8 +22,8 @@ export const COMMS_TRANSITIONS: Readonly<Record<string, readonly (readonly [stri
   replace: [['claimed', 'queued'], ['accepted', 'accepted']],
   lost_result: [['in_progress', 'outcome_unknown']],
   reconcile: [['outcome_unknown', 'completed'], ['outcome_unknown', 'failed_known']],
-  // Fabric's own (0.3.9 BD-1, migration 95): the target Project's reply answers a queued request; its asker may still
-  // cancel it. Not in the contract's table yet: the board's journal carries it, and this port reads it as lawful.
+  // DEC-0098, DEC-0102 (first served as 0.3.9 BD-1, migration 95): the target Project's participant message, not a
+  // request and never a responder's fenced reply or progress note, answers a queued request; its asker may still cancel it.
   answer: [['queued', 'answered']]
 })
 

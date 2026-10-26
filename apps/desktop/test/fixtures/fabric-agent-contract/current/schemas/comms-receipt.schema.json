@@ -154,6 +154,44 @@
         },
         "additionalProperties": false
       }
+    },
+    "marked": {
+      "description": "A bulk com.read_ack (DEC-0098): how many messages this call marked read.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "alreadyRead": {
+      "description": "A bulk com.read_ack: how many of them the reader had already marked read.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "more": {
+      "description": "A com.read_ack of a thread up to a message: true when more than 1000 messages qualified and only the oldest 1000 were marked; call again. Absent otherwise.",
+      "const": true
+    },
+    "noResponder": {
+      "description": "Only in the requester's own com.submit receipt for a request (DEC-0098): nobody can answer that capability for that Project now (no slot has a holder and no live board.respond grant exists). The request is stored: a reply from the target answers it and a responder may come later.",
+      "type": "object",
+      "required": [
+        "target",
+        "capability",
+        "message"
+      ],
+      "properties": {
+        "target": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "capability": {
+          "$ref": "common.schema.json#/$defs/capabilityName"
+        },
+        "message": {
+          "description": "For a person: at most 300 characters.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

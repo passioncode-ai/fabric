@@ -2,12 +2,13 @@
 
 `SOURCE.json` owns the exact upstream repository, immutable revisions, file paths and
 SHA-256 byte receipts. All files named there are copied directly from the recorded Git
-objects, with no schema edits. The current closure, `d4c8831`
-(DEC-0022 accepted), compiles the four capability-name surfaces (manifest, interop-agent-call,
-service-well-known and pipeline) and the seven `fabric-project-comms/0.1` surfaces. It carries
-the contract's own `fixtures/catalogue.json` and every comms fixture it grades, 7 positive and 10
+objects, with no schema edits. The current closure, `39c8977` (tag `v0.1.0+2026-10-26.3`),
+compiles the four capability-name surfaces (manifest, interop-agent-call, service-well-known and
+pipeline) and the twenty-four `fabric-project-comms/0.1` surfaces, 37 schemas in all. It carries
+the contract's own `fixtures/catalogue.json` and every comms fixture it grades, 49 positive and 113
 negative, so the consumer test reaches the same verdicts as the contract (ADR-0117). Shared
-dependency schemas are included because compilation must resolve the normative references.
+dependency schemas are included because compilation must resolve the normative references
+(`decision`, `mandate` and `interop-common` since this pin: `interop-agent-call` refers to them).
 
 Repin only with `node scripts/repin-agent-contract.mjs --checkout <fabric-agent-contract checkout>
 --commit <sha>`, then set `CURRENT_COMMIT` in `../../contract-consumer-fixtures.mjs`. The script copies

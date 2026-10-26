@@ -72,6 +72,10 @@
     "replyTo": {
       "$ref": "comms-common.schema.json#/$defs/opaqueId"
     },
+    "reaction": {
+      "description": "With kind reply only, and only when replyTo is an announcement (DEC-0098).",
+      "$ref": "comms-common.schema.json#/$defs/reaction"
+    },
     "request": {
       "type": "object",
       "required": [
@@ -201,6 +205,23 @@
               }
             }
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "reply"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "else": {
+        "properties": {
+          "reaction": false
         }
       }
     }

@@ -1,0 +1,5 @@
+{
+  "error": "Fabric lost its database.",
+  "code": "stack-unavailable",
+  "retryable": false
+}
