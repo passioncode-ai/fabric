@@ -10,9 +10,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## 0.3.13 (unreleased)
 
 - **Abandoned work finds its agent.** Every three minutes Fabric looks for work nobody moves: a claim that went silent
-  or whose session ended, a running task nobody holds, a board request nobody answered, an answer nobody read, a
-  terminal stuck on a running task. The agent that owns it is told once per 30 minutes, in its next Fabric tool answer
-  or as one line in a terminal Fabric runs; a claim whose session ended is released and its task goes back to the queue.
+  or whose session ended, a running task nobody holds, a board request nobody has taken, an answer nobody marked read,
+  a terminal stuck on a running task. The agent is told once per 30 minutes: in its next `fabric_work_list` or
+  `fabric_heartbeat` answer, or, for a stuck terminal Fabric runs, as one line in it. A claim whose session ended is
+  released after two sweeps when its task has no run still unresolved, and the task goes back to the queue when that
+  claim had put it into work.
 - **Two new rules every agent reads.** Check your own work every three minutes and act on what Fabric points at first;
   a decision of the operator relayed with their own words and where they said it is the operator's, and is not asked
   again.
