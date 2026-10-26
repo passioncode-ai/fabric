@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "source_commit": "4411dd1c50a081a91ba68275b1edf7e2ed97c62e",
-  "workspace_commit": "7b5a4542479338b89165aca768984b7009f5af0e",
-  "content_digest": "13db37bba9aeba69bf5d0e99c57d654091b0406951e892bc4f3dfd5b4d2fe4bb",
+  "source_commit": "df4f510506723df12ab2f39f8bd0cc5e08adb118",
+  "workspace_commit": "18a7f55cb92a9eb44bf5756cfa7ccb918b6479e8",
+  "content_digest": "e6985b6b0414e59a3c3c786ca3972df9c0672bbadd19dd06c1c075fe68590140",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "be54f2ad-ef00-48cd-903d-9e3a07357ab7",
-  "fabric_digest": "4e78e5ce65b7d50cb83fe2dfaa5ab4fa645d1eb1485aa841765cddf1b372da53",
+  "deployment": "5f702bdb-6a4a-4f8e-816f-097c14c1bdbd",
+  "fabric_digest": "62ab201f9e330063b890023f38ddbde7ec6c9e46cc8a2205af33f326b62eb225",
   "sources": [
     {
       "id": "org-index",
@@ -17,8 +17,8 @@
     {
       "id": "fabric-agent-contract",
       "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
-      "commit": "dae13a3706d0c0d39f7b9e8c63717a0fdb78113e",
-      "files_digest": "7ccd3a78b07ad404d8658548039f468c9eddb5756a9690dd3af1aa284bf34538"
+      "commit": "2ba0ecd9189aa690a04ce291504bc031625e9829",
+      "files_digest": "a43e79eb123a062214c37fa1e0f69da053dedcd794c1f674a6d17dfa468f2a24"
     },
     {
       "id": "fabric-agent-adapter",
@@ -29,8 +29,8 @@
     {
       "id": "fabric-inbox",
       "repository": "https://github.com/passioncode-ai/fabric-inbox",
-      "commit": "a76e4c6fcf831d441e6dddf0698fa1c6b3a69d69",
-      "files_digest": "173fe351333fb55aa4eaddd0d2996ea8be23048a193f63df4b34a5a88e6312dd"
+      "commit": "71541e05f1275dbeb7e43f1f30e75183393ecc73",
+      "files_digest": "d60d0f7db7ec2f8b153662f7aab6ed5ad21988703dbf78bb2bd637316653640f"
     },
     {
       "id": "fabric-switchboard",
@@ -47,14 +47,14 @@
     {
       "id": "fabric-dashboards",
       "repository": "https://github.com/passioncode-ai/fabric-dashboards",
-      "commit": "4044bd21dde390c23ac9bf481eef19b4d365266f",
-      "files_digest": "7dd775d8e48a756a6d446f00b42b9fe26b7446ede74440b73c3c5f0356ba777d"
+      "commit": "2aae688ac4aa999e98093d4bac090af1d1bf480f",
+      "files_digest": "13fd83a55239a261d1131abb071c8e5ecf7fc10702a7f12b17b23317fc20c833"
     },
     {
       "id": "project-observatory-dashboard",
       "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
-      "commit": "6045ab7abe4056f0aac5fa813f49e4e1b6063931",
-      "files_digest": "7e1e9cfafb0314b303a0bc91070316cfb5a13e2ef96fb219a37d0b1b4c10d707"
+      "commit": "0a9ca64e6b2bcaecce0ee2d7ef942e7de82d9be1",
+      "files_digest": "79faa6c0322e69a3a855b0a1946fb44f6142016cf2438a4cfd57dc4818b0d37a"
     },
     {
       "id": "project-observatory-contract",
