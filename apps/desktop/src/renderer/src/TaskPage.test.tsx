@@ -472,3 +472,13 @@ describe('the way back while the task loads (CO-405, V3-35)', () => {
     expect(screen.getByRole('button', { name: en['launch.agent.back'] })).toBeTruthy()
   })
 })
+
+// 0.3.14, the simple Fabric §5: a task page offers «Нужна правка в другом проекте», the way to open a console in another
+// project with the task as its context (`launch/CrossProjectConsole.tsx`).
+describe('a task page and another project', () => {
+  it('offers «A change is needed in another project»', async () => {
+    mount({})
+    await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
+    expect(screen.getByText('A change is needed in another project')).toBeTruthy()
+  })
+})

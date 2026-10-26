@@ -37,6 +37,7 @@ import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } fr
 import { ProjectStrip } from './launch/FabricStrip'
 import { runnerLabel } from './runnerLabel'
 import { useOpenConsole } from './consoles'
+import { CrossProjectConsole } from './launch/CrossProjectConsole'
 
 export function TaskPage({
   project,
@@ -258,6 +259,8 @@ export function TaskPage({
           <b>{detail.lease ? t('task.held', { who: detail.lease.owner_session.slice(0, 8), until: since(detail.lease.expires_at, t) }) : t('task.free')}</b>
           <div className="lp-divider" />
           <button type="button" className="lp-button" onClick={() => setTab('history')}>{t('launch.agent.pastTasks')}</button>
+          {/* 0.3.14, the simple Fabric §5: a change this work needs in another project, opened as a console there. */}
+          <CrossProjectConsole project={project} taskId={taskId} taskTitle={task.title ?? task.instruction} />
         </aside>
         <div className="lp-agent-content">
           <div className="lp-tabs" role="group" aria-label={t('launch.agent.tabs')}>
