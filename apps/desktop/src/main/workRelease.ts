@@ -139,9 +139,17 @@ export const DONE_LEFT_RUNNING_NOTE = 'its last claim was released done and its 
 
 // #region sweep-done-left-running — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
 /** The sweep's repair (0.3.14 wave 2, task b2c42b88 in the live audit of 2026-10-26): a running task whose last claim
- *  ended done with no move since goes to review, as the done release meant, read back like the release's own move. */
+ *  ended done with no move since (`shared/abandonedSweep.ts#doneLeftRunning`) and that nothing holds at the moment of
+ *  the move goes to review, as the done release meant, read back like the release's own move. */
 export async function moveDoneLeftRunningToReview(store: Store, append: Append, taskId: string, projectId: string): Promise<{ task_moved_to: 'review' | null; task_status: TaskState | null; failed?: string }> {
   const actor = { kind: 'system' as const, id: 'work-sweep' }
+  // The 0.3.14 review, iteration 2, ER-13: the holders are asked again at the moment of the move, as the backlog retry
+  // does; a task someone took since the sweep's read stays where it is.
+  try {
+    if (await taskHeldElsewhere(store, taskId, { id: '', owner_session: '' }, Date.now())) return { task_moved_to: null, task_status: 'running' }
+  } catch (e) {
+    return { task_moved_to: null, task_status: null, failed: e instanceof Error ? e.message : String(e) }
+  }
   return moveDoneTaskToReview(() => taskOf(store, taskId), (task, to) =>
     append({ type: 'task.moved@1', actor, projectId, payload: { task_id: task.id, from: task.status, to, note: DONE_LEFT_RUNNING_NOTE } }))
 }

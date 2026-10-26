@@ -475,9 +475,10 @@ test('finding 6: readRunningTasks reads who last moved each task', async () => {
   let columns = ''
   const rows = [{ id: 't1', project_id: 'p1', moved_at: iso(T0), started_at: null, moved_by_kind: 'person' }]
   const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
-  const out = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
+  const none = { in: () => none, order: () => none, limit: async () => ({ data: [], error: null }) }
+  const out = await readRunningTasks({ select: (t, c) => { if (t === 'work_claims') return none; columns = c; return q } })
   assert.match(columns, /moved_by_kind/)
-  assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', lastClaimedAt: null, lastClaim: null }])
+  assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', movedBy: null, lastClaimedAt: null, lastClaim: null }])
 })
 
 test('finding 8: a pass while a sweep is in flight starts no second sweep', async () => {
@@ -628,25 +629,33 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
   ]
   const asked = []
   const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
-  const store = {
-    select: () => q,
-    selectIn: async (table, columns, column, values) => {
-      asked.push({ table, columns, column, values })
-      return { rows: [
-        { work_id: 't1', claimed_at: iso(T0 - 35 * MIN), released_at: null, released_how: null },
-        { work_id: 't1', claimed_at: iso(T0 - 50 * MIN), released_at: iso(T0 - 45 * MIN), released_how: 'let-go' },
-        { work_id: 't2', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done' }
-      ], failed: null }
-    }
+  let claimRows = [
+    { work_id: 't1', claimed_at: iso(T0 - 35 * MIN), released_at: null, released_how: null, owner_session: 's1' },
+    { work_id: 't1', claimed_at: iso(T0 - 50 * MIN), released_at: iso(T0 - 45 * MIN), released_how: 'let-go', owner_session: 's0' },
+    { work_id: 't2', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done', owner_session: 's2' }
+  ]
+  let claimError = null
+  const claimsQuery = (columns) => {
+    const a = { table: 'work_claims', columns }
+    asked.push(a)
+    const c = { in: (col, values) => { a.column = col; a.values = values; return c }, order: (col, o) => { a.order = [col, o.ascending]; return c },
+      limit: async (n) => { a.limit = n; return { data: claimError ? null : claimRows, error: claimError } } }
+    return c
   }
+  const store = { select: (t, c) => (t === 'work_claims' ? claimsQuery(c) : q) }
   const out = await readRunningTasks(store)
   assert.deepEqual(asked.map((a) => [a.table, a.column, a.values]), [['work_claims', 'work_id', ['t1', 't2']]], 'the running tasks read, no more')
   assert.match(asked[0].columns, /released_how/)
+  assert.deepEqual([asked[0].order, asked[0].limit], [['claimed_at', false], 1000], 'DA-3: newest first, at the gateway\'s 1 000 rows')
   assert.equal(out.find((t) => t.taskId === 't1').lastClaimedAt, iso(T0 - 35 * MIN), 'the newest claim, released ones included')
-  assert.deepEqual(out.find((t) => t.taskId === 't1').lastClaim, { claimedAt: iso(T0 - 35 * MIN), releasedAt: null, how: null })
-  assert.deepEqual(out.find((t) => t.taskId === 't2').lastClaim, { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done' })
-  const failing = { ...store, selectIn: async () => ({ rows: [], failed: 'refused' }) }
-  await assert.rejects(readRunningTasks(failing), /refused/, 'an unread claim history is never "no claim since"')
+  assert.deepEqual(out.find((t) => t.taskId === 't1').lastClaim, { claimedAt: iso(T0 - 35 * MIN), releasedAt: null, how: null, owner: 's1' })
+  assert.deepEqual(out.find((t) => t.taskId === 't2').lastClaim, { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done', owner: 's2' })
+  // DA-3: a chunk that came back full may miss a task's newest claim; that task is not judged, never "no claim".
+  claimRows = Array.from({ length: 1000 }, (_, i) => ({ work_id: 't1', claimed_at: iso(T0 - (i + 1) * MIN), released_at: iso(T0 - i * MIN), released_how: 'let-go', owner_session: 's1' }))
+  const capped = await readRunningTasks(store)
+  assert.deepEqual(capped.map((t) => t.taskId), ['t1'], 't2 has no row in a full answer: left out this sweep')
+  claimError = { message: 'refused' }
+  await assert.rejects(readRunningTasks(store), /refused/, 'an unread claim history is never "no claim since"')
 })
 
 test('R3: a silent claim held by a Fabric terminal session is queued as a nudge, never typed into the terminal', async () => {
@@ -948,11 +957,28 @@ test('done left running: a repair that fails is said in the ops log and the swee
 // ── The 0.3.14 review, iteration 1: ER-4, ER-5, ER-6 (the sweep's repairs), ER-3, ER-12 (blind and capped reads) ───
 test('ER-4: a done release made from backlog, whose task then went to running and stopped there, is moved to review', async () => {
   const moved = []
-  // TR-3: the release is appended, then backlog to running by the agent, then running to review failed.
-  const w = world({ tasks: [doneTask({ movedAt: iso(T0 - 29 * MIN), movedByKind: 'agent' })] })
+  // TR-3: the release is appended, then backlog to running by the releasing session, then running to review failed.
+  const w = world({ tasks: [doneTask({ movedAt: iso(T0 - 30 * MIN + 2000), movedByKind: 'agent', movedBy: 's-rel',
+    lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done', owner: 's-rel' } })] })
   w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
   await sweepOnce(createAbandonedSweep(w.deps))
   assert.deepEqual(moved, ['t-done'])
+})
+
+test('ER-13: a done release is not repaired after ANY move since it: an agent\'s rework, a relaunch, a person, the owner much later', async () => {
+  const H = 60 * MIN
+  const released = { claimedAt: iso(T0 - 50 * H), releasedAt: iso(T0 - 48 * H), how: 'done', owner: 's-rel' }
+  const cases = [
+    doneTask({ taskId: 't-rework', movedAt: iso(T0 - MIN), movedByKind: 'agent', movedBy: 's-other', lastClaim: released }),
+    doneTask({ taskId: 't-relaunch', movedAt: iso(T0 - MIN), movedByKind: 'system', movedBy: 'launch', lastClaim: released }),
+    doneTask({ taskId: 't-person', movedAt: iso(T0 - MIN), movedByKind: 'person', movedBy: 'operator', lastClaim: released }),
+    doneTask({ taskId: 't-owner-later', movedAt: iso(T0 - MIN), movedByKind: 'agent', movedBy: 's-rel', lastClaim: released })
+  ]
+  const moved = []
+  const w = world({ tasks: cases })
+  w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(moved, [], 'every move since the release is left alone')
 })
 
 test('ER-5: a done repair that fails keeps its task in the operator\'s queue as task-unclaimed; a repair that lands does not', async () => {
@@ -1067,7 +1093,12 @@ test('ER-6: moveReleasedLeftRunningToBacklog moves running to backlog as the swe
 
 test('moveDoneLeftRunningToReview: running to review as the sweep, read back, with the note saying why', async () => {
   const { moveDoneLeftRunningToReview, DONE_LEFT_RUNNING_NOTE } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const held = releaseWorld()
+  assert.deepEqual(await moveDoneLeftRunningToReview(held.store, held.append, 't1', 'p1'), { task_moved_to: null, task_status: 'running' },
+    'ER-13: a claim open at the moment of the move holds it')
+  assert.equal(held.appended.length, 0)
   const w = releaseWorld()
+  await w.append({ type: 'work.released@1', payload: {} })
   const r = await moveDoneLeftRunningToReview(w.store, w.append, 't1', 'p1')
   assert.deepEqual(r, { task_moved_to: 'review', task_status: 'review' })
   const move = w.appended.find((e) => e.type === 'task.moved@1')

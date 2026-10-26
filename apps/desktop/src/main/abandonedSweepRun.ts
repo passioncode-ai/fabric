@@ -65,6 +65,8 @@ export interface SweepRunningTask {
   movedAt: string
   /** Who last moved it (`project_tasks.moved_by_kind`, written by the projector's move provenance). */
   movedByKind?: string | null
+  /** The id of who last moved it (`project_tasks.moved_by`): for an agent, its session. */
+  movedBy?: string | null
   /** The newest claim ever opened on it, released ones included (round 2, B2). */
   lastClaimedAt?: string | null
   /** That claim, with when and how it ended (0.3.14 wave 2); null when none. */
@@ -517,27 +519,44 @@ export async function readRecentTurns(store: Pick<Store, 'select'>, now: number)
  *  `moved_by_kind` column the projector writes with `moved_at` from the move's actor (`apply_move_provenance`), so no
  *  journal read and no migration is needed to tell a person's hand move. A read that fails throws. */
 export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepRunningTask[]> {
-  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind').eq('status', 'running').limit(SWEEP_READ_LIMIT)
+  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind,moved_by').eq('status', 'running').limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
-  const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }>)
+  const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null; moved_by?: string | null }>)
     .filter((t) => t.moved_at ?? t.started_at)
   // Round 2, B2: a person's move holds only until a claim opens after it, and a claim does not move a task already in
   // running. 0.3.14 wave 2: and a done release whose move to review did not land is found by its last claim. The claims
   // ever opened on the running tasks read (bounded by the read above), released ones included; the newest per task.
-  // An unread history throws: it is never "no claim since".
-  const claims = await store.selectIn('work_claims', 'work_id,claimed_at,released_at,released_how', 'work_id', rows.map((t) => t.id))
-  if (claims.failed) throw new Error(`the claims of the tasks in work could not be read: ${claims.failed}`)
+  // An unread history throws: it is never "no claim since". The 0.3.14 review, iteration 2, DA-3: each chunk of tasks
+  // is read newest first under the gateway's 1 000 rows; a chunk that came back full may miss a task's newest claim, so
+  // its tasks without a claim row are not judged this sweep (left out), never "no claim".
   const last = new Map<string, SweepLastClaim>()
-  for (const c of claims.rows as Array<{ work_id: string; claimed_at: string; released_at: string | null; released_how: string | null }>) {
-    const prior = last.get(c.work_id)
-    if (!prior || Date.parse(c.claimed_at) > Date.parse(prior.claimedAt))
-      last.set(c.work_id, { claimedAt: c.claimed_at, releasedAt: c.released_at ?? null, how: c.released_how ?? null })
+  const unjudged = new Set<string>()
+  for (let i = 0; i < rows.length; i += CLAIMS_CHUNK) {
+    const ids = rows.slice(i, i + CLAIMS_CHUNK).map((t) => t.id)
+    const claims = await store.select('work_claims', 'work_id,claimed_at,released_at,released_how,owner_session')
+      .in('work_id', ids).order('claimed_at', { ascending: false }).limit(GATEWAY_ROWS)
+    if (claims.error) throw new Error(`the claims of the tasks in work could not be read: ${claims.error.message}`)
+    const got = (claims.data ?? []) as Array<{ work_id: string; claimed_at: string; released_at: string | null; released_how: string | null; owner_session?: string | null }>
+    for (const c of got) {
+      const prior = last.get(c.work_id)
+      if (!prior || Date.parse(c.claimed_at) > Date.parse(prior.claimedAt))
+        last.set(c.work_id, { claimedAt: c.claimed_at, releasedAt: c.released_at ?? null, how: c.released_how ?? null, owner: c.owner_session ?? null })
+    }
+    if (got.length >= GATEWAY_ROWS) for (const id of ids) if (!last.has(id)) unjudged.add(id)
   }
-  return rows.map((t) => ({
+  if (unjudged.size) opsSink.record({ op: 'work.sweep-claims-capped', outcome: 'unknown', level: 'warn', ctx: { correlationId: opsSink.correlate() },
+    detail: { tasks: unjudged.size, note: 'a chunk of claims came back at the gateway\'s 1 000 rows; these tasks are judged next sweep' } })
+  return rows.filter((t) => !unjudged.has(t.id)).map((t) => ({
     taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null,
-    lastClaimedAt: last.get(t.id)?.claimedAt ?? null, lastClaim: last.get(t.id) ?? null
+    movedBy: t.moved_by ?? null, lastClaimedAt: last.get(t.id)?.claimedAt ?? null, lastClaim: last.get(t.id) ?? null
   }))
 }
+
+/** The gateway answers at most this many rows (`supabase/config.toml` `max_rows`); a read that asks for more cannot
+ *  tell a capped answer from a complete one (CO-310). */
+export const GATEWAY_ROWS = 1000
+/** Running tasks per claims request: the URL stays short (`scopedStore.ts#selectIn`). */
+const CLAIMS_CHUNK = 100
 
 /** The operator's read door onto the board (`commsOperatorRead.ts`), the four reads this sweep uses. */
 export interface SweepComms {

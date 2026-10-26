@@ -282,16 +282,32 @@ export interface SweepLastClaim {
   claimedAt: string
   releasedAt: string | null
   how: string | null
+  /** The session that held it (`work_claims.owner_session`); absent when not read. */
+  owner?: string | null
 }
 
-type ReleasedTask = { taskId: string; movedAt: string; movedByKind?: string | null; lastClaim?: SweepLastClaim | null }
+type ReleasedTask = { taskId: string; movedAt: string; movedByKind?: string | null; movedBy?: string | null; lastClaim?: SweepLastClaim | null }
+
+/** How long after a done release its own TR-3 step (backlog to running, made by the releasing session) may land and
+ *  still count as part of the release rather than a move since it. */
+export const RELEASE_STEP_MS = 60_000
+
+/** Whether the task's last move is the done release's own TR-3 step: made by the released claim's own session within
+ *  `RELEASE_STEP_MS` after the release (`workTools.ts` releases, then moves backlog to running, then to review). */
+function isReleaseStep(t: ReleasedTask): boolean {
+  const c = t.lastClaim
+  if (!c?.releasedAt || !c.owner || !t.movedBy || t.movedBy !== c.owner) return false
+  const since = Date.parse(t.movedAt) - Date.parse(c.releasedAt)
+  return since >= 0 && since <= RELEASE_STEP_MS
+}
 
 /** The running tasks whose last claim was released done and nothing holds now (0.3.14 wave 2, task b2c42b88): the done
- *  release's move to review did not land. The review, iteration 1, ER-4: a done release made from backlog goes through
- *  running after the release (TR-3), so a move since the release keeps the repair unless a person made it. */
+ *  release's move to review did not land. Only when NO move of the task happened since the release, by anyone (the 0.3.14
+ *  review, iteration 2, ER-13: an agent that moved its handed-in task back to running, a relaunch, a person, are each
+ *  left alone), except the release's own TR-3 step through running (iteration 1, ER-4; `isReleaseStep`). */
 export function doneLeftRunning(tasks: readonly ReleasedTask[], held: ReadonlySet<string>): string[] {
   return tasks.filter((t) => t.lastClaim?.how === 'done' && t.lastClaim.releasedAt && !held.has(t.taskId) &&
-    (Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt) || t.movedByKind !== 'person')).map((t) => t.taskId)
+    (Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt) || isReleaseStep(t))).map((t) => t.taskId)
 }
 
 /** The running tasks whose last claim ended other than done, with no move since, and that nothing holds now (the 0.3.14
