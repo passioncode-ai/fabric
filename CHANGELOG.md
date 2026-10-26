@@ -36,7 +36,8 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
 - **No task is left running with nobody on it.** When an agent lets a task go, hands it over, its session ends, its
   claim lapses or you release it, a running task nothing else holds goes back to the queue, with a note saying why; if
   that move does not land, the sweep makes it. A task whose agent said it was done but that stayed in running is moved
-  to review by the sweep. A repair that keeps failing stays in your «На проверке».
+  to review by the sweep, unless anything moved it after that release (an agent taking it back to fix something, a
+  relaunch): then it is left alone. A repair that keeps failing stays in your «На проверке».
 - **Briefs get written.** Claiming a task (with `fabric_work_claim` or `fabric_task_claim`) whose brief misses a part
   names the missing parts and how to write them; ten
   minutes into the claim, the agent is reminded if they are still missing. These reminders and the claim reminder go to
@@ -47,40 +48,55 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
 - **A simpler Fabric: the left column.** The brand is Главная. Under «Создать» a switch «Проекты | Агенты»: your
   projects in alphabetical order (a favourite keeps its star but stays in its place), or every agent at work with its
   project, the git branch of its folder («ветка неизвестна» for an agent opened in its own terminal), its status in a
-  word and a colour, and a console icon. For a session Fabric runs the icon opens it at once; for one running in a
-  terminal outside Fabric it is a mark that says so, with nothing to press. История and Настройки sit at the foot.
+  word beside a colour (the word is always written, «Работает» included), and a console icon. For a session Fabric runs the icon opens it at once; for one running in a
+  terminal outside Fabric it is a mark that says so, with nothing to press. A list kept after a failed reading says
+  it may be out of date, and a failed reading offers «Повторить». История and Настройки sit at the foot.
+- **One status word on every screen.** The left column, «В работе» and the agent's screen give a session the same word
+  from the same signals: «Ошибка» for a console that ended with an error or was killed by a signal Fabric did not send,
+  or an agent's fresh heartbeat saying it is blocked; «Ждёт» only for a wait Fabric observed (a fresh heartbeat saying
+  it waits, with what it waits on in words); «Работает»; «Простаивает» for a quiet session, a
+  Fabric console silent for a minute included; «Закончилась». An agent's own word counts only while it is newer than
+  its last sign or within the 10-minute quiet window.
 - **Back, forward and home in the top bar.** «Назад», «Вперёд» and «Главная» sit at the left of the top bar, the same
-  way back as ⌘[ and ⌘]; a button with nowhere to go is greyed, never hidden.
+  way back as ⌘[ and ⌘]; a button with nowhere to go, or whose earlier places are all gone (a removed project, a
+  closed console), is greyed, never hidden.
 - **Главная says what is being done, by project.** Under Fabric's face, the greeting and the activity chart, six
   numbers: agents working, tasks handed in today, what waits for you, what waits for review (and how much of it for
   over 3 days), abandoned work, and agents working without a task. A number Fabric could not read is shown as unread, with
-  the reason, never as 0. «В работе» then has one card per project at work: what is being done there now, and each agent with
-  its branch, its goal and its current step with a progress bar; a card's row opens the agent. The right column holds
+  the reason, never as 0, and a count stopped at its bound says so. «агентов работает» and «работают без задачи» open
+  the agent they count. «В работе» then has one card per project at work: what is being done there now, and each agent
+  with its branch, its goal and its current step with a progress bar, or «Задачи не взял» when it holds no task; the
+  head names how many agents are quiet; a card's row opens the agent. The right column holds
   only «Нужны вы» and the board's requests nobody answered. «Где остановились», the two lanes and the live feed left
   the home; the projects table, the profile and the journal stay folded under «Ещё» for now. The left column and
   these numbers are read every 15 seconds and on each change for as long as the main window is open, not only while
   Главная shows; each reading also reads the git branch of every console's folder, walks the goals and counts today's
   handed-in tasks.
 - **An agent's screen shows its goal, what it does now and what it did.** Switch the left column to «Агенты» and pick
-  one. «Цель» is the root of its current task: the task the person set, when the agent filed its pieces under it, else
-  the current task itself. «Сейчас» is its current step with progress and the milestones it reported. Then its tasks
-  in four lanes, «В работе», «На проверке», «Передано» and «Готово», one lane at a time and newest first within it,
-  each with its project, when it was taken and how it ended, opening in place to its brief, how it ended in the
-  agent's words, its milestones and «Открыть задачу». The session's history below, closed until you open it, names
+  one. «Цель» is the root of its current task when there is one to name: the task it was split from, or a task the
+  person set; any other task that is its own root is shown once, as the current task, never as a goal. «Сейчас» is its
+  current step with progress and the milestones it reported. Then its tasks: «Все», open by default and newest first,
+  then «В работе», «На проверке», «Передано» (handed over or let go), «Брошено» (its claim lapsed or its session
+  ended), «Готово» and, when a task's row was not found, «Не найдены»; each with its project, when it was taken and
+  how it ended, opening in place to its brief, how it ended in the agent's words, its milestones and «Открыть
+  задачу». The session's history below, closed until you open it, names
   the task each row is about and opens it; going back from a task you opened there returns to the same agent. On the
   right, the session card says what Fabric sees and where the session runs; «Открыть сессию» opens the console as a
   tab, only when you press it. Idle and installed agents are listed in Настройки.
 - **A change needed in another project opens a console there.** A task page offers «Нужна правка в другом проекте»:
   pick the project, say in one sentence what is needed, and «Открыть консоль в …» starts that project's coding agent
-  with your sentence and the way back to the task, and notes it in the task.
+  with your sentence and the way back to the task, and notes it in the task. A project with no repository says the
+  agent will start in your home folder and opens only on a second press; a project of another recorded business is
+  refused, so the task's title and link are not carried there; a console that started but whose tab did not open is
+  said as started, with «Открыть сессию», and the same request is never started twice.
 - **Agents are asked to name the goal.** `fabric_whoami` gains the advice `claim.persons-request-as-goal`: claim the
   person's request as one task and file each piece split off from it with `fabric_task_create` while it is the one
   task the session holds claimed in that project. `fabric_task_create` links a new piece as spawned from the task
   Fabric launched the session on, or, for a session that joined from its own terminal, from the one task it holds a
   live claim on in that project; with no such claim or several it links nothing, and its answer says why
   (`spawned_from`, `spawned_from_why`). `fabric_task_link` now states the link's direction: `taskId` is the piece,
-  `targetTaskId` the task it was split from. Without a link the agent's row shows its current task itself as the
-  goal.
+  `targetTaskId` the task it was split from. Without a link the agent's row shows its current task itself in the
+  goal's place.
 
 ## 0.3.13
 

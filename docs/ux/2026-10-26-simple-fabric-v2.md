@@ -10,7 +10,10 @@ R-24 was relayed by fabric-workspace (its `fbb79343`) and R-26, the move to Coli
 rest, R-8 to R-11, R-13 to R-18 and R-20 to R-22, with «Вопросов к вам нет» (R-11's first group, which §6 below had
 put in 0.3.14), is 0.3.15 (P-29, 2026-11-05). The organization slice is named by its date, 2026-11-21 (P-27), never
 renumbered again, not «0.3.16» as §6, §8 and §9 below proposed. Where §4.2 described how a split is linked, the
-mechanism 0.3.14 ships is the one that section now states.
+mechanism 0.3.14 ships is the one that section now states. Two rows of the proposal shipped narrower after the
+release review's iteration 2: §4.5's «waiting» is said only for a wait Fabric observed (a fresh heartbeat), and a
+Fabric console silent for a minute is «Простаивает» (DA-5, `f1799a2a`); §4.9's lanes gained «Все» first, «Брошено»
+and «Не найдены» (UX-14, UX-20, DA-4, `13b00fd9`).
 
 What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2 and §8's
 announcement. Like v1 it changed no scenario: the scenarios it touches
@@ -341,8 +344,9 @@ What is missing:
    one task whose title is that request in one line (origin person); file each piece you split off with
    fabric_task_create while that task is the one task you hold claimed in this project», so Fabric links the piece as
    spawned from it (above). And the same sentence in the adapter's `working-with-fabric` skill (ask, §8). Until agents
-   follow it, a task with no link is its own root, so the row shows the current task itself as the goal; «Цель не
-   названа» is left for a row whose goal could not be found.
+   follow it, a task with no link is its own root, so the row shows the current task itself in the goal's place,
+   labelled «Цель» only when the person set it (origin person; UX-13, `13b00fd9`); an agent holding no task says
+   «Задачи не взял» (UX-12), and «Цель не названа» is left for a row whose goal could not be found.
 2. **One extra read** in `readHome` (`apps/desktop/src/main/workRead.ts#readHome`): `task_links` for `rel = 'spawned'`
    among the projects at work, and the root tasks' titles. Bounded like the other reads; capped is named in `capped`.
 
