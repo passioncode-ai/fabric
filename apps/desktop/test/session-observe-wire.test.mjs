@@ -174,23 +174,42 @@ test('TR-1: a turn naming the session\'s current (renamed) runtime id is this se
 })
 
 // 0.3.14 wave 2: reminders ride on every turn. The hook sends a turn on every prompt (5 929 in the live audit of
-// 2026-10-26) while a heartbeat ran about once a day, so the sweep's nudges reach the agent here too: the same
-// per-session queue `fabric_work_list` takes from, each given once, absent when there is nothing.
-test('a turn\'s answer carries the session\'s nudges, taken once, after the turn is recorded', async () => {
-  const queue = [{ kind: 'claim-silent', says: 'Fabric: task t1 you claimed has been still for 20 min. Move it.', task_id: 't1' },
-    { kind: 'answer-unread', says: 'Fabric: the answer to board request r1 has been still for 5 min. Read it.', request_id: 'r1' }]
-  let takes = 0
-  const h = await connect('rt-hook-1', { turnNudges: () => { takes++; return queue.splice(0) } })
+// 2026-10-26) while a heartbeat ran about once a day, so the sweep's nudges reach the agent here too. The review,
+// iteration 1, PL-1: the turn's answer SHOWS them (the sweep's `showTurnNudges`), it takes none, so fabric_work_list
+// still gets each; ER-2: a repeat of the turn (its idempotencyKey) answers the same nudges.
+/** A store whose journal read finds a prior turn for the idempotency keys in `seen`. */
+const repeatStore = (seen) => ({
+  select() {
+    let key = null
+    const chain = new Proxy({}, {
+      get(_t, prop) {
+        if (prop === 'then') return (resolve) => resolve({ data: key && seen.has(key) ? [{ seq: 7 }] : [], error: null })
+        if (prop === 'eq') return (col, v) => { if (col === 'payload->>idempotency_key') key = v; return chain }
+        return () => chain
+      }
+    })
+    return chain
+  }
+})
+
+test('a turn\'s answer carries the nudges shown for its idempotencyKey, after the turn is recorded; a repeat answers the same', async () => {
+  const shown = { 'rt-hook-1:0001780000000': [{ kind: 'claim-silent', says: 'Fabric: task t1 you claimed has been still for 20 min. Move it.', task_id: 't1' },
+    { kind: 'answer-unread', says: 'Fabric: the answer to board request r1 has been still for 5 min. Read it.', request_id: 'r1' }] }
+  const asked = []
+  const seen = new Set()
+  const h = await connect('rt-hook-1', { store: repeatStore(seen), turnNudges: (key) => { asked.push(key); return shown[key] ?? [] } })
   const first = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({ filesChanged: 2 }) }))
   assert.equal(first.recorded, true)
-  assert.deepEqual(first.nudges, [
-    { kind: 'claim-silent', says: 'Fabric: task t1 you claimed has been still for 20 min. Move it.', task_id: 't1' },
-    { kind: 'answer-unread', says: 'Fabric: the answer to board request r1 has been still for 5 min. Read it.', request_id: 'r1' }
-  ])
+  assert.deepEqual(first.nudges, shown['rt-hook-1:0001780000000'])
   const second = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), idempotencyKey: 'rt-hook-1:0001780000001' } }))
   assert.equal(second.recorded, true)
-  assert.equal('nudges' in second, false, 'taken once: the next turn has none, and no empty field')
-  assert.equal(takes, 2)
+  assert.equal('nudges' in second, false, 'nothing shown: no empty field')
+  seen.add('rt-hook-1:0001780000000')
+  const again = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({ filesChanged: 2 }) }))
+  assert.deepEqual([again.recorded, again.repeated], [true, true])
+  assert.deepEqual(again.nudges, shown['rt-hook-1:0001780000000'], 'the repeat answers what the first answer showed')
+  assert.deepEqual(asked, ['rt-hook-1:0001780000000', 'rt-hook-1:0001780000001', 'rt-hook-1:0001780000000'])
+  assert.equal(h.appended.length, 2, 'the repeat records nothing')
 })
 
 test('a turn whose record fails takes no nudge, and an end carries none', async () => {

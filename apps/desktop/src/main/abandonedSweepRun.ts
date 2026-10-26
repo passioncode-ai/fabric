@@ -50,6 +50,13 @@ type Store = ReturnType<typeof createScopedStore>
 export const LAPSED_REASON = 'lapsed: its session ended and two sweeps found it'
 /** At most this many nudges wait per session and per project; the oldest goes first. */
 export const NUDGES_PER_KEY = 50
+/** At most this many nudges a turn's answer shows (the 0.3.14 review, iteration 1, PL-1): the adapter prints at most
+ *  five; the rest wait for the next turn or the next fabric_work_list. */
+export const TURN_NUDGES_MAX = 5
+/** How long a turn's answer is kept for a repeat of that turn (same idempotencyKey, ER-2): the hook retries a spooled
+ *  turn within minutes; the bound keeps the memory small. */
+export const TURN_REPEAT_MS = 60 * 60_000
+const TURN_ANSWERS_MAX = 1000
 
 export interface SweepRunningTask {
   taskId: string
@@ -131,7 +138,11 @@ export interface SweepResult {
 /** A finding as the operator's queue reads it (SW-9): since when it has stood still, fixed at the sweep that found it. */
 export type SweptFinding = Finding & { stillSince: number }
 
-interface ProjectNudge { key: string; nudge: Nudge; at: number; takenBy: Set<string> }
+/** A project's nudge: `takenBy` the sessions whose fabric_work_list or fabric_heartbeat took it, `shownTo` the sessions
+ *  a turn's answer showed it to (shown is not taken: the 0.3.14 review, iteration 1, PL-1). */
+interface ProjectNudge { key: string; nudge: Nudge; at: number; takenBy: Set<string>; shownTo: Set<string> }
+/** A session's own nudge and whether a turn's answer has shown it (PL-1). */
+interface SessionNudge { nudge: Nudge; shown: boolean }
 
 const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
 
@@ -148,8 +159,10 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   /** SW-9: what the latest sweep found, for the operator's queue; null before the first sweep. */
   let latest: { at: number; findings: SweptFinding[] } | null = null
   /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
-  const bySession = new Map<string, Map<string, Nudge>>()
+  const bySession = new Map<string, Map<string, SessionNudge>>()
   const byProject = new Map<string, ProjectNudge[]>()
+  /** What each turn's answer showed, by session and the turn's idempotencyKey, so a repeat answers the same (ER-2). */
+  const turnAnswers = new Map<string, { at: number; nudges: Nudge[] }>()
 
   const push = <T,>(list: T[], item: T): void => {
     list.push(item)
@@ -242,15 +255,16 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       // quiet on a running task may be a coding agent waiting on a permission prompt, where Enter approves. A stalled
       // terminal's finding waits as that session's nudge like every other, and the operator sees it in «На проверке».
       if (own) {
-        const lines = bySession.get(own) ?? new Map<string, Nudge>()
+        const lines = bySession.get(own) ?? new Map<string, SessionNudge>()
         lines.delete(f.key)
-        lines.set(f.key, nudge)
+        // A new telling is shown on a turn again, even when its older telling was (PL-1).
+        lines.set(f.key, { nudge, shown: false })
         while (lines.size > NUDGES_PER_KEY) lines.delete(lines.keys().next().value as string)
         bySession.set(own, lines)
         queued++
       } else if (f.projectId) {
         const list = prune(f.projectId, now).filter((n) => n.key !== f.key)
-        push(list, { key: f.key, nudge, at: now, takenBy: new Set<string>() })
+        push(list, { key: f.key, nudge, at: now, takenBy: new Set<string>(), shownTo: new Set<string>() })
         byProject.set(f.projectId, list)
         queued++
       }
@@ -346,12 +360,42 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   }
 
   const takeNudgeItems = (sessionId: string, projectId: string | null): Nudge[] => {
-    const own = [...(bySession.get(sessionId)?.values() ?? [])]
+    const own = [...(bySession.get(sessionId)?.values() ?? [])].map((e) => e.nudge)
     bySession.delete(sessionId)
     const shared = projectId ? prune(projectId, deps.now()).filter((n) => !n.takenBy.has(sessionId)) : []
     for (const n of shared) n.takenBy.add(sessionId)
     return [...own, ...shared.map((n) => n.nudge)]
   }
+
+  // #region turn-nudges-shown — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#review-iteration-1
+  /** The nudges a turn's answer shows (the 0.3.14 review, iteration 1, PL-1, DA-1, ER-1, DO-1, ER-2): at most
+   *  `TURN_NUDGES_MAX`, each shown on this session's turns at most once, and NEVER taken off the queue, so a hook that
+   *  throws the answer away (every fabric-agent-adapter before 0.51.2) loses none: fabric_work_list and fabric_heartbeat
+   *  still take each once. A repeat of the same turn (its idempotencyKey) answers what the first answer showed. */
+  const showTurnNudges = (sessionId: string, projectId: string | null, turnKey: string): Nudge[] => {
+    const now = deps.now()
+    for (const [k, a] of turnAnswers) if (now - a.at >= TURN_REPEAT_MS) turnAnswers.delete(k)
+    const answerKey = `${sessionId}\u0000${turnKey}`
+    const was = turnAnswers.get(answerKey)
+    if (was) return was.nudges.map((n) => ({ ...n }))
+    const out: Nudge[] = []
+    for (const e of bySession.get(sessionId)?.values() ?? []) {
+      if (out.length >= TURN_NUDGES_MAX) break
+      if (e.shown) continue
+      e.shown = true
+      out.push(e.nudge)
+    }
+    for (const n of projectId ? prune(projectId, now) : []) {
+      if (out.length >= TURN_NUDGES_MAX) break
+      if (n.takenBy.has(sessionId) || n.shownTo.has(sessionId)) continue
+      n.shownTo.add(sessionId)
+      out.push(n.nudge)
+    }
+    turnAnswers.set(answerKey, { at: now, nudges: out })
+    while (turnAnswers.size > TURN_ANSWERS_MAX) turnAnswers.delete(turnAnswers.keys().next().value as string)
+    return out.map((n) => ({ ...n }))
+  }
+  // #endregion turn-nudges-shown
 
   return {
     /** What the latest sweep found, a copy (SW-9): the operator's attention queue reads it. Null before the first sweep. */
@@ -371,9 +415,10 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         inFlight = false
       }
     },
-    /** This session's nudges, and its project's it has not yet taken; the session's own are cleared (SW-4). One
-     *  queue for every answer that carries them: a turn's (0.3.14 wave 2) takes what fabric_work_list then does not. */
+    /** This session's nudges, and its project's it has not yet taken; the session's own are cleared (SW-4). Only
+     *  fabric_work_list and fabric_heartbeat take; a turn's answer shows (`showTurnNudges`). */
     takeNudgeItems,
+    showTurnNudges,
     /** The same nudges as the lines fabric_work_list and fabric_heartbeat carry. */
     takeNudges(sessionId: string, projectId: string | null): string[] {
       return takeNudgeItems(sessionId, projectId).map((n) => n.says)

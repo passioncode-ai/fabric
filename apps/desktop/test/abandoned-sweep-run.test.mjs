@@ -768,6 +768,58 @@ test('takeNudgeItems: each nudge as {kind, says, task_id | request_id}, from the
   assert.deepEqual(sweep.takeNudgeItems('s-other', 'p1'), [], 'once per session, whichever answer took it')
 })
 
+// ── The 0.3.14 review, iteration 1: PL-1, DA-1, ER-1, DO-1, ER-2. A turn's answer SHOWS nudges, it takes none ──────
+test('PL-1: a turn\'s answer shows the nudges and takes none, so an adapter that ignores the answer loses nothing', async () => {
+  const w = world({
+    claims: [silentClaim('c1', 's-enrolled')],
+    requests: [{ requestId: 'r1', targetProjectId: 'p1', requesterProjectId: 'p2', state: 'queued', movedAt: iso(T0 - 10 * MIN), answerUnreadSince: null }]
+  })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  const turn = sweep.showTurnNudges('s-enrolled', 'p1', 'k1')
+  assert.deepEqual(turn.map((n) => n.kind), ['claim-silent', 'request-unmoved'])
+  // An adapter before 0.51.2 throws that answer away; the agent's next fabric_work_list still gets both, once.
+  assert.equal(sweep.takeNudges('s-enrolled', 'p1').length, 2, 'fabric_work_list still takes what the turn showed')
+  assert.deepEqual(sweep.takeNudges('s-enrolled', 'p1'), [], 'and takes each once')
+})
+
+test('PL-1: each nudge is shown on a session\'s turns at most once, and at most five per turn', async () => {
+  const w = world({ claims: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'].map((id) => silentClaim(id, 's-many')) })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  const first = sweep.showTurnNudges('s-many', 'p1', 'k1')
+  assert.equal(first.length, 5, 'at most five on one turn')
+  const second = sweep.showTurnNudges('s-many', 'p1', 'k2')
+  assert.equal(second.length, 2, 'the rest on the next turn')
+  assert.equal(new Set([...first, ...second].map((n) => n.task_id)).size, 7, 'none twice')
+  assert.deepEqual(sweep.showTurnNudges('s-many', 'p1', 'k3'), [], 'shown once on turns')
+  assert.equal(sweep.takeNudges('s-many', 'p1').length, 7, 'every one still waits for fabric_work_list')
+})
+
+test('ER-2: a repeat of a turn answers the nudges the first answer showed, even once fabric_work_list took them', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-r')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  const first = sweep.showTurnNudges('s-r', 'p1', 'k1')
+  assert.equal(first.length, 1)
+  sweep.takeNudges('s-r', 'p1')
+  assert.deepEqual(sweep.showTurnNudges('s-r', 'p1', 'k1'), first, 'the same key, the same answer')
+  assert.deepEqual(sweep.showTurnNudges('s-r', 'p1', 'k2'), [], 'another turn shows nothing new')
+  assert.deepEqual(sweep.showTurnNudges('s-other', 'p1', 'k1'), [], 'a key is its session\'s own')
+})
+
+test('PL-1: a project nudge is shown once to each session\'s turns, and a new telling is shown again', async () => {
+  const w = world({ requests: [{ requestId: 'r1', targetProjectId: 'p1', requesterProjectId: 'p2', state: 'queued', movedAt: iso(T0 - 10 * MIN), answerUnreadSince: null }] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(sweep.showTurnNudges('s-a', 'p1', 'a1').length, 1)
+  assert.deepEqual(sweep.showTurnNudges('s-a', 'p1', 'a2'), [])
+  assert.equal(sweep.showTurnNudges('s-b', 'p1', 'b1').length, 1, 'another session of the project is shown it too')
+  assert.equal(sweep.takeNudges('s-a', 'p1').length, 1, 'still there for fabric_work_list')
+  w.tick(31 * MIN); await sweepOnce(sweep)
+  assert.equal(sweep.showTurnNudges('s-a', 'p1', 'a3').length, 1, 'told again after 30 minutes: shown again')
+})
+
 // ── 0.3.14 wave 2: a session changing files with no claim ─────────────────────────────────────────────────────
 const { readRecentTurns } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
 const changedTurn = (sessionId, agoMin, filesChanged = 3) => ({ sessionId, projectId: 'p1', at: iso(T0 - agoMin * MIN), filesChanged })

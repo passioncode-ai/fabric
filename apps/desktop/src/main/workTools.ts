@@ -106,9 +106,9 @@ export interface WorkToolDeps {
   /** This session's nudges from the sweep of abandoned work, taken (and so cleared) by the answer that carries them
    *  (0.3.13 wave 2, SW-4; `abandonedSweepRun.ts#createAbandonedSweep`). */
   nudges?(): string[]
-  /** The same queue as `nudges`, each nudge whole, for a turn's answer (0.3.14 wave 2): a turn is observed on every
-   *  prompt, a heartbeat about once a day. */
-  turnNudges?(): Nudge[]
+  /** The nudges a turn's answer shows, each whole (0.3.14 wave 2; the review, iteration 1, PL-1): shown, never taken, so
+   *  `nudges` still gives each once; at most five; the same for a repeat of the turn's idempotencyKey (ER-2). */
+  turnNudges?(idempotencyKey: string): Nudge[]
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -613,7 +613,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Record a turn of this session, or its end',
       description:
-        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason): the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId is the one this session enrolled with, or the one it was renamed to when the agent\'s session id changed (after /clear). The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone, except three, which record nothing and keep the session with its claims: an end with reason clear (session-kept: /clear keeps the agent and its fabric-mcp), an end observed before this session enrolled (stale-end: an earlier process of the same agent session), and an end sent while the agent\'s own fabric-mcp still signs (agent-still-connected: that fabric-mcp records the end and releases the claims when it leaves). A session whose end is already recorded answers already-ended. A turn\'s answer may carry nudges: reminders from Fabric\'s sweep of abandoned work, each {kind, says, task_id or request_id}, given once. Act on them before you go on: claim, move or release the task, answer or read the board request, as each says.',
+        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason): the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId is the one this session enrolled with, or the one it was renamed to when the agent\'s session id changed (after /clear). The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone, except three, which record nothing and keep the session with its claims: an end with reason clear (session-kept: /clear keeps the agent and its fabric-mcp), an end observed before this session enrolled (stale-end: an earlier process of the same agent session), and an end sent while the agent\'s own fabric-mcp still signs (agent-still-connected: that fabric-mcp records the end and releases the claims when it leaves). A session whose end is already recorded answers already-ended. A turn\'s answer may carry nudges: reminders from Fabric\'s sweep of abandoned work, each {kind, says, task_id or request_id}, at most five, each shown on a turn once; they stay for fabric_work_list and fabric_heartbeat, so one may come again there. A repeated turn answers the same nudges. Act on them before you go on: claim, move or release the task, answer or read the board request, as each says.',
       inputSchema: {
         event: z.enum(['turn', 'end']),
         runtime: z.string().regex(/^[a-z][a-z0-9-]{1,40}$/),
@@ -647,7 +647,12 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         .eq('payload->>session_id', scope.sessionId).eq('payload->>idempotency_key', idempotencyKey).limit(1)
       if (prior.error) throw new Error(`the journal could not be read: ${prior.error.message}`)
       const was = (prior.data ?? [])[0] as { seq: number } | undefined
-      if (was) return reply({ recorded: true, seq: was.seq, repeated: true })
+      if (was) {
+        // The 0.3.14 review, iteration 1, ER-2: a turn's repeat (the hook retries a spooled turn whose answer it lost)
+        // answers the nudges the first answer showed.
+        const again = event === 'turn' ? deps.turnNudges?.(idempotencyKey) ?? [] : []
+        return reply({ recorded: true, seq: was.seq, repeated: true, ...(again.length ? { nudges: again } : {}) })
+      }
       const facts = {
         session_id: scope.sessionId, runtime, runtime_session_id: runtimeSessionId, observed_at: observedAt,
         head: head ?? null, files_changed: filesChanged ?? null, lines_added: linesAdded ?? null, lines_removed: linesRemoved ?? null,
@@ -656,9 +661,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       if (event === 'turn') {
         const e = await deps.append({ type: 'session.turn.observed@1', payload: facts })
         // #region turn-nudges — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
-        // 0.3.14 wave 2: the sweep's nudges ride on every turn, taken only once the turn is recorded, so a turn the
-        // journal refused loses none; none, no field.
-        const nudges = deps.turnNudges?.() ?? []
+        // 0.3.14 wave 2: the sweep's nudges ride on every turn, shown only once the turn is recorded; none, no field.
+        // The review, iteration 1, PL-1: shown, never taken, so a hook that throws the answer away loses none.
+        const nudges = deps.turnNudges?.(idempotencyKey) ?? []
         return reply({ recorded: true, seq: e.seq, ...(nudges.length ? { nudges } : {}) })
         // #endregion turn-nudges
       }

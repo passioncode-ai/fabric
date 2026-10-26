@@ -190,9 +190,11 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     id: 'work.check-every-three-minutes',
     text:
       'Every three minutes while you work, and whenever you are about to wait, check your own open work: call ' +
-      'fabric_work_list and act first on its nudges and waiting_for_you. Nudges ride only on the answers of ' +
-      'fabric_work_list and fabric_heartbeat, and each is given once: the first of those answers that carries it takes ' +
-      'it. Then read the answers to board requests you sent that you have not read (com.list {unread: true}) and mark ' +
+      'fabric_work_list and act first on its nudges and waiting_for_you. Nudges are taken by the answers of ' +
+      'fabric_work_list and fabric_heartbeat, each given once: the first of those answers that carries it takes it. A ' +
+      'turn the session hooks record (fabric_session_observe) also shows up to five nudges, each once, without taking ' +
+      'them (fabric-agent-adapter 0.51.2 or later prints them; Codex and Kimi send no turns), so one may come again in ' +
+      'fabric_work_list. Then read the answers to board requests you sent that you have not read (com.list {unread: true}) and mark ' +
       'each one read (com.read_ack), or it stays unread and you are told again. Fabric ' +
       'sweeps abandoned work on the same cadence and points its agent at the next step; a task you hold and are not ' +
       'moving is either moved, handed over or let go, never left still.',

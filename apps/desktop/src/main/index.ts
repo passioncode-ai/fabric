@@ -1091,8 +1091,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
     // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
     nudges: (sessionId, projectId) => abandonedSweep?.takeNudges(sessionId, projectId) ?? [],
-    // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue.
-    nudgeItems: (sessionId, projectId) => abandonedSweep?.takeNudgeItems(sessionId, projectId) ?? [],
+    // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue, shown
+    // there and never taken (the review, iteration 1, PL-1: an adapter before 0.51.2 throws a turn's answer away).
+    turnNudges: (sessionId, projectId, turnKey) => abandonedSweep?.showTurnNudges(sessionId, projectId, turnKey) ?? [],
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language

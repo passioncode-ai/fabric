@@ -25,6 +25,15 @@ describe('wave 2 rules', () => {
     expect(t).toContain('com.read_ack')
   })
 
+  it('the 0.3.14 review, iteration 1, PL-2: a turn\'s answer shows nudges without taking them, from adapter 0.51.2', () => {
+    const t = byId('work.check-every-three-minutes')?.text ?? ''
+    expect(t).not.toMatch(/ride only on/)
+    expect(t).toMatch(/fabric_session_observe/)
+    expect(t).toMatch(/without taking/)
+    expect(t).toMatch(/0\.51\.2/)
+    expect(t).toMatch(/Codex and Kimi send no turns/)
+  })
+
   it('a relayed instruction with the operator\'s quote and source is the operator\'s own (TO-1)', () => {
     const o = byId('operator.told-one-is-told-all')
     expect(o?.mode).toBe('ADVICE')
