@@ -21,7 +21,7 @@ const here = project('pa', 'Fabric')
 
 function stub(open = vi.fn(async () => ({ sessionId: 's9' }))) {
   const api = {
-    projects: { list: vi.fn(async () => [here, project('pd', 'Dashboards', { default_agent: 'codex' }), project('pb', 'Bot', { status: 'archived' }), project('pc', 'copylot')]) },
+    projects: { list: vi.fn(async () => [here, project('pd', 'Dashboards', { default_agent: 'codex', repo_path: '/work/dashboards' }), project('pb', 'Bot', { status: 'archived' }), project('pc', 'copylot')]) },
     terminal: { open },
     tasks: { note: vi.fn(async () => ({ ok: true })) }
   }
@@ -63,6 +63,61 @@ describe('«Нужна правка в другом проекте»', () => {
     expect(screen.queryByText(/Fabric agent|агенту/)).toBeNull()
   })
 
+  it('ER-14: a project with no repository says the agent starts in the home folder, and opens only on a second press', async () => {
+    const api = stub()
+    const opened: string[] = []
+    show(opened)
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pc' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Check the voice' } })
+    expect(screen.getByText(en['xp.home'].replace('{project}', 'copylot'))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    expect(api.terminal.open).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
+    await waitFor(() => expect(opened).toEqual(['s9']))
+    expect(await screen.findByText(new RegExp(en['xp.doneHome'].split('{project}')[0]))).toBeTruthy()
+  })
+
+  it('DA-6: a project of another recorded business is refused, and nothing of this task reaches it', async () => {
+    const api = stub()
+    api.projects.list = vi.fn(async () => [{ ...here, business: 'Appvillis' }, project('px', 'Phonebot', { business: 'Other Co', repo_path: '/x' }), project('py', 'Same', { business: ' appvillis ', repo_path: '/y' })])
+    render(<I18nProvider locale="en"><OpenConsoleContext.Provider value={async () => {}}>
+      <CrossProjectConsole project={{ ...here, business: 'Appvillis' }} taskId="t1" taskTitle="Secret plan" />
+    </OpenConsoleContext.Provider></I18nProvider>)
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'px' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Do it' } })
+    expect(screen.getByText(en['xp.wall'].replaceAll('{project}', 'Phonebot'))).toBeTruthy()
+    const button = screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Phonebot') }) as HTMLButtonElement
+    expect(button.disabled).toBe(true)
+    fireEvent.click(button)
+    expect(api.terminal.open).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(en['xp.project']), { target: { value: 'py' } })
+    expect(screen.queryByText(en['xp.wall'].replaceAll('{project}', 'Same'))).toBeNull()
+  })
+
+  it('ER-15, UX-15: a started console whose tab fails is said as started, noted, offered again, and never started twice', async () => {
+    const api = stub()
+    let tries = 0
+    render(<I18nProvider locale="en"><OpenConsoleContext.Provider value={async () => { if (tries++ === 0) throw new Error('tab refused') }}>
+      <CrossProjectConsole project={here} taskId="t1" taskTitle="Show nudges" />
+    </OpenConsoleContext.Provider></I18nProvider>)
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pd' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Fix it' } })
+    const button = screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }) as HTMLButtonElement
+    fireEvent.click(button)
+    expect(await screen.findByText(en['xp.tabFailed'].replace('{project}', 'Dashboards'))).toBeTruthy()
+    expect(screen.queryByText(en['xp.failed'])).toBeNull()
+    expect(api.tasks.note).toHaveBeenCalledTimes(1)
+    expect(button.disabled).toBe(true)
+    fireEvent.click(button)
+    expect(api.terminal.open).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: en['agentScreen.openSession'] }))
+    await waitFor(() => expect(screen.queryByText(en['xp.tabFailed'].replace('{project}', 'Dashboards'))).toBeNull())
+    expect(api.terminal.open).toHaveBeenCalledTimes(1)
+  })
+
   it('says a console that did not open, and writes no note', async () => {
     const api = stub(vi.fn(async () => { throw new Error('no such agent') }))
     show()
@@ -70,6 +125,7 @@ describe('«Нужна правка в другом проекте»', () => {
     fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pc' } })
     fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Check the voice' } })
     fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
     expect(await screen.findByText(en['xp.failed'])).toBeTruthy()
     expect(screen.getByText('no such agent')).toBeTruthy()
     expect(api.tasks.note).not.toHaveBeenCalled()
