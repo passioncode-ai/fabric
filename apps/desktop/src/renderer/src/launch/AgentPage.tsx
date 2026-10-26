@@ -9,14 +9,24 @@
  * задачу можно было развернуть, перейти к ней»): «Задачи» lists every task the session took, newest first
  * (`work.session`, `shared/sessionTasks.ts`); each row opens in place to its brief and «Открыть задачу». The raw
  * history moves below it, closed until opened, and a history row that is about a task names it and links to it.
+ *
+ * 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §3; the operator: «сначала мы показываем ... статус,
+ * планинг ... справа ... её актуальную сессию ... и можно было открыть ее»): the agent's screen in two columns. Its
+ * header names the runner and session, the project, the branch and the state. «Сейчас» on top: the task it holds with
+ * its brief's «Что должно произойти», its newest report with «шаг N из M», how long it has held the task, and the
+ * task's milestones. Then «Задачи», newest first, each opening to its brief, «Чем закончил» and «Вехи»
+ * (`shared/agentTrail.ts`). The raw history stays at the foot, closed. On the right the session card: what Fabric
+ * observes, the agent's own word on its phase, where the session runs, and «Открыть сессию», which opens the console
+ * as a tab only when pressed (no console mounts on choosing the agent). «Результаты» as event types are gone: a task's
+ * «Чем закончил» says it in words.
  */
 import { useEffect, useState } from 'react'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { FeedEvent } from '../../../shared/types'
 import type { SessionTask, SessionTasksView } from '../../../shared/sessionTasks'
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
-import { eventKind } from '../../../shared/homeView.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
+import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
 import { describeEvent, pluralForm, useLocale, useT } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { since } from '../duration'
@@ -37,14 +47,16 @@ export function taskOfEvent(e: FeedEvent): { projectId: string; taskId: string }
   return { projectId: e.project_id, taskId: subject.ref.id }
 }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread }: {
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where }: {
   agent: LiveAgent
   /** Who works was not read: the task and the action are unknown, never said as none (0.3.13 review, iteration 2, UX-3). */
   workUnread?: boolean
   /** Moves when the journal does: the page reads its history again. */
   mark: number
-  /** Absent on Агенты' «Работа» tab (CO-419): the console is the tab beside it, not a button here. */
+  /** «Открыть сессию» in the session card (0.3.14): opens the console Fabric holds as a tab, only when pressed. */
   onConsole?(sessionId: string): void
+  /** Where the session runs: a console Fabric holds, a terminal outside Fabric, or not known (who joined was not read). */
+  where?: 'fabric' | 'terminal' | 'unknown'
   onOpenProject(projectId: string): void
   onOpenTask?(projectId: string, taskId: string): void
   /** The agent's name when the caller knows it better than its runner id (a joined agent's own name). */
@@ -110,7 +122,6 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const mine = read.of === agent.sessionId ? read : ({ at: 'reading', of: agent.sessionId } as const)
   const events = mine.at === 'ready' ? mine.events : mine.at === 'failed' ? mine.kept : null
   const newest = [...shownHistory(events ?? [])].reverse()
-  const results = newest.filter((e) => eventKind(e) === 'result')
   const days: Array<{ day: string; rows: FeedEvent[] }> = []
   for (const e of newest) {
     const day = dayLabel(e.occurred_at, t, locale)
@@ -118,106 +129,199 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
     else days.push({ day, rows: [e] })
   }
   const time = (iso: string): string => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  // The task trails: milestones, endings and handoffs, from the history and the session's holds (`agentTrail.ts`).
+  const holds = (tasksView?.tasks ?? []).filter((x) => x.via === 'claim').map((x) => ({ taskId: x.taskId, from: x.claimedAt, to: x.releasedAt }))
+  const trails = events ? taskTrail(events, holds) : null
+  const phase = events ? lastPhase(events) : null
+  const current = agent.task ? (tasksView?.tasks.find((x) => x.taskId === agent.task!.id) ?? null) : null
+  const currentTrail = agent.task && trails ? (trails.get(agent.task.id) ?? null) : null
+  const historyFull = events ? mayHaveEarlier(events) : false
+  const heard = agent.lastSignAt ?? agent.startedAt
+  const stateChip = state ?? (agent.stale ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t('agentScreen.state.working'))
+  const name = title ?? runnerLabel(agent.agent, t)
+  const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')
+  const trailOf = (x: SessionTask): React.ReactNode => {
+    if (!trails) return null
+    const tr: TaskTrail | undefined = trails.get(x.taskId)
+    return (
+      <>
+        <h5>{t('agentScreen.endedHow')}</h5>
+        {tr && (tr.endings.length || tr.handoffs.length) ? (
+          <ul className="as-ending">
+            {tr.endings.map((e) => <li key={`e-${e.at}`}>{e.note}</li>)}
+            {tr.handoffs.map((h) => <li key={`h-${h.name}-${h.at}`}>{t('agentScreen.handoff', { name: h.name, value: h.value })}</li>)}
+          </ul>
+        ) : <p className="lp-meta">{t('agentScreen.noEnding')}</p>}
+        <h5>{t('agentScreen.milestones')}</h5>
+        <Milestones list={tr?.milestones ?? []} empty={t('agentScreen.noTaskMilestones')} />
+      </>
+    )
+  }
   return (
-    <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-page">
-      <div className="lp-panel-head">
-        <div>
-          <p className="lp-kicker">{agent.projectName ?? t('launch.home.agents.noProject')}</p>
-          <h3 id="agent-page-title" tabIndex={-1}>{title ?? runnerLabel(agent.agent, t)}</h3>
-          <p className="lp-meta">{state ?? (agent.stale ? t('launch.home.agents.stale') : t('agentPage.since', { time: since(agent.lastSignAt ?? agent.startedAt, t) }))}</p>
+    <section className="as" aria-labelledby="agent-page-title" data-testid="agent-page">
+      <header className="as-head">
+        <div className="as-head-words">
+          <h3 id="agent-page-title" tabIndex={-1}>{t('agentScreen.title', { runner: name, id: agent.sessionId.slice(0, 8) })}</h3>
+          <p className="as-meta">
+            {agent.projectId
+              ? <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button>
+              : <span>{t('launch.home.agents.noProject')}</span>}
+            {agent.branch
+              ? <span className="rail-branch">{agent.branch}</span>
+              : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
+            <span className={`lp-pill ${agent.stale || state ? '' : 'live'}`}>{stateChip}</span>
+          </p>
         </div>
         <span className="lh-agents-actions">
-          {agent.console && onConsole && <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('launch.home.agents.openConsole')}</button>}
-          {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('launch.home.agents.openProject')}</button>}
           {agent.task && onOpenTask && (
             <button type="button" className="lp-button" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{t('agentPage.openTask')}</button>
           )}
-          {actions}
+          {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('launch.home.agents.openProject')}</button>}
         </span>
-      </div>
+      </header>
       {note}
-      <h4>{t('agentPage.task')}</h4>
-      <p>{agent.task ? (agent.task.summary || t('launch.home.work.untitled')) : workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>
-      <h4>{t('agentPage.doing')}</h4>
-      {/* The task has its own line above, so this says the action itself (D-4 keeps the task first in the list). */}
-      {workUnread && !agent.doing ? <p>{t('agentPage.doingUnread')}</p> : <Doing item={{ doing: agent.doing, summary: null }} />}
-      <h4>{t('agentPage.tasks')}</h4>
-      {tasksMine.at === 'reading' && <p className="lp-meta" role="status">{t('agentPage.tasksReading')}</p>}
-      {tasksMine.at === 'failed' && (
-        <>
-          <FailureNote said={t('agentPage.tasksUnreadable')} detail={tasksMine.says} />
-          <button type="button" className="lp-button" onClick={() => setTasksAttempt((n) => n + 1)}>{t('agentPage.tasksRetry')}</button>
-        </>
-      )}
-      {tasksView && (tasksView.tasks.length === 0
-        ? (tasksMine.at === 'ready' && <p className="lp-meta">{t('agentPage.noTasks')}</p>)
-        : (
-          <ul className="hx-list ap-tasks" aria-label={t('agentPage.tasks')}>
-            {tasksView.tasks.map((x) => {
-              const brief = [['task.what', x.brief.what], ['task.why', x.brief.why], ['task.expected', x.brief.expected]] as const
-              return (
-                <li key={x.taskId} className="hx-row">
-                  <details>
-                    <summary>
-                      <b>{x.summary || t('launch.home.work.untitled')}</b>
-                      <small className="lp-meta"> {[
-                        x.projectName,
-                        statusOf(x.status),
-                        t(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', { time: when(x.claimedAt) }),
-                        endedOf(x),
-                        x.claims > 1 ? t(`agentPage.taskTimes.${pluralForm(locale, x.claims)}` as 'agentPage.taskTimes.many', { count: x.claims }) : null
-                      ].filter(Boolean).join(' · ')}</small>
-                    </summary>
-                    {brief.some(([, v]) => v) ? (
-                      <dl>
-                        {brief.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{t(k)}</dt><dd>{v}</dd></div>)}
-                      </dl>
-                    ) : <p className="lp-meta">{t('agentPage.noBrief')}</p>}
-                    {onOpenTask && <button type="button" className="lp-button" onClick={() => onOpenTask(x.projectId, x.taskId)}>{t('agentPage.openThisTask')}</button>}
-                  </details>
-                </li>
-              )
-            })}
-          </ul>
-        ))}
-      {tasksView?.capped && <p className="lp-meta">{t('agentPage.tasksCapped', { count: tasksView.tasks.length })}</p>}
-      {mine.at === 'failed' && (
-        <>
-          <FailureNote said={t('agentPage.unreadable')} detail={mine.says} />
-          <button type="button" className="lp-button" onClick={() => setAttempt((n) => n + 1)}>{t('acts.retry')}</button>
-        </>
-      )}
-      {mine.at === 'reading' && <p className="lp-meta" role="status">{t('estate.reading')}</p>}
-      {events && (
-        <>
-          <h4>{t('agentPage.results')}</h4>
-          {results.length === 0 ? <p className="lp-meta">{t('agentPage.noResults')}</p> : (
-            <ul className="hx-list" aria-label={t('agentPage.results')}>
-              {results.map((e) => (
-                <li key={e.seq} className="hx-row"><div className="hx-act"><time className="hx-time" dateTime={e.occurred_at}>{time(e.occurred_at)}</time><span className="hx-said">{describeEvent(t, e.type)}</span></div></li>
-              ))}
-            </ul>
-          )}
-          {/* UX-4: the heading stands outside the disclosure, which names what it opens. */}
-          <h4 id="agent-page-history">{t('agentPage.did')}</h4>
-          <details className="ap-history">
-            <summary>{t('agentPage.historyOpen')}</summary>
-            <p className="lp-meta">{t('agentPage.historyLede')}</p>
-            {newest.length === 0 ? <p className="lp-meta">{t('agents.noHistory')}</p> : (
-              <ul className="hx-list" aria-label={t('agentPage.did')}>
-                {days.map(({ day, rows }) => rows.map((e, i) => (
-                  <li key={e.seq} className="hx-row">
-                    {i === 0 && <p className="hx-day">{day}</p>}
-                    <div className="hx-act"><time className="hx-time" dateTime={e.occurred_at}>{time(e.occurred_at)}</time><span className="hx-said">{describeEvent(t, e.type)}{historyTask(e)}</span></div>
-                  </li>
-                )))}
-              </ul>
+      <div className="as-cols">
+        <div className="as-main">
+          <section className="as-now" aria-labelledby="agent-now-title">
+            <h4 id="agent-now-title">{t('agentScreen.now')}</h4>
+            {agent.task ? (
+              <>
+                <p className="as-now-task">
+                  {onOpenTask
+                    ? <button type="button" className="lp-link" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{agent.task.summary || t('launch.home.work.untitled')}</button>
+                    : (agent.task.summary || t('launch.home.work.untitled'))}
+                </p>
+                {current?.brief.what && current.brief.what !== agent.task.summary && <p className="lp-meta">{current.brief.what}</p>}
+              </>
+            ) : <p>{workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>}
+            <p className="as-now-report">
+              {workUnread && !agent.doing ? t('agentPage.doingUnread') : agent.doing ? (
+                <>
+                  {agent.doing.step && agent.doing.ofSteps ? <span className="lh-arow-step">{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })} · </span> : null}
+                  {agent.doing.text}
+                  <small className="lp-meta"> · {t('launch.home.inWork.heard', { time: since(agent.doing.at, t) })}</small>
+                </>
+              ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
+            </p>
+            {current && current.via === 'claim' && !current.releasedAt && <p className="lp-meta">{t('agentScreen.held', { time: since(current.claimedAt, t) })}</p>}
+            {agent.task && events && (
+              <>
+                <h5>{t('agentScreen.nowMilestones')}</h5>
+                <Milestones list={currentTrail?.milestones ?? []} empty={t('agentScreen.noTaskMilestones')} />
+              </>
             )}
-            {mayHaveEarlier(events) && <p className="lp-meta">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>}
-          </details>
-        </>
-      )}
+          </section>
+          <h4>{t('agentPage.tasks')}</h4>
+          {tasksMine.at === 'reading' && <p className="lp-meta" role="status">{t('agentPage.tasksReading')}</p>}
+          {tasksMine.at === 'failed' && (
+            <>
+              <FailureNote said={t('agentPage.tasksUnreadable')} detail={tasksMine.says} />
+              <button type="button" className="lp-button" onClick={() => setTasksAttempt((n) => n + 1)}>{t('agentPage.tasksRetry')}</button>
+            </>
+          )}
+          {tasksView && (tasksView.tasks.length === 0
+            ? (tasksMine.at === 'ready' && <p className="lp-meta">{t('agentPage.noTasks')}</p>)
+            : (
+              <ul className="hx-list ap-tasks" aria-label={t('agentPage.tasks')}>
+                {tasksView.tasks.map((x) => {
+                  const brief = [['task.what', x.brief.what], ['task.why', x.brief.why], ['task.expected', x.brief.expected]] as const
+                  return (
+                    <li key={x.taskId} className="hx-row">
+                      <details>
+                        <summary>
+                          <b>{x.summary || t('launch.home.work.untitled')}</b>
+                          <small className="lp-meta"> {[
+                            x.projectName,
+                            statusOf(x.status),
+                            t(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', { time: when(x.claimedAt) }),
+                            endedOf(x),
+                            x.claims > 1 ? t(`agentPage.taskTimes.${pluralForm(locale, x.claims)}` as 'agentPage.taskTimes.many', { count: x.claims }) : null
+                          ].filter(Boolean).join(' · ')}</small>
+                        </summary>
+                        {brief.some(([, v]) => v) ? (
+                          <dl>
+                            {brief.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{t(k)}</dt><dd>{v}</dd></div>)}
+                          </dl>
+                        ) : <p className="lp-meta">{t('agentPage.noBrief')}</p>}
+                        {trailOf(x)}
+                        {onOpenTask && <button type="button" className="lp-button" onClick={() => onOpenTask(x.projectId, x.taskId)}>{t('agentPage.openThisTask')}</button>}
+                      </details>
+                    </li>
+                  )
+                })}
+              </ul>
+            ))}
+          {tasksView?.capped && <p className="lp-meta">{t('agentPage.tasksCapped', { count: tasksView.tasks.length })}</p>}
+          {historyFull && <p className="lp-meta">{t('agentScreen.trailWindow', { count: SESSION_HISTORY_WINDOW })}</p>}
+          {mine.at === 'failed' && (
+            <>
+              <FailureNote said={t('agentPage.unreadable')} detail={mine.says} />
+              <button type="button" className="lp-button" onClick={() => setAttempt((n) => n + 1)}>{t('acts.retry')}</button>
+            </>
+          )}
+          {mine.at === 'reading' && <p className="lp-meta" role="status">{t('estate.reading')}</p>}
+          {events && (
+            <>
+              {/* UX-4: the heading stands outside the disclosure, which names what it opens. */}
+              <h4 id="agent-page-history">{t('agentPage.did')}</h4>
+              <details className="ap-history">
+                <summary>{t('agentPage.historyOpen')}</summary>
+                <p className="lp-meta">{t('agentPage.historyLede')}</p>
+                {newest.length === 0 ? <p className="lp-meta">{t('agents.noHistory')}</p> : (
+                  <ul className="hx-list" aria-label={t('agentPage.did')}>
+                    {days.map(({ day, rows }) => rows.map((e, i) => (
+                      <li key={e.seq} className="hx-row">
+                        {i === 0 && <p className="hx-day">{day}</p>}
+                        <div className="hx-act"><time className="hx-time" dateTime={e.occurred_at}>{time(e.occurred_at)}</time><span className="hx-said">{describeEvent(t, e.type)}{historyTask(e)}</span></div>
+                      </li>
+                    )))}
+                  </ul>
+                )}
+                {mayHaveEarlier(events) && <p className="lp-meta">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>}
+              </details>
+            </>
+          )}
+        </div>
+        <aside className="as-session lp-panel" aria-labelledby="agent-session-title">
+          <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
+          <dl className="as-facts">
+            <div><dt>{t('agentScreen.stateLabel')}</dt><dd>{stateChip}</dd></div>
+            <div><dt>{t('agentScreen.lastSign')}</dt><dd>{t('launch.home.inWork.heard', { time: since(heard, t) })}</dd></div>
+            {phase && (
+              <div><dt>{t('agentScreen.claim')}</dt><dd>
+                {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn ? ` (${phase.waitingOn})` : ''}{' '}
+                <small className="lp-meta">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>
+              </dd></div>
+            )}
+            <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>
+            <div><dt>{t('agentScreen.started')}</dt><dd>{when(agent.startedAt)}</dd></div>
+          </dl>
+          {agent.console && onConsole ? (
+            <>
+              <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('agentScreen.openSession')}</button>
+              <p className="lp-meta">{t('agentScreen.openSessionNote')}</p>
+            </>
+          ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
+          {actions}
+        </aside>
+      </div>
     </section>
+  )
+}
+
+/** A task's milestones, newest first: «Шаг N.» and the agent's words, with when it said them. */
+function Milestones({ list, empty }: { list: TaskTrail['milestones']; empty: string }): React.JSX.Element {
+  const t = useT(), locale = useLocale()
+  if (!list.length) return <p className="lp-meta">{empty}</p>
+  return (
+    <ol className="as-miles">
+      {list.map((m) => (
+        <li key={`${m.at}-${m.text}`}>
+          <time className="hx-time" dateTime={m.at}>{new Date(m.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
+          <span>{m.step ? `${t('agentScreen.stepShort', { step: m.step })} ` : ''}{m.text}{m.note ? <small className="lp-meta"> · {m.note}</small> : null}</span>
+        </li>
+      ))}
+    </ol>
   )
 }
 // #endregion agent-page

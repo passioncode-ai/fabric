@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
-// Агенты as an agents screen (CO-419; SCN-166, SCN-167): the list by state on the right, the chosen agent's «Работа»
-// and «Консоль» in the centre, «Отключить» on a joined agent's own page (SX-26), installed agents with no session
-// (SX-20), and each empty or failed read said as what it is (SX item 2).
+// The agent's screen and the roster (CO-419; SCN-166, SCN-167; amended 0.3.14 by the simple Fabric,
+// docs/ux/2026-10-26-simple-fabric.md §3 and open choice 4): the roster by state now lives in Настройки (`AgentRoster`),
+// the chosen agent's screen has no tabs and opens its console only on «Открыть сессию»; «Отключить» stays on a joined
+// agent's own page (SX-26), installed agents with no session are listed (SX-20), and each empty or failed read is said
+// as what it is (SX item 2).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
@@ -11,12 +13,13 @@ vi.mock('../SessionWindow', () => ({
 
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
-import { AgentsScreen } from './AgentsScreen'
+import { AgentRoster, AgentsScreen } from './AgentsScreen'
 import { composeRoster } from './agentRoster'
 import type { HomeView, LiveAgent } from '../../../shared/homeLive'
 import type { HubOverview } from '../../../shared/access'
 import type { ExecutorRow } from '../../../shared/startPaths'
 import type { TerminalSession } from '../../../shared/types'
+import { OpenConsoleContext } from '../consoles'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -61,9 +64,14 @@ function stub(o: { home?: () => Promise<HomeView>; overview?: () => Promise<HubO
   return api
 }
 const show = (sessions: TerminalSession[] | null = [session({})], onCreate = vi.fn()) => {
-  render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={sessions} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={onCreate} /></I18nProvider>)
-  return { onCreate }
+  const onSelect = vi.fn()
+  render(<I18nProvider locale="en"><AgentRoster mark={0} hubMark={0} sessions={sessions} projects={projects} onSelect={onSelect} /></I18nProvider>)
+  return { onCreate, onSelect }
 }
+/** The agent's screen, arrived at for one agent (a row of the left column, Настройки' list, a «В работе» row). */
+const screenFor = (o: { session?: string; agent?: string; sessions?: TerminalSession[] | null; onPick?: (k: string) => void; onCreate?: () => void } = {}) =>
+  render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={o.sessions === undefined ? [session({})] : o.sessions} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()}
+    onCreate={o.onCreate ?? vi.fn()} initialSession={o.session ?? null} initialAgent={o.agent ?? null} onPick={o.onPick} /></I18nProvider>)
 const group = (key: 'working' | 'waiting' | 'idle' | 'off') => screen.getByRole('heading', { name: new RegExp(`^${en[`agentsPlace.group.${key}`]}`) }).parentElement as HTMLElement
 
 describe('the roster (agentRoster.composeRoster)', () => {
@@ -106,10 +114,10 @@ describe('the roster (agentRoster.composeRoster)', () => {
   })
 })
 
-describe('Агенты (CO-419)', () => {
-  it('lists every agent by state, each with its name, project, one line and when it was last heard from', async () => {
+describe('the roster in Настройки (CO-419, moved by 0.3.14)', () => {
+  it('lists every agent by state, each with its name, project, one line and when it was last heard from; a row opens its screen', async () => {
     stub()
-    show()
+    const { onSelect } = show()
     await within(group('working')).findByText('Claude Code')
     const work = within(group('working')).getByText('Claude Code').closest('button')!
     expect(work.textContent).toContain('Fabric')
@@ -122,74 +130,33 @@ describe('Агенты (CO-419)', () => {
     expect(within(group('waiting')).getByText(en['agentsPlace.groupEmpty.waiting'])).toBeTruthy()
     // No raw session state reaches the screen (SX-3).
     expect(document.body.textContent).not.toMatch(/\b(running|idle|ended)\b/)
+    fireEvent.click(within(group('idle')).getByText('Kimi Code'))
+    expect(onSelect).toHaveBeenCalledWith(expect.stringContaining('kimi-code'))
   })
 
-  it('«Работа» is the chosen agent first; «Консоль» draws its live console in place, «Открыть вкладкой» moves it to a tab', async () => {
-    const api = stub()
-    show()
-    fireEvent.click(await within(group('working')).findByText('Claude Code'))
-    await screen.findByTestId('agent-page')
-    expect(screen.getByRole('button', { name: en['agentsPlace.tab.work'] }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText('Keep the computer awake')).toBeTruthy()
-    expect(screen.queryByTestId('session-window')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: en['agentsPlace.tab.console'] }))
-    expect((await screen.findByTestId('session-window')).textContent).toBe('s1')
-    fireEvent.click(screen.getByRole('button', { name: en['agentsPlace.console.asTab'] }))
-    await waitFor(() => expect(api.windows.openSession).toHaveBeenCalledWith('s1'))
-  })
-
-  it('a joined agent carries «Отключить» on its own page; once out it says so with «Пустить снова» (SX-26)', async () => {
-    const api = stub()
-    show()
-    fireEvent.click(await within(group('working')).findByText('Codex'))
-    await screen.findByTestId('agent-page')
-    expect(screen.getByText(en['joined.proof'].replace('{name}', 'Codex'))).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: en['joined.disconnect'] }))
-    await waitFor(() => expect(api.hub.disconnectAgent).toHaveBeenCalledWith('codex'))
-    // Its console is in its terminal, not in Fabric: said, never a blank pane (SX item 5).
-    fireEvent.click(screen.getByRole('button', { name: en['agentsPlace.tab.console'] }))
-    expect(screen.getByText(en['agentsPlace.console.terminal'])).toBeTruthy()
-  })
-
-  it('a disconnected agent is off and lets back in from its page', async () => {
-    const api = stub({
-      home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }),
-      overview: async () => hub({ agents: [], keptOut: { readable: true, agents: [{ agentId: 'codex', name: 'Codex', at: earlier }] } })
-    })
-    show([])
-    fireEvent.click(await waitFor(() => within(group('off')).getByText('Codex')))
-    fireEvent.click(await screen.findByRole('button', { name: en['joined.letIn'] }))
-    await waitFor(() => expect(api.hub.letAgentIn).toHaveBeenCalledWith('codex'))
-  })
-
-  it('a refused disconnect leaves the agent connected and says why on its page', async () => {
-    const api = stub()
-    api.hub.disconnectAgent.mockImplementation(async () => ({ ok: false, reason: 'failed', says: 'hub refused' }) as never)
-    show()
-    fireEvent.click(await within(group('working')).findByText('Codex'))
-    fireEvent.click(await screen.findByRole('button', { name: en['joined.disconnect'] }))
-    expect(await screen.findByText('hub refused')).toBeTruthy()
-    expect(screen.getByRole('button', { name: en['joined.disconnect'] })).toBeTruthy()
+  it('Настройки lists only the groups it is given: the idle and the off', async () => {
+    stub()
+    render(<I18nProvider locale="en"><AgentRoster mark={0} hubMark={0} sessions={[session({})]} projects={projects} groups={['idle', 'off']} onSelect={vi.fn()} /></I18nProvider>)
+    expect(await within(group('idle')).findByText('Kimi Code')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: new RegExp(`^${en['agentsPlace.group.working']}`) })).toBeNull()
   })
 
   it('reading, empty and failed are each said as what they are', async () => {
     stub({ home: () => new Promise(() => {}), overview: () => new Promise(() => {}), exec: () => new Promise(() => {}) })
     show(null)
     expect(screen.getByText(en['agentsPlace.reading'])).toBeTruthy()
-    // Nothing read yet is not «no agent»: neither the empty place nor an empty group is said.
-    expect(screen.queryByText(en['agentsPlace.empty'])).toBeNull()
+    // Nothing read yet is not «no agent»: no empty group is said.
     expect(screen.queryByText(en['agentsPlace.groupEmpty.working'])).toBeNull()
     cleanup()
     stub({ home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }), overview: async () => hub({ agents: [] }), exec: async () => [] })
     show([])
-    await screen.findByText(en['agentsPlace.empty'])
-    expect(screen.getByText(en['agentsPlace.groupEmpty.working'])).toBeTruthy()
+    await screen.findByText(en['agentsPlace.groupEmpty.working'])
     cleanup()
     const api = stub({ home: async () => { throw new Error('stack refused') } })
     show([])
     await screen.findByText(en['agentsPlace.workUnread'])
     expect(screen.getByText('stack refused')).toBeTruthy()
-    // The installed agents are still listed: one failed read does not empty the place.
+    // The installed agents are still listed: one failed read does not empty the list.
     expect(await within(group('idle')).findByText('Kimi Code')).toBeTruthy()
     api.work.home.mockImplementation(async () => ({ live: [working], inWork: [], review: [], done: [], projects: [], readAt: now }))
     fireEvent.click(screen.getAllByRole('button', { name: en['common.retry'] })[0])
@@ -206,8 +173,6 @@ describe('Агенты (CO-419)', () => {
     })
     show([])
     await screen.findByText(en['agentsPlace.installedUnread'])
-    expect(screen.queryByText(en['agentsPlace.empty'])).toBeNull()
-    // The groups it feeds say they are not known, never that they are empty.
     expect(within(group('idle')).queryByText(en['agentsPlace.groupEmpty.idle'])).toBeNull()
     expect(within(group('off')).getByText(en['agentsPlace.groupUnread'])).toBeTruthy()
     fail = false
@@ -235,23 +200,9 @@ describe('Агенты (CO-419)', () => {
     stub({ home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }), overview: async () => hub({ agents: [] }), exec: async () => [] })
     show([session({ sessionId: 's7', optionId: 'shell', program: 'zsh', state: 'idle', lastActivityAt: quietSince }), session({ state: 'idle', lastActivityAt: quietSince })])
     const row = (await within(group('waiting')).findByText('Claude Code')).closest('button')!
-    const silent = en['agentsPlace.line.silent'].replace('{time}', '10m')
-    expect(row.textContent).toContain(silent)
+    expect(row.textContent).toContain(en['agentsPlace.line.silent'].replace('{time}', '10m'))
     expect(row.textContent).toContain(en['agentsPlace.state.waiting'])
     expect(screen.queryByText('Terminal')).toBeNull()
-    fireEvent.click(row)
-    expect(await screen.findAllByText(silent)).toHaveLength(2)
-  })
-
-  it('iteration 2 UX-3: when who works was not read, a console\'s task and action are unknown, never none', async () => {
-    stub({ home: async () => { throw new Error('stack refused') }, overview: async () => hub({ agents: [] }), exec: async () => [] })
-    show([session({})])
-    const row = (await screen.findByText('Claude Code')).closest('button')!
-    fireEvent.click(row)
-    const page = await screen.findByTestId('agent-page')
-    expect(await within(page).findByText(en['agentPage.taskUnread'])).toBeTruthy()
-    expect(within(page).getByText(en['agentPage.doingUnread'])).toBeTruthy()
-    expect(screen.queryByText(en['agentPage.noTask'])).toBeNull()
   })
 
   it('iteration 3 UX-2: the list\'s row says what was not read too, never «has not said yet»', async () => {
@@ -261,21 +212,82 @@ describe('Агенты (CO-419)', () => {
     expect(row.textContent).toContain(en['agentPage.doingUnread'])
     expect(row.textContent).not.toContain(en['launch.home.agents.silent'])
   })
+})
 
-  it('iteration 2 UX-4: an agent at work with no console here is said to work outside Fabric, never to be not working', async () => {
-    stub({ overview: async () => { throw new Error('hub refused') } })
-    show([])
-    fireEvent.click(await waitFor(() => within(group('working')).getByText('Codex')))
-    fireEvent.click(await screen.findByRole('button', { name: en['agentsPlace.tab.console'] }))
-    expect(screen.getByText(en['agentsPlace.console.unknown'])).toBeTruthy()
-    expect(screen.queryByText(en['agentsPlace.console.none'])).toBeNull()
+describe('the agent\'s screen (0.3.14, the simple Fabric §3)', () => {
+  it('has no «Работа» / «Консоль» tabs and mounts no console on choosing; «Открыть сессию» opens it as a tab', async () => {
+    const api = stub()
+    const opened: string[] = []
+    render(<I18nProvider locale="en"><OpenConsoleContext.Provider value={async (id) => { opened.push(id) }}>
+      <AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} initialSession="s1" />
+    </OpenConsoleContext.Provider></I18nProvider>)
+    const page = await screen.findByTestId('agent-page')
+    expect(page.textContent).toContain('Keep the computer awake')
+    expect(screen.queryByRole('button', { name: en['agentsPlace.tab.work'] })).toBeNull()
+    expect(screen.queryByRole('button', { name: en['agentsPlace.tab.console'] })).toBeNull()
+    expect(screen.queryByTestId('session-window')).toBeNull()
+    const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
+    expect(card.textContent).toContain(en['agentScreen.where.fabric'])
+    fireEvent.click(within(card).getByRole('button', { name: en['agentScreen.openSession'] }))
+    await waitFor(() => expect(opened).toEqual(['s1']))
+    expect(api.windows.openSession).not.toHaveBeenCalled()
   })
 
-  it('«Создать агента» opens «Создать» on its agent path', async () => {
+  it('without an agent chosen it says to choose one in the left column, and offers «Создать агента»', async () => {
     stub()
-    const { onCreate } = show()
+    const onCreate = vi.fn()
+    screenFor({ onCreate })
+    expect(await screen.findByText(en['agentScreen.pick'])).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['agentsPlace.create'] }))
     expect(onCreate).toHaveBeenCalled()
+  })
+
+  it('a joined agent carries «Отключить» on its own page; its session is in its terminal, said, never a button', async () => {
+    const api = stub()
+    screenFor({ session: 's2' })
+    await screen.findByTestId('agent-page')
+    expect(screen.getByText(en['joined.proof'].replace('{name}', 'Codex'))).toBeTruthy()
+    const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
+    expect(card.textContent).toContain(en['agentScreen.sessionElsewhere'])
+    expect(within(card).queryByRole('button', { name: en['agentScreen.openSession'] })).toBeNull()
+    fireEvent.click(within(card).getByRole('button', { name: en['joined.disconnect'] }))
+    await waitFor(() => expect(api.hub.disconnectAgent).toHaveBeenCalledWith('codex'))
+  })
+
+  it('a disconnected agent is off and lets back in from its page', async () => {
+    const api = stub({
+      home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }),
+      overview: async () => hub({ agents: [], keptOut: { readable: true, agents: [{ agentId: 'codex', name: 'Codex', at: earlier }] } })
+    })
+    screenFor({ agent: 'out:codex', sessions: [] })
+    fireEvent.click(await screen.findByRole('button', { name: en['joined.letIn'] }))
+    await waitFor(() => expect(api.hub.letAgentIn).toHaveBeenCalledWith('codex'))
+  })
+
+  it('a refused disconnect leaves the agent connected and says why on its page', async () => {
+    const api = stub()
+    api.hub.disconnectAgent.mockImplementation(async () => ({ ok: false, reason: 'failed', says: 'hub refused' }) as never)
+    screenFor({ session: 's2' })
+    fireEvent.click(await screen.findByRole('button', { name: en['joined.disconnect'] }))
+    expect(await screen.findByText('hub refused')).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['joined.disconnect'] })).toBeTruthy()
+  })
+
+  it('iteration 2 UX-3: when who works was not read, a console\'s task and action are unknown, never none', async () => {
+    stub({ home: async () => { throw new Error('stack refused') }, overview: async () => hub({ agents: [] }), exec: async () => [] })
+    screenFor({ session: 's1' })
+    const page = await screen.findByTestId('agent-page')
+    expect(await within(page).findByText(en['agentPage.taskUnread'])).toBeTruthy()
+    expect(within(page).getByText(en['agentPage.doingUnread'])).toBeTruthy()
+    expect(screen.queryByText(en['agentPage.noTask'])).toBeNull()
+  })
+
+  it('iteration 2 UX-4: an agent at work with no console here and the joined agents unread is not known to be anywhere', async () => {
+    stub({ overview: async () => { throw new Error('hub refused') } })
+    screenFor({ session: 's2', sessions: [] })
+    const card = await screen.findByRole('complementary', { name: en['agentScreen.session'] })
+    expect(card.textContent).toContain(en['agentScreen.where.unknown'])
+    expect(card.textContent).toContain(en['agentScreen.sessionUnknown'])
   })
 })
 
@@ -295,10 +307,9 @@ describe('the chosen agent across a task and back (review, iteration 1)', () => 
   it('UX-2: a pick is told to the shell, and arriving with it reopens that agent', async () => {
     stub()
     const onPick = vi.fn()
-    render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} onPick={onPick} /></I18nProvider>)
-    const row = await screen.findByRole('button', { name: /Codex/ })
-    fireEvent.click(row)
-    expect(onPick).toHaveBeenCalledWith('session:s2')
+    screenFor({ session: 's2', onPick })
+    await screen.findByTestId('agent-page')
+    await waitFor(() => expect(onPick).toHaveBeenCalledWith('session:s2'))
     cleanup()
     stub()
     render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={[session({})]} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()} onCreate={vi.fn()} initialAgent="session:s2" /></I18nProvider>)

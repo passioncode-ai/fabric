@@ -127,11 +127,11 @@ const content = () => document.querySelector('main.content') as HTMLElement
 
 async function openFromAgents(): Promise<void> {
   await screen.findByRole('navigation', { name: en['rail.label'] })
-  // The toggle «Агенты» in the left column, the agent's row there, then its screen's way to the console.
+  // The toggle «Агенты» in the left column, the agent's row there, then its screen's «Открыть сессию».
   fireEvent.click(within(screen.getByRole('group', { name: en['rail.view.label'] })).getByRole('button', { name: en['rail.agents'] }))
   fireEvent.click(await waitFor(() => agentRow()))
-  fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.tab.console'] }))
-  fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.console.asTab'] }))
+  // The agent's screen opens no console on arrival; «Открыть сессию» in its session card opens it as a tab (0.3.14).
+  fireEvent.click(await within(content()).findByRole('button', { name: en['agentScreen.openSession'] }))
 }
 
 describe('a console opens inside Fabric as a tab along the top', () => {

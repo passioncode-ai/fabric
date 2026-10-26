@@ -94,14 +94,18 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1)
   })
 
-  it('lists its results apart from everything it did, and opens its console, project and task', async () => {
+  // 0.3.14, the simple Fabric §3: «Результаты» as event types are gone; the session card's «Открыть сессию» opens the
+  // console only when pressed; the header opens the project and the task.
+  it('opens its session from the session card, and its project and task from the header; no «Результаты» list', async () => {
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' }), ev(3, 'task.moved@1', { to: 'review' })]) } } }))
     const onConsole = vi.fn(), onOpenProject = vi.fn(), onOpenTask = vi.fn()
     show(<AgentPage agent={agentA} mark={0} onConsole={onConsole} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />)
-    const results = await screen.findByRole('list', { name: en['agentPage.results'] })
-    expect(results.querySelectorAll('li')).toHaveLength(1)
-    expect(screen.getByRole('list', { name: en['agentPage.did'] }).querySelectorAll('li')).toHaveLength(3)
-    fireEvent.click(screen.getByRole('button', { name: en['launch.home.agents.openConsole'] }))
+    await screen.findByRole('list', { name: en['agentPage.did'] })
+    expect(screen.queryByRole('list', { name: en['agentPage.results'] })).toBeNull()
+    expect(screen.getByRole('heading', { name: en['agentScreen.title'].replace('{runner}', 'Claude Code').replace('{id}', 's1') })).toBeTruthy()
+    const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
+    expect(onConsole).not.toHaveBeenCalled()
+    fireEvent.click(within(card).getByRole('button', { name: en['agentScreen.openSession'] }))
     fireEvent.click(screen.getByRole('button', { name: en['launch.home.agents.openProject'] }))
     fireEvent.click(screen.getByRole('button', { name: en['agentPage.openTask'] }))
     expect(onConsole).toHaveBeenCalledWith('s1')
@@ -113,12 +117,61 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const history = vi.fn(async (_id: string): Promise<unknown[]> => { throw new Error('database away') }).mockRejectedValueOnce(new Error('database away')).mockResolvedValueOnce([])
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history } } }))
     show(<AgentPage agent={agentB} mark={0} onConsole={vi.fn()} onOpenProject={vi.fn()} />)
-    expect(screen.queryByRole('button', { name: en['launch.home.agents.openConsole'] })).toBeNull()
+    expect(screen.queryByRole('button', { name: en['agentScreen.openSession'] })).toBeNull()
+    expect(screen.getByText(en['agentScreen.sessionElsewhere'])).toBeTruthy()
     expect(screen.getByText(en['agentPage.noTask'])).toBeTruthy()
     await screen.findByText(en['agentPage.unreadable'])
     fireEvent.click(screen.getByRole('button', { name: en['acts.retry'] }))
     await waitFor(() => expect(screen.getByText(en['agents.noHistory'])).toBeTruthy())
-    expect(screen.getByText(en['agentPage.noResults'])).toBeTruthy()
+  })
+
+  it('«Сейчас» names the task with its brief, its newest report with its step, how long it is held and its milestones', async () => {
+    const t = (iso: string) => iso
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
+      { taskId: 't1', projectId: 'p1', projectName: 'Fabric', summary: 'Keep the computer awake', brief: { what: 'The Mac stays awake while an agent works', why: null, expected: null },
+        status: 'running', claimedAt: new Date(Date.now() - 2 * 3600_000).toISOString(), releasedAt: null, releasedHow: null, claims: 1, via: 'claim' }
+    ], capped: false }))
+    const history = vi.fn(async () => [
+      { ...ev(1, 'agent.stage.reported@1', { task_id: 't1', stage: 'Reading the power settings', step: 1, of_steps: 2 }), occurred_at: t(new Date(Date.now() - 3600_000).toISOString()) },
+      { ...ev(2, 'agent.heartbeat@1', { phase: 'waiting', waiting_kind: 'question' }) }
+    ])
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    const now = screen.getByRole('region', { name: en['agentScreen.now'] })
+    expect(now.textContent).toContain('Keep the computer awake')
+    expect(now.textContent).toContain('step 1 of 2')
+    expect(now.textContent).toContain('Making the keep-awake setting')
+    await waitFor(() => expect(now.textContent).toContain('The Mac stays awake while an agent works'))
+    expect(now.textContent).toContain(en['agentScreen.held'].replace('{time}', '2h'))
+    await waitFor(() => expect(now.textContent).toContain('Step 1. Reading the power settings'))
+    // The agent's own word on its phase, labelled as its claim.
+    const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
+    expect(card.textContent).toContain(en['agentScreen.claim'])
+    expect(card.textContent).toContain(`${en['agentScreen.phase.waiting']} (question)`)
+  })
+
+  it('a task row opens to «Чем закончил» in the agent\'s words and its «Вехи», or says there are none', async () => {
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
+      { taskId: 't5', projectId: 'p1', projectName: 'Fabric', summary: 'Nudge work without a task', brief: { what: null, why: null, expected: null },
+        status: 'review', claimedAt: '2026-10-26T10:00:00Z', releasedAt: '2026-10-26T11:00:00Z', releasedHow: 'done', claims: 1, via: 'claim' },
+      { taskId: 't6', projectId: 'p1', projectName: 'Fabric', summary: 'Board cards name the session', brief: { what: null, why: null, expected: null },
+        status: 'review', claimedAt: '2026-10-26T08:00:00Z', releasedAt: '2026-10-26T09:00:00Z', releasedHow: 'done', claims: 1, via: 'claim' }
+    ], capped: false }))
+    const history = vi.fn(async () => [
+      { ...ev(1, 'agent.stage.reported@1', { task_id: null, stage: 'Found the sweep', step: 2, of_steps: 3 }), occurred_at: '2026-10-26T10:30:00Z' },
+      { ...ev(2, 'task.handoff@1', { task_id: 't5', name: 'report', value: 'docs/sweep.md' }), occurred_at: '2026-10-26T10:55:00Z' },
+      { ...ev(3, 'work.released@1', { work: 't5', how: 'done', note: 'Counts changes between turns.' }), occurred_at: '2026-10-26T11:00:00Z' }
+    ])
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history } } }))
+    show(<AgentPage agent={{ ...agentA, task: null }} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    const list = await screen.findByRole('list', { name: en['agentPage.tasks'] })
+    await waitFor(() => expect(list.textContent).toContain('Counts changes between turns.'))
+    const [first, second] = [...list.querySelectorAll(':scope > li')] as HTMLElement[]
+    expect(first.textContent).toContain(en['agentScreen.endedHow'])
+    expect(first.textContent).toContain('Handed on «report»: docs/sweep.md')
+    expect(first.textContent).toContain('Step 2. Found the sweep')
+    expect(second.textContent).toContain(en['agentScreen.noEnding'])
+    expect(second.textContent).toContain(en['agentScreen.noTaskMilestones'])
   })
 
   // 0.3.14 (the operator, 2026-10-26): «перейти на агента, посмотреть его флоу, как он по задачам шёл ... сверху самая

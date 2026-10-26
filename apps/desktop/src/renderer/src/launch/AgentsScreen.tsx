@@ -12,6 +12,12 @@
  * so one session is never drawn twice with two states.
  *
  * Every read is the one the screens already make; a read that fails is said in its place, never an empty group.
+ *
+ * 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §3, open choice 4): Агенты is no longer a place with a
+ * roster. The left column's toggle lists the agents at work; this screen draws the one chosen, its body and its session
+ * card (`AgentPage`), with no «Работа» / «Консоль» tabs: the console opens as a tab along the top only when «Открыть
+ * сессию» is pressed. The roster grouped by state is kept as `AgentRoster`, which Настройки shows for the agents that
+ * are idle, installed or disconnected; picking one there opens its screen here.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ActAnswer } from '../../../shared/acts.ts'
@@ -25,7 +31,6 @@ import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
-import { SessionWindow } from '../SessionWindow'
 import { AgentPage } from './AgentPage'
 import { CappedNote, KeptNote, useHome } from './HomeWork'
 import { useRead } from './useRead'
@@ -120,40 +125,15 @@ function asLive(r: RosterRow): LiveAgent | null {
   }
 }
 
-export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick }: {
-  /** The session to open on arrival (0.3.14: a board card's «Сессия …»), as if the person had picked it. */
-  initialSession?: string | null
-  /** The roster row the person picked last, kept in the route so the way back from a task reopens it (the 0.3.14
-   *  review, iteration 1, UX-2). */
-  initialAgent?: string | null
-  /** Tells the shell which row the person picked, so it keeps it in the route. */
-  onPick?(key: string): void
-  /** Moves with the journal's work, task, agent and session events. */
-  mark: number
-  /** Moves with the journal's act and access events: «Отключить» or its undo, anywhere. */
-  hubMark: number
-  /** The consoles Fabric holds; null while unread. */
-  sessions: TerminalSession[] | null
-  projects: ReadonlyArray<{ id: string; name: string }> | null
-  onOpenProject(projectId: string): void
-  onOpenTask(projectId: string, taskId: string): void
-  /** «Создать агента»: «Создать» on its agent path (SCN-166 step 4). */
-  onCreate(): void
-}): React.JSX.Element {
-  const t = useT()
-  const locale = useLocale()
+/** Every read the roster takes, as one: who works, the consoles, the joined agents, the installed ones, Switchboard's
+ *  catalogue; and where each read stands, so a group is called empty only once its reads answered. */
+function useRoster(mark: number, hubMark: number, sessions: TerminalSession[] | null, projects: ReadonlyArray<{ id: string; name: string }> | null) {
   const home = useHome(mark)
   const hub = useHub(hubMark)
   // «Повторить» reads the installed agents again (0.3.13 review, iteration 1, UX-1).
   const [executorsAttempt, setExecutorsAttempt] = useState(0)
   const executors = useRead<ExecutorRow[]>(() => window.fabric.start.executors(), executorsAttempt)
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
-  const showConsole = useOpenConsole()
-  const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
-  const arrivedFor = initialAgent ?? (initialSession ? `session:${initialSession}` : null)
-  const [selected, setSelected] = useState<string | null>(arrivedFor)
-  const [tab, setTab] = useState<'work' | 'console'>('work')
-
   const roster = composeRoster({
     live: home.view?.live ?? null,
     sessions,
@@ -163,55 +143,6 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
     hub: hub.read.at === 'ready' ? hub.read.ov : null
   })
   const rows = rosterRows(roster)
-  // An agent that has left the list leaves no page under its name (SX item 3).
-  const chosen = rows.find((r) => r.key === selected) ?? null
-
-  // Focus moves to the chosen agent only on the person's pick, never on a read (0.3.12 review, iteration 2, UX-3).
-  const picked = useRef<string | null>(null)
-  const focusPage = (): void => {
-    const h = document.getElementById('agent-page-title')
-    h?.focus({ preventScroll: true })
-    h?.scrollIntoView?.({ block: 'nearest' })
-  }
-  const select = (key: string): void => {
-    if (key === selected) { focusPage(); return }
-    picked.current = key
-    setSelected(key)
-    setTab('work')
-    onPick?.(key)
-  }
-  // Arriving for an agent (a board card's «Сессия …», or the way back to the one picked last) picks it, and the page
-  // takes focus as on the person's own pick. The 0.3.14 review, iteration 1, UX-7: the mark is kept until the agent's
-  // row is read and its page drawn, so an arrival before the roster is read still moves focus to the page.
-  useEffect(() => {
-    if (!arrivedFor || arrivedFor === selected) {
-      if (arrivedFor && picked.current === null && !chosen) picked.current = arrivedFor
-      return
-    }
-    picked.current = arrivedFor
-    setSelected(arrivedFor)
-    setTab('work')
-    // `selected` and `chosen` are read, not followed: only a new arrival picks.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrivedFor])
-  useEffect(() => {
-    if (picked.current === null || !chosen || picked.current !== chosen.key) return
-    picked.current = null
-    focusPage()
-  }, [chosen?.key])
-
-  const openAsTab = (sessionId: string): void => {
-    setConsoleProblem(null)
-    showConsole(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
-  }
-
-  // Reading, empty, failed and capped are four things (SX item 2).
-  // The groups are drawn once who works now has been read (or failed): before that an empty «Работают сейчас» would claim
-  // nobody works. Each group then says it is empty only once the reads that fill it have answered, and «Агентов не
-  // найдено» only once every read answered: an agent still being looked for, or one a failed read could not see, is
-  // never called absent (0.3.13 review, iteration 1, UX-1, UX-2).
-  const homeSettled = home.view !== null || home.problem !== null
-  const nothingRead = !homeSettled && rows.length === 0
   const executorsFailed = executors && 'failed' in executors ? executors.failed : null
   const reads = {
     home: home.problem ? 'failed' : home.view ? 'read' : 'reading',
@@ -228,9 +159,29 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
     idle: together([reads.home, reads.sessions, reads.hub, reads.executors, reads.catalog]),
     off: together([reads.hub, reads.executors, reads.catalog])
   }
-  const everyRead = together(Object.values(reads))
+  return { home, hub, roster, rows, reads, groupRead, everyRead: together(Object.values(reads)), executorsFailed, retryExecutors: () => setExecutorsAttempt((n) => n + 1) }
+}
 
-  const list = (
+/**
+ * The roster by state (CO-419), kept for Настройки (0.3.14): the agents that are idle, installed or disconnected, each
+ * with its name, project, one line and when it was last heard from. A row opens the agent's screen (`onSelect`).
+ */
+export function AgentRoster({ mark, hubMark, sessions, projects, groups = AGENT_GROUPS, onSelect, selected = null }: {
+  mark: number
+  hubMark: number
+  sessions: TerminalSession[] | null
+  projects: ReadonlyArray<{ id: string; name: string }> | null
+  /** Which groups to list; all four when absent. */
+  groups?: readonly AgentGroup[]
+  onSelect(key: string): void
+  selected?: string | null
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  const r = useRoster(mark, hubMark, sessions, projects)
+  const { home, hub } = r
+  const nothingRead = home.view === null && home.problem === null && r.rows.length === 0
+  return (
     <section className="ag-list" aria-labelledby="ag-list-title">
       <h3 id="ag-list-title" className="visually-hidden">{t('agentsPlace.list')}</h3>
       {home.problem && (
@@ -241,10 +192,10 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       )}
       <KeptNote reading={home} />
       <CappedNote reading={home} />
-      {executorsFailed && (
+      {r.executorsFailed && (
         <div className="ag-note">
-          <FailureNote said={t('agentsPlace.installedUnread')} detail={executorsFailed} role="status" />
-          <button type="button" className="lp-button" onClick={() => setExecutorsAttempt((n) => n + 1)}>{t('common.retry')}</button>
+          <FailureNote said={t('agentsPlace.installedUnread')} detail={r.executorsFailed} role="status" />
+          <button type="button" className="lp-button" onClick={r.retryExecutors}>{t('common.retry')}</button>
         </div>
       )}
       {hub.read.at === 'failed' && (
@@ -254,38 +205,98 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         </div>
       )}
       {hub.read.at === 'ready' && hub.read.ov.keptOut && !hub.read.ov.keptOut.readable && <p className="lp-meta" role="status">{t('joined.outUnreadable')}</p>}
-      {everyRead === 'reading' && <p className="lp-meta" role="status">{t('agentsPlace.reading')}</p>}
-      {nothingRead ? null : AGENT_GROUPS.map((g) => (
-        <Group key={g} group={g} rows={roster[g]} read={groupRead[g]} workUnread={home.view === null && home.problem !== null} selected={chosen?.key ?? null} onSelect={select} locale={locale} />
+      {r.everyRead === 'reading' && <p className="lp-meta" role="status">{t('agentsPlace.reading')}</p>}
+      {nothingRead ? null : groups.map((g) => (
+        <Group key={g} group={g} rows={r.roster[g]} read={r.groupRead[g]} workUnread={home.view === null && home.problem !== null} selected={selected} onSelect={onSelect} locale={locale} />
       ))}
     </section>
   )
+}
+
+export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick }: {
+  /** The session to open on arrival (a row of the left column's «Агенты», a «В работе» row, a board card's
+   *  «Сессия …»), as if the person had picked it. */
+  initialSession?: string | null
+  /** The roster row picked last (Настройки' list, or the way back from a task), kept in the route (the 0.3.14 review,
+   *  iteration 1, UX-2). */
+  initialAgent?: string | null
+  /** Tells the shell which row the person picked, so it keeps it in the route. */
+  onPick?(key: string): void
+  /** Moves with the journal's work, task, agent and session events. */
+  mark: number
+  /** Moves with the journal's act and access events: «Отключить» or its undo, anywhere. */
+  hubMark: number
+  /** The consoles Fabric holds; null while unread. */
+  sessions: TerminalSession[] | null
+  projects: ReadonlyArray<{ id: string; name: string }> | null
+  onOpenProject(projectId: string): void
+  onOpenTask(projectId: string, taskId: string): void
+  /** «Создать агента»: «Создать» on its agent path (SCN-166 step 4). */
+  onCreate(): void
+}): React.JSX.Element {
+  const t = useT()
+  const r = useRoster(mark, hubMark, sessions, projects)
+  const { home, hub, rows } = r
+  const showConsole = useOpenConsole()
+  const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
+  const arrivedFor = initialAgent ?? (initialSession ? `session:${initialSession}` : null)
+  const [selected, setSelected] = useState<string | null>(arrivedFor)
+  // An agent that has left the list leaves no page under its name (SX item 3).
+  const chosen = rows.find((x) => x.key === selected) ?? null
+
+  // Focus moves to the chosen agent only on arrival for it, never on a read (0.3.12 review, iteration 2, UX-3).
+  const picked = useRef<string | null>(null)
+  const focusPage = (): void => {
+    const h = document.getElementById('agent-page-title')
+    h?.focus({ preventScroll: true })
+    h?.scrollIntoView?.({ block: 'nearest' })
+  }
+  // Arriving for an agent picks it, and the page takes focus as on the person's own pick. The 0.3.14 review, iteration 1,
+  // UX-7: the mark is kept until the agent's row is read and its page drawn, so an arrival before the roster is read
+  // still moves focus to the page.
+  useEffect(() => {
+    if (!arrivedFor || arrivedFor === selected) {
+      if (arrivedFor && picked.current === null && !chosen) picked.current = arrivedFor
+      return
+    }
+    picked.current = arrivedFor
+    setSelected(arrivedFor)
+    // `selected` and `chosen` are read, not followed: only a new arrival picks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arrivedFor])
+  useEffect(() => {
+    if (picked.current === null || !chosen || picked.current !== chosen.key) return
+    picked.current = null
+    focusPage()
+  }, [chosen?.key])
+  // The pick is the route's: told to the shell once it is known, so the way back from a task reopens this agent.
+  useEffect(() => { if (chosen && chosen.key !== initialAgent) onPick?.(chosen.key) }, [chosen?.key])
+
+  const openAsTab = (sessionId: string): void => {
+    setConsoleProblem(null)
+    showConsole(sessionId).catch((e: unknown) => setConsoleProblem(e instanceof Error ? e.message : String(e)))
+  }
 
   return (
-    <div className="ag" data-launch-view="agents">
-      <header className="ag-head">
-        <div>
-          {/* The place's own name, so a screen reader and the rail's focus move land on it (0.3.11 review, iteration 2, UX-10). */}
-          <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
-          <p className="lp-meta">{t('agentsPlace.lede')}</p>
-        </div>
-        <button type="button" className="lp-button primary" onClick={onCreate}>{t('agentsPlace.create')}</button>
-      </header>
+    <div className="ag ag-screen" data-launch-view="agents">
+      {/* The place's own name, so a screen reader and the rail's focus move land on it (0.3.11 review, iteration 2, UX-10). */}
+      <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
-      <div className="ag-place">
-        <div className="ag-centre">
-          {chosen ? (
-            <Centre row={chosen} tab={tab} onTab={setTab} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
-          ) : home.view === null && home.problem && rows.length === 0 ? (
-            <p className="lp-meta ag-pick" role="status">{t('agentPage.unread')}</p>
-          ) : everyRead === 'read' && rows.length === 0 ? (
-            <p className="lp-meta ag-pick">{t('agentsPlace.empty')}</p>
-          ) : rows.length > 0 ? (
-            <p className="lp-meta ag-pick">{t('agentPage.pick')}</p>
-          ) : null}
+      {chosen ? (
+        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
+      ) : home.view === null && home.problem && rows.length === 0 ? (
+        <div className="lp-meta ag-pick" role="status">
+          <p>{t('agentPage.unread')}</p>
+          {home.retry && <button type="button" className="lp-button" onClick={home.retry}>{t('common.retry')}</button>}
         </div>
-        {list}
-      </div>
+      ) : arrivedFor && r.everyRead === 'reading' ? (
+        <p className="lp-meta ag-pick" role="status">{t('agentsPlace.reading')}</p>
+      ) : (
+        <div className="ag-pick">
+          <p className="lp-meta">{t('agentScreen.pick')}</p>
+          <button type="button" className="lp-button" onClick={onCreate}>{t('agentsPlace.create')}</button>
+        </div>
+      )}
     </div>
   )
 }
@@ -331,10 +342,8 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, tab, onTab, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab }: {
+function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab }: {
   row: RosterRow
-  tab: 'work' | 'console'
-  onTab(tab: 'work' | 'console'): void
   mark: number
   hub: ReturnType<typeof useHub>
   /** Who works was not read (`work.home` failed first): a console's task and action are unknown, not none (UX-3). */
@@ -363,15 +372,12 @@ function Centre({ row, tab, onTab, mark, hub, homeUnread, onOpenProject, onOpenT
       )}
     </div>
   )
-  const tabs = (
-    <div className="lp-tabs ag-tabs" role="group" aria-label={t('agentsPlace.tabs')}>
-      <button type="button" className="lp-tab" aria-pressed={tab === 'work'} onClick={() => onTab('work')}>{t('agentsPlace.tab.work')}</button>
-      <button type="button" className="lp-tab" aria-pressed={tab === 'console'} onClick={() => onTab('console')}>{t('agentsPlace.tab.console')}</button>
-    </div>
-  )
   const waitingState = row.state === 'waiting' ? silentLine(row, t) : row.state === 'ended' ? stateWords(row, t) : undefined
-  const work = live ? (
+  // Where its session runs: a console Fabric holds; with the joined agents unread, not known; otherwise a terminal.
+  const where = row.console && row.sessionId ? 'fabric' : hub.read.at === 'failed' ? 'unknown' : 'terminal'
+  return live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
+      where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined}
       workUnread={homeUnread && !row.live} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">
@@ -390,32 +396,10 @@ function Centre({ row, tab, onTab, mark, hub, homeUnread, onOpenProject, onOpenT
       <p>{lineOf(row, t, locale, homeUnread)}</p>
       {row.install && <p className="lp-meta">{t('settings.agents.install')} <code>{row.install}</code></p>}
       {row.state === 'signin' && <p className="lp-meta">{t('agentsPlace.signinHow', { name })}</p>}
-    </section>
-  )
-  // «Консоль»: the live console where Fabric holds one; otherwise why there is none and what to do (SX item 5).
-  const console = row.console && row.sessionId ? (
-    <div className="ag-console">
-      <p className="ag-console-bar">
-        <button type="button" className="lp-button" onClick={() => onAsTab(row.sessionId!)}>{t('agentsPlace.console.asTab')}</button>
-      </p>
-      <SessionWindow key={row.sessionId} sessionId={row.sessionId} onDetach={() => window.fabric.windows.openSession(row.sessionId!)} />
-    </div>
-  ) : (
-    <p className="lp-meta ag-pick" role="status">
-      {row.joinedAgentId !== null && row.state !== 'out' ? t('agentsPlace.console.terminal')
-        : row.state === 'signin' ? t('agentsPlace.signinHow', { name })
+      <p className="lp-meta">{row.joinedAgentId !== null && row.state !== 'out' ? t('agentsPlace.console.terminal')
         : row.state === 'missing' ? t('agentsPlace.line.missing')
-        // An agent at work with no console here works outside Fabric, or, with the joined agents unread, it is not known
-        // where its console is; «not working» is said only of a row that is not at work (iteration 2, UX-4).
-        : row.state === 'working' || row.state === 'quiet' ? t(hub.read.at === 'failed' ? 'agentsPlace.console.unknown' : 'agentsPlace.console.elsewhere')
-        : t('agentsPlace.console.none')}
-    </p>
-  )
-  return (
-    <div className="ag-chosen">
-      {tabs}
-      {tab === 'work' ? work : console}
-    </div>
+        : t('agentsPlace.console.none')}</p>
+    </section>
   )
 }
 // #endregion agents-screen

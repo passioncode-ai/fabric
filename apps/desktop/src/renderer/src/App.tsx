@@ -61,7 +61,7 @@ import { I18nProvider, useT, type Locale, type Translate } from './i18n'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
-import { AgentsScreen } from './launch/AgentsScreen'
+import { AgentRoster, AgentsScreen } from './launch/AgentsScreen'
 import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { boundedMarks } from '../../shared/commsMarks.ts'
 import { NEEDS_YOU_FAMILIES } from './launch/HomeParts'
@@ -1034,6 +1034,9 @@ function Shell({
           onOpenAccess={() => setPanel('access')}
           onOpen={(to) => { setShowSettings(false); goTo({ kind: to }) }}
           commsUnread={commsUnread}
+          agentsRoster={<AgentRoster mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
+            sessions={sessions} projects={projects} groups={['idle', 'off']}
+            onSelect={(agent) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', agent }) }} />}
           onChange={async (next) => {
             // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
             // A refusal is answered to the screen, which says it at its own foot (CO-313), not in the banner above it.

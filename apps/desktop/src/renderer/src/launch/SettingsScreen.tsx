@@ -300,7 +300,10 @@ function Section({ id, label, children }: { id: string; label: string; children:
   )
 }
 
-export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread }: {
+export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread, agentsRoster }: {
+  /** 0.3.14, the simple Fabric (open choice 4): the agents that are idle, installed or disconnected, which left Агенты
+   *  for here (`AgentsScreen.tsx#AgentRoster`); a row opens the agent's screen. Absent, the section is not drawn. */
+  agentsRoster?: React.ReactNode
   settings: AppSettings
   /** Writes the patch; answers why it was not saved (said on this screen, CO-313), or nothing when it was. */
   onChange: (next: SettingsPatch) => Promise<string | null | void> | string | null | void
@@ -407,6 +410,13 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
         <Section id="settings-launch-group" label={t('settings.launch.group')}>
           <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} saved={saved} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
+          {agentsRoster && (
+            <section className="lp-panel" aria-labelledby="settings-agents-idle-title">
+              <h4 id="settings-agents-idle-title">{t('settings.agentsIdle.title')}</h4>
+              <p className="lp-meta">{t('settings.agentsIdle.lede')}</p>
+              {agentsRoster}
+            </section>
+          )}
           <section className="lp-panel" aria-labelledby="settings-launch-title">
             <h4 id="settings-launch-title">{t('settings.launch.title')}</h4>
             <FallbackOrderSetting value={settings.runnerFallback} onChange={change} />
