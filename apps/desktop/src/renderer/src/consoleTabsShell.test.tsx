@@ -198,4 +198,17 @@ describe('back and forward in the top bar', () => {
     fireEvent.click(forward)
     await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBeNull())
   })
+  it('ER-21: «Вперёд» is disabled once the only place it would reach (a console whose tab was closed) is gone', async () => {
+    stub([session])
+    render(<App />)
+    const travel = async () => within(await screen.findByRole('navigation', { name: en['nav.travel'] })).getAllByRole('button') as HTMLButtonElement[]
+    await openFromAgents()
+    await waitFor(() => expect(tabsStrip()).toBeTruthy())
+    fireEvent.click((await travel())[0])
+    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))
+    expect((await travel())[1].disabled).toBe(false)
+    fireEvent.click(within(tabsStrip()!).getByRole('button', { name: en['consoles.close'].replace('{name}', 'fabric-dashboards') }))
+    await waitFor(() => expect(tabsStrip()).toBeNull())
+    await waitFor(async () => expect((await travel())[1].disabled).toBe(true))
+  })
 })

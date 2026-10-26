@@ -815,21 +815,29 @@ function Shell({
       past.current = [...past.current.slice(-49), prev]
       future.current = []
     }
-    const back = past.current.length > 0, forward = future.current.length > 0
-    setTravelCan((old) => (old.back === back && old.forward === forward ? old : { back, forward }))
+    recomputeTravel()
   }, [active, showSettings])
+  // A project removed since, or a console whose tab the person closed, is skipped rather than shown blank or reopened.
+  const knownRef = useRef<(r: AppRoute) => boolean>(() => true)
+  knownRef.current = (r) =>
+    r.kind === 'project' ? (projects ?? []).some((p) => p.id === r.projectId)
+    : r.kind === 'console' ? consoles.includes(r.sessionId)
+    : true
+  // The 0.3.14 review, iteration 2, ER-21: a button is enabled only when a place it would reach still exists, so a
+  // press always goes somewhere; recomputed after every travel and whenever projects or consoles change.
+  function recomputeTravel(): void {
+    const back = past.current.some((p) => knownRef.current(p.route)), forward = future.current.some((p) => knownRef.current(p.route))
+    setTravelCan((old) => (old.back === back && old.forward === forward ? old : { back, forward }))
+  }
+  useEffect(() => { recomputeTravel() }, [projects, consoles])
   const travelRef = useRef<(dir: 'back' | 'forward') => void>(() => {})
   travelRef.current = (dir) => {
     const from = dir === 'back' ? past : future
     const to = dir === 'back' ? future : past
-    // A project removed since, or a console whose tab the person closed, is skipped rather than shown blank or reopened.
-    const known = (r: AppRoute): boolean =>
-      r.kind === 'project' ? (projects ?? []).some((p) => p.id === r.projectId)
-      : r.kind === 'console' ? consoles.includes(r.sessionId)
-      : true
+    const known = knownRef.current
     let snap = from.current.pop()
     while (snap && !known(snap.route)) snap = from.current.pop() // a project removed since is skipped, not shown blank
-    if (!snap || !shown.current) return
+    if (!snap || !shown.current) { recomputeTravel(); return }
     to.current.push(shown.current)
     travelling.current = true
     setShowSettings(snap.settings)
