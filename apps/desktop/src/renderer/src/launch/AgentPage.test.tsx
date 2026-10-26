@@ -183,4 +183,13 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(onOpenTask).toHaveBeenCalledWith('p1', 't7')
     expect(within(did).getAllByRole('button')).toHaveLength(1)
   })
+
+  it('a move row and a release row name their task too (0.3.14, eventSubject)', async () => {
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [task('t8', { summary: 'Fix the board' })], capped: false }))
+    const history = vi.fn(async () => [ev(1, 'task.moved@1', { task_id: 't8', to: 'review' }), ev(2, 'work.released@1', { work: 't8', how: 'done' })])
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    const did = await screen.findByRole('list', { name: en['agentPage.did'] })
+    await waitFor(() => expect(within(did).getAllByRole('button', { name: 'Fix the board' })).toHaveLength(2))
+  })
 })

@@ -66,6 +66,14 @@ describe('a journal row opens the thing it happened to', () => {
     expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't-1' })
   })
 
+  // 0.3.14: a move row names its task by `task_id`, which the table did not read, so it opened nothing.
+  it('opens the task a move row is about', () => {
+    const onOpen = vi.fn()
+    show([event('task.moved@1', { task_id: 't-5', from: 'running', to: 'review' })], onOpen)
+    fireEvent.click(screen.getByRole('button'))
+    expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't-5' })
+  })
+
   it('offers NO act for an event nobody has verified a subject for', () => {
     // The absence of an ACT, not the absence of a particular label — a probe
     // that looked for one button's name would pass on a differently-labelled
@@ -130,6 +138,7 @@ describe('the reason a row cannot be opened (CO-225 (5))', () => {
     expect(reasonOf(event('task.created@1', { title: 'no id here' }), 'ru')).not.toMatch(/carry/)
     expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'ru')).toBe(ru['journal.whyWorkNotTask'])
     expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'en')).toBe('An agent took work that is not a task.')
+    expect(reasonOf(event('work.released@1', { work: 'w-1' }), 'en'), 'a released claim is the same subject as a claim').toBe('An agent took work that is not a task.')
   })
 
   it('a feed with nowhere to open says no reason, since no row there is a link', () => {

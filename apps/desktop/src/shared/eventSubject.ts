@@ -14,7 +14,8 @@
 //
 // COVERAGE, MEASURED 2026-09-11 by reading the code that APPENDS each one: 10 of
 // the 72 event types the feed can describe. That is a tenth, and it is the tenth
-// whose payload key was read rather than assumed. The list grows by verifying a
+// whose payload key was read rather than assumed. 0.3.14 added `work.released@1` (11 of them now) and corrected
+// `task.moved@1`, whose writers write `task_id`, not `id`. The list grows by verifying a
 // writer, never by pattern — and a declared type whose key is absent from a
 // given row is refused too, so a row cannot be opened on a key that is not
 // there.
@@ -46,12 +47,16 @@ const BY_SEQ = 'seq'
 const DECLARED: Record<string, Declared> = {
   'task.created@1': { kind: 'task', keys: ['id'] },
   'task.finished@1': { kind: 'task', keys: ['id'] },
-  'task.moved@1': { kind: 'task', keys: ['id'] },
+  // Every writer writes `task_id` (main/actExecutors.ts, workTools.ts, workRelease.ts, agentSurface.ts; migrations 61
+  // and 115); `id` stays for any older row. Read `id` alone until 0.3.14, so no move row was about its task.
+  'task.moved@1': { kind: 'task', keys: ['task_id', 'id'] },
   'task.closed@1': { kind: 'task', keys: ['task_id'] },
   'task.note.added@1': { kind: 'task', keys: ['task_id'] },
   'question.asked@1': { kind: 'question', keys: ['id'] },
   'proposal.filed@1': { kind: 'proposal', keys: ['id'] },
   'work.claimed@1': { kind: 'work', keys: ['work'] },
+  // The same key as a claim (main/workTools.ts, main/agentSurface.ts), declared in 0.3.14.
+  'work.released@1': { kind: 'work', keys: ['work'] },
   'transcript.captured@2': { kind: 'transcript', keys: ['session_id'] },
   'transcript.captured@1': { kind: 'transcript', keys: ['session_id'] },
   // A refusal is addressed by the sequence of the row that recorded it, which

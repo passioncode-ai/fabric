@@ -79,6 +79,20 @@ describe('what a journal row is about', () => {
     // Ten of the seventy-two types the feed can describe — a tenth, verified
     // one writer at a time. A gate or a document quoting this cannot drift from
     // the table it describes.
-    expect(DECLARED_EVENT_TYPES).toBe(11)
+    expect(DECLARED_EVENT_TYPES).toBe(12)
+  })
+
+  // 0.3.14: every writer of `task.moved@1` writes `task_id` (main/actExecutors.ts, main/workTools.ts,
+  // main/workRelease.ts, main/agentSurface.ts, migrations 61 and 115), and the table read `id`, so no move row was ever
+  // about its task. `work.released@1` writes `work` like `work.claimed@1` (main/workTools.ts, main/agentSurface.ts).
+  it('reads a move\'s task from task_id, still from id for an older row', () => {
+    expect(subjectOfEvent(row('task.moved@1', { task_id: 't-3', to: 'done' }))).toEqual({ known: true, ref: { kind: 'task', id: 't-3' } })
+    expect(subjectOfEvent(row('task.moved@1', { id: 't-4' }))).toEqual({ known: true, ref: { kind: 'task', id: 't-4' } })
+  })
+
+  it('reads a released claim\'s work from `work`, as a claim\'s', () => {
+    expect(subjectOfEvent(row('work.released@1', { work: 'w-2', how: 'done' }))).toEqual({ known: true, ref: { kind: 'work', id: 'w-2' } })
+    expect(subjectOfEvent(row('work.claimed@1', { work: 'w-1' }))).toEqual({ known: true, ref: { kind: 'work', id: 'w-1' } })
+    expect(subjectOfEvent(row('work.released@1', { task_id: 'w-2' })).known).toBe(false)
   })
 })
