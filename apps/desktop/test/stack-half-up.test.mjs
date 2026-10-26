@@ -52,8 +52,14 @@ test('a heal whose stop fails says so and does not start', async () => {
     stop: async () => { calls.push('stop'); throw new Error('docker gone') },
     start: async () => { calls.push('start') },
     record: (r) => calls.push(`record:${r.outcome}`)
-  }), /did not yield API_URL/)
+  }), (e) => e.code === 'FABRIC_STACK_HEAL_FAILED' && /docker gone/.test(e.message))
   assert.deepEqual(calls, ['resolve', 'stop', 'record:failed'])
+  // UX-8: the startup window reads the restart's failure as that, with the restart's words.
+  const { classifyStartupFailure } = await import(path.resolve(import.meta.dirname, '../src/shared/startupFailure.ts'))
+  let thrown
+  try { await resolveHealingHalfUp({ resolve: async () => { throw silent() }, stop: async () => { throw new Error('docker gone') }, start: async () => {}, record: () => {} }) } catch (e) { thrown = e }
+  const said = classifyStartupFailure(thrown)
+  assert.equal(said.remedyKey, 'startup.stack-up-but-silent.remedy.healFailed')
 })
 
 test('isHalfUp recognises only the missing-keys answer', () => {

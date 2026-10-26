@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "d787a53a8a6a6906fe4c0654af41403d36fe8119",
+  "report": "docs/evidence/reviews/0.3.13/iteration-1/2026-10-26-ux.md",
+  "reportSha256": "486ffd9dae5899cb6fce0a31a6529636cfb402bbbc8cf98d10e32e3efc74384c",
+  "reviewerRun": "release-0313-i1-ux-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `launch/AgentsScreen.tsx#AgentsScreen` (`everyRead`); `AgentsScreen.test.tsx` «a failed read of the installed agents never says no agent was found», watched failing"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `AgentsScreen.tsx#Group`; «a group is called empty only once the reads that fill it have answered»"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `launch/agentRoster.ts#composeRoster` leaves plain shells out; «Возможно, ждут вас» says what is observed; two tests"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): readings tied to their filters (`HistoryScreen.tsx#HistoryScreen`); «a new filter shows «reading», never the last filter's rows»"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): «более позднее действие, которого нет в этом списке», label «Можно ли отменить»; test in `HistoryScreen.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): focus returns to the act's sentence, the pane scrolls into view (`#ActDetail`); test"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `shared/attention.ts#attentionOf`, `attentionTitle.ts#titleOf`, `#notifyLineOf`; `attention.swept.test.ts`, `attentionTitle.test.ts`"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`) and `release/0.3.13`: `shared/startupFailure.ts#STACK_HEAL_FAILED`, thrown by `main/stackHalfUp.ts#resolveHealingHalfUp` when the restart fails; `stack-half-up.test.mjs` «a heal whose stop fails» reads the remedy key"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `settings.folderTrustLocked`, `shared/folderTrust.ts#folderTrustOverridden`, `SettingsScreen.tsx#AgentPermissionsSetting`; two tests"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `.feed-why` text on rows that open nothing (`Feed.tsx`); `Feed.test.tsx` (3)"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `docs/ux/screens.md`, six scenario amendments; AGENTS.md's sweep and catalogue rows on `release/0.3.13`"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG 0.3.13 bullets on `release/0.3.13`; Copylot check `9bcb6535-ba6a-45d7-b6e3-ff40be6244db`"
+      ]
+    }
+  ]
+}

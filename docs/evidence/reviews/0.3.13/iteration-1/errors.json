@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "d787a53a8a6a6906fe4c0654af41403d36fe8119",
+  "report": "docs/evidence/reviews/0.3.13/iteration-1/2026-10-26-errors.md",
+  "reportSha256": "72b43308236e0762be1d28bbeccdbc4b88a4a5a78fab84e9e0b26b137c95649c",
+  "reviewerRun": "release-0313-i1-errors-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/stackHalfUp.ts#recoverThenHeal` heals after any try; the launch heals after an «already running» refusal (`main/index.ts#resolveEnvStartingStackIfNeeded`); `stack-half-up.test.mjs` «ER-1», watched failing with the old condition"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: nothing is typed into any terminal (`main/abandonedSweepRun.ts#createAbandonedSweep`; `deliver` removed from its deps); `abandoned-sweep-run.test.mjs` «ER-2» (the candidate's own test asserted the write); SCN-140, spec, AGENTS.md"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/stackServices.ts#afterOwnStop`, `env.ts` `stoppedByHeal`; `stack-half-up.test.mjs` «ER-3»"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/abandonedSweep.ts#findAbandoned` counts from `lastActivityAt`; `abandonedSweep.test.ts` «ER-4»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `delivered` removed (nothing is written); no receipt while quitting; `abandoned-sweep-run.test.mjs` «ER-5», watched failing"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/redact.ts` `authorization-field` and `yaml-credential` take no value with a space; `redact.test.ts` «quoted prose is left alone (ER-6)»"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `folder_unread` with `FOLDER_UNREAD_SAYS` (`main/launchFolderLock.ts`, `managedLaunch.ts`, `index.ts`); `managed-launch.test.mjs` ER-7 case"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-9"
+      ]
+    }
+  ]
+}

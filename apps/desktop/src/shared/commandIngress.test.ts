@@ -39,12 +39,14 @@ const fixtures: Record<string, Record<string, unknown>> = {
   'task.source.linked@1': { task_id: id, repository: 'https://github.com/o/n', repo_path: '/tmp/synthetic-project', path: 'docs/backlog.md', row_id: 'CO-256' },
   'work.renewed@1': { work: id, owner: other, expires_at: '2026-10-11T10:30:00.000Z', claim_id: other },
   'work.handover.requested@1': { claim_id: other, work: id, requested_by: other, note: secret },
+  // The sweep's receipt (0.3.13 review DA-1): counts and read names only, no free text to scrub.
+  'work.swept@1': { found: { 'claim-silent': 1 }, told: 1, queued: 1, released: 0, capped: ['claims'] },
   'session.turn.observed@1': { session_id: other, runtime: 'claude-code', runtime_session_id: 'rt-1', observed_at: '2026-10-11T10:00:00.000Z',
     head: 'a'.repeat(40), files_changed: 3, lines_added: 10, lines_removed: 2, idempotency_key: 'turn-0001' }
 }
 /** Types whose subject is not an `id` or a `task_id` key (`work` names the task in the contract's claim shape). */
 // project.profiled@1 names its project in the journal row's project_id, never in the payload (migration 123).
-const SUBJECT_ELSEWHERE = new Set(['cycle.ran@1', 'work.renewed@1', 'work.handover.requested@1', 'session.turn.observed@1', 'project.profiled@1'])
+const SUBJECT_ELSEWHERE = new Set(['cycle.ran@1', 'work.renewed@1', 'work.handover.requested@1', 'session.turn.observed@1', 'project.profiled@1', 'work.swept@1'])
 
 describe('explicit event privacy policy', () => {
   it('covers exactly the audited versions and scrubs free text without input mutation', () => {

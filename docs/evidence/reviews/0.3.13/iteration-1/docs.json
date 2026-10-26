@@ -1,0 +1,142 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "d787a53a8a6a6906fe4c0654af41403d36fe8119",
+  "report": "docs/evidence/reviews/0.3.13/iteration-1/2026-10-26-docs.md",
+  "reportSha256": "4eb16754c3ef56bc3a4e55ae46100a84a4e91d1c6293517852db3dc5698fb934",
+  "reviewerRun": "release-0313-i1-docs-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one method everywhere: the new build's own first start (runbook step 1); the 0.3.12 paragraph, CHANGELOG Upgrading and the ledger's step 3 say so"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook's 0.3.13 paragraph and CHANGELOG: FROM 95 takes 123 and 124, rollback is the bundle the database came from"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ledger step 8 reads «На проверке» and the `work.swept@1` event"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-12"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled: each row decided 2026-10-26 in the carry-over register (CO-396, CO-402, CO-339, CO-343, CO-354, CO-345, CO-359, CO-331, CO-408, CO-415, CO-416); the plan's iteration 1 rulings"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0180 Amendment 1; the ADR index row of ADR-0178"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: agent-health-and-failure.md, the sweep spec's status and As built, AGENTS.md's sweep row, SCN-140's amendment"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AGENTS.md: «when Settings or Агенты opens»"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook's 0.3.13 paragraph and CHANGELOG say folder trust is on again after going back"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V1-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each replaced by its `main` commit in the plan and the register (subjects matched)"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the sweep spec's As built: counts only, the items are SW-9's"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V1-32",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-439 (0.3.14)"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/evidence/backlog.md` P-26 status and the Now line"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V1-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/handoffs/2026-10-26-release-0313.md`"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0180 Amendment 1 names DEC-0129 OL-2 as what Fabric builds to"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "source": "V1-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger committed (`fb081f98`); step 5 carries `--dump`"
+      ]
+    }
+  ]
+}

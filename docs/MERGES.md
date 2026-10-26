@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T14:00:00Z · `—` · agent/0313-v1-ux → release/0.3.13 · merge
+- run: r-182fa592b059
+- files: the UX fixes of the 0.3.13 release review, iteration 1 (Агенты, История, Settings, attention titles, the startup window, the feed), screens.md, six scenario amendments, the product model
+- conflicts: none
+- summary: Fabric 0.3.13, iteration 1's UX fixes (UX-1 to UX-11), merged into the release branch beside the lead's code and document fixes.
+
 ### 2026-10-26T13:12:44Z · `—` · agent/0313-rerule (with agent/0313-agents) → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/renderer/src/launch/AgentsScreen.tsx, agentRoster.ts, AgentPage.tsx, HistoryScreen.tsx, App.tsx, launch.css, i18n en and ru, their tests; SCN-166, SCN-167, SCN-168, the product model and mockup; the ledger (CO-419, CO-414 resolved, CO-438 added, five partial rows decided), backlog, the plan; the map

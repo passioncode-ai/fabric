@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "d787a53a8a6a6906fe4c0654af41403d36fe8119",
+  "report": "docs/evidence/reviews/0.3.13/iteration-1/2026-10-26-data.md",
+  "reportSha256": "197485d2a193f4a3a60ae8cd4e75403e0a91b2a43b6ac7c129749e18d5c292a0",
+  "reviewerRun": "release-0313-i1-data-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: field rules in `shared/commandIngress.ts`; `ingress-owners.test.mjs` and the sweep tests in the fast tier (`scripts/ci.sh`); `abandoned-sweep-run.test.mjs` checks a real receipt prepares"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: receipt only when told, released, blind or capped; the feed sentence says what it does; «DA-2» test, watched failing"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-449 (0.3.14's schema step)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-40",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-449"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-41",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-449 (read from the SQL, not measured)"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-42",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-449"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG Upgrading and the runbook"
+      ]
+    }
+  ]
+}

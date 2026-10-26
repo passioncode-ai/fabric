@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "d787a53a8a6a6906fe4c0654af41403d36fe8119",
+  "report": "docs/evidence/reviews/0.3.13/iteration-1/2026-10-26-plan.md",
+  "reportSha256": "4eb156c0b547993daa11efc482a24a025e7503dec815374c06f3cb53ae7a7d18",
+  "reviewerRun": "release-0313-i1-plan-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-44",
+      "status": "ruled",
+      "evidence": [
+        "ruled: as DO-5"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: corrections posted 2026-10-26 on the threads the ledger's owed list names; the plan and ledger cite the right promise threads"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-440 to CO-443 (0.3.14, 0.4.0); SX-3, SX-20, SX-26 resolved by `4d55beb7`; the rest on CO-418 and CO-438; SCN-165's status corrected"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-47",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-233 deferred to 0.3.14's schema step with its reason"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-1; step 8 checks the stack runs on Colima"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-26, the Now line, the handoff; the ledger names the stopped 0.3.12 rollout and the R1 manager's order instead"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger's owed list: 0.3.12's carried items, 0.4.0 dates, CO-284's fallback"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: replies posted 2026-10-26: `03582f56` (CO-426, CO-435, CO-447), `d008e0a9`, `6ad918ab` (the delegation plan's adoption note), `6fa891b2` (CO-448)"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-52",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-426 resolved, CO-436 narrowed with CO-445, CO-317 deferred, the sweep's cap CO-439"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-10; `docs/MERGES.md` times from the landed commits, newest first"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-54",
+      "status": "ruled",
+      "evidence": [
+        "ruled: ADR-0182 (В-7); CO-446 (`agent/w2-runners`); CO-291's status names `agent/onboarding-036-w1`'s facts"
+      ]
+    }
+  ]
+}

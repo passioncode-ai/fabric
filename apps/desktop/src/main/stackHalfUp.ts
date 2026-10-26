@@ -7,6 +7,8 @@
  * so the data stays), a start with Fabric's own exclusions, then the status read again.
  */
 
+import { STACK_HEAL_FAILED } from '../shared/startupFailure.ts'
+
 /** The answer of a half-up stack: `supabase status` without the keys Fabric needs (`main/env.ts#resolveSupabaseEnv`). */
 export function isHalfUp(e: unknown): boolean {
   return e instanceof Error && /did not yield API_URL/i.test(e.message)
@@ -34,7 +36,8 @@ export async function resolveHealingHalfUp<T>(deps: HalfUpDeps<T>): Promise<T> {
       await deps.start()
     } catch (e) {
       deps.record({ outcome: 'failed', why: `the heal could not restart the stack: ${String(e).slice(0, 200)}` })
-      throw first
+      // The startup window says the restart itself failed, with the restart's words (0.3.13 review UX-8).
+      throw Object.assign(new Error(e instanceof Error ? e.message : String(e)), { code: STACK_HEAL_FAILED })
     }
     try {
       const healed = await deps.resolve()
