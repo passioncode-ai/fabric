@@ -10,6 +10,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
 
+### 2026-10-26T11:00:00Z · `—` · agent/0313-repin → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/test/fixtures/fabric-agent-contract (211 files), contract-consumer-fixtures.mjs, boardService.ts, boardTools.ts, commsTransition.ts, the board and hub tests; the wave 4 contract delta and the plan; the carry-over ledger and backlog (CO-434 to CO-436); the map
+- conflicts: none
+- summary: Fabric 0.3.13, wave 4 step 1: the contract repinned from a59d04b to 39c8977 (v0.1.0+2026-10-26.3) with its consumer fixes, and the delta mapped to rows.
+
 ### 2026-10-26T09:30:00Z · `—` · agent/0313-d8 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/adr/0178 and the ADR index; the carry-over ledger and backlog (CO-420 resolved; CO-431 to CO-433 for MD-7, MD-8, G-6); the map
