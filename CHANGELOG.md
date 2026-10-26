@@ -35,6 +35,12 @@ delivery and a run take their event's time. A development database that applied 
   stops the stack keeping its data and starts it again once, instead of stopping at the startup window.
 - **Docker through its current context.** Fabric finds the container engine the way the docker CLI does, so it also
   waits for Colima.
+- **Settings in five sections.** Настройки reads as «Язык и вид», «Этот компьютер», «Запуск агентов», «Данные» and
+  «Доступ агентов», and a change that was written says «Сохранено» beside it.
+- **A switch for folder trust.** Since 0.3.7 Fabric starts agents with «Меньше подтверждений» and marks the folder a
+  Claude Code session starts in as trusted, so Claude Code does not ask about it and that folder's own Claude Code
+  settings and hooks run. An install upgraded from before 0.3.7 got both without choosing them. Both are now in
+  Настройки → «Запуск агентов»: «Разрешения агентов», and beside it the folder trust switch, on by default.
 - **A reply reaches the one it answers.** On the board, a reply goes to the sender of the message it answers instead of
   to every participant, so a thread of sixteen projects no longer gives fifteen of them an unread message for each
   thank-you; it stays in the thread for anyone who reads it.

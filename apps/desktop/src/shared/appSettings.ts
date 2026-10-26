@@ -29,13 +29,14 @@ export function workingLanguageOf(s: { locale: string; agentLanguage?: boolean }
 
 export { APP_SETTINGS_DEFAULTS }
 
+
 // #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
 /** The keys `settings.write` takes from a window (`types.ts#SettingsPatch`); main keeps the rest. */
 /** How many per-thread read marks the settings file holds (SCN-143, the unread slice): every thread the board lists can
  *  be marked at once (0.3.12 review DA-12: at 4096 a fifth of a full listing read as unread again), and still bounded. */
 export const COMMS_READ_THROUGH_MAX = COMMS_THREAD_HEADS_LIMIT
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -162,6 +163,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     // Anything but the two words is not chosen: unknown trust is no trust (ADR-0176 §3).
     machineTrust: raw.machineTrust === 'mine' || raw.machineTrust === 'organization' ? raw.machineTrust : null,
     boardFilters: boardFilters(raw.boardFilters),
+    trustAgentFolders: raw.trustAgentFolders !== false,
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

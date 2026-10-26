@@ -388,6 +388,7 @@ import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { settingsPatch, workingLanguageOfRead } from '../shared/appSettings.ts'
+import { trustsAgentFolders } from '../shared/folderTrust.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
@@ -1322,7 +1323,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const transcripts = createTranscriptStore({ root: app.getPath('userData') })
 
   // OF-12: Fabric's Claude Code sessions start in a folder they already trust (claudeTrust.ts).
-  setFolderTrust((folder) => trustFolderForClaude(folder))
+  // CO-348: only while the person's switch in Settings is on, read at each start (and never when the environment says 0).
+  setFolderTrust((folder) => trustFolderForClaude(folder), () => trustsAgentFolders(readSettings(), process.env))
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {

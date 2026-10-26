@@ -18,6 +18,7 @@ import path from 'node:path'
 import type { Journal } from '@fabric/journal'
 import type { LaunchOption, SessionState, TerminalSession } from '../shared/types'
 import { AGENTS, mayLaunch, preferredMode, type AgentPermissions, type SurfaceAdapter } from '../shared/agents.ts'
+import { trustsAgentFolders } from '../shared/folderTrust.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
@@ -327,8 +328,12 @@ export function setPermissionPreference(fn: (() => AgentPermissions) | null): vo
 }
 
 let folderTrust: ((folder: string) => Promise<string>) | null = null
-export function setFolderTrust(fn: ((folder: string) => Promise<string>) | null): void {
+/** CO-348: whether the person wants folders trusted, read at each Claude Code start (`appSettings.ts#trustsAgentFolders`).
+ *  Unset (tests, a build that has not wired it) keeps the environment's word alone, as before. */
+let folderTrustWanted: () => boolean = () => trustsAgentFolders(null, process.env)
+export function setFolderTrust(fn: ((folder: string) => Promise<string>) | null, wanted?: () => boolean): void {
   folderTrust = fn
+  folderTrustWanted = wanted ?? (() => trustsAgentFolders(null, process.env))
 }
 
 export class PtyManager {
@@ -500,7 +505,7 @@ export class PtyManager {
     // OF-12: a Claude Code session starts in a folder it already trusts, as Orca's agents do; the person is not asked
     // «Do you trust this folder?» in every console. Best effort: an answer other than granted/unchanged is recorded
     // and the session starts anyway, at Claude's own prompt.
-    if (runnerId === 'claude-code' && folderTrust && process.env.FABRIC_TRUST_AGENT_FOLDERS !== '0') {
+    if (runnerId === 'claude-code' && folderTrust && folderTrustWanted()) {
       const trust = await folderTrust(cwd).catch((e: unknown) => (e instanceof Error ? e.message : String(e)))
       if (trust !== 'unchanged')
         ops.record({ op: 'pty.folder-trust', outcome: trust === 'granted' ? 'ok' : 'failed', level: trust === 'granted' ? 'info' : 'warn', detail: { outcome: String(trust).slice(0, 120) }, ctx: { correlationId: ops.correlate(), sessionId } })

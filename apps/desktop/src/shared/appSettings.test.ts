@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { APP_SETTINGS_DEFAULTS, settingsPatch, validateSettings } from './appSettings.ts'
+import { trustsAgentFolders } from './folderTrust.ts'
 
 describe('validateSettings', () => {
   it('accepts a complete, valid file unchanged', () => {
@@ -20,7 +21,8 @@ describe('validateSettings', () => {
       launchAtLogin: false,
       agentLanguage: true,
       machineTrust: 'mine',
-      boardFilters: { project: '79000000-0000-4000-8000-0000000000a1', agent: 'claude-code', cancelled: true }
+      boardFilters: { project: '79000000-0000-4000-8000-0000000000a1', agent: 'claude-code', cancelled: true },
+      trustAgentFolders: false
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -201,6 +203,26 @@ describe('settingsPatch', () => {
     expect(validateSettings({ machineTrust: true })?.machineTrust).toBeNull()
     expect(settingsPatch({ machineTrust: 'organization' })).toEqual({ ok: true, patch: { machineTrust: 'organization' } })
     expect(settingsPatch({ machineTrust: 'trusted' }).ok).toBe(false)
+  })
+
+  it('trusts the folders Claude Code starts in unless the person turned it off (CO-348)', () => {
+    expect(APP_SETTINGS_DEFAULTS.trustAgentFolders).toBe(true)
+    expect(validateSettings({})?.trustAgentFolders).toBe(true)
+    expect(validateSettings({ trustAgentFolders: false })?.trustAgentFolders).toBe(false)
+    expect(validateSettings({ trustAgentFolders: 'no' })?.trustAgentFolders).toBe(true)
+    expect(settingsPatch({ trustAgentFolders: false })).toEqual({ ok: true, patch: { trustAgentFolders: false } })
+    expect(settingsPatch({ trustAgentFolders: 'no' }).ok).toBe(false)
+  })
+
+  it('marks a folder trusted only while the switch is on and the environment does not say 0 (CO-348)', () => {
+    expect(trustsAgentFolders({ trustAgentFolders: true }, {})).toBe(true)
+    expect(trustsAgentFolders({}, {})).toBe(true)
+    expect(trustsAgentFolders({ trustAgentFolders: false }, {})).toBe(false)
+    // The environment switch that existed first still turns it off, whatever the setting says.
+    expect(trustsAgentFolders({ trustAgentFolders: true }, { FABRIC_TRUST_AGENT_FOLDERS: '0' })).toBe(false)
+    expect(trustsAgentFolders({ trustAgentFolders: true }, { FABRIC_TRUST_AGENT_FOLDERS: '1' })).toBe(true)
+    // An unreadable settings file names no choice: the default holds (the operator's, 2026-10-19).
+    expect(trustsAgentFolders(null, {})).toBe(true)
   })
 
   it('starts Fabric at login unless the person turned it off (CO-322)', () => {

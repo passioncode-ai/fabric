@@ -153,7 +153,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -176,7 +176,7 @@ describe('the agents\' working language can be switched off (the operator\'s wal
     }))
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
@@ -195,7 +195,7 @@ describe('this computer\'s trust, said by the person (ADR-0176 §3)', () => {
       }
     }))
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false } } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
     return { onChange, select: screen.getByRole('combobox', { name: en['settings.machineTrust'] }) as HTMLSelectElement }
   }
@@ -387,5 +387,75 @@ describe('messages between agent sessions and Fabric readiness (CO-407)', () => 
     readiness.mockResolvedValueOnce({ ok: false, reason: 'timeout', detail: null } as never)
     fireEvent.click(screen.getByRole('button', { name: en['settings.readiness.check'] }))
     expect(await screen.findByText(en['settings.readiness.failed.timeout'])).toBeTruthy()
+  })
+})
+
+// 0.3.13, Settings' section pass (CO-392's rest, CO-348; SCN-170 steps 1 and 2).
+describe('the five sections, «Сохранено» after a change, and folder trust (CO-392, CO-348)', () => {
+  const full = (over: Partial<AppSettings> = {}): AppSettings => ({ theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' },
+    tabs: { tabs: [], active: null }, readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] },
+    agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false },
+    trustAgentFolders: true, ...over })
+  const open = (onChange: (next: unknown) => unknown, over: Partial<AppSettings> = {}) => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: {
+        start: { executors: async () => executors },
+        settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }), loginItem: async () => ({ supported: false }),
+          claudeInbound: async () => ({ accepting: false, value: null }) },
+        terminal: { options: async () => [] },
+        analytics: { status: async () => ({ enabled: false, answered: true }) }
+      }
+    }))
+    show(<SettingsScreen settings={full(over)} onChange={onChange as never} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={() => {}} />)
+  }
+
+  it('names its sections in the order of step 1, each a small label over what it holds', () => {
+    open(vi.fn())
+    const labels = screen.getAllByRole('heading', { level: 3 }).filter((h) => h.classList.contains('settings-group-label')).map((h) => h.textContent)
+    expect(labels).toEqual([en['settings.look.title'], en['settings.computer.title'], en['settings.launch.group'], en['settings.data.title'], en['settings.agentAccess'], en['settings.more.title']])
+    const launch = screen.getByRole('group', { name: en['settings.launch.group'] })
+    expect(within(launch).getByText(en['settings.permissions.title'])).toBeTruthy()
+    expect(within(launch).getByText(en['settings.launch.title'])).toBeTruthy()
+    const computer = screen.getByRole('group', { name: en['settings.computer.title'] })
+    expect(within(computer).getByLabelText(en['power.label'])).toBeTruthy()
+    expect(within(computer).getByText(en['settings.readiness.title'])).toBeTruthy()
+    const look = screen.getByRole('group', { name: en['settings.look.title'] })
+    expect(within(look).getByLabelText(en['settings.language'])).toBeTruthy()
+  })
+
+  it('says «Сохранено» beside the control whose change saved, and only there', async () => {
+    const onChange = vi.fn(async () => null)
+    open(onChange)
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
+    const computer = screen.getByRole('group', { name: en['settings.computer.title'] })
+    expect(await within(computer).findByText(en['settings.saved'])).toBeTruthy()
+    expect(screen.getAllByText(en['settings.saved'])).toHaveLength(1)
+    fireEvent.change(screen.getByLabelText(en['settings.theme']), { target: { value: 'light' } })
+    const look = screen.getByRole('group', { name: en['settings.look.title'] })
+    expect(await within(look).findByText(en['settings.saved'])).toBeTruthy()
+    expect(screen.getAllByText(en['settings.saved'])).toHaveLength(1)
+  })
+
+  it('says nothing saved when the write was refused: the refusal stays at the foot', async () => {
+    const onChange = vi.fn(async () => 'read-only')
+    open(onChange)
+    fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
+    await screen.findByText(en['settings.notSaved'].replace('{reason}', 'read-only'))
+    expect(screen.queryByText(en['settings.saved'])).toBeNull()
+  })
+
+  it('offers folder trust beside the permission choice, on by default, and writes the person\'s choice', async () => {
+    const onChange = vi.fn(async () => null)
+    open(onChange)
+    const permissions = screen.getByRole('heading', { level: 4, name: en['settings.permissions.title'] }).closest('section') as HTMLElement
+    const box = within(permissions).getByLabelText(en['settings.folderTrust']) as HTMLInputElement
+    expect(box.checked).toBe(true)
+    expect(within(permissions).getByText(en['settings.folderTrustHelp'])).toBeTruthy()
+    fireEvent.click(box)
+    expect(onChange).toHaveBeenCalledWith({ trustAgentFolders: false })
+    expect(await within(permissions).findByText(en['settings.saved'])).toBeTruthy()
+    cleanup()
+    open(vi.fn(), { trustAgentFolders: false })
+    expect((screen.getByLabelText(en['settings.folderTrust']) as HTMLInputElement).checked).toBe(false)
   })
 })

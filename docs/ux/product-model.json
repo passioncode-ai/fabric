@@ -35479,7 +35479,7 @@
         "SCR-89"
       ],
       "coverage": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (0.3.11; before it, none: wave 4 redrew SCN-160's screen); 2026-10-23 (OF-35, OF-38): no quota entry; «Агенты пишут на языке интерфейса» under «Язык» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx`, ADR-0174) Since 0.3.11: `apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (the language and its switch), `apps/desktop/src/shared/appSettings.ts#workingLanguageOf` and `appSettings.test.ts`.; 0.3.12 W3e (CO-407): «Сообщения между сессиями агентов», Claude Code's `crossSessionInbound` by the person's switch (`apps/desktop/src/main/claudeInbound.ts`), and «Готовность Fabric», the launcher doctor's Fabric checks on «Проверить» (`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx#ReadinessPanel`, `apps/desktop/src/main/fabricReadinessRead.ts`)",
-      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12: CO-392, CO-407, CO-313). What ships is the amendment of 2026-10-24 below; the section names of step 1 and «Сохранено» after a change (step 2) are not built: they moved to 0.3.13 with CO-348, Settings' section pass (the triage, 2026-10-24)",
+      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12: CO-392, CO-407, CO-313; 0.3.13: CO-392's rest, CO-348). What ships is the amendment of 2026-10-26 below: step 1's section names and «Сохранено» after a change (step 2) are built; История's «Отменить» for a settings change is not",
       "product_observation": "unobserved",
       "expected_result": "how Fabric behaves is set in one place, each change saved at once and reversible.",
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
@@ -35504,7 +35504,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4242
+        "line": 4244
       }
     },
     {
@@ -35525,7 +35525,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4265
+        "line": 4267
       }
     },
     {
@@ -35544,7 +35544,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4287
+        "line": 4289
       }
     },
     {
@@ -35563,7 +35563,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4314
+        "line": 4316
       }
     },
     {
@@ -35580,7 +35580,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4336
+        "line": 4338
       }
     },
     {
@@ -35597,7 +35597,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4359
+        "line": 4361
       }
     },
     {
@@ -35614,7 +35614,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4381
+        "line": 4383
       }
     },
     {
@@ -35633,7 +35633,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4404
+        "line": 4406
       }
     }
   ],

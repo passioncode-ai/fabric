@@ -39,6 +39,21 @@ describe('UsageCountsSetting', () => {
     await waitFor(() => expect(setEnabled).toHaveBeenCalledWith(false))
   })
 
+  it('says «Сохранено» once the shared switch holds the change, and not when it holds something else (CO-392)', async () => {
+    const setEnabled = vi.fn(async (enabled: boolean) => ({ availability: enabled ? 'on' : 'off' }))
+    mount({ status: async () => ({ availability: 'on' }), setEnabled })
+    const box = await screen.findByRole('checkbox', { name: en['analytics.label'] }) as HTMLInputElement
+    await waitFor(() => expect(box.checked).toBe(true))
+    expect(screen.queryByText(en['settings.saved'])).toBeNull()
+    fireEvent.click(box)
+    expect(await screen.findByText(en['settings.saved'])).toBeTruthy()
+    cleanup()
+    mount({ status: async () => ({ availability: 'on' }), setEnabled: vi.fn(async () => ({ availability: 'unavailable-file' })) })
+    fireEvent.click(await screen.findByRole('checkbox', { name: en['analytics.label'] }))
+    await screen.findByText(en['analytics.noFile'])
+    expect(screen.queryByText(en['settings.saved'])).toBeNull()
+  })
+
   it('a build without the App Key cannot share, and says so', async () => {
     mount({ status: async () => ({ availability: 'unavailable-no-key' }), setEnabled: vi.fn() })
     await screen.findByText(en['analytics.noKey'])

@@ -10,6 +10,8 @@ export function UsageCountsSetting(): React.JSX.Element {
   const t = useT()
   const [status, setStatus] = useState<AnalyticsStatus | 'unreadable' | null>(null)
   const [busy, setBusy] = useState(false)
+  // «Сохранено» after a change the shared switch now holds (SCN-170 step 2, CO-392).
+  const [saved, setSaved] = useState(false)
   useEffect(() => {
     let live = true
     window.fabric.analytics.status().then((s) => { if (live) setStatus(s) }, () => { if (live) setStatus('unreadable') })
@@ -20,7 +22,13 @@ export function UsageCountsSetting(): React.JSX.Element {
   }, [])
   const toggle = async (enabled: boolean): Promise<void> => {
     setBusy(true)
-    try { const s = await window.fabric.analytics.setEnabled(enabled); setStatus(s); announceAnalytics(s.availability) } catch { setStatus('unreadable') } finally { setBusy(false) }
+    setSaved(false)
+    try {
+      const s = await window.fabric.analytics.setEnabled(enabled)
+      setStatus(s)
+      announceAnalytics(s.availability)
+      setSaved(s.availability === (enabled ? 'on' : 'off'))
+    } catch { setStatus('unreadable') } finally { setBusy(false) }
   }
   const availability = status === null || status === 'unreadable' ? null : status.availability
   // Not yet answered (A7-012): shown on, as it will be; answering it here is the disclosure, the note above says what is counted.
@@ -41,6 +49,7 @@ export function UsageCountsSetting(): React.JSX.Element {
           : availability === 'unavailable-file' ? t('analytics.noFile')
           : t('analytics.note')}
       </span>
+      {saved && <p className="settings-note settings-saved" role="status">{t('settings.saved')}</p>}
     </div>
   )
 }

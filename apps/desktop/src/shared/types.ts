@@ -465,6 +465,12 @@ export interface AppSettings {
   /** The Board's filters, kept for the next visit (SCN-173 step 4, CO-401): a project, an agent, and whether the cancelled
    *  tasks show as a fifth column. Null is every project or every agent. */
   boardFilters: BoardFilters
+  /**
+   * CO-348 (ADR-0168, the operator 2026-10-19): before Fabric starts Claude Code it marks the session's folder trusted in
+   * Claude Code's own state, so the session does not stop at «Do you trust this folder?». On by default; off, Claude Code
+   * asks for itself. `FABRIC_TRUST_AGENT_FOLDERS=0` turns it off whatever this says (`appSettings.ts#trustsAgentFolders`).
+   */
+  trustAgentFolders: boolean
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -480,7 +486,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders'>>
 // #endregion settings-patch
 
 /**
@@ -508,7 +514,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   agentLanguage: true,
   // ADR-0176 §3: never assumed; the person says it in Settings, and until then the stricter rule holds.
   machineTrust: null,
-  boardFilters: { project: null, agent: null, cancelled: false }
+  boardFilters: { project: null, agent: null, cancelled: false },
+  // CO-348: the operator's choice (2026-10-19), as Orca does; the person turns it off in Settings.
+  trustAgentFolders: true
 }
 
 export interface FeedEvent {

@@ -65,10 +65,7 @@ export function AgentCatalogPanel({ permissions }: { permissions?: AppSettings['
   return (
     <section className="lp-panel lp-settings-agents" aria-labelledby="settings-agents-title">
       <div className="lp-panel-head">
-        <div>
-          <p className="lp-kicker">{t('settings.agents.kicker')}</p>
-          <h3 id="settings-agents-title">{t('settings.agents.title')}</h3>
-        </div>
+        <h4 id="settings-agents-title">{t('settings.agents.title')}</h4>
       </div>
       <p className="lp-meta" role="status">{source}</p>
       <MachineDetail text={sourceDetail} />
@@ -146,10 +143,20 @@ export function LaunchAtLoginSetting({ value, onChange }: {
 }
 // #endregion launch-at-login-setting
 
-/** One permission choice for every agent Fabric starts (CO-305, ADR-0168). */
-export function AgentPermissionsSetting({ value, onChange }: {
+/** «Сохранено» beside the control whose change saved (SCN-170 step 2, CO-392): a status line, until the next change. */
+export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
+  const t = useT()
+  return on ? <p className="settings-note settings-saved" role="status">{t('settings.saved')}</p> : null
+}
+
+/** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
+ *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
+export function AgentPermissionsSetting({ value, onChange, trustFolders = true, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void
+  trustFolders?: boolean
+  /** Which of this panel's settings saved last, to say «Сохранено» beside it. */
+  saved?: string | null
 }): React.JSX.Element {
   const t = useT()
   const choice = (id: AppSettings['agentPermissions'], label: string, help: string) => (
@@ -160,12 +167,20 @@ export function AgentPermissionsSetting({ value, onChange }: {
   )
   return (
     <section className="lp-panel" aria-labelledby="settings-permissions-title">
-      <h3 id="settings-permissions-title">{t('settings.permissions.title')}</h3>
+      <h4 id="settings-permissions-title">{t('settings.permissions.title')}</h4>
       <p className="lp-meta">{t('settings.permissions.lede')}</p>
       <div role="radiogroup" aria-labelledby="settings-permissions-title">
         {choice('fewer-prompts', t('settings.permissions.fewer'), t('settings.permissions.fewerHelp'))}
         {choice('manual', t('settings.permissions.manual'), t('settings.permissions.manualHelp'))}
       </div>
+      <Saved on={saved === 'agentPermissions'} />
+      {/* CO-348: until 0.3.13 only FABRIC_TRUST_AGENT_FOLDERS=0 turned this off; the variable still does. */}
+      <label className="lp-check">
+        <input type="checkbox" checked={trustFolders} aria-describedby="settings-folder-trust-hint" onChange={(e) => void onChange({ trustAgentFolders: e.target.checked })} />
+        {t('settings.folderTrust')}
+      </label>
+      <small id="settings-folder-trust-hint" className="lp-meta">{t('settings.folderTrustHelp')}</small>
+      <Saved on={saved === 'trustAgentFolders'} />
     </section>
   )
 }
@@ -182,6 +197,7 @@ export function AgentLinksSetting(): React.JSX.Element {
    *  the person can try again (0.3.12 review UX-8). Main answers a refused write with `notSaved` beside what the file holds
    *  and does not throw (iteration 2, ER-1); a call that itself fails is said the same way, with its error. */
   const [notSaved, setNotSaved] = useState<{ said: string; detail: string } | null>(null)
+  const [saved, setSaved] = useState(false)
   useEffect(() => {
     let alive = true
     Promise.resolve().then(() => window.fabric.settings.claudeInbound()).then((r) => alive && setState(r), () => alive && setState({ unreadable: true }))
@@ -190,9 +206,12 @@ export function AgentLinksSetting(): React.JSX.Element {
   const flip = async (on: boolean): Promise<void> => {
     setBusy(true)
     setNotSaved(null)
+    setSaved(false)
     try {
       const answer = await window.fabric.settings.setClaudeInbound(on)
       setState(answer)
+      // Saved is what the file now holds matching what was asked (SCN-170 step 2), never a refused write.
+      setSaved(!('notSaved' in answer && answer.notSaved) && 'accepting' in answer && answer.accepting === on)
       // A held file is not a refusal: its own sentence, in ours, and only the setting's name beneath (iteration 3, UX-5).
       if ('notSaved' in answer && answer.notSaved)
         setNotSaved(answer.notSaved.reason === 'locked'
@@ -209,7 +228,7 @@ export function AgentLinksSetting(): React.JSX.Element {
   }
   return (
     <section className="lp-panel" aria-labelledby="settings-agent-links-title">
-      <h3 id="settings-agent-links-title">{t('settings.agentLinks.title')}</h3>
+      <h4 id="settings-agent-links-title">{t('settings.agentLinks.title')}</h4>
       {state === null && <p className="lp-meta">{t('settings.agentLinks.reading')}</p>}
       {state && 'unreadable' in state && <p className="lp-meta" role="status">{t('settings.agentLinks.unreadable')}</p>}
       {notSaved !== null && <FailureNote said={notSaved.said} detail={notSaved.detail} />}
@@ -220,6 +239,7 @@ export function AgentLinksSetting(): React.JSX.Element {
         </label>
       )}
       <small id="settings-agent-links-hint" className="lp-meta">{t('settings.agentLinks.hint')}</small>
+      <Saved on={saved} />
     </section>
   )
 }
@@ -237,7 +257,7 @@ export function ReadinessPanel(): React.JSX.Element {
   return (
     <section className="lp-panel" aria-labelledby="settings-readiness-title">
       <div className="lp-panel-head">
-        <h3 id="settings-readiness-title">{t('settings.readiness.title')}</h3>
+        <h4 id="settings-readiness-title">{t('settings.readiness.title')}</h4>
         <button type="button" className="lp-button" disabled={read.at === 'checking'} onClick={() => void check()}>
           {read.at === 'checking' ? t('settings.readiness.checking') : t('settings.readiness.check')}
         </button>
@@ -263,6 +283,16 @@ export function ReadinessPanel(): React.JSX.Element {
   )
 }
 
+/** One of SCN-170's sections: a small label over what it holds (CO-392's rest). */
+function Section({ id, label, children }: { id: string; label: string; children: React.ReactNode }): React.JSX.Element {
+  return (
+    <div className="settings-group" role="group" aria-labelledby={id}>
+      <h3 id={id} className="lp-kicker settings-group-label">{label}</h3>
+      {children}
+    </div>
+  )
+}
+
 export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread }: {
   settings: AppSettings
   /** Writes the patch; answers why it was not saved (said on this screen, CO-313), or nothing when it was. */
@@ -281,9 +311,13 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   useEffect(() => heading.current?.focus(), [])
   // A refused write is said here, pinned to the screen's foot, never only in the shell's banner above a long page (CO-313).
   const [refused, setRefused] = useState<string | null>(null)
+  // The setting whose change saved last, said «Сохранено» beside its control (SCN-170 step 2), until the next change.
+  const [saved, setSaved] = useState<string | null>(null)
   const change = async (next: SettingsPatch): Promise<void> => {
+    setSaved(null)
     const said = await onChange(next)
     setRefused(typeof said === 'string' ? said : null)
+    setSaved(typeof said === 'string' ? null : (Object.keys(next)[0] ?? null))
   }
   return (
     <main className="lp lp-settings" data-launch-view="settings">
@@ -294,21 +328,40 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
           <p>{t('settings.screen.body')}</p>
         </div>
       </header>
-      <div className="lp-project-grid">
-        <div>
-          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} />
-          <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
-          <section className="lp-panel" aria-labelledby="settings-launch-title">
-            <p className="lp-kicker">{t('settings.launch.kicker')}</p>
-            <h3 id="settings-launch-title">{t('settings.launch.title')}</h3>
-            <FallbackOrderSetting value={settings.runnerFallback} onChange={change} />
+      {/* SCN-170 step 1, in its order; «Ещё» last (0.3.13, CO-392's rest). */}
+      <div className="settings-sections">
+        <Section id="settings-look-title" label={t('settings.look.title')}>
+          <section className="lp-panel">
+            <label className="lp-field">
+              {t('settings.theme')}
+              <select value={settings.theme} onChange={(e) => void change({ theme: e.target.value as AppSettings['theme'] })}>
+                <option value="dark">{t('settings.themeDark')}</option>
+                <option value="light">{t('settings.themeLight')}</option>
+                <option value="system">{t('settings.themeSystem')}</option>
+              </select>
+            </label>
+            <Saved on={saved === 'theme'} />
+            <label className="lp-field">
+              {t('settings.language')}
+              <select value={settings.locale} aria-describedby="settings-language-hint" onChange={(e) => void change({ locale: e.target.value as AppSettings['locale'] })}>
+                <option value="en">{t('settings.localeEn')}</option>
+                <option value="ru">{t('settings.localeRuUntranslated')}</option>
+              </select>
+            </label>
+            {/* P-24: the interface's language is the agents' working language; the field says so. Outside the label, so a
+                screen reader hears it once, as the select's description (0.3.11 review, iteration 2, UX-9). */}
+            <small id="settings-language-hint" className="lp-meta">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
+            <Saved on={saved === 'locale'} />
+            {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
+            <label className="lp-check">
+              <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void change({ agentLanguage: e.target.checked })} />
+              {t('settings.agentLanguage')}
+            </label>
+            <Saved on={saved === 'agentLanguage'} />
           </section>
-          <AgentLinksSetting />
-          <ReadinessPanel />
-        </div>
-        <aside className="lp-side">
-          <section className="lp-panel" aria-labelledby="settings-computer-title">
-            <h3 id="settings-computer-title">{t('settings.computer.title')}</h3>
+        </Section>
+        <Section id="settings-computer-title" label={t('settings.computer.title')}>
+          <section className="lp-panel">
             <label className="lp-field">
               {t('power.label')}
               <select value={settings.keepAwake} onChange={(e) => void change({ keepAwake: e.target.value as AppSettings['keepAwake'] })}>
@@ -320,7 +373,9 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             {/* Said here rather than discovered: the blocker stops the MACHINE suspending and lets the screen sleep,
                 and macOS ignores it with the lid closed on battery. */}
             <p className="settings-note">{t('power.note')}</p>
+            <Saved on={saved === 'keepAwake'} />
             <LaunchAtLoginSetting value={settings.launchAtLogin !== false} onChange={change} />
+            <Saved on={saved === 'launchAtLogin'} />
             {/* ADR-0176 §3: whose computer this is decides whether an agent here may make another project's change
                 itself when that project's agent is offline. Never assumed: not said reads as not the operator's. */}
             <label className="lp-field">
@@ -338,44 +393,39 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             <small id="settings-machine-trust-hint" className="lp-meta">
               {t(settings.machineTrust === 'mine' ? 'settings.machineTrust.hintMine' : settings.machineTrust === 'organization' ? 'settings.machineTrust.hintOrganization' : 'settings.machineTrust.hintUnset')}
             </small>
+            <Saved on={saved === 'machineTrust'} />
           </section>
-          <section className="lp-panel" aria-labelledby="settings-look-title">
-            <h3 id="settings-look-title">{t('settings.look.title')}</h3>
-            <label className="lp-field">
-              {t('settings.theme')}
-              <select value={settings.theme} onChange={(e) => void change({ theme: e.target.value as AppSettings['theme'] })}>
-                <option value="dark">{t('settings.themeDark')}</option>
-                <option value="light">{t('settings.themeLight')}</option>
-                <option value="system">{t('settings.themeSystem')}</option>
-              </select>
-            </label>
-            <label className="lp-field">
-              {t('settings.language')}
-              <select value={settings.locale} aria-describedby="settings-language-hint" onChange={(e) => void change({ locale: e.target.value as AppSettings['locale'] })}>
-                <option value="en">{t('settings.localeEn')}</option>
-                <option value="ru">{t('settings.localeRuUntranslated')}</option>
-              </select>
-            </label>
-            {/* P-24: the interface's language is the agents' working language; the field says so. Outside the label, so a
-                screen reader hears it once, as the select's description (0.3.11 review, iteration 2, UX-9). */}
-            <small id="settings-language-hint" className="lp-meta">{t(settings.agentLanguage === false ? 'settings.languageHintOff' : 'settings.languageHint')}</small>
-            {/* OF-38 (the operator's walk, 2026-10-23): on by default; off keeps the language the agents speak by themselves. */}
-            <label className="lp-check">
-              <input type="checkbox" checked={settings.agentLanguage !== false} onChange={(e) => void change({ agentLanguage: e.target.checked })} />
-              {t('settings.agentLanguage')}
-            </label>
+          <ReadinessPanel />
+        </Section>
+        <Section id="settings-launch-group" label={t('settings.launch.group')}>
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} saved={saved} />
+          <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
+          <section className="lp-panel" aria-labelledby="settings-launch-title">
+            <h4 id="settings-launch-title">{t('settings.launch.title')}</h4>
+            <FallbackOrderSetting value={settings.runnerFallback} onChange={change} />
+            <Saved on={saved === 'runnerFallback'} />
           </section>
-          <section className="lp-panel" aria-labelledby="settings-data-title">
-            <h3 id="settings-data-title">{t('settings.data.title')}</h3>
+          <AgentLinksSetting />
+        </Section>
+        <Section id="settings-data-title" label={t('settings.data.title')}>
+          <section className="lp-panel">
             <UsageCountsSetting />
             <div className="lp-actions">
               <button type="button" className="lp-button" onClick={onOpenHistory}>{t('settings.history')}</button>
-              <button type="button" className="lp-button" onClick={onOpenAccess}>{t('settings.agentAccess')}</button>
             </div>
           </section>
-          {onOpen && (
-            <section className="lp-panel" aria-labelledby="settings-more-title">
-              <h3 id="settings-more-title">{t('settings.more.title')}</h3>
+        </Section>
+        <Section id="settings-access-title" label={t('settings.agentAccess')}>
+          <section className="lp-panel">
+            <p className="lp-meta">{t('settings.access.lede')}</p>
+            <div className="lp-actions">
+              <button type="button" className="lp-button" onClick={onOpenAccess}>{t('settings.access.open')}</button>
+            </div>
+          </section>
+        </Section>
+        {onOpen && (
+          <Section id="settings-more-title" label={t('settings.more.title')}>
+            <section className="lp-panel">
               <div className="lp-actions">
                 {/* D-3 (the operator's walk, 2026-10-22): account quotas are Switchboard's; Fabric no longer shows its own. */}
                 <button type="button" className="lp-button" onClick={() => onOpen('comms')}>
@@ -393,8 +443,8 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
                 <button type="button" className="lp-button" onClick={() => onOpen('help')}>{t('settings.more.help')}</button>
               </div>
             </section>
-          )}
-        </aside>
+          </Section>
+        )}
       </div>
       {refused !== null && (
         <div className="lp-callout lp-settings-refused" role="alert">
