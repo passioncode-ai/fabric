@@ -94,18 +94,25 @@ export interface RuntimeObserver {
   /** One pass. Returns what it found, so a caller can test it without reading
    *  the journal back. */
   sample(): Promise<{ sessionId: string; state: Liveness; appended: boolean }[]>
+  /** What the last pass read, per session: its state and since when it has held it (ms). Read by the sweep of
+   *  abandoned work (0.3.13 wave 2, SW-2), which judges a stalled terminal by how long it has stood still. */
+  latest(): { sessionId: string; projectId: string | null; state: Liveness; since: number }[]
 }
 
 export function createRuntimeObserver(deps: RuntimeObserverDeps): RuntimeObserver {
   const now = deps.now ?? (() => Date.now())
   const thresholds = deps.thresholds ?? DEFAULT_THRESHOLDS
   const seen = new Map<string, Seen>()
+  let last: { sessionId: string; projectId: string | null; state: Liveness; since: number }[] = []
 
   return {
     async sample() {
       const at = now()
       const sessions = deps.sessions()
-      if (sessions.length === 0) return []
+      if (sessions.length === 0) {
+        last = []
+        return []
+      }
 
       // THE WAIT TARGET IS SELECTED NOW (AX-02). This query asked for four
       // columns and `session_heartbeats` has held `waiting_kind` and
@@ -233,7 +240,11 @@ export function createRuntimeObserver(deps: RuntimeObserverDeps): RuntimeObserve
         }
         out.push({ sessionId: s.sessionId, state: reading.state, appended })
       }
+      last = sessions.map((s) => ({ sessionId: s.sessionId, projectId: s.projectId ?? null, state: seen.get(s.sessionId)!.state, since: seen.get(s.sessionId)!.since }))
       return out
+    },
+    latest() {
+      return last
     }
   }
 }

@@ -86,8 +86,11 @@ const ptys = () => ({
 const policy = new Policy({ db, journal })
 // P-24: the working language is read from Settings at each fabric_whoami; a read that throws costs nothing.
 let surfaceLanguage = 'ru'
+// 0.3.13 wave 2 (SW-4): the sweep's nudges for a session, taken by the answer that carries them.
+const pendingNudges = []
 const surface = new AgentSurface({
   db, journal: createDesktopJournal(journal), ptys, policy, estateId: ESTATE,
+  nudges: (s, p) => (s === sessionId && p === projectId ? pendingNudges.splice(0) : []),
   language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage },
   // ADR-0176 §3: this computer marked as the operator's in Settings.
   machineTrust: () => 'mine'
@@ -1008,10 +1011,14 @@ else fail('memory search returned ' + facts.facts.length)
 
 // 6b — M178: the heartbeat, and what it refuses.
 {
+  pendingNudges.push('Fabric: task t1 has been still for 5 min. Claim it.')
   const beat = await call('fabric_heartbeat', { beatSeq: 1, phase: 'working', note: 'reading the brief' })
   beat.accepted === true
     ? ok('an agent can say what it is doing, and the surface records it')
     : fail('the heartbeat was refused: ' + JSON.stringify(beat))
+  JSON.stringify(beat.nudges) === JSON.stringify(['Fabric: task t1 has been still for 5 min. Claim it.']) && pendingNudges.length === 0
+    ? ok('and the answer to a beat carries the nudges of its session from the sweep, taken once (SW-4)')
+    : fail('the heartbeat did not carry the nudges: ' + JSON.stringify(beat))
 
   const { data: row } = await db.from('session_heartbeats')
     .select('beat_seq,phase,last_received_at,waiting_kind').eq('session_id', sessionId).maybeSingle()

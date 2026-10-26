@@ -123,4 +123,35 @@ export async function releaseByOperator(
   if (after.error || !(after.data as { released_at: string | null } | null)?.released_at) return { released: false, reason: 'unconfirmed' }
   return { released: true, claimId }
 }
+
+/**
+ * The sweep of abandoned work releases a claim whose session ended and two sweeps in a row found (0.3.13 wave 2, SW-8;
+ * `abandonedSweepRun.ts#createAbandonedSweep`): `work.released@1` as `lapsed` (outcome `expired`), with the reason, then
+ * the task its claim moved to running goes back to backlog, as a session's end takes it back (DA-6), so another agent
+ * can take it. Read back like the operator's release: `unconfirmed` when the projection did not end the claim.
+ */
+export async function releaseLapsedClaim(
+  store: Store,
+  append: Append,
+  claimId: string,
+  reason: string
+): Promise<{ released: boolean; reason?: 'not-found' | 'already-released' | 'unconfirmed'; task_moved_to?: 'backlog' | null; failed?: string }> {
+  const r = await store.select('work_claims', 'id,work_id,project_id,owner_session,released_at').eq('id', claimId).maybeSingle()
+  if (r.error) throw new Error(`the claim could not be read: ${r.error.message}`)
+  const c = r.data as { id: string; work_id: string; project_id: string; owner_session: string; released_at: string | null } | null
+  if (!c) return { released: false, reason: 'not-found' }
+  if (c.released_at) return { released: false, reason: 'already-released' }
+  const actor = { kind: 'system' as const, id: 'work-sweep' }
+  await append({
+    type: 'work.released@1',
+    actor,
+    projectId: c.project_id,
+    payload: { work: c.work_id, owner: c.owner_session, outcome: RELEASE_OUTCOME.lapsed, how: 'lapsed', claim_id: c.id, note: reason }
+  })
+  const after = await store.select('work_claims', 'released_at').eq('id', claimId).maybeSingle()
+  if (after.error || !(after.data as { released_at: string | null } | null)?.released_at) return { released: false, reason: 'unconfirmed' }
+  const back = await returnClaimedTaskToBacklog(c.id, () => taskOf(store, c.work_id), (id) => lastTaskMove(store, id), (task, to) =>
+    append({ type: 'task.moved@1', actor, projectId: c.project_id, payload: { task_id: task.id, from: task.status, to, note: reason, claim_id: c.id } }))
+  return { released: true, task_moved_to: back.task_moved_to, ...(back.failed ? { failed: back.failed } : {}) }
+}
 // #endregion work-release

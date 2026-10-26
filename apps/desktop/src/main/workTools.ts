@@ -101,6 +101,9 @@ export interface WorkToolDeps {
    *  recorded the end already. `releaseEndRecord` gives it back when the hook's record could not be written. */
   claimEndRecord?(): boolean
   releaseEndRecord?(): void
+  /** This session's nudges from the sweep of abandoned work, taken (and so cleared) by the answer that carries them
+   *  (0.3.13 wave 2, SW-4; `abandonedSweepRun.ts#createAbandonedSweep`). */
+  nudges?(): string[]
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -321,7 +324,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Who is working on what here',
       description:
-        'Call this before you start a piece of work. Answers who works on what in this project: every live claim — the agent, how it came in (launched, enrolled, handed off, through the hub), the task and the backlog row it links, what it said it will touch, since when, its last sign of life — the sessions working here, the open tasks nobody holds, work handed over to you, handover requests on your claims, claims the operator released, and agent-sync\'s leases on the repository (read-only). Calling it renews your own claims. A board that cannot be read is an error, never "nobody is working here".',
+        'Call this before you start a piece of work. Answers who works on what in this project: every live claim — the agent, how it came in (launched, enrolled, handed off, through the hub), the task and the backlog row it links, what it said it will touch, since when, its last sign of life — the sessions working here, the open tasks nobody holds, work handed over to you, handover requests on your claims, claims the operator released, and agent-sync\'s leases on the repository (read-only). Calling it renews your own claims. When the three-minute sweep of abandoned work has something for you, the answer carries nudges: act on them first. A board that cannot be read is an error, never "nobody is working here".',
       inputSchema: {}
     },
     async () => {
@@ -340,7 +343,10 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const recent = (mine.data ?? []) as Array<Record<string, string | null>>
       const mineLive = snap.claims.filter((c) => c.owner_session === scope.sessionId)
       if (mineLive.length) deps.onClaimed()
+      // SW-4: taken only once the board is read, so a read that throws loses no nudge; carried only when there are any.
+      const nudges = deps.nudges?.() ?? []
       return reply({
+        ...(nudges.length ? { nudges } : {}),
         project_id: scope.projectId,
         you: { session_id: scope.sessionId, agent: scope.agent, came_in: scope.cameIn },
         claims: snap.claims.map((c) => ({

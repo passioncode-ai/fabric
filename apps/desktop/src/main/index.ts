@@ -46,7 +46,8 @@ import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLease
 import { resolveProject } from '../shared/projectResolve.ts'
 import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
-import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
+import { releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
+import { createAbandonedSweep, readBoardRequests, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { readHome, readProjectWork, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
@@ -557,6 +558,8 @@ const quit = createQuitCoordinator({
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
+/** The sweep of abandoned work (0.3.13 wave 2, CO-427), built with the cycle; the surface reads its nudges (SW-4). */
+let abandonedSweep: AbandonedSweep | null = null
 /** `tasks.start` calls that name the same task id, one at a time (taskRetry.ts#createKeyedQueue). */
 const oneTaskAtATime = createKeyedQueue()
 /** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
@@ -1073,6 +1076,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const hubAccess = access
   surface = new AgentSurface({
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
+    // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
+    nudges: (sessionId, projectId) => abandonedSweep?.takeNudges(sessionId, projectId) ?? [],
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
@@ -2748,6 +2753,26 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     host: hostWindow
   })
 
+  // #region abandoned-sweep-wiring — docs: docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md#requirements
+  // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
+  // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
+  const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
+  abandonedSweep = createAbandonedSweep({
+    now: () => Date.now(),
+    readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
+    readRunningTasks: () => readRunningTasks(store),
+    readRequests: (now) => readBoardRequests(sweepBoard, ACTIVE_ESTATE, now),
+    terminals: () => observer.latest().map((o) => ({
+      sessionId: o.sessionId, projectId: o.projectId, taskId: taskBySession.get(o.sessionId) ?? null,
+      liveness: o.state, since: new Date(o.since).toISOString()
+    })),
+    terminalRunning: (sessionId) => ptys.get(sessionId)?.running === true,
+    deliver: (sessionId, text) => ptys.deliverWhenReady(sessionId, text),
+    releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason)
+  })
+  const sweep = abandonedSweep
+  // #endregion abandoned-sweep-wiring
+
   // #region cycle-run — docs: docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#decision
   /**
    * One pass, and it leaves a receipt whether or not it did anything.
@@ -2778,6 +2803,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The project board's upkeep (COM-02.3, ADR-0149 §7): deadlines, epoch rotation, retention. Its own step:
     // it starts no agent work, so it does not change the window this receipt describes; a failure is logged.
     await tickBoard((fn, args) => db.rpc(fn, args), ACTIVE_ESTATE)
+    // SW-1: every third pass sweeps abandoned work. Its own step, like the board's: it changes no window this receipt
+    // describes, and a failure is recorded and never stops the receipt below.
+    try {
+      await sweep.onPass()
+    } catch (e) {
+      ops.failed('cycle.sweep', e, { note: 'the sweep of abandoned work failed this pass; the cycle receipt is still written' })
+    }
     try {
       await journal.append({
         estateId: ACTIVE_ESTATE,

@@ -263,6 +263,10 @@ const FACTS = {
     'waiting',
     'and it reads the wait target it never used to select — an unresolved question is waiting, not working'
   )
+  // 0.3.13 wave 2 (SW-2): the sweep of abandoned work reads the last pass, with since when each state has held.
+  const latest = observer.latest()
+  eq(latest.length, 1, 'the last pass is kept for the sweep')
+  eq(JSON.stringify([latest[0].sessionId, latest[0].state, latest[0].since, latest[0].projectId]), JSON.stringify(['s-1', 'waiting', NOW, null]), 'its session, state, since when and project')
 }
 
 

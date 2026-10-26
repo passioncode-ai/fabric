@@ -4,7 +4,7 @@
  * для всех агентов, чтобы у нас никогда задачи никакие не было»). Pure: the main process reads the claims, tasks,
  * board requests and its own terminals, hands them in, and tells what comes back. Nothing here reads or writes.
  */
-import { SESSION_STALE_MS } from './workClaims'
+import { SESSION_STALE_MS } from './workClaims.ts'
 
 /** The one-minute cycle sweeps on every third pass (SW-1): three minutes, without a timer of its own. */
 export const SWEEP_EVERY_TICKS = 3

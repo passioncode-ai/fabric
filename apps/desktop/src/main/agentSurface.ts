@@ -282,6 +282,9 @@ export const DEFAULT_LIMITS: AgentSurfaceLimits = {
 }
 
 export interface AgentSurfaceDeps {
+  /** A session's nudges from the sweep of abandoned work, taken by the answer that carries them (0.3.13 wave 2, SW-4;
+   *  `abandonedSweepRun.ts#createAbandonedSweep`). Absent: no answer carries nudges. */
+  nudges?: (sessionId: string, projectId: string) => string[]
   db: SupabaseClient
   journal: Journal
   /** Read late, and it can answer NOTHING. The surface starts listening before
@@ -2644,7 +2647,7 @@ export class AgentSurface {
       {
         title: 'Say what you are doing',
         description:
-          'Say what you are doing, every minute or so, and whenever you start waiting on something. Silence is ambiguous — a long tool call, a question nobody has answered and a crashed process look identical from outside — so this is how the difference gets recorded. Nobody grades you on it: the phase is your claim, not a measurement, and reporting "blocked" is worth more than reporting nothing. If you are waiting on a question or a permission, name it: that is the field that turns a silence into a fact.',
+          'Say what you are doing, every minute or so, and whenever you start waiting on something. Silence is ambiguous — a long tool call, a question nobody has answered and a crashed process look identical from outside — so this is how the difference gets recorded. Nobody grades you on it: the phase is your claim, not a measurement, and reporting "blocked" is worth more than reporting nothing. If you are waiting on a question or a permission, name it: that is the field that turns a silence into a fact. When the three-minute sweep of abandoned work has something for you, the answer carries nudges: act on them first.',
         inputSchema: {
           beatSeq: z
             .number()
@@ -2689,7 +2692,10 @@ export class AgentSurface {
             ...(waitingOn ? { waiting_kind: waitingOn.kind, waiting_id: waitingOn.id } : {})
           }
         })
+        // SW-4: the sweep's nudges for this session ride on the beat it sends every minute or so; none, no field.
+        const nudges = this.deps.nudges?.(scope.sessionId, scope.projectId) ?? []
         return json({
+          ...(nudges.length ? { nudges } : {}),
           accepted: true,
           receipt_seq: event.seq,
           // Said back, because the agent has no clock the estate trusts: the
@@ -2898,6 +2904,7 @@ export class AgentSurface {
       checkReference: assertAgentReference,
       sessions: () => this.projectSessions(scope.projectId),
       session: (id) => this.sessionSign(id),
+      nudges: () => this.deps.nudges?.(scope.sessionId, scope.projectId) ?? [],
       resolveSource: (source) =>
         this.deps.work
           ? this.deps.work.resolveSource(scope.projectId, source)
