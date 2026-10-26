@@ -1,7 +1,7 @@
 // 0.3.13 wave 2, CO-427: the sweep of abandoned work. Spec:
 // docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md (SW-1, SW-2, SW-3, SW-5, SW-8).
 import { describe, expect, it } from 'vitest'
-import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, STILL_MS, TELL_QUIET_MS, type SweepInput } from './abandonedSweep'
+import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, type SweepInput } from './abandonedSweep'
 
 const NOW = Date.parse('2026-10-26T12:00:00Z')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -50,10 +50,11 @@ describe('findAbandoned (SW-2, SW-3)', () => {
   })
 
   it('a Fabric terminal that is stalled while it holds a task is found; a quiet one, or one with no task, is not', () => {
-    const t = { sessionId: 's9', projectId: 'p1', taskId: 't9', liveness: 'stalled' as const, since: ago(16 * MIN) }
-    expect(findAbandoned({ ...empty, terminals: [t] })).toMatchObject([{ kind: 'terminal-stalled', sessionId: 's9', taskId: 't9' }])
-    expect(findAbandoned({ ...empty, terminals: [{ ...t, liveness: 'quiet' }] })).toEqual([])
-    expect(findAbandoned({ ...empty, terminals: [{ ...t, taskId: null }] })).toEqual([])
+    const t = { sessionId: 's9', projectId: 'p1', taskId: 't9', liveness: 'stalled' as const, since: ago(16 * MIN), lastActivityAt: NOW - 16 * MIN }
+    const run = { ...empty, runningTaskIds: ['t9'] }
+    expect(findAbandoned({ ...run, terminals: [t] })).toMatchObject([{ kind: 'terminal-stalled', sessionId: 's9', taskId: 't9' }])
+    expect(findAbandoned({ ...run, terminals: [{ ...t, liveness: 'quiet' }] })).toEqual([])
+    expect(findAbandoned({ ...run, terminals: [{ ...t, taskId: null }] })).toEqual([])
   })
 })
 
@@ -92,5 +93,41 @@ describe('nudgeText (SW-3, SW-4)', () => {
     expect(line).toContain(f.nextStep)
     const [r] = findAbandoned({ ...empty, requests: [{ requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'queued', movedAt: ago(4 * MIN), answerUnreadSince: null }] })
     expect(nudgeText(r)).toMatch(/^Fabric: board request r1 .*still for 4 min/)
+  })
+})
+
+// Review of 8e43e043 (three-tier): the findings the pure judgement got wrong.
+describe('review fixes', () => {
+  const stalled = { sessionId: 's9', projectId: 'p1', taskId: 't9', liveness: 'stalled', since: ago(16 * MIN), lastActivityAt: NOW - 16 * MIN }
+
+  it('terminal-stalled needs its task among the running tasks read this sweep (finding 3)', () => {
+    expect(findAbandoned({ ...empty, runningTaskIds: ['t9'], terminals: [stalled] }).map((f) => f.kind)).toEqual(['terminal-stalled'])
+    expect(findAbandoned({ ...empty, runningTaskIds: ['t-other'], terminals: [stalled] }), 'its task is in review').toEqual([])
+    expect(findAbandoned({ ...empty, terminals: [stalled] }), 'running tasks unread: no judgement').toEqual([])
+  })
+
+  it('terminal-stalled needs the terminal itself quiet for fifteen minutes, whatever the heartbeat says (finding 3)', () => {
+    expect(findAbandoned({ ...empty, runningTaskIds: ['t9'], terminals: [{ ...stalled, lastActivityAt: NOW - MIN }] })).toEqual([])
+    expect(findAbandoned({ ...empty, runningTaskIds: ['t9'], terminals: [{ ...stalled, lastActivityAt: NOW - TERMINAL_QUIET_MS + 1000 }] })).toEqual([])
+    expect(TERMINAL_QUIET_MS).toBe(15 * MIN)
+  })
+
+  it('answer-unread names how to clear it: com.list {unread: true}, then com.read_ack (finding 4)', () => {
+    const [f] = findAbandoned({ ...empty, requests: [{ requestId: 'r2', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'answered', movedAt: ago(10 * MIN), answerUnreadSince: ago(STILL_MS) }] })
+    expect(f.nextStep).toContain('com.list {unread: true}')
+    expect(f.nextStep).toContain('com.read_ack')
+  })
+
+  it('a task a person moved to running by hand is not called unclaimed (finding 6)', () => {
+    const t = { taskId: 't3', projectId: 'p1', state: 'running', movedAt: ago(30 * MIN), claimed: false }
+    expect(findAbandoned({ ...empty, tasks: [{ ...t, movedByKind: 'person' }] })).toEqual([])
+    expect(findAbandoned({ ...empty, tasks: [{ ...t, movedByKind: 'agent' }] }).map((f) => f.kind)).toEqual(['task-unclaimed'])
+  })
+
+  it('only a queued request is unmoved; claimed and accepted ones are being worked (finding 7)', () => {
+    const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(30 * MIN), answerUnreadSince: null }
+    expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'queued' }] }).map((f) => f.kind)).toEqual(['request-unmoved'])
+    expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'claimed' }] })).toEqual([])
+    expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'accepted' }] })).toEqual([])
   })
 })

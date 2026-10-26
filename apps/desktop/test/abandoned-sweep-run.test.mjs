@@ -16,8 +16,9 @@ const iso = (ms) => new Date(ms).toISOString()
 function world(over = {}) {
   let now = T0
   const w = {
-    claims: [], held: [], tasks: [], requests: [], terminals: [], running: new Set(),
-    delivered: [], released: [], failed: [], records: [], fail: new Set(),
+    claims: [], held: [], tasks: [], requests: [], terminals: [], running: new Set(), activity: new Map(),
+    claimsCapped: false, requestsCapped: [], unresolved: [], quit: false, started: T0 - 60 * MIN, reads: 0,
+    delivered: [], refused: [], released: [], failed: [], records: [], fail: new Set(),
     tick(ms) { now += ms },
     deps: null
   }
@@ -25,13 +26,24 @@ function world(over = {}) {
   const read = (name, value) => async () => { if (w.fail.has(name)) throw new Error(`${name} refused`); return value() }
   w.deps = {
     now: () => now,
-    readClaims: read('claims', () => ({ claims: w.claims, heldTaskIds: w.held })),
+    readClaims: read('claims', () => { w.reads++; return { claims: w.claims, heldTaskIds: w.held, ...(w.claimsCapped ? { capped: true } : {}) } }),
     readRunningTasks: read('tasks', () => w.tasks),
-    readRequests: read('requests', () => w.requests),
-    terminals: () => { if (w.fail.has('terminals')) throw new Error('terminals refused'); return w.terminals },
+    readRequests: read('requests', () => ({ requests: w.requests, capped: w.requestsCapped })),
+    terminals: () => {
+      if (w.fail.has('terminals')) throw new Error('terminals refused')
+      return w.terminals.map((t) => ({ lastActivityAt: w.activity.get(t.sessionId) ?? now - 20 * MIN, ...t }))
+    },
     terminalRunning: (id) => w.running.has(id),
-    deliver: async (sessionId, text) => { w.delivered.push({ sessionId, text }); return { state: 'written' } },
+    terminalActivity: (id) => w.activity.get(id) ?? null,
+    deliver: async (sessionId, text, options) => {
+      if (options?.beforeWrite && !(await options.beforeWrite())) { w.refused.push({ sessionId, text }); return { state: 'failed_before_write', reason: 'write_gate_refused' } }
+      w.delivered.push({ sessionId, text })
+      return { state: 'written' }
+    },
     releaseLapsed: async (claimId, reason) => { w.released.push({ claimId, reason }); return { released: true } },
+    unresolvedRuns: async (taskIds) => taskIds.filter((id) => w.unresolved.includes(id)),
+    quitting: () => w.quit,
+    processStartedAt: w.started,
     ops: {
       failed: (op, e, detail) => { w.failed.push({ op, message: e instanceof Error ? e.message : String(e), detail }) },
       record: (r) => { w.records.push(r) },
@@ -192,6 +204,7 @@ test('(f) an idle sweep writes no ops record; a sweep that found something write
   assert.equal(w.records[0].op, 'work.swept')
   assert.equal(w.records[0].outcome, 'ok')
   assert.deepEqual(w.records[0].detail.found, { 'claim-lapsed': 1 })
+  assert.equal('capped' in w.records[0].detail, false, 'nothing capped, no field')
   assert.equal(w.records[0].detail.told, 1)
   assert.equal(w.records[0].detail.released, 0)
 })
@@ -219,7 +232,9 @@ test('readBoardRequests: open requests by their last move, answered ones by whet
       requests: { 'req-open': { attemptLive: false, outcomes: [], lastAt: iso(now - 4 * MIN) } }
     })
   }
-  const rows = await readBoardRequests(comms, 'estate', now)
+  const read = await readBoardRequests(comms, 'estate', now)
+  assert.deepEqual(read.capped, [], 'every read ended before its cap')
+  const rows = read.requests
   assert.equal(asked[0].kind, 'request')
   assert.ok(asked[0].activeSince, 'a bounded window of threads')
   const by = Object.fromEntries(rows.map((r) => [r.requestId, r]))
@@ -307,4 +322,200 @@ test('releaseLapsedClaim: a task another hand moved to running stays there', asy
   assert.equal(r.released, true)
   assert.equal(r.task_moved_to, null)
   assert.equal(w.task.status, 'running')
+})
+
+// ── Review of 8e43e043 (three-tier): what the wiring got wrong ────────────────────────────────────────────────
+const stalledTerm = (over = {}) => ({ sessionId: 's-term', projectId: 'p1', taskId: 't-run', liveness: 'stalled', since: iso(T0 - 20 * MIN), ...over })
+const runningTask = (taskId = 't-run') => ({ taskId, projectId: 'p1', movedAt: iso(T0 - 30 * MIN) })
+const settle = () => new Promise((r) => setImmediate(r))
+
+test('finding 1: a project nudge whose finding is gone is dropped before another session takes it', async () => {
+  const w = world({ tasks: [runningTask('t9')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(sweep.takeNudges('s-a', 'p1').length, 1, 'told while it stood unclaimed')
+  w.held = ['t9']
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudges('s-b', 'p1'), [], 'claimed since: another session is not told a stale line')
+})
+
+test('finding 1: a session nudge whose finding is gone is dropped; one a failed read could not see is kept', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.fail.add('claims')
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  w.fail.delete('claims')
+  assert.equal(sweep.takeNudges('s-enrolled', 'p1').length, 1, 'a blind sweep keeps what it could not judge')
+  w.tick(30 * MIN)
+  await sweepOnce(sweep)
+  w.claims = [{ ...silentClaim('c1', 's-enrolled'), session: { lastSignAt: w.deps.now() } }]
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudges('s-enrolled', 'p1'), [], 'the claim moved again: its line is gone')
+})
+
+test('finding 2: a session that takes nothing for an hour gets one line per finding', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  for (let i = 0; i < 21; i++) { await sweepOnce(sweep); w.tick(3 * MIN) }
+  const lines = sweep.takeNudges('s-enrolled', 'p1')
+  assert.equal(lines.length, 1, `one line for one key, got ${lines.length}`)
+})
+
+test('finding 3: a terminal stalled by its heartbeat but with fresh output is not written into', async () => {
+  const w = world({ tasks: [runningTask()], held: ['t-run'], terminals: [stalledTerm()], running: new Set(['s-term']) })
+  w.activity.set('s-term', T0 - MIN)
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  await settle()
+  assert.deepEqual(out.findings, [])
+  assert.equal(w.delivered.length, 0)
+})
+
+test('finding 3: a terminal whose task is in review is not called stalled', async () => {
+  const w = world({ tasks: [], terminals: [stalledTerm()], running: new Set(['s-term']) })
+  w.activity.set('s-term', T0 - 20 * MIN)
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  assert.deepEqual(out.findings, [])
+})
+
+test('finding 3: output between the read and the write refuses the write, and the finding stays eligible', async () => {
+  const w = world({ tasks: [runningTask()], held: ['t-run'], terminals: [stalledTerm()], running: new Set(['s-term']) })
+  w.activity.set('s-term', T0 - 20 * MIN)
+  const sweep = createAbandonedSweep(w.deps)
+  const realTerminals = w.deps.terminals
+  w.deps.terminals = () => { const t = realTerminals(); w.activity.set('s-term', T0); return t }
+  const out = await sweepOnce(sweep)
+  await settle()
+  assert.deepEqual(out.findings.map((f) => f.kind), ['terminal-stalled'])
+  assert.equal(w.delivered.length, 0, 'the gate refused: nothing written')
+  assert.equal(w.refused.length, 1)
+  assert.equal(w.failed.filter((f) => f.op === 'work.sweep-deliver').length, 0, 'a refused gate is not a failure')
+  w.deps.terminals = realTerminals
+  w.activity.set('s-term', T0 - 20 * MIN)
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  await settle()
+  assert.equal(w.delivered.length, 1, 'not told, so the next sweep tells it')
+})
+
+test('finding 6: a capped claims read judges no task unclaimed', async () => {
+  const w = world({ tasks: [runningTask('t-free')], claimsCapped: true })
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  assert.deepEqual(out.findings.filter((f) => f.kind === 'task-unclaimed'), [])
+})
+
+test('finding 6: a task a person moved to running is not unclaimed', async () => {
+  const w = world({ tasks: [{ ...runningTask('t-hand'), movedByKind: 'person' }, runningTask('t-free')] })
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  assert.deepEqual(out.findings.map((f) => f.taskId), ['t-free'])
+})
+
+test('finding 6: readRunningTasks reads who last moved each task', async () => {
+  const { readRunningTasks } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+  let columns = ''
+  const rows = [{ id: 't1', project_id: 'p1', moved_at: iso(T0), started_at: null, moved_by_kind: 'person' }]
+  const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
+  const out = await readRunningTasks({ select: (_t, c) => { columns = c; return q } })
+  assert.match(columns, /moved_by_kind/)
+  assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person' }])
+})
+
+test('finding 8: a pass while a sweep is in flight starts no second sweep', async () => {
+  const w = world()
+  let open
+  const gate = new Promise((r) => { open = r })
+  const read = w.deps.readClaims
+  w.deps.readClaims = async (now) => { await gate; return read(now) }
+  const sweep = createAbandonedSweep(w.deps)
+  await sweep.onPass(); await sweep.onPass()
+  const first = sweep.onPass()
+  const during = [sweep.onPass(), sweep.onPass(), sweep.onPass()]
+  open()
+  assert.ok(await first)
+  assert.deepEqual(await Promise.all(during), [null, null, null], 'in flight: no second sweep')
+  assert.equal(w.reads, 1, 'one sweep read the claims')
+})
+
+test('finding 8: quitting during a sweep releases nothing, and a pass while quitting does nothing', async () => {
+  const w = world({ claims: [lapsedClaim('c1')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.tick(3 * MIN)
+  const read = w.deps.readClaims
+  w.deps.readClaims = async (now) => { const r = await read(now); w.quit = true; return r }
+  await sweepOnce(sweep)
+  assert.equal(w.released.length, 0, 'quitting began during the sweep: no release')
+  const reads = w.reads
+  for (let i = 0; i < 3; i++) assert.equal(await sweep.onPass(), null, 'quitting: the pass does nothing')
+  assert.equal(w.reads, reads)
+})
+
+test('finding 8: quitting during a sweep writes into no terminal', async () => {
+  const w = world({ claims: [silentClaim('c2', 's-term')], running: new Set(['s-term']) })
+  const read = w.deps.readClaims
+  w.deps.readClaims = async (now) => { const r = await read(now); w.quit = true; return r }
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  await settle()
+  assert.equal(w.delivered.length, 0)
+})
+
+test('finding 9: a lapsed claim from before this process started is left to its own expiry', async () => {
+  const w = world({ claims: [lapsedClaim('c1')], started: T0 - 5 * MIN })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.equal(w.released.length, 0)
+})
+
+test('finding 9: a lapsed claim minted after this process started is released on the second sweep', async () => {
+  const w = world({ claims: [lapsedClaim('c1')], started: T0 - 30 * MIN })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(w.released.length, 0)
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(w.released.map((r) => r.claimId), ['c1'])
+})
+
+test('finding 9: a claim from before the start whose session this process saw live is released once it lapses', async () => {
+  const w = world({ claims: [{ ...silentClaim('c1', 's-x', T0 - 20 * MIN), session: { lastSignAt: T0 - MIN } }], started: T0 - 5 * MIN })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.claims = [{ ...w.claims[0], session: null }]
+  w.tick(3 * MIN); await sweepOnce(sweep)
+  w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(w.released.map((r) => r.claimId), ['c1'])
+})
+
+test('finding 9: a lapsed claim whose task has an unresolved run is not released', async () => {
+  const w = world({ claims: [lapsedClaim('c1')], unresolved: ['task-c1'] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.equal(w.released.length, 0)
+})
+
+test('finding 10: the board read says when it stopped at its thread cap, and the sweep records it', async () => {
+  let pages = 0
+  const comms = {
+    threadPage: async () => { pages++; return { ok: true, threads: [{ id: `th${pages}` }], more: true, before: `b${pages}` } },
+    list: async () => ({ ok: true, messages: [], lastSeq: 0, more: false }),
+    facts: async () => ({ ok: true, messages: {}, requests: {} })
+  }
+  const read = await readBoardRequests(comms, 'estate', T0)
+  assert.deepEqual(read.capped, ['threads'])
+  const w = world({ requests: [{ requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'queued', movedAt: iso(T0 - 5 * MIN), answerUnreadSince: null }], requestsCapped: ['threads'], claimsCapped: true })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(w.records.at(-1).detail.capped, ['claims', 'threads'])
 })

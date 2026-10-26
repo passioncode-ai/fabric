@@ -48,7 +48,7 @@ import { loginItemFor, loginItemState, startsInBackground, type LoginItemState }
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
-import { readHome, readProjectWork, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
+import { readHome, readProjectWork, readRunHolds, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -560,6 +560,8 @@ const quit = createQuitCoordinator({
 const taskBySession = new Map<string, string>()
 /** The sweep of abandoned work (0.3.13 wave 2, CO-427), built with the cycle; the surface reads its nudges (SW-4). */
 let abandonedSweep: AbandonedSweep | null = null
+/** When this process started: the sweep releases a lapsed claim only when this process knew it (CO-427, SW-8). */
+const PROCESS_STARTED_AT = Date.now()
 /** `tasks.start` calls that name the same task id, one at a time (taskRetry.ts#createKeyedQueue). */
 const oneTaskAtATime = createKeyedQueue()
 /** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
@@ -2762,13 +2764,25 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
     readRunningTasks: () => readRunningTasks(store),
     readRequests: (now) => readBoardRequests(sweepBoard, ACTIVE_ESTATE, now),
-    terminals: () => observer.latest().map((o) => ({
-      sessionId: o.sessionId, projectId: o.projectId, taskId: taskBySession.get(o.sessionId) ?? null,
-      liveness: o.state, since: new Date(o.since).toISOString()
-    })),
+    // A terminal's own last output or typed input (PtyManager `lastActivityAt`); NaN for one Fabric no longer runs,
+    // so it is never judged quiet.
+    terminals: () => observer.latest().map((o) => {
+      const p = ptys.get(o.sessionId)
+      return {
+        sessionId: o.sessionId, projectId: o.projectId, taskId: taskBySession.get(o.sessionId) ?? null,
+        liveness: o.state, since: new Date(o.since).toISOString(), lastActivityAt: p ? Date.parse(p.lastActivityAt) : Number.NaN
+      }
+    }),
     terminalRunning: (sessionId) => ptys.get(sessionId)?.running === true,
-    deliver: (sessionId, text) => ptys.deliverWhenReady(sessionId, text),
-    releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason)
+    terminalActivity: (sessionId) => {
+      const p = ptys.get(sessionId)
+      return p ? Date.parse(p.lastActivityAt) : null
+    },
+    deliver: (sessionId, text, options) => ptys.deliverWhenReady(sessionId, text, options),
+    releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason),
+    unresolvedRuns: async (taskIds) => (await readRunHolds(store, taskIds)).map((h) => h.taskId),
+    quitting: () => quit.quitting,
+    processStartedAt: PROCESS_STARTED_AT
   })
   const sweep = abandonedSweep
   // #endregion abandoned-sweep-wiring

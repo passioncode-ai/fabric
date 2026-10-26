@@ -10,6 +10,10 @@ import { SESSION_STALE_MS } from './workClaims.ts'
 export const SWEEP_EVERY_TICKS = 3
 /** How long work stands still before it is abandoned (SW-2). */
 export const STILL_MS = 3 * 60_000
+/** A terminal is stalled only when it has itself been quiet this long: no output and no typed input. The runtime
+ *  observer's own stalled threshold (`runtimeObserver.ts#DEFAULT_THRESHOLDS`, `stallAfterMs`), so a heartbeat that
+ *  stopped never outranks a terminal that is visibly working or that a person is typing into. */
+export const TERMINAL_QUIET_MS = 15 * 60_000
 /** A finding is told once, then not again for this long while it stays the same (SW-5). */
 export const TELL_QUIET_MS = 30 * 60_000
 
@@ -33,7 +37,16 @@ export interface SweepClaim {
   session: { lastSignAt: number | null } | null
 }
 
-export interface SweepTask { taskId: string; projectId: string | null; state: string; movedAt: string; claimed: boolean }
+export interface SweepTask {
+  taskId: string
+  projectId: string | null
+  state: string
+  movedAt: string
+  claimed: boolean
+  /** Who last moved the task (`project_tasks.moved_by_kind`): a task a person moved to running by hand is the
+   *  person's own and is never called unclaimed. */
+  movedByKind?: string | null
+}
 
 export interface SweepRequest {
   requestId: string
@@ -45,9 +58,25 @@ export interface SweepRequest {
   answerUnreadSince: string | null
 }
 
-export interface SweepTerminal { sessionId: string; projectId: string | null; taskId: string | null; liveness: string; since: string }
+export interface SweepTerminal {
+  sessionId: string
+  projectId: string | null
+  taskId: string | null
+  liveness: string
+  since: string
+  /** The terminal's own last output or typed input (`PtyManager` session `lastActivityAt`), in ms. */
+  lastActivityAt: number
+}
 
-export interface SweepInput { now: number; claims: SweepClaim[]; tasks: SweepTask[]; requests: SweepRequest[]; terminals: SweepTerminal[] }
+export interface SweepInput {
+  now: number
+  claims: SweepClaim[]
+  tasks: SweepTask[]
+  requests: SweepRequest[]
+  terminals: SweepTerminal[]
+  /** The tasks read in running this sweep; absent when that read failed, and then no terminal is called stalled. */
+  runningTaskIds?: readonly string[]
+}
 
 export interface Finding {
   kind: AbandonedKind
@@ -63,8 +92,6 @@ export interface Finding {
   /** What the agent that is woken does next, in its own reading. */
   nextStep: string
 }
-
-const OPEN_REQUEST = new Set(['queued', 'claimed', 'accepted'])
 
 /** Every third pass, counting from one (SW-1). */
 export function sweepDue(pass: number): boolean {
@@ -92,22 +119,25 @@ export function findAbandoned(input: SweepInput): Finding[] {
   }
   for (const t of input.tasks) {
     const still = now - Date.parse(t.movedAt)
-    if (t.state === 'running' && !t.claimed && still >= STILL_MS)
+    if (t.state === 'running' && !t.claimed && t.movedByKind !== 'person' && still >= STILL_MS)
       out.push({ ...base, kind: 'task-unclaimed', key: `task-unclaimed:${t.taskId}`, projectId: t.projectId, taskId: t.taskId, stillMs: still,
         nextStep: 'This task is running and nobody holds it: claim it (fabric_work_claim) and continue, or move it back to the backlog.' })
   }
   for (const r of input.requests) {
     const still = now - Date.parse(r.movedAt)
-    if (OPEN_REQUEST.has(r.state) && still >= STILL_MS)
+    // Only a queued request stands still: a claimed or accepted one is being worked, and its own deadlines are the
+    // board's (SCN-147, `board_tick`).
+    if (r.state === 'queued' && still >= STILL_MS)
       out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'A board request addressed to your project has not moved: read it (com.get) and answer it (com.reply), or say why it waits.' })
     if (r.answerUnreadSince && now - Date.parse(r.answerUnreadSince) >= STILL_MS)
       out.push({ ...base, kind: 'answer-unread', key: `answer-unread:${r.requestId}`, projectId: r.requesterProjectId, requestId: r.requestId,
         stillMs: now - Date.parse(r.answerUnreadSince),
-        nextStep: 'A board request your project sent has been answered and the answer is unread: read it (com.list unread) and carry on.' })
+        nextStep: 'A board request your project sent has been answered and the answer is unread: read it (com.list {unread: true}), mark it read (com.read_ack) and carry on.' })
   }
+  const running = input.runningTaskIds ? new Set(input.runningTaskIds) : null
   for (const s of input.terminals) {
-    if (s.liveness === 'stalled' && s.taskId)
+    if (s.liveness === 'stalled' && s.taskId && running?.has(s.taskId) && now - s.lastActivityAt >= TERMINAL_QUIET_MS)
       out.push({ ...base, kind: 'terminal-stalled', key: `terminal-stalled:${s.sessionId}`, projectId: s.projectId, taskId: s.taskId,
         sessionId: s.sessionId, stillMs: now - Date.parse(s.since),
         nextStep: 'This session holds a task and has been still: continue it, or say what blocks it (fabric_heartbeat with phase blocked).' })

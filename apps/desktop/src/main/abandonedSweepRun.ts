@@ -9,7 +9,9 @@
  *   SW-4  a Fabric terminal gets one line written into it; any other session reads its nudges in its next tool answer
  *   SW-5  a finding is told once, then not again for 30 minutes while it stays (`toTell`)
  *   SW-7  interim: one ops line per sweep that found something (the journal receipt needs 0.3.13's schema step)
- *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed
+ *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew its session
+ *
+ * One sweep at a time, and none once the app is quitting. A queued nudge lives only while its finding does.
  */
 import {
   findAbandoned,
@@ -36,24 +38,42 @@ export const LAPSED_REASON = 'lapsed: its session ended and two sweeps found it'
 /** At most this many nudges wait per session and per project; the oldest goes first. */
 export const NUDGES_PER_KEY = 50
 
-export interface SweepRunningTask { taskId: string; projectId: string | null; movedAt: string }
+export interface SweepRunningTask {
+  taskId: string
+  projectId: string | null
+  movedAt: string
+  /** Who last moved it (`project_tasks.moved_by_kind`, written by the projector's move provenance). */
+  movedByKind?: string | null
+}
+
+/** What the board read could not finish within its bounds: past them a request is judged at a later sweep. */
+export type BoardCap = 'threads' | 'messages'
 
 export interface AbandonedSweepDeps {
   now(): number
   /** The open claims, each with its session's sign (null when Fabric holds no session for it), and the tasks a lease
    *  holds without a claim (a managed launch). */
-  readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[] }>
+  /** `capped`: the claims or leases read stopped at its limit, so a task past it may be held. */
+  readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; capped?: boolean }>
   /** The tasks in running, with when each last moved. */
   readRunningTasks(): Promise<SweepRunningTask[]>
-  readRequests(now: number): Promise<SweepRequest[]>
-  /** Fabric's own terminals, with the runtime observer's liveness and the task each holds. */
+  readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
+  /** Fabric's own terminals, with the runtime observer's liveness, the task each holds and its own last activity. */
   terminals(): SweepTerminal[]
   /** Whether Fabric runs a terminal for this session now (`PtyManager.get(id).running`). */
   terminalRunning(sessionId: string): boolean
-  /** One fenced write into a Fabric terminal (`PtyManager.deliverWhenReady`). */
-  deliver(sessionId: string, text: string): Promise<{ state: string; reason?: string }>
+  /** The terminal's last output or typed input now, in ms (`PtyManager` session `lastActivityAt`); null when gone. */
+  terminalActivity(sessionId: string): number | null
+  /** One fenced write into a Fabric terminal (`PtyManager.deliverWhenReady`); `beforeWrite` may still refuse it. */
+  deliver(sessionId: string, text: string, options: { beforeWrite: () => Promise<boolean> }): Promise<{ state: string; reason?: string }>
   /** Releases a claim as lapsed and returns its task to the backlog when the claim moved it there (`workRelease.ts`). */
   releaseLapsed(claimId: string, reason: string): Promise<{ released: boolean; reason?: string; failed?: string }>
+  /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
+  unresolvedRuns(taskIds: string[]): Promise<string[]>
+  /** True once the app has begun to quit (`quit.ts`, `quitting`). */
+  quitting(): boolean
+  /** When this process started: a claim older than that, whose session it never saw, is not its to release. */
+  processStartedAt: number
   ops?: Pick<typeof opsSink, 'failed' | 'record' | 'correlate'>
 }
 
@@ -61,7 +81,7 @@ type Source = 'claims' | 'tasks' | 'requests' | 'terminals'
 /** Which kinds each read finds, so a failed read keeps what was told about them (SW-5 across a blind sweep). */
 const KINDS_OF: Record<Source, AbandonedKind[]> = {
   claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed'],
-  tasks: ['task-unclaimed'],
+  tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed']
 }
@@ -77,17 +97,38 @@ export interface SweepResult {
 
 interface ProjectNudge { key: string; text: string; at: number; takenBy: Set<string> }
 
+const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
+/** The reason a delivery queue gives when its `beforeWrite` gate refused the write (`deliveryQueue.ts`). */
+const WRITE_GATE_REFUSED = 'write_gate_refused'
+
 export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   const ops = deps.ops ?? opsSink
   let pass = 0
   let told = new Map<string, number>()
   let lapsedSeen = new Set<string>()
-  const bySession = new Map<string, string[]>()
+  /** Sessions this process has seen live on a claim: a claim of one of them that lapses is this process's to release. */
+  let seenLive = new Set<string>()
+  let inFlight = false
+  /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
+  const bySession = new Map<string, Map<string, string>>()
   const byProject = new Map<string, ProjectNudge[]>()
 
   const push = <T,>(list: T[], item: T): void => {
     list.push(item)
     if (list.length > NUDGES_PER_KEY) list.splice(0, list.length - NUDGES_PER_KEY)
+  }
+  /** Drops queued nudges whose finding this sweep no longer found, unless the read that finds that kind failed. */
+  const dropStale = (current: ReadonlySet<string>, blind: ReadonlySet<AbandonedKind>): void => {
+    const stale = (key: string): boolean => !current.has(key) && !blind.has(kindOf(key))
+    for (const [session, lines] of bySession) {
+      for (const key of [...lines.keys()]) if (stale(key)) lines.delete(key)
+      if (!lines.size) bySession.delete(session)
+    }
+    for (const [project, list] of byProject) {
+      const kept = list.filter((n) => !stale(n.key))
+      if (kept.length) byProject.set(project, kept)
+      else byProject.delete(project)
+    }
   }
   const prune = (projectId: string, now: number): ProjectNudge[] => {
     const kept = (byProject.get(projectId) ?? []).filter((n) => now - n.at < TELL_QUIET_MS)
@@ -110,7 +151,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   async function sweep(): Promise<SweepResult> {
     const now = deps.now()
     const failedReads: Source[] = []
-    const [claimRead, taskRead, requests, terminals] = await Promise.all([
+    const [claimRead, taskRead, requestRead, terminals] = await Promise.all([
       attempt('claims', () => deps.readClaims(now), failedReads),
       attempt('tasks', () => deps.readRunningTasks(), failedReads),
       attempt('requests', () => deps.readRequests(now), failedReads),
@@ -118,8 +159,9 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     ])
     // A running task is unclaimed only when no open claim (any life: a silent or lapsed one is its own finding), no
     // lease of a managed launch and no Fabric terminal stands on it. Without the claims or the terminals read, that
-    // cannot be judged, so no task is called unclaimed.
-    const holders = claimRead && terminals
+    // cannot be judged, so no task is called unclaimed; nor when the claims read stopped at its limit (a claim past
+    // it may hold the task).
+    const holders = claimRead && !claimRead.capped && terminals
       ? new Set<string>([
           ...claimRead.claims.map((c) => c.taskId).filter((id): id is string => id !== null),
           ...claimRead.heldTaskIds,
@@ -130,17 +172,20 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       now,
       claims: claimRead?.claims ?? [],
       tasks: holders && taskRead
-        ? taskRead.map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId) }))
+        ? taskRead.map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null }))
         : [],
-      requests: requests ?? [],
-      terminals: terminals ?? []
+      requests: requestRead?.requests ?? [],
+      terminals: terminals ?? [],
+      ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {})
     })
 
     // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling.
     const blind = new Set(failedReads.flatMap((s) => KINDS_OF[s]))
     const decided = toTell(findings, told, now)
-    for (const [key, at] of told) if (!decided.told.has(key) && blind.has(key.slice(0, key.indexOf(':')) as AbandonedKind)) decided.told.set(key, at)
+    for (const [key, at] of told) if (!decided.told.has(key) && blind.has(kindOf(key))) decided.told.set(key, at)
     told = decided.told
+    dropStale(new Set(findings.map((f) => f.key)), blind)
+    const activityAt = new Map((terminals ?? []).map((t) => [t.sessionId, t.lastActivityAt]))
 
     let delivered = 0
     let queued = 0
@@ -149,15 +194,30 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       // A lapsed claim's session has ended: there is nobody to wake but the project's other agents.
       const own = f.kind === 'claim-lapsed' ? null : f.sessionId
       if (own && deps.terminalRunning(own)) {
+        if (deps.quitting()) { told.delete(f.key); continue }
         delivered++
-        deps.deliver(own, text).then(
-          (r) => { if (r.state !== 'written') ops.failed('work.sweep-deliver', new Error(r.reason ?? r.state), { session_id: own, kind: f.kind, note: 'the line was not written into the terminal; the finding is told again after the quiet period' }) },
+        // Finding 3: the line goes in only while the terminal is as the sweep read it. Output or typed input since
+        // means an agent or a person is at it: the write is refused and the finding is not told, so it stays
+        // eligible next sweep.
+        const readAt = activityAt.get(own) ?? deps.terminalActivity(own)
+        const beforeWrite = async (): Promise<boolean> => !deps.quitting() && deps.terminalActivity(own) === readAt
+        deps.deliver(own, text, { beforeWrite }).then(
+          (r) => {
+            if (r.state === 'written') return
+            if (r.reason === WRITE_GATE_REFUSED) {
+              if (told.get(f.key) === now) told.delete(f.key)
+              return
+            }
+            ops.failed('work.sweep-deliver', new Error(r.reason ?? r.state), { session_id: own, kind: f.kind, note: 'the line was not written into the terminal; the finding is told again after the quiet period' })
+          },
           (e: unknown) => ops.failed('work.sweep-deliver', e, { session_id: own, kind: f.kind, note: 'the terminal write threw; the finding is told again after the quiet period' })
         )
       } else if (own) {
-        const list = bySession.get(own) ?? []
-        push(list, text)
-        bySession.set(own, list)
+        const lines = bySession.get(own) ?? new Map<string, string>()
+        lines.delete(f.key)
+        lines.set(f.key, text)
+        while (lines.size > NUDGES_PER_KEY) lines.delete(lines.keys().next().value as string)
+        bySession.set(own, lines)
         queued++
       } else if (f.projectId) {
         const list = prune(f.projectId, now).filter((n) => n.key !== f.key)
@@ -172,8 +232,28 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     if (claimRead) {
       const twice = lapsedTwice(lapsedSeen, findings)
       lapsedSeen = twice.seen
-      for (const f of twice.release) {
-        if (!f.claimId) continue
+      // Finding 9: only a claim this process knew. One minted (claimed or renewed) since it started, or one whose
+      // session it saw live; a claim from before a restart or a crash, whose session it never saw, is left to its own
+      // expiry. Live sessions are remembered only while a claim of theirs is open.
+      for (const c of claimRead.claims) if (c.session) seenLive.add(c.sessionId)
+      seenLive = new Set(claimRead.claims.map((c) => c.sessionId).filter((id) => seenLive.has(id)))
+      const ownAt = new Map(claimRead.claims.map((c) => [c.claimId, Math.max(Date.parse(c.claimedAt), c.renewedAt ? Date.parse(c.renewedAt) : 0)]))
+      const ours = twice.release.filter((f) => f.claimId && f.sessionId &&
+        ((ownAt.get(f.claimId) ?? 0) >= deps.processStartedAt || seenLive.has(f.sessionId)))
+      // A task whose run Fabric has not proved stopped stays held: the claim is not released over a live process.
+      let held: Set<string> | null = new Set()
+      const taskIds = ours.map((f) => f.taskId).filter((id): id is string => id !== null)
+      if (taskIds.length) {
+        try {
+          held = new Set(await deps.unresolvedRuns(taskIds))
+        } catch (e) {
+          ops.failed('work.sweep-release', e, { note: 'the runs could not be read; no lapsed claim is released this sweep' })
+          held = null
+        }
+      }
+      for (const f of held ? ours : []) {
+        if (!f.claimId || (f.taskId && held?.has(f.taskId))) continue
+        if (deps.quitting()) break
         try {
           const r = await deps.releaseLapsed(f.claimId, LAPSED_REASON)
           if (r.released) released++
@@ -184,11 +264,13 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       }
     }
 
-    // SW-7, interim: one line naming what this sweep found; an idle sweep writes nothing.
-    if (findings.length) {
+    // SW-7, interim: one line naming what this sweep found, and which reads stopped at their bounds; an idle sweep
+    // with nothing capped writes nothing.
+    const capped = [...(claimRead?.capped ? ['claims'] : []), ...(requestRead?.capped ?? [])]
+    if (findings.length || capped.length) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
-      ops.record({ op: 'work.swept', outcome: 'ok', detail: { found, told: decided.tell.length, delivered, queued, released, ...(failedReads.length ? { unread: failedReads } : {}) }, ctx: { correlationId: ops.correlate() } })
+      ops.record({ op: 'work.swept', outcome: 'ok', detail: { found, told: decided.tell.length, delivered, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }, ctx: { correlationId: ops.correlate() } })
     }
     return { findings, told: decided.tell.length, delivered, queued, released, failedReads }
   }
@@ -196,12 +278,20 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   return {
     /** One pass of the cycle: every third one sweeps (SW-1). Null when this pass does not. */
     async onPass(): Promise<SweepResult | null> {
+      // Nothing once quitting; and one sweep at a time: a pass that falls due while one is in flight is skipped.
+      if (deps.quitting()) return null
       pass++
-      return sweepDue(pass) ? sweep() : null
+      if (!sweepDue(pass) || inFlight) return null
+      inFlight = true
+      try {
+        return await sweep()
+      } finally {
+        inFlight = false
+      }
     },
     /** This session's nudges, and its project's it has not yet taken; the session's own are cleared (SW-4). */
     takeNudges(sessionId: string, projectId: string | null): string[] {
-      const own = bySession.get(sessionId) ?? []
+      const own = [...(bySession.get(sessionId)?.values() ?? [])]
       bySession.delete(sessionId)
       const shared = projectId ? prune(projectId, deps.now()).filter((n) => !n.takenBy.has(sessionId)) : []
       for (const n of shared) n.takenBy.add(sessionId)
@@ -217,25 +307,28 @@ export const SWEEP_READ_LIMIT = 500
 
 /** The open claims for the sweep (SW-2), from the same reading `fabric_work_list` and the screens use
  *  (`workRead.ts#readWork`): each with its session's sign, and the tasks a managed launch's lease holds without one. */
-export async function readSweepClaims(store: Store, now: number, session: SessionSign): Promise<{ claims: SweepClaim[]; heldTaskIds: string[] }> {
+export async function readSweepClaims(store: Store, now: number, session: SessionSign): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; capped?: boolean }> {
   const snap = await readWork(store, { now, session, limit: SWEEP_READ_LIMIT })
   return {
     claims: snap.claims.map((c) => ({
       claimId: c.id, taskId: c.work_id, projectId: c.project_id, sessionId: c.owner_session,
       expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session)
     })),
-    heldTaskIds: snap.held.map((h) => h.task.id)
+    heldTaskIds: snap.held.map((h) => h.task.id),
+    ...(snap.capped?.length ? { capped: true } : {})
   }
 }
 
 /** The tasks in running (SW-2). When a task last moved is read the way the home's «В работе» reads it
- *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. A read that fails throws. */
+ *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. Who moved it is the
+ *  `moved_by_kind` column the projector writes with `moved_at` from the move's actor (`apply_move_provenance`), so no
+ *  journal read and no migration is needed to tell a person's hand move. A read that fails throws. */
 export async function readRunningTasks(store: Store): Promise<SweepRunningTask[]> {
-  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at').eq('status', 'running').limit(SWEEP_READ_LIMIT)
+  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind').eq('status', 'running').limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
-  return ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null }>)
+  return ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }>)
     .filter((t) => t.moved_at ?? t.started_at)
-    .map((t) => ({ taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string }))
+    .map((t) => ({ taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null }))
 }
 
 /** The operator's read door onto the board (`commsOperatorRead.ts`), the four reads this sweep uses. */
@@ -256,19 +349,22 @@ const MESSAGE_PAGES = 5
  * with a request active in the last seven days, their messages, and the facts of the requests and their answers. An
  * open request moved when it last changed state (`lastAt`), else when it was sent. An answered one carries the time
  * its target's answer came while the requester has not marked that answer read (`readBy`, the board's read marks).
- * A door that does not answer throws: an unread board is never "nothing waits".
+ * A door that does not answer throws: an unread board is never "nothing waits". `capped` names the reads that stopped
+ * at their bound (more threads, or a thread's more messages, than one sweep reads), so the sweep can say so.
  */
-export async function readBoardRequests(comms: SweepComms, estateId: string, now: number): Promise<SweepRequest[]> {
+export async function readBoardRequests(comms: SweepComms, estateId: string, now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }> {
   const must = <T extends { ok: boolean }>(r: T, what: string): Extract<T, { ok: true }> => {
     if (!r.ok) throw new Error(`the board's ${what} could not be read: ${(r as { error?: { message?: string } }).error?.message ?? 'no reason given'}`)
     return r as Extract<T, { ok: true }>
   }
+  const capped = new Set<BoardCap>()
   const threads: string[] = []
   let before: unknown = null
   for (let page = 0; page < THREAD_PAGES; page++) {
     const r = must(await comms.threadPage(estateId, { kind: 'request', activeSince: new Date(now - BOARD_WINDOW_MS).toISOString() }, before, 100), 'threads')
     threads.push(...r.threads.map((t) => t.id))
     if (!r.more || !r.before) break
+    if (page === THREAD_PAGES - 1) capped.add('threads')
     before = r.before
   }
   const messages: CommsMessage[] = []
@@ -278,15 +374,17 @@ export async function readBoardRequests(comms: SweepComms, estateId: string, now
       const r = must(await comms.list(estateId, thread, after, 100), 'messages')
       messages.push(...r.messages)
       if (!r.more) break
+      if (page === MESSAGE_PAGES - 1) capped.add('messages')
       after = r.lastSeq
     }
   }
   const requests = messages.filter((m) => m.kind === 'request' && m.request)
+  const requestById = new Map(requests.map((r) => [r.id, r]))
   // The target's latest answer to each answered request.
   const answerOf = new Map<string, CommsMessage>()
   for (const m of messages) {
     if (!m.replyTo) continue
-    const req = requests.find((r) => r.id === m.replyTo)
+    const req = requestById.get(m.replyTo)
     if (!req || req.request?.state !== 'answered' || m.sender.project !== req.request.target) continue
     const prior = answerOf.get(req.id)
     if (!prior || Date.parse(m.at) > Date.parse(prior.at)) answerOf.set(req.id, m)
@@ -299,7 +397,7 @@ export async function readBoardRequests(comms: SweepComms, estateId: string, now
     for (const [id, r] of Object.entries(f.requests)) if (r.lastAt) lastAt.set(id, r.lastAt)
     for (const [id, m] of Object.entries(f.messages)) readBy.set(id, m.readBy)
   }
-  return requests.map((m) => {
+  return { capped: [...capped], requests: requests.map((m) => {
     const req = m.request!
     const answer = answerOf.get(m.id)
     return {
@@ -310,6 +408,6 @@ export async function readBoardRequests(comms: SweepComms, estateId: string, now
       movedAt: lastAt.get(m.id) ?? m.at,
       answerUnreadSince: answer && !(readBy.get(answer.id) ?? []).includes(m.sender.project) ? answer.at : null
     }
-  })
+  }) }
 }
 // #endregion abandoned-sweep-run
