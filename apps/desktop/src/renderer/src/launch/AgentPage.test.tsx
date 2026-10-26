@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { AgentPage } from './AgentPage'
 import { AgentsAtWork } from './HomeWork'
 import type { HomeView, LiveAgent } from '../../../shared/homeLive'
+import type { SessionTask, SessionTasksView } from '../../../shared/sessionTasks'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -15,19 +16,20 @@ const agentA: LiveAgent = { sessionId: 's1', projectId: 'p1', projectName: 'Fabr
 const agentB: LiveAgent = { sessionId: 's2', projectId: 'p2', projectName: 'Site', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: true, doing: null, task: null }
 const view: HomeView = { live: [agentA, agentB], inWork: [], review: [], done: [], projects: [], readAt: now }
 const ev = (seq: number, type: string, payload: Record<string, unknown> = {}) => ({ estate_id: 'e', seq, type, actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: now, payload })
+const noTasks = vi.fn(async (_id: string): Promise<SessionTasksView> => ({ tasks: [], capped: false }))
 const show = (ui: React.ReactNode) => render(<I18nProvider locale="en">{ui}</I18nProvider>)
 
 describe('the agent page beside the list on Агенты (CO-393)', () => {
   // 0.3.12 review UX-3 (OF-30): «choose an agent» with nobody to choose, or with the list unread, sent the person looking.
   it('says there is no agent, or that the list was not read with a retry, instead of «choose an agent»', async () => {
     const home = vi.fn(async (): Promise<HomeView> => ({ ...view, live: [] }))
-    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home }, terminal: { history: vi.fn(async () => []) } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home, session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
     show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
     await screen.findByText(en['agentPage.none'])
     expect(screen.queryByText(en['agentPage.pick'])).toBeNull()
     cleanup()
     const failing = vi.fn(async (): Promise<HomeView> => { throw new Error('stack refused') })
-    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: failing }, terminal: { history: vi.fn(async () => []) } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: failing, session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
     show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
     await screen.findByText(en['agentPage.unread'])
     expect(screen.queryByText(en['agentPage.pick'])).toBeNull()
@@ -38,7 +40,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
 
   // 0.3.12 review UX-7: focus stayed on the row and nothing scrolled, so below 850 px the page opened out of sight.
   it("a chosen agent's page takes focus and comes into view", async () => {
-    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view) }, terminal: { history: vi.fn(async () => []) } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view), session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
     const into = vi.fn()
     Element.prototype.scrollIntoView = into
     show(<AgentsAtWork mark={0} onOpen={vi.fn()} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={vi.fn()} />} />)
@@ -53,7 +55,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
   // the place moved focus to the page's heading from wherever the person had gone, a text field included.
   it('focus moves only on the person\'s pick, never on a later reading', async () => {
     const home = vi.fn(async () => view)
-    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home }, terminal: { history: vi.fn(async () => []) } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home, session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
     Element.prototype.scrollIntoView = vi.fn()
     const ui = (mark: number) => (
       <I18nProvider locale="en">
@@ -78,7 +80,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
 
   it('a row selects its agent and opens its page instead of leaving the place; nothing is chosen at first', async () => {
     const history = vi.fn(async (_id: string) => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' })])
-    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view) }, terminal: { history } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { home: vi.fn(async () => view), session: noTasks }, terminal: { history } } }))
     const onOpen = vi.fn()
     show(<AgentsAtWork mark={0} onOpen={onOpen} page={(a, c) => <AgentPage agent={a} mark={0} onConsole={c} onOpenProject={onOpen} />} />)
     await screen.findByText(en['agentPage.pick'])
@@ -92,7 +94,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
   })
 
   it('lists its results apart from everything it did, and opens its console, project and task', async () => {
-    vi.stubGlobal('window', Object.assign(window, { fabric: { terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' }), ev(3, 'task.moved@1', { to: 'review' })]) } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1'), ev(2, 'task.moved@1', { to: 'done' }), ev(3, 'task.moved@1', { to: 'review' })]) } } }))
     const onConsole = vi.fn(), onOpenProject = vi.fn(), onOpenTask = vi.fn()
     show(<AgentPage agent={agentA} mark={0} onConsole={onConsole} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />)
     const results = await screen.findByRole('list', { name: en['agentPage.results'] })
@@ -108,7 +110,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
 
   it('an agent with no console, no task and no history says so; a failed read is said with «Retry»', async () => {
     const history = vi.fn(async (_id: string): Promise<unknown[]> => { throw new Error('database away') }).mockRejectedValueOnce(new Error('database away')).mockResolvedValueOnce([])
-    vi.stubGlobal('window', Object.assign(window, { fabric: { terminal: { history } } }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history } } }))
     show(<AgentPage agent={agentB} mark={0} onConsole={vi.fn()} onOpenProject={vi.fn()} />)
     expect(screen.queryByRole('button', { name: en['launch.home.agents.openConsole'] })).toBeNull()
     expect(screen.getByText(en['agentPage.noTask'])).toBeTruthy()
@@ -116,5 +118,69 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     fireEvent.click(screen.getByRole('button', { name: en['acts.retry'] }))
     await waitFor(() => expect(screen.getByText(en['agents.noHistory'])).toBeTruthy())
     expect(screen.getByText(en['agentPage.noResults'])).toBeTruthy()
+  })
+
+  // 0.3.14 (the operator, 2026-10-26): «перейти на агента, посмотреть его флоу, как он по задачам шёл ... сверху самая
+  // последняя ... на каждую задачу можно было развернуть, перейти к ней».
+  const task = (id: string, extra: Partial<SessionTask> = {}): SessionTask => ({
+    taskId: id, projectId: 'p1', projectName: 'Fabric', summary: 'Task ' + id, brief: { what: null, why: null, expected: null }, status: 'running',
+    claimedAt: '2026-10-26T10:00:00Z', releasedAt: null, releasedHow: null, claims: 1, via: 'claim', ...extra
+  })
+
+  it('lists its tasks newest first above the history; each expands to its brief and opens the task', async () => {
+    const session = vi.fn(async (_id: string): Promise<SessionTasksView> => ({ tasks: [
+      task('t2', { brief: { what: 'Make the board honest', why: 'Dead work hides live work', expected: 'Abandoned work is apart' }, status: 'review' }),
+      task('t1', { summary: '', status: 'done', claimedAt: '2026-10-25T10:00:00Z', releasedAt: '2026-10-25T12:00:00Z', releasedHow: 'done', claims: 3 })
+    ], capped: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => [ev(1, 'task.claimed@1')]) } } }))
+    const onOpenTask = vi.fn()
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
+    const list = await screen.findByRole('list', { name: en['agentPage.tasks'] })
+    expect(session).toHaveBeenCalledWith('s1')
+    const rows = list.querySelectorAll(':scope > li')
+    expect(rows).toHaveLength(2)
+    expect(rows[0].textContent).toContain('Task t2')
+    expect(rows[0].textContent).toContain(en['board.review'])
+    expect(rows[1].textContent).toContain(en['launch.home.work.untitled'])
+    expect(rows[1].textContent).toContain(en['agentPage.how.done'])
+    const first = rows[0].querySelector('details')!
+    expect(first.open).toBe(false)
+    fireEvent.click(first.querySelector('summary')!)
+    expect(first.textContent).toContain('Dead work hides live work')
+    fireEvent.click(within(first as HTMLElement).getByRole('button', { name: en['agentPage.openThisTask'] }))
+    expect(onOpenTask).toHaveBeenCalledWith('p1', 't2')
+    // The raw history is below, closed until the person opens it.
+    const history = (await screen.findByRole('list', { name: en['agentPage.did'] })).closest('details')!
+    expect(history.open).toBe(false)
+    expect(list.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('says its tasks are being read, that it has none, or that they could not be read with a retry', async () => {
+    let answer: () => Promise<SessionTasksView> = () => new Promise(() => {})
+    const session = vi.fn(async () => answer())
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    expect(await screen.findByText(en['agentPage.tasksReading'])).toBeTruthy()
+    cleanup()
+    answer = async () => { throw new Error('database away') }
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    await screen.findByText(en['agentPage.tasksUnreadable'])
+    expect(screen.queryByText(en['agentPage.noTasks'])).toBeNull()
+    answer = async () => ({ tasks: [], capped: false })
+    fireEvent.click(screen.getByRole('button', { name: en['agentPage.tasksRetry'] }))
+    await screen.findByText(en['agentPage.noTasks'])
+  })
+
+  it('a history row names its task and opens it', async () => {
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [task('t7', { summary: 'Ship the agents page' })], capped: false }))
+    const history = vi.fn(async () => [ev(1, 'work.claimed@1', { work: 't7' }), ev(2, 'session.started@1')])
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history } } }))
+    const onOpenTask = vi.fn()
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
+    const did = await screen.findByRole('list', { name: en['agentPage.did'] })
+    await waitFor(() => expect(did.textContent).toContain('Ship the agents page'))
+    fireEvent.click(within(did).getByRole('button', { name: 'Ship the agents page' }))
+    expect(onOpenTask).toHaveBeenCalledWith('p1', 't7')
+    expect(within(did).getAllByRole('button')).toHaveLength(1)
   })
 })
