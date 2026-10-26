@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T02:00:00Z · `—` · agent/0313-w1 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/main/pty.ts, runnerFallback.ts, index.ts, launchFolderLock.ts, managedLaunch.ts, dockerPing.ts and their tests; docs/evidence/plans/2026-10-26-release-0313-plan.md; the carry-over ledger and the backlog (CO-229, CO-236 resolved; P-26 in progress); the map's changelog
+- conflicts: pty.ts and index.ts imports, managedLaunch.ts's try block, resolved by keeping main's code and adding the rebuilt hunks
+- summary: Fabric 0.3.13, wave 1: CO-229 and CO-236 rebuilt from agent/w2-runners with their planted defects watched failing; the Docker check follows the current docker context, so Fabric waits on Colima too.
+
 ### 2026-10-25T12:30:00Z · `—` · agent/audit-20261025 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/reports/2026-10-25-audit-and-plan/ (README, four parts, raw: deleted branches, the stopped 0.3.12 rollout logs, the 2026-10-24 UX iteration reports), the carry-over ledger and the backlog (CO-419 carried from the abandoned ux-0313 worktree), the map's changelog
