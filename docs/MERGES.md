@@ -10,6 +10,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
 
+### 2026-10-26T09:30:00Z · `—` · agent/0313-d8 → main · fast-forward
+- run: r-182fa592b059
+- files: docs/adr/0178 and the ADR index; the carry-over ledger and backlog (CO-420 resolved; CO-431 to CO-433 for MD-7, MD-8, G-6); the map
+- conflicts: none
+- summary: ADR-0178, Fabric's D8: an organization's hub follows A-5, only an administrator's passkey signs the organization's record, Vesta drafts and signs no estate, each member mints its own organization tokens; the root's fingerprint at the pin, the project's entry receipt and leaving signature (DEC-0127); four R1 defaults the operator can change.
+
 ### 2026-10-26T08:30:00Z · `—` · agent/0313-w2b → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/abandonedSweepRun.ts, index.ts, agentSurface.ts, workTools.ts, workRelease.ts, runtimeObserver.ts, shared/abandonedSweep.ts, protocolObligations.ts and their tests; AGENTS.md, CHANGELOG.md, CONTEXT.md, SCN-140, the agent health table, the wave 2 spec and plan, the carry-over ledger and backlog (CO-426, CO-427, CO-430), the map
