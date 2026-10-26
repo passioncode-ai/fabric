@@ -17,6 +17,8 @@ export interface InWorkProjectInput {
   status: 'active' | 'archived'
   /** The project profile's one line (`project.profiled@1`, migration 123); null when none was recorded. */
   summary?: string | null
+  /** The profile's plan: its next steps name the aim when nothing runs (the operator's second review, R-1). */
+  plan?: { done: string[]; next: string[] } | null
 }
 
 export interface InWorkCard {
@@ -24,6 +26,9 @@ export interface InWorkCard {
   projectId: string | null
   name: string | null
   summary: string | null
+  /** What is being done there now (the operator's second review, 2026-10-26, v2 §4.1, R-1): the goal of its running
+   *  work, newest sign first, else the profile's next planned step; null when neither is known (R-2: the name alone). */
+  aim: { text: string; from: 'goal' | 'plan' } | null
   agents: LiveAgent[]
   /** Tasks in work no agent row of this card holds. */
   orphans: WorkItem[]
@@ -61,7 +66,7 @@ export function groupInWork(input: {
     if (!c) {
       const p = projectId ? byId.get(projectId) : undefined
       const summary = (p?.summary ?? '').trim()
-      c = { projectId, name: p?.name ?? fallbackName, summary: summary || null, agents: [], orphans: [], inWork: 0, at: new Date(0).toISOString() }
+      c = { projectId, name: p?.name ?? fallbackName, summary: summary || null, aim: null, agents: [], orphans: [], inWork: 0, at: new Date(0).toISOString() }
       cards.set(key, c)
     }
     return c
@@ -78,7 +83,12 @@ export function groupInWork(input: {
     if (!held) c.orphans.push(w)
     if (time(w.since) > time(c.at)) c.at = w.since
   }
-  for (const c of cards.values()) c.agents.sort((a, b) => time(heard(b)) - time(heard(a)) || (a.sessionId < b.sessionId ? -1 : 1))
+  for (const c of cards.values()) {
+    c.agents.sort((a, b) => time(heard(b)) - time(heard(a)) || (a.sessionId < b.sessionId ? -1 : 1))
+    const goal = c.agents.find((a) => a.goal)?.goal
+    const next = c.projectId ? (byId.get(c.projectId)?.plan?.next ?? []).map((n) => n.trim()).find(Boolean) : undefined
+    c.aim = goal ? { text: goal.text, from: 'goal' } : next ? { text: next, from: 'plan' } : null
+  }
   const list = [...cards.values()].sort((a, b) => {
     if ((a.projectId === null) !== (b.projectId === null)) return a.projectId === null ? 1 : -1
     return time(b.at) - time(a.at) || String(a.name ?? '').localeCompare(String(b.name ?? ''))

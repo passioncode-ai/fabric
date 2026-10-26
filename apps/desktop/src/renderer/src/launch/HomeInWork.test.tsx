@@ -12,9 +12,9 @@ afterEach(() => cleanup())
 
 const now = new Date().toISOString()
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString()
-const project = (id: string, name: string, summary: string | null = null): ProjectRow => ({
+const project = (id: string, name: string, summary: string | null = null, plan: ProjectRow['plan'] = null): ProjectRow => ({
   id, name, estate_id: 'e', purpose: null, repo_path: null, status: 'active', config_revision: 1, created_at: now,
-  memory_backend: 'local', default_agent: 'claude-code', mcp_servers: [], summary
+  memory_backend: 'local', default_agent: 'claude-code', mcp_servers: [], summary, plan
 })
 const view: HomeView = {
   live: [
@@ -43,7 +43,9 @@ describe('«В работе» grouped by project', () => {
     const section = screen.getByRole('region', { name: en['launch.home.inWork.title'] })
     expect(section.textContent).toContain('1 project · 2 agents')
     const card = screen.getByRole('article', { name: 'Fabric' })
-    expect(card.textContent).toContain('A workplace for agents.')
+    // The operator's second review (R-1, R-2): the description is the name's hover, never the card's line.
+    expect(card.textContent).not.toContain('A workplace for agents.')
+    expect(within(card).getByRole('button', { name: 'Fabric' }).getAttribute('title')).toBe('A workplace for agents.')
     expect(card.textContent).toContain('2 agents')
     expect(card.textContent).toContain('2 in work')
     expect(card.textContent).toContain('1 waits for you')
@@ -87,6 +89,16 @@ describe('«В работе» grouped by project', () => {
     expect(rows[1].textContent).toContain(en['launch.home.inWork.noGoal'])
   })
 
+  // The operator's second review (R-1): the card's line is what is being done there now.
+  it('says the card\'s aim: its running work\'s goal, else «Дальше:» and the plan\'s next step', () => {
+    const withGoal: HomeView = { ...view, live: [{ ...view.live[0], goal: { taskId: 't0', projectId: 'fab', text: 'Ship 0.3.14', what: null, byPerson: true, isTask: false } }, view.live[1]] }
+    show({ reading: { view: withGoal, problem: null } })
+    expect(screen.getByRole('article', { name: 'Fabric' }).querySelector('.lh-proj-aim')?.textContent).toBe('Ship 0.3.14')
+    cleanup()
+    show({ projects: [project('fab', 'Fabric', null, { done: [], next: ['Release notes'] }), ...projects.slice(1)] })
+    expect(screen.getByRole('article', { name: 'Fabric' }).querySelector('.lh-proj-aim')?.textContent).toBe(en['launch.home.inWork.next'].replace('{text}', 'Release notes'))
+  })
+
   it('names a task in work no agent holds on a line of its own', () => {
     const p = show()
     const card = screen.getByRole('article', { name: 'Fabric' })
@@ -95,15 +107,15 @@ describe('«В работе» grouped by project', () => {
     expect(p.onTask).toHaveBeenCalledWith('fab', 't9')
   })
 
-  it('folds the quiet projects into one line, each a link; a project with no description offers to get to know it', () => {
+  it('folds the quiet projects into one line, each a link; a card with no aim known shows its name alone', () => {
     const p = show({ reading: { view: { ...view, live: [{ ...view.live[0], projectId: 'cop', projectName: 'Copylot' }], inWork: [] }, problem: null } })
     const quiet = screen.getByText(en['launch.home.inWork.quiet']).closest('p') as HTMLElement
     expect(within(quiet).getAllByRole('button').map((b) => b.textContent)).toEqual(['Fabric', 'Mobile Publisher'])
     fireEvent.click(within(quiet).getByRole('button', { name: 'Mobile Publisher' }))
     expect(p.onProject).toHaveBeenCalledWith('mob')
     const card = screen.getByRole('article', { name: 'Copylot' })
-    expect(card.textContent).toContain(en['launch.home.inWork.noSummary'])
-    fireEvent.click(within(card).getByRole('button', { name: en['launch.home.inWork.getToKnow'] }))
+    expect(card.querySelector('.lh-proj-aim')).toBeNull()
+    fireEvent.click(within(card).getByRole('button', { name: 'Copylot' }))
     expect(p.onProject).toHaveBeenCalledWith('cop')
   })
 

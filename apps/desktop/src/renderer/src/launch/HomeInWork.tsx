@@ -85,16 +85,12 @@ function Card({ card, waiting, onProject, onAgent, onTask, plural }: {
       <div className="lh-proj-head">
         <div className="lh-proj-words">
           <h4 id={id}>
-            {card.projectId ? <button type="button" className="lp-link" onClick={() => onProject(card.projectId!)}>{name}</button> : name}
+            {card.projectId
+              ? <button type="button" className="lp-link" title={card.summary ?? undefined} onClick={() => onProject(card.projectId!)}>{name}</button>
+              : name}
           </h4>
-          {card.projectId && (card.summary
-            ? <p className="lp-meta">{card.summary}</p>
-            : (
-              <p className="lp-meta">
-                {t('launch.home.inWork.noSummary')}{' '}
-                <button type="button" className="lp-link" onClick={() => onProject(card.projectId!)}>{t('launch.home.inWork.getToKnow')}</button>
-              </p>
-            ))}
+          {/* The operator's second review (R-1, R-2): what is being done there now; the description is the name's hover. */}
+          {card.aim && <p className="lh-proj-aim">{card.aim.from === 'plan' ? t('launch.home.inWork.next', { text: card.aim.text }) : card.aim.text}</p>}
         </div>
         <div className="lh-proj-counts">
           {card.agents.length > 0 && <span className="lp-pill">{plural('agents', card.agents.length)}</span>}

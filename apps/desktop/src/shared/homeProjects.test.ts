@@ -62,4 +62,24 @@ describe('groupInWork', () => {
     const g = groupInWork({ live: [live('a1', 'fab', '2026-10-26T11:00:00Z'), live('a2', 'cop', '2026-10-26T11:00:00Z', { stale: true })], inWork: [], projects, locale: 'en' })
     expect([g.projectsAtWork, g.agentsAtWork]).toEqual([2, 2])
   })
+
+  // The operator's second review, 2026-10-26 (v2 §4.1, R-1, R-2): the card says what is being done there now: its
+  // running work's goal, newest first, else the profile's next planned step; the description is not the card's line.
+  it('names the card\'s aim from its agents\' goals, newest first, else the plan\'s next step, else nothing', () => {
+    const g = groupInWork({
+      live: [
+        live('a1', 'fab', '2026-10-26T11:00:00Z', { goal: { taskId: 't1', projectId: 'fab', text: 'Older goal', what: null, byPerson: false, isTask: true } }),
+        live('a2', 'fab', '2026-10-26T12:00:00Z', { goal: { taskId: 't2', projectId: 'fab', text: 'Ship 0.3.14', what: null, byPerson: true, isTask: false } }),
+        live('a3', 'cop', '2026-10-26T12:00:00Z', { goal: null }),
+        live('a4', 'obs', '2026-10-26T12:00:00Z')
+      ],
+      inWork: [],
+      projects: projects.map((p) => p.id === 'cop' ? { ...p, plan: { done: [], next: ['Voice overlays per channel', 'later'] } } : p),
+      locale: 'en'
+    })
+    const by = (id: string) => g.cards.find((c) => c.projectId === id)!
+    expect(by('fab').aim).toEqual({ text: 'Ship 0.3.14', from: 'goal' })
+    expect(by('cop').aim).toEqual({ text: 'Voice overlays per channel', from: 'plan' })
+    expect(by('obs').aim).toBeNull()
+  })
 })
