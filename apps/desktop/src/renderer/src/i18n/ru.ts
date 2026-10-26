@@ -293,7 +293,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.access.lede': "Какие агенты могут работать с каждым из ваших продуктов. Любой доступ можно отозвать в списке.",
   'settings.access.open': "Открыть список",
   'settings.saved': "Сохранено",
-  'settings.folderTrust': "Доверять папке, в которой запускается сеанс Claude Code",
+  'settings.folderTrust': "Доверять папке, в которой запускается сессия Claude Code",
   'settings.folderTrustHelp': "Включено: Claude Code не спрашивает, доверяете ли вы папке, применяет её настройки Claude Code и запускает её хуки. Выключено: Claude Code спрашивает о доверии в каждой папке, которой вы ещё не доверяете.",
   'settings.theme': 'Тема',
   'settings.themeDark': 'Тёмная',

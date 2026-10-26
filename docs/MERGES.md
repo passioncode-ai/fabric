@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T11:20:00Z · `—` · agent/0313-track → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/renderer/src/launch/SettingsScreen.tsx, UsageCountsSetting.tsx, launch.css, i18n en and ru, shared/folderTrust.ts, appSettings.ts, types.ts, main/pty.ts, index.ts, their tests, test/folder-trust-setting.test.mjs; SCN-170, the product model, AGENTS.md, CHANGELOG, the plan, the ledger and backlog (CO-348, CO-392 resolved; CO-367, CO-329, CO-375 moved to 0.3.14); the map
+- conflicts: none
+- summary: Fabric 0.3.13: Settings in SCN-170's five sections with «Сохранено» after a change, and a folder trust switch.
+
 ### 2026-10-26T07:30:00Z · `—` · agent/0313-co428 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/stackHalfUp.ts, env.ts, index.ts, shared/startupFailure.ts, i18n en and ru, test/stack-half-up.test.mjs, package.json; AGENTS.md, CHANGELOG.md, the plan, the carry-over ledger and backlog (CO-428 resolved), the map
