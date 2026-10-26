@@ -1,0 +1,467 @@
+<!doctype html>
+<!--
+report: simple-fabric-mockup
+project: fabric
+date: 2026-10-26
+kind: mockup
+spec: docs/ux/2026-10-26-simple-fabric.md
+status: design, not built; sample data is invented
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric: простой главный экран (макет, 2026-10-26)</title>
+<style>
+/* Values copied from apps/desktop/src/renderer/src/tokens.passioncode.css (PassionCode design system v1.1.0, dark),
+   the roles from tokens.app.css, the shell sizes from launch/rail.css and launch/launch.css. */
+:root{
+  color-scheme:dark;
+  --pc-bg:#0a070d;--pc-panel:#110c15;--pc-panel-raised:#1b1420;--pc-text:#fff9f0;--pc-text-muted:#b6aabc;
+  --pc-border:#342b3a;--pc-border-strong:#5c4e63;--pc-accent:#ffd21a;--pc-accent-hover:#ffdf5e;--pc-on-accent:#211900;
+  --pc-accent-soft:#30270e;--pc-positive:#79d49a;--pc-positive-soft:#12291c;--pc-warning:#f6ba75;--pc-warning-soft:#332314;
+  --pc-negative:#ff969f;--pc-negative-soft:#35191f;--pc-info:#a6bfff;--pc-info-soft:#18243d;
+  --pc-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --pc-font-data:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --app-bg:var(--pc-bg);--app-panel:var(--pc-panel);--app-panel-quiet:var(--pc-panel-raised);--app-ink:var(--pc-text);
+  --app-muted:var(--pc-text-muted);--app-line:var(--pc-border);--app-line-strong:var(--pc-border-strong);
+  --app-accent:var(--pc-accent);--app-accent-ink:var(--pc-on-accent);--app-focus:var(--pc-accent);
+  --state-good:var(--pc-positive);--state-idle:var(--pc-warning);--state-running:var(--pc-info);--state-danger:var(--pc-negative);
+  --r-control:8px;--r-panel:16px;--r-pill:999px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--app-bg);color:var(--app-ink);font:14px/1.5 var(--pc-font);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+.mono{font-family:var(--pc-font-data);font-size:11.5px}
+.muted{color:var(--app-muted)}
+.note{position:fixed;right:12px;bottom:12px;z-index:9;background:var(--pc-info-soft);color:var(--pc-info);border:1px solid var(--app-line);border-radius:var(--r-control);padding:6px 10px;font-size:12px;max-width:340px}
+
+/* the shell: rail 216px (rail.css), top bar 44px */
+.shell{display:grid;grid-template-columns:216px minmax(0,1fr);height:100vh}
+.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;background:var(--app-panel);min-height:0}
+.brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px;border:0;background:none;cursor:pointer;text-align:left;border-radius:6px}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:conic-gradient(from 200deg,#7260DB,#A8EFDC,#FFE283,#EE8868,#7260DB);flex:none}
+.brand b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.brand small{display:block;font-size:10.5px;color:var(--app-muted);margin-top:1px}
+.create{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 4px 12px;height:30px;border-radius:8px;background:var(--app-ink);color:var(--app-bg);font-size:13px;font-weight:550;border:0;cursor:pointer}
+.seg{display:grid;grid-template-columns:1fr 1fr;margin:0 4px 8px;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.seg button{border:0;background:none;border-radius:6px;height:26px;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--app-panel-quiet);color:var(--app-ink);font-weight:600}
+.list{flex:1 1 auto;min-height:0;overflow-y:auto;list-style:none;margin:0;padding:0}
+.list a{display:flex;align-items:center;gap:8px;min-height:28px;padding:3px 8px;border-radius:6px;color:var(--app-muted);font-size:12.5px;text-decoration:none;cursor:pointer}
+.list a:hover{color:var(--app-ink)}
+.list a.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);color:var(--app-ink)}
+.list .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .count{margin-left:auto;font-size:11px;color:var(--app-accent);font-weight:600}
+.star{color:var(--app-accent);font-size:11px;margin-left:-3px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--app-line-strong);flex:none}
+.dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
+.dot.idle{background:var(--state-idle)}
+.agent-item{display:grid!important;grid-template-columns:6px 1fr;column-gap:8px;row-gap:0;align-items:center;padding:5px 8px!important}
+.agent-item .l2{grid-column:2;font-size:11px;color:var(--app-muted);display:flex;gap:6px;min-width:0}
+.agent-item .l2 .mono{font-size:10.5px;color:var(--pc-info);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agent-item .l2 .mono.unknown{color:var(--app-muted);font-family:var(--pc-font)}
+.foot{border-top:1px solid var(--app-line);padding-top:6px;display:flex;gap:2px;flex-direction:column}
+.foot a{display:flex;align-items:center;gap:9px;min-height:28px;padding:0 8px;border-radius:6px;color:var(--app-muted);font-size:12.5px;text-decoration:none}
+.foot a:hover{color:var(--app-ink)}
+.ico{width:13px;height:13px;border:1.5px solid currentColor;border-radius:4px;opacity:.85}
+.ico.h{border-style:dashed}.ico.s{border-radius:3px 8px}
+
+.main{min-width:0;display:flex;flex-direction:column;min-height:0}
+.top{height:44px;border-bottom:1px solid var(--app-line);display:flex;align-items:center;padding:0 20px;gap:12px;flex:none}
+.top h1{font-size:14px;font-weight:600;margin:0}
+.tabs{margin-left:auto;display:flex;gap:4px}
+.ctab{display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--app-line);border-radius:8px;color:var(--app-ink);font-size:12px;background:var(--app-panel-quiet)}
+.ctab button{border:0;background:none;color:var(--app-muted);cursor:pointer;padding:0 2px}
+.place{flex:1;min-height:0;overflow:auto}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--s5);padding:var(--s5) var(--s5) var(--s6);align-items:start}
+@media(max-width:1100px){.cols{grid-template-columns:1fr}}
+
+.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--app-muted);margin:0 0 var(--s2);font-weight:600}
+.panel{border:1px solid var(--app-line);background:var(--app-panel);border-radius:var(--r-panel);padding:var(--s4);margin-bottom:var(--s4)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);font-size:12px;line-height:1.4;min-height:30px;background:var(--app-panel);color:var(--app-ink);border:1px solid var(--app-line);border-radius:var(--r-control);padding:5px 12px;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--app-line-strong)}
+.btn.primary{background:var(--app-ink);color:var(--app-bg);border-color:var(--app-ink);font-weight:600}
+.btn.gold{background:var(--app-accent);color:var(--app-accent-ink);border-color:var(--app-accent);font-weight:600}
+.link{background:none;border:0;padding:0;color:var(--app-ink);text-decoration:underline;text-decoration-color:var(--app-line-strong);text-underline-offset:3px;cursor:pointer;text-align:left}
+.link:hover{text-decoration-color:var(--app-ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:var(--r-pill);padding:1px 8px;font-size:11px;border:1px solid var(--app-line);color:var(--app-muted);white-space:nowrap}
+.pill.good{color:var(--state-good);border-color:color-mix(in srgb,var(--state-good) 35%,transparent);background:var(--pc-positive-soft)}
+.pill.idle{color:var(--state-idle);border-color:color-mix(in srgb,var(--state-idle) 35%,transparent);background:var(--pc-warning-soft)}
+.pill.att{color:var(--app-accent);border-color:color-mix(in srgb,var(--app-accent) 40%,transparent);background:var(--pc-accent-soft)}
+
+/* the statistics strip */
+.rhythm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) 180px;border:1px solid var(--app-line);border-radius:var(--r-panel);background:var(--app-panel);margin-bottom:var(--s5);overflow:hidden}
+@media(max-width:1250px){.rhythm{grid-template-columns:repeat(3,minmax(0,1fr))}.spark-box{grid-column:1/-1}}
+.stat{border:0;border-right:1px solid var(--app-line);background:none;text-align:left;padding:12px 14px;cursor:pointer;min-width:0}
+.stat:hover{background:var(--app-panel-quiet)}
+.stat b{display:block;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.stat span{display:block;font-size:11.5px;color:var(--app-muted)}
+.stat small{display:block;font-size:10.5px;color:var(--state-idle);margin-top:2px}
+.stat.live b{color:var(--state-good)}.stat.att b{color:var(--app-accent)}.stat.warn b{color:var(--state-idle)}
+.spark-box{padding:10px 14px}
+.spark-box .t{font-size:11.5px;font-weight:600;display:flex;justify-content:space-between}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:6px}
+.spark i{flex:1;background:var(--app-muted);border-radius:2px;min-height:2px}
+.spark i.today{background:var(--app-ink)}
+.spark i.unknown{height:100%!important;background:repeating-linear-gradient(135deg,transparent,transparent 3px,var(--app-line-strong) 3px,var(--app-line-strong) 4px)}
+
+/* «В работе» */
+.sec-head{display:flex;align-items:baseline;gap:var(--s3);margin:0 0 var(--s3)}
+.sec-head h2{font-size:18px;margin:0;letter-spacing:-.015em}
+.proj{border:1px solid var(--app-line);background:var(--app-panel);border-radius:var(--r-panel);margin-bottom:var(--s3);overflow:hidden}
+.proj-head{display:flex;gap:var(--s3);align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--app-line)}
+.proj-head h3{margin:0;font-size:15px}
+.proj-head p{margin:2px 0 0;font-size:12.5px;color:var(--app-muted)}
+.proj-head .counts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.arow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:var(--s3);padding:10px 16px;border-top:1px solid var(--app-line);cursor:pointer;align-items:start}
+.arow:first-of-type{border-top:0}
+.arow:hover{background:var(--app-panel-quiet)}
+.who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.who b{font-size:13px;display:flex;align-items:center;gap:7px}
+.who .mono{color:var(--pc-info);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who .mono.unknown{color:var(--app-muted);font-family:var(--pc-font);font-size:11.5px}
+.task{font-size:13.5px;font-weight:550;margin:0}
+.report{font-size:12.5px;color:var(--app-muted);margin:2px 0 0}
+.report .step{color:var(--app-ink)}
+.when{font-size:11.5px;color:var(--app-muted);white-space:nowrap;text-align:right}
+.orphan{padding:8px 16px;border-top:1px dashed var(--app-line);font-size:12px;color:var(--app-muted)}
+.quiet{font-size:12.5px;color:var(--app-muted);margin:var(--s3) 2px}
+
+/* «Нужны вы» */
+.side h2{font-size:15px;margin:0 0 var(--s3);display:flex;align-items:center;gap:8px}
+.q{border:1px solid var(--app-line);border-left:3px solid var(--app-accent);border-radius:12px;background:var(--app-panel);padding:12px 14px;margin-bottom:var(--s3)}
+.q .from{font-size:11.5px;color:var(--app-muted);display:flex;gap:6px;flex-wrap:wrap}
+.q p{margin:6px 0;font-size:13.5px}
+.q .why{font-size:12px;color:var(--app-muted);margin:0 0 10px}
+.q .acts{display:flex;gap:6px;flex-wrap:wrap}
+.req{font-size:12.5px;border-top:1px solid var(--app-line);padding-top:var(--s3);margin-top:var(--s2)}
+.req .muted{font-size:11.5px}
+
+/* the agent screen */
+.ahead{display:flex;gap:var(--s4);align-items:flex-start;margin-bottom:var(--s4)}
+.ahead h2{margin:0;font-size:22px;letter-spacing:-.02em}
+.ahead .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:12.5px;color:var(--app-muted)}
+.ahead .acts{margin-left:auto;display:flex;gap:6px}
+.back{font-size:12px;margin-bottom:var(--s3)}
+.now{border:1px solid color-mix(in srgb,var(--state-good) 30%,var(--app-line));background:linear-gradient(180deg,var(--pc-positive-soft),var(--app-panel) 60%);border-radius:var(--r-panel);padding:var(--s4);margin-bottom:var(--s5)}
+.now h3{margin:0 0 4px;font-size:17px}
+.now .what{margin:0 0 var(--s3);color:var(--app-muted);font-size:13px}
+.now .doing{display:flex;gap:var(--s3);align-items:center;font-size:13px;margin-bottom:var(--s3)}
+.bar{flex:0 0 120px;height:6px;border-radius:3px;background:var(--app-line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--state-good)}
+.miles{list-style:none;margin:0;padding:0;border-left:1px solid var(--app-line-strong);margin-left:4px}
+.miles li{position:relative;padding:3px 0 3px 14px;font-size:12.5px}
+.miles li::before{content:"";position:absolute;left:-4px;top:10px;width:7px;height:7px;border-radius:50%;background:var(--app-line-strong)}
+.miles li.cur::before{background:var(--state-good)}
+.miles time{color:var(--app-muted);font-family:var(--pc-font-data);font-size:11px;margin-right:6px}
+.tasks{list-style:none;margin:0;padding:0}
+.tasks>li{border:1px solid var(--app-line);border-radius:12px;background:var(--app-panel);margin-bottom:var(--s2)}
+.tasks summary{list-style:none;display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;padding:10px 14px;cursor:pointer;align-items:start}
+.tasks summary::-webkit-details-marker{display:none}
+.chev{color:var(--app-muted);transition:transform .18s cubic-bezier(.2,0,0,1);display:inline-block;margin-top:1px}
+details[open] .chev{transform:rotate(90deg)}
+.tasks .t1{font-size:13.5px;font-weight:550}
+.tasks .t2{font-size:11.5px;color:var(--app-muted);margin-top:1px}
+.tbody{padding:0 14px 14px 38px;display:grid;gap:var(--s3)}
+.tbody h4{margin:0 0 3px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--app-muted)}
+.tbody p{margin:0;font-size:13px}
+.brief{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;font-size:12.5px}
+.brief dt{color:var(--app-muted)}.brief dd{margin:0}
+.summary{background:var(--app-panel-quiet);border-radius:10px;padding:10px 12px;font-size:13px}
+.hist{margin-top:var(--s4);font-size:12.5px;color:var(--app-muted)}
+.sess{border:1px solid var(--app-line);border-radius:var(--r-panel);background:var(--app-panel);padding:var(--s4);position:sticky;top:0}
+.sess h2{font-size:15px;margin:0 0 var(--s3)}
+.sess dl{display:grid;grid-template-columns:96px 1fr;gap:6px 10px;font-size:12.5px;margin:0 0 var(--s4)}
+.sess dt{color:var(--app-muted)}.sess dd{margin:0}
+.sess .claim{font-size:11px;color:var(--app-muted)}
+.sess .btn.primary{width:100%;min-height:36px;font-size:13px}
+.sess .small{font-size:11.5px;color:var(--app-muted);margin:8px 0 0}
+.xproj{border-top:1px solid var(--app-line);padding-top:var(--s3)}
+.xproj .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.console{background:#050307;border:1px solid var(--app-line);border-radius:12px;padding:14px;font-family:var(--pc-font-data);font-size:12px;line-height:1.6;color:#d9cfe0;min-height:360px}
+.console .ok{color:var(--state-good)}.console .dim{color:var(--app-muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail" aria-label="Fabric">
+    <button type="button" class="brand" onclick="show('home')" aria-label="Главная">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span><b>Fabric</b><small>PassionCode.ai</small></span>
+    </button>
+    <button type="button" class="create">+ Создать</button>
+    <div class="seg" role="group" aria-label="Что показать">
+      <button type="button" id="seg-p" aria-pressed="true" onclick="side('p')">Проекты</button>
+      <button type="button" id="seg-a" aria-pressed="false" onclick="side('a')">Агенты</button>
+    </div>
+    <ul class="list" id="list-p" aria-label="Проекты по алфавиту">
+      <li><a><span class="dot live" role="img" aria-label="агент работает"></span><span class="name">Copylot</span><span class="count" aria-label="1 вопрос">1</span></a></li>
+      <li><a><span class="dot live" role="img" aria-label="агент работает"></span><span class="name">Dashboards</span></a></li>
+      <li><a><span class="dot live" role="img" aria-label="агент работает"></span><span class="name">Fabric</span><span class="star" aria-label="избранное">★</span><span class="count" aria-label="1 вопрос">1</span></a></li>
+      <li><a><span class="dot live" role="img" aria-label="агент работает"></span><span class="name">Mobile Publisher</span></a></li>
+      <li><a><span class="dot"></span><span class="name">Observatory</span></a></li>
+      <li><a><span class="dot"></span><span class="name">Research Agent</span></a></li>
+      <li><a><span class="dot"></span><span class="name">Switchboard</span></a></li>
+    </ul>
+    <ul class="list" id="list-a" aria-label="Агенты в работе" hidden>
+      <li><a class="agent-item" onclick="show('agent')"><span class="dot live"></span><span class="name">Claude Code · Copylot</span><span class="l2"><span class="mono">feat/voice-overlays</span></span></a></li>
+      <li><a class="agent-item" onclick="show('agent')"><span class="dot idle"></span><span class="name">Claude Code · Dashboards</span><span class="l2"><span class="mono">fix/session-links</span><span>· молчит</span></span></a></li>
+      <li><a class="agent-item on" id="rail-agent" onclick="show('agent')"><span class="dot live"></span><span class="name">Claude Code · Fabric</span><span class="l2"><span class="mono">release/0.3.14</span></span></a></li>
+      <li><a class="agent-item" onclick="show('agent')"><span class="dot live"></span><span class="name">Codex · Fabric</span><span class="l2"><span class="mono">fix/stack-watch</span></span></a></li>
+      <li><a class="agent-item" onclick="show('agent')"><span class="dot live"></span><span class="name">Kimi Code · Mobile Publisher</span><span class="l2"><span class="mono unknown" title="Агент подключился из терминала: ветку Fabric пока не знает">ветка неизвестна</span></span></a></li>
+    </ul>
+    <div class="foot">
+      <a href="#"><span class="ico h" aria-hidden="true"></span>История</a>
+      <a href="#"><span class="ico s" aria-hidden="true"></span>Настройки</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <h1 id="title">Главная</h1>
+      <div class="tabs" id="tabs"></div>
+    </header>
+    <div class="place">
+
+      <!-- ===== Главная ===== -->
+      <div id="home" class="cols">
+        <div>
+          <div class="rhythm" role="group" aria-label="Ритм работы">
+            <button type="button" class="stat live"><b>5</b><span>агентов работает</span></button>
+            <button type="button" class="stat"><b>7</b><span>сдано сегодня</span></button>
+            <button type="button" class="stat att"><b>2</b><span>ждут вас</span></button>
+            <button type="button" class="stat"><b>23</b><span>на проверке</span><small>9 дольше 3 дней</small></button>
+            <button type="button" class="stat warn"><b>3</b><span>брошено</span></button>
+            <button type="button" class="stat warn"><b>1</b><span>работают без задачи</span></button>
+            <div class="spark-box">
+              <div class="t"><span>Сдано за 14 дней</span><span class="muted">61</span></div>
+              <div class="spark" aria-label="Задачи, сданные на проверку, по дням">
+                <i style="height:30%"></i><i style="height:45%"></i><i class="unknown"></i><i style="height:20%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:35%"></i>
+                <i style="height:10%"></i><i style="height:60%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:65%"></i><i style="height:100%"></i><i class="today" style="height:62%"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec-head"><h2>В работе</h2><span class="muted">4 проекта · 5 агентов</span></div>
+
+          <section class="proj" aria-label="Fabric">
+            <div class="proj-head">
+              <div><h3><button type="button" class="link">Fabric</button></h3><p>Рабочее место для агентов: проекты, задачи и сессии на этом компьютере.</p></div>
+              <div class="counts"><span class="pill">2 агента</span><span class="pill">3 в работе</span><span class="pill att">1 ждёт вас</span></div>
+            </div>
+            <div class="arow" onclick="show('agent')" tabindex="0" role="button" aria-label="Claude Code в Fabric">
+              <div class="who"><b><span class="dot live"></span>Claude Code</b><span class="mono">release/0.3.14</span></div>
+              <div><p class="task">Исправления после первого ревью 0.3.14</p><p class="report"><span class="step">шаг 4 из 6</span> · Проверяю исправления страницы агента и доски</p></div>
+              <div class="when">40 с назад<br>держит 1 ч 44 мин</div>
+            </div>
+            <div class="arow" onclick="show('agent')" tabindex="0" role="button" aria-label="Codex в Fabric">
+              <div class="who"><b><span class="dot live"></span>Codex</b><span class="mono">fix/stack-watch</span></div>
+              <div><p class="task">Стек не поднимается после перезапуска Docker</p><p class="report"><span class="step">шаг 2 из 4</span> · Пишу тест на повторный старт базы</p></div>
+              <div class="when">3 мин назад<br>держит 38 мин</div>
+            </div>
+            <div class="orphan">Задача без агента: «Обзор сессий в одном окне с Dashboards» · последний знак 5 ч назад</div>
+          </section>
+
+          <section class="proj" aria-label="Copylot">
+            <div class="proj-head">
+              <div><h3><button type="button" class="link">Copylot</button></h3><p>Пишет и проверяет тексты продуктов в голосе бренда, на всех языках.</p></div>
+              <div class="counts"><span class="pill">1 агент</span><span class="pill">1 в работе</span><span class="pill att">1 ждёт вас</span></div>
+            </div>
+            <div class="arow" onclick="show('agent')" tabindex="0" role="button" aria-label="Claude Code в Copylot">
+              <div class="who"><b><span class="dot live"></span>Claude Code</b><span class="mono">feat/voice-overlays</span></div>
+              <div><p class="task">Правила голоса для каждого канала</p><p class="report"><span class="step">шаг 3 из 5</span> · Прогоняю проверку на 12 языках</p></div>
+              <div class="when">1 мин назад<br>держит 2 ч 05 мин</div>
+            </div>
+          </section>
+
+          <section class="proj" aria-label="Dashboards">
+            <div class="proj-head">
+              <div><h3><button type="button" class="link">Dashboards</button></h3><p>Окна сервисов агентов: панели, ссылки на страницы, темы.</p></div>
+              <div class="counts"><span class="pill">1 агент</span><span class="pill">1 в работе</span></div>
+            </div>
+            <div class="arow" onclick="show('agent')" tabindex="0" role="button" aria-label="Claude Code в Dashboards">
+              <div class="who"><b><span class="dot idle"></span>Claude Code</b><span class="mono">fix/session-links</span></div>
+              <div><p class="task">Ссылки на сессии открываются в своём окне</p><p class="report">Ещё не сказал, что делает</p></div>
+              <div class="when"><span class="pill idle">молчит 14 мин</span></div>
+            </div>
+          </section>
+
+          <section class="proj" aria-label="Mobile Publisher">
+            <div class="proj-head">
+              <div><h3><button type="button" class="link">Mobile Publisher</button></h3><p>Витрины приложений в сторах: тексты, скриншоты, релизы, отзывы.</p></div>
+              <div class="counts"><span class="pill">1 агент</span><span class="pill">1 в работе</span></div>
+            </div>
+            <div class="arow" onclick="show('agent')" tabindex="0" role="button" aria-label="Kimi Code в Mobile Publisher">
+              <div class="who"><b><span class="dot live"></span>Kimi Code</b><span class="mono unknown">ветка неизвестна</span></div>
+              <div><p class="task">Отчёт по позициям ключевых слов за неделю</p><p class="report"><span class="step">шаг 2 из 3</span> · Собираю позиции по 8 странам</p></div>
+              <div class="when">6 мин назад<br>держит 22 мин</div>
+            </div>
+          </section>
+
+          <p class="quiet">Тихо: <button type="button" class="link muted">Observatory</button>, <button type="button" class="link muted">Research Agent</button>, <button type="button" class="link muted">Switchboard</button></p>
+        </div>
+
+        <aside class="side" aria-label="Нужны вы">
+          <h2>Нужны вы <span class="pill att">2</span></h2>
+          <div class="q">
+            <div class="from"><b>Copylot</b><span>· Claude Code</span><span>· 12 мин назад</span></div>
+            <p>Применить новые правила голоса ко всем проектам или только к Copylot?</p>
+            <p class="why">Правила меняют проверку текстов в каждом проекте, где выбран этот голос.</p>
+            <div class="acts"><button type="button" class="btn gold">Только Copylot</button><button type="button" class="btn">Ко всем</button><button type="button" class="btn">Обсудить</button></div>
+          </div>
+          <div class="q">
+            <div class="from"><b>Fabric</b><span>· Codex</span><span>· 3 мин назад</span></div>
+            <p>Удалить три старых контейнера локального стека (1,2 ГБ)?</p>
+            <p class="why">Удаление: вернуть их можно только новым запуском стека. Данные проектов в них не хранятся.</p>
+            <div class="acts"><button type="button" class="btn gold">Удалить</button><button type="button" class="btn">Оставить</button></div>
+          </div>
+          <div class="req">
+            <p class="kicker">Запросы без ответа</p>
+            <p style="margin:0">Fabric → Dashboards: «Сузить список сессий до строк Fabric»</p>
+            <p class="muted" style="margin:2px 0 0">ни один агент Dashboards не взял · 2 ч</p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- ===== Агент ===== -->
+      <div id="agent" class="cols" hidden>
+        <div>
+          <p class="back"><button type="button" class="link muted" onclick="show('home')">← Главная</button></p>
+          <div class="ahead">
+            <div>
+              <h2>Claude Code</h2>
+              <div class="meta">
+                <span class="pill good"><span class="dot live"></span>работает</span>
+                <span>проект <button type="button" class="link">Fabric</button></span>
+                <span class="mono" style="color:var(--pc-info)">release/0.3.14</span>
+                <span>сессия <span class="mono">3f9a21c0</span></span>
+              </div>
+            </div>
+            <div class="acts"><button type="button" class="btn">Открыть задачу</button><button type="button" class="btn">Открыть проект</button></div>
+          </div>
+
+          <section class="now" aria-labelledby="now-h">
+            <p class="kicker">Сейчас</p>
+            <h3 id="now-h">Исправления после первого ревью 0.3.14</h3>
+            <p class="what">Закрыть замечания пяти уровней ревью до выпуска: напоминания на ходах, страница агента, доска.</p>
+            <div class="doing"><span class="bar" aria-hidden="true"><i style="width:66%"></i></span><span><b>шаг 4 из 6</b> · Проверяю исправления страницы агента и доски</span><span class="muted">40 с назад</span></div>
+            <p class="kicker" style="margin-top:var(--s3)">Вехи этой задачи</p>
+            <ol class="miles" reversed>
+              <li class="cur"><time>19:42</time>Шаг 4. Проверяю исправления страницы агента и доски</li>
+              <li><time>19:10</time>Шаг 3. Исправил страницу агента: строки, ссылки, фокус</li>
+              <li><time>18:30</time>Шаг 2. Напоминания на ходах больше не снимаются с очереди</li>
+              <li><time>18:05</time>Шаг 1. Разобрал 48 замечаний, одно блокирующее</li>
+            </ol>
+          </section>
+
+          <div class="sec-head"><h2>Задачи</h2><span class="muted">сначала новые · 5 за сессию</span></div>
+          <ul class="tasks">
+            <li><details><summary><span class="chev" aria-hidden="true">›</span><div><div class="t1">Исправления после первого ревью 0.3.14</div><div class="t2">взял в 17:58 · держит сейчас</div></div><span class="pill good">в работе</span></summary>
+              <div class="tbody"><p class="muted">Что делает сейчас, сказано выше, в «Сейчас».</p></div></details></li>
+            <li><details open><summary><span class="chev" aria-hidden="true">›</span><div><div class="t1">Работа без задачи напоминается агенту</div><div class="t2">взял в 16:20 · сдал на проверку в 17:40 · взят 1 раз</div></div><span class="pill">на проверке</span></summary>
+              <div class="tbody">
+                <dl class="brief">
+                  <dt>Что должно произойти</dt><dd>Сессия, которая меняет файлы без заявки, получает напоминание на следующем ходу.</dd>
+                  <dt>Почему</dt><dd>18 из 19 сессий за сутки меняли файлы, не взяв задачу.</dd>
+                  <dt>Что будет верно</dt><dd>Напоминание приходит один раз и называет, что сделать.</dd>
+                </dl>
+                <div><h4>Чем закончил</h4><div class="summary">Напоминание «work-unclaimed» считает изменения между ходами, а не грязное дерево. Тесты: проверка обхода брошенной работы, проверка ходов. Осталось: показать число таких сессий человеку.</div></div>
+                <div><h4>Вехи</h4>
+                  <ol class="miles" reversed>
+                    <li><time>17:31</time>Шаг 3. Тест ловит подложенный дефект</li>
+                    <li><time>16:58</time>Шаг 2. Находка в обходе брошенной работы</li>
+                    <li><time>16:24</time>Шаг 1. Прочитал ходы сессий за сутки</li>
+                  </ol></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn">Открыть задачу</button><button type="button" class="btn" onclick="toggleX()">Нужна правка в другом проекте</button></div>
+                <div class="xproj" id="xproj" hidden>
+                  <p class="tbody" style="padding:0;margin:0;font-size:12.5px">Проект: <b>Dashboards</b> · «Показывать напоминания агента в окне сессии»</p>
+                  <div class="row"><button type="button" class="btn">Открыть консоль в Dashboards</button><button type="button" class="btn primary">Поручить агенту Dashboards в Fabric</button></div>
+                  <p class="muted" style="font-size:11.5px;margin:6px 0 0">Поручение станет задачей Dashboards, связанной с этой. Когда агент Dashboards её сдаст, здесь появится «Dashboards сделал».</p>
+                </div>
+              </div></details></li>
+            <li><details><summary><span class="chev" aria-hidden="true">›</span><div><div class="t1">Карточки доски называют сессию</div><div class="t2">взял в 15:40 · сдал на проверку в 16:15</div></div><span class="pill">на проверке</span></summary><div class="tbody"><p class="muted">Бриф, чем закончил и вехи раскрываются так же.</p></div></details></li>
+            <li><details><summary><span class="chev" aria-hidden="true">›</span><div><div class="t1">Задачи агента сверху вниз на его странице</div><div class="t2">взял в 14:30 · сдал на проверку в 15:32</div></div><span class="pill">на проверке</span></summary><div class="tbody"><p class="muted">Бриф, чем закончил и вехи раскрываются так же.</p></div></details></li>
+            <li><details><summary><span class="chev" aria-hidden="true">›</span><div><div class="t1">План выпуска 0.3.14</div><div class="t2">взял в 13:10 · передал другой сессии в 14:12</div></div><span class="pill">передана</span></summary><div class="tbody"><p class="muted">Бриф, чем закончил и вехи раскрываются так же.</p></div></details></li>
+          </ul>
+          <p class="hist">▸ Показать историю сессии (все события, по времени)</p>
+        </div>
+
+        <aside aria-label="Сессия">
+          <div class="sess">
+            <h2>Сессия</h2>
+            <dl>
+              <dt>Состояние</dt><dd><span class="pill good"><span class="dot live"></span>работает</span></dd>
+              <dt>Последний знак</dt><dd>40 с назад</dd>
+              <dt>Со слов агента</dt><dd>работает <span class="claim">(сообщил сам, 1 мин назад)</span></dd>
+              <dt>Где</dt><dd>консоль в Fabric</dd>
+              <dt>Начата</dt><dd>сегодня в 13:02</dd>
+              <dt>Агент</dt><dd>Claude Code 2.4 · разрешения: меньше вопросов</dd>
+            </dl>
+            <button type="button" class="btn primary" onclick="openSession()">Открыть сессию</button>
+            <p class="small">Консоль откроется вкладкой сверху. До нажатия она не запускается на экране.</p>
+          </div>
+          <div class="q" style="margin-top:var(--s4)">
+            <div class="from"><b>Вопросы этого агента</b></div>
+            <p class="muted" style="font-size:12.5px">Вопросов к вам нет.</p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- ===== Сессия (после нажатия) ===== -->
+      <div id="console" class="cols" hidden style="grid-template-columns:1fr">
+        <div>
+          <p class="back"><button type="button" class="link muted" onclick="show('agent')">← Claude Code · Fabric</button></p>
+          <div class="console" role="log" aria-label="Консоль сессии">
+            <div class="dim">~/work/fabric (release/0.3.14)</div>
+            <div>⏺ Проверяю исправления страницы агента и доски (шаг 4 из 6)</div>
+            <div class="dim">  ⎿ Читаю AgentPage.tsx, KanbanBoard.tsx</div>
+            <div>⏺ Запускаю тесты изменённых экранов</div>
+            <div class="ok">  ⎿ 41 тест прошёл</div>
+            <div>⏺ fabric_stage_report: шаг 4 из 6</div>
+            <div class="dim">▍</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<p class="note">Макет, не сборка. Данные выдуманы. Спецификация: docs/ux/2026-10-26-simple-fabric.md</p>
+<script>
+function side(which){
+  document.getElementById('list-p').hidden = which !== 'p'
+  document.getElementById('list-a').hidden = which !== 'a'
+  document.getElementById('seg-p').setAttribute('aria-pressed', String(which === 'p'))
+  document.getElementById('seg-a').setAttribute('aria-pressed', String(which === 'a'))
+}
+var consoleOpen = false
+function show(id){
+  ['home','agent','console'].forEach(function(x){ document.getElementById(x).hidden = x !== id })
+  document.getElementById('title').textContent = id === 'home' ? 'Главная' : id === 'agent' ? 'Claude Code · Fabric' : 'Сессия · Claude Code · Fabric'
+  if (id === 'agent') side('a')
+  document.querySelector('.place').scrollTop = 0
+  drawTabs(id)
+}
+function drawTabs(id){
+  var box = document.getElementById('tabs')
+  box.innerHTML = ''
+  if (!consoleOpen) return
+  var tab = document.createElement('span')
+  tab.className = 'ctab'
+  tab.style.borderColor = id === 'console' ? 'var(--app-line-strong)' : ''
+  tab.innerHTML = '<button type="button" onclick="show(\'console\')" style="color:var(--app-ink)">› Fabric · Claude Code</button><button type="button" aria-label="Закрыть вкладку" onclick="closeSession()">×</button>'
+  box.appendChild(tab)
+}
+function openSession(){ consoleOpen = true; show('console') }
+function closeSession(){ consoleOpen = false; show('agent') }
+function toggleX(){ var x = document.getElementById('xproj'); x.hidden = !x.hidden }
+document.querySelectorAll('.arow').forEach(function(r){ r.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show('agent') } }) })
+</script>
+</body>
+</html>
