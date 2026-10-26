@@ -11,7 +11,8 @@ import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { fixPath, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
+import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
+import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
@@ -757,7 +758,8 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
       await startStack((line) => {
         lastLine = line
       })
-      return await resolveSupabaseEnv()
+      // CO-428: a start that found the database up may have left rest and auth gone; heal that once.
+      return await resolveHealingHalfUp(halfUpDeps(() => startStack((line) => { lastLine = line })))
     } finally {
       clearInterval(tick)
       splash?.destroy()

@@ -16,6 +16,7 @@ import { STACK_EXCLUDED_SERVICES, databaseContainer, removeExcludedContainers } 
 import type { StackContainers } from '../shared/stackWatch.ts'
 import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
+import { resolveHealingHalfUp, type HalfUpDeps } from './stackHalfUp.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
 import { mergeLaunchPath, pathAdditions } from './platform.ts'
@@ -155,10 +156,30 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
  */
 export async function recoverStack(): Promise<'started' | 'already-running'> {
   if (stopRequested) throw new Error('Fabric is quitting, so the local stack is not started again.')
-  return recoveryStart(() => startStackOnce(), {
+  const result = await recoveryStart(() => startStackOnce(), {
     stopped: () => stopRequested,
     pingDocker: (socket) => pingDocker(socket)
   })
+  // CO-428: «already running» may be a half-up stack (the database up, rest and auth gone): heal it once.
+  if (result === 'already-running' && !stopRequested) await resolveHealingHalfUp(halfUpDeps(() => startStackOnce()))
+  return result
+}
+
+/** `supabase stop` without `--no-backup`: the stack's containers go, its volumes and data stay (CO-428). */
+export async function stopStackKeepingData(): Promise<void> {
+  await run('supabase', ['stop'], { cwd: repoRoot(), encoding: 'utf8', timeout: 120_000 })
+}
+
+/** The heal of a half-up stack, with this process's stop, the given start and one ops line (CO-428). */
+export function halfUpDeps(start: () => Promise<void>): HalfUpDeps<SupabaseEnv> {
+  return {
+    resolve: resolveSupabaseEnv,
+    stop: stopStackKeepingData,
+    start,
+    record: (r) => ops.record({ op: 'stack.half-up-healed', outcome: r.outcome, level: r.outcome === 'ok' ? 'info' : 'warn',
+      detail: { note: 'the database was up without rest and auth; Fabric stopped the stack keeping its data and started it again', ...(r.why ? { why: r.why } : {}) },
+      ctx: { correlationId: ops.correlate() } })
+  }
 }
 
 /** What Docker says of the stack's database container, for the watch's decision (`stackServices.ts#databaseContainer`). */

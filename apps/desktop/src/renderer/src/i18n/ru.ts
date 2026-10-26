@@ -402,7 +402,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'startup.stack-would-not-start.remedy.win32': "Ниже — ответ самого стека, обычно в нём есть точная причина. Если речь о Docker, запустите Docker Desktop и повторите; если занят порт, его освободит supabase stop.",
   'startup.stack-would-not-start.remedy.linux': "Ниже — ответ самого стека, обычно в нём есть точная причина. Если речь о Docker, запустите Docker Engine (sudo systemctl start docker) и повторите; если занят порт, его освободит supabase stop.",
   'startup.stack-up-but-silent.title': "Локальный стек работает, но не сообщил параметры подключения",
-  'startup.stack-up-but-silent.remedy': "Выполните supabase stop и откройте Fabric снова — он запустит стек заново. Не до конца запущенный стек отвечает на status без ключей, которые нужны Fabric.",
+  'startup.stack-up-but-silent.remedy': "Fabric остановил стек с сохранением данных и перезапустил его, но стек так и не сообщил ключи, необходимые Fabric. Выполните supabase stop в папке стека и снова откройте Fabric. Если ошибка повторится, ниже вы найдёте исходные сообщения стека.",
   'startup.schema-missing.title': "База данных работает, но таблиц Fabric в ней нет",
   'startup.schema-missing.remedy': "К этой базе ни разу не применялись миграции. Выполните supabase migration up --local в папке стека Fabric ({stackFolder} у установленного приложения, репозиторий — при запуске из исходников) и повторите. База отвечает — она просто пустая.",
   'startup.database-unreachable.title': "База данных не отвечает по адресу, который получил Fabric",

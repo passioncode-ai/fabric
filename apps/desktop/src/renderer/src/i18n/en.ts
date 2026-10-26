@@ -1066,7 +1066,7 @@ export const en = {
   'startup.stack-would-not-start.remedy.win32': "The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Desktop and retry; if a port is taken, supabase stop releases it.",
   'startup.stack-would-not-start.remedy.linux': "The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Engine (sudo systemctl start docker) and retry; if a port is taken, supabase stop releases it.",
   'startup.stack-up-but-silent.title': "The local stack is running but did not report its connection details",
-  'startup.stack-up-but-silent.remedy': "Run supabase stop and open Fabric again — it will start the stack cleanly. A half-started stack answers status without the keys Fabric needs.",
+  'startup.stack-up-but-silent.remedy': "Fabric stopped the stack keeping its data and started it again, and it still did not report the keys Fabric needs. Run supabase stop in the stack folder and open Fabric again; if it happens again, the stack’s own words are below.",
   'startup.schema-missing.title': "The database is running, but Fabric’s tables are not there",
   'startup.schema-missing.remedy': "The migrations have never been applied to this database. Run supabase migration up --local in Fabric’s stack folder ({stackFolder} for the installed app, the repository when running from source), then retry. The database is answering — it is simply empty.",
   'startup.database-unreachable.title': "The database is not answering at the address Fabric was given",

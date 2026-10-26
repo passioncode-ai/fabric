@@ -209,7 +209,8 @@ function classifyCause(e: unknown): StartupFailure {
       cause: 'stack-up-but-silent',
       title: 'The local stack is running but did not report its connection details.',
       remedy:
-        'Run `supabase stop` and open Fabric again — it will start the stack cleanly. A half-started stack answers `status` without the keys Fabric needs.',
+        // CO-428: Fabric heals a half-up stack once before this is shown (main/stackHalfUp.ts), so this names what is left.
+        'Fabric stopped the stack keeping its data and started it again, and it still did not report the keys Fabric needs. Run `supabase stop` in the stack folder and open Fabric again; if it happens again, the stack’s own words are below.',
       detail
     }
 

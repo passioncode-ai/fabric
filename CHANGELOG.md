@@ -20,6 +20,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   again.
 - **Fewer collisions when starting agents.** Two launches at the same moment no longer share one waiting session, and a
   folder where a launch may still be running takes no second agent.
+- **A half-started stack heals itself.** When the container engine restarts and brings back only the database, Fabric
+  stops the stack keeping its data and starts it again once, instead of stopping at the startup window.
 - **Docker through its current context.** Fabric finds the container engine the way the docker CLI does, so it also
   waits for Colima.
 
