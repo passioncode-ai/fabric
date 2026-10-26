@@ -124,6 +124,13 @@ describe('review fixes', () => {
     expect(findAbandoned({ ...empty, tasks: [{ ...t, movedByKind: 'agent' }] }).map((f) => f.kind)).toEqual(['task-unclaimed'])
   })
 
+  it('a person\'s move exempts a task only until a claim opens on it after that move (round 2, B2)', () => {
+    const t = { taskId: 't3', projectId: 'p1', state: 'running', movedAt: ago(30 * MIN), claimed: false, movedByKind: 'person' }
+    expect(findAbandoned({ ...empty, tasks: [{ ...t, lastClaimedAt: ago(20 * MIN) }] }).map((f) => f.kind)).toEqual(['task-unclaimed'])
+    expect(findAbandoned({ ...empty, tasks: [{ ...t, lastClaimedAt: ago(40 * MIN) }] })).toEqual([])
+    expect(findAbandoned({ ...empty, tasks: [{ ...t, lastClaimedAt: null }] })).toEqual([])
+  })
+
   it('only a queued request is unmoved; claimed and accepted ones are being worked (finding 7)', () => {
     const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(30 * MIN), answerUnreadSince: null }
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'queued' }] }).map((f) => f.kind)).toEqual(['request-unmoved'])

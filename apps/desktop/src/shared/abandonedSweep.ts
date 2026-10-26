@@ -44,8 +44,16 @@ export interface SweepTask {
   movedAt: string
   claimed: boolean
   /** Who last moved the task (`project_tasks.moved_by_kind`): a task a person moved to running by hand is the
-   *  person's own and is never called unclaimed. */
+   *  person's own and is not called unclaimed, until an agent claims it after that move. */
   movedByKind?: string | null
+  /** The newest claim ever opened on the task, released ones included; null when none. A claim does not move a task
+   *  already in running, so `movedByKind` stays the person's after an agent took and left it (round 2, B2). */
+  lastClaimedAt?: string | null
+}
+
+/** A task stays the person's while no claim has opened on it since the person moved it to running. */
+function personHolds(t: SweepTask): boolean {
+  return t.movedByKind === 'person' && !(t.lastClaimedAt && Date.parse(t.lastClaimedAt) >= Date.parse(t.movedAt))
 }
 
 export interface SweepRequest {
@@ -119,7 +127,7 @@ export function findAbandoned(input: SweepInput): Finding[] {
   }
   for (const t of input.tasks) {
     const still = now - Date.parse(t.movedAt)
-    if (t.state === 'running' && !t.claimed && t.movedByKind !== 'person' && still >= STILL_MS)
+    if (t.state === 'running' && !t.claimed && !personHolds(t) && still >= STILL_MS)
       out.push({ ...base, kind: 'task-unclaimed', key: `task-unclaimed:${t.taskId}`, projectId: t.projectId, taskId: t.taskId, stillMs: still,
         nextStep: 'This task is running and nobody holds it: claim it (fabric_work_claim) and continue, or move it back to the backlog.' })
   }

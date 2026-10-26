@@ -6,10 +6,12 @@
  *
  *   SW-1  every third pass of the one-minute cycle (`onPass`, counted here, no timer of its own)
  *   SW-2  claims, running tasks, board requests and Fabric's own terminals, each read in its own try
- *   SW-4  a Fabric terminal gets one line written into it; any other session reads its nudges in its next tool answer
+ *   SW-4  a stalled Fabric terminal gets one gated line written into it; every other finding waits as a nudge its
+ *         session reads in its next fabric_work_list or fabric_heartbeat answer
  *   SW-5  a finding is told once, then not again for 30 minutes while it stays (`toTell`)
  *   SW-7  interim: one ops line per sweep that found something (the journal receipt needs 0.3.13's schema step)
- *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew its session
+ *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew it or it has
+ *         expired, and its task has no unresolved run
  *
  * One sweep at a time, and none once the app is quitting. A queued nudge lives only while its finding does.
  */
@@ -44,6 +46,8 @@ export interface SweepRunningTask {
   movedAt: string
   /** Who last moved it (`project_tasks.moved_by_kind`, written by the projector's move provenance). */
   movedByKind?: string | null
+  /** For a task a person moved: the newest claim ever opened on it, released ones included (round 2, B2). */
+  lastClaimedAt?: string | null
 }
 
 /** What the board read could not finish within its bounds: past them a request is judged at a later sweep. */
@@ -172,7 +176,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       now,
       claims: claimRead?.claims ?? [],
       tasks: holders && taskRead
-        ? taskRead.map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null }))
+        ? taskRead.map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null, lastClaimedAt: t.lastClaimedAt ?? null }))
         : [],
       requests: requestRead?.requests ?? [],
       terminals: terminals ?? [],
@@ -193,7 +197,10 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       const text = nudgeText(f)
       // A lapsed claim's session has ended: there is nobody to wake but the project's other agents.
       const own = f.kind === 'claim-lapsed' ? null : f.sessionId
-      if (own && deps.terminalRunning(own)) {
+      // Round 2, R3: only a stalled terminal is typed into (its task running, the terminal itself quiet for
+      // TERMINAL_QUIET_MS, the write gated below). A line ending in Enter can land on a pending permission prompt, so
+      // every other finding, a silent claim of a Fabric terminal's session included, waits as that session's nudge.
+      if (own && f.kind === 'terminal-stalled' && deps.terminalRunning(own)) {
         if (deps.quitting()) { told.delete(f.key); continue }
         delivered++
         // Finding 3: the line goes in only while the terminal is as the sweep read it. Output or typed input since
@@ -232,14 +239,17 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     if (claimRead) {
       const twice = lapsedTwice(lapsedSeen, findings)
       lapsedSeen = twice.seen
-      // Finding 9: only a claim this process knew. One minted (claimed or renewed) since it started, or one whose
-      // session it saw live; a claim from before a restart or a crash, whose session it never saw, is left to its own
-      // expiry. Live sessions are remembered only while a claim of theirs is open.
+      // Finding 9: a claim this process knew: one minted (claimed or renewed) since it started, or one whose session
+      // it saw live. A claim from before a restart or a crash, whose session it never saw, is released once its
+      // expires_at has passed (round 2, B1): no expiry ends a claim by itself, the projector ends one only on
+      // work.released@1 or another owner's claim (migration 95), so leaving it would hold its task forever. Live
+      // sessions are remembered only while a claim of theirs is open.
       for (const c of claimRead.claims) if (c.session) seenLive.add(c.sessionId)
       seenLive = new Set(claimRead.claims.map((c) => c.sessionId).filter((id) => seenLive.has(id)))
       const ownAt = new Map(claimRead.claims.map((c) => [c.claimId, Math.max(Date.parse(c.claimedAt), c.renewedAt ? Date.parse(c.renewedAt) : 0)]))
+      const expiresAt = new Map(claimRead.claims.map((c) => [c.claimId, Date.parse(c.expiresAt)]))
       const ours = twice.release.filter((f) => f.claimId && f.sessionId &&
-        ((ownAt.get(f.claimId) ?? 0) >= deps.processStartedAt || seenLive.has(f.sessionId)))
+        ((ownAt.get(f.claimId) ?? 0) >= deps.processStartedAt || seenLive.has(f.sessionId) || (expiresAt.get(f.claimId) ?? Infinity) <= now))
       // A task whose run Fabric has not proved stopped stays held: the claim is not released over a live process.
       let held: Set<string> | null = new Set()
       const taskIds = ours.map((f) => f.taskId).filter((id): id is string => id !== null)
@@ -323,12 +333,26 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
  *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. Who moved it is the
  *  `moved_by_kind` column the projector writes with `moved_at` from the move's actor (`apply_move_provenance`), so no
  *  journal read and no migration is needed to tell a person's hand move. A read that fails throws. */
-export async function readRunningTasks(store: Store): Promise<SweepRunningTask[]> {
+export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepRunningTask[]> {
   const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind').eq('status', 'running').limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
-  return ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }>)
+  const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }>)
     .filter((t) => t.moved_at ?? t.started_at)
-    .map((t) => ({ taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null }))
+  // Round 2, B2: a person's move holds only until a claim opens after it, and a claim does not move a task already in
+  // running. The claims ever opened on the person-moved tasks only (bounded by the read above), released ones
+  // included; the newest per task. An unread history throws: it is never "no claim since".
+  const personMoved = rows.filter((t) => t.moved_by_kind === 'person').map((t) => t.id)
+  const claims = await store.selectIn('work_claims', 'work_id,claimed_at', 'work_id', personMoved)
+  if (claims.failed) throw new Error(`the claims of the tasks a person moved could not be read: ${claims.failed}`)
+  const lastClaimed = new Map<string, string>()
+  for (const c of claims.rows as Array<{ work_id: string; claimed_at: string }>) {
+    const prior = lastClaimed.get(c.work_id)
+    if (!prior || Date.parse(c.claimed_at) > Date.parse(prior)) lastClaimed.set(c.work_id, c.claimed_at)
+  }
+  return rows.map((t) => ({
+    taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null,
+    lastClaimedAt: lastClaimed.get(t.id) ?? null
+  }))
 }
 
 /** The operator's read door onto the board (`commsOperatorRead.ts`), the four reads this sweep uses. */
