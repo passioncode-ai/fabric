@@ -646,3 +646,49 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lg-node.centre{ border-color: var(--app-accent); }
 .lg-node.outside{ border-style: dashed; }
 button.lg-node{ cursor: pointer; }
+/* CO-419: Агенты as an agents screen. The chosen agent in the centre, the list by state on the right; under 850 px
+   the list sits over the centre (the 0.3.12 rule), and a picked agent is brought into view. */
+.ag{ display: grid; gap: var(--space-4); padding: var(--space-6) var(--space-6) var(--space-4); align-content: start; }
+.ag-head{ display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
+.ag-head .lp-meta{ margin: 0; max-width: 60ch; }
+.ag-place{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: var(--space-4); align-items: start; }
+.ag-centre{ min-width: 0; display: grid; gap: var(--space-3); }
+.ag-chosen{ display: grid; gap: var(--space-3); min-width: 0; }
+.ag-pick{ padding: var(--space-4); border: var(--report-line) dashed var(--app-line); border-radius: var(--app-radius-control); }
+.ag-list{ display: grid; gap: var(--space-4); align-content: start; }
+.ag-note{ display: grid; gap: var(--space-2); justify-items: start; }
+.ag-group h4{ margin: 0 0 var(--space-2); font-size: var(--app-fs-caption); letter-spacing: .12em; text-transform: uppercase; color: var(--app-muted); font-weight: 500; }
+.ag-group > .lp-meta{ margin: 0; }
+.ag-rows{ list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+.ag-row{ display: grid; gap: var(--space-1); width: 100%; text-align: left; padding: var(--space-2) var(--space-3); border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); color: var(--app-ink); font: inherit; font-weight: normal; cursor: pointer; }
+.ag-row.is-selected{ border-color: var(--app-accent); background: var(--app-panel-quiet); }
+.ag-row-head{ display: flex; align-items: baseline; gap: var(--space-2); flex-wrap: wrap; min-width: 0; }
+.ag-heard{ margin-left: auto; color: var(--app-muted); font-size: var(--app-fs-caption); }
+.ag-row-project{ font-size: var(--app-fs-caption); }
+.ag-row-line{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--app-muted); }
+.ag-group-off .ag-row{ background: transparent; }
+.ag-joined{ display: grid; gap: var(--space-1); }
+.ag-joined p{ margin: 0; }
+.ag-console{ display: grid; gap: var(--space-2); min-height: 420px; }
+.ag-console-bar{ margin: 0; display: flex; justify-content: flex-end; }
+.ag-console .session-window{ min-height: 420px; }
+@media (max-width: 850px){ .ag-place{ grid-template-columns: 1fr; } .ag-list{ order: -1; } }
+/* CO-414: История's filters and the detail pane beside the list. */
+.hx-filters{ display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: end; }
+.hx-filters label{ display: grid; gap: var(--space-1); font-size: var(--app-fs-caption); color: var(--app-muted); }
+.hx-filters select, .hx-filters input{ min-height: 30px; padding: 0 var(--space-2); border: var(--report-line) solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-panel); color: var(--app-ink); font: inherit; font-size: 13px; }
+.hx-search input{ min-width: 220px; }
+.hx-grid{ display: grid; gap: var(--space-4); align-items: start; }
+.hx-grid.has-detail{ grid-template-columns: minmax(0, 1fr) minmax(260px, 360px); }
+.hx-main{ display: grid; gap: var(--space-3); min-width: 0; }
+.hx-open{ border: 0; background: transparent; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.hx-open:hover, .hx-open[aria-expanded="true"]{ text-decoration: underline; }
+.hx-open:focus-visible{ outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.hx-row.is-open{ background: var(--app-panel-quiet); }
+.hx-detail{ position: sticky; top: 0; display: grid; gap: var(--space-3); padding: var(--space-4); border: var(--report-line) solid var(--app-line); border-radius: 14px; background: var(--app-panel); }
+.hx-detail-head{ display: flex; justify-content: space-between; gap: var(--space-3); align-items: flex-start; }
+.hx-detail-head h3{ margin: 0; font-size: 15px; }
+.hx-detail dl{ display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-1) var(--space-3); margin: 0; font-size: 13px; }
+.hx-detail dt{ color: var(--app-muted); }
+.hx-detail dd{ margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 850px){ .hx-grid.has-detail{ grid-template-columns: 1fr; } }

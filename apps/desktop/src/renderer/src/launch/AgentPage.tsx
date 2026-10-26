@@ -19,13 +19,22 @@ import { dayLabel } from './HistoryScreen'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask }: {
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note }: {
   agent: LiveAgent
   /** Moves when the journal does: the page reads its history again. */
   mark: number
-  onConsole(sessionId: string): void
+  /** Absent on Агенты' «Работа» tab (CO-419): the console is the tab beside it, not a button here. */
+  onConsole?(sessionId: string): void
   onOpenProject(projectId: string): void
   onOpenTask?(projectId: string, taskId: string): void
+  /** The agent's name when the caller knows it better than its runner id (a joined agent's own name). */
+  title?: string
+  /** The agent's state in words, said under its name instead of «last heard» (CO-419: waiting, its session ended). */
+  state?: string
+  /** More acts beside «Проект» and «Задача»: «Отключить» for a joined agent (SX-26). */
+  actions?: React.ReactNode
+  /** Under the header: a joined agent's proof line and a refused act's words. */
+  note?: React.ReactNode
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
@@ -59,17 +68,19 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask }:
       <div className="lp-panel-head">
         <div>
           <p className="lp-kicker">{agent.projectName ?? t('launch.home.agents.noProject')}</p>
-          <h3 id="agent-page-title" tabIndex={-1}>{runnerLabel(agent.agent, t)}</h3>
-          <p className="lp-meta">{agent.stale ? t('launch.home.agents.stale') : t('agentPage.since', { time: since(agent.lastSignAt ?? agent.startedAt, t) })}</p>
+          <h3 id="agent-page-title" tabIndex={-1}>{title ?? runnerLabel(agent.agent, t)}</h3>
+          <p className="lp-meta">{state ?? (agent.stale ? t('launch.home.agents.stale') : t('agentPage.since', { time: since(agent.lastSignAt ?? agent.startedAt, t) }))}</p>
         </div>
         <span className="lh-agents-actions">
-          {agent.console && <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('launch.home.agents.openConsole')}</button>}
+          {agent.console && onConsole && <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('launch.home.agents.openConsole')}</button>}
           {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('launch.home.agents.openProject')}</button>}
           {agent.task && agent.projectId && onOpenTask && (
             <button type="button" className="lp-button" onClick={() => onOpenTask(agent.projectId!, agent.task!.id)}>{t('agentPage.openTask')}</button>
           )}
+          {actions}
         </span>
       </div>
+      {note}
       <h4>{t('agentPage.task')}</h4>
       <p>{agent.task ? agent.task.summary : t('agentPage.noTask')}</p>
       <h4>{t('agentPage.doing')}</h4>

@@ -17,14 +17,14 @@ import { useOpenConsole } from '../consoles'
 export type HomeReading = { view: HomeView | null; problem: string | null; readAt?: string | null; retry?: () => void }
 
 /** After a failed read, what still shows is the last reading: said with its time, never passed off as now (CO-313). */
-function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
+export function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
   const t = useT(), locale = useLocale()
   if (!reading.problem || !reading.view || !reading.readAt) return null
   return <p className="lp-meta" role="status">{t('acts.stale', { time: new Date(reading.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>
 }
 
 /** A read behind this place that stopped at its limit (CO-310): said, so a missing agent is never read as «nobody». */
-function CappedNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
+export function CappedNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
   const t = useT()
   const capped = reading.view?.capped ?? []
   if (!capped.length) return null
