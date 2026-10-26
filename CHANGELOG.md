@@ -7,6 +7,36 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.14 (unreleased)
+
+**Upgrading.** No schema change: the local database stays at schema 98, the same as 0.3.13, so there is no migration to
+run and upgrading is the new bundle alone. Going back to 0.3.13 is the 0.3.13 bundle alone, with no backup to restore.
+
+- **See what each agent is doing, and what it did.** An agent's page in Агенты lists «Задачи» above its history: every
+  task its session took, newest first, with its project, its status, when it was taken and how it ended. Each one opens
+  in place to its brief and «Открыть задачу». The history below names the task each row is about and opens it.
+- **An agent's task is what it works on now.** On Главная and in Агенты an agent shows its newest running task (one it
+  claimed, one Fabric launched for it, or the one its latest stage report names), not the first it ever claimed; a
+  task with no title is shown as untitled instead of disappearing.
+- **Abandoned work is set apart.** A task in work that no agent holds and no session works on leaves «В работе». The
+  home says «Брошено: N» and the Board has a «Брошено» column after «В работе», so both count the same work in progress.
+- **The Board names its agents.** A card in work names the session working on it, and that name opens the agent's page.
+  «Готово» shows 20 more at a time when there are more.
+- **Agents hear their reminders on every turn.** The reminders Fabric's three-minute sweep queues for an agent now come
+  back in the answer to every turn the agent's session hooks report, not only in the rare `fabric_work_list` or
+  `fabric_heartbeat` answer.
+- **Work without a claim is noticed.** A session that changed files in the last 15 minutes while holding no task is
+  reminded to claim one, at most once every 30 minutes.
+- **No task is left running with nobody on it.** When an agent lets a task go, hands it over, its session ends, its
+  claim lapses or you release it, a running task nothing else holds goes back to the queue, with a note saying why. A
+  task whose agent said it was done but that stayed in running is moved to review by the sweep.
+- **Briefs get written.** Claiming a task whose brief misses a part names the missing parts and how to write them; ten
+  minutes into the claim, the agent is reminded if they are still missing. These reminders and the claim reminder go to
+  the agent only, never to your «На проверке».
+- **An agent knows what waits for its project.** `fabric_whoami` names the board requests addressed to the project that
+  nobody took, the answers to its own requests it has not read, and its open questions, and says when it could not
+  read them rather than reporting none.
+
 ## 0.3.13
 
 **Upgrading.** This version moves the local database to schema 98 (two migrations since 0.3.12,
