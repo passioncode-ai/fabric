@@ -69,6 +69,7 @@ import {
 } from '../shared/memoryContract.ts'
 import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { mayChain } from '../shared/loopBound.ts'
+import { spawnParentOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
@@ -2001,14 +2002,29 @@ export class AgentSurface {
         // it from X; `origin` is its claim about why, and `scope.taskId` is what
         // Fabric observed. Counting the claim would let a chain hide itself by
         // naming something else.
-        if (scope.taskId) {
+        //
+        // A session Fabric did not launch on a task (joined from its own
+        // terminal, enrolled, the hub) has no `scope.taskId`; its parent is the
+        // ONE task it holds a live claim on here (0.3.14 review, iteration 2,
+        // PL-1/DA-1). None or several: no link, and the answer says why.
+        const claimsRead = scope.taskId
+          ? null
+          : await store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null)
+        const spawn = spawnParentOf(
+          scope.taskId,
+          scope.projectId,
+          claimsRead ? ((claimsRead.data ?? []) as LiveClaim[]) : [],
+          claimsRead?.error ? claimsRead.error.message : null
+        )
+        const parentTask = spawn.parent
+        if (parentTask) {
           const { data: links } = await store
             .select('task_links', 'task_id,target_id')
             .eq('rel', 'spawned')
             .eq('target_kind', 'task')
           const from: Record<string, string | undefined> = {}
           for (const l of links ?? []) from[l.task_id as string] = l.target_id as string
-          const verdict = mayChain(from, scope.taskId)
+          const verdict = mayChain(from, parentTask)
           if (!verdict.ok) {
             // M168 — through the ONE door, with the surface's redacting
             // appender handed in. This used to append here, applying `mayChain`
@@ -2021,7 +2037,7 @@ export class AgentSurface {
               actor: { kind: 'agent', id: scope.sessionId },
               title,
               origin,
-              fromTaskId: scope.taskId,
+              fromTaskId: parentTask,
               depth: verdict.depth,
               bound: verdict.bound,
               append: (e) => this.appendRedacted(e as Parameters<typeof this.appendRedacted>[0])
@@ -2063,12 +2079,12 @@ export class AgentSurface {
         // second door is a second set of rules, and they diverge on the day
         // somebody is in a hurry.
         let chained: LinkVerdict | null = null
-        if (scope.taskId) {
+        if (parentTask) {
           const { data, error } = await db.rpc('link_tasks', {
             p_estate_id: scope.estateId,
             p_task_id: id,
             p_rel: 'spawned',
-            p_target_id: scope.taskId,
+            p_target_id: parentTask,
             p_actor: { kind: 'agent', id: scope.sessionId },
             p_project_id: scope.projectId
           })
@@ -2084,8 +2100,11 @@ export class AgentSurface {
           status: 'backlog',
           seq: event.seq,
           ...(linked?.ok ? { source: { repository: linked.repository, path: linked.path, id: linked.rowId, id_checked: linked.idChecked } } : {}),
-          ...(chained ? { chained_to: scope.taskId, chained: chained.linked === true,
-                          ...(chained.linked ? {} : { chain_reason: chained.says ?? chained.reason_code }) } : {})
+          ...(chained ? { chained_to: parentTask, chained: chained.linked === true,
+                          ...(chained.linked ? {} : { chain_reason: chained.says ?? chained.reason_code }) } : {}),
+          // Which task this piece was spawned from, and when none: why (PL-1/DA-1).
+          spawned_from: chained?.linked ? parentTask : null,
+          ...(chained?.linked ? {} : { spawned_from_why: spawn.why ?? chained?.says ?? chained?.reason_code ?? 'the link was refused' })
         })
       }
     )
@@ -2519,7 +2538,7 @@ export class AgentSurface {
       {
         title: 'Link two tasks',
         description:
-          'Say that one task blocks, follows or spawned another. Refused when the link would close a cycle, and it names the loop — a board where A waits for B waits for A is one nobody can act on.',
+          'Say how two tasks relate: taskId is the task the link belongs to, targetTaskId the one it points at. rel "spawned" means taskId was split off FROM targetTaskId (the parent spawned the child: taskId is the child, targetTaskId the parent, the task the person set); "blocks" means taskId blocks targetTaskId; "follows" means taskId comes after targetTaskId. Refused when the link would close a cycle, and it names the loop: a board where A waits for B waits for A is one nobody can act on.',
         inputSchema: {
           taskId: z.string().uuid(),
           rel: z.enum(['blocks', 'follows', 'spawned']),

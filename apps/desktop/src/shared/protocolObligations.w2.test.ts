@@ -34,6 +34,12 @@ describe('wave 2 rules', () => {
     expect(t).toMatch(/Codex and Kimi send no turns/)
   })
 
+  it('0.3.14 review, iteration 2, PL-1/DA-1: the goal rule names the condition the link is made under', () => {
+    const t = byId('claim.persons-request-as-goal')?.text ?? ''
+    expect(t).toMatch(/one task you hold claimed in this project/)
+    expect(t).toMatch(/spawned_from_why/)
+  })
+
   it('a relayed instruction with the operator\'s quote and source is the operator\'s own (TO-1)', () => {
     const o = byId('operator.told-one-is-told-all')
     expect(o?.mode).toBe('ADVICE')
