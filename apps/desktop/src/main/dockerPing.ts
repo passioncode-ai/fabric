@@ -18,7 +18,10 @@ const readJson = (file: string): Record<string, unknown> | null => {
   try {
     const v: unknown = JSON.parse(readFileSync(file, 'utf8'))
     return v && typeof v === 'object' ? v as Record<string, unknown> : null
-  } catch { return null }
+  } catch {
+    // A missing or unreadable docker config is the ordinary case (no context set): the platform default is asked instead.
+    return null
+  }
 }
 
 /**
