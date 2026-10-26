@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T12:00:00Z · `—` · agent/0313-adr0180 → main · fast-forward
+- run: r-182fa592b059
+- files: docs/adr/0180-fabric-follows-dec-0129-for-an-organizations-root-and-answers-its-four-questions.md, docs/adr/README.md, the pipeline reservation (0179 to 0181), the carry-over ledger (CO-130, CO-320, CO-337 notes); the map
+- conflicts: none
+- summary: ADR-0180, D8's second part: Fabric follows DEC-0129 for an organization's root and answers the contract's four questions.
+
 ### 2026-10-26T11:20:00Z · `—` · agent/0313-track → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/renderer/src/launch/SettingsScreen.tsx, UsageCountsSetting.tsx, launch.css, i18n en and ru, shared/folderTrust.ts, appSettings.ts, types.ts, main/pty.ts, index.ts, their tests, test/folder-trust-setting.test.mjs; SCN-170, the product model, AGENTS.md, CHANGELOG, the plan, the ledger and backlog (CO-348, CO-392 resolved; CO-367, CO-329, CO-375 moved to 0.3.14); the map
