@@ -151,6 +151,14 @@ test('every bridge method speaks exactly one declared channel', () => {
   }
 })
 
+test('an agent\'s tasks (0.3.14): work.session asks the main window\'s work:session with the session id, and no detached window may', () => {
+  const rec = recorder()
+  createApi(rec).work.session('s-1')
+  assert.deepEqual(rec.calls, [['invoke', IPC.workSession, ['s-1']]])
+  assert.equal(authorise({ kind: 'main' }, IPC.workSession, ['s-1']).ok, true)
+  for (const kind of ['session', 'editor']) assert.equal(authorise({ kind, subject: 's-1' }, IPC.workSession, ['s-1']).ok, false)
+})
+
 test('the preload exposes only the subset of the window\'s kind', () => {
   const session = exposedApi('session', recorder())
   assert.equal(typeof session.terminal.get, 'function')

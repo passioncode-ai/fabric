@@ -49,7 +49,7 @@ import { loginItemFor, loginItemState, startsInBackground, type LoginItemState }
 import { existingTempRoots } from './tempRoots.ts'
 import { releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
-import { readHome, readProjectWork, readRunHolds, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
+import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5159,6 +5159,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readHome(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
   handle(IPC.workBoard, async (_e, projectId?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null }))
+  // 0.3.14: one agent's tasks for its page, newest first; a failed read rejects (`workRead.ts#readSessionTasks`).
+  handle(IPC.workSession, async (_e, sessionId: unknown): Promise<Returns<FabricApi['work']['session']>> => readSessionTasks(store, sessionId))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
     // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.

@@ -1659,6 +1659,9 @@ export interface FabricApi {
     /** The Board screen's kanban across projects (OF-19, SCN-173). */
     /** One project's board when `projectId` is given: filtered in the query, never after the estate's caps. */
     board(projectId?: string | null): Promise<TaskBoardView>
+    /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
+     *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
+    session(sessionId: string): Promise<import('./sessionTasks.ts').SessionTasksView>
     /** The operator ends one claim; the agent is told on its next call. */
     release(claimId: string): Promise<OperatorRelease>
   }
@@ -1906,6 +1909,7 @@ export const IPC = {
   workEstate: 'work:estate',
   workHome: 'work:home',
   workBoard: 'work:board',
+  workSession: 'work:session',
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',

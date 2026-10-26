@@ -32,6 +32,7 @@ import {
 } from '../shared/workClaims.ts'
 import { composeHome, type HomeView, type StageRow, type TaskBrief } from '../shared/homeLive.ts'
 import { composeTaskBoard, type TaskBoardView } from '../shared/taskBoard.ts'
+import { composeSessionTasks, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTaskRow, type SessionTasksView } from '../shared/sessionTasks.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 
@@ -345,6 +346,39 @@ export async function readTaskBoard(store: Store, opts: { now: number; session: 
   return composeTaskBoard({
     home, queued: queuedRows, projects: projectRows, queuedLimit: QUEUE,
     cancelled: cancelledError ? { unread: cancelledError.message } : { rows: withWhen(cancelledRows ?? []), limit: CANCELLED }
+  })
+}
+const SESSION_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_expected,status,started_at'
+
+/**
+ * One agent session's tasks, newest first (0.3.14, `shared/sessionTasks.ts`): its claims, live and released (indexed by
+ * `owner_session`, migration 95), and the tasks Fabric launched in it (`project_tasks.session_id`), joined to each
+ * task's brief and project. Every read's error THROWS, so the agent page never says "no task" from a read that did
+ * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
+ */
+export async function readSessionTasks(store: Store, sessionId: unknown): Promise<SessionTasksView> {
+  if (typeof sessionId !== 'string' || !SESSION_UUID.test(sessionId)) throw new Error('Invalid session identity')
+  const CLAIMS = SESSION_TASKS_LIMIT * 2
+  const [claims, launched] = await Promise.all([
+    store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how').eq('owner_session', sessionId).order('claimed_at', { ascending: false }).limit(CLAIMS),
+    store.select('project_tasks', SESSION_TASK_COLUMNS).eq('session_id', sessionId).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT)
+  ])
+  const claimRows = must(claims as never, "the session's claims") as SessionClaimRow[]
+  const launchedRows = must(launched as never, "the session's launched tasks") as SessionTaskRow[]
+  const launchedIds = new Set(launchedRows.map((t) => t.id))
+  const ids = [...new Set(claimRows.map((c) => c.work_id))].filter((id) => !launchedIds.has(id))
+  const tasks = await store.selectIn('project_tasks', SESSION_TASK_COLUMNS, 'id', ids)
+  if (tasks.failed) throw new Error(`the session's tasks could not be read: ${tasks.failed}`)
+  const projectIds = [...new Set([...claimRows.map((c) => c.project_id), ...launchedRows.map((t) => t.project_id)])]
+  const projects = await store.selectIn('projects', 'id,name', 'id', projectIds)
+  if (projects.failed) throw new Error(`the session's projects could not be read: ${projects.failed}`)
+  return composeSessionTasks({
+    claims: claimRows,
+    launched: launchedRows,
+    tasks: tasks.rows as unknown as SessionTaskRow[],
+    projects: projects.rows as unknown as Array<{ id: string; name: string }>,
+    readCapped: claimRows.length >= CLAIMS || launchedRows.length >= SESSION_TASKS_LIMIT
   })
 }
 // #endregion work-read

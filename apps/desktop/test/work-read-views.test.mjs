@@ -76,3 +76,49 @@ test('the board\'s reads in main: one project filters in every query, the queue 
   assert.match(board.columns.find((c) => c.stage === 'done').unread ?? '', /database away/)
   assert.ok(calls.filter((c) => c.table === 'work_claims').every((c) => !c.eq.some(([k]) => k === 'project_id')), 'the estate board reads every project')
 })
+
+test("an agent's tasks in main (0.3.14): its claims and launched tasks by its session, newest first; a failed read throws, never «no task»", async () => {
+  const { readSessionTasks } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const S = '11111111-2222-4333-8444-555555555555'
+  const calls = []
+  const fake = (tables, fail = {}) => ({
+    select: (table, columns) => {
+      const call = { table, columns, eq: [], orders: [] }
+      calls.push(call)
+      const chain = {
+        is: () => chain, in: () => chain, not: () => chain, limit: () => chain,
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
+        order: (k, o) => { call.orders.push([k, o?.ascending]); return chain },
+        then: (ok) => ok(fail[table] ? { data: null, error: { message: fail[table] } } : { data: tables[table] ?? [], error: null })
+      }
+      return chain
+    },
+    selectIn: async (table, _columns, key, values) => fail[`in:${table}`]
+      ? { rows: [], failed: fail[`in:${table}`] }
+      : { rows: (tables[`in:${table}`] ?? []).filter((r) => values.includes(r[key])), failed: null }
+  })
+  const tables = {
+    work_claims: [
+      { work_id: 't1', project_id: 'p1', claimed_at: '2026-10-26T08:00:00Z', released_at: '2026-10-26T09:00:00Z', released_how: 'done' },
+      { work_id: 't2', project_id: 'p1', claimed_at: '2026-10-26T10:00:00Z', released_at: null, released_how: null }
+    ],
+    project_tasks: [{ id: 't3', project_id: 'p1', title: 'Launched', brief_what: null, brief_why: null, brief_expected: null, status: 'running', started_at: '2026-10-26T11:00:00Z' }],
+    'in:project_tasks': [
+      { id: 't1', project_id: 'p1', title: 'One', brief_what: null, brief_why: null, brief_expected: null, status: 'done', started_at: null },
+      { id: 't2', project_id: 'p1', title: null, brief_what: 'Two', brief_why: null, brief_expected: null, status: 'running', started_at: null }
+    ],
+    'in:projects': [{ id: 'p1', name: 'Fabric' }]
+  }
+  const view = await readSessionTasks(fake(tables), S)
+  assert.deepEqual(view.tasks.map((t) => [t.taskId, t.summary, t.status, t.releasedHow, t.projectName]), [
+    ['t3', 'Launched', 'running', null, 'Fabric'], ['t2', 'Two', 'running', null, 'Fabric'], ['t1', 'One', 'done', 'done', 'Fabric']
+  ])
+  const claims = calls.find((c) => c.table === 'work_claims')
+  assert.deepEqual(claims.eq, [['owner_session', S]], 'released claims are read too: no released_at filter')
+  assert.deepEqual(claims.orders, [['claimed_at', false]], 'the newest claims first')
+  assert.deepEqual(calls.find((c) => c.table === 'project_tasks').eq, [['session_id', S]])
+  await assert.rejects(readSessionTasks(fake(tables, { work_claims: 'database away' }), S), /claims could not be read: database away/)
+  await assert.rejects(readSessionTasks(fake(tables, { 'in:project_tasks': 'refused' }), S), /tasks could not be read: refused/)
+  await assert.rejects(readSessionTasks(fake(tables), 'not-a-session'), /Invalid session identity/)
+  assert.deepEqual(await readSessionTasks(fake({}), S), { tasks: [], capped: false }, 'a session with no task reads as an empty list')
+})
