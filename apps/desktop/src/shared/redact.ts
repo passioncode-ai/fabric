@@ -155,6 +155,23 @@ const RULES: Rule[] = [
     keep: (m) => `${m[1]}[redacted: api-key-field]`
   },
   {
+    name: 'authorization-field',
+    // A QUOTED authorization field with no scheme word (CO-222, DA-6): `{"authorization":"<token>"}`, single-quoted or
+    // escaped. Both quotes are required, as for `api-key-field`; a value that starts with a scheme word is the
+    // `authorization` rule's, which keeps the word.
+    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|[^"'\\\n]+)/gi,
+    keep: (m) => (m[2].startsWith('[redacted:') ? m[0] : `${m[1]}[redacted: authorization-field]`)
+  },
+  {
+    name: 'yaml-credential',
+    // A credential in a YAML block (CO-222, ER-5): `  Authorization: <token>` or `  api_key: <token>` at the start of a
+    // line, the value with no scheme word. Only a value that looks like a token (16 or more token characters holding a
+    // digit, no dot or space) or a quoted one, so a type (`password: string`), prose (`authorization: required`) and code
+    // (`secret: process.env.SECRET`) stay.
+    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic)\s)(?!\[redacted:)("[^"\n]+"|'[^'\n]+'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
+    keep: (m) => `${m[1]}[redacted: yaml-credential]`
+  },
+  {
     name: 'bearer',
     // A bare `Bearer <token>` with no `Authorization:` before it (CO-386), as a client prints it. The token must look
     // like one (16 or more token characters), so prose such as «a Bearer token» stays.

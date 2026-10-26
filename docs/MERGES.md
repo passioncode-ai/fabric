@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T13:00:00Z · `—` · agent/0313-triage → main · fast-forward
+- run: r-182fa592b059
+- files: scripts/nightly-gate.mjs, scripts/test/nightly-gate.test.mjs, release-mac.test.mjs, ci.sh, .github/workflows/ci.yml and platforms.yml; apps/desktop/src/shared/eventSubject.ts, entityRef.ts, redact.ts, renderer Feed.tsx, i18n en and ru, their tests; docs/launch/release-mac.md step 9; the ledger (ten rows decided), backlog, the plan; the map
+- conflicts: none
+- summary: Fabric 0.3.13: the overdue rows' triage (В-8) and three small fixes (the nightly gates' clock, the feed's reasons in the interface language, two redaction rules).
+
 ### 2026-10-26T12:00:00Z · `—` · agent/0313-adr0180 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/adr/0180-fabric-follows-dec-0129-for-an-organizations-root-and-answers-its-four-questions.md, docs/adr/README.md, the pipeline reservation (0179 to 0181), the carry-over ledger (CO-130, CO-320, CO-337 notes); the map

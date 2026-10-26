@@ -1,5 +1,5 @@
 import type { FeedEvent, ProjectRow } from '../../shared/types'
-import type { EntityRef } from '../../shared/entityRef'
+import type { DestinationReason, EntityRef } from '../../shared/entityRef'
 import { destinationOf } from '../../shared/entityRef.ts'
 import { subjectOfEvent } from '../../shared/eventSubject.ts'
 import { Button, EmptyState, Row } from './components'
@@ -66,7 +66,7 @@ export function Feed({
                 reachable for anyone debugging, without putting it on screen —
                 and when there is no act it carries the REASON, so "this row is
                 not a link" is answerable rather than merely observable. */}
-            <span title={'why' in act ? `${e.type} — ${act.why}` : e.type}>
+            <span title={'why' in act ? `${e.type}: ${act.why}` : e.type}>
               {describeEvent(t, e.type)}
             </span>
             {!compact && <span className="muted"> {nameOf(e.project_id)}</span>}
@@ -85,11 +85,25 @@ export function Feed({
  * type from the code that writes it, never guessed from a prefix. `destinationOf` then says whether any screen can
  * focus that ref, and it has four answers of which one is an address. A row passes both or it is not a link.
  */
+const SUBJECT_WHY = {
+  undeclared: 'journal.whyUndeclared',
+  'missing-key': 'journal.whyMissingKey'
+} as const satisfies Record<'undeclared' | 'missing-key', string>
+
+const DESTINATION_WHY = {
+  'other-project': 'journal.whyOtherProject',
+  'task-no-project': 'journal.whyTaskNoProject',
+  'work-not-task': 'journal.whyWorkNotTask',
+  'fact-no-page': 'journal.whyFactNoPage',
+  'transcript-from-session': 'journal.whyTranscriptFromSession'
+} as const satisfies Record<DestinationReason, string>
+
 export function feedAct(e: FeedEvent, t: Translate): { ref: EntityRef; projectId: string } | { why: string } {
+  // The reason is said in the interface's language (CO-225 (5)); the English `why` stays for logs.
   const subject = subjectOfEvent(e)
-  if (!subject.known) return { why: subject.why }
+  if (!subject.known) return { why: t(SUBJECT_WHY[subject.reason]) }
   const to = destinationOf({ ref: subject.ref, projectId: e.project_id })
   return to.at === 'exact'
     ? { ref: to.focus, projectId: to.projectId }
-    : { why: to.at === 'here' ? t('journal.subjectHere') : to.why }
+    : { why: to.at === 'here' ? t('journal.subjectHere') : t(DESTINATION_WHY[to.reason]) }
 }

@@ -18,7 +18,8 @@ concurrency:
   # The event is in the group: the nightly schedule never cancels a manual dispatch on the same ref
   # (scripts/check-workflows.py refuses a scheduled workflow whose group omits it).
   group: platforms-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # A schedule run is never cancelled: the two nightly crons share one group, and a late first run must finish (CO-274).
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   clock:
@@ -29,12 +30,15 @@ jobs:
     outputs:
       run: ${{ steps.hour.outputs.run }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/nightly-gate.mjs
+          sparse-checkout-cone-mode: false
       - id: hour
-        run: |
-          # By the cron that fired and Warsaw's offset, not by the hour the job starts: GitHub starts scheduled runs one
-          # to three hours late, so the hour was never 23 and no nightly batch ran (0.3.5 verification, iteration 3, PL-1).
-          off=$(TZ=Europe/Warsaw date +%z); want="30 22 * * *"; [ "$off" = "+0200" ] && want="30 21 * * *"
-          if [ "${{ github.event.schedule }}" = "$want" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "the 23:30 Warsaw cron is \"$want\" at offset $off, this one is \"${{ github.event.schedule }}\"; skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; fi
+        # By the cron that fired and Warsaw's offset six hours before the start, not by the hour the job starts: GitHub
+        # starts scheduled runs one to three hours late (PL-1), and past 01:00 UTC on the night the clocks change the
+        # start's own offset picks the wrong cron (CO-274). scripts/test/nightly-gate.test.mjs holds both nights.
+        run: node scripts/nightly-gate.mjs "${{ github.event.schedule }}" "30 21 * * *" "30 22 * * *"
 
   windows:
     needs: clock

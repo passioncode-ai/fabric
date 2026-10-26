@@ -97,8 +97,12 @@ export type Destination =
   | { at: 'here'; ref: EntityRef; act: 'answer' | 'grant' | 'decide' | 'consent' }
   /** The project is known and the entity is not focusable by any surface that
    *  exists. Named, so the row can say "this opens the project, not the fact". */
-  | { at: 'project'; projectId: string; ref: EntityRef; why: string }
-  | { at: 'unaddressable'; ref: EntityRef; why: string }
+  | { at: 'project'; projectId: string; ref: EntityRef; why: string; reason: DestinationReason }
+  | { at: 'unaddressable'; ref: EntityRef; why: string; reason: DestinationReason }
+
+/** Why a ref opens no exact place, as a code an interface translates; `why` is the same in English for a log
+ *  (CO-225 (5)). */
+export type DestinationReason = 'other-project' | 'task-no-project' | 'work-not-task' | 'fact-no-page' | 'transcript-from-session'
 
 /**
  * Where does this ref open?
@@ -137,14 +141,15 @@ export function destinationOf(input: {
     return {
       at: 'unaddressable',
       ref,
-      why: 'this belongs to another project, and opening it from here would leave the one you are looking at'
+      why: 'this belongs to another project, and opening it from here would leave the one you are looking at',
+      reason: 'other-project'
     }
 
   switch (ref.kind) {
     case 'task':
       return projectId
         ? { at: 'exact', projectId, focus: ref }
-        : { at: 'unaddressable', ref, why: 'a task with no project cannot be opened' }
+        : { at: 'unaddressable', ref, why: 'a task with no project cannot be opened', reason: 'task-no-project' }
     case 'project':
       return { at: 'exact', projectId: ref.id, focus: ref }
     case 'question':
@@ -160,16 +165,16 @@ export function destinationOf(input: {
       // to as though it were one; there is no screen for it, and pretending
       // otherwise puts the operator on an empty task page.
       return projectId
-        ? { at: 'project', projectId, ref, why: 'this lease holds work that is not a task' }
-        : { at: 'unaddressable', ref, why: 'this lease holds work that is not a task' }
+        ? { at: 'project', projectId, ref, why: 'this lease holds work that is not a task', reason: 'work-not-task' }
+        : { at: 'unaddressable', ref, why: 'this lease holds work that is not a task', reason: 'work-not-task' }
     case 'fact':
       return projectId
-        ? { at: 'project', projectId, ref, why: 'memory has no page for a single fact' }
-        : { at: 'unaddressable', ref, why: 'memory has no page for a single fact' }
+        ? { at: 'project', projectId, ref, why: 'memory has no page for a single fact', reason: 'fact-no-page' }
+        : { at: 'unaddressable', ref, why: 'memory has no page for a single fact', reason: 'fact-no-page' }
     case 'transcript':
       return projectId
-        ? { at: 'project', projectId, ref, why: 'a transcript opens from its session' }
-        : { at: 'unaddressable', ref, why: 'a transcript opens from its session' }
+        ? { at: 'project', projectId, ref, why: 'a transcript opens from its session', reason: 'transcript-from-session' }
+        : { at: 'unaddressable', ref, why: 'a transcript opens from its session', reason: 'transcript-from-session' }
   }
 }
 

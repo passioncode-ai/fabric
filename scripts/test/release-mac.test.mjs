@@ -289,5 +289,12 @@ test('the nightly gates choose by the cron that fired, never by the hour the job
     assert.match(workflow, /github\.event\.schedule/, `${name} reads the cron that fired`)
     const crons = [...workflow.matchAll(/- cron: '([^']+)'/g)].map((m) => m[1])
     for (const c of crons) assert.ok(workflow.includes(`"${c}"`), `${name}: the gate names cron ${c}`)
+    // CO-274: the decision is scripts/nightly-gate.mjs (tested by the clock in nightly-gate.test.mjs), handed the summer
+    // cron first and the winter cron second, as the cron list's comments name them.
+    const summer = /- cron: '([^']+)'\s*#[^\n]*summer/.exec(workflow)?.[1]
+    const winter = /- cron: '([^']+)'\s*#[^\n]*winter/.exec(workflow)?.[1]
+    assert.ok(summer && winter, `${name}: the crons name summer and winter`)
+    assert.ok(workflow.includes(`node scripts/nightly-gate.mjs "\${{ github.event.schedule }}" "${summer}" "${winter}"`),
+      `${name}: the gate hands nightly-gate.mjs the summer cron, then the winter cron`)
   }
 })

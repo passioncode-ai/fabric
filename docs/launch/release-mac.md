@@ -177,10 +177,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `vX.Y.Z/Fabric-X.Y.Z-universal.dmg`. Download the asset anonymously and check its SHA-256 and
    `spctl -a -t open --context context:primary-signature` before pointing anything at it. This repository does not
    write to the website.
-   **Windows and Linux (from 0.3.5):** the site has no route for them yet (`curl -sI
-   https://passioncode.ai/fabric/download/windows` and `/linux` answered 404 on 2026-10-12), so those installers are
-   offered on GitHub Releases only; the site's own change adds `Fabric-{version}-windows-{arch}-setup.exe`,
-   `Fabric-{version}-linux-{arch}.AppImage` and `.deb` to its policy once a release carries them.
+   **Windows and Linux (from 0.3.5):** the site offers them since its commit `e9d39ef` (SITE-046, 2026-10-15):
+   `https://passioncode.ai/fabric/download/windows-x64`, `/linux-x64-deb` and `/linux-x64-appimage` each answered 302
+   to the v0.3.12 asset on GitHub on 2026-10-26 (CO-269). Check the three after a release as the Mac one is checked.
 10. **Publish and pin the workspace from the release commit.** After the tag, from a clean `main`:
     `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child`; record the
     source commit, the workspace digest and the parent pin together in the release's verification ledger

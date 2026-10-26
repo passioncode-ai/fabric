@@ -881,6 +881,13 @@ export const en = {
   'journal.empty': 'The journal is empty — it fills as things happen.',
   'journal.open': 'Open',
   'journal.subjectHere': 'the thing this row is about is the row you are looking at',
+  'journal.whyUndeclared': 'Nothing has been verified about what this row is about.',
+  'journal.whyMissingKey': 'This row does not carry the thing it is about.',
+  'journal.whyOtherProject': 'This belongs to another project, and opening it from here would leave the one you are looking at.',
+  'journal.whyTaskNoProject': 'A task with no project cannot be opened.',
+  'journal.whyWorkNotTask': 'This lease holds work that is not a task.',
+  'journal.whyFactNoPage': 'Memory has no page for a single fact.',
+  'journal.whyTranscriptFromSession': 'A transcript opens from its session.',
 
   'session.state.running': 'running',
   'session.state.idle': 'idle',

@@ -106,3 +106,24 @@ describe('an event with no project (0.3.11 review, iteration 2, UX-7)', () => {
     expect(container.textContent).not.toContain('\u2014')
   })
 })
+
+// CO-225 (5): a row that cannot be opened says why in the interface's language, in its tooltip, with no dash.
+describe('the reason a row cannot be opened (CO-225 (5))', () => {
+  const reasonOf = (e: FeedEvent, locale: 'en' | 'ru') => {
+    const { container } = render(<I18nProvider locale={locale}><Feed events={[e]} projects={[project()]} /></I18nProvider>)
+    return container.querySelector('[title]')?.getAttribute('title') ?? ''
+  }
+
+  it('says an unverified row in Russian when the interface is Russian, the raw type kept first for debugging', () => {
+    const title = reasonOf(event('agent.heartbeat@1', { session: 's1' }), 'ru')
+    expect(title.startsWith('agent.heartbeat@1: ')).toBe(true)
+    expect(title).not.toMatch(/verified|row/)
+    expect(title).not.toContain('—')
+  })
+
+  it('says a row missing its key, and an unfocusable subject, in the interface language too', () => {
+    expect(reasonOf(event('task.created@1', { title: 'no id here' }), 'ru')).not.toMatch(/carry/)
+    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'ru')).not.toMatch(/lease holds/)
+    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'en')).toMatch(/This lease holds work that is not a task\./)
+  })
+})

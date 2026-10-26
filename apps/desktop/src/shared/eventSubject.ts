@@ -29,7 +29,8 @@ import type { EntityKind, EntityRef } from './entityRef.ts'
 /** What the row is about, or why nobody can say. */
 export type EventSubject =
   | { known: true; ref: EntityRef }
-  | { known: false; why: string }
+  /** `why` is for a developer reading a log; `reason` is what an interface translates (CO-225 (5)). */
+  | { known: false; why: string; reason: 'undeclared' | 'missing-key' }
 
 interface Declared {
   kind: EntityKind
@@ -71,7 +72,8 @@ export function subjectOfEvent(event: {
   if (!declared)
     return {
       known: false,
-      why: `nothing has been verified about what a ${event.type} row is about`
+      why: `nothing has been verified about what a ${event.type} row is about`,
+      reason: 'undeclared'
     }
   for (const key of declared.keys) {
     const raw = key === BY_SEQ ? String(event.seq) : event.payload[key]
@@ -83,6 +85,7 @@ export function subjectOfEvent(event: {
   // that does not make one up.
   return {
     known: false,
-    why: `this ${event.type} row does not carry ${declared.keys.join(' or ')}`
+    why: `this ${event.type} row does not carry ${declared.keys.join(' or ')}`,
+    reason: 'missing-key'
   }
 }

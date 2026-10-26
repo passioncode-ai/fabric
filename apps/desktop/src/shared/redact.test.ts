@@ -295,3 +295,32 @@ describe('the edges CO-386 named', () => {
     }
   })
 })
+
+// CO-222 (0.3.13, the overdue triage): DA-6 and ER-5's remainder. A credential with no scheme word, printed as a
+// quoted JSON field or a YAML header block, and a Python model printed with spaces round its `=`.
+describe('the edges CO-222 left (DA-6, ER-5)', () => {
+  const VALUE = 'zq81TokenValue0123456789abcd'
+  it('a quoted authorization field with no scheme word loses its value, its name stays (DA-6)', () => {
+    for (const line of [`{"authorization":"${VALUE}"}`, `{'Authorization': '${VALUE}'}`, `{\\"Proxy-Authorization\\":\\"${VALUE}\\"}`]) {
+      const out = redact(line).text
+      expect(out, line).not.toContain(VALUE)
+      expect(out, line).toMatch(/authorization/i)
+    }
+  })
+  it('a YAML header block with a bare token value loses it (ER-5)', () => {
+    const out = redact(`headers:\n  Authorization: ${VALUE}\n  api_key: ${VALUE}\n`).text
+    expect(out).not.toContain(VALUE)
+    expect(out).toContain('Authorization: ')
+    expect(out).toContain('api_key: ')
+  })
+  it('a Python model printed with spaces round its `=` loses the value (ER-5)', () => {
+    const out = redact(`Settings(api_key = '${VALUE}', timeout = 30)`).text
+    expect(out).not.toContain(VALUE)
+    expect(out).toContain('timeout = 30')
+  })
+  it('leaves a scheme-word header to its own rule, and prose and code alone', () => {
+    expect(redact(`{"Authorization": "Bearer ${VALUE}"}`).text).toBe('{"Authorization": "Bearer [redacted: authorization]"}')
+    for (const keep of ['authorization: required for every call', '  password: string', '  token: string | null', 'authorization: none', '  secret: process.env.SECRET'])
+      expect(redact(keep).text, keep).toBe(keep)
+  })
+})

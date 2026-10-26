@@ -78,6 +78,7 @@ node scripts/check-conflict-markers.mjs
 python3 scripts/check-workflows.py
 # 2026-10-22: a scheduled run cancelled a push run in the same concurrency group; the gate refuses that shape.
 node --test scripts/test/check-workflows.test.mjs
+node --test scripts/test/nightly-gate.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs

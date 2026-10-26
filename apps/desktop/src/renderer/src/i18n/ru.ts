@@ -774,6 +774,13 @@ export const ru: Partial<Record<StringKey, string>> = {
   'digest.reading': "Собираем, что произошло, пока вас не было…",
   'journal.open': 'Открыть',
   'journal.subjectHere': "эта строка говорит о самой себе",
+  'journal.whyUndeclared': "Не проверено, о чём эта строка.",
+  'journal.whyMissingKey': "В этой строке нет объекта, к которому она относится.",
+  'journal.whyOtherProject': "Эта строка относится к другому проекту. Если открыть её отсюда, вы покинете текущий проект.",
+  'journal.whyTaskNoProject': "Задачу без проекта открыть нельзя.",
+  'journal.whyWorkNotTask': "Агент взял работу, которая не является задачей.",
+  'journal.whyFactNoPage': "Для отдельного факта в памяти нет страницы.",
+  'journal.whyTranscriptFromSession': "Транскрипт открывается из своей сессии.",
   'status.agentsUnread': "ищем работающих агентов…",
   'agents.startsIn': 'Запустится в {path}',
   'agents.startsInHome':

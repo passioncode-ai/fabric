@@ -56,6 +56,7 @@ describe('what a journal row is about', () => {
     expect(got.known).toBe(false)
     if (got.known) throw new Error('unreachable')
     expect(got.why).toMatch(/verified/)
+    expect(got.reason, 'the interface translates the code, CO-225 (5)').toBe('undeclared')
   })
 
   it('and refuses a DECLARED event whose row does not carry the key', () => {
@@ -65,6 +66,7 @@ describe('what a journal row is about', () => {
     expect(got.known).toBe(false)
     if (got.known) throw new Error('unreachable')
     expect(got.why).toMatch(/does not carry/)
+    expect(got.reason).toBe('missing-key')
   })
 
   it('and never accepts a non-string id', () => {
