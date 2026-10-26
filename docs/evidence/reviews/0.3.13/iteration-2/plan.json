@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "5aa6e59f44903681a34e80b168bb70a65cfeee0f",
+  "report": "docs/evidence/reviews/0.3.13/iteration-2/2026-10-26-plan.md",
+  "reportSha256": "5d9504da399deb5bc476977fe6a03e987c1cf97ae1bdbcb3342f2d78f004584a",
+  "reviewerRun": "release-0313-i2-plan-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "as V2-11"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V2-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: replies posted 2026-10-26 (`f13c9ea9` on `1ddb20ce`, CO-450; `c1e9554d` on `6225e0c1`, CO-434's note; `f769299a` on `d34e8ce8`, CO-258's note; `69dea81c` on `198866e6`, CO-432; `00da6035` on `ef5a84c3`, CO-451 and CO-045's note; `5cc2d25b` on `e75d502d`, CO-336's target corrected; `3a7c1489` on `cf5d97f7`; `a1faec87` on `41a9b0cb`, CO-452) and TO-2's SW-6 half asked of the adapter (request `e2a7bec4`); the rest on the owed list"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V2-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-25 reads released and never rolled out here, owed in 0.3.13's Release close; the ledger names the source as a cross-session message from fabric-workspace's session, not on the board; P-27 lists the rows 0.3.13 moved into it"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V2-35",
+      "status": "fixed",
+      "evidence": [
+        "as V2-12: steps 1, 3, 4 and 9"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V2-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-413 names PX-11; as V2-25 and V2-22"
+      ]
+    }
+  ]
+}

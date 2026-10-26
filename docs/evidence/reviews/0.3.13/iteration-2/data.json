@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "5aa6e59f44903681a34e80b168bb70a65cfeee0f",
+  "report": "docs/evidence/reviews/0.3.13/iteration-2/2026-10-26-data.md",
+  "reportSha256": "595e85519d61f0bf109eecdc92c50e1e8fe11ed1a0cb34855d12e430772b264f",
+  "reviewerRun": "release-0313-i2-data-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a receipt for the reads only when their state changes (`abandoned-sweep-run.test.mjs` «iteration 2 DA-1»)"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ABANDONED_KINDS` is the one list, `capped` and `unread` are enumerations (`abandoned-sweep-run.test.mjs` «iteration 2 DA-2»)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "as V2-10; the db test's receipt drops `delivered`"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-439's note"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rule `json-credential-field`, the `Token` scheme (`redact.test.ts` «redacts access_token, password, client_secret values and Authorization: Token», «keeps a plain word and a sentence»); camelCase keys and passphrases with spaces ruled: CO-222"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V2-31",
+      "status": "fixed",
+      "evidence": [
+        "as V2-14"
+      ]
+    }
+  ]
+}

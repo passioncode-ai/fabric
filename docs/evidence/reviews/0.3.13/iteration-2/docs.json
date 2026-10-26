@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "5aa6e59f44903681a34e80b168bb70a65cfeee0f",
+  "report": "docs/evidence/reviews/0.3.13/iteration-2/2026-10-26-docs.md",
+  "reportSha256": "16a2714f5d42b021648783b8779cc2ce1e9195da7adef09f8cbcb049811477b6",
+  "reviewerRun": "release-0313-i2-docs-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plan's [Iteration 1's rulings](2026-10-26-release-0313-plan.md#iteration-1s-rulings-2026-10-26)"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Rollout above, written out in full, four person steps"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Rollout's step 7; the plan's section cited as the first attempt's record"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the runbook's 0.3.13 paragraph and the Rollout's steps 4 and 5 (d read before, the one allowed loss); teaching `judge` the allowance ruled: CO-449"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG; a dated note on CO-419"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"the database and kong\"; \"without rest or without kong\"; Copylot `bc66edd1-3c68-4c27-964c-a8379e2f2054`"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the older build trusts folders whatever the switch said, and a setting change there forgets it"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.3.9 paragraph says the first start, with a dated note"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "as V2-10"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0182's Amendments"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0178's Amendments, ADR-0180's Amendment 2"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `13:49:58Z`"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it links the ledger, Агенты, Settings, the sweep and the stack"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the handoff's Next task"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: five threads in the ledger, the handoff and P-26; `0d82422a` and `12bd8b4c` also carry 0.4.0's dates"
+      ]
+    }
+  ]
+}

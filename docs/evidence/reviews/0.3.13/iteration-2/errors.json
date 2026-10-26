@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "5aa6e59f44903681a34e80b168bb70a65cfeee0f",
+  "report": "docs/evidence/reviews/0.3.13/iteration-2/2026-10-26-errors.md",
+  "reportSha256": "d96abecce906d7664ba6ab0019ba93ba47bfb770ae7bf3884af8a25f06c0033e",
+  "reviewerRun": "release-0313-i2-errors-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `HalfUpDeps.stopped`, a quit after the heal's stop starts nothing, and a heal's own stop is not read as the person's (`env.ts` `stoppedByHeal`, `afterOwnStop`; `stack-half-up.test.mjs` «iteration 2 ER-1»)"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `authorization-field` and `yaml-credential` take a token-shaped value only (`redact.test.ts` «keeps none, required and ask-the-operator; still redacts a token-shaped value»)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in code (`abandonedSweepRun.ts` header, the obligation's evidence); migration 124's note and header ruled: CO-449 (a landed migration is not edited)"
+      ]
+    }
+  ]
+}

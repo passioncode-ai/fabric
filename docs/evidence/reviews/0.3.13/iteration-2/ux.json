@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "5aa6e59f44903681a34e80b168bb70a65cfeee0f",
+  "report": "docs/evidence/reviews/0.3.13/iteration-2/2026-10-26-ux.md",
+  "reportSha256": "a755af29c607402239c4a9f8ac49569c5add737228060098d522b336dccb849b",
+  "reviewerRun": "release-0313-i2-ux-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed stop throws `STACK_HEAL_FAILED` with its own remedy, a start that fails after the stop throws the start's own failure (`stack-half-up.test.mjs` «iteration 2 UX-1», `startupFailure.test.ts` «the heal's stop itself failed»), watched failing first"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); Copylot `f0c68482-17bb-4140-926b-9416e5d514ac`"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentPage.taskUnread`, `agentPage.doingUnread` when the work read failed (`AgentsScreen.test.tsx` «iteration 2 UX-3»), watched failing with the change reverted"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentsPlace.console.elsewhere`, or `.unknown` when the hub read failed (`AgentsScreen.test.tsx` «iteration 2 UX-4»), watched failing with the change reverted"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; Copylot ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96`"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; Copylot `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Возможно, ждут вас» and the plain shell left out"
+      ]
+    }
+  ]
+}

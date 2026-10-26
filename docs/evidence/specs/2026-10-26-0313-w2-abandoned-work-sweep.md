@@ -63,7 +63,9 @@ session, handoff and status in their head»: an abandoned task finds its agent w
   leaves at once. Scenario: SCN-173, amendment of 2026-10-26.
 - Deferred then, built since: SW-7's journal receipt landed with the release's schema step (`efcf77dc`) and SW-6 moved
   from ADVICE to OBSERVED with it; the release review's changes are the next section. TO-2 outside Fabric was asked of fabric-workspace in a
-  cross-session message on 2026-10-26, not on the board.
+  cross-session message on 2026-10-26, not on the board; since then the adapter answered TO-1 by FAA-131 and FAA-134
+  (board thread `3e8f706c`), and SW-6's rule for the same templates is asked on the board (request `e2a7bec4`, thread
+  `2ec55494`, due 2026-11-14; the release review, iteration 2, PL-2).
 
 ## As built, the release review, iteration 1 (2026-10-26)
 

@@ -90,3 +90,11 @@ Taken by the operator's recorded decisions, then R1's goal, then the safest reve
 - Rejected: Vesta as hub or signer (Vesta ADR-0004, ADR-0005, v4); each member's Fabric as the organization's hub with a
   co-signed organization record (A-5's one primary machine per network; no contract shape for a multi-passkey
   organization record); the offline root signing every revision (too heavy for R1, kept as the certifier in R2).
+
+## Amendments
+
+- 2026-10-26: point 7 and the second half of point 5 (a project leaves by a revision an administrator's passkey signs)
+  are amended by [ADR-0180](0180-fabric-follows-dec-0129-for-an-organizations-root-and-answers-its-four-questions.md),
+  its decision 2 and Amendment 1: an administrator's release statement outside the member's estate, a revision the
+  person's own passkey signs, the release in effect on receipt. Points 1 to 4, 6 and the first half of point 5 stand
+  (the 0.3.13 release review, iteration 2, DO-11).

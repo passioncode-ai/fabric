@@ -666,3 +666,22 @@ test('SW-9: a lapsed claim this sweep released is gone from current() at once', 
   assert.deepEqual(w.released.map((r) => r.claimId), ['c1'])
   assert.deepEqual(sweep.current().findings.map((f) => f.key), ['claim-lapsed:c2'], 'c2 is held by its run and stays')
 })
+
+test('iteration 2 DA-1: a read that stays blind is recorded once, and again when it changes', async () => {
+  const w = world()
+  const sweep = createAbandonedSweep(w.deps)
+  w.fail.add('claims')
+  for (let i = 0; i < 5; i++) { await sweepOnce(sweep); w.tick(3 * MIN) }
+  assert.equal(w.receipts.length, 1, 'five blind sweeps in a row write one receipt')
+  assert.deepEqual(w.receipts[0].unread, ['claims'])
+  w.fail.delete('claims')
+  await sweepOnce(sweep)
+  w.fail.add('claims')
+  await sweepOnce(sweep)
+  assert.equal(w.receipts.length, 2, 'blind again after a clear read is a change, recorded')
+})
+
+test('iteration 2 DA-2: the receipt\'s capped names are the reads\' own, never free text', async () => {
+  assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, capped: ['anything at all here'] }).state, 'rejected')
+  assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, capped: ['claims', 'threads'] }).state, 'prepared')
+})

@@ -250,7 +250,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       <div className="ag-place">
         <div className="ag-centre">
           {chosen ? (
-            <Centre row={chosen} tab={tab} onTab={setTab} mark={mark} hub={hub} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
+            <Centre row={chosen} tab={tab} onTab={setTab} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
           ) : home.view === null && home.problem && rows.length === 0 ? (
             <p className="lp-meta ag-pick" role="status">{t('agentPage.unread')}</p>
           ) : everyRead === 'read' && rows.length === 0 ? (
@@ -304,12 +304,14 @@ function Group({ group, rows, read, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, tab, onTab, mark, hub, onOpenProject, onOpenTask, onAsTab }: {
+function Centre({ row, tab, onTab, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab }: {
   row: RosterRow
   tab: 'work' | 'console'
   onTab(tab: 'work' | 'console'): void
   mark: number
   hub: ReturnType<typeof useHub>
+  /** Who works was not read (`work.home` failed first): a console's task and action are unknown, not none (UX-3). */
+  homeUnread: boolean
   onOpenProject(projectId: string): void
   onOpenTask(projectId: string, taskId: string): void
   onAsTab(sessionId: string): void
@@ -343,7 +345,7 @@ function Centre({ row, tab, onTab, mark, hub, onOpenProject, onOpenTask, onAsTab
   const waitingState = row.state === 'waiting' ? silentLine(row, t) : row.state === 'ended' ? stateWords(row, t) : undefined
   const work = live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
-      onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
+      workUnread={homeUnread && !row.live} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">
       <div className="lp-panel-head">
@@ -376,6 +378,9 @@ function Centre({ row, tab, onTab, mark, hub, onOpenProject, onOpenTask, onAsTab
       {row.joinedAgentId !== null && row.state !== 'out' ? t('agentsPlace.console.terminal')
         : row.state === 'signin' ? t('agentsPlace.signinHow', { name })
         : row.state === 'missing' ? t('agentsPlace.line.missing')
+        // An agent at work with no console here works outside Fabric, or, with the joined agents unread, it is not known
+        // where its console is; «not working» is said only of a row that is not at work (iteration 2, UX-4).
+        : row.state === 'working' || row.state === 'quiet' ? t(hub.read.at === 'failed' ? 'agentsPlace.console.unknown' : 'agentsPlace.console.elsewhere')
         : t('agentsPlace.console.none')}
     </p>
   )

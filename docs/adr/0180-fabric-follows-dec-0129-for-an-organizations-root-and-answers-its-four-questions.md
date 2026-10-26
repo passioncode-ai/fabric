@@ -95,3 +95,8 @@ paragraph rejects Vesta as signer (DO-15). Both stand as written: Vesta's ADRs s
 decided that no server signs a member list, the drafting one included. Changing Vesta's ADRs is Vesta's; DEC-0129 and
 this record are what Fabric builds to.
 
+## Amendment 2 (2026-10-26): the Consequences line
+
+The Consequences line "Nothing changes for the operator's personal network (ADR-0162) or for ADR-0178 points 1 to 7" is
+corrected by Amendment 1 in the same way as the status line: ADR-0178's point 7 and the second half of point 5 change;
+the personal network is unchanged (the 0.3.13 release review, iteration 2, DO-11).

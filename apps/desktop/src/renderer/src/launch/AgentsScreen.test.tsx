@@ -243,6 +243,25 @@ describe('Агенты (CO-419)', () => {
     expect(await screen.findAllByText(silent)).toHaveLength(2)
   })
 
+  it('iteration 2 UX-3: when who works was not read, a console\'s task and action are unknown, never none', async () => {
+    stub({ home: async () => { throw new Error('stack refused') }, overview: async () => hub({ agents: [] }), exec: async () => [] })
+    show([session({})])
+    const row = (await screen.findByText('Claude Code')).closest('button')!
+    fireEvent.click(row)
+    expect(await screen.findByText(en['agentPage.taskUnread'])).toBeTruthy()
+    expect(screen.getByText(en['agentPage.doingUnread'])).toBeTruthy()
+    expect(screen.queryByText(en['agentPage.noTask'])).toBeNull()
+  })
+
+  it('iteration 2 UX-4: an agent at work with no console here is said to work outside Fabric, never to be not working', async () => {
+    stub({ overview: async () => { throw new Error('hub refused') } })
+    show([])
+    fireEvent.click(await waitFor(() => within(group('working')).getByText('Codex')))
+    fireEvent.click(await screen.findByRole('button', { name: en['agentsPlace.tab.console'] }))
+    expect(screen.getByText(en['agentsPlace.console.unknown'])).toBeTruthy()
+    expect(screen.queryByText(en['agentsPlace.console.none'])).toBeNull()
+  })
+
   it('«Создать агента» opens «Создать» on its agent path', async () => {
     stub()
     const { onCreate } = show()

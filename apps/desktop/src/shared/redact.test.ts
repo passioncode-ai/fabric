@@ -332,3 +332,26 @@ describe('quoted prose is left alone (ER-6)', () => {
       expect(redact(keep).text, keep).toBe(keep)
   })
 })
+
+// 0.3.13 review, iteration 2, ER-2: a one-word quoted value under such a name is not a credential either.
+describe('one-word quoted values are left alone (iteration 2, ER-2)', () => {
+  it('keeps none, required and ask-the-operator; still redacts a token-shaped value', () => {
+    for (const keep of ["{'Authorization': 'none'}", '  token: "required"', '  api_key: "ask-the-operator"'])
+      expect(redact(keep).text, keep).toBe(keep)
+    expect(redact('{"authorization":"zq81TokenValue0123456789abcd"}').text).not.toContain('zq81TokenValue')
+  })
+})
+
+// 0.3.13 review, iteration 2, DA-5: JSON credential fields and the Token scheme.
+describe('JSON credential fields and the Token scheme (iteration 2, DA-5)', () => {
+  it('redacts access_token, password, client_secret values and Authorization: Token', () => {
+    for (const [line, secret] of [['{"access_token":"ya29.a0AfH6SMBx1234"}', 'ya29.a0AfH6SMBx1234'], ['{"password": "hunter2!x"}', 'hunter2!x'], ["{'client_secret': 'Zq81secretValue00'}", 'Zq81secretValue00'], ['Authorization: Token abcdef0123456789', 'abcdef0123456789']] as const) {
+      const out = redact(line).text
+      expect(out, line).not.toContain(secret)
+    }
+  })
+  it('keeps a plain word and a sentence under such a field', () => {
+    for (const keep of ['{"token": "required"}', '{"password": "set it in the vault"}'])
+      expect(redact(keep).text, keep).toBe(keep)
+  })
+})

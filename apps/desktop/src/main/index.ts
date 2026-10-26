@@ -3827,7 +3827,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           // would tell the operator about only the first of them, ever.
           items.map((i) => ({ id: attentionKey(i), title: notifyLineOf(i, sayNotice, noticeLocale), projectName: i.projectName })),
           told,
-          focused
+          focused,
+          (count) => sayNotice('notify.burst', { count })
         )
         // Forgetting what has left keeps the set from growing for the life of
         // the process, AND means a thing that comes back is told about again —

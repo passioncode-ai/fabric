@@ -177,6 +177,7 @@ export function halfUpDeps(start: () => Promise<void>): HalfUpDeps<SupabaseEnv> 
     resolve: resolveSupabaseEnv,
     stop: stopStackKeepingData,
     start,
+    stopped: () => stopRequested,
     record: (r) => ops.record({ op: 'stack.half-up-healed', outcome: r.outcome, level: r.outcome === 'ok' ? 'info' : 'warn',
       detail: { note: 'the database was up without rest and auth; Fabric stopped the stack keeping its data and started it again', ...(r.why ? { why: r.why } : {}) },
       ctx: { correlationId: ops.correlate() } })

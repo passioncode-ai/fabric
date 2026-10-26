@@ -354,12 +354,14 @@ describe('a half-up stack Fabric tried to heal', () => {
     for (const said of [f.remedy, en['startup.stack-up-but-silent.remedy']]) expect(said).not.toMatch(/started it again/)
     expect(ruRegistry['startup.stack-up-but-silent.remedy']).not.toMatch(/и перезапустил его/)
   })
-  it('the restart itself failed: its own remedy, with the restart\'s words as the detail, in Russian too', () => {
-    const e = Object.assign(new Error('Command failed: supabase start\nError: cannot connect to the Docker daemon'), { code: STACK_HEAL_FAILED })
+  it('the heal\'s stop itself failed: its own remedy, with the stop\'s words as the detail, in Russian too', () => {
+    // Since iteration 2 (UX-1) only the heal's stop carries this code; a start that fails after it is thrown as the
+    // start's own failure (main/stackHalfUp.ts#resolveHealingHalfUp).
+    const e = Object.assign(new Error('Command failed: supabase stop\nError: cannot connect to the Docker daemon'), { code: STACK_HEAL_FAILED })
     const f = classifyStartupFailure(e)
     expect(f).toMatchObject({ cause: 'stack-up-but-silent', remedyKey: 'startup.stack-up-but-silent.remedy.healFailed' })
     expect(f.detail).toContain('cannot connect to the Docker daemon')
-    expect(f.remedy).toMatch(/restart itself failed/)
+    expect(f.remedy).toMatch(/the stop itself failed/)
     const d = startupDialog(f, { retryable: true, logPath: '/l', say: sayRu })
     expect(d.detail).toContain(ruRegistry['startup.stack-up-but-silent.remedy.healFailed'])
     expect(d.detail).toContain('cannot connect to the Docker daemon')

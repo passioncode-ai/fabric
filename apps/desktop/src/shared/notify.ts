@@ -46,7 +46,9 @@ const SILENT: NotifyDecision = { notify: false, title: '', body: '', ids: [] }
 export function decideNotification(
   waiting: readonly Notifiable[],
   alreadyTold: ReadonlySet<string>,
-  focused: boolean
+  focused: boolean,
+  /** The burst's sentence in the interface's language (0.3.13 review, iteration 2, UX-2); English when not given. */
+  burst: (count: number) => string = (count) => `${count} things are waiting for you`
 ): NotifyDecision {
   if (focused) return SILENT
   const fresh = waiting.filter((w) => !alreadyTold.has(w.id))
@@ -66,7 +68,7 @@ export function decideNotification(
   return {
     notify: true,
     title: 'Fabric',
-    body: `${fresh.length} things are waiting for you`,
+    body: burst(fresh.length),
     ids: fresh.map((f) => f.id)
   }
 }

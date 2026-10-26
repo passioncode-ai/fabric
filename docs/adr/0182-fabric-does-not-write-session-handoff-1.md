@@ -32,3 +32,11 @@ write the format; the audit pass deleted the branch (`29c8de91`).
   part by ADR-0182". No code changes.
 - Rejected: building the writer in 0.3.13 (the operator's other option in В-7), because the format's owners are
   Dashboards and the contract and Fabric's own bundle already carries what its sessions need.
+
+## Amendments
+
+- 2026-10-26: the Context's measurement undercounts. `git grep session-handoff -- apps` finds comments in two files,
+  `apps/desktop/src/shared/contract/secretShape.ts` and `apps/desktop/src/shared/contract/folder-attribution/secret-shape.ts`
+  (three lines each), and fifteen lines in the vendored contract's fixtures
+  (`apps/desktop/test/fixtures/fabric-agent-contract/current/catalogue.json`); none is a writer, so the decision stands
+  (the 0.3.13 release review, iteration 2, DO-10).

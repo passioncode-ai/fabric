@@ -89,3 +89,28 @@ test('ER-3: containers gone after Fabric\'s own heal stopped them read as stoppe
   assert.equal(recoveryPlan(afterOwnStop('absent', false)), 'stopped', 'a stop someone made is respected')
   assert.equal(afterOwnStop('running', true), 'running')
 })
+
+// The 0.3.13 review, iteration 2: ER-1, a heal that stopped the stack starts nothing once Fabric is quitting; UX-1, a
+// start that fails after the heal's stop is the start's own failure, so the window says it in its own terms.
+test('iteration 2 ER-1: a heal that stopped the stack while Fabric quits starts nothing', async () => {
+  const calls = []
+  let quitting = false
+  await assert.rejects(resolveHealingHalfUp({
+    resolve: async () => { calls.push('resolve'); throw silent() },
+    stop: async () => { calls.push('stop'); quitting = true },
+    start: async () => { calls.push('start') },
+    record: (r) => calls.push(`record:${r.outcome}`),
+    stopped: () => quitting
+  }), /did not yield API_URL/)
+  assert.deepEqual(calls, ['resolve', 'stop', 'record:failed'], 'no start after the quit began')
+})
+
+test('iteration 2 UX-1: a start that fails after the heal\'s stop is thrown as the start\'s own failure', async () => {
+  const docker = new Error('Cannot connect to the Docker daemon at unix:///var/run/docker.sock')
+  let thrown
+  try {
+    await resolveHealingHalfUp({ resolve: async () => { throw silent() }, stop: async () => {}, start: async () => { throw docker }, record: () => {} })
+  } catch (e) { thrown = e }
+  assert.equal(thrown, docker)
+  assert.notEqual(thrown.code, 'FABRIC_STACK_HEAL_FAILED')
+})

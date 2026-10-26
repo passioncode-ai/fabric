@@ -17,13 +17,10 @@ export const TERMINAL_QUIET_MS = 15 * 60_000
 /** A finding is told once, then not again for this long while it stays the same (SW-5). */
 export const TELL_QUIET_MS = 30 * 60_000
 
-export type AbandonedKind =
-  | 'claim-silent'
-  | 'claim-lapsed'
-  | 'task-unclaimed'
-  | 'request-unmoved'
-  | 'answer-unread'
-  | 'terminal-stalled'
+/** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
+ *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled'] as const
+export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 
 export interface SweepClaim {
   claimId: string

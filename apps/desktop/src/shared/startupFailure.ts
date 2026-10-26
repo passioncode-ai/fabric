@@ -153,7 +153,7 @@ function classifyCause(e: unknown): StartupFailure {
       cause: 'stack-up-but-silent',
       title: 'The local stack is running but did not report its connection details.',
       remedy:
-        'Fabric tried to restart the stack with its data kept, but the restart itself failed; its own words are below. Run `supabase stop` in the stack folder and open Fabric again.',
+        'Fabric tried to stop the stack to restart it with its data kept, but the stop itself failed; its words are below. Run `supabase stop` in the stack folder and open Fabric again.',
       remedyKey: 'startup.stack-up-but-silent.remedy.healFailed',
       detail
     }

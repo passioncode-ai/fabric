@@ -135,7 +135,7 @@ const RULES: Rule[] = [
     // showed it unredacted (audit 2026-10-05 A6-005).
     // And escaped (`\"Authorization\":\"Bearer …\"`, a JSON-printed environment) or single-quoted
     // (`{'Authorization': 'Bearer …'}`, a Python dict) — audit 2026-10-06 DA-4 / DO-15.
-    re: /\b((?:proxy-)?authorization(?:\\*["'])?\s*:\s*(?:\\*["'])?(?:bearer|basic)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"'\\,;]+)/gi,
+    re: /\b((?:proxy-)?authorization(?:\\*["'])?\s*:\s*(?:\\*["'])?(?:bearer|basic|token)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"'\\,;]+)/gi,
     keep: (m) => `${m[1]}[redacted: authorization]`
   },
   {
@@ -158,9 +158,19 @@ const RULES: Rule[] = [
     name: 'authorization-field',
     // A QUOTED authorization field with no scheme word (CO-222, DA-6): `{"authorization":"<token>"}`, single-quoted or
     // escaped. Both quotes are required, as for `api-key-field`; a value that starts with a scheme word is the
-    // `authorization` rule's, which keeps the word. A value with a space is prose, not a credential (ER-6).
-    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|[^"'\\\s]+(?=\\*["']))/gi,
+    // `authorization` rule's, which keeps the word. A value with a space is prose, not a credential (ER-6), and so is a short or digitless word (`'none'`,
+    // `"ask-the-operator"`; iteration 2, ER-2): the value must look like a token, 12 or more characters with a digit.
+    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic|token)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|(?=[^"'\\\s]*\d)[^"'\\\s]{12,}(?=\\*["']))/gi,
     keep: (m) => (m[2].startsWith('[redacted:') ? m[0] : `${m[1]}[redacted: authorization-field]`)
+  },
+  {
+    name: 'json-credential-field',
+    // A QUOTED credential field printed as JSON or a Python dict (0.3.13 review, iteration 2, DA-5): `"access_token"`,
+    // `"refresh_token"`, `"id_token"`, `"client_secret"`, `"password"`, `"passwd"`, `"secret"`, `"token"`, with a quoted
+    // value that looks like a secret: no space, 8 or more characters with a digit or a sign, or 16 or more; so a word such
+    // as `"required"` and a sentence stay.
+    re: /(\\*["'](?:access_token|refresh_token|id_token|client_secret|password|passwd|secret|token)\\*["']\s*:\s*\\*["'])(\[redacted: json-credential-field\](?=\\*["'])|(?=[^"'\\\s]*[^A-Za-z"'\\\s])[^"'\\\s]{8,}(?=\\*["'])|[^"'\\\s]{16,}(?=\\*["']))/gi,
+    keep: (m) => `${m[1]}[redacted: json-credential-field]`
   },
   {
     name: 'yaml-credential',
@@ -169,7 +179,7 @@ const RULES: Rule[] = [
     // digit, no dot or space) or a quoted one, so a type (`password: string`), prose (`authorization: required`) and code
     // (`secret: process.env.SECRET`) stay; a quoted value with a space is prose, never a token (0.3.13 review ER-6:
     // `Password: "must be at least 12 characters"` was rewritten for good before it reached the journal).
-    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic)\s)(?!\[redacted:)("[^"\s]{8,}"|'[^'\s]{8,}'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
+    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic|token)\s)(?!\[redacted:)("(?=[^"\s]*\d)[^"\s]{12,}"|'(?=[^'\s]*\d)[^'\s]{12,}'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
     keep: (m) => `${m[1]}[redacted: yaml-credential]`
   },
   {

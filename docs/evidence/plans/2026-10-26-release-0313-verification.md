@@ -10,10 +10,11 @@ CO-426), a half-up stack that heals itself (CO-428), the stack watch for rest an
 
 **Schema 97.** One migration since 0.3.12, `supabase/migrations/20261026000124_one_schema_step.sql`. The installed Fabric
 on the operator's Mac is 0.3.11 (schema 95): 0.3.12 was never rolled out there (its rollout was stopped on 2026-10-24,
-the plan's section "The 0.3.12 rollout and the move to Colima", and the R1 manager's order of 2026-10-26 on the board
-puts 0.3.13's rollout in one window with the move to Colima, on fabric-workspace's signal), so the rollout takes
+the plan's section "The 0.3.12 rollout and the move to Colima"; fabric-workspace's session, which runs the process,
+put 0.3.13's rollout in one window with the move to Colima on its own signal, in a cross-session message to this
+session on 2026-10-26, not on the board, so it has no board id), so the rollout takes
 migrations 123 and 124. 0.3.12 cannot open a schema-97
-database, and 0.3.11 cannot open 96 or 97; going back is the backup below.
+database, and 0.3.11 cannot open 96 or 97; going back is the rollout's step 9.
 
 ## Protocol
 
@@ -26,31 +27,58 @@ rebased: `release/0.3.13` takes `main` by a merge and lands on `main` by a fast-
 
 ## Rollout on the operator's Mac, with the move to Colima
 
-One window, on fabric-workspace's signal (the R1 manager runs the process, the operator's decision of 2026-10-26): Fabric
-0.3.11 to 0.3.13 and the stack's data from OrbStack to Colima. The steps are 0.3.12's ([its rollout](2026-10-24-release-0312-verification.md#rollout-on-the-operators-mac))
-with these differences:
+One window, on fabric-workspace's signal (it runs the process; the operator's decision of 2026-10-26 to move this Mac to
+Colima at once, the plan's section on it): Fabric 0.3.11 to 0.3.13 and the stack's data from OrbStack to Colima. The
+steps are written out here in full; 0.3.12's ([its rollout](2026-10-24-release-0312-verification.md#rollout-on-the-operators-mac))
+and the plan's section on the move are the records of the first attempt, not the order. **Four person steps in all:**
+quit 0.3.11, open 0.3.13 once, quit it, open it. Everything else is the agent's, and an agent never starts Fabric itself
+(the machine's rule): the hold keeps the broker from starting it, and the person's own opens are not the broker's.
+(Written 2026-10-26 by iteration 2's DO-2, DO-3 and PL-4.)
 
 0. **Disk.** More than 15 GB free and swap under 16 GB (the Colima condition of [the plan](2026-10-26-release-0313-plan.md#the-0312-rollout-and-the-move-to-colima-the-operator-2026-10-26));
    measured 2026-10-26 at 8.0 GB free and 27.6 GB of swap, filled by the live sessions, which no agent closes. Until it
    holds, the rollout waits; the release itself does not.
-2. **Quit.** Before the person quits, the agent puts a hold on `fabric.desktop` through the lifecycle broker's owner, so
-   nothing starts Fabric between the quit and the open; the hold is released at step 7.
-3. **The migration files.** They come only from the 0.3.13 build's own first start (the runbook's step 1, which this
-   rollout follows: install, start once so the stack folder holds migrations 123 and 124, quit), never copied by hand:
-   an older build's start removes them, as 0.3.11's did on 2026-10-24. The agent compares the two files in the stack
-   folder by sha256 with the files at the tag before step 4.
+1. **Colima proven first.** Before any of the operator's data moves, a disposable Supabase project with its own ports and
+   project id starts on a Colima profile (`docker context use` that profile, `supabase start`, its `status` names the
+   keys), then is stopped and deleted, and the context goes back to `orbstack`. The live stack on OrbStack is not
+   touched. The 2026-10-26 check proved only the engine and Fabric's ping (the plan's "The Colima node's live check").
+2. **Hold and quit.** The agent downloads and verifies the signed 0.3.13 DMG (`SHA256SUMS`, `codesign --verify`,
+   `spctl`), lists the live console sessions and says them, and puts a hold on `fabric.desktop` through the lifecycle
+   broker's owner, so nothing starts Fabric until step 8. Then **the person quits Fabric 0.3.11** (person step 1).
+3. **The migration files, by the new build's first start.** The agent replaces `/Applications/Fabric.app` with the
+   verified 0.3.13 bundle. **The person opens it once** (person step 2): its start writes its own migrations into the
+   stack folder, 123 and 124 among them, and its startup window refuses the schema-95 database; **the person quits it**
+   (person step 3). Never copied by hand: an older build's start removes them, as 0.3.11's did on 2026-10-24. The agent
+   compares the two files in the stack folder by sha256 with the files at the tag.
+4. **Backup.** With no writer, `pg_dump` with the PostgreSQL 17 client (runbook step 2) to `pre-0.3.13.dump` in the
+   backups folder: a new name, never `pre-0.3.12.dump`, which holds the 2026-10-24 backup. Before it the agent reads
+   `select count(*) from pg_indexes where indexname = 'project_repos_unique_estate_path'` and, when it reads 0, the
+   duplicate count d (`select count(*) - count(distinct (estate_id, path)) from project_repos`; the runbook's 0.3.13
+   paragraph). The schema (95) and the journal count are written beside the dump.
 5. **Rehearsal.** `FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node scripts/rehearse-upgrade.mjs --from 95 --ref
    v0.3.13 --dump <the step 4 dump>` must reach schema 97 with the journal count and every table's row count unchanged
-   (PASS in `<dump>.rehearsal.json`).
-6. **Migrate, then move.** `supabase migration up --local` to 97 on OrbStack; then the move to Colima as the plan's
-   section says (a stopped database's volume copied, never a live one), and Fabric finds Docker through the current
-   docker context (wave 1, `main/dockerPing.ts#dockerContextHost`).
-8. **Verify.** As 0.3.12's step 8, plus: the stack runs on Colima, not OrbStack (`docker context show` reads `colima`,
-   and the `supabase_db_fabric` container is listed by `docker ps` in that context while OrbStack is stopped); the sweep
-   of abandoned work (a task moved to running by an agent with no claim on it reads as a finding in «На проверке» within
-   six minutes, and a `work.swept@1` event is in the journal); Агенты by state, История's filters, Settings' sections and
-   the folder trust switch; and `fabric_whoami` naming the two new rules (`work.check-every-three-minutes`,
-   `operator.told-one-is-told-all`).
+   (PASS in `<dump>.rehearsal.json`). The one allowed difference: when step 4 read the index as missing, `project_repos`
+   loses exactly d rows (migration 124 merges a folder held twice); the rehearsal then reports that loss, and the agent
+   reads it against d. Any other lost row stops the rollout (iteration 2's DO-4 and DA-6; CO-449).
+6. **Migrate on OrbStack.** `supabase migration up --local` in the stack folder; `schema_version()` reads 97 and the
+   journal count is step 4's.
+7. **Move to Colima.** A final dump at 97 (`pre-colima-0.3.13.dump`); `supabase stop` on OrbStack, keeping its volumes
+   (they are the rollback); the stopped volume `supabase_db_fabric` copied into Colima's engine (fabric-workspace copies
+   it, as it offered in the first attempt; a live volume is never copied); `docker context use colima`. Fabric finds
+   Docker through the current docker context (wave 1, `main/dockerPing.ts#dockerContextHost`).
+8. **Open and verify.** The agent releases the hold, and **the person opens Fabric 0.3.13** (person step 4). It starts
+   the stack on Colima. Then: as 0.3.12's step 8 (the version 0.3.13, the schema 97, the journal count of step 7's dump,
+   the hub with a live `pid`), plus: the stack runs on Colima, not OrbStack (`docker context show` reads `colima`, and the
+   `supabase_db_fabric` container is listed by `docker ps` in that context); the sweep of abandoned work (a task moved to
+   running by an agent with no claim on it reads as a finding in «На проверке» within six minutes, and a `work.swept@1`
+   event is in the journal); Агенты by state, История's filters, Settings' sections and the folder trust switch; and
+   `fabric_whoami` naming the two new rules (`work.check-every-three-minutes`, `operator.told-one-is-told-all`).
+   OrbStack is stopped last, once this step passes; its volumes stay until the Release close.
+9. **Going back.** If step 8 fails on Colima alone: quit, `docker context use orbstack`, start OrbStack, open 0.3.13
+   (its kept volume is at 97). If 0.3.13 itself fails: the 0.3.11 bundle in `/Applications`, OrbStack's stack restored
+   from `pre-0.3.13.dump` (schema 95) as the [runbook's step 5](../../launch/release-mac.md#upgrading-an-existing-database) says, the failed
+   database kept privately, `docker context use orbstack`, then the person opens
+   0.3.11.
 
 ## Owed in 0.3.13's Release close
 
@@ -63,6 +91,14 @@ with these differences:
 - 0.4.0's dates promised on `0d82422a` and `12bd8b4c`: told with 0.3.13's publication.
 - The board posts of 0.3.13's publication: threads `147a5538`, `a5969ac5`, `348467e5`, `0d82422a`, `12bd8b4c`, `4cd89609`, `16c8a677`, `774e8772`, `b0bdbfab`, `5f14e00a`, `c430513b` and `67c3a5e0` (what each was told, corrected on 2026-10-26 by iteration 1's PL-2), `115ef7fb` (ADR-0180), the asks of 0.3.14
   (`ac92166e` to the adapter, `8106a1b6` to personal-os), org-index on `deebc6ac` (CO-274).
+- The threads answered by iteration 2's PL-2 on 2026-10-26 (`1ddb20ce`, `6225e0c1`, `d34e8ce8`, `198866e6`, `ef5a84c3`,
+  `e75d502d`, `cf5d97f7`, `41a9b0cb`): 0.4.0's date posted with 0.3.13's publication on `1ddb20ce`, `d34e8ce8`,
+  `ef5a84c3`, `e75d502d` and `41a9b0cb`; a "shipped" line after the tag on `198866e6` and `6225e0c1` for CO-426, CO-435
+  and the forwarding on `agent.call`; on `d34e8ce8` by 2026-11-01, whether 0.3.14 issues tokens for services (CO-258).
+  The adapter's answer to TO-2's SW-6 half (request `e2a7bec4`, due 2026-11-14).
+- Three H3 threads with no Fabric reply, each covered by built work: `f3cfad27` (sasai's rate-limit finding, CO-334 in
+  0.3.7, `42aad991`), `4f1769de` (the dashboard parity rule, DEC-0121 and CO-434), `15d9e4fa` (the contract's repin
+  notes, the repin `dc2221ad`): a one-line reply each with 0.3.13's publication.
 - The organization's knowledge base before the tag: `knowledge/plans.md` and `products.md` name 0.3.13 as built.
 - `node scripts/workspace.mjs publish` and `check --require-child` after the tag.
 
@@ -141,5 +177,65 @@ candidate, the tip of `release/0.3.13`.
 Exit for iteration 1: every finding above is fixed or ruled with its row. Blocking findings open: none.
 
 ## Iteration 2
+
+Five fresh reviewers, 2026-10-26, against `5aa6e59f` (`5aa6e59f44903681a34e80b168bb70a65cfeee0f`), read-only in a detached checkout. Reports:
+[UX](../reviews/0.3.13/iteration-2/2026-10-26-ux.md), [errors](../reviews/0.3.13/iteration-2/2026-10-26-errors.md),
+[documents](../reviews/0.3.13/iteration-2/2026-10-26-docs.md), [data](../reviews/0.3.13/iteration-2/2026-10-26-data.md),
+[plan](../reviews/0.3.13/iteration-2/2026-10-26-plan.md).
+
+One edit to the reports as written: in the documents report (DO-1) and the plan report (PL-1) the quoted register
+link was set in a code span before the commit, so the link gate reads it as the quotation it is; no other byte changed.
+
+36 findings, none blocking. Every iteration-1 fix held in substance. The errors and UX reviewers found the heal's own
+edges: a start after a quit had begun, and a failure window that spoke of a running stack after the heal had stopped it
+(ER-1, UX-1). The data reviewer found the sweep's receipt still written every three minutes while a read stays blind
+or capped (DA-1), and JSON credential fields the redaction let through (DA-5). The documents and plan reviewers found
+the register's sixteen rulings citing a plan section never written (DO-1, PL-1), a rollout that held Fabric before the
+start it needed and sent the move to Colima to a dated section with the opposite order (DO-2, DO-3, PL-4), a rehearsal
+that refuses the folder merge migration 124 makes (DO-4, DA-6), and seven board asks with no answer (PL-2). The fixes
+make the next candidate, the tip of `release/0.3.13`.
+
+| Finding | Level id | What | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1 | The heal's failure window speaks of a running stack after the heal stopped it | fixed: a failed stop throws `STACK_HEAL_FAILED` with its own remedy, a start that fails after the stop throws the start's own failure (`stack-half-up.test.mjs` «iteration 2 UX-1», `startupFailure.test.ts` «the heal's stop itself failed»), watched failing first |
+| V2-2 | UX-2 | A burst of notifications speaks English to a Russian interface | fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); Copylot `f0c68482-17bb-4140-926b-9416e5d514ac` |
+| V2-3 | UX-3 | An agent's page states a task and an action that were not read | fixed: `agentPage.taskUnread`, `agentPage.doingUnread` when the work read failed (`AgentsScreen.test.tsx` «iteration 2 UX-3»), watched failing with the change reverted |
+| V2-4 | UX-4 | «Консоль» says a working agent is not working | fixed: `agentsPlace.console.elsewhere`, or `.unknown` when the hub read failed (`AgentsScreen.test.tsx` «iteration 2 UX-4»), watched failing with the change reverted |
+| V2-5 | UX-5 | The installed-agents note contradicts the list | fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; Copylot ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96` |
+| V2-6 | UX-6 | The undo lines read badly in Russian | fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; Copylot `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it) |
+| V2-7 | UX-7 | CHANGELOG describes Агенты before iteration 1's fix | fixed: «Возможно, ждут вас» and the plain shell left out |
+| V2-8 | ER-1 | The watch's heal starts the stack after a quit began | fixed: `HalfUpDeps.stopped`, a quit after the heal's stop starts nothing, and a heal's own stop is not read as the person's (`env.ts` `stoppedByHeal`, `afterOwnStop`; `stack-half-up.test.mjs` «iteration 2 ER-1») |
+| V2-9 | ER-2 | One-word quoted values rewritten for good | fixed: `authorization-field` and `yaml-credential` take a token-shaped value only (`redact.test.ts` «keeps none, required and ask-the-operator; still redacts a token-shaped value») |
+| V2-10 | ER-3 | Three descriptions of the sweep say what iteration 1 removed | fixed in code (`abandonedSweepRun.ts` header, the obligation's evidence); migration 124's note and header ruled: CO-449 (a landed migration is not edited) |
+| V2-11 | DO-1 | Sixteen rulings cite a plan section that does not exist | fixed: the plan's [Iteration 1's rulings](2026-10-26-release-0313-plan.md#iteration-1s-rulings-2026-10-26) |
+| V2-12 | DO-2 | The rollout holds Fabric before the start it needs | fixed: the Rollout above, written out in full, four person steps |
+| V2-13 | DO-3 | The move to Colima sent to a section with the opposite order | fixed: the Rollout's step 7; the plan's section cited as the first attempt's record |
+| V2-14 | DO-4 | The rehearsal refuses the folder merge it should prove | fixed in the runbook's 0.3.13 paragraph and the Rollout's steps 4 and 5 (d read before, the one allowed loss); teaching `judge` the allowance ruled: CO-449 |
+| V2-15 | DO-5 | CHANGELOG and CO-419 name a group the screen does not show | fixed: CHANGELOG; a dated note on CO-419 |
+| V2-16 | DO-6 | Two stack bullets narrow what the code does | fixed: "the database and kong"; "without rest or without kong"; Copylot `bc66edd1-3c68-4c27-964c-a8379e2f2054` |
+| V2-17 | DO-7 | The folder trust sentence is unconditional | fixed: the older build trusts folders whatever the switch said, and a setting change there forgets it |
+| V2-18 | DO-8 | The runbook still tells a hand copy | fixed: the 0.3.9 paragraph says the first start, with a dated note |
+| V2-19 | DO-9 | Three in-code descriptions of the sweep are stale | as V2-10 |
+| V2-20 | DO-10 | ADR-0182's measurement undercounts | fixed: ADR-0182's Amendments |
+| V2-21 | DO-11 | ADR-0178 has no pointer; ADR-0180's Consequences uncorrected | fixed: ADR-0178's Amendments, ADR-0180's Amendment 2 |
+| V2-22 | DO-12 | The newest merge-log time is not its commit's | fixed: `13:49:58Z` |
+| V2-23 | DO-13 | The map's iteration-1 entry links only to itself | fixed: it links the ledger, Агенты, Settings, the sweep and the stack |
+| V2-24 | DO-14 | The handoff's release list omits "(not yet released)" | fixed: the handoff's Next task |
+| V2-25 | DO-15 | The promise threads differ between ledger and handoff | fixed: five threads in the ledger, the handoff and P-26; `0d82422a` and `12bd8b4c` also carry 0.4.0's dates |
+| V2-26 | DA-1 | A receipt every sweep while a read stays blind or capped | fixed: a receipt for the reads only when their state changes (`abandoned-sweep-run.test.mjs` «iteration 2 DA-1») |
+| V2-27 | DA-2 | `capped` accepts any string; the kind list is a copy | fixed: `ABANDONED_KINDS` is the one list, `capped` and `unread` are enumerations (`abandoned-sweep-run.test.mjs` «iteration 2 DA-2») |
+| V2-28 | DA-3 | Four places describe the pre-fix receipt | as V2-10; the db test's receipt drops `delivered` |
+| V2-29 | DA-4 | The running-tasks read is cut at 500 without an order or a mark | ruled: CO-439's note |
+| V2-30 | DA-5 | JSON credential fields and the `Token` scheme stored unredacted | fixed: rule `json-credential-field`, the `Token` scheme (`redact.test.ts` «redacts access_token, password, client_secret values and Authorization: Token», «keeps a plain word and a sentence»); camelCase keys and passphrases with spaces ruled: CO-222 |
+| V2-31 | DA-6 | The rehearsal fails on the databases migration 124 repairs | as V2-14 |
+| V2-32 | PL-1 | The rulings live only in the register | as V2-11 |
+| V2-33 | PL-2 | Cross-project asks still unanswered | fixed: replies posted 2026-10-26 (`f13c9ea9` on `1ddb20ce`, CO-450; `c1e9554d` on `6225e0c1`, CO-434's note; `f769299a` on `d34e8ce8`, CO-258's note; `69dea81c` on `198866e6`, CO-432; `00da6035` on `ef5a84c3`, CO-451 and CO-045's note; `5cc2d25b` on `e75d502d`, CO-336's target corrected; `3a7c1489` on `cf5d97f7`; `a1faec87` on `41a9b0cb`, CO-452) and TO-2's SW-6 half asked of the adapter (request `e2a7bec4`); the rest on the owed list |
+| V2-34 | PL-3 | 0.3.12's end unwritten; the skip's source not checkable | fixed: P-25 reads released and never rolled out here, owed in 0.3.13's Release close; the ledger names the source as a cross-session message from fabric-workspace's session, not on the board; P-27 lists the rows 0.3.13 moved into it |
+| V2-35 | PL-4 | The rollout's gaps (actor, backup name, way back, Colima unproven) | as V2-12: steps 1, 3, 4 and 9 |
+| V2-36 | PL-5 | PX-11 homeless; three threads in the handoff; a merge-log time | fixed: CO-413 names PX-11; as V2-25 and V2-22 |
+
+Exit for iteration 2: every finding above is fixed or ruled with its row. Blocking findings open: none.
+
+## Iteration 3
 
 _Not started._

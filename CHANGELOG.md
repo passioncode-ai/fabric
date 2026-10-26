@@ -21,8 +21,8 @@ start removes them), quit it with nothing allowed to reopen it, back up, rehears
 older build left: a folder held by two projects stays with the project that attached it first, each folder's kind
 follows whether it is the project's main one, a correction of an answer taken back stops counting as current, an
 answered question gets back the answer it lost, a business an agent changed after the person set it returns to the
-person's, and a delivery and a run take their event's time. After going back, the folder trust switch is forgotten and
-folder trust is on again. A development database that applied an early version of migration 115 (between `cdc841f6`
+person's, and a delivery and a run take their event's time. After going back, the older build trusts the folders it
+starts Claude Code in whatever the switch said, and changing a setting there forgets the switch. A development database that applied an early version of migration 115 (between `cdc841f6`
 and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
 
 - **Abandoned work finds its agent.** Every three minutes Fabric looks for work nobody moves: a claim that went silent
@@ -37,7 +37,7 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   again.
 - **Fewer collisions when starting agents.** Two launches at the same moment no longer share one waiting session, and a
   folder where a launch may still be running takes no second agent.
-- **A half-started stack heals itself.** When the container engine restarts and brings back only the database, Fabric
+- **A half-started stack heals itself.** When the container engine restarts and brings back only the database and kong, Fabric
   stops the stack keeping its data and starts it again once, instead of stopping at the startup window.
 - **Docker through its current context.** Fabric finds the container engine the way the docker CLI does, so it also
   waits for Colima.
@@ -62,9 +62,10 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   everything is recorded in the journal (`work.swept@1`, counts only), so the every-three-minutes rule is observed rather
   than only advised.
 - **Агенты is a screen of agents.** The chosen agent sits in the centre with «Работа» (its task, project, what it does
-  and did) and «Консоль»; every agent is on the right, grouped as «Работают сейчас», «Ждут вас», «Простаивают» and
-  «Отключены», installed coding agents with no session included. A coding agent that joined from its own terminal is
-  disconnected or let back in from its «Работа».
+  and did) and «Консоль»; every agent is on the right, grouped as «Работают сейчас», «Возможно, ждут вас» (a console
+  quiet for a minute: nothing claims it waits), «Простаивают» and «Отключены», installed coding agents with no session
+  included and a plain shell left out. A coding agent that joined from its own terminal is disconnected or let back in
+  from its «Работа».
 - **История can be narrowed and read whole.** «Кто», «Проект», «Что» and «Поиск» narrow the acts, and an act opens
   beside the list with what it changed and whether it can be undone. A task the operator or Fabric released says so
   instead of naming an agent.
@@ -72,7 +73,7 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   the operator's decision for one act or mandate for a task; the hub checks its shape, passes it on unchanged and
   records whose words it was.
 - **The stack comes back when rest or kong is gone.** The stack watch reads the database, PostgREST and Kong, and a
-  database running without the other two is started again, which heals it, instead of waited for.
+  database running without rest or without kong is started again, which heals it, instead of waited for.
 - **Why a feed row does not open is said in your language.** The reason under a row that cannot be opened is in the
   interface's language.
 - **Two more credential shapes are kept out of the journal.** An authorization field with no scheme word and a token

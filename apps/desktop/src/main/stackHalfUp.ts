@@ -23,6 +23,9 @@ export interface HalfUpDeps<T> {
   start: () => Promise<void>
   /** One line about the heal, ok or failed. */
   record: (r: { outcome: 'ok' | 'failed'; why?: string }) => void
+  /** Whether Fabric is quitting: a heal that stopped the stack starts nothing once it is (0.3.13 review, iteration 2,
+   *  ER-1: the quitting app spawned a `supabase start` that outlived it). */
+  stopped?: () => boolean
 }
 
 /** Read the stack's details, healing a half-up stack once. Any other failure is thrown as it came. */
@@ -33,11 +36,22 @@ export async function resolveHealingHalfUp<T>(deps: HalfUpDeps<T>): Promise<T> {
     if (!isHalfUp(first)) throw first
     try {
       await deps.stop()
+    } catch (e) {
+      deps.record({ outcome: 'failed', why: `the heal could not stop the stack: ${String(e).slice(0, 200)}` })
+      // The startup window says the restart itself failed, with its words (0.3.13 review UX-8).
+      throw Object.assign(new Error(e instanceof Error ? e.message : String(e)), { code: STACK_HEAL_FAILED })
+    }
+    if (deps.stopped?.()) {
+      deps.record({ outcome: 'failed', why: 'Fabric is quitting, so the stack it stopped is not started again' })
+      throw first
+    }
+    try {
       await deps.start()
     } catch (e) {
-      deps.record({ outcome: 'failed', why: `the heal could not restart the stack: ${String(e).slice(0, 200)}` })
-      // The startup window says the restart itself failed, with the restart's words (0.3.13 review UX-8).
-      throw Object.assign(new Error(e instanceof Error ? e.message : String(e)), { code: STACK_HEAL_FAILED })
+      // The stack is down now and the start's own failure is what the person needs: it is thrown as it came, so the
+      // window says it in its own terms (Docker not answering waits and retries; iteration 2, UX-1), never «running».
+      deps.record({ outcome: 'failed', why: `the heal stopped the stack and could not start it: ${String(e).slice(0, 200)}` })
+      throw e
     }
     try {
       const healed = await deps.resolve()

@@ -19,8 +19,10 @@ import { dayLabel } from './HistoryScreen'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note }: {
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread }: {
   agent: LiveAgent
+  /** Who works was not read: the task and the action are unknown, never said as none (0.3.13 review, iteration 2, UX-3). */
+  workUnread?: boolean
   /** Moves when the journal does: the page reads its history again. */
   mark: number
   /** Absent on Агенты' «Работа» tab (CO-419): the console is the tab beside it, not a button here. */
@@ -82,10 +84,10 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
       </div>
       {note}
       <h4>{t('agentPage.task')}</h4>
-      <p>{agent.task ? agent.task.summary : t('agentPage.noTask')}</p>
+      <p>{agent.task ? agent.task.summary : workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>
       <h4>{t('agentPage.doing')}</h4>
       {/* The task has its own line above, so this says the action itself (D-4 keeps the task first in the list). */}
-      <Doing item={{ doing: agent.doing, summary: null }} />
+      {workUnread && !agent.doing ? <p>{t('agentPage.doingUnread')}</p> : <Doing item={{ doing: agent.doing, summary: null }} />}
       {mine.at === 'failed' && (
         <>
           <FailureNote said={t('agentPage.unreadable')} detail={mine.says} />

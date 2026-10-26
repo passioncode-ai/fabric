@@ -101,4 +101,12 @@ describe('an item is remembered as told only once it has been', () => {
     const silent = { notify: false, title: '', body: '', ids: [] }
     expect(rememberTold(silent, { shown: true }).told).toEqual([])
   })
+  it('says a burst in the interface language when given a sentence (0.3.13 review, iteration 2, UX-2)', () => {
+    const d = decideNotification([item('a'), item('b')], new Set(), false, (n) => `Вас ждут дела: ${n}`)
+    expect(d.body).toBe('Вас ждут дела: 2')
+  })
+  it('the Russian burst sentence is in the registry the notifier reads', async () => {
+    const { translator } = await import('../renderer/src/i18n/translate')
+    expect(translator('ru')('notify.burst', { count: 3 })).toBe('Вас ждут дела: 3')
+  })
 })

@@ -256,7 +256,7 @@ await test('CO-418 (DO-18): no board refusal tells an agent a request stays queu
 // ── SW-7, the helpers, the schema ──────────────────────────────────────────────────────────────────────────────
 await test('SW-7: work.swept@1 is a journal-only receipt the sweep may append', () => {
   assert.equal(sql(`select projects::text from event_types where type='work.swept@1'`), 'false')
-  const seq = append('work.swept@1', { found: { 'claim-lapsed': 1 }, told: 1, delivered: 0, queued: 1, released: 0 }, null, { kind: 'system', id: 'abandoned-sweep' })
+  const seq = append('work.swept@1', { found: { 'claim-lapsed': 1 }, told: 1, queued: 1, released: 0 }, null, { kind: 'system', id: 'abandoned-sweep' })
   assert.ok(Number(seq) > 0)
 })
 

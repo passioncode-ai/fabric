@@ -6,10 +6,11 @@
  *
  *   SW-1  every third pass of the one-minute cycle (`onPass`, counted here, no timer of its own)
  *   SW-2  claims, running tasks, board requests and Fabric's own terminals, each read in its own try
- *   SW-4  a stalled Fabric terminal gets one gated line written into it; every other finding waits as a nudge its
- *         session reads in its next fabric_work_list or fabric_heartbeat answer
+ *   SW-4  every finding waits as a nudge its session reads in its next fabric_work_list or fabric_heartbeat answer;
+ *         nothing is ever typed into a terminal (the 0.3.13 review's ER-2: Enter could answer a waiting prompt)
  *   SW-5  a finding is told once, then not again for 30 minutes while it stays (`toTell`)
- *   SW-7  one `work.swept@1` journal receipt per sweep that found something (migration 124); an idle sweep writes none
+ *   SW-7  one `work.swept@1` journal receipt per sweep that told, released, or read blind or capped (migration 124,
+ *         DA-2); a sweep that only found what it had told writes none
  *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew it or it has
  *         expired, and its task has no unresolved run
  *   SW-9  the latest sweep's findings, read-only (`current`), for the operator's attention queue
@@ -118,6 +119,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   const ops = deps.ops ?? opsSink
   let pass = 0
   let told = new Map<string, number>()
+  /** The last sweep's blind and capped reads, so a lasting one is recorded once (DA-1). */
+  let lastReadState = JSON.stringify({ unread: [], capped: [] })
   let lapsedSeen = new Set<string>()
   /** Sessions this process has seen live on a claim: a claim of one of them that lapses is this process's to release. */
   let seenLive = new Set<string>()
@@ -269,7 +272,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // iteration 1, DA-2: one stuck item wrote a receipt every three minutes), nor one that runs into a quit (ER-5).
     // A receipt the journal refused is said in the ops log; the sweep stands.
     const capped = [...(claimRead?.capped ? ['claims'] : []), ...(requestRead?.capped ?? [])]
-    if ((decided.tell.length || released || failedReads.length || capped.length) && !deps.quitting()) {
+    // A read that stays blind or capped is recorded when that changes, not on every sweep it lasts (iteration 2, DA-1:
+    // a board read stuck at its bound wrote 480 receipts a day).
+    const readState = JSON.stringify({ unread: [...failedReads].sort(), capped: [...capped].sort() })
+    const readsChanged = readState !== lastReadState
+    lastReadState = readState
+    if ((decided.tell.length || released || ((failedReads.length || capped.length) && readsChanged)) && !deps.quitting()) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
       const receipt: SweptReceipt = { found, told: decided.tell.length, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
