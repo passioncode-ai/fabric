@@ -69,10 +69,57 @@ test('waiting: a read that fails says unread with its reason, never zero; the ot
 test('waiting: a board longer than the bound says its counts are at least, never all', async () => {
   const b = pages([request('r1')], [request('r2')], [request('r3')], [request('r4')])
   const w = await readWaiting({ projectId: ME, now: NOW, listPage: b.listPage, openQuestions: async () => [] })
-  assert.equal(b.asked.length, 3, 'bounded to three pages')
+  assert.equal(b.asked.length, 9, 'bounded to three pages a window: the week, the newest day, the newest hour')
   assert.equal(w.board_requests.queued, 3)
   assert.equal(w.board_requests.more, true)
   assert.equal(w.board_answers.more, true)
   assert.match(w.note, /com\.reply/)
   assert.doesNotMatch(JSON.stringify(w), /\u2014/)
+})
+
+// The 0.3.14 review, iteration 1: DA-4 and ER-10, the newest requests are the ones counted; DA-3, the window is named;
+// ER-9, a read past its deadline says so and whoami still answers.
+/** A reader door that honours `since` and pages oldest first by `at`, a hundred to a page, like `board_list_reader`. */
+function board(messages) {
+  const asked = []
+  const sorted = [...messages].sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
+  return {
+    asked,
+    listPage: async (args) => {
+      asked.push(args)
+      const inWindow = sorted.filter((m) => Date.parse(m.at) >= Date.parse(args.since))
+      const from = args.cursor ? Number(args.cursor) : 0
+      const page = inWindow.slice(from, from + args.limit)
+      return { messages: page, cursor: from + args.limit < inWindow.length ? String(from + args.limit) : null }
+    }
+  }
+}
+
+test('DA-4, ER-10: on a board longer than the bound, the newest queued request is counted and named first', async () => {
+  const old = Array.from({ length: 350 }, (_, i) => msg(`m${i}`, { at: new Date(NOW - 5 * 24 * 3600_000 + i * 60_000).toISOString() }))
+  const mine = request('q-old', { sender: { project: ME, principal: null }, at: new Date(NOW - 6 * 24 * 3600_000).toISOString(),
+    request: { id: 'q-old', target: 'p-other', capability: 'x', state: 'answered', effect: 'none', revision: 2 } })
+  const fresh = request('r-new', { at: new Date(NOW - 30 * 60_000).toISOString() })
+  const answer = msg('a-new', { kind: 'reply', replyTo: 'q-old', read: false, at: new Date(NOW - 20 * 60_000).toISOString() })
+  const b = board([...old, mine, fresh, answer])
+  const w = await readWaiting({ projectId: ME, now: NOW, listPage: b.listPage, openQuestions: async () => [] })
+  assert.equal(w.board_requests.queued, 1)
+  assert.match(w.board_requests.items[0], /^r-new:/)
+  assert.equal(w.board_requests.more, true, 'some of the week was not read')
+  assert.equal(w.board_answers.unread, 1, 'the answer read in the newest day names its request read in the week')
+  assert.equal(w.window_days, 7)
+  assert.match(w.note, /last 7 days/)
+})
+
+test('ER-9: a part past its deadline says timeout and whoami answers; the others still answer', async () => {
+  const hang = () => new Promise(() => {})
+  const started = Date.now()
+  const w = await readWaiting({ projectId: ME, now: NOW, listPage: hang, openQuestions: async () => [{ id: 'q1', text: 'Which?' }], deadlineMs: 50 })
+  assert.ok(Date.now() - started < 2000)
+  assert.deepEqual(w.board_requests, { read: false, reason: 'timeout' })
+  assert.deepEqual(w.board_answers, { read: false, reason: 'timeout' })
+  assert.equal(w.questions.open, 1)
+  const q = await readWaiting({ projectId: ME, now: NOW, listPage: pages([]).listPage, openQuestions: hang, deadlineMs: 50 })
+  assert.deepEqual(q.questions, { read: false, reason: 'timeout' })
+  assert.equal(q.board_requests.queued, 0)
 })

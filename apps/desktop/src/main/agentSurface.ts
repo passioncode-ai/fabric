@@ -1475,7 +1475,7 @@ export class AgentSurface {
       {
         title: 'Who am I',
         description:
-          'What this session is: the project, its repositories, the task that opened it if any, what waits for the project (board requests addressed to it, unread answers to its requests, open questions; each with its id), and the rules that apply here. Call this first, and take up what waits before new work.',
+          'What this session is: the project, its repositories, the task that opened it if any, what waits for the project from the board\'s last 7 days (board requests addressed to it and open questions, each with its id; a count of unread answers to its requests; a part not read within its deadline says so), and the rules that apply here. Call this first, and take up what waits before new work.',
         inputSchema: {}
       },
       async () => {

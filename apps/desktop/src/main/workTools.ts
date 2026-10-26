@@ -509,7 +509,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Release your claim when the work ends',
       description:
-        'Say how it ended: done moves the task to review (through running when it was in backlog); handed-over (to the session that asked, or the one you name in to, with the note the next agent reads) or let-go (why) takes the task back to backlog when it is in running and no other claim or launch holds it, so no running task is left without an owner. Name the claim by claimId or taskId, or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
+        'Say how it ended: done moves the task to review (through running when it was in backlog); handed-over (to the session that asked, or the one you name in to, with the note the next agent reads) or let-go (why) takes the task back to backlog when it is in running and no other claim or launch holds it (another session\'s live lease, or a lapsed one whose run is not proved stopped), so no running task is left without an owner. Name the claim by claimId or taskId, or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
       inputSchema: {
         claimId: z.string().uuid().optional(),
         taskId: z.string().uuid().optional(),

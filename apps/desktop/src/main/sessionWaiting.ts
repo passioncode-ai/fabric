@@ -7,8 +7,10 @@
  *
  * Bounded: the board is read through the session's own reader door (`board.list` with `since`, so each message says
  * whether this project read it) over the last seven days, when a request with no deadline of its own expires (migration
- * 120), at most three pages of a hundred; past that every count is "at least" (`more`). Each part is read in its own
- * try: one that fails says unread with its reason, never zero.
+ * 120), at most three pages of a hundred per window; past that every count is "at least" (`more`). The reader pages
+ * oldest first, so when the week does not fit the newest day, then the newest hour, is read too (the 0.3.14 review,
+ * iteration 1, DA-4, ER-10): the newest requests, the ones still live, are never the ones left out. Each part is read
+ * in its own try under one deadline (ER-9): one that fails or runs past it says unread with its reason, never zero.
  */
 
 /** How many lines each part names; the count covers all it read. */
@@ -18,12 +20,19 @@ export const QUESTIONS_READ = 50
 const PAGE = 100
 const PAGES = 3
 /** A request with no deadline of its own expires after seven days (migration 120, `board_request_default_ttl`). */
-const BOARD_WINDOW_MS = 7 * 24 * 3600_000
+export const WAITING_WINDOW_DAYS = 7
+const BOARD_WINDOW_MS = WAITING_WINDOW_DAYS * 24 * 3600_000
+/** The windows read, widest first: when one does not fit the bound, a narrower one keeps the newest (DA-4, ER-10). */
+const WINDOWS_MS = [BOARD_WINDOW_MS, 24 * 3600_000, 3600_000]
+/** How long `fabric_whoami` waits for each part (ER-9): past it the part says `timeout`, and whoami answers. */
+export const WAITING_DEADLINE_MS = 3000
 const LINE_CHARS = 120
 
 type Part<T> = ({ read: true } & T) | { read: false; reason: string }
 
 export interface WaitingBlock {
+  /** How far back the board was read (DA-3): an answer to an older request is not counted. */
+  window_days: number
   board_requests: Part<{ queued: number; items: string[]; more?: true }>
   board_answers: Part<{ unread: number; more?: true }>
   questions: Part<{ open: number; items: string[]; more?: true }>
@@ -36,6 +45,7 @@ interface PageMessage {
   sender: { project: string }
   body?: { text: string }
   replyTo?: string
+  at?: string
   read?: boolean
   request?: { target: string; capability: string; state: string }
 }
@@ -47,10 +57,12 @@ export interface WaitingReads {
   listPage(args: { since: string; limit: number; cursor?: string }): Promise<Record<string, unknown>>
   /** The project's open questions, oldest first, bounded by the caller; a read that fails throws. */
   openQuestions(): Promise<Array<{ id: string; text: string }>>
+  /** Each part's deadline; `WAITING_DEADLINE_MS` when absent. */
+  deadlineMs?: number
 }
 
 export const WAITING_NOTE =
-  'What waits for this project now: board requests addressed to it (read each with com.get, answer with com.reply), answers to its own requests not yet read (com.list {unread: true}, then com.read_ack), and its open questions to the operator (fabric_question_check). A part that could not be read says so; it is never zero.'
+  'What waits for this project now, from the board\'s last 7 days (window_days): board requests addressed to it, each with its id (read each with com.get, answer with com.reply); the count of answers to its own requests not yet read (com.list {unread: true}, then com.read_ack); and its open questions to the operator, each with its id (fabric_question_check). A part that could not be read, or not within its deadline, says so; it is never zero.'
 
 const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
 const oneLine = (text: string): string => {
@@ -58,9 +70,9 @@ const oneLine = (text: string): string => {
   return flat.length > LINE_CHARS ? `${flat.slice(0, LINE_CHARS - 3)}...` : flat
 }
 
-/** The board's messages of the window, paged; `more` when the bound stopped it. A refusal or a throw is a reason. */
-async function readBoard(r: WaitingReads): Promise<{ messages: PageMessage[]; more: boolean } | { reason: string }> {
-  const since = new Date(r.now - BOARD_WINDOW_MS).toISOString()
+/** One window of the board, paged; `more` when the bound stopped it. A refusal or a throw is a reason. */
+async function readWindow(r: WaitingReads, windowMs: number): Promise<{ messages: PageMessage[]; more: boolean } | { reason: string }> {
+  const since = new Date(r.now - windowMs).toISOString()
   const messages: PageMessage[] = []
   let cursor: string | undefined
   try {
@@ -79,10 +91,35 @@ async function readBoard(r: WaitingReads): Promise<{ messages: PageMessage[]; mo
   return { messages, more: true }
 }
 
+/** The board's messages of the week, newest kept (DA-4, ER-10): the week, and when it does not fit the bound, the newest
+ *  day, then the newest hour; every message read is kept once, so a request read in the week's oldest pages still
+ *  names its answer read in the newest day. `more` when some of the week was not read. */
+async function readBoard(r: WaitingReads): Promise<{ messages: PageMessage[]; more: boolean } | { reason: string }> {
+  const byId = new Map<string, PageMessage>()
+  for (const w of WINDOWS_MS) {
+    const page = await readWindow(r, w)
+    if ('reason' in page) return byId.size ? { messages: [...byId.values()], more: true } : page
+    for (const m of page.messages) byId.set(m.id, m)
+    if (!page.more) return { messages: [...byId.values()], more: w !== WINDOWS_MS[0] }
+  }
+  return { messages: [...byId.values()], more: true }
+}
+
+/** A part's read raced against the deadline (ER-9): past it, `{reason: 'timeout'}`; the timer never holds the process. */
+function within<T>(read: Promise<T>, ms: number): Promise<T | { reason: string }> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const late = new Promise<{ reason: string }>((resolve) => {
+    timer = setTimeout(() => resolve({ reason: 'timeout' }), ms)
+    ;(timer as { unref?: () => void }).unref?.()
+  })
+  return Promise.race([read, late]).finally(() => clearTimeout(timer))
+}
+
 export async function readWaiting(r: WaitingReads): Promise<WaitingBlock> {
+  const ms = r.deadlineMs ?? WAITING_DEADLINE_MS
   const [board, questions] = await Promise.all([
-    readBoard(r),
-    r.openQuestions().then((rows) => ({ rows }), (e: unknown) => ({ reason: said(e) }))
+    within(readBoard(r), ms),
+    within(r.openQuestions().then((rows) => ({ rows }), (e: unknown) => ({ reason: said(e) })), ms)
   ])
   let boardRequests: WaitingBlock['board_requests']
   let boardAnswers: WaitingBlock['board_answers']
@@ -91,7 +128,9 @@ export async function readWaiting(r: WaitingReads): Promise<WaitingBlock> {
     boardAnswers = { read: false, reason: board.reason }
   } else {
     const more = board.more ? { more: true as const } : {}
+    // Newest first: the lines name the requests still live (DA-4).
     const queued = board.messages.filter((m) => m.kind === 'request' && m.request?.target === r.projectId && m.request.state === 'queued' && m.sender.project !== r.projectId)
+      .sort((a, b) => (Date.parse(b.at ?? '') || 0) - (Date.parse(a.at ?? '') || 0))
     const sent = new Set(board.messages.filter((m) => m.kind === 'request' && m.sender.project === r.projectId).map((m) => m.id))
     const unread = board.messages.filter((m) => m.replyTo && sent.has(m.replyTo) && m.sender.project !== r.projectId && m.read === false)
     boardRequests = {
@@ -104,6 +143,6 @@ export async function readWaiting(r: WaitingReads): Promise<WaitingBlock> {
     ? { read: false, reason: questions.reason }
     : { read: true, open: questions.rows.length, items: questions.rows.slice(0, WAITING_ITEMS).map((q) => `${q.id}: ${oneLine(q.text)}`),
         ...(questions.rows.length >= QUESTIONS_READ ? { more: true as const } : {}) }
-  return { board_requests: boardRequests, board_answers: boardAnswers, questions: qs, note: WAITING_NOTE }
+  return { window_days: WAITING_WINDOW_DAYS, board_requests: boardRequests, board_answers: boardAnswers, questions: qs, note: WAITING_NOTE }
 }
 // #endregion session-waiting

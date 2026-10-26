@@ -390,6 +390,8 @@ node --experimental-strip-types --test apps/desktop/test/prepared-launch-input.t
 # fabric-agent-adapter session hooks (ADR-0134 amendment 6): fabric_session_observe takes what the hooks send, null
 # facts included — a real MCP client and server over the real registerWorkTools.
 node --experimental-strip-types --test apps/desktop/test/session-observe-wire.test.mjs
+# 0.3.14 review, iteration 1, DO-2: fabric_whoami's waiting block (sessionWaiting.ts), without a database.
+node --experimental-strip-types --test apps/desktop/test/session-waiting.test.mjs
 node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
 node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
