@@ -278,6 +278,9 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
  *  report), each claimed task's summary, the tasks in review and each project's latest journalled activity. A source
  *  that could not be read throws, as every read here does — the home never says "nobody is working" from a read that
  *  did not happen. */
+/** Tasks in review read for the per-project counts and «N дольше 3 дней»: the gateway's `max_rows` (CO-310). */
+const REVIEW_ALL = 1000
+
 export async function readHome(store: Store, opts: { now: number; session: SessionSign; sessions: HeldSession[]; projectId?: string | null; doneLimit?: number }): Promise<HomeView> {
   // «Закончили» shows the newest 20; the board pages beyond them (0.3.14), asking for more by this limit.
   const DONE = opts.doneLimit ?? 20
@@ -295,7 +298,8 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
     tasks('running', 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at,session_id').limit(200),
     // Each project's own review count, beyond the newest 50 the list shows (0.3.6 review i2 ER-2).
     // 0.3.14, the simple Fabric: with when each was put there, for the strip's «N дольше 3 дней».
-    tasks('review', 'project_id,moved_at').limit(5000),
+    // The 0.3.14 review, iteration 2, DA-3: at most the gateway's 1 000 rows; a full answer is said capped.
+    tasks('review', 'project_id,moved_at').limit(REVIEW_ALL),
     // The newest finished tasks for «Закончили» (the operator's walk OF-18).
     tasks('done', 'id,project_id,title,brief_what,status,moved_at').order('moved_at', { ascending: false, nullsFirst: false }).limit(DONE)
   ])
@@ -323,7 +327,7 @@ export async function readHome(store: Store, opts: { now: number; session: Sessi
   // CO-310: every read here that stopped at its limit is named, so «nobody» past it is never read as a fact.
   const capped = [...new Set([...(where.capped ?? []), ...(projectRows.length >= 500 ? ['projects' as const] : []), ...(stageRows.length >= 500 ? ['stages' as const] : [])])]
   const home = composeHome({ where, projects: projectRows, stages: stageRows, briefs: briefs.rows as unknown as TaskBrief[], reviewTasks: reviewRows, runningTasks: runningRows, doneTasks: doneRows, limits: { review: 50, running: 200, done: DONE }, reviewProjectIds, activity, now: new Date(opts.now).toISOString() })
-  const read = { ...(capped.length ? { ...home, capped } : home), reviewOld }
+  const read = { ...(capped.length ? { ...home, capped } : home), reviewOld, ...(reviewAll.length >= REVIEW_ALL ? { reviewOldCapped: true } : {}) }
   return finishedError ? { ...read, doneUnread: `the finished tasks could not be read: ${finishedError.message ?? 'no reason given'}` } : read
 }
 

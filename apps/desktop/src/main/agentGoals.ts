@@ -13,7 +13,9 @@ import type { HomeView } from '../shared/homeLive.ts'
 import { ops } from './opsSink.ts'
 
 type Rows = { rows: Array<Record<string, unknown>>; failed: string | null }
-export interface GoalStore { selectIn(table: string, columns: string, key: string, values: string[]): Promise<Rows> }
+export interface GoalStore {
+  selectIn(table: string, columns: string, key: string, values: string[], chunk?: number, signal?: AbortSignal, eq?: ReadonlyArray<readonly [string, string]>): Promise<Rows>
+}
 
 const HOPS = 10
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.replace(/\s+/g, ' ').trim() : null)
@@ -32,7 +34,8 @@ export async function withGoals(view: HomeView, store: GoalStore): Promise<HomeV
     let frontier = current
     const seen = new Set(current)
     for (let hop = 0; hop < HOPS && frontier.length; hop++) {
-      const links = await must(store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', frontier), 'the tasks\' links')
+      // Only `spawned` links (the 0.3.14 review, iteration 2, DA-3): the read carries the kind, so no other link fills it.
+      const links = await must(store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', frontier, undefined, undefined, [['rel', 'spawned']]), 'the tasks\' links')
       const next: string[] = []
       for (const l of links) {
         if (l.rel !== 'spawned') continue

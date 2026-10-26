@@ -38,10 +38,14 @@ interface JournalQuery {
   limit(n: number): PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>
 }
 
-/** «Сдано сегодня»: at most `limit` events read (a read at its bound makes the count a floor, `capped`); throws when
- *  the journal does not answer. */
+/** The gateway answers at most this many rows (`supabase/config.toml` `max_rows`): a read that asks for more cannot
+ *  tell a capped answer from a whole one (CO-310; the 0.3.14 review, iteration 2, DA-3). */
+export const GATEWAY_ROWS = 1000
+
+/** «Сдано сегодня»: at most the gateway's 1 000 events read (a read at its bound makes the count a floor, `capped`,
+ *  said as «N+»); throws when the journal does not answer. */
 export async function readHandedInToday(store: { select(table: string, columns: string): unknown }, opts: { now: number; limit?: number }): Promise<{ today: number; capped: boolean }> {
-  const limit = opts.limit ?? 2000
+  const limit = Math.min(opts.limit ?? GATEWAY_ROWS, GATEWAY_ROWS)
   const q = store.select('journal', 'type,occurred_at,payload') as JournalQuery
   const { data, error } = await q.in('type', ['task.moved@1', 'task.closed@1'])
     .gte('occurred_at', new Date(localMidnight(opts.now)).toISOString())

@@ -184,4 +184,19 @@ test('the home counts every task in review moved there more than three days ago 
   }
   const home = await readHome(fake, { now, session: () => null, sessions: [] })
   assert.equal(home.reviewOld, 2, 'two tasks waited longer than three days; one with no move time is not counted as old')
+  assert.equal(home.reviewOldCapped, undefined, 'a whole read is not capped')
+  // DA-3: the read asks for at most the gateway's 1 000 rows, and a full answer says the count is a floor.
+  let asked = null
+  const full = Array.from({ length: 1000 }, () => ({ project_id: 'p1', moved_at: new Date(now - 4 * day).toISOString() }))
+  const fullFake = { ...fake, select: (table, columns) => {
+    const chain = {
+      is: () => chain, in: () => chain, not: () => chain, order: () => chain, eq: () => chain,
+      limit: (n) => { if (table === 'project_tasks' && columns === 'project_id,moved_at') asked = n; return chain },
+      then: (ok) => ok({ data: table === 'project_tasks' && columns === 'project_id,moved_at' ? full : [], error: null })
+    }
+    return chain
+  } }
+  const capped = await readHome(fullFake, { now, session: () => null, sessions: [] })
+  assert.equal(asked, 1000)
+  assert.equal(capped.reviewOldCapped, true)
 })

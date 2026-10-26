@@ -130,6 +130,27 @@ describe('home: who is doing what', () => {
     expect(seen.at(-1)?.view).toBe(view)
   })
 
+  it('ER-16: marks that arrive while a reading is in flight never discard it; ONE more reading runs after it lands', async () => {
+    const pending: Array<(v: HomeView) => void> = []
+    let calls = 0
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { work: { home: () => { calls++; return new Promise<HomeView>((res) => pending.push(res)) } } } }))
+    const seen: HomeReading[] = []
+    function Probe({ mark }: { mark: number }) { seen.push(useHome(mark)); return null }
+    const r = show(<Probe mark={1} />)
+    await waitFor(() => expect(calls).toBe(1))
+    for (const m of [2, 3, 4, 5]) r.rerender(<I18nProvider locale="en"><Probe mark={m} /></I18nProvider>)
+    await new Promise((res) => setTimeout(res, 20))
+    expect(calls).toBe(1)
+    const first = { ...view, readAt: 'first' }
+    pending[0](first)
+    await waitFor(() => expect(seen.at(-1)?.view).toBe(first))
+    await waitFor(() => expect(calls).toBe(2))
+    pending[1]({ ...view, readAt: 'second' })
+    await waitFor(() => expect(seen.at(-1)?.view?.readAt).toBe('second'))
+    await new Promise((res) => setTimeout(res, 20))
+    expect(calls).toBe(2)
+  })
+
   it('a claim nobody signs for is shown as such, and the counts are not current after a failed read', () => {
     const stale: HomeReading = { view: { ...view, inWork: [{ ...view.inWork[0], live: false }], reviewCapped: true }, problem: null }
     show(<>

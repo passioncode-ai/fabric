@@ -37,10 +37,21 @@ const LANE_ROWS = 6
 const hasMore = (n: number): boolean => n > LANE_ROWS
 
 /** Reads `work.home` when the journal moves (claims, stages, tasks) and every 15 s for silence (a session that stops
- *  signing turns stale without an event). A failed read is said, never shown as "nobody is working". */
+ *  signing turns stale without an event). A failed read is said, never shown as "nobody is working".
+ *
+ *  Coalesced (the 0.3.14 review, iteration 2, ER-16): one reading in flight at a time. A mark or a tick that arrives
+ *  while one runs marks it dirty, and ONE more reading starts once it settles; the reading in flight is always shown
+ *  when it lands, never discarded because the journal moved meanwhile. Before, every agent turn (`session` mark, polled
+ *  every 2 s) dropped the reading in flight, and under steady turns no reading landed at all. */
 export function useHome(mark: number, enabled = true): HomeReading {
   const [reading, setReading] = useState<HomeReading>({ view: null, problem: null })
   const [tick, setTick] = useState(0)
+  const flight = useRef({ busy: false, dirty: false, alive: true, enabled })
+  flight.current.enabled = enabled
+  useEffect(() => {
+    flight.current.alive = true
+    return () => { flight.current.alive = false }
+  }, [])
   useEffect(() => {
     if (!enabled) return
     const timer = setInterval(() => setTick((n) => n + 1), REFRESH_MS)
@@ -49,16 +60,22 @@ export function useHome(mark: number, enabled = true): HomeReading {
   useEffect(() => {
     // A detached console or editor window shows no home: it reads nothing (0.3.14: the shell reads once for the rail).
     if (!enabled) return
-    let alive = true
-    // Through a promise, so a build without the reading (an older preload, a test double) is said as a problem
-    // rather than thrown out of the effect.
-    Promise.resolve().then(() => window.fabric.work.home()).then(
-      (view) => alive && setReading({ view, problem: null, readAt: new Date().toISOString() }),
-      (e: unknown) => alive && setReading((r) => ({ view: r.view, readAt: r.readAt ?? null, problem: e instanceof Error ? e.message : String(e) }))
-    )
-    return () => {
-      alive = false
+    const f = flight.current
+    const read = (): void => {
+      if (f.busy) { f.dirty = true; return }
+      f.busy = true
+      f.dirty = false
+      // Through a promise, so a build without the reading (an older preload, a test double) is said as a problem
+      // rather than thrown out of the effect.
+      Promise.resolve().then(() => window.fabric.work.home()).then(
+        (view) => { if (f.alive) setReading({ view, problem: null, readAt: new Date().toISOString() }) },
+        (e: unknown) => { if (f.alive) setReading((r) => ({ view: r.view, readAt: r.readAt ?? null, problem: e instanceof Error ? e.message : String(e) })) }
+      ).finally(() => {
+        f.busy = false
+        if (f.dirty && f.alive && f.enabled) read()
+      })
     }
+    read()
   }, [mark, tick, enabled])
   return { ...reading, retry: () => setTick((n) => n + 1) }
 }
@@ -105,7 +122,7 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
       {cell(handedN, t('launch.home.stats.handedIn'), onReview ?? onBoard, '', handedWhy)}
       {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '', unreadWhy)}
       {cell(reviewN, t('launch.home.stats.review'), onReview ?? onBoard, '', unreadWhy,
-        known && known.reviewOld ? t('launch.home.stats.reviewOld', { count: known.reviewOld }) : null)}
+        known && known.reviewOld ? t('launch.home.stats.reviewOld', { count: `${known.reviewOld}${known.reviewOldCapped ? '+' : ''}` }) : null)}
       {cell(abandoned, t('launch.home.stats.abandoned'), onAbandoned ?? onBoard, abandoned ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unreadOld'))}
       {cell(unclaimed, t('launch.home.stats.unclaimed'), onUnclaimed ?? onAgents, unclaimed ? 'warn' : '', unreadWhy ?? t('launch.home.stats.unclaimedUnknown'))}
     </div>

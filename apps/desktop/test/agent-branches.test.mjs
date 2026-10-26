@@ -50,3 +50,25 @@ test('the number of folders read at once is bounded', async () => {
   await withBranches(view(agents), agents.map((a, i) => ({ sessionId: a.sessionId, folder: `/f${i}` })), reader)
   assert.equal(most, 2)
 })
+
+test('ER-16, DA-2: the branch is kept 60 s by default, above the home\'s 15 s reading; a failure is held as long', async () => {
+  let clock = 0
+  let reads = 0
+  const reader = createBranchReader({ git: async () => { reads++; throw new Error('timed out') }, now: () => clock })
+  const held = [{ sessionId: 's1', folder: '/f' }]
+  await withBranches(view([live('s1')]), held, reader)
+  clock = 45_000
+  await withBranches(view([live('s1')]), held, reader)
+  assert.equal(reads, 1, 'three home readings, one git run')
+  clock = 60_001
+  await withBranches(view([live('s1')]), held, reader)
+  assert.equal(reads, 2)
+})
+
+test('ER-16: a git that never answers (one that ignores SIGTERM) does not hold the reading past its deadline', async () => {
+  const reader = createBranchReader({ git: () => new Promise(() => {}), now: () => 0, timeoutMs: 20 })
+  const started = Date.now()
+  const out = await withBranches(view([live('s1')]), [{ sessionId: 's1', folder: '/stuck' }], reader)
+  assert.equal(out.live[0].branch, null, 'unread')
+  assert.ok(Date.now() - started < 3_000)
+})

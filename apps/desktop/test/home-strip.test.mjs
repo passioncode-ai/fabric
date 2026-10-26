@@ -43,6 +43,15 @@ test('readHandedInToday reads the journal since the local midnight, bounded, and
   assert.deepEqual(calls[0].in, [['type', ['task.moved@1', 'task.closed@1']]])
   assert.deepEqual(calls[0].gte, [['occurred_at', new Date(localMidnight(now)).toISOString()]])
   await assert.rejects(readHandedInToday(fake([], 'database away'), { now }), /handed in today could not be read: database away/)
+  // DA-3: never more than the gateway answers, and a full answer is a floor (1 500 handed in read as «1000+», not 1000).
+  calls.length = 0
+  const full = Array.from({ length: 1000 }, (_, i) => moved(`t${i}`, 'review'))
+  const floor = await readHandedInToday(fake(full), { now })
+  assert.equal(calls[0].limit, 1000)
+  assert.deepEqual(floor, { today: 1000, capped: true })
+  calls.length = 0
+  await readHandedInToday(fake([]), { now, limit: 5000 })
+  assert.equal(calls[0].limit, 1000, 'a caller cannot ask past the gateway')
 })
 
 test('withStrip puts the strip\'s own reads on the home\'s reading: a failed one as its reason, the sweep\'s count or null', async () => {

@@ -15,8 +15,8 @@ function fake({ links = [], tasks = [], goals = [], fail = {} } = {}) {
   const calls = []
   return {
     calls,
-    selectIn: async (table, columns, key, values) => {
-      calls.push({ table, key, values: [...values] })
+    selectIn: async (table, columns, key, values, _chunk, _signal, eq = []) => {
+      calls.push({ table, key, values: [...values], eq })
       if (fail[table]) return { rows: [], failed: fail[table] }
       const rows = table === 'task_links' ? links : table === 'project_tasks' ? tasks : table === 'goals' ? goals : []
       return { rows: rows.filter((r) => values.includes(r[key])), failed: null }
@@ -71,4 +71,12 @@ test('a failed read leaves every goal unknown (absent), never «no goal»', asyn
   const out = await withGoals(view([live('s1', 't1')]), fake({ fail: { task_links: 'database away' } }))
   assert.equal('goal' in out.live[0], false)
   assert.match(out.goalsUnread, /database away/)
+})
+
+test('DA-3: the walk asks only for spawned links, so other kinds never fill the read', async () => {
+  const store = fake({ links: [{ task_id: 't2', rel: 'spawned', target_kind: 'task', target_id: 't1' }], tasks: [{ id: 't1', project_id: 'p1', title: 'Root' }] })
+  await withGoals(view([live('s1', 't2')]), store)
+  const linkReads = store.calls.filter((c) => c.table === 'task_links')
+  assert.ok(linkReads.length >= 1)
+  for (const c of linkReads) assert.deepEqual(c.eq, [['rel', 'spawned']])
 })
