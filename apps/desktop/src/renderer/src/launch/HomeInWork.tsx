@@ -130,15 +130,28 @@ function AgentRow({ agent: a, onAgent, onTask }: { agent: LiveAgent; onAgent(ses
           : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
       </button>
       <div className="lh-arow-body">
-        <p className="lh-arow-task">
-          {a.task
-            ? <button type="button" className="lp-link" onClick={() => onTask(a.task!.projectId, a.task!.id)}>{a.task.summary || t('launch.home.work.untitled')}</button>
-            : <span className="lp-meta">{t('launch.home.inWork.noTask')}</span>}
-        </p>
+        {/* The operator's second review (R-3, R-4): the goal leads in the row's main type; what changes, the step, is the
+            muted line below it with its progress. An older reading without goals keeps the task as the main line. */}
+        {a.goal !== undefined ? (
+          <p className="lh-arow-task">
+            {a.goal
+              ? <button type="button" className="lp-link" onClick={() => onTask(a.goal!.projectId, a.goal!.taskId)}>{t('launch.home.inWork.goal', { goal: a.goal.text })}</button>
+              : <span className="lp-meta">{t('launch.home.inWork.noGoal')}</span>}
+          </p>
+        ) : (
+          <p className="lh-arow-task">
+            {a.task
+              ? <button type="button" className="lp-link" onClick={() => onTask(a.task!.projectId, a.task!.id)}>{a.task.summary || t('launch.home.work.untitled')}</button>
+              : <span className="lp-meta">{t('launch.home.inWork.noTask')}</span>}
+          </p>
+        )}
         <p className="lh-arow-report">
+          {a.goal && !a.goal.isTask && a.task && (
+            <><button type="button" className="lp-link" onClick={() => onTask(a.task!.projectId, a.task!.id)}>{a.task.summary || t('launch.home.work.untitled')}</button> · </>
+          )}
           {a.doing ? (
             <>
-              {a.doing.step && a.doing.ofSteps ? <span className="lh-arow-step">{t('launch.home.agents.step', { step: a.doing.step, of: a.doing.ofSteps })} · </span> : null}
+              {a.doing.step && a.doing.ofSteps ? <><Progress step={a.doing.step} of={a.doing.ofSteps} /><span className="lh-arow-step">{t('launch.home.agents.step', { step: a.doing.step, of: a.doing.ofSteps })} · </span></> : null}
               {a.doing.text}
             </>
           ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
@@ -146,6 +159,17 @@ function AgentRow({ agent: a, onAgent, onTask }: { agent: LiveAgent; onAgent(ses
       </div>
       <p className="lh-arow-when">{a.stale ? t('launch.home.inWork.quietFor', { time: heard }) : t('launch.home.inWork.heard', { time: heard })}</p>
     </li>
+  )
+}
+/** A thin progress bar for the agent's own step and step count (R-4): the numbers are its claim, said beside it. */
+export function Progress({ step, of }: { step: number; of: number }): React.JSX.Element {
+  const t = useT()
+  const now = Math.max(0, Math.min(step, of))
+  return (
+    <span className="lh-progress" role="progressbar" aria-valuemin={0} aria-valuemax={of} aria-valuenow={now}
+      aria-label={t('launch.home.agents.step', { step, of })}>
+      <i style={{ width: `${of > 0 ? Math.round((100 * now) / of) : 0}%` }} />
+    </span>
   )
 }
 // #endregion home-in-work

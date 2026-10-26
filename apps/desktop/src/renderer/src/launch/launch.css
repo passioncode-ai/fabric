@@ -816,3 +816,8 @@ button.lg-node{ cursor: pointer; }
 .rail-console.elsewhere{background:transparent;border-style:dashed;color:var(--app-muted);cursor:default}
 .rail-console:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 @media(max-width:900px){.rail-console{display:none}}
+/* The step as progress (the operator's second review, R-4): a thin bar beside «шаг N из M». */
+.lh-progress{display:inline-block;vertical-align:middle;width:48px;height:4px;margin-right:6px;border-radius:999px;background:var(--app-line);overflow:hidden}
+.lh-progress i{display:block;height:100%;background:var(--state-good)}
+.as-goal{border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:var(--app-panel);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-1)}
+.as-goal h4{margin:0}

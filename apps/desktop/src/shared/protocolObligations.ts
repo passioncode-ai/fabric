@@ -128,6 +128,18 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
+  // The operator's second review, 2026-10-26 (docs/ux/2026-10-26-simple-fabric-v2.md §4.2, R-3): the home shows an
+  // agent's goal, the root of its task's spawned links; agents rarely decompose through Fabric, so the goal is unknown.
+  {
+    id: 'claim.persons-request-as-goal',
+    text:
+      'Claim the person\'s request as one task whose title is that request in one line (origin person), and file each ' +
+      'piece you split off with fabric_task_create while that task is claimed: Fabric links it as spawned, and the ' +
+      'operator sees the goal above your current step. Nothing stops you skipping this; the cost is a row that says ' +
+      'no goal was named.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
   {
     id: 'claims.are-yours',
     text:

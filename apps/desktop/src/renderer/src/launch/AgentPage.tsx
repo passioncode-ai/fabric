@@ -31,7 +31,7 @@ import { describeEvent, pluralForm, useLocale, useT } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { since } from '../duration'
 import { FailureNote } from '../OperatorError'
-import { Doing } from './HomeWork'
+import { Progress } from './HomeInWork'
 import { dayLabel } from './HistoryScreen'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
@@ -182,6 +182,22 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
       {note}
       <div className="as-cols">
         <div className="as-main">
+          {/* The operator's second review (R-3): the goal, the root of its task's decomposition, above what it does now. */}
+          {agent.goal !== undefined && (
+            <section className="as-goal" aria-labelledby="agent-goal-title">
+              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
+              {agent.goal ? (
+                <>
+                  <p className="as-now-task">{agent.goal.text}</p>
+                  {agent.goal.what && agent.goal.what !== agent.goal.text && <p className="lp-meta">{agent.goal.what}</p>}
+                  <p className="as-meta">
+                    {agent.goal.byPerson && <span>{t('agentScreen.goalByPerson')}</span>}
+                    {onOpenTask && <button type="button" className="lp-link" onClick={() => onOpenTask(agent.goal!.projectId, agent.goal!.taskId)}>{t('agentScreen.openGoal')}</button>}
+                  </p>
+                </>
+              ) : <p className="lp-meta">{t('launch.home.inWork.noGoal')}</p>}
+            </section>
+          )}
           <section className="as-now" aria-labelledby="agent-now-title">
             <h4 id="agent-now-title">{t('agentScreen.now')}</h4>
             {agent.task ? (
@@ -197,7 +213,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             <p className="as-now-report">
               {workUnread && !agent.doing ? t('agentPage.doingUnread') : agent.doing ? (
                 <>
-                  {agent.doing.step && agent.doing.ofSteps ? <span className="lh-arow-step">{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })} · </span> : null}
+                  {agent.doing.step && agent.doing.ofSteps ? <><Progress step={agent.doing.step} of={agent.doing.ofSteps} /><span className="lh-arow-step">{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })} · </span></> : null}
                   {agent.doing.text}
                   <small className="lp-meta"> · {t('launch.home.inWork.heard', { time: since(agent.doing.at, t) })}</small>
                 </>

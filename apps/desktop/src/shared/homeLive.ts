@@ -60,6 +60,9 @@ export interface LiveAgent {
   /** The git branch of the folder a console Fabric holds works in (0.3.14, the simple Fabric; `main/agentBranches.ts`).
    *  Absent or null: not known (a terminal-joined agent shares no folder, or git did not answer). */
   branch?: string | null
+  /** Its goal (the operator's second review, R-3; `main/agentGoals.ts`): the root of its task's `spawned` links, else
+   *  the task itself. Null: it holds no task, so no goal is named. Absent: not read. */
+  goal?: { taskId: string; projectId: string; text: string; what: string | null; byPerson: boolean; isTask: boolean } | null
 }
 
 export interface WorkItem {
@@ -126,6 +129,8 @@ export interface HomeView {
   handedIn?: { today: number; capped: boolean } | { unread: string }
   /** «Работают без задачи»: the latest sweep's sessions changing files with no claim; null while it is not known. */
   unclaimed?: number | null
+  /** The goals could not be read (`main/agentGoals.ts`): every agent's goal is unknown, never «not named». */
+  goalsUnread?: string
 }
 
 const clean = (s: string | null | undefined): string | null => {

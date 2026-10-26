@@ -66,6 +66,27 @@ describe('«В работе» grouped by project', () => {
     expect(p.onTask).toHaveBeenCalledWith('fab', 't1')
   })
 
+  // The operator's second review, 2026-10-26 (R-3, R-4): the goal in the row's main type, the step as progress below it,
+  // the current subtask named in the step line only when it differs from the goal.
+  it('leads an agent\'s row with its goal, the step below as progress, and «Цель не названа» when none is named', () => {
+    const goalView: HomeView = { ...view, live: [
+      { ...view.live[0], goal: { taskId: 't0', projectId: 'fab', text: 'Ship 0.3.14', what: null, byPerson: true, isTask: false } },
+      { ...view.live[1], goal: null }
+    ] }
+    const p = show({ reading: { view: goalView, problem: null } })
+    const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
+    expect(rows[0].textContent).toContain(en['launch.home.inWork.goal'].replace('{goal}', 'Ship 0.3.14'))
+    const bar = within(rows[0]).getByRole('progressbar')
+    expect(bar.getAttribute('aria-valuenow')).toBe('4')
+    expect(bar.getAttribute('aria-valuemax')).toBe('6')
+    // The subtask differs from the goal: it is named in the step line, and opens its task.
+    fireEvent.click(within(rows[0]).getByRole('button', { name: 'Fixes after the first review' }))
+    expect(p.onTask).toHaveBeenCalledWith('fab', 't1')
+    fireEvent.click(within(rows[0]).getByRole('button', { name: en['launch.home.inWork.goal'].replace('{goal}', 'Ship 0.3.14') }))
+    expect(p.onTask).toHaveBeenCalledWith('fab', 't0')
+    expect(rows[1].textContent).toContain(en['launch.home.inWork.noGoal'])
+  })
+
   it('names a task in work no agent holds on a line of its own', () => {
     const p = show()
     const card = screen.getByRole('article', { name: 'Fabric' })

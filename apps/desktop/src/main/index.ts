@@ -75,6 +75,7 @@ import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createBranchReader, withBranches } from './agentBranches.ts'
 import { readHandedInToday, withStrip } from './homeStrip.ts'
+import { withGoals } from './agentGoals.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
@@ -5178,7 +5179,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
     const now = Date.now()
-    const view = await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader)
+    // Each agent's goal (the operator's second review, R-3): the root of its task's spawned links (`agentGoals.ts`).
+    const view = await withGoals(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never)
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
     return withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
   })

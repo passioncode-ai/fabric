@@ -150,6 +150,27 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(card.textContent).toContain(`${en['agentScreen.phase.waiting']} (question)`)
   })
 
+  // The operator's second review, 2026-10-26 (R-3, R-4): the goal above «Сейчас», who set it, and «Открыть цель»; the
+  // step in «Сейчас» carries its progress bar.
+  it('shows the goal above «Сейчас» with who set it, and the step as progress', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    const onOpenTask = vi.fn()
+    show(<AgentPage agent={{ ...agentA, goal: { taskId: 't0', projectId: 'p1', text: 'Ship 0.3.14', what: 'The release the operator asked for', byPerson: true, isTask: false } }}
+      mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
+    const goal = screen.getByRole('region', { name: en['agentScreen.goal'] })
+    expect(goal.textContent).toContain('Ship 0.3.14')
+    expect(goal.textContent).toContain('The release the operator asked for')
+    expect(goal.textContent).toContain(en['agentScreen.goalByPerson'])
+    fireEvent.click(within(goal).getByRole('button', { name: en['agentScreen.openGoal'] }))
+    expect(onOpenTask).toHaveBeenCalledWith('p1', 't0')
+    const now = screen.getByRole('region', { name: en['agentScreen.now'] })
+    expect(goal.compareDocumentPosition(now) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(now).getByRole('progressbar').getAttribute('aria-valuenow')).toBe('1')
+    cleanup()
+    show(<AgentPage agent={{ ...agentA, goal: null }} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    expect(screen.getByRole('region', { name: en['agentScreen.goal'] }).textContent).toContain(en['launch.home.inWork.noGoal'])
+  })
+
   it('a task row opens to «Чем закончил» in the agent\'s words and its «Вехи», or says there are none', async () => {
     const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
       { taskId: 't5', projectId: 'p1', projectName: 'Fabric', summary: 'Nudge work without a task', brief: { what: null, why: null, expected: null },
