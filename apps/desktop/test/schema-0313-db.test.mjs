@@ -1,7 +1,8 @@
 // Fabric 0.3.13's one schema step (migration 124, schema 97) on the fully migrated chain: each carry-over row it closes,
 // written through the doors the app uses (append_event, the board's functions, answer_question), then read back, and the
 // rebuild from the journal compared where a row was about a replay.
-// To WATCH this suite fail, run the runner with FABRIC_SKIP_MIGRATION=20261026000124_one_schema_step.sql.
+// To WATCH this suite fail, run the runner with FABRIC_SKIP_MIGRATION=20261026000124_one_schema_step.sql (or
+// 20261026000125_board_reader_count_held.sql for the reader's count of DEC-0135 DR-4).
 // #region one-schema-step-test — docs: docs/evidence/plans/2026-10-26-release-0313-plan.md#composition
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
@@ -204,9 +205,14 @@ await test('CO-370: a reply is delivered to the sender of the message it answers
   const answered = call('board_reply', q(E), q(Q), j(agent), j({ idempotency: idem(), replyTo: opened.message, body: { text: 'thanks' } }), lit(digest()))
   assert.equal(answered.ok, true, JSON.stringify(answered))
   assert.equal(recipients(answered.message), P, 'the reply goes to the announcer only')
+  // DEC-0135 DR-4 (migration 125): a reader pinned before DEC-0135 is answered as v0.3.12 answered it, so the reply the
+  // board delivered to the announcer alone still counts as unread to another participant until it marks it.
   const page = call('board_list_reader', q(E), q(R), q(opened.thread), '0', '50', 'true', 'null')
-  assert.deepEqual(page.messages.map(m => m.id), [opened.message], 'the reply addressed to the announcer is not unread to another participant')
+  assert.deepEqual(page.messages.map(m => m.id), [opened.message, answered.message], 'every message R did not send is unread to R')
   assert.equal(call('board_status', q(E), q(R)).unread, call('board_list_reader', q(E), q(R), 'null', '0', '100', 'true', 'null').messages.length, 'com.status and com.list agree')
+  const all = call('board_list_reader', q(E), q(R), q(opened.thread), '0', '50', 'false', 'null')
+  assert.deepEqual(all.messages.map(m => m.read), [false, false], 'read is false for both until R marks them')
+  assert.equal(call('board_list_reader', q(E), q(Q), q(opened.thread), '0', '50', 'true', 'null').messages.map(m => m.id).join(','), opened.message, 'the replier\'s own reply is never unread to it')
   sql(`delete from board_deliveries where estate_id='${E}' and message_id='${answered.message}'`)
   sql(`select board_backfill_deliveries('${E}')`)
   assert.equal(recipients(answered.message), P, 'a restore backfills the same')
@@ -260,12 +266,13 @@ await test('SW-7: work.swept@1 is a journal-only receipt the sweep may append', 
   assert.ok(Number(seq) > 0)
 })
 
-await test('every new projector and helper is no door; schema 97 is admitted as an archive source', () => {
+await test('every new projector and helper is no door; schemas 97 and 98 are admitted as archive sources', () => {
   for (const f of ['apply_project_repo_kind(journal)', 'apply_withdrawn_answer_chain(journal)', 'apply_question_resolution(journal)', 'apply_comms_reply_delivery(journal)',
     'apply_projection_times(journal)', 'board_epoch_age_limit(uuid)', 'board_reply_recipient(uuid,uuid,uuid)', 'board_responder_live(uuid,uuid,text)'])
     for (const role of ['anon', 'authenticated', 'service_role'])
       assert.equal(sql(`select has_function_privilege('${role}', '${f}', 'execute')`), 'f', `${role} ${f}`)
   assert.match(sql(`select pg_get_functiondef('ceo_private_archive_canonical(jsonb)'::regprocedure)`), /'97'::jsonb/)
+  assert.match(sql(`select pg_get_functiondef('ceo_private_archive_canonical(jsonb)'::regprocedure)`), /'98'::jsonb/)
   assert.ok(Number(sql('select schema_version()')) >= 97)
 })
 

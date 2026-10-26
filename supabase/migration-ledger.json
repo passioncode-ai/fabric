@@ -389,6 +389,10 @@
     {
       "file": "20261026000124_one_schema_step.sql",
       "sha256": "6799c5689692e25d3e3e4f057b35570a2fd5290e95d1dcedad0f9445bda004d8"
+    },
+    {
+      "file": "20261026000125_board_reader_count_held.sql",
+      "sha256": "6ec1ca1dc02fa79d6bb84bd6199d792fe76c241d626b1a605bfa03fbc97fe249"
     }
   ]
 }

@@ -8,6 +8,7 @@
 // targets an existing database: `initdb` into a temporary directory, a Unix
 // socket only (`listen_addresses=''`), and the directory removed afterwards.
 //
+// `stopBefore` names the migration file the chain stops before (an upgrade suite applies it and the rest itself).
 // `FABRIC_SKIP_MIGRATION` names one migration file to leave out. It exists so a
 // fix can be WATCHED failing against the chain without it (AGENTS.md: a planted
 // defect is watched being caught) — never set it in CI.
@@ -23,7 +24,7 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { pgEnv } from './pg-env.mjs'
 
-export function withOwnedPostgres({ name, port, supabaseDefaults = false }, body) {
+export function withOwnedPostgres({ name, port, supabaseDefaults = false, stopBefore = null }, body) {
   const bin = process.env.FABRIC_PG_BIN ?? '/opt/homebrew/opt/postgresql@17/bin'
   if (!existsSync(path.join(bin, 'initdb'))) {
     console.error('NOT_RUN: set FABRIC_PG_BIN to installed PostgreSQL binaries')
@@ -55,6 +56,8 @@ alter default privileges in schema public grant all on sequences to postgres, an
     const migrations = new URL('../../../../supabase/migrations/', import.meta.url)
     const skip = process.env.FABRIC_SKIP_MIGRATION ?? ''
     for (const file of readdirSync(migrations).filter((x) => x.endsWith('.sql')).sort()) {
+      // An upgrade suite stops the chain where the step it tests begins, then applies the step itself (0.3.13: 124, 125).
+      if (stopBefore && file >= stopBefore) break
       if (skip && file === skip) {
         console.log(`  (chain applied WITHOUT ${file} — a watched-failure run, not a receipt)`)
         continue

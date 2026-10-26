@@ -11,6 +11,7 @@ assert.match(new URL(url).pathname, /^\/fabric_dispatch_test_[a-z0-9_]+$/)
 const psqlArgs = [url, '-X', '-q', '-t', '-A', '-F', '|', '-v', 'ON_ERROR_STOP=1']
 const sql = input => execFileSync('psql', psqlArgs, { input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim()
 const MIGRATION = fileURLToPath(new URL('../../../supabase/migrations/20261026000124_one_schema_step.sql', import.meta.url))
+const HELD = fileURLToPath(new URL('../../../supabase/migrations/20261026000125_board_reader_count_held.sql', import.meta.url))
 const id = n => `97100000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const E = id(1), P = id(11), Q = id(12)
 const lit = v => `'${String(v).replace(/'/g, "''")}'`
@@ -81,6 +82,12 @@ assert.equal(sql(`select business||'|'||business_set_by from projects where id='
 assert.equal(sql(`select (d.created_at = j.occurred_at)::text from deliveries d join journal j on j.estate_id=d.estate_id and j.seq=d.queued_seq where d.delivery_id='${d}'`), 'true')
 assert.notEqual(sql(`select coalesce(resolution_id::text,'null') from questions where id='${qid}'`), 'null', 'the resolution is filled again')
 assert.equal(sql(`select (valid_to is not null and withdrawn_seq is not null)::text from memory_facts where id='${fix}'`), 'true', 'the correction is closed by the withdrawal')
+// Migration 125 (DEC-0135 DR-4, CO-437) after 124, as `supabase migration up` applies both: schema 98, and the board's
+// readers count every message their Project did not send again.
+execFileSync('psql', [url, '-X', '-q', '-v', 'ON_ERROR_STOP=1', '-f', HELD], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] })
+sql(`insert into supabase_migrations.schema_migrations values ('20261026000125')`)
+assert.equal(sql('select schema_version()'), '98')
+assert.doesNotMatch(sql(`select pg_get_functiondef('board_status(uuid,uuid)'::regprocedure)`), /board_deliveries/, 'com.status counts messages, not deliveries')
 sql(`select rebuild_estate_projections('${E}')`)
-console.log('PASS 8 upgrade checks: duplicates merged and indexed, kinds, business, times, resolution, withdrawn chain')
+console.log('PASS 10 upgrade checks: duplicates merged and indexed, kinds, business, times, resolution, withdrawn chain')
 // #endregion one-schema-step-upgrade-test

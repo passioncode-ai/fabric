@@ -9,9 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.13 (unreleased)
 
-**Upgrading.** This version moves the local database to schema 97 (one migration since 0.3.12,
-`20261026000124_one_schema_step.sql`). A 0.3.12 database (96) takes that one; a 0.3.11 database (95) takes 0.3.12's
-`20261023000123_project_profile.sql` too, in the same step. Take a backup first. Neither older build opens a schema-97
+**Upgrading.** This version moves the local database to schema 98 (two migrations since 0.3.12,
+`20261026000124_one_schema_step.sql` and `20261026000125_board_reader_count_held.sql`). A 0.3.12 database (96) takes
+those two; a 0.3.11 database (95) takes 0.3.12's `20261023000123_project_profile.sql` too, in the same step. Take a
+backup first. Neither older build opens a schema-98
 database, so going back is the backup with the bundle you came from: 0.3.12 for a database that was at 96, 0.3.11 for
 one that was at 95. The order is the runbook's
 ([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): install the new bundle
