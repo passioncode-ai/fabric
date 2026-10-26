@@ -47,7 +47,7 @@ import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLease
 import { resolveProject } from '../shared/projectResolve.ts'
 import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
-import { releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
+import { moveDoneLeftRunningToReview, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
@@ -2790,6 +2790,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       }
     }),
     releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason),
+    // 0.3.14 wave 2: a done release whose move to review did not land is moved there, read back.
+    moveDoneToReview: async (taskId, projectId) => projectId
+      ? moveDoneLeftRunningToReview(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), taskId, projectId)
+      : { task_moved_to: null, failed: 'the task names no project' },
     unresolvedRuns: async (taskIds) => (await readRunHolds(store, taskIds)).map((h) => h.taskId),
     // SW-7: the sweep's receipt, estate-level (no project), as the system that swept.
     recordSwept: async (receipt) => { await journal.append({ estateId: ACTIVE_ESTATE, type: 'work.swept@1', actor: { kind: 'system', id: 'abandoned-sweep' }, payload: { ...receipt } }) },

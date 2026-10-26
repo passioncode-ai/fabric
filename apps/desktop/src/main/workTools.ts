@@ -19,7 +19,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { createScopedStore } from './scopedStore.ts'
 import { ORIGIN_KINDS } from '../shared/origin.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
-import { lastTaskMove, returnClaimedTaskToBacklog } from './workRelease.ts'
+import { backToBacklogNote, moveDoneTaskToReview, returnClaimedTaskToBacklog, taskHeldElsewhere } from './workRelease.ts'
 import {
   AGENT_RELEASES,
   CLAIM_DEFAULT_MINUTES,
@@ -172,58 +172,7 @@ export async function releaseEveryOwnClaim(
   return { released: true, claims }
 }
 
-/**
- * A done release's second write, READ BACK (0.3.5 review iteration 2, ER-8): the release and the task's move to review
- * are two appends, and only the first was read back, so a move that threw (or that the projection ignored) left the
- * task in running while a retry answered `already-released`. The task is read, moved when the ladder lets an agent move
- * it to review, and read again; `task_moved_to` is `review` only when the board says the task is there, and `failed`
- * says why it is not. A task already in review (a repeat) is not moved twice; no board task, or a closed one, moves
- * nothing and fails nothing.
- */
-export async function moveDoneTaskToReview(
-  readTask: () => Promise<{ id: string; status: TaskState } | null>,
-  move: (task: { id: string; status: TaskState }, to: TaskState) => Promise<unknown>
-): Promise<{ task_moved_to: 'review' | null; task_status: TaskState | null; failed?: string }> {
-  const said = (e: unknown): string => (e instanceof Error ? e.message : String(e))
-  let task: { id: string; status: TaskState } | null
-  try {
-    task = await readTask()
-  } catch (e) {
-    // Returned to the agent as `failed`: the release stands, the move is unknown.
-    return { task_moved_to: null, task_status: null, failed: said(e) }
-  }
-  if (!task) return { task_moved_to: null, task_status: null }
-  if (task.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
-  // A closed task moves nothing and fails nothing: the operator already decided it.
-  if (TERMINAL.includes(task.status)) return { task_moved_to: null, task_status: task.status }
-  // TR-3: the ladder does not lead from backlog to review; a task released done from backlog goes through running.
-  const steps: TaskState[] = task.status === 'backlog' ? ['running', 'review'] : ['review']
-  let failed: string | null = null
-  let cur: { id: string; status: TaskState } | null = task
-  for (const to of steps) {
-    if (!cur) break
-    const may = mayMove('agent', cur.status, to)
-    if (!may.ok) { failed = may.reason; break }
-    try {
-      await move(cur, to)
-    } catch (e) {
-      // Returned to the agent as `failed`, with the status read back below.
-      failed = said(e)
-      break
-    }
-    try {
-      cur = await readTask()
-    } catch (e) {
-      // Unread is not moved: nothing is claimed as done.
-      return { task_moved_to: null, task_status: task.status, failed: said(e) }
-    }
-    if (cur?.status !== to) { failed = `the move to ${to} could not be confirmed`; break }
-  }
-  if (cur?.status === 'review') return { task_moved_to: 'review', task_status: 'review' }
-  return { task_moved_to: null, task_status: cur?.status ?? null, failed: failed ?? 'the move to review could not be confirmed' }
-}
-
-export { returnClaimedTaskToBacklog } from './workRelease.ts'
+export { moveDoneTaskToReview, returnClaimedTaskToBacklog } from './workRelease.ts'
 
 // #region work-claim-moves-task — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
 /**
@@ -555,7 +504,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Release your claim when the work ends',
       description:
-        'Say how it ended: done moves the task to review (through running when it was in backlog); handed-over (to the session that asked, or the one you name in to, with the note the next agent reads) or let-go (why) takes a task your claim moved to running back to backlog, unless it was moved since. Name the claim by claimId or taskId, or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
+        'Say how it ended: done moves the task to review (through running when it was in backlog); handed-over (to the session that asked, or the one you name in to, with the note the next agent reads) or let-go (why) takes the task back to backlog when it is in running and no other claim or launch holds it, so no running task is left without an owner. Name the claim by claimId or taskId, or claims: "session" to release every claim this session holds (the session hooks do this when the session ends; outcome let-go with a reason). Releasing one the operator already released says so. The same idempotencyKey is the same release.',
       inputSchema: {
         claimId: z.string().uuid().optional(),
         taskId: z.string().uuid().optional(),
@@ -574,9 +523,10 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const said = (note ?? reason)?.trim() || null
       if (!ending) return reply({ released: false, code: 'bad-input', reason: 'say how it ended: done, handed-over or let-go' })
       if (ending !== 'done' && !said) return reply({ released: false, code: 'bad-input', reason: `${ending} needs a note: what the next agent reads, or why` })
+      // DA-6, 0.3.14 wave 2: the running task goes back to backlog when nothing else holds it, whoever moved it there.
       const backToBacklog = (c: { id: string; work_id: string }) =>
-        returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => lastTaskMove(store, id),
-          (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: said, claim_id: c.id } }))
+        returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => taskHeldElsewhere(store, id, { id: c.id, owner_session: scope.sessionId }, deps.now()),
+          (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: backToBacklogNote(ending, said), claim_id: c.id } }))
       const release = async (c: { id: string; work_id: string }, extra: Record<string, unknown> = {}): Promise<number> =>
         (await deps.append({
           type: 'work.released@1',

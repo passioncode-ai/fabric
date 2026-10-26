@@ -324,18 +324,27 @@ test('fabric_work_list carries the session\'s nudges when there are any, and no 
 // ── SW-8: the release itself, as lapsed, and the task back to backlog ──────────────────────────────────────────
 const { releaseLapsedClaim } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
 
-/** work_claims, project_tasks and the journal's task moves, as the projector would leave them after each append. */
-function releaseWorld({ claimMovedTask = true } = {}) {
+/** work_claims, leases, project_tasks and the journal's task moves, as the projector would leave them after each append. */
+function releaseWorld({ claimMovedTask = true, otherClaim = false, otherLease = false } = {}) {
   const claim = { id: 'c1', work_id: 't1', project_id: 'p1', owner_session: 's-gone', released_at: null }
+  const claims = [claim, ...(otherClaim ? [{ id: 'c2', work_id: 't1', project_id: 'p1', owner_session: 's-live', released_at: null }] : [])]
+  const leases = otherLease ? [{ work_id: 't1', owner_session: 's-launch', expires_at: '2099-01-01T00:00:00Z' }] : []
   const task = { id: 't1', status: 'running' }
   const moves = claimMovedTask ? [{ payload: { task_id: 't1', to: 'running', claim_id: 'c1' } }] : []
   const appended = []
   const one = (rows) => {
-    const q = { eq: () => q, order: () => q, limit: () => q, maybeSingle: async () => ({ data: rows()[0] ?? null, error: null }), then: (res) => res({ data: rows(), error: null }) }
+    let filters = []
+    const q = {
+      eq: (k, v) => { filters.push((r) => r[k] === undefined || r[k] === v); return q },
+      is: (k, v) => { filters.push((r) => (r[k] ?? null) === v); return q },
+      order: () => q, limit: () => q,
+      maybeSingle: async () => ({ data: rows().filter((r) => filters.every((f) => f(r)))[0] ?? null, error: null }),
+      then: (res) => res({ data: rows().filter((r) => filters.every((f) => f(r))), error: null })
+    }
     return q
   }
   const store = {
-    select: (table) => one(() => (table === 'work_claims' ? [claim] : table === 'project_tasks' ? [task] : [...moves].reverse()))
+    select: (table) => one(() => (table === 'work_claims' ? claims : table === 'leases' ? leases : table === 'project_tasks' ? [task] : [...moves].reverse()))
   }
   const append = async (e) => {
     appended.push(e)
@@ -356,12 +365,36 @@ test('releaseLapsedClaim: released as lapsed with the reason, and the task its c
   assert.equal(w.task.status, 'backlog')
 })
 
-test('releaseLapsedClaim: a task another hand moved to running stays there', async () => {
+// 0.3.14 wave 2 (task f0ca028a): before, a task another hand moved to running stayed there with nobody on it.
+test('releaseLapsedClaim: a running task nobody else holds goes back to backlog whoever moved it, and the move says why', async () => {
   const w = releaseWorld({ claimMovedTask: false })
   const r = await releaseLapsedClaim(w.store, w.append, 'c1', LAPSED_REASON)
   assert.equal(r.released, true)
-  assert.equal(r.task_moved_to, null)
-  assert.equal(w.task.status, 'running')
+  assert.equal(r.task_moved_to, 'backlog')
+  assert.equal(w.task.status, 'backlog')
+  const move = w.appended.find((e) => e.type === 'task.moved@1')
+  assert.match(move.payload.note, /^the claim on this task ended \(lapsed\) and nothing else holds it, so it goes back to the backlog: lapsed/)
+})
+
+test('releaseLapsedClaim: a task another live claim or another session\'s live lease holds stays in running', async () => {
+  for (const over of [{ otherClaim: true }, { otherLease: true }]) {
+    const w = releaseWorld(over)
+    const r = await releaseLapsedClaim(w.store, w.append, 'c1', LAPSED_REASON)
+    assert.equal(r.released, true)
+    assert.equal(r.task_moved_to, null, JSON.stringify(over))
+    assert.equal(w.task.status, 'running')
+  }
+})
+
+test('releaseByOperator: the task the released claim leaves with nobody on it goes back to backlog', async () => {
+  const { releaseByOperator } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const w = releaseWorld({ claimMovedTask: false })
+  const r = await releaseByOperator(w.store, w.append, { kind: 'person', id: 'operator' }, 'c1')
+  assert.equal(r.released, true)
+  assert.equal(w.task.status, 'backlog')
+  const held = releaseWorld({ otherClaim: true })
+  await releaseByOperator(held.store, held.append, { kind: 'person', id: 'operator' }, 'c1')
+  assert.equal(held.task.status, 'running')
 })
 
 // ── Review of 8e43e043 (three-tier): what the wiring got wrong ────────────────────────────────────────────────
@@ -444,7 +477,7 @@ test('finding 6: readRunningTasks reads who last moved each task', async () => {
   const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
   const out = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
   assert.match(columns, /moved_by_kind/)
-  assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', lastClaimedAt: null }])
+  assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', lastClaimedAt: null, lastClaim: null }])
 })
 
 test('finding 8: a pass while a sweep is in flight starts no second sweep', async () => {
@@ -587,7 +620,7 @@ test('B2: a task a person moved to running is unclaimed again once a claim opene
   assert.deepEqual(none.findings, [], 'no claim since the person\'s move: still the person\'s')
 })
 
-test('B2: readRunningTasks reads the newest claim of each person-moved task, bounded to those tasks', async () => {
+test('B2: readRunningTasks reads the newest claim of each running task, bounded to those tasks', async () => {
   const { readRunningTasks } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
   const rows = [
     { id: 't1', project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'person' },
@@ -599,13 +632,19 @@ test('B2: readRunningTasks reads the newest claim of each person-moved task, bou
     select: () => q,
     selectIn: async (table, columns, column, values) => {
       asked.push({ table, columns, column, values })
-      return { rows: [{ work_id: 't1', claimed_at: iso(T0 - 35 * MIN) }, { work_id: 't1', claimed_at: iso(T0 - 50 * MIN) }], failed: null }
+      return { rows: [
+        { work_id: 't1', claimed_at: iso(T0 - 35 * MIN), released_at: null, released_how: null },
+        { work_id: 't1', claimed_at: iso(T0 - 50 * MIN), released_at: iso(T0 - 45 * MIN), released_how: 'let-go' },
+        { work_id: 't2', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done' }
+      ], failed: null }
     }
   }
   const out = await readRunningTasks(store)
-  assert.deepEqual(asked.map((a) => [a.table, a.column, a.values]), [['work_claims', 'work_id', ['t1']]], 'only the person-moved candidates')
+  assert.deepEqual(asked.map((a) => [a.table, a.column, a.values]), [['work_claims', 'work_id', ['t1', 't2']]], 'the running tasks read, no more')
+  assert.match(asked[0].columns, /released_how/)
   assert.equal(out.find((t) => t.taskId === 't1').lastClaimedAt, iso(T0 - 35 * MIN), 'the newest claim, released ones included')
-  assert.equal(out.find((t) => t.taskId === 't2').lastClaimedAt ?? null, null)
+  assert.deepEqual(out.find((t) => t.taskId === 't1').lastClaim, { claimedAt: iso(T0 - 35 * MIN), releasedAt: null, how: null })
+  assert.deepEqual(out.find((t) => t.taskId === 't2').lastClaim, { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done' })
   const failing = { ...store, selectIn: async () => ({ rows: [], failed: 'refused' }) }
   await assert.rejects(readRunningTasks(failing), /refused/, 'an unread claim history is never "no claim since"')
 })
@@ -798,4 +837,51 @@ test('readRecentTurns: the turns of the last 15 minutes, newest first and bounde
   assert.ok(calls.some((c) => c[0] === 'limit'), 'bounded')
   const failing = { select: () => new Proxy({}, { get: (_t, prop) => prop === 'then' ? (res) => res({ data: null, error: { message: 'refused' } }) : () => failing.select() }) }
   await assert.rejects(readRecentTurns(failing, T0), /turns could not be read/)
+})
+
+// ── 0.3.14 wave 2: a done release that left its task running (task b2c42b88) is repaired ─────────────────────
+const doneTask = (over = {}) => ({ taskId: 't-done', projectId: 'p1', movedAt: iso(T0 - 40 * MIN),
+  lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done' }, ...over })
+
+test('done left running: the sweep moves a running task whose last claim ended done, with no move since, to review', async () => {
+  const moved = []
+  const w = world({ tasks: [doneTask()] })
+  w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review', task_status: 'review' } }
+  const r = await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(moved, ['t-done'])
+  assert.equal(r.findings.some((f) => f.taskId === 't-done' && f.kind === 'task-unclaimed'), false, 'repaired, not called unclaimed')
+})
+
+test('done left running: not for a task moved since the release, one held now, one released otherwise, or a blind claims read', async () => {
+  const cases = [
+    world({ tasks: [doneTask({ movedAt: iso(T0 - 20 * MIN) })] }),
+    world({ tasks: [doneTask()], held: ['t-done'] }),
+    world({ tasks: [doneTask({ lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'let-go' } })] }),
+    world({ tasks: [doneTask({ lastClaim: { claimedAt: iso(T0 - 20 * MIN), releasedAt: null, how: null } })] }),
+    world({ tasks: [doneTask()], fail: new Set(['claims']) })
+  ]
+  for (const [i, w] of cases.entries()) {
+    const moved = []
+    w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review', task_status: 'review' } }
+    await sweepOnce(createAbandonedSweep(w.deps))
+    assert.deepEqual(moved, [], `case ${i}`)
+  }
+})
+
+test('done left running: a repair that fails is said in the ops log and the sweep goes on', async () => {
+  const w = world({ tasks: [doneTask()] })
+  w.deps.moveDoneToReview = async () => { throw new Error('append refused') }
+  const r = await sweepOnce(createAbandonedSweep(w.deps))
+  assert.ok(r)
+  assert.ok(w.failed.some((f) => f.op === 'work.sweep-done-review' && /append refused/.test(f.message)))
+})
+
+test('moveDoneLeftRunningToReview: running to review as the sweep, read back, with the note saying why', async () => {
+  const { moveDoneLeftRunningToReview, DONE_LEFT_RUNNING_NOTE } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const w = releaseWorld()
+  const r = await moveDoneLeftRunningToReview(w.store, w.append, 't1', 'p1')
+  assert.deepEqual(r, { task_moved_to: 'review', task_status: 'review' })
+  const move = w.appended.find((e) => e.type === 'task.moved@1')
+  assert.deepEqual(move.actor, { kind: 'system', id: 'work-sweep' })
+  assert.deepEqual(move.payload, { task_id: 't1', from: 'running', to: 'review', note: DONE_LEFT_RUNNING_NOTE })
 })

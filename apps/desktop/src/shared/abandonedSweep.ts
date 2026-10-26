@@ -243,6 +243,20 @@ export function nudgeOf(f: Finding): Nudge {
   return { kind: f.kind, says: nudgeText(f), ...(f.taskId ? { task_id: f.taskId } : {}), ...(f.requestId ? { request_id: f.requestId } : {}) }
 }
 
+/** A task's newest claim, released ones included: when it opened, and when and how it ended (null while open). */
+export interface SweepLastClaim {
+  claimedAt: string
+  releasedAt: string | null
+  how: string | null
+}
+
+/** The running tasks whose last claim was released done with no move since (0.3.14 wave 2, task b2c42b88): the done
+ *  release's move to review did not land. Not one something holds now. */
+export function doneLeftRunning(tasks: readonly { taskId: string; movedAt: string; lastClaim?: SweepLastClaim | null }[], held: ReadonlySet<string>): string[] {
+  return tasks.filter((t) => t.lastClaim?.how === 'done' && t.lastClaim.releasedAt && !held.has(t.taskId) &&
+    Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt)).map((t) => t.taskId)
+}
+
 /** Lapsed claims seen in two sweeps in a row are released (SW-8); `seen` carries this sweep's lapsed keys forward. */
 export function lapsedTwice(seen: ReadonlySet<string>, findings: Finding[]): { release: Finding[]; seen: Set<string> } {
   const lapsed = findings.filter((f) => f.kind === 'claim-lapsed')

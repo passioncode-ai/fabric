@@ -19,6 +19,7 @@
  */
 import {
   AGENT_ONLY_KINDS,
+  doneLeftRunning,
   findAbandoned,
   lapsedTwice,
   nudgeOf,
@@ -29,6 +30,7 @@ import {
   type Finding,
   type Nudge,
   type SweepClaim,
+  type SweepLastClaim,
   type SweepRequest,
   type SweepTerminal,
   type SweepTurn,
@@ -54,8 +56,10 @@ export interface SweepRunningTask {
   movedAt: string
   /** Who last moved it (`project_tasks.moved_by_kind`, written by the projector's move provenance). */
   movedByKind?: string | null
-  /** For a task a person moved: the newest claim ever opened on it, released ones included (round 2, B2). */
+  /** The newest claim ever opened on it, released ones included (round 2, B2). */
   lastClaimedAt?: string | null
+  /** That claim, with when and how it ended (0.3.14 wave 2); null when none. */
+  lastClaim?: SweepLastClaim | null
 }
 
 /** What the board read could not finish within its bounds: past them a request is judged at a later sweep. */
@@ -76,6 +80,9 @@ export interface AbandonedSweepDeps {
   terminals(): SweepTerminal[]
   /** Releases a claim as lapsed and returns its task to the backlog when the claim moved it there (`workRelease.ts`). */
   releaseLapsed(claimId: string, reason: string): Promise<{ released: boolean; reason?: string; failed?: string }>
+  /** Moves a running task whose last claim was released done to review (0.3.14 wave 2,
+   *  `workRelease.ts#moveDoneLeftRunningToReview`); absent: no repair. */
+  moveDoneToReview?(taskId: string, projectId: string | null): Promise<{ task_moved_to: 'review' | null; failed?: string }>
   /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
   unresolvedRuns(taskIds: string[]): Promise<string[]>
   /** Appends the sweep's receipt, `work.swept@1` (SW-7): counts only, never a title or a body. */
@@ -196,11 +203,13 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
           ...terminals.map((t) => t.taskId).filter((id): id is string => id !== null)
         ])
       : null
+    // 0.3.14 wave 2: a done release whose move to review did not land is repaired below, not called unclaimed.
+    const doneRepairs = holders && taskRead && deps.moveDoneToReview ? new Set(doneLeftRunning(taskRead, holders)) : new Set<string>()
     const findings = findAbandoned({
       now,
       claims: claimRead?.claims ?? [],
       tasks: holders && taskRead
-        ? taskRead.map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null, lastClaimedAt: t.lastClaimedAt ?? null }))
+        ? taskRead.filter((t) => !doneRepairs.has(t.taskId)).map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null, lastClaimedAt: t.lastClaimedAt ?? null }))
         : [],
       requests: requestRead?.requests ?? [],
       terminals: terminals ?? [],
@@ -277,6 +286,17 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         } catch (e) {
           ops.failed('work.sweep-release', e, { claim_id: f.claimId, note: 'the lapsed claim was not released; the next sweep tries again' })
         }
+      }
+    }
+
+    // 0.3.14 wave 2: the repair of a done release left in running, read back; a failure is said and tried next sweep.
+    for (const taskId of doneRepairs) {
+      if (deps.quitting()) break
+      try {
+        const r = await deps.moveDoneToReview!(taskId, taskRead?.find((t) => t.taskId === taskId)?.projectId ?? null)
+        if (r.failed) ops.failed('work.sweep-done-review', new Error(r.failed), { task_id: taskId, note: 'the task stays in running; the next sweep tries again' })
+      } catch (e) {
+        ops.failed('work.sweep-done-review', e, { task_id: taskId, note: 'the task stays in running; the next sweep tries again' })
       }
     }
 
@@ -400,19 +420,20 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
   const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }>)
     .filter((t) => t.moved_at ?? t.started_at)
   // Round 2, B2: a person's move holds only until a claim opens after it, and a claim does not move a task already in
-  // running. The claims ever opened on the person-moved tasks only (bounded by the read above), released ones
-  // included; the newest per task. An unread history throws: it is never "no claim since".
-  const personMoved = rows.filter((t) => t.moved_by_kind === 'person').map((t) => t.id)
-  const claims = await store.selectIn('work_claims', 'work_id,claimed_at', 'work_id', personMoved)
-  if (claims.failed) throw new Error(`the claims of the tasks a person moved could not be read: ${claims.failed}`)
-  const lastClaimed = new Map<string, string>()
-  for (const c of claims.rows as Array<{ work_id: string; claimed_at: string }>) {
-    const prior = lastClaimed.get(c.work_id)
-    if (!prior || Date.parse(c.claimed_at) > Date.parse(prior)) lastClaimed.set(c.work_id, c.claimed_at)
+  // running. 0.3.14 wave 2: and a done release whose move to review did not land is found by its last claim. The claims
+  // ever opened on the running tasks read (bounded by the read above), released ones included; the newest per task.
+  // An unread history throws: it is never "no claim since".
+  const claims = await store.selectIn('work_claims', 'work_id,claimed_at,released_at,released_how', 'work_id', rows.map((t) => t.id))
+  if (claims.failed) throw new Error(`the claims of the tasks in work could not be read: ${claims.failed}`)
+  const last = new Map<string, SweepLastClaim>()
+  for (const c of claims.rows as Array<{ work_id: string; claimed_at: string; released_at: string | null; released_how: string | null }>) {
+    const prior = last.get(c.work_id)
+    if (!prior || Date.parse(c.claimed_at) > Date.parse(prior.claimedAt))
+      last.set(c.work_id, { claimedAt: c.claimed_at, releasedAt: c.released_at ?? null, how: c.released_how ?? null })
   }
   return rows.map((t) => ({
     taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null,
-    lastClaimedAt: lastClaimed.get(t.id) ?? null
+    lastClaimedAt: last.get(t.id)?.claimedAt ?? null, lastClaim: last.get(t.id) ?? null
   }))
 }
 

@@ -193,30 +193,41 @@ test('TR-3: fabric_work_claim moves the claimed task through the read-back helpe
 // claim's own move is undone: the last move of the task must be that claim's move to running.
 const { returnClaimedTaskToBacklog } = await import(path.resolve(import.meta.dirname, '../src/main/workTools.ts'))
 
-test('DA-6: a released claim whose own move put the task in running takes it back to backlog, read back', async () => {
+// 0.3.14 wave 2 (task f0ca028a in the live audit of 2026-10-26): a release left a running task in running when another
+// claim, or a person, had moved it there, with nobody on it. Now a release other than done takes a running task back to
+// backlog whoever moved it there, unless another live claim or another session's live lease still holds it.
+test('0.3.14: a released claim takes a running task nobody else holds back to backlog, read back, whoever moved it there', async () => {
   const b = ladderBoard('running')
-  const last = async () => ({ to: 'running', claim_id: 'c1' })
-  assert.deepEqual(await returnClaimedTaskToBacklog('c1', b.read, last, b.move), { task_moved_to: 'backlog', task_status: 'backlog' })
+  const asked = []
+  assert.deepEqual(await returnClaimedTaskToBacklog('c1', b.read, async (id) => { asked.push(id); return false }, b.move),
+    { task_moved_to: 'backlog', task_status: 'backlog' })
   assert.deepEqual(b.moves, ['running->backlog'])
+  assert.deepEqual(asked, ['t1'])
 })
 
-test('DA-6: a task the claim did not move there, moved since, or no longer running is left where it is', async () => {
-  for (const [status, last] of [
-    ['running', { to: 'running', claim_id: 'other' }],
-    ['running', { to: 'running' }],
-    ['running', null],
-    ['review', { to: 'review', claim_id: 'c1' }],
-    ['backlog', { to: 'running', claim_id: 'c1' }]
-  ]) {
+test('0.3.14: a task another live claim or lease holds, or no longer running, is left where it is', async () => {
+  for (const [status, held] of [['running', true], ['review', false], ['backlog', false]]) {
     const b = ladderBoard(status)
-    const r = await returnClaimedTaskToBacklog('c1', b.read, async () => last, b.move)
-    assert.deepEqual([r.task_moved_to, r.task_status], [null, status], `${status} ${JSON.stringify(last)}`)
+    const r = await returnClaimedTaskToBacklog('c1', b.read, async () => held, b.move)
+    assert.deepEqual([r.task_moved_to, r.task_status], [null, status], `${status} held=${held}`)
     assert.equal(b.moves.length, 0)
   }
   const refused = ladderBoard('running', { failMove: true })
-  const r = await returnClaimedTaskToBacklog('c1', refused.read, async () => ({ to: 'running', claim_id: 'c1' }), refused.move)
+  const r = await returnClaimedTaskToBacklog('c1', refused.read, async () => false, refused.move)
   assert.deepEqual([r.task_moved_to, r.task_status], [null, 'running'])
   assert.match(r.failed, /append refused/)
+  const unread = ladderBoard('running')
+  const u = await returnClaimedTaskToBacklog('c1', unread.read, async () => { throw new Error('the claims could not be read') }, unread.move)
+  assert.equal(u.task_moved_to, null)
+  assert.match(u.failed, /could not be read/, 'unread holders are never "nobody holds it"')
+  assert.equal(unread.moves.length, 0)
+})
+
+test('0.3.14: the move back names why, in the note a person and an agent read', async () => {
+  const { backToBacklogNote } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  assert.equal(backToBacklogNote('lapsed', null), 'the claim on this task ended (lapsed) and nothing else holds it, so it goes back to the backlog')
+  assert.equal(backToBacklogNote('let-go', 'blocked on the API key'), 'the claim on this task ended (let-go) and nothing else holds it, so it goes back to the backlog: blocked on the API key')
+  assert.doesNotMatch(backToBacklogNote('operator', 'x'), /\u2014/)
 })
 
 test('DA-6: the claim records its move, and a non-done release and a session end go through the helper (source)', async () => {
@@ -228,4 +239,7 @@ test('DA-6: the claim records its move, and a non-done release and a session end
   assert.match(release, /returnClaimedTaskToBacklog\(/)
   const sessionEnd = readFileSync(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'), 'utf8')
   assert.match(sessionEnd, /returnClaimedTaskToBacklog\(/)
+  // 0.3.14: the operator's release takes the task back too.
+  const operator = sessionEnd.slice(sessionEnd.indexOf('export async function releaseByOperator'), sessionEnd.indexOf('export async function releaseLapsedClaim'))
+  assert.match(operator, /returnClaimedTaskToBacklog\(/)
 })
