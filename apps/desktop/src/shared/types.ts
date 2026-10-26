@@ -1359,6 +1359,9 @@ export interface FabricApi {
     agentCatalog(): Promise<import('./agentCatalog.ts').SwitchboardCatalog>
     /** Whether launch at login is offered here and what the system itself reports (0.3.7 review UX-3, ER-3). */
     loginItem(): Promise<import('./loginItem.ts').LoginItemState>
+    /** True when `FABRIC_TRUST_AGENT_FOLDERS=0` keeps folder trust off on this machine whatever the switch says
+     *  (`folderTrust.ts#folderTrustOverridden`; 0.3.13 review, iteration 1, UX-9). */
+    folderTrustLocked(): Promise<boolean>
     /** CO-407: Claude Code's `crossSessionInbound` in its user settings, read and set by the person's switch. */
     claudeInbound(): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
     /** `notSaved` (0.3.12 review ER-7): the change was not written, because Claude Code held its lock (`locked`) or the
@@ -1837,6 +1840,7 @@ export const IPC = {
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
   settingsLoginItem: 'settings:loginItem',
+  settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',
   settingsSetClaudeInbound: 'settings:setClaudeInbound',
   settingsReadiness: 'settings:readiness',

@@ -159,6 +159,10 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
   saved?: string | null
 }): React.JSX.Element {
   const t = useT()
+  // `FABRIC_TRUST_AGENT_FOLDERS=0` keeps trust off whatever the switch says: the switch then shows what Fabric does, off,
+  // cannot be changed here, and says why (0.3.13 review, iteration 1, UX-9). An unread answer keeps the person's switch.
+  const override = useRead<boolean>(() => window.fabric.settings.folderTrustLocked())
+  const locked = override !== null && 'value' in override && override.value
   const choice = (id: AppSettings['agentPermissions'], label: string, help: string) => (
     <label className="lp-choice">
       <input type="radio" name="agent-permissions" value={id} checked={value === id} onChange={() => void onChange({ agentPermissions: id })} />
@@ -176,10 +180,13 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
       <Saved on={saved === 'agentPermissions'} />
       {/* CO-348: until 0.3.13 only FABRIC_TRUST_AGENT_FOLDERS=0 turned this off; the variable still does. */}
       <label className="lp-check">
-        <input type="checkbox" checked={trustFolders} aria-describedby="settings-folder-trust-hint" onChange={(e) => void onChange({ trustAgentFolders: e.target.checked })} />
+        <input type="checkbox" checked={trustFolders && !locked} disabled={locked}
+          aria-describedby={locked ? 'settings-folder-trust-hint settings-folder-trust-locked' : 'settings-folder-trust-hint'}
+          onChange={(e) => { if (!locked) void onChange({ trustAgentFolders: e.target.checked }) }} />
         {t('settings.folderTrust')}
       </label>
       <small id="settings-folder-trust-hint" className="lp-meta">{t('settings.folderTrustHelp')}</small>
+      {locked && <small id="settings-folder-trust-locked" className="lp-meta">{t('settings.folderTrustLocked')}</small>}
       <Saved on={saved === 'trustAgentFolders'} />
     </section>
   )

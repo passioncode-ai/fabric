@@ -46,6 +46,14 @@ export interface StartupFailure {
   vars?: Record<string, string | number>
 }
 
+/**
+ * The code of the error the half-up heal throws when its own restart (`supabase stop` keeping the data, then the start)
+ * failed (`main/stackHalfUp.ts#resolveHealingHalfUp`), its message the restart's own words. It is said apart from a
+ * restart that ran and still found no keys (0.3.13 review, iteration 1, UX-8): «Fabric restarted the stack» would be
+ * false, and the restart's words are the ones the person needs.
+ */
+export const STACK_HEAL_FAILED = 'FABRIC_STACK_HEAL_FAILED'
+
 const SCHEMA_WHYS = new Set(['contract-invalid', 'build-mismatch', 'unverified', 'behind', 'ahead'])
 /** main/schemaReadiness.ts#SchemaUnverified: an unverified check's own remedy (0.3.5 review ER-9). */
 const SCHEMA_UNVERIFIED = new Set(['timeout', 'transport', 'backend-error', 'not-an-integer'])
@@ -138,6 +146,18 @@ function classifyCause(e: unknown): StartupFailure {
       detail
     }
 
+  // Before the stack's own words are matched: the restart's words may read «Command failed: supabase start» or name a
+  // missing binary, and the person still needs to know they came from Fabric's restart of a half-up stack (UX-8).
+  if (code === STACK_HEAL_FAILED)
+    return {
+      cause: 'stack-up-but-silent',
+      title: 'The local stack is running but did not report its connection details.',
+      remedy:
+        'Fabric tried to restart the stack with its data kept, but the restart itself failed; its own words are below. Run `supabase stop` in the stack folder and open Fabric again.',
+      remedyKey: 'startup.stack-up-but-silent.remedy.healFailed',
+      detail
+    }
+
   // The identity boundary refused (FA-07): the database does not list the person Fabric runs as. Named rather than
   // left to "unknown" (0.3.4 i1 UX-1): bootstrap appends the seed repair's reason, so the details say what it found.
   // Only the boundary's own refusal: a read that failed ("could not be resolved", a timeout, a refused connection)
@@ -209,8 +229,9 @@ function classifyCause(e: unknown): StartupFailure {
       cause: 'stack-up-but-silent',
       title: 'The local stack is running but did not report its connection details.',
       remedy:
-        // CO-428: Fabric heals a half-up stack once before this is shown (main/stackHalfUp.ts), so this names what is left.
-        'Fabric stopped the stack keeping its data and started it again, and it still did not report the keys Fabric needs. Run `supabase stop` in the stack folder and open Fabric again; if it happens again, the stack’s own words are below.',
+        // CO-428: Fabric tries once to heal a half-up stack before this is shown (main/stackHalfUp.ts). Said as an
+        // attempt: a restart that itself failed is told apart only when it says so (STACK_HEAL_FAILED, UX-8).
+        'Fabric tried once to restart the stack with its data kept, but the stack still did not report the keys Fabric needs. Run `supabase stop` in the stack folder and open Fabric again; if it happens again, the stack’s own words are below.',
       detail
     }
 

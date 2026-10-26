@@ -62,10 +62,16 @@ export function queryOf(f: HistoryFilters, before?: number): ActHistoryQuery {
 }
 // #endregion history-filters
 
+/** A reading carries the filters it was read under (`keyOf`): rows read under other filters are never shown under these
+ *  (0.3.13 review, iteration 1, UX-4). */
+type Ready = { at: 'ready'; key: string; rows: ActView[]; next: number | null; readAt: string }
 type Read =
   | { at: 'reading' }
-  | { at: 'ready'; rows: ActView[]; next: number | null; readAt: string }
-  | { at: 'failed'; says: string; kept: { rows: ActView[]; next: number | null; readAt: string } | null }
+  | Ready
+  | { at: 'failed'; key: string; says: string; kept: Ready | null }
+
+/** The filters as the read asks for them: two filter sets that ask the same read are the same key. */
+const keyOf = (f: HistoryFilters): string => JSON.stringify(queryOf(f))
 
 /** «Сегодня», «Вчера» or the date: the day a row of История is grouped under. */
 export function dayLabel(iso: string, t: Translate, locale: string): string {
@@ -101,7 +107,11 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   // The search as typed; it becomes a filter once the person stops typing.
   const [typed, setTyped] = useState(filters.text)
   const [open, setOpen] = useState<number | null>(null)
-  const last = useRef<Extract<Read, { at: 'ready' }> | null>(null)
+  // The act whose pane was last open, so «Закрыть» returns the person to its sentence (UX-6).
+  const opener = useRef<number | null>(null)
+  const key = keyOf(filters)
+  // The last successful reading under each filter set: a failed read keeps only what was read under the same filters.
+  const last = useRef(new Map<string, Ready>())
   const change = (next: Partial<HistoryFilters>): void => {
     setFilters((f) => { const n = { ...f, ...next }; remember(n); return n })
   }
@@ -118,28 +128,38 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
       try {
         const page: ActHistoryPage = await window.fabric.acts.history(queryOf(filters))
         if (!alive) return
-        const ready = { at: 'ready' as const, rows: page.rows, next: page.next, readAt: new Date().toISOString() }
-        last.current = ready
+        const ready: Ready = { at: 'ready', key, rows: page.rows, next: page.next, readAt: new Date().toISOString() }
+        last.current.set(key, ready)
         setRead(ready)
       } catch (e) {
-        // Never an empty list for a failure: what was read before stays, marked with its time.
-        if (alive) setRead({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: last.current })
+        // Never an empty list for a failure: what was read before under these same filters stays, marked with its time.
+        if (alive) setRead({ at: 'failed', key, says: e instanceof Error ? e.message : String(e), kept: last.current.get(key) ?? null })
       }
     })()
     return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is `filters`, said as the read asks for it
   }, [mark, attempt, filters])
   const more = useCallback(async (): Promise<void> => {
-    if (read.at !== 'ready' || read.next === null) return
+    if (read.at !== 'ready' || read.next === null || read.key !== key) return
     try {
       const page = await window.fabric.acts.history(queryOf(filters, read.next))
-      const ready = { at: 'ready' as const, rows: [...read.rows, ...page.rows], next: page.next, readAt: read.readAt }
-      last.current = ready
+      const ready: Ready = { ...read, rows: [...read.rows, ...page.rows], next: page.next }
+      last.current.set(read.key, ready)
       setRead(ready)
     } catch (e) {
-      setRead({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: read })
+      setRead({ at: 'failed', key: read.key, says: e instanceof Error ? e.message : String(e), kept: read })
     }
-  }, [read, filters])
-  const shown = read.at === 'ready' ? read : read.at === 'failed' ? read.kept : null
+  }, [read, filters, key])
+  // A reading under other filters is not this one: while the new filters are read, «Читаю историю…» and no rows (UX-4).
+  const current: Read = read.at !== 'reading' && read.key !== key ? { at: 'reading' } : read
+  const shown = current.at === 'ready' ? current : current.at === 'failed' ? current.kept : null
+  const close = (): void => { opener.current = open; setOpen(null) }
+  useEffect(() => {
+    if (open !== null || opener.current === null) return
+    // Back to the sentence that opened the pane, when it is still listed (UX-6).
+    document.getElementById(`hx-open-${opener.current}`)?.focus()
+    opener.current = null
+  }, [open])
   const chosen = shown?.rows.find((r) => r.seq === open) ?? null
   const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
   const dayOf = (iso: string): string => dayLabel(iso, t, locale)
@@ -155,18 +175,18 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
         <h2 tabIndex={-1}>{t('acts.title')}</h2>
         <p>{t('acts.lede')}</p>
       </header>
-      {read.at === 'reading' && <p className="hx-muted" role="status">{t('acts.reading')}</p>}
-      {read.at === 'failed' && (
+      {current.at === 'reading' && <p className="hx-muted" role="status">{t('acts.reading')}</p>}
+      {current.at === 'failed' && (
         <div className="hx-problem" role="alert">
           <p>{t('acts.failed')}</p>
-          <p className="hx-words">{read.says}</p>
+          <p className="hx-words">{current.says}</p>
           <button type="button" className="hx-button" onClick={() => setAttempt((a) => a + 1)}>{t('acts.retry')}</button>
-          {read.kept && <p className="hx-muted">{t('acts.stale', { time: new Date(read.kept.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>}
+          {current.kept && <p className="hx-muted">{t('acts.stale', { time: new Date(current.kept.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>}
         </div>
       )}
       <Filters filters={filters} typed={typed} onTyped={setTyped} onChange={change} projects={projects} />
-      {read.at === 'ready' && read.rows.length === 0 && !filtered(filters) && <p className="hx-empty">{t('acts.empty')}</p>}
-      {read.at === 'ready' && read.rows.length === 0 && filtered(filters) && (
+      {current.at === 'ready' && current.rows.length === 0 && !filtered(filters) && <p className="hx-empty">{t('acts.empty')}</p>}
+      {current.at === 'ready' && current.rows.length === 0 && filtered(filters) && (
         <div className="hx-problem" role="status">
           <p className="hx-empty">{t('acts.filter.none')}</p>
           <button type="button" className="hx-button" onClick={reset}>{t('acts.filter.reset')}</button>
@@ -184,11 +204,11 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
               )))}
             </ul>
           )}
-          {read.at === 'ready' && read.next !== null && (
+          {current.at === 'ready' && current.next !== null && (
             <button type="button" className="hx-button" onClick={() => void more()}>{t('acts.more')}</button>
           )}
         </div>
-        {chosen && <ActDetail row={chosen} rows={shown?.rows ?? null} project={nameOf(chosen.projectId)} onOpen={onOpen} onClose={() => setOpen(null)} />}
+        {chosen && <ActDetail row={chosen} rows={shown?.rows ?? null} project={nameOf(chosen.projectId)} onOpen={onOpen} onClose={close} />}
       </div>
       {/* OF-34: the acts above are what was done through Fabric's own controls; the agents' work is in the journal. */}
       {feed !== undefined && (
@@ -241,9 +261,12 @@ function AgentWork({ events, projects, sessions, onOpen }: {
             <div className="hx-act">
               <time className="hx-time" dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
               <span className="hx-who">{who(e)}</span>
-              <span className="hx-said" title={'why' in act ? act.why : undefined}>{saidOf(t, e)}{project && <small className="hx-project">{project}</small>}</span>
+              <span className="hx-said">{saidOf(t, e)}{project && <small className="hx-project">{project}</small>}</span>
+              {/* Why a row opens nothing, said where a keyboard and a screen reader reach it (UX-10), as an act that
+                  cannot be undone says why beside it. */}
               <span className="hx-end">
                 {'ref' in act && onOpen && <button type="button" className="hx-undo" onClick={() => onOpen(act.projectId, act.ref)}>{t('journal.open')}</button>}
+                {'why' in act && onOpen && <span className="hx-muted">{act.why}</span>}
               </span>
             </div>
           </li>
@@ -357,10 +380,16 @@ function ActDetail({ row, rows, project, onOpen, onClose }: {
   const word = (v: string | number | null | undefined): string | null => (v === null || v === undefined || v === '' ? null : String(v))
   const before = word(params.from)
   const after = word(params.to)
+  // The act that undid it, when it is among the acts read; otherwise «a later act», said without placing it in a list
+  // that does not hold it (UX-5).
   const undoer = row.undo.state === 'undone' && row.undo.by !== null ? (rows ?? []).find((r) => r.seq === (row.undo as { by: number }).by) ?? null : null
   const source = sourceOf(row)
   const ref = useRef<HTMLHeadingElement>(null)
-  useEffect(() => { ref.current?.focus({ preventScroll: true }) }, [row.seq])
+  useEffect(() => {
+    ref.current?.focus({ preventScroll: true })
+    // Under 850 px the pane sits below the whole list: bring it into view, as Агенты does (UX-6).
+    ref.current?.closest('section')?.scrollIntoView?.({ block: 'nearest' })
+  }, [row.seq])
   return (
     <section id="hx-detail" className="hx-detail" aria-labelledby="hx-detail-title">
       <div className="hx-detail-head">
@@ -420,7 +449,7 @@ function HistoryRow({ row, project, open, onOpen, onChanged }: { row: ActView; p
       <span className="hx-who">{actor}</span>
       {/* The sentence opens the act whole beside the list (SCN-168 step 3); pressed again, it closes. */}
       <span className="hx-said">
-        <button type="button" className="hx-open" aria-expanded={open} aria-controls={open ? 'hx-detail' : undefined} onClick={onOpen}>{actSentence(t, row.record)}</button>
+        <button type="button" id={`hx-open-${row.seq}`} className="hx-open" aria-expanded={open} aria-controls={open ? 'hx-detail' : undefined} onClick={onOpen}>{actSentence(t, row.record)}</button>
         {project && <small className="hx-project">{project}</small>}
       </span>
       <span className="hx-end">

@@ -170,6 +170,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       write: (next) => ipc.invoke(IPC.settingsWrite, next),
       agentCatalog: () => ipc.invoke(IPC.settingsAgentCatalog),
       loginItem: () => ipc.invoke(IPC.settingsLoginItem),
+      folderTrustLocked: () => ipc.invoke(IPC.settingsFolderTrustLocked),
       claudeInbound: () => ipc.invoke(IPC.settingsClaudeInbound),
       setClaudeInbound: (on) => ipc.invoke(IPC.settingsSetClaudeInbound, on),
       readiness: () => ipc.invoke(IPC.settingsReadiness)

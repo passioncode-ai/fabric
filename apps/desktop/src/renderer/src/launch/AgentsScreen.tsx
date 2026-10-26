@@ -32,6 +32,13 @@ import { useRead } from './useRead'
 import { whyWords } from './actWords'
 import { AGENT_GROUPS, composeRoster, rosterRows, type AgentGroup, type RosterRow } from './agentRoster'
 
+/** Where a read stands: still out, failed, or answered. */
+type ReadState = 'reading' | 'failed' | 'read'
+/** Several reads as one: out while any is out, failed while any failed, read once every one answered. */
+function together(states: readonly ReadState[]): ReadState {
+  return states.includes('reading') ? 'reading' : states.includes('failed') ? 'failed' : 'read'
+}
+
 type HubRead = { at: 'reading' } | { at: 'ready'; ov: HubOverview } | { at: 'failed'; says: string }
 type Refusal = { agentId: string; act: 'disconnect' | 'letIn'; why: string; says?: string }
 
@@ -77,12 +84,20 @@ export function stateWords(r: RosterRow, t: Translate): string {
   return t(`agentsPlace.state.${r.state}` as 'agentsPlace.state.working')
 }
 
+/** A console that has printed nothing for a while, said as what is observed: how long it has been quiet, and that the
+ *  agent may be waiting for the person. No runner reports that it waits, so this never says it does (0.3.13 review,
+ *  iteration 1, UX-3). */
+function silentLine(r: RosterRow, t: Translate): string {
+  return t('agentsPlace.line.silent', { time: r.heardAt ? since(r.heardAt, t) : '?' })
+}
+
 /** One line of what it does: its task, else what it said it is doing, else what the state means for it. */
 function lineOf(r: RosterRow, t: Translate, locale: string): string {
   if (r.task) return t('launch.home.agents.workingOn', { task: r.task.summary })
   if (r.doing) return r.doing.text
   switch (r.state) {
-    case 'working': case 'waiting': case 'quiet': return t('launch.home.agents.silent')
+    case 'waiting': return silentLine(r, t)
+    case 'working': case 'quiet': return t('launch.home.agents.silent')
     case 'ended': return t('agentsPlace.line.ended')
     case 'free': return r.version ? t('agentsPlace.line.free', { version: r.version }) : t('agentsPlace.line.freeNoVersion')
     case 'joined': return r.projectNames.length ? t('agentsPlace.line.joined', { projects: r.projectNames.join(', ') }) : t('agentsPlace.line.joinedNowhere')
@@ -120,7 +135,9 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   const locale = useLocale()
   const home = useHome(mark)
   const hub = useHub(hubMark)
-  const executors = useRead<ExecutorRow[]>(() => window.fabric.start.executors())
+  // «Повторить» reads the installed agents again (0.3.13 review, iteration 1, UX-1).
+  const [executorsAttempt, setExecutorsAttempt] = useState(0)
+  const executors = useRead<ExecutorRow[]>(() => window.fabric.start.executors(), executorsAttempt)
   const catalog = useRead<SwitchboardCatalog>(() => window.fabric.settings.agentCatalog())
   const showConsole = useOpenConsole()
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
@@ -165,11 +182,28 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
 
   // Reading, empty, failed and capped are four things (SX item 2).
   // The groups are drawn once who works now has been read (or failed): before that an empty «Работают сейчас» would claim
-  // nobody works. «Агентов не найдено» waits for every read, so an agent still being looked for is never called absent.
+  // nobody works. Each group then says it is empty only once the reads that fill it have answered, and «Агентов не
+  // найдено» only once every read answered: an agent still being looked for, or one a failed read could not see, is
+  // never called absent (0.3.13 review, iteration 1, UX-1, UX-2).
   const homeSettled = home.view !== null || home.problem !== null
-  const settled = homeSettled && executors !== null && hub.read.at !== 'reading'
   const nothingRead = !homeSettled && rows.length === 0
   const executorsFailed = executors && 'failed' in executors ? executors.failed : null
+  const reads = {
+    home: home.problem ? 'failed' : home.view ? 'read' : 'reading',
+    sessions: sessions === null ? 'reading' : 'read',
+    hub: hub.read.at === 'ready' ? 'read' : hub.read.at,
+    executors: executors === null ? 'reading' : executorsFailed !== null ? 'failed' : 'read',
+    catalog: catalog === null ? 'reading' : 'failed' in catalog ? 'failed' : 'read'
+  } satisfies Record<string, ReadState>
+  // Which reads fill which group (`agentRoster.ts#composeRoster`): who works and whose console is quiet come from
+  // `work.home` and the consoles; the idle and the off also from the joined agents and the installed ones.
+  const groupRead: Record<AgentGroup, ReadState> = {
+    working: together([reads.home, reads.sessions]),
+    waiting: together([reads.home, reads.sessions]),
+    idle: together([reads.home, reads.sessions, reads.hub, reads.executors, reads.catalog]),
+    off: together([reads.hub, reads.executors, reads.catalog])
+  }
+  const everyRead = together(Object.values(reads))
 
   const list = (
     <section className="ag-list" aria-labelledby="ag-list-title">
@@ -182,7 +216,12 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       )}
       <KeptNote reading={home} />
       <CappedNote reading={home} />
-      {executorsFailed && <FailureNote said={t('agentsPlace.installedUnread')} detail={executorsFailed} role="status" />}
+      {executorsFailed && (
+        <div className="ag-note">
+          <FailureNote said={t('agentsPlace.installedUnread')} detail={executorsFailed} role="status" />
+          <button type="button" className="lp-button" onClick={() => setExecutorsAttempt((n) => n + 1)}>{t('common.retry')}</button>
+        </div>
+      )}
       {hub.read.at === 'failed' && (
         <div className="ag-note">
           <FailureNote said={t('joined.failed')} detail={hub.read.says} role="status" />
@@ -190,9 +229,9 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         </div>
       )}
       {hub.read.at === 'ready' && hub.read.ov.keptOut && !hub.read.ov.keptOut.readable && <p className="lp-meta" role="status">{t('joined.outUnreadable')}</p>}
-      {!settled && <p className="lp-meta" role="status">{t('agentsPlace.reading')}</p>}
+      {everyRead === 'reading' && <p className="lp-meta" role="status">{t('agentsPlace.reading')}</p>}
       {nothingRead ? null : AGENT_GROUPS.map((g) => (
-        <Group key={g} group={g} rows={roster[g]} selected={chosen?.key ?? null} onSelect={select} locale={locale} />
+        <Group key={g} group={g} rows={roster[g]} read={groupRead[g]} selected={chosen?.key ?? null} onSelect={select} locale={locale} />
       ))}
     </section>
   )
@@ -214,7 +253,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
             <Centre row={chosen} tab={tab} onTab={setTab} mark={mark} hub={hub} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
           ) : home.view === null && home.problem && rows.length === 0 ? (
             <p className="lp-meta ag-pick" role="status">{t('agentPage.unread')}</p>
-          ) : settled && rows.length === 0 ? (
+          ) : everyRead === 'read' && rows.length === 0 ? (
             <p className="lp-meta ag-pick">{t('agentsPlace.empty')}</p>
           ) : rows.length > 0 ? (
             <p className="lp-meta ag-pick">{t('agentPage.pick')}</p>
@@ -226,9 +265,11 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   )
 }
 
-function Group({ group, rows, selected, onSelect, locale }: {
+function Group({ group, rows, read, selected, onSelect, locale }: {
   group: AgentGroup
   rows: RosterRow[]
+  /** Where the reads that fill this group stand: empty is said only once they answered. */
+  read: ReadState
   selected: string | null
   onSelect(key: string): void
   locale: string
@@ -237,8 +278,12 @@ function Group({ group, rows, selected, onSelect, locale }: {
   const id = `ag-group-${group}`
   return (
     <div className={`ag-group ag-group-${group}`}>
-      <h4 id={id}>{t(`agentsPlace.group.${group}` as 'agentsPlace.group.working')} <span className="lp-count">{rows.length}</span></h4>
-      {rows.length === 0 ? <p className="lp-meta">{t(`agentsPlace.groupEmpty.${group}` as 'agentsPlace.groupEmpty.working')}</p> : (
+      <h4 id={id}>{t(`agentsPlace.group.${group}` as 'agentsPlace.group.working')}{(read === 'read' || rows.length > 0) && <> <span className="lp-count">{rows.length}</span></>}</h4>
+      {rows.length === 0 ? (
+        <p className="lp-meta" role={read === 'reading' ? 'status' : undefined}>
+          {read === 'reading' ? t('agentsPlace.groupReading') : read === 'failed' ? t('agentsPlace.groupUnread') : t(`agentsPlace.groupEmpty.${group}` as 'agentsPlace.groupEmpty.working')}
+        </p>
+      ) : (
         <ol className="ag-rows" aria-labelledby={id}>
           {rows.map((r) => (
             <li key={r.key}>
@@ -295,7 +340,7 @@ function Centre({ row, tab, onTab, mark, hub, onOpenProject, onOpenTask, onAsTab
       <button type="button" className="lp-tab" aria-pressed={tab === 'console'} onClick={() => onTab('console')}>{t('agentsPlace.tab.console')}</button>
     </div>
   )
-  const waitingState = row.state === 'waiting' || row.state === 'ended' ? stateWords(row, t) : undefined
+  const waitingState = row.state === 'waiting' ? silentLine(row, t) : row.state === 'ended' ? stateWords(row, t) : undefined
   const work = live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
       onOpenProject={onOpenProject} onOpenTask={onOpenTask} />

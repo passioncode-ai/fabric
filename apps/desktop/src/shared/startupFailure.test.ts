@@ -341,3 +341,28 @@ describe('a full disk is named (0.3.8 audit: OrbStack stopped with «I/O error»
     expect(startupDialog(classifyStartupFailure({ message: 'Cannot locate the fabric repository (set FABRIC_REPO)' }, 'darwin'), { retryable: true, logPath: '/x.log', freeDiskBytes: 0.5e9 }).detail).not.toContain('GB free')
   })
 })
+
+// 0.3.13 review, iteration 1, UX-8: a half-up stack's window says what Fabric did, and a restart that failed is said
+// apart, with the restart's own words, never as a restart that ran.
+import { STACK_HEAL_FAILED } from './startupFailure.ts'
+describe('a half-up stack Fabric tried to heal', () => {
+  const sayRu = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
+  it('the keys still missing after the heal: the remedy does not claim the restart succeeded', () => {
+    const f = classifyStartupFailure(new Error('supabase status did not yield API_URL/SERVICE_ROLE_KEY (got: ANON_KEY)'))
+    expect(f.cause).toBe('stack-up-but-silent')
+    expect(f.remedyKey).toBeUndefined()
+    for (const said of [f.remedy, en['startup.stack-up-but-silent.remedy']]) expect(said).not.toMatch(/started it again/)
+    expect(ruRegistry['startup.stack-up-but-silent.remedy']).not.toMatch(/и перезапустил его/)
+  })
+  it('the restart itself failed: its own remedy, with the restart\'s words as the detail, in Russian too', () => {
+    const e = Object.assign(new Error('Command failed: supabase start\nError: cannot connect to the Docker daemon'), { code: STACK_HEAL_FAILED })
+    const f = classifyStartupFailure(e)
+    expect(f).toMatchObject({ cause: 'stack-up-but-silent', remedyKey: 'startup.stack-up-but-silent.remedy.healFailed' })
+    expect(f.detail).toContain('cannot connect to the Docker daemon')
+    expect(f.remedy).toMatch(/restart itself failed/)
+    const d = startupDialog(f, { retryable: true, logPath: '/l', say: sayRu })
+    expect(d.detail).toContain(ruRegistry['startup.stack-up-but-silent.remedy.healFailed'])
+    expect(d.detail).toContain('cannot connect to the Docker daemon')
+    expect(en['startup.stack-up-but-silent.remedy.healFailed']).toBeTruthy()
+  })
+})

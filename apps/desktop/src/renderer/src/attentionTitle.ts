@@ -7,8 +7,26 @@ import type { PendingRequestFacts } from '../../shared/access.ts'
 import type { AbandonedKind } from '../../shared/abandonedSweep.ts'
 import { pluralForm, type Locale } from './i18n/translate.ts'
 
-export function titleOf(item: { title: string; access?: PendingRequestFacts }, t: Say): string {
-  return item.access ? sayQueueTitle(t, item.access) : item.title
+export function titleOf(item: { title: string; access?: PendingRequestFacts; swept?: { kind: AbandonedKind; untitled?: true } }, t: Say): string {
+  if (item.access) return sayQueueTitle(t, item.access)
+  // A finding the read found no title for is named in words, never by its id (0.3.13 review, iteration 1, UX-7).
+  if (item.swept?.untitled) return t(UNTITLED[item.swept.kind])
+  return item.title
+}
+
+const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.task'> = {
+  'request-unmoved': 'attention.untitled.request',
+  'answer-unread': 'attention.untitled.answer',
+  'claim-silent': 'attention.untitled.task',
+  'claim-lapsed': 'attention.untitled.task',
+  'task-unclaimed': 'attention.untitled.task',
+  'terminal-stalled': 'attention.untitled.task'
+}
+
+/** What a notification says about one row: its title, and for what the sweep found, why it was found (UX-7). */
+export function notifyLineOf(item: { kind: string; title: string; detail: string | null; access?: PendingRequestFacts; swept?: { kind: AbandonedKind; untitled?: true } }, t: Say, locale: Locale): string {
+  const title = titleOf(item, t)
+  return item.swept ? `${title}: ${detailOf(item, t, locale)}` : title
 }
 
 /** The board builds a question's detail as fixed English, `blocking N task(s)` (`shared/board.ts#boardEntries`): it is

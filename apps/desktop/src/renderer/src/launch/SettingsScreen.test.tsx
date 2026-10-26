@@ -396,12 +396,12 @@ describe('the five sections, «Сохранено» after a change, and folder t
     tabs: { tabs: [], active: null }, readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] },
     agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false },
     trustAgentFolders: true, ...over })
-  const open = (onChange: (next: unknown) => unknown, over: Partial<AppSettings> = {}) => {
+  const open = (onChange: (next: unknown) => unknown, over: Partial<AppSettings> = {}, folderTrustLocked: () => Promise<boolean> = async () => false) => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
       fabric: {
         start: { executors: async () => executors },
         settings: { agentCatalog: async () => ({ source: 'absent', reason: 'not-installed', detail: null }), loginItem: async () => ({ supported: false }),
-          claudeInbound: async () => ({ accepting: false, value: null }) },
+          claudeInbound: async () => ({ accepting: false, value: null }), folderTrustLocked },
         terminal: { options: async () => [] },
         analytics: { status: async () => ({ enabled: false, answered: true }) }
       }
@@ -457,5 +457,26 @@ describe('the five sections, «Сохранено» after a change, and folder t
     cleanup()
     open(vi.fn(), { trustAgentFolders: false })
     expect((screen.getByLabelText(en['settings.folderTrust']) as HTMLInputElement).checked).toBe(false)
+  })
+
+  // 0.3.13 review, iteration 1, UX-9: the switch shows what Fabric does, and why it cannot be changed here.
+  it('with FABRIC_TRUST_AGENT_FOLDERS=0 the switch reads off, cannot be changed, and says the variable keeps it off', async () => {
+    const onChange = vi.fn(async () => null)
+    open(onChange, { trustAgentFolders: true }, async () => true)
+    const box = screen.getByLabelText(en['settings.folderTrust']) as HTMLInputElement
+    await waitFor(() => expect(box.checked).toBe(false))
+    expect(box.disabled).toBe(true)
+    expect(screen.getByText(en['settings.folderTrustLocked'])).toBeTruthy()
+    expect(box.getAttribute('aria-describedby')).toContain('settings-folder-trust-locked')
+    fireEvent.click(box)
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('an unread override keeps the person\'s switch, as before', async () => {
+    open(vi.fn(), {}, async () => { throw new Error('no such handler') })
+    const box = screen.getByLabelText(en['settings.folderTrust']) as HTMLInputElement
+    await waitFor(() => expect(box.checked).toBe(true))
+    expect(box.disabled).toBe(false)
+    expect(screen.queryByText(en['settings.folderTrustLocked'])).toBeNull()
   })
 })

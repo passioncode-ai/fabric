@@ -69,9 +69,11 @@ export interface AttentionItem {
   /**
    * Abandoned work the latest sweep found (0.3.13 SW-9). Present only on an `abandoned` item that came from the sweep,
    * never on an expired lease: it carries the finding's key, which is the obligation's address (one item per key, see
-   * `attentionKey`), and its kind, which the screens say in the operator's language.
+   * `attentionKey`), and its kind, which the screens say in the operator's language. `untitled` when the read found no
+   * title for it (a board request has none, a task the read missed): its `title` is then empty and every screen names it
+   * in words through `attentionTitle.ts#titleOf`, never by its id (0.3.13 review, iteration 1, UX-7).
    */
-  swept?: { key: string; kind: AbandonedKind }
+  swept?: { key: string; kind: AbandonedKind; untitled?: true }
 }
 
 /**
@@ -316,11 +318,12 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       ref,
       projectId: row.project_id,
       projectName: row.project_id ? (sources.names[row.project_id] ?? null) : null,
-      title: row.title ?? row.task_id ?? row.request_id ?? row.key,
+      // Never an id as a title (UX-7): with no title read it is empty, and `untitled` tells the screens to name it.
+      title: row.title ?? '',
       // The kind, as a value: every screen says it through `detailOf` in the operator's language.
       detail: row.kind,
       since: row.still_since,
-      swept: { key: row.key, kind: row.kind }
+      swept: { key: row.key, kind: row.kind, ...(row.title === null ? { untitled: true as const } : {}) }
     })
   }
   // #endregion attention-swept

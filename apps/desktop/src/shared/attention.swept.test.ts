@@ -61,6 +61,18 @@ describe('the sweep\'s findings in the operator\'s queue (SW-9)', () => {
     expect(whole.items.map((e) => e.swept?.kind).sort()).toEqual(['request-unmoved', 'task-unclaimed'])
   })
 
+  // 0.3.13 review, iteration 1, UX-7: no raw id reaches «На проверке» or the notification as a title.
+  it('a finding with no title read carries no id as its title, and says it is untitled', () => {
+    const items = queue([finding('request-unmoved', 'a'), finding('answer-unread', 'b'), finding('claim-silent', 'c')])
+    for (const i of items) {
+      expect(i.title).toBe('')
+      expect(i.swept?.untitled).toBe(true)
+    }
+    const titled = queue([finding('claim-silent', 'c')], { 't-c': 'Fix the login' })[0]
+    expect(titled.title).toBe('Fix the login')
+    expect(titled.swept?.untitled).toBeUndefined()
+  })
+
   it('a finding key read twice is one row', () => {
     expect(queue([finding('claim-lapsed', 'a'), finding('claim-lapsed', 'a')])).toHaveLength(1)
   })
