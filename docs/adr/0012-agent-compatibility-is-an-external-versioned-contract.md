@@ -48,3 +48,8 @@ Contract PR #1 passed its GitHub `contract` job before merge. The merged revisio
 contains 13 Draft 2020-12 schemas, 22 positive/negative fixture cases, 34 Vitest
 tests and the author/operator scenarios. A planted fixture missing `notVerified`
 was observed failing before green acceptance.
+
+**Note, 2026-10-26 (CO-408):** Fabric pins the contract at `39c8977` (`v0.1.0+2026-10-26.3`,
+`test/fixtures/fabric-agent-contract/`); the link above to `48973705` is kept as written, the commit this record cited
+when it was accepted.
+

@@ -4,103 +4,103 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-26T15:30:00Z · `—` · agent/0313-rerule (with agent/0313-agents) → main · fast-forward
+### 2026-10-26T13:12:44Z · `—` · agent/0313-rerule (with agent/0313-agents) → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/renderer/src/launch/AgentsScreen.tsx, agentRoster.ts, AgentPage.tsx, HistoryScreen.tsx, App.tsx, launch.css, i18n en and ru, their tests; SCN-166, SCN-167, SCN-168, the product model and mockup; the ledger (CO-419, CO-414 resolved, CO-438 added, five partial rows decided), backlog, the plan; the map
 - conflicts: docs/ux/scenarios.md (SCN-168: CO-430's amendment kept with CO-414's), generated reports rebuilt
 - summary: Fabric 0.3.13: Агенты as an agents screen (CO-419), История's filters and detail pane (CO-414), and decisions on the remaining partial rows.
 
-### 2026-10-26T14:00:00Z · `—` · agent/0313-co374 → main · fast-forward
+### 2026-10-26T12:53:15Z · `—` · agent/0313-co374 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/stackServices.ts, stackWatch.ts, env.ts, shared/stackWatch.ts, test/stack-services.test.mjs, test/stack-watch.test.mjs; AGENTS.md, the ledger (CO-374 resolved), backlog, the plan; the map
 - conflicts: none
 - summary: Fabric 0.3.13: the stack watch starts a stack whose database runs without rest or kong, instead of waiting (CO-374).
 
-### 2026-10-26T13:30:00Z · `—` · agent/0313-co430 → main · fast-forward
+### 2026-10-26T12:35:46Z · `—` · agent/0313-co430 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/renderer/src/launch/HistoryScreen.tsx and its test, i18n en and ru; SCN-168, the ledger (CO-430 resolved), backlog; the map
 - conflicts: none
 - summary: Fabric 0.3.13: History says the operator released a task themselves, without an agent (CO-430's rest).
 
-### 2026-10-26T13:00:00Z · `—` · agent/0313-triage → main · fast-forward
+### 2026-10-26T12:16:22Z · `—` · agent/0313-triage → main · fast-forward
 - run: r-182fa592b059
 - files: scripts/nightly-gate.mjs, scripts/test/nightly-gate.test.mjs, release-mac.test.mjs, ci.sh, .github/workflows/ci.yml and platforms.yml; apps/desktop/src/shared/eventSubject.ts, entityRef.ts, redact.ts, renderer Feed.tsx, i18n en and ru, their tests; docs/launch/release-mac.md step 9; the ledger (ten rows decided), backlog, the plan; the map
 - conflicts: none
 - summary: Fabric 0.3.13: the overdue rows' triage (В-8) and three small fixes (the nightly gates' clock, the feed's reasons in the interface language, two redaction rules).
 
-### 2026-10-26T12:00:00Z · `—` · agent/0313-adr0180 → main · fast-forward
+### 2026-10-26T11:48:18Z · `—` · agent/0313-adr0180 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/adr/0180-fabric-follows-dec-0129-for-an-organizations-root-and-answers-its-four-questions.md, docs/adr/README.md, the pipeline reservation (0179 to 0181), the carry-over ledger (CO-130, CO-320, CO-337 notes); the map
 - conflicts: none
 - summary: ADR-0180, D8's second part: Fabric follows DEC-0129 for an organization's root and answers the contract's four questions.
 
-### 2026-10-26T11:20:00Z · `—` · agent/0313-track → main · fast-forward
+### 2026-10-26T11:30:35Z · `—` · agent/0313-track → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/renderer/src/launch/SettingsScreen.tsx, UsageCountsSetting.tsx, launch.css, i18n en and ru, shared/folderTrust.ts, appSettings.ts, types.ts, main/pty.ts, index.ts, their tests, test/folder-trust-setting.test.mjs; SCN-170, the product model, AGENTS.md, CHANGELOG, the plan, the ledger and backlog (CO-348, CO-392 resolved; CO-367, CO-329, CO-375 moved to 0.3.14); the map
 - conflicts: none
 - summary: Fabric 0.3.13: Settings in SCN-170's five sections with «Сохранено» after a change, and a folder trust switch.
 
-### 2026-10-26T07:30:00Z · `—` · agent/0313-co428 → main · fast-forward
-- run: r-182fa592b059
-- files: apps/desktop/src/main/stackHalfUp.ts, env.ts, index.ts, shared/startupFailure.ts, i18n en and ru, test/stack-half-up.test.mjs, package.json; AGENTS.md, CHANGELOG.md, the plan, the carry-over ledger and backlog (CO-428 resolved), the map
-- conflicts: none
-- summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
-
-### 2026-10-26T17:30:00Z · `—` · agent/0313-sw9 → main · fast-forward
+### 2026-10-26T10:26:33Z · `—` · agent/0313-sw9 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/abandonedSweepRun.ts, index.ts, shared/attention.ts, shared/board.ts, renderer attentionTitle.ts, HistoryScreen.tsx, i18n en and ru, their tests; SCN-173, SCN-168, the strings registry, the spec, the plan, the ledger (CO-427 resolved, CO-430 partly); the map
 - conflicts: none
 - summary: Fabric 0.3.13: the sweep's findings show in the operator's «На проверке»; History says Fabric released a task when Fabric did.
 
-### 2026-10-26T16:00:00Z · `—` · agent/0313-schema → main · fast-forward
+### 2026-10-26T10:15:11Z · `—` · agent/0313-schema → main · fast-forward
 - run: r-182fa592b059
 - files: supabase/migrations/20261026000124_one_schema_step.sql, schemaContract.json (97), scripts/check-migration-order.mjs, the projector, board and work reads, abandonedSweepRun.ts, protocolObligations.ts, i18n (work.swept@1), the schema tests; CHANGELOG, release-mac.md, SCN-143, the pipeline reservation, the plan, the carry-over ledger and backlog; the map
 - conflicts: none
 - summary: Fabric 0.3.13's one schema step, schema 96 to 97: ten rows resolved, the sweep's journal receipt, a board reply reaching its sender.
 
-### 2026-10-26T13:30:00Z · `—` · agent/0313-co434 → main · fast-forward
+### 2026-10-26T09:05:02Z · `—` · agent/0313-co434 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/hubAuthority.ts, hubTools.ts, hubCall.ts, productForwarder.ts, test/hub-call-authority.test.mjs, package.json; the plan, the carry-over ledger and backlog (CO-434 partly, CO-435 resolved); the map
 - conflicts: none
 - summary: Fabric 0.3.13, wave 4 step 3: agent.call checks and forwards the operator's decision and mandate unchanged and passes the callee's operator refusals back.
 
-### 2026-10-26T12:00:00Z · `—` · agent/0313-co435 → main · fast-forward
+### 2026-10-26T08:40:51Z · `—` · agent/0313-co435 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/shared/protocolObligations.ts and its tests, accessWords.test.ts, i18n en and ru (access.respond.what); SCN-145, the plan, the carry-over ledger (CO-435); the map
 - conflicts: none
 - summary: Fabric 0.3.13, wave 4 step 2: an approval the operator gave, relayed with its words, place, time and scope from the operator's own Project, binds (DEC-0126); the board rule and Settings no longer say a request is never an approval.
 
-### 2026-10-26T11:00:00Z · `—` · agent/0313-repin → main · fast-forward
+### 2026-10-26T08:21:18Z · `—` · agent/0313-repin → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/test/fixtures/fabric-agent-contract (211 files), contract-consumer-fixtures.mjs, boardService.ts, boardTools.ts, commsTransition.ts, the board and hub tests; the wave 4 contract delta and the plan; the carry-over ledger and backlog (CO-434 to CO-436); the map
 - conflicts: none
 - summary: Fabric 0.3.13, wave 4 step 1: the contract repinned from a59d04b to 39c8977 (v0.1.0+2026-10-26.3) with its consumer fixes, and the delta mapped to rows.
 
-### 2026-10-26T09:30:00Z · `—` · agent/0313-d8 → main · fast-forward
+### 2026-10-26T07:53:34Z · `—` · agent/0313-d8 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/adr/0178 and the ADR index; the carry-over ledger and backlog (CO-420 resolved; CO-431 to CO-433 for MD-7, MD-8, G-6); the map
 - conflicts: none
 - summary: ADR-0178, Fabric's D8: an organization's hub follows A-5, only an administrator's passkey signs the organization's record, Vesta drafts and signs no estate, each member mints its own organization tokens; the root's fingerprint at the pin, the project's entry receipt and leaving signature (DEC-0127); four R1 defaults the operator can change.
 
-### 2026-10-26T08:30:00Z · `—` · agent/0313-w2b → main · fast-forward
+### 2026-10-26T07:00:15Z · `—` · agent/0313-co428 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/main/stackHalfUp.ts, env.ts, index.ts, shared/startupFailure.ts, i18n en and ru, test/stack-half-up.test.mjs, package.json; AGENTS.md, CHANGELOG.md, the plan, the carry-over ledger and backlog (CO-428 resolved), the map
+- conflicts: none
+- summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
+
+### 2026-10-26T06:54:24Z · `—` · agent/0313-w2b → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/abandonedSweepRun.ts, index.ts, agentSurface.ts, workTools.ts, workRelease.ts, runtimeObserver.ts, shared/abandonedSweep.ts, protocolObligations.ts and their tests; AGENTS.md, CHANGELOG.md, CONTEXT.md, SCN-140, the agent health table, the wave 2 spec and plan, the carry-over ledger and backlog (CO-426, CO-427, CO-430), the map
 - conflicts: none
 - summary: Fabric 0.3.13, wave 2, part 2: the sweep of abandoned work runs every three minutes and wakes agents, after review round 1's 18 findings were fixed or recorded.
 
-### 2026-10-26T05:40:00Z · `—` · agent/0313-w2 → main · fast-forward
+### 2026-10-26T04:28:37Z · `—` · agent/0313-w2 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/shared/protocolObligations.ts and its w2 test, abandonedSweep.ts and its test; the wave 2 spec, the 0.3.13 plan; the carry-over ledger and the backlog (CO-428, CO-429); the map's changelog
 - conflicts: none
 - summary: Fabric 0.3.13, wave 2, part 1: the rules of the three-minute check and «told one is told all», the pure core of the sweep of abandoned work, and two rows found that morning (a half-up stack, the operator's self-heal on update).
 
-### 2026-10-26T02:00:00Z · `—` · agent/0313-w1 → main · fast-forward
+### 2026-10-26T03:18:10Z · `—` · agent/0313-w1 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/pty.ts, runnerFallback.ts, index.ts, launchFolderLock.ts, managedLaunch.ts, dockerPing.ts and their tests; docs/evidence/plans/2026-10-26-release-0313-plan.md; the carry-over ledger and the backlog (CO-229, CO-236 resolved; P-26 in progress); the map's changelog
 - conflicts: pty.ts and index.ts imports, managedLaunch.ts's try block, resolved by keeping main's code and adding the rebuilt hunks
 - summary: Fabric 0.3.13, wave 1: CO-229 and CO-236 rebuilt from agent/w2-runners with their planted defects watched failing; the Docker check follows the current docker context, so Fabric waits on Colima too.
 
-### 2026-10-25T12:30:00Z · `—` · agent/audit-20261025 → main · fast-forward
+### 2026-10-25T15:52:05Z · `—` · agent/audit-20261025 → main · fast-forward
 - run: r-182fa592b059
 - files: docs/reports/2026-10-25-audit-and-plan/ (README, four parts, raw: deleted branches, the stopped 0.3.12 rollout logs, the 2026-10-24 UX iteration reports), the carry-over ledger and the backlog (CO-419 carried from the abandoned ux-0313 worktree), the map's changelog
 - conflicts: none

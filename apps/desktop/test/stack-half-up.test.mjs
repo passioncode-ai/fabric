@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { resolveHealingHalfUp, isHalfUp } = await import(path.resolve(import.meta.dirname, '../src/main/stackHalfUp.ts'))
+const { resolveHealingHalfUp, isHalfUp, recoverThenHeal } = await import(path.resolve(import.meta.dirname, '../src/main/stackHalfUp.ts'))
 
 const silent = () => new Error('supabase status did not yield API_URL/SERVICE_ROLE_KEY (got: API_URL, DB_URL)')
 const env = { url: 'http://127.0.0.1:54321', serviceKey: 'k' }
@@ -60,4 +60,26 @@ test('isHalfUp recognises only the missing-keys answer', () => {
   assert.equal(isHalfUp(silent()), true)
   assert.equal(isHalfUp(new Error('ECONNREFUSED')), false)
   assert.equal(isHalfUp('not an error'), false)
+})
+
+// 0.3.13 review, iteration 1, ER-1: Supabase CLI 2.114 exits 0 against a stack that is already up, so the watch's try
+// reads «started» and the heal must run anyway; ER-3: containers Fabric's own heal stopped are Fabric's to start again.
+test('ER-1: the heal runs after a try that the CLI called started, and after one it called already running', async () => {
+  for (const answer of ['started', 'already-running']) {
+    const calls = []
+    const r = await recoverThenHeal(async () => { calls.push('start'); return answer }, async () => { calls.push('heal') }, () => false)
+    assert.equal(r, answer)
+    assert.deepEqual(calls, ['start', 'heal'], answer)
+  }
+  const calls = []
+  await recoverThenHeal(async () => { calls.push('start'); return 'started' }, async () => { calls.push('heal') }, () => true)
+  assert.deepEqual(calls, ['start'], 'nothing is healed while quitting')
+})
+
+test('ER-3: containers gone after Fabric\'s own heal stopped them read as stopped, never as the operator\'s stop', async () => {
+  const { afterOwnStop } = await import(path.resolve(import.meta.dirname, '../src/main/stackServices.ts'))
+  const { recoveryPlan } = await import(path.resolve(import.meta.dirname, '../src/shared/stackWatch.ts'))
+  assert.equal(recoveryPlan(afterOwnStop('absent', true)), 'start')
+  assert.equal(recoveryPlan(afterOwnStop('absent', false)), 'stopped', 'a stop someone made is respected')
+  assert.equal(afterOwnStop('running', true), 'running')
 })

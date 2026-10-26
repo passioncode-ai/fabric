@@ -147,7 +147,8 @@ export function findAbandoned(input: SweepInput): Finding[] {
   for (const s of input.terminals) {
     if (s.liveness === 'stalled' && s.taskId && running?.has(s.taskId) && now - s.lastActivityAt >= TERMINAL_QUIET_MS)
       out.push({ ...base, kind: 'terminal-stalled', key: `terminal-stalled:${s.sessionId}`, projectId: s.projectId, taskId: s.taskId,
-        sessionId: s.sessionId, stillMs: now - Date.parse(s.since),
+        // Still since the terminal itself went quiet, not since the observer marked it stalled (0.3.13 review ER-4).
+        sessionId: s.sessionId, stillMs: now - s.lastActivityAt,
         nextStep: 'This session holds a task and has been still: continue it, or say what blocks it (fabric_heartbeat with phase blocked).' })
   }
   return out

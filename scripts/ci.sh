@@ -257,6 +257,11 @@ node --experimental-strip-types --test apps/desktop/test/claude-trust.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/git-facts.test.mjs
 # 0.3.7 review ER-4: at start Docker is asked over its own socket before the stack's failure is shown.
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/docker-ping.test.mjs
+# 0.3.13 review, iteration 1, DA-1: every event type the app appends has ingress rules or a named owner; the sweep of
+# abandoned work, its receipt and the half-up stack's heal, without a database. Only the full tier ran them before.
+node --experimental-strip-types --test apps/desktop/test/ingress-owners.test.mjs
+node --experimental-strip-types --test apps/desktop/test/abandoned-sweep-run.test.mjs apps/desktop/test/stack-half-up.test.mjs
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/stack-watch.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.

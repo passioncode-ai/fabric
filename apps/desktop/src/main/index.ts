@@ -78,7 +78,7 @@ import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
-import { dockerIsUnreachable } from '../shared/stackStartRetry.ts'
+import { dockerIsUnreachable, stackAlreadyRunning } from '../shared/stackStartRetry.ts'
 import { STARTUP_WAIT_LINES, retryAfterSeconds, stackBackoffMs, startupHeals, startupWaitLines, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
 import { createStackWatch, type StackWatch } from './stackWatch.ts'
 import { closeHubStandby, openHubStandby, type StandbyOpen } from './hubStandby.ts'
@@ -757,9 +757,15 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
         })
     }, 500)
     try {
-      await startStack((line) => {
-        lastLine = line
-      })
+      try {
+        await startStack((line) => {
+          lastLine = line
+        })
+      } catch (e) {
+        // 0.3.13 review ER-1: a CLI that refuses with «already running» may be refusing a half-up stack; the heal
+        // below reads the stack and restarts it once. Any other failure is the start's.
+        if (!stackAlreadyRunning(e instanceof Error ? e.message : String(e))) throw e
+      }
       // CO-428: a start that found the database up may have left rest and auth gone; heal that once.
       return await resolveHealingHalfUp(halfUpDeps(() => startStack((line) => { lastLine = line })))
     } finally {
@@ -2778,12 +2784,6 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         liveness: o.state, since: new Date(o.since).toISOString(), lastActivityAt: p ? Date.parse(p.lastActivityAt) : Number.NaN
       }
     }),
-    terminalRunning: (sessionId) => ptys.get(sessionId)?.running === true,
-    terminalActivity: (sessionId) => {
-      const p = ptys.get(sessionId)
-      return p ? Date.parse(p.lastActivityAt) : null
-    },
-    deliver: (sessionId, text, options) => ptys.deliverWhenReady(sessionId, text, options),
     releaseLapsed: (claimId, reason) => releaseLapsedClaim(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), claimId, reason),
     unresolvedRuns: async (taskIds) => (await readRunHolds(store, taskIds)).map((h) => h.taskId),
     // SW-7: the sweep's receipt, estate-level (no project), as the system that swept.
@@ -3473,8 +3473,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       held: async (taskId) => {
         if (!folderLocks.any()) return false
         const { data, error } = await store.select('project_tasks', 'project_id').eq('id', taskId).maybeSingle()
-        // An unreadable task cannot be placed in a folder: refused as held rather than started beside an unknown run.
-        if (error) return true
+        // An unreadable task cannot be placed in a folder: refused rather than started beside an unknown run, and said as
+        // unread, not as an agent that may still be running (0.3.13 review ER-7).
+        if (error) return 'unread'
         return Boolean(data && folderLocks.holder(data.project_id as string))
       },
       lock: (projectId, sessionId) => folderLocks.lock(projectId, sessionId)

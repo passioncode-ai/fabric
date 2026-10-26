@@ -12,11 +12,11 @@ import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
-import { STACK_EXCLUDED_SERVICES, removeExcludedContainers, stackContainers } from './stackServices.ts'
+import { STACK_EXCLUDED_SERVICES, afterOwnStop, removeExcludedContainers, stackContainers } from './stackServices.ts'
 import type { StackContainers } from '../shared/stackWatch.ts'
 import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
-import { resolveHealingHalfUp, type HalfUpDeps } from './stackHalfUp.ts'
+import { recoverThenHeal, resolveHealingHalfUp, type HalfUpDeps } from './stackHalfUp.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
 import { mergeLaunchPath, pathAdditions } from './platform.ts'
@@ -156,17 +156,18 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
  */
 export async function recoverStack(): Promise<'started' | 'already-running'> {
   if (stopRequested) throw new Error('Fabric is quitting, so the local stack is not started again.')
-  const result = await recoveryStart(() => startStackOnce(), {
-    stopped: () => stopRequested,
-    pingDocker: (socket) => pingDocker(socket)
-  })
-  // CO-428: «already running» may be a half-up stack (the database up, rest and auth gone): heal it once.
-  if (result === 'already-running' && !stopRequested) await resolveHealingHalfUp(halfUpDeps(() => startStackOnce()))
-  return result
+  // CO-428: a start may leave a half-up stack (the database up, rest and auth gone): heal it once, whatever the CLI
+  // answered (ER-1, `stackHalfUp.ts#recoverThenHeal`). A healthy stack costs one `supabase status`.
+  return recoverThenHeal(
+    () => recoveryStart(() => startStackOnce(), { stopped: () => stopRequested, pingDocker: (socket) => pingDocker(socket) }),
+    () => resolveHealingHalfUp(halfUpDeps(() => startStackOnce())),
+    () => stopRequested
+  )
 }
 
 /** `supabase stop` without `--no-backup`: the stack's containers go, its volumes and data stay (CO-428). */
 export async function stopStackKeepingData(): Promise<void> {
+  stoppedByHeal = true
   await run('supabase', ['stop'], { cwd: repoRoot(), encoding: 'utf8', timeout: 120_000 })
 }
 
@@ -184,9 +185,13 @@ export function halfUpDeps(start: () => Promise<void>): HalfUpDeps<SupabaseEnv> 
 
 /** What Docker says of the stack's database, rest and kong containers, for the watch's decision (`stackServices.ts#stackContainers`, CO-374). */
 export async function stackDatabaseContainer(): Promise<StackContainers> {
-  return stackContainers('fabric', async (args) => (await run('docker', args, { encoding: 'utf8', timeout: 10_000 })).stdout)
+  return afterOwnStop(await stackContainers('fabric', async (args) => (await run('docker', args, { encoding: 'utf8', timeout: 10_000 })).stdout), stoppedByHeal)
 }
 // #endregion stack-recover-once
+
+/** Set while the stack is down because Fabric's own heal stopped it and no start has brought it back since; the
+ *  watch then reads the missing containers as Fabric's to start, not as the operator's stop (0.3.13 review ER-3). */
+let stoppedByHeal = false
 
 async function startStackOnce(onLine?: (line: string) => void, limitMs: number | null = null): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
@@ -223,6 +228,8 @@ async function startStackOnce(onLine?: (line: string) => void, limitMs: number |
   } finally {
     starting = null
   }
+  // A start that ran brought the stack back: from here a missing container is someone's stop again (ER-3).
+  stoppedByHeal = false
   // CO-333: containers of the excluded services an older full start left keep coming back with every Docker restart.
   const swept = await removeExcludedContainers('fabric', async (args) =>
     (await run('docker', args, { encoding: 'utf8', timeout: 30_000 })).stdout)

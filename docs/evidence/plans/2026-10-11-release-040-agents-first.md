@@ -406,6 +406,8 @@ Frozen: adding is free, removing needs the operator. Each REQ names its check.
 | REQ-44 | **A clean start on this Mac** (operator, 2026-10-11 evening): after the release is published, the operator's live database is dumped and kept, Fabric's local data is reset to a first run (database, `userData`, registry enrollments, hub files) by a documented, reversible procedure, and the released build is installed — so the operator walks the first run on a clean install | C12 | the dump's path, size and restore rehearsal; the reset procedure in the runbook; the installed version; Fabric opens on its first-run screen |
 | REQ-45 | **Runner and model profiles across the estate — a main task (CO-261, ADR-0147; operator via a private product agent, 2026-10-11).** Fabric publishes `registry/models.json` and `registry/model-profiles.json` and checks `shared/agents.ts` against `registry/runners.json`; Settings gains the estate defaults (runner per kind of work, model profile per class) and per-agent/per-project overrides written into bindings; a launch whose L1 classes leave no model is refused with the policy named; Switchboard drops its own key and model (T6) | C6, C1 | the contract decision (fabric-agent-contract-75); registry files validated by its schemas; a Settings test writing a binding; a refused launch in a test; Switchboard on an Observatory key |
 
+**Note, 2026-10-26 (ADR-0182, the operator's В-7):** REQ-06 narrows to Dashboards' pack conforming to `session-handoff/1`; Fabric is not a writer of the format.
+
 <a id="operator-additions-evening"></a>
 ## The operator's additions, 2026-10-11 evening
 

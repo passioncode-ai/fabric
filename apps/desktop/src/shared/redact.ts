@@ -158,8 +158,8 @@ const RULES: Rule[] = [
     name: 'authorization-field',
     // A QUOTED authorization field with no scheme word (CO-222, DA-6): `{"authorization":"<token>"}`, single-quoted or
     // escaped. Both quotes are required, as for `api-key-field`; a value that starts with a scheme word is the
-    // `authorization` rule's, which keeps the word.
-    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|[^"'\\\n]+)/gi,
+    // `authorization` rule's, which keeps the word. A value with a space is prose, not a credential (ER-6).
+    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|[^"'\\\s]+(?=\\*["']))/gi,
     keep: (m) => (m[2].startsWith('[redacted:') ? m[0] : `${m[1]}[redacted: authorization-field]`)
   },
   {
@@ -167,8 +167,9 @@ const RULES: Rule[] = [
     // A credential in a YAML block (CO-222, ER-5): `  Authorization: <token>` or `  api_key: <token>` at the start of a
     // line, the value with no scheme word. Only a value that looks like a token (16 or more token characters holding a
     // digit, no dot or space) or a quoted one, so a type (`password: string`), prose (`authorization: required`) and code
-    // (`secret: process.env.SECRET`) stay.
-    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic)\s)(?!\[redacted:)("[^"\n]+"|'[^'\n]+'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
+    // (`secret: process.env.SECRET`) stay; a quoted value with a space is prose, never a token (0.3.13 review ER-6:
+    // `Password: "must be at least 12 characters"` was rewritten for good before it reached the journal).
+    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic)\s)(?!\[redacted:)("[^"\s]{8,}"|'[^'\s]{8,}'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
     keep: (m) => `${m[1]}[redacted: yaml-credential]`
   },
   {

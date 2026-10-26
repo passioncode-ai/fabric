@@ -37,3 +37,10 @@ manifest, `executionPacket.ts`; task-pipeline's dispatch packet).
 
 - Fabric `sessionBundle.ts#createBundleCompiler`, `shared/preamble.ts#PREAMBLE`, `executionPacket.ts#PACKET_SCHEMA`; Dashboards
   `src/core/handoff.ts`; the joined flag shipped by Switchboard #141 and Dashboards #68 (relayed 2026-10-11).
+
+## Amendments
+
+- 2026-10-26: decision 1 for Fabric, decision 4 and the bundle compiler's consequence are superseded by
+  [ADR-0182](0182-fabric-does-not-write-session-handoff-1.md) (the operator's В-7, 2026-10-25): Fabric does not write
+  `session-handoff/1`; the format belongs to Fabric Dashboards and the contract.
+

@@ -134,6 +134,13 @@ console.log('PASS a typed refusal before spawn classifies by the result, not by 
   f.sessions.get(first.sessionId).running = false
   const third = await createManagedLaunch(g.deps)({ taskId: 'task', trigger: 'operator' })
   assert.equal(third.started, true, JSON.stringify(third)); assert.equal(locks.any(), false)
+  // ER-7: a task whose project does not read is refused as unread, never as an agent that may still be running.
+  const u = fixture()
+  u.deps.folder = { held: async () => 'unread', lock: () => {} }
+  const unread = await createManagedLaunch(u.deps)({ taskId: 'task-u', trigger: 'operator' })
+  assert.equal(unread.started, false); assert.equal(unread.reasonCode, 'folder_unread')
+  assert.doesNotMatch(unread.says, /may still be running/)
+  assert.deepEqual(u.calls, [], 'refused before admission')
   // A launch whose process never started holds nothing.
   const h = fixture('validate-refused')
   h.deps.folder = f.deps.folder

@@ -138,3 +138,12 @@ describe('review fixes', () => {
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'accepted' }] })).toEqual([])
   })
 })
+
+// 0.3.13 review, iteration 1, ER-4: a stalled terminal is still since it went quiet, not since it was marked stalled.
+describe('terminal-stalled counts from the terminal\'s own quiet (ER-4)', () => {
+  it('says 16 minutes for a terminal quiet 16 minutes and marked stalled a minute ago', () => {
+    const [f] = findAbandoned({ ...empty, runningTaskIds: ['t9'], terminals: [{ sessionId: 's9', projectId: 'p1', taskId: 't9', liveness: 'stalled', since: ago(MIN), lastActivityAt: NOW - 16 * MIN }] })
+    expect(f.stillMs).toBe(16 * MIN)
+    expect(nudgeText(f)).toMatch(/still for 16 min/)
+  })
+})

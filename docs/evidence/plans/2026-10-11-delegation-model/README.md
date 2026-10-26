@@ -97,6 +97,12 @@ Each owner filed its row on its own board and named it back; the status lives th
 | the messenger business platform | B-765 (deferred until its MCP returns) | details kept in the operator's private records |
 | a second research agent (a local HTTP MCP, distinct from the research agent above) | B-020 (step 4, callee side; its contract pin moves to the merged DEC-0039/0041) | its own board |
 
+
+**Adoption, 2026-10-26 (relayed by the contract on board thread `a9ffa517`, message `6ad918ab`):** the second research
+agent (B-020) adopted step 4's callee side offline: a loopback own token is T0, any other caller presents a delegation
+token verified offline, refusals use the contract's codes, and the principal, caller and actor chain are recorded on the
+job; its verifier is vendored unchanged from fabric-agent-adapter `969a4ca`. Open on its side: host-chain acceptance
+waits for the hub's published JWKS (its KA-G03).
 **A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
 lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for
 the dashboard it shows keeps using the descriptor token; it is not a capability call.

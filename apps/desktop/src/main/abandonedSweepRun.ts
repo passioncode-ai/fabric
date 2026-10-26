@@ -65,12 +65,6 @@ export interface AbandonedSweepDeps {
   readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
   /** Fabric's own terminals, with the runtime observer's liveness, the task each holds and its own last activity. */
   terminals(): SweepTerminal[]
-  /** Whether Fabric runs a terminal for this session now (`PtyManager.get(id).running`). */
-  terminalRunning(sessionId: string): boolean
-  /** The terminal's last output or typed input now, in ms (`PtyManager` session `lastActivityAt`); null when gone. */
-  terminalActivity(sessionId: string): number | null
-  /** One fenced write into a Fabric terminal (`PtyManager.deliverWhenReady`); `beforeWrite` may still refuse it. */
-  deliver(sessionId: string, text: string, options: { beforeWrite: () => Promise<boolean> }): Promise<{ state: string; reason?: string }>
   /** Releases a claim as lapsed and returns its task to the backlog when the claim moved it there (`workRelease.ts`). */
   releaseLapsed(claimId: string, reason: string): Promise<{ released: boolean; reason?: string; failed?: string }>
   /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
@@ -97,7 +91,6 @@ const KINDS_OF: Record<Source, AbandonedKind[]> = {
 export interface SweptReceipt {
   found: Partial<Record<AbandonedKind, number>>
   told: number
-  delivered: number
   queued: number
   released: number
   /** The reads that failed, so what they find was judged blind this sweep. */
@@ -109,7 +102,6 @@ export interface SweptReceipt {
 export interface SweepResult {
   findings: Finding[]
   told: number
-  delivered: number
   queued: number
   released: number
   failedReads: Source[]
@@ -121,8 +113,6 @@ export type SweptFinding = Finding & { stillSince: number }
 interface ProjectNudge { key: string; text: string; at: number; takenBy: Set<string> }
 
 const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
-/** The reason a delivery queue gives when its `beforeWrite` gate refused the write (`deliveryQueue.ts`). */
-const WRITE_GATE_REFUSED = 'write_gate_refused'
 
 export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   const ops = deps.ops ?? opsSink
@@ -210,37 +200,15 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     for (const [key, at] of told) if (!decided.told.has(key) && blind.has(kindOf(key))) decided.told.set(key, at)
     told = decided.told
     dropStale(new Set(findings.map((f) => f.key)), blind)
-    const activityAt = new Map((terminals ?? []).map((t) => [t.sessionId, t.lastActivityAt]))
-
-    let delivered = 0
     let queued = 0
     for (const f of decided.tell) {
       const text = nudgeText(f)
       // A lapsed claim's session has ended: there is nobody to wake but the project's other agents.
       const own = f.kind === 'claim-lapsed' ? null : f.sessionId
-      // Round 2, R3: only a stalled terminal is typed into (its task running, the terminal itself quiet for
-      // TERMINAL_QUIET_MS, the write gated below). A line ending in Enter can land on a pending permission prompt, so
-      // every other finding, a silent claim of a Fabric terminal's session included, waits as that session's nudge.
-      if (own && f.kind === 'terminal-stalled' && deps.terminalRunning(own)) {
-        if (deps.quitting()) { told.delete(f.key); continue }
-        delivered++
-        // Finding 3: the line goes in only while the terminal is as the sweep read it. Output or typed input since
-        // means an agent or a person is at it: the write is refused and the finding is not told, so it stays
-        // eligible next sweep.
-        const readAt = activityAt.get(own) ?? deps.terminalActivity(own)
-        const beforeWrite = async (): Promise<boolean> => !deps.quitting() && deps.terminalActivity(own) === readAt
-        deps.deliver(own, text, { beforeWrite }).then(
-          (r) => {
-            if (r.state === 'written') return
-            if (r.reason === WRITE_GATE_REFUSED) {
-              if (told.get(f.key) === now) told.delete(f.key)
-              return
-            }
-            ops.failed('work.sweep-deliver', new Error(r.reason ?? r.state), { session_id: own, kind: f.kind, note: 'the line was not written into the terminal; the finding is told again after the quiet period' })
-          },
-          (e: unknown) => ops.failed('work.sweep-deliver', e, { session_id: own, kind: f.kind, note: 'the terminal write threw; the finding is told again after the quiet period' })
-        )
-      } else if (own) {
+      // 0.3.13 review, iteration 1, ER-2: nothing is ever typed into a terminal. A line ends in Enter, and a terminal
+      // quiet on a running task may be a coding agent waiting on a permission prompt, where Enter approves. A stalled
+      // terminal's finding waits as that session's nudge like every other, and the operator sees it in «На проверке».
+      if (own) {
         const lines = bySession.get(own) ?? new Map<string, string>()
         lines.delete(f.key)
         lines.set(f.key, text)
@@ -296,13 +264,15 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       }
     }
 
-    // SW-7: one journal receipt naming what this sweep found, and which reads stopped at their bounds; an idle sweep
-    // with nothing capped writes nothing. A receipt the journal refused is said in the ops log; the sweep stands.
+    // SW-7: one journal receipt of what this sweep did, counts only: written when it told an agent, released a claim,
+    // or read blind or capped; a sweep that found only what it had already told writes nothing (0.3.13 review,
+    // iteration 1, DA-2: one stuck item wrote a receipt every three minutes), nor one that runs into a quit (ER-5).
+    // A receipt the journal refused is said in the ops log; the sweep stands.
     const capped = [...(claimRead?.capped ? ['claims'] : []), ...(requestRead?.capped ?? [])]
-    if (findings.length || capped.length) {
+    if ((decided.tell.length || released || failedReads.length || capped.length) && !deps.quitting()) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
-      const receipt: SweptReceipt = { found, told: decided.tell.length, delivered, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
+      const receipt: SweptReceipt = { found, told: decided.tell.length, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
       try {
         await deps.recordSwept(receipt)
       } catch (e) {
@@ -320,7 +290,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         ...(latest?.findings ?? []).filter((f) => blind.has(f.kind) && !foundKeys.has(f.key))
       ]
     }
-    return { findings, told: decided.tell.length, delivered, queued, released, failedReads }
+    return { findings, told: decided.tell.length, queued, released, failedReads }
   }
 
   return {

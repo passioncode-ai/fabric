@@ -9,22 +9,28 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.13 (unreleased)
 
-**Upgrading.** This version moves the local database to schema 97 (one migration, `20261026000124_one_schema_step.sql`:
-0.3.13's one schema step). Take a backup first; 0.3.12 cannot open a schema-97 database, so going back is the backup
-with the 0.3.12 bundle. The order is the runbook's
-([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): quit Fabric, put the new
-bundle's migration in the stack folder, back up, rehearse the upgrade on a disposable stack, run
+**Upgrading.** This version moves the local database to schema 97 (one migration since 0.3.12,
+`20261026000124_one_schema_step.sql`). A 0.3.12 database (96) takes that one; a 0.3.11 database (95) takes 0.3.12's
+`20261023000123_project_profile.sql` too, in the same step. Take a backup first. Neither older build opens a schema-97
+database, so going back is the backup with the bundle you came from: 0.3.12 for a database that was at 96, 0.3.11 for
+one that was at 95. The order is the runbook's
+([upgrading an existing database](docs/launch/release-mac.md#upgrading-an-existing-database)): install the new bundle
+and start it once, so it writes its own migrations into the stack folder (never copy them by hand: an older build's
+start removes them), quit it with nothing allowed to reopen it, back up, rehearse the upgrade on a disposable stack, run
 `supabase migration up --local` in the stack folder, then open the new bundle. The migration also corrects rows an
 older build left: a folder held by two projects stays with the project that attached it first, each folder's kind
-follows whether it is the project's main one, a correction of an answer taken back stops counting as current, and a
-delivery and a run take their event's time. A development database that applied an early version of migration 115
-(between `cdc841f6` and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
+follows whether it is the project's main one, a correction of an answer taken back stops counting as current, an
+answered question gets back the answer it lost, a business an agent changed after the person set it returns to the
+person's, and a delivery and a run take their event's time. After going back, the folder trust switch is forgotten and
+folder trust is on again. A development database that applied an early version of migration 115 (between `cdc841f6`
+and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
 
 - **Abandoned work finds its agent.** Every three minutes Fabric looks for work nobody moves: a claim that went silent
   or whose session ended, a running task nobody holds, a board request nobody has taken, an answer nobody marked read,
-  a terminal stuck on a running task. The agent is told once per 30 minutes: in its next `fabric_work_list` or
-  `fabric_heartbeat` answer, or, for a stuck terminal Fabric runs, as one line in it. A claim whose session ended is
-  released after two sweeps when its task has no run still unresolved, and the task goes back to the queue when that
+  a terminal stuck on a running task. The agent is told once per 30 minutes, in its next `fabric_work_list` or
+  `fabric_heartbeat` answer; nothing is ever typed into a terminal, where Enter could answer a waiting prompt. What
+  stands still also shows in «На проверке», once per item, and leaves when it moves again. A claim whose session ended
+  is released after two sweeps when its task has no run still unresolved, and the task goes back to the queue when that
   claim had put it into work.
 - **Two new rules every agent reads.** Check your own work every three minutes and act on what Fabric points at first;
   a decision of the operator relayed with their own words and where they said it is the operator's, and is not asked
@@ -52,8 +58,25 @@ delivery and a run take their event's time. A development database that applied 
   business the person set) now also holds when the projects are rebuilt from the journal.
 - **Every project shows when it last moved.** «Тихо уже …» is read for each project from its own newest event, so a
   project quiet for longer than the estate's newest 3 000 events still says how long.
-- **The sweep of abandoned work leaves a receipt.** Each sweep that found something is recorded in the journal
-  (`work.swept@1`), so the every-three-minutes rule is observed rather than only advised.
+- **The sweep of abandoned work leaves a receipt.** A sweep that told an agent, released a claim or could not read
+  everything is recorded in the journal (`work.swept@1`, counts only), so the every-three-minutes rule is observed rather
+  than only advised.
+- **Агенты is a screen of agents.** The chosen agent sits in the centre with «Работа» (its task, project, what it does
+  and did) and «Консоль»; every agent is on the right, grouped as «Работают сейчас», «Ждут вас», «Простаивают» and
+  «Отключены», installed coding agents with no session included. A coding agent that joined from its own terminal is
+  disconnected or let back in from its «Работа».
+- **История can be narrowed and read whole.** «Кто», «Проект», «Что» and «Поиск» narrow the acts, and an act opens
+  beside the list with what it changed and whether it can be undone. A task the operator or Fabric released says so
+  instead of naming an agent.
+- **The operator's decision travels with a call.** An agent calling another product through Fabric's hub can carry
+  the operator's decision for one act or mandate for a task; the hub checks its shape, passes it on unchanged and
+  records whose words it was.
+- **The stack comes back when rest or kong is gone.** The stack watch reads the database, PostgREST and Kong, and a
+  database running without the other two is started again, which heals it, instead of waited for.
+- **Why a feed row does not open is said in your language.** The reason under a row that cannot be opened is in the
+  interface's language.
+- **Two more credential shapes are kept out of the journal.** An authorization field with no scheme word and a token
+  in a YAML block are redacted; quoted prose under such a name is left as it is.
 
 ## 0.3.12
 

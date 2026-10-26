@@ -7,6 +7,7 @@ import path from 'node:path'
 
 const { createAbandonedSweep, readBoardRequests, LAPSED_REASON } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
 const { registerWorkTools } = await import(path.resolve(import.meta.dirname, '../src/main/workTools.ts'))
+const { prepareEventPayload } = await import(path.resolve(import.meta.dirname, '../src/shared/commandIngress.ts'))
 
 const MIN = 60_000
 const T0 = Date.parse('2026-10-26T12:00:00Z')
@@ -89,33 +90,27 @@ test('(a) passes 1 and 2 sweep nothing; pass 3 sweeps', async () => {
   assert.ok(third, 'pass 3 sweeps')
   assert.deepEqual(third.findings.map((f) => f.kind), ['terminal-stalled'])
   await new Promise((r) => setImmediate(r))
-  assert.equal(w.delivered.length, 1)
+  assert.equal(sweep.takeNudges('s-term', 'p1').length, 1)
 })
 
-test('(b) a stalled Fabric terminal is written into once, and not again within 30 minutes', async () => {
+test('ER-2: a stalled Fabric terminal is never typed into; its finding waits as a nudge, told once in 30 minutes', async () => {
+  // 0.3.13 review, iteration 1, ER-2: the line ended in Enter, and a terminal quiet on a running task may be a coding
+  // agent waiting on a permission prompt, where Enter approves.
   const w = stalledWorld()
   w.activity.set('s-term', T0 - 20 * MIN)
   const sweep = createAbandonedSweep(w.deps)
   const settle = () => new Promise((r) => setImmediate(r))
   await sweepOnce(sweep); await settle()
-  assert.equal(w.delivered.length, 1)
-  assert.equal(w.delivered[0].sessionId, 's-term')
-  assert.match(w.delivered[0].text, /^Fabric: task t-run in this session has been still for \d+ min\./)
+  assert.equal(w.delivered.length + w.refused.length, 0, 'nothing reached the terminal')
+  const lines = sweep.takeNudges('s-term', 'p1')
+  assert.equal(lines.length, 1)
+  assert.match(lines[0], /^Fabric: task t-run in this session has been still for 20 min\./)
   for (let i = 0; i < 9; i++) { w.tick(3 * MIN); await sweepOnce(sweep); await settle() }
-  assert.equal(w.delivered.length, 1, 'nine more sweeps inside 30 minutes tell nothing again')
+  assert.deepEqual(sweep.takeNudges('s-term', 'p1'), [], 'nine more sweeps inside 30 minutes tell nothing again')
   w.tick(30 * MIN)
   await sweepOnce(sweep); await settle()
-  assert.equal(w.delivered.length, 2, 'past the quiet period it is told again')
-  assert.deepEqual(sweep.takeNudges('s-term', 'p1'), [], 'a terminal finding is written into the terminal, not queued')
-})
-
-test('(b) a terminal write that fails is reported, and the sweep goes on', async () => {
-  const w = stalledWorld()
-  w.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'session_closed' })
-  const sweep = createAbandonedSweep(w.deps)
-  await sweepOnce(sweep)
-  await new Promise((r) => setImmediate(r))
-  assert.ok(w.failed.some((f) => f.op === 'work.sweep-deliver' && /session_closed/.test(f.message)))
+  assert.equal(sweep.takeNudges('s-term', 'p1').length, 1, 'past the quiet period it is told again')
+  assert.equal(w.delivered.length, 0)
 })
 
 test('(c) a finding for an enrolled session lands in its nudges, and taking them clears them', async () => {
@@ -219,9 +214,30 @@ test('(f) SW-7: an idle sweep writes no receipt; a sweep that found something ap
   assert.equal('capped' in w.receipts[0], false, 'nothing capped, no field')
   assert.equal(w.receipts[0].told, 1)
   assert.equal(w.receipts[0].released, 0)
-  assert.equal(w.receipts[0].delivered, 0)
+  assert.equal('delivered' in w.receipts[0], false, 'nothing is ever typed into a terminal (ER-2)')
   assert.equal(w.receipts[0].queued, 1)
   assert.deepEqual(w.records, [], 'the journal holds the receipt, not the ops log')
+  // DA-1: the app's journal takes it only through the ingress rules; a refused shape never reaches it.
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared')
+  assert.equal(prepareEventPayload('work.swept@1', { ...w.receipts[0], title: 'x' }).state, 'rejected')
+})
+
+test('DA-2: a sweep that finds only what it has already told writes no receipt', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(w.receipts.length, 1, 'the first telling is recorded')
+  for (let i = 0; i < 5; i++) { w.tick(3 * MIN); await sweepOnce(sweep) }
+  assert.equal(w.receipts.length, 1, 'the same stuck item does not write a receipt every three minutes')
+})
+
+test('ER-5: a sweep that runs into a quit writes no receipt', async () => {
+  const w = world({ claims: [lapsedClaim('c1')] })
+  const read = w.deps.readRequests
+  w.deps.readRequests = async (now) => { const r = await read(now); w.quit = true; return r }
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(w.receipts, [])
 })
 
 test('(f) SW-7: a receipt the journal refused is said in the ops log, and the sweep still answers', async () => {
@@ -404,26 +420,6 @@ test('finding 3: a terminal whose task is in review is not called stalled', asyn
   const sweep = createAbandonedSweep(w.deps)
   const out = await sweepOnce(sweep)
   assert.deepEqual(out.findings, [])
-})
-
-test('finding 3: output between the read and the write refuses the write, and the finding stays eligible', async () => {
-  const w = world({ tasks: [runningTask()], held: ['t-run'], terminals: [stalledTerm()], running: new Set(['s-term']) })
-  w.activity.set('s-term', T0 - 20 * MIN)
-  const sweep = createAbandonedSweep(w.deps)
-  const realTerminals = w.deps.terminals
-  w.deps.terminals = () => { const t = realTerminals(); w.activity.set('s-term', T0); return t }
-  const out = await sweepOnce(sweep)
-  await settle()
-  assert.deepEqual(out.findings.map((f) => f.kind), ['terminal-stalled'])
-  assert.equal(w.delivered.length, 0, 'the gate refused: nothing written')
-  assert.equal(w.refused.length, 1)
-  assert.equal(w.failed.filter((f) => f.op === 'work.sweep-deliver').length, 0, 'a refused gate is not a failure')
-  w.deps.terminals = realTerminals
-  w.activity.set('s-term', T0 - 20 * MIN)
-  w.tick(3 * MIN)
-  await sweepOnce(sweep)
-  await settle()
-  assert.equal(w.delivered.length, 1, 'not told, so the next sweep tells it')
 })
 
 test('finding 6: a capped claims read judges no task unclaimed', async () => {

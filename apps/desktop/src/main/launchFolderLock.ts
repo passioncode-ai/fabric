@@ -43,4 +43,9 @@ export function createFolderLocks(deps: { running(sessionId: string): boolean })
 export const FOLDER_HELD_SAYS =
   'An earlier coding agent in this project folder may still be running: its launch did not finish setting up, and Fabric has not seen it end. ' +
   'No second agent starts here until it has. Open its console and stop it, then start again.'
+/** A held folder could not be checked because the task's project did not read (0.3.13 review ER-7): said as that, not
+ *  as an agent that may still be running, which may not exist. */
+export const FOLDER_UNREAD_SAYS =
+  'Fabric could not read which project this task belongs to, so it cannot tell whether an earlier agent still works in its folder. ' +
+  'Nothing was started. Try again in a moment.'
 // #endregion launch-folder-lock

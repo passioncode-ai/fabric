@@ -1383,7 +1383,7 @@ export const en = {
   'event.agent.registered@1': 'an agent was registered',
   'event.agent.stage.reported@1': 'an agent reported its stage: its own claim',
   'event.project.profiled@1': "a project's profile was recorded: its goal, summary, business, plan or relations",
-  'event.work.swept@1': 'the sweep of abandoned work found something and pointed its agents at the next step',
+  'event.work.swept@1': 'the sweep of abandoned work recorded what it found and what it did',
   'event.session.oriented@1': 'a session read the rules it works under',
   'event.terminal.opened@1': 'a session was opened',
   'event.session.enrolled@1': 'a coding agent opened outside Fabric joined the project',

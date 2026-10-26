@@ -324,3 +324,11 @@ describe('the edges CO-222 left (DA-6, ER-5)', () => {
       expect(redact(keep).text, keep).toBe(keep)
   })
 })
+
+// 0.3.13 review, iteration 1, ER-6: quoted prose under a credential-shaped name is not a credential.
+describe('quoted prose is left alone (ER-6)', () => {
+  it('keeps a quoted sentence under Password, api_key or Authorization', () => {
+    for (const keep of ['Password: "must be at least 12 characters"', "  api_key: 'see the vault entry'", '{"authorization": "required for every call"}'])
+      expect(redact(keep).text, keep).toBe(keep)
+  })
+})

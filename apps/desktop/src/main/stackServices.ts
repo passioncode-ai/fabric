@@ -88,4 +88,10 @@ export async function stackContainers(projectId: string, docker: (args: string[]
   const servicesUp = CALLED.filter((c) => c !== 'db').every((c) => containerStateFrom(state.get(`supabase_${c}_${projectId}`) ?? '') === 'running')
   return servicesUp ? 'running' : 'partial'
 }
+
+/** Containers gone after Fabric's own heal stopped the stack are Fabric's to start again, never a stop the operator made
+ *  (0.3.13 review ER-3): `absent` reads as `stopped`, which a try starts. */
+export function afterOwnStop(containers: import('../shared/stackWatch.ts').StackContainers, stoppedByHeal: boolean): import('../shared/stackWatch.ts').StackContainers {
+  return stoppedByHeal && containers === 'absent' ? 'stopped' : containers
+}
 // #endregion stack-database-container

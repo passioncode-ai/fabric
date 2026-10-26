@@ -191,6 +191,16 @@ const EVENT_FIELDS: Record<string, Fields> = {
   'work.renewed@1': { work: required(uuid), owner: required(uuid), expires_at: required(timestamp), claim_id: optional(uuid), ...metadata },
   'work.handover.requested@1': { claim_id: required(uuid), work: required(uuid), requested_by: required(uuid),
     note: optional(nullable(text)), ...metadata },
+  // The sweep of abandoned work's receipt (0.3.13, CO-427 SW-7; `main/abandonedSweepRun.ts#SweptReceipt`): counts by
+  // kind and the names of the reads that failed or stopped at their bounds, never a title, a body or an id (the 0.3.13
+  // review, iteration 1, DA-1: without these rules the app's journal refused every receipt).
+  'work.swept@1': {
+    found: required(object(Object.fromEntries(['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled']
+      .map((k) => [k, optional(integer(0))])))),
+    told: required(integer(0)), queued: required(integer(0)), released: required(integer(0)),
+    unread: optional(list(enumeration(['claims', 'tasks', 'requests', 'terminals']))),
+    capped: optional(list(reference)), ...metadata
+  },
   // A turn's facts from the working-with-fabric hooks (D4): ids and counts, no path and no content.
   'session.turn.observed@1': { session_id: required(uuid), runtime: required(reference), runtime_session_id: required(reference),
     observed_at: required(timestamp), head: optional(nullable(reference)), files_changed: optional(nullable(integer(0))),

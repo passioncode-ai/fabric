@@ -13,7 +13,7 @@ open in CO-080.
 
 **Amended 2026-08-26 by ADR-0012.** This file remains Fabric's product-level design.
 The normative cross-repository objects, profiles and conformance rules are owned by
-[`Fabric Agent Contract 0.1.0`](https://github.com/passioncode-ai/fabric-agent-contract/tree/74d3852f122f5ca5cbc4138a201483531dfa5006).
+[`Fabric Agent Contract 0.1.0`](https://github.com/passioncode-ai/fabric-agent-contract/tree/39c8977380f0b37b7705f1416590c0211fccbe63).
 Where this proposal differs from that pinned revision, the contract owns provider
 compatibility and this file owns only how Fabric consumes it.
 

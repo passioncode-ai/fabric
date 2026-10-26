@@ -79,3 +79,19 @@ here.
   server, and A-3 keeps servers from certifying administrators); a cross-check of roles at every reader (pairwise
   subjects make it impossible without linking, CX-22); recovery of the root by a server or by the administrators'
   credentials (either would become the organization's authority).
+
+## Amendment 1 (2026-10-26): what this record changes in ADR-0178
+
+The status line above says ADR-0178's points 1 to 7 are unchanged. That is wrong for point 7 and the second half of
+point 5 (the 0.3.13 release review, iteration 1, DO-6): ADR-0178 has a project leave by a revision of the member's
+estate that an administrator's passkey signs; decision 2 above replaces that with an administrator's release statement
+outside the estate and a revision the person's own passkey signs, and the release takes effect on receipt rather than
+once a revision is signed. ADR-0178's points 1 to 4 and 6 and the first half of point 5 (a project enters by its
+person's passkey alone) are unchanged. The contract files this shape as CT-159 (board thread `115ef7fb`, message
+`65923019`).
+
+ADR-0178's Context cites Vesta ADR-0004 and ADR-0005 for "Vesta drafts and signs `org-authority/1`" and its last
+paragraph rejects Vesta as signer (DO-15). Both stand as written: Vesta's ADRs say Vesta signs, and DEC-0129 (OL-2)
+decided that no server signs a member list, the drafting one included. Changing Vesta's ADRs is Vesta's; DEC-0129 and
+this record are what Fabric builds to.
+

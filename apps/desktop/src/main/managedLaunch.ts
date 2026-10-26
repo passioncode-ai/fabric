@@ -8,7 +8,7 @@ import type { ContinuationResult } from './continuationDelivery.ts'
 import { continuationDeliveryId } from './continuationDelivery.ts'
 import { LaunchRefusedBeforeSpawn, ProcessLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
-import { FOLDER_HELD_SAYS } from './launchFolderLock.ts'
+import { FOLDER_HELD_SAYS, FOLDER_UNREAD_SAYS } from './launchFolderLock.ts'
 import { causeOf } from '../shared/opsLog.ts'
 import type { ManagedResourceLaunch } from './resourceLaunchAdapter.ts'
 import type { ManagedUnits, ManagedUnitHandle } from './resourceManagedUnit.ts'
@@ -44,7 +44,8 @@ export interface ManagedLaunchDeps {
   dispatch(taskId: string, runId: string, sessionId: string, deliveryId: string, text: string): Promise<ContinuationResult>
   /** CO-236: the project folder of a launch whose outcome is unknown stays held while its process runs
    *  (launchFolderLock.ts). `held` is asked before admission, so a refused launch records nothing. */
-  folder?: { held(taskId: string): Promise<boolean>; lock(projectId: string, sessionId: string): void }
+  /** `'unread'`: the task's project did not read, so whether its folder is held is unknown (ER-7). */
+  folder?: { held(taskId: string): Promise<boolean | 'unread'>; lock(projectId: string, sessionId: string): void }
 }
 // #region managed-resource-preparation — docs: docs/execution/harness-waves/resource-launch-adapter.md#contract
 export function createManagedLaunch(deps: ManagedLaunchDeps) {
@@ -73,7 +74,9 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
     try {
     try {
       // #region launch-folder-held — docs: docs/evidence/plans/2026-10-11-release-040-agents-first.md#c1--harness-one-session-surface-three-ways-in
-      if (deps.folder && await deps.folder.held(input.taskId)) return failure('folder_held', FOLDER_HELD_SAYS)
+      const folderHeld = deps.folder ? await deps.folder.held(input.taskId) : false
+      if (folderHeld === 'unread') return failure('folder_unread', FOLDER_UNREAD_SAYS)
+      if (folderHeld) return failure('folder_held', FOLDER_HELD_SAYS)
       // #endregion launch-folder-held
       if (resources) {
         if (!units || units.resources !== resources) return failure('resource_unit_dependency_required', 'The managed resource unit could not be established. Nothing was admitted.')

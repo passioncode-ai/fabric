@@ -46,4 +46,15 @@ export async function resolveHealingHalfUp<T>(deps: HalfUpDeps<T>): Promise<T> {
     }
   }
 }
+
+/**
+ * One recovery try, then the heal (0.3.13 review, iteration 1, ER-1): the heal runs whatever the start answered, since
+ * Supabase CLI 2.114 exits 0 against a stack that is already up, so a «started» try says nothing about rest and auth.
+ * Nothing is healed once Fabric is quitting.
+ */
+export async function recoverThenHeal<T>(start: () => Promise<T>, heal: () => Promise<unknown>, quitting: () => boolean): Promise<T> {
+  const result = await start()
+  if (!quitting()) await heal()
+  return result
+}
 // #endregion stack-half-up
