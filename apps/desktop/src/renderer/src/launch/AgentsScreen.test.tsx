@@ -70,7 +70,7 @@ describe('the roster (agentRoster.composeRoster)', () => {
   it('groups by state: a console waiting on the person, a silent one, an installed one free, the ones that cannot start off', () => {
     const r = composeRoster({
       live: [working, { ...joinedLive, stale: true }],
-      sessions: [session({}), session({ sessionId: 's3', state: 'idle', optionId: 'kimi-code' }), session({ sessionId: 's4', state: 'ended', optionId: 'shell' })],
+      sessions: [session({}), session({ sessionId: 's3', state: 'idle', optionId: 'kimi-code' }), session({ sessionId: 's4', state: 'ended', optionId: 'kilo' })],
       projects, executors, catalog: null, hub: hub()
     })
     expect(r.working.map((x) => x.key)).toEqual(['session:s1'])
@@ -83,6 +83,19 @@ describe('the roster (agentRoster.composeRoster)', () => {
     const waiting = composeRoster({ live: [working], sessions: [session({ state: 'idle' })], projects, executors: [], catalog: null, hub: null })
     expect(waiting.waiting.map((x) => x.key)).toEqual(['session:s1'])
     expect(waiting.working).toEqual([])
+  })
+
+  // 0.3.13 review, iteration 1, UX-3: a plain shell is a console, not an agent, and a minute of silence is only silence.
+  it('leaves a plain shell out, and dates a quiet console by its last output, not by the agent\'s last sign', () => {
+    const quietSince = new Date(Date.now() - 600_000).toISOString()
+    const r = composeRoster({
+      live: [{ ...working, sessionId: 's9', agent: 'shell' }, working],
+      sessions: [session({ sessionId: 's7', optionId: 'shell', state: 'idle' }), session({ sessionId: 's9', optionId: 'shell', state: 'idle' }),
+        session({ state: 'idle', lastActivityAt: quietSince })],
+      projects, executors: [], catalog: null, hub: null
+    })
+    expect(Object.values(r).flat().map((x) => x.key)).toEqual(['session:s1'])
+    expect(r.waiting[0].heardAt).toBe(quietSince)
   })
 
   it('a joined agent with no session is idle and still carries «Отключить»; a disconnected one is off', () => {
@@ -181,6 +194,53 @@ describe('Агенты (CO-419)', () => {
     api.work.home.mockImplementation(async () => ({ live: [working], inWork: [], review: [], done: [], projects: [], readAt: now }))
     fireEvent.click(screen.getAllByRole('button', { name: en['common.retry'] })[0])
     await within(group('working')).findByText('Claude Code')
+  })
+
+  // 0.3.13 review, iteration 1, UX-1: a failed read is never «no agent found», and it can be read again.
+  it('a failed read of the installed agents never says no agent was found, and «Повторить» reads them again', async () => {
+    let fail = true
+    const api = stub({
+      home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }),
+      overview: async () => hub({ agents: [] }),
+      exec: async () => { if (fail) throw new Error('spawn ENOENT'); return executors }
+    })
+    show([])
+    await screen.findByText(en['agentsPlace.installedUnread'])
+    expect(screen.queryByText(en['agentsPlace.empty'])).toBeNull()
+    // The groups it feeds say they are not known, never that they are empty.
+    expect(within(group('idle')).queryByText(en['agentsPlace.groupEmpty.idle'])).toBeNull()
+    expect(within(group('off')).getByText(en['agentsPlace.groupUnread'])).toBeTruthy()
+    fail = false
+    fireEvent.click(screen.getByRole('button', { name: en['common.retry'] }))
+    expect(await within(group('idle')).findByText('Kimi Code')).toBeTruthy()
+    expect(api.start.executors).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText(en['agentsPlace.installedUnread'])).toBeNull()
+  })
+
+  // 0.3.13 review, iteration 1, UX-2: a group whose reads are still out says it is reading, never that it is empty.
+  it('a group is called empty only once the reads that fill it have answered', async () => {
+    stub({ home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }), overview: () => new Promise(() => {}), exec: () => new Promise(() => {}) })
+    show([])
+    await waitFor(() => within(group('working')).getByText(en['agentsPlace.groupEmpty.working']))
+    expect(within(group('waiting')).getByText(en['agentsPlace.groupEmpty.waiting'])).toBeTruthy()
+    for (const g of ['idle', 'off'] as const) {
+      expect(within(group(g)).queryByText(en[`agentsPlace.groupEmpty.${g}`])).toBeNull()
+      expect(within(group(g)).getByText(en['agentsPlace.groupReading'])).toBeTruthy()
+    }
+  })
+
+  // 0.3.13 review, iteration 1, UX-3: a shell at its prompt is not listed; a quiet agent console says what is observed.
+  it('a quiet console says it has printed nothing and that the agent may be waiting, never that it waits', async () => {
+    const quietSince = new Date(Date.now() - 600_000).toISOString()
+    stub({ home: async () => ({ live: [], inWork: [], review: [], done: [], projects: [], readAt: now }), overview: async () => hub({ agents: [] }), exec: async () => [] })
+    show([session({ sessionId: 's7', optionId: 'shell', program: 'zsh', state: 'idle', lastActivityAt: quietSince }), session({ state: 'idle', lastActivityAt: quietSince })])
+    const row = (await within(group('waiting')).findByText('Claude Code')).closest('button')!
+    const silent = en['agentsPlace.line.silent'].replace('{time}', '10m')
+    expect(row.textContent).toContain(silent)
+    expect(row.textContent).toContain(en['agentsPlace.state.waiting'])
+    expect(screen.queryByText('Terminal')).toBeNull()
+    fireEvent.click(row)
+    expect(await screen.findAllByText(silent)).toHaveLength(2)
   })
 
   it('«Создать агента» opens «Создать» on its agent path', async () => {

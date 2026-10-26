@@ -5,7 +5,13 @@
  * A settings read that names nothing keeps the default, which is on (the operator, 2026-10-19).
  */
 export function trustsAgentFolders(s: { trustAgentFolders?: boolean } | null, env: Readonly<Record<string, string | undefined>>): boolean {
-  if (env.FABRIC_TRUST_AGENT_FOLDERS === '0') return false
+  if (folderTrustOverridden(env)) return false
   return s?.trustAgentFolders !== false
+}
+
+/** Whether the environment keeps folder trust off whatever the switch says: Settings then shows the switch off and says
+ *  why (0.3.13 review, iteration 1, UX-9). */
+export function folderTrustOverridden(env: Readonly<Record<string, string | undefined>>): boolean {
+  return env.FABRIC_TRUST_AGENT_FOLDERS === '0'
 }
 // #endregion folder-trust-setting

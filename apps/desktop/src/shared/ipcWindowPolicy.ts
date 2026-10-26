@@ -154,6 +154,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   settingsWrite: MAIN_ONLY,
   settingsAgentCatalog: MAIN_ONLY,
   settingsLoginItem: MAIN_ONLY,
+  settingsFolderTrustLocked: MAIN_ONLY,
   settingsClaudeInbound: MAIN_ONLY,
   settingsSetClaudeInbound: MAIN_ONLY,
   settingsReadiness: MAIN_ONLY,

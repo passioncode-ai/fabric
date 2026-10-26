@@ -125,6 +125,20 @@ describe('«Что делали агенты» reads as History (CO-395)', () =>
   })
 })
 
+// 0.3.13 review, iteration 1, UX-10: a row of «Что делали агенты» that opens nothing says why where a keyboard and a
+// screen reader reach it, never only in a tooltip and never with the event's machine type.
+describe('«Что делали агенты» says why a row opens nothing', () => {
+  it('shows the reason in the row and no event type anywhere a person reads', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 5, type: 'agent.heartbeat@1', actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: new Date().toISOString(), payload: { session: 's1' } }]
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed as never} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} onOpen={vi.fn()} /></I18nProvider>)
+    await screen.findByRole('heading', { name: en['acts.agentsTitle'] })
+    const list = document.querySelector('.hx-agents')!
+    expect(list.textContent).toContain(en['journal.whyUndeclared'])
+    expect(list.innerHTML).not.toContain('agent.heartbeat@1')
+  })
+})
+
 describe('История while only the projects fail (CO-405)', () => {
   it('shows the journal\'s rows without project names instead of «reading» for as long as the projects keep failing', async () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
@@ -244,5 +258,64 @@ describe('История filters and the act in full (CO-414)', () => {
     expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't9' })
     fireEvent.click(within(pane).getByRole('button', { name: en['acts.detail.close'] }))
     await waitFor(() => expect(screen.queryByRole('region', { name: sentence })).toBeNull())
+  })
+
+  // 0.3.13 review, iteration 1, UX-4: a filter shows only what was read under it.
+  it('a new filter shows «reading», never the last filter\'s rows; a failed read under it keeps nothing read under another', async () => {
+    let answer: (v: { rows: ActView[]; next: number | null }) => void = () => {}
+    const atlas = new Promise<{ rows: ActView[]; next: number | null }>((r) => { answer = r })
+    const history = vi.fn()
+      .mockResolvedValueOnce({ rows: [row(12, { projectId: 'p2' })], next: null })
+      .mockReturnValueOnce(atlas)
+      .mockRejectedValueOnce(new Error('db refused'))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history, undo: vi.fn() } } }))
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }, { id: 'p2', name: 'Borealis' }]} mark={0} /></I18nProvider>)
+    await screen.findByRole('list', { name: en['acts.list'] })
+    fireEvent.change(select(en['acts.filter.project']), { target: { value: 'p1' } })
+    // While Atlas is read, Borealis's act is not shown under the Atlas filter.
+    expect(await screen.findByText(en['acts.reading'])).toBeTruthy()
+    expect(screen.queryByRole('list', { name: en['acts.list'] })).toBeNull()
+    answer({ rows: [row(11, { projectId: 'p1' })], next: null })
+    const list = await screen.findByRole('list', { name: en['acts.list'] })
+    expect(list.textContent).toContain('Atlas')
+    // Narrowed to Fabric's acts, and that read fails: Atlas's rows of every actor are not «Fabric's acts as they were».
+    fireEvent.change(select(en['acts.filter.who']), { target: { value: 'system' } })
+    expect(await screen.findByText(en['acts.failed'])).toBeTruthy()
+    expect(screen.queryByRole('list', { name: en['acts.list'] })).toBeNull()
+    expect(screen.queryByText(en['acts.stale'].replace('{time}', ''), { exact: false })).toBeNull()
+  })
+
+  // 0.3.13 review, iteration 1, UX-5: the pane says nothing about a list that does not hold the undoing act, and its
+  // label is a question, not a button that is not there.
+  it('an act undone by one not in the list says «a later act», never «higher in the list»; the label is not «Undo»', async () => {
+    mount([{ rows: [row(10, { undo: { state: 'undone', by: 40 } })], next: null }])
+    const item = within(await screen.findByRole('list', { name: en['acts.list'] })).getAllByRole('listitem')[0]
+    fireEvent.click(within(item).getByRole('button', { name: /fabric/ }))
+    const pane = await screen.findByRole('region')
+    expect(pane.textContent).toContain(en['acts.detail.undoneLater'])
+    expect(en['acts.detail.undoneLater']).not.toMatch(/higher/)
+    const terms = Array.from(pane.querySelectorAll('dt')).map((d) => d.textContent)
+    expect(terms).not.toContain(en['act.undo'])
+    expect(terms).toContain(en['acts.detail.undo'])
+  })
+
+  // 0.3.13 review, iteration 1, UX-6: closing the pane returns the person to the row that opened it; opening it brings
+  // it into view (under 850 px it sits below the list).
+  it('«Закрыть» returns focus to the act\'s sentence, and the pane is scrolled into view when it opens', async () => {
+    const scrolled = vi.fn()
+    const was = HTMLElement.prototype.scrollIntoView
+    HTMLElement.prototype.scrollIntoView = scrolled
+    try {
+      mount([{ rows: [row(12), row(10)], next: null }])
+      const item = within(await screen.findByRole('list', { name: en['acts.list'] })).getAllByRole('listitem')[1]
+      const opener = within(item).getByRole('button', { name: /fabric/ })
+      fireEvent.click(opener)
+      const pane = await screen.findByRole('region')
+      await waitFor(() => expect(scrolled).toHaveBeenCalled())
+      fireEvent.click(within(pane).getByRole('button', { name: en['acts.detail.close'] }))
+      await waitFor(() => expect(document.activeElement).toBe(within(item).getByRole('button', { name: /fabric/ })))
+    } finally {
+      HTMLElement.prototype.scrollIntoView = was
+    }
   })
 })

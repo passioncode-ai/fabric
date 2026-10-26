@@ -22,8 +22,9 @@ export type AgentGroup = (typeof AGENT_GROUPS)[number]
 
 /**
  * What a row says it is, in one word the screen translates:
- * working (it signs and its console, if any, produces), waiting (Fabric's console stopped and waits for the person),
- * quiet (it stopped signing: «давно не отзывался»), ended (its console ended and is still held), free (installed, no
+ * working (it signs and its console, if any, produces), waiting (Fabric's console has printed nothing for a minute:
+ * observed silence, which may or may not be the agent waiting for the person; no runner reports that it waits, so the
+ * screen says the silence and the possibility, never that it waits, 0.3.13 review, iteration 1, UX-3), quiet (it stopped signing: «давно не отзывался»), ended (its console ended and is still held), free (installed, no
  * session), joined (joined from a terminal, no session now), out (the person disconnected it), signin (installed, not
  * signed in), missing (not installed), unresponsive (installed, did not answer).
  */
@@ -81,6 +82,11 @@ export interface RosterInput {
 
 export type Roster = Record<AgentGroup, RosterRow[]>
 
+/** The launch option of a plain login shell (`shared/agents.ts`, «Терминал»): a console, not an agent. Агенты lists
+ *  agents, so a shell is left out: a shell at its prompt is not an agent waiting for the person (0.3.13 review,
+ *  iteration 1, UX-3). Its console stays one press away along the top. */
+export const PLAIN_SHELL = 'shell'
+
 const blank = (over: Partial<RosterRow> & Pick<RosterRow, 'key' | 'state'>): RosterRow => ({
   group: GROUP_OF[over.state], runner: null, name: null, projectId: null, projectName: null, projectNames: [], sessionId: null,
   console: false, live: null, task: null, doing: null, heardAt: null, joinedAgentId: null, outSince: null, version: null,
@@ -112,19 +118,22 @@ export function composeRoster(input: RosterInput): Roster {
 
   for (const l of input.live ?? []) {
     const held = input.sessions?.find((s) => s.sessionId === l.sessionId) ?? null
+    seenSessions.add(l.sessionId)
+    if (held?.optionId === PLAIN_SHELL || l.agent === PLAIN_SHELL) continue
     const state: AgentState = held?.state === 'ended' ? 'ended' : held?.state === 'idle' ? 'waiting' : l.stale ? 'quiet' : 'working'
     const joinedId = !l.console && l.agent && joined.has(l.agent) ? l.agent : null
-    seenSessions.add(l.sessionId)
     rows.push(blank({
       key: `session:${l.sessionId}`, state, runner: l.agent, projectId: l.projectId, projectName: l.projectName ?? nameOf(l.projectId),
       sessionId: l.sessionId, console: l.console || held !== null, live: l, task: l.task, doing: l.doing,
-      heardAt: l.lastSignAt ?? l.startedAt, joinedAgentId: joinedId
+      // A quiet console is dated by its last output: «молчит 10 мин» counts the console's silence (UX-3).
+      heardAt: state === 'waiting' && held ? held.lastActivityAt : (l.lastSignAt ?? l.startedAt), joinedAgentId: joinedId
     }))
   }
   // A console Fabric holds that `work.home` does not list (it ended, or the reading is out): its own row, never none.
   for (const s of input.sessions ?? []) {
     if (seenSessions.has(s.sessionId)) continue
     seenSessions.add(s.sessionId)
+    if (s.optionId === PLAIN_SHELL) continue
     const state: AgentState = s.state === 'ended' ? 'ended' : s.state === 'idle' ? 'waiting' : 'working'
     rows.push(blank({
       key: `session:${s.sessionId}`, state, runner: s.optionId, projectId: s.projectId, projectName: nameOf(s.projectId),

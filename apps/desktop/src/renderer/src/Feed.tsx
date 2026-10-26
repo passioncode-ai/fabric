@@ -62,13 +62,17 @@ export function Feed({
               </span>
             }
           >
-            {/* The sentence, never the identifier. `title` keeps the raw type
-                reachable for anyone debugging, without putting it on screen —
-                and when there is no act it carries the REASON, so "this row is
-                not a link" is answerable rather than merely observable. */}
-            <span title={'why' in act ? `${e.type}: ${act.why}` : e.type}>
+            {/* The sentence, never the identifier: the raw type stays in a data
+                attribute for anyone debugging, never in what a person reads. When
+                there is no act and the feed opens things, the row says WHY it is not
+                a link as text, so a keyboard or a screen reader reaches it too, not
+                only a pointer hovering a tooltip (0.3.13 review, iteration 1, UX-10). */}
+            <span data-event-type={e.type} title={'why' in act ? act.why : undefined}>
               {describeEvent(t, e.type)}
             </span>
+            {'why' in act && onOpen !== undefined && (
+              <small className={compact ? 'feed-why visually-hidden' : 'feed-why muted'}> {act.why}</small>
+            )}
             {!compact && <span className="muted"> {nameOf(e.project_id)}</span>}
           </Row>
         )

@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Feed } from './Feed'
 import { I18nProvider } from './i18n'
+import { ru } from './i18n/ru'
 import type { FeedEvent, ProjectRow } from '../../shared/types'
 
 afterEach(cleanup)
@@ -107,23 +108,32 @@ describe('an event with no project (0.3.11 review, iteration 2, UX-7)', () => {
   })
 })
 
-// CO-225 (5): a row that cannot be opened says why in the interface's language, in its tooltip, with no dash.
+// CO-225 (5): a row that cannot be opened says why in the interface's language, with no dash. 0.3.13 review, iteration
+// 1, UX-10: said where a keyboard and a screen reader reach it, not only in a tooltip, and without the machine's type.
 describe('the reason a row cannot be opened (CO-225 (5))', () => {
   const reasonOf = (e: FeedEvent, locale: 'en' | 'ru') => {
-    const { container } = render(<I18nProvider locale={locale}><Feed events={[e]} projects={[project()]} /></I18nProvider>)
-    return container.querySelector('[title]')?.getAttribute('title') ?? ''
+    const { container } = render(<I18nProvider locale={locale}><Feed events={[e]} projects={[project()]} onOpen={vi.fn()} /></I18nProvider>)
+    return container.querySelector('.feed-why')?.textContent?.trim() ?? ''
   }
 
-  it('says an unverified row in Russian when the interface is Russian, the raw type kept first for debugging', () => {
-    const title = reasonOf(event('agent.heartbeat@1', { session: 's1' }), 'ru')
-    expect(title.startsWith('agent.heartbeat@1: ')).toBe(true)
-    expect(title).not.toMatch(/verified|row/)
-    expect(title).not.toContain('—')
+  it('says an unverified row in Russian when the interface is Russian, as text a person reaches, with no event type', () => {
+    const said = reasonOf(event('agent.heartbeat@1', { session: 's1' }), 'ru')
+    expect(said).toBe(ru['journal.whyUndeclared'])
+    expect(said).not.toContain('—')
+    cleanup()
+    const { container } = render(<I18nProvider locale="ru"><Feed events={[event('agent.heartbeat@1', { session: 's1' })]} projects={[project()]} onOpen={vi.fn()} /></I18nProvider>)
+    for (const el of Array.from(container.querySelectorAll('[title]'))) expect(el.getAttribute('title')).not.toContain('agent.heartbeat@1')
+    expect(container.textContent).not.toContain('agent.heartbeat@1')
   })
 
-  it('says a row missing its key, and an unfocusable subject, in the interface language too', () => {
+  it('says a row missing its key, and an unfocusable subject, in the interface language too, without «lease»', () => {
     expect(reasonOf(event('task.created@1', { title: 'no id here' }), 'ru')).not.toMatch(/carry/)
-    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'ru')).not.toMatch(/lease holds/)
-    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'en')).toMatch(/This lease holds work that is not a task\./)
+    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'ru')).toBe(ru['journal.whyWorkNotTask'])
+    expect(reasonOf(event('work.claimed@1', { work: 'w-1' }), 'en')).toBe('An agent took work that is not a task.')
+  })
+
+  it('a feed with nowhere to open says no reason, since no row there is a link', () => {
+    const { container } = render(<I18nProvider locale="en"><Feed events={[event('agent.heartbeat@1', { session: 's1' })]} projects={[project()]} /></I18nProvider>)
+    expect(container.querySelector('.feed-why')).toBeNull()
   })
 })

@@ -57,7 +57,8 @@ import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
-import { translator, type Translate } from '../renderer/src/i18n/translate.ts'
+import { translator, type Locale, type Translate } from '../renderer/src/i18n/translate.ts'
+import { notifyLineOf } from '../renderer/src/attentionTitle.ts'
 import type { StringKey } from '../renderer/src/i18n/en.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
@@ -388,7 +389,7 @@ import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { settingsPatch, workingLanguageOfRead } from '../shared/appSettings.ts'
-import { trustsAgentFolders } from '../shared/folderTrust.ts'
+import { folderTrustOverridden, trustsAgentFolders } from '../shared/folderTrust.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
@@ -3814,11 +3815,16 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // surface saying "nothing is waiting" is a claim; a notifier saying
         // nothing is silence, which is what it does most passes anyway.
         const items = (await readAttentionWithSources(new Date().toISOString())).items
+        // Said in the interface's language, as the screens say it: a row with no title read is named in words and a
+        // finding of the sweep says why it was found, never an id (0.3.13 review, iteration 1, UX-7).
+        let noticeLocale: Locale = 'en'
+        try { noticeLocale = readSettings().locale } catch { /* English, as the startup dialog falls back */ }
+        const sayNotice = translator(noticeLocale)
         const d = decideNotification(
           // The OBLIGATION's key, not its subject's: a task in review whose
           // lease has also expired is two things waiting, and one key for both
           // would tell the operator about only the first of them, ever.
-          items.map((i) => ({ id: attentionKey(i), title: i.title, projectName: i.projectName })),
+          items.map((i) => ({ id: attentionKey(i), title: notifyLineOf(i, sayNotice, noticeLocale), projectName: i.projectName })),
           told,
           focused
         )
@@ -4896,6 +4902,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.settingsReadiness, (): Promise<Returns<FabricApi['settings']['readiness']>> => readFabricReadiness(sessionEnvironment(process.env)))
   // Read-only: whether launch at login is offered here, and what the system reports (0.3.7 review UX-3, ER-3).
   handle(IPC.settingsLoginItem, (): Returns<FabricApi['settings']['loginItem']> => readLoginItem())
+  // Read-only: whether the environment keeps folder trust off whatever the switch says (0.3.13 review, iteration 1, UX-9).
+  handle(IPC.settingsFolderTrustLocked, (): Returns<FabricApi['settings']['folderTrustLocked']> => folderTrustOverridden(process.env))
   handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
     // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
     const checked = settingsPatch(raw)
