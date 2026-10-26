@@ -1,10 +1,19 @@
 # Simple Fabric, v2: the detailed design after the operator's second review
 
-**Status:** design, not built · 2026-10-26 · follows [v1](2026-10-26-simple-fabric.md) and its
-[mockup](../reports/2026-10-26-simple-fabric/mockup.html) · release plan
-[0.3.14](../evidence/plans/2026-10-26-release-0314-plan.md) (P-28).
+**Status:** partly built in 0.3.14 · 2026-10-26 · follows [v1](2026-10-26-simple-fabric.md) and its
+[mockup](../reports/2026-10-26-simple-fabric/mockup.html) · release plans
+[0.3.14](../evidence/plans/2026-10-26-release-0314-plan.md) (P-28) and 0.3.15 (P-29, target 2026-11-05).
 
-This is a proposal for the operator to accept or correct. Like v1 it changes no scenario yet: the scenarios it touches
+**Settled 2026-10-26.** 0.3.14 built R-1 to R-7, R-12 and R-19 from this design
+([plan §Built: the simple Fabric](../evidence/plans/2026-10-26-release-0314-plan.md#built-the-simple-fabric-wave-4));
+R-24 was relayed by fabric-workspace (its `fbb79343`) and R-26, the move to Colima, is fabric-workspace's window. The
+rest, R-8 to R-11, R-13 to R-18 and R-20 to R-22, with «Вопросов к вам нет» (R-11's first group, which §6 below had
+put in 0.3.14), is 0.3.15 (P-29, 2026-11-05). The organization slice is named by its date, 2026-11-21 (P-27), never
+renumbered again, not «0.3.16» as §6, §8 and §9 below proposed. Where §4.2 described how a split is linked, the
+mechanism 0.3.14 ships is the one that section now states.
+
+What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2 and §8's
+announcement. Like v1 it changed no scenario: the scenarios it touches
 (SCN-140, SCN-158, SCN-166, SCN-172, SCN-173, SCN-174) are amended in the same change that builds each part
 (super-ux: scenarios first). Every Russian string below is a proposal; each is checked with Copylot (`copylot_check`,
 register `ui`, the project's voice) in the change that ships it.
@@ -299,9 +308,17 @@ Change: `InWorkCard` gains `aim: { text, from: 'goal' | 'plan' } | null`, compos
 The goal is the **root of the task's decomposition**. The decomposition already exists in the data:
 
 - `task_links (task_id, rel 'spawned', target_id)` means `task_id` was spawned from `target_id`
-  (`supabase/migrations/20260905000016_operating_surfaces.sql`); Fabric writes it itself whenever an agent working a
-  task creates another (`apps/desktop/src/main/agentSurface.ts`, the `link_tasks` call with `p_rel: 'spawned'`), and
-  `apps/desktop/src/main/chainAdvance.ts` reads the same map for a chain's provenance.
+  (`supabase/migrations/20260905000016_operating_surfaces.sql`), and
+  `apps/desktop/src/main/chainAdvance.ts` reads the same map for a chain's provenance. Fabric writes it itself when
+  an agent files a task with `fabric_task_create` (`apps/desktop/src/main/agentSurface.ts`, the `link_tasks` call
+  with `p_rel: 'spawned'`), from one parent (`apps/desktop/src/shared/spawnParent.ts#spawnParentOf`): the task Fabric
+  launched the session on, else, for a session that joined from its own terminal, enrolled or came through the hub,
+  the one task it holds a live claim on in that project. With no such claim, several, or a claims read that failed,
+  it links nothing and the answer says why (`spawned_from`, `spawned_from_why`); the agent may then link the piece
+  itself with `fabric_task_link {taskId: <piece>, rel: 'spawned', targetTaskId: <parent>}`, whose description states
+  that direction. (Corrected 2026-10-26, the 0.3.14 release review, iteration 2, PL-1, DA-1, DO-2: this section first
+  said Fabric links a piece whenever an agent working a task creates another, which held only for launched sessions,
+  `3648fd30`.)
 - `project_tasks.origin_kind` and `origin_ref` say why a task exists (`fabric_task_create`'s origin: observation,
   person, task, document, memory); `origin_kind = 'person'` is the operator's own ask. `assigned_by`, `goal_id`
   (`goals.title`) add to it.
@@ -322,9 +339,10 @@ What is missing:
    Fix without protocol: a rule in `fabric_whoami` (an ADVICE obligation in
    `apps/desktop/src/shared/protocolObligations.ts`, beside `claim.before-working`): «Claim the person's request as
    one task whose title is that request in one line (origin person); file each piece you split off with
-   fabric_task_create while that task is claimed, so Fabric links it as spawned». And the same sentence in the
-   adapter's `working-with-fabric` skill (ask, §8). Until agents follow it, a row with no root says «Цель не названа»
-   and the step line carries what is known.
+   fabric_task_create while that task is the one task you hold claimed in this project», so Fabric links the piece as
+   spawned from it (above). And the same sentence in the adapter's `working-with-fabric` skill (ask, §8). Until agents
+   follow it, a task with no link is its own root, so the row shows the current task itself as the goal; «Цель не
+   названа» is left for a row whose goal could not be found.
 2. **One extra read** in `readHome` (`apps/desktop/src/main/workRead.ts#readHome`): `task_links` for `rel = 'spawned'`
    among the projects at work, and the root tasks' titles. Bounded like the other reads; capped is named in `capped`.
 
@@ -471,6 +489,8 @@ the contract allows an optional branch and the adapter sends it (v1 open choice 
 
 ## 6. Phasing
 
+Settled 2026-10-26: 0.3.14 built items 1 to 5 and item 6's lanes; «Вопросов к вам нет» moved to 0.3.15. The next release is 0.3.15 (P-29, 2026-11-05) as recommended below, and the organization slice is named by its date, 2026-11-21 (P-27), not «0.3.16». In the table, ER-7's checked move goes with that slice's schema step (CO-461), and CO-456 needs no schema step and stays in 0.3.15; a terminal agent's branch (CO-459) is 0.3.15's only if the contract decides the turn's `branch` by then.
+
 **0.3.14 (2026-10-29), already on `release/0.3.14`:** the left column with the toggle and branches (`7f014ec0`), the six
 numbers under the face and chart (`374e21d7`), «В работе» by project (`68e1e726`), and, in the working tree, the
 agent screen with «Сейчас», tasks and the session card.
@@ -589,12 +609,17 @@ Drafts for the lead to post with `com.submit`; each is a request unless marked. 
 > window (steps in §7). (3) The operator asked that every PassionCode agent be told what to do: please relay the
 > announcement below to every project you steer.
 
-Announcement to relay (kind announcement, through fabric-workspace):
+Announcement to relay (kind announcement, through fabric-workspace; part (b) corrected 2026-10-26 by the 0.3.14 release
+review, iteration 2, DO-2, to the mechanism `3648fd30` ships, after the first wording promised a link Fabric made only
+for launched sessions):
 
 > From Fabric, on the operator's word of 2026-10-26 («Всем агентам PassionCode передай, что надо делать»): Fabric now
 > shows each agent's goal and its current step to the operator. To be seen correctly: (a) claim the person's request
 > as one task whose title is that request in one line; (b) file each piece you split off with fabric_task_create while
-> that task is claimed, so Fabric links it as spawned; (c) report your stage with step and of_steps; (d) send a
+> that task is the one task you hold claimed in the project: Fabric links it as spawned from that task (the answer's
+> spawned_from names it; with no claim or several, spawned_from_why says why, and you link it with fabric_task_link,
+> taskId the piece, targetTaskId the task it came from); without a link the operator sees your current task as your
+> goal; (c) report your stage with step and of_steps; (d) send a
 > heartbeat with phase waiting before you wait on a question; (e) read your project's board at start and answer
 > requests addressed to it. Nothing here is new protocol.
 
@@ -635,6 +660,9 @@ Announcement to relay (kind announcement, through fabric-workspace):
 > your machine section for memory and swap before it starts.
 
 ## 9. Open choices for the operator
+
+Settled 2026-10-26 (see the status above): choice 1 as 0.3.15 on 2026-11-05 with the organization slice named by its
+date, 2026-11-21, instead of «0.3.16»; choice 5 is fabric-workspace's window. The rest stay open for 0.3.15.
 
 1. **Numbering.** Default: the second half ships as 0.3.15 on 2026-11-05 and the organization slice becomes 0.3.16 on
    2026-11-21. Alternative: everything in 0.3.15 on 2026-11-21.

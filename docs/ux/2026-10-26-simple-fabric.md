@@ -3,9 +3,9 @@
 **Status:** built in 0.3.14, wave 4 ([plan](../evidence/plans/2026-10-26-release-0314-plan.md#built-the-simple-fabric-wave-4)), with the lead's defaults for the open choices · 2026-10-26 · plan row P-28 · mockup:
 [docs/reports/2026-10-26-simple-fabric/mockup.html](../reports/2026-10-26-simple-fabric/mockup.html)
 
-This is a proposal for the operator to accept or correct. It changes no scenario yet: once the open choices at the
-end are settled, SCN-158, SCN-166 and SCN-162 are amended and SCR-84, SCR-85 and SCR-87 rewritten in the same change
-that builds it (super-ux: scenarios first).
+This was the proposal the operator accepted with his review of the mockup; wave 4 settled its open choices with their
+defaults, amended SCN-158, SCN-166 and SCN-162 and rewrote SCR-84, SCR-85 and SCR-87 in the changes that built it
+(super-ux: scenarios first). Its second review is [v2](2026-10-26-simple-fabric-v2.md).
 
 ## The operator's words
 
