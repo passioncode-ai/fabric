@@ -117,6 +117,11 @@ export interface LaunchShellProps {
   restoreScroll?: boolean
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
   consoles?: React.ReactNode
+  /** Where the way back and forward can go (the operator's second review, 2026-10-26, R-7): the buttons are disabled,
+   *  never hidden, when there is nowhere to go. Absent, the top bar draws no travel buttons. */
+  travel?: { back: boolean; forward: boolean }
+  /** «Назад» and «Вперёд»: the same travel as ⌘[ and ⌘] (App.tsx). */
+  onTravel?(dir: 'back' | 'forward'): void
   children: React.ReactNode
 }
 
@@ -327,6 +332,21 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
       </aside>
       <div className="fab-main">
         <header className="fab-top">
+          {/* The operator's second review, 2026-10-26 (v2 §3.0, §4.4, R-7): visible back, forward and home, the same
+              travel as ⌘[ and ⌘]; SCN-162's «no Back of Fabric's own» (0.3.7) is amended. */}
+          {props.travel && (
+            <nav className="fab-travel" aria-label={t('nav.travel')}>
+              <button type="button" aria-label={t('nav.back')} title={t('nav.backKey')} disabled={!props.travel.back} onClick={() => props.onTravel?.('back')}>
+                <span aria-hidden="true">{t('glyph.travelBack')}</span>
+              </button>
+              <button type="button" aria-label={t('nav.forward')} title={t('nav.forwardKey')} disabled={!props.travel.forward} onClick={() => props.onTravel?.('forward')}>
+                <span aria-hidden="true">{t('glyph.travelForward')}</span>
+              </button>
+              <button type="button" aria-label={t('rail.home')} title={t('rail.home')} aria-current={at.kind === 'home' ? 'page' : undefined} onClick={() => props.onPlace('home')}>
+                <span aria-hidden="true">{t('glyph.home')}</span>
+              </button>
+            </nav>
+          )}
           <h1>{props.title}</h1>
           {props.consoles}
         </header>

@@ -41,6 +41,8 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en',
     onProject: vi.fn(),
     onAgent: vi.fn(),
     onSearch: vi.fn(),
+    travel: { back: false, forward: false },
+    onTravel: vi.fn(),
     children: <p>place body</p>,
     ...over
   }
@@ -54,7 +56,7 @@ const toggle = () => screen.getByRole('group', { name: en['rail.view.label'] })
 describe('the left column', () => {
   it('holds the brand as Главная, «Создать», the toggle and, at its foot, История and Настройки', () => {
     const props = shell()
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }))
+    fireEvent.click(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }))
     expect(props.onPlace).toHaveBeenLastCalledWith('home')
     fireEvent.click(screen.getByRole('button', { name: en['rail.create'] }))
     expect(props.onPlace).toHaveBeenLastCalledWith('create')
@@ -71,16 +73,16 @@ describe('the left column', () => {
   it('marks the place the person is at: the brand at home, a foot link elsewhere', () => {
     shell({ at: { kind: 'history' } })
     expect(within(foot()).getByRole('link', { name: new RegExp(`^${en['rail.history']}`) }).getAttribute('aria-current')).toBe('page')
-    expect(screen.getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }).getAttribute('aria-current')).toBeNull()
+    expect(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }).getAttribute('aria-current')).toBeNull()
     cleanup()
     shell()
-    expect(screen.getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }).getAttribute('aria-current')).toBe('page')
+    expect(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }).getAttribute('aria-current')).toBe('page')
   })
 
   it('carries Главная\u2019s count of what waits for the person on the brand, and none when nothing waits or it is unknown', () => {
     shell()
     expect(screen.getByLabelText(en['rail.waiting'].replace('{count}', '3')).textContent).toBe('3')
-    expect(screen.getByRole('button', { name: `${en['rail.home']} ${en['rail.waiting'].replace('{count}', '3')}` })).toBeTruthy()
+    expect(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: `${en['rail.home']} ${en['rail.waiting'].replace('{count}', '3')}` })).toBeTruthy()
     cleanup()
     shell({ waiting: null })
     expect(screen.queryByLabelText(/wait for you/)).toBeNull()
@@ -204,11 +206,33 @@ describe('the left column', () => {
     expect(props.onPlace).toHaveBeenCalledWith('settings')
   })
 
-  it('has no tab strip, no back button and no scope bar', () => {
+  it('has no tab strip and no scope bar', () => {
     shell()
     expect(screen.queryByRole('tablist')).toBeNull()
-    expect(screen.queryByRole('button', { name: en['nav.back'] })).toBeNull()
     expect(document.querySelector('.scope-bar')).toBeNull()
+  })
+
+  // The operator's second review, 2026-10-26 (docs/ux/2026-10-26-simple-fabric-v2.md §3.0, §4.4, R-7): visible back,
+  // forward and home in the top bar, the same travel as ⌘[ and ⌘]; disabled, never hidden, when there is nowhere to go.
+  it('carries back, forward and home in the top bar, disabled when there is nowhere to go', () => {
+    const onTravel = vi.fn()
+    const props = shell({ travel: { back: true, forward: false }, onTravel })
+    const bar = screen.getByRole('navigation', { name: en['nav.travel'] })
+    const [back, forward, home] = within(bar).getAllByRole('button')
+    expect([back, forward, home].map((b) => b.getAttribute('aria-label'))).toEqual([en['nav.back'], en['nav.forward'], en['rail.home']])
+    expect(back.title).toContain('⌘[')
+    expect(forward.title).toContain('⌘]')
+    expect((forward as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(back)
+    expect(onTravel).toHaveBeenCalledWith('back')
+    fireEvent.click(home)
+    expect(props.onPlace).toHaveBeenLastCalledWith('home')
+    cleanup()
+    shell({ travel: { back: false, forward: true }, onTravel })
+    const again = within(screen.getByRole('navigation', { name: en['nav.travel'] })).getAllByRole('button')
+    expect((again[0] as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(again[1])
+    expect(onTravel).toHaveBeenLastCalledWith('forward')
   })
 
   it('opens search from ⌘K, with no search field, profile or Fabric chat in the top bar or the rail (OF-05)', () => {
@@ -218,7 +242,8 @@ describe('the left column', () => {
     expect(props.onSearch).toHaveBeenCalledTimes(1)
     const top = document.querySelector('.fab-top') as HTMLElement
     expect(within(top).getByRole('heading', { level: 1 }).textContent).toBe('Home')
-    expect(within(top).queryAllByRole('button')).toHaveLength(0)
+    // The top bar's only buttons are back, forward and home (v2 R-7): no search field, profile or chat.
+    expect(within(top).queryAllByRole('button')).toHaveLength(3)
   })
 
   it('says how this computer is only when something needs a look (OF-05)', () => {
@@ -244,7 +269,7 @@ describe('the left column', () => {
     shell({}, 'ru')
     const nav = screen.getByRole('navigation', { name: ru['rail.label'] })
     expect(within(nav).getByRole('link', { name: new RegExp(`^${ru['rail.history']}`) })).toBeTruthy()
-    expect(screen.getByRole('button', { name: new RegExp(`^${ru['rail.home']}`) })).toBeTruthy()
+    expect(within(screen.getByRole('complementary', { name: ru['rail.aside'] })).getByRole('button', { name: new RegExp(`^${ru['rail.home']}`) })).toBeTruthy()
     expect(screen.getByRole('group', { name: ru['rail.view.label'] })).toBeTruthy()
     expect(screen.getByRole('button', { name: ru['rail.create'] })).toBeTruthy()
     expect(ru['rail.home']).toBe('Главная')

@@ -179,3 +179,23 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))
   })
 })
+
+// The operator's second review, 2026-10-26 (R-7): «Назад» in the top bar is the way back ⌘[ takes, «Вперёд» the way on.
+describe('back and forward in the top bar', () => {
+  it('goes back from the console to the agent\'s screen and forward again; disabled with nowhere to go', async () => {
+    stub([session])
+    render(<App />)
+    const travel = async () => within(await screen.findByRole('navigation', { name: en['nav.travel'] })).getAllByRole('button') as HTMLButtonElement[]
+    expect((await travel())[0].disabled).toBe(true)
+    await openFromAgents()
+    await waitFor(() => expect(tabsStrip()).toBeTruthy())
+    const [back] = await travel()
+    expect(back.disabled).toBe(false)
+    fireEvent.click(back)
+    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))
+    const [, forward] = await travel()
+    expect(forward.disabled).toBe(false)
+    fireEvent.click(forward)
+    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBeNull())
+  })
+})

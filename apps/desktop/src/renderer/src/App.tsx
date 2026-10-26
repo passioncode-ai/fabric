@@ -803,14 +803,20 @@ function Shell({
   const future = useRef<Snap[]>([])
   const shown = useRef<Snap | null>(null)
   const travelling = useRef(false)
+  // The operator's second review, 2026-10-26 (R-7): the top bar's «Назад» and «Вперёд» are disabled when there is
+  // nowhere to go, so whether there is lives in state, not only in the refs.
+  const [travelCan, setTravelCan] = useState({ back: false, forward: false })
   useEffect(() => {
     const snap: Snap = { route: active, settings: showSettings }
     const prev = shown.current
     shown.current = snap
-    if (travelling.current) { travelling.current = false; return }
-    if (!prev || (prev.settings === snap.settings && JSON.stringify(prev.route) === JSON.stringify(snap.route))) return
-    past.current = [...past.current.slice(-49), prev]
-    future.current = []
+    if (travelling.current) travelling.current = false
+    else if (prev && !(prev.settings === snap.settings && JSON.stringify(prev.route) === JSON.stringify(snap.route))) {
+      past.current = [...past.current.slice(-49), prev]
+      future.current = []
+    }
+    const back = past.current.length > 0, forward = future.current.length > 0
+    setTravelCan((old) => (old.back === back && old.forward === forward ? old : { back, forward }))
   }, [active, showSettings])
   const travelRef = useRef<(dir: 'back' | 'forward') => void>(() => {})
   travelRef.current = (dir) => {
@@ -974,6 +980,8 @@ function Shell({
         // CO-388: set by ⌘[ / ⌘] before the route changes and cleared by the effect above, which runs after the shell's own
         // (a child's effects run first), so the shell reads it true exactly on the render a travel caused.
         restoreScroll={travelling.current}
+        travel={travelCan}
+        onTravel={(dir) => travelRef.current(dir)}
         title={placeTitle}
         pins={pins}
         live={liveProjects}
