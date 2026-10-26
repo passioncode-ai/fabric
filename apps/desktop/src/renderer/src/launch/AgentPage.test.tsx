@@ -200,7 +200,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     await waitFor(() => expect(list.textContent).toContain('Counts changes between turns.'))
     const [first, second] = [...list.querySelectorAll(':scope > li')] as HTMLElement[]
     expect(first.textContent).toContain(en['agentScreen.endedHow'])
-    expect(first.textContent).toContain('Handed on «report»: docs/sweep.md')
+    expect(first.textContent).toContain('Handed on “report”: docs/sweep.md')
     expect(first.textContent).toContain('Step 2. Found the sweep')
     expect(second.textContent).toContain(en['agentScreen.noEnding'])
     expect(second.textContent).toContain(en['agentScreen.noTaskMilestones'])
