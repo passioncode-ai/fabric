@@ -213,5 +213,5 @@ test('the tool\'s description tells the agent to act on a turn\'s nudges', async
   const tools = (await h.client.listTools()).tools
   const d = tools.find((t) => t.name === 'fabric_session_observe').description
   assert.match(d, /nudges/)
-  assert.doesNotMatch(d, /—/)
+  assert.doesNotMatch(d, /\u2014/)
 })

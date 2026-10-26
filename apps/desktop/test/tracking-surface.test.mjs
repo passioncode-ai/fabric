@@ -252,3 +252,23 @@ test('UX-4 (i3): fabric_agents_list says what 0.3.9 lists, and an unreadable ans
   assert.match(r.unreadable, /enrolled from their own terminals/)
   assert.doesNotMatch(r.unreadable, /\u2014/)
 })
+
+// 0.3.14 wave 2: fabric_whoami names what waits for the project. A board the session cannot read says unread with its
+// reason, never zero; the questions read on their own still answer.
+test('0.3.14: fabric_whoami carries the project\'s waiting block, and a board it cannot read says so, never zero', async (t) => {
+  const { surface } = await surfaceWith([])
+  t.after(() => surface.stop())
+  const scope = surface.mint('p', 's-w', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-w' })
+  const client = await connect(surface, scope.token)
+  t.after(() => client.close())
+  const me = await call(client, 'fabric_whoami')
+  assert.equal(me.waiting.board_requests.read, false)
+  assert.equal(typeof me.waiting.board_requests.reason, 'string')
+  assert.equal('queued' in me.waiting.board_requests, false, 'unread is never zero')
+  assert.equal(me.waiting.board_answers.read, false)
+  assert.deepEqual(me.waiting.questions, { read: true, open: 0, items: [] })
+  assert.match(me.waiting.note, /com\.reply/)
+  const tools = new Map((await client.listTools()).tools.map((x) => [x.name, x.description]))
+  assert.match(tools.get('fabric_whoami'), /what waits for the project/)
+  assert.doesNotMatch(tools.get('fabric_whoami'), /\u2014/)
+})

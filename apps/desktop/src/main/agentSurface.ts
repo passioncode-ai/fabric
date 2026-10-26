@@ -91,6 +91,7 @@ import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
 import { CLAIM_DEFAULT_MINUTES, refusalAfterWrite, runHoldRefusal, sessionStale, type CameIn } from '../shared/workClaims.ts'
 import type { Nudge } from '../shared/abandonedSweep.ts'
+import { QUESTIONS_READ, readWaiting } from './sessionWaiting.ts'
 import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -1473,7 +1474,7 @@ export class AgentSurface {
       {
         title: 'Who am I',
         description:
-          'What this session is: the project, its repositories, the task that opened it if any, and the rules that apply here. Call this first.',
+          'What this session is: the project, its repositories, the task that opened it if any, what waits for the project (board requests addressed to it, unread answers to its requests, open questions; each with its id), and the rules that apply here. Call this first, and take up what waits before new work.',
         inputSchema: {}
       },
       async () => {
@@ -1538,9 +1539,22 @@ export class AgentSurface {
           .select('session_context_packs', 'chars,fact_ids,transcript_ids,omitted_facts,omitted_transcripts,compiled_at')
           .eq('session_id', scope.sessionId)
           .maybeSingle()
+        // 0.3.14 wave 2: what waits for this project, so a new session starts from it (`sessionWaiting.ts`). Bounded; a
+        // part that could not be read says so, never zero.
+        const waiting = await readWaiting({
+          projectId: scope.projectId,
+          now: this.now(),
+          listPage: (args) => this.board.list(this.boardCaller(scope), args) as Promise<Record<string, unknown>>,
+          openQuestions: async () => {
+            const q = await store.select('questions', 'id,text').eq('project_id', scope.projectId).eq('status', 'open').order('asked_at').limit(QUESTIONS_READ)
+            if (q.error) throw new Error(`the open questions could not be read: ${q.error.message}`)
+            return (q.data ?? []) as Array<{ id: string; text: string }>
+          }
+        })
 
         return json({
           session_id: scope.sessionId,
+          waiting,
           project: project
             ? { id: project.id, name: project.name, purpose: project.purpose }
             : null,
