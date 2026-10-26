@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T08:30:00Z · `—` · agent/0313-w2b → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/main/abandonedSweepRun.ts, index.ts, agentSurface.ts, workTools.ts, workRelease.ts, runtimeObserver.ts, shared/abandonedSweep.ts, protocolObligations.ts and their tests; AGENTS.md, CHANGELOG.md, CONTEXT.md, SCN-140, the agent health table, the wave 2 spec and plan, the carry-over ledger and backlog (CO-426, CO-427, CO-430), the map
+- conflicts: none
+- summary: Fabric 0.3.13, wave 2, part 2: the sweep of abandoned work runs every three minutes and wakes agents, after review round 1's 18 findings were fixed or recorded.
+
 ### 2026-10-26T05:40:00Z · `—` · agent/0313-w2 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/shared/protocolObligations.ts and its w2 test, abandonedSweep.ts and its test; the wave 2 spec, the 0.3.13 plan; the carry-over ledger and the backlog (CO-428, CO-429); the map's changelog

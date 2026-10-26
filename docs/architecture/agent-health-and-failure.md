@@ -110,7 +110,7 @@ loses trust in the whole system for one recoverable fault.
 | **Skill failed to load** | the agent runs but without its skill's behaviour | `context.read` present but the skill's own marker absent, or the agent says so | `harness.break@1`; the task is not silently trusted |
 | **Harness unreachable** | tool calls stop under a live process | §3 | `harness.break@1`; heartbeat `gone` on the surface even though the PID lives |
 | **Agent crashed** | non-zero exit mid-task | `onExit` with a code (already) | `task.abandoned@1` with the code; the transcript is captured FIRST (M45) |
-| **Agent wedged** | alive, no heartbeat, no progress | §2 `stalled` | surfaced to the operator; the operator can end it, and ending is a clean `gone` |
+| **Agent wedged** | alive, no heartbeat, no progress | §2 `stalled` | surfaced to the operator; the operator can end it, and ending is a clean `gone`. Since 0.3.13 (CO-427) a Fabric terminal that holds a running task and has printed nothing for 15 minutes is also told one line naming the task and the next step, at most once per 30 minutes and never over fresh output or typing; the sweep's findings do not yet reach the operator's view (SW-9) |
 | **Task failed honestly** | the agent finished and reports it could not | the agent's own `stage.reported` / brief | `review` with the failure stated — NOT a crash; the work is done, the answer is "no" |
 | **Advisory model call failed** | the CEO's provider errored | the `ModelPort` router (ADR-0038 §4) | the deterministic core continues; the advisory result is skipped, not stubbed |
 | **Notifier data source down** | a notifier cannot gather | the notifier's own tool error | the notification says it could not gather, rather than sending a hollow one |

@@ -7,6 +7,20 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.13 (unreleased)
+
+- **Abandoned work finds its agent.** Every three minutes Fabric looks for work nobody moves: a claim that went silent
+  or whose session ended, a running task nobody holds, a board request nobody answered, an answer nobody read, a
+  terminal stuck on a running task. The agent that owns it is told once per 30 minutes, in its next Fabric tool answer
+  or as one line in a terminal Fabric runs; a claim whose session ended is released and its task goes back to the queue.
+- **Two new rules every agent reads.** Check your own work every three minutes and act on what Fabric points at first;
+  a decision of the operator relayed with their own words and where they said it is the operator's, and is not asked
+  again.
+- **Fewer collisions when starting agents.** Two launches at the same moment no longer share one waiting session, and a
+  folder where a launch may still be running takes no second agent.
+- **Docker through its current context.** Fabric finds the container engine the way the docker CLI does, so it also
+  waits for Colima.
+
 ## 0.3.12
 
 **Upgrading.** This version moves the local database to schema 96 (one migration: a project's profile, its goal,

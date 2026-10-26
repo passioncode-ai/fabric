@@ -385,7 +385,8 @@ starts (ADR-0140). Fabric's `execution-packet/1` is the integrity manifest under
 (wave 2, P2): 0.3.5 hands a session the bundle it had before `session-handoff/1`.
 
 **Claim** — an agent's statement on its project's board that it is working on one task now (REQ-38, SCN-140): taken
-before work starts, released when it ends or the session closes, journalled. A claim warns other agents of related work;
+before work starts, released when it ends or the session closes, or by Fabric's sweep of abandoned work when its session
+has ended and two sweeps found it (0.3.13, CO-427), journalled. A claim warns other agents of related work;
 it locks nothing, except that one task is never claimed by two agents at once.
 
 **Where work is** — the manager's view of every claim, session and run across the estate's projects, and of sessions with

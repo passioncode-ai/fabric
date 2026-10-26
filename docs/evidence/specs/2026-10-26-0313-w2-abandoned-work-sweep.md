@@ -30,7 +30,7 @@ session, handoff and status in their head»: an abandoned task finds its agent w
 | SW-1 | Every 3 minutes (every third pass of the 60-second cycle, not a new timer) Fabric sweeps abandoned work | a cycle test: passes 1 and 2 sweep nothing, pass 3 sweeps |
 | SW-2 | Abandoned is any of: a claim `silent` with no sign for `SESSION_STALE_MS`; a claim `lapsed`; a task in running with no live claim; a board request open past 3 minutes whose target has not moved it; a board request answered whose requester has not read the answer for 3 minutes; a Fabric terminal whose liveness is `stalled` while it holds a task | one test per kind, each with its negative twin |
 | SW-3 | Each finding names the task or request, its owner (session, agent, project), the kind and how long it has been still | the finding's shape in the test |
-| SW-4 | Wake: a Fabric terminal gets one line delivered through `deliverWhenReady`, naming the item and the next step; an enrolled agent gets the finding in its next tool answer (`nudges[]` on every Fabric tool answer for that session) | a terminal test with a fake PTY; a surface test that `fabric_heartbeat` and `fabric_work_list` carry it |
+| SW-4 | Wake: a Fabric terminal gets one line delivered through `deliverWhenReady`, naming the item and the next step; an enrolled agent gets the finding in its next `fabric_work_list` or `fabric_heartbeat` answer (`nudges[]`; narrowed from every tool answer, see As built) | a terminal test with a fake PTY; a surface test that `fabric_heartbeat` and `fabric_work_list` carry it |
 | SW-5 | One telling per finding until it changes: the same item and kind is not told again for 30 minutes, and never twice in one sweep | a test of three sweeps over an unchanged item |
 | SW-6 | Every agent's rule: every 3 minutes call `fabric_work_list` (or any Fabric tool) and act on `nudges` and `waiting_for_you` first | a new `OBLIGATIONS` row, mode `OBSERVED`, its evidence the sweep's receipt; the protocol hash test |
 | SW-7 | A sweep that found something writes one journal receipt naming every finding; an idle sweep writes nothing beyond the cycle's own receipt | journal test |
@@ -38,6 +38,23 @@ session, handoff and status in their head»: an abandoned task finds its agent w
 | SW-9 | The operator sees the findings where abandoned work already shows (attention kind `abandoned`, «На проверке»): no new screen | attention test |
 | TO-1 | CO-426: a rule says that an instruction relayed from the operator with the operator's quote and its source is the operator's own; the agent that receives it acts without asking the operator again; an agent relaying writes the quote and the source | a new `OBLIGATIONS` row (`ADVICE`); the protocol hash test; the agent templates carry the same sentence |
 | TO-2 | The agent templates carry TO-1 and SW-6. Inside Fabric a session's only standing text is `apps/desktop/src/shared/preamble.ts#PREAMBLE`, which names `fabric_whoami` alone so that no rule lives in two places; the rules reach every Fabric session through `fabric_whoami`, so TO-1 and SW-6 in `OBLIGATIONS` are the template. The templates of agents built outside Fabric (the agent adapter, the `creating-fabric-agents` skill) are their owners': asked through fabric-workspace | `apps/desktop/src/shared/protocolObligations.w2.test.ts` (the rules reach `buildProtocol`) |
+
+## As built, 2026-10-26 (after review round 1)
+
+- SW-2: a request counts as unmoved only while `queued` (claimed and accepted ones are left to the board's deadlines);
+  a running task a person moved there by hand is not unclaimed (`moved_by_kind`); no task is judged unclaimed when the
+  claims read was cut at 500; a terminal is stalled only when its task is running and it has printed or taken nothing
+  for 15 minutes (`TERMINAL_QUIET_MS`), and the write is refused if anything arrived after the read.
+- SW-4: nudges ride on `fabric_work_list` and `fabric_heartbeat` only, each given once; the rule names exactly those
+  two tools. Queued nudges whose finding is gone are dropped at the next sweep; one line per finding per session.
+- SW-8: a lapsed claim is released only when this process knew it (claimed or renewed after the process started, or
+  its session seen live by an earlier sweep) and its task has no unresolved run; claims from before a restart are left
+  to their expiry.
+- One sweep at a time; nothing is released or written while the app is quitting.
+- Deferred, recorded in CO-427: SW-7's journal receipt waits for the release's schema step (until then one `work.swept`
+  ops line, with a `capped` field when a read was cut); SW-9, the findings in the operator's view, is not built; SW-6
+  moves from ADVICE to OBSERVED once SW-7's receipt exists. TO-2 outside Fabric was asked of fabric-workspace in a
+  cross-session message on 2026-10-26, not on the board.
 
 ## Out of scope
 
