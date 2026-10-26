@@ -184,6 +184,31 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
+  // 0.3.13 wave 2, CO-427 SW-6 (the operator, 2026-10-26: «Раз в три минуты обязательный чек для всех агентов»):
+  // spec docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md. ADVICE until the sweep's receipt exists.
+  {
+    id: 'work.check-every-three-minutes',
+    text:
+      'Every three minutes while you work, and whenever you are about to wait, check your own open work: call ' +
+      'fabric_work_list (any Fabric tool answer carries the same nudges) and act first on its nudges and ' +
+      'waiting_for_you, then on board requests you sent whose answers you have not read (com.list with unread). Fabric ' +
+      'sweeps abandoned work on the same cadence and points its agent at the next step; a task you hold and are not ' +
+      'moving is either moved, handed over or let go, never left still.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  // CO-426 TO-1 (the operator, 2026-10-26: «Когда я говорю одному агенту, это равно я сказал всем … другой агент уже
+  // не спрашивает»).
+  {
+    id: 'operator.told-one-is-told-all',
+    text:
+      'An approval or decision of the operator told to one agent holds for every agent of the operator. When another ' +
+      'agent relays it to you with the operator\'s own words quoted and their source (the session, thread or message ' +
+      'where they said it), act on it: do not ask the operator again. When you relay one, quote the operator\'s words ' +
+      'and name their source. A relay without a quote and a source is a request, not the operator\'s decision.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
   {
     id: 'board.cross-project',
     text:

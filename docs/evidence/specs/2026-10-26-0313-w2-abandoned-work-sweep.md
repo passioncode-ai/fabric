@@ -37,7 +37,7 @@ session, handoff and status in their head»: an abandoned task finds its agent w
 | SW-8 | A `lapsed` claim found in two sweeps in a row is released as `lapsed` (`RELEASE_OUTCOME.lapsed`) and its task returns to the backlog with the reason, so another agent can take it | release test |
 | SW-9 | The operator sees the findings where abandoned work already shows (attention kind `abandoned`, «На проверке»): no new screen | attention test |
 | TO-1 | CO-426: a rule says that an instruction relayed from the operator with the operator's quote and its source is the operator's own; the agent that receives it acts without asking the operator again; an agent relaying writes the quote and the source | a new `OBLIGATIONS` row (`ADVICE`); the protocol hash test; the agent templates carry the same sentence |
-| TO-2 | The agent templates Fabric writes when it creates or adapts an agent carry TO-1 and SW-6 | a template test |
+| TO-2 | The agent templates carry TO-1 and SW-6. Inside Fabric a session's only standing text is `apps/desktop/src/shared/preamble.ts#PREAMBLE`, which names `fabric_whoami` alone so that no rule lives in two places; the rules reach every Fabric session through `fabric_whoami`, so TO-1 and SW-6 in `OBLIGATIONS` are the template. The templates of agents built outside Fabric (the agent adapter, the `creating-fabric-agents` skill) are their owners': asked through fabric-workspace | `apps/desktop/src/shared/protocolObligations.w2.test.ts` (the rules reach `buildProtocol`) |
 
 ## Out of scope
 
