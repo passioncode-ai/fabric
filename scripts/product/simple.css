@@ -139,3 +139,12 @@
 .sx-facts{list-style:none;padding-left:18px}
 .sx-facts b,.sx-hist b{font-weight:500;margin-right:6px}
 .sx-row.sx-plain{grid-template-columns:1fr}
+/* CO-419 (0.3.13): Агенты as an agents screen, the chosen agent in the centre and the list by state on the right. */
+.sx-ag-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);gap:24px;align-items:start}
+.sx-ag-centre{display:grid;gap:12px;min-width:0}
+.sx-aglist .sx-group{margin:14px 18px 4px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.sx-aglist .sx-emptyline{padding:0 18px 8px}
+.sx-agrow.on{background:var(--sx-line)}
+.sx-tabs{display:flex;gap:6px}.sx-tabs a{padding:6px 12px;border-radius:8px;font-size:12.5px;color:var(--sx-muted)}.sx-tabs a.on{color:var(--sx-text);font-weight:600;background:var(--sx-line)}
+.sx-term{margin:8px 0 0;padding:12px;border-radius:8px;background:var(--sx-bg);color:var(--sx-text);border:1px solid var(--sx-line);font-size:12px;white-space:pre-wrap}
+@media (max-width:900px){.sx-ag-grid{grid-template-columns:1fr}.sx-aglist{order:-1}}

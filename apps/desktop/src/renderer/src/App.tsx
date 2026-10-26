@@ -54,7 +54,6 @@ import { AgentAccessPanel } from './AgentAccessPanel'
 import { SettingsScreen } from './launch/SettingsScreen'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
-import { EstateAgents } from './EstateAgents'
 import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
 import { StackHealthNotice } from './StackHealthNotice'
@@ -62,11 +61,9 @@ import { I18nProvider, useT, type Locale, type Translate } from './i18n'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
-import { JoinedAgents } from './launch/JoinedAgents'
-import { AgentPage } from './launch/AgentPage'
+import { AgentsScreen } from './launch/AgentsScreen'
 import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { boundedMarks } from '../../shared/commsMarks.ts'
-import { AgentsAtWork } from './launch/HomeWork'
 import { NEEDS_YOU_FAMILIES } from './launch/HomeParts'
 import { lastActivityOf } from '../../shared/railProjects.ts'
 import './launch/launch.css'
@@ -1229,27 +1226,13 @@ function Shell({
           />
         )}
         {active.kind === 'agents' && (
-          <>
-          {/* SCN-167: the coding agents that joined on their own, with «Отключить» and «Пустить снова», above the list. */}
-          {/* OF-30 (the operator's walk, 2026-10-22): every agent at work, a terminal's included, by the task it holds. */}
-          <AgentsAtWork mark={markOf(marks, ['work', 'task', 'agent', 'session'])} onOpen={openProject}
-            page={(agent, openConsole) => (
-              <AgentPage key={agent.sessionId} agent={agent} mark={markOf(marks, ['work', 'task', 'agent', 'session'])} onConsole={openConsole}
-                onOpenProject={openProject} onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })} />
-            )} />
-          <JoinedAgents projects={projects} mark={markOf(marks, ['act', 'access'])} />
-          <EstateAgents
-            // NULL TRAVELS (M108, UXA-C05). Five lines below, `EstateHome` is
-            // handed both of these unchanged and says why in its own props;
-            // collapsing them here let the agents view state "no agent is
-            // running anywhere in this estate" as a MEASUREMENT, on the first
-            // paint, before anything had been read.
-            sessions={sessions}
-            projects={projects}
-            onOpen={openEntity}
-            onError={setError}
-          />
-          </>
+          // CO-419 (the operator, 2026-10-24): one agents screen, the list by state on the right and the chosen agent's
+          // «Работа» and «Консоль» in the centre; it replaces the three stacked lists (SX-3). `sessions` stays null
+          // until read (M108): the screen says it is reading, never that nobody works.
+          <AgentsScreen mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
+            sessions={sessions} projects={projects} onOpenProject={openProject}
+            onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
+            onCreate={() => goTo({ kind: 'start', path: 'agent' })} />
         )}
         {active.kind === 'home' && (
           <EstateHome

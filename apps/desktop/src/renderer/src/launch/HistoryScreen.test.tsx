@@ -7,7 +7,7 @@ import { en } from '../i18n/en'
 import type { ActAnswer, ActRecord, ActView } from '../../../shared/acts.ts'
 import { HistoryScreen } from './HistoryScreen'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.sessionStorage.clear() })
 
 const record = (over: Partial<ActRecord> = {}): ActRecord => ({
   v: 1, kind: 'repo.detach', category: 'folders', subject: { type: 'repo', id: 'r1', label: 'fabric' },
@@ -174,5 +174,75 @@ describe('a task Fabric released names no agent (CO-430)', () => {
     const said = document.querySelector('.hx-agents .hx-said')!.textContent
     expect(said).toContain(ru['acts.releasedByFabric'])
     expect(said).not.toContain(ru['event.work.released@1'])
+  })
+})
+
+// CO-414 (SCN-168 steps 2 and 3): the filters «Кто», «Проект», «Что» and a search, kept when the person comes back, and
+// one act read whole beside the list.
+describe('История filters and the act in full (CO-414)', () => {
+  const filters = () => screen.getByRole('group', { name: en['acts.filter.label'] })
+  const select = (label: string) => within(filters()).getByLabelText(label) as HTMLSelectElement
+
+  it('each filter goes into the read; an unfiltered read asks for what it always did', async () => {
+    const { history } = mount([{ rows: [row(12)], next: null }, { rows: [row(11)], next: null }, { rows: [row(10)], next: null }, { rows: [row(9)], next: null }, { rows: [row(8)], next: null }])
+    await screen.findByRole('list', { name: en['acts.list'] })
+    expect(history).toHaveBeenLastCalledWith({ limit: 50 })
+    fireEvent.change(select(en['acts.filter.who']), { target: { value: 'system' } })
+    await waitFor(() => expect(history).toHaveBeenLastCalledWith({ limit: 50, actorKind: 'system' }))
+    fireEvent.change(select(en['acts.filter.project']), { target: { value: 'p1' } })
+    await waitFor(() => expect(history).toHaveBeenLastCalledWith({ limit: 50, actorKind: 'system', projectId: 'p1' }))
+    fireEvent.change(select(en['acts.filter.what']), { target: { value: 'folders' } })
+    await waitFor(() => expect(history).toHaveBeenLastCalledWith({ limit: 50, actorKind: 'system', projectId: 'p1', category: 'folders' }))
+    fireEvent.change(within(filters()).getByLabelText(en['acts.filter.search']), { target: { value: 'fabric' } })
+    await waitFor(() => expect(history).toHaveBeenLastCalledWith({ limit: 50, actorKind: 'system', projectId: 'p1', category: 'folders', text: 'fabric' }))
+  })
+
+  it('filters that match nothing say so with «Сбросить фильтры», which reads everything again', async () => {
+    const { history } = mount([{ rows: [row(12)], next: null }, { rows: [], next: null }, { rows: [row(12)], next: null }])
+    await screen.findByRole('list', { name: en['acts.list'] })
+    fireEvent.change(select(en['acts.filter.what']), { target: { value: 'releases' } })
+    expect(await screen.findByText(en['acts.filter.none'])).toBeTruthy()
+    expect(screen.queryByText(en['acts.empty'])).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['acts.filter.reset'] }))
+    await waitFor(() => expect(history).toHaveBeenLastCalledWith({ limit: 50 }))
+    expect(select(en['acts.filter.what']).value).toBe('')
+    expect(await screen.findByRole('list', { name: en['acts.list'] })).toBeTruthy()
+  })
+
+  it('the filters stay when the person leaves История and comes back', async () => {
+    mount([{ rows: [row(12)], next: null }, { rows: [row(12)], next: null }])
+    await screen.findByRole('list', { name: en['acts.list'] })
+    fireEvent.change(select(en['acts.filter.who']), { target: { value: 'person' } })
+    await waitFor(() => expect(select(en['acts.filter.who']).value).toBe('person'))
+    cleanup()
+    const { history } = mount([{ rows: [row(12)], next: null }])
+    await screen.findByRole('list', { name: en['acts.list'] })
+    expect(select(en['acts.filter.who']).value).toBe('person')
+    expect(history).toHaveBeenCalledWith({ limit: 50, actorKind: 'person' })
+  })
+
+  it('an act opens whole beside the list: who, when, its project, before and after, and the act that undid it', async () => {
+    const move = record({ kind: 'task.move', category: 'tasks', subject: { type: 'task', id: 't9', label: 'Ship it' }, said: { key: 'act.task.move', params: { task: 'Ship it', from: 'running', to: 'review' } }, inverse: { kind: 'task.move', args: { to: 'running' } } })
+    const back = record({ kind: 'task.move', category: 'tasks', subject: { type: 'task', id: 't9', label: 'Ship it' }, said: { key: 'act.task.move', params: { task: 'Ship it', from: 'review', to: 'running' } }, undoes: 10 })
+    const history = vi.fn(async () => ({ rows: [row(12, { record: back, projectId: 'p1' }), row(10, { record: move, projectId: 'p1', undo: { state: 'undone', by: 12 } })], next: null }))
+    const onOpen = vi.fn()
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history, undo: vi.fn() } } }))
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} onOpen={onOpen} /></I18nProvider>)
+    const items = within(await screen.findByRole('list', { name: en['acts.list'] })).getAllByRole('listitem')
+    expect(screen.queryByRole('region', { name: /Ship it/ })).toBeNull()
+    const sentence = en['act.task.move'].replace('{task}', 'Ship it').replace('{to}', en['act.state.review'])
+    fireEvent.click(within(items[1]).getByRole('button', { name: sentence }))
+    const pane = await screen.findByRole('region', { name: sentence })
+    expect(pane.textContent).toContain(en['acts.actor.you'])
+    expect(pane.textContent).toContain('Atlas')
+    expect(within(pane).getByText(en['act.state.running'])).toBeTruthy()
+    expect(within(pane).getByText(en['act.state.review'])).toBeTruthy()
+    // The act that undid it, in words, never a journal number.
+    expect(pane.textContent).toContain(en['act.task.move'].replace('{task}', 'Ship it').replace('{to}', en['act.state.running']))
+    expect(pane.textContent).not.toMatch(/#1\d/)
+    fireEvent.click(within(pane).getByRole('button', { name: en['acts.detail.source'] }))
+    expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't9' })
+    fireEvent.click(within(pane).getByRole('button', { name: en['acts.detail.close'] }))
+    await waitFor(() => expect(screen.queryByRole('region', { name: sentence })).toBeNull())
   })
 })

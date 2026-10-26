@@ -1,4 +1,4 @@
-// A coding agent's console opens INSIDE Fabric (OF-03, SCN-172): «Open the session» in Агенты adds a tab along the top
+// A coding agent's console opens INSIDE Fabric (OF-03, SCN-172): «Открыть вкладкой» in Агенты adds a tab along the top
 // with the console sign and the project's name and shows the console in the content area; a second open of the same
 // session switches to its tab rather than adding another; × takes the tab away and the session goes on running.
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -118,10 +118,11 @@ const content = () => document.querySelector('main.content') as HTMLElement
 async function openFromAgents(): Promise<void> {
   await screen.findByRole('navigation', { name: en['rail.label'] })
   fireEvent.click(agentsLink())
-  // The agent's row in Агенты, then its «Open the session».
+  // The agent's row in Агенты (CO-419), its «Консоль» tab, then «Открыть вкладкой»: the console moves to a tab along the top.
   const row = await waitFor(() => within(content()).getByText('fabric-dashboards'))
   fireEvent.click(row)
-  fireEvent.click(await within(content()).findByRole('button', { name: en['agents.openSession'] }))
+  fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.tab.console'] }))
+  fireEvent.click(await within(content()).findByRole('button', { name: en['agentsPlace.console.asTab'] }))
 }
 
 describe('a console opens inside Fabric as a tab along the top', () => {

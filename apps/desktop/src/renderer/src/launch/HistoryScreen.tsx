@@ -4,11 +4,12 @@
  * who did it (Вы, Fabric, an agent), the act in a sentence, the project, and «Отменить» or why it cannot be undone.
  * Read from wave 2's `acts.history`; «Отменить» is `acts.undo`. Read again when the journal moves (`mark`).
  *
- * WHAT WAVE 4 ADDS, said rather than implied: the filters (Кто, Проект, Что, search), the detail pane, and the agents'
- * own acts through their MCP tools (today only acts recorded as `act.recorded@1` are listed).
+ * 0.3.13 (CO-414): the filters «Кто», «Проект», «Что» and a search, kept when the person leaves and comes back, and the
+ * detail pane beside the list that reads one act whole. Still not here: the agents' own acts through their MCP tools
+ * (today only acts recorded as `act.recorded@1` are listed as acts; what the agents did is the journal's list below).
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ActHistoryPage, ActView } from '../../../shared/acts.ts'
+import { ACT_CATEGORIES, type ActActor, type ActCategory, type ActHistoryPage, type ActHistoryQuery, type ActView } from '../../../shared/acts.ts'
 import { describeEvent, useLocale, useT, type Translate } from '../i18n'
 import { actSentence, whyWords } from './actWords'
 import { feedAct } from '../Feed'
@@ -18,6 +19,48 @@ import type { EntityRef } from '../../../shared/entityRef'
 import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
 
 const PAGE = 50
+/** How long the search waits after the last key before it reads (one read per word typed, not per letter). */
+export const SEARCH_SETTLE_MS = 250
+
+// #region history-filters — docs: docs/ux/scenarios.md#scn-168-read-every-act-in-история--who-did-it-when-and-to-what
+/** «Кто», «Проект», «Что» and the search (SCN-168 step 2); an empty value is «все». */
+export interface HistoryFilters { who: '' | ActActor['kind']; project: string; what: '' | ActCategory; text: string }
+export const NO_FILTERS: HistoryFilters = { who: '', project: '', what: '', text: '' }
+const FILTERS_KEY = 'fabric.history.filters.v1'
+
+/** The filters the person left История with (step 2: they stay when the person comes back, for as long as the window
+ *  is open, as the open consoles are kept); none when unreadable. */
+export function rememberedFilters(): HistoryFilters {
+  try {
+    const raw = JSON.parse(window.sessionStorage.getItem(FILTERS_KEY) ?? 'null') as Partial<HistoryFilters> | null
+    if (!raw || typeof raw !== 'object') return NO_FILTERS
+    return {
+      who: raw.who === 'person' || raw.who === 'agent' || raw.who === 'system' ? raw.who : '',
+      project: typeof raw.project === 'string' ? raw.project : '',
+      what: typeof raw.what === 'string' && (ACT_CATEGORIES as readonly string[]).includes(raw.what) ? raw.what : '',
+      text: typeof raw.text === 'string' ? raw.text.slice(0, 200) : ''
+    }
+  } catch {
+    return NO_FILTERS
+  }
+}
+function remember(f: HistoryFilters): void {
+  try { window.sessionStorage.setItem(FILTERS_KEY, JSON.stringify(f)) } catch { /* a window without storage keeps them for this visit only */ }
+}
+const filtered = (f: HistoryFilters): boolean => f.who !== '' || f.project !== '' || f.what !== '' || f.text.trim() !== ''
+
+/** The read's query: only the filters that are set, so an unfiltered read asks for exactly what it did before. */
+export function queryOf(f: HistoryFilters, before?: number): ActHistoryQuery {
+  return {
+    limit: PAGE,
+    ...(before !== undefined ? { before } : {}),
+    ...(f.who ? { actorKind: f.who } : {}),
+    ...(f.project ? { projectId: f.project } : {}),
+    ...(f.what ? { category: f.what } : {}),
+    ...(f.text.trim() ? { text: f.text.trim() } : {})
+  }
+}
+// #endregion history-filters
 
 type Read =
   | { at: 'reading' }
@@ -54,12 +97,26 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   const locale = useLocale()
   const [read, setRead] = useState<Read>({ at: 'reading' })
   const [attempt, setAttempt] = useState(0)
+  const [filters, setFilters] = useState<HistoryFilters>(rememberedFilters)
+  // The search as typed; it becomes a filter once the person stops typing.
+  const [typed, setTyped] = useState(filters.text)
+  const [open, setOpen] = useState<number | null>(null)
   const last = useRef<Extract<Read, { at: 'ready' }> | null>(null)
+  const change = (next: Partial<HistoryFilters>): void => {
+    setFilters((f) => { const n = { ...f, ...next }; remember(n); return n })
+  }
+  useEffect(() => {
+    if (typed === filters.text) return
+    const timer = setTimeout(() => change({ text: typed }), SEARCH_SETTLE_MS)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- settles the typed words only
+  }, [typed])
+  const reset = (): void => { setTyped(''); setFilters(NO_FILTERS); remember(NO_FILTERS) }
   useEffect(() => {
     let alive = true
     void (async () => {
       try {
-        const page: ActHistoryPage = await window.fabric.acts.history({ limit: PAGE })
+        const page: ActHistoryPage = await window.fabric.acts.history(queryOf(filters))
         if (!alive) return
         const ready = { at: 'ready' as const, rows: page.rows, next: page.next, readAt: new Date().toISOString() }
         last.current = ready
@@ -70,19 +127,20 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
       }
     })()
     return () => { alive = false }
-  }, [mark, attempt])
+  }, [mark, attempt, filters])
   const more = useCallback(async (): Promise<void> => {
     if (read.at !== 'ready' || read.next === null) return
     try {
-      const page = await window.fabric.acts.history({ limit: PAGE, before: read.next })
+      const page = await window.fabric.acts.history(queryOf(filters, read.next))
       const ready = { at: 'ready' as const, rows: [...read.rows, ...page.rows], next: page.next, readAt: read.readAt }
       last.current = ready
       setRead(ready)
     } catch (e) {
       setRead({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: read })
     }
-  }, [read])
+  }, [read, filters])
   const shown = read.at === 'ready' ? read : read.at === 'failed' ? read.kept : null
+  const chosen = shown?.rows.find((r) => r.seq === open) ?? null
   const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
   const dayOf = (iso: string): string => dayLabel(iso, t, locale)
   const days: Array<{ day: string; rows: ActView[] }> = []
@@ -106,26 +164,38 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
           {read.kept && <p className="hx-muted">{t('acts.stale', { time: new Date(read.kept.readAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</p>}
         </div>
       )}
-      {read.at === 'ready' && read.rows.length === 0 && <p className="hx-empty">{t('acts.empty')}</p>}
-      {days.length > 0 && (
-        <ul className="hx-list" aria-label={t('acts.list')}>
-          {days.map(({ day, rows }) => rows.map((r, i) => (
-            <li key={r.seq} className="hx-row">
-              {i === 0 && <p className="hx-day" aria-hidden={false}>{day}</p>}
-              <HistoryRow row={r} project={nameOf(r.projectId)} onChanged={() => setAttempt((a) => a + 1)} />
-            </li>
-          )))}
-        </ul>
+      <Filters filters={filters} typed={typed} onTyped={setTyped} onChange={change} projects={projects} />
+      {read.at === 'ready' && read.rows.length === 0 && !filtered(filters) && <p className="hx-empty">{t('acts.empty')}</p>}
+      {read.at === 'ready' && read.rows.length === 0 && filtered(filters) && (
+        <div className="hx-problem" role="status">
+          <p className="hx-empty">{t('acts.filter.none')}</p>
+          <button type="button" className="hx-button" onClick={reset}>{t('acts.filter.reset')}</button>
+        </div>
       )}
-      {read.at === 'ready' && read.next !== null && (
-        <button type="button" className="hx-button" onClick={() => void more()}>{t('acts.more')}</button>
-      )}
+      <div className={`hx-grid ${chosen ? 'has-detail' : ''}`}>
+        <div className="hx-main">
+          {days.length > 0 && (
+            <ul className="hx-list" aria-label={t('acts.list')}>
+              {days.map(({ day, rows }) => rows.map((r, i) => (
+                <li key={r.seq} className={`hx-row ${open === r.seq ? 'is-open' : ''}`}>
+                  {i === 0 && <p className="hx-day" aria-hidden={false}>{day}</p>}
+                  <HistoryRow row={r} project={nameOf(r.projectId)} open={open === r.seq} onOpen={() => setOpen(open === r.seq ? null : r.seq)} onChanged={() => setAttempt((a) => a + 1)} />
+                </li>
+              )))}
+            </ul>
+          )}
+          {read.at === 'ready' && read.next !== null && (
+            <button type="button" className="hx-button" onClick={() => void more()}>{t('acts.more')}</button>
+          )}
+        </div>
+        {chosen && <ActDetail row={chosen} rows={shown?.rows ?? null} project={nameOf(chosen.projectId)} onOpen={onOpen} onClose={() => setOpen(null)} />}
+      </div>
       {/* OF-34: the acts above are what was done through Fabric's own controls; the agents' work is in the journal. */}
       {feed !== undefined && (
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
-          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects || projectsFailed ? (feed ?? null) : null} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
+          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects || projectsFailed ? (feed ? feed.filter((e) => (!filters.who || e.actor.kind === filters.who) && (!filters.project || e.project_id === filters.project)) : null) : null} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
         </section>
       )}
       <OpsLog />
@@ -211,7 +281,124 @@ function OpsLog(): React.JSX.Element {
   )
 }
 
-function HistoryRow({ row, project, onChanged }: { row: ActView; project: string | null; onChanged(): void }): React.JSX.Element {
+/** «Кто», «Проект», «Что» and the search (SCN-168 step 2): each is a select the person reads, not a code. */
+function Filters({ filters, typed, onTyped, onChange, projects }: {
+  filters: HistoryFilters
+  typed: string
+  onTyped(text: string): void
+  onChange(next: Partial<HistoryFilters>): void
+  projects: ReadonlyArray<{ id: string; name: string }> | null
+}): React.JSX.Element {
+  const t = useT()
+  // A remembered project that is no longer listed stays a choice, so the filter in force is never hidden (CO-401).
+  const known = (projects ?? []).some((p) => p.id === filters.project)
+  return (
+    <div className="hx-filters" role="group" aria-label={t('acts.filter.label')}>
+      <label>
+        <span>{t('acts.filter.who')}</span>
+        <select value={filters.who} onChange={(e) => onChange({ who: e.target.value as HistoryFilters['who'] })}>
+          <option value="">{t('acts.filter.whoAll')}</option>
+          <option value="person">{t('acts.actor.you')}</option>
+          <option value="system">{t('acts.actor.fabric')}</option>
+          <option value="agent">{t('acts.filter.agents')}</option>
+        </select>
+      </label>
+      <label>
+        <span>{t('acts.filter.project')}</span>
+        <select value={filters.project} onChange={(e) => onChange({ project: e.target.value })}>
+          <option value="">{t('acts.filter.projectAll')}</option>
+          {(projects ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {filters.project && !known && <option value={filters.project}>{t('joined.someProject')}</option>}
+        </select>
+      </label>
+      <label>
+        <span>{t('acts.filter.what')}</span>
+        <select value={filters.what} onChange={(e) => onChange({ what: e.target.value as HistoryFilters['what'] })}>
+          <option value="">{t('acts.filter.whatAll')}</option>
+          {ACT_CATEGORIES.map((c) => <option key={c} value={c}>{t(`acts.category.${c}` as 'acts.category.tasks')}</option>)}
+        </select>
+      </label>
+      <label className="hx-search">
+        <span>{t('acts.filter.search')}</span>
+        <input type="search" value={typed} placeholder={t('acts.filter.searchHint')} onChange={(e) => onTyped(e.target.value)} />
+      </label>
+    </div>
+  )
+}
+
+/** Where an act's subject opens, when a screen can show it: its task, its question, its project. */
+function sourceOf(row: ActView): EntityRef | null {
+  const s = row.record.subject
+  if (!row.projectId || !s.id) return null
+  if (s.type === 'task') return { kind: 'task', id: s.id }
+  if (s.type === 'question') return { kind: 'question', id: s.id }
+  if (s.type === 'project') return { kind: 'project', id: s.id }
+  return null
+}
+
+/**
+ * One act read whole beside the list (SCN-168 step 3): when and who, the act in a sentence, its project and what it was
+ * done to, what changed (before and after, where the record says both), whether it can be undone or why not, the act
+ * that undid it, and its source one press away.
+ */
+function ActDetail({ row, rows, project, onOpen, onClose }: {
+  row: ActView
+  /** The acts read so far, to name the act that undid this one; null while unread. */
+  rows: readonly ActView[] | null
+  project: string | null
+  onOpen?: (projectId: string, focus: EntityRef) => void
+  onClose(): void
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  const at = new Date(row.occurredAt)
+  const who = row.actor.kind === 'person' ? t('acts.actor.you') : row.actor.kind === 'system' ? t('acts.actor.fabric') : t('acts.actor.agent')
+  const params = row.record.said.params
+  const word = (v: string | number | null | undefined): string | null => (v === null || v === undefined || v === '' ? null : String(v))
+  const before = word(params.from)
+  const after = word(params.to)
+  const undoer = row.undo.state === 'undone' && row.undo.by !== null ? (rows ?? []).find((r) => r.seq === (row.undo as { by: number }).by) ?? null : null
+  const source = sourceOf(row)
+  const ref = useRef<HTMLHeadingElement>(null)
+  useEffect(() => { ref.current?.focus({ preventScroll: true }) }, [row.seq])
+  return (
+    <section id="hx-detail" className="hx-detail" aria-labelledby="hx-detail-title">
+      <div className="hx-detail-head">
+        <h3 id="hx-detail-title" tabIndex={-1} ref={ref}>{actSentence(t, row.record)}</h3>
+        <button type="button" className="hx-button" onClick={onClose}>{t('acts.detail.close')}</button>
+      </div>
+      <dl>
+        <dt>{t('acts.detail.when')}</dt>
+        <dd>{dayLabel(row.occurredAt, t, locale)}, {at.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</dd>
+        <dt>{t('acts.detail.who')}</dt>
+        <dd>{who}</dd>
+        {project && <><dt>{t('acts.detail.project')}</dt><dd>{project}</dd></>}
+        {row.record.subject.label && <><dt>{t('acts.detail.subject')}</dt><dd>{row.record.subject.label}</dd></>}
+        {before && after && <><dt>{t('acts.detail.before')}</dt><dd>{actWord(t, before)}</dd></>}
+        {after && <><dt>{t('acts.detail.after')}</dt><dd>{actWord(t, after)}</dd></>}
+        <dt>{t('acts.detail.undo')}</dt>
+        <dd>
+          {row.undo.state === 'available' ? t('acts.detail.canUndo')
+            : row.undo.state === 'undone' ? t('acts.undoneAt')
+              : t('act.cannot', { why: whyWords(t, row.undo.why) })}
+        </dd>
+        {row.undo.state === 'undone' && (
+          <><dt>{t('acts.detail.undoneBy')}</dt><dd>{undoer ? actSentence(t, undoer.record) : t('acts.detail.undoneLater')}</dd></>
+        )}
+      </dl>
+      {source && onOpen && row.projectId && (
+        <button type="button" className="hx-button" onClick={() => onOpen(row.projectId!, source)}>{t('acts.detail.source')}</button>
+      )}
+    </section>
+  )
+}
+
+/** A task's column is a word the person reads («Проверить»), never `review`; any other value is said as it is. */
+function actWord(t: Translate, v: string): string {
+  return ['backlog', 'running', 'review', 'done', 'cancelled'].includes(v) ? t(`act.state.${v}` as 'act.state.review') : v
+}
+
+function HistoryRow({ row, project, open, onOpen, onChanged }: { row: ActView; project: string | null; open: boolean; onOpen(): void; onChanged(): void }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [state, setState] = useState<{ at: 'idle' } | { at: 'undoing' } | { at: 'refused'; why: string; says?: string }>({ at: 'idle' })
@@ -231,7 +418,11 @@ function HistoryRow({ row, project, onChanged }: { row: ActView; project: string
     <div className="hx-act">
       <time className="hx-time" dateTime={row.occurredAt}>{new Date(row.occurredAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
       <span className="hx-who">{actor}</span>
-      <span className="hx-said">{actSentence(t, row.record)}{project && <small className="hx-project">{project}</small>}</span>
+      {/* The sentence opens the act whole beside the list (SCN-168 step 3); pressed again, it closes. */}
+      <span className="hx-said">
+        <button type="button" className="hx-open" aria-expanded={open} aria-controls={open ? 'hx-detail' : undefined} onClick={onOpen}>{actSentence(t, row.record)}</button>
+        {project && <small className="hx-project">{project}</small>}
+      </span>
       <span className="hx-end">
         {row.undo.state === 'available' && (
           <button type="button" className="hx-undo" aria-busy={state.at === 'undoing'} disabled={state.at === 'undoing'} onClick={() => void undo()}>

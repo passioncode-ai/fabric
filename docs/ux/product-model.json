@@ -11666,7 +11666,7 @@
       "view": "simple-history",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2286,
+        "line": 2287,
         "coverage_claim": "apps/desktop/src/renderer/src/launch/HistoryScreen.tsx (0.3.7 wave 3: acts newest first by day, who did each, «Отменить» or why not, «Ещё раньше», the failed read with «Повторить»), apps/desktop/src/renderer/src/launch/ActLine.tsx (the act line at a place's foot), apps/desktop/src/renderer/src/launch/actWords.ts; the read is wave 2's `acts.history` (apps/desktop/src/main/acts.ts); «Что делали агенты» by day with who did each (0.3.12 S6, CO-395, `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`). The filters and the detail pane are not built in 0.3.12: moved to 0.3.13, CO-414",
         "status_claim": "built"
       },
@@ -11770,7 +11770,7 @@
       "view": "simple-settings",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2310,
+        "line": 2312,
         "coverage_claim": "`apps/desktop/src/renderer/src/launch/SettingsScreen.tsx` (see the amendment above)",
         "status_claim": "built"
       },
@@ -11851,7 +11851,7 @@
       "view": "simple-create",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 2331,
+        "line": 2333,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx region `create-place` (0.3.7 wave 3: the three choices, one folder or several, an agent built elsewhere, and the unfinished drafts); the paths behind each choice are SCN-127…SCN-129 and SCN-136's screens, redrawn in this frame in wave 4",
         "status_claim": "built"
       },
@@ -15455,7 +15455,7 @@
         "SCR-87"
       ],
       "horizon": "near",
-      "purpose": "Все агенты и консоль в одно нажатие; подключившийся из терминала — с «Отключить» (SCN-166, SCN-167).",
+      "purpose": "Все агенты по состоянию: выбранный агент в центре с вкладками «Работа» и «Консоль», список справа; подключившийся из терминала с «Отключить» (SCN-166, SCN-167, CO-419).",
       "task_ids": [],
       "states": [
         "ready",
@@ -15469,7 +15469,7 @@
       "empty_action": {
         "label": "Создать агента",
         "view": "simple-create",
-        "description": "Пока нет — создайте первого."
+        "description": "На этом компьютере агенты не найдены, и ни один агент не работает."
       }
     },
     {
@@ -35402,7 +35402,7 @@
         "SCR-87"
       ],
       "coverage": "`apps/desktop/src/renderer/src/launch/AgentPage.tsx` and `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork` (0.3.12, see the end of this line); before: waves 3–4; today's agents are SCN-049's and SCN-160's lists; 2026-10-23 (OF-30): every agent at work on the Agents place, a terminal's included (`apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`), and one line when Fabric holds no console (`apps/desktop/src/renderer/src/EstateAgents.tsx`); 0.3.12 S6 (CO-393): the agent page beside the list (`apps/desktop/src/renderer/src/launch/AgentPage.tsx`, `apps/desktop/src/renderer/src/launch/HomeWork.tsx#AgentsAtWork`, test `AgentPage.test.tsx`)",
-      "registry_status": "implemented in part (0.3.12 S6, CO-393): every agent at work with its page beside the list (the task it holds, what it is doing, its results, what it did by day) and its console, project and task one press away. Not built: the two groups of step 1 with each coding agent's readiness (SCN-160 lists them in Settings), «Что получает агент» (step 3) and «Создать агента» at the top",
+      "registry_status": "implemented in part (0.3.12 S6, CO-393; 0.3.13, CO-419): every agent on one list by state, its work and its live console beside the list, «Отключить» on a joined agent's own page and «Создать агента» at the top (the amendment of 2026-10-26 below). Not built: an agent built in Fabric listed while no session of it runs, «Что получает агент» (step 3), and starting a free coding agent's console from its row (step 2's «Консоль в Fabric»)",
       "product_observation": "unobserved",
       "expected_result": "every agent the person has is on one list with what it is doing, and its console is one press away.",
       "errors_recovery": "a console that cannot open says why on its row («Консоль не открылась: Codex не отвечает.»), with the machine's words beneath; detection that fails keeps the last list marked «как было в {время}».",
@@ -35421,14 +35421,14 @@
         "SCR-87",
         "SCR-88"
       ],
-      "coverage": "apps/desktop/src/main/keptOut.ts (0.3.7 wave 3: «Отключить» revokes every credential the agent holds and keeps it out of every project until «Пустить снова», each the other's inverse as acts), apps/desktop/src/main/accessService.ts region `kept-out-door` (the kept-out agent refused before any admission write), apps/desktop/src/renderer/src/launch/JoinedAgents.tsx (in Агенты: «подключился сам», the proof line, «Отключить», «Отключён» with «Пустить снова»); the let-in itself is ADR-0164's admission (apps/desktop/src/main/projectAdmission.ts). Probed in apps/desktop/test/kept-out.test.mjs, apps/desktop/test/session-enroll-request.test.mjs and apps/desktop/src/renderer/src/launch/JoinedAgents.test.tsx. Not yet: the «Codex открыт в папке вне проектов» line in История (wave 4)",
+      "coverage": "apps/desktop/src/main/keptOut.ts (0.3.7 wave 3: «Отключить» revokes every credential the agent holds and keeps it out of every project until «Пустить снова», each the other's inverse as acts), apps/desktop/src/main/accessService.ts region `kept-out-door` (the kept-out agent refused before any admission write), apps/desktop/src/renderer/src/launch/JoinedAgents.tsx (in Агенты: «подключился сам», the proof line, «Отключить», «Отключён» with «Пустить снова»); the let-in itself is ADR-0164's admission (apps/desktop/src/main/projectAdmission.ts). Probed in apps/desktop/test/kept-out.test.mjs, apps/desktop/test/session-enroll-request.test.mjs and apps/desktop/src/renderer/src/launch/JoinedAgents.test.tsx. Not yet: the «Codex открыт в папке вне проектов» line in История (wave 4); 0.3.13 (CO-419): Агенты draws a joined agent in its one list and its «Отключить» or «Пустить снова» on the agent's own «Работа» (`apps/desktop/src/renderer/src/launch/AgentsScreen.tsx#AgentsScreen`, test `AgentsScreen.test.tsx`); `JoinedAgents.tsx` is no longer drawn on the place",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "a coding agent the person opened themselves works in its project without a question, and the person sees it and can take that back with one press.",
       "errors_recovery": "a disconnect that fails leaves the agent connected and says so on its row; nothing is half-revoked; «Повторить» on the line.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4154
+        "line": 4155
       }
     },
     {
@@ -35441,13 +35441,13 @@
         "SCR-88"
       ],
       "coverage": "the read is built in the main process (0.3.7 wave 2): `acts.history` in `apps/desktop/src/main/acts.ts` over `act.recorded@1` (`actLog.ts`), newest first, paged by a cursor, filtered by who (`actorKind`), project, what (`category`) and words, each row with its undo state; probed in `apps/desktop/test/acts.test.mjs` and, against the real journal, `acts-db.test.mjs`. The place on the rail is wave 3's minimum: `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` (newest first by day, who, the sentence, the project, «Отменить» or why not, «Ещё раньше», a failed read said with «Повторить»), probed in `HistoryScreen.test.tsx`. The filters, the detail pane and the agents' own acts (from their events) are wave 4's.; 2026-10-23 (OF-34): «Что делали агенты» under the acts, the journal's events (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx`); 0.3.12 S6 (CO-395): «Что делали агенты» as History, by day, each row naming who did it, no journal number (`apps/desktop/src/renderer/src/launch/HistoryScreen.tsx#AgentWork`, `apps/desktop/src/renderer/src/Feed.tsx#feedAct`, test `HistoryScreen.test.tsx`)",
-      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12 S6, CO-395: «Что делали агенты» by day, each row naming who did it). Not built in 0.3.12: История's filters (step 2) and detail pane (step 3); they moved to 0.3.13, carry-over row CO-414 (the triage of 2026-10-24). «Что делали агенты» also lists the person's own events as «Вы» and Fabric's (UX-16, CO-418, 0.3.13)",
+      "registry_status": "implemented in part (0.3.11, 2026-10-23; 0.3.12 S6, CO-395: «Что делали агенты» by day, each row naming who did it; 0.3.13, CO-414: the filters of step 2 and the detail pane of step 3, the amendment of 2026-10-26 below). Not built: «Что: решения» (decisions are not acts yet). «Что делали агенты» also lists the person's own events as «Вы» and Fabric's (UX-16, CO-418, 0.3.13)",
       "product_observation": "unobserved",
       "expected_result": "the cause of anything that went wrong can be found in История: who did what, when, on which project, and whether it can be taken back.",
       "errors_recovery": "a failed read keeps what was read before marked «как было в {время}» and says so above it; never an empty list for a failure.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4175
+        "line": 4176
       }
     },
     {
@@ -35466,7 +35466,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4197
+        "line": 4199
       }
     },
     {
@@ -35485,7 +35485,7 @@
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4217
+        "line": 4219
       }
     },
     {
@@ -35504,7 +35504,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4244
+        "line": 4246
       }
     },
     {
@@ -35525,7 +35525,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4267
+        "line": 4269
       }
     },
     {
@@ -35544,7 +35544,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4289
+        "line": 4291
       }
     },
     {
@@ -35563,7 +35563,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4316
+        "line": 4318
       }
     },
     {
@@ -35580,7 +35580,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4338
+        "line": 4340
       }
     },
     {
@@ -35597,7 +35597,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4361
+        "line": 4363
       }
     },
     {
@@ -35614,7 +35614,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4383
+        "line": 4385
       }
     },
     {
@@ -35633,7 +35633,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4406
+        "line": 4408
       }
     }
   ],
