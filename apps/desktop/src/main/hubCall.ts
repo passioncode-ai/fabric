@@ -72,6 +72,7 @@ import { answer, refusal } from './hubTools.ts'
 import type { VaultPort } from './observatoryVault.ts'
 import type { ForwardAnswer, ForwardRequest } from './productForwarder.ts'
 import { ops } from './opsSink.ts'
+import { OPERATOR_REFUSALS, operatorRecord } from './hubAuthority.ts'
 
 const TRACEPARENT = /^(?!ff)([0-9a-f]{2})-(?!0{32})([0-9a-f]{32})-(?!0{16})([0-9a-f]{16})-([0-9a-f]{2})$/
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000
@@ -254,6 +255,23 @@ function outcomeUnknown(callee: string, capability: string, cause: string, keyed
     `${capability} may have run in ${name}: the call may have reached it and no usable answer is available (${cause}). ${guard} Check its effect with ${name}'s own read tools (for mail, get_send_status) before you act again.`,
     { cause, mayHaveRun: true }
   )
+}
+
+/** A callee's refusal the hub passes back unchanged (C3.5), or null for any other tool error. */
+function operatorRefusal(content: Record<string, unknown> | undefined, secret: string, clientId: string): { code: string; message: string; data?: Record<string, unknown> } | null {
+  const error = content?.error as { code?: unknown; message?: unknown; data?: unknown } | undefined
+  if (!error || typeof error.code !== 'string' || !OPERATOR_REFUSALS.has(error.code)) return null
+  let copy: { message?: unknown; data?: unknown }
+  try {
+    copy = boundedProductOutput({ message: error.message, data: error.data }, secret, clientId) as { message?: unknown; data?: unknown }
+  } catch (e) {
+    // Past its bounds: not passed on. The hop answers the fixed product-error sentence instead, and the log says why.
+    ops.failed('hub.call.refusal', e, { code: error.code })
+    return null
+  }
+  const message = typeof copy.message === 'string' && copy.message.length > 0 ? copy.message : error.code
+  const data = copy.data && typeof copy.data === 'object' && !Array.isArray(copy.data) ? copy.data as Record<string, unknown> : undefined
+  return { code: error.code, message, ...(data ? { data } : {}) }
 }
 
 export function createAgentCall(deps: HubCallDeps) {
@@ -470,8 +488,11 @@ export function createAgentCall(deps: HubCallDeps) {
     effect.mayHaveRun = true // No exception from this point proves that the tool did not run.
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,
-      narrowing: cover.narrowing, narrowingSince: narrowingSinceOf(args.agentId), capability: args.capability, input: args.input, traceparent, signal
+      narrowing: cover.narrowing, narrowingSince: narrowingSinceOf(args.agentId), capability: args.capability, input: args.input, traceparent, signal,
+      ...(args.decision ? { decision: args.decision } : {}), ...(args.mandate ? { mandate: args.mandate } : {})
     })
+    // OA-6: when and where the operator's words were said, in the operations log only (never the span: OA-7).
+    const operator = operatorRecord({ decision: args.decision, mandate: args.mandate })
     const narrowing = cover.narrowing
     if (!forwarded.ok) {
       effect.mayHaveRun = forwarded.reached !== false
@@ -483,12 +504,24 @@ export function createAgentCall(deps: HubCallDeps) {
         ...base, outcome: hungUp ? 'cancelled' : 'failed', error_code: mayHaveRun ? 'outcome-unknown' : forwarded.code,
         grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs
       })
-      ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, may_have_run: mayHaveRun, product_said: productText, span_written: written }, ctx: { correlationId: ops.correlate() } })
+      ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, may_have_run: mayHaveRun, product_said: productText, span_written: written, ...(operator ? { operator } : {}) }, ctx: { correlationId: ops.correlate() } })
       if (mayHaveRun) return { answer: outcomeUnknown(args.agentId, args.capability, hungUp ? 'cancelled' : forwarded.code, Boolean(args.idempotencyKey)), keep: 'unknown' }
       if (hungUp) return { answer: refusal('cancelled', 'the call was cancelled by its caller before it reached the product; nothing was sent', { mayHaveRun: false }), keep: 'forget' }
       // Nothing left Fabric: a retry, with this key or another, must reach the product again.
       return before(refusal(forwarded.code, notSent(forwarded.code, args.agentId, args.capability), { mayHaveRun: false }))
     }
+    // #region hub-call-authority — docs: docs/evidence/plans/2026-10-26-0313-w4-contract-delta.md#3-every-decision-of-the-delta-as-it-touches-fabric
+    // C3.5: the callee's DL-19 refusals about the operator's decision (operator-decision-required, decision-invalid,
+    // human-step-required) come back unchanged with their data, never as a product error: they tell the agent what to
+    // ask the operator, or which step is the person's. Bounded and scrubbed like any product output. Such a refusal ran
+    // nothing (the callee refuses before it acts), so the key is forgotten and the same key may carry the decision.
+    const refused = forwarded.result.isError ? operatorRefusal(forwarded.result.structuredContent, secret.value, connection.client_id) : null
+    if (refused) {
+      const writtenRefusal = await span({ ...base, outcome: 'refused', error_code: refused.code, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
+      ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: 'refused', code: refused.code, wall_ms: forwarded.wallMs, span_written: writtenRefusal, ...(operator ? { operator } : {}) }, ctx: { correlationId: ops.correlate() } })
+      return { answer: refusal(refused.code, refused.message, refused.data), keep: 'forget' }
+    }
+    // #endregion hub-call-authority
     // Tool errors carry fixed text, never product debug output. Success is copied only after its
     // depth, node and byte bounds are checked, with credential echoes removed from every string.
     const output = forwarded.result.isError
@@ -496,7 +529,7 @@ export function createAgentCall(deps: HubCallDeps) {
       : boundedProductOutput(forwarded.result.structuredContent ?? { content: forwarded.result.content ?? [] }, secret.value, connection.client_id)
     const outcome = forwarded.result.isError ? 'failed' : 'succeeded'
     const written = await span({ ...base, outcome, error_code: forwarded.result.isError ? 'product-error' : null, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
-    ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: outcome, wall_ms: forwarded.wallMs, span_written: written }, ctx: { correlationId: ops.correlate() } })
+    ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: outcome, wall_ms: forwarded.wallMs, span_written: written, ...(operator ? { operator } : {}) }, ctx: { correlationId: ops.correlate() } })
     return { answer: answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true), keep: 'answer' }
   }
 
@@ -567,7 +600,10 @@ export function createAgentCall(deps: HubCallDeps) {
     const key = args.idempotencyKey
     const t = now()
     sweep(t)
-    const argsHash = sha256(canonical({ agentId: args.agentId, capability: args.capability, input: args.input }))
+    // A decision or a mandate is part of the call (C3.5): a resend that adds one is a different call, never answered
+    // from what was remembered of the same key without it.
+    const argsHash = sha256(canonical({ agentId: args.agentId, capability: args.capability, input: args.input,
+      ...(args.decision ? { decision: args.decision } : {}), ...(args.mandate ? { mandate: args.mandate } : {}) }))
     for (;;) {
       const seen = remembered.get(binding.id)?.get(key)
       if (!seen) break

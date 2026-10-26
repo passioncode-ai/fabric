@@ -27,6 +27,7 @@ import type { AccessService, HubPrincipal } from './accessService.ts'
 import type { BindingRow } from './accessStore.ts'
 import { ops } from './opsSink.ts'
 import type { EnrollAnswer } from './sessionEnroll.ts'
+import { readCallAuthority, type OperatorDecision, type OperatorMandate } from './hubAuthority.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
 export interface ToolAnswer {
@@ -49,6 +50,10 @@ export interface AgentCallArgs {
   capability: string
   input: Record<string, unknown>
   idempotencyKey?: string
+  /** The operator's decision on a relayed action (DEC-0121 AP-2), checked against its pinned shape; forwarded unchanged. */
+  decision?: OperatorDecision
+  /** The operator's mandate for the task (DEC-0125 MD-3), checked against its pinned shape; forwarded unchanged. */
+  mandate?: OperatorMandate
 }
 
 export interface HubToolDeps {
@@ -95,12 +100,22 @@ const bindingStatusSchema = z.object({ requestId: z.string().min(1).max(64), pol
 const IDEMPOTENCY_TEXT =
   'Your own id for this call. Sent again with the same arguments, the same key returns the first answer and sends nothing (while your grant still covers the call and the product is connected); the same key with other arguments is refused. If a call may have reached the product without an answer (a timeout, a cancel, a lost connection), the answer is outcome-unknown, and every later call with that key is refused outcome-unknown: it may have run, so Fabric never sends it again — and a new key would act twice. Check its effect with the product\'s own read tools (for mail, get_send_status) before you act again. Fabric retains up to 256 keys per binding and refuses fresh keys when full; answered keys expire after 24 hours, uncertain keys remain for this process lifetime. hub.json\'s startedAt and pid are observational restart markers, not agent identity or authority; a key from before a restart is unknown to Fabric, so reconcile its effect before retrying.'
 
+const DECISION_TEXT =
+  'The operator\'s decision on a relayed action of the callee, only for words the operator gave you about this action (fabric-agent-contract DEC-0121 AP-2 and AP-3, decision.schema.json): {by: "operator", via: "relayed-instruction", action: the action id, target?: the one object the operator named, instruction: their words verbatim (at most 500 characters), at: when they said it (RFC 3339), source?: {project, session or thread} where they said it when another of the operator\'s agents relayed them (DEC-0126)}. Fabric checks its shape, records when and where it was said, and forwards it unchanged to the callee as _meta.decision; whether it covers the call is the callee\'s to decide. A malformed one is refused decision-invalid and nothing is sent.'
+const MANDATE_TEXT =
+  'The operator\'s mandate for the task this call serves (DEC-0125, mandate.schema.json): {kind: "mandate/1", by: "operator", task, instruction, at, expiresAt (at most 7 days after at), scope: {effects, capabilities?, actions?, perCallMaxUsd?, projects?}, chain: the agents that held it, you first or after the agent that handed it to you, and the callee appended last (at most four), source?}. Fabric checks its shape and forwards it unchanged as _meta.mandate; the callee decides what it covers. A malformed one is refused decision-invalid and nothing is sent.'
+
 const callSchema = z
   .object({
     agentId: z.string().regex(AGENT_ID_PATTERN).describe('The callee: a connected product, e.g. fabric-inbox'),
     capability: z.string().regex(CAPABILITY_PATTERN).describe('The product tool to call'),
     input: z.record(z.string(), z.unknown()).describe('The tool arguments, exactly as the product takes them'),
-    idempotencyKey: z.string().min(1).max(256).optional().describe(IDEMPOTENCY_TEXT)
+    idempotencyKey: z.string().min(1).max(256).optional().describe(IDEMPOTENCY_TEXT),
+    // CO-434, CO-435: the two members the pinned `interop-agent-call.schema.json` adds. Declared open here and read
+    // against their pinned shape in the handler (`hubAuthority.ts#readCallAuthority`), so a malformed one is the
+    // typed `decision-invalid` the contract names rather than the SDK's untyped input error. Nothing else is admitted.
+    decision: z.unknown().optional().describe(DECISION_TEXT),
+    mandate: z.unknown().optional().describe(MANDATE_TEXT)
   })
   .strict()
 
@@ -248,13 +263,20 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       {
         title: 'Call a connected product through Fabric',
         description:
-          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. The answer is the interop result envelope, the product\'s output in `output` (isError when the product answered with an error); a refusal is isError with {error: {code, message, data?}}. Without a grant the code is access-required, carrying the fabric.access.request arguments to ask with. Cancelling your request stops the call if it has not reached the product yet. A call that may have reached the product without an answer is outcome-unknown (data.mayHaveRun): do not send it again — not with the same idempotencyKey (refused) and not with a new one (it would act twice); check its effect with the product\'s read tools first.',
+          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. The answer is the interop result envelope, the product\'s output in `output` (isError when the product answered with an error); a refusal is isError with {error: {code, message, data?}}. Without a grant the code is access-required, carrying the fabric.access.request arguments to ask with. Cancelling your request stops the call if it has not reached the product yet. A call that may have reached the product without an answer is outcome-unknown (data.mayHaveRun): do not send it again — not with the same idempotencyKey (refused) and not with a new one (it would act twice); check its effect with the product\'s read tools first. The callee\'s own refusals operator-decision-required, decision-invalid and human-step-required come back unchanged with their data: ask the operator about exactly what they name and call again with their decision or a mandate that covers it (such a refusal ran nothing, so the same idempotencyKey may carry it); for human-step-required, hand the person data.url.',
         inputSchema: callSchema
       },
       async (args, extra) =>
         guard('agent.call', async () => {
           if (!deps.call) return refusal('hub-unavailable', 'this hub forwards no calls yet')
-          return deps.call(binding, args as AgentCallArgs, (extra as { _meta?: Record<string, unknown> })._meta, (extra as { signal?: AbortSignal }).signal)
+          // #region hub-call-authority — docs: docs/evidence/plans/2026-10-26-0313-w4-contract-delta.md#3-every-decision-of-the-delta-as-it-touches-fabric
+          const { decision, mandate, ...rest } = args as Record<string, unknown>
+          const read = readCallAuthority({ decision, mandate })
+          if (!read.ok)
+            return refusal('decision-invalid', `The ${read.detail === 'decision-malformed' ? 'decision' : 'mandate'} does not match its schema (${read.detail === 'decision-malformed' ? 'decision.schema.json' : 'mandate.schema.json'}). Nothing was sent. Correct it from the operator's own words, or ask the operator.`, { detail: read.detail })
+          const call = { ...rest, ...read.authority } as AgentCallArgs
+          // #endregion hub-call-authority
+          return deps.call(binding, call, (extra as { _meta?: Record<string, unknown> })._meta, (extra as { signal?: AbortSignal }).signal)
         })
     )
   }

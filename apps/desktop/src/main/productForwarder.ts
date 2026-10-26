@@ -54,6 +54,10 @@ export interface ForwardRequest {
   timeoutMs?: number
   /** The caller's own signal (the agent's MCP request): when it fires, the exchange is abandoned (ER-13). */
   signal?: AbortSignal
+  /** The operator's decision (DEC-0121 AP-2), sent unchanged as the tool call's `_meta.decision`. */
+  decision?: Record<string, unknown>
+  /** The operator's mandate (DEC-0125 MD-3), sent unchanged as the tool call's `_meta.mandate`. */
+  mandate?: Record<string, unknown>
 }
 
 export interface ForwardedResult {
@@ -173,7 +177,8 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     }
     callSent = true
     const result = (await client.callTool(
-      { name: req.capability, arguments: req.input, _meta: { traceparent: req.traceparent } },
+      // C3.5: a T0 or T1 origin's decision and mandate reach the callee as the hop's `_meta`, unchanged (CO-434, CO-435).
+      { name: req.capability, arguments: req.input, _meta: { traceparent: req.traceparent, ...(req.decision ? { decision: req.decision } : {}), ...(req.mandate ? { mandate: req.mandate } : {}) } },
       undefined,
       { timeout, signal: controller.signal }
     )) as ForwardedResult
